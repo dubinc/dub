@@ -13,8 +13,8 @@ export default function LinkCard({
   url: string;
 }) {
   const shortURL = `${
-    process.env.VERCEL === "1"
-      ? process.env.VERCEL_URL
+    process.env.NEXT_PUBLIC_VERCEL === "1"
+      ? process.env.NEXT_PUBLIC_VERCEL_URL
       : "http://localhost:3000"
   }/${key}`; // if you're self-hosting you can just replace this with your own domain
 
