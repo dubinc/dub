@@ -13,9 +13,7 @@ export default function LinkCard({
   url: string;
 }) {
   const shortURL = `${
-    process.env.NEXT_PUBLIC_DEMO_APP === "1"
-      ? "https://dub.sh"
-      : process.env.VERCEL === "1"
+    process.env.VERCEL === "1"
       ? process.env.VERCEL_URL
       : "http://localhost:3000"
   }/${key}`; // if you're self-hosting you can just replace this with your own domain
