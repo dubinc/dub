@@ -1,27 +1,38 @@
-# Next.js + Tailwind CSS Example
+<p align="center">
+  <a href="https://dub.sh">
+    <img src="https://assets.vercel.com/image/upload/v1588805858/repositories/vercel/logo.png" height="96">
+    <h3 align="center">Dub</h3>
+  </a>
+</p>
 
-This example shows how to use [Tailwind CSS](https://tailwindcss.com/) [(v3.0)](https://tailwindcss.com/blog/tailwindcss-v3) with Next.js. It follows the steps outlined in the official [Tailwind docs](https://tailwindcss.com/docs/guides/nextjs).
+<p align="center">
+  An open-source link shortener built with Vercel Edge Functions and Upstash.
+</p>
 
-## Deploy your own
+<p align="center">
+  <a href="#introduction"><strong>Introduction</strong></a> ·
+  <a href="#deploy-your-own"><strong>Deploy Your Own</strong></a> ·
+  <a href="#contributing"><strong>Contributing</strong></a>
+</p>
+<br/>
 
-Deploy the example using [Vercel](https://vercel.com?utm_source=github&utm_medium=readme&utm_campaign=next-example) or preview live with [StackBlitz](https://stackblitz.com/github/vercel/next.js/tree/canary/examples/with-tailwindcss)
+## Introduction
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/git/external?repository-url=https://github.com/vercel/next.js/tree/canary/examples/with-tailwindcss&project-name=with-tailwindcss&repository-name=with-tailwindcss)
+Dub is an open-source link shortener built with Vercel Edge Functions and Upstash.
 
-## How to use
+## Deploy Your Own
 
-Execute [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app) with [npm](https://docs.npmjs.com/cli/init), [Yarn](https://yarnpkg.com/lang/en/docs/cli/create/), or [pnpm](https://pnpm.io) to bootstrap the example:
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fsteven-tey%2Fdub&demo-title=Dub%20-%20Open-Source%20Link%20Shortener&demo-description=An%20open-source%20link%20shortener%20built%20with%20Vercel%20Edge%20Functions%20and%20Upstash.&demo-url=https%3A%2F%2Fdub.sh&demo-image=https%3A%2F%2Fdub.sh%2Fthumbnail.png&integration-ids=oac_V3R1GIpkoJorr6fqyiwdhl17)
 
-```bash
-npx create-next-app --example with-tailwindcss with-tailwindcss-app
-```
+## Contributing
 
-```bash
-yarn create next-app --example with-tailwindcss with-tailwindcss-app
-```
+- [Open an issue](https://github.com/steven-tey/dub/issues) if you believe you've encountered a bug.
+- Make a pull request to add new features/make quality-of-life improvements/fix bugs.
 
-```bash
-pnpm create next-app --example with-tailwindcss with-tailwindcss-app
-```
+## Author
 
-Deploy it to the cloud with [Vercel](https://vercel.com/new?utm_source=github&utm_medium=readme&utm_campaign=next-example) ([Documentation](https://nextjs.org/docs/deployment)).
+- Steven Tey ([@steventey](https://twitter.com/steventey))
+
+## License
+
+The MIT License.
