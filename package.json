@@ -6,9 +6,11 @@
     "start": "next start"
   },
   "dependencies": {
+    "@upstash/redis": "^1.12.0",
     "next": "latest",
     "react": "18.1.0",
-    "react-dom": "18.1.0"
+    "react-dom": "18.1.0",
+    "swr": "^1.3.0"
   },
   "devDependencies": {
     "@types/node": "17.0.35",
