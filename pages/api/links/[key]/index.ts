@@ -14,8 +14,7 @@ export default async function handler(req: NextRequest) {
       return NextResponse.redirect(target, {
         status: 308,
         headers: {
-          "cache-control":
-            "public, s-maxage=31536000, stale-while-revalidate=31536000",
+          "cache-control": "public, s-maxage=31536000",
         }, // cache for 1 year only if there is a valid target for key
       });
     } else {
