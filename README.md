@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-  An open-source link shortener built with Vercel Edge Functions and Upstash.
+  An open-source link shortener built with Vercel Edge Functions and Upstash Redis.
 </p>
 
 <p align="center">
@@ -18,7 +18,7 @@
 
 ## Introduction
 
-Dub is an open-source link shortener built with Vercel Edge Functions and Upstash.
+Dub is an open-source link shortener built with Vercel Edge Functions and Upstash Redis.
 
 ## Deploy Your Own
 
@@ -27,7 +27,7 @@ Dub is an open-source link shortener built with Vercel Edge Functions and Upstas
 ## Contributing
 
 - [Open an issue](https://github.com/steven-tey/dub/issues) if you believe you've encountered a bug.
-- Make a pull request to add new features/make quality-of-life improvements/fix bugs.
+- Make a [pull request](https://github.com/steven-tey/dub/pull) to add new features/make quality-of-life improvements/fix bugs.
 
 ## Author
 

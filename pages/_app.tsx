@@ -9,7 +9,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         <title>Dub - Open-Source Link Shortener</title>
         <meta
           name="description"
-          content="An open-source link shortener built with Vercel Edge Functions and Upstash."
+          content="An open-source link shortener built with Vercel Edge Functions and Upstash Redis."
         />
         <link rel="icon" href="/favicon.ico" />
         <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
@@ -29,7 +29,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         <meta name="twitter:title" content="Dub - Open-Source Link Shortener" />
         <meta
           name="twitter:description"
-          content="An open-source link shortener built with Vercel Edge Functions and Upstash."
+          content="An open-source link shortener built with Vercel Edge Functions and Upstash Redis."
         />
         <meta name="twitter:image" content="https://dub.sh/thumbnail.png" />
       </Head>

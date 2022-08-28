@@ -45,19 +45,17 @@ export default function Home() {
               setUrl((e.target as HTMLInputElement).value);
             }}
             required
-            className="shadow-sm focus:outline-none focus:ring-0 border focus:border-black block w-full p-2 text-sm border-gray-300 rounded-md pl-3 pr-12"
+            className="peer shadow-sm focus:outline-none focus:ring-0 border focus:border-black block w-full p-2 text-sm border-gray-200 rounded-md pl-3 pr-12"
           />
-          <div className="absolute inset-y-0 right-0 flex py-1.5 pr-1.5">
-            <button
-              type="submit"
-              disabled={saving}
-              className={`${
-                saving ? "text-gray-200 cursor-not-allowed" : ""
-              } inline-flex items-center border border-gray-200 rounded px-2 text-sm font-sans font-medium text-gray-400 hover:text-gray-700`}
-            >
-              {saving ? <LoadingDots color="#e5e7eb" /> : <p>↵</p>}
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={saving}
+            className={`${
+              saving ? "cursor-not-allowed" : ""
+            } absolute inset-y-0 right-0 flex my-1.5 mr-1.5 items-center border border-gray-200 hover:border-gray-700 peer-focus:border-gray-700 rounded px-2 text-sm font-sans font-medium text-gray-400 hover:text-gray-700 peer-focus:text-gray-700`}
+          >
+            {saving ? <LoadingDots color="#e5e7eb" /> : <p>↵</p>}
+          </button>
         </div>
       </form>
 

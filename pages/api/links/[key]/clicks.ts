@@ -1,6 +1,5 @@
 import type { NextRequest, NextResponse } from "next/server";
 import { redis } from "@/lib/redis";
-import { customAlphabet } from "nanoid";
 
 export const config = {
   runtime: "experimental-edge",
