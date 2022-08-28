@@ -1,21 +1,16 @@
-import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { redis } from "@/lib/redis";
 
 export const config = {
   runtime: "experimental-edge",
 };
 
-export default async function handler(
-  req: NextRequest,
-  ev: NextFetchEvent,
-  res: NextResponse
-) {
+export default async function handler(req: NextRequest) {
   if (req.method === "GET") {
     const url = req.nextUrl.pathname;
     const key = url.split("/")[1]; // pathname is `/[key]` because we rewrote with middleware
     const target = await redis.hget<string>("links", key); // get the target url from redis
     if (target) {
-      ev.waitUntil(redis.hincrby("stats", key, 1)); // increment click count
       return NextResponse.redirect(target, {
         status: 308,
         headers: {
