@@ -17,6 +17,7 @@ export default async function handler(
     if (target) {
       ev.waitUntil(redis.hincrby("stats", key, 1)); // increment click count
       return NextResponse.redirect(target, {
+        status: 308,
         headers: {
           "cache-control":
             "public, s-maxage=31536000, stale-while-revalidate=31536000",
