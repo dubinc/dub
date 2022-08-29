@@ -36,15 +36,7 @@ export const SignIn = () => {
           <h2 className="mt-6 text-center text-3xl tracking-tight font-bold text-gray-900">
             Sign in to your account
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Or{" "}
-            <a
-              href="#"
-              className="font-medium text-rose-600 hover:text-rose-500"
-            >
-              start your 14-day free trial
-            </a>
-          </p>
+          
         </div>
 
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
@@ -95,7 +87,7 @@ export const SignIn = () => {
                     <div className="text-sm">
                       or{" "}
                       <a
-                        href="#"
+                        href="https://accounts.capable.cobra-68.lcl.dev/preview/sign-up"
                         className="font-medium text-rose-600 hover:text-rose-500"
                       >
                         Sign up
