@@ -1,4 +1,4 @@
-import type { NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { redis } from "@/lib/redis";
 import { customAlphabet } from "nanoid";
 
@@ -10,6 +10,9 @@ export default async function handler(req: NextRequest) {
   if (req.method === "POST") {
     const url = req.nextUrl.searchParams.get("url");
     const hostname = req.nextUrl.searchParams.get("hostname");
+    if (!url || !hostname) {
+      return new Response(`Missing url or hostname`, { status: 400 });
+    }
     const nanoid = customAlphabet(
       "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
       7
