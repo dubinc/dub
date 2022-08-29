@@ -9,14 +9,13 @@ export const config = {
 export default async function handler(req: NextRequest) {
   if (req.method === "POST") {
     const url = req.nextUrl.searchParams.get("url");
+    const hostname = req.nextUrl.searchParams.get("hostname");
     const nanoid = customAlphabet(
       "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
       7
-    ); // 7-character random string (similar to bit.ly)
+    ); // 7-character random string
     const key = nanoid(); //
-    const response = await redis.hset("links", {
-      [key]: url,
-    });
+    const response = await redis.hsetnx(`${hostname}:links`, key, url);
     if (response === 1) {
       return new Response(
         JSON.stringify({

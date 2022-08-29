@@ -36,7 +36,7 @@ export default function Home() {
         onSubmit={async (e) => {
           e.preventDefault();
           setSaving(true);
-          fetch(`/api/links?url=${url}`, {
+          fetch(`/api/links?url=${url}&hostname=dub.sh`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
