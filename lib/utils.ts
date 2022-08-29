@@ -1,4 +1,17 @@
-export default function nFormatter(num: number, digits?: number) {
+export async function fetcher<JSON = any>(
+  input: RequestInfo,
+  init?: RequestInit
+): Promise<JSON> {
+  const res = await fetch(input, init);
+
+  if (!res.ok && res.status === 401) {
+    throw new Error("Unauthorized");
+  }
+
+  return res.json();
+}
+
+export function nFormatter(num: number, digits?: number) {
   const lookup = [
     { value: 1, symbol: "" },
     { value: 1e3, symbol: "K" },

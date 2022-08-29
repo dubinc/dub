@@ -1,9 +1,9 @@
 import { useState } from "react";
-import useLocalStorage from "@/lib/use-local-storage";
-import VercelEdgeFunctions from "@/components/vercel-edge-functions";
-import LinkCard from "@/components/link-card";
-import LoadingDots from "@/components/loading-dots";
-import PlaceholderCard from "@/components/placeholder-card";
+import useLocalStorage from "@/lib/hooks/use-local-storage";
+import VercelEdgeFunctions from "@/components/home/vercel-edge-functions";
+import LinkCard from "@/components/home/link-card";
+import PlaceholderCard from "@/components/home/placeholder-card";
+import LoadingDots from "@/components/shared/loading-dots";
 
 export default function Home() {
   const [saving, setSaving] = useState(false);

@@ -6,6 +6,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@headlessui/react": "^1.6.6",
     "@upstash/redis": "^1.12.0",
     "next": "latest",
     "react": "18.1.0",

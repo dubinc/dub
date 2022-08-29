@@ -17,7 +17,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
 
   const path = req.nextUrl.pathname;
   const key = path.split("/")[1];
-  if (key.length === 0) {
+  if (hostname === "dub.sh" && key.length === 0) {
     return NextResponse.next();
   } // skip root
 
