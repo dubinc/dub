@@ -75,7 +75,7 @@ export default function Home() {
       </form>
 
       <div className="grid gap-2 mt-3 w-96">
-        {hashes.slice(0, 2).map(({ key, url }) => (
+        {hashes.map(({ key, url }) => (
           <LinkCard key={key} _key={key} url={url} />
         ))}
       </div>
