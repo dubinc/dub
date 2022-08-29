@@ -3,6 +3,7 @@ import useLocalStorage from "@/lib/use-local-storage";
 import VercelEdgeFunctions from "@/components/vercel-edge-functions";
 import LinkCard from "@/components/link-card";
 import LoadingDots from "@/components/loading-dots";
+import PlaceholderCard from "@/components/placeholder-card";
 
 export default function Home() {
   const [saving, setSaving] = useState(false);
@@ -13,7 +14,7 @@ export default function Home() {
   );
 
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen">
+    <main className="my-20 max-w-md mx-auto">
       <div className="my-5 text-center max-w-md">
         <h1 className="text-6xl font-bold">Dub</h1>
         <p className="text-gray-600 text-xl mt-5">
@@ -32,7 +33,6 @@ export default function Home() {
         </p>
       </div>
       <form
-        className="w-96"
         onSubmit={async (e) => {
           e.preventDefault();
           setSaving(true);
@@ -74,10 +74,14 @@ export default function Home() {
         </div>
       </form>
 
-      <div className="grid gap-2 mt-3 w-96">
-        {hashes.map(({ key, url }) => (
-          <LinkCard key={key} _key={key} url={url} />
-        ))}
+      <div className="grid gap-2 mt-3">
+        {hashes.length > 0
+          ? hashes.map(({ key, url }) => (
+              <LinkCard key={key} _key={key} url={url} />
+            ))
+          : Array.from({ length: 3 }).map((_, i) => (
+              <PlaceholderCard key={i} />
+            ))}
       </div>
     </main>
   );
