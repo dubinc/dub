@@ -2,7 +2,21 @@ import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 import Head from "next/head";
 
+import {
+  ClerkProvider,
+  RedirectToSignIn,
+  SignedIn,
+  SignedOut,
+  SignIn,
+} from "@clerk/nextjs";
+import { useRouter } from "next/router";
+
 function MyApp({ Component, pageProps }: AppProps) {
+  const publicPages = [
+    "/",
+  ];
+  const router = useRouter();
+  const isPublicPage = publicPages.includes(router.pathname);
   return (
     <>
       <Head>
@@ -33,7 +47,20 @@ function MyApp({ Component, pageProps }: AppProps) {
         />
         <meta name="twitter:image" content="https://dub.sh/thumbnail.png" />
       </Head>
-      <Component {...pageProps} />
+      <ClerkProvider {...pageProps}>
+        {isPublicPage ? <Component {...pageProps} /> : (
+          <>
+            <SignedIn>
+              <Component {...pageProps} />
+            </SignedIn>
+            <SignedOut>
+              <div className="flex items-center justify-center min-h-screen">
+                <SignIn />
+              </div>
+            </SignedOut>
+          </>
+        )}
+      </ClerkProvider>
     </>
   );
 }

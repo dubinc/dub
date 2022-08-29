@@ -17,7 +17,9 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
 
   const path = req.nextUrl.pathname;
   const key = path.split("/")[1];
-  if (key.length === 0) {
+
+  // hack to make auth work as a demo
+  if (key.length === 0 || path === "/profile") {
     return NextResponse.next();
   } // skip root
 
