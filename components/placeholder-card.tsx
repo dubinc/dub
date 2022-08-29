@@ -1,14 +1,14 @@
 export default function PlaceholderCard() {
   return (
-    <div className="flex items-center border border-gray-200 hover:border-black p-3 rounded-md transition-all">
-      <div className="w-10 h-10 rounded-full mr-2 bg-gray-200 animate-pulse" />
+    <div className="flex items-center border border-gray-200 dark:border-gray-600 hover:border-black dark:hover:border-white p-3 rounded-md transition-all">
+      <div className="w-10 h-10 rounded-full mr-2 bg-gray-200 dark:bg-gray-600 animate-pulse" />
       <div>
         <div className="flex items-center space-x-2 mb-2.5">
-          <div className="w-28 h-6 rounded-md bg-gray-200 animate-pulse" />
-          <div className="w-6 h-6 rounded-full bg-gray-200 animate-pulse" />
-          <div className="w-20 h-6 rounded-md bg-gray-200 animate-pulse" />
+          <div className="w-28 h-6 rounded-md bg-gray-200 dark:bg-gray-600 animate-pulse" />
+          <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-600 animate-pulse" />
+          <div className="w-20 h-6 rounded-md bg-gray-200 dark:bg-gray-600 animate-pulse" />
         </div>
-        <div className="w-72 h-4 rounded-md bg-gray-200 animate-pulse" />
+        <div className="w-72 h-4 rounded-md bg-gray-200 dark:bg-gray-600 animate-pulse" />
       </div>
     </div>
   );

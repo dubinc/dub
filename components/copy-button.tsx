@@ -9,12 +9,12 @@ export default function CopyButton({ url }: { url: string }) {
         navigator.clipboard.writeText(url);
         setTimeout(() => setCopied(false), 3000);
       }}
-      className="group p-1.5 rounded-full bg-gray-100 hover:bg-blue-100 transition-all"
+      className="group p-1.5 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-blue-100 dark:hover:bg-blue-700 transition-all"
     >
       {copied ? (
-        <TickIcon className="text-gray-500 group-hover:text-blue-800 transition-all" />
+        <TickIcon className="text-gray-500 dark:text-white group-hover:text-blue-800 dark:group-hover:text-white transition-all" />
       ) : (
-        <CopyIcon className="text-gray-500 group-hover:text-blue-800 transition-all" />
+        <CopyIcon className="text-gray-500 dark:text-white group-hover:text-blue-800 dark:group-hover:text-white transition-all" />
       )}
     </button>
   );
