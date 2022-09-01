@@ -16,7 +16,7 @@ export default function StatsModal({
 }) {
   return (
     <Modal showModal={showStatsModal} setShowModal={setShowStatsModal}>
-      <div className="inline-block w-full max-w-screen-xl max-h-[calc(100vh-100px)] py-8 px-4 sm:px-16 overflow-scroll text-center align-middle transform bg-white dark:bg-black border dark:border-gray-600 shadow-xl dark:shadow-none rounded-2xl">
+      <div className="inline-block w-full max-w-screen-xl max-h-[calc(100vh-100px)] overflow-scroll text-center align-middle transform border border-gray-200 dark:border-gray-600 shadow-xl dark:shadow-none rounded-2xl">
         <Stats _key={_key} stats={stats} />
       </div>
     </Modal>

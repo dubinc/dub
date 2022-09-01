@@ -15,6 +15,7 @@ import { intervalData } from "@/lib/stats";
 import { nFormatter } from "@/lib/utils";
 import styles from "./index.module.css";
 import { motion } from "framer-motion";
+import { useRouter } from "next/router";
 
 const LEFT_AXIS_WIDTH = 30;
 const CHART_MAX_HEIGHT = 400;
@@ -42,7 +43,7 @@ const StatsChart = ({
 
   const [CHART_WIDTH, CHART_HEIGHT] = useMemo(() => {
     const width = screenWidth
-      ? Math.min(screenWidth * 0.8, CHART_MAX_WIDTH)
+      ? Math.min(screenWidth * 0.7, CHART_MAX_WIDTH)
       : CHART_MAX_WIDTH;
     const height = screenHeight
       ? Math.min(screenHeight * 0.4, CHART_MAX_HEIGHT)
@@ -50,7 +51,8 @@ const StatsChart = ({
     return [width, height];
   }, [screenWidth, screenHeight]);
 
-  const [interval, setInterval] = useState<IntervalProps>("7d");
+  const router = useRouter();
+  const interval = (router.query.period as IntervalProps) || "7d";
 
   const { clicksData, geoData } = useMemo(() => {
     return processData(data, interval);
@@ -87,13 +89,14 @@ const StatsChart = ({
     // with page coordinates which should be updated on scroll. consider using
     // Tooltip or TooltipWithBounds if you don't need to render inside a Portal
     scroll: true,
+    debounce: { scroll: 500, resize: 2000 },
   });
 
   let tooltipTimeout: number | undefined;
 
   return (
-    <div style={{ width: CHART_WIDTH }}>
-      <figure className="flex my-10">
+    <div className="bg-white dark:bg-black p-10 pr-20 shadow-lg dark:shadow-none rounded-lg border border-gray-100 dark:border-gray-600">
+      <figure className="flex my-10" style={{ width: CHART_WIDTH }}>
         <svg ref={containerRef} height={CHART_HEIGHT} width={LEFT_AXIS_WIDTH}>
           <AxisLeft
             hideAxisLine
@@ -162,6 +165,7 @@ const StatsChart = ({
                   // is what containerRef is set to in this example.
                   const eventSvgCoords = localPoint(event) ?? { x: 0, y: 0 };
                   const left = barX + barWidth / 2 - 81;
+                  console.log(left);
                   showTooltip({
                     tooltipData: {
                       start,

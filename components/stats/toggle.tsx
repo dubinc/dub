@@ -4,8 +4,8 @@ import { PERIODS } from "@/lib/constants";
 export default function Toggle() {
   const router = useRouter();
   return (
-    <div className="w-3/4 flex justify-end">
-      <div className="flex space-x-1 p-1 rounded-md shadow-md dark:shadow-none border border-gray-100 dark:border-gray-600">
+    <div className="flex justify-end mb-10">
+      <div className="flex space-x-1 p-1 rounded-md shadow-md dark:shadow-none border bg-white dark:bg-black border-gray-100 dark:border-gray-600">
         {PERIODS.map((period) => (
           <button
             key={period}

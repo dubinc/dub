@@ -10,8 +10,7 @@
       "@/components/*": ["components/*"],
       "@/pages/*": ["pages/*"],
       "@/lib/*": ["lib/*"],
-      "@/styles/*": ["styles/*"],
-      "@/data/*": ["data/*"]
+      "@/styles/*": ["styles/*"]
     },
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
