@@ -13,7 +13,7 @@ export default function Toggle() {
               router.query.period === period
                 ? "bg-blue-50 dark:bg-gray-600"
                 : ""
-            } w-14 py-1.5 text-sm dark:text-white rounded-md transition-all`}
+            } w-14 py-1.5 text-sm dark:text-white rounded-md`}
             onClick={() => {
               router.push(
                 {
@@ -23,7 +23,7 @@ export default function Toggle() {
                   },
                 },
                 `/stats/${encodeURI(
-                  router.query.stats as string
+                  (router.query.stats || router.query.key) as string
                 )}?period=${period}`,
                 { shallow: true }
               );

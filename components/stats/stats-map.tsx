@@ -10,8 +10,8 @@ import styles from "./index.module.css";
 import * as topojson from "topojson-client";
 import topology from "@/data/world-topo.json";
 
-const CHART_MAX_HEIGHT = 400;
-const CHART_MAX_WIDTH = 800;
+const CHART_MAX_HEIGHT = 200;
+const CHART_MAX_WIDTH = 400;
 
 interface FeatureShape {
   type: "Feature";
