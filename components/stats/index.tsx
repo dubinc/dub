@@ -1,6 +1,7 @@
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
 import { RawStatsProps } from "@/lib/stats";
+import Toggle from "@/components/stats/toggle";
 import StatsChart from "@/components/stats/stats-chart";
 const StatsMap = dynamic(() => import("@/components/stats/stats-map"), {
   suspense: true,
@@ -15,6 +16,7 @@ export default function Stats({
 }) {
   return (
     <div className="flex flex-col justify-center items-center my-36">
+      <Toggle />
       {/* @ts-ignore */}
       <StatsChart _key={_key} stats={stats} />
       <div className="h-20" />

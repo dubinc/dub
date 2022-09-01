@@ -68,7 +68,6 @@ const StatsChart = ({
     return scaleLinear({
       range: [CHART_HEIGHT, 0],
       domain: [0, rangeFormatter(Math.max(...clicksData.map((d) => d.count)))],
-      //   domain: [0, rangeFormatter(100)],
       nice: true,
       round: true,
     });
@@ -94,23 +93,6 @@ const StatsChart = ({
 
   return (
     <div style={{ width: CHART_WIDTH }}>
-      <div className="w-full flex justify-end">
-        <div className="flex space-x-1 p-1 rounded-md shadow-md border-gray-100">
-          {["1h", "24h", "7d", "30d"].map((int) => (
-            <button
-              key={int}
-              className={`${
-                interval === int
-                  ? "border-blue-600 bg-blue-50"
-                  : "border-transparent"
-              } w-14 py-1.5 border text-sm rounded-md transition-all`}
-              onClick={() => setInterval(int as IntervalProps)}
-            >
-              {int}
-            </button>
-          ))}
-        </div>
-      </div>
       <figure className="flex my-10">
         <svg ref={containerRef} height={CHART_HEIGHT} width={LEFT_AXIS_WIDTH}>
           <AxisLeft
@@ -202,13 +184,13 @@ const StatsChart = ({
             className={styles.tooltip}
           >
             <div className="text-center">
-              <h3 className="text-black my-1">
+              <h3 className="text-black dark:text-white my-1">
                 <span className="text-2xl font-semibold">
                   {nFormatter(tooltipData.count)}
                 </span>{" "}
                 clicks
               </h3>
-              <p className="text-xs text-gray-600">
+              <p className="text-xs text-gray-600 dark:text-gray-400">
                 {intervalData[interval].format(tooltipData.start)} -{" "}
                 {intervalData[interval].format(tooltipData.end)}
               </p>
