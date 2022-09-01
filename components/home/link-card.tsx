@@ -5,7 +5,7 @@ import CopyButton from "@/components/shared/copy-button";
 import LoadingDots from "@/components/shared/loading-dots";
 import { useRouter } from "next/router";
 import useSWR from "swr";
-import { fetcher, nFormatter } from "@/lib/utils";
+import { fetcher, nFormatter, linkConstructor } from "@/lib/utils";
 import Link from "next/link";
 
 export default function LinkCard({
@@ -15,13 +15,7 @@ export default function LinkCard({
   _key: string;
   url: string;
 }) {
-  const shortURL = `${
-    process.env.NEXT_PUBLIC_DEMO_APP === "1"
-      ? "https://dub.sh"
-      : process.env.NEXT_PUBLIC_VERCEL === "1"
-      ? process.env.NEXT_PUBLIC_VERCEL_URL
-      : "http://localhost:3000"
-  }/${key}`; // if you're self-hosting you can just replace this with your own domain
+  const shortURL = linkConstructor(key);
 
   const urlHostname = new URL(url).hostname;
 
@@ -59,6 +53,8 @@ export default function LinkCard({
       className="flex items-center border border-gray-200 dark:border-gray-600 hover:border-black dark:hover:border-white p-3 rounded-md transition-all"
     >
       <StatsModal
+        _key={stats as string}
+        stats={[]}
         showStatsModal={showStatsModal}
         setShowStatsModal={setShowStatsModal}
       />

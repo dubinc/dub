@@ -75,6 +75,7 @@ export default function Home() {
       </form>
 
       <div className="grid gap-2 mt-3">
+        <LinkCard _key={"github"} url={"https://github.com/steven-tey/dub"} />
         {hashes.length > 0
           ? hashes.map(({ key, url }) => (
               <LinkCard key={key} _key={key} url={url} />
