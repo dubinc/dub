@@ -7,8 +7,11 @@ export interface RawStatsProps {
 }
 
 export interface StatsProps {
+  key: string;
+  totalClicks: number;
   clicksData: { start: number; end: number; count: number }[];
   geoData: { country: string; count: number }[];
+  browserData: { browser: string; count: number }[];
 }
 
 export type IntervalProps = "1h" | "24h" | "7d" | "30d";
@@ -71,10 +74,11 @@ const getTimeIntervals = (interval: IntervalProps) => {
 };
 
 export function processData(
+  key: string,
   data: RawStatsProps[],
-  interval: IntervalProps
+  interval?: IntervalProps // if undefined, 24h is used
 ): StatsProps {
-  const { startTimestamp, timeIntervals } = getTimeIntervals(interval);
+  const { timeIntervals } = getTimeIntervals(interval || "7d");
 
   const clicksData = timeIntervals.map((interval) => ({
     ...interval,
@@ -83,17 +87,16 @@ export function processData(
     ).length,
   }));
 
-  const filteredData = data.filter((d) => d.timestamp > startTimestamp);
   const geoData =
-    filteredData.length > 0
-      ? filteredData.reduce((acc, d) => {
-          const { country } = d.geo!;
+    data.length > 0
+      ? data.reduce((acc, d) => {
+          const country = d.geo?.country;
           // @ts-ignore
           const count = acc[country] || 0;
           // @ts-ignore
           acc[country] = count + 1;
           return acc;
-        })
+        }, {})
       : {};
 
   const geoDataArray = Object.entries(geoData).map(([country, count]) => ({
@@ -101,20 +104,32 @@ export function processData(
     count,
   }));
 
+  const browserData =
+    data.length > 0
+      ? data.reduce((acc, d) => {
+          const browser = d.ua?.browser?.name;
+          // @ts-ignore
+          const count = acc[browser] || 0;
+          // @ts-ignore
+          acc[browser] = count + 1;
+          return acc;
+        }, {})
+      : {};
+
+  const browserDataArray = Object.entries(browserData).map(
+    ([browser, count]) => ({
+      browser,
+      count,
+    })
+  );
+
   return {
-    clicksData: clicksData.map((d) => ({
-      ...d,
-      count: Math.round(Math.random() * 5000),
-    })), // mock data
+    key,
+    totalClicks: data.length,
+    clicksData,
     // @ts-ignore
     geoData: geoDataArray,
+    // @ts-ignore
+    browserData: browserDataArray,
   };
 }
-
-export const rangeFormatter = (maxN: number): number => {
-  if (maxN < 5) return 5;
-  /**
-   * Get the max range for a chart based on the maxN value
-   */
-  return Math.ceil(maxN / 5) * 5;
-};

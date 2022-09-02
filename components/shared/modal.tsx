@@ -12,15 +12,15 @@ export default function Modal({
   setShowModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const router = useRouter();
-  const { stats } = router.query;
+  const { key } = router.query;
 
   const closeModal = useCallback(() => {
-    if (stats) {
+    if (key) {
       router.push("/");
     } else {
       setShowModal(false);
     }
-  }, [stats, router, setShowModal]);
+  }, [key, router, setShowModal]);
 
   return (
     <Transition appear show={showModal} as={Fragment}>
@@ -35,9 +35,6 @@ export default function Modal({
             enter="ease-out duration-300"
             enterFrom="opacity-0"
             enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
           >
             <Dialog.Overlay className="fixed inset-0 bg-gray-100 dark:bg-black bg-opacity-10 backdrop-blur dark:backdrop-blur-none" />
           </Transition.Child>
@@ -53,9 +50,6 @@ export default function Modal({
             enter="ease-out duration-300"
             enterFrom="opacity-0 scale-95"
             enterTo="opacity-100 scale-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100 scale-100"
-            leaveTo="opacity-0 scale-95"
           >
             {children}
           </Transition.Child>

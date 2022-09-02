@@ -1,21 +1,34 @@
-import { RawStatsProps } from "@/lib/stats";
+import { RawStatsProps, StatsProps } from "@/lib/stats";
+import Clicks from "@/components/stats/clicks";
 import Toggle from "@/components/stats/toggle";
-import StatsChart from "@/components/stats/stats-chart";
+import Devices from "@/components/stats/devices";
+import useSWR from "swr";
+import { fetcher } from "@/lib/utils";
+import { useRouter } from "next/router";
 
-export default function Stats({
-  _key,
-  stats,
-}: {
-  _key: string;
-  stats: RawStatsProps[];
-}) {
+export default function Stats() {
+  const router = useRouter();
+
+  const { data } = useSWR<StatsProps>(
+    router.query.key &&
+      `/api/links/${router.query.key}/stats${
+        router.query.interval ? `?interval=${router.query.interval}` : ""
+      }`,
+    fetcher,
+    {
+      keepPreviousData: true,
+    }
+  );
+
   return (
-    <div className="flex justify-center bg-gray-50 dark:bg-black">
-      <div className="my-36">
-        <Toggle />
-        {/* @ts-ignore */}
-        <StatsChart _key={_key} stats={stats} />
-        <div className="grid grid-cols-2 sm:grid-cols-1 mt-10"></div>
+    <div className="relative bg-gray-50 dark:bg-black py-20">
+      <Toggle />
+      <div className="max-w-4xl mx-auto grid gap-5">
+        {data && <Clicks data={data} />}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <Devices />
+          <Devices />
+        </div>
       </div>
     </div>
   );

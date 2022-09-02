@@ -6,4 +6,4 @@ export const LOCALHOST_GEO_DATA = {
   longitude: "-122.385",
 };
 
-export const PERIODS = ["1h", "24h", "7d", "30d"];
+export const INTERVALS = ["1h", "24h", "7d", "30d"];

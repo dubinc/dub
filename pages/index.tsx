@@ -3,7 +3,8 @@ import useLocalStorage from "@/lib/hooks/use-local-storage";
 import VercelEdgeFunctions from "@/components/home/vercel-edge-functions";
 import LinkCard from "@/components/home/link-card";
 import PlaceholderCard from "@/components/home/placeholder-card";
-import LoadingDots from "@/components/shared/loading-dots";
+import { LoadingDots } from "@/components/shared/icons";
+import { StatsProvider } from "@/components/stats/context";
 
 export default function Home() {
   const [saving, setSaving] = useState(false);
@@ -14,7 +15,7 @@ export default function Home() {
   );
 
   return (
-    <main className="my-36 max-w-md mx-auto">
+    <main className="my-36 max-w-md mx-auto sm:px-0 px-2.5">
       <div className="my-5 text-center">
         <h1 className="text-6xl font-bold text-black dark:text-white">Dub</h1>
         <p className="text-gray-600 dark:text-white text-xl mt-5">
@@ -67,7 +68,7 @@ export default function Home() {
             disabled={saving}
             className={`${
               saving ? "cursor-not-allowed" : ""
-            } absolute inset-y-0 right-0 flex my-1.5 mr-1.5 items-center border border-gray-200 dark:border-gray-600 hover:border-gray-700 dark:hover:border-white peer-focus:border-gray-700 dark:peer-focus:border-white rounded px-2 text-sm font-sans font-medium text-gray-400 dark:text-gray-600 hover:text-gray-700 dark:hover:text-white peer-focus:text-gray-700 dark:peer-focus:text-white`}
+            } absolute inset-y-0 right-0 w-10 flex justify-center items-center my-1.5 mr-1.5 border border-gray-200 dark:border-gray-600 hover:border-gray-700 dark:hover:border-white peer-focus:border-gray-700 dark:peer-focus:border-white rounded text-sm font-sans font-medium text-gray-400 dark:text-gray-600 hover:text-gray-700 dark:hover:text-white peer-focus:text-gray-700 dark:peer-focus:text-white`}
           >
             {saving ? <LoadingDots color="#e5e7eb" /> : <p>↵</p>}
           </button>
@@ -75,14 +76,16 @@ export default function Home() {
       </form>
 
       <div className="grid gap-2 mt-3">
-        <LinkCard _key={"github"} url={"https://github.com/steven-tey/dub"} />
-        {hashes.length > 0
-          ? hashes.map(({ key, url }) => (
-              <LinkCard key={key} _key={key} url={url} />
-            ))
-          : Array.from({ length: 3 }).map((_, i) => (
-              <PlaceholderCard key={i} />
-            ))}
+        <StatsProvider>
+          <LinkCard _key={"github"} url={"https://github.com/steven-tey/dub"} />
+          {hashes.length > 0
+            ? hashes.map(({ key, url }) => (
+                <LinkCard key={key} _key={key} url={url} />
+              ))
+            : Array.from({ length: 3 }).map((_, i) => (
+                <PlaceholderCard key={i} />
+              ))}
+        </StatsProvider>
       </div>
     </main>
   );

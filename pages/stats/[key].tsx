@@ -11,7 +11,7 @@ interface StatsPageProps {
 export default function StatsPage(props: StatsPageProps) {
   return (
     <div>
-      <Stats _key={props._key} stats={props.stats} />
+      <Stats />
     </div>
   );
 }
