@@ -62,7 +62,15 @@ export const intervalData = {
   },
 };
 
-const getTimeIntervals = (interval: IntervalProps) => {
+interface getTimeIntervalsOutputProps {
+  startTimestamp: number;
+  endTimestamp: number;
+  timeIntervals: { start: number; end: number }[];
+}
+
+export const getTimeIntervals = (
+  interval: IntervalProps
+): getTimeIntervalsOutputProps => {
   const { milliseconds, intervals, coefficient } = intervalData[interval];
   const endTimestamp = Math.ceil(Date.now() / coefficient) * coefficient;
   const startTimestamp = endTimestamp - milliseconds;
@@ -133,3 +141,26 @@ export function processData(
     browserData: browserDataArray,
   };
 }
+
+export const dummyData: StatsProps = {
+  key: "test",
+  totalClicks: 100,
+  clicksData: getTimeIntervals("7d").timeIntervals.map((interval) => ({
+    ...interval,
+    count: 0,
+  })),
+  geoData: [
+    { country: "United States", count: 100 },
+    { country: "Canada", count: 50 },
+    { country: "United Kingdom", count: 25 },
+    { country: "France", count: 10 },
+    { country: "Germany", count: 5 },
+  ],
+  browserData: [
+    { browser: "Chrome", count: 100 },
+    { browser: "Firefox", count: 50 },
+    { browser: "Safari", count: 25 },
+    { browser: "Edge", count: 10 },
+    { browser: "Opera", count: 5 },
+  ],
+};

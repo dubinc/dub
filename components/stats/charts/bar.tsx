@@ -5,8 +5,7 @@ import { scaleBand, scaleLinear } from "@visx/scale";
 import { useTooltip, useTooltipInPortal } from "@visx/tooltip";
 import { localPoint } from "@visx/event";
 import { withScreenSize } from "@visx/responsive";
-import { IntervalProps, StatsProps } from "@/lib/stats";
-import { intervalData } from "@/lib/stats";
+import { IntervalProps, StatsProps, intervalData } from "@/lib/stats";
 import { nFormatter } from "@/lib/utils";
 import styles from "./styles.module.css";
 import { motion } from "framer-motion";
@@ -33,10 +32,12 @@ const rangeFormatter = (maxN: number): number => {
 
 const BarChart = ({
   data,
+  isValidating,
   screenWidth,
   screenHeight,
 }: {
   data: StatsProps["clicksData"];
+  isValidating: boolean;
   screenWidth?: number;
   screenHeight?: number;
 }) => {
@@ -99,7 +100,7 @@ const BarChart = ({
           scale={yScale}
           tickFormat={(d) => nFormatter(d as number)}
           tickLabelProps={() => ({
-            fill: "#666666",
+            fill: isValidating ? "transparent" : "#666666",
             fontSize: 14,
             textAnchor: "start",
           })}
@@ -116,7 +117,7 @@ const BarChart = ({
           scale={xScale}
           tickFormat={intervalData[interval].format}
           tickLabelProps={() => ({
-            fill: "#666666",
+            fill: isValidating ? "transparent" : "#666666",
             fontSize: 12,
             textAnchor: "middle",
           })}
