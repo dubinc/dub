@@ -23,7 +23,7 @@ export default function Stats() {
 
   return (
     <div className="relative bg-gray-50 dark:bg-black py-20">
-      <Toggle />
+      <Toggle data={data!} />
       <div className="max-w-4xl mx-auto grid gap-5">
         <Clicks data={data!} isValidating={isValidating} />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">

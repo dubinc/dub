@@ -4,11 +4,11 @@ import { linkConstructor } from "@/lib/utils";
 import useScroll from "@/lib/hooks/use-scroll";
 import { useStatsContext } from "@/components/stats/context";
 import { ExpandingArrow } from "@/components/shared/icons";
-import { IntervalProps } from "@/lib/stats";
+import { IntervalProps, StatsProps } from "@/lib/stats";
 
-export default function Toggle() {
+export default function Toggle({ data }: { data: StatsProps }) {
   const router = useRouter();
-  const key = router.query.key as string;
+  const key = (router.query.key as string) || data?.key;
   const currentInterval = (router.query.interval as IntervalProps) || "24h";
 
   const { atTop: atContextTop } = useStatsContext();

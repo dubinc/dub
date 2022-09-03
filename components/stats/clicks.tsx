@@ -15,7 +15,7 @@ export default function Clicks({
       <div className="mb-5 text-left">
         <div className="flex space-x-1 items-end">
           {isValidating ? (
-            <div className="h-10 w-16 rounded-md bg-gray-200 dark:bg-gray-700 animate-pulse" />
+            <div className="h-10 w-12 rounded-md bg-gray-200 dark:bg-gray-700 animate-pulse" />
           ) : (
             <h1 className="text-3xl sm:text-4xl dark:text-white font-bold">
               {nFormatter(data.totalClicks)}

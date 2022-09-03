@@ -100,9 +100,11 @@ const BarChart = ({
           scale={yScale}
           tickFormat={(d) => nFormatter(d as number)}
           tickLabelProps={() => ({
-            fill: isValidating ? "transparent" : "#666666",
+            fill: "#666666",
+            filter: isValidating ? "blur(8px)" : "none",
             fontSize: 14,
             textAnchor: "start",
+            transition: "all 0.4s ease-in-out",
           })}
         />
       </svg>
@@ -117,9 +119,11 @@ const BarChart = ({
           scale={xScale}
           tickFormat={intervalData[interval].format}
           tickLabelProps={() => ({
-            fill: isValidating ? "transparent" : "#666666",
+            fill: "#666666",
+            filter: isValidating ? "blur(8px)" : "none",
             fontSize: 12,
             textAnchor: "middle",
+            transition: "all 0.4s ease-in-out",
           })}
           numTicks={6}
           top={CHART_HEIGHT - 5}
