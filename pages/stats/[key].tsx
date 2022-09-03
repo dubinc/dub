@@ -1,14 +1,8 @@
 import Stats from "@/components/stats";
 import { GetStaticPaths, GetStaticProps } from "next";
 import { ParsedUrlQuery } from "querystring";
-import { RawStatsProps } from "@/lib/stats";
 
-interface StatsPageProps {
-  _key: string;
-  stats: RawStatsProps[];
-}
-
-export default function StatsPage(props: StatsPageProps) {
+export default function StatsPage() {
   return (
     <div>
       <Stats />
@@ -30,6 +24,6 @@ interface Params extends ParsedUrlQuery {
 export const getStaticProps: GetStaticProps = async (context) => {
   const { key } = context.params as Params; // https://wallis.dev/blog/nextjs-getstaticprops-and-getstaticpaths-with-typescript
   return {
-    props: { key, _key: key },
+    props: { key },
   };
 };

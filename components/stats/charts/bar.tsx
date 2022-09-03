@@ -52,7 +52,7 @@ const BarChart = ({
   }, [screenWidth, screenHeight]);
 
   const router = useRouter();
-  const interval = (router.query.interval as IntervalProps) || "24h";
+  const interval = (router.query.interval as IntervalProps) || "7d";
 
   const xScale = useMemo(() => {
     return scaleBand({

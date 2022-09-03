@@ -4,12 +4,13 @@ import { linkConstructor } from "@/lib/utils";
 import useScroll from "@/lib/hooks/use-scroll";
 import { useStatsContext } from "@/components/stats/context";
 import { ExpandingArrow } from "@/components/shared/icons";
+import BadgeSelect from "@/components/shared/badge-select";
 import { IntervalProps, StatsProps } from "@/lib/stats";
 
 export default function Toggle({ data }: { data: StatsProps }) {
   const router = useRouter();
   const key = (router.query.key as string) || data?.key;
-  const currentInterval = (router.query.interval as IntervalProps) || "24h";
+  const currentInterval = (router.query.interval as IntervalProps) || "7d";
 
   const { atTop: atContextTop } = useStatsContext();
   const atTop = useScroll(144) || atContextTop;
@@ -32,33 +33,26 @@ export default function Toggle({ data }: { data: StatsProps }) {
           </a>
           <ExpandingArrow className="w-5 h-5" />
         </div>
-        <div className="flex space-x-1 p-1 rounded-md shadow-md dark:shadow-none border bg-white dark:bg-black border-gray-100 dark:border-gray-600">
-          {INTERVALS.map((interval) => (
-            <button
-              key={interval}
-              className={`${
-                currentInterval === interval
-                  ? "bg-blue-50 dark:bg-gray-600"
-                  : ""
-              } w-14 py-1.5 text-sm dark:text-white rounded-md`}
-              onClick={() => {
-                router.push(
-                  {
-                    query: {
-                      ...router.query,
-                      interval,
-                    },
+        <div className="px-3 py-1 rounded-md shadow-md dark:shadow-none border bg-white dark:bg-black border-gray-100 dark:border-gray-600">
+          <BadgeSelect
+            options={INTERVALS}
+            selected={currentInterval}
+            // @ts-ignore
+            selectAction={(interval) => {
+              router.push(
+                {
+                  query: {
+                    ...router.query,
+                    interval,
                   },
-                  `/stats/${encodeURI(
-                    router.query.key as string
-                  )}?interval=${interval}`,
-                  { shallow: true }
-                );
-              }}
-            >
-              {interval}
-            </button>
-          ))}
+                },
+                `/stats/${encodeURI(
+                  router.query.key as string
+                )}?interval=${interval}`,
+                { shallow: true }
+              );
+            }}
+          />
         </div>
       </div>
     </div>

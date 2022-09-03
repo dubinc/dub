@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { COUNTRIES } from "@/lib/constants";
 
 export interface RawStatsProps {
   geo: NextRequest["geo"];
@@ -10,7 +11,14 @@ export interface StatsProps {
   key: string;
   totalClicks: number;
   clicksData: { start: number; end: number; count: number }[];
-  geoData: { country: string; count: number }[];
+  locationData:
+    | {
+        country: string;
+        countryCode: string;
+        city: string;
+        region: string;
+      }[]
+    | null;
   browserData: { browser: string; count: number }[];
 }
 
@@ -84,7 +92,7 @@ export const getTimeIntervals = (
 export function processData(
   key: string,
   data: RawStatsProps[],
-  interval?: IntervalProps // if undefined, 24h is used
+  interval?: IntervalProps // if undefined, 7d is used
 ): StatsProps {
   const { timeIntervals } = getTimeIntervals(interval || "7d");
 
@@ -95,22 +103,19 @@ export function processData(
     ).length,
   }));
 
-  const geoData =
-    data.length > 0
-      ? data.reduce((acc, d) => {
-          const country = d.geo?.country;
-          // @ts-ignore
-          const count = acc[country] || 0;
-          // @ts-ignore
-          acc[country] = count + 1;
-          return acc;
-        }, {})
-      : {};
-
-  const geoDataArray = Object.entries(geoData).map(([country, count]) => ({
-    country,
-    count,
-  }));
+  const locationData = data.map(({ geo }) => {
+    const { country, city, region } = geo || {};
+    return {
+      country: country
+        ? COUNTRIES[country]
+          ? COUNTRIES[country]
+          : country
+        : "Unknown",
+      countryCode: country || "Unknown",
+      city: city || "Unknown",
+      region: region || "Unknown",
+    };
+  });
 
   const browserData =
     data.length > 0
@@ -135,12 +140,42 @@ export function processData(
     key,
     totalClicks: data.length,
     clicksData,
-    // @ts-ignore
-    geoData: geoDataArray,
+    locationData,
     // @ts-ignore
     browserData: browserDataArray,
   };
 }
+
+export interface LocationStatsProps {
+  display: string;
+  code: string;
+  count: number;
+}
+
+export type LocationType = "country" | "city" | "region";
+
+export const processLocationData = (
+  data: StatsProps["locationData"],
+  type: LocationType
+): LocationStatsProps[] => {
+  const countryCodeMap: { [key: string]: string } = {};
+
+  const results =
+    data && data.length > 0
+      ? data.reduce<Record<string, number>>((acc, d) => {
+          const count = acc[d[type]] || 0;
+          acc[d[type]] = count + 1;
+          countryCodeMap[d[type]] = d.countryCode;
+          return acc;
+        }, {})
+      : {};
+
+  return Object.entries(results).map(([item, count]) => ({
+    display: item,
+    code: countryCodeMap[item],
+    count,
+  }));
+};
 
 export const dummyData: StatsProps = {
   key: "test",
@@ -149,13 +184,7 @@ export const dummyData: StatsProps = {
     ...interval,
     count: 0,
   })),
-  geoData: [
-    { country: "United States", count: 100 },
-    { country: "Canada", count: 50 },
-    { country: "United Kingdom", count: 25 },
-    { country: "France", count: 10 },
-    { country: "Germany", count: 5 },
-  ],
+  locationData: null,
   browserData: [
     { browser: "Chrome", count: 100 },
     { browser: "Firefox", count: 50 },
