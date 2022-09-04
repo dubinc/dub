@@ -1,5 +1,3 @@
-import { LocationType } from "@/lib/stats";
-
 export default function BadgeSelect({
   options,
   selected,
