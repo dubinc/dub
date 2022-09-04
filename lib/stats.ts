@@ -11,14 +11,12 @@ export interface StatsProps {
   key: string;
   totalClicks: number;
   clicksData: { start: number; end: number; count: number }[];
-  locationData:
-    | {
-        country: string;
-        countryCode: string;
-        city: string;
-        region: string;
-      }[]
-    | null;
+  locationData: {
+    country: string;
+    countryCode: string;
+    city: string;
+    region: string;
+  }[];
   browserData: { browser: string; count: number }[];
 }
 
@@ -104,16 +102,17 @@ export function processData(
   }));
 
   const locationData = data.map(({ geo }) => {
-    const { country, city, region } = geo || {};
+    const { country: countryCode, city, region } = geo || {};
+    const country = countryCode
+      ? COUNTRIES[countryCode]
+        ? COUNTRIES[countryCode]
+        : countryCode
+      : "Unknown";
     return {
-      country: country
-        ? COUNTRIES[country]
-          ? COUNTRIES[country]
-          : country
-        : "Unknown",
-      countryCode: country || "Unknown",
-      city: city || "Unknown",
-      region: region || "Unknown",
+      country,
+      countryCode: countryCode || "Unknown",
+      city: city || country,
+      region: region || country,
     };
   });
 
@@ -170,11 +169,13 @@ export const processLocationData = (
         }, {})
       : {};
 
-  return Object.entries(results).map(([item, count]) => ({
-    display: item,
-    code: countryCodeMap[item],
-    count,
-  }));
+  return Object.entries(results)
+    .map(([item, count]) => ({
+      display: item,
+      code: countryCodeMap[item],
+      count,
+    }))
+    .sort((a, b) => b.count - a.count);
 };
 
 export const dummyData: StatsProps = {
@@ -184,6 +185,7 @@ export const dummyData: StatsProps = {
     ...interval,
     count: 0,
   })),
+  // @ts-ignore
   locationData: null,
   browserData: [
     { browser: "Chrome", count: 100 },

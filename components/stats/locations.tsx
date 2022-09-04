@@ -1,15 +1,39 @@
 import { StatsProps, processLocationData, LocationType } from "@/lib/stats";
 import BadgeSelect from "@/components/shared/badge-select";
+import { useMemo } from "react";
 import { nFormatter } from "@/lib/utils";
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useState, UIEvent } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { LoadingDots } from "../shared/icons";
 
-export default function Locations({ data }: { data: StatsProps }) {
+export default function Locations({ data: rawData }: { data: StatsProps }) {
   const [type, setType] = useState<LocationType>("country");
+  const data = {
+    ...rawData,
+    locationData: useMemo(() => {
+      if (rawData?.locationData) {
+        return processLocationData(rawData.locationData, type);
+      } else {
+        return null;
+      }
+    }, [rawData, type]),
+  };
+
+  const [scrolled, setScrolled] = useState(false);
+
+  const handleScroll = (event: UIEvent<HTMLElement>) => {
+    if (event.currentTarget.scrollTop > 0) {
+      setScrolled(true);
+    } else {
+      setScrolled(false);
+    }
+  };
 
   return (
-    <div className="bg-white dark:bg-black px-7 py-5 shadow-lg dark:shadow-none rounded-lg border border-gray-100 dark:border-gray-600">
+    <div
+      className="relative bg-white dark:bg-black px-7 py-5 shadow-lg dark:shadow-none rounded-lg border border-gray-100 dark:border-gray-600 h-[420px] overflow-scroll scrollbar-hide"
+      onScroll={handleScroll}
+    >
       <div className="mb-5 flex justify-between">
         <h1 className="text-xl dark:text-white font-semibold">Locations</h1>
         <BadgeSelect
@@ -19,10 +43,16 @@ export default function Locations({ data }: { data: StatsProps }) {
           selectAction={setType}
         />
       </div>
-      <div className="grid gap-4">
+      <div
+        className={
+          data.locationData && data.locationData.length > 0
+            ? "grid gap-4"
+            : "h-[300px] flex justify-center items-center"
+        }
+      >
         {data.locationData ? (
-          processLocationData(data.locationData, type).map(
-            ({ display, code, count }) => (
+          data.locationData.length > 0 ? (
+            data.locationData.map(({ display, code, count }) => (
               <div className="flex justify-between items-center">
                 <div className="relative flex items-center z-10 w-full max-w-[calc(100%-3rem)]">
                   <span className="flex space-x-2 px-2 items-center z-10">
@@ -44,18 +74,36 @@ export default function Locations({ data }: { data: StatsProps }) {
                     animate={{ transform: "scaleX(1)" }}
                   />
                 </div>
-                <p className="text-gray-600 dark:text-gray-400 text-sm">
+                <p className="text-gray-600 dark:text-gray-400 text-sm z-10">
                   {nFormatter(count)}
                 </p>
               </div>
-            )
+            ))
+          ) : (
+            <p className="text-gray-600 dark:text-gray-400 text-sm">
+              No data available
+            </p>
           )
         ) : (
-          <div className="h-96 w-full flex justify-center items-center">
-            <LoadingDots color="#71717A" />
-          </div>
+          <LoadingDots color="#71717A" />
         )}
       </div>
+      <AnimatePresence>
+        {data.locationData && data.locationData.length > 9 && !scrolled && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{
+              opacity: 1,
+              y: 0,
+              transition: { type: "linear", duration: 0.2 },
+            }}
+            exit={{ opacity: 0, y: 50, transition: { duration: 0 } }}
+            className="absolute w-full h-8 flex justify-center items-center bottom-0 left-0 right-0 bg-gradient-to-b from-white to-gray-100 dark:from-transparent dark:to-[#060606] text-sm text-gray-500 dark:text-gray-400"
+          >
+            Show more
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

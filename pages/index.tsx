@@ -5,6 +5,7 @@ import LinkCard from "@/components/home/link-card";
 import PlaceholderCard from "@/components/home/placeholder-card";
 import { LoadingDots } from "@/components/shared/icons";
 import { StatsProvider } from "@/components/stats/context";
+import { motion } from "framer-motion";
 
 export default function Home() {
   const [saving, setSaving] = useState(false);
@@ -75,9 +76,26 @@ export default function Home() {
         </div>
       </form>
 
-      <div className="grid gap-2 mt-3">
-        <StatsProvider>
-          <LinkCard _key={"github"} url={"https://github.com/steven-tey/dub"} />
+      <StatsProvider>
+        <motion.ul
+          key={hashes.length + 1} // workaround for https://github.com/framer/motion/issues/776, add 1 to account for the demo GH link
+          initial="hidden"
+          animate="show"
+          variants={{
+            hidden: {},
+            show: {
+              transition: {
+                staggerChildren: 0.1,
+              },
+            },
+          }}
+          className="grid gap-2 mt-3"
+        >
+          <LinkCard
+            key="github"
+            _key="github"
+            url={"https://github.com/steven-tey/dub"}
+          />
           {hashes.length > 0
             ? hashes.map(({ key, url }) => (
                 <LinkCard key={key} _key={key} url={url} />
@@ -85,8 +103,8 @@ export default function Home() {
             : Array.from({ length: 3 }).map((_, i) => (
                 <PlaceholderCard key={i} />
               ))}
-        </StatsProvider>
-      </div>
+        </motion.ul>
+      </StatsProvider>
     </main>
   );
 }

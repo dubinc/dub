@@ -7,6 +7,7 @@ import useSWR from "swr";
 import { fetcher, nFormatter, linkConstructor } from "@/lib/utils";
 import Link from "next/link";
 import { useStatsContext } from "@/components/stats/context";
+import { motion } from "framer-motion";
 
 export default function LinkCard({
   _key: key,
@@ -46,8 +47,11 @@ export default function LinkCard({
   }, [onKeyDown]);
 
   return (
-    <div
-      key={key}
+    <motion.li
+      variants={{
+        hidden: { scale: 0.8, opacity: 0 },
+        show: { scale: 1, opacity: 1, transition: { type: "spring" } },
+      }}
       className="flex items-center border border-gray-200 dark:border-gray-600 hover:border-black dark:hover:border-white p-3 rounded-md transition-all"
     >
       <BlurImage
@@ -90,6 +94,6 @@ export default function LinkCard({
           {url}
         </p>
       </div>
-    </div>
+    </motion.li>
   );
 }

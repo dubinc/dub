@@ -34,22 +34,20 @@ const BarChart = ({
   data,
   isValidating,
   screenWidth,
-  screenHeight,
 }: {
   data: StatsProps["clicksData"];
   isValidating: boolean;
   screenWidth?: number;
-  screenHeight?: number;
 }) => {
   const [CHART_WIDTH, CHART_HEIGHT] = useMemo(() => {
     const width = screenWidth
       ? Math.min(screenWidth * 0.7, CHART_MAX_WIDTH)
       : CHART_MAX_WIDTH;
-    const height = screenHeight
-      ? Math.min(screenHeight * 0.4, CHART_MAX_HEIGHT)
+    const height = screenWidth
+      ? Math.min(screenWidth * 0.4, CHART_MAX_HEIGHT)
       : CHART_MAX_HEIGHT;
     return [width, height];
-  }, [screenWidth, screenHeight]);
+  }, [screenWidth]);
 
   const router = useRouter();
   const interval = (router.query.interval as IntervalProps) || "7d";
