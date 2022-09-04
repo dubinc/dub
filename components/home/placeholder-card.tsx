@@ -1,12 +1,10 @@
 import { motion } from "framer-motion";
+import { FRAMER_MOTION_LIST_ITEM_VARIANTS } from "@/lib/constants";
 
 export default function PlaceholderCard() {
   return (
     <motion.li
-      variants={{
-        hidden: { scale: 0.8, opacity: 0 },
-        show: { scale: 1, opacity: 1, transition: { type: "spring" } },
-      }}
+      variants={FRAMER_MOTION_LIST_ITEM_VARIANTS}
       className="flex items-center border border-gray-200 dark:border-gray-600 hover:border-black dark:hover:border-white p-3 rounded-md transition-all"
     >
       <div className="w-10 h-10 rounded-full mr-2 bg-gray-200 dark:bg-gray-600 animate-pulse" />

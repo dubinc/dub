@@ -8,6 +8,11 @@ export const LOCALHOST_GEO_DATA = {
 
 export const INTERVALS = ["1h", "24h", "7d", "30d"];
 
+export const FRAMER_MOTION_LIST_ITEM_VARIANTS = {
+  hidden: { scale: 0.8, opacity: 0 },
+  show: { scale: 1, opacity: 1, transition: { type: "spring" } },
+};
+
 export const COUNTRIES: { [key: string]: string } = {
   AF: "Afghanistan",
   AL: "Albania",

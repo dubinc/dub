@@ -9,6 +9,7 @@ export interface RawStatsProps {
 
 export interface StatsProps {
   key: string;
+  interval: IntervalProps;
   totalClicks: number;
   clicksData: { start: number; end: number; count: number }[];
   locationData: {
@@ -17,7 +18,7 @@ export interface StatsProps {
     city: string;
     region: string;
   }[];
-  browserData: { browser: string; count: number }[];
+  deviceData: { device: string; browser: string; os: string }[];
 }
 
 export type IntervalProps = "1h" | "24h" | "7d" | "30d";
@@ -116,32 +117,22 @@ export function processData(
     };
   });
 
-  const browserData =
-    data.length > 0
-      ? data.reduce((acc, d) => {
-          const browser = d.ua?.browser?.name;
-          // @ts-ignore
-          const count = acc[browser] || 0;
-          // @ts-ignore
-          acc[browser] = count + 1;
-          return acc;
-        }, {})
-      : {};
-
-  const browserDataArray = Object.entries(browserData).map(
-    ([browser, count]) => ({
-      browser,
-      count,
-    })
-  );
+  const deviceData = data.map(({ ua }) => {
+    const { device, browser, os } = ua || {};
+    return {
+      device: device?.type || "Unknown",
+      browser: browser?.name || "Unknown",
+      os: os?.name || "Unknown",
+    };
+  });
 
   return {
     key,
+    interval: interval || "7d",
     totalClicks: data.length,
     clicksData,
     locationData,
-    // @ts-ignore
-    browserData: browserDataArray,
+    deviceData,
   };
 }
 
@@ -177,6 +168,33 @@ export const processLocationData = (
     }))
     .sort((a, b) => b.count - a.count);
 };
+
+export type DeviceType = "size" | "browser" | "os";
+
+// export const processDeviceData = (
+//   data: StatsProps["deviceData"],
+//   type: LocationType
+// ): LocationStatsProps[] => {
+//   const countryCodeMap: { [key: string]: string } = {};
+
+//   const results =
+//     data && data.length > 0
+//       ? data.reduce<Record<string, number>>((acc, d) => {
+//           const count = acc[d[type]] || 0;
+//           acc[d[type]] = count + 1;
+//           countryCodeMap[d[type]] = d.countryCode;
+//           return acc;
+//         }, {})
+//       : {};
+
+//   return Object.entries(results)
+//     .map(([item, count]) => ({
+//       display: item,
+//       code: countryCodeMap[item],
+//       count,
+//     }))
+//     .sort((a, b) => b.count - a.count);
+// };
 
 export const dummyData: StatsProps = {
   key: "test",
