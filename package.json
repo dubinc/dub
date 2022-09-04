@@ -17,7 +17,7 @@
     "@visx/tooltip": "^2.10.0",
     "framer-motion": "^7.2.1",
     "i": "^0.3.7",
-    "next": "latest",
+    "next": "^12.2.6-canary.8",
     "npm": "^8.19.0",
     "react": "18.1.0",
     "react-dom": "18.1.0",
