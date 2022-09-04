@@ -29,7 +29,7 @@ export default function Stats() {
         <Clicks data={data!} isValidating={isValidating} />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <Locations data={data!} />
-          <Devices />
+          <Devices data={data!} />
         </div>
       </div>
     </div>

@@ -1960,10 +1960,10 @@
   dependencies:
     "debounce" "^1.2.1"
 
-"react@^16 || ^17 || ^18", "react@^16.0.0-0 || ^17.0.0-0 || ^18.0.0-0", "react@^16.11.0 || ^17.0.0 || ^18.0.0", "react@^16.3.0-0 || ^17.0.0-0 || ^18.0.0-0", "react@^16.8.0 || ^17.0.0 || ^18.0.0", "react@^16.8.0-0 || ^17.0.0-0 || ^18.0.0-0", "react@^17.0.2 || ^18.0.0-0", "react@^18.0.0", "react@^18.1.0", "react@>= 16.8.0 || 17.x.x || ^18.0.0-0", "react@>=16.13", "react@18.1.0":
-  "integrity" "sha512-4oL8ivCz5ZEPyclFQXaNksK3adutVS8l2xzZU0cqEFrE9Sb7fC0EFK5uEk74wIreL1DERyjvsU915j1pcT2uEQ=="
-  "resolved" "https://registry.npmjs.org/react/-/react-18.1.0.tgz"
-  "version" "18.1.0"
+"react@^16 || ^17 || ^18", "react@^16.0.0-0 || ^17.0.0-0 || ^18.0.0-0", "react@^16.11.0 || ^17.0.0 || ^18.0.0", "react@^16.3.0-0 || ^17.0.0-0 || ^18.0.0-0", "react@^16.8.0 || ^17.0.0 || ^18.0.0", "react@^16.8.0-0 || ^17.0.0-0 || ^18.0.0-0", "react@^17.0.2 || ^18.0.0-0", "react@^18.0.0", "react@^18.1.0", "react@^18.2.0", "react@>= 16.8.0 || 17.x.x || ^18.0.0-0", "react@>=16.13":
+  "integrity" "sha512-/3IjMdb2L9QbBdWiW5e3P2/npwMBaU9mHCSCUzNln0ZCYbcfTsGbTJrU/kGemdH2IWmB2ioZ+zkxtmq6g09fGQ=="
+  "resolved" "https://registry.npmjs.org/react/-/react-18.2.0.tgz"
+  "version" "18.2.0"
   dependencies:
     "loose-envify" "^1.1.0"
 

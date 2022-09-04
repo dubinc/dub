@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { COUNTRIES } from "@/lib/constants";
+import { COUNTRIES, handleDeviceEdgeCases } from "@/lib/constants";
 
 export interface RawStatsProps {
   geo: NextRequest["geo"];
@@ -18,7 +18,7 @@ export interface StatsProps {
     city: string;
     region: string;
   }[];
-  deviceData: { device: string; browser: string; os: string }[];
+  deviceData: { device: string; browser: string; os: string; bot: string }[];
 }
 
 export type IntervalProps = "1h" | "24h" | "7d" | "30d";
@@ -118,11 +118,24 @@ export function processData(
   });
 
   const deviceData = data.map(({ ua }) => {
-    const { device, browser, os } = ua || {};
+    const { ua: uaString, device, browser, os } = ua || {};
     return {
-      device: device?.type || "Unknown",
-      browser: browser?.name || "Unknown",
-      os: os?.name || "Unknown",
+      device: device?.type
+        ? device?.type
+        : handleDeviceEdgeCases(uaString) !== "Unknown"
+        ? "Bot"
+        : "Unknown",
+      browser: browser?.name
+        ? browser?.name
+        : handleDeviceEdgeCases(uaString) !== "Unknown"
+        ? "Bot"
+        : "Unknown",
+      os: os?.name
+        ? os?.name
+        : handleDeviceEdgeCases(uaString) !== "Unknown"
+        ? "Bot"
+        : "Unknown",
+      bot: handleDeviceEdgeCases(uaString),
     };
   });
 
@@ -169,32 +182,35 @@ export const processLocationData = (
     .sort((a, b) => b.count - a.count);
 };
 
-export type DeviceType = "size" | "browser" | "os";
+export type DeviceType = "browser" | "os" | "bot";
 
-// export const processDeviceData = (
-//   data: StatsProps["deviceData"],
-//   type: LocationType
-// ): LocationStatsProps[] => {
-//   const countryCodeMap: { [key: string]: string } = {};
+export interface DeviceStatsProps {
+  display: string;
+  count: number;
+}
 
-//   const results =
-//     data && data.length > 0
-//       ? data.reduce<Record<string, number>>((acc, d) => {
-//           const count = acc[d[type]] || 0;
-//           acc[d[type]] = count + 1;
-//           countryCodeMap[d[type]] = d.countryCode;
-//           return acc;
-//         }, {})
-//       : {};
+export const processDeviceData = (
+  data: StatsProps["deviceData"],
+  type: DeviceType
+): DeviceStatsProps[] => {
+  const results =
+    data && data.length > 0
+      ? data.reduce<Record<string, number>>((acc, d) => {
+          const count = acc[d[type]] || 0;
+          if (!(type === "bot" && d[type] === "Unknown")) {
+            acc[d[type]] = count + 1;
+          }
+          return acc;
+        }, {})
+      : {};
 
-//   return Object.entries(results)
-//     .map(([item, count]) => ({
-//       display: item,
-//       code: countryCodeMap[item],
-//       count,
-//     }))
-//     .sort((a, b) => b.count - a.count);
-// };
+  return Object.entries(results)
+    .map(([display, count]) => ({
+      display,
+      count,
+    }))
+    .sort((a, b) => b.count - a.count);
+};
 
 export const dummyData: StatsProps = {
   key: "test",
@@ -205,11 +221,6 @@ export const dummyData: StatsProps = {
   })),
   // @ts-ignore
   locationData: null,
-  browserData: [
-    { browser: "Chrome", count: 100 },
-    { browser: "Firefox", count: 50 },
-    { browser: "Safari", count: 25 },
-    { browser: "Edge", count: 10 },
-    { browser: "Opera", count: 5 },
-  ],
+  // @ts-ignore
+  deviceData: null,
 };

@@ -19,7 +19,7 @@
     "i": "^0.3.7",
     "next": "^12.2.6-canary.8",
     "npm": "^8.19.0",
-    "react": "18.1.0",
+    "react": "^18.2.0",
     "react-dom": "18.1.0",
     "swr": "^2.0.0-beta.1",
     "tailwind-scrollbar-hide": "^1.1.7",
