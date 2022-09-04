@@ -124,7 +124,7 @@ export function processData(
         ? device?.type
         : handleDeviceEdgeCases(uaString) !== "Unknown"
         ? "Bot"
-        : "Unknown",
+        : "Desktop", // placeholder for now, after https://github.com/faisalman/ua-parser-js/issues/489 is fixed we can change this back to Unknown
       browser: browser?.name
         ? browser?.name
         : handleDeviceEdgeCases(uaString) !== "Unknown"
@@ -155,20 +155,20 @@ export interface LocationStatsProps {
   count: number;
 }
 
-export type LocationType = "country" | "city" | "region";
+export type LocationTabs = "country" | "city" | "region";
 
 export const processLocationData = (
   data: StatsProps["locationData"],
-  type: LocationType
+  tab: LocationTabs
 ): LocationStatsProps[] => {
   const countryCodeMap: { [key: string]: string } = {};
 
   const results =
     data && data.length > 0
       ? data.reduce<Record<string, number>>((acc, d) => {
-          const count = acc[d[type]] || 0;
-          acc[d[type]] = count + 1;
-          countryCodeMap[d[type]] = d.countryCode;
+          const count = acc[d[tab]] || 0;
+          acc[d[tab]] = count + 1;
+          countryCodeMap[d[tab]] = d.countryCode;
           return acc;
         }, {})
       : {};
@@ -182,7 +182,7 @@ export const processLocationData = (
     .sort((a, b) => b.count - a.count);
 };
 
-export type DeviceType = "browser" | "os" | "bot";
+export type DeviceTabs = "device" | "browser" | "os" | "bot";
 
 export interface DeviceStatsProps {
   display: string;
@@ -191,14 +191,24 @@ export interface DeviceStatsProps {
 
 export const processDeviceData = (
   data: StatsProps["deviceData"],
-  type: DeviceType
+  tab: DeviceTabs,
+  showBots: boolean
 ): DeviceStatsProps[] => {
   const results =
     data && data.length > 0
       ? data.reduce<Record<string, number>>((acc, d) => {
-          const count = acc[d[type]] || 0;
-          if (!(type === "bot" && d[type] === "Unknown")) {
-            acc[d[type]] = count + 1;
+          const currentVal = d[tab];
+          const count = acc[currentVal] || 0;
+          // for the bots tab, we only want to show bots
+          if (tab === "bot") {
+            if (currentVal !== "Unknown") {
+              acc[currentVal] = count + 1;
+            }
+            // for all other tabs, we only show bots if showBots is true
+          } else {
+            if (currentVal !== "Bot" || (currentVal === "Bot" && showBots)) {
+              acc[currentVal] = count + 1;
+            }
           }
           return acc;
         }, {})

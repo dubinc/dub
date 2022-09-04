@@ -15,8 +15,6 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   let hostname = req.headers.get("host");
   if (hostname === "localhost:3000") hostname = "dub.sh";
 
-  console.log(userAgent(req));
-
   const path = req.nextUrl.pathname;
   const key = path.split("/")[1];
   if (

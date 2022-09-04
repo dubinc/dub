@@ -7,7 +7,7 @@ import { localPoint } from "@visx/event";
 import { withScreenSize } from "@visx/responsive";
 import { IntervalProps, StatsProps, intervalData } from "@/lib/stats";
 import { nFormatter } from "@/lib/utils";
-import styles from "./styles.module.css";
+import styles from "./index.module.css";
 import { motion } from "framer-motion";
 import { useRouter } from "next/router";
 

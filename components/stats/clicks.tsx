@@ -1,6 +1,6 @@
 import { nFormatter } from "@/lib/utils";
 import { Chart } from "@/components/shared/icons";
-import BarChart from "@/components/stats/charts/bar";
+import BarChart from "@/components/stats/bar-chart";
 import { StatsProps } from "@/lib/stats";
 
 export default function Clicks({

@@ -1,4 +1,4 @@
-import { StatsProps, processLocationData, LocationType } from "@/lib/stats";
+import { StatsProps, processLocationData, LocationTabs } from "@/lib/stats";
 import BadgeSelect from "@/components/shared/badge-select";
 import { useMemo } from "react";
 import { nFormatter } from "@/lib/utils";
@@ -7,16 +7,16 @@ import { AnimatePresence, motion } from "framer-motion";
 import { LoadingDots } from "../shared/icons";
 
 export default function Locations({ data: rawData }: { data: StatsProps }) {
-  const [type, setType] = useState<LocationType>("country");
+  const [tab, setTab] = useState<LocationTabs>("country");
   const data = {
     ...rawData,
     locationData: useMemo(() => {
       if (rawData?.locationData) {
-        return processLocationData(rawData.locationData, type);
+        return processLocationData(rawData.locationData, tab);
       } else {
         return null;
       }
-    }, [rawData, type]),
+    }, [rawData, tab]),
   };
 
   const [scrolled, setScrolled] = useState(false);
@@ -38,9 +38,9 @@ export default function Locations({ data: rawData }: { data: StatsProps }) {
         <h1 className="text-xl dark:text-white font-semibold">Locations</h1>
         <BadgeSelect
           options={["country", "city"]}
-          selected={type}
+          selected={tab}
           // @ts-ignore
-          selectAction={setType}
+          selectAction={setTab}
         />
       </div>
       <div
@@ -57,8 +57,8 @@ export default function Locations({ data: rawData }: { data: StatsProps }) {
                 <div className="relative flex items-center z-10 w-full max-w-[calc(100%-3rem)]">
                   <span className="flex space-x-2 px-2 items-center z-10">
                     <img
-                      src={`https://flag.vercel.app/l/${code}.svg`}
-                      className="w-4 h-4"
+                      src={`https://flag.vercel.app/m/${code}.svg`}
+                      className="w-5 h-3"
                     />
                     <p className="text-gray-800 dark:text-gray-200 text-sm">
                       {display}
