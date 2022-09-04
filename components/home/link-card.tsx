@@ -1,12 +1,14 @@
-import { useCallback, useEffect, useState } from "react";
-import StatsModal from "@/components/stats/stats-modal";
+import { useCallback, useEffect } from "react";
 import BlurImage from "@/components/shared/blur-image";
 import CopyButton from "@/components/shared/copy-button";
-import LoadingDots from "@/components/shared/loading-dots";
+import { LoadingDots } from "@/components/shared/icons";
 import { useRouter } from "next/router";
 import useSWR from "swr";
-import { fetcher, nFormatter } from "@/lib/utils";
+import { fetcher, nFormatter, linkConstructor } from "@/lib/utils";
 import Link from "next/link";
+import { useStatsContext } from "@/components/stats/context";
+import { motion } from "framer-motion";
+import { FRAMER_MOTION_LIST_ITEM_VARIANTS } from "@/lib/constants";
 
 export default function LinkCard({
   _key: key,
@@ -15,14 +17,6 @@ export default function LinkCard({
   _key: string;
   url: string;
 }) {
-  const shortURL = `${
-    process.env.NEXT_PUBLIC_DEMO_APP === "1"
-      ? "https://dub.sh"
-      : process.env.NEXT_PUBLIC_VERCEL === "1"
-      ? process.env.NEXT_PUBLIC_VERCEL_URL
-      : "http://localhost:3000"
-  }/${key}`; // if you're self-hosting you can just replace this with your own domain
-
   const urlHostname = new URL(url).hostname;
 
   const { data: clicks, isValidating } = useSWR<string>(
@@ -31,8 +25,8 @@ export default function LinkCard({
   );
 
   const router = useRouter();
-  const { stats } = router.query;
-  const [showStatsModal, setShowStatsModal] = useState(false);
+  const { key: stats } = router.query;
+  const { setShowStatsModal } = useStatsContext();
 
   const onKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === "Escape") {
@@ -54,14 +48,10 @@ export default function LinkCard({
   }, [onKeyDown]);
 
   return (
-    <div
-      key={key}
+    <motion.li
+      variants={FRAMER_MOTION_LIST_ITEM_VARIANTS}
       className="flex items-center border border-gray-200 dark:border-gray-600 hover:border-black dark:hover:border-white p-3 rounded-md transition-all"
     >
-      <StatsModal
-        showStatsModal={showStatsModal}
-        setShowStatsModal={setShowStatsModal}
-      />
       <BlurImage
         src={`https://logo.clearbit.com/${urlHostname}`}
         alt={urlHostname}
@@ -73,20 +63,20 @@ export default function LinkCard({
         <div className="flex items-center space-x-2 mb-1">
           <a
             className="text-blue-800 dark:text-blue-400 font-semibold"
-            href={shortURL}
+            href={linkConstructor(key)}
             target="_blank"
             rel="noreferrer"
           >
-            {shortURL.replace(/^https?:\/\//, "")}
+            {linkConstructor(key, true)}
           </a>
-          <CopyButton url={shortURL} />
+          <CopyButton url={linkConstructor(key)} />
           <Link
-            href={{ pathname: "/", query: { stats: key } }}
+            href={{ pathname: "/", query: { key } }}
             as={`/stats/${encodeURI(key)}`}
             shallow
             scroll={false}
           >
-            <a className="rounded-md bg-gray-100 dark:bg-gray-800 px-2 py-0.5">
+            <a className="rounded-md bg-gray-100 dark:bg-gray-800 px-2 py-0.5 hover:scale-105 active:scale-95 transition-all duration-75">
               <p className="text-sm text-gray-500 dark:text-white">
                 {isValidating || !clicks ? (
                   <LoadingDots color="#71717A" />
@@ -102,6 +92,6 @@ export default function LinkCard({
           {url}
         </p>
       </div>
-    </div>
+    </motion.li>
   );
 }

@@ -12,15 +12,15 @@ export default function Modal({
   setShowModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const router = useRouter();
-  const { stats } = router.query;
+  const { key } = router.query;
 
   const closeModal = useCallback(() => {
-    if (stats) {
-      router.back();
+    if (key) {
+      router.push("/");
     } else {
       setShowModal(false);
     }
-  }, [stats, router, setShowModal]);
+  }, [key, router, setShowModal]);
 
   return (
     <Transition appear show={showModal} as={Fragment}>
@@ -39,7 +39,7 @@ export default function Modal({
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <Dialog.Overlay className="fixed inset-0 bg-gray-100 bg-opacity-10 backdrop-blur" />
+            <Dialog.Overlay className="fixed inset-0 bg-gray-100 dark:bg-black bg-opacity-10 backdrop-blur dark:backdrop-blur-none" />
           </Transition.Child>
 
           <span
