@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-  An open-source link shortener built with Vercel Edge Functions and Upstash Redis.
+  An open-source Bitly alternative with built-in analytics + free custom domains.
 </p>
 
 <p align="center">
@@ -18,7 +18,7 @@
 
 ## Introduction
 
-Dub is an open-source link shortener built with Vercel Edge Functions and Upstash Redis.
+Dub is an open-source link shortener with built-in analytics + free custom domains. Built with Vercel Edge Functions and Upstash Redis.
 
 ## Deploy Your Own
 

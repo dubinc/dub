@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { COUNTRIES, handleDeviceEdgeCases } from "@/lib/constants";
+import { COUNTRIES } from "@/lib/constants";
 
 export interface RawStatsProps {
   geo: NextRequest["geo"];
@@ -233,4 +233,36 @@ export const dummyData: StatsProps = {
   locationData: null,
   // @ts-ignore
   deviceData: null,
+};
+
+export const handleDeviceEdgeCases = (ua: string): string => {
+  if (ua.includes("curl")) {
+    return "Curl Request";
+  } else if (ua.includes("Slackbot")) {
+    return "Slack Bot";
+  } else if (ua.includes("Twitterbot")) {
+    return "Twitter Bot";
+  } else if (ua.includes("facebookexternalhit")) {
+    return "Facebook Bot";
+  } else if (ua.includes("LinkedInBot")) {
+    return "LinkedIn Bot";
+  } else if (ua.includes("WhatsApp")) {
+    return "WhatsApp Bot";
+  } else if (ua.includes("TelegramBot")) {
+    return "Telegram Bot";
+  } else if (ua.includes("Discordbot")) {
+    return "Discord Bot";
+  } else if (ua.includes("Googlebot")) {
+    return "Google Bot";
+  } else if (ua.includes("Baiduspider")) {
+    return "Baidu Bot";
+  } else if (ua.includes("bingbot")) {
+    return "Bing Bot";
+  } else if (ua.includes("YandexBot")) {
+    return "Yandex Bot";
+  } else if (ua.includes("DuckDuckBot")) {
+    return "DuckDuckGo Bot";
+  } else {
+    return "Unknown";
+  }
 };

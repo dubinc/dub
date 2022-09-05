@@ -1,12 +1,13 @@
 import Stats from "@/components/stats";
 import { GetStaticPaths, GetStaticProps } from "next";
 import { ParsedUrlQuery } from "querystring";
+import HomeLayout from "@/components/layout/home";
 
 export default function StatsPage() {
   return (
-    <div>
+    <HomeLayout>
       <Stats />
-    </div>
+    </HomeLayout>
   );
 }
 
