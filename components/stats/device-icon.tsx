@@ -1,6 +1,6 @@
 import { DeviceTabs } from "@/lib/stats";
 import { Chrome, Safari, Apple } from "components/shared/icons/devices";
-import Image from "next/future/image";
+import BlurImage from "@/components/shared/blur-image";
 
 export default function DeviceIcon({
   display,
@@ -22,7 +22,7 @@ export default function DeviceIcon({
   }
   if (tab === "device") {
     return (
-      <Image
+      <BlurImage
         src={
           display === "Desktop"
             ? `https://faisalman.github.io/ua-parser-js/images/types/default.png`
@@ -42,23 +42,20 @@ export default function DeviceIcon({
       return <Safari className={className} />;
     } else {
       return (
-        <Image
+        <BlurImage
           src={`https://faisalman.github.io/ua-parser-js/images/browsers/${display.toLowerCase()}.png`}
           alt={display}
           width={20}
           height={20}
           className={className}
-          onError={(e) => {
-            e.currentTarget.src = `https://faisalman.github.io/ua-parser-js/images/browsers/default.png`;
-          }}
         />
       );
     }
   } else if (tab === "os") {
     if (display === "Mac OS") {
       return (
-        <Image
-          src="/icons/macos.png"
+        <BlurImage
+          src="/static/icons/macos.png"
           alt={display}
           width={20}
           height={20}
@@ -69,15 +66,12 @@ export default function DeviceIcon({
       return <Apple className="w-5 h-5 -ml-1" />;
     } else {
       return (
-        <Image
+        <BlurImage
           src={`https://faisalman.github.io/ua-parser-js/images/os/${display.toLowerCase()}.png`}
           alt={display}
           width={30}
           height={20}
           className="w-5 h-4"
-          onError={(e) => {
-            e.currentTarget.src = `https://faisalman.github.io/ua-parser-js/images/os/default.png`;
-          }}
         />
       );
     }
@@ -91,7 +85,7 @@ export default function DeviceIcon({
     );
   } else {
     return (
-      <Image
+      <BlurImage
         src={`https://faisalman.github.io/ua-parser-js/images/companies/default.png`}
         alt={display}
         width={20}

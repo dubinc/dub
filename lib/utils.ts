@@ -4,8 +4,18 @@ export async function fetcher<JSON = any>(
 ): Promise<JSON> {
   const res = await fetch(input, init);
 
-  if (!res.ok && res.status === 401) {
-    throw new Error("Unauthorized");
+  if (!res.ok) {
+    if (res.status === 401) {
+      throw new Error("Unauthorized");
+    } else if (res.status === 403) {
+      throw new Error("Forbidden");
+    } else if (res.status === 404) {
+      throw new Error("Not Found");
+    } else if (res.status === 500) {
+      throw new Error("Internal Server Error");
+    } else {
+      throw new Error("An unexpected error occurred");
+    }
   }
 
   return res.json();

@@ -1,41 +1,48 @@
-import type { NextRequest } from "next/server";
+import { NextApiRequest, NextApiResponse } from "next";
 import { redis } from "@/lib/redis";
+import { getSession } from "@/lib/api/auth";
 import { customAlphabet } from "nanoid";
 
-export const config = {
-  runtime: "experimental-edge",
-};
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  //   const session = await getSession(req, res);
+  //   if (!session?.user.id) return res.status(401).end("Unauthorized");
 
-export default async function handler(req: NextRequest) {
-  if (req.method === "POST") {
-    const url = req.nextUrl.searchParams.get("url");
-    const hostname = req.nextUrl.searchParams.get("hostname");
-    if (!url || !hostname) {
-      return new Response(`Missing url or hostname`, { status: 400 });
+  // GET /api/links – get all links associated with the authenticated user
+  if (req.method === "GET") {
+    const { hostname } = req.query;
+    const response = await redis.hgetall(`${hostname}:links`);
+    return res.status(200).json(response);
+
+    // POST /api/links – create a new link
+  } else if (req.method === "POST") {
+    let { hostname, key, url } = req.body;
+    if (!hostname || !key || !url) {
+      return res.status(400).json({ error: "Missing hostname, key or url" });
     }
-    const nanoid = customAlphabet(
-      "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
-      7
-    ); // 7-character random string
-    const key = nanoid(); //
-    const response = await redis.hsetnx(`${hostname}:links`, key, url);
-    if (response === 1) {
-      return new Response(
-        JSON.stringify({
-          key,
-          url,
-        }),
-        { status: 200 }
-      );
+    const pipeline = redis.pipeline();
+    pipeline.hsetnx(`${hostname}:links`, key, url);
+    pipeline.zadd(`${hostname}:links:timestamp`, {
+      score: Date.now(),
+      member: key,
+    });
+
+    const response = await pipeline.exec();
+
+    if (response === [1, 1]) {
+      return res.status(200).json({
+        key,
+        url,
+      });
     } else {
-      return new Response(
-        JSON.stringify({
-          error: "failed to save link",
-        }),
-        { status: 500 }
-      );
+      return res.status(500).json({
+        error: "Failed to save link",
+      });
     }
   } else {
-    return new Response(`Method ${req.method} Not Allowed`, { status: 405 });
+    res.setHeader("Allow", ["GET", "POST"]);
+    return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
   }
 }

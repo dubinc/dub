@@ -7,14 +7,12 @@ import PlaceholderCard from "@/components/home/placeholder-card";
 import { LoadingDots } from "@/components/shared/icons";
 import { StatsProvider } from "@/components/stats/context";
 import { motion } from "framer-motion";
+import { LinkProps } from "@/lib/api/types";
 
 export default function Home() {
   const [saving, setSaving] = useState(false);
   const [url, setUrl] = useState("");
-  const [hashes, setHashes] = useLocalStorage<{ key: string; url: string }[]>(
-    "hashes",
-    []
-  );
+  const [hashes, setHashes] = useLocalStorage<LinkProps[]>("hashes", []);
 
   return (
     <HomeLayout>
@@ -40,7 +38,7 @@ export default function Home() {
           onSubmit={async (e) => {
             e.preventDefault();
             setSaving(true);
-            fetch(`/api/links?url=${url}&hostname=dub.sh`, {
+            fetch(`/api/edge/links?url=${url}&hostname=dub.sh`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",

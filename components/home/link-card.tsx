@@ -20,7 +20,7 @@ export default function LinkCard({
   const urlHostname = new URL(url).hostname;
 
   const { data: clicks, isValidating } = useSWR<string>(
-    `/api/links/${key}/clicks`,
+    `/api/edge/links/${key}/clicks`,
     fetcher
   );
 
@@ -50,7 +50,7 @@ export default function LinkCard({
   return (
     <motion.li
       variants={FRAMER_MOTION_LIST_ITEM_VARIANTS}
-      className="flex items-center border border-gray-200 dark:border-gray-600 hover:border-black dark:hover:border-white p-3 rounded-md transition-all"
+      className="flex items-center border border-gray-200 dark:border-gray-600 hover:border-black dark:hover:border-white p-3 max-w-md rounded-md transition-all"
     >
       <BlurImage
         src={`https://logo.clearbit.com/${urlHostname}`}

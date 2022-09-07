@@ -8,7 +8,10 @@ import { parse } from "@/lib/middleware/utils";
 import { RESERVED_KEYS } from "@/lib/constants";
 
 export const config = {
-  matcher: "/([^/.]*)",
+  matcher: [
+    // Comment to force multi-line for better diffs
+    "/((?!api|_next|static|app|favicon.ico|site.webmanifest).*)",
+  ],
 };
 
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {

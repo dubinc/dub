@@ -4,12 +4,12 @@ import { LoadingDots } from "@/components/shared/icons";
 
 export default function Login() {
   const [signInClicked, setSignInClicked] = useState(false);
-  const [buttonText, setButtonText] = useState("Sign in with magic link");
+  const [buttonText, setButtonText] = useState("Send magic link");
 
   return (
     <div className="h-screen w-screen flex justify-center items-center">
       <div className="inline-block w-full max-w-md py-8 px-4 sm:px-16 overflow-hidden text-center align-middle transition-all transform bg-white shadow-xl rounded-2xl">
-        <h1 className="font-bold text-3xl mb-4">Sign In</h1>
+        <h1 className="font-bold text-3xl mb-4">Log In to Dub</h1>
 
         <form
           onSubmit={async (e) => {
@@ -18,23 +18,14 @@ export default function Login() {
             signIn("email", {
               email: e.currentTarget.email.value,
               redirect: false,
-            }).then(
-              (
-                res: void | {
-                  error: string | undefined;
-                  status: number;
-                  ok: boolean;
-                  url: string | null;
-                }
-              ) => {
-                setSignInClicked(false);
-                if (res?.ok && !res?.error) {
-                  setButtonText("Email sent - check your inbox!");
-                } else {
-                  setButtonText("Error sending email - try again?");
-                }
+            }).then((res) => {
+              setSignInClicked(false);
+              if (res?.ok && !res?.error) {
+                setButtonText("Email sent - check your inbox!");
+              } else {
+                setButtonText("Error sending email - try again?");
               }
-            );
+            });
           }}
           className="mt-5 flex flex-col space-y-4"
         >

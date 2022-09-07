@@ -22,6 +22,7 @@ export default async function LinkMiddleware(
         member: {
           geo: process.env.VERCEL === "1" ? req.geo : LOCALHOST_GEO_DATA,
           ua: userAgent(req),
+          referer: req.headers.get("referer"),
           timestamp: Date.now(),
         },
       })

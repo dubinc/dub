@@ -5,7 +5,7 @@ export default function PlaceholderCard() {
   return (
     <motion.li
       variants={FRAMER_MOTION_LIST_ITEM_VARIANTS}
-      className="flex items-center border border-gray-200 dark:border-gray-600 hover:border-black dark:hover:border-white p-3 rounded-md transition-all"
+      className="flex items-center border border-gray-200 dark:border-gray-600 hover:border-black dark:hover:border-white p-3 max-w-md rounded-md transition-all"
     >
       <div className="w-10 h-10 rounded-full mr-2 bg-gray-200 dark:bg-gray-600 animate-pulse" />
       <div>

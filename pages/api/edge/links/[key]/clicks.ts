@@ -8,7 +8,7 @@ export const config = {
 export default async function handler(req: NextRequest) {
   if (req.method === "GET") {
     const url = req.nextUrl.pathname;
-    const key = url.split("/")[3];
+    const key = url.split("/")[4];
     const response = (await redis.zcard(`dub.sh:${key}:clicks`)) || "0";
     return new Response(JSON.stringify(response), { status: 200 });
   } else {

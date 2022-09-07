@@ -12,7 +12,7 @@ export default function Stats() {
 
   const { data, isValidating } = useSWR<StatsProps>(
     router.query.key &&
-      `/api/links/${router.query.key}/stats${
+      `/api/edge/links/${router.query.key}/stats${
         router.query.interval ? `?interval=${router.query.interval}` : ""
       }`,
     fetcher,
