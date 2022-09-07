@@ -6,22 +6,26 @@ import BlurImage from "@/components/shared/blur-image";
 import useSWR from "swr";
 import { fetcher } from "@/lib/utils";
 import { ProjectProps } from "@/lib/api/types";
+import { useSession } from "next-auth/react";
 
 export default function ListBox() {
   const { data: projects } = useSWR<ProjectProps[]>("/api/projects", fetcher);
 
   const router = useRouter();
+
+  const { data: session } = useSession();
+
   const selected = useMemo(() => {
-    const { teamSlug } = router.query;
+    const { slug } = router.query;
     return (
-      projects?.find(({ slug }) => slug === teamSlug) || {
-        name: "Dub.sh",
-        slug: "dub",
+      projects?.find((project) => project.slug === slug) || {
+        name: session?.user?.name || session?.user?.email || "User",
+        slug: "/",
       }
     );
-  }, [router, projects]);
+  }, [router, projects, session]);
 
-  if (!projects)
+  if (!projects || !router.isReady)
     return (
       <div className="w-52 h-9 px-2 rounded-lg bg-gray-100 animate-pulse flex justify-end items-center">
         <ChevronUpDown className="h-4 w-4 text-gray-400" aria-hidden="true" />
@@ -40,7 +44,12 @@ export default function ListBox() {
           <Listbox.Button className="relative w-full rounded-lg bg-white hover:bg-gray-100 py-1.5 pl-3 pr-10 text-left focus:outline-none text-sm active:scale-95 transition-all duration-75">
             <div className="flex justify-start items-center space-x-3">
               <BlurImage
-                src={`https://avatar.tobi.sh/${selected.slug}`}
+                src={
+                  selected.slug === "/"
+                    ? session?.user?.image ||
+                      `https://avatars.dicebear.com/api/micah/${session?.user?.email}.svg`
+                    : `https://avatar.tobi.sh/${selected.slug}`
+                }
                 alt={selected.name}
                 className="w-8 h-8 flex-shrink-0 rounded-full overflow-hidden border border-gray-300"
                 width={48}

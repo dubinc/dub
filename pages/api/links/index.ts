@@ -1,7 +1,8 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { redis } from "@/lib/redis";
 import { getSession } from "@/lib/api/auth";
-import { customAlphabet } from "nanoid";
+
+// This is a special route for creating custom dub.sh links.
 
 export default async function handler(
   req: NextApiRequest,
@@ -22,20 +23,16 @@ export default async function handler(
 
     // POST /api/links – create a new link
   } else if (req.method === "POST") {
-    let { hostname, key, url } = req.body;
-    if (!hostname || !key || !url) {
-      return res.status(400).json({ error: "Missing hostname, key or url" });
+    let { key, url } = req.body;
+    if (!key || !url) {
+      return res.status(400).json({ error: "Missing key or url" });
     }
-    const pipeline = redis.pipeline();
-    pipeline.hsetnx(`${hostname}:links`, key, url);
-    pipeline.zadd(`dub.sh:timestamps:${session?.user.id}`, {
-      score: Date.now(),
-      member: key,
-    });
-
-    const response = await pipeline.exec();
-
-    if (response === [1, 1]) {
+    const response = await redis.hsetnx(`dub.sh:links`, key, url);
+    if (response === 1) {
+      await redis.zadd(`dub.sh:timestamps:${session?.user.id}`, {
+        score: Date.now(),
+        member: key,
+      });
       return res.status(200).json({
         key,
         url,
