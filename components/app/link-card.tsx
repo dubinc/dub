@@ -26,7 +26,7 @@ export default function LinkCard({
   );
 
   return (
-    <div className="flex items-center border border-gray-200 dark:border-gray-600 hover:border-black dark:hover:border-white p-3 max-w-md rounded-md transition-all">
+    <div className="flex items-center border border-gray-200 dark:border-gray-600 hover:border-black dark:hover:border-white bg-white dark:bg-black p-3 max-w-md rounded-md transition-all">
       <BlurImage
         src={`https://logo.clearbit.com/${urlHostname}`}
         alt={urlHostname}

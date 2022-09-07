@@ -26,7 +26,7 @@ export default function Project() {
 
   return (
     <AppLayout>
-      <div className="grid gap-2 mt-3">
+      <div className="my-10 grid grid-cols-1 gap-3">
         {data?.links && data.links.length > 0
           ? data.links.map(({ key, url }) => (
               <LinkCard key={key} _key={key} url={url} />
