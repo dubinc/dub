@@ -7,13 +7,17 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  //   const session = await getSession(req, res);
-  //   if (!session?.user.id) return res.status(401).end("Unauthorized");
+  const session = await getSession(req, res);
+  if (!session?.user.id) return res.status(401).end("Unauthorized");
 
-  // GET /api/links – get all links associated with the authenticated user
+  // GET /api/links – get all dub.sh links created by the user
   if (req.method === "GET") {
-    const { hostname } = req.query;
-    const response = await redis.hgetall(`${hostname}:links`);
+    const response = await redis.zrange(
+      `dub.sh:timestamps:${session?.user.id}`,
+      0,
+      -1,
+      { rev: true }
+    );
     return res.status(200).json(response);
 
     // POST /api/links – create a new link
@@ -24,7 +28,7 @@ export default async function handler(
     }
     const pipeline = redis.pipeline();
     pipeline.hsetnx(`${hostname}:links`, key, url);
-    pipeline.zadd(`${hostname}:links:timestamp`, {
+    pipeline.zadd(`dub.sh:timestamps:${session?.user.id}`, {
       score: Date.now(),
       member: key,
     });

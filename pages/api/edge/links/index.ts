@@ -15,7 +15,7 @@ export default async function handler(req: NextRequest) {
     const { response, key } = await setRandomKey(url);
     if (response === 1) {
       // if key was successfully added
-      await redis.zadd(`dub.sh:generic:timestamp`, {
+      await redis.zadd(`dub.sh:timestamps:generic`, {
         score: Date.now(),
         member: key,
       });

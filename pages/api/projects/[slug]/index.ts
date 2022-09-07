@@ -31,7 +31,7 @@ export default async function handler(
     });
     if (response) {
       const keys = await redis.zrange<string[]>(
-        `${slug}:links:timestamps`,
+        `${slug}:timestamps:links`,
         0,
         -1,
         {

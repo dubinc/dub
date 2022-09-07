@@ -37,7 +37,7 @@ export default async function handler(
     }
     const pipeline = redis.pipeline();
     pipeline.hsetnx(`${hostname}:links`, key, url);
-    pipeline.zadd(`${hostname}:links:timestamp`, {
+    pipeline.zadd(`${hostname}:timestamps:links`, {
       score: Date.now(),
       member: key,
     });

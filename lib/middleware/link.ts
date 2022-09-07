@@ -14,8 +14,6 @@ export default async function LinkMiddleware(
 ) {
   const { hostname, key } = parse(req);
 
-  console.log("referer headers is", req.headers.get("referer"));
-
   const target = await redis.hget<string>(`${hostname}:links`, key);
   if (target) {
     ev.waitUntil(
