@@ -35,4 +35,4 @@ Dub is an open-source link shortener with built-in analytics + free custom domai
 
 ## License
 
-The MIT License.
+Inspired by [Plausible](https://plausible.io/), Dub is open-source under the GNU Affero General Public License Version 3 (AGPLv3) or any later version. You can [find it here](https://github.com/steven-tey/dub/blob/main/LICENSE.md).
