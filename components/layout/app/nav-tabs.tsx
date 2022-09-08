@@ -5,7 +5,7 @@ import { NextRouter, useRouter } from "next/router";
 const TabsHelper = (router: NextRouter): { name: string; href: string }[] => {
   const { slug } = router.query;
   if (slug) {
-    return [{ name: "Overview", href: `/${slug}` }];
+    return [{ name: "Links", href: `/${slug}` }];
   }
   return [
     { name: "Projects", href: `/` },
@@ -16,7 +16,11 @@ const TabsHelper = (router: NextRouter): { name: string; href: string }[] => {
 export default function NavTabs() {
   const router = useRouter();
   const tabs = useMemo(() => {
-    return TabsHelper(router);
+    if (!router.isReady) {
+      return [];
+    } else {
+      return TabsHelper(router);
+    }
   }, [router.query]);
 
   return (

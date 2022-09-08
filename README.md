@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://dub.sh">
-    <img src="https://assets.vercel.com/image/upload/v1588805858/repositories/vercel/logo.png" height="96">
+    <img src="https://dub.sh/static/logo.png" height="96">
     <h3 align="center">Dub</h3>
   </a>
 </p>
