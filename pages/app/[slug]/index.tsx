@@ -7,7 +7,7 @@ import PlaceholderCard from "@/components/home/placeholder-card";
 import { useEffect } from "react";
 import { ProjectProps } from "@/lib/api/types";
 
-export default function Project() {
+export default function ProjectLinks() {
   const router = useRouter();
   const { slug } = router.query as {
     slug: string;
@@ -29,7 +29,7 @@ export default function Project() {
       <div className="my-10 grid grid-cols-1 gap-3">
         {data?.links && data.links.length > 0
           ? data.links.map(({ key, url }) => (
-              <LinkCard key={key} _key={key} url={url} />
+              <LinkCard key={key} _key={key} url={url} projectLinks={true} />
             ))
           : Array.from({ length: 3 }).map((_, i) => (
               <PlaceholderCard key={i} />

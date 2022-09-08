@@ -7,7 +7,10 @@ const TabsHelper = (router: NextRouter): { name: string; href: string }[] => {
   if (slug) {
     return [{ name: "Overview", href: `/${slug}` }];
   }
-  return [{ name: "Overview", href: `/` }];
+  return [
+    { name: "Projects", href: `/` },
+    { name: "Dub.sh Links", href: `/links` },
+  ];
 };
 
 export default function NavTabs() {

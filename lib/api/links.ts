@@ -1,5 +1,6 @@
 import { redis } from "@/lib/redis";
 import { customAlphabet } from "nanoid";
+import { getTitleFromUrl } from "@/lib/utils";
 
 const nanoid = customAlphabet(
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
@@ -11,13 +12,21 @@ export async function setRandomKey(
 ): Promise<{ response: number; key: string }> {
   /* recursively set link till successful */
   const key = nanoid();
-  const response = await redis.hsetnx(`dub.sh:links`, key, url); // add to hash
+  const response = await setKey("dub.sh", key, url); // add to hash
   if (response === 0) {
     // by the off chance that key already exists
     return setRandomKey(url);
   } else {
     return { response, key };
   }
+}
+
+export async function setKey(hostname: string, key: string, url: string) {
+  return await redis.hsetnx(`${hostname}:links`, key, {
+    url,
+    title: await getTitleFromUrl(url),
+    timestamp: Date.now(),
+  });
 }
 
 export async function getRandomKey(): Promise<string> {

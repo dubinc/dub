@@ -31,7 +31,7 @@ export default async function handler(
 
   if (req.method === "GET") {
     const { slug, key } = req.query;
-    const response = (await redis.zcard(`${slug}:${key}:clicks`)) || "0";
+    const response = (await redis.zcard(`${slug}:clicks:${key}`)) || "0";
     return res.status(200).json(response);
   } else {
     res.setHeader("Allow", ["GET"]);

@@ -39,7 +39,7 @@ export default async function handler(
     const start = Date.now() - intervalData[interval || "7d"].milliseconds;
     const end = Date.now();
     const response = await redis.zrange<RawStatsProps[]>(
-      `${slug}:${key}:clicks`,
+      `${slug}:clicks:${key}`,
       start,
       end,
       {

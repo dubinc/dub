@@ -1,12 +1,7 @@
-import {
-  NextRequest,
-  NextFetchEvent,
-  NextResponse,
-  userAgent,
-} from "next/server";
-import { redis } from "@/lib/redis";
-import { LOCALHOST_GEO_DATA } from "@/lib/constants";
+import { NextRequest, NextFetchEvent, NextResponse } from "next/server";
+import { redis, recordClick } from "@/lib/redis";
 import { parse } from "@/lib/middleware/utils";
+import { LinkProps } from "../api/types";
 
 export default async function LinkMiddleware(
   req: NextRequest,
@@ -14,19 +9,18 @@ export default async function LinkMiddleware(
 ) {
   const { hostname, key } = parse(req);
 
-  const target = await redis.hget<string>(`${hostname}:links`, key);
+  if (!hostname || !key) {
+    return NextResponse.next();
+  }
+
+  const response = await redis.hget<Omit<LinkProps, "key">>(
+    `${hostname}:links`,
+    key
+  );
+  const target = response?.url;
+
   if (target) {
-    ev.waitUntil(
-      redis.zadd(`${hostname}:${key}:clicks`, {
-        score: Date.now(),
-        member: {
-          geo: process.env.VERCEL === "1" ? req.geo : LOCALHOST_GEO_DATA,
-          ua: userAgent(req),
-          referer: req.headers.get("referer"),
-          timestamp: Date.now(),
-        },
-      })
-    ); // increment click count
+    ev.waitUntil(recordClick(hostname, key, req)); // increment click count
     return NextResponse.redirect(target);
   } else {
     const url = req.nextUrl.clone();

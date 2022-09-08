@@ -9,9 +9,11 @@ import Link from "next/link";
 export default function LinkCard({
   _key: key,
   url,
+  projectLinks,
 }: {
   _key: string;
   url: string;
+  projectLinks: boolean;
 }) {
   const urlHostname = new URL(url).hostname;
 
@@ -21,7 +23,9 @@ export default function LinkCard({
   };
 
   const { data: clicks, isValidating } = useSWR<string>(
-    `/api/projects/${slug}/links/${key}/clicks`,
+    projectLinks
+      ? `/api/projects/${slug}/links/${key}/clicks`
+      : `/api/edge/links/${key}/clicks`,
     fetcher
   );
 

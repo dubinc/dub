@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { redis } from "@/lib/redis";
+import { setKey } from "@/lib/api/links";
 import { getSession } from "@/lib/api/auth";
 import prisma from "@/lib/prisma";
 
@@ -35,16 +36,18 @@ export default async function handler(
     if (!hostname || !key || !url) {
       return res.status(400).json({ error: "Missing hostname, key or url" });
     }
-    const pipeline = redis.pipeline();
-    pipeline.hsetnx(`${hostname}:links`, key, url);
-    pipeline.zadd(`${hostname}:timestamps:links`, {
-      score: Date.now(),
-      member: key,
-    });
 
-    const response = await pipeline.exec();
-
-    if (response === [1, 1]) {
+    const response = await setKey(hostname, key, url);
+    if (response === 1) {
+      const pipeline = redis.pipeline();
+      pipeline.zadd(`${hostname}:links:timestamps`, {
+        score: Date.now(),
+        member: key,
+      });
+      pipeline.zadd(`${hostname}:links:clicks`, {
+        score: 0,
+        member: key,
+      });
       return res.status(200).json({
         key,
         url,
