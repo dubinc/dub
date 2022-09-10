@@ -1,3 +1,5 @@
+import ms from "ms";
+
 export async function fetcher<JSON = any>(
   input: RequestInfo,
   init?: RequestInit
@@ -74,4 +76,8 @@ export const getTitleFromUrl = async (url: string) => {
       return "No title found"; // if there's an error, return "No title found"
     });
   return title;
+};
+
+export const timeAgo = (timestamp: number): string => {
+  return `${ms(Date.now() - timestamp)} ago`;
 };

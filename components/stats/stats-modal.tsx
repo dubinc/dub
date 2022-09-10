@@ -1,21 +1,34 @@
 import Modal from "@/components/shared/modal";
+import {
+  useCallback,
+  useMemo,
+  useState,
+  Dispatch,
+  SetStateAction,
+} from "react";
 import Stats from ".";
-import { useStatsContext } from "@/components/stats/context";
 import { UIEvent } from "react";
 import { useRouter } from "next/router";
 import { X } from "@/components/shared/icons";
 
-export default function StatsModal() {
+function StatsModalHelper({
+  showStatsModal,
+  setShowStatsModal,
+}: {
+  showStatsModal: boolean;
+  setShowStatsModal: Dispatch<SetStateAction<boolean>>;
+}) {
   const router = useRouter();
-  const { showStatsModal, setShowStatsModal, setAtTop } = useStatsContext();
+  const [atModalTop, setAtModalTop] = useState(false);
 
   const handleScroll = (event: UIEvent<HTMLElement>) => {
     if (event.currentTarget.scrollTop > 144) {
-      setAtTop(true);
+      setAtModalTop(true);
     } else {
-      setAtTop(false);
+      setAtModalTop(false);
     }
   };
+
   return (
     <Modal showModal={showStatsModal} setShowModal={setShowStatsModal}>
       <div
@@ -33,8 +46,26 @@ export default function StatsModal() {
         >
           <X className="w-6 h-6" />
         </button>
-        <Stats />
+        <Stats atModalTop={atModalTop} />
       </div>
     </Modal>
+  );
+}
+
+export function useStatsModal() {
+  const [showStatsModal, setShowStatsModal] = useState(false);
+
+  const StatsModal = useCallback(() => {
+    return (
+      <StatsModalHelper
+        showStatsModal={showStatsModal}
+        setShowStatsModal={setShowStatsModal}
+      />
+    );
+  }, [showStatsModal, setShowStatsModal]);
+
+  return useMemo(
+    () => ({ setShowStatsModal, StatsModal }),
+    [setShowStatsModal, StatsModal]
   );
 }

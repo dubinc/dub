@@ -1,5 +1,5 @@
 import { NextRequest, NextFetchEvent, NextResponse } from "next/server";
-import { redis, recordClick } from "@/lib/redis";
+import { redis, recordClick } from "@/lib/upstash";
 import { parse } from "@/lib/middleware/utils";
 import { LinkProps } from "../api/types";
 

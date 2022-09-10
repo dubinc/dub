@@ -1,15 +1,14 @@
 import { NextApiRequest, NextApiResponse } from "next";
+import { checkIfKeyExists } from "@/lib/upstash";
 import { withProjectAuth } from "@/lib/api/auth";
-import { redis } from "@/lib/upstash";
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {
     if (req.method === "GET") {
-      const { slug, key } = req.query;
-      const response = (await redis.zcard(`${slug}:clicks:${key}`)) || "0";
+      const { key } = req.query as { key: string };
+      const response = await checkIfKeyExists("dub.sh", key);
       return res.status(200).json(response);
     } else {
-      res.setHeader("Allow", ["GET"]);
       return res
         .status(405)
         .json({ error: `Method ${req.method} Not Allowed` });

@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import useSWR from "swr";
 import { fetcher } from "@/lib/utils";
 import LinkCard from "@/components/app/link-card";
-import PlaceholderCard from "@/components/home/placeholder-card";
+import PlaceholderCard from "@/components/app/placeholder-card";
 import { useEffect } from "react";
 import { ProjectProps } from "@/lib/api/types";
 
@@ -28,8 +28,8 @@ export default function ProjectLinks() {
     <AppLayout>
       <div className="my-10 grid grid-cols-1 gap-3">
         {data?.links && data.links.length > 0
-          ? data.links.map(({ key, url }) => (
-              <LinkCard key={key} _key={key} url={url} projectLinks={true} />
+          ? data.links.map((props) => (
+              <LinkCard key={props.key} props={props} slug={slug} />
             ))
           : Array.from({ length: 3 }).map((_, i) => (
               <PlaceholderCard key={i} />

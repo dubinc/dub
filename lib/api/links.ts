@@ -1,4 +1,4 @@
-import { redis } from "@/lib/redis";
+import { redis } from "@/lib/upstash";
 import { customAlphabet } from "nanoid";
 import { getTitleFromUrl } from "@/lib/utils";
 

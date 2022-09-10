@@ -5,7 +5,6 @@ import VercelEdgeFunctions from "@/components/home/vercel-edge-functions";
 import LinkCard from "@/components/home/link-card";
 import PlaceholderCard from "@/components/home/placeholder-card";
 import { LoadingDots } from "@/components/shared/icons";
-import { StatsProvider } from "@/components/stats/context";
 import { motion } from "framer-motion";
 import { LinkProps } from "@/lib/api/types";
 
@@ -76,35 +75,33 @@ export default function Home() {
           </div>
         </form>
 
-        <StatsProvider>
-          <motion.ul
-            key={hashes.length + 1} // workaround for https://github.com/framer/motion/issues/776, add 1 to account for the demo GH link
-            initial="hidden"
-            animate="show"
-            variants={{
-              hidden: {},
-              show: {
-                transition: {
-                  staggerChildren: 0.1,
-                },
+        <motion.ul
+          key={hashes.length + 1} // workaround for https://github.com/framer/motion/issues/776, add 1 to account for the demo GH link
+          initial="hidden"
+          animate="show"
+          variants={{
+            hidden: {},
+            show: {
+              transition: {
+                staggerChildren: 0.1,
               },
-            }}
-            className="grid gap-2 mt-3"
-          >
-            <LinkCard
-              key="github"
-              _key="github"
-              url={"https://github.com/steven-tey/dub"}
-            />
-            {hashes.length > 0
-              ? hashes.map(({ key, url }) => (
-                  <LinkCard key={key} _key={key} url={url} />
-                ))
-              : Array.from({ length: 3 }).map((_, i) => (
-                  <PlaceholderCard key={i} />
-                ))}
-          </motion.ul>
-        </StatsProvider>
+            },
+          }}
+          className="grid gap-2 mt-3"
+        >
+          <LinkCard
+            key="github"
+            _key="github"
+            url={"https://github.com/steven-tey/dub"}
+          />
+          {hashes.length > 0
+            ? hashes.map(({ key, url }) => (
+                <LinkCard key={key} _key={key} url={url} />
+              ))
+            : Array.from({ length: 3 }).map((_, i) => (
+                <PlaceholderCard key={i} />
+              ))}
+        </motion.ul>
       </main>
     </HomeLayout>
   );

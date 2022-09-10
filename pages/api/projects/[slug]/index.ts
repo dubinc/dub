@@ -1,8 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "@/lib/api/auth";
 import prisma from "@/lib/prisma";
-import { redis } from "@/lib/redis";
-import { LinkProps } from "@/lib/api/types";
+import { redis, getLinksForProject } from "@/lib/upstash";
 
 export default async function handler(
   req: NextApiRequest,
@@ -31,21 +30,7 @@ export default async function handler(
       },
     });
     if (project) {
-      const keys = await redis.zrange<string[]>(
-        `${slug}:links:timestamps`,
-        0,
-        -1,
-        {
-          rev: true,
-        }
-      );
-      const metadata = (await redis.hmget(`dub.sh:links`, ...keys)) as {
-        [key: string]: Omit<LinkProps, "key">;
-      };
-      const links = keys.map((key) => ({
-        key,
-        ...metadata[key],
-      }));
+      const links = await getLinksForProject(slug);
       return res.status(200).json({
         ...project,
         links,

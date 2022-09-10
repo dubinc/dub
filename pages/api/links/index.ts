@@ -1,7 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { redis } from "@/lib/redis";
+import { getLinksForProject, redis } from "@/lib/upstash";
 import { getSession } from "@/lib/api/auth";
-import { LinkProps } from "@/lib/api/types";
 
 // This is a special route for creating custom dub.sh links.
 
@@ -14,20 +13,7 @@ export default async function handler(
 
   // GET /api/links – get all dub.sh links created by the user
   if (req.method === "GET") {
-    const keys = await redis.zrange<string[]>(
-      `dub.sh:links:timestamps:${session?.user.id}`,
-      0,
-      -1,
-      { rev: true }
-    );
-    const metadata = (await redis.hmget(`dub.sh:links`, ...keys)) as {
-      [key: string]: Omit<LinkProps, "key">;
-    };
-    // probably can just convert metadata from an object to an array tho
-    const response = keys.map((key) => ({
-      key,
-      ...metadata[key],
-    }));
+    const response = await getLinksForProject("dub.sh", session.user.id);
     return res.status(200).json(response);
 
     // POST /api/links – create a new link

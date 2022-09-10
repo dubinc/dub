@@ -6,9 +6,9 @@ import { useRouter } from "next/router";
 import useSWR from "swr";
 import { fetcher, nFormatter, linkConstructor } from "@/lib/utils";
 import Link from "next/link";
-import { useStatsContext } from "@/components/stats/context";
 import { motion } from "framer-motion";
 import { FRAMER_MOTION_LIST_ITEM_VARIANTS } from "@/lib/constants";
+import { useStatsModal } from "@/components/stats/stats-modal";
 
 export default function LinkCard({
   _key: key,
@@ -26,7 +26,7 @@ export default function LinkCard({
 
   const router = useRouter();
   const { key: stats } = router.query;
-  const { setShowStatsModal } = useStatsContext();
+  const { setShowStatsModal, StatsModal } = useStatsModal();
 
   const onKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === "Escape") {
@@ -52,6 +52,7 @@ export default function LinkCard({
       variants={FRAMER_MOTION_LIST_ITEM_VARIANTS}
       className="flex items-center border border-gray-200 dark:border-gray-600 hover:border-black dark:hover:border-white bg-white dark:bg-black p-3 max-w-md rounded-md transition-all"
     >
+      <StatsModal />
       <BlurImage
         src={`https://logo.clearbit.com/${urlHostname}`}
         alt={urlHostname}

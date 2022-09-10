@@ -7,7 +7,7 @@ import useSWR from "swr";
 import { fetcher } from "@/lib/utils";
 import { useRouter } from "next/router";
 
-export default function Stats() {
+export default function Stats({ atModalTop }: { atModalTop?: boolean }) {
   const router = useRouter();
 
   const { data, isValidating } = useSWR<StatsProps>(
@@ -24,7 +24,7 @@ export default function Stats() {
 
   return (
     <div className="relative bg-gray-50 dark:bg-black py-20 mx-auto lg:px-0 px-2.5">
-      <Toggle data={data!} />
+      <Toggle data={data!} atModalTop={atModalTop} />
       <div className="max-w-4xl mx-auto grid gap-5">
         <Clicks data={data!} isValidating={isValidating} />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">

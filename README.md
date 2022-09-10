@@ -22,7 +22,7 @@ Dub is an open-source link shortener with built-in analytics + free custom domai
 
 ## Deploy Your Own
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fsteven-tey%2Fdub&demo-title=Dub%20-%20Open-Source%20Link%20Shortener&demo-description=An%20open-source%20link%20shortener%20built%20with%20Vercel%20Edge%20Functions%20and%20Upstash.&demo-url=https%3A%2F%2Fdub.sh&demo-image=https%3A%2F%2Fdub.sh%2Fthumbnail.png&integration-ids=oac_V3R1GIpkoJorr6fqyiwdhl17)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fsteven-tey%2Fdub&demo-title=Dub%20-%20Open-Source%20Link%20Shortener&demo-description=An%20open-source%20link%20shortener%20built%20with%20Vercel%20Edge%20Functions%20and%20Upstash.&project-name=Dub&repository-name=dub&demo-url=https%3A%2F%2Fdub.sh&demo-image=https%3A%2F%2Fdub.sh%2Fstatic%2Fthumbnail.png&integration-ids=oac_V3R1GIpkoJorr6fqyiwdhl17)
 
 ## Contributing
 

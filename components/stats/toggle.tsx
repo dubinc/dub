@@ -2,18 +2,22 @@ import { useRouter } from "next/router";
 import { INTERVALS } from "@/lib/constants";
 import { linkConstructor } from "@/lib/utils";
 import useScroll from "@/lib/hooks/use-scroll";
-import { useStatsContext } from "@/components/stats/context";
 import { ExpandingArrow } from "@/components/shared/icons";
 import BadgeSelect from "@/components/shared/badge-select";
 import { IntervalProps, StatsProps } from "@/lib/stats";
 
-export default function Toggle({ data }: { data: StatsProps }) {
+export default function Toggle({
+  data,
+  atModalTop,
+}: {
+  data: StatsProps;
+  atModalTop?: boolean;
+}) {
   const router = useRouter();
   const key = (router.query.key as string) || data?.key;
   const currentInterval = (router.query.interval as IntervalProps) || "7d";
 
-  const { atTop: atContextTop } = useStatsContext();
-  const atTop = useScroll(144) || atContextTop;
+  const atTop = useScroll(144) || atModalTop;
 
   return (
     <div

@@ -11,3 +11,4 @@ export { default as ChevronRight } from "./chevron-right";
 export { default as ChevronLeft } from "./chevron-left";
 export { default as ChevronDown } from "./chevron-down";
 export { default as ChevronUpDown } from "./chevron-up-down";
+export { default as AlertCircleFill } from "./alert-circle-fill";
