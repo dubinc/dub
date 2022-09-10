@@ -1,7 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { redis } from "@/lib/upstash";
-import { setKey } from "@/lib/api/links";
-import { withProjectAuth } from "@/lib/api/auth";
+import { redis, setKey } from "@/lib/upstash";
+import { withProjectAuth } from "@/lib/auth";
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {

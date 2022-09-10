@@ -4,7 +4,7 @@ import useSWR from "swr";
 import { fetcher } from "@/lib/utils";
 import LinkCard from "@/components/app/link-card";
 import PlaceholderCard from "@/components/app/placeholder-card";
-import { LinkProps } from "@/lib/api/types";
+import { LinkProps } from "@/lib/types";
 
 export default function Links() {
   const router = useRouter();

@@ -1,6 +1,5 @@
 import type { NextRequest } from "next/server";
-import { redis } from "@/lib/upstash";
-import { setRandomKey } from "@/lib/api/links";
+import { redis, setRandomKey } from "@/lib/upstash";
 
 export const config = {
   runtime: "experimental-edge",
@@ -12,7 +11,7 @@ export default async function handler(req: NextRequest) {
     if (!url) {
       return new Response(`Missing url or hostname`, { status: 400 });
     }
-    const { response, key } = await setRandomKey(url);
+    const { response, key } = await setRandomKey("dub.sh", url);
     if (response === 1) {
       // if key was successfully added
       const pipeline = redis.pipeline();

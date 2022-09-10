@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 import useSWR from "swr";
 import { fetcher, nFormatter, linkConstructor, timeAgo } from "@/lib/utils";
 import Link from "next/link";
-import { LinkProps } from "@/lib/api/types";
+import { LinkProps } from "@/lib/types";
 import { useEditModal } from "./edit-modal";
 
 export default function LinkCard({

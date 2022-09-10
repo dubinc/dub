@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { getLinksForProject, redis } from "@/lib/upstash";
-import { getSession } from "@/lib/api/auth";
+import { getLinksForProject, addLink } from "@/lib/upstash";
+import { getSession } from "@/lib/auth";
 
 // This is a special route for creating custom dub.sh links.
 
@@ -18,25 +18,15 @@ export default async function handler(
 
     // POST /api/links – create a new link
   } else if (req.method === "POST") {
-    let { key, url } = req.body;
-    if (!key || !url) {
+    let { key, url, title } = req.body;
+    if (!url) {
       return res.status(400).json({ error: "Missing key or url" });
     }
-    const response = await redis.hsetnx(`dub.sh:links`, key, url);
-    if (response === 1) {
-      await redis.zadd(`dub.sh:metadata:${session?.user.id}`, {
-        score: Date.now(),
-        member: key,
-      });
-      return res.status(200).json({
-        key,
-        url,
-      });
-    } else {
-      return res.status(500).json({
-        error: "Failed to save link",
-      });
+    const response = await addLink("dub.sh", url, key, title, session.user.id);
+    if (response === null) {
+      return res.status(400).json({ error: "Key already exists" });
     }
+    return res.status(200).json({ key, url, title });
   } else {
     res.setHeader("Allow", ["GET", "POST"]);
     return res.status(405).json({ error: `Method ${req.method} Not Allowed` });

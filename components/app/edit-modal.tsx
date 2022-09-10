@@ -9,7 +9,7 @@ import {
 } from "react";
 import BlurImage from "@/components/shared/blur-image";
 import LoadingDots from "@/components/shared/icons/loading-dots";
-import { LinkProps } from "@/lib/api/types";
+import { LinkProps } from "@/lib/types";
 import { linkConstructor, timeAgo } from "@/lib/utils";
 import { AlertCircleFill } from "@/components/shared/icons";
 import { useDebounce } from "use-debounce";

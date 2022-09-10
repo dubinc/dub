@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { withProjectAuth } from "@/lib/api/auth";
+import { withProjectAuth } from "@/lib/auth";
 import { redis } from "@/lib/upstash";
 import { IntervalProps, intervalData, RawStatsProps } from "@/lib/stats";
 

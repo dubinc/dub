@@ -5,7 +5,7 @@ import { fetcher } from "@/lib/utils";
 import LinkCard from "@/components/app/link-card";
 import PlaceholderCard from "@/components/app/placeholder-card";
 import { useEffect } from "react";
-import { ProjectProps } from "@/lib/api/types";
+import { ProjectProps } from "@/lib/types";
 
 export default function ProjectLinks() {
   const router = useRouter();

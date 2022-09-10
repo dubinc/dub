@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 import BlurImage from "@/components/shared/blur-image";
 import useSWR from "swr";
 import { fetcher } from "@/lib/utils";
-import { ProjectProps } from "@/lib/api/types";
+import { ProjectProps } from "@/lib/types";
 import { useSession } from "next-auth/react";
 
 export default function ListBox() {

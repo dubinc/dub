@@ -6,7 +6,7 @@ import LinkCard from "@/components/home/link-card";
 import PlaceholderCard from "@/components/home/placeholder-card";
 import { LoadingDots } from "@/components/shared/icons";
 import { motion } from "framer-motion";
-import { LinkProps } from "@/lib/api/types";
+import { LinkProps } from "@/lib/types";
 
 export default function Home() {
   const [saving, setSaving] = useState(false);

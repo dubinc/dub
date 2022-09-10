@@ -1,7 +1,7 @@
 import { NextRequest, NextFetchEvent, NextResponse } from "next/server";
 import { redis, recordClick } from "@/lib/upstash";
 import { parse } from "@/lib/middleware/utils";
-import { LinkProps } from "../api/types";
+import { LinkProps } from "../types";
 
 export default async function LinkMiddleware(
   req: NextRequest,

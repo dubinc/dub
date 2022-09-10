@@ -1,7 +1,7 @@
 import Link from "next/link";
 import useSWR from "swr";
 import { fetcher } from "@/lib/utils";
-import { ProjectProps } from "@/lib/api/types";
+import { ProjectProps } from "@/lib/types";
 
 export default function ProjectCard({ name, slug }: ProjectProps) {
   return (
