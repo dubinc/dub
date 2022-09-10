@@ -8,6 +8,7 @@ import { useEffect } from "react";
 import { ProjectProps } from "@/lib/types";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import { useAddModal } from "@/components/app/add-modal";
+import Tooltip from "@/components/shared/tooltip";
 
 export default function ProjectLinks() {
   const router = useRouter();
@@ -31,16 +32,28 @@ export default function ProjectLinks() {
   return (
     <AppLayout>
       <AddModal />
-      <div className="py-12 bg-white border-b border-gray-200">
+      <div className="h-36 flex items-center bg-white border-b border-gray-200">
         <MaxWidthWrapper>
           <div className="flex justify-between items-center">
             <h1 className="text-2xl text-gray-600">Links</h1>
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="font-medium text-sm text-gray-500 px-5 py-2 border rounded-md border-gray-200 dark:border-gray-600 hover:border-black dark:hover:border-white active:scale-95 transition-all duration-75"
-            >
-              Add
-            </button>
+            {data?.verified ? (
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="text-gray-500 hover:border-black dark:hover:border-white active:scale-95 font-medium text-sm px-5 py-2 border rounded-md border-gray-200 dark:border-gray-600 transition-all duration-75"
+              >
+                Add
+              </button>
+            ) : (
+              <Tooltip content="You can only start adding links after your project domain is configured.">
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  disabled={true}
+                  className="text-gray-300 cursor-not-allowed font-medium text-sm px-5 py-2 border rounded-md border-gray-200 dark:border-gray-600 transition-all duration-75"
+                >
+                  Add
+                </button>
+              </Tooltip>
+            )}
           </div>
         </MaxWidthWrapper>
       </div>

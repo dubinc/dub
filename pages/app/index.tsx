@@ -12,7 +12,7 @@ export default function App() {
     <AppLayout>
       <MaxWidthWrapper>
         <div className="my-10 grid grid-cols-1 sm:grid-cols-3 gap-5">
-          {data ? data.map((d) => <ProjectCard {...d} />) : null}
+          {data ? data.map((d) => <ProjectCard key={d.slug} {...d} />) : null}
         </div>
       </MaxWidthWrapper>
     </AppLayout>

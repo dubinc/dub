@@ -21,7 +21,7 @@ import { mutate } from "swr";
 function AddModalHelper({
   showAddModal,
   setShowAddModal,
-  slug,
+  slug, // project domain
 }: {
   showAddModal: boolean;
   setShowAddModal: Dispatch<SetStateAction<boolean>>;

@@ -5,7 +5,10 @@ import { NextRouter, useRouter } from "next/router";
 const TabsHelper = (router: NextRouter): { name: string; href: string }[] => {
   const { slug } = router.query;
   if (slug) {
-    return [{ name: "Links", href: `/${slug}` }];
+    return [
+      { name: "Links", href: `/${slug}` },
+      { name: "Settings", href: `/${slug}/settings` },
+    ];
   }
   return [
     { name: "Projects", href: `/` },
