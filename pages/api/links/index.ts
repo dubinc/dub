@@ -20,7 +20,7 @@ export default async function handler(
   } else if (req.method === "POST") {
     let { key, url, title } = req.body;
     if (!url) {
-      return res.status(400).json({ error: "Missing key or url" });
+      return res.status(400).json({ error: "Missing url" });
     }
     const response = await addLink("dub.sh", url, key, title, session.user.id);
     if (response === null) {

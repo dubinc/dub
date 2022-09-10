@@ -33,7 +33,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             <NavTabs />
           </div>
         </div>
-        <div className="max-w-screen-xl mx-auto px-5 sm:px-20">{children}</div>
+        <div>{children}</div>
       </div>
     </div>
   );

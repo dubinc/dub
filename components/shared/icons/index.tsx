@@ -1,4 +1,5 @@
 export { default as LoadingDots } from "./loading-dots";
+export { default as LoadingCircle } from "./loading-circle";
 export { default as ExpandingArrow } from "./expanding-arrow";
 export { default as Tick } from "./tick";
 export { default as Copy } from "./copy";

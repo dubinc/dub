@@ -1,10 +1,10 @@
 import Stats from "@/components/stats";
-import HomeLayout from "@/components/layout/home";
+import AppLayout from "@/components/layout/app";
 
 export default function StatsPage() {
   return (
-    <HomeLayout>
+    <AppLayout>
       <Stats />
-    </HomeLayout>
+    </AppLayout>
   );
 }

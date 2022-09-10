@@ -53,6 +53,18 @@ export async function setRandomKey(
   }
 }
 
+export async function getRandomKey(hostname: string): Promise<string> {
+  /* recursively get random key till it gets one that's avaialble */
+  const key = nanoid();
+  const response = await redis.hexists(`${hostname}:links`, key); // check if key exists
+  if (response === 1) {
+    // by the off chance that key already exists
+    return getRandomKey(hostname);
+  } else {
+    return key;
+  }
+}
+
 export async function checkIfKeyExists(hostname: string, key: string) {
   return await redis.hexists(`${hostname}:links`, key);
 }

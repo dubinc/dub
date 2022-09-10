@@ -1,5 +1,5 @@
 import AppLayout from "components/layout/app";
-import Link from "next/link";
+import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import useSWR from "swr";
 import { fetcher } from "@/lib/utils";
 import { ProjectProps } from "@/lib/types";
@@ -10,9 +10,11 @@ export default function App() {
 
   return (
     <AppLayout>
-      <div className="my-10 grid grid-cols-1 sm:grid-cols-3 gap-5">
-        {data ? data.map((d) => <ProjectCard {...d} />) : null}
-      </div>
+      <MaxWidthWrapper>
+        <div className="my-10 grid grid-cols-1 sm:grid-cols-3 gap-5">
+          {data ? data.map((d) => <ProjectCard {...d} />) : null}
+        </div>
+      </MaxWidthWrapper>
     </AppLayout>
   );
 }
