@@ -34,6 +34,9 @@ export default async function handler(
       timestamp,
       session.user.id
     );
+    if (response === null) {
+      return res.status(400).json({ error: "Key already exists" });
+    }
     return res.status(200).json(response);
   } else {
     res.setHeader("Allow", ["GET", "POST"]);

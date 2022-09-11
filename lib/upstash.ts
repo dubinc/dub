@@ -170,6 +170,10 @@ export async function editLink(
     });
   } else {
     // if key is different
+    const keyExists = await checkIfKeyExists(hostname, newKey);
+    if (keyExists === 1) {
+      return null; // key already exists
+    }
     // get number of clicks for key (we'll add it to newKey)
     const numClicks = await redis.zcard(`${hostname}:clicks:${key}`);
     const pipeline = redis.pipeline();

@@ -21,7 +21,7 @@ export default function Links() {
       <div className="h-36 flex items-center bg-white border-b border-gray-200">
         <MaxWidthWrapper>
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl text-gray-600">Dub.sh Links</h1>
+            <h1 className="text-2xl text-gray-600">My Dub.sh Links</h1>
             <button
               onClick={() => setShowAddLinkModal(true)}
               className="font-medium text-sm text-gray-500 px-5 py-2 border rounded-md border-gray-200 dark:border-gray-600 hover:border-black dark:hover:border-white active:scale-95 transition-all duration-75"

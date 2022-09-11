@@ -34,7 +34,6 @@ function AddLinkModalHelper({
   const [keyExistsError, setKeyExistsError] = useState(false);
   const [generatingSlug, setGeneratingSlug] = useState(false);
   const [generatingTitle, setGeneratingTitle] = useState(false);
-  const [buttonText, setButtonText] = useState("Add link");
   const [saving, setSaving] = useState(false);
 
   const [data, setData] = useState<LinkProps>({
@@ -128,17 +127,12 @@ function AddLinkModalHelper({
               .then((res) => {
                 setSaving(false);
                 if (res.status === 200) {
-                  setButtonText("Saved!");
                   mutate(domain ? `/api/projects/${slug}` : `/api/links`);
-                  setTimeout(() => {
-                    setButtonText("Add link");
-                  });
                   setShowAddLinkModal(false);
                 }
               })
               .catch(() => {
                 setSaving(false);
-                setButtonText("Add link");
                 setKeyExistsError(true);
               });
           }}
@@ -164,7 +158,7 @@ function AddLinkModalHelper({
             </div>
             <div className="relative flex mt-1 rounded-md shadow-sm">
               <span className="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-5 text-gray-500 sm:text-sm">
-                {domain || "dub.sh"}/
+                {domain || "dub.sh"}
               </span>
               <input
                 type="text"
@@ -273,7 +267,7 @@ function AddLinkModalHelper({
                 : "bg-black hover:bg-white hover:text-black border-black text-white"
             } flex justify-center items-center w-full text-sm h-10 rounded-md border transition-all focus:outline-none`}
           >
-            {saving ? <LoadingDots color="#808080" /> : <p>{buttonText}</p>}
+            {saving ? <LoadingDots color="#808080" /> : <p>Add link</p>}
           </button>
         </form>
       </div>

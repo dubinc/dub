@@ -21,6 +21,9 @@ export default withProjectAuth(
         title,
         timestamp
       );
+      if (response === null) {
+        return res.status(400).json({ error: "Key already exists" });
+      }
       return res.status(200).json(response);
     } else {
       res.setHeader("Allow", ["PUT"]);

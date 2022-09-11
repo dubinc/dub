@@ -32,7 +32,6 @@ function EditLinkModalHelper({
   const { slug } = router.query as { slug: string };
 
   const [saving, setSaving] = useState(false);
-  const [buttonText, setButtonText] = useState("Save changes");
   const [keyExistsError, setKeyExistsError] = useState(false);
   const urlHostname = props.url ? new URL(props.url).hostname : "";
 
@@ -44,7 +43,7 @@ function EditLinkModalHelper({
     if (debouncedKey.length > 0 && debouncedKey !== props.key) {
       fetch(
         domain
-          ? `/api/projects/${domain}/domain/${domain}/links/${debouncedKey}/exists`
+          ? `/api/projects/${slug}/domains/${domain}/links/${debouncedKey}/exists`
           : `/api/edge/links/${debouncedKey}/exists`
       ).then(async (res) => {
         if (res.status === 200) {
@@ -87,16 +86,18 @@ function EditLinkModalHelper({
                 },
                 body: JSON.stringify(data),
               }
-            ).then((res) => {
-              setSaving(false);
-              if (res.status === 200) {
-                setButtonText("Saved!");
-                mutate(domain ? `/api/projects/${slug}` : `/api/links`);
-                setTimeout(() => {
-                  setButtonText("Save changes");
-                });
-              }
-            });
+            )
+              .then((res) => {
+                setSaving(false);
+                if (res.status === 200) {
+                  mutate(domain ? `/api/projects/${slug}` : `/api/links`);
+                  setShowEditLinkModal(false);
+                }
+              })
+              .catch(() => {
+                setSaving(false);
+                setKeyExistsError(true);
+              });
           }}
           className="flex flex-col space-y-6 text-left bg-gray-50 sm:px-16 px-4 py-8"
         >
@@ -203,7 +204,7 @@ function EditLinkModalHelper({
                 : "bg-black hover:bg-white hover:text-black border-black text-white"
             } flex justify-center items-center w-full text-sm h-10 rounded-md border transition-all focus:outline-none`}
           >
-            {saving ? <LoadingDots color="#808080" /> : <p>{buttonText}</p>}
+            {saving ? <LoadingDots color="#808080" /> : <p>Save changes</p>}
           </button>
         </form>
       </div>
