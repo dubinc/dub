@@ -67,7 +67,7 @@ function EditDomainModalHelper({
           onSubmit={async (e) => {
             e.preventDefault();
             setSaving(true);
-            fetch(`/api/projects/${slug}/domains`, {
+            fetch(`/api/projects/${slug}/domains/${domain}`, {
               method: "PUT",
               headers: {
                 "Content-Type": "application/json",

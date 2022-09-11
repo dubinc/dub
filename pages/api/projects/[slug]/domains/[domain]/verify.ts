@@ -65,8 +65,6 @@ export default withProjectAuth(
         status = "Valid Configuration";
       }
 
-      console.log(status, configJson, domainJson, verificationResponse);
-
       return res.status(200).json({
         status,
         response: { configJson, domainJson, verificationResponse },
