@@ -28,8 +28,6 @@ function AddProjectModalHelper({
 
   const [slugExistsError, setSlugExistsError] = useState(false);
   const [generatingSlug, setGeneratingSlug] = useState(false);
-  const [generatingTitle, setGeneratingTitle] = useState(false);
-  const [buttonText, setButtonText] = useState("Add project");
   const [saving, setSaving] = useState(false);
 
   const [data, setData] = useState<{
@@ -98,15 +96,12 @@ function AddProjectModalHelper({
               .then((res) => {
                 setSaving(false);
                 if (res.status === 200) {
-                  setButtonText("Saved!");
                   mutate(`/api/projects`);
-                  setShowAddProjectModal(false);
                   router.push(`/${slug}`);
                 }
               })
               .catch(() => {
                 setSaving(false);
-                setButtonText("Add project");
                 setSlugExistsError(true);
               });
           }}
@@ -189,11 +184,10 @@ function AddProjectModalHelper({
               <input
                 name="domain"
                 id="domain"
-                type="url"
+                type="text"
                 required
                 className="border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500 block w-full rounded-md focus:outline-none sm:text-sm"
                 placeholder="dub.sh"
-                pattern="(https?://)?.+"
                 value={domain}
                 onChange={(e) => {
                   setData({ ...data, domain: e.target.value });
@@ -211,7 +205,7 @@ function AddProjectModalHelper({
                 : "bg-black hover:bg-white hover:text-black border-black text-white"
             } flex justify-center items-center w-full text-sm h-10 rounded-md border transition-all focus:outline-none`}
           >
-            {saving ? <LoadingDots color="#808080" /> : <p>{buttonText}</p>}
+            {saving ? <LoadingDots color="#808080" /> : <p>Add project</p>}
           </button>
         </form>
       </div>

@@ -29,21 +29,42 @@ export default async function handler(
       return res.status(400).json({ error: "Missing name or slug or domain" });
     }
 
-    const project = await prisma.project.create({
-      data: {
-        name,
-        slug,
-        domain,
-        users: {
-          create: {
-            userId: session.user.id,
-            role: "owner",
+    try {
+      const project = await prisma.project.create({
+        data: {
+          name,
+          slug,
+          domain,
+          users: {
+            create: {
+              userId: session.user.id,
+              role: "owner",
+            },
           },
         },
-      },
-    });
-
-    return res.status(200).json(project);
+      });
+      if (project?.domain) {
+        const response = await fetch(
+          `https://api.vercel.com/v9/projects/${process.env.VERCEL_PROJECT_ID}/domains?teamId=${process.env.VERCEL_TEAM_ID}`,
+          {
+            body: `{\n  "name": "${project.domain}"\n}`,
+            headers: {
+              Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN}`,
+              "Content-Type": "application/json",
+            },
+            method: "POST",
+          }
+        );
+        const json = await response.json();
+        console.log(project, json);
+        return res.status(200).json({ project, domain: json });
+      }
+      return res.status(400).json({ error: "Project not created" });
+    } catch (error: any) {
+      if (error.code === "P2002") {
+        return res.status(400).json({ error: "Project slug already exists" });
+      }
+    }
   } else {
     res.setHeader("Allow", ["GET", "POST"]);
     return res.status(405).json({ error: `Method ${req.method} Not Allowed` });

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import ConfigurationsPlaceholder from "./configurations-placeholder";
 
-function getVerificationError(verificationResponse) {
+function getVerificationError(verificationResponse: any) {
   try {
     const error = verificationResponse.error;
     if (error.code === "missing_txt_record") {
@@ -13,14 +13,16 @@ function getVerificationError(verificationResponse) {
   }
 }
 
-const Configurations = ({ data }) => {
+const Configurations = ({ data }: { data: any }) => {
   const [recordType, setRecordType] = useState("CNAME");
   if (!data) {
     return <ConfigurationsPlaceholder />;
   }
 
   if (!data.verified) {
-    const txtVerification = data.verification.find((x) => x.type === "TXT");
+    const txtVerification = data.verification.find(
+      (x: any) => x.type === "TXT"
+    );
     return (
       <>
         <div className="flex items-center space-x-3 my-3 px-2 sm:px-10">
