@@ -6,15 +6,15 @@ import { IntervalProps, intervalData, RawStatsProps } from "@/lib/stats";
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {
     if (req.method === "GET") {
-      const { slug, key, interval } = req.query as {
-        slug: string;
+      const { domain, key, interval } = req.query as {
+        domain: string;
         key: string;
         interval: IntervalProps;
       };
       const start = Date.now() - intervalData[interval || "7d"].milliseconds;
       const end = Date.now();
       const response = await redis.zrange<RawStatsProps[]>(
-        `${slug}:clicks:${key}`,
+        `${domain}:clicks:${key}`,
         start,
         end,
         {

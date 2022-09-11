@@ -7,6 +7,7 @@ import {
   Dispatch,
   SetStateAction,
 } from "react";
+import { useRouter } from "next/router";
 import BlurImage from "@/components/shared/blur-image";
 import { LinkProps } from "@/lib/types";
 import {
@@ -18,19 +19,22 @@ import { useDebounce } from "use-debounce";
 import TextareaAutosize from "react-textarea-autosize";
 import { mutate } from "swr";
 
-function AddModalHelper({
-  showAddModal,
-  setShowAddModal,
-  slug, // project domain
+function AddLinkModalHelper({
+  showAddLinkModal,
+  setShowAddLinkModal,
+  domain,
 }: {
-  showAddModal: boolean;
-  setShowAddModal: Dispatch<SetStateAction<boolean>>;
-  slug?: string;
+  showAddLinkModal: boolean;
+  setShowAddLinkModal: Dispatch<SetStateAction<boolean>>;
+  domain?: string;
 }) {
+  const router = useRouter();
+  const { slug } = router.query as { slug: string };
+
   const [keyExistsError, setKeyExistsError] = useState(false);
   const [generatingSlug, setGeneratingSlug] = useState(false);
   const [generatingTitle, setGeneratingTitle] = useState(false);
-  const [buttonText, setButtonText] = useState("Save changes");
+  const [buttonText, setButtonText] = useState("Add link");
   const [saving, setSaving] = useState(false);
 
   const [data, setData] = useState<LinkProps>({
@@ -45,8 +49,8 @@ function AddModalHelper({
   useEffect(() => {
     if (debouncedKey.length > 0) {
       fetch(
-        slug
-          ? `/api/projects/${slug}/links/${debouncedKey}/exists`
+        domain
+          ? `/api/projects/${slug}/domains/${domain}/links/${debouncedKey}/exists`
           : `/api/edge/links/${debouncedKey}/exists`
       ).then(async (res) => {
         if (res.status === 200) {
@@ -60,7 +64,9 @@ function AddModalHelper({
   const generateRandomSlug = useCallback(async () => {
     setGeneratingSlug(true);
     const res = await fetch(
-      slug ? `/api/projects/${slug}/links/random` : `/api/edge/links/random`
+      domain
+        ? `/api/projects/${slug}/domains/${domain}/links/random`
+        : `/api/edge/links/random`
     );
     const key = await res.json();
     setData((prev) => ({ ...prev, key }));
@@ -90,7 +96,7 @@ function AddModalHelper({
   );
 
   return (
-    <Modal showModal={showAddModal} setShowModal={setShowAddModal}>
+    <Modal showModal={showAddLinkModal} setShowModal={setShowAddLinkModal}>
       <div className="inline-block w-full max-w-md overflow-hidden align-middle transition-all transform bg-white shadow-xl rounded-2xl">
         <div className="flex flex-col justify-center items-center space-y-3 sm:px-16 px-4 pt-8 py-4 border-b border-gray-200">
           <BlurImage
@@ -107,27 +113,32 @@ function AddModalHelper({
           onSubmit={async (e) => {
             e.preventDefault();
             setSaving(true);
-            fetch(slug ? `/api/projects/${slug}/links` : `/api/links`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(data),
-            })
+            fetch(
+              domain
+                ? `/api/projects/${slug}/domains/${domain}/links`
+                : `/api/links`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+              }
+            )
               .then((res) => {
                 setSaving(false);
                 if (res.status === 200) {
                   setButtonText("Saved!");
-                  mutate(slug ? `/api/projects/${slug}` : `/api/links`);
+                  mutate(domain ? `/api/projects/${slug}` : `/api/links`);
                   setTimeout(() => {
-                    setButtonText("Save changes");
+                    setButtonText("Add link");
                   });
-                  setShowAddModal(false);
+                  setShowAddLinkModal(false);
                 }
               })
               .catch(() => {
                 setSaving(false);
-                setButtonText("Save changes");
+                setButtonText("Add link");
                 setKeyExistsError(true);
               });
           }}
@@ -142,7 +153,7 @@ function AddModalHelper({
                 Short Link
               </label>
               <button
-                className="hover:text-black active:scale-95 flex items-center text-gray-500 text-sm transition-all duration-75"
+                className="hover:text-black active:scale-95 flex items-center space-x-2 text-gray-500 text-sm transition-all duration-75"
                 onClick={generateRandomSlug}
                 disabled={generatingSlug}
                 type="button"
@@ -153,7 +164,7 @@ function AddModalHelper({
             </div>
             <div className="relative flex mt-1 rounded-md shadow-sm">
               <span className="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-5 text-gray-500 sm:text-sm">
-                {slug || "dub.sh"}
+                {domain || "dub.sh"}/
               </span>
               <input
                 type="text"
@@ -228,7 +239,7 @@ function AddModalHelper({
                   url.length === 0
                     ? "cursor-not-allowed text-gray-300"
                     : "hover:text-black active:scale-95"
-                } flex items-center text-gray-500 text-sm transition-all duration-75`}
+                } flex items-center space-x-2 text-gray-500 text-sm transition-all duration-75`}
                 onClick={() => generateTitleFromUrl(url)}
                 disabled={url.length === 0 || generatingTitle}
                 type="button"
@@ -270,21 +281,21 @@ function AddModalHelper({
   );
 }
 
-export function useAddModal({ slug }: { slug?: string }) {
-  const [showAddModal, setShowAddModal] = useState(false);
+export function useAddLinkModal({ domain }: { domain?: string }) {
+  const [showAddLinkModal, setShowAddLinkModal] = useState(false);
 
-  const AddModal = useCallback(() => {
+  const AddLinkModal = useCallback(() => {
     return (
-      <AddModalHelper
-        showAddModal={showAddModal}
-        setShowAddModal={setShowAddModal}
-        slug={slug}
+      <AddLinkModalHelper
+        showAddLinkModal={showAddLinkModal}
+        setShowAddLinkModal={setShowAddLinkModal}
+        domain={domain}
       />
     );
-  }, [showAddModal, setShowAddModal, slug]);
+  }, [showAddLinkModal, setShowAddLinkModal, domain]);
 
   return useMemo(
-    () => ({ setShowAddModal, AddModal }),
-    [setShowAddModal, AddModal]
+    () => ({ setShowAddLinkModal, AddLinkModal }),
+    [setShowAddLinkModal, AddLinkModal]
   );
 }

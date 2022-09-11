@@ -6,24 +6,24 @@ import { fetcher } from "@/lib/utils";
 import LinkCard from "@/components/app/link-card";
 import PlaceholderCard from "@/components/app/placeholder-card";
 import { LinkProps } from "@/lib/types";
-import { useAddModal } from "@/components/app/add-modal";
+import { useAddLinkModal } from "@/components/app/add-link-modal";
 
 export default function Links() {
   const router = useRouter();
 
   const { data } = useSWR<LinkProps[]>(router.isReady && `/api/links`, fetcher);
 
-  const { setShowAddModal, AddModal } = useAddModal({});
+  const { setShowAddLinkModal, AddLinkModal } = useAddLinkModal({});
 
   return (
     <AppLayout>
-      <AddModal />
+      <AddLinkModal />
       <div className="h-36 flex items-center bg-white border-b border-gray-200">
         <MaxWidthWrapper>
           <div className="flex justify-between items-center">
             <h1 className="text-2xl text-gray-600">Dub.sh Links</h1>
             <button
-              onClick={() => setShowAddModal(true)}
+              onClick={() => setShowAddLinkModal(true)}
               className="font-medium text-sm text-gray-500 px-5 py-2 border rounded-md border-gray-200 dark:border-gray-600 hover:border-black dark:hover:border-white active:scale-95 transition-all duration-75"
             >
               Add

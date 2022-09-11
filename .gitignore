@@ -36,4 +36,4 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-/pages/api/test.ts
+/pages/api/scripts*

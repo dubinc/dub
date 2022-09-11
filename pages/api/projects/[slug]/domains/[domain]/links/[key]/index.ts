@@ -5,7 +5,7 @@ import { withProjectAuth } from "@/lib/auth";
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {
     if (req.method === "PUT") {
-      const { slug, key } = req.query as { slug: string; key: string };
+      const { domain, key } = req.query as { domain: string; key: string };
 
       let { key: newKey, url, title, timestamp } = req.body;
       if (!newKey || !url || !title || !timestamp) {
@@ -13,13 +13,21 @@ export default withProjectAuth(
           .status(400)
           .json({ error: "Missing key or url or title or timestamp" });
       }
-      const response = await editLink(slug, key, newKey, url, title, timestamp);
+      const response = await editLink(
+        domain,
+        key,
+        newKey,
+        url,
+        title,
+        timestamp
+      );
       return res.status(200).json(response);
     } else {
-      res.setHeader("Allow", ["GET", "POST"]);
+      res.setHeader("Allow", ["PUT"]);
       return res
         .status(405)
         .json({ error: `Method ${req.method} Not Allowed` });
     }
-  }
+  },
+  true
 );

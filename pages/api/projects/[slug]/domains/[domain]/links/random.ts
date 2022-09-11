@@ -6,11 +6,11 @@ export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {
     // POST /api/links – create a new link
     if (req.method === "GET") {
-      const { slug } = req.query as { slug: string };
-      if (!slug) {
+      const { domain } = req.query as { domain: string };
+      if (!domain) {
         return res.status(400).json({ error: "Missing hostname" });
       }
-      const key = await getRandomKey(slug);
+      const key = await getRandomKey(domain);
       return res.status(200).json(key);
     } else {
       res.setHeader("Allow", ["GET"]);

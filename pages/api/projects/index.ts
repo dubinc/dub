@@ -24,14 +24,16 @@ export default async function handler(
 
     // POST /api/projects – create a new project
   } else if (req.method === "POST") {
-    const { name, slug } = req.body;
-    if (!name || !slug)
-      return res.status(400).json({ error: "Missing name or slug" });
+    const { name, slug, domain } = req.body;
+    if (!name || !slug || !domain) {
+      return res.status(400).json({ error: "Missing name or slug or domain" });
+    }
 
     const project = await prisma.project.create({
       data: {
         name,
         slug,
+        domain,
         users: {
           create: {
             userId: session.user.id,

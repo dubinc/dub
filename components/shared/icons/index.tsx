@@ -13,3 +13,6 @@ export { default as ChevronLeft } from "./chevron-left";
 export { default as ChevronDown } from "./chevron-down";
 export { default as ChevronUpDown } from "./chevron-up-down";
 export { default as AlertCircleFill } from "./alert-circle-fill";
+export { default as ExternalLink } from "./external-link";
+export { default as XCircleFill } from "./x-circle-fill";
+export { default as CheckCircleFill } from "./check-circle-fill";

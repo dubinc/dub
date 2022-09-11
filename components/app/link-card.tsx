@@ -6,33 +6,37 @@ import useSWR from "swr";
 import { fetcher, nFormatter, linkConstructor, timeAgo } from "@/lib/utils";
 import Link from "next/link";
 import { LinkProps } from "@/lib/types";
-import { useEditModal } from "./edit-modal";
+import { useEditLinkModal } from "./edit-link-modal";
 
 export default function LinkCard({
   props,
-  slug,
+  domain,
 }: {
   props: LinkProps;
-  slug?: string;
+  domain?: string;
 }) {
   const { key, url, title, timestamp } = props;
 
-  const urlHostname = new URL(url).hostname;
+  const urlHostname = url ? new URL(url).hostname : "";
 
   const router = useRouter();
+  const { slug } = router.query as { slug: string };
 
   const { data: clicks, isValidating } = useSWR<string>(
-    slug
-      ? `/api/projects/${slug}/links/${key}/clicks`
+    domain
+      ? `/api/projects/${slug}/domains/${domain}/links/${key}/clicks`
       : `/api/edge/links/${key}/clicks`,
     fetcher
   );
 
-  const { setShowEditModal, EditModal } = useEditModal({ props, slug });
+  const { setShowEditLinkModal, EditLinkModal } = useEditLinkModal({
+    props,
+    domain,
+  });
 
   return (
     <div className="flex justify-between items-center border border-gray-200 dark:border-gray-600 bg-white dark:bg-black p-4 rounded-md transition-all">
-      <EditModal />
+      <EditLinkModal />
       <div className="relative flex items-center space-x-4">
         <BlurImage
           src={`https://logo.clearbit.com/${urlHostname}`}
@@ -75,7 +79,7 @@ export default function LinkCard({
           Added {timeAgo(timestamp)}
         </p>
         <button
-          onClick={() => setShowEditModal(true)}
+          onClick={() => setShowEditLinkModal(true)}
           className="font-medium text-sm text-gray-500 px-5 py-2 border rounded-md border-gray-200 dark:border-gray-600 hover:border-black dark:hover:border-white active:scale-95 transition-all duration-75"
         >
           Edit

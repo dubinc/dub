@@ -7,6 +7,7 @@ import {
   Dispatch,
   SetStateAction,
 } from "react";
+import { useRouter } from "next/router";
 import BlurImage from "@/components/shared/blur-image";
 import LoadingDots from "@/components/shared/icons/loading-dots";
 import { LinkProps } from "@/lib/types";
@@ -16,21 +17,24 @@ import { useDebounce } from "use-debounce";
 import TextareaAutosize from "react-textarea-autosize";
 import { mutate } from "swr";
 
-function EditModalHelper({
-  showEditModal,
-  setShowEditModal,
+function EditLinkModalHelper({
+  showEditLinkModal,
+  setShowEditLinkModal,
   props,
-  slug,
+  domain,
 }: {
-  showEditModal: boolean;
-  setShowEditModal: Dispatch<SetStateAction<boolean>>;
+  showEditLinkModal: boolean;
+  setShowEditLinkModal: Dispatch<SetStateAction<boolean>>;
   props: LinkProps;
-  slug?: string;
+  domain?: string;
 }) {
+  const router = useRouter();
+  const { slug } = router.query as { slug: string };
+
   const [saving, setSaving] = useState(false);
   const [buttonText, setButtonText] = useState("Save changes");
   const [keyExistsError, setKeyExistsError] = useState(false);
-  const urlHostname = new URL(props.url).hostname;
+  const urlHostname = props.url ? new URL(props.url).hostname : "";
 
   const [data, setData] = useState<LinkProps>(props);
   const { key, url, title, timestamp } = data;
@@ -39,8 +43,8 @@ function EditModalHelper({
   useEffect(() => {
     if (debouncedKey.length > 0 && debouncedKey !== props.key) {
       fetch(
-        slug
-          ? `/api/projects/${slug}/links/${debouncedKey}/exists`
+        domain
+          ? `/api/projects/${domain}/domain/${domain}/links/${debouncedKey}/exists`
           : `/api/edge/links/${debouncedKey}/exists`
       ).then(async (res) => {
         if (res.status === 200) {
@@ -52,7 +56,7 @@ function EditModalHelper({
   }, [debouncedKey]);
 
   return (
-    <Modal showModal={showEditModal} setShowModal={setShowEditModal}>
+    <Modal showModal={showEditLinkModal} setShowModal={setShowEditLinkModal}>
       <div className="inline-block w-full max-w-md overflow-hidden align-middle transition-all transform bg-white shadow-xl rounded-2xl">
         <div className="flex flex-col justify-center items-center space-y-3 sm:px-16 px-4 pt-8 py-4 border-b border-gray-200">
           <BlurImage
@@ -73,8 +77,8 @@ function EditModalHelper({
             e.preventDefault();
             setSaving(true);
             fetch(
-              slug
-                ? `/api/projects/${slug}/links/${props.key}`
+              domain
+                ? `/api/projects/${slug}/domains/${domain}/links/${props.key}`
                 : `/api/links/${props.key}`,
               {
                 method: "PUT",
@@ -87,7 +91,7 @@ function EditModalHelper({
               setSaving(false);
               if (res.status === 200) {
                 setButtonText("Saved!");
-                mutate(slug ? `/api/projects/${slug}` : `/api/links`);
+                mutate(domain ? `/api/projects/${slug}` : `/api/links`);
                 setTimeout(() => {
                   setButtonText("Save changes");
                 });
@@ -105,7 +109,7 @@ function EditModalHelper({
             </label>
             <div className="relative flex mt-1 rounded-md shadow-sm">
               <span className="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-5 text-gray-500 sm:text-sm">
-                {slug || "dub.sh"}
+                {domain || "dub.sh"}
               </span>
               <input
                 type="text"
@@ -207,28 +211,28 @@ function EditModalHelper({
   );
 }
 
-export function useEditModal({
+export function useEditLinkModal({
   props,
-  slug,
+  domain,
 }: {
   props: LinkProps;
-  slug?: string;
+  domain?: string;
 }) {
-  const [showEditModal, setShowEditModal] = useState(false);
+  const [showEditLinkModal, setShowEditLinkModal] = useState(false);
 
-  const EditModal = useCallback(() => {
+  const EditLinkModal = useCallback(() => {
     return (
-      <EditModalHelper
-        showEditModal={showEditModal}
-        setShowEditModal={setShowEditModal}
+      <EditLinkModalHelper
+        showEditLinkModal={showEditLinkModal}
+        setShowEditLinkModal={setShowEditLinkModal}
         props={props}
-        slug={slug}
+        domain={domain}
       />
     );
-  }, [showEditModal, setShowEditModal, props, slug]);
+  }, [showEditLinkModal, setShowEditLinkModal, props, domain]);
 
   return useMemo(
-    () => ({ setShowEditModal, EditModal }),
-    [setShowEditModal, EditModal]
+    () => ({ setShowEditLinkModal, EditLinkModal }),
+    [setShowEditLinkModal, EditLinkModal]
   );
 }

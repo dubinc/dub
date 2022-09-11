@@ -8,6 +8,7 @@ export interface LinkProps {
 export interface ProjectProps {
   name: string;
   slug: string;
-  verified: boolean;
+  domain: string;
+  domainVerified: boolean;
   links: LinkProps[];
 }

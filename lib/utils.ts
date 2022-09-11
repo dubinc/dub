@@ -79,5 +79,6 @@ export const getTitleFromUrl = async (url: string) => {
 };
 
 export const timeAgo = (timestamp: number): string => {
+  if (!timestamp) return "never";
   return `${ms(Date.now() - timestamp)} ago`;
 };

@@ -6,12 +6,12 @@ export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {
     // POST /api/links – create a new link
     if (req.method === "POST") {
-      const { slug } = req.query as { slug: string };
+      const { domain } = req.query as { domain: string };
       let { key, url, title } = req.body;
-      if (!slug || !url) {
-        return res.status(400).json({ error: "Missing hostname or url" });
+      if (!domain || !url) {
+        return res.status(400).json({ error: "Missing domain or url" });
       }
-      const response = await addLink(slug, url, key, title);
+      const response = await addLink(domain, url, key, title);
       if (response === null) {
         return res.status(400).json({ error: "Key already exists" });
       }
@@ -22,5 +22,6 @@ export default withProjectAuth(
         .status(405)
         .json({ error: `Method ${req.method} Not Allowed` });
     }
-  }
+  },
+  true
 );

@@ -1,13 +1,12 @@
 import AppLayout from "components/layout/app";
 import { useRouter } from "next/router";
+import Link from "next/link";
 import useSWR from "swr";
 import { fetcher } from "@/lib/utils";
-import LinkCard from "@/components/app/link-card";
-import PlaceholderCard from "@/components/app/placeholder-card";
 import { useEffect } from "react";
 import { ProjectProps } from "@/lib/types";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
-import { useAddModal } from "@/components/app/add-modal";
+import CustomDomain from "@/components/app/custom-domain";
 
 export default function ProjectLinks() {
   const router = useRouter();
@@ -26,11 +25,8 @@ export default function ProjectLinks() {
     }
   }, [error]);
 
-  const { setShowAddModal, AddModal } = useAddModal({ slug });
-
   return (
     <AppLayout>
-      <AddModal />
       <div className="h-36 flex items-center bg-white border-b border-gray-200">
         <MaxWidthWrapper>
           <div className="flex justify-between items-center">
@@ -39,14 +35,9 @@ export default function ProjectLinks() {
         </MaxWidthWrapper>
       </div>
       <MaxWidthWrapper>
-        <div className="my-10 grid grid-cols-1 gap-3">
-          {data?.links && data.links.length > 0
-            ? data.links.map((props) => (
-                <LinkCard key={props.key} props={props} slug={slug} />
-              ))
-            : Array.from({ length: 3 }).map((_, i) => (
-                <PlaceholderCard key={i} />
-              ))}
+        <div className="my-10 grid gap-5">
+          {/* Custom Domain Div */}
+          <CustomDomain domain={data?.domain || ""} />
         </div>
       </MaxWidthWrapper>
     </AppLayout>

@@ -4,6 +4,7 @@ import { COUNTRIES } from "@/lib/constants";
 export interface RawStatsProps {
   geo: NextRequest["geo"];
   ua: any;
+  referer: string;
   timestamp: number;
 }
 

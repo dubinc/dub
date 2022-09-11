@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { unstable_getServerSession } from "next-auth/next";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import prisma from "@/lib/prisma";
+import { URLPattern } from "next/server";
 
 interface Session {
   user: {
@@ -21,8 +22,11 @@ export async function getSession(req: NextApiRequest, res: NextApiResponse) {
 }
 
 const withProjectAuth =
-  // TODO - fix this type when we figure it out
-  (handler: any) => async (req: NextApiRequest, res: NextApiResponse) => {
+  (handler: any, isWriteEditLink?: boolean) =>
+  // TODO - fix `handler` type when we figure it out
+  // `isWriteEditLink` is only true when it's a POST or PUT request for links
+  // (you can't add/edit a link when domain is not configured)
+  async (req: NextApiRequest, res: NextApiResponse) => {
     const session = await getSession(req, res);
     if (!session?.user.id) return res.status(401).end("Unauthorized");
 
@@ -33,7 +37,7 @@ const withProjectAuth =
         .json({ error: "Missing or misconfigured project slug" });
     }
 
-    const isProjectOwner = await prisma.project.count({
+    const project = await prisma.project.findFirst({
       where: {
         slug,
         users: {
@@ -44,7 +48,13 @@ const withProjectAuth =
       },
     });
 
-    if (!isProjectOwner) return res.status(401).end("Unauthorized");
+    if (!project) return res.status(401).end("Unauthorized");
+
+    if (isWriteEditLink && !project.domainVerified) {
+      return res
+        .status(401)
+        .end("Unauthorized: Cannot add links when domain is not verified");
+    }
 
     return handler(req, res);
   };
