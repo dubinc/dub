@@ -19,6 +19,7 @@ export default function CustomDomain({ domain }: { domain: string }) {
 
   const { data, isValidating } = useSWR<{
     status: DomainVerificationStatusProps;
+    response: any;
   }>(`/api/projects/${slug}/domains/${domain}/verify`, fetcher, {
     revalidateOnMount: true,
     refreshInterval: 5000,
@@ -102,7 +103,7 @@ export default function CustomDomain({ domain }: { domain: string }) {
           </p>
         </div>
         {data && data.status !== "Valid Configuration" && (
-          <DomainConfiguration status={data.status} />
+          <DomainConfiguration data={data} />
         )}
       </div>
     </div>

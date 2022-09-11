@@ -56,7 +56,6 @@ export default async function handler(
           }
         );
         const json = await response.json();
-        console.log(project, json);
         return res.status(200).json({ project, domain: json });
       }
       return res.status(400).json({ error: "Project not created" });

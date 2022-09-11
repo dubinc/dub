@@ -35,7 +35,9 @@ export default withProjectAuth(
     if (domainResponse.status !== 200) {
       // domain not found on Vercel project
       status = "Domain Not Found";
-      return res.status(200).json({ status });
+      return res
+        .status(200)
+        .json({ status, response: { configJson, domainJson } });
     }
 
     /**
@@ -55,15 +57,19 @@ export default withProjectAuth(
         }
       );
       verificationResponse = await verificationRes.json();
-    }
 
-    if (verificationResponse && verificationResponse.verified) {
-      /**
-       * Domain was just verified
-       */
-      status = "Valid Configuration";
+      if (verificationResponse && verificationResponse.verified) {
+        /**
+         * Domain was just verified
+         */
+        status = "Valid Configuration";
+      }
+
+      console.log(status, configJson, domainJson, verificationResponse);
+
       return res.status(200).json({
         status,
+        response: { configJson, domainJson, verificationResponse },
       });
     }
 
@@ -71,8 +77,7 @@ export default withProjectAuth(
 
     return res.status(200).json({
       status,
-      ...domainJson,
-      ...(verificationResponse ? { verificationResponse } : {}),
+      response: { configJson, domainJson },
     });
   }
 );
