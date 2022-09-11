@@ -10,24 +10,19 @@ import {
   XCircleFill,
 } from "@/components/shared/icons";
 import { useEditDomainModal } from "./edit-domain-modal";
-
-interface DomainResponse {
-  status:
-    | "Valid Configuration"
-    | "Invalid Configuration"
-    | "Pending Verification"
-    | "Domain Not Found";
-}
+import { DomainVerificationStatusProps } from "@/lib/types";
+import DomainConfiguration from "./domain-configuration";
 
 export default function CustomDomain({ domain }: { domain: string }) {
   const router = useRouter();
   const { slug } = router.query as { slug: string };
 
-  const { data, isValidating } = useSWR<DomainResponse>(
-    `/api/projects/${slug}/domains/${domain}/verify`,
-    fetcher,
-    { revalidateOnMount: true, refreshInterval: 5000 }
-  );
+  const { data, isValidating } = useSWR<{
+    status: DomainVerificationStatusProps;
+  }>(`/api/projects/${slug}/domains/${domain}/verify`, fetcher, {
+    revalidateOnMount: true,
+    refreshInterval: 5000,
+  });
 
   const { setShowEditDomainModal, EditDomainModal } = useEditDomainModal({
     domain,
@@ -106,6 +101,9 @@ export default function CustomDomain({ domain }: { domain: string }) {
             {data ? data.status : "Checking Domain Status"}
           </p>
         </div>
+        {data && data.status !== "Valid Configuration" && (
+          <DomainConfiguration status={data.status} />
+        )}
       </div>
     </div>
   );

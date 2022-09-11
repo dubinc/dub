@@ -1,16 +1,11 @@
 import { withProjectAuth } from "@/lib/auth";
 import { NextApiRequest, NextApiResponse } from "next";
-
-type StatusProps =
-  | "Valid Configuration"
-  | "Invalid Configuration"
-  | "Pending Verification"
-  | "Domain Not Found";
+import { DomainVerificationStatusProps } from "@/lib/types";
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {
     const { domain } = req.query as { domain: string };
-    let status: StatusProps = "Valid Configuration";
+    let status: DomainVerificationStatusProps = "Valid Configuration";
 
     const [domainResponse, configResponse] = await Promise.all([
       fetch(

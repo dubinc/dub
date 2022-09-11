@@ -26,7 +26,6 @@ function EditDomainModalHelper({
   const router = useRouter();
   const { slug } = router.query;
   const [saving, setSaving] = useState(false);
-  const [buttonText, setButtonText] = useState("Confirm domain change");
   const [domainExistsError, setdomainExistsError] = useState(false);
 
   const [data, setData] = useState(domain);
@@ -77,11 +76,8 @@ function EditDomainModalHelper({
             }).then((res) => {
               setSaving(false);
               if (res.status === 200) {
-                setButtonText("Saved!");
                 mutate(`/api/projects/${slug}`);
-                setTimeout(() => {
-                  setButtonText("Save changes");
-                });
+                setShowEditDomainModal(false);
               }
             });
           }}
@@ -139,7 +135,11 @@ function EditDomainModalHelper({
                 : "bg-red-600 hover:bg-white hover:text-red-600 border-red-600 text-white"
             } flex justify-center items-center w-full text-sm h-10 rounded-md border transition-all focus:outline-none`}
           >
-            {saving ? <LoadingDots color="#808080" /> : <p>{buttonText}</p>}
+            {saving ? (
+              <LoadingDots color="#808080" />
+            ) : (
+              <p>Confirm domain change</p>
+            )}
           </button>
         </form>
       </div>

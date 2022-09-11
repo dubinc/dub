@@ -12,3 +12,9 @@ export interface ProjectProps {
   domainVerified: boolean;
   links: LinkProps[];
 }
+
+export type DomainVerificationStatusProps =
+  | "Valid Configuration"
+  | "Invalid Configuration"
+  | "Pending Verification"
+  | "Domain Not Found";
