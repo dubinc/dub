@@ -1,8 +1,7 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiHandler, NextApiRequest, NextApiResponse } from "next";
 import { unstable_getServerSession } from "next-auth/next";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import prisma from "@/lib/prisma";
-import { URLPattern } from "next/server";
 
 interface Session {
   user: {
@@ -22,7 +21,7 @@ export async function getSession(req: NextApiRequest, res: NextApiResponse) {
 }
 
 const withProjectAuth =
-  (handler: any, isWriteEditLink?: boolean) =>
+  (handler: NextApiHandler, isWriteEditLink?: boolean) =>
   // TODO - fix `handler` type when we figure it out
   // `isWriteEditLink` is only true when it's a POST or PUT request for links
   // (you can't add/edit a link when domain is not configured)

@@ -38,7 +38,7 @@ export default async function handler(
           links,
         });
       }
-      return res.status(200).json(project);
+      return res.status(200).json({ ...project, links: [] });
     } else {
       return res.status(404).json({ error: "Project not found" });
     }

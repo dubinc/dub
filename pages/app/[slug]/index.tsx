@@ -9,6 +9,7 @@ import { ProjectProps } from "@/lib/types";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import { useAddLinkModal } from "@/components/app/add-link-modal";
 import Tooltip from "@/components/shared/tooltip";
+import NoLinksPlaceholder from "@/components/app/no-links-placeholder";
 
 export default function ProjectLinks() {
   const router = useRouter();
@@ -57,13 +58,20 @@ export default function ProjectLinks() {
       </div>
       <MaxWidthWrapper>
         <div className="my-10 grid grid-cols-1 gap-3">
-          {data?.links && data.links.length > 0
-            ? data.links.map((props) => (
+          {data?.links ? (
+            data.links.length > 0 ? (
+              data.links.map((props) => (
                 <LinkCard key={props.key} props={props} domain={data.domain} />
               ))
-            : Array.from({ length: 3 }).map((_, i) => (
-                <PlaceholderCard key={i} />
-              ))}
+            ) : (
+              <NoLinksPlaceholder
+                setShowAddLinkModal={setShowAddLinkModal}
+                domainVerified={data?.domainVerified}
+              />
+            )
+          ) : (
+            Array.from({ length: 3 }).map((_, i) => <PlaceholderCard key={i} />)
+          )}
         </div>
       </MaxWidthWrapper>
     </AppLayout>

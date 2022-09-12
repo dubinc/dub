@@ -5,6 +5,7 @@ import { fetcher } from "@/lib/utils";
 import { ProjectProps } from "@/lib/types";
 import ProjectCard from "@/components/app/project-card";
 import { useAddProjectModal } from "@/components/app/add-project-modal";
+import NoProjectsPlaceholder from "@/components/app/no-projects-placeholder";
 
 export default function App() {
   const { data } = useSWR<ProjectProps[]>(`/api/projects`, fetcher);
@@ -27,8 +28,20 @@ export default function App() {
         </MaxWidthWrapper>
       </div>
       <MaxWidthWrapper>
-        <div className="my-10 grid grid-cols-1 sm:grid-cols-3 gap-5">
-          {data ? data.map((d) => <ProjectCard key={d.slug} {...d} />) : null}
+        <div
+          className={`my-10 grid grid-cols-1 ${
+            data?.length === 0 ? "" : "sm:grid-cols-3"
+          } gap-5`}
+        >
+          {data ? (
+            data.length > 0 ? (
+              data.map((d) => <ProjectCard key={d.slug} {...d} />)
+            ) : (
+              <NoProjectsPlaceholder
+                setShowAddProjectModal={setShowAddProjectModal}
+              />
+            )
+          ) : null}
         </div>
       </MaxWidthWrapper>
     </AppLayout>

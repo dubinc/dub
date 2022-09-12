@@ -7,6 +7,7 @@ import LinkCard from "@/components/app/link-card";
 import PlaceholderCard from "@/components/app/placeholder-card";
 import { LinkProps } from "@/lib/types";
 import { useAddLinkModal } from "@/components/app/add-link-modal";
+import NoLinksPlaceholder from "@/components/app/no-links-placeholder";
 
 export default function Links() {
   const router = useRouter();
@@ -33,11 +34,15 @@ export default function Links() {
       </div>
       <MaxWidthWrapper>
         <div className="my-10 grid grid-cols-1 gap-3">
-          {data && data.length > 0
-            ? data.map((props) => <LinkCard key={props.key} props={props} />)
-            : Array.from({ length: 3 }).map((_, i) => (
-                <PlaceholderCard key={i} />
-              ))}
+          {data ? (
+            data.length > 0 ? (
+              data.map((props) => <LinkCard key={props.key} props={props} />)
+            ) : (
+              <NoLinksPlaceholder setShowAddLinkModal={setShowAddLinkModal} />
+            )
+          ) : (
+            Array.from({ length: 3 }).map((_, i) => <PlaceholderCard key={i} />)
+          )}
         </div>
       </MaxWidthWrapper>
     </AppLayout>
