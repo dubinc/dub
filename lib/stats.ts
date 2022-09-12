@@ -225,7 +225,7 @@ export const processDeviceData = (
 
 export const dummyData: StatsProps = {
   key: "test",
-  totalClicks: 100,
+  totalClicks: 0,
   clicksData: getTimeIntervals("7d").timeIntervals.map((interval) => ({
     ...interval,
     count: 0,

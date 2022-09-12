@@ -1,6 +1,5 @@
 import HomeLayout from "@/components/layout/home";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
-import Parallax from "@/components/home/about/parallax";
 import Globe from "@/components/home/about/globe";
 
 export default function About() {
@@ -14,13 +13,11 @@ export default function About() {
         </div>
       </MaxWidthWrapper>
       <Globe />
-      <Parallax>
-        <div className="py-10 border-t border-black shadow-md w-full h-[500px]">
-          <MaxWidthWrapper>
-            <div>blah blah blah</div>
-          </MaxWidthWrapper>
-        </div>
-      </Parallax>
+      <div className="py-10 border-t border-black shadow-md w-full h-[500px]">
+        <MaxWidthWrapper>
+          <div>blah blah blah</div>
+        </MaxWidthWrapper>
+      </div>
     </HomeLayout>
   );
 }

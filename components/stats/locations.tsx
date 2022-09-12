@@ -52,8 +52,8 @@ export default function Locations({ data: rawData }: { data: StatsProps }) {
       >
         {data.locationData ? (
           data.locationData.length > 0 ? (
-            data.locationData.map(({ display, code, count }) => (
-              <div className="flex justify-between items-center">
+            data.locationData.map(({ display, code, count }, idx) => (
+              <div key={idx} className="flex justify-between items-center">
                 <div className="relative flex items-center z-10 w-full max-w-[calc(100%-3rem)]">
                   <span className="flex space-x-2 px-2 items-center z-10">
                     <img

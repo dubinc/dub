@@ -56,8 +56,8 @@ export default function Devices({ data: rawData }: { data: StatsProps }) {
           {data.deviceData ? (
             data.deviceData.length > 0 ? (
               <>
-                {data.deviceData.map(({ display, count }) => (
-                  <div className="flex justify-between items-center">
+                {data.deviceData.map(({ display, count }, idx) => (
+                  <div key={idx} className="flex justify-between items-center">
                     <div className="relative flex items-center z-10 w-full max-w-[calc(100%-3rem)]">
                       <span className="flex space-x-2 px-2 items-center z-10">
                         <DeviceIcon
