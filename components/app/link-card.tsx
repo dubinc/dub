@@ -35,7 +35,7 @@ export default function LinkCard({
   });
 
   return (
-    <div className="flex justify-between items-center border border-gray-200 dark:border-gray-600 bg-white dark:bg-black p-4 rounded-md transition-all">
+    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-5 sm:space-y-0 border border-gray-200 dark:border-gray-600 bg-white dark:bg-black p-4 rounded-md transition-all">
       <EditLinkModal />
       <div className="relative flex items-center space-x-4">
         <BlurImage
@@ -69,7 +69,7 @@ export default function LinkCard({
               </a>
             </Link>
           </div>
-          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate max-w-sm">
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-200 line-clamp-1">
             {title}
           </h3>
         </div>

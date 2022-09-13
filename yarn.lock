@@ -502,6 +502,11 @@
   dependencies:
     "mini-svg-data-uri" "^1.2.3"
 
+"@tailwindcss/line-clamp@^0.4.2":
+  "integrity" "sha512-HFzAQuqYCjyy/SX9sLGB1lroPzmcnWv1FHkIpmypte10hptf4oPUfucryMKovZh2u0uiS9U5Ty3GghWfEJGwVw=="
+  "resolved" "https://registry.npmjs.org/@tailwindcss/line-clamp/-/line-clamp-0.4.2.tgz"
+  "version" "0.4.2"
+
 "@tootallnate/once@2":
   "version" "2.0.0"
 
@@ -2600,7 +2605,7 @@
   "resolved" "https://registry.npmjs.org/tailwind-scrollbar-hide/-/tailwind-scrollbar-hide-1.1.7.tgz"
   "version" "1.1.7"
 
-"tailwindcss@^3.1.2", "tailwindcss@>=3.0.0 || >= 3.0.0-alpha.1":
+"tailwindcss@^3.1.2", "tailwindcss@>=2.0.0 || >=3.0.0 || >=3.0.0-alpha.1", "tailwindcss@>=3.0.0 || >= 3.0.0-alpha.1":
   "integrity" "sha512-YSneUCZSFDYMwk+TGq8qYFdCA3yfBRdBlS7txSq0LUmzyeqRe3a8fBQzbz9M3WS/iFT4BNf/nmw9mEzrnSaC0g=="
   "resolved" "https://registry.npmjs.org/tailwindcss/-/tailwindcss-3.1.8.tgz"
   "version" "3.1.8"
