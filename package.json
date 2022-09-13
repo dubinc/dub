@@ -11,6 +11,7 @@
     "@prisma/client": "^4.3.1",
     "@radix-ui/react-tooltip": "^1.0.0",
     "@tailwindcss/forms": "^0.5.3",
+    "@upstash/ratelimit": "^0.1.5",
     "@upstash/redis": "^1.12.0",
     "@visx/axis": "^2.12.2",
     "@visx/event": "^2.6.0",

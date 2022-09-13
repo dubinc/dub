@@ -1,10 +1,11 @@
 import { withProjectAuth } from "@/lib/auth";
 import { NextApiRequest, NextApiResponse } from "next";
 import { DomainVerificationStatusProps } from "@/lib/types";
+import prisma from "@/lib/prisma";
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {
-    const { domain } = req.query as { domain: string };
+    const { slug, domain } = req.query as { slug: string; domain: string };
     let status: DomainVerificationStatusProps = "Valid Configuration";
 
     const [domainResponse, configResponse] = await Promise.all([
@@ -67,15 +68,39 @@ export default withProjectAuth(
 
       return res.status(200).json({
         status,
-        response: { configJson, domainJson, verificationResponse },
+        response: {
+          configJson,
+          domainJson,
+          verificationResponse,
+        },
       });
     }
 
-    status = configJson.misconfigured ? "Invalid Configuration" : status;
+    let prismaResponse = null;
+    if (!configJson.misconfigured) {
+      prismaResponse = await prisma.project.update({
+        where: {
+          slug,
+        },
+        data: {
+          domainVerified: true,
+        },
+      });
+    } else {
+      status = "Invalid Configuration";
+      prismaResponse = await prisma.project.update({
+        where: {
+          slug,
+        },
+        data: {
+          domainVerified: false,
+        },
+      });
+    }
 
     return res.status(200).json({
       status,
-      response: { configJson, domainJson },
+      response: { configJson, domainJson, prismaResponse },
     });
   }
 );

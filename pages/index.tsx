@@ -7,6 +7,7 @@ import PlaceholderCard from "@/components/home/placeholder-card";
 import { LoadingDots } from "@/components/shared/icons";
 import { motion } from "framer-motion";
 import { LinkProps } from "@/lib/types";
+import Globe from "@/components/home/about/globe";
 
 export default function Home() {
   const [saving, setSaving] = useState(false);
@@ -17,20 +18,12 @@ export default function Home() {
     <HomeLayout>
       <main className="my-36 max-w-md mx-auto sm:px-0 px-2.5">
         <div className="my-5 text-center">
-          <h1 className="text-6xl font-bold text-black dark:text-white">Dub</h1>
+          <h1 className="text-6xl font-display font-bold text-black dark:text-white">
+            Dub
+          </h1>
           <p className="text-gray-600 dark:text-white text-xl mt-5">
-            An open-source link shortener built with <br />
-            <VercelEdgeFunctions /> and{" "}
-            <a
-              className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-green-700
-"
-              href="https://upstash.com/redis"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Upstash Redis
-            </a>
-            .
+            An open-source link shortener with built-in analytics and free
+            custom domains.
           </p>
         </div>
         <form
@@ -103,6 +96,7 @@ export default function Home() {
               ))}
         </motion.ul>
       </main>
+      <Globe />
     </HomeLayout>
   );
 }
