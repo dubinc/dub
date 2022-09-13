@@ -29,11 +29,11 @@ export default function Toggle({
         <div className="group flex">
           <a
             className="text-xl text-gray-800 dark:text-gray-200 font-semibold"
-            href={linkConstructor(key)}
+            href={linkConstructor({ key })}
             target="_blank"
             rel="noreferrer"
           >
-            {linkConstructor(key, true)}
+            {linkConstructor({ key, pretty: true })}
           </a>
           <ExpandingArrow className="w-5 h-5" />
         </div>

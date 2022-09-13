@@ -64,13 +64,13 @@ export default function LinkCard({
         <div className="flex items-center space-x-2 mb-1">
           <a
             className="text-blue-800 dark:text-blue-400 font-semibold"
-            href={linkConstructor(key)}
+            href={linkConstructor({ key })}
             target="_blank"
             rel="noreferrer"
           >
-            {linkConstructor(key, true)}
+            {linkConstructor({ key, pretty: true })}
           </a>
-          <CopyButton url={linkConstructor(key)} />
+          <CopyButton url={linkConstructor({ key })} />
           <Link
             href={{ pathname: "/", query: { key } }}
             as={`/stats/${encodeURI(key)}`}

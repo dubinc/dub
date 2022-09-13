@@ -49,13 +49,13 @@ export default function LinkCard({
           <div className="flex items-center space-x-2">
             <a
               className="text-blue-800 dark:text-blue-400 font-semibold"
-              href={linkConstructor(key)}
+              href={linkConstructor({ key, domain })}
               target="_blank"
               rel="noreferrer"
             >
-              {linkConstructor(key, true)}
+              {linkConstructor({ key, domain, pretty: true })}
             </a>
-            <CopyButton url={linkConstructor(key)} />
+            <CopyButton url={linkConstructor({ key, domain })} />
             <Link href={`${router.asPath}/${encodeURI(key)}`}>
               <a className="rounded-md bg-gray-100 dark:bg-gray-800 px-2 py-0.5 hover:scale-105 active:scale-95 transition-all duration-75">
                 <p className="text-sm text-gray-500 dark:text-white">

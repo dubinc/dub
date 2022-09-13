@@ -45,14 +45,19 @@ export function nFormatter(num: number, digits?: number) {
     : "0";
 }
 
-export function linkConstructor(key: string, pretty?: boolean) {
-  // if you're self-hosting you can just replace this with your own domain
+export function linkConstructor({
+  key,
+  domain = "dub.sh",
+  localhost,
+  pretty,
+}: {
+  key: string;
+  domain?: string;
+  localhost?: boolean;
+  pretty?: boolean;
+}) {
   const link = `${
-    process.env.NEXT_PUBLIC_DEMO_APP === "1"
-      ? "https://dub.sh"
-      : process.env.NEXT_PUBLIC_VERCEL === "1"
-      ? process.env.NEXT_PUBLIC_VERCEL_URL
-      : "http://localhost:3000"
+    localhost ? "http://localhost:3000" : `https://${domain}`
   }/${key}`;
 
   return pretty ? link.replace(/^https?:\/\//, "") : link;

@@ -66,7 +66,7 @@ function EditLinkModalHelper({
             height={20}
           />
           <h3 className="font-medium text-lg">
-            Edit {linkConstructor(props.key, true)}
+            Edit {linkConstructor({ key: props.key, domain, pretty: true })}
           </h3>
           <p className="text-sm text-gray-500">Added {timeAgo(timestamp)}</p>
         </div>
