@@ -1,13 +1,11 @@
 import HomeLayout from "@/components/layout/home";
 import { useState } from "react";
 import useLocalStorage from "@/lib/hooks/use-local-storage";
-import VercelEdgeFunctions from "@/components/home/vercel-edge-functions";
 import LinkCard from "@/components/home/link-card";
 import PlaceholderCard from "@/components/home/placeholder-card";
 import { LoadingDots } from "@/components/shared/icons";
 import { motion } from "framer-motion";
 import { LinkProps } from "@/lib/types";
-import Globe from "@/components/home/about/globe";
 
 export default function Home() {
   const [saving, setSaving] = useState(false);
@@ -96,7 +94,6 @@ export default function Home() {
               ))}
         </motion.ul>
       </main>
-      <Globe />
     </HomeLayout>
   );
 }
