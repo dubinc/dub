@@ -1,5 +1,5 @@
 import { NextRequest, NextFetchEvent, NextResponse } from "next/server";
-import { recordRootClick } from "@/lib/upstash";
+import { recordClick } from "@/lib/upstash";
 import { parse } from "./utils";
 
 export default function RootMiddleware(req: NextRequest, ev: NextFetchEvent) {
@@ -9,7 +9,7 @@ export default function RootMiddleware(req: NextRequest, ev: NextFetchEvent) {
     return NextResponse.next();
   }
 
-  ev.waitUntil(recordRootClick(hostname, req)); // record clicks on root page
+  ev.waitUntil(recordClick(hostname, req)); // record clicks on root page
 
   if (
     hostname === "dub.sh" ||

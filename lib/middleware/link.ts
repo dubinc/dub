@@ -37,7 +37,7 @@ export default async function LinkMiddleware(
     const target = response?.url;
 
     if (target) {
-      ev.waitUntil(recordClick(hostname, key, req)); // increment click count
+      ev.waitUntil(recordClick(hostname, req, key)); // increment click count
       res = NextResponse.redirect(target);
     } else {
       url.pathname = "/";

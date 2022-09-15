@@ -71,39 +71,25 @@ export async function checkIfKeyExists(hostname: string, key: string) {
 
 /**
  * Recording clicks with geo, ua, referer and timestamp data
+ * If key is not specified, record click as the root click
  **/
 export async function recordClick(
   hostname: string,
-  key: string,
-  req: NextRequest
+  req: NextRequest,
+  key?: string
 ) {
-  const pipeline = redis.pipeline();
-  pipeline.zadd(`${hostname}:clicks:${key}`, {
-    score: Date.now(),
-    member: {
-      geo: process.env.VERCEL === "1" ? req.geo : LOCALHOST_GEO_DATA,
-      ua: userAgent(req),
-      referer: req.headers.get("referer"),
-      timestamp: Date.now(),
-    },
-  });
-  pipeline.zincrby(`${hostname}:links:clicks`, 1, key);
-  return await pipeline.exec();
-}
-
-/**
- * Recording clicks for root domain
- **/
-export async function recordRootClick(hostname: string, req: NextRequest) {
-  return await redis.zadd(`${hostname}:root:clicks`, {
-    score: Date.now(),
-    member: {
-      geo: process.env.VERCEL === "1" ? req.geo : LOCALHOST_GEO_DATA,
-      ua: userAgent(req),
-      referer: req.headers.get("referer"),
-      timestamp: Date.now(),
-    },
-  });
+  return redis.zadd(
+    key ? `${hostname}:clicks:${key}` : `${hostname}:root:clicks`,
+    {
+      score: Date.now(),
+      member: {
+        geo: process.env.VERCEL === "1" ? req.geo : LOCALHOST_GEO_DATA,
+        ua: userAgent(req),
+        referer: req.headers.get("referer"),
+        timestamp: Date.now(),
+      },
+    }
+  );
 }
 
 /**
