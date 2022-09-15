@@ -1,12 +1,20 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextFetchEvent, NextResponse } from "next/server";
+import { recordRootClick } from "@/lib/upstash";
 import { parse } from "./utils";
 
-export default function RootMiddleware(req: NextRequest) {
+export default function RootMiddleware(req: NextRequest, ev: NextFetchEvent) {
   const { hostname } = parse(req);
+
+  if (!hostname) {
+    return NextResponse.next();
+  }
+
+  ev.waitUntil(recordRootClick(hostname, req)); // record clicks on root page
+
   if (
     hostname === "dub.sh" ||
     hostname === "preview.dub.sh" ||
-    hostname?.endsWith(".vercel.app")
+    hostname.endsWith(".vercel.app")
   ) {
     return NextResponse.next();
   } else {

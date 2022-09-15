@@ -36,7 +36,7 @@ export default function ProjectLinks() {
       </div>
       <MaxWidthWrapper>
         <div className="my-10 grid gap-5">
-          {/* Custom Domain Div */}
+          {/* Custom Domain */}
           <CustomDomain domain={data?.domain || ""} />
         </div>
       </MaxWidthWrapper>

@@ -92,6 +92,21 @@ export async function recordClick(
 }
 
 /**
+ * Recording clicks for root domain
+ **/
+export async function recordRootClick(hostname: string, req: NextRequest) {
+  return await redis.zadd(`${hostname}:root:clicks`, {
+    score: Date.now(),
+    member: {
+      geo: process.env.VERCEL === "1" ? req.geo : LOCALHOST_GEO_DATA,
+      ua: userAgent(req),
+      referer: req.headers.get("referer"),
+      timestamp: Date.now(),
+    },
+  });
+}
+
+/**
  * Get the links associated with a project
  **/
 export async function getLinksForProject(

@@ -30,7 +30,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   }
 
   if (key.length === 0) {
-    return RootMiddleware(req);
+    return RootMiddleware(req, ev);
   }
 
   if (home && RESERVED_KEYS.includes(key)) {
