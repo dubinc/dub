@@ -9,15 +9,23 @@ import { RESERVED_KEYS } from "@/lib/constants";
 
 export const config = {
   matcher: [
-    // Comment to force multi-line for better diffs
-    "/((?!api|_next|static|app|favicon.ico|site.webmanifest).*)",
+    /*
+     * Match all paths except for:
+     * 1. /api routes
+     * 2. /_next (Next.js internals)
+     * 3. /static (inside /public)
+     * 4. all root files inside /public (e.g. /favicon.ico)
+     */
+    "/((?!api|_next|static|[\\w-]+\\.\\w+).*)",
   ],
 };
 
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   const { hostname, key } = parse(req);
+  const home = hostname === "dub.sh" || hostname === "localhost:3000";
+  const app = hostname === "app.dub.sh" || hostname === "app.localhost:3000";
 
-  if (hostname === "app.dub.sh" || hostname === "app.localhost:3000") {
+  if (app) {
     return AppMiddleware(req);
   }
 
@@ -25,7 +33,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
     return RootMiddleware(req);
   }
 
-  if (RESERVED_KEYS.includes(key)) {
+  if (home && RESERVED_KEYS.includes(key)) {
     return NextResponse.next();
   }
 
