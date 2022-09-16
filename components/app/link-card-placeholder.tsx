@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { FRAMER_MOTION_LIST_ITEM_VARIANTS } from "@/lib/constants";
 
-export default function PlaceholderCard() {
+export default function LinkCardPlaceholder() {
   return (
     <motion.li
       variants={FRAMER_MOTION_LIST_ITEM_VARIANTS}

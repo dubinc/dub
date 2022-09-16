@@ -6,6 +6,7 @@ import { ProjectProps } from "@/lib/types";
 import ProjectCard from "@/components/app/project-card";
 import { useAddProjectModal } from "@/components/app/add-project-modal";
 import NoProjectsPlaceholder from "@/components/app/no-projects-placeholder";
+import ProjectCardPlaceholder from "@/components/app/project-card-placeholder";
 
 export default function App() {
   const { data } = useSWR<ProjectProps[]>(`/api/projects`, fetcher);
@@ -41,7 +42,11 @@ export default function App() {
                 setShowAddProjectModal={setShowAddProjectModal}
               />
             )
-          ) : null}
+          ) : (
+            Array.from({ length: 6 }).map((_, i) => (
+              <ProjectCardPlaceholder key={i} />
+            ))
+          )}
         </div>
       </MaxWidthWrapper>
     </AppLayout>

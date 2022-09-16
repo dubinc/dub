@@ -24,6 +24,7 @@ export async function fetcher<JSON = any>(
 }
 
 export function nFormatter(num: number, digits?: number) {
+  if (!num) return "0";
   const lookup = [
     { value: 1, symbol: "" },
     { value: 1e3, symbol: "K" },

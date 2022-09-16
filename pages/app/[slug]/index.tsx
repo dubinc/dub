@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import useSWR from "swr";
 import { fetcher } from "@/lib/utils";
 import LinkCard from "@/components/app/link-card";
-import PlaceholderCard from "@/components/app/placeholder-card";
+import LinkCardPlaceholder from "@/components/app/link-card-placeholder";
 import { useEffect } from "react";
 import { ProjectProps } from "@/lib/types";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
@@ -70,7 +70,9 @@ export default function ProjectLinks() {
               />
             )
           ) : (
-            Array.from({ length: 3 }).map((_, i) => <PlaceholderCard key={i} />)
+            Array.from({ length: 3 }).map((_, i) => (
+              <LinkCardPlaceholder key={i} />
+            ))
           )}
         </div>
       </MaxWidthWrapper>

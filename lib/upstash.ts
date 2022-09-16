@@ -125,6 +125,13 @@ export async function getLinksForProject(
   return links;
 }
 
+/**
+ * Get the number of links that a project has
+ **/
+export async function getLinkCountForProject(slug: string) {
+  return await redis.zcard(`${slug}:links:timestamps`);
+}
+
 export async function addLink(
   hostname: string,
   url: string,

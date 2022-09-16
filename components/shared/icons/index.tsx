@@ -16,3 +16,4 @@ export { default as AlertCircleFill } from "./alert-circle-fill";
 export { default as ExternalLink } from "./external-link";
 export { default as XCircleFill } from "./x-circle-fill";
 export { default as CheckCircleFill } from "./check-circle-fill";
+export { default as Link } from "./link";

@@ -2,7 +2,11 @@ import Link from "next/link";
 import useSWR from "swr";
 import { fetcher, nFormatter } from "@/lib/utils";
 import { ProjectProps } from "@/lib/types";
-import { CheckCircleFill, XCircleFill, Chart } from "@/components/shared/icons";
+import {
+  CheckCircleFill,
+  XCircleFill,
+  Link as LinkIcon,
+} from "@/components/shared/icons";
 import BlurImage from "../shared/blur-image";
 
 export default function ProjectCard({
@@ -11,8 +15,8 @@ export default function ProjectCard({
   domain,
   domainVerified,
 }: ProjectProps) {
-  const { data } = useSWR<{ totalClicks: number }>(
-    domainVerified && `/api/projects/${slug}/domains/${domain}/usage`,
+  const { data: count, isValidating } = useSWR<number>(
+    domainVerified && `/api/projects/${slug}/domains/${domain}/links/count`,
     fetcher
   );
   return (
@@ -34,16 +38,20 @@ export default function ProjectCard({
                 {domainVerified ? (
                   <CheckCircleFill className="w-5 h-5 text-blue-500" />
                 ) : (
-                  <XCircleFill className="w-5 h-5 text-gray-500" />
+                  <XCircleFill className="w-5 h-5 text-gray-300" />
                 )}
               </div>
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            <Chart className="text-gray-600 dark:text-gray-400 w-7 h-7" />
-            <h2 className="text-lg font-medium text-gray-700">
-              {nFormatter(data?.totalClicks!)}
-            </h2>
+            <LinkIcon className="text-gray-600 dark:text-gray-400 w-5 h-5" />
+            {isValidating ? (
+              <div className="w-4 h-5 rounded-md bg-gray-200 animate-pulse" />
+            ) : (
+              <h2 className="text-lg font-medium text-gray-700">
+                {nFormatter(count)}
+              </h2>
+            )}
           </div>
         </div>
       </a>
