@@ -7,12 +7,15 @@ import { fetcher, nFormatter, linkConstructor, timeAgo } from "@/lib/utils";
 import Link from "next/link";
 import { LinkProps } from "@/lib/types";
 import { useEditLinkModal } from "./edit-link-modal";
+import Tooltip from "@/components/shared/tooltip";
 
 export default function LinkCard({
   props,
+  exceededUsage,
   domain,
 }: {
   props: LinkProps;
+  exceededUsage: boolean;
   domain?: string;
 }) {
   const { key, url, title, timestamp } = props;
@@ -78,12 +81,20 @@ export default function LinkCard({
         <p className="text-sm text-gray-500 dark:text-gray-400">
           Added {timeAgo(timestamp)}
         </p>
-        <button
-          onClick={() => setShowEditLinkModal(true)}
-          className="font-medium text-sm text-gray-500 px-5 py-2 border rounded-md border-gray-200 dark:border-gray-600 hover:border-black dark:hover:border-white active:scale-95 transition-all duration-75"
-        >
-          Edit
-        </button>
+        {exceededUsage ? (
+          <Tooltip content="You have exceeded your usage limit. We're still collecting data on your existing links, but you need to upgrade to edit them.">
+            <div className="text-gray-300 cursor-not-allowed font-medium text-sm px-5 py-2 border rounded-md border-gray-200 dark:border-gray-600 transition-all duration-75">
+              Edit
+            </div>
+          </Tooltip>
+        ) : (
+          <button
+            onClick={() => setShowEditLinkModal(true)}
+            className="font-medium text-sm text-gray-500 px-5 py-2 border rounded-md border-gray-200 dark:border-gray-600 hover:border-black dark:hover:border-white active:scale-95 transition-all duration-75"
+          >
+            Edit
+          </button>
+        )}
       </div>
     </div>
   );

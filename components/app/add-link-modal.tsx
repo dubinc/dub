@@ -18,8 +18,9 @@ import {
 import { useDebounce } from "use-debounce";
 import TextareaAutosize from "react-textarea-autosize";
 import { mutate } from "swr";
+import Tooltip from "@/components/shared/tooltip";
 
-function AddLinkModalHelper({
+function AddLinkModal({
   showAddLinkModal,
   setShowAddLinkModal,
   domain,
@@ -275,12 +276,51 @@ function AddLinkModalHelper({
   );
 }
 
-export function useAddLinkModal({ domain }: { domain?: string }) {
+function AddLinkButton({
+  domainVerified,
+  exceededUsage,
+  setShowAddLinkModal,
+}: {
+  domainVerified: boolean;
+  exceededUsage: boolean;
+  setShowAddLinkModal: Dispatch<SetStateAction<boolean>>;
+}) {
+  return !domainVerified ? (
+    <Tooltip content="You can only start adding links after your project domain is configured.">
+      <div className="text-gray-300 cursor-not-allowed font-medium text-sm px-5 py-2 border rounded-md border-gray-200 dark:border-gray-600 transition-all duration-75">
+        Add
+      </div>
+    </Tooltip>
+  ) : exceededUsage ? (
+    <Tooltip content="You have exceeded your usage limit. We're still collecting data on your existing links, but you need to upgrade to add more links.">
+      <div className="text-gray-300 cursor-not-allowed font-medium text-sm px-5 py-2 border rounded-md border-gray-200 dark:border-gray-600 transition-all duration-75">
+        Add
+      </div>
+    </Tooltip>
+  ) : (
+    <button
+      onClick={() => setShowAddLinkModal(true)}
+      className="text-gray-500 hover:border-black dark:hover:border-white active:scale-95 font-medium text-sm px-5 py-2 border rounded-md border-gray-200 dark:border-gray-600 transition-all duration-75"
+    >
+      Add
+    </button>
+  );
+}
+
+export function useAddLinkModal({
+  domainVerified,
+  exceededUsage,
+  domain,
+}: {
+  domainVerified: boolean;
+  exceededUsage: boolean;
+  domain?: string;
+}) {
   const [showAddLinkModal, setShowAddLinkModal] = useState(false);
 
-  const AddLinkModal = useCallback(() => {
+  const AddLinkModalCallback = useCallback(() => {
     return (
-      <AddLinkModalHelper
+      <AddLinkModal
         showAddLinkModal={showAddLinkModal}
         setShowAddLinkModal={setShowAddLinkModal}
         domain={domain}
@@ -288,8 +328,22 @@ export function useAddLinkModal({ domain }: { domain?: string }) {
     );
   }, [showAddLinkModal, setShowAddLinkModal, domain]);
 
+  const AddLinkButtonCallback = useCallback(() => {
+    return (
+      <AddLinkButton
+        domainVerified={domainVerified}
+        exceededUsage={exceededUsage}
+        setShowAddLinkModal={setShowAddLinkModal}
+      />
+    );
+  }, [domainVerified, exceededUsage, setShowAddLinkModal]);
+
   return useMemo(
-    () => ({ setShowAddLinkModal, AddLinkModal }),
-    [setShowAddLinkModal, AddLinkModal]
+    () => ({
+      setShowAddLinkModal,
+      AddLinkModal: AddLinkModalCallback,
+      AddLinkButton: AddLinkButtonCallback,
+    }),
+    [setShowAddLinkModal, AddLinkModalCallback, AddLinkButtonCallback]
   );
 }

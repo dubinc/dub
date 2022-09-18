@@ -9,13 +9,10 @@ import {
 } from "react";
 import { useRouter } from "next/router";
 import BlurImage from "@/components/shared/blur-image";
-import {
-  LoadingDots,
-  LoadingCircle,
-  AlertCircleFill,
-} from "@/components/shared/icons";
+import { LoadingDots, AlertCircleFill } from "@/components/shared/icons";
 import { useDebounce } from "use-debounce";
 import { mutate } from "swr";
+import { generateSlugFromName } from "@/lib/utils";
 
 function AddProjectModalHelper({
   showAddProjectModal,
@@ -27,7 +24,6 @@ function AddProjectModalHelper({
   const router = useRouter();
 
   const [slugExistsError, setSlugExistsError] = useState(false);
-  const [generatingSlug, setGeneratingSlug] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const [data, setData] = useState<{
@@ -53,17 +49,13 @@ function AddProjectModalHelper({
     }
   }, [debouncedSlug]);
 
-  const generateRandomSlug = useCallback(async () => {
-    setGeneratingSlug(true);
-    const res = await fetch(
-      domain
-        ? `/api/projects/${slug}/domains/${domain}/links/random`
-        : `/api/edge/links/random`
-    );
-    const key = await res.json();
-    setData((prev) => ({ ...prev, key }));
-    setGeneratingSlug(false);
-  }, []);
+  useEffect(() => {
+    setData((prev) => ({
+      ...prev,
+      slug: name.toLowerCase().replaceAll(" ", "-"),
+      domain: generateSlugFromName(name),
+    }));
+  }, [name]);
 
   return (
     <Modal

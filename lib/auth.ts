@@ -2,6 +2,7 @@ import { NextApiHandler, NextApiRequest, NextApiResponse } from "next";
 import { unstable_getServerSession } from "next-auth/next";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import prisma from "@/lib/prisma";
+import { getUsage } from "./upstash";
 
 interface Session {
   user: {
@@ -49,10 +50,23 @@ const withProjectAuth =
 
     if (!project) return res.status(401).end("Unauthorized");
 
-    if (isWriteEditLink && !project.domainVerified) {
-      return res
-        .status(401)
-        .end("Unauthorized: Cannot add links when domain is not verified");
+    if (isWriteEditLink && req.method !== "GET") {
+      if (!project.domainVerified) {
+        return res
+          .status(401)
+          .end(
+            "Unauthorized: Cannot add or edit links when domain is not verified."
+          );
+      } else {
+        const usage = await getUsage(project.domain);
+        if (usage > project.usageLimit) {
+          return res
+            .status(403)
+            .end(
+              "Unauthorized: Cannot add or edit links when usage limits are exceeded."
+            );
+        }
+      }
     }
 
     return handler(req, res);

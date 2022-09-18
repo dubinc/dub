@@ -30,15 +30,7 @@ export default async function handler(
       },
     });
     if (project) {
-      if (project.domainVerified) {
-        // only fetch links if project domain has been verified
-        const links = await getLinksForProject(project.domain);
-        return res.status(200).json({
-          ...project,
-          links,
-        });
-      }
-      return res.status(200).json({ ...project, links: [] });
+      return res.status(200).json(project);
     } else {
       return res.status(404).json({ error: "Project not found" });
     }

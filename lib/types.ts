@@ -10,6 +10,8 @@ export interface ProjectProps {
   slug: string;
   domain: string;
   domainVerified: boolean;
+  plan: string;
+  usageLimit: number;
   links: LinkProps[];
 }
 

@@ -1,12 +1,12 @@
 import AppLayout from "components/layout/app";
 import { useRouter } from "next/router";
-import Link from "next/link";
 import useSWR from "swr";
 import { fetcher } from "@/lib/utils";
 import { useEffect } from "react";
 import { ProjectProps } from "@/lib/types";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import CustomDomain from "@/components/app/custom-domain";
+import PlanUsage from "@/components/app/plan-usage";
 
 export default function ProjectLinks() {
   const router = useRouter();
@@ -14,7 +14,7 @@ export default function ProjectLinks() {
     slug: string;
   };
 
-  const { data, error } = useSWR<ProjectProps>(
+  const { data: project, error } = useSWR<ProjectProps>(
     router.isReady && `/api/projects/${slug}`,
     fetcher
   );
@@ -36,8 +36,8 @@ export default function ProjectLinks() {
       </div>
       <MaxWidthWrapper>
         <div className="my-10 grid gap-5">
-          {/* Custom Domain */}
-          <CustomDomain domain={data?.domain || ""} />
+          <CustomDomain domain={project?.domain || ""} />
+          <PlanUsage project={project} />
         </div>
       </MaxWidthWrapper>
     </AppLayout>

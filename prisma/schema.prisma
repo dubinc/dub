@@ -64,6 +64,9 @@ model Project {
   slug            String   @unique
   domain          String
   domainVerified  Boolean  @default(false)
+  plan            String   @default("free")
+  usageLimit      Int      @default(1000)
+  stripeId        String?  @unique
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   users           ProjectUsers[]

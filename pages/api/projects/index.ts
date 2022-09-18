@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { stripe } from "@/lib/stripe";
 
 export default async function handler(
   req: NextApiRequest,
@@ -43,20 +44,34 @@ export default async function handler(
           },
         },
       });
-      if (project?.domain) {
-        const response = await fetch(
-          `https://api.vercel.com/v9/projects/${process.env.VERCEL_PROJECT_ID}/domains?teamId=${process.env.VERCEL_TEAM_ID}`,
-          {
-            body: `{\n  "name": "${project.domain}"\n}`,
-            headers: {
-              Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN}`,
-              "Content-Type": "application/json",
-            },
-            method: "POST",
-          }
-        );
-        const json = await response.json();
-        return res.status(200).json({ project, domain: json });
+      if (project) {
+        const [domainResponse, stripeResponse] = await Promise.all([
+          fetch(
+            `https://api.vercel.com/v9/projects/${process.env.VERCEL_PROJECT_ID}/domains?teamId=${process.env.VERCEL_TEAM_ID}`,
+            {
+              body: `{\n  "name": "${project.domain}"\n}`,
+              headers: {
+                Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN}`,
+                "Content-Type": "application/json",
+              },
+              method: "POST",
+            }
+          ).then((res) => res.json()),
+          stripe.customers.create({
+            name,
+            email: session.user.email,
+          }),
+        ]);
+        console.log(stripeResponse);
+        await prisma.project.update({
+          where: {
+            id: project.id,
+          },
+          data: {
+            stripeId: stripeResponse.id,
+          },
+        });
+        return res.status(200).json({ project, domain: domainResponse });
       }
       return res.status(400).json({ error: "Project not created" });
     } catch (error: any) {

@@ -4,6 +4,7 @@ import { LOCALHOST_GEO_DATA } from "@/lib/constants";
 import { LinkProps } from "@/lib/types";
 import { customAlphabet } from "nanoid";
 import { getTitleFromUrl } from "@/lib/utils";
+import { stripe } from "@/lib/stripe";
 
 // Initiate Redis instance
 export const redis = new Redis({
@@ -78,7 +79,7 @@ export async function recordClick(
   req: NextRequest,
   key?: string
 ) {
-  return redis.zadd(
+  return await redis.zadd(
     key ? `${hostname}:clicks:${key}` : `${hostname}:root:clicks`,
     {
       score: Date.now(),
@@ -214,4 +215,33 @@ export async function editLink(
     }
     return await pipeline.exec();
   }
+}
+
+export async function getUsage(hostname: string) {
+  const cachedUsage = await redis.get(`usage:${hostname}`);
+  if (cachedUsage) {
+    return cachedUsage;
+  }
+  console.log("no cached usage found. computing from scratch...");
+  var date = new Date();
+  var firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+  var lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+
+  const links = await redis.zrange(`${hostname}:links:timestamps`, 0, -1);
+  let results: number[] = [];
+
+  if (links.length > 0) {
+    const pipeline = redis.pipeline();
+    links.forEach((link) => {
+      pipeline.zcount(
+        `${hostname}:clicks:${link}`,
+        firstDay.getTime(),
+        lastDay.getTime()
+      );
+    });
+    results = await pipeline.exec();
+  }
+  const usage = results.reduce((acc, curr) => acc + curr, 0);
+  await redis.setex(`usage:${hostname}`, 3600, usage); // cache for 1 hour
+  return usage;
 }

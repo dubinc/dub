@@ -1,4 +1,5 @@
 import ms from "ms";
+import { ccTLDs } from "./constants";
 
 export async function fetcher<JSON = any>(
   input: RequestInfo,
@@ -87,4 +88,34 @@ export const getTitleFromUrl = async (url: string) => {
 export const timeAgo = (timestamp: number): string => {
   if (!timestamp) return "never";
   return `${ms(Date.now() - timestamp)} ago`;
+};
+
+export const generateSlugFromName = (name: string) => {
+  const normalizedName = name.toLowerCase().replaceAll(" ", "-");
+  if (normalizedName.length < 3) {
+    return "";
+  }
+  if (ccTLDs.some((tld) => normalizedName.endsWith(tld))) {
+    return `${normalizedName.slice(0, -2)}.${normalizedName.slice(-2)}`;
+  }
+  // remove vowels
+  const devowel = normalizedName.replace(/[aeiou]/g, "");
+  if (devowel.length >= 3 && ccTLDs.some((tld) => devowel.endsWith(tld))) {
+    return `${devowel.slice(0, -2)}.${devowel.slice(-2)}`;
+  }
+
+  const acronym = normalizedName
+    .split("-")
+    .map((word) => word[0])
+    .join("");
+
+  if (acronym.length >= 3 && ccTLDs.some((tld) => acronym.endsWith(tld))) {
+    return `${acronym.slice(0, -2)}.${acronym.slice(-2)}`;
+  }
+
+  const shortestString = [normalizedName, devowel, acronym].reduce((a, b) =>
+    a.length < b.length ? a : b
+  );
+
+  return `${shortestString}.sh`;
 };

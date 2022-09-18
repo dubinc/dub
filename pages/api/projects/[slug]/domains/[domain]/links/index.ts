@@ -1,11 +1,15 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { addLink } from "@/lib/upstash";
+import { addLink, getLinksForProject } from "@/lib/upstash";
 import { withProjectAuth } from "@/lib/auth";
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {
-    // POST /api/links – create a new link
-    if (req.method === "POST") {
+    if (req.method === "GET") {
+      const { domain } = req.query as { domain: string };
+      const links = await getLinksForProject(domain);
+      return res.status(200).json(links);
+      // POST /api/links – create a new link
+    } else if (req.method === "POST") {
       const { domain } = req.query as { domain: string };
       let { key, url, title } = req.body;
       if (!domain || !url) {
@@ -17,7 +21,7 @@ export default withProjectAuth(
       }
       return res.status(200).json({ key, url, title });
     } else {
-      res.setHeader("Allow", ["POST"]);
+      res.setHeader("Allow", ["GET", "POST"]);
       return res
         .status(405)
         .json({ error: `Method ${req.method} Not Allowed` });
