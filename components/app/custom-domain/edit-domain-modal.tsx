@@ -26,19 +26,22 @@ function EditDomainModalHelper({
   const router = useRouter();
   const { slug } = router.query;
   const [saving, setSaving] = useState(false);
-  const [domainExistsError, setdomainExistsError] = useState(false);
+  const [domainExistsError, setDomainExistsError] = useState(false);
 
   const [data, setData] = useState(domain);
-  const [debouncedDomain] = useDebounce(domain, 1000);
 
+  const [debouncedDomain] = useDebounce(data, 500);
   useEffect(() => {
     if (debouncedDomain.length > 0 && debouncedDomain !== domain) {
-      fetch(`/api/domains/${debouncedDomain}/exists`).then(async (res) => {
-        if (res.status === 200) {
-          const exists = await res.json();
-          setdomainExistsError(exists === 1);
+      console.log("checking domain");
+      fetch(`/api/projects/${slug}/domains/${debouncedDomain}/exists`).then(
+        async (res) => {
+          if (res.status === 200) {
+            const exists = await res.json();
+            setDomainExistsError(exists === 1);
+          }
         }
-      });
+      );
     }
   }, [debouncedDomain]);
 
@@ -78,6 +81,8 @@ function EditDomainModalHelper({
               if (res.status === 200) {
                 mutate(`/api/projects/${slug}`);
                 setShowEditDomainModal(false);
+              } else if (res.status === 400) {
+                setDomainExistsError(true);
               }
             });
           }}
@@ -105,7 +110,7 @@ function EditDomainModalHelper({
                 placeholder="github"
                 value={data}
                 onChange={(e) => {
-                  setdomainExistsError(false);
+                  setDomainExistsError(false);
                   setData(e.target.value);
                 }}
                 aria-invalid="true"
@@ -121,8 +126,15 @@ function EditDomainModalHelper({
               )}
             </div>
             {domainExistsError && (
-              <p className="mt-2 text-sm text-red-600" id="key-error">
-                Domain is already in use.
+              <p className="mt-2 text-sm text-red-600" id="domain-error">
+                Domain is already in use.{" "}
+                <a
+                  className="underline"
+                  href="mailto:steven@dub.sh?subject=My Domain Is Already In Use"
+                >
+                  Contact us
+                </a>{" "}
+                if you'd like to use this domain for your project.
               </p>
             )}
           </div>

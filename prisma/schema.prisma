@@ -62,7 +62,7 @@ model Project {
   id              String   @id @default(cuid())
   name            String
   slug            String   @unique
-  domain          String
+  domain          String   @unique
   domainVerified  Boolean  @default(false)
   plan            String   @default("free")
   usageLimit      Int      @default(1000)

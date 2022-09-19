@@ -9,6 +9,16 @@ export default withProjectAuth(
       const newDomain = req.body;
 
       if (domain !== newDomain) {
+        // make sure domain doesn't exist
+        const project = await prisma.project.findUnique({
+          where: {
+            domain: newDomain,
+          },
+          select: { slug: true },
+        });
+        if (project?.slug !== slug) {
+          return res.status(400).json({ error: "Domain already exists" });
+        }
         const [removeResponse, addResponse] = await Promise.all([
           fetch(
             `https://api.vercel.com/v9/projects/${process.env.VERCEL_PROJECT_ID}/domains/${domain}?teamId=${process.env.VERCEL_TEAM_ID}`,

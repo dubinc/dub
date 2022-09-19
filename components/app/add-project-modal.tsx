@@ -5,6 +5,7 @@ import {
   useMemo,
   useState,
   Dispatch,
+  FormEvent,
   SetStateAction,
 } from "react";
 import { useRouter } from "next/router";
@@ -24,6 +25,7 @@ function AddProjectModalHelper({
   const router = useRouter();
 
   const [slugExistsError, setSlugExistsError] = useState(false);
+  const [domainExistsError, setDomainExistsError] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const [data, setData] = useState<{
@@ -48,6 +50,20 @@ function AddProjectModalHelper({
       });
     }
   }, [debouncedSlug]);
+
+  const [debouncedDomain] = useDebounce(domain, 500);
+  useEffect(() => {
+    if (debouncedDomain.length > 0) {
+      fetch(`/api/projects/${slug}/domains/${debouncedDomain}/exists`).then(
+        async (res) => {
+          if (res.status === 200) {
+            const exists = await res.json();
+            setDomainExistsError(exists === 1);
+          }
+        }
+      );
+    }
+  }, [debouncedDomain]);
 
   useEffect(() => {
     setData((prev) => ({
@@ -75,7 +91,7 @@ function AddProjectModalHelper({
         </div>
 
         <form
-          onSubmit={async (e) => {
+          onSubmit={async (e: FormEvent<HTMLFormElement>) => {
             e.preventDefault();
             setSaving(true);
             fetch(`/api/projects`, {
@@ -84,18 +100,15 @@ function AddProjectModalHelper({
                 "Content-Type": "application/json",
               },
               body: JSON.stringify(data),
-            })
-              .then((res) => {
-                setSaving(false);
-                if (res.status === 200) {
-                  mutate(`/api/projects`);
-                  router.push(`/${slug}`);
-                }
-              })
-              .catch(() => {
-                setSaving(false);
-                setSlugExistsError(true);
-              });
+            }).then(async (res) => {
+              setSaving(false);
+              if (res.status === 200) {
+                mutate(`/api/projects`);
+                router.push(`/${slug}`);
+              } else {
+                console.log(domain, slug); // console log to trigger debounce rerender
+              }
+            });
           }}
           className="flex flex-col space-y-6 text-left bg-gray-50 sm:px-16 px-4 py-8"
         >
@@ -131,6 +144,9 @@ function AddProjectModalHelper({
               Project Slug
             </label>
             <div className="relative flex mt-1 rounded-md shadow-sm">
+              <span className="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-5 text-gray-500 sm:text-sm">
+                app.dub.sh
+              </span>
               <input
                 name="slug"
                 id="slug"
@@ -140,7 +156,7 @@ function AddProjectModalHelper({
                   slugExistsError
                     ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                     : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
-                } pr-10 block w-full rounded-md focus:outline-none sm:text-sm`}
+                } pr-10 block w-full rounded-r-md focus:outline-none sm:text-sm`}
                 placeholder="dub"
                 value={slug}
                 onChange={(e) => {
@@ -172,27 +188,52 @@ function AddProjectModalHelper({
             >
               Domain
             </label>
-            <div className="flex mt-1 rounded-md shadow-sm">
+            <div className="relative flex mt-1 rounded-md shadow-sm">
               <input
                 name="domain"
                 id="domain"
                 type="text"
                 required
-                className="border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500 block w-full rounded-md focus:outline-none sm:text-sm"
+                className={`${
+                  domainExistsError
+                    ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                    : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
+                } pr-10 block w-full rounded-md focus:outline-none sm:text-sm`}
                 placeholder="dub.sh"
                 value={domain}
                 onChange={(e) => {
+                  setDomainExistsError(false);
                   setData({ ...data, domain: e.target.value });
                 }}
                 aria-invalid="true"
               />
+              {domainExistsError && (
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                  <AlertCircleFill
+                    className="h-5 w-5 text-red-500"
+                    aria-hidden="true"
+                  />
+                </div>
+              )}
             </div>
+            {domainExistsError && (
+              <p className="mt-2 text-sm text-red-600" id="domain-error">
+                Domain is already in use.{" "}
+                <a
+                  className="underline"
+                  href="mailto:steven@dub.sh?subject=My Domain Is Already In Use"
+                >
+                  Contact us
+                </a>{" "}
+                if you'd like to use this domain for your project.
+              </p>
+            )}
           </div>
 
           <button
-            disabled={saving || slugExistsError}
+            disabled={saving || slugExistsError || domainExistsError}
             className={`${
-              saving || slugExistsError
+              saving || slugExistsError || domainExistsError
                 ? "cursor-not-allowed bg-gray-100 border-gray-200 text-gray-400"
                 : "bg-black hover:bg-white hover:text-black border-black text-white"
             } flex justify-center items-center w-full text-sm h-10 rounded-md border transition-all focus:outline-none`}

@@ -9,16 +9,16 @@ export default async function handler(
   const session = await getSession(req, res);
   if (!session?.user.id) return res.status(401).end("Unauthorized");
 
-  const { slug } = req.query as { slug: string };
+  const { domain } = req.query as { domain: string };
 
-  // GET /api/projects/[slug]/exists – check if a project exists
+  // GET /api/projects/dub/domains/[domain]/exists – check if a domain exists (using `dub` as the default project slug)
   if (req.method === "GET") {
     const project = await prisma.project.findUnique({
       where: {
-        slug,
+        domain,
       },
       select: {
-        slug: true,
+        domain: true,
       },
     });
     if (project) {
