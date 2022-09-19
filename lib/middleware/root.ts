@@ -9,7 +9,9 @@ export default function RootMiddleware(req: NextRequest, ev: NextFetchEvent) {
     return NextResponse.next();
   }
 
-  ev.waitUntil(recordClick(hostname, req)); // record clicks on root page
+  if (hostname !== "preview.dub.sh" && !hostname.endsWith(".vercel.app")) {
+    ev.waitUntil(recordClick(hostname, req)); // record clicks on root page (if it's not a Vercel preview link)
+  }
 
   if (
     hostname === "dub.sh" ||

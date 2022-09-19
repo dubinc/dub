@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { withProjectAuth } from "@/lib/auth";
+import { changeDomain } from "@/lib/upstash";
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {
@@ -41,6 +42,8 @@ export default withProjectAuth(
             }
           ),
         ]);
+
+        const upstashResponse = await changeDomain(domain, newDomain);
 
         const response = await prisma.project.update({
           where: {

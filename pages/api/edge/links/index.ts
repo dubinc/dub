@@ -14,16 +14,10 @@ export default async function handler(req: NextRequest) {
     const { response, key } = await setRandomKey("dub.sh", url);
     if (response === 1) {
       // if key was successfully added
-      const pipeline = redis.pipeline();
-      pipeline.zadd(`dub.sh:links:timestamps:generic`, {
+      await redis.zadd(`dub.sh:links:timestamps:generic`, {
         score: Date.now(),
         member: key,
       });
-      pipeline.zadd(`dub.sh:links:clicks`, {
-        score: 0,
-        member: key,
-      });
-      await pipeline.exec();
       return new Response(
         JSON.stringify({
           key,

@@ -144,16 +144,13 @@ export async function addLink(
     : await setRandomKey(hostname, url, title);
 
   if (response === 1) {
-    const pipeline = redis.pipeline();
-    pipeline.zadd(`${hostname}:links:timestamps${userId ? `:${userId}` : ""}`, {
-      score: Date.now(),
-      member: key,
-    });
-    pipeline.zadd(`${hostname}:links:clicks`, {
-      score: 0,
-      member: key,
-    });
-    return await pipeline.exec();
+    return await redis.zadd(
+      `${hostname}:links:timestamps${userId ? `:${userId}` : ""}`,
+      {
+        score: Date.now(),
+        member: key,
+      }
+    );
   } else {
     return null; // key already exists
   }
@@ -199,12 +196,6 @@ export async function editLink(
       score: timestamp,
       member: newKey,
     });
-    // remove old key from links:clicks and add new key (with same score)
-    pipeline.zrem(`${hostname}:links:clicks`, key);
-    pipeline.zadd(`${hostname}:links:clicks`, {
-      score: numClicks,
-      member: newKey,
-    });
     // update name for clicks:[key] (if numClicks > 0, because we don't create clicks:[key] until the first click)
     if (numClicks > 0) {
       pipeline.rename(
@@ -243,4 +234,26 @@ export async function getUsage(hostname: string) {
   const usage = results.reduce((acc, curr) => acc + curr, 0);
   await redis.setex(`usage:${hostname}`, 3600, usage); // cache for 1 hour
   return usage;
+}
+
+export async function changeDomain(hostname: string, newHostname: string) {
+  const keys = await redis.zrange<string[]>(
+    `${hostname}:links:timestamps`,
+    0,
+    -1
+  );
+  const pipeline = redis.pipeline();
+  pipeline.rename(`${hostname}:links`, `${newHostname}:links`);
+  pipeline.rename(
+    `${hostname}:links:timestamps`,
+    `${newHostname}:links:timestamps`
+  );
+  pipeline.rename(`${hostname}:root:clicks`, `${newHostname}:root:clicks`);
+  keys.forEach((key) => {
+    pipeline.rename(
+      `${hostname}:clicks:${key}`,
+      `${newHostname}:clicks:${key}`
+    );
+  });
+  return await pipeline.exec();
 }
