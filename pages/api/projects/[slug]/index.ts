@@ -1,7 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { redis, getLinksForProject } from "@/lib/upstash";
 
 export default async function handler(
   req: NextApiRequest,

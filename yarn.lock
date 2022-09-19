@@ -488,6 +488,11 @@
   dependencies:
     "@babel/runtime" "^7.13.10"
 
+"@stripe/stripe-js@^1.36.0":
+  "integrity" "sha512-m45BD9JxOfIBT0Tz4MupiKzM8M58NX/We8wKlf+54TCZpW1RVAyFpJ58CbtyU/LxAM+opT6cewHRVfs7bTUtBA=="
+  "resolved" "https://registry.npmjs.org/@stripe/stripe-js/-/stripe-js-1.36.0.tgz"
+  "version" "1.36.0"
+
 "@swc/helpers@0.4.3":
   "integrity" "sha512-6JrF+fdUK2zbGpJIlN7G3v966PQjyx/dPt1T9km2wj+EUBqgrxCk3uX4Kct16MIm9gGxfKRcfax2hVf5jvlTzA=="
   "resolved" "https://registry.npmjs.org/@swc/helpers/-/helpers-0.4.3.tgz"

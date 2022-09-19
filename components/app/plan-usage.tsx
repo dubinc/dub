@@ -1,10 +1,17 @@
 import useSWR from "swr";
+import { useState } from "react";
 import { fetcher, nFormatter } from "@/lib/utils";
 import { useRouter } from "next/router";
 import { ProjectProps } from "@/lib/types";
 import Tooltip from "@/components/shared/tooltip";
-import { Divider, Infinity, QuestionCircle } from "@/components/shared/icons";
+import {
+  Divider,
+  Infinity,
+  QuestionCircle,
+  LoadingDots,
+} from "@/components/shared/icons";
 import { motion } from "framer-motion";
+import { getStripe } from "@/lib/stripe";
 
 export default function PlanUsage({ project }: { project: ProjectProps }) {
   const router = useRouter();
@@ -19,6 +26,8 @@ export default function PlanUsage({ project }: { project: ProjectProps }) {
     project && `/api/projects/${slug}/domains/${project.domain}/links/count`,
     fetcher
   );
+
+  const [upgrading, setUpgrading] = useState(false);
 
   return (
     <div className="bg-white rounded-lg border border-gray-200">
@@ -93,8 +102,32 @@ export default function PlanUsage({ project }: { project: ProjectProps }) {
           </Tooltip>
           , upgrade to the Pro plan.
         </p>
-        <button className="bg-blue-500 text-white border-blue-500 hover:text-blue-500 hover:bg-white h-9 w-24 text-sm border-solid border rounded-md focus:outline-none transition-all ease-in-out duration-150">
-          Upgrade
+        <button
+          onClick={() => {
+            setUpgrading(true);
+            fetch(`/api/projects/${slug}/upgrade`, {
+              method: "POST",
+            })
+              .then(async (res) => {
+                const data = await res.json();
+                console.log(data);
+                const { id: sessionId } = data;
+                const stripe = await getStripe();
+                stripe.redirectToCheckout({ sessionId });
+              })
+              .catch((err) => {
+                alert(err);
+                setUpgrading(false);
+              });
+          }}
+          disabled={upgrading}
+          className={`${
+            upgrading
+              ? "cursor-not-allowed bg-gray-100 border-gray-200"
+              : "bg-blue-500 text-white border-blue-500 hover:text-blue-500 hover:bg-white"
+          }  h-9 w-24 text-sm border rounded-md focus:outline-none transition-all ease-in-out duration-150`}
+        >
+          {upgrading ? <LoadingDots /> : "Upgrade"}
         </button>
       </div>
     </div>
