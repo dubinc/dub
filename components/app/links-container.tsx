@@ -27,7 +27,7 @@ export default function LinksContainer({
 
   return (
     <MaxWidthWrapper>
-      <div className="my-10 grid grid-cols-1 gap-3">
+      <div className="py-10 grid grid-cols-1 gap-3">
         {links ? (
           links.length > 0 ? (
             links.map((props) => (

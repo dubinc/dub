@@ -1,6 +1,10 @@
 import ms from "ms";
 import { ccTLDs } from "./constants";
 
+interface SWRError extends Error {
+  status: number;
+}
+
 export async function fetcher<JSON = any>(
   input: RequestInfo,
   init?: RequestInit
@@ -8,14 +12,11 @@ export async function fetcher<JSON = any>(
   const res = await fetch(input, init);
 
   if (!res.ok) {
-    if (res.status === 401) {
-      throw new Error("Unauthorized");
-    } else if (res.status === 403) {
-      throw new Error("Forbidden");
-    } else if (res.status === 404) {
-      throw new Error("Not Found");
-    } else if (res.status === 500) {
-      throw new Error("Internal Server Error");
+    const json = await res.json();
+    if (json.error) {
+      const error = new Error(json.error) as SWRError;
+      error.status = res.status;
+      throw error;
     } else {
       throw new Error("An unexpected error occurred");
     }

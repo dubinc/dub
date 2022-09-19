@@ -7,6 +7,7 @@ import { ProjectProps } from "@/lib/types";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import { useAddLinkModal } from "@/components/app/add-link-modal";
 import LinksContainer from "@/components/app/links-container";
+import ErrorPage from "next/error";
 
 export default function ProjectLinks() {
   const router = useRouter();
@@ -18,12 +19,6 @@ export default function ProjectLinks() {
     router.isReady && `/api/projects/${slug}`,
     fetcher
   );
-
-  useEffect(() => {
-    if (error) {
-      router.push("/404");
-    }
-  }, [error]);
 
   const { data: usage } = useSWR(
     router.isReady &&
@@ -45,6 +40,11 @@ export default function ProjectLinks() {
     domain: project?.domain,
   });
 
+  // handle error page
+  if (error && error.status === 404) {
+    return <ErrorPage statusCode={404} />;
+  }
+
   return (
     <AppLayout>
       {project && <AddLinkModal />}
@@ -56,11 +56,13 @@ export default function ProjectLinks() {
           </div>
         </MaxWidthWrapper>
       </div>
-      <LinksContainer
-        exceededUsage={exceededUsage}
-        AddLinkButton={AddLinkButton}
-        domain={project?.domain}
-      />
+      {project && (
+        <LinksContainer
+          exceededUsage={exceededUsage}
+          AddLinkButton={AddLinkButton}
+          domain={project?.domain}
+        />
+      )}
     </AppLayout>
   );
 }

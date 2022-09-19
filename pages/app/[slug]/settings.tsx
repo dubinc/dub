@@ -2,11 +2,11 @@ import AppLayout from "components/layout/app";
 import { useRouter } from "next/router";
 import useSWR from "swr";
 import { fetcher } from "@/lib/utils";
-import { useEffect } from "react";
 import { ProjectProps } from "@/lib/types";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import CustomDomain from "@/components/app/custom-domain";
 import PlanUsage from "@/components/app/plan-usage";
+import ErrorPage from "next/error";
 
 export default function ProjectLinks() {
   const router = useRouter();
@@ -19,11 +19,10 @@ export default function ProjectLinks() {
     fetcher
   );
 
-  useEffect(() => {
-    if (error) {
-      router.push("/404");
-    }
-  }, [error]);
+  // handle error page
+  if (error && error.status === 404) {
+    return <ErrorPage statusCode={404} />;
+  }
 
   return (
     <AppLayout>
