@@ -1,7 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { stripe } from "@/lib/stripe";
 
 export default async function handler(
   req: NextApiRequest,
@@ -27,9 +26,21 @@ export default async function handler(
   } else if (req.method === "POST") {
     const { name, slug, domain } = req.body;
     if (!name || !slug || !domain) {
-      return res.status(400).json({ error: "Missing name or slug or domain" });
+      return res.status(422).json({ error: "Missing name or slug or domain" });
     }
-
+    const slugError =
+      slug.includes(" ") || slug.includes(".")
+        ? "Slug cannot contain spaces or periods"
+        : null;
+    const domainError = domain.includes(" ")
+      ? "Domain cannot contain spaces"
+      : null;
+    if (slugError || domainError) {
+      return res.status(422).json({
+        slugError,
+        domainError,
+      });
+    }
     try {
       const project = await prisma.project.create({
         data: {
@@ -45,31 +56,17 @@ export default async function handler(
         },
       });
       if (project) {
-        const [domainResponse, stripeResponse] = await Promise.all([
-          fetch(
-            `https://api.vercel.com/v9/projects/${process.env.VERCEL_PROJECT_ID}/domains?teamId=${process.env.VERCEL_TEAM_ID}`,
-            {
-              body: `{\n  "name": "${project.domain}"\n}`,
-              headers: {
-                Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN}`,
-                "Content-Type": "application/json",
-              },
-              method: "POST",
-            }
-          ).then((res) => res.json()),
-          stripe.customers.create({
-            name,
-            email: session.user.email,
-          }),
-        ]);
-        await prisma.project.update({
-          where: {
-            id: project.id,
-          },
-          data: {
-            stripeId: stripeResponse.id,
-          },
-        });
+        const domainResponse = await fetch(
+          `https://api.vercel.com/v9/projects/${process.env.VERCEL_PROJECT_ID}/domains?teamId=${process.env.VERCEL_TEAM_ID}`,
+          {
+            body: `{\n  "name": "${project.domain}"\n}`,
+            headers: {
+              Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN}`,
+              "Content-Type": "application/json",
+            },
+            method: "POST",
+          }
+        ).then((res) => res.json());
         return res.status(200).json({ project, domain: domainResponse });
       }
       return res.status(400).json({ error: "Project not created" });

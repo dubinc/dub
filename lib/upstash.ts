@@ -255,5 +255,9 @@ export async function changeDomain(hostname: string, newHostname: string) {
       `${newHostname}:clicks:${key}`
     );
   });
-  return await pipeline.exec();
+  try {
+    return await pipeline.exec();
+  } catch (e) {
+    return null;
+  }
 }

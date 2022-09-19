@@ -55,7 +55,7 @@ export default function PlanUsage({ project }: { project: ProjectProps }) {
           {typeof usage === "number" ? (
             <p className="text-sm text-gray-600">
               {nFormatter(usage)} / {nFormatter(project.usageLimit)} clicks (
-              {(usage / project.usageLimit) * 100}%)
+              {((usage / project.usageLimit) * 100).toFixed(1)}%)
             </p>
           ) : (
             <div className="h-5 w-32 bg-gray-200 rounded-md animate-pulse" />

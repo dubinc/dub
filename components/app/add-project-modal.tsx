@@ -24,8 +24,8 @@ function AddProjectModalHelper({
 }) {
   const router = useRouter();
 
-  const [slugExistsError, setSlugExistsError] = useState(false);
-  const [domainExistsError, setDomainExistsError] = useState(false);
+  const [slugError, setSlugError] = useState(null);
+  const [domainError, setDomainError] = useState(null);
   const [saving, setSaving] = useState(false);
 
   const [data, setData] = useState<{
@@ -45,7 +45,7 @@ function AddProjectModalHelper({
       fetch(`/api/projects/${slug}/exists`).then(async (res) => {
         if (res.status === 200) {
           const exists = await res.json();
-          setSlugExistsError(exists === 1);
+          setSlugError(exists === 1 ? "Slug is already in use." : null);
         }
       });
     }
@@ -54,11 +54,11 @@ function AddProjectModalHelper({
   const [debouncedDomain] = useDebounce(domain, 500);
   useEffect(() => {
     if (debouncedDomain.length > 0) {
-      fetch(`/api/projects/${slug}/domains/${debouncedDomain}/exists`).then(
+      fetch(`/api/projects/dub.sh/domains/${debouncedDomain}/exists`).then(
         async (res) => {
           if (res.status === 200) {
             const exists = await res.json();
-            setDomainExistsError(exists === 1);
+            setDomainError(exists === 1 ? "Domain is already in use." : null);
           }
         }
       );
@@ -105,6 +105,17 @@ function AddProjectModalHelper({
               if (res.status === 200) {
                 mutate(`/api/projects`);
                 router.push(`/${slug}`);
+              } else if (res.status === 422) {
+                const {
+                  slugError: slugErrorResponse,
+                  domainError: domainErrorResponse,
+                } = await res.json();
+                if (slugErrorResponse) {
+                  setSlugError(slugErrorResponse);
+                }
+                if (domainErrorResponse) {
+                  setDomainError(domainErrorResponse);
+                }
               } else {
                 console.log(domain, slug); // console log to trigger debounce rerender
               }
@@ -114,7 +125,7 @@ function AddProjectModalHelper({
         >
           <div>
             <label
-              htmlFor="key"
+              htmlFor="name"
               className="block text-sm font-medium text-gray-700"
             >
               Project Name
@@ -153,19 +164,19 @@ function AddProjectModalHelper({
                 type="text"
                 required
                 className={`${
-                  slugExistsError
+                  slugError
                     ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                     : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
                 } pr-10 block w-full rounded-r-md focus:outline-none sm:text-sm`}
                 placeholder="dub"
                 value={slug}
                 onChange={(e) => {
-                  setSlugExistsError(false);
+                  setSlugError(null);
                   setData({ ...data, slug: e.target.value });
                 }}
                 aria-invalid="true"
               />
-              {slugExistsError && (
+              {slugError && (
                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                   <AlertCircleFill
                     className="h-5 w-5 text-red-500"
@@ -174,9 +185,9 @@ function AddProjectModalHelper({
                 </div>
               )}
             </div>
-            {slugExistsError && (
+            {slugError && (
               <p className="mt-2 text-sm text-red-600" id="slug-error">
-                Slug is already in use.
+                {slugError}
               </p>
             )}
           </div>
@@ -195,19 +206,19 @@ function AddProjectModalHelper({
                 type="text"
                 required
                 className={`${
-                  domainExistsError
+                  domainError
                     ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                     : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
                 } pr-10 block w-full rounded-md focus:outline-none sm:text-sm`}
                 placeholder="dub.sh"
                 value={domain}
                 onChange={(e) => {
-                  setDomainExistsError(false);
+                  setDomainError(null);
                   setData({ ...data, domain: e.target.value });
                 }}
                 aria-invalid="true"
               />
-              {domainExistsError && (
+              {domainError && (
                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                   <AlertCircleFill
                     className="h-5 w-5 text-red-500"
@@ -216,24 +227,29 @@ function AddProjectModalHelper({
                 </div>
               )}
             </div>
-            {domainExistsError && (
-              <p className="mt-2 text-sm text-red-600" id="domain-error">
-                Domain is already in use.{" "}
-                <a
-                  className="underline"
-                  href="mailto:steven@dub.sh?subject=My Domain Is Already In Use"
-                >
-                  Contact us
-                </a>{" "}
-                if you'd like to use this domain for your project.
-              </p>
-            )}
+            {domainError &&
+              (domainError === "Domain is already in use." ? (
+                <p className="mt-2 text-sm text-red-600" id="domain-error">
+                  Domain is already in use.{" "}
+                  <a
+                    className="underline"
+                    href="mailto:steven@dub.sh?subject=My Domain Is Already In Use"
+                  >
+                    Contact us
+                  </a>{" "}
+                  if you'd like to use this domain for your project.
+                </p>
+              ) : (
+                <p className="mt-2 text-sm text-red-600" id="domain-error">
+                  {domainError}
+                </p>
+              ))}
           </div>
 
           <button
-            disabled={saving || slugExistsError || domainExistsError}
+            disabled={saving || slugError || domainError}
             className={`${
-              saving || slugExistsError || domainExistsError
+              saving || slugError || domainError
                 ? "cursor-not-allowed bg-gray-100 border-gray-200 text-gray-400"
                 : "bg-black hover:bg-white hover:text-black border-black text-white"
             } flex justify-center items-center w-full text-sm h-10 rounded-md border transition-all focus:outline-none`}
