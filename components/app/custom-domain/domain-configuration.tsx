@@ -15,10 +15,9 @@ export default function DomainConfiguration({
   data: { status: DomainVerificationStatusProps; response: any };
 }) {
   const [recordType, setRecordType] = useState("A");
+  const { domainJson } = data.response;
 
   if (data.status === "Pending Verification") {
-    const { domainJson, verificationResponse } = data.response;
-
     const txtVerification = domainJson.verification.find(
       (x: any) => x.type === "TXT"
     );
@@ -82,7 +81,7 @@ export default function DomainConfiguration({
         <p className="my-5 text-sm">
           To configure your {recordType === "A" ? "apex domain" : "subdomain"} (
           <InlineSnippet>
-            {recordType === "A" ? "domain.com" : "links.domain.com"}
+            {recordType === "A" ? domainJson.apexName : domainJson.name}
           </InlineSnippet>
           ), set the following {recordType} record on your DNS provider to
           continue:

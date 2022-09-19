@@ -7,7 +7,8 @@ import {
   XCircleFill,
   Link as LinkIcon,
 } from "@/components/shared/icons";
-import BlurImage from "../shared/blur-image";
+import BlurImage from "@/components/shared/blur-image";
+import Tooltip from "@/components/shared/tooltip";
 
 export default function ProjectCard({
   name,
@@ -17,7 +18,10 @@ export default function ProjectCard({
 }: ProjectProps) {
   const { data: count, isValidating } = useSWR<number>(
     domainVerified && `/api/projects/${slug}/domains/${domain}/links/count`,
-    fetcher
+    fetcher,
+    {
+      keepPreviousData: true,
+    }
   );
   return (
     <Link key={slug} href={`/${slug}`}>
@@ -33,12 +37,20 @@ export default function ProjectCard({
             />
             <div>
               <h2 className="text-lg font-medium text-gray-700">{name}</h2>
-              <div className="flex space-x-1 items-center">
+              <div className="flex items-center">
                 <p className="text-gray-500 dark:text-gray-400">{domain}</p>
                 {domainVerified ? (
-                  <CheckCircleFill className="w-5 h-5 text-blue-500" />
+                  <Tooltip content="Verified domain">
+                    <div className="w-8 flex justify-center">
+                      <CheckCircleFill className="w-5 h-5 text-blue-500" />
+                    </div>
+                  </Tooltip>
                 ) : (
-                  <XCircleFill className="w-5 h-5 text-gray-300" />
+                  <Tooltip content="Unverified domain">
+                    <div className="w-8 flex justify-center">
+                      <XCircleFill className="w-5 h-5 text-gray-300" />
+                    </div>
+                  </Tooltip>
                 )}
               </div>
             </div>

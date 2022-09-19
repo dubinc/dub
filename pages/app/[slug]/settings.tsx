@@ -35,7 +35,7 @@ export default function ProjectLinks() {
         </MaxWidthWrapper>
       </div>
       <MaxWidthWrapper>
-        <div className="my-10 grid gap-5">
+        <div className="py-10 grid gap-5">
           <CustomDomain domain={project?.domain || ""} />
           <PlanUsage project={project} />
         </div>

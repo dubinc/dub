@@ -62,7 +62,6 @@ export default async function handler(
             email: session.user.email,
           }),
         ]);
-        console.log(stripeResponse);
         await prisma.project.update({
           where: {
             id: project.id,

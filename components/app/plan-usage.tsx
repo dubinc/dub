@@ -43,9 +43,9 @@ export default function PlanUsage({ project }: { project: ProjectProps }) {
               </div>
             </Tooltip>
           </div>
-          {usage && project ? (
+          {typeof usage === "number" ? (
             <p className="text-sm text-gray-600">
-              {usage} / {project.usageLimit} clicks (
+              {nFormatter(usage)} / {nFormatter(project.usageLimit)} clicks (
               {(usage / project.usageLimit) * 100}%)
             </p>
           ) : (
@@ -70,7 +70,7 @@ export default function PlanUsage({ project }: { project: ProjectProps }) {
         <div className="p-10">
           <h3 className="font-medium">Number of Links</h3>
           <div className="flex items-center mt-4">
-            {linkCount ? (
+            {typeof linkCount === "number" ? (
               <p className="text-2xl font-semibold text-black">
                 {nFormatter(linkCount)}
               </p>

@@ -4,7 +4,6 @@ import { LOCALHOST_GEO_DATA } from "@/lib/constants";
 import { LinkProps } from "@/lib/types";
 import { customAlphabet } from "nanoid";
 import { getTitleFromUrl } from "@/lib/utils";
-import { stripe } from "@/lib/stripe";
 
 // Initiate Redis instance
 export const redis = new Redis({

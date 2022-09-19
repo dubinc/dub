@@ -41,8 +41,8 @@ export default function ProjectLinks() {
 
   const { AddLinkModal, AddLinkButton } = useAddLinkModal({
     domainVerified: project?.domainVerified,
-    domain: project?.domain,
     exceededUsage,
+    domain: project?.domain,
   });
 
   return (
@@ -57,9 +57,9 @@ export default function ProjectLinks() {
         </MaxWidthWrapper>
       </div>
       <LinksContainer
-        project={project}
         exceededUsage={exceededUsage}
         AddLinkButton={AddLinkButton}
+        domain={project?.domain}
       />
     </AppLayout>
   );
