@@ -128,7 +128,11 @@ function AddLinkModal({
               .then((res) => {
                 setSaving(false);
                 if (res.status === 200) {
-                  mutate(domain ? `/api/projects/${slug}` : `/api/links`);
+                  mutate(
+                    domain
+                      ? `/api/projects/${slug}/domains/${domain}/links`
+                      : `/api/links`
+                  );
                   setShowAddLinkModal(false);
                 }
               })
