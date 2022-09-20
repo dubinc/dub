@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { domainRegex } from "@/lib/utils";
+import { addDomain, removeDomain } from "@/lib/domains";
 
 export default async function handler(
   req: NextApiRequest,
@@ -40,39 +41,34 @@ export default async function handler(
         domainError: validDomain ? null : "Invalid domain",
       });
     }
-    try {
-      const project = await prisma.project.create({
-        data: {
-          name,
-          slug,
-          domain,
-          users: {
-            create: {
-              userId: session.user.id,
-              role: "owner",
+    // try to add domain first, if it fails to add return an error
+    const domainResponse = await addDomain(domain);
+    if (!domainResponse.error) {
+      try {
+        const project = await prisma.project.create({
+          data: {
+            name,
+            slug,
+            domain,
+            users: {
+              create: {
+                userId: session.user.id,
+                role: "owner",
+              },
             },
           },
-        },
-      });
-      if (project) {
-        const domainResponse = await fetch(
-          `https://api.vercel.com/v9/projects/${process.env.VERCEL_PROJECT_ID}/domains?teamId=${process.env.VERCEL_TEAM_ID}`,
-          {
-            body: `{\n  "name": "${project.domain}"\n}`,
-            headers: {
-              Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN}`,
-              "Content-Type": "application/json",
-            },
-            method: "POST",
-          }
-        ).then((res) => res.json());
+        });
         return res.status(200).json({ project, domain: domainResponse });
+      } catch (error: any) {
+        if (error.code === "P2002") {
+          await removeDomain(domain);
+          return res.status(400).json({ error: "Project slug already exists" });
+        }
       }
-      return res.status(400).json({ error: "Project not created" });
-    } catch (error: any) {
-      if (error.code === "P2002") {
-        return res.status(400).json({ error: "Project slug already exists" });
-      }
+    } else {
+      return res
+        .status(422)
+        .json({ domainError: domainResponse.error.message });
     }
   } else {
     res.setHeader("Allow", ["GET", "POST"]);

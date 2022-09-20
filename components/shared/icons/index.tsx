@@ -17,5 +17,6 @@ export { default as QuestionCircle } from "./question-circle";
 export { default as ExternalLink } from "./external-link";
 export { default as XCircleFill } from "./x-circle-fill";
 export { default as CheckCircleFill } from "./check-circle-fill";
+export { default as PlusCircle } from "./plus-circle";
 export { default as Link } from "./link";
 export { default as Infinity } from "./infinity";

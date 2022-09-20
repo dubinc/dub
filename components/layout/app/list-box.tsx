@@ -1,15 +1,18 @@
 import { Fragment, useMemo } from "react";
 import { Listbox, Transition } from "@headlessui/react";
-import { Tick, ChevronUpDown } from "@/components/shared/icons";
+import { Tick, ChevronUpDown, PlusCircle } from "@/components/shared/icons";
 import { useRouter } from "next/router";
 import BlurImage from "@/components/shared/blur-image";
 import useSWR from "swr";
 import { fetcher } from "@/lib/utils";
 import { ProjectProps } from "@/lib/types";
 import { useSession } from "next-auth/react";
+import { useAddProjectModal } from "@/components/app/add-project-modal";
 
 export default function ListBox() {
   const { data: projects } = useSWR<ProjectProps[]>("/api/projects", fetcher);
+
+  const { setShowAddProjectModal, AddProjectModal } = useAddProjectModal({});
 
   const router = useRouter();
 
@@ -34,10 +37,13 @@ export default function ListBox() {
 
   return (
     <div className="w-52 -mt-1">
+      <AddProjectModal />
       <Listbox
         value={selected}
         onChange={(e) => {
-          router.push(`/${e.slug}`);
+          if (e.slug !== "Add a new project") {
+            router.push(`/${e.slug}`);
+          }
         }}
       >
         <div className="relative mt-1">
@@ -105,6 +111,15 @@ export default function ListBox() {
                   ) : null}
                 </Listbox.Option>
               ))}
+              <Listbox.Option
+                key="add"
+                onClick={() => setShowAddProjectModal(true)}
+                value={{ name: "Add a new project", slug: "Add a new project" }}
+                className="flex items-center space-x-2 w-full cursor-pointer p-2 rounded-md hover:bg-gray-100 active:scale-95 transition-all duration-75"
+              >
+                <PlusCircle className="w-7 h-7 text-gray-600" />
+                <span className="block truncate">Add a new project</span>
+              </Listbox.Option>
             </Listbox.Options>
           </Transition>
         </div>

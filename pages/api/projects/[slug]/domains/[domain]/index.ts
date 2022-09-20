@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { withProjectAuth } from "@/lib/auth";
 import { changeDomain } from "@/lib/upstash";
 import { domainRegex } from "@/lib/utils";
+import { addDomain, removeDomain } from "@/lib/domains";
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {
@@ -30,26 +31,8 @@ export default withProjectAuth(
         }
         const [removeResponse, addResponse, upstashResponse, prismaResponse] =
           await Promise.all([
-            fetch(
-              `https://api.vercel.com/v9/projects/${process.env.VERCEL_PROJECT_ID}/domains/${domain}?teamId=${process.env.VERCEL_TEAM_ID}`,
-              {
-                headers: {
-                  Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN}`,
-                },
-                method: "DELETE",
-              }
-            ),
-            fetch(
-              `https://api.vercel.com/v9/projects/${process.env.VERCEL_PROJECT_ID}/domains?teamId=${process.env.VERCEL_TEAM_ID}`,
-              {
-                body: `{\n  "name": "${newDomain}"\n}`,
-                headers: {
-                  Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN}`,
-                  "Content-Type": "application/json",
-                },
-                method: "POST",
-              }
-            ),
+            removeDomain(domain),
+            addDomain(newDomain),
             changeDomain(domain, newDomain),
             prisma.project.update({
               where: {

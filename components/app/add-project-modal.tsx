@@ -41,7 +41,7 @@ function AddProjectModalHelper({
 
   const [debouncedSlug] = useDebounce(slug, 500);
   useEffect(() => {
-    if (debouncedSlug.length > 0) {
+    if (debouncedSlug.length > 0 && !slugError) {
       fetch(`/api/projects/${slug}/exists`).then(async (res) => {
         if (res.status === 200) {
           const exists = await res.json();
@@ -49,11 +49,11 @@ function AddProjectModalHelper({
         }
       });
     }
-  }, [debouncedSlug]);
+  }, [debouncedSlug, slugError]);
 
   const [debouncedDomain] = useDebounce(domain, 500);
   useEffect(() => {
-    if (debouncedDomain.length > 0) {
+    if (debouncedDomain.length > 0 && !domainError) {
       fetch(`/api/projects/dub.sh/domains/${debouncedDomain}/exists`).then(
         async (res) => {
           if (res.status === 200) {
@@ -63,7 +63,7 @@ function AddProjectModalHelper({
         }
       );
     }
-  }, [debouncedDomain]);
+  }, [debouncedDomain, domainError]);
 
   useEffect(() => {
     setData((prev) => ({
@@ -117,7 +117,7 @@ function AddProjectModalHelper({
                   setDomainError(domainErrorResponse);
                 }
               } else {
-                console.log(domain, slug); // console log to trigger debounce rerender
+                setDomainError("Something went wrong.");
               }
             });
           }}
