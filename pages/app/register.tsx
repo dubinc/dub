@@ -2,6 +2,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { LoadingDots } from "@/components/shared/icons";
+import Meta from "@/components/layout/meta";
 
 export default function Login() {
   const [signInClicked, setSignInClicked] = useState(false);
@@ -11,6 +12,7 @@ export default function Login() {
 
   return (
     <div className="h-screen w-screen flex justify-center items-center bg-gray-50">
+      <Meta />
       <div className="flex flex-col space-y-4 w-full max-w-md py-12 px-4 sm:px-16 overflow-hidden text-center align-middle transition-all transform bg-white shadow-xl rounded-2xl">
         <h1 className="font-bold font-display text-3xl">Sign Up</h1>
         <p className="text-gray-600 text-sm">
