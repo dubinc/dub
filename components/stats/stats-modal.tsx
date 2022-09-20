@@ -37,7 +37,7 @@ function StatsModalHelper({
         align-middle transform border border-gray-200 dark:border-gray-600 shadow-xl dark:shadow-none rounded-2xl"
       >
         <button
-          className="sticky top-4 z-10 p-3 m-4 rounded-full float-right group hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none active:scale-75 transition-all duration-75"
+          className="sticky top-4 z-20 p-3 m-4 rounded-full float-right group hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none active:scale-75 transition-all duration-75"
           autoFocus={false}
           onClick={() => {
             setShowStatsModal(false);

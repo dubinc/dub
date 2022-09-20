@@ -25,7 +25,7 @@ export default function Toggle({
 
   return (
     <div
-      className={`mb-5 ${
+      className={`z-10 mb-5 ${
         modal ? "top-0" : "top-24"
       } sticky py-5 bg-gray-50 dark:bg-black ${atTop ? "shadow-md" : ""}`}
     >
