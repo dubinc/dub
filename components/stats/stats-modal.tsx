@@ -46,7 +46,7 @@ function StatsModalHelper({
         >
           <X className="w-6 h-6" />
         </button>
-        <Stats modal={true} atModalTop={atModalTop} />
+        <Stats atModalTop={atModalTop} />
       </div>
     </Modal>
   );

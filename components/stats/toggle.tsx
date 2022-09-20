@@ -5,28 +5,41 @@ import useScroll from "@/lib/hooks/use-scroll";
 import { ExpandingArrow } from "@/components/shared/icons";
 import BadgeSelect from "@/components/shared/badge-select";
 import { IntervalProps, StatsProps } from "@/lib/stats";
+import { useMemo } from "react";
 
 export default function Toggle({
-  data,
   domain,
-  modal,
   atModalTop,
 }: {
-  data: StatsProps;
   domain?: string;
-  modal?: boolean;
   atModalTop?: boolean;
 }) {
   const router = useRouter();
-  const key = (router.query.key as string) || data?.key;
-  const currentInterval = (router.query.interval as IntervalProps) || "7d";
+  const { slug, key, interval } = router.query as {
+    slug?: string;
+    key: string;
+    interval?: string;
+  };
 
-  const atTop = useScroll(144) || atModalTop;
+  const pageType = useMemo(() => {
+    if (slug && key) {
+      return slug;
+    } else if (key && router.asPath.startsWith("/links")) {
+      return "links";
+    } else if (key && router.asPath.startsWith("/stats")) {
+      return "stats";
+    }
+    return "stats";
+  }, [slug, key, router.asPath]);
+
+  const currentInterval = (interval as IntervalProps) || "7d";
+
+  const atTop = useScroll(80) || atModalTop;
 
   return (
     <div
       className={`z-10 mb-5 ${
-        modal ? "top-0" : "top-24"
+        pageType === "stats" ? "top-0" : "top-24"
       } sticky py-5 bg-gray-50 dark:bg-black ${atTop ? "shadow-md" : ""}`}
     >
       <div className="max-w-4xl mx-auto flex justify-between items-center">
@@ -54,7 +67,7 @@ export default function Toggle({
                     interval,
                   },
                 },
-                `/stats/${encodeURI(
+                `/${pageType}/${encodeURI(
                   router.query.key as string
                 )}?interval=${interval}`,
                 { shallow: true }
