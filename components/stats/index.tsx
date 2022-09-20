@@ -7,14 +7,30 @@ import useSWR from "swr";
 import { fetcher } from "@/lib/utils";
 import { useRouter } from "next/router";
 
-export default function Stats({ atModalTop }: { atModalTop?: boolean }) {
+export default function Stats({
+  modal,
+  atModalTop,
+  domain,
+}: {
+  modal?: boolean;
+  atModalTop?: boolean;
+  domain?: string;
+}) {
   const router = useRouter();
 
+  const { slug, key, interval } = router.query as {
+    slug?: string;
+    key: string;
+    interval?: string;
+  };
+
   const { data, isValidating } = useSWR<StatsProps>(
-    router.query.key &&
-      `/api/edge/links/${router.query.key}/stats${
-        router.query.interval ? `?interval=${router.query.interval}` : ""
-      }`,
+    router.isReady &&
+      `${
+        slug && domain
+          ? `/api/projects/${slug}/domains/${domain}/links/${key}/stats`
+          : `/api/edge/links/${key}/stats`
+      }${interval ? `?interval=${interval}` : ""}`,
     fetcher,
     {
       keepPreviousData: true,
@@ -24,7 +40,12 @@ export default function Stats({ atModalTop }: { atModalTop?: boolean }) {
 
   return (
     <div className="relative bg-gray-50 dark:bg-black py-20 mx-auto lg:px-0 px-2.5">
-      <Toggle data={data!} atModalTop={atModalTop} />
+      <Toggle
+        data={data!}
+        domain={domain}
+        modal={modal}
+        atModalTop={atModalTop}
+      />
       <div className="max-w-4xl mx-auto grid gap-5">
         <Clicks data={data!} isValidating={isValidating} />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">

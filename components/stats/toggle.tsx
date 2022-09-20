@@ -8,9 +8,13 @@ import { IntervalProps, StatsProps } from "@/lib/stats";
 
 export default function Toggle({
   data,
+  domain,
+  modal,
   atModalTop,
 }: {
   data: StatsProps;
+  domain?: string;
+  modal?: boolean;
   atModalTop?: boolean;
 }) {
   const router = useRouter();
@@ -21,19 +25,19 @@ export default function Toggle({
 
   return (
     <div
-      className={`mb-5 sticky top-0 py-5 bg-gray-50 dark:bg-black ${
-        atTop ? "shadow-md" : ""
-      }`}
+      className={`mb-5 ${
+        modal ? "top-0" : "top-24"
+      } sticky py-5 bg-gray-50 dark:bg-black ${atTop ? "shadow-md" : ""}`}
     >
       <div className="max-w-4xl mx-auto flex justify-between items-center">
         <div className="group flex">
           <a
             className="text-xl text-gray-800 dark:text-gray-200 font-semibold"
-            href={linkConstructor({ key })}
+            href={linkConstructor({ key, domain })}
             target="_blank"
             rel="noreferrer"
           >
-            {linkConstructor({ key, pretty: true })}
+            {linkConstructor({ key, domain, pretty: true })}
           </a>
           <ExpandingArrow className="w-5 h-5" />
         </div>

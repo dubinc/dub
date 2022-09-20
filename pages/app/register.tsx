@@ -5,16 +5,16 @@ import { LoadingDots } from "@/components/shared/icons";
 
 export default function Login() {
   const [signInClicked, setSignInClicked] = useState(false);
-  const [noSuchAccount, setNoSuchAccount] = useState(false);
+  const [accountExists, setAccountExists] = useState(false);
   const [email, setEmail] = useState("");
   const [buttonText, setButtonText] = useState("Send magic link");
 
   return (
     <div className="h-screen w-screen flex justify-center items-center bg-gray-50">
       <div className="flex flex-col space-y-4 w-full max-w-md py-12 px-4 sm:px-16 overflow-hidden text-center align-middle transition-all transform bg-white shadow-xl rounded-2xl">
-        <h1 className="font-bold font-display text-3xl">Sign In</h1>
+        <h1 className="font-bold font-display text-3xl">Sign Up</h1>
         <p className="text-gray-600 text-sm">
-          Use your email address to sign in.
+          Get started for free. No credit card required.
         </p>
         <form
           onSubmit={async (e) => {
@@ -26,7 +26,7 @@ export default function Login() {
               body: JSON.stringify({ email }),
             }).then(async (res) => {
               const { exists } = await res.json();
-              if (exists) {
+              if (!exists) {
                 signIn("email", {
                   email,
                   redirect: false,
@@ -39,7 +39,7 @@ export default function Login() {
                   }
                 });
               } else {
-                setNoSuchAccount(true);
+                setAccountExists(true);
                 setSignInClicked(false);
               }
             });
@@ -53,7 +53,7 @@ export default function Login() {
             autoComplete="email"
             required
             onChange={(e) => {
-              setNoSuchAccount(false);
+              setAccountExists(false);
               setEmail(e.target.value);
             }}
             className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
@@ -73,21 +73,21 @@ export default function Login() {
             )}
           </button>
         </form>
-        {noSuchAccount ? (
+        {accountExists ? (
           <p className="text-red-500 text-sm">
-            No such account.{" "}
-            <Link href="/register">
-              <a className="text-red-600 font-semibold">Sign up</a>
+            This email is already registered.{" "}
+            <Link href="/login">
+              <a className="text-red-600 font-semibold">Log in</a>
             </Link>{" "}
             instead?
           </p>
         ) : (
           <p className="text-gray-600 text-sm">
-            Don't have an account?{" "}
-            <Link href="/register">
-              <a className="text-gray-800 font-semibold">Sign up</a>
+            Already registered?{" "}
+            <Link href="/login">
+              <a className="text-gray-800 font-semibold">Sign in</a>
             </Link>{" "}
-            for free.
+            to your account.
           </p>
         )}
       </div>

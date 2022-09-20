@@ -3,8 +3,13 @@ import Link from "next/link";
 import { NextRouter, useRouter } from "next/router";
 
 const TabsHelper = (router: NextRouter): { name: string; href: string }[] => {
-  const { slug } = router.query;
-  if (slug) {
+  const { slug, key } = router.query as {
+    slug?: string;
+    key?: string;
+  };
+  if (key) {
+    return [{ name: "← All Links", href: `/${slug || "links"}` }];
+  } else if (slug) {
     return [
       { name: "Links", href: `/${slug}` },
       { name: "Settings", href: `/${slug}/settings` },

@@ -1,7 +1,12 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { withProjectAuth } from "@/lib/auth";
 import { redis } from "@/lib/upstash";
-import { IntervalProps, intervalData, RawStatsProps } from "@/lib/stats";
+import {
+  IntervalProps,
+  intervalData,
+  RawStatsProps,
+  processData,
+} from "@/lib/stats";
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {
@@ -21,7 +26,8 @@ export default withProjectAuth(
           byScore: true,
         }
       );
-      return res.status(200).json(response);
+      const data = await processData(key, response, interval);
+      return res.status(200).json(data);
     } else {
       res.setHeader("Allow", ["GET"]);
       return res

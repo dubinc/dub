@@ -2,7 +2,7 @@ import AppLayout from "components/layout/app";
 import { useRouter } from "next/router";
 import useSWR from "swr";
 import { fetcher } from "@/lib/utils";
-import { useMemo, useEffect } from "react";
+import { useMemo } from "react";
 import { ProjectProps } from "@/lib/types";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import { useAddLinkModal } from "@/components/app/add-link-modal";

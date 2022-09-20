@@ -5,6 +5,7 @@ import Meta from "../meta";
 import { Logo, Divider } from "@/components/shared/icons";
 import ListBox from "./list-box";
 import UserDropdown from "./user-dropdown";
+import { useRouter } from "next/router";
 
 const NavTabs = dynamic(() => import("./nav-tabs"), {
   ssr: false,
@@ -12,6 +13,12 @@ const NavTabs = dynamic(() => import("./nav-tabs"), {
 }); // dynamic import to avoid react hydration mismatch error
 
 export default function AppLayout({ children }: { children: ReactNode }) {
+  const router = useRouter();
+  const { slug, key } = router.query as {
+    slug?: string;
+    key?: string;
+  };
+
   return (
     <div>
       <Meta />
@@ -27,6 +34,14 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                 </Link>
                 <Divider className="h-8 w-8 ml-3 text-gray-200" />
                 <ListBox />
+                {key && slug && (
+                  <>
+                    <Divider className="h-8 w-8 mr-3 text-gray-200" />
+                    <Link href={`/${slug}/${key}`}>
+                      <a className="text-sm font-medium">{key}</a>
+                    </Link>
+                  </>
+                )}
               </div>
               <UserDropdown />
             </div>
