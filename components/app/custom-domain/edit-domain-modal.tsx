@@ -77,7 +77,6 @@ function EditDomainModalHelper({
               body: JSON.stringify(data),
             }).then(async (res) => {
               setSaving(false);
-              console.log("status is ", res.status);
               if (res.status === 200) {
                 mutate(`/api/projects/${slug}`);
                 setShowEditDomainModal(false);

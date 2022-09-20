@@ -12,7 +12,8 @@ export interface ProjectProps {
   domainVerified: boolean;
   plan: string;
   usageLimit: number;
-  links: LinkProps[];
+  stripeId?: string;
+  lastBilled: Date;
 }
 
 export type DomainVerificationStatusProps =

@@ -1,5 +1,5 @@
 import useSWR from "swr";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { fetcher, nFormatter } from "@/lib/utils";
 import { useRouter } from "next/router";
 import { ProjectProps } from "@/lib/types";
@@ -11,7 +11,7 @@ import {
   LoadingDots,
 } from "@/components/shared/icons";
 import { motion } from "framer-motion";
-import { getStripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe/client";
 
 export default function PlanUsage({ project }: { project: ProjectProps }) {
   const router = useRouter();
@@ -27,7 +27,25 @@ export default function PlanUsage({ project }: { project: ProjectProps }) {
     fetcher
   );
 
-  const [upgrading, setUpgrading] = useState(false);
+  const [clicked, setClicked] = useState(false);
+
+  const [billingStart, billingEnd] = useMemo(() => {
+    if (project?.lastBilled) {
+      const lastBilledDate = new Date(project.lastBilled);
+      const start = lastBilledDate.toLocaleDateString("en-us", {
+        month: "short",
+        day: "numeric",
+      });
+      const end = new Date(
+        lastBilledDate.setDate(lastBilledDate.getDate() + 30)
+      ).toLocaleDateString("en-us", {
+        month: "short",
+        day: "numeric",
+      });
+      return [start, end];
+    }
+    return ["", ""];
+  }, [project?.lastBilled]);
 
   return (
     <div className="bg-white rounded-lg border border-gray-200">
@@ -35,10 +53,34 @@ export default function PlanUsage({ project }: { project: ProjectProps }) {
         <h2 className="text-xl font-medium">Plan &amp; Usage</h2>
         <p className="text-gray-500 text-sm">
           You are currently on the{" "}
-          <span className="capitalize bg-blue-500 text-white rounded-full px-2 py-0.5 text-xs">
-            {project?.plan}
-          </span>{" "}
+          {project ? (
+            <span
+              className={`capitalize ${
+                project.plan === "enterprise"
+                  ? "bg-violet-600 border-violet-600 text-white"
+                  : project.plan === "pro"
+                  ? "bg-blue-500 border-blue-500 text-white"
+                  : "bg-black border-black text-white"
+              } border rounded-full px-2 py-0.5 text-xs font-medium`}
+            >
+              {project.plan}
+            </span>
+          ) : (
+            <span className="bg-gray-200 text-gray-200 rounded-full px-2 py-0.5 text-xs">
+              load
+            </span>
+          )}{" "}
           plan.
+          {project?.plan !== "free" && (
+            <>
+              {" "}
+              Current billing cycle:{" "}
+              <span className="font-medium text-black">
+                {billingStart} - {billingEnd}
+              </span>
+              .
+            </>
+          )}
         </p>
       </div>
       <div className="border-b border-gray-200" />
@@ -93,42 +135,88 @@ export default function PlanUsage({ project }: { project: ProjectProps }) {
       </div>
       <div className="border-b border-gray-200" />
       <div className="px-10 py-5 flex justify-between items-center">
-        <p className="text-gray-500 text-sm">
-          For{" "}
-          <Tooltip content="1 million link clicks per month">
-            <span className="font-medium text-gray-700 underline underline-offset-2 cursor-default hover:text-black">
-              increased limits
-            </span>
-          </Tooltip>
-          , upgrade to the Pro plan.
-        </p>
-        <button
-          onClick={() => {
-            setUpgrading(true);
-            fetch(`/api/projects/${slug}/upgrade`, {
-              method: "POST",
-            })
-              .then(async (res) => {
-                const data = await res.json();
-                console.log(data);
-                const { id: sessionId } = data;
-                const stripe = await getStripe();
-                stripe.redirectToCheckout({ sessionId });
-              })
-              .catch((err) => {
-                alert(err);
-                setUpgrading(false);
-              });
-          }}
-          disabled={upgrading}
-          className={`${
-            upgrading
-              ? "cursor-not-allowed bg-gray-100 border-gray-200"
-              : "bg-blue-500 text-white border-blue-500 hover:text-blue-500 hover:bg-white"
-          }  h-9 w-24 text-sm border rounded-md focus:outline-none transition-all ease-in-out duration-150`}
-        >
-          {upgrading ? <LoadingDots /> : "Upgrade"}
-        </button>
+        {project?.plan === "free" ? (
+          <p className="text-gray-500 text-sm">
+            For{" "}
+            <Tooltip content="1 million link clicks per month">
+              <span className="font-medium text-gray-700 underline underline-offset-2 cursor-default hover:text-black">
+                increased limits
+              </span>
+            </Tooltip>
+            , upgrade to the Pro plan.
+          </p>
+        ) : project?.plan === "pro" ? (
+          <p className="text-gray-500 text-sm">
+            To remove limits, contact us to upgrade to the Enterprise plan.
+          </p>
+        ) : (
+          <div className="h-3 w-28 bg-gray-200 rounded-full animate-pulse" />
+        )}
+        {project ? (
+          project.plan === "free" ? (
+            <button
+              onClick={() => {
+                setClicked(true);
+                fetch(`/api/projects/${slug}/upgrade`, {
+                  method: "POST",
+                })
+                  .then(async (res) => {
+                    const data = await res.json();
+                    const { id: sessionId } = data;
+                    const stripe = await getStripe();
+                    stripe.redirectToCheckout({ sessionId });
+                  })
+                  .catch((err) => {
+                    alert(err);
+                    setClicked(false);
+                  });
+              }}
+              disabled={clicked}
+              className={`${
+                clicked
+                  ? "cursor-not-allowed bg-gray-100 border-gray-200"
+                  : "bg-blue-500 text-white border-blue-500 hover:text-blue-500 hover:bg-white"
+              }  h-9 w-24 text-sm border rounded-md focus:outline-none transition-all ease-in-out duration-150`}
+            >
+              {clicked ? <LoadingDots /> : "Upgrade"}
+            </button>
+          ) : project.plan === "pro" ? (
+            <div className="flex space-x-3">
+              <a
+                href="mailto:steven@dub.sh?subject=Upgrade%20to%20Enterprise%20Plan"
+                className="flex justify-center items-center bg-violet-600 text-white border-violet-600 hover:text-violet-600 hover:bg-white h-9 w-24 text-sm border rounded-md focus:outline-none transition-all ease-in-out duration-150"
+              >
+                Contact Us
+              </a>
+              <button
+                onClick={() => {
+                  setClicked(true);
+                  fetch(`/api/projects/${slug}/manage-subscription`, {
+                    method: "POST",
+                  })
+                    .then(async (res) => {
+                      const url = await res.json();
+                      router.push(url);
+                    })
+                    .catch((err) => {
+                      alert(err);
+                      setClicked(false);
+                    });
+                }}
+                disabled={clicked}
+                className={`${
+                  clicked
+                    ? "cursor-not-allowed bg-gray-100 border-gray-200"
+                    : "bg-black text-white border-black hover:text-black hover:bg-white"
+                }  h-9 w-40 text-sm border rounded-md focus:outline-none transition-all ease-in-out duration-150`}
+              >
+                {clicked ? <LoadingDots /> : "Manage Subscription"}
+              </button>
+            </div>
+          ) : null
+        ) : (
+          <div className="h-9 w-24 bg-gray-200 rounded-md animate-pulse" />
+        )}
       </div>
     </div>
   );

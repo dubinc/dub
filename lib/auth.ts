@@ -21,8 +21,18 @@ export async function getSession(req: NextApiRequest, res: NextApiResponse) {
   return session;
 }
 
+import { ProjectProps } from "@/lib/types";
+
+interface CustomNextApiHandler {
+  (
+    req: NextApiRequest,
+    res: NextApiResponse,
+    project: ProjectProps
+  ): Promise<void>;
+}
+
 const withProjectAuth =
-  (handler: NextApiHandler, isWriteEditLink?: boolean) =>
+  (handler: CustomNextApiHandler, isWriteEditLink?: boolean) =>
   // TODO - fix `handler` type when we figure it out
   // `isWriteEditLink` is only true when it's a POST or PUT request for links
   // (you can't add/edit a link when domain is not configured)
@@ -37,7 +47,7 @@ const withProjectAuth =
         .json({ error: "Missing or misconfigured project slug" });
     }
 
-    const project = await prisma.project.findFirst({
+    const project = (await prisma.project.findFirst({
       where: {
         slug,
         users: {
@@ -46,7 +56,17 @@ const withProjectAuth =
           },
         },
       },
-    });
+      select: {
+        name: true,
+        slug: true,
+        domain: true,
+        domainVerified: true,
+        plan: true,
+        usageLimit: true,
+        stripeId: true,
+        lastBilled: true,
+      },
+    })) as ProjectProps;
 
     if (!project) return res.status(401).end("Unauthorized");
 
@@ -69,7 +89,7 @@ const withProjectAuth =
       }
     }
 
-    return handler(req, res);
+    return handler(req, res, project);
   };
 
 export { withProjectAuth };

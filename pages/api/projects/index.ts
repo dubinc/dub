@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { domainRegex } from "@/lib/utils";
 
 export default async function handler(
   req: NextApiRequest,
@@ -32,13 +33,11 @@ export default async function handler(
       slug.includes(" ") || slug.includes(".")
         ? "Slug cannot contain spaces or periods"
         : null;
-    const domainError = domain.includes(" ")
-      ? "Domain cannot contain spaces"
-      : null;
-    if (slugError || domainError) {
+    const validDomain = domainRegex.test(domain);
+    if (slugError || !validDomain) {
       return res.status(422).json({
         slugError,
-        domainError,
+        domainError: validDomain ? null : "Invalid domain",
       });
     }
     try {

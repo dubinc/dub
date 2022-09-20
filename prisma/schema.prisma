@@ -66,7 +66,8 @@ model Project {
   domainVerified  Boolean  @default(false)
   plan            String   @default("free")
   usageLimit      Int      @default(1000)
-  stripeId        String?  @unique
+  stripeId        String?  @unique // Stripe customer ID
+  lastBilled      DateTime?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   users           ProjectUsers[]

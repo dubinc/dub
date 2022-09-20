@@ -20,10 +20,14 @@ export default function CustomDomain({ domain }: { domain: string }) {
   const { data, isValidating } = useSWR<{
     status: DomainVerificationStatusProps;
     response: any;
-  }>(`/api/projects/${slug}/domains/${domain}/verify`, fetcher, {
-    revalidateOnMount: true,
-    refreshInterval: 5000,
-  });
+  }>(
+    slug && domain && `/api/projects/${slug}/domains/${domain}/verify`,
+    fetcher,
+    {
+      revalidateOnMount: true,
+      refreshInterval: 5000,
+    }
+  );
 
   const { setShowEditDomainModal, EditDomainModal } = useEditDomainModal({
     domain,

@@ -5,7 +5,7 @@ import LinkCard from "@/components/app/link-card";
 import LinkCardPlaceholder from "@/components/app/link-card-placeholder";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import NoLinksPlaceholder from "@/components/app/no-links-placeholder";
-import { ProjectProps, LinkProps } from "@/lib/types";
+import { LinkProps } from "@/lib/types";
 
 export default function LinksContainer({
   exceededUsage,

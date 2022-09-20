@@ -120,3 +120,7 @@ export const generateSlugFromName = (name: string) => {
 
   return `${shortestString}.sh`;
 };
+
+export const domainRegex = new RegExp(
+  "^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$"
+);

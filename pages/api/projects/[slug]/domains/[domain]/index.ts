@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { withProjectAuth } from "@/lib/auth";
 import { changeDomain } from "@/lib/upstash";
+import { domainRegex } from "@/lib/utils";
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {
@@ -9,12 +10,10 @@ export default withProjectAuth(
       const { slug, domain } = req.query as { slug: string; domain: string }; // slug is the domain
       const newDomain = req.body;
 
-      const domainError = newDomain.includes(" ")
-        ? "Domain cannot contain spaces"
-        : null;
-      if (domainError) {
+      const validDomain = domainRegex.test(newDomain);
+      if (!validDomain) {
         return res.status(422).json({
-          domainError,
+          domainError: "Invalid domain",
         });
       }
 

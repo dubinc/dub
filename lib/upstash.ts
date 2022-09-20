@@ -207,15 +207,24 @@ export async function editLink(
   }
 }
 
-export async function getUsage(hostname: string) {
+export async function getUsage(hostname: string, billingCycleStart?: Date) {
   const cachedUsage = await redis.get(`usage:${hostname}`);
   if (cachedUsage) {
     return cachedUsage;
   }
   console.log("no cached usage found. computing from scratch...");
-  var date = new Date();
-  var firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
-  var lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+
+  let firstDay;
+  let lastDay;
+
+  if (billingCycleStart) {
+    firstDay = new Date(billingCycleStart).getTime();
+    lastDay = Date.now();
+  } else {
+    var date = new Date();
+    firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getTime();
+    lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0).getTime();
+  }
 
   const links = await redis.zrange(`${hostname}:links:timestamps`, 0, -1);
   let results: number[] = [];
@@ -223,11 +232,7 @@ export async function getUsage(hostname: string) {
   if (links.length > 0) {
     const pipeline = redis.pipeline();
     links.forEach((link) => {
-      pipeline.zcount(
-        `${hostname}:clicks:${link}`,
-        firstDay.getTime(),
-        lastDay.getTime()
-      );
+      pipeline.zcount(`${hostname}:clicks:${link}`, firstDay, lastDay);
     });
     results = await pipeline.exec();
   }
