@@ -1,6 +1,6 @@
 import { Redis } from "@upstash/redis";
 import { NextRequest, userAgent } from "next/server";
-import { LOCALHOST_GEO_DATA } from "@/lib/constants";
+import { LOCALHOST_GEO_DATA, RESERVED_KEYS } from "@/lib/constants";
 import { LinkProps } from "@/lib/types";
 import { customAlphabet } from "nanoid";
 import { getTitleFromUrl } from "@/lib/utils";
@@ -66,6 +66,9 @@ export async function getRandomKey(hostname: string): Promise<string> {
 }
 
 export async function checkIfKeyExists(hostname: string, key: string) {
+  if (hostname === "dub.sh" && RESERVED_KEYS.includes(key)) {
+    return 1; // reserved keys for dub.sh
+  }
   return await redis.hexists(`${hostname}:links`, key);
 }
 
@@ -139,6 +142,9 @@ export async function addLink(
   title?: string, // if title is provided, it will be used
   userId?: string // only applicable for dub.sh links
 ) {
+  if (hostname === "dub.sh" && key && RESERVED_KEYS.includes(key)) {
+    return null; // reserved keys for dub.sh
+  }
   const response = key
     ? await setKey(hostname, key, url, title)
     : await setRandomKey(hostname, url, title);
@@ -175,6 +181,9 @@ export async function editLink(
     });
   } else {
     // if key is different
+    if (hostname === "dub.sh" && RESERVED_KEYS.includes(newKey)) {
+      return null; // reserved keys for dub.sh
+    }
     const keyExists = await checkIfKeyExists(hostname, newKey);
     if (keyExists === 1) {
       return null; // key already exists

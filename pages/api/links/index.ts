@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { getLinksForProject, addLink } from "@/lib/upstash";
 import { getSession } from "@/lib/auth";
+import { RESERVED_KEYS } from "@/lib/constants";
 
 // This is a special route for creating custom dub.sh links.
 

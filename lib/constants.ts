@@ -13,7 +13,13 @@ export const FRAMER_MOTION_LIST_ITEM_VARIANTS = {
   show: { scale: 1, opacity: 1, transition: { type: "spring" } },
 };
 
-export const RESERVED_KEYS = ["pricing", "about", "stats", "placeholder"];
+export const RESERVED_KEYS = [
+  "pricing",
+  "about",
+  "stats",
+  "placeholder",
+  "blog",
+];
 
 export const COUNTRIES: { [key: string]: string } = {
   AF: "Afghanistan",
