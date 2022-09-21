@@ -54,7 +54,7 @@ export default function Globe() {
       onRender: (state) => {
         // Called on every animation frame.
         // `state` will be an empty object, return updated params.
-        phi += 0.003;
+        phi += 0.002;
         state.phi = phi + r.get();
         state.width = width * 2;
         state.height = width * 2;

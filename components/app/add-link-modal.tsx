@@ -18,7 +18,7 @@ import {
 import { useDebounce } from "use-debounce";
 import TextareaAutosize from "react-textarea-autosize";
 import { mutate } from "swr";
-import Tooltip from "@/components/shared/tooltip";
+import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 
 function AddLinkModal({
   showAddLinkModal,
@@ -289,14 +289,34 @@ function AddLinkButton({
   exceededUsage: boolean;
   setShowAddLinkModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  return !domainVerified ? (
-    <Tooltip content="You can only start adding links after your project domain is configured.">
+  const router = useRouter();
+  const { slug } = router.query as { slug?: string };
+
+  return !domainVerified && slug ? (
+    <Tooltip
+      content={
+        <TooltipContent
+          title="This domain is not correctly configured. Please configure your domain to
+start adding links."
+          cta="Configure Domain"
+          ctaLink={`/${slug}/settings`}
+        />
+      }
+    >
       <div className="text-gray-300 cursor-not-allowed font-medium text-sm px-5 py-2 border rounded-md border-gray-200 transition-all duration-75">
         Add
       </div>
     </Tooltip>
-  ) : exceededUsage ? (
-    <Tooltip content="You have exceeded your usage limit. We're still collecting data on your existing links, but you need to upgrade to add more links.">
+  ) : exceededUsage && slug ? (
+    <Tooltip
+      content={
+        <TooltipContent
+          title="You have exceeded your usage limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
+          cta="Upgrade"
+          ctaLink={`/${slug}/settings`}
+        />
+      }
+    >
       <div className="text-gray-300 cursor-not-allowed font-medium text-sm px-5 py-2 border rounded-md border-gray-200 transition-all duration-75">
         Add
       </div>

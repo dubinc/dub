@@ -10,17 +10,18 @@ import {
   Twitter,
   CheckCircleFill,
 } from "@/components/shared/icons";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { LinkProps } from "@/lib/types";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import Globe from "@/components/home/globe";
+import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 
 export default function Home() {
   return (
     <HomeLayout>
       <Hero />
       <Demo />
-      <Globe />
+      {/* <Globe /> */}
       <Features />
     </HomeLayout>
   );
@@ -109,15 +110,34 @@ const Demo = () => {
             required
             className="peer shadow-sm focus:outline-none focus:ring-0 bg-white border focus:border-black block w-full p-2 text-sm border-gray-200 rounded-md pl-3 pr-12"
           />
-          <button
-            type="submit"
-            disabled={saving}
-            className={`${
-              saving ? "cursor-not-allowed" : ""
-            } absolute inset-y-0 right-0 w-10 flex justify-center items-center my-1.5 mr-1.5 border border-gray-200 hover:border-gray-700 peer-focus:border-gray-700 rounded text-sm font-sans font-medium text-gray-400 hover:text-gray-700 peer-focus:text-gray-700`}
-          >
-            {saving ? <LoadingDots color="#e5e7eb" /> : <p>↵</p>}
-          </button>
+          {hashes.length >= 4 ? (
+            <Tooltip
+              content={
+                <TooltipContent
+                  title="Maximum number of links reached. Swipe to delete existing links or
+            create a free account."
+                  cta="Start For Free"
+                  ctaLink="https://app.dub.sh"
+                />
+              }
+            >
+              <div className="cursor-not-allowed absolute inset-y-0 right-0 w-10 flex justify-center items-center my-1.5 mr-1.5 border border-gray-200 rounded text-sm font-sans font-medium text-gray-400">
+                <p>↵</p>
+              </div>
+            </Tooltip>
+          ) : (
+            <button
+              type="submit"
+              disabled={saving}
+              className={`${
+                saving
+                  ? "cursor-not-allowed"
+                  : "hover:border-gray-700 peer-focus:border-gray-700 hover:text-gray-700 peer-focus:text-gray-700"
+              } absolute inset-y-0 right-0 w-10 flex justify-center items-center my-1.5 mr-1.5 border border-gray-200 rounded text-sm font-sans font-medium text-gray-400`}
+            >
+              {saving ? <LoadingDots color="#e5e7eb" /> : <p>↵</p>}
+            </button>
+          )}
         </div>
       </form>
 
@@ -140,13 +160,14 @@ const Demo = () => {
           _key="github"
           url={"https://github.com/steven-tey/dub"}
         />
-        {hashes.length > 0
-          ? hashes.map(({ key, url }) => (
-              <LinkCard key={key} _key={key} url={url} />
-            ))
-          : Array.from({ length: 3 }).map((_, i) => (
-              <PlaceholderCard key={i} />
-            ))}
+        <AnimatePresence>
+          {hashes.map(({ key, url }) => (
+            <LinkCard key={key} _key={key} url={url} />
+          ))}
+        </AnimatePresence>
+        {Array.from({ length: 3 - hashes.length }).map((_, i) => (
+          <PlaceholderCard key={i} />
+        ))}
       </motion.ul>
     </div>
   );

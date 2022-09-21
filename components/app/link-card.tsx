@@ -7,7 +7,7 @@ import { fetcher, nFormatter, linkConstructor, timeAgo } from "@/lib/utils";
 import Link from "next/link";
 import { LinkProps } from "@/lib/types";
 import { useEditLinkModal } from "./edit-link-modal";
-import Tooltip from "@/components/shared/tooltip";
+import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 
 export default function LinkCard({
   props,
@@ -81,7 +81,15 @@ export default function LinkCard({
       <div className="flex items-center space-x-3">
         <p className="text-sm text-gray-500">Added {timeAgo(timestamp)}</p>
         {exceededUsage ? (
-          <Tooltip content="You have exceeded your usage limit. We're still collecting data on your existing links, but you need to upgrade to edit them.">
+          <Tooltip
+            content={
+              <TooltipContent
+                title="You have exceeded your usage limit. We're still collecting data on your existing links, but you need to upgrade to edit them."
+                cta="Upgrade"
+                ctaLink={`/${slug}/settings`}
+              />
+            }
+          >
             <div className="text-gray-300 cursor-not-allowed font-medium text-sm px-5 py-2 border rounded-md border-gray-200 transition-all duration-75">
               Edit
             </div>

@@ -48,50 +48,53 @@ export default function LinkCard({
   }, [onKeyDown]);
 
   return (
-    <motion.li
-      variants={FRAMER_MOTION_LIST_ITEM_VARIANTS}
-      className="flex items-center border border-gray-200 hover:border-black bg-white p-3 max-w-md rounded-md transition-all"
-    >
-      <StatsModal />
-      <BlurImage
-        src={`https://logo.clearbit.com/${urlHostname}`}
-        alt={urlHostname}
-        className="w-10 h-10 rounded-full mr-2 border border-gray-200"
-        width={20}
-        height={20}
-      />
-      <div>
-        <div className="flex items-center space-x-2 mb-1">
-          <a
-            className="text-blue-800 font-semibold"
-            href={linkConstructor({ key })}
-            target="_blank"
-            rel="noreferrer"
-          >
-            {linkConstructor({ key, pretty: true })}
-          </a>
-          <CopyButton url={linkConstructor({ key })} />
-          <Link
-            href={{ pathname: "/", query: { key } }}
-            as={`/stats/${encodeURI(key)}`}
-            shallow
-            scroll={false}
-          >
-            <a className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 hover:scale-105 active:scale-95 transition-all duration-75">
-              <Chart className="w-4 h-4" />
-              <p className="text-sm text-gray-500">
-                {isValidating || !clicks ? (
-                  <LoadingDots color="#71717A" />
-                ) : (
-                  nFormatter(parseInt(clicks))
-                )}{" "}
-                clicks
-              </p>
+    <motion.li variants={FRAMER_MOTION_LIST_ITEM_VARIANTS}>
+      <motion.div
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        className="cursor-grab active:cursor-grabbing flex items-center border border-gray-200 hover:border-black bg-white p-3 max-w-md rounded-md transition-[border-color]"
+      >
+        <StatsModal />
+        <BlurImage
+          src={`https://logo.clearbit.com/${urlHostname}`}
+          alt={urlHostname}
+          className="w-10 h-10 rounded-full mr-2 border border-gray-200 pointer-events-none"
+          width={20}
+          height={20}
+        />
+        <div>
+          <div className="flex items-center space-x-2 mb-1">
+            <a
+              className="text-blue-800 font-semibold"
+              href={linkConstructor({ key })}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {linkConstructor({ key, pretty: true })}
             </a>
-          </Link>
+            <CopyButton url={linkConstructor({ key })} />
+            <Link
+              href={{ pathname: "/", query: { key } }}
+              as={`/stats/${encodeURI(key)}`}
+              shallow
+              scroll={false}
+            >
+              <a className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 hover:scale-105 active:scale-95 transition-all duration-75">
+                <Chart className="w-4 h-4" />
+                <p className="text-sm text-gray-500">
+                  {isValidating || !clicks ? (
+                    <LoadingDots color="#71717A" />
+                  ) : (
+                    nFormatter(parseInt(clicks))
+                  )}{" "}
+                  clicks
+                </p>
+              </a>
+            </Link>
+          </div>
+          <p className="text-sm text-gray-500 truncate w-72">{url}</p>
         </div>
-        <p className="text-sm text-gray-500 truncate w-72">{url}</p>
-      </div>
+      </motion.div>
     </motion.li>
   );
 }

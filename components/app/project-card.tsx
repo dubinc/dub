@@ -8,7 +8,7 @@ import {
   Link as LinkIcon,
 } from "@/components/shared/icons";
 import BlurImage from "@/components/shared/blur-image";
-import Tooltip from "@/components/shared/tooltip";
+import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 
 export default function ProjectCard({
   name,
@@ -46,7 +46,16 @@ export default function ProjectCard({
                     </div>
                   </Tooltip>
                 ) : (
-                  <Tooltip content="Unverified domain">
+                  <Tooltip
+                    content={
+                      <TooltipContent
+                        title="This domain is not correctly configured. Please configure your domain to
+                  start adding links."
+                        cta="Configure Domain"
+                        ctaLink={`/${slug}/settings`}
+                      />
+                    }
+                  >
                     <div className="w-8 flex justify-center">
                       <XCircleFill className="w-5 h-5 text-gray-300" />
                     </div>
