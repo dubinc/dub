@@ -13,7 +13,7 @@ import {
 import { motion } from "framer-motion";
 import { LinkProps } from "@/lib/types";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
-import Globe from "@/components/home/about/globe";
+import Globe from "@/components/home/globe";
 
 export default function Home() {
   return (
@@ -33,7 +33,7 @@ const Hero = () => {
         href="https://dub.sh/twitter"
         target="_blank"
         rel="noreferrer"
-        className="bg-blue-100 flex justify-center items-center space-x-2 max-w-fit px-7 py-2 mx-auto rounded-full overflow-hidden"
+        className="bg-blue-100 hover:bg-blue-200 flex justify-center items-center space-x-2 max-w-fit px-7 py-2 mx-auto rounded-full overflow-hidden transition-all"
       >
         <Twitter className="w-5 h-5 text-[#1d9bf0]" />
         <p className="text-[#1d9bf0] font-semibold text-sm">

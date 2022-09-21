@@ -8,17 +8,18 @@ export const config = {
 
 export default async function handler(req: NextRequest) {
   if (req.method === "GET") {
+    const numPoints = 20;
     const rawData = await redis.zrange<RawStatsProps[]>(
       "dub.sh:clicks:github",
       0,
-      30,
+      numPoints,
       { rev: true }
     );
-    const latestCoordinates = rawData.map((data) => {
+    const latestCoordinates = rawData.map((data, idx) => {
       const { latitude, longitude } = data.geo;
       return {
         location: [latitude, longitude],
-        size: 0.07,
+        size: 0.1 - (0.1 / numPoints) * idx,
       };
     });
     return new Response(JSON.stringify(latestCoordinates), { status: 200 });

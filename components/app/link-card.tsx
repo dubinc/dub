@@ -1,6 +1,6 @@
 import BlurImage from "@/components/shared/blur-image";
 import CopyButton from "@/components/shared/copy-button";
-import { LoadingDots } from "@/components/shared/icons";
+import { Chart, LoadingDots } from "@/components/shared/icons";
 import { useRouter } from "next/router";
 import useSWR from "swr";
 import { fetcher, nFormatter, linkConstructor, timeAgo } from "@/lib/utils";
@@ -60,7 +60,8 @@ export default function LinkCard({
             </a>
             <CopyButton url={linkConstructor({ key, domain })} />
             <Link href={`${router.asPath}/${encodeURI(key)}`}>
-              <a className="rounded-md bg-gray-100 px-2 py-0.5 hover:scale-105 active:scale-95 transition-all duration-75">
+              <a className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 hover:scale-105 active:scale-95 transition-all duration-75">
+                <Chart className="w-4 h-4" />
                 <p className="text-sm text-gray-500">
                   {isValidating || !clicks ? (
                     <LoadingDots color="#71717A" />
