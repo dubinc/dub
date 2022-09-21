@@ -1,9 +1,11 @@
 import { ReactNode } from "react";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Meta from "../meta";
 import Image from "next/future/image";
 
 export default function HomeLayout({ children }: { children: ReactNode }) {
+  const { data: session } = useSession();
   return (
     <div>
       <Meta />
@@ -23,12 +25,21 @@ export default function HomeLayout({ children }: { children: ReactNode }) {
                 </a>
               </Link>
             </div>
-            <a
-              href="https://app.dub.sh/login"
-              className="py-1.5 px-5 bg-black hover:bg-white rounded-full border border-black text-sm text-white hover:text-black transition-all"
-            >
-              Sign in
-            </a>
+            {session ? (
+              <a
+                href="https://app.dub.sh"
+                className="py-1.5 px-5 bg-black hover:bg-white rounded-full border border-black text-sm text-white hover:text-black transition-all"
+              >
+                Dashboard
+              </a>
+            ) : (
+              <a
+                href="https://app.dub.sh/login"
+                className="py-1.5 px-5 bg-black hover:bg-white rounded-full border border-black text-sm text-white hover:text-black transition-all"
+              >
+                Sign in
+              </a>
+            )}
           </div>
         </div>
       </div>

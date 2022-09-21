@@ -50,7 +50,7 @@ export default function Home() {
       <StatsModal />
       <Hero />
       <Demo />
-      <Globe />
+      {/* <Globe /> */}
       <Features />
       <Pricing />
       <Footer />
@@ -217,9 +217,9 @@ const Demo = () => {
 
 const Features = () => {
   return (
-    <div className="bg-gray-50">
-      <MaxWidthWrapper className="py-20 text-center">
-        <div className="max-w-sm sm:max-w-md mx-auto my-10">
+    <div className="bg-white">
+      <MaxWidthWrapper className="py-20">
+        <div className="max-w-sm sm:max-w-md mx-auto mb-20 text-center">
           <h2 className="text-4xl sm:text-5xl leading-tight sm:leading-tight font-display font-extrabold text-black">
             Fast.{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">
@@ -233,18 +233,32 @@ const Features = () => {
           </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-10">
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col space-y-5">
             <div className="flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r from-purple-600 to-pink-600">
-              <Chart />
+              <Chart className="w-7 h-7 text-white" />
             </div>
-            <h3 className="text-2xl font-display font-bold text-black mt-5">
-              Powerful analytics
+            <h3 className="text-3xl font-bold font-display text-black mt-5">
+              Built-in analytics
             </h3>
 
-            <p className="text-gray-600 text-center mt-3">
+            <p className="text-gray-500 mt-3">
               Dub provides powerful analytics for your links, including
               geolocation, device, and browser information.
             </p>
+            <Link
+              href={{ pathname: "/", query: { key: "github" } }}
+              as="/stats/github"
+              shallow
+              scroll={false}
+            >
+              <a className="rounded-full px-4 py-1.5 bg-black text-white hover:bg-white hover:text-black text-sm border border-black block max-w-fit">
+                View demo
+              </a>
+            </Link>
+          </div>
+
+          <div className="rounded-2xl h-96 w-full bg-gradient-to-r from-purple-600 to-pink-600">
+            Chart
           </div>
         </div>
       </MaxWidthWrapper>
