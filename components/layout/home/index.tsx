@@ -9,7 +9,7 @@ export default function HomeLayout({ children }: { children: ReactNode }) {
       <Meta />
       <div className="bg-white z-20">
         <div className="max-w-screen-xl mx-auto px-5 sm:px-20">
-          <div className="h-16 flex justify-between items-center my-3">
+          <div className="h-16 flex justify-between items-center">
             <div className="flex items-center">
               <Link href="/">
                 <a>

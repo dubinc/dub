@@ -50,20 +50,20 @@ export default function LinkCard({
   return (
     <motion.li
       variants={FRAMER_MOTION_LIST_ITEM_VARIANTS}
-      className="flex items-center border border-gray-200 dark:border-gray-600 hover:border-black dark:hover:border-white bg-white dark:bg-black p-3 max-w-md rounded-md transition-all"
+      className="flex items-center border border-gray-200 hover:border-black bg-white p-3 max-w-md rounded-md transition-all"
     >
       <StatsModal />
       <BlurImage
         src={`https://logo.clearbit.com/${urlHostname}`}
         alt={urlHostname}
-        className="w-10 h-10 rounded-full mr-2 border border-gray-200 dark:border-gray-600"
+        className="w-10 h-10 rounded-full mr-2 border border-gray-200"
         width={20}
         height={20}
       />
       <div>
         <div className="flex items-center space-x-2 mb-1">
           <a
-            className="text-blue-800 dark:text-blue-400 font-semibold"
+            className="text-blue-800 font-semibold"
             href={linkConstructor({ key })}
             target="_blank"
             rel="noreferrer"
@@ -77,8 +77,8 @@ export default function LinkCard({
             shallow
             scroll={false}
           >
-            <a className="rounded-md bg-gray-100 dark:bg-gray-800 px-2 py-0.5 hover:scale-105 active:scale-95 transition-all duration-75">
-              <p className="text-sm text-gray-500 dark:text-white">
+            <a className="rounded-md bg-gray-100 px-2 py-0.5 hover:scale-105 active:scale-95 transition-all duration-75">
+              <p className="text-sm text-gray-500">
                 {isValidating || !clicks ? (
                   <LoadingDots color="#71717A" />
                 ) : (
@@ -89,9 +89,7 @@ export default function LinkCard({
             </a>
           </Link>
         </div>
-        <p className="text-sm text-gray-500 dark:text-gray-400 truncate w-72">
-          {url}
-        </p>
+        <p className="text-sm text-gray-500 truncate w-72">{url}</p>
       </div>
     </motion.li>
   );

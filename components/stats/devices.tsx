@@ -32,13 +32,13 @@ export default function Devices({ data: rawData }: { data: StatsProps }) {
   };
 
   return (
-    <div className="flex flex-col justify-between bg-white dark:bg-black pt-5 shadow-lg dark:shadow-none rounded-lg border border-gray-100 dark:border-gray-600 h-[420px]">
+    <div className="flex flex-col justify-between bg-white pt-5 shadow-lg rounded-lg border border-gray-100 h-[420px]">
       <div
         className="relative overflow-scroll scrollbar-hide px-7"
         onScroll={handleScroll}
       >
         <div className="mb-5 flex justify-between">
-          <h1 className="text-xl dark:text-white font-semibold">Devices</h1>
+          <h1 className="text-xl font-semibold">Devices</h1>
           <BadgeSelect
             options={["device", "browser", "os", ...(showBots ? ["bot"] : [])]}
             selected={tab}
@@ -66,7 +66,7 @@ export default function Devices({ data: rawData }: { data: StatsProps }) {
                           className="w-4 h-4"
                         />
                         <p
-                          className={`text-gray-800 dark:text-gray-200 text-sm ${
+                          className={`text-gray-800 text-sm ${
                             display !== "iOS" ? "capitalize" : ""
                           }`}
                         >
@@ -77,22 +77,20 @@ export default function Devices({ data: rawData }: { data: StatsProps }) {
                         style={{
                           width: `${(count / data.totalClicks) * 100}%`,
                         }}
-                        className="bg-green-100 dark:bg-green-900 absolute h-8 origin-left"
+                        className="bg-green-100 absolute h-8 origin-left"
                         transition={{ ease: "easeOut", duration: 0.3 }}
                         initial={{ transform: "scaleX(0)" }}
                         animate={{ transform: "scaleX(1)" }}
                       />
                     </div>
-                    <p className="text-gray-600 dark:text-gray-400 text-sm z-10">
+                    <p className="text-gray-600 text-sm z-10">
                       {nFormatter(count)}
                     </p>
                   </div>
                 ))}
               </>
             ) : (
-              <p className="text-gray-600 dark:text-gray-400 text-sm">
-                No data available
-              </p>
+              <p className="text-gray-600 text-sm">No data available</p>
             )
           ) : (
             <LoadingDots color="#71717A" />
@@ -108,7 +106,7 @@ export default function Devices({ data: rawData }: { data: StatsProps }) {
                 transition: { type: "linear", duration: 0.2 },
               }}
               exit={{ opacity: 0, y: 50, transition: { duration: 0 } }}
-              className="absolute w-full h-8 flex justify-center items-center bottom-0 left-0 right-0 bg-gradient-to-b from-white to-gray-100 dark:from-transparent dark:to-[#060606] text-sm text-gray-500 dark:text-gray-400"
+              className="absolute w-full h-8 flex justify-center items-center bottom-0 left-0 right-0 bg-gradient-to-b from-white to-gray-100 text-sm text-gray-500"
             >
               Show more
             </motion.div>
@@ -124,12 +122,9 @@ export default function Devices({ data: rawData }: { data: StatsProps }) {
           type="checkbox"
           checked={showBots}
           onChange={() => setShowBots(!showBots)}
-          className="h-4 w-4 rounded text-black dark:text-gray-700 focus:outline-none focus:ring-0"
+          className="h-4 w-4 rounded text-black focus:outline-none focus:ring-0"
         />
-        <label
-          htmlFor="showBots"
-          className="text-gray-800 dark:text-gray-200 text-sm"
-        >
+        <label htmlFor="showBots" className="text-gray-800 text-sm">
           Include Bots
         </label>
       </div>

@@ -183,13 +183,13 @@ const BarChart = ({
           className={styles.tooltip}
         >
           <div className="text-center">
-            <h3 className="text-black dark:text-white my-1">
+            <h3 className="text-black my-1">
               <span className="text-2xl font-semibold">
                 {nFormatter(tooltipData.count)}
               </span>{" "}
               clicks
             </h3>
-            <p className="text-xs text-gray-600 dark:text-gray-400">
+            <p className="text-xs text-gray-600">
               {intervalData[interval].format(tooltipData.start)} -{" "}
               {intervalData[interval].format(tooltipData.end)}
             </p>

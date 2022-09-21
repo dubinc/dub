@@ -26,7 +26,7 @@ export default function ProjectCard({
   return (
     <Link key={slug} href={`/${slug}`}>
       <a>
-        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 flex justify-between hover:shadow-md transition-all">
+        <div className="bg-white shadow rounded-lg p-6 flex justify-between hover:shadow-md transition-all">
           <div className="flex items-center space-x-3">
             <BlurImage
               src={`https://avatar.tobi.sh/${slug}`}
@@ -38,7 +38,7 @@ export default function ProjectCard({
             <div>
               <h2 className="text-lg font-medium text-gray-700">{name}</h2>
               <div className="flex items-center">
-                <p className="text-gray-500 dark:text-gray-400">{domain}</p>
+                <p className="text-gray-500">{domain}</p>
                 {domainVerified ? (
                   <Tooltip content="Verified domain">
                     <div className="w-8 flex justify-center">
@@ -56,7 +56,7 @@ export default function ProjectCard({
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            <LinkIcon className="text-gray-600 dark:text-gray-400 w-5 h-5" />
+            <LinkIcon className="text-gray-600 w-5 h-5" />
             {isValidating ? (
               <div className="w-4 h-5 rounded-md bg-gray-200 animate-pulse" />
             ) : (

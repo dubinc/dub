@@ -37,7 +37,7 @@ export default function Stats({
   );
 
   return (
-    <div className="bg-gray-50 dark:bg-black py-20 mx-auto lg:px-0 px-2.5">
+    <div className="bg-gray-50 py-20 mx-auto lg:px-0 px-2.5">
       <Toggle domain={domain} atModalTop={atModalTop} />
       <div className="max-w-4xl mx-auto grid gap-5">
         <Clicks data={data!} isValidating={isValidating} />
