@@ -11,10 +11,11 @@ import {
   CheckCircleFill,
 } from "@/components/shared/icons";
 import { motion, AnimatePresence } from "framer-motion";
-import { LinkProps } from "@/lib/types";
+import { SimpleLinkProps } from "@/lib/types";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import Globe from "@/components/home/globe";
 import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
+import { Toaster } from "react-hot-toast";
 
 export default function Home() {
   return (
@@ -77,9 +78,11 @@ const Hero = () => {
 const Demo = () => {
   const [saving, setSaving] = useState(false);
   const [url, setUrl] = useState("");
-  const [hashes, setHashes] = useLocalStorage<LinkProps[]>("hashes", []);
+  const [hashes, setHashes] = useLocalStorage<SimpleLinkProps[]>("hashes", []);
+
   return (
     <div className="max-w-md mx-auto sm:px-0 px-2.5">
+      <Toaster />
       <form
         onSubmit={async (e) => {
           e.preventDefault();
@@ -99,33 +102,38 @@ const Demo = () => {
           });
         }}
       >
-        <div className="relative flex items-center">
-          <input
-            type="url"
-            placeholder="Shorten your link"
-            value={url}
-            onInput={(e) => {
-              setUrl((e.target as HTMLInputElement).value);
-            }}
-            required
-            className="peer shadow-sm focus:outline-none focus:ring-0 bg-white border focus:border-black block w-full p-2 text-sm border-gray-200 rounded-md pl-3 pr-12"
-          />
-          {hashes.length >= 4 ? (
-            <Tooltip
-              content={
-                <TooltipContent
-                  title="Maximum number of links reached. Swipe to delete existing links or
+        {hashes.length >= 3 ? (
+          <Tooltip
+            content={
+              <TooltipContent
+                title="Maximum number of links reached. Swipe to delete existing links or
             create a free account."
-                  cta="Start For Free"
-                  ctaLink="https://app.dub.sh"
-                />
-              }
-            >
+                cta="Start For Free"
+                ctaLink="https://app.dub.sh"
+              />
+            }
+          >
+            <div className="relative flex items-center">
+              <div className="shadow-sm bg-white border focus:border-black block w-full p-2 text-sm text-gray-400 border-gray-200 rounded-md pl-3 pr-12">
+                Shorten your link
+              </div>
               <div className="cursor-not-allowed absolute inset-y-0 right-0 w-10 flex justify-center items-center my-1.5 mr-1.5 border border-gray-200 rounded text-sm font-sans font-medium text-gray-400">
                 <p>↵</p>
               </div>
-            </Tooltip>
-          ) : (
+            </div>
+          </Tooltip>
+        ) : (
+          <div className="relative flex items-center">
+            <input
+              type="url"
+              placeholder="Shorten your link"
+              value={url}
+              onInput={(e) => {
+                setUrl((e.target as HTMLInputElement).value);
+              }}
+              required
+              className="peer shadow-sm focus:outline-none focus:ring-0 bg-white border focus:border-black block w-full p-2 text-sm border-gray-200 rounded-md pl-3 pr-12"
+            />
             <button
               type="submit"
               disabled={saving}
@@ -137,8 +145,8 @@ const Demo = () => {
             >
               {saving ? <LoadingDots color="#e5e7eb" /> : <p>↵</p>}
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </form>
 
       <motion.ul
@@ -160,11 +168,15 @@ const Demo = () => {
           _key="github"
           url={"https://github.com/steven-tey/dub"}
         />
-        <AnimatePresence>
-          {hashes.map(({ key, url }) => (
-            <LinkCard key={key} _key={key} url={url} />
-          ))}
-        </AnimatePresence>
+        {hashes.map(({ key, url }) => (
+          <LinkCard
+            key={key}
+            _key={key}
+            url={url}
+            hashes={hashes}
+            setHashes={setHashes}
+          />
+        ))}
         {Array.from({ length: 3 - hashes.length }).map((_, i) => (
           <PlaceholderCard key={i} />
         ))}

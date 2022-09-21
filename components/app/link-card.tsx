@@ -38,7 +38,7 @@ export default function LinkCard({
   });
 
   return (
-    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-5 sm:space-y-0 border border-gray-200 bg-white p-4 rounded-md transition-all">
+    <li className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-5 sm:space-y-0 border border-gray-200 bg-white p-4 rounded-md transition-all">
       <EditLinkModal />
       <div className="relative flex items-center space-x-4">
         <BlurImage
@@ -103,6 +103,6 @@ export default function LinkCard({
           </button>
         )}
       </div>
-    </div>
+    </li>
   );
 }
