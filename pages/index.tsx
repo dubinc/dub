@@ -1,7 +1,9 @@
 import HomeLayout from "@/components/layout/home";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import useLocalStorage from "@/lib/hooks/use-local-storage";
+import { useStatsModal } from "@/components/stats/stats-modal";
 import LinkCard from "@/components/home/link-card";
 import PlaceholderCard from "@/components/home/placeholder-card";
 import {
@@ -9,6 +11,7 @@ import {
   LoadingDots,
   Twitter,
   CheckCircleFill,
+  Chart,
 } from "@/components/shared/icons";
 import { motion } from "framer-motion";
 import { SimpleLinkProps } from "@/lib/types";
@@ -19,8 +22,32 @@ import { Toaster } from "react-hot-toast";
 import CountingNumbers from "@/components/shared/counting-numbers";
 
 export default function Home() {
+  const router = useRouter();
+  const { key: stats } = router.query;
+  const { setShowStatsModal, StatsModal } = useStatsModal();
+
+  const onKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      router.push("/", undefined, { scroll: false });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (stats) {
+      setShowStatsModal(true);
+    } else {
+      setShowStatsModal(false);
+    }
+  }, [stats]);
+
+  useEffect(() => {
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [onKeyDown]);
+
   return (
     <HomeLayout>
+      <StatsModal />
       <Hero />
       <Demo />
       <Globe />
@@ -54,8 +81,8 @@ const Hero = () => {
         </span>
       </h1>
       <p className="text-gray-600 text-xl sm:text-2xl mt-5">
-        An open-source link shortener with built-in analytics and free custom
-        domains.
+        Dub is an open-source link shortener with built-in analytics and free
+        custom domains.
       </p>
 
       <div className="mt-10 flex space-x-4 max-w-fit mx-auto">
@@ -190,10 +217,37 @@ const Demo = () => {
 
 const Features = () => {
   return (
-    <div className="h-96 bg-blue-600">
-      {/* <h2 className="text-3xl font-display font-semibold text-black mt-10">
-        Features
-      </h2> */}
+    <div className="bg-gray-50">
+      <MaxWidthWrapper className="py-20 text-center">
+        <div className="max-w-sm sm:max-w-md mx-auto my-10">
+          <h2 className="text-4xl sm:text-5xl leading-tight sm:leading-tight font-display font-extrabold text-black">
+            Fast.{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">
+              Powerful.
+            </span>{" "}
+            Open source.
+          </h2>
+          <p className="text-gray-600 sm:text-lg mt-5">
+            With Dub, you get the best of both worlds: a powerful link shortener
+            with built-in analytics, and the freedom to host it yourself.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-10">
+          <div className="flex flex-col items-center">
+            <div className="flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r from-purple-600 to-pink-600">
+              <Chart />
+            </div>
+            <h3 className="text-2xl font-display font-bold text-black mt-5">
+              Powerful analytics
+            </h3>
+
+            <p className="text-gray-600 text-center mt-3">
+              Dub provides powerful analytics for your links, including
+              geolocation, device, and browser information.
+            </p>
+          </div>
+        </div>
+      </MaxWidthWrapper>
     </div>
   );
 };
@@ -241,15 +295,15 @@ const pricingItems = [
 const Pricing = () => {
   return (
     <MaxWidthWrapper className="my-20 text-center">
-      <div className="max-w-md mx-auto my-10">
-        <h2 className="text-5xl font-display font-extrabold text-black">
+      <div className="max-w-sm sm:max-w-md mx-auto my-10">
+        <h2 className="text-4xl sm:text-5xl font-display font-extrabold text-black">
           Simple,{" "}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-600">
             affordable
           </span>{" "}
           pricing
         </h2>
-        <p className="text-gray-600 text-lg mt-5">
+        <p className="text-gray-600 sm:text-lg mt-5">
           Start for free, no credit card required. Upgrade anytime.
         </p>
       </div>
@@ -257,6 +311,7 @@ const Pricing = () => {
         {pricingItems.map(
           ({ plan, tagline, isPopular, price, features, cta, ctaLink }) => (
             <div
+              key={plan}
               className={`relative bg-white rounded-2xl ${
                 isPopular
                   ? "border-2 border-blue-600 shadow-blue-200"

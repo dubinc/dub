@@ -40,8 +40,7 @@ function StatsModalHelper({
           className="sticky top-4 z-20 p-3 m-4 rounded-full float-right group hover:bg-gray-100 focus:outline-none active:scale-75 transition-all duration-75"
           autoFocus={false}
           onClick={() => {
-            setShowStatsModal(false);
-            router.push("/");
+            router.push("/", undefined, { scroll: false });
           }}
         >
           <X className="w-6 h-6" />

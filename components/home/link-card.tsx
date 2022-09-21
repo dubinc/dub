@@ -2,13 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import BlurImage from "@/components/shared/blur-image";
 import CopyButton from "@/components/shared/copy-button";
 import { Chart, LoadingDots } from "@/components/shared/icons";
-import { useRouter } from "next/router";
 import useSWR from "swr";
 import { fetcher, nFormatter, linkConstructor } from "@/lib/utils";
 import Link from "next/link";
 import { motion, useMotionValue, useAnimation } from "framer-motion";
 import { FRAMER_MOTION_LIST_ITEM_VARIANTS } from "@/lib/constants";
-import { useStatsModal } from "@/components/stats/stats-modal";
 import { SimpleLinkProps } from "@/lib/types";
 import toast from "react-hot-toast";
 import { useDebouncedCallback } from "use-debounce";
@@ -30,29 +28,6 @@ export default function LinkCard({
     `/api/edge/links/${key}/clicks`,
     fetcher
   );
-
-  const router = useRouter();
-  const { key: stats } = router.query;
-  const { setShowStatsModal, StatsModal } = useStatsModal();
-
-  const onKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === "Escape") {
-      setShowStatsModal(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (stats) {
-      setShowStatsModal(true);
-    } else {
-      setShowStatsModal(false);
-    }
-  }, [stats]);
-
-  useEffect(() => {
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [onKeyDown]);
 
   const cardElem = useRef(null);
 
@@ -135,7 +110,6 @@ export default function LinkCard({
         whileTap={{ scale: 1.05 }}
         className="cursor-grab active:cursor-grabbing flex items-center border border-gray-200 hover:border-black bg-white p-3 max-w-md rounded-md transition-[border-color]"
       >
-        <StatsModal />
         <BlurImage
           src={`https://logo.clearbit.com/${urlHostname}`}
           alt={urlHostname}

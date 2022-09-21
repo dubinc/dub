@@ -1,4 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/router";
+import { useStatsModal } from "@/components/stats/stats-modal";
 import createGlobe from "cobe";
 import { useSpring } from "react-spring";
 import useSWR from "swr";
@@ -12,6 +15,10 @@ interface MarkerProps {
 }
 
 export default function Globe() {
+  const router = useRouter();
+  const { key: stats } = router.query;
+  const { setShowStatsModal } = useStatsModal();
+
   const { data: markers } = useSWR<MarkerProps[]>(
     "/api/edge/coordinates",
     fetcher
@@ -76,7 +83,7 @@ export default function Globe() {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             exit={{ scale: 0 }}
-            className="group absolute left-0 right-0 mx-auto z-10 max-w-sm px-5 py-7 rounded-md bg-white border border-gray-200 shadow-md"
+            className="group absolute left-0 right-0 mx-auto z-10 max-w-sm px-5 py-7 rounded-md bg-white border border-gray-200 shadow-md bg-opacity-90 backdrop-blur-md"
           >
             <button
               className="visible sm:invisible group-hover:visible absolute top-0 right-0 p-1 m-3 rounded-full float-right group hover:bg-gray-100 focus:outline-none active:scale-75 transition-all duration-75"
@@ -98,6 +105,16 @@ export default function Globe() {
               </a>{" "}
               in real time.
             </p>
+            <Link
+              href={{ pathname: "/", query: { key: "github" } }}
+              as="/stats/github"
+              shallow
+              scroll={false}
+            >
+              <a className="rounded-full px-4 py-1.5 bg-black text-white hover:bg-white hover:text-black text-sm border border-black mx-auto mt-3 block max-w-fit">
+                View all stats
+              </a>
+            </Link>
           </motion.div>
         )}
       </AnimatePresence>
