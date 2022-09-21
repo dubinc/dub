@@ -50,8 +50,8 @@ export default function Home() {
       <StatsModal />
       <Hero />
       <Demo />
-      {/* <Globe /> */}
-      <Features />
+      <Globe />
+      {/* <Features /> */}
       <Pricing />
       <Footer />
     </HomeLayout>
