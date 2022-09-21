@@ -21,3 +21,4 @@ export { default as CheckCircleFill } from "./check-circle-fill";
 export { default as PlusCircle } from "./plus-circle";
 export { default as Link } from "./link";
 export { default as Infinity } from "./infinity";
+export { default as Drag } from "./drag";

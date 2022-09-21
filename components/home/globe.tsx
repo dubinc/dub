@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import createGlobe from "cobe";
 import { useSpring } from "react-spring";
 import useSWR from "swr";
-import { X } from "@/components/shared/icons";
+import { Drag, X } from "@/components/shared/icons";
 import { fetcher } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -79,12 +79,13 @@ export default function Globe() {
             className="group absolute left-0 right-0 mx-auto z-10 max-w-sm px-5 py-7 rounded-md bg-white border border-gray-200 shadow-md"
           >
             <button
-              className="visible sm:invisible group-hover:visible absolute top-0 right-0 p-1 m-2 rounded-full float-right group hover:bg-gray-100 focus:outline-none active:scale-75 transition-all duration-75"
+              className="visible sm:invisible group-hover:visible absolute top-0 right-0 p-1 m-3 rounded-full float-right group hover:bg-gray-100 focus:outline-none active:scale-75 transition-all duration-75"
               autoFocus={false}
               onClick={() => setShowModal(false)}
             >
-              <X className="w-3 h-3" />
+              <X className="w-4 h-4" />
             </button>
+            <Drag className="h-12 w-12 mx-auto mb-4 text-gray-700 animate-wiggle" />
             <p className="text-center text-gray-700 text-sm sm:text-base">
               This map shows the locations of the last 30 clicks on{" "}
               <a

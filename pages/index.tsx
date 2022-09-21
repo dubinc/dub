@@ -190,7 +190,7 @@ const Demo = () => {
 
 const Features = () => {
   return (
-    <div>
+    <div className="h-96 bg-blue-600">
       {/* <h2 className="text-3xl font-display font-semibold text-black mt-10">
         Features
       </h2> */}
