@@ -97,7 +97,7 @@ export default function LinkCard({
   };
 
   const sendErrorToast = useDebouncedCallback(
-    () => toast.error("Cannot delete root tweet."),
+    () => toast.error("Cannot delete default link."),
     100
   );
 

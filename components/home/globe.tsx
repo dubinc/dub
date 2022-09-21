@@ -1,8 +1,10 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import createGlobe from "cobe";
 import { useSpring } from "react-spring";
 import useSWR from "swr";
+import { X } from "@/components/shared/icons";
 import { fetcher } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface MarkerProps {
   location: [number, number];
@@ -44,7 +46,7 @@ export default function Globe() {
       theta: 0.3,
       dark: 0,
       diffuse: 3,
-      mapSamples: 16000,
+      mapSamples: 20000,
       mapBrightness: 4,
       baseColor: [1, 1, 1],
       markerColor: [249 / 255, 115 / 255, 22 / 255],
@@ -63,57 +65,92 @@ export default function Globe() {
     setTimeout(() => (canvasRef.current.style.opacity = "1"));
     return () => globe.destroy();
   }, [markers]);
+
+  const [showModal, setShowModal] = useState(true);
   return (
-    <div
-      style={{
-        width: "100%",
-        maxWidth: 1000,
-        aspectRatio: "1",
-        margin: "auto",
-        position: "relative",
-      }}
-    >
-      <canvas
-        ref={canvasRef}
-        onPointerDown={(e) => {
-          pointerInteracting.current =
-            e.clientX - pointerInteractionMovement.current;
-          canvasRef.current.style.cursor = "grabbing";
-        }}
-        onPointerUp={() => {
-          pointerInteracting.current = null;
-          canvasRef.current.style.cursor = "grab";
-        }}
-        onPointerOut={() => {
-          pointerInteracting.current = null;
-          canvasRef.current.style.cursor = "grab";
-        }}
-        onMouseMove={(e) => {
-          if (pointerInteracting.current !== null) {
-            const delta = e.clientX - pointerInteracting.current;
-            pointerInteractionMovement.current = delta;
-            api.start({
-              r: delta / 200,
-            });
-          }
-        }}
-        onTouchMove={(e) => {
-          if (pointerInteracting.current !== null && e.touches[0]) {
-            const delta = e.touches[0].clientX - pointerInteracting.current;
-            pointerInteractionMovement.current = delta;
-            api.start({
-              r: delta / 100,
-            });
-          }
-        }}
+    <div className="relative flex items-center">
+      <AnimatePresence>
+        {showModal && (
+          <motion.div
+            key="globe-modal"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            exit={{ scale: 0 }}
+            className="group absolute left-0 right-0 mx-auto z-10 max-w-sm px-5 py-7 rounded-md bg-white border border-gray-200 shadow-md"
+          >
+            <button
+              className="visible sm:invisible group-hover:visible absolute top-0 right-0 p-1 m-2 rounded-full float-right group hover:bg-gray-100 focus:outline-none active:scale-75 transition-all duration-75"
+              autoFocus={false}
+              onClick={() => setShowModal(false)}
+            >
+              <X className="w-3 h-3" />
+            </button>
+            <p className="text-center text-gray-700 text-sm sm:text-base">
+              This map shows the locations of the last 30 clicks on{" "}
+              <a
+                className="text-blue-800 font-semibold"
+                href="https://dub.sh/github"
+                target="_blank"
+                rel="noreferrer"
+              >
+                dub.sh/github
+              </a>{" "}
+              in real time.
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <div
         style={{
           width: "100%",
-          height: "100%",
-          contain: "layout paint size",
-          opacity: 0,
-          transition: "opacity 1s ease",
+          maxWidth: 1000,
+          aspectRatio: "1",
+          margin: "auto",
+          position: "relative",
         }}
-      />
+      >
+        <canvas
+          ref={canvasRef}
+          onPointerDown={(e) => {
+            pointerInteracting.current =
+              e.clientX - pointerInteractionMovement.current;
+            canvasRef.current.style.cursor = "grabbing";
+          }}
+          onPointerUp={() => {
+            pointerInteracting.current = null;
+            canvasRef.current.style.cursor = "grab";
+          }}
+          onPointerOut={() => {
+            pointerInteracting.current = null;
+            canvasRef.current.style.cursor = "grab";
+          }}
+          onMouseMove={(e) => {
+            if (pointerInteracting.current !== null) {
+              const delta = e.clientX - pointerInteracting.current;
+              pointerInteractionMovement.current = delta;
+              api.start({
+                r: delta / 200,
+              });
+            }
+          }}
+          onTouchMove={(e) => {
+            if (pointerInteracting.current !== null && e.touches[0]) {
+              const delta = e.touches[0].clientX - pointerInteracting.current;
+              pointerInteractionMovement.current = delta;
+              api.start({
+                r: delta / 100,
+              });
+            }
+          }}
+          style={{
+            width: "100%",
+            height: "100%",
+            contain: "layout paint size",
+            opacity: 0,
+            transition: "opacity 1s ease",
+          }}
+        />
+      </div>
     </div>
   );
 }
