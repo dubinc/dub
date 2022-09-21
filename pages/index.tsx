@@ -13,22 +13,22 @@ import {
 import { motion } from "framer-motion";
 import { LinkProps } from "@/lib/types";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
+import Globe from "@/components/home/about/globe";
 
 export default function Home() {
   return (
     <HomeLayout>
-      <main className="my-20">
-        <Hero />
-        <Demo />
-        <Features />
-      </main>
+      <Hero />
+      <Demo />
+      <Globe />
+      <Features />
     </HomeLayout>
   );
 }
 
 const Hero = () => {
   return (
-    <div className="max-w-md sm:max-w-lg my-10 text-center mx-auto sm:px-0 px-2.5">
+    <div className="max-w-md sm:max-w-lg mt-20 mb-10 text-center mx-auto sm:px-0 px-2.5">
       <a
         href="https://dub.sh/twitter"
         target="_blank"
@@ -178,6 +178,20 @@ const Features = () => {
           <p className="text-gray-600 text-lg">Open-source</p>
         </li>
       </ul>
+    </div>
+  );
+};
+
+const Pricing = () => {
+  return (
+    <div className="max-w-md mx-auto sm:px-0 px-2.5">
+      <h2 className="text-3xl font-display font-semibold text-black mt-10">
+        Start for free.
+      </h2>
+      <p className="text-gray-600 text-lg mt-5">
+        Dub is completely free to use. You can use it for personal or commercial
+        use.
+      </p>
     </div>
   );
 };

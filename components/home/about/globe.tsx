@@ -1,20 +1,37 @@
 import { useEffect, useRef } from "react";
 import createGlobe from "cobe";
+import { useSpring } from "react-spring";
+import useSWR from "swr";
+import { fetcher } from "@/lib/utils";
+
+interface MarkerProps {
+  location: [number, number];
+  size: number;
+}
 
 export default function Globe() {
+  const { data: markers } = useSWR<MarkerProps[]>(
+    "/api/edge/coordinates",
+    fetcher
+  );
+
   const canvasRef = useRef<any>();
-  const locationToAngles = (lat: number, long: number) => {
-    return [
-      Math.PI - ((long * Math.PI) / 180 - Math.PI / 2),
-      (lat * Math.PI) / 180,
-    ];
-  };
-  const focusRef = useRef([0, 0]);
+  const pointerInteracting = useRef(null);
+  const pointerInteractionMovement = useRef(0);
+
+  const [{ r }, api] = useSpring(() => ({
+    r: 0,
+    config: {
+      mass: 1,
+      tension: 280,
+      friction: 40,
+      precision: 0.001,
+    },
+  }));
+
   useEffect(() => {
+    let phi = 0;
     let width = 0;
-    let currentPhi = 0;
-    let currentTheta = 0;
-    const doublePi = Math.PI * 2;
     const onResize = () =>
       canvasRef.current && (width = canvasRef.current.offsetWidth);
     window.addEventListener("resize", onResize);
@@ -25,44 +42,31 @@ export default function Globe() {
       height: width * 2,
       phi: 0,
       theta: 0.3,
-      dark: 1,
+      dark: 0,
       diffuse: 3,
       mapSamples: 16000,
-      mapBrightness: 1.2,
+      mapBrightness: 4,
       baseColor: [1, 1, 1],
-      markerColor: [251 / 255, 200 / 255, 21 / 255],
-      glowColor: [1.2, 1.2, 1.2],
-      markers: [
-        { location: [37.78, -122.412], size: 0.1 },
-        { location: [52.52, 13.405], size: 0.1 },
-        { location: [35.676, 139.65], size: 0.1 },
-        { location: [-34.6, -58.38], size: 0.1 },
-      ],
+      markerColor: [251 / 255, 100 / 255, 21 / 255],
+      glowColor: [0.8, 0.8, 0.8],
+      markers: markers || [],
       onRender: (state) => {
-        state.phi = currentPhi;
-        state.theta = currentTheta;
-        const [focusPhi, focusTheta] = focusRef.current;
-        const distPositive = (focusPhi - currentPhi + doublePi) % doublePi;
-        const distNegative = (currentPhi - focusPhi + doublePi) % doublePi;
-        // Control the speed
-        if (distPositive < distNegative) {
-          currentPhi += distPositive * 0.08;
-        } else {
-          currentPhi -= distNegative * 0.08;
-        }
-        currentTheta = currentTheta * 0.92 + focusTheta * 0.08;
+        // Called on every animation frame.
+        // `state` will be an empty object, return updated params.
+        phi += 0.003;
+        state.phi = phi + r.get();
         state.width = width * 2;
         state.height = width * 2;
       },
     });
     setTimeout(() => (canvasRef.current.style.opacity = "1"));
     return () => globe.destroy();
-  }, []);
+  }, [markers]);
   return (
     <div
       style={{
         width: "100%",
-        maxWidth: 600,
+        maxWidth: 1000,
         aspectRatio: "1",
         margin: "auto",
         position: "relative",
@@ -70,6 +74,37 @@ export default function Globe() {
     >
       <canvas
         ref={canvasRef}
+        onPointerDown={(e) => {
+          pointerInteracting.current =
+            e.clientX - pointerInteractionMovement.current;
+          canvasRef.current.style.cursor = "grabbing";
+        }}
+        onPointerUp={() => {
+          pointerInteracting.current = null;
+          canvasRef.current.style.cursor = "grab";
+        }}
+        onPointerOut={() => {
+          pointerInteracting.current = null;
+          canvasRef.current.style.cursor = "grab";
+        }}
+        onMouseMove={(e) => {
+          if (pointerInteracting.current !== null) {
+            const delta = e.clientX - pointerInteracting.current;
+            pointerInteractionMovement.current = delta;
+            api.start({
+              r: delta / 200,
+            });
+          }
+        }}
+        onTouchMove={(e) => {
+          if (pointerInteracting.current !== null && e.touches[0]) {
+            const delta = e.touches[0].clientX - pointerInteracting.current;
+            pointerInteractionMovement.current = delta;
+            api.start({
+              r: delta / 100,
+            });
+          }
+        }}
         style={{
           width: "100%",
           height: "100%",
@@ -78,40 +113,6 @@ export default function Globe() {
           transition: "opacity 1s ease",
         }}
       />
-      <div
-        className="flex justify-center control-buttons"
-        style={{ gap: ".5rem" }}
-      >
-        Rotate to:
-        <button
-          onClick={() => {
-            focusRef.current = locationToAngles(37.78, -122.412);
-          }}
-        >
-          San Francisco
-        </button>
-        <button
-          onClick={() => {
-            focusRef.current = locationToAngles(52.52, 13.405);
-          }}
-        >
-          Berlin
-        </button>
-        <button
-          onClick={() => {
-            focusRef.current = locationToAngles(35.676, 139.65);
-          }}
-        >
-          Tokyo
-        </button>
-        <button
-          onClick={() => {
-            focusRef.current = locationToAngles(-34.6, -58.38);
-          }}
-        >
-          Buenos Aires
-        </button>
-      </div>
     </div>
   );
 }
