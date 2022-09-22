@@ -20,7 +20,7 @@ const Demo = () => {
         onSubmit={async (e) => {
           e.preventDefault();
           setSaving(true);
-          fetch(`/api/edge/links?url=${url}&hostname=dub.sh`, {
+          fetch(`/api/edge/links?url=${encodeURIComponent(url)}&hostname=dub.sh`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
