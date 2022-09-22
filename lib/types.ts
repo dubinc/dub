@@ -1,3 +1,8 @@
+export interface SimpleLinkProps {
+  key: string;
+  url: string;
+}
+
 export interface LinkProps {
   key: string;
   url: string;

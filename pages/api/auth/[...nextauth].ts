@@ -28,7 +28,7 @@ export const authOptions: NextAuthOptions = {
     },
   },
   callbacks: {
-    session: async ({ session, token, user }) => {
+    session: async ({ session, token }) => {
       session.user = {
         // @ts-ignore
         id: token.sub,

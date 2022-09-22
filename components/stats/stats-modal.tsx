@@ -33,15 +33,14 @@ function StatsModalHelper({
     <Modal showModal={showStatsModal} setShowModal={setShowStatsModal}>
       <div
         onScroll={handleScroll}
-        className="inline-block w-full max-w-screen-xl max-h-[calc(100vh-100px)] overflow-scroll scrollbar-hide bg-gray-50 dark:bg-black 
-        align-middle transform border border-gray-200 dark:border-gray-600 shadow-xl dark:shadow-none rounded-2xl"
+        className="inline-block w-full max-w-screen-xl max-h-[calc(100vh-100px)] overflow-scroll scrollbar-hide bg-gray-50
+        align-middle transform border border-gray-200 shadow-xl rounded-2xl"
       >
         <button
-          className="sticky top-4 z-20 p-3 m-4 rounded-full float-right group hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none active:scale-75 transition-all duration-75"
+          className="sticky top-4 z-20 p-3 m-4 rounded-full float-right group hover:bg-gray-100 focus:outline-none active:scale-75 transition-all duration-75"
           autoFocus={false}
           onClick={() => {
-            setShowStatsModal(false);
-            router.push("/");
+            router.push("/", undefined, { scroll: false });
           }}
         >
           <X className="w-6 h-6" />

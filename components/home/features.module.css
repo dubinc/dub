@@ -1,0 +1,39 @@
+.label {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  height: 2.5rem;
+  border-radius: 0.375rem;
+  background-color: rgb(31 41 55);
+  border: solid 1px rgb(75 85 99);
+  margin-left: 0.45rem;
+}
+
+.label:after {
+  content: "";
+  position: absolute;
+  top: 15px;
+  left: -10px;
+  border-style: solid;
+  border-width: 7px 7px 0;
+  border-color: rgb(31 41 55) transparent;
+  display: block;
+  width: 0;
+  z-index: 1;
+  transform: rotate(90deg);
+}
+
+.label:before {
+  content: "";
+  position: absolute;
+  top: 15px;
+  left: -12px;
+  border-style: solid;
+  border-width: 8px 8px 0;
+  border-color: rgb(75 85 99) transparent;
+  display: block;
+  width: 0;
+  z-index: 0;
+  transform: rotate(90deg);
+}

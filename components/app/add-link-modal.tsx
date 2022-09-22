@@ -18,7 +18,7 @@ import {
 import { useDebounce } from "use-debounce";
 import TextareaAutosize from "react-textarea-autosize";
 import { mutate } from "swr";
-import Tooltip from "@/components/shared/tooltip";
+import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 
 function AddLinkModal({
   showAddLinkModal,
@@ -102,7 +102,7 @@ function AddLinkModal({
           <BlurImage
             src={`/static/logo.png`}
             alt={"dub.sh"}
-            className="w-10 h-10 rounded-full border border-gray-200 dark:border-gray-600"
+            className="w-10 h-10 rounded-full border border-gray-200"
             width={20}
             height={20}
           />
@@ -289,22 +289,42 @@ function AddLinkButton({
   exceededUsage: boolean;
   setShowAddLinkModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  return !domainVerified ? (
-    <Tooltip content="You can only start adding links after your project domain is configured.">
-      <div className="text-gray-300 cursor-not-allowed font-medium text-sm px-5 py-2 border rounded-md border-gray-200 dark:border-gray-600 transition-all duration-75">
+  const router = useRouter();
+  const { slug } = router.query as { slug?: string };
+
+  return !domainVerified && slug ? (
+    <Tooltip
+      content={
+        <TooltipContent
+          title="This domain is not correctly configured. Please configure your domain to
+start adding links."
+          cta="Configure Domain"
+          ctaLink={`/${slug}/settings`}
+        />
+      }
+    >
+      <div className="text-gray-300 cursor-not-allowed font-medium text-sm px-5 py-2 border rounded-md border-gray-200 transition-all duration-75">
         Add
       </div>
     </Tooltip>
-  ) : exceededUsage ? (
-    <Tooltip content="You have exceeded your usage limit. We're still collecting data on your existing links, but you need to upgrade to add more links.">
-      <div className="text-gray-300 cursor-not-allowed font-medium text-sm px-5 py-2 border rounded-md border-gray-200 dark:border-gray-600 transition-all duration-75">
+  ) : exceededUsage && slug ? (
+    <Tooltip
+      content={
+        <TooltipContent
+          title="You have exceeded your usage limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
+          cta="Upgrade"
+          ctaLink={`/${slug}/settings`}
+        />
+      }
+    >
+      <div className="text-gray-300 cursor-not-allowed font-medium text-sm px-5 py-2 border rounded-md border-gray-200 transition-all duration-75">
         Add
       </div>
     </Tooltip>
   ) : (
     <button
       onClick={() => setShowAddLinkModal(true)}
-      className="text-gray-500 hover:border-black dark:hover:border-white active:scale-95 font-medium text-sm px-5 py-2 border rounded-md border-gray-200 dark:border-gray-600 transition-all duration-75"
+      className="text-gray-500 hover:border-black active:scale-95 font-medium text-sm px-5 py-2 border rounded-md border-gray-200 transition-all duration-75"
     >
       Add
     </button>

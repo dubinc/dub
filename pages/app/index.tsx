@@ -21,7 +21,7 @@ export default function App() {
             <h1 className="text-2xl text-gray-600">My Projects</h1>
             <button
               onClick={() => setShowAddProjectModal(true)}
-              className="text-gray-500 hover:border-black dark:hover:border-white active:scale-95 font-medium text-sm px-5 py-2 border rounded-md border-gray-200 dark:border-gray-600 transition-all duration-75"
+              className="text-gray-500 hover:border-black active:scale-95 font-medium text-sm px-5 py-2 border rounded-md border-gray-200 transition-all duration-75"
             >
               Add
             </button>

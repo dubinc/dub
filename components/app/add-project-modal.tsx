@@ -83,7 +83,7 @@ function AddProjectModalHelper({
           <BlurImage
             src={`/static/logo.png`}
             alt={"dub.sh"}
-            className="w-10 h-10 rounded-full border border-gray-200 dark:border-gray-600"
+            className="w-10 h-10 rounded-full border border-gray-200"
             width={20}
             height={20}
           />

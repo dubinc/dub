@@ -31,11 +31,11 @@ export default function Locations({ data: rawData }: { data: StatsProps }) {
 
   return (
     <div
-      className="relative bg-white dark:bg-black px-7 py-5 shadow-lg dark:shadow-none rounded-lg border border-gray-100 dark:border-gray-600 h-[420px] overflow-scroll scrollbar-hide"
+      className="relative bg-white px-7 py-5 shadow-lg rounded-lg border border-gray-100 h-[420px] overflow-scroll scrollbar-hide"
       onScroll={handleScroll}
     >
       <div className="mb-5 flex justify-between">
-        <h1 className="text-xl dark:text-white font-semibold">Locations</h1>
+        <h1 className="text-xl font-semibold">Locations</h1>
         <BadgeSelect
           options={["country", "city"]}
           selected={tab}
@@ -60,29 +60,25 @@ export default function Locations({ data: rawData }: { data: StatsProps }) {
                       src={`https://flag.vercel.app/m/${code}.svg`}
                       className="w-5 h-3"
                     />
-                    <p className="text-gray-800 dark:text-gray-200 text-sm">
-                      {display}
-                    </p>
+                    <p className="text-gray-800 text-sm">{display}</p>
                   </span>
                   <motion.div
                     style={{
                       width: `${(count / data.totalClicks) * 100}%`,
                     }}
-                    className="bg-orange-100 dark:bg-orange-900 absolute h-8 origin-left"
+                    className="bg-orange-100 absolute h-8 origin-left"
                     transition={{ ease: "easeOut", duration: 0.3 }}
                     initial={{ transform: "scaleX(0)" }}
                     animate={{ transform: "scaleX(1)" }}
                   />
                 </div>
-                <p className="text-gray-600 dark:text-gray-400 text-sm z-10">
+                <p className="text-gray-600 text-sm z-10">
                   {nFormatter(count)}
                 </p>
               </div>
             ))
           ) : (
-            <p className="text-gray-600 dark:text-gray-400 text-sm">
-              No data available
-            </p>
+            <p className="text-gray-600 text-sm">No data available</p>
           )
         ) : (
           <LoadingDots color="#71717A" />
@@ -98,7 +94,7 @@ export default function Locations({ data: rawData }: { data: StatsProps }) {
               transition: { type: "linear", duration: 0.2 },
             }}
             exit={{ opacity: 0, y: 50, transition: { duration: 0 } }}
-            className="absolute w-full h-8 flex justify-center items-center bottom-0 left-0 right-0 bg-gradient-to-b from-white to-gray-100 dark:from-transparent dark:to-[#060606] text-sm text-gray-500 dark:text-gray-400"
+            className="absolute w-full h-8 flex justify-center items-center bottom-0 left-0 right-0 bg-gradient-to-b from-white to-gray-100 text-sm text-gray-500"
           >
             Show more
           </motion.div>
