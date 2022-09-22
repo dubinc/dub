@@ -46,7 +46,13 @@ export default function Home({ stars }: { stars: number }) {
 
 export async function getStaticProps() {
   const { stargazers_count: stars } = await fetch(
-    "https://api.github.com/repos/steven-tey/dub"
+    "https://api.github.com/repos/steven-tey/dub",
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.GITHUB_OAUTH_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+    }
   ).then((res) => res.json());
 
   return {
