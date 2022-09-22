@@ -3,13 +3,13 @@ export default function Logo({ className }: { className: string }) {
     <svg
       width="191"
       height="191"
-      fill="none"
+      fill="currentColor"
       viewBox="0 0 191 191"
       className={className}
     >
       <g clipPath="url(#clip0_36_30)">
         <path
-          fill="#000"
+          fill="currentColor"
           d="M191 95.5c0 52.743-42.757 95.5-95.5 95.5S0 148.243 0 95.5 42.757 0 95.5 0 191 42.757 191 95.5z"
         ></path>
         <mask
@@ -22,7 +22,7 @@ export default function Logo({ className }: { className: string }) {
           maskUnits="userSpaceOnUse"
         >
           <path
-            fill="#000"
+            fill="currentColor"
             d="M191 95.5c0 52.743-42.757 95.5-95.5 95.5S0 148.243 0 95.5 42.757 0 95.5 0 191 42.757 191 95.5z"
           ></path>
         </mask>

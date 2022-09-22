@@ -103,7 +103,7 @@ const Features = ({ stars }: { stars: number }) => {
               review, or contribute to it however you want!
             </p>
             <a
-              href="https://dub.sh/github"
+              href="https://github.com/steven-tey/dub"
               target="_blank"
               rel="noreferrer"
               className="rounded-full px-4 py-1.5 bg-black text-white hover:bg-white hover:text-black text-sm border border-black block max-w-fit transition-all"
@@ -115,7 +115,7 @@ const Features = ({ stars }: { stars: number }) => {
           <div className="flex items-center justify-center rounded-2xl w-full max-w-[700px] bg-gray-900 h-96">
             <div className="flex items-center">
               <a
-                href="https://dub.sh/github"
+                href="https://github.com/steven-tey/dub"
                 target="_blank"
                 rel="noreferrer"
                 className="flex items-center space-x-2 p-4 h-10 rounded-md bg-gray-800 border border-gray-600"

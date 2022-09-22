@@ -45,7 +45,7 @@ const pricingItems = [
 
 const Pricing = () => {
   return (
-    <MaxWidthWrapper className="my-20 text-center">
+    <MaxWidthWrapper className="mt-20 mb-40 text-center">
       <div className="max-w-sm sm:max-w-md mx-auto my-10">
         <h2 className="text-4xl sm:text-5xl font-display font-extrabold text-black">
           Simple,{" "}

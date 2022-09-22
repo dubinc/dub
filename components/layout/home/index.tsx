@@ -3,6 +3,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Meta from "../meta";
 import Image from "next/future/image";
+import Footer from "@/components/home/footer";
 
 export default function HomeLayout({ children }: { children: ReactNode }) {
   const { data: session } = useSession();
@@ -44,6 +45,7 @@ export default function HomeLayout({ children }: { children: ReactNode }) {
         </div>
       </div>
       {children}
+      <Footer />
     </div>
   );
 }

@@ -7,7 +7,6 @@ import Demo from "@/components/home/demo";
 import Globe from "@/components/home/globe";
 import Features from "@/components/home/features";
 import Pricing from "@/components/home/pricing";
-import Footer from "@/components/home/footer";
 
 export default function Home({ stars }: { stars: number }) {
   const router = useRouter();
@@ -41,7 +40,6 @@ export default function Home({ stars }: { stars: number }) {
       <Globe />
       <Features stars={stars} />
       <Pricing />
-      <Footer />
     </HomeLayout>
   );
 }
