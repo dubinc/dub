@@ -22,3 +22,5 @@ export { default as PlusCircle } from "./plus-circle";
 export { default as Link } from "./link";
 export { default as Infinity } from "./infinity";
 export { default as Drag } from "./drag";
+export { default as Airplay } from "./airplay";
+export { default as UploadCloud } from "./upload-cloud";
