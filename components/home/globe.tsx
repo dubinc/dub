@@ -12,6 +12,9 @@ interface MarkerProps {
   size: number;
 }
 
+// Maybe dynamic based on device type?
+const DPR = 1;
+
 export default function Globe({ hostname }: { hostname?: string }) {
   const { data: markers } = useSWR<MarkerProps[]>(
     `/api/edge/coordinates${hostname ? `?hostname=${hostname}` : ""}`,
@@ -40,9 +43,12 @@ export default function Globe({ hostname }: { hostname?: string }) {
     window.addEventListener("resize", onResize);
     onResize();
     const globe = createGlobe(canvasRef.current, {
-      devicePixelRatio: 2,
-      width: width * 2,
-      height: width * 2,
+      context: {
+        antialias: false,
+      },
+      devicePixelRatio: DPR,
+      width: width * DPR,
+      height: width * DPR,
       phi: 0,
       theta: 0.3,
       dark: 0,
@@ -59,8 +65,8 @@ export default function Globe({ hostname }: { hostname?: string }) {
         // `state` will be an empty object, return updated params.
         phi += 0.002;
         state.phi = phi + r.get();
-        state.width = width * 2;
-        state.height = width * 2;
+        state.width = width * DPR;
+        state.height = width * DPR;
       },
     });
     setTimeout(() => (canvasRef.current.style.opacity = "1"));
