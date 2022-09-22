@@ -9,8 +9,9 @@ export const config = {
 export default async function handler(req: NextRequest) {
   if (req.method === "GET") {
     const numPoints = 30;
+    const hostname = req.nextUrl.searchParams.get("hostname");
     const rawData = await redis.zrange<RawStatsProps[]>(
-      "dub.sh:clicks:github",
+      hostname ? `${hostname}:root:clicks` : "dub.sh:clicks:github",
       0,
       numPoints,
       { rev: true }

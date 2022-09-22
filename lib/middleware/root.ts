@@ -21,7 +21,7 @@ export default function RootMiddleware(req: NextRequest, ev: NextFetchEvent) {
     return NextResponse.next();
   } else {
     const url = req.nextUrl;
-    url.pathname = "/placeholder"; // rewrite to a /placeholder page unless the user defines a site to redirect to
+    url.pathname = `/placeholder/${hostname}`; // rewrite to a /placeholder page unless the user defines a site to redirect to
     return NextResponse.rewrite(url);
   }
 }

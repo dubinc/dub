@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/router";
-import { useStatsModal } from "@/components/stats/stats-modal";
 import createGlobe from "cobe";
 import { useSpring } from "react-spring";
 import useSWR from "swr";
@@ -14,13 +12,9 @@ interface MarkerProps {
   size: number;
 }
 
-export default function Globe() {
-  const router = useRouter();
-  const { key: stats } = router.query;
-  const { setShowStatsModal } = useStatsModal();
-
+export default function Globe({ hostname }: { hostname?: string }) {
   const { data: markers } = useSWR<MarkerProps[]>(
-    "/api/edge/coordinates",
+    `/api/edge/coordinates${hostname ? `?hostname=${hostname}` : ""}`,
     fetcher
   );
 
@@ -83,7 +77,7 @@ export default function Globe() {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             exit={{ scale: 0 }}
-            className="group absolute left-0 right-0 mx-auto z-10 max-w-sm px-5 py-7 rounded-md bg-white border border-gray-200 shadow-md bg-opacity-90 backdrop-blur-md"
+            className="group absolute left-0 right-0 mx-auto z-10 max-w-sm px-5 py-4 sm:py-7 rounded-md bg-white border border-gray-200 shadow-md bg-opacity-90 backdrop-blur-md"
           >
             <button
               className="visible sm:invisible group-hover:visible absolute top-0 right-0 p-1 m-3 rounded-full float-right group hover:bg-gray-100 focus:outline-none active:scale-75 transition-all duration-75"
@@ -92,29 +86,33 @@ export default function Globe() {
             >
               <X className="w-4 h-4" />
             </button>
-            <Drag className="h-12 w-12 mx-auto mb-4 text-gray-700 animate-wiggle" />
+            <Drag className="h-12 w-12 mx-auto mb-2 sm:mb-4 text-gray-700 animate-wiggle" />
             <p className="text-center text-gray-700 text-sm sm:text-base">
               This map shows the locations of the last 30 clicks on{" "}
               <a
                 className="text-blue-800 font-semibold"
-                href="https://dub.sh/github"
+                href={
+                  hostname ? `https://${hostname}` : "https://dub.sh/github"
+                }
                 target="_blank"
                 rel="noreferrer"
               >
-                dub.sh/github
+                {hostname || "dub.sh/github"}
               </a>{" "}
               in real time.
             </p>
-            <Link
-              href={{ pathname: "/", query: { key: "github" } }}
-              as="/stats/github"
-              shallow
-              scroll={false}
-            >
-              <a className="rounded-full px-4 py-1.5 bg-black text-white hover:bg-white hover:text-black text-sm border border-black mx-auto mt-3 block max-w-fit">
-                View all stats
-              </a>
-            </Link>
+            {!hostname && (
+              <Link
+                href={{ pathname: "/", query: { key: "github" } }}
+                as="/stats/github"
+                shallow
+                scroll={false}
+              >
+                <a className="rounded-full px-4 py-1.5 bg-black text-white hover:bg-white hover:text-black text-sm border border-black mx-auto mt-2 sm:mt-4 block max-w-fit">
+                  View all stats
+                </a>
+              </Link>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

@@ -33,11 +33,7 @@ const pricingItems = [
     plan: "Enterprise",
     tagline: "For businesses with custom needs",
     price: "Custom",
-    features: [
-      "Free custom domains",
-      "Unlimited links",
-      "Unlimited link clicks",
-    ],
+    features: ["Unlimited links", "Unlimited link clicks", "SSO/SAML"],
     cta: "Contact us",
     ctaLink: "mailto:steven@dub.sh?subject=Interested%20in%20Dub%20Enterprise",
   },

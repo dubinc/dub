@@ -8,7 +8,7 @@ import Footer from "@/components/home/footer";
 export default function HomeLayout({ children }: { children: ReactNode }) {
   const { data: session } = useSession();
   return (
-    <div>
+    <div className="min-h-screen flex flex-col justify-between">
       <Meta />
       <div className="bg-white z-20">
         <div className="max-w-screen-xl mx-auto px-5 sm:px-20">

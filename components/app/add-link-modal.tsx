@@ -324,7 +324,7 @@ start adding links."
   ) : (
     <button
       onClick={() => setShowAddLinkModal(true)}
-      className="text-gray-500 hover:border-black active:scale-95 font-medium text-sm px-5 py-2 border rounded-md border-gray-200 transition-all duration-75"
+      className="text-white hover:text-black bg-black hover:bg-white active:scale-95 font-medium text-sm px-5 py-2 border rounded-md border-black transition-all duration-75"
     >
       Add
     </button>
