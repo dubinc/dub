@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { CheckCircleFill } from "@/components/shared/icons";
+import { CheckCircleFill, QuestionCircle } from "@/components/shared/icons";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import CountingNumbers from "@/components/shared/counting-numbers";
+import Tooltip from "@/components/shared/tooltip";
 
 const pricingItems = [
   {
@@ -9,9 +10,13 @@ const pricingItems = [
     tagline: "For startups & side projects",
     price: 0,
     features: [
-      "Free custom domains",
-      "Unlimited links",
-      "Up to 1K link clicks/month",
+      { text: "Free custom domains" },
+      { text: "Unlimited links" },
+      {
+        text: "Up to 1K link clicks/mo",
+        footnote:
+          "After that, your existing links will still work and we will still collect data on them, but you need to upgrade to view their stats / add more links.",
+      },
     ],
     cta: "Start for free",
     ctaLink: "https://app.dub.sh/register",
@@ -22,9 +27,13 @@ const pricingItems = [
     isPopular: true,
     price: 99,
     features: [
-      "Free custom domains",
-      "Unlimited links",
-      "Up to 1M link clicks/month",
+      { text: "Free custom domains" },
+      { text: "Unlimited links" },
+      {
+        text: "Up to 1M link clicks/mo",
+        footnote:
+          "After that, your existing links will still work and we will still collect data on them, but you need to upgrade to view their stats / add more links.",
+      },
     ],
     cta: "Get started",
     ctaLink: "https://app.dub.sh/register",
@@ -33,7 +42,11 @@ const pricingItems = [
     plan: "Enterprise",
     tagline: "For businesses with custom needs",
     price: "Custom",
-    features: ["Unlimited links", "Unlimited link clicks", "SSO/SAML"],
+    features: [
+      { text: "Unlimited links" },
+      { text: "Unlimited link clicks" },
+      { text: "SSO/SAML" },
+    ],
     cta: "Contact us",
     ctaLink: "mailto:steven@dub.sh?subject=Interested%20in%20Dub%20Enterprise",
   },
@@ -98,7 +111,18 @@ const Pricing = () => {
                     <div className="flex-shrink-0">
                       <CheckCircleFill className="w-6 h-6 text-green-500" />
                     </div>
-                    <p className="text-gray-600">{feature}</p>
+                    {feature.footnote ? (
+                      <div className="flex items-center">
+                        <p className="text-gray-600">{feature.text}</p>
+                        <Tooltip content={feature.footnote}>
+                          <div className="flex justify-center w-8 h-4">
+                            <QuestionCircle className="w-4 h-4 text-gray-600" />
+                          </div>
+                        </Tooltip>
+                      </div>
+                    ) : (
+                      <p className="text-gray-600">{feature.text}</p>
+                    )}
                   </li>
                 ))}
               </ul>
