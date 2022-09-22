@@ -20,7 +20,7 @@ export default withProjectAuth(
             ? "https://app.dub.sh"
             : "http://app.localhost:3000"
         }/${slug}/settings`,
-        line_items: [{ price: "price_1Lis30AlJJEpqkPVAuSVxbT1", quantity: 1 }],
+        line_items: [{ price: process.env.STRIPE_PRO_PRICE_ID, quantity: 1 }],
         mode: "subscription",
         client_reference_id: slug,
       });
