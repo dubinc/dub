@@ -40,7 +40,7 @@ export default function Toggle({
     <div
       className={`z-10 mb-5 ${
         pageType === "stats" ? "top-0" : "top-24"
-      } sticky p-5 bg-gray-50 ${atTop ? "shadow-md" : ""}`}
+      } sticky p-5 ${atTop ? "shadow-md" : ""}`}
     >
       <div className="max-w-4xl mx-auto flex justify-between items-center">
         <a
