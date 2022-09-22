@@ -19,6 +19,11 @@ export const RESERVED_KEYS = [
   "stats",
   "placeholder",
   "blog",
+  "careers",
+  "features",
+  "contact",
+  "terms",
+  "privacy",
 ];
 
 export const COUNTRIES: { [key: string]: string } = {
