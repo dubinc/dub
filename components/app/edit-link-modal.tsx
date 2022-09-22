@@ -190,7 +190,7 @@ function EditLinkModalHelper({
                 required
                 minRows={3}
                 className="border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500 pr-10 block w-full rounded-md focus:outline-none sm:text-sm"
-                placeholder="Dub - an open-source link shortener with built-in analytics + free custom domains."
+                placeholder="Dub - an open-source link shortener SaaS with built-in analytics + free custom domains."
                 value={title}
                 onChange={(e) => {
                   setData({ ...data, title: e.target.value });

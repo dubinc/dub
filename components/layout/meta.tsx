@@ -8,7 +8,7 @@ export default function Meta() {
       <title>Dub - Open-Source Bitly Alternative</title>
       <meta
         name="description"
-        content="An open-source link shortener with built-in analytics and free custom domains."
+        content="An open-source link shortener SaaS with built-in analytics and free custom domains."
       />
       <link
         rel="apple-touch-icon"
@@ -53,7 +53,7 @@ export default function Meta() {
       />
       <meta
         name="twitter:description"
-        content="An open-source link shortener with built-in analytics and free custom domains."
+        content="An open-source link shortener SaaS with built-in analytics and free custom domains."
       />
       <meta
         name="twitter:image"
