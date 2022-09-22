@@ -51,7 +51,7 @@ export async function getStaticProps() {
 
   return {
     props: {
-      stars: stars || 420,
+      stars,
     },
     revalidate: 10,
   };
