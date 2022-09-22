@@ -31,7 +31,6 @@ export default function ProjectLinks() {
     if (usage && project) {
       return usage > project?.usageLimit;
     }
-    return true; // assume exceeded usage until we know otherwise (not ideal tho :/)
   }, [usage, project]);
 
   const { AddLinkModal, AddLinkButton } = useAddLinkModal({
