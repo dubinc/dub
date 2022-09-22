@@ -17,10 +17,10 @@ export default function CountingNumbers({
   duration?: number;
 }) {
   const [number, setNumber] = useState(start);
-  const increment =
-    value < duration / interval
-      ? 1
-      : Math.floor(Math.abs(start - value) / (duration / interval));
+  let increment = Math.floor(Math.abs(start - value) / (duration / interval));
+  if (increment === 0) {
+    increment = 1;
+  }
   const ref = useRef(null);
   const isInView = useInView(ref);
 
