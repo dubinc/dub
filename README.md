@@ -47,7 +47,7 @@ You can deploy your own hosted version of Dub for greater privacy & control. Jus
 - [Tailwind](https://tailwindcss.com/) – CSS
 - [Upstash](https://upstash.com/) – database
 - [NextAuth.js](https://next-auth.js.org/) – auth
-- [Verce](https://vercel.com/) – hosting
+- [Vercel](https://vercel.com/) – hosting
 - [Stripe](https://stripe.com/) – payments
 
 ## Implementation
