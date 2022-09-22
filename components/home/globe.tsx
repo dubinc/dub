@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import createGlobe from "cobe";
 import { useSpring } from "react-spring";
@@ -86,7 +86,7 @@ export default function Globe({ hostname }: { hostname?: string }) {
             >
               <X className="w-4 h-4" />
             </button>
-            <Drag className="h-12 w-12 mx-auto mb-2 sm:mb-4 text-gray-700 animate-wiggle" />
+            <Drag className="h-12 w-12 mx-auto mb-2 sm:mb-4 text-gray-700" />
             <p className="text-center text-gray-700 text-sm sm:text-base">
               This map shows the locations of the last 30 clicks on{" "}
               <a
