@@ -134,9 +134,9 @@ export default function LinkCard({
               shallow
               scroll={false}
             >
-              <a className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 hover:scale-105 active:scale-95 transition-all duration-75">
+              <a className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 hover:scale-105 active:scale-95 transition-all duration-75 text-gray-700">
                 <Chart className="w-4 h-4" />
-                <p className="text-sm text-gray-500">
+                <p className="text-sm">
                   {isValidating || !clicks ? (
                     <LoadingDots color="#71717A" />
                   ) : (

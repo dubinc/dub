@@ -4,7 +4,9 @@ import HomeLayout from "@/components/layout/home";
 export default function StatsPage() {
   return (
     <HomeLayout>
-      <Stats />
+      <div className="bg-gray-50">
+        <Stats />
+      </div>
     </HomeLayout>
   );
 }

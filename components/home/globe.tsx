@@ -84,6 +84,7 @@ export default function Globe({ hostname }: { hostname?: string }) {
               autoFocus={false}
               onClick={() => setShowModal(false)}
             >
+              <span className="sr-only">Spin Globe</span>
               <X className="w-4 h-4" />
             </button>
             <Drag className="h-12 w-12 mx-auto mb-2 sm:mb-4 text-gray-700" />
