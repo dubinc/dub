@@ -1,3 +1,4 @@
+import PlausibleProvider from "next-plausible";
 import { SessionProvider } from "next-auth/react";
 import type { Session } from "next-auth";
 import "@/styles/globals.css";
@@ -8,9 +9,11 @@ function MyApp({
   pageProps: { session, ...pageProps },
 }: AppProps<{ session: Session }>) {
   return (
-    <SessionProvider session={session}>
-      <Component {...pageProps} />
-    </SessionProvider>
+    <PlausibleProvider domain="dub.sh">
+      <SessionProvider session={session}>
+        <Component {...pageProps} />
+      </SessionProvider>
+    </PlausibleProvider>
   );
 }
 
