@@ -135,6 +135,13 @@ export async function getLinkCountForProject(slug: string) {
   return await redis.zcard(`${slug}:links:timestamps`);
 }
 
+export async function getLinkClicksCount(hostname: string, key: string) {
+  const start = Date.now() - 2629746000; // 30 days ago
+  return (
+    (await redis.zcount(`${hostname}:clicks:${key}`, start, Date.now())) || "0"
+  );
+}
+
 export async function addLink(
   hostname: string,
   url: string,
