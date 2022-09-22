@@ -2,12 +2,12 @@ import HomeLayout from "@/components/layout/home";
 import { useCallback, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useStatsModal } from "@/components/stats/stats-modal";
-import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import Hero from "@/components/home/hero";
 import Demo from "@/components/home/demo";
 import Globe from "@/components/home/globe";
 import Features from "@/components/home/features";
 import Pricing from "@/components/home/pricing";
+import Footer from "@/components/home/footer";
 
 export default function Home({ stars }: { stars: number }) {
   const router = useRouter();
@@ -45,14 +45,6 @@ export default function Home({ stars }: { stars: number }) {
     </HomeLayout>
   );
 }
-
-const Footer = () => {
-  return (
-    <div className="border-t border-gray-200 h-20">
-      <MaxWidthWrapper>Footer</MaxWidthWrapper>
-    </div>
-  );
-};
 
 export async function getStaticProps() {
   const { stargazers_count: stars } = await fetch(
