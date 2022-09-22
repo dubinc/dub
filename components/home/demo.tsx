@@ -14,7 +14,7 @@ const Demo = () => {
   const [hashes, setHashes] = useLocalStorage<SimpleLinkProps[]>("hashes", []);
 
   return (
-    <div className="max-w-md mx-auto sm:px-0 px-2.5">
+    <div className="max-w-md w-full mx-auto sm:px-0 px-2.5">
       <Toaster />
       <form
         onSubmit={async (e) => {
