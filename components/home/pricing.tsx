@@ -10,7 +10,11 @@ const pricingItems = [
     tagline: "For startups & side projects",
     price: 0,
     features: [
-      { text: "Free custom domains" },
+      {
+        text: "Free custom domains",
+        footnote:
+          "Just bring any domain you own and turn it into a custom domain link shortener for free.",
+      },
       { text: "Unlimited links" },
       {
         text: "Up to 1K link clicks/mo",
@@ -27,7 +31,11 @@ const pricingItems = [
     isPopular: true,
     price: 99,
     features: [
-      { text: "Free custom domains" },
+      {
+        text: "Free custom domains",
+        footnote:
+          "Just bring any domain you own and turn it into a custom domain link shortener for free.",
+      },
       { text: "Unlimited links" },
       {
         text: "Up to 1M link clicks/mo",

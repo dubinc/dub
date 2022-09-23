@@ -12,9 +12,6 @@ interface MarkerProps {
   size: number;
 }
 
-// Maybe dynamic based on device type?
-const DPR = 1;
-
 export default function Globe({ hostname }: { hostname?: string }) {
   const { data: markers } = useSWR<MarkerProps[]>(
     `/api/edge/coordinates${hostname ? `?hostname=${hostname}` : ""}`,
@@ -24,6 +21,22 @@ export default function Globe({ hostname }: { hostname?: string }) {
   const canvasRef = useRef<any>();
   const pointerInteracting = useRef(null);
   const pointerInteractionMovement = useRef(0);
+
+  // Dynamic DPR based on # of GPUs to reduce GPU load for slower devices
+  const [DPR, setDPR] = useState(0.5);
+
+  useEffect(() => {
+    const cores = window.navigator.hardwareConcurrency;
+    if (cores) {
+      if (cores >= 8) {
+        setDPR(1);
+      } else if (cores >= 6) {
+        setDPR(0.8);
+      } else if (cores >= 4) {
+        setDPR(0.65);
+      }
+    }
+  });
 
   const [{ r }, api] = useSpring(() => ({
     r: 0,
