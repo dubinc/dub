@@ -7,7 +7,6 @@ import { escape } from "html-escaper";
 export default function LinkPage({ url, title, description, image }) {
   return (
     <Head>
-      <meta name="description" content={escape(description)} />
       <meta property="og:title" content={escape(title)} />
       <meta property="og:site_name" content={escape(url)} />
       <meta property="og:description" content={escape(description)} />
