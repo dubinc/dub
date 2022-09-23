@@ -28,11 +28,15 @@ export async function setKey(
   hostname: string,
   key: string,
   url: string,
-  title?: string
+  title?: string,
+  description?: string, // only for Pro users: customize description
+  image?: string // only for Pro users: customize OG image
 ) {
   return await redis.hsetnx(`${hostname}:links`, key, {
     url,
     title: title || (await getTitleFromUrl(url)),
+    description,
+    image,
     timestamp: Date.now(),
   });
 }
@@ -147,14 +151,16 @@ export async function addLink(
   url: string,
   key?: string, // if key is provided, it will be used
   title?: string, // if title is provided, it will be used
+  description?: string, // only for Pro users: customize description
+  image?: string, // only for Pro users: customize OG image
   userId?: string // only applicable for dub.sh links
 ) {
   if (hostname === "dub.sh" && key && RESERVED_KEYS.includes(key)) {
     return null; // reserved keys for dub.sh
   }
   const response = key
-    ? await setKey(hostname, key, url, title)
-    : await setRandomKey(hostname, url, title);
+    ? await setKey(hostname, key, url, title, description, image)
+    : await setRandomKey(hostname, url, title); // not possible to add description and image for random keys (only for dub.sh landing page input)
 
   if (response === 1) {
     return await redis.zadd(

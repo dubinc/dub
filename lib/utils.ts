@@ -86,6 +86,28 @@ export const getTitleFromUrl = async (url: string) => {
   return title;
 };
 
+export const getDescriptionFromUrl = async (url: string) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 2000); // timeout if it takes longer than 2 seconds
+  const description = await fetch(url, { signal: controller.signal })
+    .then((res) => {
+      clearTimeout(timeoutId);
+      return res.text();
+    })
+    .then((body: string) => {
+      let match = body.match(/<meta name="description" content="(.*?)"\/>/g); // regular expression to parse contents of the description meta tag
+      if (!match || typeof match[0] !== "string") return "No description found"; // if no title found, return "No title found"
+      let description = match[0].match(/content="(.*)"\/>/).pop();
+      if (!description) return "No description found";
+      return description;
+    })
+    .catch((err) => {
+      console.log(err);
+      return "No description found"; // if there's an error, return "No title found"
+    });
+  return description;
+};
+
 export const timeAgo = (timestamp: number): string => {
   if (!timestamp) return "never";
   return `${ms(Date.now() - timestamp)} ago`;

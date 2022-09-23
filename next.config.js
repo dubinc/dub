@@ -7,6 +7,7 @@ module.exports = {
       "avatar.tobi.sh",
       "faisalman.github.io",
       "avatars.dicebear.com",
+      "res.cloudinary.com",
     ],
   },
 };

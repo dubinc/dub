@@ -4,17 +4,10 @@ import Globe from "@/components/home/globe";
 import { ParsedUrlQuery } from "querystring";
 import { GetStaticProps } from "next";
 
-export default function Placeholder({ hostname }: { hostname: string }) {
+export default function Placeholder({ domain }: { domain: string }) {
   return (
     <HomeLayout>
-      {/* <MaxWidthWrapper>
-        <div className="mt-36 text-center">
-          <h1 className="font-display font-semibold text-3xl text-gray-700">
-            This is a custom domain from Dub.sh
-          </h1>
-        </div>
-      </MaxWidthWrapper> */}
-      <Globe hostname={hostname} />
+      <Globe hostname={domain} />
     </HomeLayout>
   );
 }
@@ -24,8 +17,8 @@ interface Params extends ParsedUrlQuery {
 
 export const getStaticPaths = async () => {
   const paths = [
-    { params: { hostname: [] } },
-    { params: { hostname: ["stey.me"] } },
+    { params: { domain: [] } },
+    { params: { domain: ["stey.me"] } },
   ];
   return {
     paths,
@@ -34,10 +27,10 @@ export const getStaticPaths = async () => {
 };
 
 export const getStaticProps: GetStaticProps = async (context) => {
-  const { hostname } = context.params as Params;
+  const { domain } = context.params as Params;
   return {
     props: {
-      hostname: hostname ? hostname[0] : "dub.sh",
+      domain: domain ? domain[0] : "dub.sh",
     },
   };
 };

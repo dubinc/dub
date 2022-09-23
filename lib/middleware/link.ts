@@ -7,7 +7,7 @@ import { Redis } from "@upstash/redis";
 
 const ratelimit = new Ratelimit({
   redis: Redis.fromEnv(),
-  limiter: Ratelimit.slidingWindow(10, "10 s"),
+  limiter: Ratelimit.slidingWindow(10, "60 s"),
 });
 
 export default async function LinkMiddleware(
@@ -34,11 +34,20 @@ export default async function LinkMiddleware(
       `${hostname}:links`,
       key
     );
-    const target = response?.url;
+    const { url: target, description, image } = response || {};
 
     if (target) {
+      const isBot =
+        url.searchParams.get("bot") ||
+        /bot/i.test(req.headers.get("user-agent"));
+
       ev.waitUntil(recordClick(hostname, req, key)); // increment click count
-      res = NextResponse.redirect(target);
+
+      if (image && description && isBot) {
+        res = NextResponse.rewrite(`https://dub.sh/proxy/${hostname}/${key}`);
+      } else {
+        res = NextResponse.redirect(target);
+      }
     } else {
       url.pathname = "/";
       res = NextResponse.redirect(url);
