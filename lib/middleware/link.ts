@@ -35,6 +35,13 @@ export default async function LinkMiddleware(
       key
     );
     const { url: target, description, image } = response || {};
+    console.log(
+      "LOGGING",
+      target,
+      description,
+      image,
+      req.headers.get("user-agent")
+    );
 
     if (target) {
       const isBot =

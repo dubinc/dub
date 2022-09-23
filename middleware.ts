@@ -5,7 +5,7 @@ import {
   RootMiddleware,
 } from "@/lib/middleware";
 import { parse } from "@/lib/middleware/utils";
-import { RESERVED_KEYS } from "@/lib/constants";
+import { HOME_HOSTNAMES, RESERVED_KEYS } from "@/lib/constants";
 
 export const config = {
   matcher: [
@@ -22,10 +22,7 @@ export const config = {
 
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   const { hostname, key } = parse(req);
-  const home =
-    hostname === "dub.sh" ||
-    hostname === "preview.dub.sh" ||
-    hostname === "localhost:3000";
+  const home = HOME_HOSTNAMES.includes(hostname);
   const app = hostname === "app.dub.sh" || hostname === "app.localhost:3000";
 
   if (app) {

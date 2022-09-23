@@ -13,6 +13,13 @@ export const FRAMER_MOTION_LIST_ITEM_VARIANTS = {
   show: { scale: 1, opacity: 1, transition: { type: "spring" } },
 };
 
+export const HOME_HOSTNAMES = [
+  // comment for better diffs
+  "dub.sh",
+  "preview.dub.sh",
+  "localhost:3000",
+];
+
 export const RESERVED_KEYS = [
   "pricing",
   "about",
