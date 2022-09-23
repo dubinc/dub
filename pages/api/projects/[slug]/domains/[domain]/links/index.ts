@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { addLink, getLinksForProject } from "@/lib/upstash";
 import { withProjectAuth } from "@/lib/auth";
+import cloudinary from "cloudinary";
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {
@@ -14,6 +15,14 @@ export default withProjectAuth(
       let { key, url, title, description, image } = req.body;
       if (!domain || !url) {
         return res.status(400).json({ error: "Missing domain or url" });
+      }
+      if (image) {
+        const { secure_url } = await cloudinary.v2.uploader.upload(image, {
+          folder: domain,
+          overwrite: true,
+          invalidate: true,
+        });
+        image = secure_url;
       }
       const response = await addLink(
         domain,

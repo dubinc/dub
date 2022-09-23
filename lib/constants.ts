@@ -29,6 +29,7 @@ export const RESERVED_KEYS = [
   "new",
   "info",
   "demo",
+  "proxy",
 ];
 
 export const COUNTRIES: { [key: string]: string } = {

@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { getTitleFromUrl } from "@/lib/utils";
+import { getDescriptionFromUrl } from "@/lib/utils";
 
 export const config = {
   runtime: "experimental-edge",
@@ -11,8 +11,8 @@ export default async function handler(req: NextRequest) {
     if (!url) {
       return new Response("Missing url", { status: 400 });
     }
-    const title = await getTitleFromUrl(url);
-    return new Response(JSON.stringify(title), { status: 200 });
+    const description = await getDescriptionFromUrl(url);
+    return new Response(JSON.stringify(description), { status: 200 });
   } else {
     return new Response(`Method ${req.method} Not Allowed`, { status: 405 });
   }

@@ -15,6 +15,7 @@ import {
   LoadingCircle,
   AlertCircleFill,
   ChevronRight,
+  UploadCloud,
 } from "@/components/shared/icons";
 import { useDebounce } from "use-debounce";
 import TextareaAutosize from "react-textarea-autosize";
@@ -311,13 +312,26 @@ function AdvancedSettings({ data, setData, debouncedUrl }) {
       fetch(`/api/edge/description?url=${debouncedUrl}`).then(async (res) => {
         if (res.status === 200) {
           const results = await res.json();
-          setData((prev) => ({ ...prev, title: results }));
+          setData((prev) => ({ ...prev, description: results }));
           setGeneratingDescription(false);
         }
       });
     },
     [debouncedUrl]
   );
+
+  const onChangePicture = useCallback(
+    (e) => {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setData((prev) => ({ ...prev, image: e.target.result }));
+      };
+      reader.readAsDataURL(file);
+    },
+    [setData]
+  );
+  console.log(image);
 
   return (
     <div>
@@ -335,7 +349,7 @@ function AdvancedSettings({ data, setData, debouncedUrl }) {
       </button>
 
       {expanded && (
-        <div className="mt-4">
+        <div className="mt-4 grid gap-5">
           <div>
             <div className="flex justify-between items-center">
               <label
@@ -372,6 +386,39 @@ function AdvancedSettings({ data, setData, debouncedUrl }) {
                   setData({ ...data, description: e.target.value });
                 }}
                 aria-invalid="true"
+              />
+            </div>
+          </div>
+
+          <div>
+            <p className="block text-sm font-medium text-gray-700">OG Image</p>
+            <label
+              htmlFor="image"
+              className="group flex flex-col justify-center items-center mt-1 h-[10.5rem] cursor-pointer rounded-md border border-gray-300 bg-white hover:bg-gray-50 shadow-sm transition-all"
+            >
+              {image ? (
+                <img
+                  src={image}
+                  alt="Preview"
+                  className="object-cover h-full w-full rounded-md hover:brightness-95 transition-all"
+                />
+              ) : (
+                <>
+                  <UploadCloud className="h-7 w-7 text-gray-500 group-hover:scale-110 group-active:scale-95 transition-all duration-75" />
+                  <p className="text-gray-500 text-sm mt-2">
+                    Recommended: 1200 x 627 pixels
+                  </p>
+                  <span className="sr-only">OG Image upload</span>
+                </>
+              )}
+            </label>
+            <div className="flex mt-1 rounded-md shadow-sm">
+              <input
+                id="image"
+                name="image"
+                type="file"
+                className="sr-only"
+                onChange={onChangePicture}
               />
             </div>
           </div>

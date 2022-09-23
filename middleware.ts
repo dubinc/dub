@@ -22,7 +22,10 @@ export const config = {
 
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   const { hostname, key } = parse(req);
-  const home = hostname === "dub.sh" || hostname === "localhost:3000";
+  const home =
+    hostname === "dub.sh" ||
+    hostname === "preview.dub.sh" ||
+    hostname === "localhost:3000";
   const app = hostname === "app.dub.sh" || hostname === "app.localhost:3000";
 
   if (app) {
