@@ -1,5 +1,6 @@
 {
   "private": false,
+  "license": "AGPL-3.0-or-later",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
