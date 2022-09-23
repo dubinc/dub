@@ -11,11 +11,18 @@ export default withProjectAuth(
       // POST /api/links – create a new link
     } else if (req.method === "POST") {
       const { domain } = req.query as { domain: string };
-      let { key, url, title } = req.body;
+      let { key, url, title, description, image } = req.body;
       if (!domain || !url) {
         return res.status(400).json({ error: "Missing domain or url" });
       }
-      const response = await addLink(domain, url, key, title);
+      const response = await addLink(
+        domain,
+        url,
+        key,
+        title,
+        description,
+        image
+      );
       if (response === null) {
         return res.status(400).json({ error: "Key already exists" });
       }

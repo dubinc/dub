@@ -8,6 +8,8 @@ export interface LinkProps {
   url: string;
   title: string;
   timestamp: number;
+  description?: string;
+  image?: string;
 }
 
 export interface ProjectProps {

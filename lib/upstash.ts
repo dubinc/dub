@@ -147,6 +147,8 @@ export async function addLink(
   url: string,
   key?: string, // if key is provided, it will be used
   title?: string, // if title is provided, it will be used
+  description?: string,
+  image?: string,
   userId?: string // only applicable for dub.sh links
 ) {
   if (hostname === "dub.sh" && key && RESERVED_KEYS.includes(key)) {

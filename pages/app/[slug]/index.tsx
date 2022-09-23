@@ -1,42 +1,19 @@
 import AppLayout from "components/layout/app";
-import { useRouter } from "next/router";
-import useSWR from "swr";
-import { fetcher } from "@/lib/utils";
 import { useMemo } from "react";
-import { ProjectProps } from "@/lib/types";
+import useProject from "@/lib/swr/use-project";
+import useUsage from "@/lib/swr/use-usage";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import { useAddLinkModal } from "@/components/app/add-link-modal";
 import LinksContainer from "@/components/app/links-container";
 import ErrorPage from "next/error";
 
 export default function ProjectLinks() {
-  const router = useRouter();
-  const { slug } = router.query as {
-    slug: string;
-  };
-
-  const { data: project, error } = useSWR<ProjectProps>(
-    router.isReady && `/api/projects/${slug}`,
-    fetcher
-  );
-
-  const { data: usage } = useSWR(
-    router.isReady &&
-      project &&
-      `/api/projects/${slug}/domains/${project.domain}/usage`,
-    fetcher
-  );
-
-  const exceededUsage = useMemo(() => {
-    if (usage && project) {
-      return usage > project?.usageLimit;
-    }
-  }, [usage, project]);
+  const { project, error } = useProject();
+  const { exceededUsage } = useUsage(project);
 
   const { AddLinkModal, AddLinkButton } = useAddLinkModal({
     domainVerified: project?.domainVerified,
     exceededUsage,
-    domain: project?.domain,
   });
 
   // handle error page

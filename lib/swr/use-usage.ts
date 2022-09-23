@@ -1,0 +1,33 @@
+import useSWR from "swr";
+import { useMemo } from "react";
+import { fetcher } from "@/lib/utils";
+import { useRouter } from "next/router";
+import { ProjectProps } from "@/lib/types";
+
+export default function useUsage(project: ProjectProps) {
+  const router = useRouter();
+
+  const { slug } = router.query as {
+    slug: string;
+  };
+
+  const { data: usage, error } = useSWR(
+    router.isReady &&
+      project &&
+      `/api/projects/${slug}/domains/${project.domain}/usage`,
+    fetcher
+  );
+
+  const exceededUsage = useMemo(() => {
+    if (usage && project) {
+      return usage > project?.usageLimit;
+    }
+  }, [usage, project]);
+
+  return {
+    usage,
+    exceededUsage,
+    loading: !error && !usage,
+    error,
+  };
+}
