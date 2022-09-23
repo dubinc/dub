@@ -24,6 +24,11 @@ export const RESERVED_KEYS = [
   "contact",
   "terms",
   "privacy",
+  "admin",
+  "help",
+  "new",
+  "info",
+  "demo",
 ];
 
 export const COUNTRIES: { [key: string]: string } = {
