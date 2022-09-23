@@ -44,8 +44,9 @@ export default async function LinkMiddleware(
       ev.waitUntil(recordClick(hostname, req, key)); // increment click count
 
       if (image && description && isBot) {
-        url.pathname = `/proxy/${hostname}/${key}`;
-        res = NextResponse.rewrite(url);
+        res = NextResponse.rewrite(
+          `https://preview.dub.sh/proxy/${hostname}/${key}`
+        );
       } else {
         res = NextResponse.redirect(target);
       }
