@@ -11,7 +11,6 @@ export default function LinkPage({ url, title, description, image }) {
       <meta property="og:site_name" content={escape(url)} />
       <meta property="og:description" content={escape(description)} />
       <meta property="og:image" content={escape(image)} />
-      <meta property="og:url" content={escape(url)} />
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:site" content={escape(url)} />
       <meta name="twitter:title" content={escape(title)} />
