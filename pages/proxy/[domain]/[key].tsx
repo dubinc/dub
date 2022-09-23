@@ -2,16 +2,17 @@ export const config = { runtime: "experimental-edge" };
 import { redis } from "@/lib/upstash";
 import { LinkProps } from "@/lib/types";
 import Head from "next/head";
+import { escape } from "html-escaper";
 
 export default function LinkPage({ url, title, description, image }) {
   return (
     <Head>
-      <meta property="og:title" content={title} />
-      <meta property="og:site_name" content={url} />
-      <meta property="og:description" content={description} />
+      <meta property="og:title" content={escape(title)} />
+      <meta property="og:site_name" content={escape(url)} />
+      <meta property="og:description" content={escape(description)} />
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:site" content={url} />
-      <meta property="og:image" content={image} />
+      <meta name="twitter:site" content={escape(url)} />
+      <meta property="og:image" content={escape(image)} />
     </Head>
   );
 }
