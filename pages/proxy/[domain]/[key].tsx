@@ -38,9 +38,11 @@ export async function getServerSideProps(ctx) {
     };
   }
 
+  const hostname = new URL(url).hostname;
+
   return {
     props: {
-      url,
+      url: hostname,
       title,
       description,
       image,
