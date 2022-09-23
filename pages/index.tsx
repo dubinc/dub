@@ -48,16 +48,19 @@ export async function getStaticProps() {
   const { stargazers_count: stars } = await fetch(
     "https://api.github.com/repos/steven-tey/dub",
     {
-      headers: {
-        Authorization: `Bearer ${process.env.GITHUB_OAUTH_TOKEN}`,
-        "Content-Type": "application/json",
-      },
+      // optional – feel free to remove if you don't want to display star count
+      ...(process.env.GITHUB_OAUTH_TOKEN && {
+        headers: {
+          Authorization: `Bearer ${process.env.GITHUB_OAUTH_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      }),
     }
   ).then((res) => res.json());
 
   return {
     props: {
-      stars,
+      stars: stars || 0,
     },
     revalidate: 10,
   };
