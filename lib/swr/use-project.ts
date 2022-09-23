@@ -11,7 +11,7 @@ export default function useProject() {
   };
 
   const { data: project, error } = useSWR<ProjectProps>(
-    router.isReady && `/api/projects/${slug}`,
+    slug && `/api/projects/${slug}`,
     fetcher
   );
 

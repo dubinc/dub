@@ -45,8 +45,6 @@ function AddLinkModal({
     url: "",
     title: "",
     timestamp: Date.now(),
-    description: "",
-    image: "",
   });
   const { key, url, title } = data;
 
@@ -331,7 +329,6 @@ function AdvancedSettings({ data, setData, debouncedUrl }) {
     },
     [setData]
   );
-  console.log(image);
 
   return (
     <div>

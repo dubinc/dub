@@ -23,7 +23,15 @@ export default async function handler(
     if (!url) {
       return res.status(400).json({ error: "Missing url" });
     }
-    const response = await addLink("dub.sh", url, key, title, session.user.id);
+    const response = await addLink(
+      "dub.sh",
+      url,
+      key,
+      title,
+      undefined,
+      undefined,
+      session.user.id
+    );
     if (response === null) {
       return res.status(400).json({ error: "Key already exists" });
     }
