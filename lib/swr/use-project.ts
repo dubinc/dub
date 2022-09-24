@@ -12,7 +12,10 @@ export default function useProject() {
 
   const { data: project, error } = useSWR<ProjectProps>(
     slug && `/api/projects/${slug}`,
-    fetcher
+    fetcher,
+    {
+      dedupingInterval: 30000,
+    }
   );
 
   return {

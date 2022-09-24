@@ -15,7 +15,10 @@ export default function useUsage(project: ProjectProps) {
     router.isReady &&
       project &&
       `/api/projects/${slug}/domains/${project.domain}/usage`,
-    fetcher
+    fetcher,
+    {
+      dedupingInterval: 10000,
+    }
   );
 
   const exceededUsage = useMemo(() => {
