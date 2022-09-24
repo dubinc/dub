@@ -163,6 +163,7 @@ function AddProjectModalHelper({
                 id="slug"
                 type="text"
                 required
+                pattern="[a-zA-Z0-9\-]+"
                 className={`${
                   slugError
                     ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
