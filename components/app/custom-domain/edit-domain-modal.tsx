@@ -13,20 +13,20 @@ import LoadingDots from "@/components/shared/icons/loading-dots";
 import { AlertCircleFill } from "@/components/shared/icons";
 import { useDebounce } from "use-debounce";
 import { mutate } from "swr";
+import useProject from "@/lib/swr/use-project";
 
-function EditDomainModalHelper({
+function EditDomainModal({
   showEditDomainModal,
   setShowEditDomainModal,
-  domain,
 }: {
   showEditDomainModal: boolean;
   setShowEditDomainModal: Dispatch<SetStateAction<boolean>>;
-  domain: string;
 }) {
   const router = useRouter();
   const { slug } = router.query;
   const [saving, setSaving] = useState(false);
   const [domainError, setDomainError] = useState(null);
+  const { project: { domain } = {} } = useProject();
 
   const [data, setData] = useState(domain);
 
@@ -189,21 +189,23 @@ function EditDomainModalHelper({
   );
 }
 
-export function useEditDomainModal({ domain }: { domain: string }) {
+export function useEditDomainModal() {
   const [showEditDomainModal, setShowEditDomainModal] = useState(false);
 
-  const EditDomainModal = useCallback(() => {
+  const EditDomainModalCallback = useCallback(() => {
     return (
-      <EditDomainModalHelper
+      <EditDomainModal
         showEditDomainModal={showEditDomainModal}
         setShowEditDomainModal={setShowEditDomainModal}
-        domain={domain}
       />
     );
-  }, [showEditDomainModal, setShowEditDomainModal, domain]);
+  }, [showEditDomainModal, setShowEditDomainModal]);
 
   return useMemo(
-    () => ({ setShowEditDomainModal, EditDomainModal }),
-    [setShowEditDomainModal, EditDomainModal]
+    () => ({
+      setShowEditDomainModal,
+      EditDomainModal: EditDomainModalCallback,
+    }),
+    [setShowEditDomainModal, EditDomainModalCallback]
   );
 }

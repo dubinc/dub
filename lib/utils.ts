@@ -1,5 +1,6 @@
 import ms from "ms";
 import { ccTLDs } from "./constants";
+import { LinkProps } from "./types";
 
 interface SWRError extends Error {
   status: number;
@@ -143,6 +144,6 @@ export const generateSlugFromName = (name: string) => {
   return `${shortestString}.sh`;
 };
 
-export const domainRegex = new RegExp(
+export const validDomainRegex = new RegExp(
   "^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$"
 );

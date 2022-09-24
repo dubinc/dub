@@ -6,7 +6,7 @@ import { GetStaticProps } from "next";
 
 export default function Placeholder({ domain }: { domain: string }) {
   return (
-    <HomeLayout>
+    <HomeLayout domain={domain}>
       <Globe hostname={domain} />
     </HomeLayout>
   );

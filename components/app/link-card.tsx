@@ -6,24 +6,23 @@ import useSWR from "swr";
 import { fetcher, nFormatter, linkConstructor, timeAgo } from "@/lib/utils";
 import Link from "next/link";
 import { LinkProps } from "@/lib/types";
-import { useEditLinkModal } from "./edit-link-modal";
 import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
+import useProject from "@/lib/swr/use-project";
+import useUsage from "@/lib/swr/use-usage";
+import { useAddEditLinkModal } from "./add-link-modal";
+import { useDeleteLinkModal } from "./delete-link-modal";
 
-export default function LinkCard({
-  props,
-  exceededUsage,
-  domain,
-}: {
-  props: LinkProps;
-  exceededUsage: boolean;
-  domain?: string;
-}) {
+export default function LinkCard({ props }: { props: LinkProps }) {
   const { key, url, title, timestamp } = props;
 
   const urlHostname = url ? new URL(url).hostname : "";
 
   const router = useRouter();
   const { slug } = router.query as { slug: string };
+
+  const { project } = useProject();
+  const { domain } = project || {};
+  const { exceededUsage } = useUsage(project);
 
   const { data: clicks, isValidating } = useSWR<string>(
     domain
@@ -32,14 +31,18 @@ export default function LinkCard({
     fetcher
   );
 
-  const { setShowEditLinkModal, EditLinkModal } = useEditLinkModal({
+  const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal({
     props,
-    domain,
+  });
+
+  const { setShowDeleteLinkModal, DeleteLinkModal } = useDeleteLinkModal({
+    props,
   });
 
   return (
     <li className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-5 sm:space-y-0 border border-gray-200 bg-white p-4 rounded-md transition-all">
-      <EditLinkModal />
+      <AddEditLinkModal />
+      <DeleteLinkModal />
       <div className="relative flex items-center space-x-4">
         <BlurImage
           src={`https://logo.clearbit.com/${urlHostname}`}
@@ -96,12 +99,18 @@ export default function LinkCard({
           </Tooltip>
         ) : (
           <button
-            onClick={() => setShowEditLinkModal(true)}
+            onClick={() => setShowAddEditLinkModal(true)}
             className="font-medium text-sm text-gray-500 px-5 py-2 border rounded-md border-gray-200 hover:border-black active:scale-95 transition-all duration-75"
           >
             Edit
           </button>
         )}
+        <button
+          onClick={() => setShowDeleteLinkModal(true)}
+          className="font-medium text-sm text-white bg-red-600 hover:bg-white hover:text-red-600 border-red-600 px-5 py-2 border rounded-md active:scale-95 transition-all duration-75"
+        >
+          Delete
+        </button>
       </div>
     </li>
   );

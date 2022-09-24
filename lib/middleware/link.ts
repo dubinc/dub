@@ -1,6 +1,6 @@
 import { NextRequest, NextFetchEvent, NextResponse } from "next/server";
 import { redis, recordClick } from "@/lib/upstash";
-import { parse } from "@/lib/middleware/utils";
+import { parse, detectBot } from "@/lib/middleware/utils";
 import { LinkProps } from "../types";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
@@ -37,9 +37,7 @@ export default async function LinkMiddleware(
     const { url: target, description, image } = response || {};
 
     if (target) {
-      const isBot =
-        url.searchParams.get("bot") ||
-        /bot/i.test(req.headers.get("user-agent"));
+      const isBot = detectBot(req);
 
       ev.waitUntil(recordClick(hostname, req, key)); // increment click count
 

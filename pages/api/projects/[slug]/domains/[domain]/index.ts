@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { withProjectAuth } from "@/lib/auth";
 import { changeDomain } from "@/lib/upstash";
-import { domainRegex } from "@/lib/utils";
+import { validDomainRegex } from "@/lib/utils";
 import { addDomain, removeDomain } from "@/lib/domains";
 
 export default withProjectAuth(
@@ -11,7 +11,9 @@ export default withProjectAuth(
       const { slug, domain } = req.query as { slug: string; domain: string }; // slug is the domain
       const newDomain = req.body;
 
-      const validDomain = domainRegex.test(newDomain);
+      const validDomain =
+        validDomainRegex.test(newDomain) && !newDomain.endsWith(".dub.sh");
+
       if (!validDomain) {
         return res.status(422).json({
           domainError: "Invalid domain",

@@ -1,9 +1,9 @@
 import BlurImage from "@/components/shared/blur-image";
 
 export default function NoLinksPlaceholder({
-  AddLinkButton,
+  AddEditLinkButton,
 }: {
-  AddLinkButton: () => JSX.Element;
+  AddEditLinkButton: () => JSX.Element;
 }) {
   return (
     <div className="border border-gray-200 rounded-md bg-white py-12 flex flex-col justify-center items-center">
@@ -18,7 +18,7 @@ export default function NoLinksPlaceholder({
         className="-my-8"
       />
       <div className="z-10">
-        <AddLinkButton />
+        <AddEditLinkButton />
       </div>
     </div>
   );

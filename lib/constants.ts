@@ -13,17 +13,18 @@ export const FRAMER_MOTION_LIST_ITEM_VARIANTS = {
   show: { scale: 1, opacity: 1, transition: { type: "spring" } },
 };
 
-export const HOME_HOSTNAMES = [
+export const HOME_HOSTNAMES = new Set([
   // comment for better diffs
   "dub.sh",
   "preview.dub.sh",
   "localhost:3000",
-];
+]);
 
-export const RESERVED_KEYS = [
+export const RESERVED_KEYS = new Set([
+  "stats",
+  "proxy",
   "pricing",
   "about",
-  "stats",
   "placeholder",
   "blog",
   "careers",
@@ -36,8 +37,18 @@ export const RESERVED_KEYS = [
   "new",
   "info",
   "demo",
-  "proxy",
-];
+]);
+
+export const DEFAULT_REDIRECTS = {
+  home: "https://dub.sh",
+  signin: "https://app.dub.sh/login",
+  login: "https://app.dub.sh/login",
+  register: "https://app.dub.sh/register",
+  signup: "https://app.dub.sh/register",
+  app: "https://app.dub.sh",
+  dashboard: "https://app.dub.sh",
+  links: "https://app.dub.sh/links",
+};
 
 export const COUNTRIES: { [key: string]: string } = {
   AF: "Afghanistan",

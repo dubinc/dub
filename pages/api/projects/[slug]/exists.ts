@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { RESERVED_KEYS, DEFAULT_REDIRECTS } from "@/lib/constants";
 
 export default async function handler(
   req: NextApiRequest,
@@ -13,6 +14,9 @@ export default async function handler(
 
   // GET /api/projects/[slug]/exists – check if a project exists
   if (req.method === "GET") {
+    if (RESERVED_KEYS.has(slug) || DEFAULT_REDIRECTS[slug]) {
+      return res.status(200).json(1);
+    }
     const project = await prisma.project.findUnique({
       where: {
         slug,

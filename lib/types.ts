@@ -7,7 +7,7 @@ export interface LinkProps {
   key: string;
   url: string;
   title: string;
-  timestamp: number;
+  timestamp?: number;
   description?: string;
   image?: string;
 }

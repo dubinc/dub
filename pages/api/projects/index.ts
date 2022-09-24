@@ -1,8 +1,9 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { domainRegex } from "@/lib/utils";
+import { validDomainRegex } from "@/lib/utils";
 import { addDomain, removeDomain } from "@/lib/domains";
+import { RESERVED_KEYS, DEFAULT_REDIRECTS } from "@/lib/constants";
 
 export default async function handler(
   req: NextApiRequest,
@@ -30,11 +31,14 @@ export default async function handler(
     if (!name || !slug || !domain) {
       return res.status(422).json({ error: "Missing name or slug or domain" });
     }
-    const slugError =
-      slug.includes(" ") || slug.includes(".")
-        ? "Slug cannot contain spaces or periods"
-        : null;
-    const validDomain = domainRegex.test(domain);
+    let slugError = null;
+    if (slug.includes(" ") || slug.includes(".")) {
+      slugError = "Slug cannot contain spaces or periods";
+    } else if (RESERVED_KEYS.has(slug) || DEFAULT_REDIRECTS[slug]) {
+      slugError = "Cannot use reserved slugs";
+    }
+    const validDomain =
+      validDomainRegex.test(domain) && !domain.endsWith(".dub.sh");
     if (slugError || !validDomain) {
       return res.status(422).json({
         slugError,
