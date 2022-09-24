@@ -18,6 +18,8 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
+  stripeId      String?  @unique // Stripe customer ID
+  lastBilled    DateTime?
   accounts      Account[]
   sessions      Session[]
   projects      ProjectUsers[]
@@ -64,10 +66,6 @@ model Project {
   slug            String   @unique
   domain          String   @unique
   domainVerified  Boolean  @default(false)
-  plan            String   @default("free")
-  usageLimit      Int      @default(1000)
-  stripeId        String?  @unique // Stripe customer ID
-  lastBilled      DateTime?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   users           ProjectUsers[]

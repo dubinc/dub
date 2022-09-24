@@ -17,10 +17,6 @@ export interface ProjectProps {
   slug: string;
   domain: string;
   domainVerified: boolean;
-  plan: string;
-  usageLimit: number;
-  stripeId?: string;
-  lastBilled: Date;
 }
 
 export type DomainVerificationStatusProps =
