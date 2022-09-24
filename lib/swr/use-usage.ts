@@ -11,7 +11,7 @@ export default function useUsage(project: ProjectProps) {
     slug: string;
   };
 
-  const { data: usage, error } = useSWR(
+  const { data: usage, error } = useSWR<number>(
     router.isReady &&
       project &&
       `/api/projects/${slug}/domains/${project.domain}/usage`,

@@ -1,13 +1,10 @@
 import AppLayout from "components/layout/app";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
-import { useAddEditLinkModal } from "@/components/app/add-link-modal";
+import { useAddEditLinkModal } from "@/components/app/add-edit-link-modal";
 import LinksContainer from "@/components/app/links-container";
 
 export default function Links() {
-  const { AddEditLinkModal, AddEditLinkButton } = useAddEditLinkModal({
-    domainVerified: true,
-    exceededUsage: false,
-  });
+  const { AddEditLinkModal, AddEditLinkButton } = useAddEditLinkModal({});
 
   return (
     <AppLayout>
@@ -20,10 +17,7 @@ export default function Links() {
           </div>
         </MaxWidthWrapper>
       </div>
-      <LinksContainer
-        exceededUsage={false}
-        AddEditLinkButton={AddEditLinkButton}
-      />
+      <LinksContainer AddEditLinkButton={AddEditLinkButton} />
     </AppLayout>
   );
 }

@@ -1,7 +1,7 @@
 import AppLayout from "components/layout/app";
 import useProject from "@/lib/swr/use-project";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
-import { useAddEditLinkModal } from "@/components/app/add-link-modal";
+import { useAddEditLinkModal } from "@/components/app/add-edit-link-modal";
 import LinksContainer from "@/components/app/links-container";
 import ErrorPage from "next/error";
 
