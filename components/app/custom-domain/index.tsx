@@ -12,10 +12,12 @@ import {
 import { useEditDomainModal } from "./edit-domain-modal";
 import { DomainVerificationStatusProps } from "@/lib/types";
 import DomainConfiguration from "./domain-configuration";
+import useProject from "@/lib/swr/use-project";
 
-export default function CustomDomain({ domain }: { domain: string }) {
+export default function CustomDomain() {
   const router = useRouter();
   const { slug } = router.query as { slug: string };
+  const { project: { domain } = {} } = useProject();
 
   const { data, isValidating } = useSWR<{
     status: DomainVerificationStatusProps;
@@ -29,9 +31,7 @@ export default function CustomDomain({ domain }: { domain: string }) {
     }
   );
 
-  const { setShowEditDomainModal, EditDomainModal } = useEditDomainModal({
-    domain,
-  });
+  const { setShowEditDomainModal, EditDomainModal } = useEditDomainModal();
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 py-10">

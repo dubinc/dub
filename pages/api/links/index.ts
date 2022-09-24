@@ -1,7 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { getLinksForProject, addLink } from "@/lib/upstash";
 import { getSession } from "@/lib/auth";
-import { RESERVED_KEYS } from "@/lib/constants";
 
 // This is a special route for creating custom dub.sh links.
 
@@ -25,13 +24,10 @@ export default async function handler(
     }
     const response = await addLink(
       "dub.sh",
-      url,
-      key,
-      title,
-      undefined,
-      undefined,
+      { url, key, title },
       session.user.id
     );
+
     if (response === null) {
       return res.status(400).json({ error: "Key already exists" });
     }

@@ -12,15 +12,15 @@ import {
 } from "@/components/shared/icons";
 import { motion } from "framer-motion";
 import { getStripe } from "@/lib/stripe/client";
+import useProject from "@/lib/swr/use-project";
+import useUsage from "@/lib/swr/use-usage";
 
-export default function PlanUsage({ project }: { project: ProjectProps }) {
+export default function PlanUsage() {
   const router = useRouter();
   const { slug } = router.query as { slug: string };
 
-  const { data: usage } = useSWR<number>(
-    project && `/api/projects/${slug}/domains/${project.domain}/usage`,
-    fetcher
-  );
+  const { project } = useProject();
+  const { usage } = useUsage(project);
 
   const { data: linkCount } = useSWR<number>(
     project && `/api/projects/${slug}/domains/${project.domain}/links/count`,

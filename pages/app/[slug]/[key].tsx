@@ -1,9 +1,7 @@
 import Stats from "@/components/stats";
 import AppLayout from "@/components/layout/app";
 import { useRouter } from "next/router";
-import useSWR from "swr";
-import { fetcher } from "@/lib/utils";
-import { ProjectProps } from "@/lib/types";
+import useProject from "@/lib/swr/use-project";
 import ErrorPage from "next/error";
 
 export default function StatsPage() {
@@ -12,10 +10,8 @@ export default function StatsPage() {
     slug: string;
   };
 
-  const { data: project, error } = useSWR<ProjectProps>(
-    router.isReady && `/api/projects/${slug}`,
-    fetcher
-  );
+  const { project, error } = useProject();
+
   // handle error page
   if (error && error.status === 404) {
     return <ErrorPage statusCode={404} />;

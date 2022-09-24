@@ -10,6 +10,7 @@ import {
 import { useRouter } from "next/router";
 import BlurImage from "@/components/shared/blur-image";
 import { LinkProps } from "@/lib/types";
+import { linkConstructor } from "@/lib/utils";
 import {
   LoadingDots,
   LoadingCircle,
@@ -22,13 +23,16 @@ import TextareaAutosize from "react-textarea-autosize";
 import { mutate } from "swr";
 import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 import useProject from "@/lib/swr/use-project";
+import useUsage from "@/lib/swr/use-usage";
 
-function AddLinkModal({
-  showAddLinkModal,
-  setShowAddLinkModal,
+function AddEditLinkModal({
+  showAddEditLinkModal,
+  setShowAddEditLinkModal,
+  props,
 }: {
-  showAddLinkModal: boolean;
-  setShowAddLinkModal: Dispatch<SetStateAction<boolean>>;
+  showAddEditLinkModal: boolean;
+  setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
+  props?: LinkProps;
 }) {
   const router = useRouter();
   const { slug } = router.query as { slug: string };
@@ -40,17 +44,37 @@ function AddLinkModal({
   const [generatingTitle, setGeneratingTitle] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const [data, setData] = useState<LinkProps>({
-    key: "",
-    url: "",
-    title: "",
-    timestamp: Date.now(),
-  });
+  const [data, setData] = useState<LinkProps>(
+    props || {
+      key: "",
+      url: "",
+      title: "",
+    }
+  );
   const { key, url, title } = data;
+
+  const heroProps = useMemo(() => {
+    if (props?.url) {
+      const urlHostname = new URL(props.url).hostname;
+      return {
+        avatar: `https://logo.clearbit.com/${urlHostname}`,
+        copy: `Edit ${linkConstructor({
+          key: props.key,
+          domain,
+          pretty: true,
+        })}`,
+      };
+    } else {
+      return {
+        avatar: "/static/logo.png",
+        copy: "Add a new link",
+      };
+    }
+  }, [props]);
 
   const [debouncedKey] = useDebounce(key, 500);
   useEffect(() => {
-    if (debouncedKey.length > 0) {
+    if (debouncedKey.length > 0 && debouncedKey !== props?.key) {
       fetch(
         domain
           ? `/api/projects/${slug}/domains/${domain}/links/${debouncedKey}/exists`
@@ -98,36 +122,52 @@ function AddLinkModal({
     [debouncedUrl]
   );
 
+  const endpoint = useMemo(() => {
+    if (props?.key) {
+      return {
+        method: "PUT",
+        url: domain
+          ? `/api/projects/${slug}/domains/${domain}/links/${props.key}`
+          : `/api/links/${props.key}`,
+      };
+    } else {
+      return {
+        method: "POST",
+        url: domain
+          ? `/api/projects/${slug}/domains/${domain}/links`
+          : `/api/links`,
+      };
+    }
+  }, [props]);
+
   return (
-    <Modal showModal={showAddLinkModal} setShowModal={setShowAddLinkModal}>
+    <Modal
+      showModal={showAddEditLinkModal}
+      setShowModal={setShowAddEditLinkModal}
+    >
       <div className="inline-block w-full max-w-md overflow-hidden align-middle transition-all transform bg-white shadow-xl rounded-2xl">
         <div className="flex flex-col justify-center items-center space-y-3 sm:px-16 px-4 pt-8 py-4 border-b border-gray-200">
           <BlurImage
-            src={`/static/logo.png`}
-            alt={"dub.sh"}
+            src={heroProps.avatar}
+            alt={heroProps.copy}
             className="w-10 h-10 rounded-full border border-gray-200"
             width={20}
             height={20}
           />
-          <h3 className="font-medium text-lg">Add a new link</h3>
+          <h3 className="font-medium text-lg">{heroProps.copy}</h3>
         </div>
 
         <form
           onSubmit={async (e) => {
             e.preventDefault();
             setSaving(true);
-            fetch(
-              domain
-                ? `/api/projects/${slug}/domains/${domain}/links`
-                : `/api/links`,
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify(data),
-              }
-            )
+            fetch(endpoint.url, {
+              method: endpoint.method,
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(data),
+            })
               .then((res) => {
                 setSaving(false);
                 if (res.status === 200) {
@@ -136,7 +176,7 @@ function AddLinkModal({
                       ? `/api/projects/${slug}/domains/${domain}/links`
                       : `/api/links`
                   );
-                  setShowAddLinkModal(false);
+                  setShowAddEditLinkModal(false);
                 }
               })
               .catch(() => {
@@ -174,6 +214,7 @@ function AddLinkModal({
                 id="key"
                 required
                 autoFocus={false}
+                pattern="[a-zA-Z0-9\-]+"
                 className={`${
                   keyExistsError
                     ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
@@ -283,7 +324,11 @@ function AddLinkModal({
                 : "bg-black hover:bg-white hover:text-black border-black text-white"
             } flex justify-center items-center w-full text-sm h-10 rounded-md border transition-all focus:outline-none`}
           >
-            {saving ? <LoadingDots color="#808080" /> : <p>Add link</p>}
+            {saving ? (
+              <LoadingDots color="#808080" />
+            ) : (
+              <p>{props ? "Save changes" : "Add link"}</p>
+            )}
           </button>
         </form>
       </div>
@@ -298,7 +343,7 @@ function AdvancedSettings({ data, setData, debouncedUrl }) {
   const { url, description, image } = data;
 
   useEffect(() => {
-    if (debouncedUrl.length > 0 && description.length === 0) {
+    if (debouncedUrl.length > 0 && description?.length === 0) {
       // only fetch title if user hasn't entered one
       generateTitleFromUrl(debouncedUrl);
     }
@@ -380,7 +425,11 @@ function AdvancedSettings({ data, setData, debouncedUrl }) {
                 placeholder="Dub is an open-source link shortener SaaS with built-in analytics + free custom domains."
                 value={description}
                 onChange={(e) => {
-                  setData({ ...data, description: e.target.value });
+                  setData({
+                    ...data,
+                    description:
+                      e.target.value.length > 0 ? e.target.value : undefined,
+                  });
                 }}
                 aria-invalid="true"
               />
@@ -394,11 +443,21 @@ function AdvancedSettings({ data, setData, debouncedUrl }) {
               className="group flex flex-col justify-center items-center mt-1 h-[10.5rem] cursor-pointer rounded-md border border-gray-300 bg-white hover:bg-gray-50 shadow-sm transition-all"
             >
               {image ? (
-                <img
-                  src={image}
-                  alt="Preview"
-                  className="object-cover h-full w-full rounded-md hover:brightness-95 transition-all"
-                />
+                image.startsWith("data:") ? (
+                  <img
+                    src={image}
+                    alt="Preview"
+                    className="object-cover h-full w-full rounded-md hover:brightness-95 transition-all"
+                  />
+                ) : (
+                  <BlurImage
+                    src={image}
+                    alt="Preview"
+                    width={1200}
+                    height={627}
+                    className="object-cover h-full w-full rounded-md hover:brightness-95 transition-all"
+                  />
+                )
               ) : (
                 <>
                   <UploadCloud className="h-7 w-7 text-gray-500 group-hover:scale-110 group-active:scale-95 transition-all duration-75" />
@@ -425,19 +484,18 @@ function AdvancedSettings({ data, setData, debouncedUrl }) {
   );
 }
 
-function AddLinkButton({
-  domainVerified,
-  exceededUsage,
-  setShowAddLinkModal,
+function AddEditLinkButton({
+  setShowAddEditLinkModal,
 }: {
-  domainVerified: boolean;
-  exceededUsage: boolean;
-  setShowAddLinkModal: Dispatch<SetStateAction<boolean>>;
+  setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const router = useRouter();
   const { slug } = router.query as { slug?: string };
 
-  return !domainVerified ? (
+  const { project } = useProject();
+  const { exceededUsage } = useUsage(project);
+
+  return project && !project.domainVerified ? (
     <Tooltip
       content={
         <TooltipContent
@@ -468,7 +526,7 @@ start adding links."
     </Tooltip>
   ) : (
     <button
-      onClick={() => setShowAddLinkModal(true)}
+      onClick={() => setShowAddEditLinkModal(true)}
       className="text-white hover:text-black bg-black hover:bg-white active:scale-95 font-medium text-sm px-5 py-2 border rounded-md border-black transition-all duration-75"
     >
       Add
@@ -476,40 +534,35 @@ start adding links."
   );
 }
 
-export function useAddLinkModal({
-  domainVerified,
-  exceededUsage,
-}: {
-  domainVerified: boolean;
-  exceededUsage: boolean;
-}) {
-  const [showAddLinkModal, setShowAddLinkModal] = useState(false);
+export function useAddEditLinkModal({ props }: { props?: LinkProps }) {
+  const [showAddEditLinkModal, setShowAddEditLinkModal] = useState(false);
 
-  const AddLinkModalCallback = useCallback(() => {
+  const AddEditLinkModalCallback = useCallback(() => {
     return (
-      <AddLinkModal
-        showAddLinkModal={showAddLinkModal}
-        setShowAddLinkModal={setShowAddLinkModal}
+      <AddEditLinkModal
+        showAddEditLinkModal={showAddEditLinkModal}
+        setShowAddEditLinkModal={setShowAddEditLinkModal}
+        props={props}
       />
     );
-  }, [showAddLinkModal, setShowAddLinkModal]);
+  }, [showAddEditLinkModal, setShowAddEditLinkModal, props]);
 
-  const AddLinkButtonCallback = useCallback(() => {
+  const AddEditLinkButtonCallback = useCallback(() => {
     return (
-      <AddLinkButton
-        domainVerified={domainVerified}
-        exceededUsage={exceededUsage}
-        setShowAddLinkModal={setShowAddLinkModal}
-      />
+      <AddEditLinkButton setShowAddEditLinkModal={setShowAddEditLinkModal} />
     );
-  }, [domainVerified, exceededUsage, setShowAddLinkModal]);
+  }, [setShowAddEditLinkModal]);
 
   return useMemo(
     () => ({
-      setShowAddLinkModal,
-      AddLinkModal: AddLinkModalCallback,
-      AddLinkButton: AddLinkButtonCallback,
+      setShowAddEditLinkModal,
+      AddEditLinkModal: AddEditLinkModalCallback,
+      AddEditLinkButton: AddEditLinkButtonCallback,
     }),
-    [setShowAddLinkModal, AddLinkModalCallback, AddLinkButtonCallback]
+    [
+      setShowAddEditLinkModal,
+      AddEditLinkModalCallback,
+      AddEditLinkButtonCallback,
+    ]
   );
 }

@@ -3,7 +3,7 @@ import { NextRequest, userAgent } from "next/server";
 import { LOCALHOST_GEO_DATA, RESERVED_KEYS } from "@/lib/constants";
 import { LinkProps } from "@/lib/types";
 import { customAlphabet } from "nanoid";
-import { getTitleFromUrl } from "@/lib/utils";
+import { getDescriptionFromUrl, getTitleFromUrl } from "@/lib/utils";
 
 // Initiate Redis instance
 export const redis = new Redis({
@@ -35,7 +35,8 @@ export async function setKey(
   return await redis.hsetnx(`${hostname}:links`, key, {
     url,
     title: title || (await getTitleFromUrl(url)),
-    description,
+    description:
+      image && !description ? getDescriptionFromUrl(url) : description,
     image,
     timestamp: Date.now(),
   });
@@ -70,7 +71,7 @@ export async function getRandomKey(hostname: string): Promise<string> {
 }
 
 export async function checkIfKeyExists(hostname: string, key: string) {
-  if (hostname === "dub.sh" && RESERVED_KEYS.includes(key)) {
+  if (hostname === "dub.sh" && RESERVED_KEYS.has(key)) {
     return 1; // reserved keys for dub.sh
   }
   return await redis.hexists(`${hostname}:links`, key);
@@ -148,14 +149,18 @@ export async function getLinkClicksCount(hostname: string, key: string) {
 
 export async function addLink(
   hostname: string,
-  url: string,
-  key?: string, // if key is provided, it will be used
-  title?: string, // if title is provided, it will be used
-  description?: string, // only for Pro users: customize description
-  image?: string, // only for Pro users: customize OG image
+  link: LinkProps,
   userId?: string // only applicable for dub.sh links
 ) {
-  if (hostname === "dub.sh" && key && RESERVED_KEYS.includes(key)) {
+  const {
+    key, // if key is provided, it will be used
+    url,
+    title, // if title is provided, it will be used
+    description, // only for Pro users: customize description
+    image, // only for Pro users: customize OG image
+  } = link;
+
+  if (hostname === "dub.sh" && key && RESERVED_KEYS.has(key)) {
     return null; // reserved keys for dub.sh
   }
   const response = key
@@ -179,54 +184,66 @@ export async function addLink(
  * Edit a link
  **/
 export async function editLink(
-  hostname: string,
-  key: string,
-  newKey: string,
-  url: string,
-  title: string,
-  timestamp: number,
+  domain: string,
+  oldKey: string,
+  link: LinkProps,
   userId?: string
 ) {
-  if (key === newKey) {
+  let { key, url, title, timestamp, description: rawDescription, image } = link;
+
+  // if there's an image but no description, try and auto generate one
+  const description =
+    image && !rawDescription ? getDescriptionFromUrl(url) : rawDescription;
+
+  if (oldKey === key) {
     // if key is the same, just update the url and title
-    return await redis.hset(`${hostname}:links`, {
-      [key]: { url, title, timestamp },
+    return await redis.hset(`${domain}:links`, {
+      [oldKey]: { url, title, timestamp, description, image },
     });
   } else {
     // if key is different
-    if (hostname === "dub.sh" && RESERVED_KEYS.includes(newKey)) {
+    if (domain === "dub.sh" && RESERVED_KEYS.has(key)) {
       return null; // reserved keys for dub.sh
     }
-    const keyExists = await checkIfKeyExists(hostname, newKey);
+    const keyExists = await checkIfKeyExists(domain, key);
     if (keyExists === 1) {
       return null; // key already exists
     }
-    // get number of clicks for key (we'll add it to newKey)
-    const numClicks = await redis.zcard(`${hostname}:clicks:${key}`);
+
+    // get number of clicks for oldKey (we'll add it to key)
+    const numClicks = await redis.zcard(`${domain}:clicks:${oldKey}`);
     const pipeline = redis.pipeline();
     // delete old key and add new key from hash
-    pipeline.hdel(`${hostname}:links`, key);
-    pipeline.hset(`${hostname}:links`, {
-      [newKey]: { url, title, timestamp },
+    pipeline.hdel(`${domain}:links`, oldKey);
+    pipeline.hset(`${domain}:links`, {
+      [key]: { url, title, timestamp, description, image },
     });
     // remove old key from links:timestamps and add new key (with same timestamp)
     pipeline.zrem(
-      `${hostname}:links:timestamps${userId ? `:${userId}` : ""}`,
-      key
+      `${domain}:links:timestamps${userId ? `:${userId}` : ""}`,
+      oldKey
     );
-    pipeline.zadd(`${hostname}:links:timestamps${userId ? `:${userId}` : ""}`, {
+    pipeline.zadd(`${domain}:links:timestamps${userId ? `:${userId}` : ""}`, {
       score: timestamp,
-      member: newKey,
+      member: key,
     });
     // update name for clicks:[key] (if numClicks > 0, because we don't create clicks:[key] until the first click)
     if (numClicks > 0) {
-      pipeline.rename(
-        `${hostname}:clicks:${key}`,
-        `${hostname}:clicks:${newKey}`
-      );
+      pipeline.rename(`${domain}:clicks:${oldKey}`, `${domain}:clicks:${key}`);
     }
     return await pipeline.exec();
   }
+}
+
+/**
+ * Delete a link
+ **/
+export async function deleteLink(domain: string, key: string, userId?: string) {
+  const pipeline = redis.pipeline();
+  pipeline.hdel(`${domain}:links`, key);
+  pipeline.zrem(`${domain}:links:timestamps${userId ? `:${userId}` : ""}`, key);
+  pipeline.del(`${domain}:clicks:${key}`);
+  return await pipeline.exec();
 }
 
 export async function getUsage(hostname: string, billingCycleStart?: Date) {

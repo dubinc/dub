@@ -1,32 +1,58 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { redis, editLink } from "@/lib/upstash";
+import { editLink, deleteLink } from "@/lib/upstash";
 import { withProjectAuth } from "@/lib/auth";
+import cloudinary from "cloudinary";
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {
-    if (req.method === "PUT") {
-      const { domain, key } = req.query as { domain: string; key: string };
+    const { domain, key: oldKey } = req.query as {
+      domain: string;
+      key: string;
+    };
 
-      let { key: newKey, url, title, timestamp } = req.body;
-      if (!newKey || !url || !title || !timestamp) {
+    if (req.method === "PUT") {
+      let { key, url, title, timestamp, description, image } = req.body;
+      if (!key || !url || !title || !timestamp) {
         return res
           .status(400)
           .json({ error: "Missing key or url or title or timestamp" });
       }
-      const response = await editLink(
-        domain,
+      if (image) {
+        const { secure_url } = await cloudinary.v2.uploader.upload(image, {
+          public_id: key,
+          folder: domain,
+          overwrite: true,
+          invalidate: true,
+        });
+        image = secure_url;
+        if (key !== oldKey) {
+          await cloudinary.v2.uploader.destroy(`${domain}/${oldKey}`, {
+            invalidate: true,
+          });
+        }
+      }
+      const response = await editLink(domain, oldKey, {
         key,
-        newKey,
         url,
         title,
-        timestamp
-      );
+        timestamp,
+        description,
+        image,
+      });
       if (response === null) {
         return res.status(400).json({ error: "Key already exists" });
       }
       return res.status(200).json(response);
+    } else if (req.method === "DELETE") {
+      const response = await Promise.all([
+        deleteLink(domain, oldKey),
+        cloudinary.v2.uploader.destroy(`${domain}/${oldKey}`, {
+          invalidate: true,
+        }),
+      ]);
+      return res.status(200).json(response);
     } else {
-      res.setHeader("Allow", ["PUT"]);
+      res.setHeader("Allow", ["POST", "DELETE"]);
       return res
         .status(405)
         .json({ error: `Method ${req.method} Not Allowed` });
