@@ -29,9 +29,7 @@ export default function CustomDomain({ domain }: { domain: string }) {
     }
   );
 
-  const { setShowEditDomainModal, EditDomainModal } = useEditDomainModal({
-    domain,
-  });
+  const { setShowEditDomainModal, EditDomainModal } = useEditDomainModal();
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 py-10">
