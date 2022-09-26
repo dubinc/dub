@@ -19,7 +19,7 @@ export const addDomain = async (domain: string): Promise<CustomResponse> => {
 
 export const removeDomain = async (domain: string) => {
   return await fetch(
-    `https://api.vercel.com/v9/projects/${process.env.VERCEL_PROJECT_ID}/domains/${domain}?teamId=${process.env.VERCEL_TEAM_ID}`,
+    `https://api.vercel.com/v6/domains/${domain}?teamId=${process.env.VERCEL_TEAM_ID}`,
     {
       headers: {
         Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN}`,
