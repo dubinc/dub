@@ -1,7 +1,7 @@
 import { Redis } from "@upstash/redis";
 import { NextRequest, userAgent } from "next/server";
 import { LOCALHOST_GEO_DATA, RESERVED_KEYS } from "@/lib/constants";
-import { LinkProps } from "@/lib/types";
+import { LinkProps, ProjectProps } from "@/lib/types";
 import { customAlphabet } from "nanoid";
 import { getDescriptionFromUrl, getTitleFromUrl } from "@/lib/utils";
 
@@ -246,8 +246,8 @@ export async function deleteLink(domain: string, key: string, userId?: string) {
   return await pipeline.exec();
 }
 
-export async function getUsage(hostname: string, billingCycleStart?: Date) {
-  const cachedUsage = await redis.get(`usage:${hostname}`);
+export async function getUsage(userId: string, projects: ProjectProps[]) {
+  const cachedUsage = await redis.get(`usage:${userId}`);
   if (cachedUsage) {
     return cachedUsage;
   }

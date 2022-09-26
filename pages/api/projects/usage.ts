@@ -13,7 +13,16 @@ export default async function handler(
 
   // GET /api/projects/usage – get a user's usage over all their projects
   if (req.method === "GET") {
-    const usage = await getUsage();
+    const projects = await prisma.project.findMany({
+      where: {
+        users: {
+          some: {
+            userId: session.user.id,
+          },
+        },
+      },
+    });
+    const usage = projects ? await getUsage(session.user.id, projects) : 0;
     return res.status(200).json(usage);
   } else {
     res.setHeader("Allow", ["GET"]);
