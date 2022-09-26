@@ -32,7 +32,7 @@ export default function Toggle({
     return "stats";
   }, [slug, key, router.asPath]);
 
-  const currentInterval = (interval as IntervalProps) || "7d";
+  const currentInterval = (interval as IntervalProps) || "24h";
 
   const atTop = useScroll(80) || atModalTop;
 
