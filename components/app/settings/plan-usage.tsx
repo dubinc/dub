@@ -2,7 +2,6 @@ import useSWR from "swr";
 import { useMemo, useState } from "react";
 import { fetcher, nFormatter } from "@/lib/utils";
 import { useRouter } from "next/router";
-import { ProjectProps } from "@/lib/types";
 import Tooltip from "@/components/shared/tooltip";
 import {
   Divider,

@@ -9,7 +9,7 @@ import {
   LoadingDots,
   XCircleFill,
 } from "@/components/shared/icons";
-import { useEditDomainModal } from "./edit-domain-modal";
+import { useEditDomainModal } from "../../modals/edit-domain-modal";
 import { DomainVerificationStatusProps } from "@/lib/types";
 import DomainConfiguration from "./domain-configuration";
 import useProject from "@/lib/swr/use-project";

@@ -1,6 +1,6 @@
 import AppLayout from "components/layout/app";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
-import { useAddEditLinkModal } from "@/components/app/add-edit-link-modal";
+import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal";
 import LinksContainer from "@/components/app/links-container";
 
 export default function Links() {
