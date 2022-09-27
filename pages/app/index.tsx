@@ -4,7 +4,7 @@ import useSWR from "swr";
 import { fetcher } from "@/lib/utils";
 import { ProjectProps } from "@/lib/types";
 import ProjectCard from "@/components/app/project-card";
-import { useAddProjectModal } from "@/components/app/add-project-modal";
+import { useAddProjectModal } from "@/components/app/modals/add-project-modal";
 import NoProjectsPlaceholder from "@/components/app/no-projects-placeholder";
 import ProjectCardPlaceholder from "@/components/app/project-card-placeholder";
 

@@ -92,9 +92,9 @@ export const getTimeIntervals = (
 export function processData(
   key: string,
   data: RawStatsProps[],
-  interval?: IntervalProps // if undefined, 7d is used
+  interval?: IntervalProps // if undefined, 24h is used
 ): StatsProps {
-  const { timeIntervals } = getTimeIntervals(interval || "7d");
+  const { timeIntervals } = getTimeIntervals(interval || "24h");
 
   const clicksData = timeIntervals.map((interval) => ({
     ...interval,
@@ -142,7 +142,7 @@ export function processData(
 
   return {
     key,
-    interval: interval || "7d",
+    interval: interval || "24h",
     totalClicks: data.length,
     clicksData,
     locationData,
@@ -225,9 +225,9 @@ export const processDeviceData = (
 
 export const dummyData: StatsProps = {
   key: "test",
-  interval: "7d",
+  interval: "24h",
   totalClicks: 0,
-  clicksData: getTimeIntervals("7d").timeIntervals.map((interval) => ({
+  clicksData: getTimeIntervals("24h").timeIntervals.map((interval) => ({
     ...interval,
     count: 0,
   })),

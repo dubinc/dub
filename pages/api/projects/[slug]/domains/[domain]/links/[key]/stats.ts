@@ -16,7 +16,7 @@ export default withProjectAuth(
         key: string;
         interval: IntervalProps;
       };
-      const start = Date.now() - intervalData[interval || "7d"].milliseconds;
+      const start = Date.now() - intervalData[interval || "24h"].milliseconds;
       const end = Date.now();
       const response = await redis.zrange<RawStatsProps[]>(
         `${domain}:clicks:${key}`,

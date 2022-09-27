@@ -305,3 +305,23 @@ export async function changeDomain(hostname: string, newHostname: string) {
     return null;
   }
 }
+
+export async function deleteProject(hostname: string) {
+  const keys = await redis.zrange<string[]>(
+    `${hostname}:links:timestamps`,
+    0,
+    -1
+  );
+  const pipeline = redis.pipeline();
+  pipeline.del(`${hostname}:links`);
+  pipeline.del(`${hostname}:links:timestamps`);
+  pipeline.del(`${hostname}:root:clicks`);
+  keys.forEach((key) => {
+    pipeline.del(`${hostname}:clicks:${key}`);
+  });
+  try {
+    return await pipeline.exec();
+  } catch (e) {
+    return null;
+  }
+}

@@ -68,7 +68,7 @@ const withProjectAuth =
       },
     })) as ProjectProps;
 
-    if (!project) return res.status(401).end("Unauthorized");
+    if (!project) return res.status(404).json({ error: "Project not found" });
 
     if (isWriteEditLink && req.method !== "GET") {
       if (!project.domainVerified) {

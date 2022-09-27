@@ -45,35 +45,50 @@ export default async function handler(
         domainError: validDomain ? null : "Invalid domain",
       });
     }
-    // try to add domain first, if it fails to add return an error
-    const domainResponse = await addDomain(domain);
-    if (!domainResponse.error) {
-      try {
-        const project = await prisma.project.create({
-          data: {
-            name,
-            slug,
-            domain,
-            users: {
-              create: {
-                userId: session.user.id,
-                role: "owner",
-              },
+    const [slugExist, domainExist] = await Promise.all([
+      prisma.project.findUnique({
+        where: {
+          slug,
+        },
+        select: {
+          slug: true,
+        },
+      }),
+      prisma.project.findUnique({
+        where: {
+          domain,
+        },
+        select: {
+          domain: true,
+        },
+      }),
+    ]);
+    if (slugExist || domainExist) {
+      return res.status(422).json({
+        slugError: slugExist ? "Slug is already in use." : null,
+        domainError: domainExist ? "Domain is already in use." : null,
+      });
+    }
+
+    const [prismaResponse, domainResponse] = await Promise.all([
+      prisma.project.create({
+        data: {
+          name,
+          slug,
+          domain,
+          users: {
+            create: {
+              userId: session.user.id,
+              role: "owner",
             },
           },
-        });
-        return res.status(200).json({ project, domain: domainResponse });
-      } catch (error: any) {
-        if (error.code === "P2002") {
-          await removeDomain(domain);
-          return res.status(400).json({ error: "Project slug already exists" });
-        }
-      }
-    } else {
-      return res
-        .status(422)
-        .json({ domainError: domainResponse.error.message });
-    }
+        },
+      }),
+      addDomain(domain),
+    ]);
+    return res
+      .status(200)
+      .json({ project: prismaResponse, domain: domainResponse });
   } else {
     res.setHeader("Allow", ["GET", "POST"]);
     return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
