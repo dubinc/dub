@@ -7,6 +7,7 @@ import ListBox from "./list-box";
 import UserDropdown from "./user-dropdown";
 import { useRouter } from "next/router";
 import Script from "next/script";
+import { Toaster } from "react-hot-toast";
 
 const CRISP_SCRIPT = `window.$crisp=[];window.CRISP_WEBSITE_ID="2c09b1ee-14c2-46d1-bf72-1dbb998a19e0";(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();`;
 
@@ -32,6 +33,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         }}
         strategy="lazyOnload"
       />
+      <Toaster />
       <div className="min-h-screen w-full bg-gray-50">
         <div className="sticky top-0 left-0 right-0 border-b bg-white border-gray-200 z-20">
           <div className="max-w-screen-xl mx-auto px-5 sm:px-20">
