@@ -28,9 +28,9 @@ function EditDomainModal({
   const [domainError, setDomainError] = useState(null);
   const { project: { domain } = {} } = useProject();
 
-  const [data, setData] = useState(domain);
+  const [newDomain, setNewDomain] = useState("");
 
-  const [debouncedDomain] = useDebounce(data, 500);
+  const [debouncedDomain] = useDebounce(newDomain, 500);
   useEffect(() => {
     if (debouncedDomain.length > 0 && debouncedDomain !== domain) {
       fetch(`/api/projects/${slug}/domains/${debouncedDomain}/exists`).then(
@@ -74,7 +74,7 @@ function EditDomainModal({
               headers: {
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify(data),
+              body: JSON.stringify(newDomain),
             }).then(async (res) => {
               setSaving(false);
               if (res.status === 200) {
@@ -94,16 +94,36 @@ function EditDomainModal({
         >
           <div>
             <label
-              htmlFor="key"
+              htmlFor="old-domain"
               className="block text-sm font-medium text-gray-700"
             >
-              Domain
+              Old Domain
             </label>
             <div className="relative mt-1 rounded-md shadow-sm">
               <input
                 type="text"
-                name="key"
-                id="key"
+                name="old-domain"
+                id="old-domain"
+                autoFocus={false}
+                readOnly
+                className="border-gray-300 text-gray-90 pointer-events-none pr-10 block w-full rounded-md focus:ring-0 focus:outline-none sm:text-sm"
+                value={domain}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label
+              htmlFor="new-domain"
+              className="block text-sm font-medium text-gray-700"
+            >
+              New Domain
+            </label>
+            <div className="relative mt-1 rounded-md shadow-sm">
+              <input
+                type="text"
+                name="new-domain"
+                id="new-domain"
                 required
                 autoFocus={false}
                 className={`${
@@ -111,14 +131,14 @@ function EditDomainModal({
                     ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                     : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
                 } pr-10 block w-full rounded-md focus:outline-none sm:text-sm`}
-                placeholder="github"
-                value={data}
+                placeholder="newdomain.com"
+                value={newDomain}
                 onChange={(e) => {
                   setDomainError(null);
-                  setData(e.target.value);
+                  setNewDomain(e.target.value);
                 }}
                 aria-invalid="true"
-                aria-describedby="key-error"
+                aria-describedby="domain-error"
               />
               {domainError && (
                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
