@@ -125,6 +125,7 @@ function EditDomainModal({
                 name="new-domain"
                 id="new-domain"
                 required
+                pattern="[a-zA-Z0-9\-.]+"
                 autoFocus={false}
                 className={`${
                   domainError
