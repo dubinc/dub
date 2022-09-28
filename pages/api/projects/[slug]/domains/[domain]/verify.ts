@@ -2,6 +2,11 @@ import { withProjectAuth } from "@/lib/auth";
 import { NextApiRequest, NextApiResponse } from "next";
 import { DomainVerificationStatusProps } from "@/lib/types";
 import prisma from "@/lib/prisma";
+import {
+  getConfigResponse,
+  getDomainResponse,
+  verifyDomain,
+} from "@/lib/domains";
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {
@@ -9,34 +14,19 @@ export default withProjectAuth(
       const { slug, domain } = req.query as { slug: string; domain: string };
       let status: DomainVerificationStatusProps = "Valid Configuration";
 
-      const [domainResponse, configResponse] = await Promise.all([
-        fetch(
-          `https://api.vercel.com/v9/projects/${process.env.VERCEL_PROJECT_ID}/domains/${domain}?teamId=${process.env.VERCEL_TEAM_ID}`,
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN}`,
-              "Content-Type": "application/json",
-            },
-          }
-        ),
-        fetch(
-          `https://api.vercel.com/v6/domains/${domain}/config?teamId=${process.env.VERCEL_TEAM_ID}`,
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN}`,
-              "Content-Type": "application/json",
-            },
-          }
-        ),
+      const [domainJson, configJson] = await Promise.all([
+        getDomainResponse(domain),
+        getConfigResponse(domain),
       ]);
 
-      const domainJson = await domainResponse.json();
-      const configJson = await configResponse.json();
-      if (domainResponse.status !== 200) {
+      if (domainJson?.error?.code === "not_found") {
         // domain not found on Vercel project
         status = "Domain Not Found";
+        return res
+          .status(200)
+          .json({ status, response: { configJson, domainJson } });
+      } else if (domainJson.error) {
+        status = "Unknown Error";
         return res
           .status(200)
           .json({ status, response: { configJson, domainJson } });
@@ -45,22 +35,11 @@ export default withProjectAuth(
       /**
        * If domain is not verified, we try to verify now
        */
-      let verificationResponse = null;
       if (!domainJson.verified) {
         status = "Pending Verification";
-        const verificationRes = await fetch(
-          `https://api.vercel.com/v9/projects/${process.env.VERCEL_PROJECT_ID}/domains/${domain}/verify?teamId=${process.env.VERCEL_TEAM_ID}`,
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        verificationResponse = await verificationRes.json();
+        const verificationJson = await verifyDomain(domain);
 
-        if (verificationResponse && verificationResponse.verified) {
+        if (verificationJson && verificationJson.verified) {
           /**
            * Domain was just verified
            */
@@ -72,7 +51,7 @@ export default withProjectAuth(
           response: {
             configJson,
             domainJson,
-            verificationResponse,
+            verificationJson,
           },
         });
       }
@@ -85,6 +64,7 @@ export default withProjectAuth(
           },
           data: {
             domainVerified: true,
+            domainLastChecked: new Date(),
           },
         });
       } else {
@@ -95,6 +75,7 @@ export default withProjectAuth(
           },
           data: {
             domainVerified: false,
+            domainLastChecked: new Date(),
           },
         });
       }

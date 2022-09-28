@@ -24,14 +24,3 @@
   top: 100%;
   left: 95px;
 }
-
-@media (prefers-color-scheme: dark) {
-  .tooltip {
-    background-color: black !important;
-    border: solid 1px #52525b;
-    box-shadow: none !important;
-  }
-  .tooltip::after {
-    border-top-color: #52525b;
-  }
-}

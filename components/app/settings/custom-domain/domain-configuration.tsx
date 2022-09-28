@@ -53,6 +53,14 @@ export default function DomainConfiguration({
     );
   }
 
+  if (data.status === "Unknown Error") {
+    return (
+      <div className="border-t border-gray-200 pt-5">
+        <p className="mb-5 text-sm">{data.response.domainJson.error.message}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="border-t border-gray-200 pt-5">
       <div className="flex justify-start space-x-4">

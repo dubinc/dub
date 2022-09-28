@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { SimpleLinkProps } from "@/lib/types";
 import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 import { Toaster } from "react-hot-toast";
+import { FRAMER_MOTION_LIST_ITEM_VARIANTS } from "@/lib/constants";
 
 const Demo = () => {
   const [saving, setSaving] = useState(false);
@@ -20,12 +21,15 @@ const Demo = () => {
         onSubmit={async (e) => {
           e.preventDefault();
           setSaving(true);
-          fetch(`/api/edge/links?url=${encodeURIComponent(url)}&hostname=dub.sh`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }).then(async (response) => {
+          fetch(
+            `/api/edge/links?url=${encodeURIComponent(url)}&hostname=dub.sh`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          ).then(async (response) => {
             setSaving(false);
             if (response.ok) {
               const json = await response.json();
@@ -113,6 +117,21 @@ const Demo = () => {
         {Array.from({ length: 3 - hashes.length }).map((_, i) => (
           <PlaceholderCard key={i} />
         ))}
+        <motion.li
+          variants={FRAMER_MOTION_LIST_ITEM_VARIANTS}
+          className="border border-gray-200 bg-white p-3 rounded-md text-gray-500 text-sm"
+        >
+          Note: Public links will be automatically-deleted after 7 days.{" "}
+          <a
+            href="https://app.dub.sh/register"
+            target="_blank"
+            rel="noreferrer"
+            className="text-gray-700 hover:text-black font-medium underline transition-all"
+          >
+            Create a free account
+          </a>{" "}
+          to keep your links forever.
+        </motion.li>
       </motion.ul>
     </div>
   );
