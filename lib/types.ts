@@ -23,4 +23,5 @@ export type DomainVerificationStatusProps =
   | "Valid Configuration"
   | "Invalid Configuration"
   | "Pending Verification"
-  | "Domain Not Found";
+  | "Domain Not Found"
+  | "Unknown Error";

@@ -7,7 +7,7 @@ import useSWR from "swr";
 import { fetcher } from "@/lib/utils";
 import { ProjectProps } from "@/lib/types";
 import { useSession } from "next-auth/react";
-import { useAddProjectModal } from "@/components/app/add-project-modal";
+import { useAddProjectModal } from "@/components/app/modals/add-project-modal";
 
 export default function ListBox() {
   const { data: projects } = useSWR<ProjectProps[]>("/api/projects", fetcher);

@@ -9,8 +9,8 @@ import { LinkProps } from "@/lib/types";
 import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 import useProject from "@/lib/swr/use-project";
 import useUsage from "@/lib/swr/use-usage";
-import { useAddEditLinkModal } from "./add-edit-link-modal";
-import { useDeleteLinkModal } from "./delete-link-modal";
+import { useAddEditLinkModal } from "./modals/add-edit-link-modal";
+import { useDeleteLinkModal } from "./modals/delete-link-modal";
 
 export default function LinkCard({ props }: { props: LinkProps }) {
   const { key, url, title, timestamp } = props;

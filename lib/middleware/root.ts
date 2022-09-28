@@ -1,5 +1,5 @@
 import { NextRequest, NextFetchEvent, NextResponse } from "next/server";
-import { recordClick } from "@/lib/upstash";
+import { recordClick, redis } from "@/lib/upstash";
 import { parse } from "./utils";
 
 export default function RootMiddleware(req: NextRequest, ev: NextFetchEvent) {
@@ -9,8 +9,14 @@ export default function RootMiddleware(req: NextRequest, ev: NextFetchEvent) {
     return NextResponse.next();
   }
 
-  if (hostname !== "preview.dub.sh" && !hostname.endsWith(".vercel.app")) {
-    ev.waitUntil(recordClick(hostname, req)); // record clicks on root page (if it's not a Vercel preview link)
+  if (
+    hostname === "dub.sh" ||
+    hostname === "preview.dub.sh" ||
+    hostname.endsWith(".vercel.app")
+  ) {
+    ev.waitUntil(redis.incr("dub.sh:root:clicks")); // increment root clicks (only for dub.sh)
+  } else {
+    ev.waitUntil(recordClick(hostname, req)); // record clicks on root page (if hostname is not dub.sh)
   }
 
   if (

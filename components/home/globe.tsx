@@ -6,6 +6,7 @@ import useSWR from "swr";
 import { Drag, X } from "@/components/shared/icons";
 import { fetcher } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import useIntersectionObserver from "@/lib/hooks/use-intersection-observer";
 
 interface MarkerProps {
   location: [number, number];
@@ -13,30 +14,78 @@ interface MarkerProps {
 }
 
 export default function Globe({ hostname }: { hostname?: string }) {
+  const divRef = useRef<any>();
+  const entry = useIntersectionObserver(divRef, {});
+  const isVisible = !!entry?.isIntersecting;
+  const [showGlobe, setShowGlobe] = useState(false);
+
+  useEffect(() => {
+    if (isVisible) {
+      setShowGlobe(true);
+    } else {
+      setShowGlobe(false);
+    }
+  }, [isVisible]);
+
+  const [webglSupported, setWebglSupported] = useState(false);
+  const [showFallback, setShowFallback] = useState(false);
+
+  useEffect(() => {
+    try {
+      const canvas = window.document.createElement("canvas");
+      const ctx =
+        canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+      (ctx as any).getSupportedExtensions();
+      setWebglSupported(true);
+    } catch (e) {
+      // WebGL isn't properly supported
+      console.log(
+        "WebGL not supported, hiding globe animation and showing fallback video..."
+      );
+      setShowFallback(true);
+      return;
+    }
+  }, []);
+
   const { data: markers } = useSWR<MarkerProps[]>(
     `/api/edge/coordinates${hostname ? `?hostname=${hostname}` : ""}`,
     fetcher
   );
 
+  return (
+    <div ref={divRef} className="h-full min-h-[500px] sm:min-h-[1000px]">
+      {webglSupported && showGlobe && (
+        <GlobeAnimation hostname={hostname} markers={markers} />
+      )}
+      {showFallback && (
+        <div className="w-full h-full flex items-center justify-center">
+          <video
+            autoPlay
+            src="https://res.cloudinary.com/dubdotsh/video/upload/v1664203052/globe-animation-fallback.mp4"
+            loop
+            muted
+            playsInline
+            width={968}
+            height={946}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+const GlobeAnimation = ({
+  hostname,
+  markers,
+}: {
+  hostname?: string;
+  markers: MarkerProps[];
+}) => {
   const canvasRef = useRef<any>();
   const pointerInteracting = useRef(null);
   const pointerInteractionMovement = useRef(0);
 
-  // Dynamic DPR based on # of GPUs to reduce GPU load for slower devices
-  const [DPR, setDPR] = useState(0.5);
-
-  useEffect(() => {
-    const cores = window.navigator.hardwareConcurrency;
-    if (cores) {
-      if (cores >= 8) {
-        setDPR(1);
-      } else if (cores >= 6) {
-        setDPR(0.8);
-      } else if (cores >= 4) {
-        setDPR(0.65);
-      }
-    }
-  });
+  const DPR = 1;
 
   const [{ r }, api] = useSpring(() => ({
     r: 0,
@@ -85,8 +134,8 @@ export default function Globe({ hostname }: { hostname?: string }) {
     setTimeout(() => (canvasRef.current.style.opacity = "1"));
     return () => globe.destroy();
   }, [markers]);
-
   const [showModal, setShowModal] = useState(true);
+
   return (
     <div className="relative flex items-center">
       <AnimatePresence>
@@ -189,4 +238,4 @@ export default function Globe({ hostname }: { hostname?: string }) {
       </div>
     </div>
   );
-}
+};

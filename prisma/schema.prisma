@@ -61,14 +61,15 @@ model VerificationToken {
 }
 
 model Project {
-  id              String   @id @default(cuid())
-  name            String
-  slug            String   @unique
-  domain          String   @unique
-  domainVerified  Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  users           ProjectUsers[]
+  id                  String   @id @default(cuid())
+  name                String
+  slug                String   @unique
+  domain              String   @unique
+  domainVerified      Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  domainLastChecked   DateTime @default(now())
+  users               ProjectUsers[]
 }
 
 model ProjectUsers {

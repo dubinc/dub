@@ -18,7 +18,7 @@ export default async function handler(req: NextRequest) {
     const interval = req.nextUrl.searchParams.get("interval") as
       | IntervalProps
       | undefined;
-    const start = Date.now() - intervalData[interval || "7d"].milliseconds;
+    const start = Date.now() - intervalData[interval || "24h"].milliseconds;
     const end = Date.now();
     const response = await redis.zrange<RawStatsProps[]>(
       `dub.sh:clicks:${key}`,

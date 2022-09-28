@@ -1,6 +1,5 @@
 import ms from "ms";
 import { ccTLDs } from "./constants";
-import { LinkProps } from "./types";
 
 interface SWRError extends Error {
   status: number;
