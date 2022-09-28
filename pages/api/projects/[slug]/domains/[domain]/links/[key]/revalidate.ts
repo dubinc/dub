@@ -4,18 +4,17 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  if (req.query.secret !== process.env.REVALIDATE_TOKEN) {
+    return res.status(401).json({ message: "Invalid token" });
+  }
+
   const { domain, key } = req.query as { domain: string; key: string };
 
-  console.log("incoming data", domain, key);
-
-  res.setHeader("Access-Control-Allow-Origin", "https://app.dub.sh");
+  res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "PUT");
 
-  console.log("passed CORS");
-
   try {
-    const response = await res.revalidate(`/proxy/${domain}/${key}`);
-    console.log("successfully revalidated", response);
+    await res.revalidate(`/proxy/${domain}/${key}`);
     res.status(200).json({
       message: "OK",
     });

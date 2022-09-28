@@ -38,7 +38,7 @@ export default withProjectAuth(
         }
         // if there's an image, revalidate proxy page (dub.sh/proxy/[domain]/[key])
         await fetch(
-          `https://dub.sh/api/projects/${slug}/domains/${domain}/links/${oldKey}/revalidate`,
+          `https://dub.sh/api/projects/${slug}/domains/${domain}/links/${oldKey}/revalidate?secret=${process.env.REVALIDATE_TOKEN}`,
           {
             method: "PUT",
             headers: {
