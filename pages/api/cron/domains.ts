@@ -6,11 +6,16 @@ import {
   getDomainResponse,
   verifyDomain,
 } from "@/lib/domains";
+import { handleDomainUpdates } from "@/lib/cron";
 
-export default async function handler(
-  _req: NextApiRequest,
-  res: NextApiResponse
-) {
+/**
+ * Cron to check if domains are verified.
+ * Runs every 3 hours
+ * TODO: If a domain is invalid for more than 7 days, we send an email to the project owner.
+ * If a domain is invalid for more than 30 days, we delete it and the associating project from the database.
+ **/
+
+async function handler(_req: NextApiRequest, res: NextApiResponse) {
   try {
     const projects = await prisma.project.findMany({
       select: {
@@ -21,45 +26,64 @@ export default async function handler(
       orderBy: {
         domainLastChecked: "desc",
       },
-      where: {
-        domainLastChecked: {
-          gte: new Date(new Date().getTime() - 1000 * 60 * 60 * 6), // 7 days ago
-        },
-      },
-      take: 500,
+      take: 100,
     });
-    const statusChanges = await Promise.all(
+
+    const results = await Promise.all(
       projects.map(async (project) => {
         const { domain, domainVerified, createdAt } = project;
         const [domainJson, configJson] = await Promise.all([
           getDomainResponse(domain),
           getConfigResponse(domain),
         ]);
+
         let newDomainVerified;
-        if (!domainJson.verified) {
+
+        if (domainJson?.error?.code === "not_found") {
+          newDomainVerified = false;
+        } else if (!domainJson.verified) {
           const verificationJson = await verifyDomain(domain);
           if (verificationJson && verificationJson.verified) {
+            newDomainVerified = true;
+          } else {
             newDomainVerified = false;
           }
+        } else if (!configJson.misconfigured) {
+          newDomainVerified = true;
+        } else {
+          newDomainVerified = false;
         }
 
-        if (!configJson.misconfigured) {
-          newDomainVerified = false;
-        } else {
-          newDomainVerified = true;
-        }
+        const prismaResponse = await prisma.project.update({
+          where: {
+            domain,
+          },
+          data: {
+            domainVerified: newDomainVerified,
+            domainLastChecked: new Date(),
+          },
+        });
+
+        const changed = newDomainVerified !== domainVerified;
+
+        const updates = await handleDomainUpdates(
+          domain,
+          createdAt,
+          newDomainVerified,
+          changed
+        );
 
         return {
           domain,
-          status: newDomainVerified,
-          changed: newDomainVerified !== domainVerified,
-          invalidOver30Days:
-            new Date().getTime() - new Date(createdAt).getTime() >
-              1000 * 60 * 60 * 24 * 30 && newDomainVerified === false,
+          previousStatus: domainVerified,
+          currentStatus: newDomainVerified,
+          changed,
+          updates,
+          prismaResponse,
         };
       })
     );
-    res.status(200).json(statusChanges);
+    res.status(200).json(results);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -69,12 +93,12 @@ export default async function handler(
  * verifySignature will try to load `QSTASH_CURRENT_SIGNING_KEY` and `QSTASH_NEXT_SIGNING_KEY` from the environment.
 
  * To test out the endpoint manually (wihtout using QStash), you can do `export default handler` instead and
- * hit this endpoint via http://localhost:3000/api/cron
+ * hit this endpoint via http://localhost:3000/api/cron/domains
  */
-// export default verifySignature(handler);
+export default verifySignature(handler);
 
-// export const config = {
-//   api: {
-//     bodyParser: false,
-//   },
-// };
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
