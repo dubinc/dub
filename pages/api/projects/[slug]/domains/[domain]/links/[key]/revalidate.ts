@@ -12,6 +12,7 @@ export default async function handler(
 
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "PUT");
+  console.log("passed CORS", domain, key, req.headers.host);
 
   try {
     await res.revalidate(`/proxy/${domain}/${key}`);
