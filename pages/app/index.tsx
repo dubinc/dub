@@ -15,7 +15,7 @@ export default function App() {
   return (
     <AppLayout>
       {data && <AddProjectModal />}
-      <div className="h-20 md:h-36 flex items-center bg-white border-b border-gray-200">
+      <div className="h-36 flex items-center bg-white border-b border-gray-200">
         <MaxWidthWrapper>
           <div className="flex justify-between items-center">
             <h1 className="text-2xl text-gray-600">My Projects</h1>
