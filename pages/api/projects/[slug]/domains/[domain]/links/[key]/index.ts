@@ -5,11 +5,17 @@ import cloudinary from "cloudinary";
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {
-    const { domain, key: oldKey } = req.query as {
+    const {
+      slug,
+      domain,
+      key: oldKey,
+    } = req.query as {
+      slug: string;
       domain: string;
       key: string;
     };
 
+    // PUT /api/projects/[slug]/domains/[domain]/links/[key] - edit link
     if (req.method === "PUT") {
       let { key, url, title, timestamp, description, image } = req.body;
       if (!key || !url || !title || !timestamp) {
@@ -30,6 +36,16 @@ export default withProjectAuth(
             invalidate: true,
           });
         }
+        // if there's an image, revalidate proxy page (dub.sh/proxy/[domain]/[key])
+        await fetch(
+          `https://dub.sh/api/projects/${slug}/domains/${domain}/links/${oldKey}/revalidate?secret=${process.env.REVALIDATE_TOKEN}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
       }
       const response = await editLink(domain, oldKey, {
         key,

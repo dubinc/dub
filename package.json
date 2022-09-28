@@ -13,6 +13,7 @@
     "@radix-ui/react-tooltip": "^1.0.0",
     "@stripe/stripe-js": "^1.36.0",
     "@tailwindcss/forms": "^0.5.3",
+    "@upstash/qstash": "^0.1.7",
     "@upstash/ratelimit": "^0.1.5",
     "@upstash/redis": "^1.12.0",
     "@visx/axis": "^2.12.2",

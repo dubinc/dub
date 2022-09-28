@@ -133,7 +133,7 @@ export default function PlanUsage() {
         </div>
       </div>
       <div className="border-b border-gray-200" />
-      <div className="px-10 py-5 flex justify-between items-center">
+      <div className="px-10 py-4 flex justify-between items-center">
         {project?.plan === "free" ? (
           <p className="text-gray-500 text-sm">
             For{" "}
