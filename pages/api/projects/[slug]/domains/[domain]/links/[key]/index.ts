@@ -36,25 +36,20 @@ export default withProjectAuth(
             invalidate: true,
           });
         }
-        // if there's an image, revalidate proxy page (dub.sh/proxy/[domain]/[key])
-        await fetch(
-          `https://dub.sh/api/projects/${slug}/domains/${domain}/links/${oldKey}/revalidate?secret=${process.env.REVALIDATE_TOKEN}`,
-          {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
       }
-      const response = await editLink(domain, oldKey, {
-        key,
-        url,
-        title,
-        timestamp,
-        description,
-        image,
-      });
+      const [response, _] = await Promise.all([
+        editLink(domain, oldKey, {
+          key,
+          url,
+          title,
+          timestamp,
+          description,
+          image,
+        }),
+        fetch(
+          `https://dub.sh/api/projects/${slug}/domains/${domain}/links/${oldKey}/revalidate?secret=${process.env.REVALIDATE_TOKEN}`
+        ),
+      ]);
       if (response === null) {
         return res.status(400).json({ error: "Key already exists" });
       }

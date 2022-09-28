@@ -24,7 +24,7 @@ async function handler(_req: NextApiRequest, res: NextApiResponse) {
         createdAt: true,
       },
       orderBy: {
-        domainLastChecked: "desc",
+        domainLastChecked: "asc",
       },
       take: 100,
     });

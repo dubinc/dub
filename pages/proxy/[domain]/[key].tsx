@@ -88,6 +88,6 @@ export async function getStaticProps(ctx) {
       image,
       logo: project?.logo,
     },
-    revalidate: 60,
+    revalidate: 300,
   };
 }
