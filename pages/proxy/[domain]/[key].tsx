@@ -1,10 +1,10 @@
-export const config = { runtime: "experimental-edge" };
 import { redis } from "@/lib/upstash";
+import prisma from "@/lib/prisma";
 import { LinkProps } from "@/lib/types";
 import Head from "next/head";
 import { escape } from "html-escaper";
 
-export default function LinkPage({ url, title, description, image }) {
+export default function LinkPage({ url, title, description, image, logo }) {
   return (
     <Head>
       <meta property="og:title" content={escape(title)} />
@@ -16,11 +16,19 @@ export default function LinkPage({ url, title, description, image }) {
       <meta name="twitter:title" content={escape(title)} />
       <meta name="twitter:description" content={escape(description)} />
       <meta name="twitter:image" content={escape(image)} />
+      {logo && <link rel="icon" href={logo} />}
     </Head>
   );
 }
 
-export async function getServerSideProps(ctx) {
+export function getStaticPaths() {
+  return {
+    paths: [],
+    fallback: "blocking",
+  };
+}
+
+export async function getStaticProps(ctx) {
   const { domain, key } = ctx.params;
   const response = await redis.hget<Omit<LinkProps, "key">>(
     `${domain}:links`,
@@ -32,6 +40,14 @@ export async function getServerSideProps(ctx) {
       notFound: true,
     };
   }
+  const project = await prisma.project.findUnique({
+    where: {
+      domain,
+    },
+    select: {
+      logo: true,
+    },
+  });
 
   const hostname = new URL(url).hostname;
 
@@ -41,6 +57,7 @@ export async function getServerSideProps(ctx) {
       title,
       description,
       image,
+      logo: project?.logo,
     },
   };
 }

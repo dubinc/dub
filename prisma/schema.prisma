@@ -64,6 +64,7 @@ model Project {
   slug                String   @unique
   domain              String   @unique
   domainVerified      Boolean  @default(false)
+  logo                String? 
   plan                String   @default("free")
   usageLimit          Int      @default(1000)
   stripeId            String?  @unique // Stripe customer ID
