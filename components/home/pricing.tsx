@@ -28,7 +28,6 @@ const pricingItems = [
   {
     plan: "Pro",
     tagline: "For larger teams with increased usage",
-    isPopular: true,
     price: 99,
     features: [
       {
@@ -62,12 +61,12 @@ const pricingItems = [
 
 const Pricing = () => {
   return (
-    <MaxWidthWrapper className="mt-20 mb-40 text-center">
-      <div className="max-w-sm sm:max-w-md mx-auto my-10">
+    <MaxWidthWrapper className="sm:mt-20 mb-40 text-center">
+      <div className="max-w-sm sm:max-w-lg mx-auto my-10">
         <h2 className="text-4xl sm:text-5xl font-display font-extrabold text-black">
           Simple,{" "}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-600">
-            affordable
+            usage-based
           </span>{" "}
           pricing
         </h2>
@@ -77,16 +76,16 @@ const Pricing = () => {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         {pricingItems.map(
-          ({ plan, tagline, isPopular, price, features, cta, ctaLink }) => (
+          ({ plan, tagline, price, features, cta, ctaLink }) => (
             <div
               key={plan}
               className={`relative bg-white rounded-2xl ${
-                isPopular
+                plan === "Pro"
                   ? "border-2 border-blue-600 shadow-blue-200"
                   : "border border-gray-200"
               } shadow-md`}
             >
-              {isPopular && (
+              {plan === "Pro" && (
                 <div className="absolute -top-5 left-0 right-0 mx-auto bg-gradient-to-r from-blue-600 to-cyan-600 text-white text-sm font-medium w-32 px-3 py-2 rounded-full">
                   Popular
                 </div>
@@ -139,7 +138,7 @@ const Pricing = () => {
                 <Link href={ctaLink}>
                   <a
                     className={`${
-                      isPopular
+                      plan === "Pro"
                         ? "bg-gradient-to-r from-blue-600 to-cyan-600 hover:bg-white text-white hover:text-transparent hover:bg-clip-text border border-transparent hover:border-blue-700"
                         : "bg-black text-white hover:bg-white hover:text-black border border-gray-200 hover:border-black"
                     } block w-full py-2 rounded-full font-medium transition-all`}

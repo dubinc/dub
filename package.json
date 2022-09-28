@@ -10,6 +10,7 @@
     "@headlessui/react": "^1.6.6",
     "@next-auth/prisma-adapter": "^1.0.4",
     "@prisma/client": "^4.3.1",
+    "@radix-ui/react-slider": "^1.0.0",
     "@radix-ui/react-tooltip": "^1.0.0",
     "@stripe/stripe-js": "^1.36.0",
     "@tailwindcss/forms": "^0.5.3",
