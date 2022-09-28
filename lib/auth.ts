@@ -32,7 +32,7 @@ interface CustomNextApiHandler {
 }
 
 const withProjectAuth =
-  (handler: CustomNextApiHandler, requireValidDomain?: boolean) =>
+  (handler: CustomNextApiHandler, extraAuth?: boolean) =>
   // TODO - fix `handler` type when we figure it out
   // `isWriteEditLink` is only true when it's a POST or PUT request for links
   // (you can't add/edit a link when domain is not configured)
@@ -70,7 +70,7 @@ const withProjectAuth =
 
     if (!project) return res.status(404).json({ error: "Project not found" });
 
-    if (requireValidDomain && req.method !== "GET") {
+    if (extraAuth && req.method !== "GET") {
       if (!project.domainVerified) {
         return res
           .status(401)
