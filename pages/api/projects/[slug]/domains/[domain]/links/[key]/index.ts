@@ -5,11 +5,17 @@ import cloudinary from "cloudinary";
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {
-    const { domain, key: oldKey } = req.query as {
+    const {
+      slug,
+      domain,
+      key: oldKey,
+    } = req.query as {
+      slug: string;
       domain: string;
       key: string;
     };
 
+    // PUT /api/projects/[slug]/domains/[domain]/links/[key] - edit link
     if (req.method === "PUT") {
       let { key, url, title, timestamp, description, image } = req.body;
       if (!key || !url || !title || !timestamp) {
@@ -31,14 +37,19 @@ export default withProjectAuth(
           });
         }
       }
-      const response = await editLink(domain, oldKey, {
-        key,
-        url,
-        title,
-        timestamp,
-        description,
-        image,
-      });
+      const [response, _] = await Promise.all([
+        editLink(domain, oldKey, {
+          key,
+          url,
+          title,
+          timestamp,
+          description,
+          image,
+        }),
+        fetch(
+          `https://dub.sh/api/projects/${slug}/domains/${domain}/links/${oldKey}/revalidate?secret=${process.env.REVALIDATE_TOKEN}`
+        ),
+      ]);
       if (response === null) {
         return res.status(400).json({ error: "Key already exists" });
       }
