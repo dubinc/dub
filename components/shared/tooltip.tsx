@@ -36,6 +36,7 @@ export default function Tooltip({
 /*  Tooltip Contents  */
 
 import Link from "next/link";
+import BlurImage from "@/components/shared/blur-image";
 
 export function TooltipContent({
   title,
@@ -54,6 +55,25 @@ export function TooltipContent({
           {cta}
         </a>
       </Link>
+    </div>
+  );
+}
+
+export function OGImageProxy() {
+  return (
+    <div className="max-w-md flex flex-col text-center items-center space-y-5 p-5">
+      <BlurImage
+        alt="Demo GIF for OG Image Proxy"
+        src="https://res.cloudinary.com/dubdotsh/image/upload/v1664425639/og-image-proxy-demo.gif"
+        width={1200}
+        height={1084}
+        className="w-full rounded-md overflow-hidden shadow-md"
+      />
+      <p className="text-sm text-gray-700">
+        Add a custom OG image in front of your target URL. Bots like
+        Twitter/Facebook will be served this image, while users will be
+        redirected to your target URL.
+      </p>
     </div>
   );
 }
