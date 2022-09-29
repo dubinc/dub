@@ -117,11 +117,11 @@ const Pricing = () => {
 
   return (
     <MaxWidthWrapper className="mt-20 mb-40 text-center">
-      <div className="max-w-sm sm:max-w-md mx-auto my-10">
+      <div className="sm:max-w-lg mx-auto my-10">
         <h2 className="text-4xl sm:text-5xl font-display font-extrabold text-black">
           Simple,{" "}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-600">
-            affordable
+            usage-based
           </span>{" "}
           pricing
         </h2>
