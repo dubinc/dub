@@ -165,18 +165,32 @@ const Pricing = () => {
               </div>
               <div className="border-t border-b border-gray-200 flex items-center justify-center h-20 bg-gray-50">
                 {plan === "Pro" ? (
-                  <div className="flex flex-col space-y-1">
+                  <div className="flex flex-col space-y-1 items-center">
                     <Slider
                       value={tier}
                       setValue={setTier}
                       maxValue={proTiers.length - 1}
                     />
-                    <p className="text-gray-600 text-sm">
-                      Up to {nFormatter(proTiers[tier].quota)} link clicks/mo
-                    </p>
+                    <div className="flex items-center">
+                      <p className="text-gray-600 text-sm">
+                        Up to {nFormatter(proTiers[tier].quota)} link clicks/mo
+                      </p>
+                      <Tooltip content="If you exceed your monthly usage, your existing links will still work, but you need to upgrade to view their stats/add more links. Link clicks are shared across all projects.">
+                        <div className="flex justify-center w-6 h-4">
+                          <QuestionCircle className="w-4 h-4 text-gray-600" />
+                        </div>
+                      </Tooltip>
+                    </div>
                   </div>
                 ) : (
-                  <p className="text-gray-600">{clicksLimit}</p>
+                  <div className="flex items-center">
+                    <p className="text-gray-600">{clicksLimit}</p>
+                    <Tooltip content="If you exceed your monthly usage, your existing links will still work, but you need to upgrade to view their stats/add more links. Link clicks are shared across all projects.">
+                      <div className="flex justify-center w-8 h-4">
+                        <QuestionCircle className="w-4 h-4 text-gray-600" />
+                      </div>
+                    </Tooltip>
+                  </div>
                 )}
               </div>
               <ul className="px-10 my-10 space-y-5">
