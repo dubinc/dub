@@ -38,7 +38,7 @@ You can easily configure custom domains on Dub – just add an A/CNAME record t
 
 Add a custom OG image in front of your target URL. Bots like Twitter/Facebook will be served this image, while users will be redirected to your target URL.
 
-<img alt="OG Image Proxy" src="/public/static/landing/og-image-proxy.gif" height="500">
+![OG Image Proxy](/public/static/landing/og-image-proxy.gif)
 
 ## Deploy Your Own
 
