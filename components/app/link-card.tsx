@@ -40,78 +40,82 @@ export default function LinkCard({ props }: { props: LinkProps }) {
   });
 
   return (
-    <li className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-5 sm:space-y-0 border border-gray-200 bg-white p-4 rounded-md transition-all">
+    <>
       <AddEditLinkModal />
       <DeleteLinkModal />
-      <div className="relative flex items-center space-x-4">
-        <BlurImage
-          src={`https://logo.clearbit.com/${urlHostname}`}
-          alt={urlHostname}
-          className="w-10 h-10 rounded-full border border-gray-200"
-          width={20}
-          height={20}
-        />
-        <div>
-          <div className="flex items-center space-x-2">
-            <a
-              className="text-blue-800 font-semibold"
-              href={linkConstructor({ key, domain })}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {linkConstructor({ key, domain, pretty: true })}
-            </a>
-            <CopyButton url={linkConstructor({ key, domain })} />
-            <Link href={`${router.asPath}/${encodeURI(key)}`}>
-              <a className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 hover:scale-105 active:scale-95 transition-all duration-75">
-                <Chart className="w-4 h-4" />
-                <p className="text-sm text-gray-500">
-                  {isValidating || !clicks ? (
-                    <LoadingDots color="#71717A" />
-                  ) : (
-                    nFormatter(parseInt(clicks))
-                  )}{" "}
-                  clicks
-                </p>
+      <li className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-5 sm:space-y-0 border border-gray-200 bg-white p-4 rounded-md transition-all">
+        <div className="relative flex items-center space-x-4">
+          <BlurImage
+            src={`https://logo.clearbit.com/${urlHostname}`}
+            alt={urlHostname}
+            className="w-10 h-10 rounded-full border border-gray-200"
+            width={20}
+            height={20}
+          />
+          <div>
+            <div className="flex items-center space-x-2">
+              <a
+                className="text-blue-800 text-sm sm:text-base font-semibold truncate w-40 sm:w-full"
+                href={linkConstructor({ key, domain })}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {linkConstructor({ key, domain, pretty: true })}
               </a>
-            </Link>
-          </div>
-          <h3 className="text-sm font-medium text-gray-700 line-clamp-1">
-            {title}
-          </h3>
-        </div>
-      </div>
-      <div className="flex items-center space-x-3">
-        <p className="text-sm text-gray-500">Added {timeAgo(timestamp)}</p>
-        {exceededUsage ? (
-          <Tooltip
-            content={
-              <TooltipContent
-                title="You have exceeded your usage limit. We're still collecting data on your existing links, but you need to upgrade to edit them."
-                cta="Upgrade"
-                ctaLink={`/${slug}/settings`}
-              />
-            }
-          >
-            <div className="text-gray-300 cursor-not-allowed font-medium text-sm px-5 py-2 border rounded-md border-gray-200 transition-all duration-75">
-              Edit
+              <CopyButton url={linkConstructor({ key, domain })} />
+              <Link href={`${router.asPath}/${encodeURI(key)}`}>
+                <a className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 hover:scale-105 active:scale-95 transition-all duration-75">
+                  <Chart className="w-4 h-4" />
+                  <p className="text-sm text-gray-500 whitespace-nowrap">
+                    {isValidating || !clicks ? (
+                      <LoadingDots color="#71717A" />
+                    ) : (
+                      nFormatter(parseInt(clicks))
+                    )}{" "}
+                    clicks
+                  </p>
+                </a>
+              </Link>
             </div>
-          </Tooltip>
-        ) : (
+            <h3 className="text-sm font-medium text-gray-700 line-clamp-1">
+              {title}
+            </h3>
+          </div>
+        </div>
+        <div className="flex items-center space-x-3 w-full sm:w-auto">
+          <p className="text-sm hidden sm:block text-gray-500">
+            Added {timeAgo(timestamp)}
+          </p>
+          {exceededUsage ? (
+            <Tooltip
+              content={
+                <TooltipContent
+                  title="You have exceeded your usage limit. We're still collecting data on your existing links, but you need to upgrade to edit them."
+                  cta="Upgrade"
+                  ctaLink={`/${slug}/settings`}
+                />
+              }
+            >
+              <div className="grow text-gray-300 cursor-not-allowed font-medium text-sm px-5 py-1.5 sm:py-2 border rounded-md border-gray-200 transition-all duration-75">
+                Edit
+              </div>
+            </Tooltip>
+          ) : (
+            <button
+              onClick={() => setShowAddEditLinkModal(true)}
+              className="grow sm:grow-0 font-medium text-sm text-gray-500 px-5 py-1.5 sm:py-2 border rounded-md border-gray-200 hover:border-black active:scale-95 transition-all duration-75"
+            >
+              Edit
+            </button>
+          )}
           <button
-            onClick={() => setShowAddEditLinkModal(true)}
-            className="font-medium text-sm text-gray-500 px-5 py-2 border rounded-md border-gray-200 hover:border-black active:scale-95 transition-all duration-75"
+            onClick={() => setShowDeleteLinkModal(true)}
+            className="grow sm:grow-0 font-medium text-sm text-white bg-red-600 hover:bg-white hover:text-red-600 border-red-600 px-5 py-1.5 sm:py-2 border rounded-md active:scale-95 transition-all duration-75"
           >
-            Edit
+            Delete
           </button>
-        )}
-        <button
-          onClick={() => setShowDeleteLinkModal(true)}
-          className="font-medium text-sm text-white bg-red-600 hover:bg-white hover:text-red-600 border-red-600 px-5 py-2 border rounded-md active:scale-95 transition-all duration-75"
-        >
-          Delete
-        </button>
-      </div>
-    </li>
+        </div>
+      </li>
+    </>
   );
 }

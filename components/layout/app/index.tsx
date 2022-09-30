@@ -37,7 +37,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       <div className="min-h-screen w-full bg-gray-50">
         <div className="sticky top-0 left-0 right-0 border-b bg-white border-gray-200 z-20">
           <div className="max-w-screen-xl mx-auto px-2.5 sm:px-20">
-            <div className="h-10 flex justify-between items-center my-3">
+            <div className="h-16 flex justify-between items-center">
               <div className="flex items-center">
                 <Link href="/">
                   <a>

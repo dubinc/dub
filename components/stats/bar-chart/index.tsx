@@ -41,10 +41,10 @@ const BarChart = ({
 }) => {
   const [CHART_WIDTH, CHART_HEIGHT] = useMemo(() => {
     const width = screenWidth
-      ? Math.min(screenWidth * 0.7, CHART_MAX_WIDTH)
+      ? Math.min(screenWidth * 0.8, CHART_MAX_WIDTH)
       : CHART_MAX_WIDTH;
     const height = screenWidth
-      ? Math.min(screenWidth * 0.4, CHART_MAX_HEIGHT)
+      ? Math.min(screenWidth * 0.5, CHART_MAX_HEIGHT)
       : CHART_MAX_HEIGHT;
     return [width, height];
   }, [screenWidth]);

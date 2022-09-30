@@ -61,7 +61,7 @@ export default function ListBox() {
                 width={48}
                 height={48}
               />
-              <span className="block truncate font-medium">
+              <span className="block truncate font-medium text-sm">
                 {selected.name}
               </span>
             </div>
@@ -98,7 +98,7 @@ export default function ListBox() {
                     height={48}
                   />
                   <span
-                    className={`block truncate ${
+                    className={`block truncate text-sm ${
                       selected.slug === slug ? "font-medium" : "font-normal"
                     }`}
                   >
