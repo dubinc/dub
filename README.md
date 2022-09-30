@@ -26,13 +26,19 @@ Here are some of the features that Dub provides out-of-the-box:
 
 Dub provides a powerful analytics dashboard for your links, including geolocation, device, and browser information.
 
-<img alt="Analytics Dashboard" src="/public/static/landing/analytics.png" height="500">
+![Analytics Dashboard](/public/static/landing/analytics.png)
 
 ### Custom domains
 
 You can easily configure custom domains on Dub – just add an A/CNAME record to your DNS provider and you're good to go. This is built on the [Vercel Domains API](https://domains-api.vercel.app/).
 
-<img alt="Analytics Dashboard" src="/public/static/landing/domains.png" height="400">
+![Custom Domains](/public/static/landing/domains.png)
+
+### OG Image Proxy
+
+Add a custom OG image in front of your target URL. Bots like Twitter/Facebook will be served this image, while users will be redirected to your target URL.
+
+![OG Image Proxy](/public/static/landing/og-image-proxy.gif)
 
 ## Deploy Your Own
 

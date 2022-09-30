@@ -155,20 +155,23 @@ export default function PlanUsage() {
           project.plan === "free" ? (
             <button
               onClick={() => {
-                setClicked(true);
-                fetch(`/api/projects/${slug}/upgrade`, {
-                  method: "POST",
-                })
-                  .then(async (res) => {
-                    const data = await res.json();
-                    const { id: sessionId } = data;
-                    const stripe = await getStripe();
-                    stripe.redirectToCheckout({ sessionId });
-                  })
-                  .catch((err) => {
-                    alert(err);
-                    setClicked(false);
-                  });
+                alert(
+                  "we're fixing up the checkout flow, this will be ready very soon!"
+                );
+                // setClicked(true);
+                // fetch(`/api/projects/${slug}/upgrade`, {
+                //   method: "POST",
+                // })
+                //   .then(async (res) => {
+                //     const data = await res.json();
+                //     const { id: sessionId } = data;
+                //     const stripe = await getStripe();
+                //     stripe.redirectToCheckout({ sessionId });
+                //   })
+                //   .catch((err) => {
+                //     alert(err);
+                //     setClicked(false);
+                //   });
               }}
               disabled={clicked}
               className={`${

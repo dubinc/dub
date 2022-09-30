@@ -1,27 +1,33 @@
 import * as SliderPrimitive from "@radix-ui/react-slider";
-import cx from "classnames";
-import React from "react";
+import { Dispatch, SetStateAction } from "react";
 
-interface Props {}
-
-const Slider = (props: Props) => {
+const Slider = ({
+  value,
+  setValue,
+  minValue,
+  maxValue,
+  stepValue,
+}: {
+  value: number;
+  setValue: Dispatch<SetStateAction<number>>;
+  minValue?: number;
+  maxValue?: number;
+  stepValue?: number;
+}) => {
   return (
     <SliderPrimitive.Root
-      defaultValue={[50]}
-      max={100}
-      step={1}
+      defaultValue={[value]}
+      min={minValue || 0}
+      max={maxValue || 100}
+      step={stepValue || 1}
       aria-label="value"
+      onValueChange={(value) => setValue(value[0])}
       className="relative flex h-5 w-64 touch-none items-center"
     >
-      <SliderPrimitive.Track className="relative h-1 w-full grow rounded-full bg-white dark:bg-gray-800">
-        <SliderPrimitive.Range className="absolute h-full rounded-full bg-blue-600 dark:bg-white" />
+      <SliderPrimitive.Track className="relative h-1 w-full grow rounded-full bg-gray-200">
+        <SliderPrimitive.Range className="absolute h-full rounded-full bg-gradient-to-r from-blue-600 to-cyan-600" />
       </SliderPrimitive.Track>
-      <SliderPrimitive.Thumb
-        className={cx(
-          "block h-5 w-5 rounded-full bg-blue-600 dark:bg-white",
-          "focus:outline-none focus-visible:ring focus-visible:ring-blue-500 focus-visible:ring-opacity-75"
-        )}
-      />
+      <SliderPrimitive.Thumb className="block h-5 w-5 cursor-grab active:cursor-grabbing rounded-full bg-gradient-to-r from-blue-600 to-cyan-600 focus:outline-none focus-visible:ring focus-visible:ring-blue-500 focus-visible:ring-opacity-75" />
     </SliderPrimitive.Root>
   );
 };
