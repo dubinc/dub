@@ -38,13 +38,13 @@ export default function Toggle({
 
   return (
     <div
-      className={`z-10 mb-5 ${
+      className={`z-20 mb-5 ${
         pageType === "stats" ? "top-0" : "top-24"
       } sticky py-5 bg-gray-50 ${atTop ? "shadow-md" : ""}`}
     >
-      <div className="max-w-4xl mx-auto flex justify-between items-center">
+      <div className="max-w-4xl mx-auto flex justify-between items-center lg:px-0 px-2.5">
         <a
-          className="group flex text-xl text-gray-800 font-semibold"
+          className="group flex text-lg sm:text-xl text-gray-800 font-semibold"
           href={linkConstructor({ key, domain })}
           target="_blank"
           rel="noreferrer"
