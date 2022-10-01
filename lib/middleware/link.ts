@@ -15,7 +15,7 @@ export default async function LinkMiddleware(
   ev: NextFetchEvent
 ) {
   const url = req.nextUrl.clone();
-  const { hostname, key } = parse(req);
+  const { hostname, key, query } = parse(req);
 
   if (!hostname || !key) {
     return NextResponse.next();
@@ -39,7 +39,7 @@ export default async function LinkMiddleware(
     if (target) {
       const isBot = detectBot(req);
 
-      ev.waitUntil(recordClick(hostname, req, key)); // increment click count
+      ev.waitUntil(recordClick(hostname, req, query, key)); // increment click count
 
       if (image && description && isBot) {
         // rewrite to proxy page (dub.sh/proxy/[domain]/[key])

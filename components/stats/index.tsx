@@ -3,6 +3,7 @@ import Clicks from "@/components/stats/clicks";
 import Toggle from "@/components/stats/toggle";
 import Devices from "@/components/stats/devices";
 import Locations from "@/components/stats/locations";
+import UTM from "@/components/stats/utm";
 import useSWR from "swr";
 import { fetcher } from "@/lib/utils";
 import { useRouter } from "next/router";
@@ -44,6 +45,7 @@ export default function Stats({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <Locations data={data!} />
           <Devices data={data!} />
+          <UTM data={data!} />
         </div>
       </div>
     </div>
