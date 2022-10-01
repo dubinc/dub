@@ -22,7 +22,6 @@ export default function Modal({
   const router = useRouter();
   const { key } = router.query;
   const mobileModalRef = useRef(null);
-  const desktopModalRef = useRef(null);
 
   const closeModal = useCallback(() => {
     if (key) {
@@ -91,9 +90,8 @@ export default function Modal({
             {children}
           </motion.div>
           <motion.div
-            ref={desktopModalRef}
             key="desktop-modal"
-            className="fixed inset-0 z-50 min-h-screen px-4 hidden sm:flex items-center justify-center"
+            className="fixed inset-0 z-40 min-h-screen px-4 hidden sm:flex items-center justify-center"
             initial={{ scale: 0.95 }}
             animate={{ scale: 1 }}
             exit={{ scale: 0.95 }}
