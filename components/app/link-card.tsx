@@ -53,7 +53,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
             height={20}
           />
           <div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 max-w-fit">
               <a
                 className="text-blue-800 text-sm sm:text-base font-semibold truncate w-40 sm:w-full"
                 href={linkConstructor({ key, domain })}
