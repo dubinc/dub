@@ -95,7 +95,6 @@ export default function Modal({
             initial={{ scale: 0.95 }}
             animate={{ scale: 1 }}
             exit={{ scale: 0.95 }}
-            onClick={closeModal}
           >
             {children}
           </motion.div>
