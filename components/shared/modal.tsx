@@ -97,9 +97,6 @@ export default function Modal({
             initial={{ scale: 0.95 }}
             animate={{ scale: 1 }}
             exit={{ scale: 0.95 }}
-            onClick={(e) => {
-              if (desktopModalRef.current === e.target) closeModal();
-            }}
           >
             {children}
           </motion.div>
