@@ -145,7 +145,7 @@ function AddEditLinkModal({
       showModal={showAddEditLinkModal}
       setShowModal={setShowAddEditLinkModal}
     >
-      <div className="inline-block w-full max-w-md overflow-hidden align-middle transition-all transform bg-white shadow-xl rounded-2xl">
+      <div className="inline-block w-full sm:max-w-md overflow-hidden align-middle transition-all transform bg-white sm:border sm:border-gray-200 shadow-xl sm:rounded-2xl">
         <div className="flex flex-col justify-center items-center space-y-3 sm:px-16 px-4 pt-8 py-4 border-b border-gray-200">
           <BlurImage
             src={heroProps.avatar}
@@ -205,7 +205,7 @@ function AddEditLinkModal({
               </button>
             </div>
             <div className="relative flex mt-1 rounded-md shadow-sm">
-              <span className="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-5 text-gray-500 sm:text-sm">
+              <span className="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-5 text-gray-500 sm:text-sm whitespace-nowrap">
                 {domain || "dub.sh"}
               </span>
               <input

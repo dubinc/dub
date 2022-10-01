@@ -11,7 +11,7 @@ export default function Clicks({
   isValidating: boolean;
 }) {
   return (
-    <div className="max-w-4xl bg-white p-10 pr-20 shadow-lg rounded-lg border border-gray-100">
+    <div className="max-w-4xl bg-white p-5 sm:p-10 sm:pr-20 shadow-lg sm:rounded-lg border border-gray-100">
       <div className="mb-5 text-left">
         <div className="flex space-x-1 items-end">
           {isValidating ? (

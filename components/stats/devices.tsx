@@ -32,7 +32,7 @@ export default function Devices({ data: rawData }: { data: StatsProps }) {
   };
 
   return (
-    <div className="flex flex-col justify-between bg-white pt-5 shadow-lg rounded-lg border border-gray-100 h-[420px]">
+    <div className="flex flex-col justify-between bg-white pt-5 shadow-lg sm:rounded-lg border border-gray-100 h-[420px]">
       <div
         className="relative overflow-scroll scrollbar-hide px-7"
         onScroll={handleScroll}

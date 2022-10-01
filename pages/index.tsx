@@ -1,7 +1,7 @@
 import HomeLayout from "@/components/layout/home";
 import { useCallback, useEffect } from "react";
 import { useRouter } from "next/router";
-import { useStatsModal } from "@/components/stats/stats-modal";
+import { useStatsModal } from "@/components/app/modals/stats-modal";
 import Hero from "@/components/home/hero";
 import Demo from "@/components/home/demo";
 import Globe from "@/components/home/globe";

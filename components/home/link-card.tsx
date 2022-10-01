@@ -61,7 +61,6 @@ export default function LinkCard({
         ? -parentWidth / 2 - childWidth / 2
         : parentWidth / 2 + childWidth / 2;
     };
-    console.log("velocity", velocity, "direction", direction);
     if (direction && Math.abs(velocity) > min) {
       console.log("flying away");
       setConstrained(false);
