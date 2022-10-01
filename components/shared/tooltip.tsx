@@ -1,5 +1,5 @@
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { ReactNode, useRef, useState } from "react";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
 
 export default function Tooltip({
@@ -29,7 +29,10 @@ export default function Tooltip({
   const randomIndex = Math.floor(Math.random() * 1000000).toString();
   return (
     <>
-      <button className="block sm:hidden" onClick={() => setOpenTooltip(true)}>
+      <button
+        className="inline-flex sm:hidden"
+        onClick={() => setOpenTooltip(true)}
+      >
         {children}
       </button>
       <AnimatePresence>
@@ -81,7 +84,7 @@ export default function Tooltip({
       </AnimatePresence>
       <TooltipPrimitive.Provider delayDuration={100}>
         <TooltipPrimitive.Root>
-          <TooltipPrimitive.Trigger className="hidden sm:flex" asChild>
+          <TooltipPrimitive.Trigger className="hidden sm:inline-flex" asChild>
             {children}
           </TooltipPrimitive.Trigger>
           <TooltipPrimitive.Content
