@@ -19,6 +19,22 @@ export interface ProjectProps {
   domainVerified: boolean;
 }
 
+export interface UsageProps {
+  usage: number;
+  usageLimit: number;
+  projectCount?: number;
+  lastBilled?: number;
+}
+
+export interface UserProps {
+  id: string;
+  name: string;
+  email: string;
+  stripeId: string;
+  usageLimit: number;
+  projects?: { projectId: string }[];
+}
+
 export type DomainVerificationStatusProps =
   | "Valid Configuration"
   | "Invalid Configuration"

@@ -9,6 +9,7 @@ import Tooltip, { OGImageProxy } from "@/components/shared/tooltip";
 import { useState } from "react";
 import Slider from "@/components/shared/slider";
 import { nFormatter } from "@/lib/utils";
+import { PRO_TIERS } from "@/lib/constants";
 
 const pricingItems = [
   {
@@ -85,33 +86,6 @@ const pricingItems = [
   },
 ];
 
-const proTiers = [
-  {
-    price: 9,
-    quota: 10000,
-  },
-  {
-    price: 19,
-    quota: 25000,
-  },
-  {
-    price: 29,
-    quota: 50000,
-  },
-  {
-    price: 49,
-    quota: 100000,
-  },
-  {
-    price: 79,
-    quota: 500000,
-  },
-  {
-    price: 99,
-    quota: 1000000,
-  },
-];
-
 const Pricing = () => {
   const [tier, setTier] = useState(0);
 
@@ -157,7 +131,7 @@ const Pricing = () => {
                 ) : (
                   <div className="my-5 flex justify-center">
                     <p className="text-6xl font-display font-semibold">
-                      ${plan === "Pro" ? proTiers[tier].price : 0}
+                      ${plan === "Pro" ? PRO_TIERS[tier].price : 0}
                     </p>
                   </div>
                 )}
@@ -169,11 +143,11 @@ const Pricing = () => {
                     <Slider
                       value={tier}
                       setValue={setTier}
-                      maxValue={proTiers.length - 1}
+                      maxValue={PRO_TIERS.length - 1}
                     />
                     <div className="flex items-center">
                       <p className="text-gray-600 text-sm">
-                        Up to {nFormatter(proTiers[tier].quota)} link clicks/mo
+                        Up to {nFormatter(PRO_TIERS[tier].quota)} link clicks/mo
                       </p>
                       <Tooltip content="If you exceed your monthly usage, your existing links will still work, but you need to upgrade to view their stats/add more links. Link clicks are shared across all projects.">
                         <div className="flex justify-center w-6 h-4">

@@ -246,8 +246,14 @@ export async function deleteLink(domain: string, key: string, userId?: string) {
   return await pipeline.exec();
 }
 
-export async function getUsage(userId: string, projects: ProjectProps[]) {
-  const cachedUsage = await redis.get(`usage:${userId}`);
+/**
+ * Get the usage for a project
+ **/
+export async function getUsage(
+  hostname: string,
+  billingCycleStart?: Date
+): Promise<number> {
+  const cachedUsage = await redis.get<number>(`usage:${hostname}`);
   if (cachedUsage) {
     return cachedUsage;
   }

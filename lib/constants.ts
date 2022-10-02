@@ -13,6 +13,44 @@ export const FRAMER_MOTION_LIST_ITEM_VARIANTS = {
   show: { scale: 1, opacity: 1, transition: { type: "spring" } },
 };
 
+export const PLAN_FROM_USAGE_LIMIT = {
+  1000: "Free",
+  10000: "Pro 10K",
+  25000: "Pro 25K",
+  50000: "Pro 50K",
+  100000: "Pro 100K",
+  500000: "Pro 500K",
+  1000000: "Pro 1M",
+  5000000: "Enterprise 5M",
+};
+
+export const PRO_TIERS = [
+  {
+    price: 9,
+    quota: 10000,
+  },
+  {
+    price: 19,
+    quota: 25000,
+  },
+  {
+    price: 29,
+    quota: 50000,
+  },
+  {
+    price: 49,
+    quota: 100000,
+  },
+  {
+    price: 79,
+    quota: 500000,
+  },
+  {
+    price: 99,
+    quota: 1000000,
+  },
+];
+
 export const HOME_HOSTNAMES = new Set([
   // comment for better diffs
   "dub.sh",
@@ -48,6 +86,7 @@ export const DEFAULT_REDIRECTS = {
   app: "https://app.dub.sh",
   dashboard: "https://app.dub.sh",
   links: "https://app.dub.sh/links",
+  settings: "https://app.dub.sh/settings",
 };
 
 export const COUNTRIES: { [key: string]: string } = {

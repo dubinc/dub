@@ -10,6 +10,7 @@ import {
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {
+    // GET /api/projects/[slug]/domains/[domain]/links/[key]/stats - get link stats
     if (req.method === "GET") {
       const { domain, key, interval } = req.query as {
         domain: string;

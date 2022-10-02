@@ -1,10 +1,10 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { withProjectAuth } from "@/lib/auth";
+import { withProjectAuth, withUserAuth } from "@/lib/auth";
 import { stripe } from "@/lib/stripe";
 
-export default withProjectAuth(
+export default withUserAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {
-    // POST /api/projects/[slug]/upgrade – upgrade a project
+    // POST /api/stripe/upgrade – upgrade a user's account from free to pro
     if (req.method === "POST") {
       const { slug } = req.query as { slug: string };
       const session = await stripe.checkout.sessions.create({

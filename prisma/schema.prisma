@@ -18,7 +18,9 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
-  stripeId      String?  @unique // Stripe customer ID
+  stripeId      String?   @unique // Stripe customer ID
+  usage         Int       @default(0)
+  usageLimit    Int       @default(1000)
   lastBilled    DateTime?
   accounts      Account[]
   sessions      Session[]

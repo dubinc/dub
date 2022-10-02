@@ -10,6 +10,7 @@ import {
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {
+    // GET /api/projects/[slug]/domains/[domain]/verify - get domain verification status
     if (req.method === "GET") {
       const { slug, domain } = req.query as { slug: string; domain: string };
       let status: DomainVerificationStatusProps = "Valid Configuration";

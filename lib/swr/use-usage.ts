@@ -1,36 +1,32 @@
 import useSWR from "swr";
 import { useMemo } from "react";
 import { fetcher } from "@/lib/utils";
-import { useRouter } from "next/router";
-import { ProjectProps } from "@/lib/types";
+import { UsageProps } from "@/lib/types";
+import { PLAN_FROM_USAGE_LIMIT } from "../constants";
 
-export default function useUsage(project: ProjectProps) {
-  const router = useRouter();
-
-  const { slug } = router.query as {
-    slug: string;
-  };
-
-  const { data: usage, error } = useSWR<number>(
-    router.isReady &&
-      project &&
-      `/api/projects/${slug}/domains/${project.domain}/usage`,
-    fetcher,
-    {
-      dedupingInterval: 10000,
-    }
+export default function useUsage({ settingsPage } = { settingsPage: false }) {
+  const { data, error } = useSWR<UsageProps>(
+    `/api/usage${settingsPage ? "?settingsPage=1" : ""}`,
+    fetcher
   );
 
   const exceededUsage = useMemo(() => {
-    if (usage && project) {
-      return usage > project?.usageLimit;
+    if (data) {
+      return data.usage > data.usageLimit;
     }
-  }, [usage, project]);
+  }, [data]);
+
+  const plan = useMemo(() => {
+    if (data) {
+      return PLAN_FROM_USAGE_LIMIT[data.usageLimit];
+    }
+  }, [data]);
 
   return {
-    usage,
+    data,
     exceededUsage,
-    loading: !error && !usage,
+    plan,
+    loading: !error && !data,
     error,
   };
 }

@@ -44,5 +44,8 @@ export default withProjectAuth(
         .json({ error: `Method ${req.method} Not Allowed` });
     }
   },
-  true
+  {
+    needVerifiedDomain: true,
+    needNotExceededUsage: true,
+  }
 );

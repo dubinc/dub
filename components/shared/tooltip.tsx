@@ -1,6 +1,9 @@
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { ReactNode, useRef, useState } from "react";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
+import { PRO_TIERS } from "@/lib/constants";
+import Slider from "@/components/shared/slider";
+import { nFormatter } from "@/lib/utils";
 
 export default function Tooltip({
   children,
@@ -149,6 +152,20 @@ export function OGImageProxy() {
         Add a custom OG image in front of your target URL. Bots like
         Twitter/Facebook will be served this image, while users will be
         redirected to your target URL.
+      </p>
+    </div>
+  );
+}
+
+export function ProTiers({ usageLimit }: { usageLimit: number }) {
+  const [tier, setTier] = useState(
+    PRO_TIERS.map((t) => t.quota).indexOf(usageLimit)
+  );
+  return (
+    <div className="max-w-md flex flex-col text-center items-center space-y-2 p-5">
+      <Slider value={tier} setValue={setTier} maxValue={PRO_TIERS.length - 1} />
+      <p className="text-gray-600 text-sm">
+        Up to {nFormatter(PRO_TIERS[tier].quota)} link clicks/mo
       </p>
     </div>
   );

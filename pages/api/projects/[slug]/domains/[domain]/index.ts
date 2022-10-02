@@ -7,6 +7,7 @@ import { addDomain, removeDomain } from "@/lib/domains";
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {
+    // PUT /api/projects/[slug]/domains/[domain] edit a project's domain
     if (req.method === "PUT") {
       const { slug, domain } = req.query as { slug: string; domain: string }; // slug is the domain
       const newDomain = req.body;
