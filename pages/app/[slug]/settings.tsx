@@ -1,11 +1,13 @@
-import AppLayout from "components/layout/app";
-import useProject from "@/lib/swr/use-project";
-import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
+import ErrorPage from "next/error";
+
 import CustomDomain from "@/components/app/settings/custom-domain";
+import DeleteProject from "@/components/app/settings/delete-project";
 import DefaultPage from "@/components/app/settings/landing-page";
 import PlanUsage from "@/components/app/settings/plan-usage";
-import ErrorPage from "next/error";
-import DeleteProject from "@/components/app/settings/delete-project";
+import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
+import AppLayout from "components/layout/app";
+
+import useProject from "@/lib/swr/use-project";
 
 export default function ProjectLinks() {
   const { error } = useProject();

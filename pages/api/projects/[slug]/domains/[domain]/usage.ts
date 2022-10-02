@@ -1,7 +1,8 @@
 import { NextApiRequest, NextApiResponse } from "next";
+
 import { withProjectAuth } from "@/lib/auth";
-import { getUsage } from "@/lib/upstash";
 import { ProjectProps } from "@/lib/types";
+import { getUsage } from "@/lib/upstash";
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse, project: ProjectProps) => {

@@ -1,8 +1,10 @@
-import Stats from "@/components/stats";
-import AppLayout from "@/components/layout/app";
-import { useRouter } from "next/router";
-import useProject from "@/lib/swr/use-project";
 import ErrorPage from "next/error";
+import { useRouter } from "next/router";
+
+import AppLayout from "@/components/layout/app";
+import Stats from "@/components/stats";
+
+import useProject from "@/lib/swr/use-project";
 
 export default function StatsPage() {
   const router = useRouter();

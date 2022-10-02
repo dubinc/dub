@@ -1,4 +1,5 @@
 import Link from "next/link";
+
 import { Github, Twitter } from "@/components/shared/icons";
 
 const Hero = () => {

@@ -1,13 +1,16 @@
 import Link from "next/link";
+
+import { useState } from "react";
+
 import {
   CheckCircleFill,
   QuestionCircle,
   XCircleFill,
 } from "@/components/shared/icons";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
-import Tooltip, { OGImageProxy } from "@/components/shared/tooltip";
-import { useState } from "react";
 import Slider from "@/components/shared/slider";
+import Tooltip, { OGImageProxy } from "@/components/shared/tooltip";
+
 import { nFormatter } from "@/lib/utils";
 
 const pricingItems = [

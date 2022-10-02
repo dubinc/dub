@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+
 import { HOME_HOSTNAMES } from "@/lib/constants";
 
 export const parse = (req: NextRequest) => {

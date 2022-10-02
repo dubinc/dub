@@ -1,18 +1,22 @@
-import useSWR from "swr";
-import { useMemo, useState } from "react";
-import { fetcher, nFormatter } from "@/lib/utils";
 import { useRouter } from "next/router";
-import Tooltip from "@/components/shared/tooltip";
-import {
-  Divider,
-  Infinity,
-  QuestionCircle,
-  LoadingDots,
-} from "@/components/shared/icons";
+
+import { useMemo, useState } from "react";
+
 import { motion } from "framer-motion";
+import useSWR from "swr";
+
+import {
+  Infinity,
+  Divider,
+  LoadingDots,
+  QuestionCircle,
+} from "@/components/shared/icons";
+import Tooltip from "@/components/shared/tooltip";
+
 import { getStripe } from "@/lib/stripe/client";
 import useProject from "@/lib/swr/use-project";
 import useUsage from "@/lib/swr/use-usage";
+import { fetcher, nFormatter } from "@/lib/utils";
 
 export default function PlanUsage() {
   const router = useRouter();

@@ -1,4 +1,5 @@
 import ms from "ms";
+
 import { ccTLDs } from "./constants";
 
 interface SWRError extends Error {

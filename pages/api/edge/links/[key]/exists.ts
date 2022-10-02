@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+
 import { checkIfKeyExists } from "@/lib/upstash";
 
 export const config = {

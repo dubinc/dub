@@ -1,13 +1,17 @@
-import { Fragment, useMemo } from "react";
-import { Listbox, Transition } from "@headlessui/react";
-import { Tick, ChevronUpDown, PlusCircle } from "@/components/shared/icons";
 import { useRouter } from "next/router";
-import BlurImage from "@/components/shared/blur-image";
-import useSWR from "swr";
-import { fetcher } from "@/lib/utils";
-import { ProjectProps } from "@/lib/types";
+
+import { Fragment, useMemo } from "react";
+
+import { Listbox, Transition } from "@headlessui/react";
 import { useSession } from "next-auth/react";
+import useSWR from "swr";
+
 import { useAddProjectModal } from "@/components/app/modals/add-project-modal";
+import BlurImage from "@/components/shared/blur-image";
+import { ChevronUpDown, PlusCircle, Tick } from "@/components/shared/icons";
+
+import { ProjectProps } from "@/lib/types";
+import { fetcher } from "@/lib/utils";
 
 export default function ListBox() {
   const { data: projects } = useSWR<ProjectProps[]>("/api/projects", fetcher);

@@ -1,6 +1,6 @@
+import Globe from "@/components/home/globe";
 import HomeLayout from "@/components/layout/home";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
-import Globe from "@/components/home/globe";
 
 export default function About() {
   return (

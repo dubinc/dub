@@ -1,7 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+
 import { verifySignature } from "@upstash/qstash/nextjs";
-import { redis } from "@/lib/upstash";
+
 import { log } from "@/lib/cron";
+import { redis } from "@/lib/upstash";
 
 /**
  * Cron to delete generic links (links created on dub.sh) that are older than 30 days.

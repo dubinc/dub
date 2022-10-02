@@ -1,7 +1,11 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { unstable_getServerSession } from "next-auth/next";
+
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
+import { unstable_getServerSession } from "next-auth/next";
+
 import prisma from "@/lib/prisma";
+import { ProjectProps } from "@/lib/types";
+
 import { getUsage } from "./upstash";
 
 interface Session {
@@ -20,8 +24,6 @@ export async function getSession(req: NextApiRequest, res: NextApiResponse) {
   )) as Session | null;
   return session;
 }
-
-import { ProjectProps } from "@/lib/types";
 
 interface CustomNextApiHandler {
   (

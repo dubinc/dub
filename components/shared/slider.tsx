@@ -1,5 +1,6 @@
-import * as SliderPrimitive from "@radix-ui/react-slider";
 import { Dispatch, SetStateAction } from "react";
+
+import * as SliderPrimitive from "@radix-ui/react-slider";
 
 const Slider = ({
   value,

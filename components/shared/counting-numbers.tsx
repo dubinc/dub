@@ -1,5 +1,6 @@
-import { useInView } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
+
+import { useInView } from "framer-motion";
 
 export default function CountingNumbers({
   value,

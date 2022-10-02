@@ -1,11 +1,15 @@
-import useProject from "@/lib/swr/use-project";
 import { useRouter } from "next/router";
+
 import { useState } from "react";
-import { Chart, LoadingDots } from "@/components/shared/icons";
-import { fetcher, nFormatter } from "@/lib/utils";
-import useSWR from "swr";
-import Tooltip from "@/components/shared/tooltip";
+
 import toast from "react-hot-toast";
+import useSWR from "swr";
+
+import { Chart, LoadingDots } from "@/components/shared/icons";
+import Tooltip from "@/components/shared/tooltip";
+
+import useProject from "@/lib/swr/use-project";
+import { fetcher, nFormatter } from "@/lib/utils";
 
 export default function DefaultPage() {
   const router = useRouter();

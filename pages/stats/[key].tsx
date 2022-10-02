@@ -1,5 +1,5 @@
-import Stats from "@/components/stats";
 import HomeLayout from "@/components/layout/home";
+import Stats from "@/components/stats";
 
 export default function StatsPage() {
   return (

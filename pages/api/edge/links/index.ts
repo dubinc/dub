@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+
 import { redis, setRandomKey } from "@/lib/upstash";
 
 export const config = {

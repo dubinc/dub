@@ -1,12 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+
 import { verifySignature } from "@upstash/qstash/nextjs";
-import prisma from "@/lib/prisma";
+
+import { handleDomainUpdates } from "@/lib/cron";
 import {
   getConfigResponse,
   getDomainResponse,
   verifyDomain,
 } from "@/lib/domains";
-import { handleDomainUpdates } from "@/lib/cron";
+import prisma from "@/lib/prisma";
 
 /**
  * Cron to check if domains are verified.

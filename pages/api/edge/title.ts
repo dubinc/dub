@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+
 import { getTitleFromUrl } from "@/lib/utils";
 
 export const config = {

@@ -1,8 +1,10 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import Stripe from "stripe";
-import { stripe } from "@/lib/stripe";
+
 import { Readable } from "node:stream";
+import Stripe from "stripe";
+
 import prisma from "@/lib/prisma";
+import { stripe } from "@/lib/stripe";
 
 // Stripe requires the raw body to construct the event.
 export const config = {
