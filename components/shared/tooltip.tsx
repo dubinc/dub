@@ -37,6 +37,7 @@ export default function Tooltip({
       </button>
       <AnimatePresence>
         {openTooltip && (
+          
           <>
             <motion.div
               ref={mobileTooltipRef}
