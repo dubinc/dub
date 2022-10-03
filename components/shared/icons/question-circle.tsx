@@ -1,6 +1,7 @@
 export default function QuestionCircle({ className }: { className: string }) {
   return (
-    <svg
+   <div className="hover:cursor-pointer">
+     <svg
       fill="none"
       shapeRendering="geometricPrecision"
       stroke="currentColor"
@@ -16,5 +17,6 @@ export default function QuestionCircle({ className }: { className: string }) {
       <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" />
       <circle cx="12" cy="17" r=".5" />
     </svg>
+   </div>
   );
 }
