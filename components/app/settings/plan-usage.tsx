@@ -153,40 +153,7 @@ export default function PlanUsage() {
           <div className="h-3 w-28 bg-gray-200 rounded-full animate-pulse" />
         )}
         {plan ? (
-          plan === "Pro 1M" ? (
-            <div className="flex space-x-3">
-              <a
-                href="mailto:steven@dub.sh?subject=Upgrade%20to%20Enterprise%20Plan"
-                className="flex justify-center items-center bg-violet-600 text-white border-violet-600 hover:text-violet-600 hover:bg-white h-9 w-24 text-sm border rounded-md focus:outline-none transition-all ease-in-out duration-150"
-              >
-                Contact Us
-              </a>
-              <button
-                onClick={() => {
-                  setClicked(true);
-                  fetch(`/api/stripe/manage-subscription`, {
-                    method: "POST",
-                  })
-                    .then(async (res) => {
-                      const url = await res.json();
-                      router.push(url);
-                    })
-                    .catch((err) => {
-                      alert(err);
-                      setClicked(false);
-                    });
-                }}
-                disabled={clicked}
-                className={`${
-                  clicked
-                    ? "cursor-not-allowed bg-gray-100 border-gray-200"
-                    : "bg-black text-white border-black hover:text-black hover:bg-white"
-                }  h-9 w-40 text-sm border rounded-md focus:outline-none transition-all ease-in-out duration-150`}
-              >
-                {clicked ? <LoadingDots /> : "Manage Subscription"}
-              </button>
-            </div>
-          ) : (
+          plan === "Free" ? (
             <button
               onClick={() => {
                 setClicked(true);
@@ -213,6 +180,41 @@ export default function PlanUsage() {
             >
               {clicked ? <LoadingDots /> : "Upgrade"}
             </button>
+          ) : (
+            <div className="flex space-x-3">
+              {plan === "Pro 1M" && (
+                <a
+                  href="mailto:steven@dub.sh?subject=Upgrade%20to%20Enterprise%20Plan"
+                  className="flex justify-center items-center bg-violet-600 text-white border-violet-600 hover:text-violet-600 hover:bg-white h-9 w-24 text-sm border rounded-md focus:outline-none transition-all ease-in-out duration-150"
+                >
+                  Contact Us
+                </a>
+              )}
+              <button
+                onClick={() => {
+                  setClicked(true);
+                  fetch(`/api/stripe/manage-subscription`, {
+                    method: "POST",
+                  })
+                    .then(async (res) => {
+                      const url = await res.json();
+                      router.push(url);
+                    })
+                    .catch((err) => {
+                      alert(err);
+                      setClicked(false);
+                    });
+                }}
+                disabled={clicked}
+                className={`${
+                  clicked
+                    ? "cursor-not-allowed bg-gray-100 border-gray-200"
+                    : "bg-black text-white border-black hover:text-black hover:bg-white"
+                }  h-9 w-40 text-sm border rounded-md focus:outline-none transition-all ease-in-out duration-150`}
+              >
+                {clicked ? <LoadingDots /> : "Manage Subscription"}
+              </button>
+            </div>
           )
         ) : (
           <div className="h-9 w-24 bg-gray-200 rounded-md animate-pulse" />
