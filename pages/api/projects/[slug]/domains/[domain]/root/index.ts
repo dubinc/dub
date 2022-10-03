@@ -24,6 +24,7 @@ export default withProjectAuth(
     }
   },
   {
+    excludeGet: true,
     needVerifiedDomain: true,
     needNotExceededUsage: true,
     // TODO: For when we make this a pro feature

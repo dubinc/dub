@@ -45,6 +45,7 @@ export default withProjectAuth(
     }
   },
   {
+    excludeGet: true,
     needVerifiedDomain: true,
     needNotExceededUsage: true,
   }

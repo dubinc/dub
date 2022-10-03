@@ -22,7 +22,7 @@ export default function App() {
         <MaxWidthWrapper>
           <div className="flex justify-between items-center">
             <h1 className="text-2xl text-gray-600">My Projects</h1>
-            {plan === "Free" && data.length >= 1 ? (
+            {plan === "Free" && data?.length >= 1 ? (
               <Tooltip
                 content={
                   <TooltipContent

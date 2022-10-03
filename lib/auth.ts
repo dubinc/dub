@@ -33,10 +33,12 @@ const withProjectAuth =
   (
     handler: WithProjectNextApiHandler,
     {
+      excludeGet, // if the action doesn't need to be gated for GET requests
       needVerifiedDomain, // if the action needs a verified domain
       needProSubscription, // if the action needs a pro subscription
       needNotExceededUsage, // if the action needs the user to not have exceeded their usage
     }: {
+      excludeGet?: boolean;
       needVerifiedDomain?: boolean;
       needProSubscription?: boolean;
       needNotExceededUsage?: boolean;
@@ -72,8 +74,10 @@ const withProjectAuth =
 
     if (!project) return res.status(404).json({ error: "Project not found" });
 
-    if (req.method === "GET") return handler(req, res, project);
+    // if the action doesn't need to be gated for GET requests, return handler now
+    if (req.method === "GET" && excludeGet) return handler(req, res, project);
 
+    // if the action needs a verified domain, check if the project has one, if not return 403
     if (needVerifiedDomain && !project.domainVerified) {
       return res.status(403).json({ error: "Domain not verified." });
     }
