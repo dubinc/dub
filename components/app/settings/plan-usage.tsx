@@ -157,7 +157,7 @@ export default function PlanUsage() {
             <button
               onClick={() => {
                 setClicked(true);
-                fetch(`/api/upgrade`, {
+                fetch(`/api/stripe/upgrade`, {
                   method: "POST",
                 })
                   .then(async (res) => {

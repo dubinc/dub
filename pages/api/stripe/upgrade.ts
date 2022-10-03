@@ -3,10 +3,9 @@ import { withProjectAuth, withUserAuth } from "@/lib/auth";
 import { stripe } from "@/lib/stripe";
 
 export default withUserAuth(
-  async (req: NextApiRequest, res: NextApiResponse) => {
+  async (req: NextApiRequest, res: NextApiResponse, userId) => {
     // POST /api/stripe/upgrade – upgrade a user's account from free to pro
     if (req.method === "POST") {
-      const { slug } = req.query as { slug: string };
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ["card"],
         billing_address_collection: "required",
@@ -14,15 +13,15 @@ export default withUserAuth(
           process.env.VERCEL === "1"
             ? "https://app.dub.sh"
             : "http://app.localhost:3000"
-        }/${slug}/settings`,
+        }/settings`,
         cancel_url: `${
           process.env.VERCEL === "1"
             ? "https://app.dub.sh"
             : "http://app.localhost:3000"
-        }/${slug}/settings`,
+        }/settings`,
         line_items: [{ price: process.env.STRIPE_PRO_PRICE_ID, quantity: 1 }],
         mode: "subscription",
-        client_reference_id: slug,
+        client_reference_id: userId,
       });
       return res.status(200).json(session);
     } else {
