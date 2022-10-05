@@ -4,9 +4,10 @@ import { useAddProjectModal } from "@/components/app/modals/add-project-modal";
 import NoProjectsPlaceholder from "@/components/app/no-projects-placeholder";
 import ProjectCard from "@/components/app/project-card";
 import ProjectCardPlaceholder from "@/components/app/project-card-placeholder";
-import useUsage from "@/lib/swr/use-usage";
 import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
+
 import { FREE_PLAN_PROJECT_LIMIT } from "@/lib/constants";
+import useUsage from "@/lib/swr/use-usage";
 
 export default function App() {
   const { data } = useSWR<ProjectProps[]>(`/api/projects`, fetcher);

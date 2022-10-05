@@ -1,8 +1,10 @@
-import useSWR from "swr";
 import { useMemo } from "react";
-import { fetcher } from "@/lib/utils";
+
+import useSWR from "swr";
+
+import { PRO_TIERS, getPlanFromUsageLimit } from "@/lib/stripe/constants";
 import { UsageProps } from "@/lib/types";
-import { getPlanFromUsageLimit, PRO_TIERS } from "@/lib/stripe/constants";
+import { fetcher } from "@/lib/utils";
 
 export default function useUsage({ settingsPage } = { settingsPage: false }) {
   const { data, error } = useSWR<UsageProps>(

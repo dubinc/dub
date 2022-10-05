@@ -5,7 +5,6 @@ import { customAlphabet } from "nanoid";
 
 import { LOCALHOST_GEO_DATA, RESERVED_KEYS } from "@/lib/constants";
 import { LinkProps, ProjectProps } from "@/lib/types";
-import { customAlphabet } from "nanoid";
 import {
   getDescriptionFromUrl,
   getFirstAndLastDay,
