@@ -137,7 +137,6 @@ export default function PlanUsage() {
             <p className="text-gray-500 text-sm">
               {plan === "Free" ? "For " : "To "}
               <Tooltip content={<ProTiers usageLimit={usageLimit} />}>
-                {/* TODO - a simpler version of the homepage slider */}
                 <span className="font-medium text-gray-700 underline underline-offset-2 cursor-default hover:text-black">
                   {plan === "Free"
                     ? "increased limits"

@@ -1,7 +1,6 @@
 import { NextRequest, NextFetchEvent, NextResponse } from "next/server";
-import { redis, recordClick } from "@/lib/upstash";
-import { parse, detectBot } from "@/lib/middleware/utils";
-import { LinkProps } from "../types";
+import { recordClick } from "@/lib/upstash";
+import { parse } from "@/lib/middleware/utils";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
@@ -30,27 +29,8 @@ export default async function LinkMiddleware(
 
   if (success) {
     // if ratelimit is not exceeded
-    const response = await redis.hget<Omit<LinkProps, "key">>(
-      `${hostname}:links`,
-      key
-    );
-    const { url: target, description, image } = response || {};
-
-    if (target) {
-      const isBot = detectBot(req);
-
-      ev.waitUntil(recordClick(hostname, req, key)); // increment click count
-
-      if (image && description && isBot) {
-        // rewrite to proxy page (dub.sh/proxy/[domain]/[key])
-        res = NextResponse.rewrite(`https://dub.sh/proxy/${hostname}/${key}`);
-      } else {
-        res = NextResponse.redirect(target);
-      }
-    } else {
-      url.pathname = "/";
-      res = NextResponse.redirect(url);
-    }
+    ev.waitUntil(recordClick(hostname, req, key)); // increment click count
+    return NextResponse.rewrite(new URL(`/api/edge/links/${key}`, req.url));
   } else {
     url.pathname = "/";
     res = NextResponse.redirect(url); // TODO: add a rate limit page
