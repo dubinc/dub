@@ -8,7 +8,7 @@ export const config = {
 export default async function handler(req: NextRequest) {
   if (req.method === "GET") {
     const url = req.nextUrl.pathname;
-    const key = url.split("/")[4];
+    const key = decodeURIComponent(url.split("/")[4]);
     const response = await checkIfKeyExists("dub.sh", key);
     return new Response(JSON.stringify(response), { status: 200 });
   } else {
