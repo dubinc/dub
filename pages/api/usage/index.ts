@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { withUserAuth } from "@/lib/auth";
+import prisma from "@/lib/prisma";
 
 export default withUserAuth(
   async (req: NextApiRequest, res: NextApiResponse, userId: string) => {
