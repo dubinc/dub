@@ -9,6 +9,7 @@ import NoProjectsPlaceholder from "@/components/app/no-projects-placeholder";
 import ProjectCardPlaceholder from "@/components/app/project-card-placeholder";
 import useUsage from "@/lib/swr/use-usage";
 import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
+import { FREE_PLAN_PROJECT_LIMIT } from "@/lib/constants";
 
 export default function App() {
   const { data } = useSWR<ProjectProps[]>(`/api/projects`, fetcher);
@@ -22,11 +23,11 @@ export default function App() {
         <MaxWidthWrapper>
           <div className="flex justify-between items-center">
             <h1 className="text-2xl text-gray-600">My Projects</h1>
-            {plan === "Free" && data?.length >= 1 ? (
+            {plan === "Free" && data?.length >= FREE_PLAN_PROJECT_LIMIT ? (
               <Tooltip
                 content={
                   <TooltipContent
-                    title="You can only have 1 project on the Free plan. Upgrade to the Pro plan create more."
+                    title={`You can only have ${FREE_PLAN_PROJECT_LIMIT} projects on the Free plan. Upgrade to the Pro plan create more.`}
                     cta="Upgrade"
                     ctaLink={`/settings`}
                   />

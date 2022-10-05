@@ -3,6 +3,7 @@ import { unstable_getServerSession } from "next-auth/next";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import prisma from "@/lib/prisma";
 import { ProjectProps, UsageProps, UserProps } from "@/lib/types";
+import { FREE_PLAN_PROJECT_LIMIT } from "@/lib/constants";
 
 interface Session {
   user: {
@@ -159,7 +160,11 @@ const withUserAuth =
       })) as UserProps;
 
       const freePlan = user.usageLimit === 1000;
-      if (needProSubscription && freePlan && user.projects.length >= 5) {
+      if (
+        needProSubscription &&
+        freePlan &&
+        user.projects.length >= FREE_PLAN_PROJECT_LIMIT
+      ) {
         return res
           .status(403)
           .end("Unauthorized: Can't add more projects, need pro subscription");
