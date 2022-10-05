@@ -81,7 +81,6 @@ export async function checkIfKeyExists(hostname: string, key: string) {
   return await redis.hexists(`${hostname}:links`, key);
 }
 
-
 /**
  * Recording clicks with geo, ua, referer and timestamp data
  * If key is not specified, record click as the root click
@@ -92,8 +91,7 @@ export async function recordClick(
   query: URLSearchParams,
   key?: string
 ) {
-  const truncate = (v: null | string) =>
-    !v  ? undefined : v.slice(0, 256);
+  const truncate = (v: null | string) => (!v ? undefined : v.slice(0, 256));
 
   return await redis.zadd(
     key ? `${hostname}:clicks:${key}` : `${hostname}:root:clicks`,
@@ -104,16 +102,22 @@ export async function recordClick(
         ua: userAgent(req),
         referer: req.headers.get("referer"),
         timestamp: Date.now(),
-        utm:
-          !query || !['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'].map((p) => query.has(p)).includes(true)
-            ? undefined
-            : {
-                source: truncate(query.get('utm_source')),
-                medium: truncate(query.get('utm_medium')),
-                compaign: truncate(query.get('utm_campaign')),
-                content: truncate(query.get('utm_content')),
-                term: truncate(query.get('utm_term'))
-              }
+        ...(query &&
+          [
+            "utm_source",
+            "utm_medium",
+            "utm_campaign",
+            "utm_content",
+            "utm_term",
+          ].some((p) => query.has(p)) && {
+            utm: {
+              source: truncate(query.get("utm_source")),
+              medium: truncate(query.get("utm_medium")),
+              compaign: truncate(query.get("utm_campaign")),
+              content: truncate(query.get("utm_content")),
+              term: truncate(query.get("utm_term")),
+            },
+          }),
       },
     }
   );
