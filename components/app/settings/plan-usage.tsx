@@ -50,7 +50,7 @@ export default function PlanUsage() {
         <h2 className="text-xl font-medium">Plan &amp; Usage</h2>
         <p className="text-gray-500 text-sm">
           You are currently on the{" "}
-          {!loading ? (
+          {plan ? (
             <span
               className={`capitalize ${
                 plan.startsWith("Enterprise")
