@@ -12,7 +12,7 @@ export default function UTM({ data: rawData }: { data: StatsProps }) {
   const data = {
     ...rawData,
     utmData: useMemo(() => {
-      if (rawData?.locationData) {
+      if (rawData?.utmData) {
         return processUTMData(rawData.utmData, tab);
       } else {
         return null;
