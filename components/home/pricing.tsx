@@ -9,7 +9,7 @@ import Tooltip, { OGImageProxy } from "@/components/shared/tooltip";
 import { useState } from "react";
 import Slider from "@/components/shared/slider";
 import { nFormatter } from "@/lib/utils";
-import { PRO_TIERS } from "@/lib/constants";
+import { PRO_TIERS } from "@/lib/stripe/constants";
 
 const pricingItems = [
   {
@@ -23,7 +23,7 @@ const pricingItems = [
           "Just bring any domain you own and turn it into a custom domain link shortener for free.",
       },
       { text: "Unlimited branded links" },
-      { text: "1 project" },
+      { text: "5 project" },
       {
         text: "Root domain redirect",
         footnote:
@@ -131,7 +131,10 @@ const Pricing = () => {
                 ) : (
                   <div className="my-5 flex justify-center">
                     <p className="text-6xl font-display font-semibold">
-                      ${plan === "Pro" ? PRO_TIERS[tier].price : 0}
+                      $
+                      {plan === "Pro"
+                        ? PRO_TIERS[tier].price.monthly.amount
+                        : 0}
                     </p>
                   </div>
                 )}

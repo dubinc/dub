@@ -159,7 +159,7 @@ const withUserAuth =
       })) as UserProps;
 
       const freePlan = user.usageLimit === 1000;
-      if (needProSubscription && freePlan && user.projects.length === 1) {
+      if (needProSubscription && freePlan && user.projects.length >= 5) {
         return res
           .status(403)
           .end("Unauthorized: Can't add more projects, need pro subscription");

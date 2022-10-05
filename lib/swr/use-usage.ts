@@ -2,7 +2,7 @@ import useSWR from "swr";
 import { useMemo } from "react";
 import { fetcher } from "@/lib/utils";
 import { UsageProps } from "@/lib/types";
-import { PLAN_FROM_USAGE_LIMIT } from "../constants";
+import { PRO_TIERS } from "@/lib/stripe/constants";
 
 export default function useUsage({ settingsPage } = { settingsPage: false }) {
   const { data, error } = useSWR<UsageProps>(
@@ -18,7 +18,7 @@ export default function useUsage({ settingsPage } = { settingsPage: false }) {
 
   const plan = useMemo(() => {
     if (data) {
-      return PLAN_FROM_USAGE_LIMIT[data.usageLimit];
+      return PRO_TIERS.find((tier) => tier.quota === data.usageLimit).name;
     }
   }, [data]);
 

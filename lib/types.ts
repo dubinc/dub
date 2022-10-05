@@ -23,7 +23,7 @@ export interface UsageProps {
   usage: number;
   usageLimit: number;
   projectCount?: number;
-  lastBilled?: number;
+  billingCycleStart?: number;
 }
 
 export interface UserProps {

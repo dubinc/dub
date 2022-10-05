@@ -16,7 +16,7 @@ export default withUserAuth(
           usage: true,
           usageLimit: true,
           ...(settingsPage === "1" && {
-            lastBilled: true,
+            billingCycleStart: true,
             projects: {
               where: {
                 role: "owner",
@@ -29,7 +29,7 @@ export default withUserAuth(
         ...response,
         ...(settingsPage === "1" && {
           projects: undefined,
-          projectCount: response.projects.length || "0",
+          projectCount: response?.projects?.length || "0",
         }),
       });
     } else {

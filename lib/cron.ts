@@ -45,45 +45,20 @@ export const handleDomainUpdates = async (
   return;
 };
 
-export const updateProjectUsage = async () => {
-  const projects = await prisma.project.findMany({
-    select: {
-      domain: true,
-    },
-    where: {
-      domainVerified: true,
-    },
-  });
-
-  const response = await Promise.all(
-    projects.map(async ({ domain }) => {
-      const usage = await getUsage(domain);
-      return await prisma.project.update({
-        where: {
-          domain,
-        },
-        data: {
-          usage,
-        },
-      });
-    })
-  );
-
-  return response;
-};
-
 export const updateUsage = async () => {
   const users = await prisma.user.findMany({
     select: {
       id: true,
       email: true,
       usageLimit: true,
-      lastBilled: true,
+      stripeId: true,
+      billingCycleStart: true,
       projects: {
         select: {
           project: {
             select: {
               domain: true,
+              domainVerified: true,
             },
           },
         },
@@ -95,32 +70,36 @@ export const updateUsage = async () => {
   });
 
   const response = await Promise.all(
-    users.map(async ({ id, email, usageLimit, lastBilled, projects }) => {
-      // if user has no projects, don't update usage
-      if (projects.length === 0) return;
+    users.map(
+      async ({ id, email, usageLimit, billingCycleStart, projects }) => {
+        // if user has no projects, don't update usage
+        if (projects.length === 0) return;
 
-      const usageArr = await Promise.all(
-        projects.map(async ({ project: { domain } }) => {
-          return await getUsage(domain, lastBilled);
-        })
-      );
-      const totalUsage = usageArr.reduce((a, b) => a + b, 0);
-
-      if (totalUsage > usageLimit) {
-        await log(
-          `${email} is over usage limit. Usage: ${totalUsage}, Limit: ${usageLimit}`
+        const usageArr = await Promise.all(
+          projects.map(async ({ project: { domain, domainVerified } }) => {
+            return domainVerified
+              ? await getUsage(domain, billingCycleStart)
+              : 0;
+          })
         );
-      }
+        let totalUsage = usageArr.reduce((a, b) => a + b, 0);
 
-      return await prisma.user.update({
-        where: {
-          id,
-        },
-        data: {
-          usage: totalUsage,
-        },
-      });
-    })
+        if (totalUsage > usageLimit) {
+          await log(
+            `${email} is over usage limit. Usage: ${totalUsage}, Limit: ${usageLimit}`
+          );
+        }
+
+        return await prisma.user.update({
+          where: {
+            id,
+          },
+          data: {
+            usage: totalUsage,
+          },
+        });
+      }
+    )
   );
 
   return response;

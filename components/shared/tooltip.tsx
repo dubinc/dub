@@ -1,7 +1,7 @@
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
-import { PLAN_FROM_USAGE_LIMIT, PRO_TIERS } from "@/lib/constants";
+import { PRO_TIERS } from "@/lib/stripe/constants";
 import Slider from "@/components/shared/slider";
 
 export default function Tooltip({
@@ -168,11 +168,11 @@ export function ProTiers({ usageLimit }: { usageLimit?: number }) {
     <div className="w-full rounded-md">
       <div className="max-w-md flex justify-between items-center w-full p-5">
         <h3 className="text-2xl text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-600">
-          {PLAN_FROM_USAGE_LIMIT[PRO_TIERS[tier].quota]}
+          {PRO_TIERS[tier].name}
         </h3>
         <div className="flex items-center">
           <p className="text-2xl font-semibold text-gray-700">
-            ${PRO_TIERS[tier].price}
+            ${PRO_TIERS[tier].price.monthly.amount}
           </p>
           <p className="text-sm text-gray-700">/mo</p>
         </div>

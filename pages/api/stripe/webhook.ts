@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import { stripe } from "@/lib/stripe";
 import { Readable } from "node:stream";
 import prisma from "@/lib/prisma";
+import { PRO_TIERS } from "@/lib/stripe/constants";
 
 // Stripe requires the raw body to construct the event.
 export const config = {
@@ -21,8 +22,8 @@ async function buffer(readable: Readable) {
 
 const relevantEvents = new Set([
   "checkout.session.completed",
-  "invoice.paid",
   "invoice.payment_failed",
+  "customer.subscription.updated",
   "customer.subscription.deleted",
 ]);
 
@@ -50,44 +51,54 @@ export default async function webhookHandler(
             const checkoutSession = event.data
               .object as Stripe.Checkout.Session;
 
-            await prisma.project.update({
+            // when the user subscribes to a plan, set their stripe customer ID
+            // in the database for easy identification in future webhook events
+            await prisma.user.update({
               where: {
-                slug: checkoutSession.client_reference_id,
+                id: checkoutSession.client_reference_id,
               },
               data: {
-                plan: "pro",
-                usageLimit: 1000000,
                 stripeId: checkoutSession.customer.toString(),
-                lastBilled: new Date(),
+                billingCycleStart: new Date().getDate(),
               },
             });
             break;
-          case "invoice.paid":
-            const invoicePaid = event.data.object as Stripe.Invoice;
-            console.log("invoice paid", invoicePaid);
-            await prisma.project.update({
+
+          case "customer.subscription.updated":
+            const subscriptionUpdated = event.data
+              .object as Stripe.Subscription;
+            const newPriceId = subscriptionUpdated.items.data[0].price.id;
+            const env =
+              process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
+                ? "production"
+                : "test";
+            const tier = PRO_TIERS.find(
+              (tier) =>
+                tier.price.monthly.priceIds[env] === newPriceId ||
+                tier.price.yearly.priceIds[env] === newPriceId
+            );
+            const usageLimit = tier.quota;
+
+            // If a user upgrades/downgrades their subscription,
+            // update their usage limit in the database.
+            await prisma.user.update({
               where: {
-                stripeId: invoicePaid.customer.toString(),
+                stripeId: subscriptionUpdated.customer.toString(),
               },
               data: {
-                lastBilled: new Date(),
+                usageLimit,
               },
             });
             break;
-          case "invoice.payment_failed":
-            const invoiceFailed = event.data.object as Stripe.Invoice;
-            console.log("invoice failed", invoiceFailed);
-            // TODO - send email to user
-            break;
+
           case "customer.subscription.deleted":
-            const subscription = event.data.object as Stripe.Subscription;
-            console.log("subscription deleted", subscription);
-            await prisma.project.update({
+            const subscriptionDeleted = event.data
+              .object as Stripe.Subscription;
+            await prisma.user.update({
               where: {
-                stripeId: subscription.customer.toString(),
+                stripeId: subscriptionDeleted.customer.toString(),
               },
               data: {
-                plan: "free",
                 usageLimit: 1000,
               },
             });

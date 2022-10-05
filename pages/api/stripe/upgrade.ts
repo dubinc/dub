@@ -1,11 +1,12 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { withProjectAuth, withUserAuth } from "@/lib/auth";
+import { withUserAuth } from "@/lib/auth";
 import { stripe } from "@/lib/stripe";
 
 export default withUserAuth(
   async (req: NextApiRequest, res: NextApiResponse, userId) => {
     // POST /api/stripe/upgrade – upgrade a user's account from free to pro
     if (req.method === "POST") {
+      const { priceId } = req.query as { priceId: string };
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ["card"],
         billing_address_collection: "required",
@@ -19,7 +20,7 @@ export default withUserAuth(
             ? "https://app.dub.sh"
             : "http://app.localhost:3000"
         }/settings`,
-        line_items: [{ price: process.env.STRIPE_PRO_PRICE_ID, quantity: 1 }],
+        line_items: [{ price: priceId, quantity: 1 }],
         mode: "subscription",
         client_reference_id: userId,
       });

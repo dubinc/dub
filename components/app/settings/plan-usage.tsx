@@ -1,6 +1,5 @@
-import useSWR from "swr";
 import { useMemo, useState } from "react";
-import { nFormatter } from "@/lib/utils";
+import { getFirstAndLastDay, nFormatter } from "@/lib/utils";
 import { useRouter } from "next/router";
 import Tooltip, { ProTiers } from "@/components/shared/tooltip";
 import {
@@ -10,41 +9,43 @@ import {
   LoadingDots,
 } from "@/components/shared/icons";
 import { motion } from "framer-motion";
-import { getStripe } from "@/lib/stripe/client";
 import useUsage from "@/lib/swr/use-usage";
-import { PLAN_FROM_USAGE_LIMIT } from "@/lib/constants";
+import { PRO_TIERS } from "@/lib/stripe/constants";
+import { useUpgradePlanModal } from "@/components/app/modals/upgrade-plan-modal";
 
 export default function PlanUsage() {
   const router = useRouter();
   const {
-    data: { usage, usageLimit, lastBilled, projectCount } = {},
+    data: { usage, usageLimit, billingCycleStart, projectCount } = {},
     loading,
   } = useUsage({ settingsPage: true });
 
   const [clicked, setClicked] = useState(false);
 
   const [billingStart, billingEnd] = useMemo(() => {
-    if (lastBilled) {
-      const lastBilledDate = new Date(lastBilled);
-      const start = lastBilledDate.toLocaleDateString("en-us", {
+    if (billingCycleStart) {
+      const { firstDay, lastDay } = getFirstAndLastDay(billingCycleStart);
+      const start = firstDay.toLocaleDateString("en-us", {
         month: "short",
         day: "numeric",
       });
-      const end = new Date(
-        lastBilledDate.setDate(lastBilledDate.getDate() + 30)
-      ).toLocaleDateString("en-us", {
+      const end = lastDay.toLocaleDateString("en-us", {
         month: "short",
         day: "numeric",
       });
       return [start, end];
     }
     return [];
-  }, [lastBilled]);
+  }, [billingCycleStart]);
 
-  const plan = usageLimit && PLAN_FROM_USAGE_LIMIT[usageLimit];
+  const plan =
+    usageLimit && PRO_TIERS.find((tier) => tier.quota === usageLimit).name;
+
+  const { UpgradePlanModal, setShowUpgradePlanModal } = useUpgradePlanModal();
 
   return (
     <div className="bg-white rounded-lg border border-gray-200">
+      <UpgradePlanModal />
       <div className="flex flex-col space-y-3 p-10">
         <h2 className="text-xl font-medium">Plan &amp; Usage</h2>
         <p className="text-gray-500 text-sm">
@@ -156,29 +157,11 @@ export default function PlanUsage() {
           plan === "Free" ? (
             <button
               onClick={() => {
-                setClicked(true);
-                fetch(`/api/stripe/upgrade`, {
-                  method: "POST",
-                })
-                  .then(async (res) => {
-                    const data = await res.json();
-                    const { id: sessionId } = data;
-                    const stripe = await getStripe();
-                    stripe.redirectToCheckout({ sessionId });
-                  })
-                  .catch((err) => {
-                    alert(err);
-                    setClicked(false);
-                  });
+                setShowUpgradePlanModal(true);
               }}
-              disabled={clicked}
-              className={`${
-                clicked
-                  ? "cursor-not-allowed bg-gray-100 border-gray-200"
-                  : "bg-blue-500 text-white border-blue-500 hover:text-blue-500 hover:bg-white"
-              }  h-9 w-24 text-sm border rounded-md focus:outline-none transition-all ease-in-out duration-150`}
+              className="bg-blue-500 text-white border-blue-500 hover:text-blue-500 hover:bg-white h-9 w-24 text-sm border rounded-md focus:outline-none transition-all ease-in-out duration-150"
             >
-              {clicked ? <LoadingDots /> : "Upgrade"}
+              Upgrade
             </button>
           ) : (
             <div className="flex space-x-3">
