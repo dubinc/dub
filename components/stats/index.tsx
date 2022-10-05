@@ -4,6 +4,7 @@ import Toggle from "@/components/stats/toggle";
 import Devices from "@/components/stats/devices";
 import Locations from "@/components/stats/locations";
 import UTM from "@/components/stats/utm";
+import Referer from "@/components/stats/referer";
 import useSWR from "swr";
 import { fetcher } from "@/lib/utils";
 import { useRouter } from "next/router";
@@ -46,6 +47,7 @@ export default function Stats({
           <Locations data={data!} />
           <Devices data={data!} />
           <UTM data={data!} />
+          <Referer data={data!} />
         </div>
       </div>
     </div>
