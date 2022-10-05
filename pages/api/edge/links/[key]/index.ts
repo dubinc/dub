@@ -18,7 +18,7 @@ export default async function handler(req: NextRequest) {
       key
     );
     const { url: target, description, image } = response || {};
-    console.log(hostname, key, target, description, image);
+    console.log(hostname, url.pathname, target, description, image, url);
 
     if (target) {
       const isBot = detectBot(req);
