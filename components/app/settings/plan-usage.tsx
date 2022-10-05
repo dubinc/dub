@@ -10,7 +10,7 @@ import {
 } from "@/components/shared/icons";
 import { motion } from "framer-motion";
 import useUsage from "@/lib/swr/use-usage";
-import { PRO_TIERS } from "@/lib/stripe/constants";
+import { getPlanFromUsageLimit, PRO_TIERS } from "@/lib/stripe/constants";
 import { useUpgradePlanModal } from "@/components/app/modals/upgrade-plan-modal";
 
 export default function PlanUsage() {
@@ -38,8 +38,7 @@ export default function PlanUsage() {
     return [];
   }, [billingCycleStart]);
 
-  const plan =
-    usageLimit && PRO_TIERS.find((tier) => tier.quota === usageLimit).name;
+  const plan = usageLimit && getPlanFromUsageLimit(usageLimit);
 
   const { UpgradePlanModal, setShowUpgradePlanModal } = useUpgradePlanModal();
 
