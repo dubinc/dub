@@ -23,7 +23,7 @@ const pricingItems = [
           "Just bring any domain you own and turn it into a custom domain link shortener for free.",
       },
       { text: "Unlimited branded links" },
-      { text: "5 project" },
+      { text: "5 projects" },
       {
         text: "Root domain redirect",
         footnote:

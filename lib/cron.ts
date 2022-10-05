@@ -18,7 +18,7 @@ export const handleDomainUpdates = async (
     (new Date().getTime() - new Date(createdAt).getTime()) / (1000 * 3600 * 24)
   );
 
-  if (invalidDays > 7) {
+  if (invalidDays > 25) {
     await log(`Domain *${domain}* is invalid for ${invalidDays} days`);
   }
 

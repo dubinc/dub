@@ -10,7 +10,7 @@ import {
 } from "@/components/shared/icons";
 import { motion } from "framer-motion";
 import useUsage from "@/lib/swr/use-usage";
-import { getPlanFromUsageLimit, PRO_TIERS } from "@/lib/stripe/constants";
+import { getPlanFromUsageLimit } from "@/lib/stripe/constants";
 import { useUpgradePlanModal } from "@/components/app/modals/upgrade-plan-modal";
 
 export default function PlanUsage() {
@@ -127,7 +127,7 @@ export default function PlanUsage() {
         </div>
       </div>
       <div className="border-b border-gray-200" />
-      <div className="px-10 py-4 flex justify-between items-center">
+      <div className="px-10 py-4 flex flex-col sm:flex-row space-y-3 sm:space-y-0 justify-between items-center text-center sm:text-left">
         {plan ? (
           plan === "Pro 1M" ? (
             <p className="text-gray-500 text-sm">
