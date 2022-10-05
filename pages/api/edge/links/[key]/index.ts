@@ -28,7 +28,7 @@ export default async function handler(req: NextRequest) {
         return NextResponse.redirect(target, {
           status: 308,
           headers: {
-            "cache-control": "public, s-maxage=60, max-age=10",
+            "cache-control": "public, s-maxage=60, max-age=0",
           }, // cache for 60s only if there is a valid target for key
         });
       }
