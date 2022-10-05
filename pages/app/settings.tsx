@@ -1,6 +1,6 @@
-import AppLayout from "components/layout/app";
-import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import PlanUsage from "@/components/app/settings/plan-usage";
+import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
+import AppLayout from "components/layout/app";
 
 export default function Settings() {
   return (

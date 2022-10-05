@@ -11,8 +11,8 @@ import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import Slider from "@/components/shared/slider";
 import Tooltip, { OGImageProxy } from "@/components/shared/tooltip";
 
-import { nFormatter } from "@/lib/utils";
 import { PRO_TIERS } from "@/lib/stripe/constants";
+import { nFormatter } from "@/lib/utils";
 
 const pricingItems = [
   {

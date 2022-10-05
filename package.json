@@ -6,7 +6,8 @@
     "build": "next build",
     "start": "next start",
     "format": "prettier --write \"./**/*.{ts,tsx,json}\"",
-    "lint": "next lint"
+    "lint": "next lint",
+    "prepare": "husky install"
   },
   "dependencies": {
     "@headlessui/react": "^1.6.6",
@@ -59,6 +60,7 @@
     "@types/react-dom": "18.0.5",
     "@types/topojson-client": "^3.1.1",
     "autoprefixer": "^10.4.7",
+    "husky": "^8.0.1",
     "postcss": "^8.4.14",
     "prettier": "^2.7.1",
     "tailwindcss": "^3.1.2",
