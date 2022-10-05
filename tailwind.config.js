@@ -1,4 +1,6 @@
 /** @type {import('tailwindcss').Config} */
+const plugin = require("tailwindcss/plugin");
+
 module.exports = {
   content: [
     "./pages/**/*.{js,ts,jsx,tsx}",
@@ -56,5 +58,9 @@ module.exports = {
     require("@tailwindcss/forms"),
     require("tailwind-scrollbar-hide"),
     require("@tailwindcss/line-clamp"),
+    plugin(({ addVariant }) => {
+      addVariant("radix-state-checked", '&[data-state="checked"]');
+      addVariant("radix-state-unchecked", '&[data-state="unchecked"]');
+    }),
   ],
 };

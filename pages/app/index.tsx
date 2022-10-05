@@ -7,10 +7,13 @@ import ProjectCard from "@/components/app/project-card";
 import { useAddProjectModal } from "@/components/app/modals/add-project-modal";
 import NoProjectsPlaceholder from "@/components/app/no-projects-placeholder";
 import ProjectCardPlaceholder from "@/components/app/project-card-placeholder";
+import useUsage from "@/lib/swr/use-usage";
+import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 
 export default function App() {
   const { data } = useSWR<ProjectProps[]>(`/api/projects`, fetcher);
   const { setShowAddProjectModal, AddProjectModal } = useAddProjectModal({});
+  const { plan } = useUsage();
 
   return (
     <AppLayout>
@@ -19,12 +22,28 @@ export default function App() {
         <MaxWidthWrapper>
           <div className="flex justify-between items-center">
             <h1 className="text-2xl text-gray-600">My Projects</h1>
-            <button
-              onClick={() => setShowAddProjectModal(true)}
-              className="text-white hover:text-black bg-black hover:bg-white active:scale-95 font-medium text-sm px-5 py-2 border rounded-md border-black transition-all duration-75"
-            >
-              Add
-            </button>
+            {plan === "Free" && data?.length >= 1 ? (
+              <Tooltip
+                content={
+                  <TooltipContent
+                    title="You can only have 1 project on the Free plan. Upgrade to the Pro plan create more."
+                    cta="Upgrade"
+                    ctaLink={`/settings`}
+                  />
+                }
+              >
+                <div className="text-gray-300 cursor-not-allowed font-medium text-sm px-5 py-2 border rounded-md border-gray-200 transition-all duration-75">
+                  Add
+                </div>
+              </Tooltip>
+            ) : (
+              <button
+                onClick={() => setShowAddProjectModal(true)}
+                className="text-white hover:text-black bg-black hover:bg-white active:scale-95 font-medium text-sm px-5 py-2 border rounded-md border-black transition-all duration-75"
+              >
+                Add
+              </button>
+            )}
           </div>
         </MaxWidthWrapper>
       </div>
