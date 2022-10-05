@@ -22,7 +22,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
 
   const { project } = useProject();
   const { domain } = project || {};
-  const { exceededUsage } = useUsage(project);
+  const { exceededUsage } = useUsage();
 
   const { data: clicks, isValidating } = useSWR<string>(
     domain
@@ -92,7 +92,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                 <TooltipContent
                   title="You have exceeded your usage limit. We're still collecting data on your existing links, but you need to upgrade to edit them."
                   cta="Upgrade"
-                  ctaLink={`/${slug}/settings`}
+                  ctaLink={`/settings`}
                 />
               }
             >

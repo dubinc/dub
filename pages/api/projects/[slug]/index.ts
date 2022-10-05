@@ -14,10 +14,10 @@ export default withProjectAuth(
         .json({ error: "Missing or misconfigured project slug" });
     }
 
-    // GET /api/projects/[slug] – get a specific project with it's links
+    // GET /api/projects/[slug] – get a specific project
     if (req.method === "GET") {
       return res.status(200).json(project);
-      // DELETE /api/projects/[slug] – edit a project
+      // DELETE /api/projects/[slug] – delete a project
     } else if (req.method === "DELETE") {
       const domain = req.body;
       if (!domain || typeof domain !== "string") {

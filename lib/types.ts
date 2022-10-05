@@ -17,10 +17,22 @@ export interface ProjectProps {
   slug: string;
   domain: string;
   domainVerified: boolean;
-  plan: string;
+}
+
+export interface UsageProps {
+  usage: number;
   usageLimit: number;
-  stripeId?: string;
-  lastBilled: Date;
+  projectCount?: number;
+  billingCycleStart?: number;
+}
+
+export interface UserProps {
+  id: string;
+  name: string;
+  email: string;
+  stripeId: string;
+  usageLimit: number;
+  projects?: { projectId: string }[];
 }
 
 export type DomainVerificationStatusProps =

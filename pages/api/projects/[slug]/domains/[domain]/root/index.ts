@@ -23,5 +23,11 @@ export default withProjectAuth(
         .json({ error: `Method ${req.method} Not Allowed` });
     }
   },
-  true
+  {
+    excludeGet: true,
+    needVerifiedDomain: true,
+    needNotExceededUsage: true,
+    // TODO: For when we make this a pro feature
+    // needProSubscription: true,
+  }
 );

@@ -1,6 +1,8 @@
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
+import { PRO_TIERS } from "@/lib/stripe/constants";
+import Slider from "@/components/shared/slider";
 
 export default function Tooltip({
   children,
@@ -29,7 +31,10 @@ export default function Tooltip({
   const randomIndex = Math.floor(Math.random() * 1000000).toString();
   return (
     <>
-      <button className="block sm:hidden" onClick={() => setOpenTooltip(true)}>
+      <button
+        className="inline-flex sm:hidden"
+        onClick={() => setOpenTooltip(true)}
+      >
         {children}
       </button>
       <AnimatePresence>
@@ -81,19 +86,21 @@ export default function Tooltip({
       </AnimatePresence>
       <TooltipPrimitive.Provider delayDuration={100}>
         <TooltipPrimitive.Root>
-          <TooltipPrimitive.Trigger className="hidden sm:flex" asChild>
+          <TooltipPrimitive.Trigger className="hidden sm:inline-flex" asChild>
             {children}
           </TooltipPrimitive.Trigger>
           <TooltipPrimitive.Content
             sideOffset={4}
             side="top"
-            className="hidden sm:block animate-slide-up-fade items-center rounded-md px-4 py-2.5 z-20 bg-white border border-gray-200 drop-shadow-lg"
+            className="hidden sm:block animate-slide-up-fade items-center rounded-md overflow-hidden z-20 bg-white border border-gray-200 drop-shadow-lg"
           >
             <TooltipPrimitive.Arrow className="fill-current text-white" />
             {typeof content === "string" ? (
-              <span className="block text-sm text-center text-gray-700 max-w-xs">
-                {content}
-              </span>
+              <div className="px-4 py-2.5">
+                <span className="block text-sm text-center text-gray-700 max-w-xs">
+                  {content}
+                </span>
+              </div>
             ) : (
               content
             )}
@@ -110,6 +117,7 @@ export default function Tooltip({
 
 import Link from "next/link";
 import BlurImage from "@/components/shared/blur-image";
+import { nFormatter } from "@/lib/utils";
 
 export function TooltipContent({
   title,
@@ -121,7 +129,7 @@ export function TooltipContent({
   ctaLink: string;
 }) {
   return (
-    <div className="max-w-xs flex flex-col text-center items-center space-y-3 py-2">
+    <div className="max-w-xs flex flex-col text-center items-center space-y-3 p-5">
       <p className="text-sm text-gray-700">{title}</p>
       <Link href={ctaLink}>
         <a className="py-1.5 px-3 bg-black hover:bg-white rounded-full border border-black text-sm text-white hover:text-black transition-all mt-4">
@@ -147,6 +155,38 @@ export function OGImageProxy() {
         Twitter/Facebook will be served this image, while users will be
         redirected to your target URL.
       </p>
+    </div>
+  );
+}
+
+export function ProTiers({ usageLimit }: { usageLimit?: number }) {
+  const [tier, setTier] = useState(
+    usageLimit > 1000 ? PRO_TIERS.map((t) => t.quota).indexOf(usageLimit) : 0
+  );
+
+  return (
+    <div className="w-full rounded-md">
+      <div className="max-w-md flex justify-between items-center w-full p-5">
+        <h3 className="text-2xl text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-600">
+          {PRO_TIERS[tier].name}
+        </h3>
+        <div className="flex items-center">
+          <p className="text-2xl font-semibold text-gray-700">
+            ${PRO_TIERS[tier].price.monthly.amount}
+          </p>
+          <p className="text-sm text-gray-700">/mo</p>
+        </div>
+      </div>
+      <div className="w-full flex flex-col items-center space-y-1 bg-gray-50 text-center p-5 border-t border-gray-200">
+        <Slider
+          value={tier}
+          setValue={setTier}
+          maxValue={PRO_TIERS.length - 1}
+        />
+        <p className="text-sm text-gray-700">
+          Up to {nFormatter(PRO_TIERS[tier].quota)} link clicks/mo
+        </p>
+      </div>
     </div>
   );
 }

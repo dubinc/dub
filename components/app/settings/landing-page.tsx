@@ -89,7 +89,7 @@ export default function DefaultPage() {
           />
         ) : (
           <Tooltip content="You need to verify your domain first.">
-            <div className="border border-gray-300 text-gray-300 text-sm px-3 py-2 w-full max-w-md cursor-not-allowed rounded-md">
+            <div className="text-left border border-gray-300 text-gray-300 text-sm px-3 py-2 w-full max-w-md cursor-not-allowed rounded-md">
               https://yourdomain.com
             </div>
           </Tooltip>
@@ -112,12 +112,9 @@ export default function DefaultPage() {
           </button>
         ) : (
           <Tooltip content="You need to verify your domain first.">
-            <button
-              disabled
-              className="cursor-not-allowed bg-gray-100 border-gray-200 text-gray-300 h-9 w-32 text-sm border rounded-md focus:outline-none transition-all ease-in-out duration-150"
-            >
+            <div className="cursor-not-allowed bg-gray-100 border-gray-200 text-gray-300 h-9 w-32 flex items-center justify-center text-sm border rounded-md">
               Save Changes
-            </button>
+            </div>
           </Tooltip>
         )}
       </div>

@@ -36,8 +36,8 @@ function AddEditLinkModal({
 }) {
   const router = useRouter();
   const { slug } = router.query as { slug: string };
-
-  const { project: { domain, plan } = {} } = useProject();
+  const { project: { domain } = {} } = useProject();
+  const { plan } = useUsage();
 
   const [keyExistsError, setKeyExistsError] = useState(false);
   const [generatingSlug, setGeneratingSlug] = useState(false);
@@ -214,7 +214,7 @@ function AddEditLinkModal({
                 id="key"
                 required
                 autoFocus={false}
-                pattern="[a-zA-Z0-9\-]+"
+                pattern="[\p{Letter}\p{Mark}-]+" // Unicode regex to match all languages (and omit all symbols except for dashes)
                 className={`${
                   keyExistsError
                     ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
@@ -308,7 +308,7 @@ function AddEditLinkModal({
             </div>
           </div>
 
-          {plan === "pro" && slug && (
+          {plan?.startsWith("Pro") && slug && (
             <AdvancedSettings
               data={data}
               setData={setData}
@@ -493,7 +493,7 @@ function AddEditLinkButton({
   const { slug } = router.query as { slug?: string };
 
   const { project } = useProject();
-  const { exceededUsage } = useUsage(project);
+  const { exceededUsage } = useUsage();
 
   return project && !project.domainVerified ? (
     <Tooltip
@@ -516,7 +516,7 @@ start adding links."
         <TooltipContent
           title="You have exceeded your usage limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
           cta="Upgrade"
-          ctaLink={`/${slug}/settings`}
+          ctaLink={`/settings`}
         />
       }
     >

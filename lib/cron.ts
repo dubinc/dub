@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import { redis, deleteProject } from "@/lib/upstash";
+import { redis, deleteProject, getUsage } from "@/lib/upstash";
 import { removeDomain } from "./domains";
 
 export const handleDomainUpdates = async (
@@ -18,7 +18,7 @@ export const handleDomainUpdates = async (
     (new Date().getTime() - new Date(createdAt).getTime()) / (1000 * 3600 * 24)
   );
 
-  if (invalidDays > 7) {
+  if (invalidDays > 25) {
     await log(`Domain *${domain}* is invalid for ${invalidDays} days`);
   }
 
@@ -43,6 +43,66 @@ export const handleDomainUpdates = async (
     }
   }
   return;
+};
+
+export const updateUsage = async () => {
+  const users = await prisma.user.findMany({
+    select: {
+      id: true,
+      email: true,
+      usageLimit: true,
+      stripeId: true,
+      billingCycleStart: true,
+      projects: {
+        select: {
+          project: {
+            select: {
+              domain: true,
+              domainVerified: true,
+            },
+          },
+        },
+        where: {
+          role: "owner",
+        },
+      },
+    },
+  });
+
+  const response = await Promise.all(
+    users.map(
+      async ({ id, email, usageLimit, billingCycleStart, projects }) => {
+        // if user has no projects, don't update usage
+        if (projects.length === 0) return;
+
+        const usageArr = await Promise.all(
+          projects.map(async ({ project: { domain, domainVerified } }) => {
+            return domainVerified
+              ? await getUsage(domain, billingCycleStart)
+              : 0;
+          })
+        );
+        let totalUsage = usageArr.reduce((a, b) => a + b, 0);
+
+        if (totalUsage > usageLimit) {
+          await log(
+            `${email} is over usage limit. Usage: ${totalUsage}, Limit: ${usageLimit}`
+          );
+        }
+
+        return await prisma.user.update({
+          where: {
+            id,
+          },
+          data: {
+            usage: totalUsage,
+          },
+        });
+      }
+    )
+  );
+
+  return response;
 };
 
 export const log = async (message: string) => {

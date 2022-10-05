@@ -13,14 +13,19 @@ generator client {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  accounts      Account[]
-  sessions      Session[]
-  projects      ProjectUsers[]
+  id                    String    @id @default(cuid())
+  name                  String?
+  email                 String?   @unique
+  emailVerified         DateTime?
+  image                 String?
+  stripeId              String?   @unique // Stripe customer ID
+  usage                 Int       @default(0)
+  usageLimit            Int       @default(1000)
+  billingCycleStart     Int?      // day of the month when the billing cycle starts
+  accounts              Account[]
+  sessions              Session[]
+  projects              ProjectUsers[]
+  createdAt             DateTime  @default(now())
 }
 
 model Account {
@@ -62,13 +67,9 @@ model Project {
   id                  String   @id @default(cuid())
   name                String
   slug                String   @unique
+  logo                String?
   domain              String   @unique
   domainVerified      Boolean  @default(false)
-  logo                String? 
-  plan                String   @default("free")
-  usageLimit          Int      @default(1000)
-  stripeId            String?  @unique // Stripe customer ID
-  lastBilled          DateTime?
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
   domainLastChecked   DateTime @default(now())

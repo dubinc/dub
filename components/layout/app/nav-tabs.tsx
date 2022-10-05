@@ -18,6 +18,7 @@ const TabsHelper = (router: NextRouter): { name: string; href: string }[] => {
   return [
     { name: "Projects", href: `/` },
     { name: "Dub.sh Links", href: `/links` },
+    { name: "Settings", href: `/settings` },
   ];
 };
 
