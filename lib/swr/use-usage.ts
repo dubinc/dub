@@ -18,7 +18,9 @@ export default function useUsage({ settingsPage } = { settingsPage: false }) {
 
   const plan = useMemo(() => {
     if (data) {
-      return PRO_TIERS.find((tier) => tier.quota === data.usageLimit).name;
+      return (
+        PRO_TIERS.find((tier) => tier.quota === data.usageLimit)?.name || ""
+      );
     }
   }, [data]);
 
