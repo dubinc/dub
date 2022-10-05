@@ -10,15 +10,13 @@ export const config = {
 export default async function handler(req: NextRequest) {
   if (req.method === "GET") {
     const url = req.nextUrl.clone();
-    const { hostname } = parse(req);
-    const key = decodeURIComponent(url.pathname.split("/")[4]);
+    const { hostname, key } = parse(req);
 
     const response = await redis.hget<Omit<LinkProps, "key">>(
       `${hostname}:links`,
       key
     );
     const { url: target, description, image } = response || {};
-    console.log(hostname, url.pathname, target, description, image, url);
 
     if (target) {
       const isBot = detectBot(req);
