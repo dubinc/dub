@@ -15,6 +15,7 @@ import { fetcher } from "@/lib/utils";
 
 export default function ListBox() {
   const { data: projects } = useSWR<ProjectProps[]>("/api/projects", fetcher);
+  const { plan } = useUsage();
 
   const { setShowAddProjectModal, AddProjectModal } = useAddProjectModal({});
 
@@ -115,15 +116,20 @@ export default function ListBox() {
                   ) : null}
                 </Listbox.Option>
               ))}
-              <Listbox.Option
-                key="add"
-                onClick={() => setShowAddProjectModal(true)}
-                value={{ name: "Add a new project", slug: "Add a new project" }}
-                className="flex items-center space-x-2 w-full cursor-pointer p-2 rounded-md hover:bg-gray-100 active:scale-95 transition-all duration-75"
-              >
-                <PlusCircle className="w-7 h-7 text-gray-600" />
-                <span className="block truncate">Add a new project</span>
-              </Listbox.Option>
+              {!(plan === "Free" && projects.length >= 1) && (
+                <Listbox.Option
+                  key="add"
+                  onClick={() => setShowAddProjectModal(true)}
+                  value={{
+                    name: "Add a new project",
+                    slug: "Add a new project",
+                  }}
+                  className="flex items-center space-x-2 w-full cursor-pointer p-2 rounded-md hover:bg-gray-100 active:scale-95 transition-all duration-75"
+                >
+                  <PlusCircle className="w-7 h-7 text-gray-600" />
+                  <span className="block truncate">Add a new project</span>
+                </Listbox.Option>
+              )}
             </Listbox.Options>
           </Transition>
         </div>

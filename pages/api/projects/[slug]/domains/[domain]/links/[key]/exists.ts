@@ -5,6 +5,7 @@ import { checkIfKeyExists } from "@/lib/upstash";
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {
+    // GET /api/projects/[slug]/domains/[domain]/links/[key]/exists - check if a key exists
     if (req.method === "GET") {
       const { domain, key } = req.query as { domain: string; key: string };
       const response = await checkIfKeyExists(domain, key);

@@ -4,8 +4,13 @@ import { Redis } from "@upstash/redis";
 import { customAlphabet } from "nanoid";
 
 import { LOCALHOST_GEO_DATA, RESERVED_KEYS } from "@/lib/constants";
-import { LinkProps } from "@/lib/types";
-import { getDescriptionFromUrl, getTitleFromUrl } from "@/lib/utils";
+import { LinkProps, ProjectProps } from "@/lib/types";
+import { customAlphabet } from "nanoid";
+import {
+  getDescriptionFromUrl,
+  getFirstAndLastDay,
+  getTitleFromUrl,
+} from "@/lib/utils";
 
 // Initiate Redis instance
 export const redis = new Redis({
@@ -248,24 +253,14 @@ export async function deleteLink(domain: string, key: string, userId?: string) {
   return await pipeline.exec();
 }
 
-export async function getUsage(hostname: string, billingCycleStart?: Date) {
-  const cachedUsage = await redis.get(`usage:${hostname}`);
-  if (cachedUsage) {
-    return cachedUsage;
-  }
-  console.log("no cached usage found. computing from scratch...");
-
-  let firstDay;
-  let lastDay;
-
-  if (billingCycleStart) {
-    firstDay = new Date(billingCycleStart).getTime();
-    lastDay = Date.now();
-  } else {
-    var date = new Date();
-    firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getTime();
-    lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0).getTime();
-  }
+/**
+ * Get the usage for a project
+ **/
+export async function getUsage(
+  hostname: string,
+  billingCycleStart: number
+): Promise<number> {
+  const { firstDay, lastDay } = getFirstAndLastDay(billingCycleStart);
 
   const links = await redis.zrange(`${hostname}:links:timestamps`, 0, -1);
   let results: number[] = [];
@@ -273,7 +268,11 @@ export async function getUsage(hostname: string, billingCycleStart?: Date) {
   if (links.length > 0) {
     const pipeline = redis.pipeline();
     links.forEach((link) => {
-      pipeline.zcount(`${hostname}:clicks:${link}`, firstDay, lastDay);
+      pipeline.zcount(
+        `${hostname}:clicks:${link}`,
+        firstDay.getTime(),
+        lastDay.getTime()
+      );
     });
     results = await pipeline.exec();
   }

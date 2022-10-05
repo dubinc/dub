@@ -17,7 +17,7 @@ export default withProjectAuth(
       key: string;
     };
 
-    // PUT /api/projects/[slug]/domains/[domain]/links/[key] - edit link
+    // PUT /api/projects/[slug]/domains/[domain]/links/[key] - edit a link
     if (req.method === "PUT") {
       let { key, url, title, timestamp, description, image } = req.body;
       if (!key || !url || !title || !timestamp) {
@@ -71,5 +71,8 @@ export default withProjectAuth(
         .json({ error: `Method ${req.method} Not Allowed` });
     }
   },
-  true
+  {
+    needVerifiedDomain: true,
+    needNotExceededUsage: true,
+  }
 );
