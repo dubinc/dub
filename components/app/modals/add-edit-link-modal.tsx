@@ -218,7 +218,7 @@ function AddEditLinkModal({
                 id="key"
                 required
                 autoFocus={false}
-                pattern="[a-zA-Z0-9\-]+"
+                pattern="[\p{Letter}\p{Mark}\d-]+" // Unicode regex to match characters from all languages and numbers (and omit all symbols except for dashes)
                 className={`${
                   keyExistsError
                     ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"

@@ -51,6 +51,8 @@ export const DEFAULT_REDIRECTS = {
   settings: "https://app.dub.sh/settings",
 };
 
+export const FREE_PLAN_PROJECT_LIMIT = 5;
+
 export const COUNTRIES: { [key: string]: string } = {
   AF: "Afghanistan",
   AL: "Albania",
