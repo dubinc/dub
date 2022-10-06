@@ -21,42 +21,25 @@ export default async function LinkMiddleware(
     return NextResponse.next();
   }
 
-  const ip = req.ip ?? "127.0.0.1";
-  const { success, limit, reset, remaining } = await ratelimit.limit(
-    `dub_${ip}`
+  const response = await redis.hget<Omit<LinkProps, "key">>(
+    `${hostname}:links`,
+    key
   );
+  const { url: target, description, image } = response || {};
 
-  let res;
+  if (target) {
+    const isBot = detectBot(req);
 
-  if (success) {
-    // if ratelimit is not exceeded
-    const response = await redis.hget<Omit<LinkProps, "key">>(
-      `${hostname}:links`,
-      key
-    );
-    const { url: target, description, image } = response || {};
+    ev.waitUntil(recordClick(hostname, req, key)); // increment click count
 
-    if (target) {
-      const isBot = detectBot(req);
-
-      ev.waitUntil(recordClick(hostname, req, key)); // increment click count
-
-      if (image && description && isBot) {
-        // rewrite to proxy page (dub.sh/proxy/[domain]/[key])
-        res = NextResponse.rewrite(`https://dub.sh/proxy/${hostname}/${key}`);
-      } else {
-        res = NextResponse.redirect(target);
-      }
+    if (image && description && isBot) {
+      // rewrite to proxy page (dub.sh/proxy/[domain]/[key])
+      return NextResponse.rewrite(`https://dub.sh/proxy/${hostname}/${key}`);
     } else {
-      url.pathname = "/";
-      res = NextResponse.redirect(url);
+      return NextResponse.redirect(target);
     }
   } else {
     url.pathname = "/";
-    res = NextResponse.redirect(url); // TODO: add a rate limit page
-    res.headers.set("X-RateLimit-Limit", limit.toString());
-    res.headers.set("X-RateLimit-Remaining", remaining.toString());
-    res.headers.set("X-RateLimit-Reset", reset.toString());
+    return NextResponse.redirect(url);
   }
-  return res;
 }
