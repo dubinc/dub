@@ -67,6 +67,7 @@ export async function getStaticProps(ctx) {
   if (!url || !title || !description || !image) {
     return {
       notFound: true,
+      revalidate: 1,
     };
   }
   const project = await prisma.project.findUnique({
