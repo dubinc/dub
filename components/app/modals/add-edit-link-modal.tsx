@@ -39,8 +39,6 @@ function AddEditLinkModal({
   const { project: { domain } = {} } = useProject();
   const { plan } = useUsage();
 
-  console.log("plan", plan);
-
   const [keyExistsError, setKeyExistsError] = useState(false);
   const [generatingSlug, setGeneratingSlug] = useState(false);
   const [generatingTitle, setGeneratingTitle] = useState(false);

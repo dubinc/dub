@@ -19,8 +19,6 @@ export default function useUsage() {
     }
   }, [data]);
 
-  console.log(data);
-
   const plan = useMemo(() => {
     if (data) {
       return getPlanFromUsageLimit(
