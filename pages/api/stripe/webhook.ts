@@ -46,65 +46,126 @@ export default async function webhookHandler(
     }
     if (relevantEvents.has(event.type)) {
       try {
-        switch (event.type) {
-          case "checkout.session.completed":
-            const checkoutSession = event.data
-              .object as Stripe.Checkout.Session;
+        if (event.type === "checkout.session.completed") {
+          const checkoutSession = event.data.object as Stripe.Checkout.Session;
 
-            // when the user subscribes to a plan, set their stripe customer ID
-            // in the database for easy identification in future webhook events
-            await prisma.user.update({
-              where: {
-                id: checkoutSession.client_reference_id,
+          // when the user subscribes to a plan, set their stripe customer ID
+          // in the database for easy identification in future webhook events
+
+          await prisma.user.update({
+            where: {
+              id: checkoutSession.client_reference_id,
+            },
+            data: {
+              stripeId: checkoutSession.customer.toString(),
+              billingCycleStart: new Date().getDate(),
+            },
+          });
+        } else if (event.type === "customer.subscription.updated") {
+          const subscriptionUpdated = event.data.object as Stripe.Subscription;
+          const newPriceId = subscriptionUpdated.items.data[0].price.id;
+          const env =
+            process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
+              ? "production"
+              : "test";
+          const tier = PRO_TIERS.find(
+            (tier) =>
+              tier.price.monthly.priceIds[env] === newPriceId ||
+              tier.price.yearly.priceIds[env] === newPriceId
+          );
+          const usageLimit = tier.quota;
+          const stripeId = subscriptionUpdated.customer.toString();
+
+          // If a user upgrades/downgrades their subscription, update their usage limit in the database.
+          // We also need to update the ownerUsageLimit field for all their projects.
+
+          const { projects } = await prisma.user.findUnique({
+            where: {
+              stripeId,
+            },
+            select: {
+              projects: {
+                where: {
+                  role: "owner",
+                },
+                select: {
+                  projectId: true,
+                },
               },
-              data: {
-                stripeId: checkoutSession.customer.toString(),
-                billingCycleStart: new Date().getDate(),
-              },
-            });
-            break;
+            },
+          });
 
-          case "customer.subscription.updated":
-            const subscriptionUpdated = event.data
-              .object as Stripe.Subscription;
-            const newPriceId = subscriptionUpdated.items.data[0].price.id;
-            const env =
-              process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-                ? "production"
-                : "test";
-            const tier = PRO_TIERS.find(
-              (tier) =>
-                tier.price.monthly.priceIds[env] === newPriceId ||
-                tier.price.yearly.priceIds[env] === newPriceId
-            );
-            const usageLimit = tier.quota;
-
-            // If a user upgrades/downgrades their subscription,
-            // update their usage limit in the database.
-            await prisma.user.update({
+          await Promise.all([
+            prisma.user.update({
               where: {
-                stripeId: subscriptionUpdated.customer.toString(),
+                stripeId,
               },
               data: {
                 usageLimit,
+                billingCycleStart: new Date().getDate(),
               },
-            });
-            break;
+            }),
+            Promise.all(
+              projects.map(async ({ projectId }) => {
+                return await prisma.project.update({
+                  where: {
+                    id: projectId,
+                  },
+                  data: {
+                    ownerUsageLimit: usageLimit,
+                  },
+                });
+              })
+            ),
+          ]);
+        } else if (event.type === "customer.subscription.deleted") {
+          const subscriptionDeleted = event.data.object as Stripe.Subscription;
 
-          case "customer.subscription.deleted":
-            const subscriptionDeleted = event.data
-              .object as Stripe.Subscription;
-            await prisma.user.update({
+          const stripeId = subscriptionDeleted.customer.toString();
+
+          // If a user deletes their subscription, reset their usage limit in the database to 1000.
+          // We also need to reset the ownerUsageLimit field for all their projects to 1000.
+
+          const { projects } = await prisma.user.findUnique({
+            where: {
+              stripeId,
+            },
+            select: {
+              projects: {
+                where: {
+                  role: "owner",
+                },
+                select: {
+                  projectId: true,
+                },
+              },
+            },
+          });
+
+          await Promise.all([
+            prisma.user.update({
               where: {
-                stripeId: subscriptionDeleted.customer.toString(),
+                stripeId,
               },
               data: {
                 usageLimit: 1000,
               },
-            });
-            break;
-          default:
-            throw new Error("Unhandled relevant event!");
+            }),
+            Promise.all(
+              projects.map(async ({ projectId }) => {
+                return await prisma.project.update({
+                  where: {
+                    id: projectId,
+                  },
+                  data: {
+                    ownerUsageLimit: 1000,
+                  },
+                });
+              })
+            ),
+          ]);
+        } else {
+          throw new Error("Unhandled relevant event!");
         }
       } catch (error) {
         console.log(error);

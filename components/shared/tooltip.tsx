@@ -96,7 +96,7 @@ export default function Tooltip({
           >
             <TooltipPrimitive.Arrow className="fill-current text-white" />
             {typeof content === "string" ? (
-              <div className="px-4 py-2.5">
+              <div className="p-5">
                 <span className="block text-sm text-center text-gray-700 max-w-xs">
                   {content}
                 </span>
@@ -125,17 +125,19 @@ export function TooltipContent({
   ctaLink,
 }: {
   title: string;
-  cta: string;
-  ctaLink: string;
+  cta?: string;
+  ctaLink?: string;
 }) {
   return (
     <div className="max-w-xs flex flex-col text-center items-center space-y-3 p-5">
       <p className="text-sm text-gray-700">{title}</p>
-      <Link href={ctaLink}>
-        <a className="py-1.5 px-3 bg-black hover:bg-white rounded-full border border-black text-sm text-white hover:text-black transition-all mt-4">
-          {cta}
-        </a>
-      </Link>
+      {cta && ctaLink && (
+        <Link href={ctaLink}>
+          <a className="py-1.5 px-3 bg-black hover:bg-white rounded-full border border-black text-sm text-white hover:text-black transition-all mt-4">
+            {cta}
+          </a>
+        </Link>
+      )}
     </div>
   );
 }

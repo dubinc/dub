@@ -39,6 +39,8 @@ function AddEditLinkModal({
   const { project: { domain } = {} } = useProject();
   const { plan } = useUsage();
 
+  console.log("plan", plan);
+
   const [keyExistsError, setKeyExistsError] = useState(false);
   const [generatingSlug, setGeneratingSlug] = useState(false);
   const [generatingTitle, setGeneratingTitle] = useState(false);
@@ -492,7 +494,7 @@ function AddEditLinkButton({
   const router = useRouter();
   const { slug } = router.query as { slug?: string };
 
-  const { project } = useProject();
+  const { project, isOwner } = useProject();
   const { exceededUsage } = useUsage();
 
   return project && !project.domainVerified ? (
@@ -510,13 +512,17 @@ start adding links."
         Add
       </div>
     </Tooltip>
-  ) : exceededUsage ? (
+  ) : slug && exceededUsage ? ( // only show exceeded usage tooltip if user is on a project page
     <Tooltip
       content={
         <TooltipContent
-          title="You have exceeded your usage limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
-          cta="Upgrade"
-          ctaLink={`/settings`}
+          title={
+            isOwner
+              ? "You have exceeded your usage limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
+              : "The owner of this project has exceeded their usage limit. We're still collecting data on all existing links, but they need to upgrade their plan to add more links."
+          }
+          cta={isOwner && "Upgrade"}
+          ctaLink={isOwner && "/settings"}
         />
       }
     >
