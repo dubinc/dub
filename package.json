@@ -35,6 +35,8 @@
     "framer-motion": "^7.2.1",
     "html-escaper": "^3.0.3",
     "i": "^0.3.7",
+    "mailing": "^0.8.2",
+    "mailing-core": "^0.8.2",
     "ms": "^2.1.3",
     "next": "^12.2.6-canary.8",
     "next-auth": "^4.10.3",
