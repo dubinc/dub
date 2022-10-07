@@ -64,16 +64,19 @@ model VerificationToken {
 }
 
 model Project {
-  id                  String   @id @default(cuid())
-  name                String
-  slug                String   @unique
-  logo                String?
-  domain              String   @unique
-  domainVerified      Boolean  @default(false)
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-  domainLastChecked   DateTime @default(now())
-  users               ProjectUsers[]
+  id                    String   @id @default(cuid())
+  name                  String
+  slug                  String   @unique
+  logo                  String?
+  domain                String   @unique
+  domainVerified        Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  domainLastChecked     DateTime @default(now())
+  usage                 Int      @default(0)
+  ownerUsageLimit       Int      @default(1000)
+  ownerExceededUsage    Boolean  @default(false)
+  users                 ProjectUsers[]
 }
 
 model ProjectUsers {

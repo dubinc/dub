@@ -18,7 +18,7 @@ export default function PlanUsage() {
   const {
     data: { usage, usageLimit, billingCycleStart, projectCount } = {},
     loading,
-  } = useUsage({ settingsPage: true });
+  } = useUsage();
 
   const [clicked, setClicked] = useState(false);
 
