@@ -103,8 +103,8 @@ const withProjectAuth =
           usageLimit: true,
         },
       })) as UsageProps;
-      const exceededUsage = user.usage >= user.usageLimit;
-      if (needNotExceededUsage && exceededUsage) {
+
+      if (needNotExceededUsage && project.ownerExceededUsage) {
         return res.status(403).end("Unauthorized: Usage limits exceeded.");
       }
 
