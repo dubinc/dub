@@ -1,8 +1,10 @@
 import prisma from "@/lib/prisma";
 import { redis, deleteProject, getUsage } from "@/lib/upstash";
 import { removeDomain } from "./domains";
+import sendMail from "emails";
 
 export const handleDomainUpdates = async (
+  projectId: string,
   domain: string,
   createdAt: Date,
   verified: boolean,
@@ -20,6 +22,27 @@ export const handleDomainUpdates = async (
 
   if (invalidDays > 25) {
     await log(`Domain *${domain}* is invalid for ${invalidDays} days`);
+    const owner = await prisma.project.findUnique({
+      where: { id: projectId },
+      select: {
+        users: {
+          where: {
+            role: "owner",
+          },
+          select: {
+            user: {
+              select: {
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    sendMail({
+      subject: "Your Dub.sh Login Link",
+      to: "email.com",
+    });
   }
 
   if (invalidDays > 30) {

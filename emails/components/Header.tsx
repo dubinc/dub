@@ -1,21 +1,20 @@
-import { MjmlSection, MjmlColumn, MjmlImage } from "mjml-react";
+import { MjmlSection, MjmlColumn, MjmlImage, MjmlText } from "mjml-react";
 
-type HeaderProps = {
-  loose?: boolean;
-};
-
-const Header: React.FC<HeaderProps> = ({ loose }) => {
+const Header = ({ title }: { title: string }) => {
   return (
-    <MjmlSection padding={loose ? "48px 0 40px" : "48px 0 24px"}>
+    <MjmlSection>
       <MjmlColumn>
         <MjmlImage
-          padding="0 24px 0"
-          width="49px"
-          height="54px"
+          padding="32px 0"
+          width="44px"
+          height="44px"
           align="center"
-          src="https://s3.amazonaws.com/lab.campsh.com/bb-transparent%402x.png"
+          src="https://dub.sh/static/logo.png"
           cssClass="logo"
         />
+        <MjmlText cssClass="title" align="center">
+          {title}
+        </MjmlText>
       </MjmlColumn>
     </MjmlSection>
   );

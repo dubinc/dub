@@ -1,5 +1,8 @@
 // Colors
 export const black = "#000";
+export const white = "#fff";
+export const purple = "#bd11e0";
+export const blue = "#2563EB";
 export const gold = "#fadf98";
 export const grayDark = "#888";
 export const grayLight = "#f5f5f5";

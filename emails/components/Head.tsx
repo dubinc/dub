@@ -7,7 +7,15 @@ import {
   MjmlStyle,
   MjmlRaw,
 } from "mjml-react";
-import { black, grayDark } from "./theme";
+import {
+  black,
+  blue,
+  borderBase,
+  grayDark,
+  grayLight,
+  purple,
+  textSm,
+} from "./theme";
 
 type HeadProps = { children?: ReactElement };
 
@@ -21,7 +29,7 @@ const Head: React.FC<HeadProps> = ({ children }) => {
         </MjmlRaw>
         <MjmlFont
           name="Inter"
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700"
         />
         <MjmlStyle>{`
         strong {
@@ -30,20 +38,41 @@ const Head: React.FC<HeadProps> = ({ children }) => {
         .smooth {
           -webkit-font-smoothing: antialiased;
         }
+        .title > * {
+          font-weight: 400 !important;
+          font-size: 24px !important;
+        }
+        .paragraph > * {
+          font-size: 14px !important;
+          line-height: 24px !important;
+        }
         .paragraph a {
-          color: ${black} !important;
+          color: ${blue} !important;
+          text-decoration: none;
+        }
+        .paragraph code {
+          color: ${purple} !important;
         }
         .li {
           text-indent: -18px;
           margin-left: 24px;
           display: inline-block;
         }
+        .footer {
+          padding: 24px 24px 48px !important;
+          border-top: 1px solid ${grayDark};
+        }
         .footer a {
           text-decoration: none !important;
           color: ${grayDark} !important;
         }
-        .dark-mode {
-          display: none;
+        .button {
+          border-radius: 3rem !important;
+          color: ${black} !important;
+          align-items: left !important;
+          height: 32px !important;
+          font-weight: 600 !important;
+          font-size: ${textSm} !important;
         }
         @media (min-width:480px) {
           td.hero {
@@ -58,7 +87,10 @@ const Head: React.FC<HeadProps> = ({ children }) => {
           .logo > * {
             filter: invert(1) !important;
           }
-          .paragraph > *, .paragraph a, .li > div {
+          .title > * {
+            color: #fff !important;
+          }
+          .paragraph > * {
             color: #fff !important;
           }
           .dark-mode {
@@ -70,10 +102,7 @@ const Head: React.FC<HeadProps> = ({ children }) => {
         }
       `}</MjmlStyle>
         <MjmlAttributes>
-          <MjmlAll
-            font-family='Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-            font-weight="400"
-          />
+          <MjmlAll font-family='Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' />
         </MjmlAttributes>
         {children}
       </>

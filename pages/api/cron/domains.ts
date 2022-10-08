@@ -19,6 +19,7 @@ async function handler(_req: NextApiRequest, res: NextApiResponse) {
   try {
     const projects = await prisma.project.findMany({
       select: {
+        id: true,
         domain: true,
         domainVerified: true,
         createdAt: true,
@@ -67,6 +68,7 @@ async function handler(_req: NextApiRequest, res: NextApiResponse) {
         const changed = newDomainVerified !== domainVerified;
 
         const updates = await handleDomainUpdates(
+          project.id,
           domain,
           createdAt,
           newDomainVerified,
