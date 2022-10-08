@@ -19,41 +19,41 @@ export default function DomainConfiguration({
   const subdomain = getSubdomain(domainJson.name, domainJson.apexName);
   const [recordType, setRecordType] = useState(!!subdomain ? "CNAME" : "A");
 
-  // if (data.status === "Pending Verification") {
-  //   const txtVerification = domainJson.verification.find(
-  //     (x: any) => x.type === "TXT"
-  //   );
-  //   return (
-  //     <div className="border-t border-gray-200 pt-5">
-  //       <p className="mb-5 text-sm">
-  //         Please set the following TXT record on{" "}
-  //         <InlineSnippet>{domainJson.apexName}</InlineSnippet> to prove
-  //         ownership of <InlineSnippet>{domainJson.name}</InlineSnippet>:
-  //       </p>
-  //       <div className="flex justify-start items-start space-x-10 bg-gray-50 p-2 rounded-md">
-  //         <div>
-  //           <p className="text-sm font-bold">Type</p>
-  //           <p className="text-sm font-mono mt-2">{txtVerification.type}</p>
-  //         </div>
-  //         <div>
-  //           <p className="text-sm font-bold">Name</p>
-  //           <p className="text-sm font-mono mt-2">
-  //             {txtVerification.domain.slice(
-  //               0,
-  //               txtVerification.domain.length - domainJson.apexName.length - 1
-  //             )}
-  //           </p>
-  //         </div>
-  //         <div>
-  //           <p className="text-sm font-bold">Value</p>
-  //           <p className="text-sm font-mono mt-2">
-  //             <span className="text-ellipsis">{txtVerification.value}</span>
-  //           </p>
-  //         </div>
-  //       </div>
-  //     </div>
-  //   );
-  // }
+  if (data.status === "Pending Verification") {
+    const txtVerification = domainJson.verification.find(
+      (x: any) => x.type === "TXT"
+    );
+    return (
+      <div className="border-t border-gray-200 pt-5">
+        <p className="mb-5 text-sm">
+          Please set the following TXT record on{" "}
+          <InlineSnippet>{domainJson.apexName}</InlineSnippet> to prove
+          ownership of <InlineSnippet>{domainJson.name}</InlineSnippet>:
+        </p>
+        <div className="flex justify-start items-start space-x-10 bg-gray-50 p-2 rounded-md">
+          <div>
+            <p className="text-sm font-bold">Type</p>
+            <p className="text-sm font-mono mt-2">{txtVerification.type}</p>
+          </div>
+          <div>
+            <p className="text-sm font-bold">Name</p>
+            <p className="text-sm font-mono mt-2">
+              {txtVerification.domain.slice(
+                0,
+                txtVerification.domain.length - domainJson.apexName.length - 1
+              )}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm font-bold">Value</p>
+            <p className="text-sm font-mono mt-2">
+              <span className="text-ellipsis">{txtVerification.value}</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (data.status === "Unknown Error") {
     return (
