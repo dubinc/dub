@@ -63,7 +63,7 @@ function LinkQRModalHelper({
               onChange={(e) => setUseSource(e.target.checked)}
               className="h-4 w-4 rounded border-gray-300 text-blue-500 focus:border-gray-500 focus:ring-gray-500 focus:outline-none"
             />
-            <label htmlFor="qr-source" className="block text-sm text-gray-700">
+            <label htmlFor="qr-source" className="block text-sm text-gray-700 select-none">
               Track QR visits as UTM source
             </label>
           </div>
