@@ -74,7 +74,7 @@ export default function DomainConfiguration({
               : "text-gray-400 border-white"
           } text-sm border-b-2 pb-1 transition-all ease duration-150`}
         >
-          A Record (recommended)
+          A Record{!subdomain && " (recommended)"}
         </button>
         <button
           onClick={() => setRecordType("CNAME")}
@@ -84,7 +84,7 @@ export default function DomainConfiguration({
               : "text-gray-400 border-white"
           } text-sm border-b-2 pb-1 transition-all ease duration-150`}
         >
-          CNAME Record (for subdomains)
+          CNAME Record{subdomain && " (recommended)"}
         </button>
       </div>
       <div className="my-3 text-left">
