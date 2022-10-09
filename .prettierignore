@@ -2,3 +2,5 @@
 .next
 .husky
 node_modules
+.vscode
+.git
