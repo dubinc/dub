@@ -30,7 +30,7 @@ export default async function LinkMiddleware(
   if (target) {
     const isBot = detectBot(req);
 
-    ev.waitUntil(recordClick(hostname, req, query, key)); // increment click count
+    ev.waitUntil(recordClick(hostname, req, key)); // increment click count
 
     if (image && description && isBot) {
       // rewrite to proxy page (dub.sh/proxy/[domain]/[key])

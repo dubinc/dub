@@ -6,13 +6,6 @@ export interface RawStatsProps {
   ua: any;
   referer: string;
   timestamp: number;
-  utm?: {
-    source?: string;
-    medium?: string;
-    campaign?: string;
-    content?: string;
-    tags?: string;
-  };
 }
 
 export interface StatsProps {
@@ -27,7 +20,6 @@ export interface StatsProps {
     region: string;
   }[];
   deviceData: { device: string; browser: string; os: string; bot: string }[];
-  utmData: { source: string; medium: string }[];
   refererData: { domain: string }[];
 }
 
@@ -149,14 +141,6 @@ export function processData(
     };
   });
 
-  const utmData = data.map(({ utm }) => {
-    const { source, medium } = utm || {};
-    return {
-      source: source ?? '(none)',
-      medium: medium ?? '(none)'
-    };
-  });
-
   const refererData = data.map(({ referer }) => {
     try {
       const url = referer ? new URL(referer) : null;
@@ -173,7 +157,6 @@ export function processData(
     clicksData,
     locationData,
     deviceData,
-    utmData,
     refererData
   };
 }
@@ -251,32 +234,6 @@ export const processDeviceData = (
     .sort((a, b) => b.count - a.count);
 };
 
-export interface UTMStatsProps {
-  display: string;
-  count: number;
-}
-
-export type UTMTabs = 'source / medium' | 'source' | 'medium';
-
-export const processUTMData = (data: StatsProps['utmData'], tab: UTMTabs): UTMStatsProps[] => {
-  const results =
-    data && data.length > 0
-      ? data.reduce<Record<string, number>>((acc, d) => {
-          const currentVal = tab === 'source / medium' ? `${d.source} / ${d.medium}` : d[tab];
-          const count = acc[currentVal] || 0;
-          acc[currentVal] = count + 1;
-          return acc;
-        }, {})
-      : {};
-
-  return Object.entries(results)
-    .map(([display, count]) => ({
-      display,
-      count
-    }))
-    .sort((a, b) => b.count - a.count);
-};
-
 export interface RefererStatsProps {
   display: string;
   count: number;
@@ -313,8 +270,6 @@ export const dummyData: StatsProps = {
   locationData: null,
   // @ts-ignore
   deviceData: null,
-  // @ts-ignore
-  utmData: null,
   // @ts-ignore
   refererData: null
 };
