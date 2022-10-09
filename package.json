@@ -9,7 +9,8 @@
     "lint": "next lint",
     "prebuild": "prisma generate",
     "predev": "prisma generate",
-    "start": "next start"
+    "start": "next start",
+    "prepare": "husky install"
   },
   "dependencies": {
     "@headlessui/react": "^1.6.6",
@@ -63,9 +64,13 @@
     "@types/topojson-client": "^3.1.1",
     "autoprefixer": "^10.4.7",
     "husky": "^8.0.1",
+    "lint-staged": "^13.0.3",
     "postcss": "^8.4.14",
     "prettier": "^2.7.1",
     "tailwindcss": "^3.1.2",
     "typescript": "4.7.2"
+  },
+  "lint-staged": {
+    "*.{css,js,json,jsx,ts,tsx}": "prettier --write"
   }
 }

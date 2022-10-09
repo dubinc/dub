@@ -1,8 +1,8 @@
-import { useMemo } from "react";
 import { useRouter } from "next/router";
-import { fetcher } from "@/lib/utils";
-import { UsageProps } from "@/lib/types";
+import { useMemo } from "react";
 import { getPlanFromUsageLimit } from "@/lib/stripe/constants";
+import { UsageProps } from "@/lib/types";
+import { fetcher } from "@/lib/utils";
 
 export default function useUsage() {
   const router = useRouter();
