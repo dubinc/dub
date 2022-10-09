@@ -1,5 +1,4 @@
 import { Fragment } from "react";
-
 import { Menu, Transition } from "@headlessui/react";
 import { signOut, useSession } from "next-auth/react";
 

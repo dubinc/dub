@@ -1,7 +1,5 @@
 import { useRouter } from "next/router";
-
 import { useMemo } from "react";
-
 import { AxisBottom, AxisLeft } from "@visx/axis";
 import { localPoint } from "@visx/event";
 import { GridRows } from "@visx/grid";
@@ -9,10 +7,8 @@ import { withScreenSize } from "@visx/responsive";
 import { scaleBand, scaleLinear } from "@visx/scale";
 import { useTooltip, useTooltipInPortal } from "@visx/tooltip";
 import { motion } from "framer-motion";
-
 import { IntervalProps, StatsProps, intervalData } from "@/lib/stats";
 import { nFormatter } from "@/lib/utils";
-
 import styles from "./index.module.css";
 
 const LEFT_AXIS_WIDTH = 30;

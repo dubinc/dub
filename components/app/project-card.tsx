@@ -1,7 +1,5 @@
 import Link from "next/link";
-
 import useSWR from "swr";
-
 import BlurImage from "@/components/shared/blur-image";
 import {
   CheckCircleFill,
@@ -9,7 +7,6 @@ import {
   XCircleFill,
 } from "@/components/shared/icons";
 import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
-
 import { ProjectProps } from "@/lib/types";
 import { fetcher, nFormatter } from "@/lib/utils";
 

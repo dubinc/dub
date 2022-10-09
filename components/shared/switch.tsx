@@ -1,5 +1,4 @@
 import { Dispatch, SetStateAction } from "react";
-
 import * as SwitchPrimitive from "@radix-ui/react-switch";
 import cx from "classnames";
 

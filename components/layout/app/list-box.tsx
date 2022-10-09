@@ -1,15 +1,11 @@
 import { useRouter } from "next/router";
-
 import { Fragment, useMemo } from "react";
-
 import { Listbox, Transition } from "@headlessui/react";
 import { useSession } from "next-auth/react";
 import useSWR from "swr";
-
 import { useAddProjectModal } from "@/components/app/modals/add-project-modal";
 import BlurImage from "@/components/shared/blur-image";
 import { ChevronUpDown, PlusCircle, Tick } from "@/components/shared/icons";
-
 import { ProjectProps } from "@/lib/types";
 import { fetcher } from "@/lib/utils";
 

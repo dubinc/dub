@@ -1,11 +1,8 @@
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
-
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
-
 import { detectBot, parse } from "@/lib/middleware/utils";
 import { recordClick, redis } from "@/lib/upstash";
-
 import { LinkProps } from "../types";
 
 const ratelimit = new Ratelimit({

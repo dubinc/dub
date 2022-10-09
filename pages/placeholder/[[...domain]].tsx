@@ -1,7 +1,5 @@
 import { GetStaticProps } from "next";
-
 import { ParsedUrlQuery } from "querystring";
-
 import Globe from "@/components/home/globe";
 import HomeLayout from "@/components/layout/home";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";

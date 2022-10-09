@@ -1,7 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-
 import { verifySignature } from "@upstash/qstash/nextjs";
-
 import { log } from "@/lib/cron";
 import { redis } from "@/lib/upstash";
 

@@ -1,8 +1,6 @@
 import Image from "next/future/image";
 import Head from "next/head";
-
 import { escape } from "html-escaper";
-
 import prisma from "@/lib/prisma";
 import { LinkProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";

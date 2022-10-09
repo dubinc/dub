@@ -1,12 +1,8 @@
 import Image from "next/future/image";
 import Link from "next/link";
-
 import { ReactNode } from "react";
-
 import { useSession } from "next-auth/react";
-
 import { Github, Logo, Twitter } from "@/components/shared/icons";
-
 import Meta from "../meta";
 
 export default function HomeLayout({

@@ -1,7 +1,5 @@
 import Link from "next/link";
-
 import { useState } from "react";
-
 import {
   CheckCircleFill,
   QuestionCircle,
@@ -10,7 +8,6 @@ import {
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import Slider from "@/components/shared/slider";
 import Tooltip, { OGImageProxy } from "@/components/shared/tooltip";
-
 import { PRO_TIERS } from "@/lib/stripe/constants";
 import { nFormatter } from "@/lib/utils";
 

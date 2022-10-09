@@ -1,5 +1,4 @@
 import type { NextRequest } from "next/server";
-
 import { RawStatsProps } from "@/lib/stats";
 import { redis } from "@/lib/upstash";
 

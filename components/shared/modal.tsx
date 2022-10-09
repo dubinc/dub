@@ -1,5 +1,4 @@
 import { useRouter } from "next/router";
-
 import {
   Dispatch,
   SetStateAction,
@@ -7,7 +6,6 @@ import {
   useEffect,
   useRef,
 } from "react";
-
 import { AnimatePresence, motion, useAnimation } from "framer-motion";
 
 export default function Modal({

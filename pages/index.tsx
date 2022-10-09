@@ -1,7 +1,5 @@
 import { useRouter } from "next/router";
-
 import { useCallback, useEffect } from "react";
-
 import { useStatsModal } from "@/components/app/modals/stats-modal";
 import Demo from "@/components/home/demo";
 import Features from "@/components/home/features";

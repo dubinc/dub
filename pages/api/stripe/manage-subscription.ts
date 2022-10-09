@@ -1,5 +1,4 @@
 import { NextApiRequest, NextApiResponse } from "next";
-
 import { withUserAuth } from "@/lib/auth";
 import { stripe } from "@/lib/stripe";
 import { UserProps } from "@/lib/types";

@@ -1,10 +1,7 @@
 import { useRouter } from "next/router";
-
 import { useMemo } from "react";
-
 import BadgeSelect from "@/components/shared/badge-select";
 import { ExpandingArrow } from "@/components/shared/icons";
-
 import { INTERVALS } from "@/lib/constants";
 import useScroll from "@/lib/hooks/use-scroll";
 import { IntervalProps, StatsProps } from "@/lib/stats";

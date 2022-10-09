@@ -1,9 +1,7 @@
 import Image from "next/future/image";
 import Link from "next/link";
-
 import { Airplay, Chart, Github, UploadCloud } from "@/components/shared/icons";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
-
 import CountingNumbers from "../shared/counting-numbers";
 import styles from "./features.module.css";
 

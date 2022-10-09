@@ -1,7 +1,5 @@
 import { useRouter } from "next/router";
-
 import useSWR, { mutate } from "swr";
-
 import {
   AlertCircleFill,
   CheckCircleFill,
@@ -10,11 +8,9 @@ import {
   LoadingDots,
   XCircleFill,
 } from "@/components/shared/icons";
-
 import useProject from "@/lib/swr/use-project";
 import { DomainVerificationStatusProps } from "@/lib/types";
 import { fetcher } from "@/lib/utils";
-
 import { useEditDomainModal } from "../../modals/edit-domain-modal";
 import DomainConfiguration from "./domain-configuration";
 

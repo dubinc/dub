@@ -1,5 +1,4 @@
 import { NextRequest } from "next/server";
-
 import { COUNTRIES } from "@/lib/constants";
 
 export interface RawStatsProps {

@@ -1,5 +1,4 @@
 import { NextApiRequest, NextApiResponse } from "next";
-
 import { getSession, withUserAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { validDomainRegex } from "@/lib/utils";

@@ -1,7 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-
 import { verifySignature } from "@upstash/qstash/nextjs";
-
 import { handleDomainUpdates } from "@/lib/cron";
 import {
   getConfigResponse,

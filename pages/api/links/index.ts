@@ -1,5 +1,4 @@
 import { NextApiRequest, NextApiResponse } from "next";
-
 import { getSession } from "@/lib/auth";
 import { addLink, getLinksForProject } from "@/lib/upstash";
 

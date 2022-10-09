@@ -1,6 +1,5 @@
 import prisma from "@/lib/prisma";
 import { deleteProject, getUsage, redis } from "@/lib/upstash";
-
 import { removeDomain } from "./domains";
 
 export const handleDomainUpdates = async (

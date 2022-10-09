@@ -1,5 +1,4 @@
 import { NextApiRequest, NextApiResponse } from "next";
-
 import { withProjectAuth } from "@/lib/auth";
 import { getLinkClicksCount, redis } from "@/lib/upstash";
 

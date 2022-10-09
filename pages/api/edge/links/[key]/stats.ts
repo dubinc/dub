@@ -1,5 +1,4 @@
 import type { NextRequest } from "next/server";
-
 import {
   IntervalProps,
   RawStatsProps,

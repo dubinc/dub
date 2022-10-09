@@ -1,5 +1,4 @@
 import { useRouter } from "next/router";
-
 import {
   Dispatch,
   FormEvent,
@@ -9,14 +8,11 @@ import {
   useMemo,
   useState,
 } from "react";
-
 import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
-
 import BlurImage from "@/components/shared/blur-image";
 import { AlertCircleFill, LoadingDots } from "@/components/shared/icons";
 import Modal from "@/components/shared/modal";
-
 import { generateSlugFromName } from "@/lib/utils";
 
 function AddProjectModalHelper({

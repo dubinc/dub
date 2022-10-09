@@ -1,7 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-
 import cloudinary from "cloudinary";
-
 import { withProjectAuth } from "@/lib/auth";
 import { deleteLink, editLink } from "@/lib/upstash";
 

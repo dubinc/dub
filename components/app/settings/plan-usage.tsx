@@ -1,7 +1,5 @@
 import { useRouter } from "next/router";
-
 import { useMemo, useState } from "react";
-
 import { motion } from "framer-motion";
 import { useUpgradePlanModal } from "@/components/app/modals/upgrade-plan-modal";
 import {
@@ -11,8 +9,7 @@ import {
   QuestionCircle,
 } from "@/components/shared/icons";
 import Tooltip, { ProTiers } from "@/components/shared/tooltip";
-
-import {getPlanFromUsageLimit } from "@/lib/stripe/constants";
+import { getPlanFromUsageLimit } from "@/lib/stripe/constants";
 import useUsage from "@/lib/swr/use-usage";
 import { getFirstAndLastDay, nFormatter } from "@/lib/utils";
 

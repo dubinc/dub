@@ -1,8 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
-
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { unstable_getServerSession } from "next-auth/next";
-
 import { FREE_PLAN_PROJECT_LIMIT } from "@/lib/constants";
 import prisma from "@/lib/prisma";
 import { ProjectProps, UsageProps, UserProps } from "@/lib/types";

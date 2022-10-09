@@ -1,5 +1,4 @@
 import { useRouter } from "next/router";
-
 import {
   Dispatch,
   SetStateAction,
@@ -7,14 +6,11 @@ import {
   useMemo,
   useState,
 } from "react";
-
 import toast from "react-hot-toast";
 import { mutate } from "swr";
-
 import BlurImage from "@/components/shared/blur-image";
 import LoadingDots from "@/components/shared/icons/loading-dots";
 import Modal from "@/components/shared/modal";
-
 import useProject from "@/lib/swr/use-project";
 
 function DeleteProjectModal({

@@ -1,5 +1,4 @@
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
-
 import {
   DEFAULT_REDIRECTS,
   HOME_HOSTNAMES,

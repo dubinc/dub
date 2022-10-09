@@ -1,7 +1,5 @@
 import { useRouter } from "next/router";
-
 import useSWR from "swr";
-
 import { ProjectProps } from "@/lib/types";
 import { fetcher } from "@/lib/utils";
 

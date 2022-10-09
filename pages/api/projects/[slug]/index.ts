@@ -1,5 +1,4 @@
 import { NextApiRequest, NextApiResponse } from "next";
-
 import { withProjectAuth } from "@/lib/auth";
 import { removeDomain } from "@/lib/domains";
 import prisma from "@/lib/prisma";

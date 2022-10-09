@@ -1,13 +1,9 @@
 import { useRouter } from "next/router";
-
 import { useState } from "react";
-
 import toast from "react-hot-toast";
 import useSWR from "swr";
-
 import { Chart, LoadingDots } from "@/components/shared/icons";
 import Tooltip from "@/components/shared/tooltip";
-
 import useProject from "@/lib/swr/use-project";
 import { fetcher, nFormatter } from "@/lib/utils";
 

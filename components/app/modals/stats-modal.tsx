@@ -1,5 +1,4 @@
 import { useRouter } from "next/router";
-
 import {
   Dispatch,
   SetStateAction,
@@ -8,7 +7,6 @@ import {
   useState,
 } from "react";
 import { UIEvent } from "react";
-
 import { X } from "@/components/shared/icons";
 import Modal from "@/components/shared/modal";
 import Stats from "@/components/stats";

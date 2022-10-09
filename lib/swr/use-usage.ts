@@ -1,7 +1,5 @@
 import { useMemo } from "react";
-
 import useSWR from "swr";
-
 import { PRO_TIERS, getPlanFromUsageLimit } from "@/lib/stripe/constants";
 import { UsageProps } from "@/lib/types";
 import { fetcher } from "@/lib/utils";

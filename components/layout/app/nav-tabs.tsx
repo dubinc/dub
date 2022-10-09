@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { NextRouter, useRouter } from "next/router";
-
 import { useMemo } from "react";
 
 const TabsHelper = (router: NextRouter): { name: string; href: string }[] => {
