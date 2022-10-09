@@ -157,7 +157,7 @@ const GlobeAnimation = ({
             </button>
             <Drag className="h-12 w-12 mx-auto mb-2 sm:mb-4 text-gray-700" />
             <p className="text-center text-gray-700 text-sm sm:text-base">
-              This map shows the locations of the last 30 clicks on{" "}
+              This map shows the locations of the last 100 clicks on{" "}
               <a
                 className="text-blue-800 font-semibold"
                 href={

@@ -20,7 +20,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
   const router = useRouter();
   const { slug } = router.query as { slug: string };
 
-  const { project } = useProject();
+  const { project, isOwner } = useProject();
   const { domain } = project || {};
   const { exceededUsage } = useUsage();
 
@@ -86,13 +86,17 @@ export default function LinkCard({ props }: { props: LinkProps }) {
           <p className="text-sm hidden sm:block text-gray-500">
             Added {timeAgo(timestamp)}
           </p>
-          {exceededUsage ? (
+          {slug && exceededUsage ? (
             <Tooltip
               content={
                 <TooltipContent
-                  title="You have exceeded your usage limit. We're still collecting data on your existing links, but you need to upgrade to edit them."
-                  cta="Upgrade"
-                  ctaLink={`/settings`}
+                  title={
+                    isOwner
+                      ? "You have exceeded your usage limit. We're still collecting data on your existing links, but you need to upgrade to edit them."
+                      : "The owner of this project has exceeded their usage limit. We're still collecting data on all existing links, but they need to upgrade their plan to edit them."
+                  }
+                  cta={isOwner && "Upgrade"}
+                  ctaLink={isOwner && "/settings"}
                 />
               }
             >

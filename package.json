@@ -4,10 +4,12 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "format": "prettier --write \"./**/*.{ts,tsx,json}\"",
+    "format:write": "prettier --write \"**/*.{css,js,json,jsx,ts,tsx}\"",
+    "format": "prettier \"**/*.{css,js,json,jsx,ts,tsx}\"",
     "lint": "next lint",
-    "prepare": "husky install"
+    "prebuild": "prisma generate",
+    "predev": "prisma generate",
+    "start": "next start"
   },
   "dependencies": {
     "@headlessui/react": "^1.6.6",

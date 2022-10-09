@@ -57,6 +57,7 @@ export const updateUsage = async () => {
         select: {
           project: {
             select: {
+              id: true,
               domain: true,
               domainVerified: true,
             },
@@ -76,28 +77,52 @@ export const updateUsage = async () => {
         if (projects.length === 0) return;
 
         const usageArr = await Promise.all(
-          projects.map(async ({ project: { domain, domainVerified } }) => {
-            return domainVerified
-              ? await getUsage(domain, billingCycleStart)
-              : 0;
+          projects.map(async ({ project: { id, domain, domainVerified } }) => {
+            return {
+              id,
+              usage: domainVerified
+                ? await getUsage(domain, billingCycleStart)
+                : 0,
+            };
           })
         );
-        let totalUsage = usageArr.reduce((a, b) => a + b, 0);
+        let totalUsage = usageArr.reduce((acc, { usage }) => acc + usage, 0);
+        let ownerExceededUsage = totalUsage > usageLimit;
 
-        if (totalUsage > usageLimit) {
+        if (ownerExceededUsage) {
           await log(
             `${email} is over usage limit. Usage: ${totalUsage}, Limit: ${usageLimit}`
           );
         }
 
-        return await prisma.user.update({
-          where: {
-            id,
-          },
-          data: {
-            usage: totalUsage,
-          },
-        });
+        const [updateUser, updateProjects] = await Promise.all([
+          prisma.user.update({
+            where: {
+              id,
+            },
+            data: {
+              usage: totalUsage,
+            },
+          }),
+          Promise.all(
+            usageArr.map(async ({ id, usage }) => {
+              return await prisma.project.update({
+                where: {
+                  id,
+                },
+                data: {
+                  usage,
+                  ownerExceededUsage,
+                },
+              });
+            })
+          ),
+        ]);
+
+        return {
+          updateUser,
+          updateProjects,
+        };
       }
     )
   );
