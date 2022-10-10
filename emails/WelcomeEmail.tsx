@@ -40,7 +40,7 @@ export default function WelcomeEmail({ name }: { name?: string }): JSX.Element {
                 Bitly alternative. I'm excited to have you on board!
               </MjmlText>
               <MjmlText cssClass="paragraph">
-                Here's a few things you can do:
+                Here are a few things you can do:
               </MjmlText>
               <MjmlText cssClass="li">
                 •&nbsp;&nbsp;Create a custom{" "}
