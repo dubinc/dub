@@ -139,7 +139,6 @@ const sendUsageLimitEmail = async (
     sendMail({
       subject: `You have exceeded your Dub usage limit`,
       to: email,
-      from: "Steven from Dub <steven@dub.sh>",
       component: (
         <UsageExceeded usage={usage} usageLimit={usageLimit} type={type} />
       ),
