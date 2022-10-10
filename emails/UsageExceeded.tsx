@@ -52,7 +52,7 @@ export default function UsageExceeded({
                 uiText="Upgrade my plan"
               />
               <MjmlText cssClass="paragraph">
-                To be respectful of your inbox,{" "}
+                To respect your inbox,{" "}
                 {type === "first"
                   ? "I will only send you one more email about this in 3 days"
                   : "this will be the last time I'll email you about this"}

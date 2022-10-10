@@ -67,11 +67,12 @@ export default function InvalidDomain({
                 >
                   delete it
                 </a>{" "}
-                or simply ignore this email.{" "}
-                {invalidDays < 28 &&
-                  `I will remind you about this again in ${
-                    28 - invalidDays
-                  } days.`}
+                or simply ignore this email. To respect your inbox,{" "}
+                {invalidDays < 28
+                  ? `I will only send you one more email about this in ${
+                      28 - invalidDays
+                    } days.`
+                  : "this will be the last time I'll email you about this."}
               </MjmlText>
               <MjmlText cssClass="paragraph" color={grayDark}>
                 Steven from Dub
