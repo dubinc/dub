@@ -24,7 +24,6 @@ export const handleDomainUpdates = async (
   );
 
   if (invalidDays >= 14 && invalidDays < 28) {
-    await log(`Domain *${domain}* is invalid for ${invalidDays} days`);
     const sentFirstDomainInvalidEmail = sentEmails.includes(
       "firstDomainInvalidEmail"
     );
@@ -80,6 +79,7 @@ const sendDomainInvalidEmail = async (
 ) => {
   const ownerEmail = await getProjectOwnerEmail(projectSlug);
   return await Promise.all([
+    log(`Domain *${domain}* is invalid for ${invalidDays} days, email sent.`),
     sendMail({
       subject: `Your domain ${domain} needs to be configured`,
       to: ownerEmail,
