@@ -113,7 +113,15 @@ export default function DomainConfiguration({
               {recordType === "A" ? `76.76.21.21` : `cname.dub.sh`}
             </p>
           </div>
+          <div>
+            <p className="text-sm font-bold">TTL</p>
+            <p className="text-sm font-mono mt-2">86400</p>
+          </div>
         </div>
+        <p className="mt-3 text-sm">
+          Note: for TTL, if <InlineSnippet>86400</InlineSnippet> is not
+          available, set the highest value possible
+        </p>
       </div>
     </div>
   );
