@@ -1,9 +1,11 @@
 import NextAuth, { type NextAuthOptions } from "next-auth";
 import EmailProvider from "next-auth/providers/email";
+import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import prisma from "@/lib/prisma";
-import sendMail from "emails";
+import sendMail, { sendMarketingMail } from "emails";
 import LoginLink from "emails/LoginLink";
+import WelcomeEmail from "emails/WelcomeEmail";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
@@ -17,6 +19,10 @@ export const authOptions: NextAuthOptions = {
           component: <LoginLink url={url} />,
         });
       },
+    }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     }),
   ],
   adapter: PrismaAdapter(prisma),
@@ -42,6 +48,19 @@ export const authOptions: NextAuthOptions = {
         ...session.user,
       };
       return session;
+    },
+  },
+  events: {
+    async signIn(message) {
+      if (message.isNewUser) {
+        const email = message.user.email;
+        sendMarketingMail({
+          subject: "✨ Welcome to Dub",
+          to: email,
+          bcc: process.env.TRUSTPILOT_BCC_EMAIL,
+          component: <WelcomeEmail />,
+        });
+      }
     },
   },
 };

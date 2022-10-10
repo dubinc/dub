@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { verifySignature } from "@upstash/qstash/nextjs";
-import { updateUsage } from "@/lib/cron";
+import { updateUsage } from "@/lib/cron/usage";
 
 /**
  * Cron to update the usage stats of each project.

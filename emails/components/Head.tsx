@@ -1,4 +1,4 @@
-import React, { ReactElement } from "react";
+import React from "react";
 import {
   MjmlHead,
   MjmlFont,
@@ -7,19 +7,9 @@ import {
   MjmlStyle,
   MjmlRaw,
 } from "mjml-react";
-import {
-  black,
-  blue,
-  borderBase,
-  grayDark,
-  grayLight,
-  purple,
-  textSm,
-} from "./theme";
+import { black, blue, grayDark, grayLight, purple } from "./theme";
 
-type HeadProps = { children?: ReactElement };
-
-const Head: React.FC<HeadProps> = ({ children }) => {
+export default function Head(): JSX.Element {
   return (
     <MjmlHead>
       <>
@@ -29,9 +19,14 @@ const Head: React.FC<HeadProps> = ({ children }) => {
         </MjmlRaw>
         <MjmlFont
           name="Inter"
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700"
         />
         <MjmlStyle>{`
+        .container {
+          border: solid 1px ${grayLight};
+          border-radius: 8px;
+          background-position-y: 50%;
+        }
         strong {
           font-weight: 700;
         }
@@ -39,42 +34,45 @@ const Head: React.FC<HeadProps> = ({ children }) => {
           -webkit-font-smoothing: antialiased;
         }
         .title > * {
-          font-weight: 400 !important;
           font-size: 24px !important;
         }
         .paragraph > * {
           font-size: 14px !important;
           line-height: 24px !important;
         }
-        .paragraph a {
+        .li > * {
+          font-size: 14px !important;
+          line-height: 12px !important;
+        }
+        .paragraph a, .li a {
           color: ${blue} !important;
           text-decoration: none;
         }
-        .paragraph code {
+        .paragraph code, .li code {
           color: ${purple} !important;
         }
-        .li {
-          text-indent: -18px;
-          margin-left: 24px;
-          display: inline-block;
-        }
         .footer {
-          padding: 24px 24px 48px !important;
-          border-top: 1px solid ${grayDark};
+          padding: 0 24px 24px !important;
         }
-        .footer a {
-          text-decoration: none !important;
+        .footer > * {
+          font-size: 13px !important;
+          line-height: 22px !important;
           color: ${grayDark} !important;
         }
-        .button {
-          border-radius: 3rem !important;
-          color: ${black} !important;
-          align-items: left !important;
-          height: 32px !important;
-          font-weight: 600 !important;
-          font-size: ${textSm} !important;
+        .footer a {
+          color: ${grayDark} !important;
+          text-decoration: none;
+        }
+        .dark-mode {
+          display: none;
         }
         @media (min-width:480px) {
+          body {
+            padding: 48px 0;
+          }
+          .container {
+            padding: 0 48px;
+          }
           td.hero {
             padding-left: 24px !important;
             padding-right: 24px !important;
@@ -84,17 +82,20 @@ const Head: React.FC<HeadProps> = ({ children }) => {
           body {
             background: ${black};
           }
+          .container {
+            border: solid 1px ${grayDark};
+          }
           .logo > * {
             filter: invert(1) !important;
           }
           .title > * {
             color: #fff !important;
           }
-          .paragraph > * {
+          .paragraph > *, .li > * {
             color: #fff !important;
           }
           .dark-mode {
-            display: inherit;
+            display: block;
           }
           .light-mode {
             display: none;
@@ -104,10 +105,7 @@ const Head: React.FC<HeadProps> = ({ children }) => {
         <MjmlAttributes>
           <MjmlAll font-family='Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' />
         </MjmlAttributes>
-        {children}
       </>
     </MjmlHead>
   );
-};
-
-export default Head;
+}

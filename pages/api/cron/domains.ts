@@ -6,7 +6,7 @@ import {
   getDomainResponse,
   verifyDomain,
 } from "@/lib/domains";
-import { handleDomainUpdates } from "@/lib/cron";
+import { handleDomainUpdates } from "@/lib/cron/domains";
 
 /**
  * Cron to check if domains are verified.
@@ -19,10 +19,11 @@ async function handler(_req: NextApiRequest, res: NextApiResponse) {
   try {
     const projects = await prisma.project.findMany({
       select: {
-        id: true,
+        slug: true,
         domain: true,
         domainVerified: true,
         createdAt: true,
+        sentEmails: true,
       },
       orderBy: {
         domainLastChecked: "asc",
@@ -68,11 +69,12 @@ async function handler(_req: NextApiRequest, res: NextApiResponse) {
         const changed = newDomainVerified !== domainVerified;
 
         const updates = await handleDomainUpdates(
-          project.id,
+          project.slug,
           domain,
           createdAt,
           newDomainVerified,
-          changed
+          changed,
+          project.sentEmails.map((email) => email.type)
         );
 
         return {

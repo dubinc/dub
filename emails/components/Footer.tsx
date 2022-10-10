@@ -1,11 +1,16 @@
 import { MjmlSection, MjmlColumn, MjmlText } from "mjml-react";
-import { grayDark, textSm } from "./theme";
 
-export default function Footer({ unsubscribe }: { unsubscribe?: boolean }) {
+export default function Footer({
+  unsubscribe,
+  footnote = true,
+}: {
+  unsubscribe?: boolean;
+  footnote?: boolean;
+}): JSX.Element {
   return (
     <MjmlSection cssClass="smooth">
       <MjmlColumn>
-        <MjmlText cssClass="footer" fontSize={textSm} color={grayDark}>
+        <MjmlText cssClass="footer">
           © {new Date().getFullYear()} Dub.sh
           {unsubscribe && (
             <>
@@ -16,6 +21,12 @@ export default function Footer({ unsubscribe }: { unsubscribe?: boolean }) {
             </>
           )}
         </MjmlText>
+        {footnote && (
+          <MjmlText cssClass="footer">
+            If you have any feedback or questions about this email, simply reply
+            to it. I'd love to hear from you!
+          </MjmlText>
+        )}
       </MjmlColumn>
     </MjmlSection>
   );

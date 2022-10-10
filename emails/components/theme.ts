@@ -5,7 +5,7 @@ export const purple = "#bd11e0";
 export const blue = "#2563EB";
 export const gold = "#fadf98";
 export const grayDark = "#888";
-export const grayLight = "#f5f5f5";
+export const grayLight = "#eaeaea";
 
 // Typography
 export const textSm = 14;

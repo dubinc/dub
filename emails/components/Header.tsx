@@ -1,11 +1,11 @@
 import { MjmlSection, MjmlColumn, MjmlImage, MjmlText } from "mjml-react";
 
-const Header = ({ title }: { title: string }) => {
+export default function Header({ title }: { title: string }): JSX.Element {
   return (
     <MjmlSection>
       <MjmlColumn>
         <MjmlImage
-          padding="32px 0"
+          padding="12px 0 24px"
           width="44px"
           height="44px"
           align="center"
@@ -18,6 +18,4 @@ const Header = ({ title }: { title: string }) => {
       </MjmlColumn>
     </MjmlSection>
   );
-};
-
-export default Header;
+}

@@ -14,7 +14,7 @@ const sendMail = buildSendMail({
     host: "smtp.postmarkapp.com",
     ...transportConfig,
   }),
-  defaultFrom: "system@dub.sh",
+  defaultFrom: "Dub <system@dub.sh>",
   configPath: "./mailing.config.json",
 });
 
@@ -25,6 +25,6 @@ export const sendMarketingMail = buildSendMail({
     host: "smtp-broadcasts.postmarkapp.com",
     ...transportConfig,
   }),
-  defaultFrom: "steven@dub.sh",
+  defaultFrom: "Steven from Dub <steven@dub.sh>",
   configPath: "./mailing.config.json",
 });
