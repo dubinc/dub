@@ -49,12 +49,18 @@ export const authOptions: NextAuthOptions = {
     async signIn(message) {
       if (message.isNewUser) {
         const email = message.user.email;
-        sendMarketingMail({
-          subject: "✨ Welcome to Dub",
-          to: email,
-          bcc: process.env.TRUSTPILOT_BCC_EMAIL,
-          component: <WelcomeEmail />,
-        });
+        await Promise.all([
+          sendMarketingMail({
+            subject: "✨ Welcome to Dub",
+            to: email,
+            bcc: process.env.TRUSTPILOT_BCC_EMAIL,
+            component: <WelcomeEmail />,
+          }),
+          prisma.user.update({
+            where: { email },
+            data: { billingCycleStart: new Date().getDate() },
+          }),
+        ]);
       }
     },
   },

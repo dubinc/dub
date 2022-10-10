@@ -3453,10 +3453,23 @@ mailing-core@^0.8.2:
     open "^8.4.0"
     posthog-node "^2.0.2"
 
-mailing@^0.8.2:
-  version "0.8.2"
-  resolved "https://registry.yarnpkg.com/mailing/-/mailing-0.8.2.tgz#59abf5038fc617b911cf970e0591469475d2f42a"
-  integrity sha512-nZYXu86icolB3lm3wi8vziD7aOWM94HncCNFe7HryKbexVY490IuoPLuFzKNdH58Rj+Bcb+xKzaRmXkRjYz9dw==
+mailing-core@^0.8.3-next.0:
+  version "0.8.3-next.0"
+  resolved "https://registry.yarnpkg.com/mailing-core/-/mailing-core-0.8.3-next.0.tgz#9bb814220330a56d9bb30d094dff916b7fd99a06"
+  integrity sha512-JruWaCLegUptDpXKZP4gS91J94JqgI6Dklzs31r5Uryz//83OqN/m8ZPtJ14IseI6AhlkQ+pcZFrH0nk2QyQIg==
+  dependencies:
+    chalk "^4.1.2"
+    fs-extra "^10.1.0"
+    mjml "^4.12.0"
+    mjml-react "^2.0.7"
+    node-fetch "^2.6.7"
+    open "^8.4.0"
+    posthog-node "^2.0.2"
+
+mailing@^0.8.3-next.0:
+  version "0.8.3-next.0"
+  resolved "https://registry.yarnpkg.com/mailing/-/mailing-0.8.3-next.0.tgz#080e9c88e25f9a3d7eef38a474cb1918edf1b538"
+  integrity sha512-N7rUYWw7kIpKA/+bx0Z2HpPNAEE5U/hWdfqEFPYCCpVyF52fvpdqCx/hkQmUS4O55f4OgGJOoXF89ZvDKLOkcg==
   dependencies:
     "@babel/parser" "^7.18.11"
     "@reecelucas/react-use-hotkeys" "^1.3.5"
@@ -3485,7 +3498,7 @@ mailing@^0.8.2:
     html-minifier-terser "^7.0.0"
     jsdom "^20.0.0"
     lodash "^4.17.21"
-    mailing-core "^0.8.2"
+    mailing-core "^0.8.3-next.0"
     mjml "^4.12.0"
     mjml-react "^2.0.7"
     node-fetch "^2.6.7"
