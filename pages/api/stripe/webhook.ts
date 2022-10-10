@@ -22,7 +22,6 @@ async function buffer(readable: Readable) {
 
 const relevantEvents = new Set([
   "checkout.session.completed",
-  "invoice.payment_failed",
   "customer.subscription.updated",
   "customer.subscription.deleted",
 ]);
