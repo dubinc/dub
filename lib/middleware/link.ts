@@ -2,13 +2,6 @@ import { NextRequest, NextFetchEvent, NextResponse } from "next/server";
 import { redis, recordClick } from "@/lib/upstash";
 import { parse, detectBot } from "@/lib/middleware/utils";
 import { LinkProps } from "../types";
-import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
-
-const ratelimit = new Ratelimit({
-  redis: Redis.fromEnv(),
-  limiter: Ratelimit.slidingWindow(10, "60 s"),
-});
 
 export default async function LinkMiddleware(
   req: NextRequest,
@@ -30,7 +23,8 @@ export default async function LinkMiddleware(
   if (target) {
     const isBot = detectBot(req);
 
-    ev.waitUntil(recordClick(hostname, req, key)); // increment click count
+    const noTrack = req.headers.get("dub-no-track");
+    if (!noTrack) ev.waitUntil(recordClick(hostname, req, key)); // track the click only if there is no `dub-no-track` header
 
     if (image && description && isBot) {
       // rewrite to proxy page (dub.sh/proxy/[domain]/[key])
