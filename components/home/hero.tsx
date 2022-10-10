@@ -5,7 +5,7 @@ const Hero = () => {
   return (
     <div className="max-w-md sm:max-w-lg mt-20 mb-10 text-center mx-auto sm:px-0 px-2.5">
       <a
-        href="https://dub.sh/twitter"
+        href="https://dub.sh/launch"
         target="_blank"
         rel="noreferrer"
         className="bg-blue-100 hover:bg-blue-200 flex justify-center items-center space-x-2 max-w-fit px-7 py-2 mx-auto rounded-full overflow-hidden transition-all"
