@@ -1,0 +1,13 @@
+{
+  "importOrder": [
+    "^(next/(.*)$)|^(next$)",
+    "^(react/(.*)$)|^(react$)",
+    "<THIRD_PARTY_MODULES>",
+    "^@/components/(.*)$|^components/(.*)$",
+    "^@/lib/(.*)$",
+    "^@/styles/(.*)$",
+    "^[./]"
+  ],
+  "importOrderSeparation": false,
+  "importOrderSortSpecifiers": true
+}
