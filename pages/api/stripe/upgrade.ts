@@ -1,13 +1,20 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { withUserAuth } from "@/lib/auth";
 import { stripe } from "@/lib/stripe";
+import { UserProps } from "@/lib/types";
 
 export default withUserAuth(
-  async (req: NextApiRequest, res: NextApiResponse, userId) => {
+  async (
+    req: NextApiRequest,
+    res: NextApiResponse,
+    userId: string,
+    user: UserProps
+  ) => {
     // POST /api/stripe/upgrade – upgrade a user's account from free to pro
     if (req.method === "POST") {
       const { priceId } = req.query as { priceId: string };
       const session = await stripe.checkout.sessions.create({
+        customer_email: user.email,
         payment_method_types: ["card"],
         billing_address_collection: "required",
         success_url: `${
@@ -31,5 +38,6 @@ export default withUserAuth(
         .status(405)
         .json({ error: `Method ${req.method} Not Allowed` });
     }
-  }
+  },
+  { needUserDetails: true }
 );
