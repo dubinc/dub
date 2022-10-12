@@ -39,6 +39,7 @@ function LinkQRModalHelper({
     () => linkConstructor({ key: props.key, domain }),
     [props, domain]
   );
+  const qrLogoUrl = useMemo(() => logo || new URL('/static/logo.svg', location.href).href, []);
 
   function download(url: string, extension: string) {
     if (!anchorRef.current) return;
@@ -53,7 +54,7 @@ function LinkQRModalHelper({
     size: 1024,
     level: "Q",
     imageSettings: {
-      src: logo || "https://dub.sh/static/logo.svg",
+      src: qrLogoUrl,
       height: 256,
       width: 256,
       excavate: true,
@@ -88,7 +89,7 @@ function LinkQRModalHelper({
               level="Q"
               includeMargin={false}
               imageSettings={{
-                src: qrData.imageSettings.src,
+                src: qrLogoUrl,
                 height: 36,
                 width: 36,
                 excavate: true
