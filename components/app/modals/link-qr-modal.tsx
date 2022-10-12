@@ -25,8 +25,7 @@ function LinkQRModalHelper({
   props: LinkProps;
 }) {
   const anchorRef = useRef<HTMLAnchorElement>();
-  const [showLogo, setShowLogo] = useState(true);
-  const { project: { domain } = {} } = useProject();
+  const { project: { domain, logo } = {} } = useProject();
   const avatarUrl = useMemo(() => {
     try {
       const urlHostname = new URL(props.url).hostname;
@@ -44,9 +43,20 @@ function LinkQRModalHelper({
   function download(url: string, extension: string) {
     if (!anchorRef.current) return;
     anchorRef.current.href = url;
-    anchorRef.current.download = `${props.key}.${extension}`;
+    anchorRef.current.download = `${props.key}-qrcode.${extension}`;
     anchorRef.current.click();
   }
+
+  const [qrData, setQrData] = useState({
+    bgColor: "#ffffff",
+    fgColor: "#000000",
+    imageSettings: {
+      src: logo || "/static/logo.svg",
+      height: 36,
+      width: 36,
+      excavate: true,
+    },
+  });
 
   return (
     <Modal showModal={showLinkQRModal} setShowModal={setShowLinkQRModal}>
@@ -66,48 +76,28 @@ function LinkQRModalHelper({
           <h3 className="font-medium text-lg">Download QR Code</h3>
         </div>
 
-        <div className="flex flex-col space-y-6 text-left bg-gray-50 sm:px-16 px-4 py-8">
+        <div className="flex flex-col space-y-8 text-left bg-gray-50 sm:px-16 px-4 py-8">
           <div className="p-4 rounded-lg bg-white mx-auto border-2 border-gray-200">
             <QRCodeSVG
               value={qrDestUrl}
               size={128}
-              bgColor="#ffffff"
-              fgColor="#000000"
+              bgColor={qrData.bgColor}
+              fgColor={qrData.fgColor}
               level="L"
               includeMargin={false}
-              imageSettings={
-                showLogo && {
-                  src: "/static/logo.svg",
-                  height: 36,
-                  width: 36,
-                  excavate: true,
-                }
-              }
+              imageSettings={qrData.imageSettings}
             />
-          </div>
-
-          <div className="flex justify-center items-center gap-2">
-            <input
-              id="qr-source"
-              name="qr-source"
-              type="checkbox"
-              checked={showLogo}
-              onChange={(e) => setShowLogo(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 text-blue-500 focus:border-gray-500 focus:ring-gray-500 focus:outline-none"
-            />
-            <label
-              htmlFor="qr-source"
-              className="block text-sm text-gray-700 select-none"
-            >
-              Show Dub Logo
-            </label>
           </div>
 
           <div className="flex gap-2">
             <button
               onClick={() =>
                 download(
-                  getQRAsSVGDataUri({ value: qrDestUrl, size: 256 }),
+                  getQRAsSVGDataUri({
+                    value: qrDestUrl,
+                    size: 1024,
+                    ...qrData,
+                  }),
                   "svg"
                 )
               }
@@ -118,7 +108,10 @@ function LinkQRModalHelper({
             <button
               onClick={() =>
                 download(
-                  getQRAsCanvas({ value: qrDestUrl, size: 256 }, "image/png"),
+                  getQRAsCanvas(
+                    { value: qrDestUrl, size: 1024, ...qrData },
+                    "image/png"
+                  ),
                   "png"
                 )
               }
@@ -129,7 +122,10 @@ function LinkQRModalHelper({
             <button
               onClick={() =>
                 download(
-                  getQRAsCanvas({ value: qrDestUrl, size: 256 }, "image/jpeg"),
+                  getQRAsCanvas(
+                    { value: qrDestUrl, size: 1024, ...qrData },
+                    "image/jpeg"
+                  ),
                   "jpg"
                 )
               }

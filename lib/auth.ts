@@ -70,6 +70,7 @@ const withProjectAuth =
         slug: true,
         domain: true,
         domainVerified: true,
+        logo: true,
         ownerUsageLimit: true,
         ownerExceededUsage: true,
         users: {
