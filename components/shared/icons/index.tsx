@@ -1,3 +1,5 @@
+// Most of these icons are gotten from Vercel's open-sourced icons library: https://vercel.com/design/icons
+
 export { default as LoadingDots } from "./loading-dots";
 export { default as LoadingCircle } from "./loading-circle";
 export { default as ExpandingArrow } from "./expanding-arrow";

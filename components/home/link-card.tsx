@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import BlurImage from "@/components/shared/blur-image";
 import CopyButton from "@/components/shared/copy-button";
-import { Chart, LoadingDots } from "@/components/shared/icons";
+import { Chart, LoadingDots, QR } from "@/components/shared/icons";
 import useSWR from "swr";
 import { fetcher, nFormatter, linkConstructor } from "@/lib/utils";
 import Link from "next/link";
@@ -10,6 +10,7 @@ import { FRAMER_MOTION_LIST_ITEM_VARIANTS } from "@/lib/constants";
 import { SimpleLinkProps } from "@/lib/types";
 import toast from "react-hot-toast";
 import { useDebouncedCallback } from "use-debounce";
+import { useLinkQRModal } from "@/components/app/modals/link-qr-modal";
 
 export default function LinkCard({
   _key: key,
@@ -95,8 +96,16 @@ export default function LinkCard({
     return () => unsubscribeX();
   });
 
+  const { setShowLinkQRModal, LinkQRModal } = useLinkQRModal({
+    props: {
+      key,
+      url,
+    },
+  });
+
   return (
     <motion.li variants={FRAMER_MOTION_LIST_ITEM_VARIANTS}>
+      <LinkQRModal />
       <motion.div
         animate={controls}
         drag="x"
@@ -127,6 +136,13 @@ export default function LinkCard({
               {linkConstructor({ key, pretty: true })}
             </a>
             <CopyButton url={linkConstructor({ key })} />
+            <button
+              onClick={() => setShowLinkQRModal(true)}
+              className="group p-1.5 rounded-full bg-gray-100 hover:bg-blue-100 hover:scale-105 active:scale-95 transition-all duration-75"
+            >
+              <span className="sr-only">Copy</span>
+              <QR className="text-gray-700 group-hover:text-blue-800 transition-all" />
+            </button>
             <Link
               href={{ pathname: "/", query: { key } }}
               as={`/stats/${encodeURI(key)}`}
