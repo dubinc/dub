@@ -4,20 +4,20 @@
  * SPDX-License-Identifier: ISC
  */
 
-import { escape } from 'html-escaper';
-import type { CSSProperties } from 'react';
-import React, { useEffect, useRef, useState } from 'react';
+import { escape } from "html-escaper";
+import type { CSSProperties } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
-import qrcodegen from './codegen';
+import qrcodegen from "./codegen";
 
-type Modules = ReturnType<qrcodegen.QrCode['getModules']>;
+type Modules = ReturnType<qrcodegen.QrCode["getModules"]>;
 type Excavation = { x: number; y: number; w: number; h: number };
 
 const ERROR_LEVEL_MAP: { [index: string]: qrcodegen.QrCode.Ecc } = {
   L: qrcodegen.QrCode.Ecc.LOW,
   M: qrcodegen.QrCode.Ecc.MEDIUM,
   Q: qrcodegen.QrCode.Ecc.QUARTILE,
-  H: qrcodegen.QrCode.Ecc.HIGH
+  H: qrcodegen.QrCode.Ecc.HIGH,
 };
 
 type ImageSettings = {
@@ -44,9 +44,9 @@ type QRPropsCanvas = QRProps & React.CanvasHTMLAttributes<HTMLCanvasElement>;
 type QRPropsSVG = QRProps & React.SVGProps<SVGSVGElement>;
 
 const DEFAULT_SIZE = 128;
-const DEFAULT_LEVEL = 'L';
-const DEFAULT_BGCOLOR = '#FFFFFF';
-const DEFAULT_FGCOLOR = '#000000';
+const DEFAULT_LEVEL = "L";
+const DEFAULT_BGCOLOR = "#FFFFFF";
+const DEFAULT_FGCOLOR = "#000000";
 const DEFAULT_INCLUDEMARGIN = false;
 
 const MARGIN_SIZE = 4;
@@ -65,7 +65,9 @@ function generatePath(modules: Modules, margin = 0): string {
       if (!cell && start !== null) {
         // M0 0h7v1H0z injects the space with the move and drops the comma,
         // saving a char per operation
-        ops.push(`M${start + margin} ${y + margin}h${x - start}v1H${start + margin}z`);
+        ops.push(
+          `M${start + margin} ${y + margin}h${x - start}v1H${start + margin}z`
+        );
         start = null;
         return;
       }
@@ -82,7 +84,11 @@ function generatePath(modules: Modules, margin = 0): string {
           ops.push(`M${x + margin},${y + margin} h1v1H${x + margin}z`);
         } else {
           // Otherwise finish the current line.
-          ops.push(`M${start + margin},${y + margin} h${x + 1 - start}v1H${start + margin}z`);
+          ops.push(
+            `M${start + margin},${y + margin} h${x + 1 - start}v1H${
+              start + margin
+            }z`
+          );
         }
         return;
       }
@@ -92,7 +98,7 @@ function generatePath(modules: Modules, margin = 0): string {
       }
     });
   });
-  return ops.join('');
+  return ops.join("");
 }
 
 // We could just do this in generatePath, except that we want to support
@@ -132,8 +138,14 @@ function getImageSettings(
   const scale = numCells / size;
   const w = (imageSettings.width || defaultSize) * scale;
   const h = (imageSettings.height || defaultSize) * scale;
-  const x = imageSettings.x == null ? cells.length / 2 - w / 2 : imageSettings.x * scale;
-  const y = imageSettings.y == null ? cells.length / 2 - h / 2 : imageSettings.y * scale;
+  const x =
+    imageSettings.x == null
+      ? cells.length / 2 - w / 2
+      : imageSettings.x * scale;
+  const y =
+    imageSettings.y == null
+      ? cells.length / 2 - h / 2
+      : imageSettings.y * scale;
 
   let excavation = null;
   if (imageSettings.excavate) {
@@ -189,20 +201,32 @@ export function QRCodeCanvas(props: QRPropsCanvas) {
     if (_canvas.current != null) {
       const canvas = _canvas.current;
 
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext("2d");
       if (!ctx) {
         return;
       }
 
-      let cells = qrcodegen.QrCode.encodeText(value, ERROR_LEVEL_MAP[level]).getModules();
+      let cells = qrcodegen.QrCode.encodeText(
+        value,
+        ERROR_LEVEL_MAP[level]
+      ).getModules();
 
       const margin = includeMargin ? MARGIN_SIZE : 0;
       const numCells = cells.length + margin * 2;
-      const calculatedImageSettings = getImageSettings(cells, size, includeMargin, imageSettings);
+      const calculatedImageSettings = getImageSettings(
+        cells,
+        size,
+        includeMargin,
+        imageSettings
+      );
 
       const image = _image.current;
       const haveImageToRender =
-        calculatedImageSettings != null && image !== null && image.complete && image.naturalHeight !== 0 && image.naturalWidth !== 0;
+        calculatedImageSettings != null &&
+        image !== null &&
+        image.complete &&
+        image.naturalHeight !== 0 &&
+        image.naturalWidth !== 0;
 
       if (haveImageToRender) {
         if (calculatedImageSettings.excavation != null) {
@@ -262,7 +286,7 @@ export function QRCodeCanvas(props: QRPropsCanvas) {
       <img
         src={imgSrc}
         key={imgSrc}
-        style={{ display: 'none' }}
+        style={{ display: "none" }}
         onLoad={() => {
           setIsImageLoaded(true);
         }}
@@ -272,7 +296,13 @@ export function QRCodeCanvas(props: QRPropsCanvas) {
   }
   return (
     <>
-      <canvas style={canvasStyle} height={size} width={size} ref={_canvas} {...otherProps} />
+      <canvas
+        style={canvasStyle}
+        height={size}
+        width={size}
+        ref={_canvas}
+        {...otherProps}
+      />
       {img}
     </>
   );
@@ -290,11 +320,19 @@ export function QRCodeSVG(props: QRPropsSVG) {
     ...otherProps
   } = props;
 
-  let cells = qrcodegen.QrCode.encodeText(value, ERROR_LEVEL_MAP[level]).getModules();
+  let cells = qrcodegen.QrCode.encodeText(
+    value,
+    ERROR_LEVEL_MAP[level]
+  ).getModules();
 
   const margin = includeMargin ? MARGIN_SIZE : 0;
   const numCells = cells.length + margin * 2;
-  const calculatedImageSettings = getImageSettings(cells, size, includeMargin, imageSettings);
+  const calculatedImageSettings = getImageSettings(
+    cells,
+    size,
+    includeMargin,
+    imageSettings
+  );
 
   let image = null;
   if (imageSettings != null && calculatedImageSettings != null) {
@@ -323,8 +361,17 @@ export function QRCodeSVG(props: QRPropsSVG) {
   const fgPath = generatePath(cells, margin);
 
   return (
-    <svg height={size} width={size} viewBox={`0 0 ${numCells} ${numCells}`} {...otherProps}>
-      <path fill={bgColor} d={`M0,0 h${numCells}v${numCells}H0z`} shapeRendering="crispEdges" />
+    <svg
+      height={size}
+      width={size}
+      viewBox={`0 0 ${numCells} ${numCells}`}
+      {...otherProps}
+    >
+      <path
+        fill={bgColor}
+        d={`M0,0 h${numCells}v${numCells}H0z`}
+        shapeRendering="crispEdges"
+      />
       <path fill={fgColor} d={fgPath} shapeRendering="crispEdges" />
       {image}
     </svg>
@@ -339,26 +386,35 @@ export function getQRAsSVGDataUri(props: QRProps) {
     bgColor = DEFAULT_BGCOLOR,
     fgColor = DEFAULT_FGCOLOR,
     includeMargin = DEFAULT_INCLUDEMARGIN,
-    imageSettings
+    imageSettings,
   } = props;
 
-  let cells = qrcodegen.QrCode.encodeText(value, ERROR_LEVEL_MAP[level]).getModules();
+  let cells = qrcodegen.QrCode.encodeText(
+    value,
+    ERROR_LEVEL_MAP[level]
+  ).getModules();
 
   const margin = includeMargin ? MARGIN_SIZE : 0;
   const numCells = cells.length + margin * 2;
-  const calculatedImageSettings = getImageSettings(cells, size, includeMargin, imageSettings);
+  const calculatedImageSettings = getImageSettings(
+    cells,
+    size,
+    includeMargin,
+    imageSettings
+  );
 
-  let image = '';
+  let image = "";
   if (imageSettings != null && calculatedImageSettings != null) {
-    if (calculatedImageSettings.excavation != null) cells = excavateModules(cells, calculatedImageSettings.excavation);
+    if (calculatedImageSettings.excavation != null)
+      cells = excavateModules(cells, calculatedImageSettings.excavation);
     image = [
       `<image xlinkHref="${escape(imageSettings.src)}"`,
       `height="${calculatedImageSettings.h}"`,
       `width="${calculatedImageSettings.w}"`,
       `x="${calculatedImageSettings.x + margin}"`,
       `y="${calculatedImageSettings.y + margin}"`,
-      'preserveAspectRatio="none"></image>'
-    ].join(' ');
+      'preserveAspectRatio="none"></image>',
+    ].join(" ");
   }
   const fgPath = generatePath(cells, margin);
 
@@ -367,8 +423,8 @@ export function getQRAsSVGDataUri(props: QRProps) {
     `<path fill="${bgColor}" d="M0,0 h${numCells}v${numCells}H0z" shapeRendering="crispEdges"></path>`,
     `<path fill="${fgColor}" d="${fgPath}" shapeRendering="crispEdges"></path>`,
     image,
-    '</svg>'
-  ].join('');
+    "</svg>",
+  ].join("");
 
   return `data:image/svg+xml,${encodeURIComponent(svgData)}`;
 }
@@ -380,13 +436,16 @@ export function getQRAsCanvas(props: QRProps, type: string) {
     level = DEFAULT_LEVEL,
     bgColor = DEFAULT_BGCOLOR,
     fgColor = DEFAULT_FGCOLOR,
-    includeMargin = DEFAULT_INCLUDEMARGIN
+    includeMargin = DEFAULT_INCLUDEMARGIN,
   } = props;
 
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
 
-  const cells = qrcodegen.QrCode.encodeText(value, ERROR_LEVEL_MAP[level]).getModules();
+  const cells = qrcodegen.QrCode.encodeText(
+    value,
+    ERROR_LEVEL_MAP[level]
+  ).getModules();
   const margin = includeMargin ? MARGIN_SIZE : 0;
   const numCells = cells.length + margin * 2;
 
