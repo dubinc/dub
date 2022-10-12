@@ -42,14 +42,13 @@ function LinkQRModalHelper({
     () => linkConstructor({ key: props.key, domain }),
     [props, domain]
   );
+
   const qrLogoUrl = useMemo(() => {
     if (logo) return logo;
-    if (process.env.NEXT_PUBLIC_VERCEL_ENV) {
-      return "https://dub.sh/static/logo.svg";
-    } else {
-      return "http://localhost:3000/static/logo.svg";
-    }
-  }, [logo]);
+    return typeof window !== "undefined" && window.location.origin
+      ? new URL("/static/logo.svg", window.location.origin).href
+      : "";
+  }, []);
 
   function download(url: string, extension: string) {
     if (!anchorRef.current) return;
