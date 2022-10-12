@@ -50,10 +50,12 @@ function LinkQRModalHelper({
   const [qrData, setQrData] = useState({
     bgColor: "#ffffff",
     fgColor: "#000000",
+    size: 1024,
+    level: "Q",
     imageSettings: {
-      src: logo || "/static/logo.svg",
-      height: 36,
-      width: 36,
+      src: logo || "https://dub.sh/static/logo.svg",
+      height: 256,
+      width: 256,
       excavate: true,
     },
   });
@@ -83,9 +85,14 @@ function LinkQRModalHelper({
               size={128}
               bgColor={qrData.bgColor}
               fgColor={qrData.fgColor}
-              level="L"
+              level="Q"
               includeMargin={false}
-              imageSettings={qrData.imageSettings}
+              imageSettings={{
+                src: qrData.imageSettings.src,
+                height: 36,
+                width: 36,
+                excavate: true
+              }}
             />
           </div>
 
@@ -95,7 +102,6 @@ function LinkQRModalHelper({
                 download(
                   getQRAsSVGDataUri({
                     value: qrDestUrl,
-                    size: 1024,
                     ...qrData,
                   }),
                   "svg"
@@ -106,10 +112,10 @@ function LinkQRModalHelper({
               <Download /> SVG
             </button>
             <button
-              onClick={() =>
+              onClick={async () => 
                 download(
-                  getQRAsCanvas(
-                    { value: qrDestUrl, size: 1024, ...qrData },
+                  await getQRAsCanvas(
+                    { value: qrDestUrl, ...qrData },
                     "image/png"
                   ),
                   "png"
@@ -120,10 +126,11 @@ function LinkQRModalHelper({
               <Download /> PNG
             </button>
             <button
-              onClick={() =>
+              onClick={
+                async () => 
                 download(
-                  getQRAsCanvas(
-                    { value: qrDestUrl, size: 1024, ...qrData },
+                  await getQRAsCanvas(
+                    { value: qrDestUrl, ...qrData },
                     "image/jpeg"
                   ),
                   "jpg"
@@ -136,7 +143,7 @@ function LinkQRModalHelper({
           </div>
 
           {/* This will be used to prompt downloads. */}
-          <a className="hidden" download={`${props.key}.svg`} ref={anchorRef} />
+          <a className="hidden" download={`${props.key}-qrcode.svg`} ref={anchorRef} />
         </div>
       </div>
     </Modal>
