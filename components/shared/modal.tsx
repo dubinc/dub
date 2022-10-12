@@ -70,7 +70,7 @@ export default function Modal({
       {showModal && (
         <>
           <FocusTrap>
-            <div>
+            <div className="absolute">
               <motion.div
                 ref={mobileModalRef}
                 key="mobile-modal"
