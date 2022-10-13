@@ -17,6 +17,7 @@ export interface ProjectProps {
   slug: string;
   domain: string;
   domainVerified: boolean;
+  logo?: string;
   ownerUsageLimit?: number;
   ownerExceededUsage?: boolean;
   users?: {

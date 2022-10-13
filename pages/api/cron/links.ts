@@ -15,7 +15,7 @@ async function handler(_req: NextApiRequest, res: NextApiResponse) {
       "dub.sh:links:timestamps:generic",
       0,
       aWeekAgo,
-      { byScore: true }
+      { byScore: true },
     );
     const pipeline = redis.pipeline();
     for (const link of links) {

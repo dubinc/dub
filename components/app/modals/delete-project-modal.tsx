@@ -153,6 +153,6 @@ export function useDeleteProjectModal() {
       setShowDeleteProjectModal,
       DeleteProjectModal: DeleteProjectModalCallback,
     }),
-    [setShowDeleteProjectModal, DeleteProjectModalCallback]
+    [setShowDeleteProjectModal, DeleteProjectModalCallback],
   );
 }

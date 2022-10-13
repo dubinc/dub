@@ -5,7 +5,7 @@ import { LinkProps } from "../types";
 
 export default async function LinkMiddleware(
   req: NextRequest,
-  ev: NextFetchEvent
+  ev: NextFetchEvent,
 ) {
   const url = req.nextUrl.clone();
   const { hostname, key, query } = parse(req);
@@ -16,7 +16,7 @@ export default async function LinkMiddleware(
 
   const response = await redis.hget<Omit<LinkProps, "key">>(
     `${hostname}:links`,
-    key
+    key,
   );
   const { url: target, description, image } = response || {};
 

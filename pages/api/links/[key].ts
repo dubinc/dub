@@ -4,14 +4,14 @@ import { deleteLink, editLink, redis } from "@/lib/upstash";
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   const session = await getSession(req, res);
   const { key: oldKey } = req.query as { key: string };
 
   const isOwner = await redis.zscore(
     `dub.sh:links:timestamps:${session.user.id}`,
-    oldKey
+    oldKey,
   );
 
   if (!session?.user.id || !isOwner) return res.status(401).end("Unauthorized");
@@ -32,7 +32,7 @@ export default async function handler(
         title,
         timestamp,
       },
-      session.user.id
+      session.user.id,
     );
     if (response === null) {
       return res.status(400).json({ error: "Key already exists" });

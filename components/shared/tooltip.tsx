@@ -2,7 +2,7 @@
 
 /*  Tooltip Contents  */
 import Link from "next/link";
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { ReactNode, useRef, useState } from "react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { AnimatePresence, motion, useAnimation } from "framer-motion";
 import BlurImage from "@/components/shared/blur-image";
@@ -34,7 +34,7 @@ export default function Tooltip({
       controls.start({ y: 0, transition: transitionProps });
     }
   }
-  const randomIndex = Math.floor(Math.random() * 1000000).toString();
+
   return (
     <>
       <button
@@ -48,7 +48,7 @@ export default function Tooltip({
           <>
             <motion.div
               ref={mobileTooltipRef}
-              key={`mobile-tooltip-${randomIndex}`}
+              key="mobile-tooltip"
               className="group fixed bottom-0 inset-x-0 z-40 w-screen sm:hidden cursor-grab active:cursor-grabbing"
               initial={{ y: "100%" }}
               animate={{
@@ -80,7 +80,7 @@ export default function Tooltip({
               </div>
             </motion.div>
             <motion.div
-              key={`mobile-tooltip-backdrop-${randomIndex}`}
+              key="mobile-tooltip-backdrop"
               className="fixed inset-0 z-30 bg-gray-100 bg-opacity-10 backdrop-blur sm:hidden"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -162,7 +162,7 @@ export function OGImageProxy() {
 
 export function ProTiers({ usageLimit }: { usageLimit?: number }) {
   const [tier, setTier] = useState(
-    usageLimit > 1000 ? PRO_TIERS.map((t) => t.quota).indexOf(usageLimit) : 0
+    usageLimit > 1000 ? PRO_TIERS.map((t) => t.quota).indexOf(usageLimit) : 0,
   );
 
   return (

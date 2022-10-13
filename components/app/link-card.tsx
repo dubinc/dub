@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import useSWR from "swr";
 import BlurImage from "@/components/shared/blur-image";
 import CopyButton from "@/components/shared/copy-button";
-import { Chart, LoadingDots } from "@/components/shared/icons";
+import { Chart, LoadingDots, QR } from "@/components/shared/icons";
 import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 import useProject from "@/lib/swr/use-project";
 import useUsage from "@/lib/swr/use-usage";
@@ -11,6 +11,7 @@ import { LinkProps } from "@/lib/types";
 import { fetcher, linkConstructor, nFormatter, timeAgo } from "@/lib/utils";
 import { useAddEditLinkModal } from "./modals/add-edit-link-modal";
 import { useDeleteLinkModal } from "./modals/delete-link-modal";
+import { useLinkQRModal } from "./modals/link-qr-modal";
 
 export default function LinkCard({ props }: { props: LinkProps }) {
   const { key, url, title, timestamp } = props;
@@ -28,7 +29,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
     domain
       ? `/api/projects/${slug}/domains/${domain}/links/${key}/clicks`
       : `/api/edge/links/${key}/clicks`,
-    fetcher
+    fetcher,
   );
 
   const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal({
@@ -39,10 +40,15 @@ export default function LinkCard({ props }: { props: LinkProps }) {
     props,
   });
 
+  const { setShowLinkQRModal, LinkQRModal } = useLinkQRModal({
+    props,
+  });
+
   return (
     <>
       <AddEditLinkModal />
       <DeleteLinkModal />
+      <LinkQRModal />
       <li className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-5 sm:space-y-0 bg-white p-4 rounded-lg shadow hover:shadow-md transition-all">
         <div className="relative flex items-center space-x-4">
           <BlurImage
@@ -55,7 +61,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
           <div>
             <div className="flex items-center space-x-2 max-w-fit">
               <a
-                className="text-blue-800 text-sm sm:text-base font-semibold truncate w-40 sm:w-full"
+                className="text-blue-800 text-sm sm:text-base font-semibold truncate w-32 sm:w-full"
                 href={linkConstructor({ key, domain })}
                 target="_blank"
                 rel="noreferrer"
@@ -63,6 +69,13 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                 {linkConstructor({ key, domain, pretty: true })}
               </a>
               <CopyButton url={linkConstructor({ key, domain })} />
+              <button
+                onClick={() => setShowLinkQRModal(true)}
+                className="group p-1.5 rounded-full bg-gray-100 hover:bg-blue-100 hover:scale-105 active:scale-95 transition-all duration-75"
+              >
+                <span className="sr-only">Download QR</span>
+                <QR className="text-gray-700 group-hover:text-blue-800 transition-all" />
+              </button>
               <Link href={`${router.asPath}/${encodeURI(key)}`}>
                 <a className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 hover:scale-105 active:scale-95 transition-all duration-75">
                   <Chart className="w-4 h-4" />
@@ -71,8 +84,8 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                       <LoadingDots color="#71717A" />
                     ) : (
                       nFormatter(parseInt(clicks))
-                    )}{" "}
-                    clicks
+                    )}
+                    <span className="hidden sm:inline-block ml-1">clicks</span>
                   </p>
                 </a>
               </Link>

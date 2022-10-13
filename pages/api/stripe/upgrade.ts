@@ -8,7 +8,7 @@ export default withUserAuth(
     req: NextApiRequest,
     res: NextApiResponse,
     userId: string,
-    user: UserProps
+    user: UserProps,
   ) => {
     // POST /api/stripe/upgrade – upgrade a user's account from free to pro
     if (req.method === "POST") {
@@ -39,5 +39,5 @@ export default withUserAuth(
         .json({ error: `Method ${req.method} Not Allowed` });
     }
   },
-  { needUserDetails: true }
+  { needUserDetails: true },
 );

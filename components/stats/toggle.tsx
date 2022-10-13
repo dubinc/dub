@@ -66,9 +66,9 @@ export default function Toggle({
                   },
                 },
                 `/${pageType}/${encodeURI(
-                  router.query.key as string
+                  router.query.key as string,
                 )}?interval=${interval}`,
-                { shallow: true }
+                { shallow: true },
               );
             }}
           />

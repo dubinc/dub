@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 export default function VercelEdgeFunctions() {
   const [vercelFontColor, setVercelFontColor] = useState(
-    "from-blue-600 to-cyan-600"
+    "from-blue-600 to-cyan-600",
   );
 
   const updateColor = () => {

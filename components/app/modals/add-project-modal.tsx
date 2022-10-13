@@ -60,7 +60,7 @@ function AddProjectModalHelper({
             const exists = await res.json();
             setDomainError(exists === 1 ? "Domain is already in use." : null);
           }
-        }
+        },
       );
     }
   }, [debouncedDomain, domainError]);
@@ -278,6 +278,6 @@ export function useAddProjectModal({ domain }: { domain?: string }) {
 
   return useMemo(
     () => ({ setShowAddProjectModal, AddProjectModal }),
-    [setShowAddProjectModal, AddProjectModal]
+    [setShowAddProjectModal, AddProjectModal],
   );
 }

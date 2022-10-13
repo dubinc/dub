@@ -72,14 +72,14 @@ function DeleteLinkModal({
                 headers: {
                   "Content-Type": "application/json",
                 },
-              }
+              },
             ).then(async (res) => {
               setDeleting(false);
               if (res.status === 200) {
                 mutate(
                   domain
                     ? `/api/projects/${slug}/domains/${domain}/links`
-                    : `/api/links`
+                    : `/api/links`,
                 );
                 setShowDeleteLinkModal(false);
               }
@@ -142,6 +142,6 @@ export function useDeleteLinkModal({ props }: { props?: LinkProps }) {
       setShowDeleteLinkModal,
       DeleteLinkModal: DeleteLinkModalCallback,
     }),
-    [setShowDeleteLinkModal, DeleteLinkModalCallback]
+    [setShowDeleteLinkModal, DeleteLinkModalCallback],
   );
 }

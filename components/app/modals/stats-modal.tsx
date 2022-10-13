@@ -69,6 +69,6 @@ export function useStatsModal() {
 
   return useMemo(
     () => ({ setShowStatsModal, StatsModal }),
-    [setShowStatsModal, StatsModal]
+    [setShowStatsModal, StatsModal],
   );
 }
