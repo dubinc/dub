@@ -171,6 +171,11 @@ function AdvancedSettings({ qrData, setQrData, setShowLogo }) {
   const { plan } = useUsage();
   const [expanded, setExpanded] = useState(false);
 
+  const isApp = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    return window.location.host.startsWith("app.");
+  }, []);
+
   return (
     <div>
       <div className="sm:px-16 px-4">
@@ -200,13 +205,13 @@ function AdvancedSettings({ qrData, setQrData, setShowLogo }) {
               <Tooltip
                 content={
                   <TooltipContent
-                    title="Upgrade to Pro to use remove Dub branding."
+                    title="As a freemium product, we rely on word of mouth to spread the word about Dub. If you'd like to remove the Dub logo/upload your own, please consider upgrading to a Pro plan."
                     cta="Upgrade to Pro"
-                    ctaLink="/settings"
+                    ctaLink={isApp ? "/settings" : "/#pricing"}
                   />
                 }
               >
-                <div className="flex mt-1 space-x-2 items-center cursor-not-allowed">
+                <div className="flex mt-1 space-x-2 items-center cursor-not-allowed pointer-events-none sm:pointer-events-auto">
                   <Switch
                     trackDimensions="h-6 w-12"
                     thumbDimensions="w-5 h-5"
@@ -236,70 +241,45 @@ function AdvancedSettings({ qrData, setQrData, setShowLogo }) {
             >
               Foreground Color
             </label>
-            {!plan || plan === "Free" ? (
+            <div className="relative flex mt-1 rounded-md shadow-sm h-9 w-48">
               <Tooltip
                 content={
-                  <TooltipContent
-                    title="Upgrade to Pro to use custom colors."
-                    cta="Upgrade to Pro"
-                    ctaLink="/settings"
-                  />
+                  <div className="max-w-xs flex flex-col text-center items-center space-y-3 p-5">
+                    <HexColorPicker
+                      color={qrData.fgColor}
+                      onChange={(color) =>
+                        setQrData({
+                          ...qrData,
+                          fgColor: color,
+                        })
+                      }
+                    />
+                  </div>
                 }
               >
-                <div className="relative flex mt-1 rounded-md shadow-sm h-9 w-48">
-                  <div
-                    className="rounded-l-md w-12 h-full border cursor-not-allowed"
-                    style={{
-                      backgroundColor: qrData.fgColor,
-                      borderColor: qrData.fgColor,
-                    }}
-                  />
-                  <div className="flex items-center cursor-not-allowed border border-l-0 border-gray-300 bg-gray-50 text-gray-400 pl-3 w-full rounded-r-md sm:text-sm">
-                    {qrData.fgColor}
-                  </div>
-                </div>
-              </Tooltip>
-            ) : (
-              <div className="relative flex mt-1 rounded-md shadow-sm h-9 w-48">
-                <Tooltip
-                  content={
-                    <div className="max-w-xs flex flex-col text-center items-center space-y-3 p-5">
-                      <HexColorPicker
-                        color={qrData.fgColor}
-                        onChange={(color) =>
-                          setQrData({
-                            ...qrData,
-                            fgColor: color,
-                          })
-                        }
-                      />
-                    </div>
-                  }
-                >
-                  <div
-                    className="rounded-l-md w-12 h-full border"
-                    style={{
-                      backgroundColor: qrData.fgColor,
-                      borderColor: qrData.fgColor,
-                    }}
-                  />
-                </Tooltip>
-                <HexColorInput
-                  id="color"
-                  name="color"
-                  color={qrData.fgColor}
-                  onChange={(color) =>
-                    setQrData({
-                      ...qrData,
-                      fgColor: color,
-                    })
-                  }
-                  prefixed
-                  style={{ borderColor: qrData.fgColor }}
-                  className={`border-2 border-l-0 text-gray-900 placeholder-gray-300 focus:ring-black pl-3 block w-full rounded-r-md focus:outline-none sm:text-sm`}
+                <div
+                  className="rounded-l-md w-12 h-full border"
+                  style={{
+                    backgroundColor: qrData.fgColor,
+                    borderColor: qrData.fgColor,
+                  }}
                 />
-              </div>
-            )}
+              </Tooltip>
+              <HexColorInput
+                id="color"
+                name="color"
+                color={qrData.fgColor}
+                onChange={(color) =>
+                  setQrData({
+                    ...qrData,
+                    fgColor: color,
+                  })
+                }
+                prefixed
+                style={{ borderColor: qrData.fgColor }}
+                className={`border-2 border-l-0 text-gray-900 placeholder-gray-300 focus:ring-black pl-3 block w-full rounded-r-md focus:outline-none sm:text-sm`}
+              />
+            </div>
           </div>
         </div>
       )}
