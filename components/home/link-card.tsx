@@ -156,8 +156,8 @@ export default function LinkCard({
                     <LoadingDots color="#71717A" />
                   ) : (
                     nFormatter(parseInt(clicks))
-                  )}{" "}
-                  clicks
+                  )}
+                  <span className="hidden sm:block"> clicks</span>
                 </p>
               </a>
             </Link>

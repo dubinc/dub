@@ -61,7 +61,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
           <div>
             <div className="flex items-center space-x-2 max-w-fit">
               <a
-                className="text-blue-800 text-sm sm:text-base font-semibold truncate w-40 sm:w-full"
+                className="text-blue-800 text-sm sm:text-base font-semibold truncate w-32 sm:w-full"
                 href={linkConstructor({ key, domain })}
                 target="_blank"
                 rel="noreferrer"
@@ -84,8 +84,8 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                       <LoadingDots color="#71717A" />
                     ) : (
                       nFormatter(parseInt(clicks))
-                    )}{" "}
-                    clicks
+                    )}
+                    <span className="hidden sm:block"> clicks</span>
                   </p>
                 </a>
               </Link>
