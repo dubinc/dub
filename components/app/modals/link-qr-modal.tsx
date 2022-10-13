@@ -265,7 +265,7 @@ function AdvancedSettings({ qrData, setQrData, setShowLogo }) {
                     </div>
                   }
                 >
-                  <button
+                  <div
                     className="rounded-l-md w-12 h-full border"
                     style={{
                       backgroundColor: qrData.fgColor,
