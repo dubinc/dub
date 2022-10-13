@@ -1,15 +1,15 @@
-import Modal from "@/components/shared/modal";
+import { useRouter } from "next/router";
 import {
+  Dispatch,
+  SetStateAction,
   useCallback,
   useMemo,
   useState,
-  Dispatch,
-  SetStateAction,
 } from "react";
-import Stats from "@/components/stats";
 import { UIEvent } from "react";
-import { useRouter } from "next/router";
 import { X } from "@/components/shared/icons";
+import Modal from "@/components/shared/modal";
+import Stats from "@/components/stats";
 
 function StatsModalHelper({
   showStatsModal,

@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "@/lib/auth";
+import { DEFAULT_REDIRECTS, RESERVED_KEYS } from "@/lib/constants";
 import prisma from "@/lib/prisma";
-import { RESERVED_KEYS, DEFAULT_REDIRECTS } from "@/lib/constants";
 
 export default async function handler(
   req: NextApiRequest,

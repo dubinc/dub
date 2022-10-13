@@ -1,1 +1,5 @@
 /data/world-topo.json
+yarn.lock
+node_modules
+.next
+.mailing

@@ -1,18 +1,18 @@
-import Modal from "@/components/shared/modal";
+import { useRouter } from "next/router";
 import {
+  Dispatch,
+  FormEvent,
+  SetStateAction,
   useCallback,
   useEffect,
   useMemo,
   useState,
-  Dispatch,
-  FormEvent,
-  SetStateAction,
 } from "react";
-import { useRouter } from "next/router";
-import BlurImage from "@/components/shared/blur-image";
-import { LoadingDots, AlertCircleFill } from "@/components/shared/icons";
-import { useDebounce } from "use-debounce";
 import { mutate } from "swr";
+import { useDebounce } from "use-debounce";
+import BlurImage from "@/components/shared/blur-image";
+import { AlertCircleFill, LoadingDots } from "@/components/shared/icons";
+import Modal from "@/components/shared/modal";
 import { generateSlugFromName } from "@/lib/utils";
 
 function AddProjectModalHelper({

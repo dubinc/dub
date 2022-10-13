@@ -1,13 +1,13 @@
 import { useState } from "react";
-import useLocalStorage from "@/lib/hooks/use-local-storage";
+import { motion } from "framer-motion";
+import { Toaster } from "react-hot-toast";
 import LinkCard from "@/components/home/link-card";
 import PlaceholderCard from "@/components/home/placeholder-card";
 import { LoadingDots } from "@/components/shared/icons";
-import { motion } from "framer-motion";
-import { SimpleLinkProps } from "@/lib/types";
 import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
-import { Toaster } from "react-hot-toast";
 import { FRAMER_MOTION_LIST_ITEM_VARIANTS } from "@/lib/constants";
+import useLocalStorage from "@/lib/hooks/use-local-storage";
+import { SimpleLinkProps } from "@/lib/types";
 
 const Demo = () => {
   const [saving, setSaving] = useState(false);

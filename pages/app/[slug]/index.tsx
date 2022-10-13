@@ -1,9 +1,9 @@
+import ErrorPage from "next/error";
+import LinksContainer from "@/components/app/links-container";
+import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal";
+import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import AppLayout from "components/layout/app";
 import useProject from "@/lib/swr/use-project";
-import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
-import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal";
-import LinksContainer from "@/components/app/links-container";
-import ErrorPage from "next/error";
 
 export default function ProjectLinks() {
   const { project, error } = useProject();

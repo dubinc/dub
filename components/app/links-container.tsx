@@ -1,12 +1,12 @@
 import { useRouter } from "next/router";
 import useSWR from "swr";
-import { fetcher } from "@/lib/utils";
 import LinkCard from "@/components/app/link-card";
 import LinkCardPlaceholder from "@/components/app/link-card-placeholder";
-import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import NoLinksPlaceholder from "@/components/app/no-links-placeholder";
-import { LinkProps } from "@/lib/types";
+import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import useProject from "@/lib/swr/use-project";
+import { LinkProps } from "@/lib/types";
+import { fetcher } from "@/lib/utils";
 
 export default function LinksContainer({
   AddEditLinkButton,

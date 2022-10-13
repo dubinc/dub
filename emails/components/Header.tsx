@@ -1,4 +1,4 @@
-import { MjmlSection, MjmlColumn, MjmlImage, MjmlText } from "mjml-react";
+import { MjmlColumn, MjmlImage, MjmlSection, MjmlText } from "mjml-react";
 
 export default function Header({ title }: { title: string }): JSX.Element {
   return (

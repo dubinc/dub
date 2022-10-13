@@ -1,18 +1,18 @@
-import Modal from "@/components/shared/modal";
 import {
+  Dispatch,
+  SetStateAction,
   useCallback,
   useMemo,
   useState,
-  Dispatch,
-  SetStateAction,
 } from "react";
 import BlurImage from "@/components/shared/blur-image";
 import LoadingDots from "@/components/shared/icons/loading-dots";
+import Modal from "@/components/shared/modal";
+import Slider from "@/components/shared/slider";
+import Switch from "@/components/shared/switch";
 import { getStripe } from "@/lib/stripe/client";
 import { PRO_TIERS } from "@/lib/stripe/constants";
 import { nFormatter } from "@/lib/utils";
-import Slider from "@/components/shared/slider";
-import Switch from "@/components/shared/switch";
 
 function UpgradePlanModal({
   showUpgradePlanModal,

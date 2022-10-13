@@ -1,4 +1,4 @@
-import { NextRequest, NextFetchEvent, NextResponse } from "next/server";
+import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 import { recordClick, redis } from "@/lib/upstash";
 import { parse } from "./utils";
 

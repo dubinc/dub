@@ -1,9 +1,9 @@
-import { redis, deleteProject } from "@/lib/upstash";
-import { removeDomain } from "@/lib/domains";
-import { log } from "@/lib/cron/utils";
 import sendMail from "emails";
 import InvalidDomain from "emails/InvalidDomain";
 import ProjectDeleted from "emails/ProjectDeleted";
+import { log } from "@/lib/cron/utils";
+import { removeDomain } from "@/lib/domains";
+import { deleteProject, redis } from "@/lib/upstash";
 
 export const handleDomainUpdates = async (
   projectSlug: string,

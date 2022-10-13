@@ -1,11 +1,11 @@
-import Link from "next/link";
-import Stats from "@/components/stats";
-import BlurImage from "@/components/shared/blur-image";
-import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
-import { Lock } from "@/components/shared/icons";
-import AppLayout from "@/components/layout/app";
-import useProject from "@/lib/swr/use-project";
 import ErrorPage from "next/error";
+import Link from "next/link";
+import AppLayout from "@/components/layout/app";
+import BlurImage from "@/components/shared/blur-image";
+import { Lock } from "@/components/shared/icons";
+import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
+import Stats from "@/components/stats";
+import useProject from "@/lib/swr/use-project";
 import useUsage from "@/lib/swr/use-usage";
 
 export default function StatsPage() {

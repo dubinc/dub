@@ -1,8 +1,8 @@
+import sendMail from "emails";
+import UsageExceeded from "emails/UsageExceeded";
 import prisma from "@/lib/prisma";
 import { getUsage } from "@/lib/upstash";
 import { log } from "./utils";
-import sendMail from "emails";
-import UsageExceeded from "emails/UsageExceeded";
 
 export const updateUsage = async () => {
   const users = await prisma.user.findMany({
