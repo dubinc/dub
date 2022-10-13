@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   if (req.query.secret !== process.env.REVALIDATE_TOKEN) {
     return res.status(401).json({ message: "Invalid token" });

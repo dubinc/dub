@@ -21,7 +21,7 @@ export default function LinksContainer({
   const { project: { domain } = {} } = useProject();
   const { data: links } = useSWR<LinkProps[]>(
     domain ? `/api/projects/${slug}/domains/${domain}/links` : `/api/links`,
-    fetcher
+    fetcher,
   );
 
   return (

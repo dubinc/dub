@@ -77,7 +77,7 @@ interface getTimeIntervalsOutputProps {
 }
 
 export const getTimeIntervals = (
-  interval: IntervalProps
+  interval: IntervalProps,
 ): getTimeIntervalsOutputProps => {
   const { milliseconds, intervals, coefficient } = intervalData[interval];
   const endTimestamp = Math.ceil(Date.now() / coefficient) * coefficient;
@@ -92,14 +92,14 @@ export const getTimeIntervals = (
 export function processData(
   key: string,
   data: RawStatsProps[],
-  interval?: IntervalProps // if undefined, 24h is used
+  interval?: IntervalProps, // if undefined, 24h is used
 ): StatsProps {
   const { timeIntervals } = getTimeIntervals(interval || "24h");
 
   const clicksData = timeIntervals.map((interval) => ({
     ...interval,
     count: data.filter(
-      (d) => d.timestamp > interval.start && d.timestamp < interval.end
+      (d) => d.timestamp > interval.start && d.timestamp < interval.end,
     ).length,
   }));
 
@@ -160,7 +160,7 @@ export type LocationTabs = "country" | "city" | "region";
 
 export const processLocationData = (
   data: StatsProps["locationData"],
-  tab: LocationTabs
+  tab: LocationTabs,
 ): LocationStatsProps[] => {
   const countryCodeMap: { [key: string]: string } = {};
 
@@ -193,7 +193,7 @@ export interface DeviceStatsProps {
 export const processDeviceData = (
   data: StatsProps["deviceData"],
   tab: DeviceTabs,
-  showBots: boolean
+  showBots: boolean,
 ): DeviceStatsProps[] => {
   const results =
     data && data.length > 0

@@ -21,7 +21,7 @@ export default function DomainConfiguration({
 
   if (data.status === "Pending Verification") {
     const txtVerification = domainJson.verification.find(
-      (x: any) => x.type === "TXT"
+      (x: any) => x.type === "TXT",
     );
     return (
       <div className="border-t border-gray-200 pt-5">
@@ -40,7 +40,7 @@ export default function DomainConfiguration({
             <p className="text-sm font-mono mt-2">
               {txtVerification.domain.slice(
                 0,
-                txtVerification.domain.length - domainJson.apexName.length - 1
+                txtVerification.domain.length - domainJson.apexName.length - 1,
               )}
             </p>
           </div>

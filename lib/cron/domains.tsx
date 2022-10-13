@@ -11,7 +11,7 @@ export const handleDomainUpdates = async (
   createdAt: Date,
   verified: boolean,
   changed: boolean,
-  sentEmails: string[]
+  sentEmails: string[],
 ) => {
   if (changed) {
     await log(`Domain *${domain}* changed status to *${verified}*`);
@@ -20,19 +20,19 @@ export const handleDomainUpdates = async (
   if (verified) return;
 
   const invalidDays = Math.floor(
-    (new Date().getTime() - new Date(createdAt).getTime()) / (1000 * 3600 * 24)
+    (new Date().getTime() - new Date(createdAt).getTime()) / (1000 * 3600 * 24),
   );
 
   if (invalidDays >= 14 && invalidDays < 28) {
     const sentFirstDomainInvalidEmail = sentEmails.includes(
-      "firstDomainInvalidEmail"
+      "firstDomainInvalidEmail",
     );
     if (!sentFirstDomainInvalidEmail) {
       sendDomainInvalidEmail(projectSlug, domain, invalidDays, "first");
     }
   } else if (invalidDays >= 28) {
     const sentSecondDomainInvalidEmail = sentEmails.includes(
-      "secondDomainInvalidEmail"
+      "secondDomainInvalidEmail",
     );
     if (!sentSecondDomainInvalidEmail) {
       sendDomainInvalidEmail(projectSlug, domain, invalidDays, "second");
@@ -63,7 +63,7 @@ export const handleDomainUpdates = async (
       ]);
     } else {
       return await log(
-        `Domain *${domain}* has been invalid for > 30 days but has links, not deleting.`
+        `Domain *${domain}* has been invalid for > 30 days but has links, not deleting.`,
       );
     }
   }
@@ -74,7 +74,7 @@ const sendDomainInvalidEmail = async (
   projectSlug: string,
   domain: string,
   invalidDays: number,
-  type: "first" | "second"
+  type: "first" | "second",
 ) => {
   const ownerEmail = await getProjectOwnerEmail(projectSlug);
   return await Promise.all([

@@ -162,7 +162,7 @@ export function OGImageProxy() {
 
 export function ProTiers({ usageLimit }: { usageLimit?: number }) {
   const [tier, setTier] = useState(
-    usageLimit > 1000 ? PRO_TIERS.map((t) => t.quota).indexOf(usageLimit) : 0
+    usageLimit > 1000 ? PRO_TIERS.map((t) => t.quota).indexOf(usageLimit) : 0,
   );
 
   return (

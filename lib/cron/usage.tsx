@@ -51,29 +51,29 @@ export const updateUsage = async () => {
                 ? await getUsage(domain, billingCycleStart)
                 : 0,
             };
-          })
+          }),
         );
         let totalUsage = usageArr.reduce((acc, { usage }) => acc + usage, 0);
         let ownerExceededUsage = totalUsage > usageLimit;
 
         if (ownerExceededUsage) {
           await log(
-            `${email} is over usage limit. Usage: ${totalUsage}, Limit: ${usageLimit}`
+            `${email} is over usage limit. Usage: ${totalUsage}, Limit: ${usageLimit}`,
           );
           const sentFirstUsageLimitEmail = sentEmails.some(
-            (email) => email.type === "firstUsageLimitEmail"
+            (email) => email.type === "firstUsageLimitEmail",
           );
           if (!sentFirstUsageLimitEmail) {
             sendUsageLimitEmail(email, totalUsage, usageLimit, "first");
           } else {
             const sentSecondUsageLimitEmail = sentEmails.some(
-              (email) => email.type === "secondUsageLimitEmail"
+              (email) => email.type === "secondUsageLimitEmail",
             );
             if (!sentSecondUsageLimitEmail) {
               const daysSinceFirstEmail = Math.floor(
                 (new Date().getTime() -
                   new Date(sentEmails[0].createdAt).getTime()) /
-                  (1000 * 3600 * 24)
+                  (1000 * 3600 * 24),
               );
               if (daysSinceFirstEmail >= 3) {
                 sendUsageLimitEmail(email, totalUsage, usageLimit, "second");
@@ -114,7 +114,7 @@ export const updateUsage = async () => {
                   ownerExceededUsage,
                 },
               });
-            })
+            }),
           ),
         ]);
 
@@ -122,8 +122,8 @@ export const updateUsage = async () => {
           updateUser,
           updateProjects,
         };
-      }
-    )
+      },
+    ),
   );
 
   return response;
@@ -133,7 +133,7 @@ const sendUsageLimitEmail = async (
   email: string,
   usage: number,
   usageLimit: number,
-  type: "first" | "second"
+  type: "first" | "second",
 ) => {
   return await Promise.all([
     sendMail({

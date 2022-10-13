@@ -26,7 +26,7 @@ function UpgradePlanModal({
   const [annualBilling, setAnnualBilling] = useState(true);
   const period = useMemo(
     () => (annualBilling ? "yearly" : "monthly"),
-    [annualBilling]
+    [annualBilling],
   );
   const env =
     process.env.NEXT_PUBLIC_VERCEL_ENV === "production" ? "production" : "test";
@@ -93,7 +93,7 @@ function UpgradePlanModal({
                 `/api/stripe/upgrade?priceId=${PRO_TIERS[tier].price[period].priceIds[env]}&usageLimit=${PRO_TIERS[tier].quota}`,
                 {
                   method: "POST",
-                }
+                },
               )
                 .then(async (res) => {
                   const data = await res.json();
@@ -147,6 +147,6 @@ export function useUpgradePlanModal() {
       setShowUpgradePlanModal,
       UpgradePlanModal: UpgradePlanModalCallback,
     }),
-    [setShowUpgradePlanModal, UpgradePlanModalCallback]
+    [setShowUpgradePlanModal, UpgradePlanModalCallback],
   );
 }

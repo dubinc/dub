@@ -55,7 +55,7 @@ export async function getStaticProps() {
           "Content-Type": "application/json",
         },
       }),
-    }
+    },
   ).then((res) => res.json());
 
   return {

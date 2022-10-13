@@ -25,7 +25,7 @@ export const redis = new Redis({
 
 const nanoid = customAlphabet(
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
-  7
+  7,
 ); // 7-character random string
 
 export async function setKey(
@@ -34,7 +34,7 @@ export async function setKey(
   url: string,
   title?: string,
   description?: string, // only for Pro users: customize description
-  image?: string // only for Pro users: customize OG image
+  image?: string, // only for Pro users: customize OG image
 ) {
   return await redis.hsetnx(`${hostname}:links`, key, {
     url,
@@ -49,7 +49,7 @@ export async function setKey(
 export async function setRandomKey(
   hostname: string,
   url: string,
-  title?: string
+  title?: string,
 ): Promise<{ response: number; key: string }> {
   /* recursively set link till successful */
   const key = nanoid();
@@ -88,7 +88,7 @@ export async function checkIfKeyExists(hostname: string, key: string) {
 export async function recordClick(
   hostname: string,
   req: NextRequest,
-  key?: string
+  key?: string,
 ) {
   return await redis.zadd(
     key ? `${hostname}:clicks:${key}` : `${hostname}:root:clicks`,
@@ -100,7 +100,7 @@ export async function recordClick(
         referer: req.headers.get("referer"),
         timestamp: Date.now(),
       },
-    }
+    },
   );
 }
 
@@ -109,7 +109,7 @@ export async function recordClick(
  **/
 export async function getLinksForProject(
   slug: string,
-  userId?: string
+  userId?: string,
 ): Promise<LinkProps[]> {
   /*
     This function is used to get all links for a project.
@@ -124,7 +124,7 @@ export async function getLinksForProject(
     -1,
     {
       rev: true,
-    }
+    },
   );
   if (!keys || keys.length === 0) return []; // no links for this project
   const metadata = (await redis.hmget(`${slug}:links`, ...keys)) as {
@@ -154,7 +154,7 @@ export async function getLinkClicksCount(hostname: string, key: string) {
 export async function addLink(
   hostname: string,
   link: LinkProps,
-  userId?: string // only applicable for dub.sh links
+  userId?: string, // only applicable for dub.sh links
 ) {
   const {
     key, // if key is provided, it will be used
@@ -177,7 +177,7 @@ export async function addLink(
       {
         score: Date.now(),
         member: key,
-      }
+      },
     );
   } else {
     return null; // key already exists
@@ -191,7 +191,7 @@ export async function editLink(
   domain: string,
   oldKey: string,
   link: LinkProps,
-  userId?: string
+  userId?: string,
 ) {
   let { key, url, title, timestamp, description: rawDescription, image } = link;
 
@@ -225,7 +225,7 @@ export async function editLink(
     // remove old key from links:timestamps and add new key (with same timestamp)
     pipeline.zrem(
       `${domain}:links:timestamps${userId ? `:${userId}` : ""}`,
-      oldKey
+      oldKey,
     );
     pipeline.zadd(`${domain}:links:timestamps${userId ? `:${userId}` : ""}`, {
       score: timestamp,
@@ -255,7 +255,7 @@ export async function deleteLink(domain: string, key: string, userId?: string) {
  **/
 export async function getUsage(
   hostname: string,
-  billingCycleStart: number
+  billingCycleStart: number,
 ): Promise<number> {
   const { firstDay, lastDay } = getFirstAndLastDay(billingCycleStart);
 
@@ -268,7 +268,7 @@ export async function getUsage(
       pipeline.zcount(
         `${hostname}:clicks:${link}`,
         firstDay.getTime(),
-        lastDay.getTime()
+        lastDay.getTime(),
       );
     });
     results = await pipeline.exec();
@@ -281,19 +281,19 @@ export async function changeDomain(hostname: string, newHostname: string) {
   const keys = await redis.zrange<string[]>(
     `${hostname}:links:timestamps`,
     0,
-    -1
+    -1,
   );
   const pipeline = redis.pipeline();
   pipeline.rename(`${hostname}:links`, `${newHostname}:links`);
   pipeline.rename(
     `${hostname}:links:timestamps`,
-    `${newHostname}:links:timestamps`
+    `${newHostname}:links:timestamps`,
   );
   pipeline.rename(`${hostname}:root:clicks`, `${newHostname}:root:clicks`);
   keys.forEach((key) => {
     pipeline.rename(
       `${hostname}:clicks:${key}`,
-      `${newHostname}:clicks:${key}`
+      `${newHostname}:clicks:${key}`,
     );
   });
   try {
@@ -307,7 +307,7 @@ export async function deleteProject(hostname: string) {
   const keys = await redis.zrange<string[]>(
     `${hostname}:links:timestamps`,
     0,
-    -1
+    -1,
   );
   const pipeline = redis.pipeline();
   pipeline.del(`${hostname}:links`);

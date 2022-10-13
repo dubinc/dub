@@ -4,7 +4,7 @@ import { parse } from "./utils";
 
 export default async function RootMiddleware(
   req: NextRequest,
-  ev: NextFetchEvent
+  ev: NextFetchEvent,
 ) {
   const { hostname } = parse(req);
 

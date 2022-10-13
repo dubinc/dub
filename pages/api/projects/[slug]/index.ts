@@ -46,5 +46,5 @@ export default withProjectAuth(
         .status(405)
         .json({ error: `Method ${req.method} Not Allowed` });
     }
-  }
+  },
 );

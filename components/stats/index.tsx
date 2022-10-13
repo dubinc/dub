@@ -33,7 +33,7 @@ export default function Stats({
     {
       keepPreviousData: true,
       fallbackData: dummyData,
-    }
+    },
   );
 
   return (

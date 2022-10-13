@@ -6,17 +6,17 @@ import {
   useRef,
   useState,
 } from "react";
+import { HexColorInput, HexColorPicker } from "react-colorful";
 import BlurImage from "@/components/shared/blur-image";
-import { Download, Logo, ChevronRight } from "@/components/shared/icons";
+import { ChevronRight, Download, Logo } from "@/components/shared/icons";
 import Modal from "@/components/shared/modal";
-import { getQRAsCanvas, getQRAsSVGDataUri, QRCodeSVG } from "@/lib/qr";
+import Switch from "@/components/shared/switch";
+import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
+import { QRCodeSVG, getQRAsCanvas, getQRAsSVGDataUri } from "@/lib/qr";
 import useProject from "@/lib/swr/use-project";
+import useUsage from "@/lib/swr/use-usage";
 import { SimpleLinkProps } from "@/lib/types";
 import { linkConstructor } from "@/lib/utils";
-import useUsage from "@/lib/swr/use-usage";
-import { HexColorPicker, HexColorInput } from "react-colorful";
-import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
-import Switch from "@/components/shared/switch";
 
 function LinkQRModalHelper({
   showLinkQRModal,
@@ -40,7 +40,7 @@ function LinkQRModalHelper({
 
   const qrDestUrl = useMemo(
     () => linkConstructor({ key: props.key, domain }),
-    [props, domain]
+    [props, domain],
   );
 
   const qrLogoUrl = useMemo(() => {
@@ -311,6 +311,6 @@ export function useLinkQRModal({ props }: { props: SimpleLinkProps }) {
 
   return useMemo(
     () => ({ setShowLinkQRModal, LinkQRModal }),
-    [setShowLinkQRModal, LinkQRModal]
+    [setShowLinkQRModal, LinkQRModal],
   );
 }

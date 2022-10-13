@@ -28,7 +28,7 @@ export default function CustomDomain() {
     {
       revalidateOnMount: true,
       refreshInterval: 5000,
-    }
+    },
   );
 
   const { setShowEditDomainModal, EditDomainModal } = useEditDomainModal();

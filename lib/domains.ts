@@ -13,7 +13,7 @@ export const addDomain = async (domain: string): Promise<CustomResponse> => {
         "Content-Type": "application/json",
       },
       method: "POST",
-    }
+    },
   ).then((res) => res.json());
 };
 
@@ -25,7 +25,7 @@ export const removeDomain = async (domain: string) => {
         Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN}`,
       },
       method: "DELETE",
-    }
+    },
   ).then((res) => res.json());
 };
 
@@ -38,7 +38,7 @@ export const getDomainResponse = async (domain: string) => {
         Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN}`,
         "Content-Type": "application/json",
       },
-    }
+    },
   ).then((res) => {
     return res.json();
   });
@@ -53,7 +53,7 @@ export const getConfigResponse = async (domain: string) => {
         Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN}`,
         "Content-Type": "application/json",
       },
-    }
+    },
   ).then((res) => res.json());
 };
 
@@ -66,6 +66,6 @@ export const verifyDomain = async (domain: string) => {
         Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN}`,
         "Content-Type": "application/json",
       },
-    }
+    },
   ).then((res) => res.json());
 };

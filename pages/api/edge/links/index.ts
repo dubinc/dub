@@ -23,14 +23,14 @@ export default async function handler(req: NextRequest) {
           key,
           url,
         }),
-        { status: 200 }
+        { status: 200 },
       );
     } else {
       return new Response(
         JSON.stringify({
           error: "failed to save link",
         }),
-        { status: 500 }
+        { status: 500 },
       );
     }
   } else {

@@ -220,7 +220,7 @@ const Pricing = () => {
                 </Link>
               </div>
             </div>
-          )
+          ),
         )}
       </div>
     </MaxWidthWrapper>

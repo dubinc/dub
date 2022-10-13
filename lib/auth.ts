@@ -17,7 +17,7 @@ export async function getSession(req: NextApiRequest, res: NextApiResponse) {
   const session = (await unstable_getServerSession(
     req,
     res,
-    authOptions
+    authOptions,
   )) as Session | null;
   return session;
 }
@@ -26,7 +26,7 @@ interface WithProjectNextApiHandler {
   (
     req: NextApiRequest,
     res: NextApiResponse,
-    project?: ProjectProps
+    project?: ProjectProps,
   ): Promise<void>;
 }
 
@@ -43,7 +43,7 @@ const withProjectAuth =
       needVerifiedDomain?: boolean;
       needProSubscription?: boolean;
       needNotExceededUsage?: boolean;
-    } = {}
+    } = {},
   ) =>
   async (req: NextApiRequest, res: NextApiResponse) => {
     const session = await getSession(req, res);
@@ -125,7 +125,7 @@ interface WithUsertNextApiHandler {
     req: NextApiRequest,
     res: NextApiResponse,
     userId: string,
-    user?: UserProps
+    user?: UserProps,
   ): Promise<void>;
 }
 
@@ -138,7 +138,7 @@ const withUserAuth =
     }: {
       needUserDetails?: boolean;
       needProSubscription?: boolean;
-    } = {}
+    } = {},
   ) =>
   async (req: NextApiRequest, res: NextApiResponse) => {
     const session = await getSession(req, res);

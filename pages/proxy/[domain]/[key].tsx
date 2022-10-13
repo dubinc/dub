@@ -61,7 +61,7 @@ export async function getStaticProps(ctx) {
   const { domain, key } = ctx.params;
   const response = await redis.hget<Omit<LinkProps, "key">>(
     `${domain}:links`,
-    key
+    key,
   );
   const { url, title, description, image } = response || {};
   if (!url || !title || !description || !image) {

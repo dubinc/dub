@@ -28,7 +28,7 @@ const relevantEvents = new Set([
 
 export default async function webhookHandler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   // POST /api/projects/[slug]/upgrade/webhook – listen to Stripe webhooks
   if (req.method === "POST") {
@@ -70,7 +70,7 @@ export default async function webhookHandler(
           const tier = PRO_TIERS.find(
             (tier) =>
               tier.price.monthly.priceIds[env] === newPriceId ||
-              tier.price.yearly.priceIds[env] === newPriceId
+              tier.price.yearly.priceIds[env] === newPriceId,
           );
           const usageLimit = tier.quota;
           const stripeId = subscriptionUpdated.customer.toString();
@@ -114,7 +114,7 @@ export default async function webhookHandler(
                     ownerUsageLimit: usageLimit,
                   },
                 });
-              })
+              }),
             ),
           ]);
         } else if (event.type === "customer.subscription.deleted") {
@@ -160,7 +160,7 @@ export default async function webhookHandler(
                     ownerUsageLimit: 1000,
                   },
                 });
-              })
+              }),
             ),
           ]);
         } else {
