@@ -32,6 +32,7 @@
     "@visx/tooltip": "^2.10.0",
     "cloudinary": "^1.32.0",
     "cobe": "^0.6.2",
+    "focus-trap-react": "^10.0.0",
     "framer-motion": "^7.2.1",
     "html-escaper": "^3.0.3",
     "i": "^0.3.7",
