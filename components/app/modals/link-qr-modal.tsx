@@ -284,7 +284,8 @@ function AdvancedSettings({ qrData, setQrData, setShowLogo }) {
                     })
                   }
                   prefixed
-                  className="border border-l-0 border-gray-300 text-gray-900 placeholder-gray-300 focus:border-black focus:ring-black pl-3 block w-full rounded-r-md focus:outline-none sm:text-sm"
+                  style={{ borderColor: qrData.fgColor }}
+                  className={`border-2 border-l-0 text-gray-900 placeholder-gray-300 focus:ring-black pl-3 block w-full rounded-r-md focus:outline-none sm:text-sm`}
                 />
               </div>
             )}
