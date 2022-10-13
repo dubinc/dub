@@ -10,7 +10,7 @@ export default function useUsage() {
   const { slug } = router.query;
   const { data, error } = useSWR<UsageProps>(
     slug ? `/api/projects/${slug}/usage` : `/api/usage`,
-    fetcher
+    fetcher,
   );
 
   const exceededUsage = useMemo(() => {
@@ -22,7 +22,7 @@ export default function useUsage() {
   const plan = useMemo(() => {
     if (data) {
       return getPlanFromUsageLimit(
-        slug ? data.ownerUsageLimit : data.usageLimit
+        slug ? data.ownerUsageLimit : data.usageLimit,
       );
     }
   }, [data]);

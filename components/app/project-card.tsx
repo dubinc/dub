@@ -21,7 +21,7 @@ export default function ProjectCard({
     fetcher,
     {
       keepPreviousData: true,
-    }
+    },
   );
   return (
     <Link key={slug} href={`/${slug}`}>

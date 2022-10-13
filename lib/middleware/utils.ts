@@ -16,7 +16,7 @@ export const detectBot = (req: NextRequest) => {
   if (ua) {
     // Note: MetaInspector is for https://metatags.io/
     return /bot|google|baidu|bing|msn|duckduckbot|teoma|slurp|yandex|MetaInspector/i.test(
-      ua
+      ua,
     );
   }
   return false;

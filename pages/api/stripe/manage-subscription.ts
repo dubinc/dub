@@ -23,5 +23,5 @@ export default withUserAuth(
         .json({ error: `Method ${req.method} Not Allowed` });
     }
   },
-  { needUserDetails: true }
+  { needUserDetails: true },
 );

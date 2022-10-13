@@ -8,7 +8,7 @@ export const getStripe = () => {
     stripePromise = loadStripe(
       process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_LIVE ??
         process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ??
-        ""
+        "",
     );
   }
 

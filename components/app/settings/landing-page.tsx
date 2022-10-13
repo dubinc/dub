@@ -18,12 +18,12 @@ export default function DefaultPage() {
 
   const { data: rootDomain } = useSWR<string>(
     slug && domain && `/api/projects/${slug}/domains/${domain}/root`,
-    fetcher
+    fetcher,
   );
 
   const { data: clicks, isValidating } = useSWR<string>(
     slug && domain && `/api/projects/${slug}/domains/${domain}/root/clicks`,
-    fetcher
+    fetcher,
   );
 
   const [saving, setSaving] = useState(false);

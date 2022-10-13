@@ -29,5 +29,5 @@ export default withProjectAuth(
     needNotExceededUsage: true,
     // TODO: For when we make this a pro feature
     // needProSubscription: true,
-  }
+  },
 );

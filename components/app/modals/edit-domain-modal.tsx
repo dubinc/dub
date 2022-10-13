@@ -39,7 +39,7 @@ function EditDomainModal({
             const exists = await res.json();
             setDomainError(exists === 1 ? "Domain is already in use." : null);
           }
-        }
+        },
       );
     }
   }, [debouncedDomain]);
@@ -231,6 +231,6 @@ export function useEditDomainModal() {
       setShowEditDomainModal,
       EditDomainModal: EditDomainModalCallback,
     }),
-    [setShowEditDomainModal, EditDomainModalCallback]
+    [setShowEditDomainModal, EditDomainModalCallback],
   );
 }

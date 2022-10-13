@@ -14,7 +14,7 @@ export default async function handler(req: NextRequest) {
       hostname ? `${hostname}:root:clicks` : "dub.sh:clicks:github",
       0,
       numPoints,
-      { rev: true }
+      { rev: true },
     );
     const latestCoordinates = rawData.map((data, idx) => {
       const { latitude, longitude } = data.geo;

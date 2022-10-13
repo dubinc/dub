@@ -95,5 +95,5 @@ export default withUserAuth(
   },
   {
     needProSubscription: true,
-  }
+  },
 );

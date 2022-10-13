@@ -1,12 +1,13 @@
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useAnimation, useMotionValue } from "framer-motion";
 import toast from "react-hot-toast";
 import useSWR from "swr";
 import { useDebouncedCallback } from "use-debounce";
+import { useLinkQRModal } from "@/components/app/modals/link-qr-modal";
 import BlurImage from "@/components/shared/blur-image";
 import CopyButton from "@/components/shared/copy-button";
-import { Chart, LoadingDots } from "@/components/shared/icons";
+import { Chart, LoadingDots, QR } from "@/components/shared/icons";
 import { FRAMER_MOTION_LIST_ITEM_VARIANTS } from "@/lib/constants";
 import { SimpleLinkProps } from "@/lib/types";
 import { fetcher, linkConstructor, nFormatter } from "@/lib/utils";
@@ -26,7 +27,7 @@ export default function LinkCard({
 
   const { data: clicks, isValidating } = useSWR<string>(
     `/api/edge/links/${key}/clicks`,
-    fetcher
+    fetcher,
   );
 
   const cardElem = useRef(null);
@@ -72,7 +73,7 @@ export default function LinkCard({
 
   const sendErrorToast = useDebouncedCallback(
     () => toast.error("Cannot delete default link."),
-    100
+    100,
   );
 
   useEffect(() => {
@@ -95,8 +96,16 @@ export default function LinkCard({
     return () => unsubscribeX();
   });
 
+  const { setShowLinkQRModal, LinkQRModal } = useLinkQRModal({
+    props: {
+      key,
+      url,
+    },
+  });
+
   return (
     <motion.li variants={FRAMER_MOTION_LIST_ITEM_VARIANTS}>
+      <LinkQRModal />
       <motion.div
         animate={controls}
         drag="x"
@@ -127,6 +136,13 @@ export default function LinkCard({
               {linkConstructor({ key, pretty: true })}
             </a>
             <CopyButton url={linkConstructor({ key })} />
+            <button
+              onClick={() => setShowLinkQRModal(true)}
+              className="group p-1.5 rounded-full bg-gray-100 hover:bg-blue-100 hover:scale-105 active:scale-95 transition-all duration-75"
+            >
+              <span className="sr-only">Copy</span>
+              <QR className="text-gray-700 group-hover:text-blue-800 transition-all" />
+            </button>
             <Link
               href={{ pathname: "/", query: { key } }}
               as={`/stats/${encodeURI(key)}`}
@@ -140,8 +156,8 @@ export default function LinkCard({
                     <LoadingDots color="#71717A" />
                   ) : (
                     nFormatter(parseInt(clicks))
-                  )}{" "}
-                  clicks
+                  )}
+                  <span className="hidden sm:inline-block ml-1">clicks</span>
                 </p>
               </a>
             </Link>

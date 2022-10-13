@@ -16,7 +16,7 @@ export default function useProject() {
     fetcher,
     {
       dedupingInterval: 30000,
-    }
+    },
   );
 
   const isOwner = useMemo(() => {

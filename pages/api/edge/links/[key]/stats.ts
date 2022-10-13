@@ -26,7 +26,7 @@ export default async function handler(req: NextRequest) {
       end,
       {
         byScore: true,
-      }
+      },
     );
     const data = await processData(key, response, interval);
     return new Response(JSON.stringify(data), { status: 200 });

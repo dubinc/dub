@@ -6,7 +6,7 @@ import { addLink, getLinksForProject } from "@/lib/upstash";
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   const session = await getSession(req, res);
   if (!session?.user.id) return res.status(401).end("Unauthorized");
@@ -25,7 +25,7 @@ export default async function handler(
     const response = await addLink(
       "dub.sh",
       { url, key, title },
-      session.user.id
+      session.user.id,
     );
 
     if (response === null) {

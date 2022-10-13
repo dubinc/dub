@@ -40,7 +40,7 @@ export default function Globe({ hostname }: { hostname?: string }) {
     } catch (e) {
       // WebGL isn't properly supported
       console.log(
-        "WebGL not supported, hiding globe animation and showing fallback video..."
+        "WebGL not supported, hiding globe animation and showing fallback video...",
       );
       setShowFallback(true);
       return;
@@ -49,7 +49,7 @@ export default function Globe({ hostname }: { hostname?: string }) {
 
   const { data: markers } = useSWR<MarkerProps[]>(
     `/api/edge/coordinates${hostname ? `?hostname=${hostname}` : ""}`,
-    fetcher
+    fetcher,
   );
 
   return (

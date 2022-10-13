@@ -47,7 +47,7 @@ export default withProjectAuth(
           image,
         }),
         fetch(
-          `https://dub.sh/api/projects/${slug}/domains/${domain}/links/${oldKey}/revalidate?secret=${process.env.REVALIDATE_TOKEN}`
+          `https://dub.sh/api/projects/${slug}/domains/${domain}/links/${oldKey}/revalidate?secret=${process.env.REVALIDATE_TOKEN}`,
         ),
       ]);
       if (response === null) {
@@ -72,5 +72,5 @@ export default withProjectAuth(
   {
     needVerifiedDomain: true,
     needNotExceededUsage: true,
-  }
+  },
 );

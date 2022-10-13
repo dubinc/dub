@@ -28,7 +28,7 @@ const Demo = () => {
               headers: {
                 "Content-Type": "application/json",
               },
-            }
+            },
           ).then(async (response) => {
             setSaving(false);
             if (response.ok) {

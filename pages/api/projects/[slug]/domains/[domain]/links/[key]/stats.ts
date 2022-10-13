@@ -25,7 +25,7 @@ export default withProjectAuth(
         end,
         {
           byScore: true,
-        }
+        },
       );
       const data = await processData(key, response, interval);
       return res.status(200).json(data);
@@ -36,5 +36,5 @@ export default withProjectAuth(
         .json({ error: `Method ${req.method} Not Allowed` });
     }
   },
-  { needNotExceededUsage: true }
+  { needNotExceededUsage: true },
 );

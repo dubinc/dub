@@ -1,3 +1,5 @@
+// Most of these icons are gotten from Vercel's open-sourced icons library: https://vercel.com/design/icons
+
 export { default as LoadingDots } from "./loading-dots";
 export { default as LoadingCircle } from "./loading-circle";
 export { default as ExpandingArrow } from "./expanding-arrow";
@@ -25,3 +27,5 @@ export { default as Drag } from "./drag";
 export { default as Airplay } from "./airplay";
 export { default as UploadCloud } from "./upload-cloud";
 export { default as Lock } from "./lock";
+export { default as QR } from "./qr";
+export { default as Download } from "./download";

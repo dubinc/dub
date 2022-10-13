@@ -74,7 +74,7 @@ async function handler(_req: NextApiRequest, res: NextApiResponse) {
           createdAt,
           newDomainVerified,
           changed,
-          project.sentEmails.map((email) => email.type)
+          project.sentEmails.map((email) => email.type),
         );
 
         return {
@@ -85,7 +85,7 @@ async function handler(_req: NextApiRequest, res: NextApiResponse) {
           updates,
           prismaResponse,
         };
-      })
+      }),
     );
     res.status(200).json(results);
   } catch (error) {

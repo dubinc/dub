@@ -49,7 +49,7 @@ function AddEditLinkModal({
       key: "",
       url: "",
       title: "",
-    }
+    },
   );
   const { key, url, title } = data;
 
@@ -78,7 +78,7 @@ function AddEditLinkModal({
       fetch(
         domain
           ? `/api/projects/${slug}/domains/${domain}/links/${debouncedKey}/exists`
-          : `/api/edge/links/${debouncedKey}/exists`
+          : `/api/edge/links/${debouncedKey}/exists`,
       ).then(async (res) => {
         if (res.status === 200) {
           const exists = await res.json();
@@ -93,7 +93,7 @@ function AddEditLinkModal({
     const res = await fetch(
       domain
         ? `/api/projects/${slug}/domains/${domain}/links/random`
-        : `/api/edge/links/random`
+        : `/api/edge/links/random`,
     );
     const key = await res.json();
     setData((prev) => ({ ...prev, key }));
@@ -119,7 +119,7 @@ function AddEditLinkModal({
         }
       });
     },
-    [debouncedUrl]
+    [debouncedUrl],
   );
 
   const endpoint = useMemo(() => {
@@ -174,7 +174,7 @@ function AddEditLinkModal({
                   mutate(
                     domain
                       ? `/api/projects/${slug}/domains/${domain}/links`
-                      : `/api/links`
+                      : `/api/links`,
                   );
                   setShowAddEditLinkModal(false);
                 }
@@ -360,7 +360,7 @@ function AdvancedSettings({ data, setData, debouncedUrl }) {
         }
       });
     },
-    [debouncedUrl]
+    [debouncedUrl],
   );
 
   const onChangePicture = useCallback(
@@ -372,7 +372,7 @@ function AdvancedSettings({ data, setData, debouncedUrl }) {
       };
       reader.readAsDataURL(file);
     },
-    [setData]
+    [setData],
   );
 
   return (
@@ -567,6 +567,6 @@ export function useAddEditLinkModal({ props }: { props?: LinkProps }) {
       setShowAddEditLinkModal,
       AddEditLinkModalCallback,
       AddEditLinkButtonCallback,
-    ]
+    ],
   );
 }

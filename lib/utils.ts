@@ -7,7 +7,7 @@ interface SWRError extends Error {
 
 export async function fetcher<JSON = any>(
   input: RequestInfo,
-  init?: RequestInit
+  init?: RequestInit,
 ): Promise<JSON> {
   const res = await fetch(input, init);
 
@@ -137,14 +137,14 @@ export const generateSlugFromName = (name: string) => {
   }
 
   const shortestString = [normalizedName, devowel, acronym].reduce((a, b) =>
-    a.length < b.length ? a : b
+    a.length < b.length ? a : b,
   );
 
   return `${shortestString}.sh`;
 };
 
 export const validDomainRegex = new RegExp(
-  "^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$"
+  "^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$",
 );
 
 export const getFirstAndLastDay = (day: number) => {
