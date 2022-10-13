@@ -196,7 +196,7 @@ function AdvancedSettings({ qrData, setQrData, setShowLogo }) {
             >
               Logo
             </label>
-            {plan === "Free" ? (
+            {!plan || plan === "Free" ? (
               <Tooltip
                 content={
                   <TooltipContent
@@ -236,7 +236,7 @@ function AdvancedSettings({ qrData, setQrData, setShowLogo }) {
             >
               Foreground Color
             </label>
-            {plan === "Free" ? (
+            {!plan || plan === "Free" ? (
               <Tooltip
                 content={
                   <TooltipContent
