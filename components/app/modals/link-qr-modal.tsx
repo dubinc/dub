@@ -120,7 +120,18 @@ function LinkQRModalHelper({
           <div className="flex gap-2 sm:px-16 px-4">
             <button
               onClick={async () =>
-                download(await getQRAsSVGDataUri(qrData), "svg")
+                download(
+                  await getQRAsSVGDataUri({
+                    ...qrData,
+                    ...(showLogo && {
+                      imageSettings: {
+                        ...qrData.imageSettings,
+                        src: logo || "https://dub.sh/static/logo.svg",
+                      },
+                    }),
+                  }),
+                  "svg",
+                )
               }
               className="py-1.5 px-5 bg-black hover:bg-white rounded-md border border-black text-sm text-white hover:text-black transition-all w-full flex items-center gap-2 justify-center"
             >
