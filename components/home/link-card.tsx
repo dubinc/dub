@@ -1,16 +1,16 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { motion, useAnimation, useMotionValue } from "framer-motion";
+import toast from "react-hot-toast";
+import useSWR from "swr";
+import { useDebouncedCallback } from "use-debounce";
+import { useLinkQRModal } from "@/components/app/modals/link-qr-modal";
 import BlurImage from "@/components/shared/blur-image";
 import CopyButton from "@/components/shared/copy-button";
 import { Chart, LoadingDots, QR } from "@/components/shared/icons";
-import useSWR from "swr";
-import { fetcher, nFormatter, linkConstructor } from "@/lib/utils";
-import Link from "next/link";
-import { motion, useMotionValue, useAnimation } from "framer-motion";
 import { FRAMER_MOTION_LIST_ITEM_VARIANTS } from "@/lib/constants";
 import { SimpleLinkProps } from "@/lib/types";
-import toast from "react-hot-toast";
-import { useDebouncedCallback } from "use-debounce";
-import { useLinkQRModal } from "@/components/app/modals/link-qr-modal";
+import { fetcher, linkConstructor, nFormatter } from "@/lib/utils";
 
 export default function LinkCard({
   _key: key,
@@ -27,7 +27,7 @@ export default function LinkCard({
 
   const { data: clicks, isValidating } = useSWR<string>(
     `/api/edge/links/${key}/clicks`,
-    fetcher
+    fetcher,
   );
 
   const cardElem = useRef(null);
@@ -73,7 +73,7 @@ export default function LinkCard({
 
   const sendErrorToast = useDebouncedCallback(
     () => toast.error("Cannot delete default link."),
-    100
+    100,
   );
 
   useEffect(() => {

@@ -1,14 +1,14 @@
+import Link from "next/link";
+import { useRouter } from "next/router";
+import useSWR from "swr";
 import BlurImage from "@/components/shared/blur-image";
 import CopyButton from "@/components/shared/copy-button";
 import { Chart, LoadingDots, QR } from "@/components/shared/icons";
-import { useRouter } from "next/router";
-import useSWR from "swr";
-import { fetcher, nFormatter, linkConstructor, timeAgo } from "@/lib/utils";
-import Link from "next/link";
-import { LinkProps } from "@/lib/types";
 import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 import useProject from "@/lib/swr/use-project";
 import useUsage from "@/lib/swr/use-usage";
+import { LinkProps } from "@/lib/types";
+import { fetcher, linkConstructor, nFormatter, timeAgo } from "@/lib/utils";
 import { useAddEditLinkModal } from "./modals/add-edit-link-modal";
 import { useDeleteLinkModal } from "./modals/delete-link-modal";
 import { useLinkQRModal } from "./modals/link-qr-modal";
@@ -29,7 +29,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
     domain
       ? `/api/projects/${slug}/domains/${domain}/links/${key}/clicks`
       : `/api/edge/links/${key}/clicks`,
-    fetcher
+    fetcher,
   );
 
   const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal({
@@ -41,7 +41,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
   });
 
   const { setShowLinkQRModal, LinkQRModal } = useLinkQRModal({
-    props
+    props,
   });
 
   return (

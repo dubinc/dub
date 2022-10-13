@@ -1,8 +1,8 @@
-import { Redis } from "@upstash/redis";
 import { NextRequest, userAgent } from "next/server";
+import { Redis } from "@upstash/redis";
+import { customAlphabet } from "nanoid";
 import { LOCALHOST_GEO_DATA, RESERVED_KEYS } from "@/lib/constants";
 import { LinkProps, ProjectProps } from "@/lib/types";
-import { customAlphabet } from "nanoid";
 import {
   getDescriptionFromUrl,
   getFirstAndLastDay,

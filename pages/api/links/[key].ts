@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { redis, editLink, deleteLink } from "@/lib/upstash";
 import { getSession } from "@/lib/auth";
+import { deleteLink, editLink, redis } from "@/lib/upstash";
 
 export default async function handler(
   req: NextApiRequest,

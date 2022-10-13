@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Tick, Copy } from "@/components/shared/icons";
+import { Copy, Tick } from "@/components/shared/icons";
 
 export default function CopyButton({ url }: { url: string }) {
   const [copied, setCopied] = useState(false);

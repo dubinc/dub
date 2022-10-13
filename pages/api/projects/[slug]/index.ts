@@ -1,9 +1,9 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { withProjectAuth } from "@/lib/auth";
-import prisma from "@/lib/prisma";
 import { removeDomain } from "@/lib/domains";
-import { deleteProject } from "@/lib/upstash";
+import prisma from "@/lib/prisma";
 import { ProjectProps } from "@/lib/types";
+import { deleteProject } from "@/lib/upstash";
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse, project: ProjectProps) => {

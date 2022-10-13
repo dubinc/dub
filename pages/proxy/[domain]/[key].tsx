@@ -1,9 +1,9 @@
-import { redis } from "@/lib/upstash";
-import prisma from "@/lib/prisma";
-import { LinkProps } from "@/lib/types";
+import Image from "next/future/image";
 import Head from "next/head";
 import { escape } from "html-escaper";
-import Image from "next/future/image";
+import prisma from "@/lib/prisma";
+import { LinkProps } from "@/lib/types";
+import { redis } from "@/lib/upstash";
 
 export default function LinkPage({ url, title, description, image, logo }) {
   return (

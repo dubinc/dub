@@ -1,19 +1,19 @@
-import Modal from "@/components/shared/modal";
+import { useRouter } from "next/router";
 import {
+  Dispatch,
+  SetStateAction,
   useCallback,
   useEffect,
   useMemo,
   useState,
-  Dispatch,
-  SetStateAction,
 } from "react";
-import { useRouter } from "next/router";
+import { mutate } from "swr";
 import BlurImage from "@/components/shared/blur-image";
 import LoadingDots from "@/components/shared/icons/loading-dots";
-import { linkConstructor } from "@/lib/utils";
-import { mutate } from "swr";
+import Modal from "@/components/shared/modal";
 import useProject from "@/lib/swr/use-project";
 import { LinkProps } from "@/lib/types";
+import { linkConstructor } from "@/lib/utils";
 
 function DeleteLinkModal({
   showDeleteLinkModal,

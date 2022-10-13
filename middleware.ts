@@ -1,15 +1,15 @@
-import { NextRequest, NextFetchEvent, NextResponse } from "next/server";
+import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
+import {
+  DEFAULT_REDIRECTS,
+  HOME_HOSTNAMES,
+  RESERVED_KEYS,
+} from "@/lib/constants";
 import {
   AppMiddleware,
   LinkMiddleware,
   RootMiddleware,
 } from "@/lib/middleware";
 import { parse } from "@/lib/middleware/utils";
-import {
-  HOME_HOSTNAMES,
-  RESERVED_KEYS,
-  DEFAULT_REDIRECTS,
-} from "@/lib/constants";
 
 export const config = {
   matcher: [

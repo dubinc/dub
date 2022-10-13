@@ -1,12 +1,12 @@
-import HomeLayout from "@/components/layout/home";
-import { useCallback, useEffect } from "react";
 import { useRouter } from "next/router";
+import { useCallback, useEffect } from "react";
 import { useStatsModal } from "@/components/app/modals/stats-modal";
-import Hero from "@/components/home/hero";
 import Demo from "@/components/home/demo";
-import Globe from "@/components/home/globe";
 import Features from "@/components/home/features";
+import Globe from "@/components/home/globe";
+import Hero from "@/components/home/hero";
 import Pricing from "@/components/home/pricing";
+import HomeLayout from "@/components/layout/home";
 
 export default function Home({ stars }: { stars: number }) {
   const router = useRouter();

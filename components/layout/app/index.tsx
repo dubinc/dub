@@ -1,13 +1,13 @@
-import { ReactNode } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import Meta from "../meta";
-import { Logo, Divider } from "@/components/shared/icons";
-import ListBox from "./list-box";
-import UserDropdown from "./user-dropdown";
 import { useRouter } from "next/router";
 import Script from "next/script";
+import { ReactNode } from "react";
 import { Toaster } from "react-hot-toast";
+import { Divider, Logo } from "@/components/shared/icons";
+import Meta from "../meta";
+import ListBox from "./list-box";
+import UserDropdown from "./user-dropdown";
 
 const CRISP_SCRIPT = `window.$crisp=[];window.CRISP_WEBSITE_ID="2c09b1ee-14c2-46d1-bf72-1dbb998a19e0";(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();`;
 

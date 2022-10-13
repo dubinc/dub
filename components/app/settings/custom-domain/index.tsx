@@ -1,6 +1,5 @@
-import useSWR, { mutate } from "swr";
-import { fetcher } from "@/lib/utils";
 import { useRouter } from "next/router";
+import useSWR, { mutate } from "swr";
 import {
   AlertCircleFill,
   CheckCircleFill,
@@ -9,10 +8,11 @@ import {
   LoadingDots,
   XCircleFill,
 } from "@/components/shared/icons";
-import { useEditDomainModal } from "../../modals/edit-domain-modal";
-import { DomainVerificationStatusProps } from "@/lib/types";
-import DomainConfiguration from "./domain-configuration";
 import useProject from "@/lib/swr/use-project";
+import { DomainVerificationStatusProps } from "@/lib/types";
+import { fetcher } from "@/lib/utils";
+import { useEditDomainModal } from "../../modals/edit-domain-modal";
+import DomainConfiguration from "./domain-configuration";
 
 export default function CustomDomain() {
   const router = useRouter();
