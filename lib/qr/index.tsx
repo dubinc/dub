@@ -406,7 +406,7 @@ export function getQRAsSVGDataUri(props: QRProps) {
     if (calculatedImageSettings.excavation != null)
       cells = excavateModules(cells, calculatedImageSettings.excavation);
     image = [
-      `<image xlinkHref="${escape(imageSettings.src)}"`,
+      `<image href="${escape(imageSettings.src)}"`,
       `height="${calculatedImageSettings.h}"`,
       `width="${calculatedImageSettings.w}"`,
       `x="${calculatedImageSettings.x + margin}"`,
