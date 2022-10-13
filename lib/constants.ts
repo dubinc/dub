@@ -21,6 +21,9 @@ export const HOME_HOSTNAMES = new Set([
 ]);
 
 export const RESERVED_KEYS = new Set([
+  "api",
+  "va",
+  "static",
   "stats",
   "proxy",
   "pricing",
