@@ -73,7 +73,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                 onClick={() => setShowLinkQRModal(true)}
                 className="group p-1.5 rounded-full bg-gray-100 hover:bg-blue-100 hover:scale-105 active:scale-95 transition-all duration-75"
               >
-                <span className="sr-only">Copy</span>
+                <span className="sr-only">Download QR</span>
                 <QR className="text-gray-700 group-hover:text-blue-800 transition-all" />
               </button>
               <Link href={`${router.asPath}/${encodeURI(key)}`}>
