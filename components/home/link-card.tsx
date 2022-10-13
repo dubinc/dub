@@ -157,7 +157,7 @@ export default function LinkCard({
                   ) : (
                     nFormatter(parseInt(clicks))
                   )}
-                  <span className="hidden sm:block"> clicks</span>
+                  <span className="hidden sm:inline-block ml-1">clicks</span>
                 </p>
               </a>
             </Link>
