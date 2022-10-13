@@ -1,16 +1,16 @@
-import Head from "./components/Head";
-import Header from "./components/Header";
-import Footer from "./components/Footer";
-import ButtonPrimary from "./components/ButtonPrimary";
-import Divider from "./components/Divider";
 import {
   Mjml,
   MjmlBody,
-  MjmlSection,
   MjmlColumn,
+  MjmlSection,
   MjmlText,
   MjmlWrapper,
 } from "mjml-react";
+import ButtonPrimary from "./components/ButtonPrimary";
+import Divider from "./components/Divider";
+import Footer from "./components/Footer";
+import Head from "./components/Head";
+import Header from "./components/Header";
 import { grayDark, purple } from "./components/theme";
 
 export default function InvalidDomain({

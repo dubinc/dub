@@ -1,6 +1,6 @@
-import { useMemo } from "react";
 import Link from "next/link";
 import { NextRouter, useRouter } from "next/router";
+import { useMemo } from "react";
 
 const TabsHelper = (router: NextRouter): { name: string; href: string }[] => {
   const { slug, key } = router.query as {

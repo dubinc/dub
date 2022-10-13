@@ -1,12 +1,12 @@
-import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import createGlobe from "cobe";
+import { AnimatePresence, motion } from "framer-motion";
 import { useSpring } from "react-spring";
 import useSWR from "swr";
 import { Drag, X } from "@/components/shared/icons";
-import { fetcher } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
 import useIntersectionObserver from "@/lib/hooks/use-intersection-observer";
+import { fetcher } from "@/lib/utils";
 
 interface MarkerProps {
   location: [number, number];

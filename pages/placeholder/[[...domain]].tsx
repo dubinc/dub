@@ -1,8 +1,8 @@
+import { GetStaticProps } from "next";
+import { ParsedUrlQuery } from "querystring";
+import Globe from "@/components/home/globe";
 import HomeLayout from "@/components/layout/home";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
-import Globe from "@/components/home/globe";
-import { ParsedUrlQuery } from "querystring";
-import { GetStaticProps } from "next";
 
 export default function Placeholder({ domain }: { domain: string }) {
   return (

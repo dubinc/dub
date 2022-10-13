@@ -1,5 +1,5 @@
-import nodemailer from "nodemailer";
 import { buildSendMail } from "mailing-core";
+import nodemailer from "nodemailer";
 
 const sendMail = buildSendMail({
   transport: nodemailer.createTransport({

@@ -1,10 +1,10 @@
-import NextAuth, { type NextAuthOptions } from "next-auth";
-import EmailProvider from "next-auth/providers/email";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import prisma from "@/lib/prisma";
 import sendMail, { sendMarketingMail } from "emails";
 import LoginLink from "emails/LoginLink";
 import WelcomeEmail from "emails/WelcomeEmail";
+import NextAuth, { type NextAuthOptions } from "next-auth";
+import EmailProvider from "next-auth/providers/email";
+import prisma from "@/lib/prisma";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 

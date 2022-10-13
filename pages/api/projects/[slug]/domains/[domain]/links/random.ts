@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { getRandomKey } from "@/lib/upstash";
 import { withProjectAuth } from "@/lib/auth";
+import { getRandomKey } from "@/lib/upstash";
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {

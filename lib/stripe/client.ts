@@ -1,5 +1,5 @@
 // Stripe Client SDK
-import { loadStripe, Stripe as StripeProps } from "@stripe/stripe-js";
+import { Stripe as StripeProps, loadStripe } from "@stripe/stripe-js";
 
 let stripePromise: Promise<StripeProps | null>;
 

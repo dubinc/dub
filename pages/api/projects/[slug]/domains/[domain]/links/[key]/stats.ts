@@ -1,12 +1,12 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { withProjectAuth } from "@/lib/auth";
-import { redis } from "@/lib/upstash";
 import {
   IntervalProps,
-  intervalData,
   RawStatsProps,
+  intervalData,
   processData,
 } from "@/lib/stats";
+import { redis } from "@/lib/upstash";
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function VercelEdgeFunctions() {
   const [vercelFontColor, setVercelFontColor] = useState(

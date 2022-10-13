@@ -1,8 +1,8 @@
-import useSWR from "swr";
-import { useMemo } from "react";
-import { fetcher } from "@/lib/utils";
 import { useRouter } from "next/router";
+import { useMemo } from "react";
+import useSWR from "swr";
 import { ProjectProps } from "@/lib/types";
+import { fetcher } from "@/lib/utils";
 
 export default function useProject() {
   const router = useRouter();

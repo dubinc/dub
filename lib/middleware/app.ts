@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { parse } from "@/lib/middleware/utils";
 import { getToken } from "next-auth/jwt";
+import { parse } from "@/lib/middleware/utils";
 
 export default async function AppMiddleware(req: NextRequest) {
   const { path } = parse(req);

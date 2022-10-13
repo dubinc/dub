@@ -1,9 +1,9 @@
-import Link from "next/link";
-import { Github, Chart, Airplay, UploadCloud } from "@/components/shared/icons";
-import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import Image from "next/future/image";
-import styles from "./features.module.css";
+import Link from "next/link";
+import { Airplay, Chart, Github, UploadCloud } from "@/components/shared/icons";
+import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import CountingNumbers from "../shared/counting-numbers";
+import styles from "./features.module.css";
 
 const Features = ({ stars }: { stars: number }) => {
   return (

@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
-import { redis } from "@/lib/upstash";
 import { RawStatsProps } from "@/lib/stats";
+import { redis } from "@/lib/upstash";
 
 export const config = {
   runtime: "experimental-edge",

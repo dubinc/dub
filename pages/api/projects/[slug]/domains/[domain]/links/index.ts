@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { addLink, getLinksForProject } from "@/lib/upstash";
-import { withProjectAuth } from "@/lib/auth";
 import cloudinary from "cloudinary";
+import { withProjectAuth } from "@/lib/auth";
+import { addLink, getLinksForProject } from "@/lib/upstash";
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {

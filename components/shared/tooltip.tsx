@@ -1,8 +1,14 @@
-import * as TooltipPrimitive from "@radix-ui/react-tooltip";
+/***********************************/
+
+/*  Tooltip Contents  */
+import Link from "next/link";
 import { ReactNode, useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence, useAnimation } from "framer-motion";
-import { PRO_TIERS } from "@/lib/stripe/constants";
+import * as TooltipPrimitive from "@radix-ui/react-tooltip";
+import { AnimatePresence, motion, useAnimation } from "framer-motion";
+import BlurImage from "@/components/shared/blur-image";
 import Slider from "@/components/shared/slider";
+import { PRO_TIERS } from "@/lib/stripe/constants";
+import { nFormatter } from "@/lib/utils";
 
 export default function Tooltip({
   children,
@@ -111,13 +117,6 @@ export default function Tooltip({
     </>
   );
 }
-
-/***********************************/
-/*  Tooltip Contents  */
-
-import Link from "next/link";
-import BlurImage from "@/components/shared/blur-image";
-import { nFormatter } from "@/lib/utils";
 
 export function TooltipContent({
   title,
