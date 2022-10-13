@@ -1,14 +1,14 @@
 import Link from "next/link";
 import useSWR from "swr";
-import { fetcher, nFormatter } from "@/lib/utils";
-import { ProjectProps } from "@/lib/types";
+import BlurImage from "@/components/shared/blur-image";
 import {
   CheckCircleFill,
-  XCircleFill,
   Link as LinkIcon,
+  XCircleFill,
 } from "@/components/shared/icons";
-import BlurImage from "@/components/shared/blur-image";
 import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
+import { ProjectProps } from "@/lib/types";
+import { fetcher, nFormatter } from "@/lib/utils";
 
 export default function ProjectCard({
   name,

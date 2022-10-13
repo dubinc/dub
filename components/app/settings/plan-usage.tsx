@@ -1,24 +1,24 @@
-import { useMemo, useState } from "react";
-import { getFirstAndLastDay, nFormatter } from "@/lib/utils";
 import { useRouter } from "next/router";
-import Tooltip, { ProTiers } from "@/components/shared/tooltip";
-import {
-  Divider,
-  Infinity,
-  QuestionCircle,
-  LoadingDots,
-} from "@/components/shared/icons";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import useUsage from "@/lib/swr/use-usage";
-import { getPlanFromUsageLimit } from "@/lib/stripe/constants";
 import { useUpgradePlanModal } from "@/components/app/modals/upgrade-plan-modal";
+import {
+  Infinity,
+  Divider,
+  LoadingDots,
+  QuestionCircle,
+} from "@/components/shared/icons";
+import Tooltip, { ProTiers } from "@/components/shared/tooltip";
+import { getPlanFromUsageLimit } from "@/lib/stripe/constants";
+import useUsage from "@/lib/swr/use-usage";
+import { getFirstAndLastDay, nFormatter } from "@/lib/utils";
 
 export default function PlanUsage() {
   const router = useRouter();
   const {
     data: { usage, usageLimit, billingCycleStart, projectCount } = {},
     loading,
-  } = useUsage({ settingsPage: true });
+  } = useUsage();
 
   const [clicked, setClicked] = useState(false);
 

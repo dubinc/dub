@@ -1,15 +1,15 @@
-import Link from "next/link";
-import Stats from "@/components/stats";
-import BlurImage from "@/components/shared/blur-image";
-import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
-import { Lock } from "@/components/shared/icons";
-import AppLayout from "@/components/layout/app";
-import useProject from "@/lib/swr/use-project";
 import ErrorPage from "next/error";
+import Link from "next/link";
+import AppLayout from "@/components/layout/app";
+import BlurImage from "@/components/shared/blur-image";
+import { Lock } from "@/components/shared/icons";
+import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
+import Stats from "@/components/stats";
+import useProject from "@/lib/swr/use-project";
 import useUsage from "@/lib/swr/use-usage";
 
 export default function StatsPage() {
-  const { project, error } = useProject();
+  const { project, isOwner, error } = useProject();
   const { exceededUsage } = useUsage();
 
   // handle error page
@@ -29,8 +29,9 @@ export default function StatsPage() {
               Stats Locked
             </h1>
             <p className="text-gray-600 text-sm max-w-sm text-center z-10">
-              You have exceeded your usage limits. We're still collecting data
-              on your link, but you need to upgrade to view them.
+              {isOwner
+                ? "You have exceeded your usage limits. We're still collecting data on your link, but you need to upgrade to view them."
+                : "The owner of this project has exceeded their usage limits. We're still collecting data on this link, but they need to upgrade to view them."}
             </p>
             <BlurImage
               src="/static/illustrations/video-park.svg"
@@ -39,11 +40,13 @@ export default function StatsPage() {
               height={400}
               className="-my-8"
             />
-            <Link href="/settings">
-              <a className="text-white hover:text-black bg-black hover:bg-white font-medium text-sm px-10 py-2 border rounded-md border-black transition-all duration-75 z-10">
-                Upgrade now
-              </a>
-            </Link>
+            {isOwner && (
+              <Link href="/settings">
+                <a className="text-white hover:text-black bg-black hover:bg-white font-medium text-sm px-10 py-2 border rounded-md border-black transition-all duration-75 z-10">
+                  Upgrade now
+                </a>
+              </Link>
+            )}
           </div>
         </MaxWidthWrapper>
       )}

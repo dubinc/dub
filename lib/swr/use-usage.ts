@@ -1,24 +1,29 @@
-import useSWR from "swr";
+import { useRouter } from "next/router";
 import { useMemo } from "react";
-import { fetcher } from "@/lib/utils";
+import useSWR from "swr";
+import { getPlanFromUsageLimit } from "@/lib/stripe/constants";
 import { UsageProps } from "@/lib/types";
-import { getPlanFromUsageLimit, PRO_TIERS } from "@/lib/stripe/constants";
+import { fetcher } from "@/lib/utils";
 
-export default function useUsage({ settingsPage } = { settingsPage: false }) {
+export default function useUsage() {
+  const router = useRouter();
+  const { slug } = router.query;
   const { data, error } = useSWR<UsageProps>(
-    `/api/usage${settingsPage ? "?settingsPage=1" : ""}`,
+    slug ? `/api/projects/${slug}/usage` : `/api/usage`,
     fetcher
   );
 
   const exceededUsage = useMemo(() => {
     if (data) {
-      return data.usage > data.usageLimit;
+      return slug ? data.ownerExceededUsage : data.usage > data.usageLimit;
     }
   }, [data]);
 
   const plan = useMemo(() => {
     if (data) {
-      return getPlanFromUsageLimit(data.usageLimit);
+      return getPlanFromUsageLimit(
+        slug ? data.ownerUsageLimit : data.usageLimit
+      );
     }
   }, [data]);
 

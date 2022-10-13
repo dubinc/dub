@@ -1,11 +1,11 @@
 import { useRouter } from "next/router";
-import { INTERVALS } from "@/lib/constants";
-import { linkConstructor } from "@/lib/utils";
-import useScroll from "@/lib/hooks/use-scroll";
-import { ExpandingArrow } from "@/components/shared/icons";
-import BadgeSelect from "@/components/shared/badge-select";
-import { IntervalProps, StatsProps } from "@/lib/stats";
 import { useMemo } from "react";
+import BadgeSelect from "@/components/shared/badge-select";
+import { ExpandingArrow } from "@/components/shared/icons";
+import { INTERVALS } from "@/lib/constants";
+import useScroll from "@/lib/hooks/use-scroll";
+import { IntervalProps, StatsProps } from "@/lib/stats";
+import { linkConstructor } from "@/lib/utils";
 
 export default function Toggle({
   domain,

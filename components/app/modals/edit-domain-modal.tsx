@@ -1,18 +1,18 @@
-import Modal from "@/components/shared/modal";
+import { useRouter } from "next/router";
 import {
+  Dispatch,
+  SetStateAction,
   useCallback,
   useEffect,
   useMemo,
   useState,
-  Dispatch,
-  SetStateAction,
 } from "react";
-import { useRouter } from "next/router";
-import BlurImage from "@/components/shared/blur-image";
-import LoadingDots from "@/components/shared/icons/loading-dots";
-import { AlertCircleFill } from "@/components/shared/icons";
-import { useDebounce } from "use-debounce";
 import { mutate } from "swr";
+import { useDebounce } from "use-debounce";
+import BlurImage from "@/components/shared/blur-image";
+import { AlertCircleFill } from "@/components/shared/icons";
+import LoadingDots from "@/components/shared/icons/loading-dots";
+import Modal from "@/components/shared/modal";
 import useProject from "@/lib/swr/use-project";
 
 function EditDomainModal({
@@ -175,14 +175,18 @@ function EditDomainModal({
               className="block text-sm text-gray-700"
             >
               To verify, type{" "}
-              <span className="font-semibold">confirm domain change</span> below
+              <span className="font-semibold text-red-600">
+                yes, change my domain
+              </span>{" "}
+              below
             </label>
             <div className="relative mt-1 rounded-md shadow-sm">
               <input
                 type="text"
                 name="verification"
                 id="verification"
-                pattern="confirm domain change"
+                pattern="yes, change my domain"
+                placeholder="yes, change my domain"
                 required
                 autoFocus={false}
                 className="border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500 pr-10 block w-full rounded-md focus:outline-none sm:text-sm"

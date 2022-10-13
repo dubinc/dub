@@ -1,15 +1,15 @@
-import AppLayout from "components/layout/app";
-import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import useSWR from "swr";
-import { fetcher } from "@/lib/utils";
-import { ProjectProps } from "@/lib/types";
-import ProjectCard from "@/components/app/project-card";
 import { useAddProjectModal } from "@/components/app/modals/add-project-modal";
 import NoProjectsPlaceholder from "@/components/app/no-projects-placeholder";
+import ProjectCard from "@/components/app/project-card";
 import ProjectCardPlaceholder from "@/components/app/project-card-placeholder";
-import useUsage from "@/lib/swr/use-usage";
+import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
+import AppLayout from "components/layout/app";
 import { FREE_PLAN_PROJECT_LIMIT } from "@/lib/constants";
+import useUsage from "@/lib/swr/use-usage";
+import { ProjectProps } from "@/lib/types";
+import { fetcher } from "@/lib/utils";
 
 export default function App() {
   const { data } = useSWR<ProjectProps[]>(`/api/projects`, fetcher);

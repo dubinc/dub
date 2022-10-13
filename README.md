@@ -69,8 +69,13 @@ Dub is built as a standard Next.js application with [Middleware](https://nextjs.
 
 ## Contributing
 
+We love our contributors! Here's how you can contribute:
 - [Open an issue](https://github.com/steven-tey/dub/issues) if you believe you've encountered a bug.
 - Make a [pull request](https://github.com/steven-tey/dub/pull) to add new features/make quality-of-life improvements/fix bugs.
+
+<a href="https://github.com/steven-tey/dub/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=steven-tey/dub" />
+</a>
 
 ## Author
 

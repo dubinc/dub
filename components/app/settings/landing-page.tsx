@@ -1,17 +1,20 @@
-import useProject from "@/lib/swr/use-project";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { Chart, LoadingDots } from "@/components/shared/icons";
-import { fetcher, nFormatter } from "@/lib/utils";
-import useSWR from "swr";
-import Tooltip from "@/components/shared/tooltip";
 import toast from "react-hot-toast";
+import useSWR from "swr";
+import { Chart, LoadingDots } from "@/components/shared/icons";
+import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
+import useProject from "@/lib/swr/use-project";
+import useUsage from "@/lib/swr/use-usage";
+import { fetcher, nFormatter } from "@/lib/utils";
 
 export default function DefaultPage() {
   const router = useRouter();
   const { slug } = router.query as { slug: string };
 
-  const { project: { domain, domainVerified } = {} } = useProject();
+  const { project: { domain, domainVerified } = {}, isOwner } = useProject();
+
+  const { plan } = useUsage();
 
   const { data: rootDomain } = useSWR<string>(
     slug && domain && `/api/projects/${slug}/domains/${domain}/root`,
@@ -77,7 +80,7 @@ export default function DefaultPage() {
           )}
         </div>
         <div />
-        {domainVerified ? (
+        {domainVerified && plan !== "Free" ? (
           <input
             type="url"
             name="root"
@@ -88,7 +91,23 @@ export default function DefaultPage() {
             className="border border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500 w-full max-w-md rounded-md focus:outline-none text-sm"
           />
         ) : (
-          <Tooltip content="You need to verify your domain first.">
+          <Tooltip
+            content={
+              !domainVerified ? (
+                "You need to verify your domain first."
+              ) : (
+                <TooltipContent
+                  title={`You can't configure a custom landing page on a free plan. ${
+                    isOwner
+                      ? "Upgrade to a Pro plan to proceed."
+                      : "Ask your project owner to upgrade to a Pro plan."
+                  }`}
+                  cta={isOwner && "Upgrade to Pro"}
+                  ctaLink={isOwner && "/settings"}
+                />
+              )
+            }
+          >
             <div className="text-left border border-gray-300 text-gray-300 text-sm px-3 py-2 w-full max-w-md cursor-not-allowed rounded-md">
               https://yourdomain.com
             </div>
@@ -99,7 +118,7 @@ export default function DefaultPage() {
       <div className="border-b border-gray-200" />
 
       <div className="px-10 py-4 flex justify-end items-center">
-        {domainVerified ? (
+        {domainVerified && plan !== "Free" ? (
           <button
             disabled={saving}
             className={`${
@@ -111,7 +130,23 @@ export default function DefaultPage() {
             {saving ? <LoadingDots /> : "Save Changes"}
           </button>
         ) : (
-          <Tooltip content="You need to verify your domain first.">
+          <Tooltip
+            content={
+              !domainVerified ? (
+                "You need to verify your domain first."
+              ) : (
+                <TooltipContent
+                  title={`You can't configure a custom landing page on a free plan. ${
+                    isOwner
+                      ? "Upgrade to a Pro plan to proceed."
+                      : "Ask your project owner to upgrade to a Pro plan."
+                  }`}
+                  cta={isOwner && "Upgrade to Pro"}
+                  ctaLink={isOwner && "/settings"}
+                />
+              )
+            }
+          >
             <div className="cursor-not-allowed bg-gray-100 border-gray-200 text-gray-300 h-9 w-32 flex items-center justify-center text-sm border rounded-md">
               Save Changes
             </div>

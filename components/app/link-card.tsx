@@ -1,14 +1,14 @@
+import Link from "next/link";
+import { useRouter } from "next/router";
+import useSWR from "swr";
 import BlurImage from "@/components/shared/blur-image";
 import CopyButton from "@/components/shared/copy-button";
 import { Chart, LoadingDots } from "@/components/shared/icons";
-import { useRouter } from "next/router";
-import useSWR from "swr";
-import { fetcher, nFormatter, linkConstructor, timeAgo } from "@/lib/utils";
-import Link from "next/link";
-import { LinkProps } from "@/lib/types";
 import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 import useProject from "@/lib/swr/use-project";
 import useUsage from "@/lib/swr/use-usage";
+import { LinkProps } from "@/lib/types";
+import { fetcher, linkConstructor, nFormatter, timeAgo } from "@/lib/utils";
 import { useAddEditLinkModal } from "./modals/add-edit-link-modal";
 import { useDeleteLinkModal } from "./modals/delete-link-modal";
 
@@ -20,7 +20,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
   const router = useRouter();
   const { slug } = router.query as { slug: string };
 
-  const { project } = useProject();
+  const { project, isOwner } = useProject();
   const { domain } = project || {};
   const { exceededUsage } = useUsage();
 
@@ -86,13 +86,17 @@ export default function LinkCard({ props }: { props: LinkProps }) {
           <p className="text-sm hidden sm:block text-gray-500">
             Added {timeAgo(timestamp)}
           </p>
-          {exceededUsage ? (
+          {slug && exceededUsage ? (
             <Tooltip
               content={
                 <TooltipContent
-                  title="You have exceeded your usage limit. We're still collecting data on your existing links, but you need to upgrade to edit them."
-                  cta="Upgrade"
-                  ctaLink={`/settings`}
+                  title={
+                    isOwner
+                      ? "You have exceeded your usage limit. We're still collecting data on your existing links, but you need to upgrade to edit them."
+                      : "The owner of this project has exceeded their usage limit. We're still collecting data on all existing links, but they need to upgrade their plan to edit them."
+                  }
+                  cta={isOwner && "Upgrade"}
+                  ctaLink={isOwner && "/settings"}
                 />
               }
             >

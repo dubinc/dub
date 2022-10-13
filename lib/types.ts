@@ -17,6 +17,11 @@ export interface ProjectProps {
   slug: string;
   domain: string;
   domainVerified: boolean;
+  ownerUsageLimit?: number;
+  ownerExceededUsage?: boolean;
+  users?: {
+    role: string;
+  }[];
 }
 
 export interface UsageProps {
@@ -24,6 +29,8 @@ export interface UsageProps {
   usageLimit: number;
   projectCount?: number;
   billingCycleStart?: number;
+  ownerUsageLimit?: number;
+  ownerExceededUsage?: boolean;
 }
 
 export interface UserProps {

@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { editLink, deleteLink } from "@/lib/upstash";
-import { withProjectAuth } from "@/lib/auth";
 import cloudinary from "cloudinary";
+import { withProjectAuth } from "@/lib/auth";
+import { deleteLink, editLink } from "@/lib/upstash";
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {

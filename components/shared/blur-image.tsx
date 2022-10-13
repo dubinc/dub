@@ -1,5 +1,5 @@
 import Image, { ImageProps } from "next/future/image";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function BlurImage(props: ImageProps) {
   const [isLoading, setLoading] = useState(true);

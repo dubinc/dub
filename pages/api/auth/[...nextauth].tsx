@@ -1,6 +1,9 @@
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import sendMail, { sendMarketingMail } from "emails";
+import LoginLink from "emails/LoginLink";
+import WelcomeEmail from "emails/WelcomeEmail";
 import NextAuth, { type NextAuthOptions } from "next-auth";
 import EmailProvider from "next-auth/providers/email";
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import prisma from "@/lib/prisma";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
@@ -8,8 +11,13 @@ const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 export const authOptions: NextAuthOptions = {
   providers: [
     EmailProvider({
-      server: process.env.EMAIL_SERVER,
-      from: process.env.EMAIL_FROM,
+      sendVerificationRequest({ identifier, url }) {
+        sendMail({
+          subject: "Your Dub.sh Login Link",
+          to: identifier,
+          component: <LoginLink url={url} />,
+        });
+      },
     }),
   ],
   adapter: PrismaAdapter(prisma),
@@ -35,6 +43,25 @@ export const authOptions: NextAuthOptions = {
         ...session.user,
       };
       return session;
+    },
+  },
+  events: {
+    async signIn(message) {
+      if (message.isNewUser) {
+        const email = message.user.email;
+        await Promise.all([
+          sendMarketingMail({
+            subject: "✨ Welcome to Dub",
+            to: email,
+            bcc: process.env.TRUSTPILOT_BCC_EMAIL,
+            component: <WelcomeEmail />,
+          }),
+          prisma.user.update({
+            where: { email },
+            data: { billingCycleStart: new Date().getDate() },
+          }),
+        ]);
+      }
     },
   },
 };

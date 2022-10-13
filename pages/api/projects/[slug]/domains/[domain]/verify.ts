@@ -1,12 +1,12 @@
-import { withProjectAuth } from "@/lib/auth";
 import { NextApiRequest, NextApiResponse } from "next";
-import { DomainVerificationStatusProps } from "@/lib/types";
-import prisma from "@/lib/prisma";
+import { withProjectAuth } from "@/lib/auth";
 import {
   getConfigResponse,
   getDomainResponse,
   verifyDomain,
 } from "@/lib/domains";
+import prisma from "@/lib/prisma";
+import { DomainVerificationStatusProps } from "@/lib/types";
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {

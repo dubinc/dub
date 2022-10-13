@@ -1,15 +1,15 @@
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { motion, useAnimation, useMotionValue } from "framer-motion";
+import toast from "react-hot-toast";
+import useSWR from "swr";
+import { useDebouncedCallback } from "use-debounce";
 import BlurImage from "@/components/shared/blur-image";
 import CopyButton from "@/components/shared/copy-button";
 import { Chart, LoadingDots } from "@/components/shared/icons";
-import useSWR from "swr";
-import { fetcher, nFormatter, linkConstructor } from "@/lib/utils";
-import Link from "next/link";
-import { motion, useMotionValue, useAnimation } from "framer-motion";
 import { FRAMER_MOTION_LIST_ITEM_VARIANTS } from "@/lib/constants";
 import { SimpleLinkProps } from "@/lib/types";
-import toast from "react-hot-toast";
-import { useDebouncedCallback } from "use-debounce";
+import { fetcher, linkConstructor, nFormatter } from "@/lib/utils";
 
 export default function LinkCard({
   _key: key,

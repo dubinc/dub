@@ -1,8 +1,14 @@
-import * as TooltipPrimitive from "@radix-ui/react-tooltip";
+/***********************************/
+
+/*  Tooltip Contents  */
+import Link from "next/link";
 import { ReactNode, useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence, useAnimation } from "framer-motion";
-import { PRO_TIERS } from "@/lib/stripe/constants";
+import * as TooltipPrimitive from "@radix-ui/react-tooltip";
+import { AnimatePresence, motion, useAnimation } from "framer-motion";
+import BlurImage from "@/components/shared/blur-image";
 import Slider from "@/components/shared/slider";
+import { PRO_TIERS } from "@/lib/stripe/constants";
+import { nFormatter } from "@/lib/utils";
 
 export default function Tooltip({
   children,
@@ -96,7 +102,7 @@ export default function Tooltip({
           >
             <TooltipPrimitive.Arrow className="fill-current text-white" />
             {typeof content === "string" ? (
-              <div className="px-4 py-2.5">
+              <div className="p-5">
                 <span className="block text-sm text-center text-gray-700 max-w-xs">
                   {content}
                 </span>
@@ -112,30 +118,25 @@ export default function Tooltip({
   );
 }
 
-/***********************************/
-/*  Tooltip Contents  */
-
-import Link from "next/link";
-import BlurImage from "@/components/shared/blur-image";
-import { nFormatter } from "@/lib/utils";
-
 export function TooltipContent({
   title,
   cta,
   ctaLink,
 }: {
   title: string;
-  cta: string;
-  ctaLink: string;
+  cta?: string;
+  ctaLink?: string;
 }) {
   return (
     <div className="max-w-xs flex flex-col text-center items-center space-y-3 p-5">
       <p className="text-sm text-gray-700">{title}</p>
-      <Link href={ctaLink}>
-        <a className="py-1.5 px-3 bg-black hover:bg-white rounded-full border border-black text-sm text-white hover:text-black transition-all mt-4">
-          {cta}
-        </a>
-      </Link>
+      {cta && ctaLink && (
+        <Link href={ctaLink}>
+          <a className="py-1.5 px-3 bg-black hover:bg-white rounded-full border border-black text-sm text-white hover:text-black transition-all mt-4">
+            {cta}
+          </a>
+        </Link>
+      )}
     </div>
   );
 }

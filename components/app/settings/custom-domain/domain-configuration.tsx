@@ -1,5 +1,6 @@
-import { DomainVerificationStatusProps } from "@/lib/types";
 import { useState } from "react";
+import { DomainVerificationStatusProps } from "@/lib/types";
+import { getSubdomain } from "@/lib/utils";
 
 const InlineSnippet = ({ children }: { children: string }) => {
   return (
@@ -14,8 +15,9 @@ export default function DomainConfiguration({
 }: {
   data: { status: DomainVerificationStatusProps; response: any };
 }) {
-  const [recordType, setRecordType] = useState("A");
   const { domainJson } = data.response;
+  const subdomain = getSubdomain(domainJson.name, domainJson.apexName);
+  const [recordType, setRecordType] = useState(!!subdomain ? "CNAME" : "A");
 
   if (data.status === "Pending Verification") {
     const txtVerification = domainJson.verification.find(
@@ -72,7 +74,7 @@ export default function DomainConfiguration({
               : "text-gray-400 border-white"
           } text-sm border-b-2 pb-1 transition-all ease duration-150`}
         >
-          A Record (recommended)
+          A Record{!subdomain && " (recommended)"}
         </button>
         <button
           onClick={() => setRecordType("CNAME")}
@@ -82,7 +84,7 @@ export default function DomainConfiguration({
               : "text-gray-400 border-white"
           } text-sm border-b-2 pb-1 transition-all ease duration-150`}
         >
-          CNAME Record (for subdomains)
+          CNAME Record{subdomain && " (recommended)"}
         </button>
       </div>
       <div className="my-3 text-left">
@@ -102,7 +104,7 @@ export default function DomainConfiguration({
           <div>
             <p className="text-sm font-bold">Name</p>
             <p className="text-sm font-mono mt-2">
-              {recordType === "A" ? "@" : "www"}
+              {recordType === "A" ? "@" : subdomain ?? "www"}
             </p>
           </div>
           <div>
@@ -111,7 +113,15 @@ export default function DomainConfiguration({
               {recordType === "A" ? `76.76.21.21` : `cname.dub.sh`}
             </p>
           </div>
+          <div>
+            <p className="text-sm font-bold">TTL</p>
+            <p className="text-sm font-mono mt-2">86400</p>
+          </div>
         </div>
+        <p className="mt-3 text-sm">
+          Note: for TTL, if <InlineSnippet>86400</InlineSnippet> is not
+          available, set the highest value possible
+        </p>
       </div>
     </div>
   );

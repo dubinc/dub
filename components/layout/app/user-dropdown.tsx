@@ -1,6 +1,6 @@
-import { Menu, Transition } from "@headlessui/react";
 import { Fragment } from "react";
-import { useSession, signOut } from "next-auth/react";
+import { Menu, Transition } from "@headlessui/react";
+import { signOut, useSession } from "next-auth/react";
 
 export default function UserDropdown() {
   const { data: session } = useSession();

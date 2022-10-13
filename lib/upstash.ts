@@ -1,8 +1,8 @@
-import { Redis } from "@upstash/redis";
 import { NextRequest, userAgent } from "next/server";
+import { Redis } from "@upstash/redis";
+import { customAlphabet } from "nanoid";
 import { LOCALHOST_GEO_DATA, RESERVED_KEYS } from "@/lib/constants";
 import { LinkProps, ProjectProps } from "@/lib/types";
-import { customAlphabet } from "nanoid";
 import {
   getDescriptionFromUrl,
   getFirstAndLastDay,
@@ -274,7 +274,6 @@ export async function getUsage(
     results = await pipeline.exec();
   }
   const usage = results.reduce((acc, curr) => acc + curr, 0);
-  await redis.setex(`usage:${hostname}`, 3600, usage); // cache for 1 hour
   return usage;
 }
 

@@ -1,12 +1,12 @@
-import { StatsProps, dummyData } from "@/lib/stats";
+import { useRouter } from "next/router";
+import useSWR from "swr";
 import Clicks from "@/components/stats/clicks";
-import Toggle from "@/components/stats/toggle";
 import Devices from "@/components/stats/devices";
 import Locations from "@/components/stats/locations";
+import Toggle from "@/components/stats/toggle";
 import Referer from "@/components/stats/referer";
-import useSWR from "swr";
+import { StatsProps, dummyData } from "@/lib/stats";
 import { fetcher } from "@/lib/utils";
-import { useRouter } from "next/router";
 
 export default function Stats({
   atModalTop,

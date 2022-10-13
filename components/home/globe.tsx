@@ -1,12 +1,12 @@
-import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import createGlobe from "cobe";
+import { AnimatePresence, motion } from "framer-motion";
 import { useSpring } from "react-spring";
 import useSWR from "swr";
 import { Drag, X } from "@/components/shared/icons";
-import { fetcher } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
 import useIntersectionObserver from "@/lib/hooks/use-intersection-observer";
+import { fetcher } from "@/lib/utils";
 
 interface MarkerProps {
   location: [number, number];
@@ -157,7 +157,7 @@ const GlobeAnimation = ({
             </button>
             <Drag className="h-12 w-12 mx-auto mb-2 sm:mb-4 text-gray-700" />
             <p className="text-center text-gray-700 text-sm sm:text-base">
-              This map shows the locations of the last 30 clicks on{" "}
+              This map shows the locations of the last 100 clicks on{" "}
               <a
                 className="text-blue-800 font-semibold"
                 href={

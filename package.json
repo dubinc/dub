@@ -4,8 +4,12 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "format:write": "prettier --write \"**/*.{css,js,json,jsx,ts,tsx}\"",
+    "format": "prettier \"**/*.{css,js,json,jsx,ts,tsx}\"",
+    "lint": "next lint",
+    "prebuild": "prisma generate",
+    "predev": "prisma generate",
+    "start": "next start"
   },
   "dependencies": {
     "@headlessui/react": "^1.6.6",
@@ -28,9 +32,12 @@
     "@visx/tooltip": "^2.10.0",
     "cloudinary": "^1.32.0",
     "cobe": "^0.6.2",
+    "focus-trap-react": "^10.0.0",
     "framer-motion": "^7.2.1",
     "html-escaper": "^3.0.3",
     "i": "^0.3.7",
+    "mailing": "^0.8.3-next.0",
+    "mailing-core": "^0.8.2",
     "ms": "^2.1.3",
     "next": "^12.2.6-canary.8",
     "next-auth": "^4.10.3",
@@ -51,6 +58,7 @@
   },
   "devDependencies": {
     "@tailwindcss/line-clamp": "^0.4.2",
+    "@trivago/prettier-plugin-sort-imports": "^3.3.0",
     "@types/ms": "^0.7.31",
     "@types/node": "17.0.35",
     "@types/react": "18.0.9",
@@ -58,7 +66,8 @@
     "@types/topojson-client": "^3.1.1",
     "autoprefixer": "^10.4.7",
     "postcss": "^8.4.14",
+    "prettier": "^2.7.1",
     "tailwindcss": "^3.1.2",
-    "typescript": "4.7.2"
+    "typescript": "^4.8.4"
   }
 }

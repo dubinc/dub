@@ -1,29 +1,29 @@
-import Modal from "@/components/shared/modal";
+import { useRouter } from "next/router";
 import {
+  Dispatch,
+  SetStateAction,
   useCallback,
   useEffect,
   useMemo,
   useState,
-  Dispatch,
-  SetStateAction,
 } from "react";
-import { useRouter } from "next/router";
-import BlurImage from "@/components/shared/blur-image";
-import { LinkProps } from "@/lib/types";
-import { linkConstructor } from "@/lib/utils";
-import {
-  LoadingDots,
-  LoadingCircle,
-  AlertCircleFill,
-  ChevronRight,
-  UploadCloud,
-} from "@/components/shared/icons";
-import { useDebounce } from "use-debounce";
 import TextareaAutosize from "react-textarea-autosize";
 import { mutate } from "swr";
+import { useDebounce } from "use-debounce";
+import BlurImage from "@/components/shared/blur-image";
+import {
+  AlertCircleFill,
+  ChevronRight,
+  LoadingCircle,
+  LoadingDots,
+  UploadCloud,
+} from "@/components/shared/icons";
+import Modal from "@/components/shared/modal";
 import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 import useProject from "@/lib/swr/use-project";
 import useUsage from "@/lib/swr/use-usage";
+import { LinkProps } from "@/lib/types";
+import { linkConstructor } from "@/lib/utils";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
@@ -145,7 +145,7 @@ function AddEditLinkModal({
       showModal={showAddEditLinkModal}
       setShowModal={setShowAddEditLinkModal}
     >
-      <div className="inline-block w-full sm:max-w-md overflow-hidden align-middle transition-all transform bg-white sm:border sm:border-gray-200 shadow-xl sm:rounded-2xl">
+      <div className="inline-block w-full sm:max-w-md max-h-[calc(100vh-50px)] overflow-scroll align-middle transition-all transform bg-white sm:border sm:border-gray-200 shadow-xl sm:rounded-2xl">
         <div className="flex flex-col justify-center items-center space-y-3 sm:px-16 px-4 pt-8 py-4 border-b border-gray-200">
           <BlurImage
             src={heroProps.avatar}
@@ -492,7 +492,7 @@ function AddEditLinkButton({
   const router = useRouter();
   const { slug } = router.query as { slug?: string };
 
-  const { project } = useProject();
+  const { project, isOwner } = useProject();
   const { exceededUsage } = useUsage();
 
   return project && !project.domainVerified ? (
@@ -510,13 +510,17 @@ start adding links."
         Add
       </div>
     </Tooltip>
-  ) : exceededUsage ? (
+  ) : slug && exceededUsage ? ( // only show exceeded usage tooltip if user is on a project page
     <Tooltip
       content={
         <TooltipContent
-          title="You have exceeded your usage limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
-          cta="Upgrade"
-          ctaLink={`/settings`}
+          title={
+            isOwner
+              ? "You have exceeded your usage limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
+              : "The owner of this project has exceeded their usage limit. We're still collecting data on all existing links, but they need to upgrade their plan to add more links."
+          }
+          cta={isOwner && "Upgrade"}
+          ctaLink={isOwner && "/settings"}
         />
       }
     >

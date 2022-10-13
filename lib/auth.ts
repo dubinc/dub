@@ -1,9 +1,9 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { unstable_getServerSession } from "next-auth/next";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
+import { unstable_getServerSession } from "next-auth/next";
+import { FREE_PLAN_PROJECT_LIMIT } from "@/lib/constants";
 import prisma from "@/lib/prisma";
 import { ProjectProps, UsageProps, UserProps } from "@/lib/types";
-import { FREE_PLAN_PROJECT_LIMIT } from "@/lib/constants";
 
 interface Session {
   user: {
@@ -70,6 +70,16 @@ const withProjectAuth =
         slug: true,
         domain: true,
         domainVerified: true,
+        ownerUsageLimit: true,
+        ownerExceededUsage: true,
+        users: {
+          where: {
+            userId: session.user.id,
+          },
+          select: {
+            role: true,
+          },
+        },
       },
     })) as ProjectProps;
 
@@ -93,12 +103,12 @@ const withProjectAuth =
           usageLimit: true,
         },
       })) as UsageProps;
-      const exceededUsage = user.usage >= user.usageLimit;
-      if (needNotExceededUsage && exceededUsage) {
+
+      if (needNotExceededUsage && project.ownerExceededUsage) {
         return res.status(403).end("Unauthorized: Usage limits exceeded.");
       }
 
-      const freePlan = user.usageLimit === 1000;
+      const freePlan = project.ownerUsageLimit === 1000;
       if (needProSubscription && freePlan) {
         return res.status(403).end("Unauthorized: Need pro subscription");
       }

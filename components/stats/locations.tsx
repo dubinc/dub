@@ -1,9 +1,9 @@
-import { StatsProps, processLocationData, LocationTabs } from "@/lib/stats";
-import BadgeSelect from "@/components/shared/badge-select";
 import { useMemo } from "react";
-import { nFormatter } from "@/lib/utils";
-import { useState, UIEvent } from "react";
+import { UIEvent, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import BadgeSelect from "@/components/shared/badge-select";
+import { LocationTabs, StatsProps, processLocationData } from "@/lib/stats";
+import { nFormatter } from "@/lib/utils";
 import { LoadingDots } from "../shared/icons";
 
 export default function Locations({ data: rawData }: { data: StatsProps }) {
