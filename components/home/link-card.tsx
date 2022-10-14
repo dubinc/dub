@@ -116,12 +116,12 @@ export default function LinkCard({
         onDrag={() => setVelocity(x.getVelocity())}
         onDragEnd={() => flyAway(500)}
         whileTap={{ scale: 1.05 }}
-        className="cursor-grab active:cursor-grabbing flex items-center border border-gray-200 hover:border-black bg-white p-3 max-w-md rounded-md transition-[border-color]"
+        className="cursor-grab active:cursor-grabbing flex items-center space-x-3 border border-gray-200 hover:border-black bg-white p-3 max-w-md rounded-md transition-[border-color]"
       >
         <BlurImage
-          src={`https://logo.clearbit.com/${urlHostname}`}
+          src={`https://www.google.com/s2/favicons?sz=64&domain_url=${urlHostname}`}
           alt={urlHostname}
-          className="w-10 h-10 rounded-full mr-2 border border-gray-200 pointer-events-none"
+          className="w-10 h-10 rounded-full pointer-events-none"
           width={20}
           height={20}
         />

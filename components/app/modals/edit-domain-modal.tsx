@@ -52,7 +52,7 @@ function EditDomainModal({
       <div className="inline-block w-full sm:max-w-md overflow-hidden align-middle transition-all transform bg-white sm:border sm:border-gray-200 shadow-xl sm:rounded-2xl">
         <div className="flex flex-col justify-center items-center space-y-3 sm:px-16 px-4 pt-8 py-4 border-b border-gray-200">
           <BlurImage
-            src={`https://logo.clearbit.com/${domain}`}
+            src={`https://www.google.com/s2/favicons?sz=64&domain_url=${domain}`}
             alt={domain}
             className="w-10 h-10 rounded-full border border-gray-200"
             width={20}
