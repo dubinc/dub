@@ -31,7 +31,7 @@ export default function Locations({ data: rawData }: { data: StatsProps }) {
 
   return (
     <div
-      className="relative bg-white px-7 py-5 shadow-lg sm:rounded-lg border border-gray-100 h-[420px] overflow-scroll scrollbar-hide"
+      className="relative bg-white px-7 py-5 sm:shadow-lg sm:rounded-lg border border-gray-200 sm:border-gray-100  h-[420px] overflow-scroll scrollbar-hide"
       onScroll={handleScroll}
     >
       <div className="mb-5 flex justify-between">
