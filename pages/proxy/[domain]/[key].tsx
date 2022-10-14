@@ -64,14 +64,25 @@ export function getStaticPaths() {
 
 export async function getStaticProps(ctx) {
   const { domain, key } = ctx.params;
-  const response = await redis.hget<Omit<LinkProps, "key">>(
-    `${domain}:links`,
-    key,
-  );
-  const { url, title, description, image } = response || {};
-  if (!url || !title || !description || !image) {
+  const link = await prisma.link.findUnique({
+    where: {
+      domain,
+      key,
+    },
+  });
+
+  const { url, title, description, image } = link || {};
+
+  if (!url) {
     return {
       notFound: true,
+      revalidate: 1,
+    };
+  } else if (!image) {
+    return {
+      redirect: {
+        destination: url,
+      },
       revalidate: 1,
     };
   }

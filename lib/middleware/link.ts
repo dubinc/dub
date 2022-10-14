@@ -27,7 +27,7 @@ export default async function LinkMiddleware(
     const noTrack = req.headers.get("dub-no-track");
     if (!noTrack) ev.waitUntil(recordClick(hostname, req, key)); // track the click only if there is no `dub-no-track` header
 
-    if (image && description && isBot) {
+    if (isBot) {
       // rewrite to proxy page (dub.sh/proxy/[domain]/[key])
       return NextResponse.rewrite(`https://dub.sh/proxy/${hostname}/${key}`);
     } else {

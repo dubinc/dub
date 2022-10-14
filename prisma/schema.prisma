@@ -26,6 +26,7 @@ model User {
   sessions              Session[]
   projects              ProjectUsers[]
   sentEmails            SentEmail[]
+  links                 Link[]
   createdAt             DateTime  @default(now())
 }
 
@@ -79,6 +80,7 @@ model Project {
   ownerUsageLimit             Int      @default(1000)
   ownerExceededUsage          Boolean  @default(false)
   sentEmails                  SentEmail[]
+  links                       Link[]
 }
 
 model ProjectUsers {
@@ -109,4 +111,35 @@ model SentEmail {
   userId    String?
   project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId String?
+}
+
+model Link {
+  id              String   @id @default(cuid())
+  domain          String
+  key             String
+  url             String
+  title           String?
+  description     String?
+  image           String?
+  utm_source      String?
+  utm_medium      String?
+  utm_campaign    String?
+  clicks          Int      @default(0)
+  user            User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String?
+  project         Project? @relation(fields: [domain], references: [domain], onUpdate: Cascade, onDelete: Cascade)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([domain, key])
+
+  // indices for links per domain/project
+  @@index([domain, createdAt(sort: Desc)])
+  @@index([domain, clicks(sort: Desc)])
+
+  // indices for links per domain/project specific to a user (only for dub.sh)
+  @@index([domain, userId, createdAt(sort: Desc)])
+  @@index([domain, userId, clicks(sort: Desc)])
+
+  // TODO: might wanna add indices for utm_source, utm_medium, utm_campaign
 }
