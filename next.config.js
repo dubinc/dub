@@ -3,7 +3,7 @@ module.exports = {
   reactStrictMode: true,
   images: {
     domains: [
-      "logo.clearbit.com",
+      "www.google.com",
       "avatar.tobi.sh",
       "faisalman.github.io",
       "avatars.dicebear.com",

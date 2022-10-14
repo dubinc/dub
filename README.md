@@ -34,6 +34,12 @@ You can easily configure custom domains on Dub – just add an A/CNAME record t
 
 ![Custom Domains](/public/static/landing/domains.png)
 
+### QR Code Generator
+
+You can easily generate and customize QR codes for your links, which can be used for flyers, posters, powerpoint presentations, etc.
+
+![QR Code](/public/static/landing/qr.png)
+
 ### OG Image Proxy
 
 Add a custom OG image in front of your target URL. Bots like Twitter/Facebook will be served this image, while users will be redirected to your target URL.
@@ -70,6 +76,7 @@ Dub is built as a standard Next.js application with [Middleware](https://nextjs.
 ## Contributing
 
 We love our contributors! Here's how you can contribute:
+
 - [Open an issue](https://github.com/steven-tey/dub/issues) if you believe you've encountered a bug.
 - Make a [pull request](https://github.com/steven-tey/dub/pull) to add new features/make quality-of-life improvements/fix bugs.
 

@@ -1,6 +1,12 @@
 import Image from "next/future/image";
 import Link from "next/link";
-import { Airplay, Chart, Github, UploadCloud } from "@/components/shared/icons";
+import {
+  Airplay,
+  Chart,
+  Github,
+  QR,
+  UploadCloud,
+} from "@/components/shared/icons";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import CountingNumbers from "../shared/counting-numbers";
 import styles from "./features.module.css";
@@ -65,7 +71,7 @@ const Features = ({ stars }: { stars: number }) => {
             alt="Custom domains"
             width={1084}
             height={646}
-            className="w-full max-w-[600px] rounded-2xl border border-gray-200"
+            className="w-full max-w-[635px] rounded-2xl border border-gray-200"
           />
           <div className="flex flex-col space-y-5 my-10 lg:my-0">
             <div className="flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r from-purple-600 to-pink-600">
@@ -88,30 +94,41 @@ const Features = ({ stars }: { stars: number }) => {
           </div>
         </div>
 
-        {/* Open source */}
+        {/* QR Code */}
         <div className="flex lg:space-x-10 flex-col-reverse lg:flex-row items-center my-20">
           <div className="flex flex-col space-y-5 my-10 lg:my-0 max-w-md">
             <div className="flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r from-purple-600 to-pink-600">
-              <UploadCloud className="w-7 h-7 text-white" />
+              <QR className="w-7 h-7 text-white" />
             </div>
             <h3 className="text-3xl font-bold font-display text-black mt-5">
-              Proudly open source
+              QR code generator
             </h3>
 
             <p className="text-gray-500 mt-3">
-              Our source code is available on GitHub – feel free to read,
-              review, or contribute to it however you want!
+              We also believe QR codes and short links are like peas in a pod.
+              That's why we've built a QR code generator right into Dub.
             </p>
             <a
-              href="https://github.com/steven-tey/dub"
+              href="https://dub.sh/qrcode"
               target="_blank"
               rel="noreferrer"
               className="rounded-full px-4 py-1.5 bg-black text-white hover:bg-white hover:text-black text-sm border border-black block max-w-fit transition-all"
             >
-              Star on GitHub
+              Watch the demo
             </a>
           </div>
 
+          <Image
+            src="/static/landing/qr.png"
+            alt="Custom domains"
+            width={1084}
+            height={646}
+            className="w-full max-w-[700px] rounded-2xl border border-gray-200"
+          />
+        </div>
+
+        {/* Open Source */}
+        <div className="flex lg:space-x-16 flex-col lg:flex-row items-center my-20">
           <div className="flex items-center justify-center rounded-2xl w-full max-w-[700px] bg-gray-900 h-96">
             <div className="flex items-center">
               <a
@@ -130,6 +147,27 @@ const Features = ({ stars }: { stars: number }) => {
                 />
               </div>
             </div>
+          </div>
+          <div className="flex flex-col space-y-5 my-10 lg:my-0">
+            <div className="flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r from-purple-600 to-pink-600">
+              <UploadCloud className="w-7 h-7 text-white" />
+            </div>
+            <h3 className="text-3xl font-bold font-display text-black mt-5">
+              Proudly open source
+            </h3>
+
+            <p className="text-gray-500 mt-3">
+              Our source code is available on GitHub - feel free to read,
+              review, or contribute to it however you want!
+            </p>
+            <a
+              href="https://github.com/steven-tey/dub"
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-full px-4 py-1.5 bg-black text-white hover:bg-white hover:text-black text-sm border border-black block max-w-fit transition-all"
+            >
+              Star on GitHub
+            </a>
           </div>
         </div>
       </MaxWidthWrapper>

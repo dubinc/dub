@@ -57,7 +57,8 @@ function AddEditLinkModal({
     if (props?.url) {
       const urlHostname = new URL(props.url).hostname;
       return {
-        avatar: `https://logo.clearbit.com/${urlHostname}`,
+        avatar: `https://www.google.com/s2/favicons?sz=64&domain_url=${urlHostname}`,
+        alt: urlHostname,
         copy: `Edit ${linkConstructor({
           key: props.key,
           domain,
@@ -67,6 +68,7 @@ function AddEditLinkModal({
     } else {
       return {
         avatar: "/static/logo.png",
+        alt: "Dub.sh",
         copy: "Add a new link",
       };
     }
@@ -149,8 +151,8 @@ function AddEditLinkModal({
         <div className="flex flex-col justify-center items-center space-y-3 sm:px-16 px-4 pt-8 py-4 border-b border-gray-200">
           <BlurImage
             src={heroProps.avatar}
-            alt={heroProps.copy}
-            className="w-10 h-10 rounded-full border border-gray-200"
+            alt={heroProps.alt}
+            className="w-10 h-10 rounded-full"
             width={20}
             height={20}
           />
@@ -184,127 +186,131 @@ function AddEditLinkModal({
                 setKeyExistsError(true);
               });
           }}
-          className="flex flex-col space-y-6 text-left bg-gray-50 sm:px-16 px-4 py-8"
+          className="grid gap-6 bg-gray-50 py-8"
         >
-          <div>
-            <div className="flex justify-between items-center">
-              <label
-                htmlFor="key"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Short Link
-              </label>
-              <button
-                className="hover:text-black active:scale-95 flex items-center space-x-2 text-gray-500 text-sm transition-all duration-75"
-                onClick={generateRandomSlug}
-                disabled={generatingSlug}
-                type="button"
-              >
-                {generatingSlug && <LoadingCircle />}
-                <p>{generatingSlug ? "Generating" : "Generate random slug"}</p>
-              </button>
-            </div>
-            <div className="relative flex mt-1 rounded-md shadow-sm">
-              <span className="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-5 text-gray-500 sm:text-sm whitespace-nowrap">
-                {domain || "dub.sh"}
-              </span>
-              <input
-                type="text"
-                name="key"
-                id="key"
-                required
-                autoFocus={false}
-                pattern="[\p{Letter}\p{Mark}\d-]+" // Unicode regex to match characters from all languages and numbers (and omit all symbols except for dashes)
-                className={`${
-                  keyExistsError
-                    ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                    : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
-                } pr-10 block w-full rounded-r-md focus:outline-none sm:text-sm`}
-                placeholder="github"
-                value={key}
-                onChange={(e) => {
-                  setKeyExistsError(false);
-                  setData({ ...data, key: e.target.value });
-                }}
-                aria-invalid="true"
-                aria-describedby="key-error"
-              />
+          <div className="grid gap-6 sm:px-16 px-4">
+            <div>
+              <div className="flex justify-between items-center">
+                <label
+                  htmlFor="key"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Short Link
+                </label>
+                <button
+                  className="hover:text-black active:scale-95 flex items-center space-x-2 text-gray-500 text-sm transition-all duration-75"
+                  onClick={generateRandomSlug}
+                  disabled={generatingSlug}
+                  type="button"
+                >
+                  {generatingSlug && <LoadingCircle />}
+                  <p>
+                    {generatingSlug ? "Generating" : "Generate random slug"}
+                  </p>
+                </button>
+              </div>
+              <div className="relative flex mt-1 rounded-md shadow-sm">
+                <span className="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-5 text-gray-500 sm:text-sm whitespace-nowrap">
+                  {domain || "dub.sh"}
+                </span>
+                <input
+                  type="text"
+                  name="key"
+                  id="key"
+                  required
+                  autoFocus={false}
+                  pattern="[\p{Letter}\p{Mark}\d-]+" // Unicode regex to match characters from all languages and numbers (and omit all symbols except for dashes)
+                  className={`${
+                    keyExistsError
+                      ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                      : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
+                  } pr-10 block w-full rounded-r-md focus:outline-none sm:text-sm`}
+                  placeholder="github"
+                  value={key}
+                  onChange={(e) => {
+                    setKeyExistsError(false);
+                    setData({ ...data, key: e.target.value });
+                  }}
+                  aria-invalid="true"
+                  aria-describedby="key-error"
+                />
+                {keyExistsError && (
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                    <AlertCircleFill
+                      className="h-5 w-5 text-red-500"
+                      aria-hidden="true"
+                    />
+                  </div>
+                )}
+              </div>
               {keyExistsError && (
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                  <AlertCircleFill
-                    className="h-5 w-5 text-red-500"
-                    aria-hidden="true"
-                  />
-                </div>
+                <p className="mt-2 text-sm text-red-600" id="key-error">
+                  Short link is already in use.
+                </p>
               )}
             </div>
-            {keyExistsError && (
-              <p className="mt-2 text-sm text-red-600" id="key-error">
-                Short link is already in use.
-              </p>
-            )}
-          </div>
 
-          <div>
-            <label
-              htmlFor="url"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Destination URL
-            </label>
-            <div className="flex mt-1 rounded-md shadow-sm">
-              <input
-                name="url"
-                id="url"
-                type="url"
-                required
-                className="border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500 block w-full rounded-md focus:outline-none sm:text-sm"
-                placeholder="https://github.com/steven-tey/dub"
-                value={url}
-                onChange={(e) => {
-                  setData({ ...data, url: e.target.value });
-                }}
-                aria-invalid="true"
-              />
-            </div>
-          </div>
-
-          <div>
-            <div className="flex justify-between items-center">
+            <div>
               <label
-                htmlFor="title"
+                htmlFor="url"
                 className="block text-sm font-medium text-gray-700"
               >
-                Title
+                Destination URL
               </label>
-              <button
-                className={`${
-                  url.length === 0
-                    ? "cursor-not-allowed text-gray-300"
-                    : "hover:text-black active:scale-95"
-                } flex items-center space-x-2 text-gray-500 text-sm transition-all duration-75`}
-                onClick={() => generateTitleFromUrl(url)}
-                disabled={url.length === 0 || generatingTitle}
-                type="button"
-              >
-                {generatingTitle && <LoadingCircle />}
-                <p>{generatingTitle ? "Generating" : "Generate from URL"}</p>
-              </button>
+              <div className="flex mt-1 rounded-md shadow-sm">
+                <input
+                  name="url"
+                  id="url"
+                  type="url"
+                  required
+                  className="border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500 block w-full rounded-md focus:outline-none sm:text-sm"
+                  placeholder="https://github.com/steven-tey/dub"
+                  value={url}
+                  onChange={(e) => {
+                    setData({ ...data, url: e.target.value });
+                  }}
+                  aria-invalid="true"
+                />
+              </div>
             </div>
-            <div className="flex mt-1 rounded-md shadow-sm">
-              <TextareaAutosize
-                name="title"
-                id="title"
-                required
-                minRows={3}
-                className="border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500 pr-10 block w-full rounded-md focus:outline-none sm:text-sm"
-                placeholder="Dub - an open-source link shortener SaaS with built-in analytics + free custom domains."
-                value={title}
-                onChange={(e) => {
-                  setData({ ...data, title: e.target.value });
-                }}
-                aria-invalid="true"
-              />
+
+            <div>
+              <div className="flex justify-between items-center">
+                <label
+                  htmlFor="title"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Title
+                </label>
+                <button
+                  className={`${
+                    url.length === 0
+                      ? "cursor-not-allowed text-gray-300"
+                      : "hover:text-black active:scale-95"
+                  } flex items-center space-x-2 text-gray-500 text-sm transition-all duration-75`}
+                  onClick={() => generateTitleFromUrl(url)}
+                  disabled={url.length === 0 || generatingTitle}
+                  type="button"
+                >
+                  {generatingTitle && <LoadingCircle />}
+                  <p>{generatingTitle ? "Generating" : "Generate from URL"}</p>
+                </button>
+              </div>
+              <div className="flex mt-1 rounded-md shadow-sm">
+                <TextareaAutosize
+                  name="title"
+                  id="title"
+                  required
+                  minRows={3}
+                  className="border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500 pr-10 block w-full rounded-md focus:outline-none sm:text-sm"
+                  placeholder="Dub - an open-source link shortener SaaS with built-in analytics + free custom domains."
+                  value={title}
+                  onChange={(e) => {
+                    setData({ ...data, title: e.target.value });
+                  }}
+                  aria-invalid="true"
+                />
+              </div>
             </div>
           </div>
 
@@ -316,20 +322,22 @@ function AddEditLinkModal({
             />
           )}
 
-          <button
-            disabled={saving || keyExistsError}
-            className={`${
-              saving || keyExistsError
-                ? "cursor-not-allowed bg-gray-100 border-gray-200 text-gray-400"
-                : "bg-black hover:bg-white hover:text-black border-black text-white"
-            } flex justify-center items-center w-full text-sm h-10 rounded-md border transition-all focus:outline-none`}
-          >
-            {saving ? (
-              <LoadingDots color="#808080" />
-            ) : (
-              <p>{props ? "Save changes" : "Add link"}</p>
-            )}
-          </button>
+          <div className="sm:px-16 px-4">
+            <button
+              disabled={saving || keyExistsError}
+              className={`${
+                saving || keyExistsError
+                  ? "cursor-not-allowed bg-gray-100 border-gray-200 text-gray-400"
+                  : "bg-black hover:bg-white hover:text-black border-black text-white"
+              } flex justify-center items-center w-full text-sm h-10 rounded-md border transition-all focus:outline-none`}
+            >
+              {saving ? (
+                <LoadingDots color="#808080" />
+              ) : (
+                <p>{props ? "Save changes" : "Add link"}</p>
+              )}
+            </button>
+          </div>
         </form>
       </div>
     </Modal>
@@ -377,21 +385,23 @@ function AdvancedSettings({ data, setData, debouncedUrl }) {
 
   return (
     <div>
-      <button
-        type="button"
-        className="flex items-center"
-        onClick={() => setExpanded(!expanded)}
-      >
-        <ChevronRight
-          className={`h-5 w-5 text-gray-600 ${
-            expanded ? "rotate-90" : ""
-          } transition-all`}
-        />
-        <p className="text-gray-600 text-sm">Advanced options</p>
-      </button>
+      <div className="sm:px-16 px-4">
+        <button
+          type="button"
+          className="flex items-center"
+          onClick={() => setExpanded(!expanded)}
+        >
+          <ChevronRight
+            className={`h-5 w-5 text-gray-600 ${
+              expanded ? "rotate-90" : ""
+            } transition-all`}
+          />
+          <p className="text-gray-600 text-sm">Advanced options</p>
+        </button>
+      </div>
 
       {expanded && (
-        <div className="mt-4 grid gap-5">
+        <div className="mt-4 grid gap-5 bg-white border-t border-b border-gray-200 sm:px-16 px-4 py-8">
           <div>
             <div className="flex justify-between items-center">
               <label
