@@ -18,7 +18,7 @@ export default async function handler(
       return res.status(400).json({ error: "Missing feedback" });
     }
 
-    const response = sendMail({
+    const response = await sendMail({
       to: "feedback@dub.sh",
       ...(email && { replyTo: email }),
       subject: "🎉 New Feedback Received!",
