@@ -8,7 +8,7 @@ export default async function LinkMiddleware(
   ev: NextFetchEvent,
 ) {
   const url = req.nextUrl.clone();
-  const { hostname, key, query } = parse(req);
+  const { hostname, key } = parse(req);
 
   if (!hostname || !key) {
     return NextResponse.next();
