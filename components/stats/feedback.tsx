@@ -12,21 +12,26 @@ export default function Feedback() {
     feedback: "",
   });
   const [state, setState] = useState("idle");
-  const [buttonText, setButtonText] = useState("Submit feedback");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setState("submitting");
-    setTimeout(() => {
-      setState("submitted");
-    }, 1000);
+    await fetch("/api/site/feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    })
+      .then((res) => res.json())
+      .then(() => {
+        setState("submitted");
+      });
   };
 
-  const handleKeyDown = useCallback(async (e) => {
+  const handleKeyDown = async (e) => {
     if (e.key === "Enter" && e.metaKey) {
       await handleSubmit(e);
     }
-  }, []);
+  };
 
   return (
     <div className="relative bg-white px-7 py-5 sm:shadow-lg sm:rounded-lg border border-gray-200 sm:border-gray-100 h-[420px] overflow-scroll scrollbar-hide">
@@ -62,9 +67,7 @@ export default function Feedback() {
                 type="email"
                 placeholder="panic@thedis.co"
                 autoComplete="email"
-                onChange={(e) => {
-                  setData({ ...data, email: e.target.value });
-                }}
+                onChange={(e) => setData({ ...data, email: e.target.value })}
                 className="border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500 pr-10 block w-full rounded-md focus:outline-none sm:text-sm"
               />
             </div>
@@ -84,12 +87,7 @@ export default function Feedback() {
                 className="border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500 pr-10 block w-full rounded-md focus:outline-none sm:text-sm"
                 placeholder="What other data would you like to see?"
                 value={data.feedback}
-                onChange={(e) => {
-                  setData({
-                    ...data,
-                    feedback: e.target.value,
-                  });
-                }}
+                onChange={(e) => setData({ ...data, feedback: e.target.value })}
                 aria-invalid="true"
               />
             </div>
@@ -104,7 +102,7 @@ export default function Feedback() {
               {state === "submitting" ? (
                 <LoadingDots color="#808080" />
               ) : (
-                <p>{buttonText}</p>
+                <p>Submit feedback</p>
               )}
             </button>
           </motion.form>
