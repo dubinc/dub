@@ -39,6 +39,7 @@ export default function Head(): JSX.Element {
         .paragraph > * {
           font-size: 14px !important;
           line-height: 24px !important;
+          white-space: pre-wrap !important;
         }
         .li > * {
           font-size: 14px !important;

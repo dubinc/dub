@@ -1,22 +1,20 @@
-import { useMemo } from "react";
-import { UIEvent, useState } from "react";
+import { UIEvent, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import BadgeSelect from "@/components/shared/badge-select";
-import { LocationTabs, StatsProps, processLocationData } from "@/lib/stats";
+import BlurImage from "@/components/shared/blur-image";
+import { Link, LoadingDots } from "@/components/shared/icons";
+import { StatsProps, processRefererData } from "@/lib/stats";
 import { nFormatter } from "@/lib/utils";
-import { LoadingDots } from "../shared/icons";
 
-export default function Locations({ data: rawData }: { data: StatsProps }) {
-  const [tab, setTab] = useState<LocationTabs>("country");
+export default function Referer({ data: rawData }: { data: StatsProps }) {
   const data = {
     ...rawData,
-    locationData: useMemo(() => {
-      if (rawData?.locationData) {
-        return processLocationData(rawData.locationData, tab);
+    refererData: useMemo(() => {
+      if (rawData?.refererData) {
+        return processRefererData(rawData.refererData);
       } else {
         return null;
       }
-    }, [rawData, tab]),
+    }, [rawData]),
   };
 
   const [scrolled, setScrolled] = useState(false);
@@ -34,39 +32,40 @@ export default function Locations({ data: rawData }: { data: StatsProps }) {
       className="relative bg-white px-7 py-5 sm:shadow-lg sm:rounded-lg border border-gray-200 sm:border-gray-100  h-[420px] overflow-scroll scrollbar-hide"
       onScroll={handleScroll}
     >
-      <div className="mb-5 flex justify-between">
-        <h1 className="text-xl font-semibold">Locations</h1>
-        <BadgeSelect
-          options={["country", "city"]}
-          selected={tab}
-          // @ts-ignore
-          selectAction={setTab}
-        />
+      <div className="mb-5 flex">
+        <h1 className="text-xl font-semibold">Referrals</h1>
       </div>
       <div
         className={
-          data.locationData && data.locationData.length > 0
+          data.refererData && data.refererData.length > 0
             ? "grid gap-4"
             : "h-[300px] flex justify-center items-center"
         }
       >
-        {data.locationData ? (
-          data.locationData.length > 0 ? (
-            data.locationData.map(({ display, code, count }, idx) => (
+        {data.refererData ? (
+          data.refererData.length > 0 ? (
+            data.refererData.map(({ display, count }, idx) => (
               <div key={idx} className="flex justify-between items-center">
                 <div className="relative flex items-center z-10 w-full max-w-[calc(100%-3rem)]">
                   <span className="flex space-x-2 px-2 items-center z-10">
-                    <img
-                      src={`https://flag.vercel.app/m/${code}.svg`}
-                      className="w-5 h-3"
-                    />
+                    {display === "(direct)" ? (
+                      <Link className="w-4 h-4" />
+                    ) : (
+                      <BlurImage
+                        src={`https://www.google.com/s2/favicons?sz=64&domain_url=${display}`}
+                        alt={display}
+                        width={20}
+                        height={20}
+                        className="w-4 h-4 rounded-full"
+                      />
+                    )}
                     <p className="text-gray-800 text-sm">{display}</p>
                   </span>
                   <motion.div
                     style={{
                       width: `${(count / data.totalClicks) * 100}%`,
                     }}
-                    className="bg-orange-100 absolute h-8 origin-left"
+                    className="bg-red-100 absolute h-8 origin-left rounded"
                     transition={{ ease: "easeOut", duration: 0.3 }}
                     initial={{ transform: "scaleX(0)" }}
                     animate={{ transform: "scaleX(1)" }}
@@ -85,7 +84,7 @@ export default function Locations({ data: rawData }: { data: StatsProps }) {
         )}
       </div>
       <AnimatePresence>
-        {data.locationData && data.locationData.length > 9 && !scrolled && (
+        {data.refererData && data.refererData.length > 9 && !scrolled && (
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={{
