@@ -19,8 +19,8 @@ export default async function handler(
     }
 
     const response = sendMail({
-      to: "steven@dub.sh",
-      ...(email && { from: email, replyTo: email }),
+      to: "feedback@dub.sh",
+      ...(email && { replyTo: email }),
       subject: "🎉 New Feedback Received!",
       component: <FeedbackEmail email={email} feedback={feedback} />,
     });
