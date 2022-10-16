@@ -23,7 +23,7 @@ import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 import useProject from "@/lib/swr/use-project";
 import useUsage from "@/lib/swr/use-usage";
 import { LinkProps } from "@/lib/types";
-import { linkConstructor } from "@/lib/utils";
+import { getApexDomain, linkConstructor } from "@/lib/utils";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
@@ -55,10 +55,10 @@ function AddEditLinkModal({
 
   const heroProps = useMemo(() => {
     if (props?.url) {
-      const urlHostname = new URL(props.url).hostname;
+      const apexDomain = getApexDomain(props.url);
       return {
-        avatar: `https://www.google.com/s2/favicons?sz=64&domain_url=${urlHostname}`,
-        alt: urlHostname,
+        avatar: `https://www.google.com/s2/favicons?sz=64&domain_url=${apexDomain}`,
+        alt: apexDomain,
         copy: `Edit ${linkConstructor({
           key: props.key,
           domain,

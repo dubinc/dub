@@ -16,7 +16,7 @@ import { QRCodeSVG, getQRAsCanvas, getQRAsSVGDataUri } from "@/lib/qr";
 import useProject from "@/lib/swr/use-project";
 import useUsage from "@/lib/swr/use-usage";
 import { SimpleLinkProps } from "@/lib/types";
-import { linkConstructor } from "@/lib/utils";
+import { getApexDomain, linkConstructor } from "@/lib/utils";
 
 function LinkQRModalHelper({
   showLinkQRModal,
@@ -29,12 +29,12 @@ function LinkQRModalHelper({
 }) {
   const anchorRef = useRef<HTMLAnchorElement>();
   const { project: { domain, logo } = {} } = useProject();
-  const { avatarUrl, urlHostname } = useMemo(() => {
+  const { avatarUrl, apexDomain } = useMemo(() => {
     try {
-      const urlHostname = new URL(props.url).hostname;
+      const apexDomain = getApexDomain(props.url);
       return {
-        avatarUrl: `https://www.google.com/s2/favicons?sz=64&domain_url=${urlHostname}`,
-        urlHostname,
+        avatarUrl: `https://www.google.com/s2/favicons?sz=64&domain_url=${apexDomain}`,
+        apexDomain,
       };
     } catch (e) {
       return null;
@@ -84,8 +84,8 @@ function LinkQRModalHelper({
           {avatarUrl ? (
             <BlurImage
               src={avatarUrl}
-              alt={urlHostname}
-              className="w-10 h-10 rounded-full border border-gray-200"
+              alt={apexDomain}
+              className="w-10 h-10 rounded-full"
               width={40}
               height={40}
             />

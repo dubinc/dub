@@ -309,7 +309,7 @@ export const COUNTRIES: { [key: string]: string } = {
   XK: "Kosovo",
 };
 
-export const ccTLDs = [
+export const ccTLDs = new Set([
   "af",
   "ax",
   "al",
@@ -582,4 +582,14 @@ export const ccTLDs = [
   "ye",
   "zm",
   "zw",
-];
+]);
+
+export const secondLevelDomains = new Set([
+  "com",
+  "co",
+  "net",
+  "org",
+  "edu",
+  "gov",
+  "in",
+]);
