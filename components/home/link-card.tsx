@@ -10,7 +10,12 @@ import CopyButton from "@/components/shared/copy-button";
 import { Chart, LoadingDots, QR } from "@/components/shared/icons";
 import { FRAMER_MOTION_LIST_ITEM_VARIANTS } from "@/lib/constants";
 import { SimpleLinkProps } from "@/lib/types";
-import { fetcher, linkConstructor, nFormatter } from "@/lib/utils";
+import {
+  fetcher,
+  getApexDomain,
+  linkConstructor,
+  nFormatter,
+} from "@/lib/utils";
 
 export default function LinkCard({
   _key: key,
@@ -23,7 +28,7 @@ export default function LinkCard({
   hashes?: SimpleLinkProps[];
   setHashes?: (hashes: SimpleLinkProps[]) => void;
 }) {
-  const urlHostname = new URL(url).hostname;
+  const apexDomain = getApexDomain(url);
 
   const { data: clicks, isValidating } = useSWR<string>(
     `/api/edge/links/${key}/clicks`,
@@ -119,8 +124,8 @@ export default function LinkCard({
         className="cursor-grab active:cursor-grabbing flex items-center space-x-3 border border-gray-200 hover:border-black bg-white p-3 max-w-md rounded-md transition-[border-color]"
       >
         <BlurImage
-          src={`https://www.google.com/s2/favicons?sz=64&domain_url=${urlHostname}`}
-          alt={urlHostname}
+          src={`https://www.google.com/s2/favicons?sz=64&domain_url=${apexDomain}`}
+          alt={apexDomain}
           className="w-10 h-10 rounded-full pointer-events-none"
           width={20}
           height={20}
