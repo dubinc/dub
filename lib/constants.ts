@@ -26,6 +26,7 @@ export const RESERVED_KEYS = new Set([
   "static",
   "stats",
   "proxy",
+  "auth",
   "pricing",
   "about",
   "placeholder",
@@ -55,6 +56,8 @@ export const DEFAULT_REDIRECTS = {
 };
 
 export const FREE_PLAN_PROJECT_LIMIT = 5;
+
+export const FAVICON_FOLDER = "/static/favicons";
 
 export const COUNTRIES: { [key: string]: string } = {
   AF: "Afghanistan",

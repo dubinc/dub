@@ -14,21 +14,24 @@ export default async function LinkMiddleware(
     return NextResponse.next();
   }
 
-  const response = await redis.hget<Omit<LinkProps, "key">>(
-    `${hostname}:links`,
-    key,
+  const response = await redis.get<{ url: string; password?: boolean }>(
+    `${hostname}:${key}`,
   );
-  const { url: target, description, image } = response || {};
+  const { url: target, password } = response || {};
 
   if (target) {
-    const isBot = detectBot(req);
+    if (password) {
+      return NextResponse.rewrite(`https://dub.sh/auth/${hostname}/${key}`);
+    }
 
     // special case for link health monitoring with planetfall.io :)
-    const noTrack = req.headers.get("dub-no-track");
-    if (!noTrack) ev.waitUntil(recordClick(hostname, req, key)); // track the click only if there is no `dub-no-track` header
+    if (!req.headers.get("dub-no-track")) {
+      ev.waitUntil(recordClick(hostname, req, key)); // track the click only if there is no `dub-no-track` header
+    }
 
+    const isBot = detectBot(req);
     if (isBot) {
-      // rewrite to proxy page (dub.sh/proxy/[domain]/[key])
+      // rewrite to proxy page (dub.sh/proxy/[domain]/[key]) if it's a bot
       return NextResponse.rewrite(`https://dub.sh/proxy/${hostname}/${key}`);
     } else {
       return NextResponse.redirect(target);

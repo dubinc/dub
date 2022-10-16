@@ -4,8 +4,15 @@ import { escape } from "html-escaper";
 import prisma from "@/lib/prisma";
 import { LinkProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
+import { getApexDomain } from "@/lib/utils";
 
-export default function LinkPage({ hostname, title, description, image }) {
+export default function LinkPage({
+  hostname,
+  apexDomain,
+  title,
+  description,
+  image,
+}) {
   return (
     <>
       <Head>
@@ -21,7 +28,7 @@ export default function LinkPage({ hostname, title, description, image }) {
         <link
           rel="icon"
           href={`https://www.google.com/s2/favicons?sz=64&domain_url=${escape(
-            hostname,
+            apexDomain,
           )}`}
         />
       </Head>
@@ -37,7 +44,7 @@ export default function LinkPage({ hostname, title, description, image }) {
           <div className="flex space-x-3 bg-gray-100 p-5">
             <Image
               src={`https://www.google.com/s2/favicons?sz=64&domain_url=${escape(
-                hostname,
+                apexDomain,
               )}`}
               alt={title}
               width={300}
@@ -63,11 +70,13 @@ export function getStaticPaths() {
 }
 
 export async function getStaticProps(ctx) {
-  const { domain, key } = ctx.params;
+  const { domain, key } = ctx.params as { domain: string; key: string };
   const link = await prisma.link.findUnique({
     where: {
-      domain,
-      key,
+      domain_key: {
+        domain,
+        key,
+      },
     },
   });
 
@@ -88,10 +97,12 @@ export async function getStaticProps(ctx) {
   }
 
   const hostname = new URL(url).hostname;
+  const apexDomain = getApexDomain(url);
 
   return {
     props: {
       hostname,
+      apexDomain,
       title,
       description,
       image,

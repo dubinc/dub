@@ -115,18 +115,33 @@ model SentEmail {
 
 model Link {
   id              String   @id @default(cuid())
-  domain          String
-  key             String
-  url             String
-  title           String?
-  description     String?
-  image           String?
-  utm_source      String?
-  utm_medium      String?
-  utm_campaign    String?
-  clicks          Int      @default(0)
+  domain          String   // domain of the link (e.g. dub.sh) – also stored on Redis
+  key             String   // key of the link (e.g. /github) – also stored on Redis
+  url             String   // target url (e.g. https://github.com/steven-tey/dub) – also stored on Redis
+  archived        Boolean  @default(false) // whether the link is archived or not
+  expiresAt       DateTime? // when the link expires – stored on Redis via ttl
+  passwordHash    String?  // password to access the link – also stored on Redis
+
+  // Custom OG tags – if not set, will use OG tags from target url
+  title           String?  // OG title for the link (e.g. Dub - Open-Source Bitly Alternative)
+  description     String?  // OG description for the link (e.g. An open-source link shortener SaaS with built-in analytics and free custom domains.)
+  image           String?  // OG image for the link (e.g. https://dub.sh/og-image.png)
+
+  // UTM parameters
+  utm_source      String?   // UTM source for the link (e.g. youtube.com)
+  utm_medium      String?   // UTM medium for the link (e.g. social)
+  utm_campaign    String?   // UTM campaign for the link (e.g. summer-sale)
+  utm_term        String?   // UTM term for the link (e.g. dub)
+  utm_content     String?   // UTM content for the link (e.g. description)
+  
+  clicks          Int       @default(0) // number of clicks (updated every day via cron + real-time when user views links)
+  clicksUpdatedAt  DateTime @default(now()) // last time clicks was updated
+
+  // User who created the link
   user            User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId          String?
+
+  // Project that the link belongs to
   project         Project? @relation(fields: [domain], references: [domain], onUpdate: Cascade, onDelete: Cascade)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
