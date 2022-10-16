@@ -13,7 +13,7 @@ import LoadingDots from "@/components/shared/icons/loading-dots";
 import Modal from "@/components/shared/modal";
 import useProject from "@/lib/swr/use-project";
 import { LinkProps } from "@/lib/types";
-import { linkConstructor } from "@/lib/utils";
+import { getApexDomain, linkConstructor } from "@/lib/utils";
 
 function DeleteLinkModal({
   showDeleteLinkModal,
@@ -28,7 +28,7 @@ function DeleteLinkModal({
   const { slug } = router.query;
   const [deleting, setDeleting] = useState(false);
   const { project: { domain } = {} } = useProject();
-  const urlHostname = props?.url ? new URL(props.url).hostname : null;
+  const apexDomain = getApexDomain(props.url);
 
   const shortlink = useMemo(() => {
     return linkConstructor({
@@ -46,9 +46,9 @@ function DeleteLinkModal({
       <div className="inline-block w-full sm:max-w-md overflow-hidden align-middle transition-all transform bg-white sm:border sm:border-gray-200 shadow-xl sm:rounded-2xl">
         <div className="flex flex-col justify-center items-center space-y-3 sm:px-16 px-4 pt-8 py-4 border-b border-gray-200">
           <BlurImage
-            src={`https://www.google.com/s2/favicons?sz=64&domain_url=${urlHostname}`}
-            alt={urlHostname}
-            className="w-10 h-10 rounded-full border border-gray-200"
+            src={`https://www.google.com/s2/favicons?sz=64&domain_url=${apexDomain}`}
+            alt={apexDomain}
+            className="w-10 h-10 rounded-full"
             width={20}
             height={20}
           />
