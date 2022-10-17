@@ -14,13 +14,17 @@ export default async function LinkMiddleware(
     return NextResponse.next();
   }
 
-  const response = await redis.get<{ url: string; password?: boolean }>(
-    `${hostname}:${key}`,
-  );
-  const { url: target, password } = response || {};
+  const response = await redis.get<{
+    url: string;
+    password?: boolean;
+    proxy?: boolean;
+  }>(`${hostname}:${key}`);
+  const { url: target, password, proxy } = response || {};
+
+  console.log(req.cookies.get("dub_authenticated"));
 
   if (target) {
-    if (password) {
+    if (password && !req.cookies.get("dub_authenticated")) {
       return NextResponse.rewrite(`https://dub.sh/auth/${hostname}/${key}`);
     }
 

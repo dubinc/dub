@@ -4,7 +4,6 @@ import { useState } from "react";
 import BlurImage from "@/components/shared/blur-image";
 import { AlertCircleFill, LoadingDots } from "@/components/shared/icons";
 import { FAVICON_FOLDER } from "@/lib/constants";
-import prisma from "@/lib/prisma";
 
 const title = "Password Required";
 const description =
@@ -21,6 +20,8 @@ export default function PasswordProtectedLinkPage() {
   return (
     <>
       <Head>
+        <title>{title}</title>
+        <meta name="description" content={description} />
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
         <meta property="og:image" content={image} />
@@ -126,48 +127,4 @@ export default function PasswordProtectedLinkPage() {
       </main>
     </>
   );
-}
-
-export function getStaticPaths() {
-  return {
-    paths: [],
-    fallback: "blocking",
-  };
-}
-
-export async function getStaticProps(ctx) {
-  const { domain, key } = ctx.params as { domain: string; key: string };
-  const link = await prisma.link.findUnique({
-    where: {
-      domain_key: {
-        domain,
-        key,
-      },
-    },
-    select: {
-      url: true,
-      passwordHash: true,
-    },
-  });
-
-  const { url, passwordHash } = link || {};
-
-  if (!url) {
-    return {
-      notFound: true,
-      revalidate: 1,
-    };
-  } else if (!passwordHash) {
-    return {
-      redirect: {
-        destination: url,
-      },
-      revalidate: 1,
-    };
-  }
-
-  return {
-    props: {},
-    revalidate: 1,
-  };
 }

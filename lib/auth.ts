@@ -27,6 +27,7 @@ interface WithProjectNextApiHandler {
     req: NextApiRequest,
     res: NextApiResponse,
     project?: ProjectProps,
+    session?: Session,
   ): Promise<void>;
 }
 
@@ -95,16 +96,6 @@ const withProjectAuth =
     }
 
     if (needNotExceededUsage || needProSubscription) {
-      const user = (await prisma.user.findUnique({
-        where: {
-          id: session.user.id,
-        },
-        select: {
-          usage: true,
-          usageLimit: true,
-        },
-      })) as UsageProps;
-
       if (needNotExceededUsage && project.ownerExceededUsage) {
         return res.status(403).end("Unauthorized: Usage limits exceeded.");
       }
@@ -115,7 +106,7 @@ const withProjectAuth =
       }
     }
 
-    return handler(req, res, project);
+    return handler(req, res, project, session);
   };
 
 export { withProjectAuth };

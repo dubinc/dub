@@ -20,7 +20,7 @@ import { useDeleteLinkModal } from "./modals/delete-link-modal";
 import { useLinkQRModal } from "./modals/link-qr-modal";
 
 export default function LinkCard({ props }: { props: LinkProps }) {
-  const { key, url, title, timestamp } = props;
+  const { key, url, title, createdAt } = props;
 
   const apexDomain = getApexDomain(url);
 
@@ -31,11 +31,14 @@ export default function LinkCard({ props }: { props: LinkProps }) {
   const { domain } = project || {};
   const { exceededUsage } = useUsage();
 
-  const { data: clicks, isValidating } = useSWR<string>(
+  const { data: clicks, isValidating } = useSWR<number>(
     domain
       ? `/api/projects/${slug}/domains/${domain}/links/${key}/clicks`
       : `/api/edge/links/${key}/clicks`,
     fetcher,
+    {
+      fallbackData: props.clicks,
+    },
   );
 
   const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal({
@@ -86,10 +89,10 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                 <a className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 hover:scale-105 active:scale-95 transition-all duration-75">
                   <Chart className="w-4 h-4" />
                   <p className="text-sm text-gray-500 whitespace-nowrap">
-                    {isValidating || !clicks ? (
+                    {isValidating ? (
                       <LoadingDots color="#71717A" />
                     ) : (
-                      nFormatter(parseInt(clicks))
+                      nFormatter(clicks)
                     )}
                     <span className="hidden sm:inline-block ml-1">clicks</span>
                   </p>
@@ -97,13 +100,13 @@ export default function LinkCard({ props }: { props: LinkProps }) {
               </Link>
             </div>
             <h3 className="text-sm font-medium text-gray-700 line-clamp-1">
-              {title}
+              {title || url}
             </h3>
           </div>
         </div>
         <div className="flex items-center space-x-3 w-full sm:w-auto">
           <p className="text-sm hidden sm:block text-gray-500">
-            Added {timeAgo(timestamp)}
+            Added {timeAgo(createdAt)}
           </p>
           {slug && exceededUsage ? (
             <Tooltip

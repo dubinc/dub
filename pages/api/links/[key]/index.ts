@@ -1,20 +1,29 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { deleteLink, editLink } from "@/lib/api/links";
-import { withProjectAuth } from "@/lib/auth";
+import { withUserAuth } from "@/lib/auth";
+import prisma from "@/lib/prisma";
 
-export default withProjectAuth(
-  async (req: NextApiRequest, res: NextApiResponse, _, session) => {
-    const {
-      slug,
-      domain,
-      key: oldKey,
-    } = req.query as {
-      slug: string;
-      domain: string;
-      key: string;
-    };
+const domain = "dub.sh";
 
-    // PUT /api/projects/[slug]/domains/[domain]/links/[key] - edit a link
+export default withUserAuth(
+  async (req: NextApiRequest, res: NextApiResponse, userId: string) => {
+    const { key: oldKey } = req.query as { key: string };
+
+    const isOwner = await prisma.link
+      .findUnique({
+        where: {
+          domain_key: {
+            domain,
+            key: oldKey,
+          },
+        },
+      })
+      .then((link) => link?.userId === userId);
+
+    if (!isOwner) {
+      return res.status(403).json({ error: "Not authorized" });
+    }
+
     if (req.method === "PUT") {
       let { key, url } = req.body;
       if (!key || !url) {
@@ -26,10 +35,10 @@ export default withProjectAuth(
         {
           domain,
           ...req.body,
-          userId: session.user.id,
+          userId,
         },
         oldKey,
-        slug,
+        "dub",
       );
       if (response === null) {
         return res.status(400).json({ error: "Key already exists" });
@@ -39,14 +48,10 @@ export default withProjectAuth(
       const response = await deleteLink(domain, oldKey);
       return res.status(200).json(response);
     } else {
-      res.setHeader("Allow", ["POST", "DELETE"]);
+      res.setHeader("Allow", ["GET", "POST", "DELETE"]);
       return res
         .status(405)
         .json({ error: `Method ${req.method} Not Allowed` });
     }
-  },
-  {
-    needVerifiedDomain: true,
-    needNotExceededUsage: true,
   },
 );

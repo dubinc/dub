@@ -27,6 +27,9 @@ export default function ListBox() {
         name: session?.user?.name || session?.user?.email || "User",
         slug: "/",
         domain: "dub.sh",
+        logo:
+          session?.user?.image ||
+          `https://avatars.dicebear.com/api/micah/${session?.user?.email}.svg`,
       }
     );
   }, [router, projects, session]);
@@ -54,10 +57,8 @@ export default function ListBox() {
             <div className="flex justify-start items-center space-x-3">
               <BlurImage
                 src={
-                  selected.slug === "/"
-                    ? session?.user?.image ||
-                      `https://avatars.dicebear.com/api/micah/${session?.user?.email}.svg`
-                    : `https://www.google.com/s2/favicons?sz=64&domain_url=${selected.domain}`
+                  selected.logo ||
+                  `https://www.google.com/s2/favicons?sz=64&domain_url=${selected.domain}`
                 }
                 alt={selected.slug}
                 className="w-8 h-8 flex-shrink-0 rounded-full overflow-hidden border border-gray-300"
@@ -85,7 +86,7 @@ export default function ListBox() {
             leaveTo="transform opacity-0 scale-95"
           >
             <Listbox.Options className="absolute mt-1 max-h-60 w-60 overflow-auto rounded-md bg-white p-2 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-              {projects.map(({ name, slug, domain }) => (
+              {projects.map(({ name, slug, domain, logo }) => (
                 <Listbox.Option
                   key={slug}
                   className={`relative flex items-center space-x-2 cursor-pointer p-2 rounded-md hover:bg-gray-100 active:scale-95 ${
@@ -94,7 +95,10 @@ export default function ListBox() {
                   value={{ name, slug }}
                 >
                   <BlurImage
-                    src={`https://www.google.com/s2/favicons?sz=64&domain_url=${domain}`}
+                    src={
+                      logo ||
+                      `https://www.google.com/s2/favicons?sz=64&domain_url=${domain}`
+                    }
                     alt={slug}
                     className="w-7 h-7 rounded-full overflow-hidden"
                     width={48}

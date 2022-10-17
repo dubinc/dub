@@ -596,3 +596,7 @@ export const secondLevelDomains = new Set([
   "gov",
   "in",
 ]);
+
+export const SPECIAL_APEX_DOMAINS = {
+  "youtu.be": "youtube.com",
+};

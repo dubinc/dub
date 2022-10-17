@@ -4,12 +4,28 @@ export interface SimpleLinkProps {
 }
 
 export interface LinkProps {
+  id?: string;
+  domain: string;
   key: string;
   url: string;
-  title: string;
-  timestamp?: number;
+  archived: boolean;
+  expiresAt?: Date;
+  passwordHash?: string;
+
+  title?: string;
   description?: string;
   image?: string;
+
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  utm_term?: string;
+  utm_content?: string;
+
+  clicks: number;
+  userId: string;
+
+  createdAt: Date;
 }
 
 export interface ProjectProps {

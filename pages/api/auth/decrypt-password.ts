@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { compare } from "bcrypt";
+import { serialize } from "cookie";
 import prisma from "@/lib/prisma";
 
 export default async function handler(
@@ -14,6 +15,17 @@ export default async function handler(
     });
     const validPassword = await compare(password, passwordHash);
     if (validPassword) {
+      // Set cookie to authenticate user for 1 week
+      res.setHeader(
+        "Set-Cookie",
+        serialize("dub_authenticated", "1", {
+          path: `/${key}`,
+          maxAge: 60 * 60 * 24 * 7, // 1 week
+          httpOnly: true,
+          domain: process.env.NODE_ENV === "production" ? domain : null,
+          secure: process.env.NODE_ENV === "production",
+        }),
+      );
       return res.status(200).json({ url });
     } else {
       return res.status(401).json({ error: "Invalid password" });

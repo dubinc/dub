@@ -1,5 +1,5 @@
 import ms from "ms";
-import { ccTLDs, secondLevelDomains } from "./constants";
+import { SPECIAL_APEX_DOMAINS, ccTLDs, secondLevelDomains } from "./constants";
 
 interface SWRError extends Error {
   status: number;
@@ -108,9 +108,9 @@ export const getDescriptionFromUrl = async (url: string) => {
   return description;
 };
 
-export const timeAgo = (timestamp: number): string => {
+export const timeAgo = (timestamp: Date): string => {
   if (!timestamp) return "never";
-  return `${ms(Date.now() - timestamp)} ago`;
+  return `${ms(Date.now() - new Date(timestamp).getTime())} ago`;
 };
 
 export const generateSlugFromName = (name: string) => {
@@ -181,6 +181,9 @@ export const getApexDomain = (url: string) => {
   } catch (e) {
     return "";
   }
+  // special apex domains (e.g. youtu.be)
+  if (SPECIAL_APEX_DOMAINS[domain]) return SPECIAL_APEX_DOMAINS[domain];
+
   const parts = domain.split(".");
   if (parts.length > 2) {
     // if this is a second-level TLD (e.g. co.uk, .com.ua, .org.tt), we need to return the last 3 parts

@@ -115,7 +115,7 @@ export async function recordClick(
  * Get the links associated with a project
  **/
 export async function getLinksForProject(
-  slug: string,
+  domain: string,
   userId?: string,
 ): Promise<LinkProps[]> {
   /*
@@ -126,7 +126,7 @@ export async function getLinksForProject(
         Otherwise, it will return all links for the project.
   */
   const keys = await redis.zrange<string[]>(
-    `${slug}:links:timestamps${userId ? `:${userId}` : ""}`,
+    `${domain}:links:timestamps${userId ? `:${userId}` : ""}`,
     0,
     -1,
     {
@@ -134,7 +134,7 @@ export async function getLinksForProject(
     },
   );
   if (!keys || keys.length === 0) return []; // no links for this project
-  const metadata = (await redis.hmget(`${slug}:links`, ...keys)) as {
+  const metadata = (await redis.hmget(`${domain}:links`, ...keys)) as {
     [key: string]: Omit<LinkProps, "key">;
   };
   const links = keys.map((key) => ({
@@ -151,10 +151,10 @@ export async function getLinkCountForProject(slug: string) {
   return await redis.zcard(`${slug}:links:timestamps`);
 }
 
-export async function getLinkClicksCount(hostname: string, key: string) {
+export async function getLinkClicksCount(domain: string, key: string) {
   const start = Date.now() - 2629746000; // 30 days ago
   return (
-    (await redis.zcount(`${hostname}:clicks:${key}`, start, Date.now())) || "0"
+    (await redis.zcount(`${domain}:clicks:${key}`, start, Date.now())) || 0
   );
 }
 
@@ -189,72 +189,6 @@ export async function addLink(
   } else {
     return null; // key already exists
   }
-}
-
-/**
- * Edit a link
- **/
-export async function editLink(
-  domain: string,
-  oldKey: string,
-  link: LinkProps,
-  userId?: string,
-) {
-  let { key, url, title, timestamp, description: rawDescription, image } = link;
-
-  // if there's an image but no description, try and auto generate one
-  const description =
-    image && !rawDescription ? getDescriptionFromUrl(url) : rawDescription;
-
-  if (oldKey === key) {
-    // if key is the same, just update the url and title
-    return await redis.hset(`${domain}:links`, {
-      [oldKey]: { url, title, timestamp, description, image },
-    });
-  } else {
-    // if key is different
-    if (domain === "dub.sh" && RESERVED_KEYS.has(key)) {
-      return null; // reserved keys for dub.sh
-    }
-    const keyExists = await checkIfKeyExists(domain, key);
-    if (keyExists === 1) {
-      return null; // key already exists
-    }
-
-    // get number of clicks for oldKey (we'll add it to key)
-    const numClicks = await redis.zcard(`${domain}:clicks:${oldKey}`);
-    const pipeline = redis.pipeline();
-    // delete old key and add new key from hash
-    pipeline.hdel(`${domain}:links`, oldKey);
-    pipeline.hset(`${domain}:links`, {
-      [key]: { url, title, timestamp, description, image },
-    });
-    // remove old key from links:timestamps and add new key (with same timestamp)
-    pipeline.zrem(
-      `${domain}:links:timestamps${userId ? `:${userId}` : ""}`,
-      oldKey,
-    );
-    pipeline.zadd(`${domain}:links:timestamps${userId ? `:${userId}` : ""}`, {
-      score: timestamp,
-      member: key,
-    });
-    // update name for clicks:[key] (if numClicks > 0, because we don't create clicks:[key] until the first click)
-    if (numClicks > 0) {
-      pipeline.rename(`${domain}:clicks:${oldKey}`, `${domain}:clicks:${key}`);
-    }
-    return await pipeline.exec();
-  }
-}
-
-/**
- * Delete a link
- **/
-export async function deleteLink(domain: string, key: string, userId?: string) {
-  const pipeline = redis.pipeline();
-  pipeline.hdel(`${domain}:links`, key);
-  pipeline.zrem(`${domain}:links:timestamps${userId ? `:${userId}` : ""}`, key);
-  pipeline.del(`${domain}:clicks:${key}`);
-  return await pipeline.exec();
 }
 
 /**

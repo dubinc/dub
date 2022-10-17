@@ -149,12 +149,12 @@ model Link {
   @@unique([domain, key])
 
   // indices for links per domain/project
-  @@index([domain, createdAt(sort: Desc)])
-  @@index([domain, clicks(sort: Desc)])
+  @@index([domain, archived, createdAt(sort: Desc)])
+  @@index([domain, archived, clicks(sort: Desc)])
 
-  // indices for links per domain/project specific to a user (only for dub.sh)
-  @@index([domain, userId, createdAt(sort: Desc)])
-  @@index([domain, userId, clicks(sort: Desc)])
+  // indices for links per domain/project specific to a user
+  @@index([domain, archived, userId, createdAt(sort: Desc)])
+  @@index([domain, archived, userId, clicks(sort: Desc)])
 
   // TODO: might wanna add indices for utm_source, utm_medium, utm_campaign
 }

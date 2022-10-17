@@ -22,6 +22,10 @@ export default function LinksContainer({
   const { data: links } = useSWR<LinkProps[]>(
     domain ? `/api/projects/${slug}/domains/${domain}/links` : `/api/links`,
     fetcher,
+    {
+      // disable this because it keeps refreshing the state of the modal when its open
+      revalidateOnFocus: false,
+    },
   );
 
   return (
