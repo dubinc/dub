@@ -36,14 +36,14 @@ const nanoid = customAlphabet(
 ); // 7-character random string
 
 export async function setKey(
-  hostname: string,
+  domain: string,
   key: string,
   url: string,
   title?: string,
   description?: string, // only for Pro users: customize description
   image?: string, // only for Pro users: customize OG image
 ) {
-  return await redis.hsetnx(`${hostname}:links`, key, {
+  return await redis.hsetnx(`${domain}:links`, key, {
     url,
     title: title || (await getTitleFromUrl(url)),
     description:
@@ -54,38 +54,38 @@ export async function setKey(
 }
 
 export async function setRandomKey(
-  hostname: string,
+  domain: string,
   url: string,
   title?: string,
 ): Promise<{ response: number; key: string }> {
   /* recursively set link till successful */
   const key = nanoid();
-  const response = await setKey(hostname, key, url, title); // add to hash
+  const response = await setKey(domain, key, url, title); // add to hash
   if (response === 0) {
     // by the off chance that key already exists
-    return setRandomKey(hostname, url, title);
+    return setRandomKey(domain, url, title);
   } else {
     return { response, key };
   }
 }
 
-export async function getRandomKey(hostname: string): Promise<string> {
+export async function getRandomKey(domain: string): Promise<string> {
   /* recursively get random key till it gets one that's avaialble */
   const key = nanoid();
-  const response = await redis.hexists(`${hostname}:links`, key); // check if key exists
+  const response = await redis.hexists(`${domain}:links`, key); // check if key exists
   if (response === 1) {
     // by the off chance that key already exists
-    return getRandomKey(hostname);
+    return getRandomKey(domain);
   } else {
     return key;
   }
 }
 
-export async function checkIfKeyExists(hostname: string, key: string) {
-  if (hostname === "dub.sh" && RESERVED_KEYS.has(key)) {
+export async function checkIfKeyExists(domain: string, key: string) {
+  if (domain === "dub.sh" && RESERVED_KEYS.has(key)) {
     return 1; // reserved keys for dub.sh
   }
-  return await redis.hexists(`${hostname}:links`, key);
+  return await redis.hexists(`${domain}:links`, key);
 }
 
 /**
@@ -93,12 +93,12 @@ export async function checkIfKeyExists(hostname: string, key: string) {
  * If key is not specified, record click as the root click
  **/
 export async function recordClick(
-  hostname: string,
+  domain: string,
   req: NextRequest,
   key?: string,
 ) {
   return await redis.zadd(
-    key ? `${hostname}:clicks:${key}` : `${hostname}:root:clicks`,
+    key ? `${domain}:clicks:${key}` : `${domain}:root:clicks`,
     {
       score: Date.now(),
       member: {
@@ -159,7 +159,7 @@ export async function getLinkClicksCount(domain: string, key: string) {
 }
 
 export async function addLink(
-  hostname: string,
+  domain: string,
   link: LinkProps,
   userId?: string, // only applicable for dub.sh links
 ) {
@@ -171,16 +171,16 @@ export async function addLink(
     image, // only for Pro users: customize OG image
   } = link;
 
-  if (hostname === "dub.sh" && key && RESERVED_KEYS.has(key)) {
+  if (domain === "dub.sh" && key && RESERVED_KEYS.has(key)) {
     return null; // reserved keys for dub.sh
   }
   const response = key
-    ? await setKey(hostname, key, url, title, description, image)
-    : await setRandomKey(hostname, url, title); // not possible to add description and image for random keys (only for dub.sh landing page input)
+    ? await setKey(domain, key, url, title, description, image)
+    : await setRandomKey(domain, url, title); // not possible to add description and image for random keys (only for dub.sh landing page input)
 
   if (response === 1) {
     return await redis.zadd(
-      `${hostname}:links:timestamps${userId ? `:${userId}` : ""}`,
+      `${domain}:links:timestamps${userId ? `:${userId}` : ""}`,
       {
         score: Date.now(),
         member: key,
@@ -195,19 +195,19 @@ export async function addLink(
  * Get the usage for a project
  **/
 export async function getUsage(
-  hostname: string,
+  domain: string,
   billingCycleStart: number,
 ): Promise<number> {
   const { firstDay, lastDay } = getFirstAndLastDay(billingCycleStart);
 
-  const links = await redis.zrange(`${hostname}:links:timestamps`, 0, -1);
+  const links = await redis.zrange(`${domain}:links:timestamps`, 0, -1);
   let results: number[] = [];
 
   if (links.length > 0) {
     const pipeline = redis.pipeline();
     links.forEach((link) => {
       pipeline.zcount(
-        `${hostname}:clicks:${link}`,
+        `${domain}:clicks:${link}`,
         firstDay.getTime(),
         lastDay.getTime(),
       );
@@ -218,24 +218,21 @@ export async function getUsage(
   return usage;
 }
 
-export async function changeDomain(hostname: string, newHostname: string) {
+export async function changeDomain(domain: string, newHostname: string) {
   const keys = await redis.zrange<string[]>(
-    `${hostname}:links:timestamps`,
+    `${domain}:links:timestamps`,
     0,
     -1,
   );
   const pipeline = redis.pipeline();
-  pipeline.rename(`${hostname}:links`, `${newHostname}:links`);
+  pipeline.rename(`${domain}:links`, `${newHostname}:links`);
   pipeline.rename(
-    `${hostname}:links:timestamps`,
+    `${domain}:links:timestamps`,
     `${newHostname}:links:timestamps`,
   );
-  pipeline.rename(`${hostname}:root:clicks`, `${newHostname}:root:clicks`);
+  pipeline.rename(`${domain}:root:clicks`, `${newHostname}:root:clicks`);
   keys.forEach((key) => {
-    pipeline.rename(
-      `${hostname}:clicks:${key}`,
-      `${newHostname}:clicks:${key}`,
-    );
+    pipeline.rename(`${domain}:clicks:${key}`, `${newHostname}:clicks:${key}`);
   });
   try {
     return await pipeline.exec();
@@ -244,18 +241,18 @@ export async function changeDomain(hostname: string, newHostname: string) {
   }
 }
 
-export async function deleteProject(hostname: string) {
+export async function deleteProject(domain: string) {
   const keys = await redis.zrange<string[]>(
-    `${hostname}:links:timestamps`,
+    `${domain}:links:timestamps`,
     0,
     -1,
   );
   const pipeline = redis.pipeline();
-  pipeline.del(`${hostname}:links`);
-  pipeline.del(`${hostname}:links:timestamps`);
-  pipeline.del(`${hostname}:root:clicks`);
+  pipeline.del(`${domain}:links`);
+  pipeline.del(`${domain}:links:timestamps`);
+  pipeline.del(`${domain}:root:clicks`);
   keys.forEach((key) => {
-    pipeline.del(`${hostname}:clicks:${key}`);
+    pipeline.del(`${domain}:clicks:${key}`);
   });
   try {
     return await pipeline.exec();

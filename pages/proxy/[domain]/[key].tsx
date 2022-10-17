@@ -2,12 +2,10 @@ import Image from "next/future/image";
 import Head from "next/head";
 import { escape } from "html-escaper";
 import prisma from "@/lib/prisma";
-import { LinkProps } from "@/lib/types";
-import { redis } from "@/lib/upstash";
 import { getApexDomain } from "@/lib/utils";
 
 export default function LinkPage({
-  hostname,
+  fullDomain,
   apexDomain,
   title,
   description,
@@ -17,11 +15,11 @@ export default function LinkPage({
     <>
       <Head>
         <meta property="og:title" content={escape(title)} />
-        <meta property="og:site_name" content={escape(hostname)} />
+        <meta property="og:site_name" content={escape(fullDomain)} />
         <meta property="og:description" content={escape(description)} />
         <meta property="og:image" content={escape(image)} />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:site" content={escape(hostname)} />
+        <meta name="twitter:site" content={escape(fullDomain)} />
         <meta name="twitter:title" content={escape(title)} />
         <meta name="twitter:description" content={escape(description)} />
         <meta name="twitter:image" content={escape(image)} />
@@ -96,12 +94,12 @@ export async function getStaticProps(ctx) {
     };
   }
 
-  const hostname = new URL(url).hostname;
+  const fullDomain = new URL(url).hostname;
   const apexDomain = getApexDomain(url);
 
   return {
     props: {
-      hostname,
+      fullDomain,
       apexDomain,
       title,
       description,

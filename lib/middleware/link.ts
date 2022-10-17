@@ -8,9 +8,9 @@ export default async function LinkMiddleware(
   ev: NextFetchEvent,
 ) {
   const url = req.nextUrl.clone();
-  const { hostname, key } = parse(req);
+  const { domain, key } = parse(req);
 
-  if (!hostname || !key) {
+  if (!domain || !key) {
     return NextResponse.next();
   }
 
@@ -18,25 +18,29 @@ export default async function LinkMiddleware(
     url: string;
     password?: boolean;
     proxy?: boolean;
-  }>(`${hostname}:${key}`);
+  }>(`${domain}:${key}`);
   const { url: target, password, proxy } = response || {};
 
   console.log(req.cookies.get("dub_authenticated"));
 
   if (target) {
     if (password && !req.cookies.get("dub_authenticated")) {
-      return NextResponse.rewrite(`https://dub.sh/auth/${hostname}/${key}`);
+      return NextResponse.rewrite(
+        process.env.NODE_ENV === "development"
+          ? `http://localhost:3000/auth/${domain}/${key}`
+          : `https://dub.sh/auth/${domain}/${key}`,
+      );
     }
 
     // special case for link health monitoring with planetfall.io :)
     if (!req.headers.get("dub-no-track")) {
-      ev.waitUntil(recordClick(hostname, req, key)); // track the click only if there is no `dub-no-track` header
+      ev.waitUntil(recordClick(domain, req, key)); // track the click only if there is no `dub-no-track` header
     }
 
     const isBot = detectBot(req);
-    if (isBot) {
+    if (isBot && proxy) {
       // rewrite to proxy page (dub.sh/proxy/[domain]/[key]) if it's a bot
-      return NextResponse.rewrite(`https://dub.sh/proxy/${hostname}/${key}`);
+      return NextResponse.rewrite(`https://dub.sh/proxy/${domain}/${key}`);
     } else {
       return NextResponse.redirect(target);
     }

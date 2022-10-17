@@ -30,7 +30,6 @@
     "@visx/responsive": "^2.10.0",
     "@visx/shape": "^2.12.2",
     "@visx/tooltip": "^2.10.0",
-    "bcrypt": "^5.1.0",
     "cloudinary": "^1.32.0",
     "cobe": "^0.6.2",
     "focus-trap-react": "^10.0.0",

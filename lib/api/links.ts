@@ -46,17 +46,9 @@ export async function checkIfKeyExists(domain: string, key: string) {
 }
 
 export async function addLink(link: LinkProps) {
-  const {
-    domain,
-    key,
-    url,
-    expiresAt,
-    passwordHash,
-    title,
-    description,
-    image,
-  } = link;
-  const password = passwordHash ? true : false;
+  const { domain, key, url, expiresAt, password, title, description, image } =
+    link;
+  const hasPassword = password && password.length > 0;
   const proxy = title && description && image ? true : false;
   const exat = expiresAt ? expiresAt.getTime() : null;
 
@@ -75,7 +67,7 @@ export async function addLink(link: LinkProps) {
       `${domain}:${key}`,
       {
         url,
-        password,
+        password: hasPassword,
         proxy,
       },
       {
@@ -115,12 +107,12 @@ export async function editLink(
     key,
     url,
     expiresAt,
-    passwordHash,
+    password,
     title,
     description,
     image,
   } = link;
-  const password = passwordHash ? true : false;
+  const hasPassword = password && password.length > 0;
   const proxy = title && description && image ? true : false;
   const exat = expiresAt ? expiresAt.getTime() : null;
   const changedKey = key !== oldKey;
@@ -154,7 +146,7 @@ export async function editLink(
       `${domain}:${key}`,
       {
         url,
-        password,
+        password: hasPassword,
         proxy,
       },
       {

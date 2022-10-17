@@ -7,7 +7,7 @@ import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 export default function Placeholder({ domain }: { domain: string }) {
   return (
     <HomeLayout domain={domain}>
-      <Globe hostname={domain} />
+      <Globe domain={domain} />
     </HomeLayout>
   );
 }

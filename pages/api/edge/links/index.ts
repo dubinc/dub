@@ -9,7 +9,7 @@ export default async function handler(req: NextRequest) {
   if (req.method === "POST") {
     const url = req.nextUrl.searchParams.get("url");
     if (!url) {
-      return new Response(`Missing url or hostname`, { status: 400 });
+      return new Response(`Missing url`, { status: 400 });
     }
     const { response, key } = await setRandomKey("dub.sh", url);
     if (response === 1) {

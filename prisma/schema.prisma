@@ -120,7 +120,7 @@ model Link {
   url             String   // target url (e.g. https://github.com/steven-tey/dub) – also stored on Redis
   archived        Boolean  @default(false) // whether the link is archived or not
   expiresAt       DateTime? // when the link expires – stored on Redis via ttl
-  passwordHash    String?  // password to access the link – also stored on Redis
+  password        String?  // password to access the link – also stored on Redis
 
   // Custom OG tags – if not set, will use OG tags from target url
   title           String?  // OG title for the link (e.g. Dub - Open-Source Bitly Alternative)

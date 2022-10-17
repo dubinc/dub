@@ -10,7 +10,7 @@ export interface LinkProps {
   url: string;
   archived: boolean;
   expiresAt?: Date;
-  passwordHash?: string;
+  password?: string;
 
   title?: string;
   description?: string;

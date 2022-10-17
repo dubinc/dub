@@ -8,7 +8,7 @@ export default withProjectAuth(
     if (req.method === "GET") {
       const { domain } = req.query as { domain: string };
       if (!domain) {
-        return res.status(400).json({ error: "Missing hostname" });
+        return res.status(400).json({ error: "Missing domain" });
       }
       const key = await getRandomKey(domain);
       return res.status(200).json(key);

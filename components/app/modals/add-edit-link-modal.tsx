@@ -276,12 +276,18 @@ function AddEditLinkModal({
   );
 }
 
-function AdvancedSettings({ data, setData }) {
-  const [expanded, setExpanded] = useState(false);
+function AdvancedSettings({
+  data,
+  setData,
+}: {
+  data: LinkProps;
+  setData: Dispatch<SetStateAction<LinkProps>>;
+}) {
+  const [expanded, setExpanded] = useState(true);
   const [generatingTitle, setGeneratingTitle] = useState(false);
   const [generatingDescription, setGeneratingDescription] = useState(false);
 
-  const { url, title, description, image } = data;
+  const { url, title, description, image, password } = data;
 
   const generateTitleFromUrl = async () => {
     setGeneratingTitle(true);
@@ -310,7 +316,7 @@ function AdvancedSettings({ data, setData }) {
       const file = e.target.files[0];
       const reader = new FileReader();
       reader.onload = (e) => {
-        setData((prev) => ({ ...prev, image: e.target.result }));
+        setData((prev) => ({ ...prev, image: e.target.result as string }));
       };
       reader.readAsDataURL(file);
     },
@@ -336,6 +342,7 @@ function AdvancedSettings({ data, setData }) {
 
       {expanded && (
         <div className="mt-4 grid gap-5 bg-white border-t border-b border-gray-200 sm:px-16 px-4 py-8">
+          {/* OG Tags */}
           <div>
             <div className="flex justify-between items-center">
               <label
@@ -424,18 +431,18 @@ function AdvancedSettings({ data, setData }) {
               className="group flex flex-col justify-center items-center mt-1 h-[10.5rem] cursor-pointer rounded-md border border-gray-300 bg-white hover:bg-gray-50 shadow-sm transition-all"
             >
               {image ? (
-                image.startsWith("data:") ? (
-                  <img
-                    src={image}
-                    alt="Preview"
-                    className="object-cover h-full w-full rounded-md hover:brightness-95 transition-all"
-                  />
-                ) : (
+                typeof image === "string" ? (
                   <BlurImage
                     src={image}
                     alt="Preview"
                     width={1200}
                     height={627}
+                    className="object-cover h-full w-full rounded-md hover:brightness-95 transition-all"
+                  />
+                ) : (
+                  <img
+                    src={image}
+                    alt="Preview"
                     className="object-cover h-full w-full rounded-md hover:brightness-95 transition-all"
                   />
                 )
@@ -456,6 +463,29 @@ function AdvancedSettings({ data, setData }) {
                 type="file"
                 className="sr-only"
                 onChange={onChangePicture}
+              />
+            </div>
+          </div>
+
+          {/* Password Protection */}
+          <div>
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Password Protection
+            </label>
+            <div className="flex mt-1 rounded-md shadow-sm">
+              <input
+                name="password"
+                id="password"
+                type="password"
+                className="border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500 block w-full rounded-md focus:outline-none sm:text-sm"
+                value={password}
+                onChange={(e) => {
+                  setData({ ...data, password: e.target.value });
+                }}
+                aria-invalid="true"
               />
             </div>
           </div>

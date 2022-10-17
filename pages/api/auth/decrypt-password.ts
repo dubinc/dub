@@ -1,5 +1,4 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { compare } from "bcrypt";
 import { serialize } from "cookie";
 import prisma from "@/lib/prisma";
 
@@ -9,11 +8,11 @@ export default async function handler(
 ) {
   if (req.method === "POST") {
     const { domain, key, password } = req.body;
-    const { url, passwordHash } = await prisma.link.findUnique({
+    const { url, password: realPassword } = await prisma.link.findUnique({
       where: { domain_key: { domain, key } },
-      select: { url: true, passwordHash: true },
+      select: { url: true, password: true },
     });
-    const validPassword = await compare(password, passwordHash);
+    const validPassword = password === realPassword;
     if (validPassword) {
       // Set cookie to authenticate user for 1 week
       res.setHeader(

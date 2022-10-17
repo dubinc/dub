@@ -71,7 +71,7 @@ Dub is built as a standard Next.js application with [Middleware](https://nextjs.
 
 - `{domain}:{key}` – string containing a JSON object with the target URL and password (optional). Also has an optional TTL.
 - `{domain}:clicks:{key}` – sorted set of all clicks for a given link (e.g. `dub.sh:clicks:github`)
-- `{domain}:root:clicks` – sorted set of all root link clicks for a given hostname (e.g. `dub.sh:root:clicks`)
+- `{domain}:root:clicks` – sorted set of all root link clicks for a given domain (e.g. `dub.sh:root:clicks`)
 
 [MySQL](https://www.mysql.com/) is used as the database for storing user data, project data, and link metadata. You can refer to the Prisma schema [here](/prisma/schema.prisma).
 

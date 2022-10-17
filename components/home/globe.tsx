@@ -13,7 +13,7 @@ interface MarkerProps {
   size: number;
 }
 
-export default function Globe({ hostname }: { hostname?: string }) {
+export default function Globe({ domain }: { domain?: string }) {
   const divRef = useRef<any>();
   const entry = useIntersectionObserver(divRef, {});
   const isVisible = !!entry?.isIntersecting;
@@ -48,14 +48,14 @@ export default function Globe({ hostname }: { hostname?: string }) {
   }, []);
 
   const { data: markers } = useSWR<MarkerProps[]>(
-    `/api/edge/coordinates${hostname ? `?hostname=${hostname}` : ""}`,
+    `/api/edge/coordinates${domain ? `?domain=${domain}` : ""}`,
     fetcher,
   );
 
   return (
     <div ref={divRef} className="h-full min-h-[500px] sm:min-h-[1000px]">
       {webglSupported && showGlobe && (
-        <GlobeAnimation hostname={hostname} markers={markers} />
+        <GlobeAnimation domain={domain} markers={markers} />
       )}
       {showFallback && (
         <div className="w-full h-full flex items-center justify-center">
@@ -75,10 +75,10 @@ export default function Globe({ hostname }: { hostname?: string }) {
 }
 
 const GlobeAnimation = ({
-  hostname,
+  domain,
   markers,
 }: {
-  hostname?: string;
+  domain?: string;
   markers: MarkerProps[];
 }) => {
   const canvasRef = useRef<any>();
@@ -160,17 +160,15 @@ const GlobeAnimation = ({
               This map shows the locations of the last 100 clicks on{" "}
               <a
                 className="text-blue-800 font-semibold"
-                href={
-                  hostname ? `https://${hostname}` : "https://dub.sh/github"
-                }
+                href={domain ? `https://${domain}` : "https://dub.sh/github"}
                 target="_blank"
                 rel="noreferrer"
               >
-                {hostname || "dub.sh/github"}
+                {domain || "dub.sh/github"}
               </a>{" "}
               in real time.
             </p>
-            {!hostname && (
+            {!domain && (
               <Link
                 href={{ pathname: "/", query: { key: "github" } }}
                 as="/stats/github"
