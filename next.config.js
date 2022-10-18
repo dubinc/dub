@@ -10,4 +10,21 @@ module.exports = {
       "res.cloudinary.com",
     ],
   },
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "Referrer-Policy",
+            value: "no-referrer-when-downgrade",
+          },
+          {
+            key: "X-DNS-Prefetch-Control",
+            value: "on",
+          },
+        ],
+      },
+    ];
+  },
 };
