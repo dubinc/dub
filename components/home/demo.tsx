@@ -21,15 +21,12 @@ const Demo = () => {
         onSubmit={async (e) => {
           e.preventDefault();
           setSaving(true);
-          fetch(
-            `/api/edge/links?url=${encodeURIComponent(url)}&hostname=dub.sh`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
+          fetch(`/api/edge/links?url=${encodeURIComponent(url)}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
             },
-          ).then(async (response) => {
+          }).then(async (response) => {
             setSaving(false);
             if (response.ok) {
               const json = await response.json();

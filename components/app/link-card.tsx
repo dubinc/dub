@@ -20,7 +20,7 @@ import { useDeleteLinkModal } from "./modals/delete-link-modal";
 import { useLinkQRModal } from "./modals/link-qr-modal";
 
 export default function LinkCard({ props }: { props: LinkProps }) {
-  const { key, url, title, createdAt } = props;
+  const { key, url, createdAt, expiresAt } = props;
 
   const apexDomain = getApexDomain(url);
 
@@ -58,8 +58,11 @@ export default function LinkCard({ props }: { props: LinkProps }) {
       <AddEditLinkModal />
       <DeleteLinkModal />
       <LinkQRModal />
-      <li className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-5 sm:space-y-0 bg-white p-4 rounded-lg shadow hover:shadow-md transition-all">
-        <div className="relative flex items-center space-x-4">
+      <li className="relative flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-4 rounded-lg shadow hover:shadow-md transition-all">
+        {expiresAt && new Date() > new Date(expiresAt) ? (
+          <div className="absolute top-0 left-0 rounded-t-lg w-full h-1.5 bg-amber-500" />
+        ) : null}
+        <div className="relative flex items-center space-x-4 mb-3 sm:mb-0">
           <BlurImage
             src={`https://www.google.com/s2/favicons?sz=64&domain_url=${apexDomain}`}
             alt={apexDomain}
@@ -100,7 +103,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
               </Link>
             </div>
             <h3 className="text-sm font-medium text-gray-700 line-clamp-1">
-              {title || url}
+              {url}
             </h3>
           </div>
         </div>

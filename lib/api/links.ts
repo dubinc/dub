@@ -27,6 +27,15 @@ export async function getLinksForProject({
   });
 }
 
+export async function getLinkCountForProject(domain: string) {
+  return await prisma.link.count({
+    where: {
+      domain,
+      archived: false,
+    },
+  });
+}
+
 export async function checkIfKeyExists(domain: string, key: string) {
   if (
     domain === "dub.sh" &&
@@ -48,9 +57,10 @@ export async function checkIfKeyExists(domain: string, key: string) {
 export async function addLink(link: LinkProps) {
   const { domain, key, url, expiresAt, password, title, description, image } =
     link;
-  const hasPassword = password && password.length > 0;
+  const hasPassword = password && password.length > 0 ? true : false;
   const proxy = title && description && image ? true : false;
-  const exat = expiresAt ? expiresAt.getTime() : null;
+  const exat = expiresAt ? new Date(expiresAt).getTime() / 1000 : null;
+  console.log(expiresAt, exat);
 
   const exists = await checkIfKeyExists(domain, key);
   if (exists) return null;

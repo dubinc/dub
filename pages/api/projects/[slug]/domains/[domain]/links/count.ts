@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
+import { getLinkCountForProject } from "@/lib/api/links";
 import { withProjectAuth } from "@/lib/auth";
-import { getLinkCountForProject } from "@/lib/upstash";
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {

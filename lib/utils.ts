@@ -113,6 +113,22 @@ export const timeAgo = (timestamp: Date): string => {
   return `${ms(Date.now() - new Date(timestamp).getTime())} ago`;
 };
 
+export const getDateTimeLocal = (timestamp?: Date): string => {
+  if (!timestamp) {
+    const d = new Date();
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+      .toISOString()
+      .split(":")
+      .slice(0, 2)
+      .join(":");
+  }
+  return new Date(timestamp.getTime() - timestamp.getTimezoneOffset() * 60000)
+    .toISOString()
+    .split(":")
+    .slice(0, 2)
+    .join(":");
+};
+
 export const generateSlugFromName = (name: string) => {
   const normalizedName = name.toLowerCase().replaceAll(" ", "-");
   if (normalizedName.length < 3) {

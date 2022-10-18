@@ -13,17 +13,19 @@ import { useDebounce } from "use-debounce";
 import BlurImage from "@/components/shared/blur-image";
 import {
   AlertCircleFill,
+  Calendar,
   ChevronRight,
   LoadingCircle,
   LoadingDots,
   UploadCloud,
 } from "@/components/shared/icons";
 import Modal from "@/components/shared/modal";
+import Popover from "@/components/shared/popover";
 import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 import useProject from "@/lib/swr/use-project";
 import useUsage from "@/lib/swr/use-usage";
 import { LinkProps } from "@/lib/types";
-import { getApexDomain, linkConstructor } from "@/lib/utils";
+import { getApexDomain, getDateTimeLocal, linkConstructor } from "@/lib/utils";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
@@ -287,7 +289,7 @@ function AdvancedSettings({
   const [generatingTitle, setGeneratingTitle] = useState(false);
   const [generatingDescription, setGeneratingDescription] = useState(false);
 
-  const { url, title, description, image, password } = data;
+  const { url, title, description, image, password, expiresAt } = data;
 
   const generateTitleFromUrl = async () => {
     setGeneratingTitle(true);
@@ -488,6 +490,28 @@ function AdvancedSettings({
                 aria-invalid="true"
               />
             </div>
+          </div>
+
+          {/* Expire Link */}
+          <div>
+            <label
+              htmlFor="expiresAt"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Auto-expire Link
+            </label>
+            <input
+              type="datetime-local"
+              id="expiresAt"
+              name="expiresAt"
+              min={getDateTimeLocal()}
+              value={expiresAt ? getDateTimeLocal(expiresAt) : ""}
+              step="60" // need to add step to prevent weird date bug (https://stackoverflow.com/q/19284193/10639526)
+              onChange={(e) => {
+                setData({ ...data, expiresAt: new Date(e.target.value) });
+              }}
+              className="flex space-x-2 justify-center items-center mt-1 rounded-md shadow-sm border border-gray-300 text-gray-500 hover:border-gray-800 px-5 py-2 w-full focus:outline-none sm:text-sm transition-all"
+            />
           </div>
         </div>
       )}
