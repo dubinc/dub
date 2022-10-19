@@ -53,7 +53,6 @@ export const authOptions: NextAuthOptions = {
           sendMarketingMail({
             subject: "✨ Welcome to Dub",
             to: email,
-            bcc: process.env.TRUSTPILOT_BCC_EMAIL,
             component: <WelcomeEmail />,
           }),
           prisma.user.update({
