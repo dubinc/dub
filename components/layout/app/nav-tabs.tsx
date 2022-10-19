@@ -33,19 +33,19 @@ export default function NavTabs() {
   }, [router.query]);
 
   return (
-    <div className="flex justify-start space-x-8 items-center h-12 -mb-0.5">
+    <div className="flex justify-start space-x-2 items-center h-12 -mb-0.5">
       {tabs.map(({ name, href }) => (
         <Link key={href} href={href}>
           <a
-            className={`px-1 py-3 border-b-2 ${
+            className={`border-b-2 p-1 ${
               router.asPath === href
-                ? "border-black font-semibold"
-                : "border-transparent text-gray-700 hover:text-black"
-            } transition-all`}
+                ? "border-black text-black"
+                : "border-transparent text-gray-600 hover:text-black"
+            }`}
           >
-            <p className="text-sm active:scale-95 transition-all duration-75">
-              {name}
-            </p>
+            <div className="rounded-md px-3 py-2 hover:bg-gray-100 active:bg-gray-200 transition-all">
+              <p className="text-sm">{name}</p>
+            </div>
           </a>
         </Link>
       ))}

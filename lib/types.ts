@@ -9,18 +9,18 @@ export interface LinkProps {
   key: string;
   url: string;
   archived: boolean;
-  expiresAt?: Date;
-  password?: string;
+  expiresAt: Date | null;
+  password: string | null;
 
-  title?: string;
-  description?: string;
-  image?: string;
+  title: string | null;
+  description: string | null;
+  image: string | null;
 
-  utm_source?: string;
-  utm_medium?: string;
-  utm_campaign?: string;
-  utm_term?: string;
-  utm_content?: string;
+  utm_source: string | null;
+  utm_medium: string | null;
+  utm_campaign: string | null;
+  utm_term: string | null;
+  utm_content: string | null;
 
   clicks: number;
   userId: string;

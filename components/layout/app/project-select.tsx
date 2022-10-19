@@ -51,7 +51,7 @@ export default function ProjectSelect() {
           />
         }
       >
-        <div className="relative cursor-pointer w-60 rounded-lg bg-white hover:bg-gray-100 py-1.5 pl-3 pr-10 text-left focus:outline-none text-sm transition-all duration-75">
+        <div className="relative cursor-pointer w-60 rounded-lg bg-white hover:bg-gray-100 active:bg-gray-200 py-1.5 pl-3 pr-10 text-left focus:outline-none text-sm transition-all duration-75">
           <div className="flex justify-start items-center space-x-3">
             <BlurImage
               src={

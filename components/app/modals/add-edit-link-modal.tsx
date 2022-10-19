@@ -13,14 +13,12 @@ import { useDebounce } from "use-debounce";
 import BlurImage from "@/components/shared/blur-image";
 import {
   AlertCircleFill,
-  Calendar,
   ChevronRight,
   LoadingCircle,
   LoadingDots,
   UploadCloud,
 } from "@/components/shared/icons";
 import Modal from "@/components/shared/modal";
-import Popover from "@/components/shared/popover";
 import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 import useProject from "@/lib/swr/use-project";
 import useUsage from "@/lib/swr/use-usage";
@@ -50,12 +48,25 @@ function AddEditLinkModal({
       key: "",
       url: "",
       archived: false,
+      expiresAt: null,
+      password: null,
+
+      title: null,
+      description: null,
+      image: null,
+
+      utm_source: null,
+      utm_medium: null,
+      utm_campaign: null,
+      utm_term: null,
+      utm_content: null,
+
       clicks: 0,
       userId: "",
       createdAt: new Date(),
     },
   );
-  const { key, url } = data;
+  const { key, url, expiresAt } = data;
 
   const heroProps = useMemo(() => {
     if (props?.url) {
@@ -130,6 +141,12 @@ function AddEditLinkModal({
       setShowModal={setShowAddEditLinkModal}
     >
       <div className="inline-block w-full sm:max-w-md max-h-[calc(100vh-50px)] overflow-scroll align-middle transition-all transform bg-white sm:border sm:border-gray-200 shadow-xl sm:rounded-2xl">
+        {new Date().getTime() > new Date(expiresAt).getTime() && (
+          <span className="absolute top-0 sm:top-5 right-5 bg-amber-500 px-2 py-0.5 text-xs text-white uppercase">
+            Expired
+          </span>
+        )}
+
         <div className="flex flex-col justify-center items-center space-y-3 sm:px-16 px-4 pt-8 py-4 border-b border-gray-200">
           <BlurImage
             src={heroProps.avatar}
@@ -496,9 +513,14 @@ function AdvancedSettings({
           <div>
             <label
               htmlFor="expiresAt"
-              className="block text-sm font-medium text-gray-700"
+              className="flex justify-between text-sm font-medium text-gray-700"
             >
-              Auto-expire Link
+              <p>Auto-expire Link</p>
+              {new Date().getTime() > new Date(expiresAt).getTime() && (
+                <span className="bg-amber-500 px-2 py-0.5 text-xs text-white uppercase">
+                  Expired
+                </span>
+              )}
             </label>
             <input
               type="datetime-local"
@@ -510,7 +532,7 @@ function AdvancedSettings({
               onChange={(e) => {
                 setData({ ...data, expiresAt: new Date(e.target.value) });
               }}
-              className="flex space-x-2 justify-center items-center mt-1 rounded-md shadow-sm border border-gray-300 text-gray-500 hover:border-gray-800 px-5 py-2 w-full focus:outline-none sm:text-sm transition-all"
+              className="flex space-x-2 justify-center items-center mt-1 rounded-md shadow-sm border border-gray-300 text-gray-500 hover:border-gray-800 px-3 py-2 w-full focus:outline-none sm:text-sm transition-all"
             />
           </div>
         </div>

@@ -114,15 +114,8 @@ export const timeAgo = (timestamp: Date): string => {
 };
 
 export const getDateTimeLocal = (timestamp?: Date): string => {
-  if (!timestamp) {
-    const d = new Date();
-    return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
-      .toISOString()
-      .split(":")
-      .slice(0, 2)
-      .join(":");
-  }
-  return new Date(timestamp.getTime() - timestamp.getTimezoneOffset() * 60000)
+  const d = timestamp ? new Date(timestamp) : new Date();
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
     .toISOString()
     .split(":")
     .slice(0, 2)
