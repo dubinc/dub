@@ -5,7 +5,7 @@ import { LinkProps } from "@/lib/types";
 import { getDateTimeLocal } from "@/lib/utils";
 import { AnimationSettings } from "./advanced-settings";
 
-export default function ExpireSection({
+export default function ExpirationSection({
   data,
   setData,
 }: {

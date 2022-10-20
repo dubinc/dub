@@ -108,7 +108,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
           </div>
         </div>
         <div className="flex items-center space-x-3 w-full sm:w-auto">
-          <p className="text-sm hidden sm:block text-gray-500">
+          <p className="text-sm hidden sm:block text-gray-500 whitespace-nowrap">
             Added {timeAgo(createdAt)}
           </p>
           {slug && exceededUsage ? (

@@ -1,7 +1,6 @@
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 import { detectBot, parse } from "@/lib/middleware/utils";
 import { recordClick, redis } from "@/lib/upstash";
-import { LinkProps } from "../types";
 
 export default async function LinkMiddleware(
   req: NextRequest,
@@ -21,20 +20,18 @@ export default async function LinkMiddleware(
   }>(`${domain}:${key}`);
   const { url: target, password, proxy } = response || {};
 
-  console.log(req.cookies.get("dub_authenticated"));
-
   if (target) {
+    // special case for link health monitoring with planetfall.io :)
+    if (!req.headers.get("dub-no-track")) {
+      ev.waitUntil(recordClick(domain, req, key)); // track the click only if there is no `dub-no-track` header
+    }
+
     if (password && !req.cookies.get("dub_authenticated")) {
       return NextResponse.rewrite(
         process.env.NODE_ENV === "development"
           ? `http://localhost:3000/auth/${domain}/${key}`
           : `https://dub.sh/auth/${domain}/${key}`,
       );
-    }
-
-    // special case for link health monitoring with planetfall.io :)
-    if (!req.headers.get("dub-no-track")) {
-      ev.waitUntil(recordClick(domain, req, key)); // track the click only if there is no `dub-no-track` header
     }
 
     const isBot = detectBot(req);

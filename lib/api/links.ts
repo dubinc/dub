@@ -132,7 +132,7 @@ export async function editLink(
   } = link;
   const hasPassword = password && password.length > 0;
   const proxy = title && description && image ? true : false;
-  const exat = expiresAt ? expiresAt.getTime() : null;
+  const exat = expiresAt ? new Date(expiresAt).getTime() : null;
   const changedKey = key !== oldKey;
   const uploadedImage = image && image.startsWith("data:image");
 
@@ -212,8 +212,6 @@ export async function editLink(
       },
     });
   }
-
-  console.log(effects);
 
   return response;
 }
