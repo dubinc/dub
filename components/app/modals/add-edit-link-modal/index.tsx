@@ -53,12 +53,6 @@ function AddEditLinkModal({
       description: null,
       image: null,
 
-      utm_source: null,
-      utm_medium: null,
-      utm_campaign: null,
-      utm_term: null,
-      utm_content: null,
-
       clicks: 0,
       userId: "",
       createdAt: new Date(),

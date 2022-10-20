@@ -208,3 +208,33 @@ export const getApexDomain = (url: string) => {
   // if it's a normal domain (e.g. dub.sh), we return the domain
   return domain;
 };
+
+export const getParamsFromURL = (url: string) => {
+  if (!url) return {};
+  try {
+    const params = new URL(url).searchParams;
+    const paramsObj: Record<string, string> = {};
+    for (const [key, value] of params.entries()) {
+      paramsObj[key] = value;
+    }
+    return paramsObj;
+  } catch (e) {
+    return {};
+  }
+};
+
+export const constructURLFromUTMParams = (
+  url: string,
+  utmParams: Record<string, string>,
+) => {
+  if (!url) return "";
+  try {
+    const params = new URL(url).searchParams;
+    for (const [key, value] of Object.entries(utmParams)) {
+      params.set(key, value);
+    }
+    return `${url.split("?")[0]}?${params.toString()}`;
+  } catch (e) {
+    return "";
+  }
+};

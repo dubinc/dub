@@ -1,14 +1,20 @@
-import { Dispatch, SetStateAction, useCallback, useState } from "react";
-import TextareaAutosize from "react-textarea-autosize";
-import BlurImage from "@/components/shared/blur-image";
-import {
-  ChevronRight,
-  LoadingCircle,
-  UploadCloud,
-} from "@/components/shared/icons";
+import { Dispatch, SetStateAction, useMemo, useState } from "react";
+import * as AccordionPrimitive from "@radix-ui/react-accordion";
+import { motion } from "framer-motion";
+import { CheckCircleFill, ChevronRight } from "@/components/shared/icons";
 import { LinkProps } from "@/lib/types";
-import { getDateTimeLocal } from "@/lib/utils";
+import { getParamsFromURL } from "@/lib/utils";
+import ExpirationSection from "./expiration-section";
 import OGSection from "./og-section";
+import PasswordSection from "./password-section";
+import UTMSection from "./utm-section";
+
+export const AnimationSettings = {
+  initial: { height: 0 },
+  animate: { height: "auto" },
+  exit: { height: 0 },
+  transition: { duration: 0.2, bounce: 0 },
+};
 
 export default function AdvancedSettings({
   data,
@@ -19,14 +25,18 @@ export default function AdvancedSettings({
 }) {
   const [expanded, setExpanded] = useState(false);
 
-  const { password, expiresAt } = data;
+  const { url, title, description, image, password, expiresAt } = data;
+
+  const { utm_source, utm_medium, utm_campaign } = useMemo(() => {
+    return getParamsFromURL(url);
+  }, [url]);
 
   return (
     <div>
       <div className="sm:px-16 px-4">
         <button
           type="button"
-          className="flex items-center"
+          className="flex items-center space-x-2"
           onClick={() => setExpanded(!expanded)}
         >
           <ChevronRight
@@ -39,61 +49,111 @@ export default function AdvancedSettings({
       </div>
 
       {expanded && (
-        <div className="mt-4 grid gap-5 bg-white border-t border-b border-gray-200 sm:px-16 px-4 py-8">
-          {/* OG Tags Section */}
-          <OGSection {...{ data, setData }} />
-
-          {/* Password Protection */}
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
+        <motion.div key="accordion-root" {...AnimationSettings}>
+          <AccordionPrimitive.Root
+            type="single"
+            collapsible={true}
+            className="mt-4 grid bg-white border-t border-b border-gray-200 px-2 sm:px-8 py-8"
+          >
+            {/* UTM Builder Section */}
+            <AccordionPrimitive.Item
+              value="utm"
+              className="border border-gray-200 rounded-t-lg py-3"
             >
-              Password Protection
-            </label>
-            <div className="flex mt-1 rounded-md shadow-sm">
-              <input
-                name="password"
-                id="password"
-                type="password"
-                className="border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500 block w-full rounded-md focus:outline-none sm:text-sm"
-                value={password}
-                onChange={(e) => {
-                  setData({ ...data, password: e.target.value });
-                }}
-                aria-invalid="true"
-              />
-            </div>
-          </div>
+              <AccordionPrimitive.Header className="px-5">
+                <AccordionPrimitive.Trigger className="group focus:outline-black flex w-full items-center justify-between space-x-2 bg-white py-2 text-left dark:bg-gray-800">
+                  <div className="flex items-center justify-start space-x-2 h-6">
+                    <ChevronRight className="h-5 w-5 shrink-0 text-gray-700 ease-in-out dark:text-gray-400 group-radix-state-open:rotate-90 transition-all" />
+                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      UTM Builder
+                    </span>
+                  </div>
+                  {utm_source && utm_medium && utm_campaign && (
+                    <CheckCircleFill className="h-6 w-6 text-black" />
+                  )}
+                </AccordionPrimitive.Trigger>
+              </AccordionPrimitive.Header>
+              <AccordionPrimitive.Content>
+                <UTMSection {...{ data, setData }} />
+              </AccordionPrimitive.Content>
+            </AccordionPrimitive.Item>
 
-          {/* Expire Link */}
-          <div>
-            <label
-              htmlFor="expiresAt"
-              className="flex justify-between text-sm font-medium text-gray-700"
+            {/* Password Protection */}
+            <AccordionPrimitive.Item
+              value="password"
+              className="border border-gray-200 border-t-0 px-5 py-3"
             >
-              <p>Auto-expire Link</p>
-              {expiresAt &&
-                new Date().getTime() > new Date(expiresAt).getTime() && (
-                  <span className="bg-amber-500 px-2 py-0.5 text-xs text-white uppercase">
-                    Expired
-                  </span>
-                )}
-            </label>
-            <input
-              type="datetime-local"
-              id="expiresAt"
-              name="expiresAt"
-              min={getDateTimeLocal()}
-              value={expiresAt ? getDateTimeLocal(expiresAt) : ""}
-              step="60" // need to add step to prevent weird date bug (https://stackoverflow.com/q/19284193/10639526)
-              onChange={(e) => {
-                setData({ ...data, expiresAt: new Date(e.target.value) });
-              }}
-              className="flex space-x-2 justify-center items-center mt-1 rounded-md shadow-sm border border-gray-300 text-gray-500 hover:border-gray-800 px-3 py-2 w-full focus:outline-none sm:text-sm transition-all"
-            />
-          </div>
-        </div>
+              <AccordionPrimitive.Header>
+                <AccordionPrimitive.Trigger className="group focus:outline-black flex w-full items-center justify-between space-x-2 bg-white py-2 text-left dark:bg-gray-800">
+                  <div className="flex items-center justify-start space-x-2 h-6">
+                    <ChevronRight className="h-5 w-5 shrink-0 text-gray-700 ease-in-out dark:text-gray-400 group-radix-state-open:rotate-90 transition-all" />
+                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      Password Protection
+                    </span>
+                  </div>
+                  {password && (
+                    <CheckCircleFill className="h-6 w-6 text-black" />
+                  )}
+                </AccordionPrimitive.Trigger>
+              </AccordionPrimitive.Header>
+              <AccordionPrimitive.Content>
+                <PasswordSection {...{ data, setData }} />
+              </AccordionPrimitive.Content>
+            </AccordionPrimitive.Item>
+
+            {/* Expiration Date */}
+            <AccordionPrimitive.Item
+              value="expire"
+              className="border border-gray-200 border-t-0 border-b-0 px-5 py-3"
+            >
+              <AccordionPrimitive.Header>
+                <AccordionPrimitive.Trigger className="group focus:outline-black flex w-full items-center justify-between space-x-2 bg-white py-2 text-left dark:bg-gray-800">
+                  <div className="flex items-center justify-start space-x-2 h-6">
+                    <ChevronRight className="h-5 w-5 shrink-0 text-gray-700 ease-in-out dark:text-gray-400 group-radix-state-open:rotate-90 transition-all" />
+                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      Expiration Date
+                    </span>
+                    {expiresAt &&
+                      new Date().getTime() > new Date(expiresAt).getTime() && (
+                        <span className="bg-amber-500 px-2 py-0.5 text-xs text-white uppercase">
+                          Expired
+                        </span>
+                      )}
+                  </div>
+                  {expiresAt && (
+                    <CheckCircleFill className="h-6 w-6 text-black" />
+                  )}
+                </AccordionPrimitive.Trigger>
+              </AccordionPrimitive.Header>
+              <AccordionPrimitive.Content>
+                <ExpirationSection {...{ data, setData }} />
+              </AccordionPrimitive.Content>
+            </AccordionPrimitive.Item>
+
+            {/* OG Tags Section */}
+            <AccordionPrimitive.Item
+              value="og"
+              className="border border-gray-200 rounded-b-lg px-5 py-3"
+            >
+              <AccordionPrimitive.Header>
+                <AccordionPrimitive.Trigger className="group focus:outline-black flex w-full items-center justify-between space-x-2 bg-white py-2 text-left dark:bg-gray-800">
+                  <div className="flex items-center justify-start space-x-2 h-6">
+                    <ChevronRight className="h-5 w-5 shrink-0 text-gray-700 ease-in-out dark:text-gray-400 group-radix-state-open:rotate-90 transition-all" />
+                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      Custom OG Tags
+                    </span>
+                  </div>
+                  {title && description && image && (
+                    <CheckCircleFill className="h-6 w-6 text-black" />
+                  )}
+                </AccordionPrimitive.Trigger>
+              </AccordionPrimitive.Header>
+              <AccordionPrimitive.Content>
+                <OGSection {...{ data, setData }} />
+              </AccordionPrimitive.Content>
+            </AccordionPrimitive.Item>
+          </AccordionPrimitive.Root>
+        </motion.div>
       )}
     </div>
   );

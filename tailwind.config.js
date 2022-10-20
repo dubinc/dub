@@ -61,6 +61,12 @@ module.exports = {
     plugin(({ addVariant }) => {
       addVariant("radix-state-checked", '&[data-state="checked"]');
       addVariant("radix-state-unchecked", '&[data-state="unchecked"]');
+      addVariant("radix-state-open", '&[data-state="open"]');
+      addVariant("radix-state-closed", '&[data-state="closed"]');
+      addVariant(
+        "group-radix-state-open",
+        ':merge(.group)[data-state="open"] &',
+      );
     }),
   ],
 };

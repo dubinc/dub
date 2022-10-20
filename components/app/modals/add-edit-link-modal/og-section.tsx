@@ -1,8 +1,10 @@
 import { Dispatch, SetStateAction, useCallback, useState } from "react";
+import { motion } from "framer-motion";
 import TextareaAutosize from "react-textarea-autosize";
 import BlurImage from "@/components/shared/blur-image";
 import { LoadingCircle, UploadCloud } from "@/components/shared/icons";
 import { LinkProps } from "@/lib/types";
+import { AnimationSettings } from "./advanced-settings";
 
 export default function OGSection({
   data,
@@ -11,7 +13,6 @@ export default function OGSection({
   data: LinkProps;
   setData: Dispatch<SetStateAction<LinkProps>>;
 }) {
-  const [expanded, setExpanded] = useState(false);
   const [generatingTitle, setGeneratingTitle] = useState(false);
   const [generatingDescription, setGeneratingDescription] = useState(false);
 
@@ -51,8 +52,15 @@ export default function OGSection({
     [setData],
   );
   return (
-    <>
-      <div>
+    <motion.div key="og" className="grid gap-5" {...AnimationSettings}>
+      <p className="block mt-2 text-sm text-gray-500 px-5">
+        If you use custom OG tags,{" "}
+        <span className="font-semibold text-black">
+          be sure to set all 3 tags
+        </span>
+        , or the default tags of the target URL will be used.
+      </p>
+      <div className="border-t border-gray-200 px-5 pt-5 pb-2.5">
         <div className="flex justify-between items-center">
           <label
             htmlFor="title"
@@ -80,7 +88,7 @@ export default function OGSection({
             id="title"
             minRows={3}
             className="border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500 pr-10 block w-full rounded-md focus:outline-none sm:text-sm"
-            placeholder="Dub - an open-source link shortener SaaS with built-in analytics + free custom domains."
+            placeholder="Dub - Open Source Bitly Alternative"
             value={title}
             onChange={(e) => {
               setData({ ...data, title: e.target.value });
@@ -89,7 +97,8 @@ export default function OGSection({
           />
         </div>
       </div>
-      <div>
+
+      <div className="border-t border-gray-200 px-5 pt-5 pb-2.5">
         <div className="flex justify-between items-center">
           <label
             htmlFor="description"
@@ -131,7 +140,7 @@ export default function OGSection({
         </div>
       </div>
 
-      <div>
+      <div className="border-t border-gray-200 px-5 pt-5 pb-2.5">
         <p className="block text-sm font-medium text-gray-700">OG Image</p>
         <label
           htmlFor="image"
@@ -173,6 +182,6 @@ export default function OGSection({
           />
         </div>
       </div>
-    </>
+    </motion.div>
   );
 }

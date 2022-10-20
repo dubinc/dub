@@ -3,6 +3,7 @@ import { DEFAULT_REDIRECTS, RESERVED_KEYS } from "@/lib/constants";
 import prisma from "@/lib/prisma";
 import { LinkProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
+import { getParamsFromURL } from "../utils";
 
 export async function getLinksForProject({
   domain,
@@ -60,10 +61,12 @@ export async function addLink(link: LinkProps) {
   const hasPassword = password && password.length > 0 ? true : false;
   const proxy = title && description && image ? true : false;
   const exat = expiresAt ? new Date(expiresAt).getTime() / 1000 : null;
-  console.log(expiresAt, exat);
 
   const exists = await checkIfKeyExists(domain, key);
   if (exists) return null;
+
+  const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
+    getParamsFromURL(url);
 
   let [response, _] = await Promise.all([
     prisma.link.create({
@@ -71,6 +74,11 @@ export async function addLink(link: LinkProps) {
         ...link,
         // can't upload base64 image string to mysql, need to upload to cloudinary first
         image: undefined,
+        utm_source,
+        utm_medium,
+        utm_campaign,
+        utm_term,
+        utm_content,
       },
     }),
     redis.set(
@@ -132,6 +140,8 @@ export async function editLink(
     const exists = await checkIfKeyExists(domain, key);
     if (exists) return null;
   }
+  const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
+    getParamsFromURL(url);
 
   const [response, ...effects] = await Promise.all([
     prisma.link.update({
@@ -142,6 +152,11 @@ export async function editLink(
         ...link,
         // if it's an uploaded image (base64 URI), need to upload to cloudinary first
         image: uploadedImage ? undefined : image,
+        utm_source,
+        utm_medium,
+        utm_campaign,
+        utm_term,
+        utm_content,
       },
     }),
     // only upload image to cloudinary if it's changed
