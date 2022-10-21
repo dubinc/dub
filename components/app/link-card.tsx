@@ -60,16 +60,16 @@ export default function LinkCard({ props }: { props: LinkProps }) {
   const [openPopover, setOpenPopover] = useState(false);
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-all">
+    <div className="relative bg-white p-4 rounded-lg shadow hover:shadow-md transition-all">
       <LinkQRModal />
       <AddEditLinkModal />
       <ArchiveLinkModal />
       <DeleteLinkModal />
+      {expiresAt && new Date() > new Date(expiresAt) ? (
+        <div className="absolute top-0 left-0 rounded-t-lg w-full h-1.5 bg-amber-500" />
+      ) : null}
       <li className="relative flex justify-between items-center">
-        {expiresAt && new Date() > new Date(expiresAt) ? (
-          <div className="absolute top-0 left-0 rounded-t-lg w-full h-1.5 bg-amber-500" />
-        ) : null}
-        <div className="relative flex items-center space-x-4">
+        <div className="relative flex items-center space-x-4 shrink">
           <BlurImage
             src={`https://www.google.com/s2/favicons?sz=64&domain_url=${apexDomain}`}
             alt={apexDomain}
@@ -109,7 +109,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                 </a>
               </Link>
             </div>
-            <h3 className="text-sm font-medium text-gray-700 line-clamp-1">
+            <h3 className="text-sm font-medium text-gray-700 truncate max-w-xs md:max-w-md lg:max-w-2xl xl:max-w-3xl">
               {url}
             </h3>
           </div>

@@ -48,7 +48,7 @@ function UpgradePlanModal({
           <h3 className="font-medium text-xl">Upgrade to Pro</h3>
           <div className="flex space-x-2 items-center">
             <p className="text-sm text-gray-600">Billed Monthly</p>
-            <Switch setState={setAnnualBilling} />
+            <Switch fn={setAnnualBilling} />
             <p className="text-sm text-gray-600">Billed Annually</p>
           </div>
         </div>

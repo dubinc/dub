@@ -14,27 +14,34 @@ export default function Modal({
   showModal,
   setShowModal,
   bgColor = "bg-white",
+  closeWithX,
 }: {
   children: React.ReactNode;
   showModal: boolean;
   setShowModal: Dispatch<SetStateAction<boolean>>;
   bgColor?: string;
+  closeWithX?: boolean;
 }) {
   const router = useRouter();
   const { key } = router.query;
   const mobileModalRef = useRef(null);
   const desktopModalRef = useRef(null);
 
-  const closeModal = useCallback(() => {
-    if (key) {
-      router.push("/");
-    } else {
-      setShowModal(false);
-    }
-  }, [key, router, setShowModal]);
+  const closeModal = useCallback(
+    (closeWithX?: boolean) => {
+      if (closeWithX) {
+        return;
+      } else if (key) {
+        router.push("/");
+      } else {
+        setShowModal(false);
+      }
+    },
+    [key, router, setShowModal],
+  );
 
   const onKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === "Escape") {
+    if (e.key === "Escape" && !closeWithX) {
       setShowModal(false);
     }
   }, []);
@@ -100,7 +107,9 @@ export default function Modal({
               animate={{ scale: 1 }}
               exit={{ scale: 0.95 }}
               onMouseDown={(e) => {
-                if (desktopModalRef.current === e.target) closeModal();
+                if (desktopModalRef.current === e.target) {
+                  closeModal(closeWithX);
+                }
               }}
             >
               {children}
@@ -111,7 +120,7 @@ export default function Modal({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={closeModal}
+              onClick={() => closeModal(closeWithX)}
             />
           </div>
         </FocusTrap>

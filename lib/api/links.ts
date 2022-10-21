@@ -25,6 +25,7 @@ export async function getLinksForProject({
     orderBy: {
       [orderBy]: "desc",
     },
+    take: 100,
   });
 }
 

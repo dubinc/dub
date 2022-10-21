@@ -216,10 +216,10 @@ function AdvancedSettings({ qrData, setQrData, setShowLogo }) {
               >
                 <div className="flex mt-1 space-x-2 items-center cursor-not-allowed pointer-events-none sm:pointer-events-auto">
                   <Switch
+                    fn={setShowLogo}
                     trackDimensions="h-6 w-12"
                     thumbDimensions="w-5 h-5"
                     thumbTranslate="translate-x-6"
-                    setState={setShowLogo}
                     disabled={true}
                   />
                   <p className="text-gray-600 text-sm">Show Dub.sh Logo</p>
@@ -228,10 +228,10 @@ function AdvancedSettings({ qrData, setQrData, setShowLogo }) {
             ) : (
               <div className="flex mt-1 space-x-2 items-center">
                 <Switch
+                  fn={setShowLogo}
                   trackDimensions="h-6 w-12"
                   thumbDimensions="w-5 h-5"
                   thumbTranslate="translate-x-6"
-                  setState={setShowLogo}
                 />
                 <p className="text-gray-600 text-sm">Show Dub.sh Logo</p>
               </div>

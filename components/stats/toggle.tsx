@@ -38,7 +38,7 @@ export default function Toggle({
 
   return (
     <div
-      className={`z-20 mb-5 ${
+      className={`z-10 mb-5 ${
         pageType === "stats" ? "top-0" : "top-24"
       } sticky py-5 bg-gray-50 ${atTop ? "shadow-md" : ""}`}
     >

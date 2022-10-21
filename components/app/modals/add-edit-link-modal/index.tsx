@@ -15,6 +15,7 @@ import {
   LoadingCircle,
   LoadingDots,
   Random,
+  X,
 } from "@/components/shared/icons";
 import Modal from "@/components/shared/modal";
 import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
@@ -132,10 +133,17 @@ function AddEditLinkModal({
     <Modal
       showModal={showAddEditLinkModal}
       setShowModal={setShowAddEditLinkModal}
+      closeWithX={true}
     >
       <div className="inline-block w-full sm:max-w-md max-h-[calc(100vh-50px)] overflow-scroll align-middle transition-all transform bg-white sm:border sm:border-gray-200 shadow-xl sm:rounded-2xl">
+        <button
+          onClick={() => setShowAddEditLinkModal(false)}
+          className="hidden sm:block absolute top-0 right-0 p-2 m-3 rounded-full group hover:bg-gray-100 text-gray-500 focus:outline-none active:scale-75 transition-all duration-75"
+        >
+          <X className="w-5 h-5" />
+        </button>
         {expiresAt && new Date().getTime() > new Date(expiresAt).getTime() && (
-          <span className="absolute top-0 sm:top-5 right-5 bg-amber-500 px-2 py-0.5 text-xs text-white uppercase">
+          <span className="absolute top-0 sm:top-5 left-5 bg-amber-500 px-2 py-0.5 text-xs text-white uppercase">
             Expired
           </span>
         )}

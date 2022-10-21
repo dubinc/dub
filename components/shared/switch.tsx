@@ -3,22 +3,22 @@ import * as SwitchPrimitive from "@radix-ui/react-switch";
 import cx from "classnames";
 
 const Switch = ({
+  fn,
   trackDimensions = "h-4 w-8",
   thumbDimensions = "h-3 w-3",
   thumbTranslate = "translate-x-4",
   disabled = false,
-  setState,
 }: {
+  fn: Dispatch<SetStateAction<boolean>> | (() => void);
   trackDimensions?: string;
   thumbDimensions?: string;
   thumbTranslate?: string;
   disabled?: boolean;
-  setState: Dispatch<SetStateAction<boolean>>;
 }) => {
   return (
     <SwitchPrimitive.Root
       defaultChecked={true}
-      onCheckedChange={(checked) => setState(checked)}
+      onCheckedChange={(checked) => fn(checked)}
       disabled={disabled}
       className={cx(
         disabled
