@@ -8,12 +8,15 @@ export default function Popover({
   children,
   content,
   align = "center",
+  openPopover,
+  setOpenPopover,
 }: {
   children: ReactNode;
   content: ReactNode | string;
   align?: "center" | "start" | "end";
+  openPopover;
+  setOpenPopover;
 }) {
-  const [openPopover, setOpenPopover] = useState(false);
   const router = useRouter();
 
   const mobileTooltipRef = useRef(null);
@@ -74,13 +77,7 @@ export default function Popover({
                 <div className="rounded-full h-1 w-6 bg-gray-300 group-active:-rotate-12 transition-all" />
               </div>
               <div className="flex items-center justify-center w-full overflow-hidden align-middle bg-white shadow-xl min-h-[150px]">
-                {typeof content === "string" ? (
-                  <span className="block text-sm text-center text-gray-700 max-w-xs">
-                    {content}
-                  </span>
-                ) : (
-                  content
-                )}
+                {content}
               </div>
             </motion.div>
             <motion.div
@@ -106,20 +103,11 @@ export default function Popover({
         </PopoverPrimitive.Trigger>
         <PopoverPrimitive.Content
           sideOffset={4}
-          side="top"
           align={align}
           className="hidden sm:block animate-slide-up-fade items-center rounded-md overflow-hidden z-20 bg-white border border-gray-200 drop-shadow-lg"
         >
           <PopoverPrimitive.Arrow className="fill-current text-white" />
-          {typeof content === "string" ? (
-            <div className="p-5">
-              <span className="block text-sm text-center text-gray-700 max-w-xs">
-                {content}
-              </span>
-            </div>
-          ) : (
-            content
-          )}
+          {content}
           <PopoverPrimitive.Arrow className="fill-current text-white" />
         </PopoverPrimitive.Content>
       </PopoverPrimitive.Root>

@@ -233,3 +233,17 @@ export async function deleteLink(domain: string, key: string) {
     redis.del(`${domain}:clicks:${key}`),
   ]);
 }
+
+export async function archiveLink(domain: string, key: string) {
+  return await prisma.link.update({
+    where: {
+      domain_key: {
+        domain,
+        key,
+      },
+    },
+    data: {
+      archived: true,
+    },
+  });
+}

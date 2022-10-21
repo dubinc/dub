@@ -43,7 +43,7 @@ export default function NavTabs() {
                 : "border-transparent text-gray-600 hover:text-black"
             }`}
           >
-            <div className="rounded-md px-3 py-2 hover:bg-gray-100 active:bg-gray-200 transition-all">
+            <div className="rounded-md px-3 py-2 hover:bg-gray-100 active:bg-gray-200 transition-all duration-75">
               <p className="text-sm">{name}</p>
             </div>
           </a>

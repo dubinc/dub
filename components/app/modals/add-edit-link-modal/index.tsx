@@ -14,6 +14,7 @@ import {
   AlertCircleFill,
   LoadingCircle,
   LoadingDots,
+  Random,
 } from "@/components/shared/icons";
 import Modal from "@/components/shared/modal";
 import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
@@ -191,10 +192,12 @@ function AddEditLinkModal({
                   disabled={generatingSlug}
                   type="button"
                 >
-                  {generatingSlug && <LoadingCircle />}
-                  <p>
-                    {generatingSlug ? "Generating" : "Generate random slug"}
-                  </p>
+                  {generatingSlug ? (
+                    <LoadingCircle />
+                  ) : (
+                    <Random className="w-3 h-3" />
+                  )}
+                  <p>{generatingSlug ? "Generating" : "Randomize"}</p>
                 </button>
               </div>
               <div className="relative flex mt-1 rounded-md shadow-sm">

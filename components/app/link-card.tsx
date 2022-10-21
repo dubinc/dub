@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useState } from "react";
 import useSWR from "swr";
 import BlurImage from "@/components/shared/blur-image";
 import CopyButton from "@/components/shared/copy-button";
-import { Chart, LoadingDots, QR } from "@/components/shared/icons";
+import { Chart, LoadingDots, QR, ThreeDots } from "@/components/shared/icons";
 import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 import useProject from "@/lib/swr/use-project";
 import useUsage from "@/lib/swr/use-usage";
@@ -15,7 +16,9 @@ import {
   nFormatter,
   timeAgo,
 } from "@/lib/utils";
+import Popover from "../shared/popover";
 import { useAddEditLinkModal } from "./modals/add-edit-link-modal";
+import { useArchiveLinkModal } from "./modals/archive-link-modal";
 import { useDeleteLinkModal } from "./modals/delete-link-modal";
 import { useLinkQRModal } from "./modals/link-qr-modal";
 
@@ -27,8 +30,9 @@ export default function LinkCard({ props }: { props: LinkProps }) {
   const router = useRouter();
   const { slug } = router.query as { slug: string };
 
-  const { project, isOwner } = useProject();
+  const { project } = useProject();
   const { domain } = project || {};
+  const { isOwner } = useProject();
   const { exceededUsage } = useUsage();
 
   const { data: clicks, isValidating } = useSWR<number>(
@@ -41,28 +45,31 @@ export default function LinkCard({ props }: { props: LinkProps }) {
     },
   );
 
-  const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal({
-    props,
-  });
-
-  const { setShowDeleteLinkModal, DeleteLinkModal } = useDeleteLinkModal({
-    props,
-  });
-
   const { setShowLinkQRModal, LinkQRModal } = useLinkQRModal({
     props,
   });
+  const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal({
+    props,
+  });
+  const { setShowArchiveLinkModal, ArchiveLinkModal } = useArchiveLinkModal({
+    props,
+  });
+  const { setShowDeleteLinkModal, DeleteLinkModal } = useDeleteLinkModal({
+    props,
+  });
+  const [openPopover, setOpenPopover] = useState(false);
 
   return (
-    <>
-      <AddEditLinkModal />
-      <DeleteLinkModal />
+    <div className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-all">
       <LinkQRModal />
-      <li className="relative flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-4 rounded-lg shadow hover:shadow-md transition-all">
+      <AddEditLinkModal />
+      <ArchiveLinkModal />
+      <DeleteLinkModal />
+      <li className="relative flex justify-between items-center">
         {expiresAt && new Date() > new Date(expiresAt) ? (
           <div className="absolute top-0 left-0 rounded-t-lg w-full h-1.5 bg-amber-500" />
         ) : null}
-        <div className="relative flex items-center space-x-4 mb-3 sm:mb-0">
+        <div className="relative flex items-center space-x-4">
           <BlurImage
             src={`https://www.google.com/s2/favicons?sz=64&domain_url=${apexDomain}`}
             alt={apexDomain}
@@ -107,44 +114,76 @@ export default function LinkCard({ props }: { props: LinkProps }) {
             </h3>
           </div>
         </div>
-        <div className="flex items-center space-x-3 w-full sm:w-auto">
-          <p className="text-sm hidden sm:block text-gray-500 whitespace-nowrap">
+
+        <div className="flex items-center">
+          <p className="text-sm hidden sm:block text-gray-500 whitespace-nowrap mr-3">
             Added {timeAgo(createdAt)}
           </p>
-          {slug && exceededUsage ? (
-            <Tooltip
-              content={
-                <TooltipContent
-                  title={
-                    isOwner
-                      ? "You have exceeded your usage limit. We're still collecting data on your existing links, but you need to upgrade to edit them."
-                      : "The owner of this project has exceeded their usage limit. We're still collecting data on all existing links, but they need to upgrade their plan to edit them."
-                  }
-                  cta={isOwner && "Upgrade"}
-                  ctaLink={isOwner && "/settings"}
-                />
-              }
-            >
-              <div className="grow text-gray-300 cursor-not-allowed font-medium text-sm px-5 py-1.5 sm:py-2 border rounded-md border-gray-200 transition-all duration-75">
-                Edit
+          <p className="text-sm sm:hidden text-gray-500 whitespace-nowrap mr-3">
+            {timeAgo(createdAt, true)}
+          </p>
+          <Popover
+            content={
+              <div className="w-full sm:w-40 p-2 grid gap-1">
+                {slug && exceededUsage ? (
+                  <Tooltip
+                    content={
+                      <TooltipContent
+                        title={
+                          isOwner
+                            ? "You have exceeded your usage limit. We're still collecting data on your existing links, but you need to upgrade to edit them."
+                            : "The owner of this project has exceeded their usage limit. We're still collecting data on all existing links, but they need to upgrade their plan to edit them."
+                        }
+                        cta={isOwner && "Upgrade"}
+                        ctaLink={isOwner && "/settings"}
+                      />
+                    }
+                  >
+                    <div className="w-full text-gray-300 cursor-not-allowed font-medium text-sm p-2 text-left transition-all duration-75">
+                      Edit
+                    </div>
+                  </Tooltip>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setOpenPopover(false);
+                      setShowAddEditLinkModal(true);
+                    }}
+                    className="w-full font-medium text-sm text-gray-500 p-2 text-left rounded-md hover:bg-gray-100 transition-all duration-75"
+                  >
+                    Edit
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setShowArchiveLinkModal(true);
+                  }}
+                  className="w-full font-medium text-sm text-gray-500 p-2 text-left rounded-md hover:bg-gray-100 transition-all duration-75"
+                >
+                  Archive
+                </button>
+                <button
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setShowDeleteLinkModal(true);
+                  }}
+                  className="w-full font-medium text-sm text-red-600 hover:bg-red-600 hover:text-white p-2 text-left rounded-md transition-all duration-75"
+                >
+                  Delete
+                </button>
               </div>
-            </Tooltip>
-          ) : (
-            <button
-              onClick={() => setShowAddEditLinkModal(true)}
-              className="grow sm:grow-0 font-medium text-sm text-gray-500 px-5 py-1.5 sm:py-2 border rounded-md border-gray-200 hover:border-black active:scale-95 transition-all duration-75"
-            >
-              Edit
-            </button>
-          )}
-          <button
-            onClick={() => setShowDeleteLinkModal(true)}
-            className="grow sm:grow-0 font-medium text-sm text-white bg-red-600 hover:bg-white hover:text-red-600 border-red-600 px-5 py-1.5 sm:py-2 border rounded-md active:scale-95 transition-all duration-75"
+            }
+            align="end"
+            openPopover={openPopover}
+            setOpenPopover={setOpenPopover}
           >
-            Delete
-          </button>
+            <button className="rounded-md px-1 py-2 hover:bg-gray-100 active:bg-gray-200 transition-all duration-75">
+              <ThreeDots className="w-5 h-5 text-gray-500" />
+            </button>
+          </Popover>
         </div>
       </li>
-    </>
+    </div>
   );
 }

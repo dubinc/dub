@@ -48,7 +48,7 @@ export default withUserAuth(
       const response = await deleteLink(domain, oldKey);
       return res.status(200).json(response);
     } else {
-      res.setHeader("Allow", ["GET", "POST", "DELETE"]);
+      res.setHeader("Allow", ["PUT", "DELETE"]);
       return res
         .status(405)
         .json({ error: `Method ${req.method} Not Allowed` });

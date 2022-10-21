@@ -30,3 +30,5 @@ export { default as Lock } from "./lock";
 export { default as QR } from "./qr";
 export { default as Download } from "./download";
 export { default as Calendar } from "./calendar";
+export { default as ThreeDots } from "./three-dots";
+export { default as Random } from "./random";

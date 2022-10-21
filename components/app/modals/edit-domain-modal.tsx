@@ -59,7 +59,7 @@ function EditDomainModal({
             height={20}
           />
           <h3 className="font-medium text-lg">Change Domain</h3>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 text-center">
             Warning: Changing your project's domain will break all existing
             short links.
           </p>

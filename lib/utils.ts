@@ -108,9 +108,11 @@ export const getDescriptionFromUrl = async (url: string) => {
   return description;
 };
 
-export const timeAgo = (timestamp: Date): string => {
+export const timeAgo = (timestamp: Date, timeOnly?: boolean): string => {
   if (!timestamp) return "never";
-  return `${ms(Date.now() - new Date(timestamp).getTime())} ago`;
+  return `${ms(Date.now() - new Date(timestamp).getTime())}${
+    timeOnly ? "" : " ago"
+  }`;
 };
 
 export const getDateTimeLocal = (timestamp?: Date): string => {

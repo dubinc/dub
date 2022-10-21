@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import useSWR from "swr";
 import { useAddProjectModal } from "@/components/app/modals/add-project-modal";
@@ -31,6 +31,7 @@ export default function ProjectSelect() {
       }
     );
   }, [router, projects, session]);
+  const [openPopover, setOpenPopover] = useState(false);
 
   if (!projects || !router.isReady)
     return (
@@ -50,6 +51,8 @@ export default function ProjectSelect() {
             setShowAddProjectModal={setShowAddProjectModal}
           />
         }
+        openPopover={openPopover}
+        setOpenPopover={setOpenPopover}
       >
         <div className="relative cursor-pointer w-60 rounded-lg bg-white hover:bg-gray-100 active:bg-gray-200 py-1.5 pl-3 pr-10 text-left focus:outline-none text-sm transition-all duration-75">
           <div className="flex justify-start items-center space-x-3">
@@ -101,7 +104,7 @@ function ProjectList({
       {projects.map(({ name, slug, domain, logo }) => (
         <button
           key={slug}
-          className={`relative flex items-center space-x-2 p-2 rounded-md w-full hover:bg-gray-100 ${
+          className={`relative flex items-center space-x-2 p-2 rounded-md w-full hover:bg-gray-100 active:bg-gray-200 ${
             selected.slug === slug ? "font-medium" : ""
           } transition-all duration-75`}
           onClick={() => router.push(`/${slug}`)}
