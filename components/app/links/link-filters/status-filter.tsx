@@ -2,40 +2,12 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { ChevronDown, Tick } from "@/components/shared/icons";
 import Popover from "@/components/shared/popover";
-import Switch from "@/components/shared/switch";
-
-export default function LinkFilters() {
-  const router = useRouter();
-  return (
-    <div className="my-5 flex justify-end">
-      {/* <div className="bg-white p-3 rounded-lg shadow hover:shadow-md transition-all">
-        <Switch
-          fn={(checked) => {
-            let newQuery;
-            if (checked) {
-              newQuery = { ...router.query, archived: "true" };
-            } else {
-              delete router.query.archived;
-              newQuery = { ...router.query };
-            }
-            const { slug: omit, ...finalQuery } = newQuery;
-            router.push({
-              pathname: `/${router.query.slug}`,
-              query: finalQuery,
-            });
-          }}
-        />
-      </div> */}
-      <StatusFilter />
-    </div>
-  );
-}
 
 const statuses = [
   {
     display: "Active",
     slug: "active",
-    color: "bg-green-400",
+    color: "bg-green-500",
   },
   {
     display: "Expired",
@@ -63,8 +35,8 @@ const statusArrToStr = (newStatusArr: string[]) => {
   }
 };
 
-const StatusFilter = () => {
-  const [open, setOpen] = useState(false);
+export default function StatusFilter() {
+  const [openPopover, setOpenPopover] = useState(false);
   const router = useRouter();
   const { status } = router.query as { status?: string };
   const selectedStatus = !status
@@ -76,7 +48,7 @@ const StatusFilter = () => {
   return (
     <Popover
       content={
-        <div className="w-44 p-2">
+        <div className="w-full md:w-44 p-2">
           {statuses.map(({ display, slug, color }) => (
             <button
               key={slug}
@@ -121,17 +93,32 @@ const StatusFilter = () => {
           ))}
         </div>
       }
-      openPopover={open}
-      setOpenPopover={setOpen}
+      openPopover={openPopover}
+      setOpenPopover={setOpenPopover}
     >
-      <button className="flex justify-between items-center space-x-2 bg-white w-44 px-3 py-2.5 rounded-md shadow hover:shadow-md active:scale-95 transition-all duration-75">
-        <p className="text-sm text-gray-700">Filter by Status</p>
+      <button
+        onClick={() => setOpenPopover(!openPopover)}
+        className="flex justify-between items-center space-x-2 bg-white w-44 px-3 py-2.5 rounded-md shadow hover:shadow-md active:scale-95 transition-all duration-75"
+      >
+        <div className="flex items-center space-x-2 text-gray-700">
+          <div className="flex -space-x-1">
+            {statuses.map(({ slug, color }) => (
+              <div
+                key={slug}
+                className={`rounded-full w-3.5 h-3.5 ${
+                  selectedStatus.includes(slug) ? color : "bg-gray-200"
+                } border border-white`}
+              />
+            ))}
+          </div>
+          <p className="text-sm">Status</p>
+        </div>
         <ChevronDown
           className={`w-5 h-5 text-gray-400 ${
-            open ? "transform rotate-180" : ""
+            openPopover ? "transform rotate-180" : ""
           } transition-all duration-75`}
         />
       </button>
     </Popover>
   );
-};
+}

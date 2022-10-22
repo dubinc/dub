@@ -32,3 +32,5 @@ export { default as Download } from "./download";
 export { default as Calendar } from "./calendar";
 export { default as ThreeDots } from "./three-dots";
 export { default as Random } from "./random";
+export { default as Filter } from "./filter";
+export { default as Search } from "./search";

@@ -43,7 +43,7 @@ export default function Popover({
 
   return (
     <>
-      <div className="inline-flex sm:hidden">{children}</div>
+      <div className="sm:hidden">{children}</div>
       <AnimatePresence>
         {openPopover && (
           <>

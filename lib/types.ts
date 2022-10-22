@@ -23,6 +23,7 @@ export interface LinkProps {
 }
 
 export interface ProjectProps {
+  id: string;
   name: string;
   slug: string;
   domain: string;

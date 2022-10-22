@@ -1,4 +1,4 @@
-export default function Chart({ className }: { className: string }) {
+export default function Filter({ className }: { className: string }) {
   return (
     <svg
       fill="none"
@@ -12,9 +12,7 @@ export default function Chart({ className }: { className: string }) {
       height="14"
       className={className}
     >
-      <path d="M12 20V10" />
-      <path d="M18 20V4" />
-      <path d="M6 20v-4" />
+      <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" />
     </svg>
   );
 }

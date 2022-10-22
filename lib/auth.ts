@@ -67,6 +67,7 @@ const withProjectAuth =
         },
       },
       select: {
+        id: true,
         name: true,
         slug: true,
         domain: true,
