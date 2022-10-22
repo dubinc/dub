@@ -118,7 +118,7 @@ const Demo = () => {
           variants={FRAMER_MOTION_LIST_ITEM_VARIANTS}
           className="border border-gray-200 bg-white p-3 rounded-md text-gray-500 text-sm"
         >
-          Note: Public links will be automatically-deleted after 7 days.{" "}
+          Note: Public links will be automatically-deleted after 30 minutes.{" "}
           <a
             href="https://app.dub.sh/register"
             target="_blank"

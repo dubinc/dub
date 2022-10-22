@@ -104,7 +104,7 @@ function AddEditLinkModal({
     const res = await fetch(
       domain
         ? `/api/projects/${slug}/domains/${domain}/links/random`
-        : `/api/edge/links/random`,
+        : `/api/links/random`,
     );
     const key = await res.json();
     setData((prev) => ({ ...prev, key }));

@@ -1,6 +1,6 @@
 import Image from "next/future/image";
 import Head from "next/head";
-import { escape } from "html-escaper";
+import { unescape } from "html-escaper";
 import prisma from "@/lib/prisma";
 import { getApexDomain } from "@/lib/utils";
 
@@ -14,18 +14,19 @@ export default function LinkPage({
   return (
     <>
       <Head>
-        <meta property="og:title" content={escape(title)} />
-        <meta property="og:site_name" content={escape(fullDomain)} />
-        <meta property="og:description" content={escape(description)} />
-        <meta property="og:image" content={escape(image)} />
+        <meta property="og:title" content={unescape(title)} />
+        <meta property="og:site_name" content={unescape(fullDomain)} />
+        <meta property="og:description" content={unescape(description)} />
+        <meta property="og:image" content={unescape(image)} />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:site" content={escape(fullDomain)} />
-        <meta name="twitter:title" content={escape(title)} />
-        <meta name="twitter:description" content={escape(description)} />
-        <meta name="twitter:image" content={escape(image)} />
+        <meta name="twitter:site" content={unescape(fullDomain)} />
+        <meta name="twitter:title" content={unescape(title)} />
+        <meta name="twitter:description" content={unescape(description)} />
+        <meta name="twitter:image" content={unescape(image)} />
+        <meta charSet="utf-8" />
         <link
           rel="icon"
-          href={`https://www.google.com/s2/favicons?sz=64&domain_url=${escape(
+          href={`https://www.google.com/s2/favicons?sz=64&domain_url=${unescape(
             apexDomain,
           )}`}
         />
@@ -41,7 +42,7 @@ export default function LinkPage({
           />
           <div className="flex space-x-3 bg-gray-100 p-5">
             <Image
-              src={`https://www.google.com/s2/favicons?sz=64&domain_url=${escape(
+              src={`https://www.google.com/s2/favicons?sz=64&domain_url=${unescape(
                 apexDomain,
               )}`}
               alt={title}

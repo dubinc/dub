@@ -1,14 +1,9 @@
 import { NextRequest, userAgent } from "next/server";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
-import { customAlphabet } from "nanoid";
 import { LOCALHOST_GEO_DATA, RESERVED_KEYS } from "@/lib/constants";
 import { LinkProps, ProjectProps } from "@/lib/types";
-import {
-  getDescriptionFromUrl,
-  getFirstAndLastDay,
-  getTitleFromUrl,
-} from "@/lib/utils";
+import { getFirstAndLastDay, nanoid } from "@/lib/utils";
 
 // Initiate Redis instance
 export const redis = new Redis({
@@ -22,70 +17,40 @@ export const ratelimit = new Ratelimit({
   limiter: Ratelimit.slidingWindow(10, "10 s"),
 });
 
-/**
- * Everything to do with keys:
- * - Set a defined key
- * - Set a random key
- * - Generate a random key
- * - Check if key exists
- **/
-
-const nanoid = customAlphabet(
-  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
-  7,
-); // 7-character random string
-
-export async function setKey(
-  domain: string,
-  key: string,
-  url: string,
-  title?: string,
-  description?: string, // only for Pro users: customize description
-  image?: string, // only for Pro users: customize OG image
-) {
-  return await redis.hsetnx(`${domain}:links`, key, {
-    url,
-    title: title || (await getTitleFromUrl(url)),
-    description:
-      image && !description ? getDescriptionFromUrl(url) : description,
-    image,
-    timestamp: Date.now(),
-  });
-}
-
+// only for dub.sh public demo
 export async function setRandomKey(
-  domain: string,
   url: string,
-  title?: string,
-): Promise<{ response: number; key: string }> {
+): Promise<{ response: string; key: string }> {
   /* recursively set link till successful */
   const key = nanoid();
-  const response = await setKey(domain, key, url, title); // add to hash
-  if (response === 0) {
+  const response = await redis.set(
+    `dub.sh:${key}`,
+    {
+      url,
+    },
+    {
+      nx: true,
+      ex: 30 * 60, // 30 minutes
+    },
+  );
+  if (response !== "OK") {
     // by the off chance that key already exists
-    return setRandomKey(domain, url, title);
+    return setRandomKey(url);
   } else {
+    const pipeline = redis.pipeline();
+    pipeline.zadd(`dub.sh:clicks:${key}`, {
+      score: Date.now(),
+      member: {
+        geo: LOCALHOST_GEO_DATA,
+        ua: "Dub-Bot",
+        referer: "https://dub.sh",
+        timestamp: Date.now(),
+      },
+    });
+    pipeline.expire(`dub.sh:clicks:${key}`, 30 * 60); // 30 minutes
+    await pipeline.exec();
     return { response, key };
   }
-}
-
-export async function getRandomKey(domain: string): Promise<string> {
-  /* recursively get random key till it gets one that's avaialble */
-  const key = nanoid();
-  const response = await redis.hexists(`${domain}:links`, key); // check if key exists
-  if (response === 1) {
-    // by the off chance that key already exists
-    return getRandomKey(domain);
-  } else {
-    return key;
-  }
-}
-
-export async function checkIfKeyExists(domain: string, key: string) {
-  if (domain === "dub.sh" && RESERVED_KEYS.has(key)) {
-    return 1; // reserved keys for dub.sh
-  }
-  return await redis.hexists(`${domain}:links`, key);
 }
 
 /**
@@ -156,39 +121,6 @@ export async function getLinkClicksCount(domain: string, key: string) {
   return (
     (await redis.zcount(`${domain}:clicks:${key}`, start, Date.now())) || 0
   );
-}
-
-export async function addLink(
-  domain: string,
-  link: LinkProps,
-  userId?: string, // only applicable for dub.sh links
-) {
-  const {
-    key, // if key is provided, it will be used
-    url,
-    title, // if title is provided, it will be used
-    description, // only for Pro users: customize description
-    image, // only for Pro users: customize OG image
-  } = link;
-
-  if (domain === "dub.sh" && key && RESERVED_KEYS.has(key)) {
-    return null; // reserved keys for dub.sh
-  }
-  const response = key
-    ? await setKey(domain, key, url, title, description, image)
-    : await setRandomKey(domain, url, title); // not possible to add description and image for random keys (only for dub.sh landing page input)
-
-  if (response === 1) {
-    return await redis.zadd(
-      `${domain}:links:timestamps${userId ? `:${userId}` : ""}`,
-      {
-        score: Date.now(),
-        member: key,
-      },
-    );
-  } else {
-    return null; // key already exists
-  }
 }
 
 /**

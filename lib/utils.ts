@@ -1,6 +1,12 @@
 import { NextRouter } from "next/router";
 import ms from "ms";
+import { customAlphabet } from "nanoid";
 import { SPECIAL_APEX_DOMAINS, ccTLDs, secondLevelDomains } from "./constants";
+
+export const nanoid = customAlphabet(
+  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
+  7,
+); // 7-character random string
 
 interface SWRError extends Error {
   status: number;

@@ -23,7 +23,7 @@ export default function PasswordSection({
           id="password"
           type="password"
           className="border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500 block w-full rounded-md focus:outline-none sm:text-sm"
-          value={password}
+          value={password || ""}
           onChange={(e) => {
             setData({ ...data, password: e.target.value });
           }}

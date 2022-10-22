@@ -3,7 +3,7 @@ import { DEFAULT_REDIRECTS, RESERVED_KEYS } from "@/lib/constants";
 import prisma from "@/lib/prisma";
 import { LinkProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
-import { getParamsFromURL } from "../utils";
+import { getParamsFromURL, nanoid } from "@/lib/utils";
 
 const getFiltersFromStatus = (status: string) => {
   if (status === "all" || status === "none") {
@@ -86,6 +86,25 @@ export async function getLinkCountForProject(domain: string) {
       archived: false,
     },
   });
+}
+
+export async function getRandomKey(domain: string): Promise<string> {
+  /* recursively get random key till it gets one that's avaialble */
+  const key = nanoid();
+  const response = await prisma.link.findUnique({
+    where: {
+      domain_key: {
+        domain,
+        key,
+      },
+    },
+  });
+  if (response) {
+    // by the off chance that key already exists
+    return getRandomKey(domain);
+  } else {
+    return key;
+  }
 }
 
 export async function checkIfKeyExists(domain: string, key: string) {
@@ -181,7 +200,7 @@ export async function editLink(
     description,
     image,
   } = link;
-  const hasPassword = password && password.length > 0;
+  const hasPassword = password && password.length > 0 ? true : false;
   const proxy = title && description && image ? true : false;
   const exat = expiresAt ? new Date(expiresAt).getTime() : null;
   const changedKey = key !== oldKey;

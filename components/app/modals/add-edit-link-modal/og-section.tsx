@@ -89,7 +89,7 @@ export default function OGSection({
             minRows={3}
             className="border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500 pr-10 block w-full rounded-md focus:outline-none sm:text-sm"
             placeholder="Dub - Open Source Bitly Alternative"
-            value={title}
+            value={title || ""}
             onChange={(e) => {
               setData({ ...data, title: e.target.value });
             }}
@@ -127,7 +127,7 @@ export default function OGSection({
             minRows={3}
             className="border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500 pr-10 block w-full rounded-md focus:outline-none sm:text-sm"
             placeholder="Dub is an open-source link shortener SaaS with built-in analytics + free custom domains."
-            value={description}
+            value={description || ""}
             onChange={(e) => {
               setData({
                 ...data,
