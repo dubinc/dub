@@ -59,7 +59,7 @@ export default function UTMSection({
                 isValidUrl ? "" : "cursor-not-allowed bg-gray-100"
               } border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500 block w-full rounded-r-md focus:outline-none sm:text-sm`}
               placeholder={examples}
-              value={params[key]}
+              value={params[key] || ""}
               onChange={(e) => {
                 setData({
                   ...data,

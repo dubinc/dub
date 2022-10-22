@@ -61,7 +61,7 @@ export default function AdvancedSettings({
               className="border border-gray-200 rounded-t-lg"
             >
               <AccordionPrimitive.Header>
-                <AccordionPrimitive.Trigger className="group focus:outline-black flex w-full items-center justify-between space-x-2 p-5 text-left hover:bg-gray-50 active:bg-gray-100 transition-all duration-75">
+                <AccordionPrimitive.Trigger className="group focus:outline-black flex w-full items-center justify-between space-x-2 p-5 text-left rounded-t-lg hover:bg-gray-50 active:bg-gray-100 transition-all duration-75">
                   <div className="flex items-center justify-start space-x-2 h-6">
                     <ChevronRight className="h-5 w-5 shrink-0 text-gray-700 ease-in-out dark:text-gray-400 group-radix-state-open:rotate-90 transition-all" />
                     <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -75,6 +75,29 @@ export default function AdvancedSettings({
               </AccordionPrimitive.Header>
               <AccordionPrimitive.Content className="pb-3">
                 <UTMSection {...{ data, setData }} />
+              </AccordionPrimitive.Content>
+            </AccordionPrimitive.Item>
+
+            {/* OG Tags Section */}
+            <AccordionPrimitive.Item
+              value="og"
+              className="border border-gray-200 border-t-0"
+            >
+              <AccordionPrimitive.Header>
+                <AccordionPrimitive.Trigger className="group focus:outline-black flex w-full items-center justify-between space-x-2 p-5 text-left hover:bg-gray-50 active:bg-gray-100 transition-all duration-75">
+                  <div className="flex items-center justify-start space-x-2 h-6">
+                    <ChevronRight className="h-5 w-5 shrink-0 text-gray-700 ease-in-out dark:text-gray-400 group-radix-state-open:rotate-90 transition-all" />
+                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      Custom OG Tags
+                    </span>
+                  </div>
+                  {title && description && image && (
+                    <CheckCircleFill className="h-6 w-6 text-black" />
+                  )}
+                </AccordionPrimitive.Trigger>
+              </AccordionPrimitive.Header>
+              <AccordionPrimitive.Content className="pb-3">
+                <OGSection {...{ data, setData }} />
               </AccordionPrimitive.Content>
             </AccordionPrimitive.Item>
 
@@ -104,7 +127,7 @@ export default function AdvancedSettings({
             {/* Expiration Date */}
             <AccordionPrimitive.Item
               value="expire"
-              className="border border-gray-200 border-t-0 border-b-0"
+              className="border border-gray-200 border-t-0 rounded-b-lg overflow-hidden"
             >
               <AccordionPrimitive.Header>
                 <AccordionPrimitive.Trigger className="group focus:outline-black flex w-full items-center justify-between space-x-2 p-5 text-left hover:bg-gray-50 active:bg-gray-100 transition-all duration-75">
@@ -127,29 +150,6 @@ export default function AdvancedSettings({
               </AccordionPrimitive.Header>
               <AccordionPrimitive.Content className="px-5 pb-3">
                 <ExpirationSection {...{ data, setData }} />
-              </AccordionPrimitive.Content>
-            </AccordionPrimitive.Item>
-
-            {/* OG Tags Section */}
-            <AccordionPrimitive.Item
-              value="og"
-              className="border border-gray-200 rounded-b-lg"
-            >
-              <AccordionPrimitive.Header>
-                <AccordionPrimitive.Trigger className="group focus:outline-black flex w-full items-center justify-between space-x-2 p-5 text-left hover:bg-gray-50 active:bg-gray-100 transition-all duration-75">
-                  <div className="flex items-center justify-start space-x-2 h-6">
-                    <ChevronRight className="h-5 w-5 shrink-0 text-gray-700 ease-in-out dark:text-gray-400 group-radix-state-open:rotate-90 transition-all" />
-                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                      Custom OG Tags
-                    </span>
-                  </div>
-                  {title && description && image && (
-                    <CheckCircleFill className="h-6 w-6 text-black" />
-                  )}
-                </AccordionPrimitive.Trigger>
-              </AccordionPrimitive.Header>
-              <AccordionPrimitive.Content className="pb-3">
-                <OGSection {...{ data, setData }} />
               </AccordionPrimitive.Content>
             </AccordionPrimitive.Item>
           </AccordionPrimitive.Root>

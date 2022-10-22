@@ -218,7 +218,9 @@ export const getParamsFromURL = (url: string) => {
     const params = new URL(url).searchParams;
     const paramsObj: Record<string, string> = {};
     for (const [key, value] of params.entries()) {
-      paramsObj[key] = value;
+      if (value && value !== "") {
+        paramsObj[key] = value;
+      }
     }
     return paramsObj;
   } catch (e) {
@@ -234,9 +236,15 @@ export const constructURLFromUTMParams = (
   try {
     const params = new URL(url).searchParams;
     for (const [key, value] of Object.entries(utmParams)) {
-      params.set(key, value);
+      if (value === "") {
+        params.delete(key);
+      } else {
+        params.set(key, value);
+      }
     }
-    return `${url.split("?")[0]}?${params.toString()}`;
+    return `${url.split("?")[0]}${
+      params.toString() ? `?${params.toString()}` : ""
+    }`;
   } catch (e) {
     return "";
   }
