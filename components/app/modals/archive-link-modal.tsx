@@ -12,7 +12,7 @@ import LoadingDots from "@/components/shared/icons/loading-dots";
 import Modal from "@/components/shared/modal";
 import useProject from "@/lib/swr/use-project";
 import { LinkProps } from "@/lib/types";
-import { getApexDomain, linkConstructor } from "@/lib/utils";
+import { getApexDomain, getQueryString, linkConstructor } from "@/lib/utils";
 
 function ArchiveLinkModal({
   showArchiveLinkModal,
@@ -25,7 +25,7 @@ function ArchiveLinkModal({
 }) {
   const router = useRouter();
   const { slug } = router.query;
-  const [deleting, setDeleting] = useState(false);
+  const [archiving, setArchiving] = useState(false);
   const { project: { domain } = {} } = useProject();
   const apexDomain = getApexDomain(props.url);
 
@@ -62,7 +62,7 @@ function ArchiveLinkModal({
           <button
             onClick={async (e) => {
               e.preventDefault();
-              setDeleting(true);
+              setArchiving(true);
               fetch(
                 domain
                   ? `/api/projects/${slug}/domains/${domain}/links/${props.key}/archive`
@@ -74,25 +74,28 @@ function ArchiveLinkModal({
                   },
                 },
               ).then(async (res) => {
-                setDeleting(false);
+                setArchiving(false);
+                console.log(res.status, "mutating");
                 if (res.status === 200) {
                   mutate(
                     domain
-                      ? `/api/projects/${slug}/domains/${domain}/links`
-                      : `/api/links`,
+                      ? `/api/projects/${slug}/domains/${domain}/links${getQueryString(
+                          router,
+                        )}`
+                      : `/api/links${getQueryString(router)}`,
                   );
                   setShowArchiveLinkModal(false);
                 }
               });
             }}
-            disabled={deleting}
+            disabled={archiving}
             className={`${
-              deleting
+              archiving
                 ? "cursor-not-allowed bg-gray-100 border-gray-200 text-gray-400"
                 : "bg-black hover:bg-white hover:text-black border-black text-white"
             } flex justify-center items-center w-full text-sm h-10 rounded-md border transition-all focus:outline-none`}
           >
-            {deleting ? (
+            {archiving ? (
               <LoadingDots color="#808080" />
             ) : (
               <p>Confirm archive</p>

@@ -12,7 +12,7 @@ import LoadingDots from "@/components/shared/icons/loading-dots";
 import Modal from "@/components/shared/modal";
 import useProject from "@/lib/swr/use-project";
 import { LinkProps } from "@/lib/types";
-import { getApexDomain, linkConstructor } from "@/lib/utils";
+import { getApexDomain, getQueryString, linkConstructor } from "@/lib/utils";
 
 function DeleteLinkModal({
   showDeleteLinkModal,
@@ -77,8 +77,10 @@ function DeleteLinkModal({
               if (res.status === 200) {
                 mutate(
                   domain
-                    ? `/api/projects/${slug}/domains/${domain}/links`
-                    : `/api/links`,
+                    ? `/api/projects/${slug}/domains/${domain}/links${getQueryString(
+                        router,
+                      )}`
+                    : `/api/links${getQueryString(router)}`,
                 );
                 setShowDeleteLinkModal(false);
               }

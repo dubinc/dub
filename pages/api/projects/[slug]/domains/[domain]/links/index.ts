@@ -6,15 +6,17 @@ export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse, _, session) => {
     // GET /api/projects/[slug]/domains/[domain]/links - Get all links for a project
     if (req.method === "GET") {
-      const { domain, archived } = req.query as {
+      const { domain, status, userId } = req.query as {
         domain: string;
-        archived?: string;
+        status?: string;
+        userId?: string;
       };
-      const links = await getLinksForProject({
+      const response = await getLinksForProject({
         domain,
-        archived: archived === "true",
+        status,
+        userId,
       });
-      return res.status(200).json(links);
+      return res.status(200).json(response);
 
       // POST /api/projects/[slug]/domains/[domain]/links – create a new link
     } else if (req.method === "POST") {

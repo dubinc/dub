@@ -38,7 +38,7 @@ export default function NavTabs() {
         <Link key={href} href={href}>
           <a
             className={`border-b-2 p-1 ${
-              router.asPath === href
+              router.asPath.split("?")[0] === href
                 ? "border-black text-black"
                 : "border-transparent text-gray-600 hover:text-black"
             }`}

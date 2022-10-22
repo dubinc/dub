@@ -54,7 +54,10 @@ export default function ProjectSelect() {
         openPopover={openPopover}
         setOpenPopover={setOpenPopover}
       >
-        <div className="relative cursor-pointer w-60 rounded-lg bg-white hover:bg-gray-100 active:bg-gray-200 py-1.5 pl-3 pr-10 text-left focus:outline-none text-sm transition-all duration-75">
+        <button
+          onClick={() => setOpenPopover(!openPopover)}
+          className="relative cursor-pointer w-60 rounded-lg bg-white hover:bg-gray-100 active:bg-gray-200 py-1.5 pl-3 pr-10 text-left focus:outline-none text-sm transition-all duration-75"
+        >
           <div className="flex justify-start items-center space-x-3">
             <BlurImage
               src={
@@ -62,7 +65,7 @@ export default function ProjectSelect() {
                 `https://www.google.com/s2/favicons?sz=64&domain_url=${selected.domain}`
               }
               alt={selected.slug}
-              className="w-8 h-8 flex-shrink-0 rounded-full overflow-hidden border border-gray-300"
+              className="w-8 h-8 flex-shrink-0 rounded-full overflow-hidden"
               width={48}
               height={48}
             />
@@ -76,7 +79,7 @@ export default function ProjectSelect() {
               aria-hidden="true"
             />
           </span>
-        </div>
+        </button>
       </Popover>
     </div>
   );

@@ -1,3 +1,4 @@
+import { NextRouter } from "next/router";
 import ms from "ms";
 import { SPECIAL_APEX_DOMAINS, ccTLDs, secondLevelDomains } from "./constants";
 
@@ -239,4 +240,13 @@ export const constructURLFromUTMParams = (
   } catch (e) {
     return "";
   }
+};
+
+export const getQueryString = (router: NextRouter) => {
+  const { slug: omit, ...queryWithoutSlug } = router.query as {
+    slug: string;
+    [key: string]: string;
+  };
+  const queryString = new URLSearchParams(queryWithoutSlug).toString();
+  return `${queryString ? "?" : ""}${queryString}`;
 };

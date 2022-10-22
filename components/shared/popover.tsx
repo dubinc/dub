@@ -39,17 +39,11 @@ export default function Popover({
   // workaround to make popover close when route changes on desktop
   useEffect(() => {
     setOpenPopover(false);
-  }, [router.asPath]);
+  }, [router.query.slug]);
 
   return (
     <>
-      <button
-        className="inline-flex sm:hidden"
-        type="button"
-        onClick={() => setOpenPopover(true)}
-      >
-        {children}
-      </button>
+      <div className="inline-flex sm:hidden">{children}</div>
       <AnimatePresence>
         {openPopover && (
           <>
@@ -97,9 +91,7 @@ export default function Popover({
         onOpenChange={width > 640 && setOpenPopover}
       >
         <PopoverPrimitive.Trigger className="hidden sm:inline-flex" asChild>
-          <button type="button" onClick={() => setOpenPopover(!openPopover)}>
-            {children}
-          </button>
+          {children}
         </PopoverPrimitive.Trigger>
         <PopoverPrimitive.Content
           sideOffset={4}

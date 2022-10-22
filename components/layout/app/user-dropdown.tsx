@@ -23,14 +23,17 @@ export default function UserDropdown() {
         openPopover={openPopover}
         setOpenPopover={setOpenPopover}
       >
-        <div className="rounded-full overflow-hidden border border-gray-300 w-10 h-10 flex justify-center items-center active:scale-95 focus:outline-none transition-all duration-75">
+        <button
+          onClick={() => setOpenPopover(!openPopover)}
+          className="rounded-full overflow-hidden border border-gray-300 w-10 h-10 flex justify-center items-center active:scale-95 focus:outline-none transition-all duration-75"
+        >
           {session && (
             <img
               alt={session?.user?.email || "Avatar for logged in user"}
               src={`https://avatars.dicebear.com/api/micah/${session?.user?.email}.svg`}
             />
           )}
-        </div>
+        </button>
       </Popover>
     </div>
   );

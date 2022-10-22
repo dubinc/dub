@@ -22,7 +22,7 @@ import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 import useProject from "@/lib/swr/use-project";
 import useUsage from "@/lib/swr/use-usage";
 import { LinkProps } from "@/lib/types";
-import { getApexDomain, linkConstructor } from "@/lib/utils";
+import { getApexDomain, getQueryString, linkConstructor } from "@/lib/utils";
 import AdvancedSettings from "./advanced-settings";
 
 function AddEditLinkModal({
@@ -60,7 +60,7 @@ function AddEditLinkModal({
       createdAt: new Date(),
     },
   );
-  const { key, url, expiresAt } = data;
+  const { id, key, url, archived, expiresAt } = data;
 
   const heroProps = useMemo(() => {
     if (props?.url) {
@@ -129,6 +129,8 @@ function AddEditLinkModal({
     }
   }, [props]);
 
+  const expired = expiresAt && new Date() > new Date(expiresAt);
+
   return (
     <Modal
       showModal={showAddEditLinkModal}
@@ -142,13 +144,8 @@ function AddEditLinkModal({
         >
           <X className="w-5 h-5" />
         </button>
-        {expiresAt && new Date().getTime() > new Date(expiresAt).getTime() && (
-          <span className="absolute top-0 sm:top-5 left-5 bg-amber-500 px-2 py-0.5 text-xs text-white uppercase">
-            Expired
-          </span>
-        )}
 
-        <div className="flex flex-col justify-center items-center space-y-3 sm:px-16 px-4 pt-8 py-4 border-b border-gray-200">
+        <div className="flex flex-col justify-center items-center space-y-3 sm:px-16 px-4 pt-10 pb-8 border-b border-gray-200">
           <BlurImage
             src={heroProps.avatar}
             alt={heroProps.alt}
@@ -158,6 +155,17 @@ function AddEditLinkModal({
           />
           <h3 className="font-medium text-lg">{heroProps.copy}</h3>
         </div>
+
+        {id && (
+          <div className="absolute -mt-3.5 w-full flex justify-center space-x-2 [&>*]:flex [&>*]:items-center [&>*]:h-7 [&>*]:px-4 [&>*]:rounded-full [&>*]:text-xs [&>*]:text-white [&>*]:uppercase">
+            {expired ? (
+              <span className="bg-amber-500">Expired</span>
+            ) : (
+              <span className="bg-green-500">Active</span>
+            )}
+            {archived && <span className="bg-gray-400">Archived</span>}
+          </div>
+        )}
 
         <form
           onSubmit={async (e) => {
@@ -174,8 +182,10 @@ function AddEditLinkModal({
               if (res.status === 200) {
                 mutate(
                   domain
-                    ? `/api/projects/${slug}/domains/${domain}/links`
-                    : `/api/links`,
+                    ? `/api/projects/${slug}/domains/${domain}/links${getQueryString(
+                        router,
+                      )}`
+                    : `/api/links${getQueryString(router)}`,
                 );
                 setShowAddEditLinkModal(false);
               } else {

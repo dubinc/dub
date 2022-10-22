@@ -2,9 +2,14 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import useSWR from "swr";
+import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal";
+import { useArchiveLinkModal } from "@/components/app/modals/archive-link-modal";
+import { useDeleteLinkModal } from "@/components/app/modals/delete-link-modal";
+import { useLinkQRModal } from "@/components/app/modals/link-qr-modal";
 import BlurImage from "@/components/shared/blur-image";
 import CopyButton from "@/components/shared/copy-button";
 import { Chart, LoadingDots, QR, ThreeDots } from "@/components/shared/icons";
+import Popover from "@/components/shared/popover";
 import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 import useProject from "@/lib/swr/use-project";
 import useUsage from "@/lib/swr/use-usage";
@@ -16,14 +21,9 @@ import {
   nFormatter,
   timeAgo,
 } from "@/lib/utils";
-import Popover from "../shared/popover";
-import { useAddEditLinkModal } from "./modals/add-edit-link-modal";
-import { useArchiveLinkModal } from "./modals/archive-link-modal";
-import { useDeleteLinkModal } from "./modals/delete-link-modal";
-import { useLinkQRModal } from "./modals/link-qr-modal";
 
 export default function LinkCard({ props }: { props: LinkProps }) {
-  const { key, url, createdAt, expiresAt } = props;
+  const { key, url, createdAt, archived, expiresAt } = props;
 
   const apexDomain = getApexDomain(url);
 
@@ -59,15 +59,22 @@ export default function LinkCard({ props }: { props: LinkProps }) {
   });
   const [openPopover, setOpenPopover] = useState(false);
 
+  const expired = expiresAt && new Date() > new Date(expiresAt);
+
   return (
     <div className="relative bg-white p-4 rounded-lg shadow hover:shadow-md transition-all">
       <LinkQRModal />
       <AddEditLinkModal />
       <ArchiveLinkModal />
       <DeleteLinkModal />
-      {expiresAt && new Date() > new Date(expiresAt) ? (
-        <div className="absolute top-0 left-0 rounded-t-lg w-full h-1.5 bg-amber-500" />
-      ) : null}
+      <div className="absolute top-0 left-0 rounded-l-lg overflow-hidden w-1.5 h-full flex flex-col">
+        {archived && <div className="bg-gray-400 h-full w-full" />}
+        {expired ? (
+          <div className="bg-amber-500 h-full w-full" />
+        ) : (
+          <div className="bg-green-500 h-full w-full" />
+        )}
+      </div>
       <li className="relative flex justify-between items-center">
         <div className="relative flex items-center space-x-4 shrink">
           <BlurImage
@@ -178,7 +185,11 @@ export default function LinkCard({ props }: { props: LinkProps }) {
             openPopover={openPopover}
             setOpenPopover={setOpenPopover}
           >
-            <button className="rounded-md px-1 py-2 hover:bg-gray-100 active:bg-gray-200 transition-all duration-75">
+            <button
+              type="button"
+              onClick={() => setOpenPopover(!openPopover)}
+              className="rounded-md px-1 py-2 hover:bg-gray-100 active:bg-gray-200 transition-all duration-75"
+            >
               <ThreeDots className="w-5 h-5 text-gray-500" />
             </button>
           </Popover>
