@@ -64,7 +64,7 @@ export default function UserFilter() {
     >
       <button
         onClick={() => setOpenPopover(!openPopover)}
-        className="flex justify-between items-center space-x-2 bg-white w-56 px-3 py-2.5 rounded-md shadow hover:shadow-md active:scale-95 transition-all duration-75"
+        className="flex justify-between items-center space-x-1 bg-white w-full md:w-56 px-3 py-2 rounded-md shadow hover:shadow-md active:scale-95 transition-all duration-75"
       >
         <div className="flex items-center space-x-2 text-gray-700 w-44">
           <Search className="h-4 w-4 shrink-0" />
@@ -86,6 +86,7 @@ export default function UserFilter() {
                 query: finalQuery,
               });
             }}
+            className="p-1 rounded-full hover:bg-gray-100 active:bg-gray-200 transition-all duration-75"
           >
             <X className="h-4 w-4" />
           </div>

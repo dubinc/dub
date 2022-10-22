@@ -57,12 +57,12 @@ const getFiltersFromStatus = (status: string) => {
 export async function getLinksForProject({
   domain,
   status = "active",
-  orderBy = "createdAt",
+  sort = "createdAt",
   userId,
 }: {
   domain: string;
   status?: string;
-  orderBy?: "createdAt" | "clicks"; // always descending for both
+  sort?: "createdAt" | "clicks"; // always descending for both
   userId?: string;
 }): Promise<LinkProps[]> {
   const filters = getFiltersFromStatus(status);
@@ -73,7 +73,7 @@ export async function getLinksForProject({
       ...(userId && { userId }),
     },
     orderBy: {
-      [orderBy]: "desc",
+      [sort]: "desc",
     },
     take: 100,
   });

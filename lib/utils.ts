@@ -60,16 +60,19 @@ export function linkConstructor({
   domain = "dub.sh",
   localhost,
   pretty,
+  noDomain,
 }: {
   key: string;
   domain?: string;
   localhost?: boolean;
   pretty?: boolean;
+  noDomain?: boolean;
 }) {
   const link = `${
     localhost ? "http://localhost:3000" : `https://${domain}`
   }/${key}`;
 
+  if (noDomain) return `/${key}`;
   return pretty ? link.replace(/^https?:\/\//, "") : link;
 }
 

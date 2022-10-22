@@ -75,7 +75,6 @@ function ArchiveLinkModal({
                 },
               ).then(async (res) => {
                 setArchiving(false);
-                console.log(res.status, "mutating");
                 if (res.status === 200) {
                   mutate(
                     domain

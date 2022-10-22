@@ -43,14 +43,14 @@ export default function Popover({
 
   return (
     <>
-      <div className="sm:hidden">{children}</div>
+      <div className="md:hidden">{children}</div>
       <AnimatePresence>
         {openPopover && (
           <>
             <motion.div
               ref={mobileTooltipRef}
               key="mobile-tooltip"
-              className="group fixed bottom-0 inset-x-0 z-40 w-screen sm:hidden cursor-grab active:cursor-grabbing"
+              className="group fixed bottom-0 inset-x-0 z-40 w-screen md:hidden cursor-grab active:cursor-grabbing"
               initial={{ y: "100%" }}
               animate={{
                 y: openPopover ? 0 : "100%",
@@ -76,7 +76,7 @@ export default function Popover({
             </motion.div>
             <motion.div
               key="mobile-tooltip-backdrop"
-              className="fixed inset-0 z-30 bg-gray-100 bg-opacity-10 backdrop-blur sm:hidden"
+              className="fixed inset-0 z-30 bg-gray-100 bg-opacity-10 backdrop-blur md:hidden"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -90,13 +90,13 @@ export default function Popover({
         open={width > 640 && openPopover}
         onOpenChange={width > 640 && setOpenPopover}
       >
-        <PopoverPrimitive.Trigger className="hidden sm:inline-flex" asChild>
+        <PopoverPrimitive.Trigger className="hidden md:inline-flex" asChild>
           {children}
         </PopoverPrimitive.Trigger>
         <PopoverPrimitive.Content
           sideOffset={4}
           align={align}
-          className="hidden sm:block animate-slide-up-fade items-center rounded-md overflow-hidden z-20 bg-white border border-gray-200 drop-shadow-lg"
+          className="hidden md:block animate-slide-up-fade items-center rounded-md overflow-hidden z-20 bg-white border border-gray-200 drop-shadow-lg"
         >
           <PopoverPrimitive.Arrow className="fill-current text-white" />
           {content}

@@ -62,7 +62,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
   const expired = expiresAt && new Date() > new Date(expiresAt);
 
   return (
-    <div className="relative bg-white p-4 rounded-lg shadow hover:shadow-md transition-all">
+    <div className="relative bg-white p-3 pr-1 sm:p-4 rounded-lg shadow hover:shadow-md transition-all">
       <LinkQRModal />
       <AddEditLinkModal />
       <ArchiveLinkModal />
@@ -76,23 +76,33 @@ export default function LinkCard({ props }: { props: LinkProps }) {
         )}
       </div>
       <li className="relative flex justify-between items-center">
-        <div className="relative flex items-center space-x-4 shrink">
+        <div className="relative flex items-center space-x-2 sm:space-x-4 shrink">
           <BlurImage
             src={`https://www.google.com/s2/favicons?sz=64&domain_url=${apexDomain}`}
             alt={apexDomain}
-            className="w-10 h-10 rounded-full"
+            className="w-8 h-8 sm:w-10 sm:h-10 rounded-full"
             width={20}
             height={20}
           />
           <div>
             <div className="flex items-center space-x-2 max-w-fit">
               <a
-                className="text-blue-800 text-sm sm:text-base font-semibold truncate w-32 sm:w-full"
+                className="text-blue-800 text-sm sm:text-base font-semibold truncate w-24 sm:w-full"
                 href={linkConstructor({ key, domain })}
                 target="_blank"
                 rel="noreferrer"
               >
-                {linkConstructor({ key, domain, pretty: true })}
+                <span className="hidden sm:block">
+                  {linkConstructor({ key, domain, pretty: true })}
+                </span>
+                <span className="sm:hidden">
+                  {linkConstructor({
+                    key,
+                    domain,
+                    pretty: true,
+                    noDomain: true,
+                  })}
+                </span>
               </a>
               <CopyButton url={linkConstructor({ key, domain })} />
               <button
@@ -116,7 +126,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                 </a>
               </Link>
             </div>
-            <h3 className="text-sm font-medium text-gray-700 truncate max-w-xs md:max-w-md lg:max-w-2xl xl:max-w-3xl">
+            <h3 className="text-sm font-medium text-gray-700 truncate max-w-[200px] md:max-w-md lg:max-w-2xl xl:max-w-3xl">
               {url}
             </h3>
           </div>
@@ -126,7 +136,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
           <p className="text-sm hidden sm:block text-gray-500 whitespace-nowrap mr-3">
             Added {timeAgo(createdAt)}
           </p>
-          <p className="text-sm sm:hidden text-gray-500 whitespace-nowrap mr-3">
+          <p className="text-sm sm:hidden text-gray-500 whitespace-nowrap mr-1">
             {timeAgo(createdAt, true)}
           </p>
           <Popover

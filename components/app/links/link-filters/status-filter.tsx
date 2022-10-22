@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ChevronDown, Tick } from "@/components/shared/icons";
 import Popover from "@/components/shared/popover";
 
@@ -39,11 +39,15 @@ export default function StatusFilter() {
   const [openPopover, setOpenPopover] = useState(false);
   const router = useRouter();
   const { status } = router.query as { status?: string };
-  const selectedStatus = !status
-    ? ["active"]
-    : status === "all" || status === "none"
-    ? ["active", "expired", "archived"]
-    : status.split(",");
+  const selectedStatus = useMemo(() => {
+    if (!status) {
+      return ["active"];
+    } else if (status === "all" || status === "none") {
+      return ["active", "expired", "archived"];
+    } else {
+      return status.split(",");
+    }
+  }, [status]);
 
   return (
     <Popover
@@ -98,7 +102,7 @@ export default function StatusFilter() {
     >
       <button
         onClick={() => setOpenPopover(!openPopover)}
-        className="flex justify-between items-center space-x-2 bg-white w-44 px-3 py-2.5 rounded-md shadow hover:shadow-md active:scale-95 transition-all duration-75"
+        className="flex justify-between items-center space-x-2 bg-white w-full sm:w-44 px-3 py-2.5 rounded-md shadow hover:shadow-md active:scale-95 transition-all duration-75"
       >
         <div className="flex items-center space-x-2 text-gray-700">
           <div className="flex -space-x-1">

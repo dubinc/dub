@@ -6,14 +6,16 @@ export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse, _, session) => {
     // GET /api/projects/[slug]/domains/[domain]/links - Get all links for a project
     if (req.method === "GET") {
-      const { domain, status, userId } = req.query as {
+      const { domain, status, sort, userId } = req.query as {
         domain: string;
         status?: string;
+        sort?: "createdAt" | "clicks";
         userId?: string;
       };
       const response = await getLinksForProject({
         domain,
         status,
+        sort,
         userId,
       });
       return res.status(200).json(response);
