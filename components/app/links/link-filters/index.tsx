@@ -31,7 +31,7 @@ export default function LinkFilters() {
       <AnimatePresence>
         {showFilters && (
           <motion.div
-            className="border-t border-gray-200 w-full flex flex-col space-y-2 py-5"
+            className="border-t border-gray-200 w-full flex flex-col space-y-2 py-5 sm:hidden"
             {...AnimationSettings}
           >
             <LinkSort />

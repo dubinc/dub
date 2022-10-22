@@ -1,9 +1,9 @@
 import { NextRequest, userAgent } from "next/server";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
-import { LOCALHOST_GEO_DATA, RESERVED_KEYS } from "@/lib/constants";
-import { LinkProps, ProjectProps } from "@/lib/types";
-import { getFirstAndLastDay, nanoid } from "@/lib/utils";
+import { LOCALHOST_GEO_DATA } from "@/lib/constants";
+import { LinkProps } from "@/lib/types";
+import { nanoid } from "@/lib/utils";
 
 // Initiate Redis instance
 export const redis = new Redis({
@@ -121,33 +121,6 @@ export async function getLinkClicksCount(domain: string, key: string) {
   return (
     (await redis.zcount(`${domain}:clicks:${key}`, start, Date.now())) || 0
   );
-}
-
-/**
- * Get the usage for a project
- **/
-export async function getUsage(
-  domain: string,
-  billingCycleStart: number,
-): Promise<number> {
-  const { firstDay, lastDay } = getFirstAndLastDay(billingCycleStart);
-
-  const links = await redis.zrange(`${domain}:links:timestamps`, 0, -1);
-  let results: number[] = [];
-
-  if (links.length > 0) {
-    const pipeline = redis.pipeline();
-    links.forEach((link) => {
-      pipeline.zcount(
-        `${domain}:clicks:${link}`,
-        firstDay.getTime(),
-        lastDay.getTime(),
-      );
-    });
-    results = await pipeline.exec();
-  }
-  const usage = results.reduce((acc, curr) => acc + curr, 0);
-  return usage;
 }
 
 export async function changeDomain(domain: string, newHostname: string) {

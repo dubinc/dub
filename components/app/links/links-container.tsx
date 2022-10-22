@@ -33,7 +33,7 @@ export default function LinksContainer({
   );
 
   return (
-    <MaxWidthWrapper>
+    <MaxWidthWrapper className="pb-10">
       <LinkFilters />
       <ul className="grid grid-cols-1 gap-3">
         {links ? (

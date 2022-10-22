@@ -1,7 +1,8 @@
 import sendMail from "emails";
 import UsageExceeded from "emails/UsageExceeded";
 import prisma from "@/lib/prisma";
-import { getUsage } from "@/lib/upstash";
+import { redis } from "@/lib/upstash";
+import { getFirstAndLastDay } from "@/lib/utils";
 import { log } from "./utils";
 
 export const updateUsage = async () => {
@@ -127,6 +128,44 @@ export const updateUsage = async () => {
   );
 
   return response;
+};
+
+/**
+ * Get the usage for a project
+ **/
+const getUsage = async (
+  domain: string,
+  billingCycleStart: number,
+): Promise<number> => {
+  const { firstDay, lastDay } = getFirstAndLastDay(billingCycleStart);
+
+  const links = await prisma.link.findMany({
+    where: {
+      domain,
+      // only for dub.sh, pull data for owner's usage only
+      ...(domain === "dub.sh" && {
+        userId: process.env.DUB_OWNER_ID,
+      }),
+    },
+    select: {
+      key: true,
+    },
+  });
+  let results: number[] = [];
+
+  if (links.length > 0) {
+    const pipeline = redis.pipeline();
+    links.forEach(({ key }) => {
+      pipeline.zcount(
+        `${domain}:clicks:${key}`,
+        firstDay.getTime(),
+        lastDay.getTime(),
+      );
+    });
+    results = await pipeline.exec();
+  }
+  const usage = results.reduce((acc, curr) => acc + curr, 0);
+  return usage;
 };
 
 const sendUsageLimitEmail = async (
