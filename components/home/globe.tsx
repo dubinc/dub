@@ -6,6 +6,7 @@ import { useSpring } from "react-spring";
 import useSWR from "swr";
 import { Drag, X } from "@/components/shared/icons";
 import useIntersectionObserver from "@/lib/hooks/use-intersection-observer";
+import useIsDarkmode from "@/lib/hooks/use-is-darkmode";
 import { fetcher } from "@/lib/utils";
 
 interface MarkerProps {
@@ -14,6 +15,7 @@ interface MarkerProps {
 }
 
 export default function Globe({ domain }: { domain?: string }) {
+  const isDark = useIsDarkmode();
   const divRef = useRef<any>();
   const entry = useIntersectionObserver(divRef, {});
   const isVisible = !!entry?.isIntersecting;
@@ -55,7 +57,7 @@ export default function Globe({ domain }: { domain?: string }) {
   return (
     <div ref={divRef} className="h-full min-h-[500px] sm:min-h-[1000px]">
       {webglSupported && showGlobe && (
-        <GlobeAnimation domain={domain} markers={markers} />
+        <GlobeAnimation domain={domain} markers={markers} isDark={isDark} />
       )}
       {showFallback && (
         <div className="w-full h-full flex items-center justify-center">
@@ -77,9 +79,11 @@ export default function Globe({ domain }: { domain?: string }) {
 const GlobeAnimation = ({
   domain,
   markers,
+  isDark,
 }: {
   domain?: string;
   markers: MarkerProps[];
+  isDark: boolean;
 }) => {
   const canvasRef = useRef<any>();
   const pointerInteracting = useRef(null);
@@ -113,14 +117,15 @@ const GlobeAnimation = ({
       height: width * DPR,
       phi: 0,
       theta: 0.3,
-      dark: 0,
+      dark: isDark ? 1 : 0,
       diffuse: 3,
       mapSamples: 20000,
       mapBrightness: 4,
-      baseColor: [1, 1, 1],
+      // Just an experiment ;) baseColor: new Array(3).fill(isDark ? 2 : 1) as [number, number, number],
+      baseColor: isDark ? [2, 2, 2] : [1, 1, 1],
       markerColor: [249 / 255, 115 / 255, 22 / 255],
       // rgb(249, 115, 22)
-      glowColor: [0.8, 0.8, 0.8],
+      glowColor: isDark ? [0.2, 0.2, 0.2] : [0.8, 0.8, 0.8],
       markers: markers || [],
       onRender: (state) => {
         // Called on every animation frame.
@@ -145,7 +150,7 @@ const GlobeAnimation = ({
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             exit={{ scale: 0 }}
-            className="group absolute left-0 right-0 mx-auto z-10 max-w-sm px-5 py-4 sm:py-7 rounded-md bg-white border border-gray-200 shadow-md bg-opacity-90 backdrop-blur-md"
+            className="group absolute left-0 right-0 mx-auto z-10 max-w-sm px-5 py-4 sm:py-7 rounded-md bg-white border border-gray-200 shadow-md bg-opacity-90 backdrop-blur-md dark:border-gray-600 dark:bg-slate-800"
           >
             <button
               className="visible sm:invisible group-hover:visible absolute top-0 right-0 p-1 m-3 rounded-full float-right group hover:bg-gray-100 focus:outline-none active:scale-75 transition-all duration-75"
@@ -155,8 +160,8 @@ const GlobeAnimation = ({
               <span className="sr-only">Spin Globe</span>
               <X className="w-4 h-4" />
             </button>
-            <Drag className="h-12 w-12 mx-auto mb-2 sm:mb-4 text-gray-700" />
-            <p className="text-center text-gray-700 text-sm sm:text-base">
+            <Drag className="h-12 w-12 mx-auto mb-2 sm:mb-4 text-gray-700 dark:text-gray-100" />
+            <p className="text-center text-gray-700 text-sm sm:text-base dark:text-gray-200">
               This map shows the locations of the last 100 clicks on{" "}
               <a
                 className="text-blue-800 font-semibold"
@@ -175,7 +180,7 @@ const GlobeAnimation = ({
                 shallow
                 scroll={false}
               >
-                <a className="rounded-full px-4 py-1.5 bg-black text-white hover:bg-white hover:text-black text-sm border border-black mx-auto mt-2 sm:mt-4 block max-w-fit">
+                <a className="rounded-full px-4 py-1.5 bg-black text-white hover:bg-white hover:text-black text-sm border border-black mx-auto mt-2 sm:mt-4 block max-w-fit dark:bg-white dark:border-slate-200 dark:text-slate-900 dark:hover:bg-slate-900 dark:hover:text-slate-200">
                   View all stats
                 </a>
               </Link>
