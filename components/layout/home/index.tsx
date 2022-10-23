@@ -19,7 +19,7 @@ export default function HomeLayout({
   return (
     <div className="min-h-screen flex flex-col justify-between">
       <Meta />
-      <div className="bg-white z-20 dark:bg-slate-900">
+      <div className="bg-white z-20 dark:bg-slate-900/95">
         <div className="max-w-screen-xl mx-auto px-5 md:px-20">
           <div className="h-16 flex justify-between items-center">
             <div className="flex items-center">
