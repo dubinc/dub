@@ -66,7 +66,7 @@ const Demo = () => {
                 setUrl((e.target as HTMLInputElement).value);
               }}
               required
-              className="peer shadow-sm focus:outline-none focus:ring-0 bg-white border focus:border-black block w-full p-2 text-sm border-gray-200 rounded-md pl-3 pr-12"
+              className="peer shadow-sm focus:outline-none focus:ring-0 bg-white border focus:border-black block w-full p-2 text-sm border-gray-200 rounded-md pl-3 pr-12 dark:bg-slate-800 dark:placeholder:text-gray-400 dark:border-gray-600 dark:focus:border-gray-200"
             />
             <button
               type="submit"
@@ -74,8 +74,8 @@ const Demo = () => {
               className={`${
                 saving
                   ? "cursor-not-allowed"
-                  : "hover:border-gray-700 peer-focus:border-gray-700 hover:text-gray-700 peer-focus:text-gray-700"
-              } absolute inset-y-0 right-0 w-10 flex justify-center items-center my-1.5 mr-1.5 border border-gray-200 rounded text-sm font-sans font-medium text-gray-400`}
+                  : "hover:border-gray-700 peer-focus:border-gray-700 hover:text-gray-700 peer-focus:text-gray-700 dark:hover:border-gray-200 dark:peer-focus:border-gray-200 dark:hover:text-gray-200 dark:peer-focus:text-gray-200"
+              } absolute inset-y-0 right-0 w-10 flex justify-center items-center my-1.5 mr-1.5 border border-gray-200 rounded text-sm font-sans font-medium text-gray-400 dark:text-gray-500 dark:border-gray-500`}
             >
               {saving ? <LoadingDots color="#e5e7eb" /> : <p>↵</p>}
             </button>
