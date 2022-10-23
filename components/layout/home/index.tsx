@@ -26,7 +26,7 @@ export default function HomeLayout({
               {domain ? (
                 <a href="https://dub.sh" target="_blank" rel="noreferrer">
                   <Image
-                    src="/static/logotype.svg"
+                    src={`/static/${isDark ? "dark-" : ""}logotype.svg`}
                     alt="Dub.sh logo"
                     width={834}
                     height={236}
