@@ -17,7 +17,7 @@ export default function HomeLayout({
   const { data: session } = useSession();
 
   return (
-    <div className="min-h-screen flex flex-col justify-between">
+    <div className="min-h-screen flex flex-col justify-between bg-white dark:bg-slate-900/95">
       <Meta />
       <div className="bg-white z-20 dark:bg-slate-900/95">
         <div className="max-w-screen-xl mx-auto px-5 md:px-20">
