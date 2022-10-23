@@ -48,7 +48,7 @@ export default function LinkSort() {
                 }
                 const { slug: omit, ...finalQuery } = newQuery;
                 router.push({
-                  pathname: `/${router.query.slug}`,
+                  pathname: `/${router.query.slug || "links"}`,
                   query: finalQuery,
                 });
               }}

@@ -8,12 +8,14 @@ export default withUserAuth(
   async (req: NextApiRequest, res: NextApiResponse, userId: string) => {
     // GET /api/links – get all dub.sh links created by the user
     if (req.method === "GET") {
-      const { status } = req.query as {
+      const { status, sort } = req.query as {
         status?: string;
+        sort?: "createdAt" | "clicks";
       };
       const response = await getLinksForProject({
         domain: "dub.sh",
         status,
+        sort,
         userId,
       });
       return res.status(200).json(response);
