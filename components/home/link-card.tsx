@@ -9,6 +9,7 @@ import BlurImage from "@/components/shared/blur-image";
 import CopyButton from "@/components/shared/copy-button";
 import { Chart, LoadingDots, QR } from "@/components/shared/icons";
 import { FRAMER_MOTION_LIST_ITEM_VARIANTS } from "@/lib/constants";
+import useIsDarkmode from "@/lib/hooks/use-is-darkmode";
 import { SimpleLinkProps } from "@/lib/types";
 import {
   fetcher,
@@ -29,6 +30,8 @@ export default function LinkCard({
   setHashes?: (hashes: SimpleLinkProps[]) => void;
 }) {
   const apexDomain = getApexDomain(url);
+
+  const isDark = useIsDarkmode();
 
   const { data: clicks, isValidating } = useSWR<number>(
     `/api/edge/links/${key}/clicks`,
@@ -121,7 +124,7 @@ export default function LinkCard({
         onDrag={() => setVelocity(x.getVelocity())}
         onDragEnd={() => flyAway(500)}
         whileTap={{ scale: 1.05 }}
-        className="cursor-grab active:cursor-grabbing flex items-center space-x-3 border border-gray-200 hover:border-black bg-white p-3 max-w-md rounded-md transition-[border-color]"
+        className="cursor-grab active:cursor-grabbing flex items-center space-x-3 border border-gray-200 hover:border-black bg-white p-3 max-w-md rounded-md transition-[border-color] dark:border-gray-600 dark:bg-slate-800 dark:hover:border-gray-200"
       >
         <BlurImage
           src={`https://www.google.com/s2/favicons?sz=64&domain_url=${apexDomain}`}
@@ -133,7 +136,7 @@ export default function LinkCard({
         <div>
           <div className="flex items-center space-x-2 mb-1">
             <a
-              className="text-blue-800 font-semibold"
+              className="text-blue-800 dark:text-blue-300 font-semibold"
               href={linkConstructor({ key })}
               target="_blank"
               rel="noreferrer"
@@ -143,10 +146,10 @@ export default function LinkCard({
             <CopyButton url={linkConstructor({ key })} />
             <button
               onClick={() => setShowLinkQRModal(true)}
-              className="group p-1.5 rounded-full bg-gray-100 hover:bg-blue-100 hover:scale-105 active:scale-95 transition-all duration-75"
+              className="group p-1.5 rounded-full bg-gray-100 hover:bg-blue-100 hover:scale-105 active:scale-95 transition-all duration-75 dark:bg-slate-700 dark:hover:bg-blue-800/75"
             >
-              <span className="sr-only">Copy</span>
-              <QR className="text-gray-700 group-hover:text-blue-800 transition-all" />
+              {/* <span className="sr-only">Copy</span> */}
+              <QR className="text-gray-700 dark:text-gray-100 group-hover:text-blue-800 dark:group-hover:text-blue-200 transition-all" />
             </button>
             <Link
               href={{ pathname: "/", query: { key } }}
@@ -154,11 +157,11 @@ export default function LinkCard({
               shallow
               scroll={false}
             >
-              <a className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 hover:scale-105 active:scale-95 transition-all duration-75 text-gray-700">
+              <a className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 hover:scale-105 active:scale-95 transition-all duration-75 text-gray-700 dark:bg-slate-700 dark:text-gray-200">
                 <Chart className="w-4 h-4" />
                 <p className="text-sm">
                   {isValidating ? (
-                    <LoadingDots color="#71717A" />
+                    <LoadingDots color={isDark ? "#e3e8f0" : "#71717A"} />
                   ) : (
                     nFormatter(clicks)
                   )}
@@ -167,7 +170,9 @@ export default function LinkCard({
               </a>
             </Link>
           </div>
-          <p className="text-sm text-gray-500 truncate w-72">{url}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-300 truncate w-72">
+            {url}
+          </p>
         </div>
       </motion.div>
     </motion.li>
