@@ -20,6 +20,8 @@ export default async function LinkMiddleware(
   }>(`${domain}:${key}`);
   const { url: target, password, proxy } = response || {};
 
+  console.log(domain, key, target, password, proxy);
+
   if (target) {
     // special case for link health monitoring with planetfall.io :)
     if (!req.headers.get("dub-no-track")) {
@@ -27,11 +29,8 @@ export default async function LinkMiddleware(
     }
 
     if (password && !req.cookies.get("dub_authenticated")) {
-      return NextResponse.rewrite(
-        process.env.NODE_ENV === "development"
-          ? `http://localhost:3000/auth/${domain}/${key}`
-          : `https://dub.sh/auth/${domain}/${key}`,
-      );
+      console.log("rewriting onto to password page");
+      return NextResponse.rewrite(`https://dub.sh/auth/${domain}/${key}`);
     }
 
     const isBot = detectBot(req);

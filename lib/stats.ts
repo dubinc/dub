@@ -144,9 +144,9 @@ export function processData(
   const refererData = data.map(({ referer }) => {
     try {
       const url = referer ? new URL(referer) : null;
-      return { domain: url?.hostname || '(direct)' };
+      return { domain: url?.hostname || "(direct)" };
     } catch (e) {
-      return { domain: '(invalid)' };
+      return { domain: "(invalid)" };
     }
   });
 
@@ -157,7 +157,7 @@ export function processData(
     clicksData,
     locationData,
     deviceData,
-    refererData
+    refererData,
   };
 }
 
@@ -239,7 +239,9 @@ export interface RefererStatsProps {
   count: number;
 }
 
-export const processRefererData = (data: StatsProps['refererData']): RefererStatsProps[] => {
+export const processRefererData = (
+  data: StatsProps["refererData"],
+): RefererStatsProps[] => {
   const results =
     data && data.length > 0
       ? data.reduce<Record<string, number>>((acc, d) => {
@@ -253,7 +255,7 @@ export const processRefererData = (data: StatsProps['refererData']): RefererStat
   return Object.entries(results)
     .map(([display, count]) => ({
       display,
-      count
+      count,
     }))
     .sort((a, b) => b.count - a.count);
 };
@@ -271,10 +273,11 @@ export const dummyData: StatsProps = {
   // @ts-ignore
   deviceData: null,
   // @ts-ignore
-  refererData: null
+  refererData: null,
 };
 
 export const handleDeviceEdgeCases = (ua: string): string => {
+  if (!ua) return "Unknown";
   if (ua.includes("curl")) {
     return "Curl Request";
   } else if (ua.includes("Slackbot")) {
