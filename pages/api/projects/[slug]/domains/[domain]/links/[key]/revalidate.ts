@@ -11,13 +11,13 @@ export default async function handler(
   const { domain, key } = req.query as { domain: string; key: string };
 
   try {
-    await res.revalidate(`/proxy/${domain}/${key}`);
+    await res.revalidate(`/_proxy/${domain}/${key}`);
     res.status(200).json({
       message: "OK",
     });
   } catch (error) {
     res.status(500).json({
-      message: `Failed to revalidate "${`/proxy/${domain}/${key}`}"`,
+      message: `Failed to revalidate "${`/_proxy/${domain}/${key}`}"`,
     });
   }
 }
