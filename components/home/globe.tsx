@@ -164,7 +164,7 @@ const GlobeAnimation = ({
             <p className="text-center text-gray-700 text-sm sm:text-base dark:text-gray-200">
               This map shows the locations of the last 100 clicks on{" "}
               <a
-                className="text-blue-800 font-semibold"
+                className="text-blue-800 dark:text-blue-300 font-semibold"
                 href={domain ? `https://${domain}` : "https://dub.sh/github"}
                 target="_blank"
                 rel="noreferrer"
