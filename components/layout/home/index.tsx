@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ReactNode } from "react";
 import { useSession } from "next-auth/react";
 import { Github, Logo, Twitter } from "@/components/shared/icons";
+import useIsDarkmode from "@/lib/hooks/use-is-darkmode";
 import Meta from "../meta";
 
 export default function HomeLayout({
@@ -12,11 +13,13 @@ export default function HomeLayout({
   children: ReactNode;
   domain?: string;
 }) {
+  const isDark = useIsDarkmode();
   const { data: session } = useSession();
+
   return (
     <div className="min-h-screen flex flex-col justify-between">
       <Meta />
-      <div className="bg-white z-20">
+      <div className="bg-white z-20 dark:bg-slate-900">
         <div className="max-w-screen-xl mx-auto px-5 md:px-20">
           <div className="h-16 flex justify-between items-center">
             <div className="flex items-center">
@@ -34,7 +37,7 @@ export default function HomeLayout({
                 <Link href="/">
                   <a>
                     <Image
-                      src="/static/logotype.svg"
+                      src={`/static/${isDark ? "dark-" : ""}logotype.svg`}
                       alt="Dub.sh logo"
                       width={834}
                       height={236}
