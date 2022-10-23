@@ -50,14 +50,14 @@ export default function HomeLayout({
             {session ? (
               <a
                 href="https://app.dub.sh"
-                className="py-1.5 px-5 bg-black dark:bg-slate-200 hover:bg-white rounded-full border border-black dark:border-slate-200 text-sm text-white dark:text-slate-900 hover:text-black transition-all"
+                className="py-1.5 px-5 bg-black dark:bg-white hover:bg-white rounded-full border border-black dark:border-slate-200 text-sm text-white dark:text-slate-900 hover:text-black transition-all"
               >
                 Dashboard
               </a>
             ) : (
               <a
                 href="https://app.dub.sh/login"
-                className="py-1.5 px-5 bg-black dark:bg-slate-200 dark:hover:bg-slate-900 hover:bg-white rounded-full border border-black dark:border-slate-200 text-sm text-white dark:text-slate-900 dark:hover:text-slate-200 hover:text-black transition-all"
+                className="py-1.5 px-5 bg-black dark:bg-white dark:hover:bg-slate-900 hover:bg-white rounded-full border border-black dark:border-slate-200 text-sm text-white dark:text-slate-900 dark:hover:text-slate-200 hover:text-black transition-all"
               >
                 Sign in
               </a>

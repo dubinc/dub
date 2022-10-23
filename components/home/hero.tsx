@@ -23,24 +23,24 @@ const Hero = () => {
           Bitly Alternative
         </span>
       </h1>
-      <p className="text-gray-600 text-xl sm:text-2xl mt-5">
+      <p className="text-gray-600 dark:text-slate-300 text-xl sm:text-2xl mt-5">
         Dub is an open-source link shortener with built-in analytics and free
         custom domains.
       </p>
 
       <div className="mt-10 flex space-x-4 max-w-fit mx-auto">
         <Link href="https://app.dub.sh/register">
-          <a className="py-2 px-5 bg-black hover:bg-white rounded-full border border-black text-sm text-white hover:text-black transition-all">
+          <a className="py-2 px-5 bg-black hover:bg-white rounded-full border border-black text-sm text-white hover:text-black transition-all dark:bg-white dark:hover:bg-slate-900 dark:border-slate-200 dark:text-slate-900 dark:hover:text-slate-200">
             Start For Free
           </a>
         </Link>
         <a
-          className="flex justify-center items-center space-x-2 py-2 px-5 bg-white rounded-full border border-gray-300 hover:border-gray-800 transition-all"
+          className="flex justify-center items-center space-x-2 py-2 px-5 bg-white rounded-full border border-gray-300 hover:border-gray-800 transition-all dark:bg-slate-900 dark:text-white dark:border-gray-400 dark:hover:border-gray-100"
           href="https://github.com/steven-tey/dub"
           target="_blank"
           rel="noreferrer"
         >
-          <Github className="w-5 h-5 text-black" />
+          <Github className="w-5 h-5 text-black dark:text-white" />
           <p className="text-sm">Star on GitHub</p>
         </a>
       </div>
