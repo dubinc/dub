@@ -4,15 +4,26 @@ export interface SimpleLinkProps {
 }
 
 export interface LinkProps {
+  id?: string;
+  domain: string;
   key: string;
   url: string;
-  title: string;
-  timestamp?: number;
-  description?: string;
-  image?: string;
+  archived: boolean;
+  expiresAt: Date | null;
+  password: string | null;
+
+  title: string | null;
+  description: string | null;
+  image: string | null;
+
+  clicks: number;
+  userId: string;
+
+  createdAt: Date;
 }
 
 export interface ProjectProps {
+  id: string;
   name: string;
   slug: string;
   domain: string;

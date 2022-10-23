@@ -4,8 +4,7 @@ import { updateUsage } from "@/lib/cron/usage";
 
 /**
  * Cron to update the usage stats of each project.
- * Runs once a day.
- * TODO: Update the aggregated usage stats for a user and send them an email if they're over their limit.
+ * Runs every 6 hours (might need to change this if we have more users).
  **/
 
 async function handler(_req: NextApiRequest, res: NextApiResponse) {

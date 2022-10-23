@@ -1,27 +1,33 @@
 import Image from "next/future/image";
 import Head from "next/head";
-import { escape } from "html-escaper";
+import { unescape } from "html-escaper";
 import prisma from "@/lib/prisma";
-import { LinkProps } from "@/lib/types";
-import { redis } from "@/lib/upstash";
+import { getApexDomain } from "@/lib/utils";
 
-export default function LinkPage({ hostname, title, description, image }) {
+export default function LinkPage({
+  fullDomain,
+  apexDomain,
+  title,
+  description,
+  image,
+}) {
   return (
     <>
       <Head>
-        <meta property="og:title" content={escape(title)} />
-        <meta property="og:site_name" content={escape(hostname)} />
-        <meta property="og:description" content={escape(description)} />
-        <meta property="og:image" content={escape(image)} />
+        <meta property="og:title" content={unescape(title)} />
+        <meta property="og:site_name" content={unescape(fullDomain)} />
+        <meta property="og:description" content={unescape(description)} />
+        <meta property="og:image" content={unescape(image)} />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:site" content={escape(hostname)} />
-        <meta name="twitter:title" content={escape(title)} />
-        <meta name="twitter:description" content={escape(description)} />
-        <meta name="twitter:image" content={escape(image)} />
+        <meta name="twitter:site" content={unescape(fullDomain)} />
+        <meta name="twitter:title" content={unescape(title)} />
+        <meta name="twitter:description" content={unescape(description)} />
+        <meta name="twitter:image" content={unescape(image)} />
+        <meta charSet="utf-8" />
         <link
           rel="icon"
-          href={`https://www.google.com/s2/favicons?sz=64&domain_url=${escape(
-            hostname,
+          href={`https://www.google.com/s2/favicons?sz=64&domain_url=${unescape(
+            apexDomain,
           )}`}
         />
       </Head>
@@ -36,8 +42,8 @@ export default function LinkPage({ hostname, title, description, image }) {
           />
           <div className="flex space-x-3 bg-gray-100 p-5">
             <Image
-              src={`https://www.google.com/s2/favicons?sz=64&domain_url=${escape(
-                hostname,
+              src={`https://www.google.com/s2/favicons?sz=64&domain_url=${unescape(
+                apexDomain,
               )}`}
               alt={title}
               width={300}
@@ -63,24 +69,39 @@ export function getStaticPaths() {
 }
 
 export async function getStaticProps(ctx) {
-  const { domain, key } = ctx.params;
-  const response = await redis.hget<Omit<LinkProps, "key">>(
-    `${domain}:links`,
-    key,
-  );
-  const { url, title, description, image } = response || {};
-  if (!url || !title || !description || !image) {
+  const { domain, key } = ctx.params as { domain: string; key: string };
+  const link = await prisma.link.findUnique({
+    where: {
+      domain_key: {
+        domain,
+        key,
+      },
+    },
+  });
+
+  const { url, title, description, image } = link || {};
+
+  if (!url) {
     return {
       notFound: true,
       revalidate: 1,
     };
+  } else if (!image) {
+    return {
+      redirect: {
+        destination: url,
+      },
+      revalidate: 1,
+    };
   }
 
-  const hostname = new URL(url).hostname;
+  const fullDomain = new URL(url).hostname;
+  const apexDomain = getApexDomain(url);
 
   return {
     props: {
-      hostname,
+      fullDomain,
+      apexDomain,
       title,
       description,
       image,

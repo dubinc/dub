@@ -6,7 +6,7 @@ import { ReactNode } from "react";
 import { Toaster } from "react-hot-toast";
 import { Divider, Logo } from "@/components/shared/icons";
 import Meta from "../meta";
-import ListBox from "./list-box";
+import ProjectSelect from "./project-select";
 import UserDropdown from "./user-dropdown";
 
 const CRISP_SCRIPT = `window.$crisp=[];window.CRISP_WEBSITE_ID="2c09b1ee-14c2-46d1-bf72-1dbb998a19e0";(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();`;
@@ -36,7 +36,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       <Toaster />
       <div className="min-h-screen w-full bg-gray-50">
         <div className="sticky top-0 left-0 right-0 border-b bg-white border-gray-200 z-20">
-          <div className="max-w-screen-xl mx-auto px-2.5 sm:px-20">
+          <div className="max-w-screen-xl mx-auto px-2.5 md:px-20">
             <div className="h-16 flex justify-between items-center">
               <div className="flex items-center">
                 <Link href="/">
@@ -45,7 +45,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                   </a>
                 </Link>
                 <Divider className="h-8 w-8 ml-3 text-gray-200" />
-                <ListBox />
+                <ProjectSelect />
                 {key && slug && (
                   <>
                     <Divider className="h-8 w-8 mr-3 text-gray-200" />

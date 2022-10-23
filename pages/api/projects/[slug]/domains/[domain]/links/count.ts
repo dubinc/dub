@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
+import { getLinkCountForProject } from "@/lib/api/links";
 import { withProjectAuth } from "@/lib/auth";
-import { getLinkCountForProject } from "@/lib/upstash";
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {
@@ -8,7 +8,7 @@ export default withProjectAuth(
     if (req.method === "GET") {
       const { domain } = req.query as { domain: string };
       if (!domain) {
-        return res.status(400).json({ error: "Missing hostname" });
+        return res.status(400).json({ error: "Missing domain" });
       }
       const count = await getLinkCountForProject(domain);
       return res.status(200).json(count);

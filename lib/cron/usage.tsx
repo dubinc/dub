@@ -1,11 +1,26 @@
 import sendMail from "emails";
 import UsageExceeded from "emails/UsageExceeded";
 import prisma from "@/lib/prisma";
-import { getUsage } from "@/lib/upstash";
+import { redis } from "@/lib/upstash";
+import { getFirstAndLastDay } from "@/lib/utils";
 import { log } from "./utils";
 
 export const updateUsage = async () => {
   const users = await prisma.user.findMany({
+    where: {
+      NOT: {
+        projects: {
+          none: {},
+        },
+      },
+      projects: {
+        some: {
+          project: {
+            domainVerified: true,
+          },
+        },
+      },
+    },
     select: {
       id: true,
       email: true,
@@ -13,21 +28,27 @@ export const updateUsage = async () => {
       stripeId: true,
       billingCycleStart: true,
       projects: {
+        where: {
+          role: "owner",
+          project: {
+            domainVerified: true,
+          },
+        },
         select: {
           project: {
             select: {
               id: true,
               domain: true,
-              domainVerified: true,
             },
           },
-        },
-        where: {
-          role: "owner",
         },
       },
       sentEmails: true,
     },
+    orderBy: {
+      usageUpdatedAt: "desc",
+    },
+    take: 50,
   });
 
   const response = await Promise.all(
@@ -40,16 +61,11 @@ export const updateUsage = async () => {
         projects,
         sentEmails,
       }) => {
-        // if user has no projects, don't update usage
-        if (projects.length === 0) return;
-
         const usageArr = await Promise.all(
-          projects.map(async ({ project: { id, domain, domainVerified } }) => {
+          projects.map(async ({ project: { id, domain } }) => {
             return {
               id,
-              usage: domainVerified
-                ? await getUsage(domain, billingCycleStart)
-                : 0,
+              usage: await getUsage(domain, billingCycleStart),
             };
           }),
         );
@@ -91,6 +107,7 @@ export const updateUsage = async () => {
             },
             data: {
               usage: totalUsage,
+              usageUpdatedAt: new Date(),
               // reset usage email warnings if it's a new billing cycle
               ...(newBillingCycle && {
                 sentEmails: {
@@ -127,6 +144,64 @@ export const updateUsage = async () => {
   );
 
   return response;
+};
+
+/**
+ * Get the usage for a project
+ **/
+const getUsage = async (
+  domain: string,
+  billingCycleStart: number,
+): Promise<number> => {
+  const { firstDay, lastDay } = getFirstAndLastDay(billingCycleStart);
+
+  const links = await prisma.link.findMany({
+    where: {
+      domain,
+      // only for dub.sh, pull data for owner's usage only
+      ...(domain === "dub.sh" && {
+        userId: process.env.DUB_OWNER_ID,
+      }),
+    },
+    select: {
+      key: true,
+    },
+  });
+  let results: number[] = [];
+
+  if (links.length > 0) {
+    const pipeline = redis.pipeline();
+    links.forEach(({ key }) => {
+      pipeline.zcount(
+        `${domain}:clicks:${key}`,
+        firstDay.getTime(),
+        lastDay.getTime(),
+      );
+    });
+    results = await pipeline.exec();
+  }
+
+  const updateLinks = await Promise.all(
+    links.map(({ key }, index) => {
+      return prisma.link.update({
+        where: {
+          domain_key: {
+            domain,
+            key,
+          },
+        },
+        data: {
+          clicks: results[index],
+          clicksUpdatedAt: new Date(),
+        },
+      });
+    }),
+  );
+
+  console.log(updateLinks.length, "links updated for", domain);
+
+  const usage = results.reduce((acc, curr) => acc + curr, 0);
+  return usage;
 };
 
 const sendUsageLimitEmail = async (

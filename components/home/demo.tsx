@@ -21,15 +21,12 @@ const Demo = () => {
         onSubmit={async (e) => {
           e.preventDefault();
           setSaving(true);
-          fetch(
-            `/api/edge/links?url=${encodeURIComponent(url)}&hostname=dub.sh`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
+          fetch(`/api/edge/links?url=${encodeURIComponent(url)}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
             },
-          ).then(async (response) => {
+          }).then(async (response) => {
             setSaving(false);
             if (response.ok) {
               const json = await response.json();
@@ -121,7 +118,7 @@ const Demo = () => {
           variants={FRAMER_MOTION_LIST_ITEM_VARIANTS}
           className="border border-gray-200 bg-white p-3 rounded-md text-gray-500 text-sm"
         >
-          Note: Public links will be automatically-deleted after 7 days.{" "}
+          Note: Public links will be automatically-deleted after 30 minutes.{" "}
           <a
             href="https://app.dub.sh/register"
             target="_blank"

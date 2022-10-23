@@ -18,7 +18,7 @@
 
 ## Introduction
 
-Dub is an open-source link shortener with built-in analytics + free custom domains. Built with [Vercel Edge Functions](http://vercel.com/edge) and [Upstash Redis](https://docs.upstash.com/redis).
+Dub is an open-source link shortener with built-in analytics + free custom domains. Built with [Vercel Edge Functions](http://vercel.com/edge), [Upstash Redis](https://docs.upstash.com/redis), and [Planetscale MySQL](https://planetscale.com/).
 
 Here are some of the features that Dub provides out-of-the-box:
 
@@ -57,7 +57,8 @@ You can deploy your own hosted version of Dub for greater privacy & control. Jus
 - [Next.js](https://nextjs.org/) – framework
 - [Typescript](https://www.typescriptlang.org/) – language
 - [Tailwind](https://tailwindcss.com/) – CSS
-- [Upstash](https://upstash.com/) – database
+- [Upstash](https://upstash.com/) – redis
+- [Planetscale](https://planetscale.com/) – database
 - [NextAuth.js](https://next-auth.js.org/) – auth
 - [Vercel](https://vercel.com/) – hosting
 - [Stripe](https://stripe.com/) – payments
@@ -66,12 +67,13 @@ You can deploy your own hosted version of Dub for greater privacy & control. Jus
 
 Dub is built as a standard Next.js application with [Middleware](https://nextjs.org/docs/advanced-features/middleware) to handle multi-tenancy, inspired by [the Vercel Platforms Starter Kit](https://github.com/vercel/platforms).
 
-[Redis](https://redis.io/) is used as the database for storing links and analytics data, which works well for key-value data types. Redis also has the Sorted Set data type, which is perfect for storing & retrieving time-series analytics data. Here's the full schema:
+[Redis](https://redis.io/) is used as the caching layer for all short links. Redis also has the Sorted Set data type, which is perfect for storing & retrieving time-series analytics data. Here's the full schema:
 
-- `{hostname}:links` – hashmap of all links for a given hostname (e.g. `dub.sh:links`)
-- `{hostname}:links:timestamps` – sorted set of all link timestamps for a given hostname (e.g. `dub.sh:links:timestamps`)
-- `{hostname}:clicks:{linkId}` – sorted set of all clicks for a given link (e.g. `dub.sh:clicks:github`)
-- `{hostname}:root:clicks` – sorted set of all root link clicks for a given hostname (e.g. `dub.sh:root:clicks`)
+- `{domain}:{key}` – string containing a JSON object with the target URL and password (optional). Also has an optional TTL.
+- `{domain}:clicks:{key}` – sorted set of all clicks for a given link (e.g. `dub.sh:clicks:github`)
+- `{domain}:root:clicks` – sorted set of all root link clicks for a given domain (e.g. `dub.sh:root:clicks`)
+
+[MySQL](https://www.mysql.com/) is used as the database for storing user data, project data, and link metadata. You can refer to the Prisma schema [here](/prisma/schema.prisma).
 
 ## Contributing
 

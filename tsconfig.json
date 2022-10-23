@@ -11,6 +11,7 @@
       "@/lib/*": ["lib/*"],
       "@/styles/*": ["styles/*"]
     },
+    "downlevelIteration": true,
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "esModuleInterop": true,

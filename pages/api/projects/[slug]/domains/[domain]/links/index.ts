@@ -1,42 +1,40 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import cloudinary from "cloudinary";
+import { addLink, getLinksForProject } from "@/lib/api/links";
 import { withProjectAuth } from "@/lib/auth";
-import { addLink, getLinksForProject } from "@/lib/upstash";
 
 export default withProjectAuth(
-  async (req: NextApiRequest, res: NextApiResponse) => {
+  async (req: NextApiRequest, res: NextApiResponse, _, session) => {
     // GET /api/projects/[slug]/domains/[domain]/links - Get all links for a project
     if (req.method === "GET") {
-      const { domain } = req.query as { domain: string };
-      const links = await getLinksForProject(domain);
-      return res.status(200).json(links);
+      const { domain, status, sort, userId } = req.query as {
+        domain: string;
+        status?: string;
+        sort?: "createdAt" | "clicks";
+        userId?: string;
+      };
+      const response = await getLinksForProject({
+        domain,
+        status,
+        sort,
+        userId,
+      });
+      return res.status(200).json(response);
 
       // POST /api/projects/[slug]/domains/[domain]/links – create a new link
     } else if (req.method === "POST") {
       const { domain } = req.query as { domain: string };
-      let { key, url, title, description, image } = req.body;
-      if (!domain || !url) {
-        return res.status(400).json({ error: "Missing domain or url" });
+      let { key, url } = req.body;
+      if (!domain || !key || !url) {
+        return res.status(400).json({ error: "Missing domain or url or key" });
       }
-      if (image) {
-        const { secure_url } = await cloudinary.v2.uploader.upload(image, {
-          folder: domain,
-          overwrite: true,
-          invalidate: true,
-        });
-        image = secure_url;
-      }
-      const response = await addLink(domain, {
-        url,
-        key,
-        title,
-        description,
-        image,
+      const response = await addLink({
+        ...req.body,
+        userId: session.user.id,
       });
       if (response === null) {
         return res.status(400).json({ error: "Key already exists" });
       }
-      return res.status(200).json({ key, url, title });
+      return res.status(200).json(response);
     } else {
       res.setHeader("Allow", ["GET", "POST"]);
       return res

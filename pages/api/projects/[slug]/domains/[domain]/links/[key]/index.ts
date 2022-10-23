@@ -1,10 +1,9 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import cloudinary from "cloudinary";
+import { deleteLink, editLink } from "@/lib/api/links";
 import { withProjectAuth } from "@/lib/auth";
-import { deleteLink, editLink } from "@/lib/upstash";
 
 export default withProjectAuth(
-  async (req: NextApiRequest, res: NextApiResponse) => {
+  async (req: NextApiRequest, res: NextApiResponse, _, session) => {
     const {
       slug,
       domain,
@@ -17,53 +16,30 @@ export default withProjectAuth(
 
     // PUT /api/projects/[slug]/domains/[domain]/links/[key] - edit a link
     if (req.method === "PUT") {
-      let { key, url, title, timestamp, description, image } = req.body;
-      if (!key || !url || !title || !timestamp) {
+      let { key, url } = req.body;
+      if (!key || !url) {
         return res
           .status(400)
           .json({ error: "Missing key or url or title or timestamp" });
       }
-      if (image) {
-        const { secure_url } = await cloudinary.v2.uploader.upload(image, {
-          public_id: key,
-          folder: domain,
-          overwrite: true,
-          invalidate: true,
-        });
-        image = secure_url;
-        if (key !== oldKey) {
-          await cloudinary.v2.uploader.destroy(`${domain}/${oldKey}`, {
-            invalidate: true,
-          });
-        }
-      }
-      const [response, _] = await Promise.all([
-        editLink(domain, oldKey, {
-          key,
-          url,
-          title,
-          timestamp,
-          description,
-          image,
-        }),
-        fetch(
-          `https://dub.sh/api/projects/${slug}/domains/${domain}/links/${oldKey}/revalidate?secret=${process.env.REVALIDATE_TOKEN}`,
-        ),
-      ]);
+      const response = await editLink(
+        {
+          domain,
+          ...req.body,
+          userId: session.user.id,
+        },
+        oldKey,
+        slug,
+      );
       if (response === null) {
         return res.status(400).json({ error: "Key already exists" });
       }
       return res.status(200).json(response);
     } else if (req.method === "DELETE") {
-      const response = await Promise.all([
-        deleteLink(domain, oldKey),
-        cloudinary.v2.uploader.destroy(`${domain}/${oldKey}`, {
-          invalidate: true,
-        }),
-      ]);
+      const response = await deleteLink(domain, oldKey);
       return res.status(200).json(response);
     } else {
-      res.setHeader("Allow", ["POST", "DELETE"]);
+      res.setHeader("Allow", ["PUT", "DELETE"]);
       return res
         .status(405)
         .json({ error: `Method ${req.method} Not Allowed` });

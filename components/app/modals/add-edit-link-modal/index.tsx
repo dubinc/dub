@@ -7,23 +7,23 @@ import {
   useMemo,
   useState,
 } from "react";
-import TextareaAutosize from "react-textarea-autosize";
 import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
 import BlurImage from "@/components/shared/blur-image";
 import {
   AlertCircleFill,
-  ChevronRight,
   LoadingCircle,
   LoadingDots,
-  UploadCloud,
+  Random,
+  X,
 } from "@/components/shared/icons";
 import Modal from "@/components/shared/modal";
 import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 import useProject from "@/lib/swr/use-project";
 import useUsage from "@/lib/swr/use-usage";
 import { LinkProps } from "@/lib/types";
-import { getApexDomain, linkConstructor } from "@/lib/utils";
+import { getApexDomain, getQueryString, linkConstructor } from "@/lib/utils";
+import AdvancedSettings from "./advanced-settings";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
@@ -37,21 +37,30 @@ function AddEditLinkModal({
   const router = useRouter();
   const { slug } = router.query as { slug: string };
   const { project: { domain } = {} } = useProject();
-  const { plan } = useUsage();
 
   const [keyExistsError, setKeyExistsError] = useState(false);
   const [generatingSlug, setGeneratingSlug] = useState(false);
-  const [generatingTitle, setGeneratingTitle] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const [data, setData] = useState<LinkProps>(
     props || {
+      domain: domain || "",
       key: "",
       url: "",
-      title: "",
+      archived: false,
+      expiresAt: null,
+      password: null,
+
+      title: null,
+      description: null,
+      image: null,
+
+      clicks: 0,
+      userId: "",
+      createdAt: new Date(),
     },
   );
-  const { key, url, title } = data;
+  const { id, key, url, archived, expiresAt } = data;
 
   const heroProps = useMemo(() => {
     if (props?.url) {
@@ -80,11 +89,11 @@ function AddEditLinkModal({
       fetch(
         domain
           ? `/api/projects/${slug}/domains/${domain}/links/${debouncedKey}/exists`
-          : `/api/edge/links/${debouncedKey}/exists`,
+          : `/api/links/${debouncedKey}/exists`,
       ).then(async (res) => {
         if (res.status === 200) {
           const exists = await res.json();
-          setKeyExistsError(exists === 1);
+          setKeyExistsError(exists);
         }
       });
     }
@@ -95,34 +104,12 @@ function AddEditLinkModal({
     const res = await fetch(
       domain
         ? `/api/projects/${slug}/domains/${domain}/links/random`
-        : `/api/edge/links/random`,
+        : `/api/links/random`,
     );
     const key = await res.json();
     setData((prev) => ({ ...prev, key }));
     setGeneratingSlug(false);
   }, []);
-
-  const [debouncedUrl] = useDebounce(url, 500);
-  useEffect(() => {
-    if (debouncedUrl.length > 0 && title.length === 0) {
-      // only fetch title if user hasn't entered one
-      generateTitleFromUrl(debouncedUrl);
-    }
-  }, [debouncedUrl]);
-
-  const generateTitleFromUrl = useCallback(
-    (debouncedUrl: string) => {
-      setGeneratingTitle(true);
-      fetch(`/api/edge/title?url=${debouncedUrl}`).then(async (res) => {
-        if (res.status === 200) {
-          const results = await res.json();
-          setData((prev) => ({ ...prev, title: results }));
-          setGeneratingTitle(false);
-        }
-      });
-    },
-    [debouncedUrl],
-  );
 
   const endpoint = useMemo(() => {
     if (props?.key) {
@@ -142,13 +129,23 @@ function AddEditLinkModal({
     }
   }, [props]);
 
+  const expired = expiresAt && new Date() > new Date(expiresAt);
+
   return (
     <Modal
       showModal={showAddEditLinkModal}
       setShowModal={setShowAddEditLinkModal}
+      closeWithX={true}
     >
       <div className="inline-block w-full sm:max-w-md max-h-[calc(100vh-50px)] overflow-scroll align-middle transition-all transform bg-white sm:border sm:border-gray-200 shadow-xl sm:rounded-2xl">
-        <div className="flex flex-col justify-center items-center space-y-3 sm:px-16 px-4 pt-8 py-4 border-b border-gray-200">
+        <button
+          onClick={() => setShowAddEditLinkModal(false)}
+          className="hidden sm:block absolute top-0 right-0 p-2 m-3 rounded-full group hover:bg-gray-100 text-gray-500 focus:outline-none active:bg-gray-200 transition-all duration-75"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        <div className="flex flex-col justify-center items-center space-y-3 sm:px-16 px-4 pt-10 pb-8 border-b border-gray-200">
           <BlurImage
             src={heroProps.avatar}
             alt={heroProps.alt}
@@ -158,6 +155,17 @@ function AddEditLinkModal({
           />
           <h3 className="font-medium text-lg">{heroProps.copy}</h3>
         </div>
+
+        {id && (
+          <div className="absolute -mt-3.5 w-full flex justify-center space-x-2 [&>*]:flex [&>*]:items-center [&>*]:h-7 [&>*]:px-4 [&>*]:rounded-full [&>*]:text-xs [&>*]:text-white [&>*]:uppercase">
+            {expired ? (
+              <span className="bg-amber-500">Expired</span>
+            ) : (
+              <span className="bg-green-500">Active</span>
+            )}
+            {archived && <span className="bg-gray-400">Archived</span>}
+          </div>
+        )}
 
         <form
           onSubmit={async (e) => {
@@ -169,22 +177,21 @@ function AddEditLinkModal({
                 "Content-Type": "application/json",
               },
               body: JSON.stringify(data),
-            })
-              .then((res) => {
-                setSaving(false);
-                if (res.status === 200) {
-                  mutate(
-                    domain
-                      ? `/api/projects/${slug}/domains/${domain}/links`
-                      : `/api/links`,
-                  );
-                  setShowAddEditLinkModal(false);
-                }
-              })
-              .catch(() => {
-                setSaving(false);
+            }).then((res) => {
+              setSaving(false);
+              if (res.status === 200) {
+                mutate(
+                  domain
+                    ? `/api/projects/${slug}/domains/${domain}/links${getQueryString(
+                        router,
+                      )}`
+                    : `/api/links${getQueryString(router)}`,
+                );
+                setShowAddEditLinkModal(false);
+              } else {
                 setKeyExistsError(true);
-              });
+              }
+            });
           }}
           className="grid gap-6 bg-gray-50 py-8"
         >
@@ -203,10 +210,12 @@ function AddEditLinkModal({
                   disabled={generatingSlug}
                   type="button"
                 >
-                  {generatingSlug && <LoadingCircle />}
-                  <p>
-                    {generatingSlug ? "Generating" : "Generate random slug"}
-                  </p>
+                  {generatingSlug ? (
+                    <LoadingCircle />
+                  ) : (
+                    <Random className="w-3 h-3" />
+                  )}
+                  <p>{generatingSlug ? "Generating" : "Randomize"}</p>
                 </button>
               </div>
               <div className="relative flex mt-1 rounded-md shadow-sm">
@@ -273,54 +282,9 @@ function AddEditLinkModal({
                 />
               </div>
             </div>
-
-            <div>
-              <div className="flex justify-between items-center">
-                <label
-                  htmlFor="title"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Title
-                </label>
-                <button
-                  className={`${
-                    url.length === 0
-                      ? "cursor-not-allowed text-gray-300"
-                      : "hover:text-black active:scale-95"
-                  } flex items-center space-x-2 text-gray-500 text-sm transition-all duration-75`}
-                  onClick={() => generateTitleFromUrl(url)}
-                  disabled={url.length === 0 || generatingTitle}
-                  type="button"
-                >
-                  {generatingTitle && <LoadingCircle />}
-                  <p>{generatingTitle ? "Generating" : "Generate from URL"}</p>
-                </button>
-              </div>
-              <div className="flex mt-1 rounded-md shadow-sm">
-                <TextareaAutosize
-                  name="title"
-                  id="title"
-                  required
-                  minRows={3}
-                  className="border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500 pr-10 block w-full rounded-md focus:outline-none sm:text-sm"
-                  placeholder="Dub - an open-source link shortener SaaS with built-in analytics + free custom domains."
-                  value={title}
-                  onChange={(e) => {
-                    setData({ ...data, title: e.target.value });
-                  }}
-                  aria-invalid="true"
-                />
-              </div>
-            </div>
           </div>
 
-          {plan?.startsWith("Pro") && slug && (
-            <AdvancedSettings
-              data={data}
-              setData={setData}
-              debouncedUrl={debouncedUrl}
-            />
-          )}
+          <AdvancedSettings data={data} setData={setData} />
 
           <div className="sm:px-16 px-4">
             <button
@@ -341,156 +305,6 @@ function AddEditLinkModal({
         </form>
       </div>
     </Modal>
-  );
-}
-
-function AdvancedSettings({ data, setData, debouncedUrl }) {
-  const [expanded, setExpanded] = useState(false);
-  const [generatingDescription, setGeneratingDescription] = useState(false);
-
-  const { url, description, image } = data;
-
-  useEffect(() => {
-    if (debouncedUrl.length > 0 && description?.length === 0) {
-      // only fetch title if user hasn't entered one
-      generateTitleFromUrl(debouncedUrl);
-    }
-  }, [debouncedUrl]);
-
-  const generateTitleFromUrl = useCallback(
-    (debouncedUrl: string) => {
-      setGeneratingDescription(true);
-      fetch(`/api/edge/description?url=${debouncedUrl}`).then(async (res) => {
-        if (res.status === 200) {
-          const results = await res.json();
-          setData((prev) => ({ ...prev, description: results }));
-          setGeneratingDescription(false);
-        }
-      });
-    },
-    [debouncedUrl],
-  );
-
-  const onChangePicture = useCallback(
-    (e) => {
-      const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setData((prev) => ({ ...prev, image: e.target.result }));
-      };
-      reader.readAsDataURL(file);
-    },
-    [setData],
-  );
-
-  return (
-    <div>
-      <div className="sm:px-16 px-4">
-        <button
-          type="button"
-          className="flex items-center"
-          onClick={() => setExpanded(!expanded)}
-        >
-          <ChevronRight
-            className={`h-5 w-5 text-gray-600 ${
-              expanded ? "rotate-90" : ""
-            } transition-all`}
-          />
-          <p className="text-gray-600 text-sm">Advanced options</p>
-        </button>
-      </div>
-
-      {expanded && (
-        <div className="mt-4 grid gap-5 bg-white border-t border-b border-gray-200 sm:px-16 px-4 py-8">
-          <div>
-            <div className="flex justify-between items-center">
-              <label
-                htmlFor="description"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Description
-              </label>
-              <button
-                className={`${
-                  url.length === 0
-                    ? "cursor-not-allowed text-gray-300"
-                    : "hover:text-black active:scale-95"
-                } flex items-center space-x-2 text-gray-500 text-sm transition-all duration-75`}
-                onClick={() => generateTitleFromUrl(url)}
-                disabled={url.length === 0 || generatingDescription}
-                type="button"
-              >
-                {generatingDescription && <LoadingCircle />}
-                <p>
-                  {generatingDescription ? "Generating" : "Generate from URL"}
-                </p>
-              </button>
-            </div>
-            <div className="flex mt-1 rounded-md shadow-sm">
-              <TextareaAutosize
-                name="description"
-                id="description"
-                minRows={3}
-                className="border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500 pr-10 block w-full rounded-md focus:outline-none sm:text-sm"
-                placeholder="Dub is an open-source link shortener SaaS with built-in analytics + free custom domains."
-                value={description}
-                onChange={(e) => {
-                  setData({
-                    ...data,
-                    description:
-                      e.target.value.length > 0 ? e.target.value : undefined,
-                  });
-                }}
-                aria-invalid="true"
-              />
-            </div>
-          </div>
-
-          <div>
-            <p className="block text-sm font-medium text-gray-700">OG Image</p>
-            <label
-              htmlFor="image"
-              className="group flex flex-col justify-center items-center mt-1 h-[10.5rem] cursor-pointer rounded-md border border-gray-300 bg-white hover:bg-gray-50 shadow-sm transition-all"
-            >
-              {image ? (
-                image.startsWith("data:") ? (
-                  <img
-                    src={image}
-                    alt="Preview"
-                    className="object-cover h-full w-full rounded-md hover:brightness-95 transition-all"
-                  />
-                ) : (
-                  <BlurImage
-                    src={image}
-                    alt="Preview"
-                    width={1200}
-                    height={627}
-                    className="object-cover h-full w-full rounded-md hover:brightness-95 transition-all"
-                  />
-                )
-              ) : (
-                <>
-                  <UploadCloud className="h-7 w-7 text-gray-500 group-hover:scale-110 group-active:scale-95 transition-all duration-75" />
-                  <p className="text-gray-500 text-sm mt-2">
-                    Recommended: 1200 x 627 pixels
-                  </p>
-                  <span className="sr-only">OG Image upload</span>
-                </>
-              )}
-            </label>
-            <div className="flex mt-1 rounded-md shadow-sm">
-              <input
-                id="image"
-                name="image"
-                type="file"
-                className="sr-only"
-                onChange={onChangePicture}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
   );
 }
 

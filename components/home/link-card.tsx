@@ -30,7 +30,7 @@ export default function LinkCard({
 }) {
   const apexDomain = getApexDomain(url);
 
-  const { data: clicks, isValidating } = useSWR<string>(
+  const { data: clicks, isValidating } = useSWR<number>(
     `/api/edge/links/${key}/clicks`,
     fetcher,
   );
@@ -157,10 +157,10 @@ export default function LinkCard({
               <a className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 hover:scale-105 active:scale-95 transition-all duration-75 text-gray-700">
                 <Chart className="w-4 h-4" />
                 <p className="text-sm">
-                  {isValidating || !clicks ? (
+                  {isValidating ? (
                     <LoadingDots color="#71717A" />
                   ) : (
-                    nFormatter(parseInt(clicks))
+                    nFormatter(clicks)
                   )}
                   <span className="hidden sm:inline-block ml-1">clicks</span>
                 </p>

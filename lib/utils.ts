@@ -1,5 +1,12 @@
+import { NextRouter } from "next/router";
 import ms from "ms";
-import { ccTLDs, secondLevelDomains } from "./constants";
+import { customAlphabet } from "nanoid";
+import { SPECIAL_APEX_DOMAINS, ccTLDs, secondLevelDomains } from "./constants";
+
+export const nanoid = customAlphabet(
+  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
+  7,
+); // 7-character random string
 
 interface SWRError extends Error {
   status: number;
@@ -53,16 +60,19 @@ export function linkConstructor({
   domain = "dub.sh",
   localhost,
   pretty,
+  noDomain,
 }: {
   key: string;
   domain?: string;
   localhost?: boolean;
   pretty?: boolean;
+  noDomain?: boolean;
 }) {
   const link = `${
     localhost ? "http://localhost:3000" : `https://${domain}`
   }/${key}`;
 
+  if (noDomain) return `/${key}`;
   return pretty ? link.replace(/^https?:\/\//, "") : link;
 }
 
@@ -108,9 +118,20 @@ export const getDescriptionFromUrl = async (url: string) => {
   return description;
 };
 
-export const timeAgo = (timestamp: number): string => {
+export const timeAgo = (timestamp: Date, timeOnly?: boolean): string => {
   if (!timestamp) return "never";
-  return `${ms(Date.now() - timestamp)} ago`;
+  return `${ms(Date.now() - new Date(timestamp).getTime())}${
+    timeOnly ? "" : " ago"
+  }`;
+};
+
+export const getDateTimeLocal = (timestamp?: Date): string => {
+  const d = timestamp ? new Date(timestamp) : new Date();
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+    .toISOString()
+    .split(":")
+    .slice(0, 2)
+    .join(":");
 };
 
 export const generateSlugFromName = (name: string) => {
@@ -181,6 +202,9 @@ export const getApexDomain = (url: string) => {
   } catch (e) {
     return "";
   }
+  // special apex domains (e.g. youtu.be)
+  if (SPECIAL_APEX_DOMAINS[domain]) return SPECIAL_APEX_DOMAINS[domain];
+
   const parts = domain.split(".");
   if (parts.length > 2) {
     // if this is a second-level TLD (e.g. co.uk, .com.ua, .org.tt), we need to return the last 3 parts
@@ -195,4 +219,51 @@ export const getApexDomain = (url: string) => {
   }
   // if it's a normal domain (e.g. dub.sh), we return the domain
   return domain;
+};
+
+export const getParamsFromURL = (url: string) => {
+  if (!url) return {};
+  try {
+    const params = new URL(url).searchParams;
+    const paramsObj: Record<string, string> = {};
+    for (const [key, value] of params.entries()) {
+      if (value && value !== "") {
+        paramsObj[key] = value;
+      }
+    }
+    return paramsObj;
+  } catch (e) {
+    return {};
+  }
+};
+
+export const constructURLFromUTMParams = (
+  url: string,
+  utmParams: Record<string, string>,
+) => {
+  if (!url) return "";
+  try {
+    const params = new URL(url).searchParams;
+    for (const [key, value] of Object.entries(utmParams)) {
+      if (value === "") {
+        params.delete(key);
+      } else {
+        params.set(key, value);
+      }
+    }
+    return `${url.split("?")[0]}${
+      params.toString() ? `?${params.toString()}` : ""
+    }`;
+  } catch (e) {
+    return "";
+  }
+};
+
+export const getQueryString = (router: NextRouter) => {
+  const { slug: omit, ...queryWithoutSlug } = router.query as {
+    slug: string;
+    [key: string]: string;
+  };
+  const queryString = new URLSearchParams(queryWithoutSlug).toString();
+  return `${queryString ? "?" : ""}${queryString}`;
 };

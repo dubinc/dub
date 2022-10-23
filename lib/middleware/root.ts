@@ -6,35 +6,35 @@ export default async function RootMiddleware(
   req: NextRequest,
   ev: NextFetchEvent,
 ) {
-  const { hostname } = parse(req);
+  const { domain } = parse(req);
 
-  if (!hostname) {
+  if (!domain) {
     return NextResponse.next();
   }
 
   if (
-    hostname === "dub.sh" ||
-    hostname === "preview.dub.sh" ||
-    hostname.endsWith(".vercel.app")
+    domain === "dub.sh" ||
+    domain === "preview.dub.sh" ||
+    domain.endsWith(".vercel.app")
   ) {
     ev.waitUntil(redis.incr("dub.sh:root:clicks")); // increment root clicks (only for dub.sh)
   } else {
-    ev.waitUntil(recordClick(hostname, req)); // record clicks on root page (if hostname is not dub.sh)
+    ev.waitUntil(recordClick(domain, req)); // record clicks on root page (if domain is not dub.sh)
   }
 
   if (
-    hostname === "dub.sh" ||
-    hostname === "preview.dub.sh" ||
-    hostname.endsWith(".vercel.app")
+    domain === "dub.sh" ||
+    domain === "preview.dub.sh" ||
+    domain.endsWith(".vercel.app")
   ) {
     return NextResponse.next();
   } else {
-    const target = await redis.get<string>(`root:${hostname}`);
+    const target = await redis.get<string>(`root:${domain}`);
     if (target) {
       return NextResponse.redirect(target);
     } else {
       const url = req.nextUrl;
-      url.pathname = `/placeholder/${hostname}`; // rewrite to a /placeholder page unless the user defines a site to redirect to
+      url.pathname = `/placeholder/${domain}`; // rewrite to a /placeholder page unless the user defines a site to redirect to
       return NextResponse.rewrite(url);
     }
   }

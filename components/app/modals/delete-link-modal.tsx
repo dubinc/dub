@@ -3,7 +3,6 @@ import {
   Dispatch,
   SetStateAction,
   useCallback,
-  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -13,7 +12,7 @@ import LoadingDots from "@/components/shared/icons/loading-dots";
 import Modal from "@/components/shared/modal";
 import useProject from "@/lib/swr/use-project";
 import { LinkProps } from "@/lib/types";
-import { getApexDomain, linkConstructor } from "@/lib/utils";
+import { getApexDomain, getQueryString, linkConstructor } from "@/lib/utils";
 
 function DeleteLinkModal({
   showDeleteLinkModal,
@@ -53,7 +52,7 @@ function DeleteLinkModal({
             height={20}
           />
           <h3 className="font-medium text-lg">Delete {shortlink}</h3>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 text-center">
             Warning: Deleting this link will remove all of its stats. This
             action cannot be undone.
           </p>
@@ -78,8 +77,10 @@ function DeleteLinkModal({
               if (res.status === 200) {
                 mutate(
                   domain
-                    ? `/api/projects/${slug}/domains/${domain}/links`
-                    : `/api/links`,
+                    ? `/api/projects/${slug}/domains/${domain}/links${getQueryString(
+                        router,
+                      )}`
+                    : `/api/links${getQueryString(router)}`,
                 );
                 setShowDeleteLinkModal(false);
               }
