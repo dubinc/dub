@@ -28,6 +28,7 @@ model User {
   sentEmails            SentEmail[]
   links                 Link[]
   createdAt             DateTime  @default(now())
+  usageUpdatedAt        DateTime  @default(now())
 }
 
 model Account {

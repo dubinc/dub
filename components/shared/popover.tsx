@@ -96,11 +96,9 @@ export default function Popover({
         <PopoverPrimitive.Content
           sideOffset={4}
           align={align}
-          className="hidden md:block animate-slide-up-fade items-center rounded-md overflow-hidden z-20 bg-white border border-gray-200 drop-shadow-lg"
+          className="hidden md:block animate-slide-up-fade items-center rounded-md z-20 bg-white border border-gray-200 drop-shadow-lg"
         >
-          <PopoverPrimitive.Arrow className="fill-current text-white" />
           {content}
-          <PopoverPrimitive.Arrow className="fill-current text-white" />
         </PopoverPrimitive.Content>
       </PopoverPrimitive.Root>
     </>
