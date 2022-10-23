@@ -116,14 +116,14 @@ const Demo = () => {
         ))}
         <motion.li
           variants={FRAMER_MOTION_LIST_ITEM_VARIANTS}
-          className="border border-gray-200 bg-white p-3 rounded-md text-gray-500 text-sm"
+          className="border border-gray-200 bg-white p-3 rounded-md text-gray-500 text-sm dark:border-gray-600 dark:bg-slate-800 dark:text-gray-200"
         >
           Note: Public links will be automatically-deleted after 30 minutes.{" "}
           <a
             href="https://app.dub.sh/register"
             target="_blank"
             rel="noreferrer"
-            className="text-gray-700 hover:text-black font-medium underline transition-all"
+            className="text-gray-700 dark:text-gray-100 dark:hover:text-gray-50 hover:text-black font-medium underline transition-all"
           >
             Create a free account
           </a>{" "}
