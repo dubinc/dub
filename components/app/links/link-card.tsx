@@ -8,7 +8,15 @@ import { useDeleteLinkModal } from "@/components/app/modals/delete-link-modal";
 import { useLinkQRModal } from "@/components/app/modals/link-qr-modal";
 import BlurImage from "@/components/shared/blur-image";
 import CopyButton from "@/components/shared/copy-button";
-import { Chart, LoadingDots, QR, ThreeDots } from "@/components/shared/icons";
+import {
+  Archive,
+  Chart,
+  Delete,
+  Edit,
+  LoadingDots,
+  QR,
+  ThreeDots,
+} from "@/components/shared/icons";
 import Popover from "@/components/shared/popover";
 import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 import useProject from "@/lib/swr/use-project";
@@ -168,7 +176,10 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                     }}
                     className="w-full font-medium text-sm text-gray-500 p-2 text-left rounded-md hover:bg-gray-100 transition-all duration-75"
                   >
-                    Edit
+                    <div className="flex items-center justify-start space-x-2">
+                      <Edit className="w-4 h-4" />
+                      <p className="text-sm">Edit</p>
+                    </div>
                   </button>
                 )}
                 <button
@@ -178,7 +189,10 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                   }}
                   className="w-full font-medium text-sm text-gray-500 p-2 text-left rounded-md hover:bg-gray-100 transition-all duration-75"
                 >
-                  Archive
+                  <div className="flex items-center justify-start space-x-2">
+                    <Archive className="w-4 h-4" />
+                    <p className="text-sm">Archive</p>
+                  </div>
                 </button>
                 <button
                   onClick={() => {
@@ -187,7 +201,10 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                   }}
                   className="w-full font-medium text-sm text-red-600 hover:bg-red-600 hover:text-white p-2 text-left rounded-md transition-all duration-75"
                 >
-                  Delete
+                  <div className="flex items-center justify-start space-x-2">
+                    <Delete className="w-4 h-4" />
+                    <p className="text-sm">Delete</p>
+                  </div>
                 </button>
               </div>
             }

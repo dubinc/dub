@@ -36,3 +36,7 @@ export { default as Filter } from "./filter";
 export { default as Search } from "./search";
 export { default as Sort } from "./sort";
 export { default as SortDesc } from "./sort-desc";
+export { default as Edit } from "./edit";
+export { default as Archive } from "./archive";
+export { default as Delete } from "./delete";
+export { default as Logout } from "./logout";
