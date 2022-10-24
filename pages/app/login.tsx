@@ -68,7 +68,7 @@ export default function Login() {
               id="email"
               name="email"
               type="email"
-              placeholder="Email Address"
+              placeholder="panic@theredis.co"
               autoComplete="email"
               required
               onChange={(e) => {
@@ -80,11 +80,10 @@ export default function Login() {
           </div>
           <button
             disabled={signInClicked}
-            className={`${
-              signInClicked
+            className={`${signInClicked
                 ? "cursor-not-allowed bg-gray-100 border-gray-200"
                 : "bg-black hover:bg-white text-white hover:text-black border-black"
-            } flex justify-center items-center w-full text-sm h-10 rounded-md border transition-all focus:outline-none`}
+              } flex justify-center items-center w-full text-sm h-10 rounded-md border transition-all focus:outline-none`}
           >
             {signInClicked ? (
               <LoadingDots color="#808080" />
