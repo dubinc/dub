@@ -121,7 +121,7 @@ export default function LinkCard({
         onDrag={() => setVelocity(x.getVelocity())}
         onDragEnd={() => flyAway(500)}
         whileTap={{ scale: 1.05 }}
-        className="cursor-grab active:cursor-grabbing flex items-center space-x-3 border border-gray-200 hover:border-black bg-white p-3 max-w-md rounded-md transition-[border-color]"
+        className="cursor-grab active:cursor-grabbing flex items-center space-x-3 border border-gray-200 hover:border-black shadow-lg bg-white p-3 max-w-md rounded-md transition-[border-color]"
       >
         <BlurImage
           src={`https://www.google.com/s2/favicons?sz=64&domain_url=${apexDomain}`}

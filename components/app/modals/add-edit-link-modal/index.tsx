@@ -76,7 +76,7 @@ function AddEditLinkModal({
       };
     } else {
       return {
-        avatar: "/static/logo.png",
+        avatar: "/_static/logo.png",
         alt: "Dub.sh",
         copy: "Add a new link",
       };

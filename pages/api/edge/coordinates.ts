@@ -20,7 +20,7 @@ export default async function handler(req: NextRequest) {
       const { latitude, longitude } = data.geo;
       return {
         location: [latitude, longitude],
-        size: 0.05 - (0.05 / numPoints) * idx,
+        size: 0.075 - (0.075 / numPoints) * idx,
       };
     });
     return new Response(JSON.stringify(latestCoordinates), { status: 200 });

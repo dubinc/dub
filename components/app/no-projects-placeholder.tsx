@@ -12,7 +12,7 @@ export default function NoProjectsPlaceholder({
         You don't have any projects yet!
       </h2>
       <BlurImage
-        src="/static/illustrations/shopping-call.svg"
+        src="/_static/illustrations/shopping-call.svg"
         alt="No links yet"
         width={400}
         height={400}

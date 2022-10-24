@@ -1,10 +1,12 @@
 import { useRouter } from "next/router";
 import { useCallback, useEffect } from "react";
 import { useStatsModal } from "@/components/app/modals/stats-modal";
+import Background from "@/components/home/background";
 import Demo from "@/components/home/demo";
 import Features from "@/components/home/features";
 import Globe from "@/components/home/globe";
 import Hero from "@/components/home/hero";
+import Logos from "@/components/home/logos";
 import Pricing from "@/components/home/pricing";
 import HomeLayout from "@/components/layout/home";
 
@@ -35,32 +37,36 @@ export default function Home({ stars }: { stars: number }) {
   return (
     <HomeLayout>
       <StatsModal />
-      <Hero />
-      <Demo />
-      <Globe />
-      <Features stars={stars} />
-      <Pricing />
+      <div className="z-10">
+        <Hero />
+        <Demo />
+        <Logos />
+        <Globe />
+        <Features stars={stars} />
+        <Pricing />
+      </div>
+      <Background />
     </HomeLayout>
   );
 }
 
 export async function getStaticProps() {
-  const { stargazers_count: stars } = await fetch(
-    "https://api.github.com/repos/steven-tey/dub",
-    {
-      // optional – feel free to remove if you don't want to display star count
-      ...(process.env.GITHUB_OAUTH_TOKEN && {
-        headers: {
-          Authorization: `Bearer ${process.env.GITHUB_OAUTH_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-      }),
-    },
-  ).then((res) => res.json());
+  // const { stargazers_count: stars } = await fetch(
+  //   "https://api.github.com/repos/steven-tey/dub",
+  //   {
+  //     // optional – feel free to remove if you don't want to display star count
+  //     ...(process.env.GITHUB_OAUTH_TOKEN && {
+  //       headers: {
+  //         Authorization: `Bearer ${process.env.GITHUB_OAUTH_TOKEN}`,
+  //         "Content-Type": "application/json",
+  //       },
+  //     }),
+  //   },
+  // ).then((res) => res.json());
 
   return {
     props: {
-      stars,
+      stars: 10000,
     },
     revalidate: 10,
   };

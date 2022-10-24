@@ -38,7 +38,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
   const { data: clicks, isValidating } = useSWR<number>(
     domain
       ? `/api/projects/${slug}/domains/${domain}/links/${key}/clicks`
-      : `/api/edge/links/${key}/clicks`,
+      : `/api/links/${key}/clicks`,
     fetcher,
     {
       fallbackData: props.clicks,

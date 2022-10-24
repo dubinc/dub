@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import Confetti from "react-dom-confetti";
 import {
   CheckCircleFill,
   QuestionCircle,
@@ -7,6 +8,7 @@ import {
 } from "@/components/shared/icons";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import Slider from "@/components/shared/slider";
+import Switch from "@/components/shared/switch";
 import Tooltip, { OGImageProxy } from "@/components/shared/tooltip";
 import { PRO_TIERS } from "@/lib/stripe/constants";
 import { nFormatter } from "@/lib/utils";
@@ -88,6 +90,11 @@ const pricingItems = [
 
 const Pricing = () => {
   const [tier, setTier] = useState(0);
+  const [annualBilling, setAnnualBilling] = useState(true);
+  const period = useMemo(
+    () => (annualBilling ? "yearly" : "monthly"),
+    [annualBilling],
+  );
 
   return (
     <MaxWidthWrapper className="mt-20 mb-40 text-center">
@@ -103,6 +110,25 @@ const Pricing = () => {
           Start for free, no credit card required. Upgrade anytime.
         </p>
       </div>
+
+      <div className="relative flex space-x-2 items-center max-w-fit mx-auto mb-14">
+        <p className="text-gray-600">Billed Monthly</p>
+        <Confetti
+          active={period === "yearly"}
+          config={{ elementCount: 200, spread: 90 }}
+        />
+        <Switch
+          fn={setAnnualBilling}
+          trackDimensions="h-6 w-12"
+          thumbDimensions="h-5 w-5"
+          thumbTranslate="translate-x-6"
+        />
+        <p className="text-gray-600">Billed Annually</p>
+        <span className="absolute -top-8 sm:-top-2 -right-16 sm:-right-36 rounded-full bg-purple-200 text-purple-700 text-sm px-3 py-1">
+          🎁 2 months FREE
+        </span>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         {pricingItems.map(
           ({ plan, tagline, clicksLimit, features, cta, ctaLink }) => (
@@ -112,7 +138,7 @@ const Pricing = () => {
                 plan === "Pro"
                   ? "border-2 border-blue-600 shadow-blue-200"
                   : "border border-gray-200"
-              } shadow-md`}
+              } shadow-lg`}
             >
               {plan === "Pro" && (
                 <div className="absolute -top-5 left-0 right-0 mx-auto bg-gradient-to-r from-blue-600 to-cyan-600 text-white text-sm font-medium w-32 px-3 py-2 rounded-full">
@@ -133,12 +159,19 @@ const Pricing = () => {
                     <p className="text-6xl font-display font-semibold">
                       $
                       {plan === "Pro"
-                        ? PRO_TIERS[tier].price.monthly.amount
+                        ? period === "yearly"
+                          ? nFormatter(
+                              PRO_TIERS[tier].price.yearly.amount / 12,
+                              1,
+                            )
+                          : PRO_TIERS[tier].price.monthly.amount
                         : 0}
                     </p>
                   </div>
                 )}
-                <p className="text-gray-500">Monthly</p>
+                <p className="text-gray-500">
+                  per month{period === "yearly" ? ", billed yearly" : ""}
+                </p>
               </div>
               <div className="border-t border-b border-gray-200 flex items-center justify-center h-20 bg-gray-50">
                 {plan === "Pro" ? (

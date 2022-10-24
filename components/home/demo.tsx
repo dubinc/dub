@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Toaster } from "react-hot-toast";
 import LinkCard from "@/components/home/link-card";
 import PlaceholderCard from "@/components/home/placeholder-card";
-import { LoadingDots } from "@/components/shared/icons";
+import { Link, LoadingDots } from "@/components/shared/icons";
 import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 import { FRAMER_MOTION_LIST_ITEM_VARIANTS } from "@/lib/constants";
 import useLocalStorage from "@/lib/hooks/use-local-storage";
@@ -48,7 +48,7 @@ const Demo = () => {
             }
           >
             <div className="relative flex items-center">
-              <div className="shadow-sm bg-white border focus:border-black block w-full p-2 text-sm text-gray-400 border-gray-200 rounded-md pl-3 pr-12">
+              <div className="shadow-lg bg-white border focus:border-black block w-full p-2 text-sm text-gray-400 border-gray-200 rounded-md pl-3 pr-12">
                 Shorten your link
               </div>
               <div className="cursor-not-allowed absolute inset-y-0 right-0 w-10 flex justify-center items-center my-1.5 mr-1.5 border border-gray-200 rounded text-sm font-sans font-medium text-gray-400">
@@ -58,6 +58,7 @@ const Demo = () => {
           </Tooltip>
         ) : (
           <div className="relative flex items-center">
+            <Link className="absolute inset-y-0 left-0 w-5 my-2 ml-3 text-gray-400" />
             <input
               type="url"
               placeholder="Shorten your link"
@@ -66,7 +67,7 @@ const Demo = () => {
                 setUrl((e.target as HTMLInputElement).value);
               }}
               required
-              className="peer shadow-sm focus:outline-none focus:ring-0 bg-white border focus:border-black block w-full p-2 text-sm border-gray-200 rounded-md pl-3 pr-12"
+              className="peer shadow-lg focus:outline-none focus:ring-0 bg-white border focus:border-black block w-full p-2 text-sm border-gray-200 rounded-md pl-10 pr-12"
             />
             <button
               type="submit"
@@ -116,7 +117,7 @@ const Demo = () => {
         ))}
         <motion.li
           variants={FRAMER_MOTION_LIST_ITEM_VARIANTS}
-          className="border border-gray-200 bg-white p-3 rounded-md text-gray-500 text-sm"
+          className="border border-gray-200 bg-white shadow-lg p-3 rounded-md text-gray-500 text-sm"
         >
           Note: Public links will be automatically-deleted after 30 minutes.{" "}
           <a

@@ -9,7 +9,7 @@ export default function Header({ title }: { title: string }): JSX.Element {
           width="44px"
           height="44px"
           align="center"
-          src="https://dub.sh/static/logo.png"
+          src="https://dub.sh/_static/logo.png"
           cssClass="logo"
         />
         <MjmlText cssClass="title" align="center">

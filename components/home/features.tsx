@@ -13,7 +13,7 @@ import styles from "./features.module.css";
 
 const Features = ({ stars }: { stars: number }) => {
   return (
-    <div className="bg-white">
+    <div>
       <MaxWidthWrapper className="py-20">
         <div className="max-w-sm sm:max-w-md mx-auto text-center">
           <h2 className="text-4xl sm:text-5xl leading-tight sm:leading-tight font-display font-extrabold text-black">
@@ -56,22 +56,22 @@ const Features = ({ stars }: { stars: number }) => {
           </div>
 
           <Image
-            src="/static/landing/analytics.png"
+            src="/_static/landing/analytics.png"
             alt="Built-in analytics"
             width={1120}
             height={919}
-            className="w-full max-w-[700px]"
+            className="w-full max-w-[700px] shadow-lg"
           />
         </div>
 
         {/* Custom Domains */}
         <div className="flex lg:space-x-16 flex-col lg:flex-row items-center my-20">
           <Image
-            src="/static/landing/domains.png"
+            src="/_static/landing/domains.png"
             alt="Custom domains"
             width={1084}
             height={646}
-            className="w-full max-w-[635px] rounded-2xl border border-gray-200"
+            className="w-full max-w-[635px] rounded-2xl border border-gray-200 shadow-lg"
           />
           <div className="flex flex-col space-y-5 my-10 lg:my-0">
             <div className="flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r from-purple-600 to-pink-600">
@@ -119,17 +119,17 @@ const Features = ({ stars }: { stars: number }) => {
           </div>
 
           <Image
-            src="/static/landing/qr.png"
+            src="/_static/landing/qr.png"
             alt="Custom domains"
             width={1084}
             height={646}
-            className="w-full max-w-[700px] rounded-2xl border border-gray-200"
+            className="w-full max-w-[700px] rounded-2xl border border-gray-200 shadow-lg"
           />
         </div>
 
         {/* Open Source */}
         <div className="flex lg:space-x-16 flex-col lg:flex-row items-center my-20">
-          <div className="flex items-center justify-center rounded-2xl w-full max-w-[700px] bg-gray-900 h-96">
+          <div className="flex items-center justify-center rounded-2xl w-full max-w-[700px] bg-gray-900 h-96 shadow-lg">
             <div className="flex items-center">
               <a
                 href="https://github.com/steven-tey/dub"

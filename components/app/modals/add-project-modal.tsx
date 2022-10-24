@@ -81,7 +81,7 @@ function AddProjectModalHelper({
       <div className="inline-block w-full sm:max-w-md overflow-hidden align-middle transition-all transform bg-white sm:border sm:border-gray-200 shadow-xl sm:rounded-2xl">
         <div className="flex flex-col justify-center items-center space-y-3 sm:px-16 px-4 pt-8 py-4 border-b border-gray-200">
           <BlurImage
-            src={`/static/logo.png`}
+            src={`/_static/logo.png`}
             alt={"dub.sh"}
             className="w-10 h-10 rounded-full border border-gray-200"
             width={20}

@@ -2661,6 +2661,11 @@ dlv@^1.1.3:
   resolved "https://registry.npmjs.org/dlv/-/dlv-1.1.3.tgz"
   integrity sha512-+HlytyjlPKnIG8XuRG8WvmBP8xs8P71y+SKKS6ZXWoEgLuePxtDoUEiH7WkdePWrQ5JBpE6aoVqfZfJUQkjXwA==
 
+dom-confetti@0.2.2:
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/dom-confetti/-/dom-confetti-0.2.2.tgz#bdf2e7652d37b5cffb532c0a3263d108dd8a2363"
+  integrity sha512-+UVH9Y85qmpTnbmFURwLWjqLIykyIrsNSRkPX/eFlBuOURz9RDX8JoZHnajZHyFuCV0w/K3+tZK0ztfoTw6ejg==
+
 dom-serializer@^1.0.1, dom-serializer@^1.3.2:
   version "1.4.1"
   resolved "https://registry.yarnpkg.com/dom-serializer/-/dom-serializer-1.4.1.tgz#de5d41b1aea290215dc45a6dae8adcf1d32e2d30"
@@ -5360,6 +5365,13 @@ react-colorful@^5.6.1:
   version "5.6.1"
   resolved "https://registry.yarnpkg.com/react-colorful/-/react-colorful-5.6.1.tgz#7dc2aed2d7c72fac89694e834d179e32f3da563b"
   integrity sha512-1exovf0uGTGyq5mXQT0zgQ80uvj2PCwvF8zY1RN9/vbJVSjSo3fsB/4L3ObbF7u70NduSiK4xu4Y6q1MHoUGEw==
+
+react-dom-confetti@^0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/react-dom-confetti/-/react-dom-confetti-0.2.0.tgz#76df26762da532057d5b1fbe38a8096f9dc33d40"
+  integrity sha512-+XRTi+WlCrcRN2dTjdEopOaPFtS7hpaHRRQ0sHiVRGqpchKz4QVh3i+6eLEEpNHYpN2VgPmhjvJ/vnjmUYhlIQ==
+  dependencies:
+    dom-confetti "0.2.2"
 
 react-dom@18.1.0:
   version "18.1.0"
