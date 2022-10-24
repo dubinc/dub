@@ -1,5 +1,6 @@
 import { useRouter } from "next/router";
 import { useMemo, useState } from "react";
+import MenuIcon from "@/components/layout/app/menu-icon";
 import { ChevronDown, Tick } from "@/components/shared/icons";
 import Popover from "@/components/shared/popover";
 
@@ -85,10 +86,10 @@ export default function StatusFilter() {
               }}
               className="flex items-center justify-between p-2 w-full rounded-md hover:bg-gray-100 active:bg-gray-200"
             >
-              <div className="flex items-center justify-start space-x-2">
-                <div className={`rounded-full w-2 h-2 ${color}`} />
-                <p className="text-sm text-gray-700">{display}</p>
-              </div>
+              <MenuIcon
+                text={display}
+                icon={<div className={`rounded-full w-2 h-2 ${color}`} />}
+              />
               {(status === "all" ||
                 (selectedStatus.includes(slug) && status !== "none")) && (
                 <Tick className="h-4 w-4" aria-hidden="true" />
