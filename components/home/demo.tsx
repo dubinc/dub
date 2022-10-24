@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Toaster } from "react-hot-toast";
 import LinkCard from "@/components/home/link-card";
 import PlaceholderCard from "@/components/home/placeholder-card";
-import { LoadingDots } from "@/components/shared/icons";
+import { Link, LoadingDots } from "@/components/shared/icons";
 import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 import { FRAMER_MOTION_LIST_ITEM_VARIANTS } from "@/lib/constants";
 import useLocalStorage from "@/lib/hooks/use-local-storage";
@@ -58,6 +58,7 @@ const Demo = () => {
           </Tooltip>
         ) : (
           <div className="relative flex items-center">
+            <Link className="absolute inset-y-0 left-0 w-5 my-2 ml-3 text-gray-400" />
             <input
               type="url"
               placeholder="Shorten your link"
@@ -66,7 +67,7 @@ const Demo = () => {
                 setUrl((e.target as HTMLInputElement).value);
               }}
               required
-              className="peer shadow-lg focus:outline-none focus:ring-0 bg-white border focus:border-black block w-full p-2 text-sm border-gray-200 rounded-md pl-3 pr-12"
+              className="peer shadow-lg focus:outline-none focus:ring-0 bg-white border focus:border-black block w-full p-2 text-sm border-gray-200 rounded-md pl-10 pr-12"
             />
             <button
               type="submit"
