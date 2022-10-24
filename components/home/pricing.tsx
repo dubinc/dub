@@ -124,7 +124,7 @@ const Pricing = () => {
           thumbTranslate="translate-x-6"
         />
         <p className="text-gray-600">Billed Annually</p>
-        <span className="absolute -top-8 sm:-top-2 -right-16 sm:-right-36 rounded-full bg-purple-200 text-purple-700 text-sm px-3 py-1">
+        <span className="absolute -top-8 sm:-top-2 -right-12 sm:-right-36 rounded-full bg-purple-200 text-purple-700 text-sm px-3 py-1">
           🎁 2 months FREE
         </span>
       </div>

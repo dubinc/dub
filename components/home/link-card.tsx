@@ -22,11 +22,13 @@ export default function LinkCard({
   url,
   hashes,
   setHashes,
+  setShowDefaultLink,
 }: {
   _key: string;
   url: string;
   hashes?: SimpleLinkProps[];
   setHashes?: (hashes: SimpleLinkProps[]) => void;
+  setShowDefaultLink?: (showDefaultLink: boolean) => void;
 }) {
   const apexDomain = getApexDomain(url);
 
@@ -76,8 +78,8 @@ export default function LinkCard({
     }
   };
 
-  const sendErrorToast = useDebouncedCallback(
-    () => toast.error("Cannot delete default link."),
+  const sendSuccessToast = useDebouncedCallback(
+    () => toast.success("Link deleted."),
     100,
   );
 
@@ -88,11 +90,12 @@ export default function LinkCard({
         const parentNode = cardElem.current.parentNode;
         const deleted = isDelete(childNode, parentNode);
         if (deleted) {
+          toast.success("Link deleted.");
+          if (setShowDefaultLink) {
+            setShowDefaultLink(false);
+          }
           if (hashes && setHashes) {
             setHashes(hashes.filter((hash) => hash.key !== key));
-            toast.success("Link deleted.");
-          } else {
-            sendErrorToast(); // debounce to prevent multiple toasts
           }
         }
       }

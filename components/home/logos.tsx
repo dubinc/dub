@@ -34,7 +34,7 @@ export default function Logos() {
           alt="Lugg"
           width={2418}
           height={512}
-          className="col-span-1 h-10 sm:h-24"
+          className="col-span-1 h-16 sm:h-24"
         />
       </div>
     </div>

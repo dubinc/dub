@@ -13,6 +13,7 @@ const Demo = () => {
   const [saving, setSaving] = useState(false);
   const [url, setUrl] = useState("");
   const [hashes, setHashes] = useLocalStorage<SimpleLinkProps[]>("hashes", []);
+  const [showDefaultLink, setShowDefaultLink] = useState(true);
 
   return (
     <div className="max-w-md w-full mx-auto sm:px-0 px-2.5">
@@ -98,11 +99,16 @@ const Demo = () => {
         }}
         className="grid gap-2 mt-3"
       >
-        <LinkCard
-          key="github"
-          _key="github"
-          url={"https://github.com/steven-tey/dub"}
-        />
+        {showDefaultLink && (
+          <LinkCard
+            key="github"
+            _key="github"
+            url="https://github.com/steven-tey/dub"
+            hashes={hashes}
+            setHashes={setHashes}
+            setShowDefaultLink={setShowDefaultLink}
+          />
+        )}
         {hashes.map(({ key, url }) => (
           <LinkCard
             key={key}
@@ -112,7 +118,9 @@ const Demo = () => {
             setHashes={setHashes}
           />
         ))}
-        {Array.from({ length: 3 - hashes.length }).map((_, i) => (
+        {Array.from({
+          length: showDefaultLink ? 3 - hashes.length : 4 - hashes.length,
+        }).map((_, i) => (
           <PlaceholderCard key={i} />
         ))}
         <motion.li
