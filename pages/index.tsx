@@ -45,27 +45,28 @@ export default function Home({ stars }: { stars: number }) {
         <Features stars={stars} />
         <Pricing />
       </div>
+      <Background />
     </HomeLayout>
   );
 }
 
 export async function getStaticProps() {
-  const { stargazers_count: stars } = await fetch(
-    "https://api.github.com/repos/steven-tey/dub",
-    {
-      // optional – feel free to remove if you don't want to display star count
-      ...(process.env.GITHUB_OAUTH_TOKEN && {
-        headers: {
-          Authorization: `Bearer ${process.env.GITHUB_OAUTH_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-      }),
-    },
-  ).then((res) => res.json());
+  // const { stargazers_count: stars } = await fetch(
+  //   "https://api.github.com/repos/steven-tey/dub",
+  //   {
+  //     // optional – feel free to remove if you don't want to display star count
+  //     ...(process.env.GITHUB_OAUTH_TOKEN && {
+  //       headers: {
+  //         Authorization: `Bearer ${process.env.GITHUB_OAUTH_TOKEN}`,
+  //         "Content-Type": "application/json",
+  //       },
+  //     }),
+  //   },
+  // ).then((res) => res.json());
 
   return {
     props: {
-      stars,
+      stars: 10000,
     },
     revalidate: 10,
   };

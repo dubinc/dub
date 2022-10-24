@@ -1,5 +1,11 @@
+// the styles for this gradient grid background is
+// inspired by Paco & Rauno's amazing CMDK site (https://cmdk.paco.me)
+import styles from "./background.module.css";
+
 export default function Background() {
   return (
-    <div className="fixed w-[532px] h-[834px] left-10 top-10 bg-gradient-to-r from-red-200 to-amber-200 blur-[100px] pointer-events-none" />
+    <div className={styles.main}>
+      <div className={styles.content} />
+    </div>
   );
 }
