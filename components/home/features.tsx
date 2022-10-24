@@ -60,7 +60,7 @@ const Features = ({ stars }: { stars: number }) => {
             alt="Built-in analytics"
             width={1120}
             height={919}
-            className="w-full max-w-[700px]"
+            className="w-full max-w-[700px] shadow-lg"
           />
         </div>
 
@@ -71,7 +71,7 @@ const Features = ({ stars }: { stars: number }) => {
             alt="Custom domains"
             width={1084}
             height={646}
-            className="w-full max-w-[635px] rounded-2xl border border-gray-200"
+            className="w-full max-w-[635px] rounded-2xl border border-gray-200 shadow-lg"
           />
           <div className="flex flex-col space-y-5 my-10 lg:my-0">
             <div className="flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r from-purple-600 to-pink-600">
@@ -123,13 +123,13 @@ const Features = ({ stars }: { stars: number }) => {
             alt="Custom domains"
             width={1084}
             height={646}
-            className="w-full max-w-[700px] rounded-2xl border border-gray-200"
+            className="w-full max-w-[700px] rounded-2xl border border-gray-200 shadow-lg"
           />
         </div>
 
         {/* Open Source */}
         <div className="flex lg:space-x-16 flex-col lg:flex-row items-center my-20">
-          <div className="flex items-center justify-center rounded-2xl w-full max-w-[700px] bg-gray-900 h-96">
+          <div className="flex items-center justify-center rounded-2xl w-full max-w-[700px] bg-gray-900 h-96 shadow-lg">
             <div className="flex items-center">
               <a
                 href="https://github.com/steven-tey/dub"
