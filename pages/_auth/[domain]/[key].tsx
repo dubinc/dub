@@ -8,7 +8,7 @@ import { FAVICON_FOLDER } from "@/lib/constants";
 const title = "Password Required";
 const description =
   "This link is password protected. Please enter the password to view it.";
-const image = "/static/password-protected.png";
+const image = "/_static/password-protected.png";
 
 export default function PasswordProtectedLinkPage() {
   const router = useRouter();
@@ -36,7 +36,7 @@ export default function PasswordProtectedLinkPage() {
           <div className="flex flex-col justify-center items-center space-y-3 text-center sm:px-16 px-4 pt-8 py-6 border-b border-gray-200 bg-white">
             <a href="https://dub.sh" target="_blank" rel="noreferrer">
               <BlurImage
-                src="/static/logo.png"
+                src="/_static/logo.png"
                 alt="Dub.sh logo"
                 className="w-10 h-10 rounded-full"
                 width={20}

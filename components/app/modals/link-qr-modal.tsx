@@ -49,7 +49,7 @@ function LinkQRModalHelper({
   const qrLogoUrl = useMemo(() => {
     if (logo) return logo;
     return typeof window !== "undefined" && window.location.origin
-      ? new URL("/static/logo.svg", window.location.origin).href
+      ? new URL("/_static/logo.svg", window.location.origin).href
       : "";
   }, []);
 
@@ -129,7 +129,7 @@ function LinkQRModalHelper({
                     ...(showLogo && {
                       imageSettings: {
                         ...qrData.imageSettings,
-                        src: logo || "https://dub.sh/static/logo.svg",
+                        src: logo || "https://dub.sh/_static/logo.svg",
                       },
                     }),
                   }),

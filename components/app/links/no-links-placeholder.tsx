@@ -11,7 +11,7 @@ export default function NoLinksPlaceholder({
         You don't have any links yet!
       </h2>
       <BlurImage
-        src="/static/illustrations/call-waiting.svg"
+        src="/_static/illustrations/call-waiting.svg"
         alt="No links yet"
         width={400}
         height={400}

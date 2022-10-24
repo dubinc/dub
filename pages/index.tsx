@@ -1,10 +1,12 @@
 import { useRouter } from "next/router";
 import { useCallback, useEffect } from "react";
 import { useStatsModal } from "@/components/app/modals/stats-modal";
+import Background from "@/components/home/background";
 import Demo from "@/components/home/demo";
 import Features from "@/components/home/features";
 import Globe from "@/components/home/globe";
 import Hero from "@/components/home/hero";
+import Logos from "@/components/home/logos";
 import Pricing from "@/components/home/pricing";
 import HomeLayout from "@/components/layout/home";
 
@@ -35,11 +37,14 @@ export default function Home({ stars }: { stars: number }) {
   return (
     <HomeLayout>
       <StatsModal />
-      <Hero />
-      <Demo />
-      <Globe />
-      <Features stars={stars} />
-      <Pricing />
+      <div className="z-10">
+        <Hero />
+        <Demo />
+        <Logos />
+        <Globe />
+        <Features stars={stars} />
+        <Pricing />
+      </div>
     </HomeLayout>
   );
 }

@@ -34,7 +34,7 @@ export default function StatsPage() {
                 : "The owner of this project has exceeded their usage limits. We're still collecting data on this link, but they need to upgrade to view them."}
             </p>
             <BlurImage
-              src="/static/illustrations/video-park.svg"
+              src="/_static/illustrations/video-park.svg"
               alt="No links yet"
               width={400}
               height={400}

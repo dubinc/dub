@@ -1,5 +1,6 @@
 import Image from "next/future/image";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { ReactNode } from "react";
 import { useSession } from "next-auth/react";
 import { Github, Logo, Twitter } from "@/components/shared/icons";
@@ -13,17 +14,19 @@ export default function HomeLayout({
   domain?: string;
 }) {
   const { data: session } = useSession();
+  const router = useRouter();
+  const { key } = router.query as { key?: string };
   return (
     <div className="min-h-screen flex flex-col justify-between">
       <Meta />
-      <div className="bg-white z-20">
+      <div className={`${key ? "bg-gray-50" : ""} z-20`}>
         <div className="max-w-screen-xl mx-auto px-5 md:px-20">
           <div className="h-16 flex justify-between items-center">
             <div className="flex items-center">
               {domain ? (
                 <a href="https://dub.sh" target="_blank" rel="noreferrer">
                   <Image
-                    src="/static/logotype.svg"
+                    src="/_static/logotype.svg"
                     alt="Dub.sh logo"
                     width={834}
                     height={236}
@@ -34,7 +37,7 @@ export default function HomeLayout({
                 <Link href="/">
                   <a>
                     <Image
-                      src="/static/logotype.svg"
+                      src="/_static/logotype.svg"
                       alt="Dub.sh logo"
                       width={834}
                       height={236}

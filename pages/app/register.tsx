@@ -17,7 +17,7 @@ export default function Login() {
       <div className="w-full max-w-md shadow-xl rounded-2xl border border-gray-100 overflow-hidden">
         <div className="flex flex-col justify-center items-center space-y-3 text-center sm:px-16 px-4 pt-8 py-6 border-b border-gray-200 bg-white">
           <BlurImage
-            src="/static/logo.png"
+            src="/_static/logo.png"
             alt="Dub.sh logo"
             className="w-10 h-10 rounded-full"
             width={20}

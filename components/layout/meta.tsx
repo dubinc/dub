@@ -39,9 +39,12 @@ export default function Meta() {
       <meta name="viewport" content="width=device-width, initial-scale=1" />
       <meta name="keywords" content="hacker news, slack, bot" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <meta itemProp="image" content="https://dub.sh/static/thumbnail.png" />
-      <meta property="og:logo" content="https://dub.sh/static/logo.png"></meta>
-      <meta property="og:image" content="https://dub.sh/static/thumbnail.png" />
+      <meta itemProp="image" content="https://dub.sh/_static/thumbnail.png" />
+      <meta property="og:logo" content="https://dub.sh/_static/logo.png"></meta>
+      <meta
+        property="og:image"
+        content="https://dub.sh/_static/thumbnail.png"
+      />
 
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:site" content="@vercel" />
@@ -56,7 +59,7 @@ export default function Meta() {
       />
       <meta
         name="twitter:image"
-        content="https://dub.sh/static/thumbnail.png"
+        content="https://dub.sh/_static/thumbnail.png"
       />
     </Head>
   );

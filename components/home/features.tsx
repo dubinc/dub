@@ -13,7 +13,7 @@ import styles from "./features.module.css";
 
 const Features = ({ stars }: { stars: number }) => {
   return (
-    <div className="bg-white">
+    <div>
       <MaxWidthWrapper className="py-20">
         <div className="max-w-sm sm:max-w-md mx-auto text-center">
           <h2 className="text-4xl sm:text-5xl leading-tight sm:leading-tight font-display font-extrabold text-black">
@@ -56,7 +56,7 @@ const Features = ({ stars }: { stars: number }) => {
           </div>
 
           <Image
-            src="/static/landing/analytics.png"
+            src="/_static/landing/analytics.png"
             alt="Built-in analytics"
             width={1120}
             height={919}
@@ -67,7 +67,7 @@ const Features = ({ stars }: { stars: number }) => {
         {/* Custom Domains */}
         <div className="flex lg:space-x-16 flex-col lg:flex-row items-center my-20">
           <Image
-            src="/static/landing/domains.png"
+            src="/_static/landing/domains.png"
             alt="Custom domains"
             width={1084}
             height={646}
@@ -119,7 +119,7 @@ const Features = ({ stars }: { stars: number }) => {
           </div>
 
           <Image
-            src="/static/landing/qr.png"
+            src="/_static/landing/qr.png"
             alt="Custom domains"
             width={1084}
             height={646}
