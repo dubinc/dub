@@ -12,7 +12,6 @@ export default function Archive({ className }: { className: string }) {
       viewBox="0 0 24 24"
       width="24"
       className={className}
-      // style="color:var(--geist-foreground)"
     >
       <path d="M21 8v13H3V8" />
       <path d="M1 3h22v5H1z" />
