@@ -8,7 +8,7 @@ export const config = {
 
 export default async function handler(req: NextRequest) {
   if (req.method === "GET") {
-    const numPoints = 100;
+    const numPoints = 50;
     const domain = req.nextUrl.searchParams.get("domain");
     const rawData = await redis.zrange<RawStatsProps[]>(
       domain ? `${domain}:root:clicks` : "dub.sh:clicks:github",
@@ -20,7 +20,7 @@ export default async function handler(req: NextRequest) {
       const { latitude, longitude } = data.geo;
       return {
         location: [latitude, longitude],
-        size: 0.1 - (0.1 / numPoints) * idx,
+        size: 0.05 - (0.05 / numPoints) * idx,
       };
     });
     return new Response(JSON.stringify(latestCoordinates), { status: 200 });

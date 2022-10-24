@@ -85,41 +85,37 @@ const GlobeAnimation = ({
   const pointerInteracting = useRef(null);
   const pointerInteractionMovement = useRef(0);
 
-  const DPR = 1;
-
   const [{ r }, api] = useSpring(() => ({
     r: 0,
     config: {
       mass: 1,
       tension: 280,
-      friction: 40,
+      friction: 60,
       precision: 0.001,
     },
   }));
 
   useEffect(() => {
-    let phi = 0;
+    let phi = -0.5;
     let width = 0;
     const onResize = () =>
       canvasRef.current && (width = canvasRef.current.offsetWidth);
     window.addEventListener("resize", onResize);
     onResize();
     const globe = createGlobe(canvasRef.current, {
-      context: {
-        antialias: false,
-      },
-      devicePixelRatio: DPR,
-      width: width * DPR,
-      height: width * DPR,
-      phi: 0,
-      theta: 0.3,
+      devicePixelRatio: 1,
+      width,
+      height: width,
+      phi,
+      theta: 0.15,
       dark: 0,
-      diffuse: 3,
+      diffuse: 1.2,
+      scale: 1,
       mapSamples: 20000,
       mapBrightness: 4,
       baseColor: [1, 1, 1],
       markerColor: [249 / 255, 115 / 255, 22 / 255],
-      // rgb(249, 115, 22)
+      offset: [0, 0],
       glowColor: [0.8, 0.8, 0.8],
       markers: markers || [],
       onRender: (state) => {
@@ -127,13 +123,14 @@ const GlobeAnimation = ({
         // `state` will be an empty object, return updated params.
         phi += 0.002;
         state.phi = phi + r.get();
-        state.width = width * DPR;
-        state.height = width * DPR;
+        state.width = width;
+        state.height = width;
       },
     });
     setTimeout(() => (canvasRef.current.style.opacity = "1"));
     return () => globe.destroy();
   }, [markers]);
+
   const [showModal, setShowModal] = useState(true);
 
   return (
@@ -157,7 +154,7 @@ const GlobeAnimation = ({
             </button>
             <Drag className="h-12 w-12 mx-auto mb-2 sm:mb-4 text-gray-700" />
             <p className="text-center text-gray-700 text-sm sm:text-base">
-              This map shows the locations of the last 100 clicks on{" "}
+              This map shows the locations of the last 50 clicks on{" "}
               <a
                 className="text-blue-800 font-semibold"
                 href={domain ? `https://${domain}` : "https://dub.sh/github"}

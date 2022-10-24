@@ -43,7 +43,7 @@ function ArchiveLinkModal({
       setShowModal={setShowArchiveLinkModal}
     >
       <div className="inline-block w-full sm:max-w-md overflow-hidden align-middle transition-all transform bg-white sm:border sm:border-gray-200 shadow-xl sm:rounded-2xl">
-        <div className="flex flex-col justify-center items-center space-y-3 sm:px-16 px-4 pt-8 py-4 border-b border-gray-200">
+        <div className="flex flex-col justify-center items-center text-center space-y-3 sm:px-16 px-4 pt-8 py-4 border-b border-gray-200">
           <BlurImage
             src={`https://www.google.com/s2/favicons?sz=64&domain_url=${apexDomain}`}
             alt={apexDomain}
@@ -52,7 +52,7 @@ function ArchiveLinkModal({
             height={20}
           />
           <h3 className="font-medium text-lg">Archive {shortlink}</h3>
-          <p className="text-sm text-gray-500 text-center">
+          <p className="text-sm text-gray-500">
             Archived links will still work - they just won't show up on your
             main dashboard.
           </p>
