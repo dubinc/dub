@@ -1,7 +1,7 @@
 import type { AppProps } from "next/app";
+import { Analytics } from "@vercel/analytics/react";
 import type { Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
-import PlausibleProvider from "next-plausible";
 import "@/styles/globals.css";
 
 function MyApp({
@@ -9,11 +9,10 @@ function MyApp({
   pageProps: { session, ...pageProps },
 }: AppProps<{ session: Session }>) {
   return (
-    <PlausibleProvider domain="dub.sh">
-      <SessionProvider session={session}>
-        <Component {...pageProps} />
-      </SessionProvider>
-    </PlausibleProvider>
+    <SessionProvider session={session}>
+      <Component {...pageProps} />
+      <Analytics />
+    </SessionProvider>
   );
 }
 
