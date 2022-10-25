@@ -1580,10 +1580,10 @@
   dependencies:
     isomorphic-fetch "^3.0.0"
 
-"@vercel/analytics@^0.0.3":
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/@vercel/analytics/-/analytics-0.0.3.tgz#4b487966fffd132ee6adfc1cfbc9590624c4c1a3"
-  integrity sha512-lj7j9sX7KEj3hd1x7dJeCzBSVsYos4U4vj/DznFibaTQu/mHVRsKv/D18qIXqk8lkCkWxIGsjq9au3y3CB78Ag==
+"@vercel/analytics@^0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@vercel/analytics/-/analytics-0.1.1.tgz#ce036282d76f03417141b54830930f915f40504b"
+  integrity sha512-34on7YtVt/yT8+QX7c5K2bcKYXnax06sQiK2PUdlQ1ABg5699mPdLGOSpS1gF//kR1s9oig4MCJ+N9nOjpaS6g==
 
 "@visx/axis@^2.12.2":
   version "2.12.2"

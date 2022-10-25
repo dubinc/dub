@@ -24,7 +24,7 @@
     "@upstash/qstash": "^0.1.7",
     "@upstash/ratelimit": "^0.1.5",
     "@upstash/redis": "^1.12.0",
-    "@vercel/analytics": "^0.0.3",
+    "@vercel/analytics": "^0.1.1",
     "@visx/axis": "^2.12.2",
     "@visx/event": "^2.6.0",
     "@visx/geo": "^2.10.0",
