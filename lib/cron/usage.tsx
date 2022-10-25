@@ -46,7 +46,7 @@ export const updateUsage = async () => {
       sentEmails: true,
     },
     orderBy: {
-      usageUpdatedAt: "desc",
+      usageUpdatedAt: "asc",
     },
     take: 50,
   });
