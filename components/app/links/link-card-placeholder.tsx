@@ -1,15 +1,15 @@
 export default function LinkCardPlaceholder() {
   return (
-    <li className="flex items-center bg-white p-4 rounded-lg shadow hover:shadow-md transition-all">
-      <div className="w-10 h-10 rounded-full mr-2 bg-gray-200 animate-pulse" />
+    <li className="flex items-center rounded-lg bg-white p-4 shadow transition-all hover:shadow-md">
+      <div className="mr-2 h-10 w-10 animate-pulse rounded-full bg-gray-200" />
       <div>
-        <div className="flex items-center space-x-2 mb-2.5">
-          <div className="w-28 h-5 rounded-md bg-gray-200 animate-pulse" />
-          <div className="w-5 h-5 rounded-full bg-gray-200 animate-pulse" />
-          <div className="w-5 h-5 rounded-full bg-gray-200 animate-pulse" />
-          <div className="w-20 h-5 rounded-md bg-gray-200 animate-pulse" />
+        <div className="mb-2.5 flex items-center space-x-2">
+          <div className="h-5 w-28 animate-pulse rounded-md bg-gray-200" />
+          <div className="h-5 w-5 animate-pulse rounded-full bg-gray-200" />
+          <div className="h-5 w-5 animate-pulse rounded-full bg-gray-200" />
+          <div className="h-5 w-20 animate-pulse rounded-md bg-gray-200" />
         </div>
-        <div className="w-72 h-4 rounded-md bg-gray-200 animate-pulse" />
+        <div className="h-4 w-72 animate-pulse rounded-md bg-gray-200" />
       </div>
     </li>
   );

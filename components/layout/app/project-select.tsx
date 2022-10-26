@@ -35,7 +35,7 @@ export default function ProjectSelect() {
 
   if (!projects || !router.isReady)
     return (
-      <div className="w-60 h-12 px-2 rounded-lg bg-gray-100 animate-pulse flex justify-end items-center">
+      <div className="flex h-12 w-60 animate-pulse items-center justify-end rounded-lg bg-gray-100 px-2">
         <ChevronUpDown className="h-4 w-4 text-gray-400" aria-hidden="true" />
       </div>
     );
@@ -56,20 +56,20 @@ export default function ProjectSelect() {
       >
         <button
           onClick={() => setOpenPopover(!openPopover)}
-          className="relative cursor-pointer w-60 rounded-lg bg-white hover:bg-gray-100 active:bg-gray-200 py-1.5 pl-3 pr-10 text-left focus:outline-none text-sm transition-all duration-75"
+          className="relative w-60 cursor-pointer rounded-lg bg-white py-1.5 pl-3 pr-10 text-left text-sm transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200"
         >
-          <div className="flex justify-start items-center space-x-3">
+          <div className="flex items-center justify-start space-x-3">
             <BlurImage
               src={
                 selected.logo ||
                 `https://www.google.com/s2/favicons?sz=64&domain_url=${selected.domain}`
               }
               alt={selected.slug}
-              className="w-8 h-8 flex-shrink-0 rounded-full overflow-hidden"
+              className="h-8 w-8 flex-shrink-0 overflow-hidden rounded-full"
               width={48}
               height={48}
             />
-            <span className="block truncate font-medium text-sm">
+            <span className="block truncate text-sm font-medium">
               {selected.name}
             </span>
           </div>
@@ -103,11 +103,11 @@ function ProjectList({
   const { plan } = useUsage();
 
   return (
-    <div className="relative mt-1 max-h-60 w-full sm:w-60 overflow-auto rounded-md bg-white p-2 text-base sm:shadow-lg sm:text-sm">
+    <div className="relative mt-1 max-h-60 w-full overflow-auto rounded-md bg-white p-2 text-base sm:w-60 sm:text-sm sm:shadow-lg">
       {projects.map(({ name, slug, domain, logo }) => (
         <button
           key={slug}
-          className={`relative flex items-center space-x-2 p-2 rounded-md w-full hover:bg-gray-100 active:bg-gray-200 ${
+          className={`relative flex w-full items-center space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200 ${
             selected.slug === slug ? "font-medium" : ""
           } transition-all duration-75`}
           onClick={() => router.push(`/${slug}`)}
@@ -118,7 +118,7 @@ function ProjectList({
               `https://www.google.com/s2/favicons?sz=64&domain_url=${domain}`
             }
             alt={slug}
-            className="w-7 h-7 rounded-full overflow-hidden"
+            className="h-7 w-7 overflow-hidden rounded-full"
             width={48}
             height={48}
           />
@@ -140,9 +140,9 @@ function ProjectList({
         <button
           key="add"
           onClick={() => setShowAddProjectModal(true)}
-          className="flex items-center space-x-2 w-full cursor-pointer p-2 rounded-md hover:bg-gray-100 transition-all duration-75"
+          className="flex w-full cursor-pointer items-center space-x-2 rounded-md p-2 transition-all duration-75 hover:bg-gray-100"
         >
-          <PlusCircle className="w-7 h-7 text-gray-600" />
+          <PlusCircle className="h-7 w-7 text-gray-600" />
           <span className="block truncate">Add a new project</span>
         </button>
       )}

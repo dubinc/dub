@@ -33,7 +33,7 @@ export default function AdvancedSettings({
 
   return (
     <div>
-      <div className="sm:px-16 px-4">
+      <div className="px-4 sm:px-16">
         <button
           type="button"
           className="flex items-center space-x-2"
@@ -44,7 +44,7 @@ export default function AdvancedSettings({
               expanded ? "rotate-90" : ""
             } transition-all`}
           />
-          <p className="text-gray-600 text-sm">Advanced options</p>
+          <p className="text-sm text-gray-600">Advanced options</p>
         </button>
       </div>
 
@@ -53,17 +53,17 @@ export default function AdvancedSettings({
           <AccordionPrimitive.Root
             type="single"
             collapsible={true}
-            className="mt-4 grid bg-white border-t border-b border-gray-200 px-2 sm:px-8 py-8"
+            className="mt-4 grid border-t border-b border-gray-200 bg-white px-2 py-8 sm:px-8"
           >
             {/* UTM Builder Section */}
             <AccordionPrimitive.Item
               value="utm"
-              className="border border-gray-200 rounded-t-lg"
+              className="rounded-t-lg border border-gray-200"
             >
               <AccordionPrimitive.Header>
-                <AccordionPrimitive.Trigger className="group focus:outline-black flex w-full items-center justify-between space-x-2 p-5 text-left rounded-t-lg hover:bg-gray-50 active:bg-gray-100 transition-all duration-75">
-                  <div className="flex items-center justify-start space-x-2 h-6">
-                    <ChevronRight className="h-5 w-5 shrink-0 text-gray-700 ease-in-out group-radix-state-open:rotate-90 transition-all" />
+                <AccordionPrimitive.Trigger className="group flex w-full items-center justify-between space-x-2 rounded-t-lg p-5 text-left transition-all duration-75 hover:bg-gray-50 focus:outline-black active:bg-gray-100">
+                  <div className="flex h-6 items-center justify-start space-x-2">
+                    <ChevronRight className="h-5 w-5 shrink-0 text-gray-700 transition-all ease-in-out group-radix-state-open:rotate-90" />
                     <span className="text-sm font-medium text-gray-900">
                       UTM Builder
                     </span>
@@ -81,12 +81,12 @@ export default function AdvancedSettings({
             {/* OG Tags Section */}
             <AccordionPrimitive.Item
               value="og"
-              className="border border-gray-200 border-t-0"
+              className="border border-t-0 border-gray-200"
             >
               <AccordionPrimitive.Header>
-                <AccordionPrimitive.Trigger className="group focus:outline-black flex w-full items-center justify-between space-x-2 p-5 text-left hover:bg-gray-50 active:bg-gray-100 transition-all duration-75">
-                  <div className="flex items-center justify-start space-x-2 h-6">
-                    <ChevronRight className="h-5 w-5 shrink-0 text-gray-700 ease-in-out group-radix-state-open:rotate-90 transition-all" />
+                <AccordionPrimitive.Trigger className="group flex w-full items-center justify-between space-x-2 p-5 text-left transition-all duration-75 hover:bg-gray-50 focus:outline-black active:bg-gray-100">
+                  <div className="flex h-6 items-center justify-start space-x-2">
+                    <ChevronRight className="h-5 w-5 shrink-0 text-gray-700 transition-all ease-in-out group-radix-state-open:rotate-90" />
                     <span className="text-sm font-medium text-gray-900">
                       Custom OG Tags
                     </span>
@@ -104,12 +104,12 @@ export default function AdvancedSettings({
             {/* Password Protection */}
             <AccordionPrimitive.Item
               value="password"
-              className="border border-gray-200 border-t-0"
+              className="border border-t-0 border-gray-200"
             >
               <AccordionPrimitive.Header>
-                <AccordionPrimitive.Trigger className="group focus:outline-black flex w-full items-center justify-between space-x-2 p-5 text-left hover:bg-gray-50 active:bg-gray-100 transition-all duration-75">
-                  <div className="flex items-center justify-start space-x-2 h-6">
-                    <ChevronRight className="h-5 w-5 shrink-0 text-gray-700 ease-in-out group-radix-state-open:rotate-90 transition-all" />
+                <AccordionPrimitive.Trigger className="group flex w-full items-center justify-between space-x-2 p-5 text-left transition-all duration-75 hover:bg-gray-50 focus:outline-black active:bg-gray-100">
+                  <div className="flex h-6 items-center justify-start space-x-2">
+                    <ChevronRight className="h-5 w-5 shrink-0 text-gray-700 transition-all ease-in-out group-radix-state-open:rotate-90" />
                     <span className="text-sm font-medium text-gray-900">
                       Password Protection
                     </span>
@@ -127,18 +127,18 @@ export default function AdvancedSettings({
             {/* Expiration Date */}
             <AccordionPrimitive.Item
               value="expire"
-              className="border border-gray-200 border-t-0 rounded-b-lg overflow-hidden"
+              className="overflow-hidden rounded-b-lg border border-t-0 border-gray-200"
             >
               <AccordionPrimitive.Header>
-                <AccordionPrimitive.Trigger className="group focus:outline-black flex w-full items-center justify-between space-x-2 p-5 text-left hover:bg-gray-50 active:bg-gray-100 transition-all duration-75">
-                  <div className="flex items-center justify-start space-x-2 h-6">
-                    <ChevronRight className="h-5 w-5 shrink-0 text-gray-700 ease-in-out group-radix-state-open:rotate-90 transition-all" />
+                <AccordionPrimitive.Trigger className="group flex w-full items-center justify-between space-x-2 p-5 text-left transition-all duration-75 hover:bg-gray-50 focus:outline-black active:bg-gray-100">
+                  <div className="flex h-6 items-center justify-start space-x-2">
+                    <ChevronRight className="h-5 w-5 shrink-0 text-gray-700 transition-all ease-in-out group-radix-state-open:rotate-90" />
                     <span className="text-sm font-medium text-gray-900">
                       Expiration Date
                     </span>
                     {expiresAt &&
                       new Date().getTime() > new Date(expiresAt).getTime() && (
-                        <span className="bg-amber-500 px-2 py-0.5 text-xs text-white uppercase">
+                        <span className="bg-amber-500 px-2 py-0.5 text-xs uppercase text-white">
                           Expired
                         </span>
                       )}

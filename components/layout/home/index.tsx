@@ -17,11 +17,11 @@ export default function HomeLayout({
   const router = useRouter();
   const { key } = router.query as { key?: string };
   return (
-    <div className="min-h-screen flex flex-col justify-between">
+    <div className="flex min-h-screen flex-col justify-between">
       <Meta />
       <div className={`${key ? "bg-gray-50" : ""} z-20`}>
-        <div className="max-w-screen-xl mx-auto px-5 md:px-20">
-          <div className="h-16 flex justify-between items-center">
+        <div className="mx-auto max-w-screen-xl px-5 md:px-20">
+          <div className="flex h-16 items-center justify-between">
             <div className="flex items-center">
               {domain ? (
                 <a href="https://dub.sh" target="_blank" rel="noreferrer">
@@ -50,14 +50,14 @@ export default function HomeLayout({
             {session ? (
               <a
                 href="https://app.dub.sh"
-                className="py-1.5 px-5 bg-black hover:bg-white rounded-full border border-black text-sm text-white hover:text-black transition-all"
+                className="rounded-full border border-black bg-black py-1.5 px-5 text-sm text-white transition-all hover:bg-white hover:text-black"
               >
                 Dashboard
               </a>
             ) : (
               <a
                 href="https://app.dub.sh/login"
-                className="py-1.5 px-5 bg-black hover:bg-white rounded-full border border-black text-sm text-white hover:text-black transition-all"
+                className="rounded-full border border-black bg-black py-1.5 px-5 text-sm text-white transition-all hover:bg-white hover:text-black"
               >
                 Sign in
               </a>
@@ -66,21 +66,21 @@ export default function HomeLayout({
         </div>
       </div>
       {children}
-      <div className="border-t border-gray-200 h-20 flex items-center justify-center space-x-12 z-10">
+      <div className="z-10 flex h-20 items-center justify-center space-x-12 border-t border-gray-200">
         <a href="https://twitter.com/dubdotsh" target="_blank" rel="noreferrer">
           <span className="sr-only">Twitter</span>
-          <Twitter className="w-6 h-6 text-gray-600" />
+          <Twitter className="h-6 w-6 text-gray-600" />
         </a>
         {domain ? (
           <a href="https://dub.sh" target="_blank" rel="noreferrer">
             <span className="sr-only">Dub.sh Logo</span>
-            <Logo className="w-7 h-7 text-gray-600" />
+            <Logo className="h-7 w-7 text-gray-600" />
           </a>
         ) : (
           <Link href="/">
             <a>
               <span className="sr-only">Dub.sh Logo</span>
-              <Logo className="w-7 h-7 text-gray-600" />
+              <Logo className="h-7 w-7 text-gray-600" />
             </a>
           </Link>
         )}
@@ -90,7 +90,7 @@ export default function HomeLayout({
           rel="noreferrer"
         >
           <span className="sr-only">Github</span>
-          <Github className="w-6 h-6 text-gray-600" />
+          <Github className="h-6 w-6 text-gray-600" />
         </a>
       </div>
     </div>

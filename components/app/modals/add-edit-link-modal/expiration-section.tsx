@@ -16,11 +16,11 @@ export default function ExpirationSection({
   return (
     <motion.div key="expire" {...AnimationSettings}>
       <div>
-        <label htmlFor="expiresAt" className="block my-2 text-sm text-gray-500">
+        <label htmlFor="expiresAt" className="my-2 block text-sm text-gray-500">
           Automatically expires your link at a given date and time. Your link
           will be disabled but the data will still be kept.
         </label>
-        <div className="flex space-x-2 mb-3">
+        <div className="mb-3 flex space-x-2">
           <input
             type="datetime-local"
             id="expiresAt"
@@ -31,14 +31,14 @@ export default function ExpirationSection({
             onChange={(e) => {
               setData({ ...data, expiresAt: new Date(e.target.value) });
             }}
-            className="flex space-x-2 justify-center items-center rounded-md shadow-sm border border-gray-300 text-gray-500 hover:border-gray-800 px-3 py-2 w-full focus:outline-none sm:text-sm transition-all"
+            className="flex w-full items-center justify-center space-x-2 rounded-md border border-gray-300 px-3 py-2 text-gray-500 shadow-sm transition-all hover:border-gray-800 focus:outline-none sm:text-sm"
           />
           <button
             onClick={() => setData({ ...data, expiresAt: null })}
             type="button"
-            className="group rounded-md border w-10 h-10 flex justify-center items-center text-gray-500 hover:text-gray-800 hover:border-gray-800 focus:outline-none transition-all"
+            className="group flex h-10 w-10 items-center justify-center rounded-md border text-gray-500 transition-all hover:border-gray-800 hover:text-gray-800 focus:outline-none"
           >
-            <X className="text-gray-400 w-4 h-4 group-hover:text-black transition-all" />
+            <X className="h-4 w-4 text-gray-400 transition-all group-hover:text-black" />
           </button>
         </div>
       </div>

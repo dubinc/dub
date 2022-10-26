@@ -50,7 +50,7 @@ export default function Popover({
             <motion.div
               ref={mobileTooltipRef}
               key="mobile-tooltip"
-              className="group fixed bottom-0 inset-x-0 z-40 w-screen md:hidden cursor-grab active:cursor-grabbing"
+              className="group fixed inset-x-0 bottom-0 z-40 w-screen cursor-grab active:cursor-grabbing md:hidden"
               initial={{ y: "100%" }}
               animate={{
                 y: openPopover ? 0 : "100%",
@@ -65,12 +65,12 @@ export default function Popover({
               dragConstraints={{ top: 0, bottom: 0 }}
             >
               <div
-                className={`h-7 bg-white w-full flex items-center justify-center rounded-t-4xl border-t border-gray-200 -mb-1`}
+                className={`rounded-t-4xl -mb-1 flex h-7 w-full items-center justify-center border-t border-gray-200 bg-white`}
               >
-                <div className="rounded-full h-1 w-6 -mr-1 bg-gray-300 group-active:rotate-12 transition-all" />
-                <div className="rounded-full h-1 w-6 bg-gray-300 group-active:-rotate-12 transition-all" />
+                <div className="-mr-1 h-1 w-6 rounded-full bg-gray-300 transition-all group-active:rotate-12" />
+                <div className="h-1 w-6 rounded-full bg-gray-300 transition-all group-active:-rotate-12" />
               </div>
-              <div className="flex items-center justify-center w-full overflow-hidden align-middle bg-white shadow-xl min-h-[150px]">
+              <div className="flex min-h-[150px] w-full items-center justify-center overflow-hidden bg-white align-middle shadow-xl">
                 {content}
               </div>
             </motion.div>
@@ -96,7 +96,7 @@ export default function Popover({
         <PopoverPrimitive.Content
           sideOffset={4}
           align={align}
-          className="hidden md:block animate-slide-up-fade items-center rounded-md z-20 bg-white border border-gray-200 drop-shadow-lg"
+          className="z-20 hidden animate-slide-up-fade items-center rounded-md border border-gray-200 bg-white drop-shadow-lg md:block"
         >
           {content}
         </PopoverPrimitive.Content>

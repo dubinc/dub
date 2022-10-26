@@ -36,31 +36,31 @@ function UpgradePlanModal({
       showModal={showUpgradePlanModal}
       setShowModal={setShowUpgradePlanModal}
     >
-      <div className="inline-block w-full sm:max-w-md overflow-hidden align-middle transition-all transform bg-white sm:border sm:border-gray-200 shadow-xl sm:rounded-2xl">
-        <div className="flex flex-col justify-center items-center space-y-3 sm:px-16 px-4 pt-8 pb-24 border-b border-gray-200">
+      <div className="inline-block w-full transform overflow-hidden bg-white align-middle shadow-xl transition-all sm:max-w-md sm:rounded-2xl sm:border sm:border-gray-200">
+        <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 pt-8 pb-24 sm:px-16">
           <BlurImage
             src="/_static/logo.png"
             alt="Dub logo"
-            className="w-10 h-10 rounded-full border border-gray-200"
+            className="h-10 w-10 rounded-full border border-gray-200"
             width={20}
             height={20}
           />
-          <h3 className="font-medium text-xl">Upgrade to Pro</h3>
-          <div className="flex space-x-2 items-center">
+          <h3 className="text-xl font-medium">Upgrade to Pro</h3>
+          <div className="flex items-center space-x-2">
             <p className="text-sm text-gray-600">Billed Monthly</p>
             <Switch fn={setAnnualBilling} />
             <p className="text-sm text-gray-600">Billed Annually</p>
           </div>
         </div>
 
-        <div className="relative bg-white border border-gray-200 shadow-md rounded-lg max-w-sm mx-auto -mt-[5.1rem] -mb-[5.3rem]">
+        <div className="relative mx-auto -mt-[5.1rem] -mb-[5.3rem] max-w-sm rounded-lg border border-gray-200 bg-white shadow-md">
           {annualBilling && (
-            <span className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-2 py-0.5 absolute top-2 -right-0.5 text-xs rounded-l-md">
+            <span className="absolute top-2 -right-0.5 rounded-l-md bg-gradient-to-r from-blue-600 to-cyan-600 px-2 py-0.5 text-xs text-white">
               2 Free Months
             </span>
           )}
-          <div className="max-w-md flex justify-between items-center w-full p-5 pt-7">
-            <h3 className="text-2xl text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-600">
+          <div className="flex w-full max-w-md items-center justify-between p-5 pt-7">
+            <h3 className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-2xl text-transparent">
               {PRO_TIERS[tier].name}
             </h3>
             <div className="flex items-center">
@@ -72,7 +72,7 @@ function UpgradePlanModal({
               </p>
             </div>
           </div>
-          <div className="w-full flex flex-col items-center space-y-1 bg-gray-50 text-center p-5 border-t border-gray-200 rounded-b-lg">
+          <div className="flex w-full flex-col items-center space-y-1 rounded-b-lg border-t border-gray-200 bg-gray-50 p-5 text-center">
             <Slider
               value={tier}
               setValue={setTier}
@@ -84,7 +84,7 @@ function UpgradePlanModal({
           </div>
         </div>
 
-        <div className="flex flex-col items-center text-left bg-gray-50 sm:px-16 px-4 pt-28 pb-8">
+        <div className="flex flex-col items-center bg-gray-50 px-4 pt-28 pb-8 text-left sm:px-16">
           <button
             disabled={clicked}
             onClick={() => {
@@ -108,9 +108,9 @@ function UpgradePlanModal({
             }}
             className={`${
               clicked
-                ? "cursor-not-allowed bg-gray-100 border-gray-200 text-gray-400"
-                : "bg-blue-500 hover:bg-white hover:text-blue-500 border-blue-500 text-white"
-            } flex justify-center items-center w-full text-sm h-10 mb-2 rounded-md border transition-all focus:outline-none`}
+                ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
+                : "border-blue-500 bg-blue-500 text-white hover:bg-white hover:text-blue-500"
+            } mb-2 flex h-10 w-full items-center justify-center rounded-md border text-sm transition-all focus:outline-none`}
           >
             {clicked ? (
               <LoadingDots color="#808080" />
@@ -120,7 +120,7 @@ function UpgradePlanModal({
           </button>
           <a
             href="mailto:steven@dub.sh?subject=Upgrade%20to%20Enterprise%20Plan"
-            className="text-gray-500 text-sm hover:text-gray-700 transition-all"
+            className="text-sm text-gray-500 transition-all hover:text-gray-700"
           >
             Or contact us for Enterprise
           </a>

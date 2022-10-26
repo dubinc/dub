@@ -79,24 +79,24 @@ function LinkQRModalHelper({
 
   return (
     <Modal showModal={showLinkQRModal} setShowModal={setShowLinkQRModal}>
-      <div className="inline-block w-full sm:max-w-md align-middle transition-all transform bg-white sm:border sm:border-gray-200 shadow-xl sm:rounded-2xl">
-        <div className="flex flex-col justify-center items-center space-y-3 sm:px-16 px-4 pt-8 py-4 border-b border-gray-200">
+      <div className="inline-block w-full transform bg-white align-middle shadow-xl transition-all sm:max-w-md sm:rounded-2xl sm:border sm:border-gray-200">
+        <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
           {avatarUrl ? (
             <BlurImage
               src={avatarUrl}
               alt={apexDomain}
-              className="w-10 h-10 rounded-full"
+              className="h-10 w-10 rounded-full"
               width={40}
               height={40}
             />
           ) : (
-            <Logo className="w-10 h-10" />
+            <Logo className="h-10 w-10" />
           )}
-          <h3 className="font-medium text-lg">Download QR Code</h3>
+          <h3 className="text-lg font-medium">Download QR Code</h3>
         </div>
 
-        <div className="flex flex-col space-y-6 text-left bg-gray-50 py-6 sm:rounded-b-2xl">
-          <div className="p-4 rounded-lg bg-white mx-auto border-2 border-gray-200">
+        <div className="flex flex-col space-y-6 bg-gray-50 py-6 text-left sm:rounded-b-2xl">
+          <div className="mx-auto rounded-lg border-2 border-gray-200 bg-white p-4">
             <QRCodeSVG
               value={qrData.value}
               size={qrData.size / 8}
@@ -120,7 +120,7 @@ function LinkQRModalHelper({
             setShowLogo={setShowLogo}
           />
 
-          <div className="flex gap-2 sm:px-16 px-4">
+          <div className="flex gap-2 px-4 sm:px-16">
             <button
               onClick={async () =>
                 download(
@@ -136,7 +136,7 @@ function LinkQRModalHelper({
                   "svg",
                 )
               }
-              className="py-1.5 px-5 bg-black hover:bg-white rounded-md border border-black text-sm text-white hover:text-black transition-all w-full flex items-center gap-2 justify-center"
+              className="flex w-full items-center justify-center gap-2 rounded-md border border-black bg-black py-1.5 px-5 text-sm text-white transition-all hover:bg-white hover:text-black"
             >
               <Download /> SVG
             </button>
@@ -144,7 +144,7 @@ function LinkQRModalHelper({
               onClick={async () =>
                 download(await getQRAsCanvas(qrData, "image/png"), "png")
               }
-              className="py-1.5 px-5 bg-black hover:bg-white rounded-md border border-black text-sm text-white hover:text-black transition-all w-full flex items-center gap-2 justify-center"
+              className="flex w-full items-center justify-center gap-2 rounded-md border border-black bg-black py-1.5 px-5 text-sm text-white transition-all hover:bg-white hover:text-black"
             >
               <Download /> PNG
             </button>
@@ -152,7 +152,7 @@ function LinkQRModalHelper({
               onClick={async () =>
                 download(await getQRAsCanvas(qrData, "image/jpeg"), "jpg")
               }
-              className="py-1.5 px-5 bg-black hover:bg-white rounded-md border border-black text-sm text-white hover:text-black transition-all w-full flex items-center gap-2 justify-center"
+              className="flex w-full items-center justify-center gap-2 rounded-md border border-black bg-black py-1.5 px-5 text-sm text-white transition-all hover:bg-white hover:text-black"
             >
               <Download /> JPEG
             </button>
@@ -181,7 +181,7 @@ function AdvancedSettings({ qrData, setQrData, setShowLogo }) {
 
   return (
     <div>
-      <div className="sm:px-16 px-4">
+      <div className="px-4 sm:px-16">
         <button
           type="button"
           className="flex items-center"
@@ -192,11 +192,11 @@ function AdvancedSettings({ qrData, setQrData, setShowLogo }) {
               expanded ? "rotate-90" : ""
             } transition-all`}
           />
-          <p className="text-gray-600 text-sm">Advanced options</p>
+          <p className="text-sm text-gray-600">Advanced options</p>
         </button>
       </div>
       {expanded && (
-        <div className="mt-4 grid gap-5 bg-white border-t border-b border-gray-200 sm:px-16 px-4 py-8">
+        <div className="mt-4 grid gap-5 border-t border-b border-gray-200 bg-white px-4 py-8 sm:px-16">
           <div>
             <label
               htmlFor="logo-toggle"
@@ -214,7 +214,7 @@ function AdvancedSettings({ qrData, setQrData, setShowLogo }) {
                   />
                 }
               >
-                <div className="flex mt-1 space-x-2 items-center cursor-not-allowed pointer-events-none sm:pointer-events-auto">
+                <div className="pointer-events-none mt-1 flex cursor-not-allowed items-center space-x-2 sm:pointer-events-auto">
                   <Switch
                     fn={setShowLogo}
                     trackDimensions="h-6 w-12"
@@ -222,18 +222,18 @@ function AdvancedSettings({ qrData, setQrData, setShowLogo }) {
                     thumbTranslate="translate-x-6"
                     disabled={true}
                   />
-                  <p className="text-gray-600 text-sm">Show Dub.sh Logo</p>
+                  <p className="text-sm text-gray-600">Show Dub.sh Logo</p>
                 </div>
               </Tooltip>
             ) : (
-              <div className="flex mt-1 space-x-2 items-center">
+              <div className="mt-1 flex items-center space-x-2">
                 <Switch
                   fn={setShowLogo}
                   trackDimensions="h-6 w-12"
                   thumbDimensions="w-5 h-5"
                   thumbTranslate="translate-x-6"
                 />
-                <p className="text-gray-600 text-sm">Show Dub.sh Logo</p>
+                <p className="text-sm text-gray-600">Show Dub.sh Logo</p>
               </div>
             )}
           </div>
@@ -244,10 +244,10 @@ function AdvancedSettings({ qrData, setQrData, setShowLogo }) {
             >
               Foreground Color
             </label>
-            <div className="relative flex mt-1 rounded-md shadow-sm h-9 w-48">
+            <div className="relative mt-1 flex h-9 w-48 rounded-md shadow-sm">
               <Tooltip
                 content={
-                  <div className="max-w-xs flex flex-col text-center items-center space-y-3 p-5">
+                  <div className="flex max-w-xs flex-col items-center space-y-3 p-5 text-center">
                     <HexColorPicker
                       color={qrData.fgColor}
                       onChange={(color) =>
@@ -261,7 +261,7 @@ function AdvancedSettings({ qrData, setQrData, setShowLogo }) {
                 }
               >
                 <div
-                  className="rounded-l-md w-12 h-full border"
+                  className="h-full w-12 rounded-l-md border"
                   style={{
                     backgroundColor: qrData.fgColor,
                     borderColor: qrData.fgColor,
@@ -280,7 +280,7 @@ function AdvancedSettings({ qrData, setQrData, setShowLogo }) {
                 }
                 prefixed
                 style={{ borderColor: qrData.fgColor }}
-                className={`border-2 border-l-0 text-gray-900 placeholder-gray-300 focus:ring-black pl-3 block w-full rounded-r-md focus:outline-none sm:text-sm`}
+                className={`block w-full rounded-r-md border-2 border-l-0 pl-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-black sm:text-sm`}
               />
             </div>
           </div>

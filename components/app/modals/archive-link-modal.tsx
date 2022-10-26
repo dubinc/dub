@@ -42,23 +42,23 @@ function ArchiveLinkModal({
       showModal={showArchiveLinkModal}
       setShowModal={setShowArchiveLinkModal}
     >
-      <div className="inline-block w-full sm:max-w-md overflow-hidden align-middle transition-all transform bg-white sm:border sm:border-gray-200 shadow-xl sm:rounded-2xl">
-        <div className="flex flex-col justify-center items-center text-center space-y-3 sm:px-16 px-4 pt-8 py-4 border-b border-gray-200">
+      <div className="inline-block w-full transform overflow-hidden bg-white align-middle shadow-xl transition-all sm:max-w-md sm:rounded-2xl sm:border sm:border-gray-200">
+        <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 text-center sm:px-16">
           <BlurImage
             src={`https://www.google.com/s2/favicons?sz=64&domain_url=${apexDomain}`}
             alt={apexDomain}
-            className="w-10 h-10 rounded-full"
+            className="h-10 w-10 rounded-full"
             width={20}
             height={20}
           />
-          <h3 className="font-medium text-lg">Archive {shortlink}</h3>
+          <h3 className="text-lg font-medium">Archive {shortlink}</h3>
           <p className="text-sm text-gray-500">
             Archived links will still work - they just won't show up on your
             main dashboard.
           </p>
         </div>
 
-        <div className="flex flex-col space-y-6 text-left bg-gray-50 sm:px-16 px-4 py-8">
+        <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16">
           <button
             onClick={async (e) => {
               e.preventDefault();
@@ -90,9 +90,9 @@ function ArchiveLinkModal({
             disabled={archiving}
             className={`${
               archiving
-                ? "cursor-not-allowed bg-gray-100 border-gray-200 text-gray-400"
-                : "bg-black hover:bg-white hover:text-black border-black text-white"
-            } flex justify-center items-center w-full text-sm h-10 rounded-md border transition-all focus:outline-none`}
+                ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
+                : "border-black bg-black text-white hover:bg-white hover:text-black"
+            } flex h-10 w-full items-center justify-center rounded-md border text-sm transition-all focus:outline-none`}
           >
             {archiving ? (
               <LoadingDots color="#808080" />

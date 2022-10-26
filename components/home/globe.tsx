@@ -58,7 +58,7 @@ export default function Globe({ domain }: { domain?: string }) {
         <GlobeAnimation domain={domain} markers={markers} />
       )}
       {showFallback && (
-        <div className="w-full h-full flex items-center justify-center">
+        <div className="flex h-full w-full items-center justify-center">
           <video
             autoPlay
             src="https://res.cloudinary.com/dubdotsh/video/upload/v1664203052/globe-animation-fallback.mp4"
@@ -142,21 +142,21 @@ const GlobeAnimation = ({
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             exit={{ scale: 0 }}
-            className="group absolute left-0 right-0 mx-auto z-10 max-w-sm px-5 py-4 sm:py-7 rounded-md bg-white border border-gray-200 shadow-md bg-opacity-90 backdrop-blur-md"
+            className="group absolute left-0 right-0 z-10 mx-auto max-w-sm rounded-md border border-gray-200 bg-white bg-opacity-90 px-5 py-4 shadow-md backdrop-blur-md sm:py-7"
           >
             <button
-              className="visible sm:invisible group-hover:visible absolute top-0 right-0 p-1 m-3 rounded-full float-right group hover:bg-gray-100 focus:outline-none active:scale-75 transition-all duration-75"
+              className="group visible absolute top-0 right-0 float-right m-3 rounded-full p-1 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:scale-75 group-hover:visible sm:invisible"
               autoFocus={false}
               onClick={() => setShowModal(false)}
             >
               <span className="sr-only">Spin Globe</span>
-              <X className="w-4 h-4" />
+              <X className="h-4 w-4" />
             </button>
-            <Drag className="h-12 w-12 mx-auto mb-2 sm:mb-4 text-gray-700" />
-            <p className="text-center text-gray-700 text-sm sm:text-base">
+            <Drag className="mx-auto mb-2 h-12 w-12 text-gray-700 sm:mb-4" />
+            <p className="text-center text-sm text-gray-700 sm:text-base">
               This map shows the locations of the last 50 clicks on{" "}
               <a
-                className="text-blue-800 font-semibold"
+                className="font-semibold text-blue-800"
                 href={domain ? `https://${domain}` : "https://dub.sh/github"}
                 target="_blank"
                 rel="noreferrer"
@@ -172,7 +172,7 @@ const GlobeAnimation = ({
                 shallow
                 scroll={false}
               >
-                <a className="rounded-full px-4 py-1.5 bg-black text-white hover:bg-white hover:text-black text-sm border border-black mx-auto mt-2 sm:mt-4 block max-w-fit">
+                <a className="mx-auto mt-2 block max-w-fit rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white hover:bg-white hover:text-black sm:mt-4">
                   View all stats
                 </a>
               </Link>

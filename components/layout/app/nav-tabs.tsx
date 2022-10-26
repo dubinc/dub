@@ -33,7 +33,7 @@ export default function NavTabs() {
   }, [router.query]);
 
   return (
-    <div className="flex justify-start space-x-2 items-center h-12 -mb-0.5">
+    <div className="-mb-0.5 flex h-12 items-center justify-start space-x-2">
       {tabs.map(({ name, href }) => (
         <Link key={href} href={href}>
           <a
@@ -43,7 +43,7 @@ export default function NavTabs() {
                 : "border-transparent text-gray-600 hover:text-black"
             }`}
           >
-            <div className="rounded-md px-3 py-2 hover:bg-gray-100 active:bg-gray-200 transition-all duration-75">
+            <div className="rounded-md px-3 py-2 transition-all duration-75 hover:bg-gray-100 active:bg-gray-200">
               <p className="text-sm">{name}</p>
             </div>
           </a>

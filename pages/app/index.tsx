@@ -19,9 +19,9 @@ export default function App() {
   return (
     <AppLayout>
       {data && <AddProjectModal />}
-      <div className="h-36 flex items-center bg-white border-b border-gray-200">
+      <div className="flex h-36 items-center border-b border-gray-200 bg-white">
         <MaxWidthWrapper>
-          <div className="flex justify-between items-center">
+          <div className="flex items-center justify-between">
             <h1 className="text-2xl text-gray-600">My Projects</h1>
             {plan === "Free" && data?.length >= FREE_PLAN_PROJECT_LIMIT ? (
               <Tooltip
@@ -33,14 +33,14 @@ export default function App() {
                   />
                 }
               >
-                <div className="text-gray-300 cursor-not-allowed font-medium text-sm px-5 py-2 border rounded-md border-gray-200 transition-all duration-75">
+                <div className="cursor-not-allowed rounded-md border border-gray-200 px-5 py-2 text-sm font-medium text-gray-300 transition-all duration-75">
                   Add
                 </div>
               </Tooltip>
             ) : (
               <button
                 onClick={() => setShowAddProjectModal(true)}
-                className="text-white hover:text-black bg-black hover:bg-white active:scale-95 font-medium text-sm px-5 py-2 border rounded-md border-black transition-all duration-75"
+                className="rounded-md border border-black bg-black px-5 py-2 text-sm font-medium text-white transition-all duration-75 hover:bg-white hover:text-black active:scale-95"
               >
                 Add
               </button>
