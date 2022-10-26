@@ -59,11 +59,11 @@ export default function DeviceIcon({
           alt={display}
           width={20}
           height={20}
-          className="w-4 h-4"
+          className="h-4 w-4"
         />
       );
     } else if (display === "iOS") {
-      return <Apple className="w-5 h-5 -ml-1" />;
+      return <Apple className="-ml-1 h-5 w-5" />;
     } else {
       return (
         <BlurImage
@@ -71,7 +71,7 @@ export default function DeviceIcon({
           alt={display}
           width={30}
           height={20}
-          className="w-5 h-4"
+          className="h-4 w-5"
         />
       );
     }

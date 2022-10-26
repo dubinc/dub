@@ -31,19 +31,19 @@ export default function PasswordProtectedLinkPage() {
         <meta name="twitter:image" content={image} />
         <link rel="icon" href={`${FAVICON_FOLDER}/favicon-32x32.png`} />
       </Head>
-      <main className="w-screen h-screen flex items-center justify-center bg-gray-50">
-        <div className="w-full max-w-md shadow-xl rounded-2xl border border-gray-100 overflow-hidden">
-          <div className="flex flex-col justify-center items-center space-y-3 text-center sm:px-16 px-4 pt-8 py-6 border-b border-gray-200 bg-white">
+      <main className="flex h-screen w-screen items-center justify-center bg-gray-50">
+        <div className="w-full max-w-md overflow-hidden rounded-2xl border border-gray-100 shadow-xl">
+          <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 bg-white px-4 py-6 pt-8 text-center sm:px-16">
             <a href="https://dub.sh" target="_blank" rel="noreferrer">
               <BlurImage
                 src="/_static/logo.png"
                 alt="Dub.sh logo"
-                className="w-10 h-10 rounded-full"
+                className="h-10 w-10 rounded-full"
                 width={20}
                 height={20}
               />
             </a>
-            <h3 className="font-semibold text-xl">{title}</h3>
+            <h3 className="text-xl font-semibold">{title}</h3>
             <p className="text-sm text-gray-500">{description}</p>
           </div>
           <form
@@ -70,7 +70,7 @@ export default function PasswordProtectedLinkPage() {
                 }
               });
             }}
-            className="flex flex-col space-y-4 bg-gray-50 sm:px-16 px-4 py-8"
+            className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 sm:px-16"
           >
             <div>
               <label htmlFor="password" className="block text-xs text-gray-600">
@@ -90,7 +90,7 @@ export default function PasswordProtectedLinkPage() {
                     error
                       ? "border-red-300 text-red-500 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                       : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
-                  } pr-10 block w-full rounded-md focus:outline-none sm:text-sm`}
+                  } block w-full rounded-md pr-10 focus:outline-none sm:text-sm`}
                 />
                 {error && (
                   <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
@@ -112,9 +112,9 @@ export default function PasswordProtectedLinkPage() {
               disabled={validating}
               className={`${
                 validating
-                  ? "cursor-not-allowed bg-gray-100 border-gray-200 text-gray-400"
-                  : "bg-black hover:bg-white hover:text-black border-black text-white"
-              } flex justify-center items-center w-full text-sm h-10 rounded-md border transition-all focus:outline-none`}
+                  ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
+                  : "border-black bg-black text-white hover:bg-white hover:text-black"
+              } flex h-10 w-full items-center justify-center rounded-md border text-sm transition-all focus:outline-none`}
             >
               {validating ? (
                 <LoadingDots color="#808080" />

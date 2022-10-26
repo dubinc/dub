@@ -21,14 +21,14 @@ export default function StatsPage() {
     <AppLayout>
       {exceededUsage && (
         <MaxWidthWrapper>
-          <div className="border border-gray-200 rounded-md bg-white my-10 py-12 flex flex-col justify-center items-center">
-            <div className="bg-gray-100 rounded-full p-3">
-              <Lock className="w-6 h-6 text-gray-600" />
+          <div className="my-10 flex flex-col items-center justify-center rounded-md border border-gray-200 bg-white py-12">
+            <div className="rounded-full bg-gray-100 p-3">
+              <Lock className="h-6 w-6 text-gray-600" />
             </div>
-            <h1 className="text-xl font-semibold text-gray-700 my-3">
+            <h1 className="my-3 text-xl font-semibold text-gray-700">
               Stats Locked
             </h1>
-            <p className="text-gray-600 text-sm max-w-sm text-center z-10">
+            <p className="z-10 max-w-sm text-center text-sm text-gray-600">
               {isOwner
                 ? "You have exceeded your usage limits. We're still collecting data on your link, but you need to upgrade to view them."
                 : "The owner of this project has exceeded their usage limits. We're still collecting data on this link, but they need to upgrade to view them."}
@@ -42,7 +42,7 @@ export default function StatsPage() {
             />
             {isOwner && (
               <Link href="/settings">
-                <a className="text-white hover:text-black bg-black hover:bg-white font-medium text-sm px-10 py-2 border rounded-md border-black transition-all duration-75 z-10">
+                <a className="z-10 rounded-md border border-black bg-black px-10 py-2 text-sm font-medium text-white transition-all duration-75 hover:bg-white hover:text-black">
                   Upgrade now
                 </a>
               </Link>

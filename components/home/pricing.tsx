@@ -98,20 +98,20 @@ const Pricing = () => {
 
   return (
     <MaxWidthWrapper className="mt-20 mb-40 text-center">
-      <div id="pricing" className="sm:max-w-lg mx-auto my-10">
-        <h2 className="text-4xl sm:text-5xl font-display font-extrabold text-black">
+      <div id="pricing" className="mx-auto my-10 sm:max-w-lg">
+        <h2 className="font-display text-4xl font-extrabold text-black sm:text-5xl">
           Simple,{" "}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-600">
+          <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
             usage-based
           </span>{" "}
           pricing
         </h2>
-        <p className="text-gray-600 sm:text-lg mt-5">
+        <p className="mt-5 text-gray-600 sm:text-lg">
           Start for free, no credit card required. Upgrade anytime.
         </p>
       </div>
 
-      <div className="relative flex space-x-2 items-center max-w-fit mx-auto mb-14">
+      <div className="relative mx-auto mb-14 flex max-w-fit items-center space-x-2">
         <p className="text-gray-600">Billed Monthly</p>
         <Confetti
           active={period === "yearly"}
@@ -124,39 +124,39 @@ const Pricing = () => {
           thumbTranslate="translate-x-6"
         />
         <p className="text-gray-600">Billed Annually</p>
-        <span className="absolute -top-8 sm:-top-2 -right-12 sm:-right-36 rounded-full bg-purple-200 text-purple-700 text-sm px-3 py-1">
+        <span className="absolute -top-8 -right-12 rounded-full bg-purple-200 px-3 py-1 text-sm text-purple-700 sm:-top-2 sm:-right-36">
           🎁 2 months FREE
         </span>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-3">
         {pricingItems.map(
           ({ plan, tagline, clicksLimit, features, cta, ctaLink }) => (
             <div
               key={plan}
-              className={`relative bg-white rounded-2xl ${
+              className={`relative rounded-2xl bg-white ${
                 plan === "Pro"
                   ? "border-2 border-blue-600 shadow-blue-200"
                   : "border border-gray-200"
               } shadow-lg`}
             >
               {plan === "Pro" && (
-                <div className="absolute -top-5 left-0 right-0 mx-auto bg-gradient-to-r from-blue-600 to-cyan-600 text-white text-sm font-medium w-32 px-3 py-2 rounded-full">
+                <div className="absolute -top-5 left-0 right-0 mx-auto w-32 rounded-full bg-gradient-to-r from-blue-600 to-cyan-600 px-3 py-2 text-sm font-medium text-white">
                   Popular
                 </div>
               )}
               <div className="p-5">
-                <h3 className="text-center text-3xl font-bold font-display my-3">
+                <h3 className="my-3 text-center font-display text-3xl font-bold">
                   {plan}
                 </h3>
                 <p className="text-gray-500">{tagline}</p>
                 {plan === "Enterprise" ? (
-                  <p className="my-5 text-6xl font-display font-semibold">
+                  <p className="my-5 font-display text-6xl font-semibold">
                     Custom
                   </p>
                 ) : (
                   <div className="my-5 flex justify-center">
-                    <p className="text-6xl font-display font-semibold">
+                    <p className="font-display text-6xl font-semibold">
                       $
                       {plan === "Pro"
                         ? period === "yearly"
@@ -173,21 +173,21 @@ const Pricing = () => {
                   per month{period === "yearly" ? ", billed yearly" : ""}
                 </p>
               </div>
-              <div className="border-t border-b border-gray-200 flex items-center justify-center h-20 bg-gray-50">
+              <div className="flex h-20 items-center justify-center border-t border-b border-gray-200 bg-gray-50">
                 {plan === "Pro" ? (
-                  <div className="flex flex-col space-y-1 items-center">
+                  <div className="flex flex-col items-center space-y-1">
                     <Slider
                       value={tier}
                       setValue={setTier}
                       maxValue={PRO_TIERS.length - 1}
                     />
                     <div className="flex items-center">
-                      <p className="text-gray-600 text-sm">
+                      <p className="text-sm text-gray-600">
                         Up to {nFormatter(PRO_TIERS[tier].quota)} link clicks/mo
                       </p>
                       <Tooltip content="If you exceed your monthly usage, your existing links will still work, but you need to upgrade to view their stats/add more links. Link clicks are shared across all projects.">
-                        <div className="flex justify-center w-6 h-4">
-                          <QuestionCircle className="w-4 h-4 text-gray-600" />
+                        <div className="flex h-4 w-6 justify-center">
+                          <QuestionCircle className="h-4 w-4 text-gray-600" />
                         </div>
                       </Tooltip>
                     </div>
@@ -196,21 +196,21 @@ const Pricing = () => {
                   <div className="flex items-center">
                     <p className="text-gray-600">{clicksLimit}</p>
                     <Tooltip content="If you exceed your monthly usage, your existing links will still work, but you need to upgrade to view their stats/add more links. Link clicks are shared across all projects.">
-                      <div className="flex justify-center w-8 h-4">
-                        <QuestionCircle className="w-4 h-4 text-gray-600" />
+                      <div className="flex h-4 w-8 justify-center">
+                        <QuestionCircle className="h-4 w-4 text-gray-600" />
                       </div>
                     </Tooltip>
                   </div>
                 )}
               </div>
-              <ul className="px-10 my-10 space-y-5">
+              <ul className="my-10 space-y-5 px-10">
                 {features.map(({ text, footnote, negative }) => (
                   <li key={text} className="flex space-x-5">
                     <div className="flex-shrink-0">
                       {negative ? (
-                        <XCircleFill className="w-6 h-6 text-gray-300" />
+                        <XCircleFill className="h-6 w-6 text-gray-300" />
                       ) : (
-                        <CheckCircleFill className="w-6 h-6 text-green-500" />
+                        <CheckCircleFill className="h-6 w-6 text-green-500" />
                       )}
                     </div>
                     {footnote ? (
@@ -223,8 +223,8 @@ const Pricing = () => {
                           {text}
                         </p>
                         <Tooltip content={footnote}>
-                          <div className="flex justify-center w-8 h-4">
-                            <QuestionCircle className="w-4 h-4 text-gray-600" />
+                          <div className="flex h-4 w-8 justify-center">
+                            <QuestionCircle className="h-4 w-4 text-gray-600" />
                           </div>
                         </Tooltip>
                       </div>
@@ -244,9 +244,9 @@ const Pricing = () => {
                   <a
                     className={`${
                       plan === "Pro"
-                        ? "bg-gradient-to-r from-blue-600 to-cyan-600 hover:bg-white text-white hover:text-transparent hover:bg-clip-text border border-transparent hover:border-blue-700"
-                        : "bg-black text-white hover:bg-white hover:text-black border border-gray-200 hover:border-black"
-                    } block w-full py-2 rounded-full font-medium transition-all`}
+                        ? "border border-transparent bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:border-blue-700 hover:bg-white hover:bg-clip-text hover:text-transparent"
+                        : "border border-gray-200 bg-black text-white hover:border-black hover:bg-white hover:text-black"
+                    } block w-full rounded-full py-2 font-medium transition-all`}
                   >
                     {cta}
                   </a>

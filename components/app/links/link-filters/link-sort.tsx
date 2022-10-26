@@ -33,7 +33,7 @@ export default function LinkSort() {
   return (
     <Popover
       content={
-        <div className="w-full md:w-48 p-2">
+        <div className="w-full p-2 md:w-48">
           {sortOptions.map(({ display, slug }) => (
             <button
               key={slug}
@@ -52,10 +52,10 @@ export default function LinkSort() {
                   query: finalQuery,
                 });
               }}
-              className="flex items-center justify-between space-x-2 px-1 py-2 w-full rounded-md hover:bg-gray-100 active:bg-gray-200"
+              className="flex w-full items-center justify-between space-x-2 rounded-md px-1 py-2 hover:bg-gray-100 active:bg-gray-200"
             >
               <div className="flex items-center justify-start space-x-2">
-                <SortDesc className="w-4 h-4" />
+                <SortDesc className="h-4 w-4" />
                 <p className="text-sm text-gray-700">{display}</p>
               </div>
               {selectedSort.slug === slug && (
@@ -70,15 +70,15 @@ export default function LinkSort() {
     >
       <button
         onClick={() => setOpenPopover(!openPopover)}
-        className="flex justify-between items-center space-x-2 bg-white w-full sm:w-48 px-3 py-2.5 rounded-md shadow hover:shadow-md active:scale-95 transition-all duration-75"
+        className="flex w-full items-center justify-between space-x-2 rounded-md bg-white px-3 py-2.5 shadow transition-all duration-75 hover:shadow-md active:scale-95 sm:w-48"
       >
         <div className="flex items-center space-x-2 text-gray-700">
           <Sort className="h-4 w-4 shrink-0" />
           <p className="text-sm">Sort by</p>
         </div>
         <ChevronDown
-          className={`w-5 h-5 text-gray-400 ${
-            openPopover ? "transform rotate-180" : ""
+          className={`h-5 w-5 text-gray-400 ${
+            openPopover ? "rotate-180 transform" : ""
           } transition-all duration-75`}
         />
       </button>

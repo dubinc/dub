@@ -137,27 +137,27 @@ function AddEditLinkModal({
       setShowModal={setShowAddEditLinkModal}
       closeWithX={true}
     >
-      <div className="inline-block w-full sm:max-w-md max-h-[calc(100vh-50px)] overflow-scroll align-middle transition-all transform bg-white sm:border sm:border-gray-200 shadow-xl sm:rounded-2xl">
+      <div className="inline-block max-h-[calc(100vh-50px)] w-full transform overflow-scroll bg-white align-middle shadow-xl transition-all sm:max-w-md sm:rounded-2xl sm:border sm:border-gray-200">
         <button
           onClick={() => setShowAddEditLinkModal(false)}
-          className="hidden sm:block absolute top-0 right-0 p-2 m-3 rounded-full group hover:bg-gray-100 text-gray-500 focus:outline-none active:bg-gray-200 transition-all duration-75"
+          className="group absolute top-0 right-0 m-3 hidden rounded-full p-2 text-gray-500 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 sm:block"
         >
-          <X className="w-5 h-5" />
+          <X className="h-5 w-5" />
         </button>
 
-        <div className="flex flex-col justify-center items-center space-y-3 sm:px-16 px-4 pt-10 pb-8 border-b border-gray-200">
+        <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 pt-10 pb-8 sm:px-16">
           <BlurImage
             src={heroProps.avatar}
             alt={heroProps.alt}
-            className="w-10 h-10 rounded-full"
+            className="h-10 w-10 rounded-full"
             width={20}
             height={20}
           />
-          <h3 className="font-medium text-lg">{heroProps.copy}</h3>
+          <h3 className="text-lg font-medium">{heroProps.copy}</h3>
         </div>
 
         {id && (
-          <div className="absolute -mt-3.5 w-full flex justify-center space-x-2 [&>*]:flex [&>*]:items-center [&>*]:h-7 [&>*]:px-4 [&>*]:rounded-full [&>*]:text-xs [&>*]:text-white [&>*]:uppercase">
+          <div className="absolute -mt-3.5 flex w-full justify-center space-x-2 [&>*]:flex [&>*]:h-7 [&>*]:items-center [&>*]:rounded-full [&>*]:px-4 [&>*]:text-xs [&>*]:uppercase [&>*]:text-white">
             {expired ? (
               <span className="bg-amber-500">Expired</span>
             ) : (
@@ -195,9 +195,9 @@ function AddEditLinkModal({
           }}
           className="grid gap-6 bg-gray-50 py-8"
         >
-          <div className="grid gap-6 sm:px-16 px-4">
+          <div className="grid gap-6 px-4 sm:px-16">
             <div>
-              <div className="flex justify-between items-center">
+              <div className="flex items-center justify-between">
                 <label
                   htmlFor="key"
                   className="block text-sm font-medium text-gray-700"
@@ -205,7 +205,7 @@ function AddEditLinkModal({
                   Short Link
                 </label>
                 <button
-                  className="hover:text-black active:scale-95 flex items-center space-x-2 text-gray-500 text-sm transition-all duration-75"
+                  className="flex items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
                   onClick={generateRandomSlug}
                   disabled={generatingSlug}
                   type="button"
@@ -213,13 +213,13 @@ function AddEditLinkModal({
                   {generatingSlug ? (
                     <LoadingCircle />
                   ) : (
-                    <Random className="w-3 h-3" />
+                    <Random className="h-3 w-3" />
                   )}
                   <p>{generatingSlug ? "Generating" : "Randomize"}</p>
                 </button>
               </div>
-              <div className="relative flex mt-1 rounded-md shadow-sm">
-                <span className="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-5 text-gray-500 sm:text-sm whitespace-nowrap">
+              <div className="relative mt-1 flex rounded-md shadow-sm">
+                <span className="inline-flex items-center whitespace-nowrap rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-5 text-gray-500 sm:text-sm">
                   {domain || "dub.sh"}
                 </span>
                 <input
@@ -233,7 +233,7 @@ function AddEditLinkModal({
                     keyExistsError
                       ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                       : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
-                  } pr-10 block w-full rounded-r-md focus:outline-none sm:text-sm`}
+                  } block w-full rounded-r-md pr-10 focus:outline-none sm:text-sm`}
                   placeholder="github"
                   value={key}
                   onChange={(e) => {
@@ -266,13 +266,13 @@ function AddEditLinkModal({
               >
                 Destination URL
               </label>
-              <div className="flex mt-1 rounded-md shadow-sm">
+              <div className="mt-1 flex rounded-md shadow-sm">
                 <input
                   name="url"
                   id="url"
                   type="url"
                   required
-                  className="border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500 block w-full rounded-md focus:outline-none sm:text-sm"
+                  className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
                   placeholder="https://github.com/steven-tey/dub"
                   value={url}
                   onChange={(e) => {
@@ -286,14 +286,14 @@ function AddEditLinkModal({
 
           <AdvancedSettings data={data} setData={setData} />
 
-          <div className="sm:px-16 px-4">
+          <div className="px-4 sm:px-16">
             <button
               disabled={saving || keyExistsError}
               className={`${
                 saving || keyExistsError
-                  ? "cursor-not-allowed bg-gray-100 border-gray-200 text-gray-400"
-                  : "bg-black hover:bg-white hover:text-black border-black text-white"
-              } flex justify-center items-center w-full text-sm h-10 rounded-md border transition-all focus:outline-none`}
+                  ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
+                  : "border-black bg-black text-white hover:bg-white hover:text-black"
+              } flex h-10 w-full items-center justify-center rounded-md border text-sm transition-all focus:outline-none`}
             >
               {saving ? (
                 <LoadingDots color="#808080" />
@@ -330,7 +330,7 @@ start adding links."
         />
       }
     >
-      <div className="text-gray-300 cursor-not-allowed font-medium text-sm px-5 py-2 border rounded-md border-gray-200 transition-all duration-75">
+      <div className="cursor-not-allowed rounded-md border border-gray-200 px-5 py-2 text-sm font-medium text-gray-300 transition-all duration-75">
         Add
       </div>
     </Tooltip>
@@ -348,14 +348,14 @@ start adding links."
         />
       }
     >
-      <div className="text-gray-300 cursor-not-allowed font-medium text-sm px-5 py-2 border rounded-md border-gray-200 transition-all duration-75">
+      <div className="cursor-not-allowed rounded-md border border-gray-200 px-5 py-2 text-sm font-medium text-gray-300 transition-all duration-75">
         Add
       </div>
     </Tooltip>
   ) : (
     <button
       onClick={() => setShowAddEditLinkModal(true)}
-      className="text-white hover:text-black bg-black hover:bg-white active:scale-95 font-medium text-sm px-5 py-2 border rounded-md border-black transition-all duration-75"
+      className="rounded-md border border-black bg-black px-5 py-2 text-sm font-medium text-white transition-all duration-75 hover:bg-white hover:text-black active:scale-95"
     >
       Add
     </button>

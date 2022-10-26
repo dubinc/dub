@@ -10,9 +10,9 @@ export default function UserDropdown() {
     <div className="relative inline-block text-left">
       <Popover
         content={
-          <div className="p-1 w-full sm:w-56 rounded-md bg-white">
+          <div className="w-full rounded-md bg-white p-1 sm:w-56">
             <button
-              className="relative p-2 rounded-md w-full hover:bg-gray-100 transition-all duration-75 text-sm text-left"
+              className="relative w-full rounded-md p-2 text-left text-sm transition-all duration-75 hover:bg-gray-100"
               onClick={() => signOut()}
             >
               Logout
@@ -25,7 +25,7 @@ export default function UserDropdown() {
       >
         <button
           onClick={() => setOpenPopover(!openPopover)}
-          className="rounded-full overflow-hidden border border-gray-300 w-10 h-10 flex justify-center items-center active:scale-95 focus:outline-none transition-all duration-75"
+          className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-gray-300 transition-all duration-75 focus:outline-none active:scale-95"
         >
           {session && (
             <img

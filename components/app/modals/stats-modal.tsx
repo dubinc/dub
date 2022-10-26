@@ -37,17 +37,17 @@ function StatsModalHelper({
     >
       <div
         onScroll={handleScroll}
-        className="inline-block w-full max-w-screen-xl max-h-[calc(100vh-150px)] overflow-scroll scrollbar-hide bg-gray-50
-        align-middle transform sm:border sm:border-gray-200 shadow-xl sm:rounded-2xl"
+        className="inline-block max-h-[calc(100vh-150px)] w-full max-w-screen-xl transform overflow-scroll bg-gray-50
+        align-middle shadow-xl scrollbar-hide sm:rounded-2xl sm:border sm:border-gray-200"
       >
         <button
-          className="hidden sm:block sticky top-4 z-30 p-3 m-4 rounded-full float-right group hover:bg-gray-100 focus:outline-none active:scale-75 transition-all duration-75"
+          className="group sticky top-4 z-30 float-right m-4 hidden rounded-full p-3 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:scale-75 sm:block"
           autoFocus={false}
           onClick={() => {
             router.push("/", undefined, { scroll: false });
           }}
         >
-          <X className="w-6 h-6" />
+          <X className="h-6 w-6" />
         </button>
         <Stats atModalTop={atModalTop} />
       </div>

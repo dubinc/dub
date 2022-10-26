@@ -53,7 +53,7 @@ export default function OGSection({
   );
   return (
     <motion.div key="og" className="grid gap-5" {...AnimationSettings}>
-      <p className="block mt-2 text-sm text-gray-500 px-5">
+      <p className="mt-2 block px-5 text-sm text-gray-500">
         If you use custom OG tags,{" "}
         <span className="font-semibold text-black">
           be sure to set all 3 tags
@@ -61,7 +61,7 @@ export default function OGSection({
         , or the default tags of the target URL will be used.
       </p>
       <div className="border-t border-gray-200 px-5 pt-5 pb-2.5">
-        <div className="flex justify-between items-center">
+        <div className="flex items-center justify-between">
           <label
             htmlFor="title"
             className="block text-sm font-medium text-gray-700"
@@ -73,7 +73,7 @@ export default function OGSection({
               url.length === 0
                 ? "cursor-not-allowed text-gray-300"
                 : "hover:text-black active:scale-95"
-            } flex items-center space-x-2 text-gray-500 text-sm transition-all duration-75`}
+            } flex items-center space-x-2 text-sm text-gray-500 transition-all duration-75`}
             onClick={() => generateTitleFromUrl()}
             disabled={url.length === 0 || generatingTitle}
             type="button"
@@ -82,12 +82,12 @@ export default function OGSection({
             <p>{generatingTitle ? "Generating" : "Generate from URL"}</p>
           </button>
         </div>
-        <div className="flex mt-1 rounded-md shadow-sm">
+        <div className="mt-1 flex rounded-md shadow-sm">
           <TextareaAutosize
             name="title"
             id="title"
             minRows={3}
-            className="border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500 pr-10 block w-full rounded-md focus:outline-none sm:text-sm"
+            className="block w-full rounded-md border-gray-300 pr-10 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
             placeholder="Dub - Open Source Bitly Alternative"
             value={title || ""}
             onChange={(e) => {
@@ -99,7 +99,7 @@ export default function OGSection({
       </div>
 
       <div className="border-t border-gray-200 px-5 pt-5 pb-2.5">
-        <div className="flex justify-between items-center">
+        <div className="flex items-center justify-between">
           <label
             htmlFor="description"
             className="block text-sm font-medium text-gray-700"
@@ -111,7 +111,7 @@ export default function OGSection({
               url.length === 0
                 ? "cursor-not-allowed text-gray-300"
                 : "hover:text-black active:scale-95"
-            } flex items-center space-x-2 text-gray-500 text-sm transition-all duration-75`}
+            } flex items-center space-x-2 text-sm text-gray-500 transition-all duration-75`}
             onClick={() => generateDescriptionFromUrl()}
             disabled={url.length === 0 || generatingDescription}
             type="button"
@@ -120,12 +120,12 @@ export default function OGSection({
             <p>{generatingDescription ? "Generating" : "Generate from URL"}</p>
           </button>
         </div>
-        <div className="flex mt-1 rounded-md shadow-sm">
+        <div className="mt-1 flex rounded-md shadow-sm">
           <TextareaAutosize
             name="description"
             id="description"
             minRows={3}
-            className="border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500 pr-10 block w-full rounded-md focus:outline-none sm:text-sm"
+            className="block w-full rounded-md border-gray-300 pr-10 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
             placeholder="Dub is an open-source link shortener SaaS with built-in analytics + free custom domains."
             value={description || ""}
             onChange={(e) => {
@@ -144,7 +144,7 @@ export default function OGSection({
         <p className="block text-sm font-medium text-gray-700">OG Image</p>
         <label
           htmlFor="image"
-          className="group flex flex-col justify-center items-center mt-1 h-[10.5rem] cursor-pointer rounded-md border border-gray-300 bg-white hover:bg-gray-50 shadow-sm transition-all"
+          className="group mt-1 flex h-[10.5rem] cursor-pointer flex-col items-center justify-center rounded-md border border-gray-300 bg-white shadow-sm transition-all hover:bg-gray-50"
         >
           {image ? (
             typeof image === "string" ? (
@@ -153,26 +153,26 @@ export default function OGSection({
                 alt="Preview"
                 width={1200}
                 height={627}
-                className="object-cover h-full w-full rounded-md hover:brightness-95 transition-all"
+                className="h-full w-full rounded-md object-cover transition-all hover:brightness-95"
               />
             ) : (
               <img
                 src={image}
                 alt="Preview"
-                className="object-cover h-full w-full rounded-md hover:brightness-95 transition-all"
+                className="h-full w-full rounded-md object-cover transition-all hover:brightness-95"
               />
             )
           ) : (
             <>
-              <UploadCloud className="h-7 w-7 text-gray-500 group-hover:scale-110 group-active:scale-95 transition-all duration-75" />
-              <p className="text-gray-500 text-sm mt-2">
+              <UploadCloud className="h-7 w-7 text-gray-500 transition-all duration-75 group-hover:scale-110 group-active:scale-95" />
+              <p className="mt-2 text-sm text-gray-500">
                 Recommended: 1200 x 627 pixels
               </p>
               <span className="sr-only">OG Image upload</span>
             </>
           )}
         </label>
-        <div className="flex mt-1 rounded-md shadow-sm">
+        <div className="mt-1 flex rounded-md shadow-sm">
           <input
             id="image"
             name="image"

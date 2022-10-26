@@ -18,9 +18,9 @@ export default function ProjectLinks() {
   return (
     <AppLayout>
       {project && <AddEditLinkModal />}
-      <div className="h-36 flex items-center bg-white border-b border-gray-200">
+      <div className="flex h-36 items-center border-b border-gray-200 bg-white">
         <MaxWidthWrapper>
-          <div className="flex justify-between items-center">
+          <div className="flex items-center justify-between">
             <h1 className="text-2xl text-gray-600">Links</h1>
             <AddEditLinkButton />
           </div>

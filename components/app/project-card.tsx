@@ -26,12 +26,12 @@ export default function ProjectCard({
   return (
     <Link key={slug} href={`/${slug}`}>
       <a>
-        <div className="bg-white shadow rounded-lg p-6 flex justify-between hover:shadow-md transition-all">
+        <div className="flex justify-between rounded-lg bg-white p-6 shadow transition-all hover:shadow-md">
           <div className="flex items-center space-x-3">
             <BlurImage
               src={`https://avatar.tobi.sh/${slug}`}
               alt={name}
-              className="w-9 h-9 flex-shrink-0 rounded-full overflow-hidden border border-gray-300"
+              className="h-9 w-9 flex-shrink-0 overflow-hidden rounded-full border border-gray-300"
               width={48}
               height={48}
             />
@@ -41,8 +41,8 @@ export default function ProjectCard({
                 <p className="text-gray-500">{domain}</p>
                 {domainVerified ? (
                   <Tooltip content="Verified domain">
-                    <div className="w-8 flex justify-center">
-                      <CheckCircleFill className="w-5 h-5 text-blue-500" />
+                    <div className="flex w-8 justify-center">
+                      <CheckCircleFill className="h-5 w-5 text-blue-500" />
                     </div>
                   </Tooltip>
                 ) : (
@@ -56,8 +56,8 @@ export default function ProjectCard({
                       />
                     }
                   >
-                    <div className="w-8 flex justify-center">
-                      <XCircleFill className="w-5 h-5 text-gray-300" />
+                    <div className="flex w-8 justify-center">
+                      <XCircleFill className="h-5 w-5 text-gray-300" />
                     </div>
                   </Tooltip>
                 )}
@@ -65,9 +65,9 @@ export default function ProjectCard({
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            <LinkIcon className="text-gray-600 w-5 h-5" />
+            <LinkIcon className="h-5 w-5 text-gray-600" />
             {isValidating ? (
-              <div className="w-4 h-5 rounded-md bg-gray-200 animate-pulse" />
+              <div className="h-5 w-4 animate-pulse rounded-md bg-gray-200" />
             ) : (
               <h2 className="text-lg font-medium text-gray-700">
                 {nFormatter(count)}

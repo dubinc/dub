@@ -49,7 +49,7 @@ export default function Tooltip({
             <motion.div
               ref={mobileTooltipRef}
               key="mobile-tooltip"
-              className="group fixed bottom-0 inset-x-0 z-40 w-screen sm:hidden cursor-grab active:cursor-grabbing"
+              className="group fixed inset-x-0 bottom-0 z-40 w-screen cursor-grab active:cursor-grabbing sm:hidden"
               initial={{ y: "100%" }}
               animate={{
                 y: openTooltip ? 0 : "100%",
@@ -64,14 +64,14 @@ export default function Tooltip({
               dragConstraints={{ top: 0, bottom: 0 }}
             >
               <div
-                className={`h-7 bg-white w-full flex items-center justify-center rounded-t-4xl border-t border-gray-200 -mb-1`}
+                className={`rounded-t-4xl -mb-1 flex h-7 w-full items-center justify-center border-t border-gray-200 bg-white`}
               >
-                <div className="rounded-full h-1 w-6 -mr-1 bg-gray-300 group-active:rotate-12 transition-all" />
-                <div className="rounded-full h-1 w-6 bg-gray-300 group-active:-rotate-12 transition-all" />
+                <div className="-mr-1 h-1 w-6 rounded-full bg-gray-300 transition-all group-active:rotate-12" />
+                <div className="h-1 w-6 rounded-full bg-gray-300 transition-all group-active:-rotate-12" />
               </div>
-              <div className="flex items-center justify-center w-full overflow-hidden align-middle bg-white shadow-xl min-h-[150px]">
+              <div className="flex min-h-[150px] w-full items-center justify-center overflow-hidden bg-white align-middle shadow-xl">
                 {typeof content === "string" ? (
-                  <span className="block text-sm text-center text-gray-700 max-w-xs">
+                  <span className="block max-w-xs text-center text-sm text-gray-700">
                     {content}
                   </span>
                 ) : (
@@ -98,12 +98,12 @@ export default function Tooltip({
           <TooltipPrimitive.Content
             sideOffset={4}
             side="top"
-            className="hidden sm:block animate-slide-up-fade items-center rounded-md overflow-hidden z-20 bg-white border border-gray-200 drop-shadow-lg"
+            className="z-20 hidden animate-slide-up-fade items-center overflow-hidden rounded-md border border-gray-200 bg-white drop-shadow-lg sm:block"
           >
             <TooltipPrimitive.Arrow className="fill-current text-white" />
             {typeof content === "string" ? (
               <div className="p-5">
-                <span className="block text-sm text-center text-gray-700 max-w-xs">
+                <span className="block max-w-xs text-center text-sm text-gray-700">
                   {content}
                 </span>
               </div>
@@ -128,11 +128,11 @@ export function TooltipContent({
   ctaLink?: string;
 }) {
   return (
-    <div className="max-w-xs flex flex-col text-center items-center space-y-3 p-5">
+    <div className="flex max-w-xs flex-col items-center space-y-3 p-5 text-center">
       <p className="text-sm text-gray-700">{title}</p>
       {cta && ctaLink && (
         <Link href={ctaLink}>
-          <a className="py-1.5 px-3 bg-black hover:bg-white rounded-full border border-black text-sm text-white hover:text-black transition-all mt-4">
+          <a className="mt-4 rounded-full border border-black bg-black py-1.5 px-3 text-sm text-white transition-all hover:bg-white hover:text-black">
             {cta}
           </a>
         </Link>
@@ -143,13 +143,13 @@ export function TooltipContent({
 
 export function OGImageProxy() {
   return (
-    <div className="max-w-md flex flex-col text-center items-center space-y-5 p-5">
+    <div className="flex max-w-md flex-col items-center space-y-5 p-5 text-center">
       <BlurImage
         alt="Demo GIF for OG Image Proxy"
         src="https://res.cloudinary.com/dubdotsh/image/upload/v1664425639/og-image-proxy-demo.gif"
         width={1200}
         height={1084}
-        className="w-full rounded-md overflow-hidden shadow-md"
+        className="w-full overflow-hidden rounded-md shadow-md"
       />
       <p className="text-sm text-gray-700">
         Add a custom OG image in front of your target URL. Bots like
@@ -167,8 +167,8 @@ export function ProTiers({ usageLimit }: { usageLimit?: number }) {
 
   return (
     <div className="w-full rounded-md">
-      <div className="max-w-md flex justify-between items-center w-full p-5">
-        <h3 className="text-2xl text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-600">
+      <div className="flex w-full max-w-md items-center justify-between p-5">
+        <h3 className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-2xl text-transparent">
           {PRO_TIERS[tier].name}
         </h3>
         <div className="flex items-center">
@@ -178,7 +178,7 @@ export function ProTiers({ usageLimit }: { usageLimit?: number }) {
           <p className="text-sm text-gray-700">/mo</p>
         </div>
       </div>
-      <div className="w-full flex flex-col items-center space-y-1 bg-gray-50 text-center p-5 border-t border-gray-200">
+      <div className="flex w-full flex-col items-center space-y-1 border-t border-gray-200 bg-gray-50 p-5 text-center">
         <Slider
           value={tier}
           setValue={setTier}

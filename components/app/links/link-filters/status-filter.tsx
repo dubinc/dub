@@ -52,7 +52,7 @@ export default function StatusFilter() {
   return (
     <Popover
       content={
-        <div className="w-full md:w-44 p-2">
+        <div className="w-full p-2 md:w-44">
           {statuses.map(({ display, slug, color }) => (
             <button
               key={slug}
@@ -83,10 +83,10 @@ export default function StatusFilter() {
                   query: finalQuery,
                 });
               }}
-              className="flex items-center justify-between p-2 w-full rounded-md hover:bg-gray-100 active:bg-gray-200"
+              className="flex w-full items-center justify-between rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
             >
               <div className="flex items-center justify-start space-x-2">
-                <div className={`rounded-full w-2 h-2 ${color}`} />
+                <div className={`h-2 w-2 rounded-full ${color}`} />
                 <p className="text-sm text-gray-700">{display}</p>
               </div>
               {(status === "all" ||
@@ -102,14 +102,14 @@ export default function StatusFilter() {
     >
       <button
         onClick={() => setOpenPopover(!openPopover)}
-        className="flex justify-between items-center space-x-2 bg-white w-full sm:w-44 px-3 py-2.5 rounded-md shadow hover:shadow-md active:scale-95 transition-all duration-75"
+        className="flex w-full items-center justify-between space-x-2 rounded-md bg-white px-3 py-2.5 shadow transition-all duration-75 hover:shadow-md active:scale-95 sm:w-44"
       >
         <div className="flex items-center space-x-2 text-gray-700">
           <div className="flex -space-x-1">
             {statuses.map(({ slug, color }) => (
               <div
                 key={slug}
-                className={`rounded-full w-3.5 h-3.5 ${
+                className={`h-3.5 w-3.5 rounded-full ${
                   selectedStatus.includes(slug) ? color : "bg-gray-200"
                 } border border-white`}
               />
@@ -118,8 +118,8 @@ export default function StatusFilter() {
           <p className="text-sm">Status</p>
         </div>
         <ChevronDown
-          className={`w-5 h-5 text-gray-400 ${
-            openPopover ? "transform rotate-180" : ""
+          className={`h-5 w-5 text-gray-400 ${
+            openPopover ? "rotate-180 transform" : ""
           } transition-all duration-75`}
         />
       </button>
