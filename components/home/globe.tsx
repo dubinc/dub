@@ -27,7 +27,7 @@ export default function Globe({ domain }: { domain?: string }) {
     }
   }, [isVisible]);
 
-  const [webglSupported, setWebglSupported] = useState(false);
+  const [webglSupported, setWebglSupported] = useState(true);
 
   const { data: markers } = useSWR<MarkerProps[]>(
     `/api/edge/coordinates${domain ? `?domain=${domain}` : ""}`,
@@ -40,12 +40,10 @@ export default function Globe({ domain }: { domain?: string }) {
       const ctx =
         canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
       (ctx as any).getSupportedExtensions();
-      setWebglSupported(true);
     } catch (e) {
       // WebGL isn't properly supported
-      console.log(
-        "WebGL not supported, hiding globe animation and showing fallback video...",
-      );
+      setWebglSupported(false);
+      console.log("WebGL not supported, hiding globe animation...");
       return;
     }
   }, []);
@@ -54,9 +52,7 @@ export default function Globe({ domain }: { domain?: string }) {
     <div
       ref={divRef}
       className={`${
-        webglSupported && showGlobe
-          ? "min-h-[500px] sm:min-h-[1000px]"
-          : "min-h-[50px]"
+        webglSupported ? "min-h-[500px] sm:min-h-[1000px]" : "min-h-[50px]"
       } h-full`}
     >
       {webglSupported && showGlobe && (

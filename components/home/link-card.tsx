@@ -78,11 +78,6 @@ export default function LinkCard({
     }
   };
 
-  const sendSuccessToast = useDebouncedCallback(
-    () => toast.success("Link deleted."),
-    100,
-  );
-
   useEffect(() => {
     const unsubscribeX = x.onChange(() => {
       if (cardElem.current) {
