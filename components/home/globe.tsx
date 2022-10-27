@@ -28,7 +28,11 @@ export default function Globe({ domain }: { domain?: string }) {
   }, [isVisible]);
 
   const [webglSupported, setWebglSupported] = useState(false);
-  const [showFallback, setShowFallback] = useState(false);
+
+  const { data: markers } = useSWR<MarkerProps[]>(
+    `/api/edge/coordinates${domain ? `?domain=${domain}` : ""}`,
+    fetcher,
+  );
 
   useEffect(() => {
     try {
@@ -42,33 +46,21 @@ export default function Globe({ domain }: { domain?: string }) {
       console.log(
         "WebGL not supported, hiding globe animation and showing fallback video...",
       );
-      setShowFallback(true);
       return;
     }
   }, []);
 
-  const { data: markers } = useSWR<MarkerProps[]>(
-    `/api/edge/coordinates${domain ? `?domain=${domain}` : ""}`,
-    fetcher,
-  );
-
   return (
-    <div ref={divRef} className="h-full min-h-[500px] sm:min-h-[1000px]">
+    <div
+      ref={divRef}
+      className={`${
+        webglSupported && showGlobe
+          ? "min-h-[500px] sm:min-h-[1000px]"
+          : "min-h-[50px]"
+      } h-full`}
+    >
       {webglSupported && showGlobe && (
         <GlobeAnimation domain={domain} markers={markers} />
-      )}
-      {showFallback && (
-        <div className="flex h-full w-full items-center justify-center">
-          <video
-            autoPlay
-            src="https://res.cloudinary.com/dubdotsh/video/upload/v1664203052/globe-animation-fallback.mp4"
-            loop
-            muted
-            playsInline
-            width={968}
-            height={946}
-          />
-        </div>
       )}
     </div>
   );
