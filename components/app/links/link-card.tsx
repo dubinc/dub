@@ -112,7 +112,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                 <span className="sr-only">Download QR</span>
                 <QR className="text-gray-700 transition-all group-hover:text-blue-800" />
               </button>
-              <Link href={`/${slug}/${encodeURI(key)}`}>
+              <Link href={`/${slug || "links"}/${encodeURI(key)}`}>
                 <a className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 transition-all duration-75 hover:scale-105 active:scale-95">
                   <Chart className="h-4 w-4" />
                   <p className="whitespace-nowrap text-sm text-gray-500">
