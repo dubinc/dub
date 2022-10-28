@@ -88,7 +88,7 @@ const BarChart = ({
 
   let tooltipTimeout: number | undefined;
   return (
-    <figure className="flex my-10" style={{ width: CHART_WIDTH }}>
+    <figure className="my-10 flex" style={{ width: CHART_WIDTH }}>
       <svg ref={containerRef} height={CHART_HEIGHT} width={LEFT_AXIS_WIDTH}>
         <AxisLeft
           hideAxisLine
@@ -183,7 +183,7 @@ const BarChart = ({
           className={styles.tooltip}
         >
           <div className="text-center">
-            <h3 className="text-black my-1">
+            <h3 className="my-1 text-black">
               <span className="text-2xl font-semibold">
                 {nFormatter(tooltipData.count)}
               </span>{" "}

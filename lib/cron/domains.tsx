@@ -3,6 +3,7 @@ import InvalidDomain from "emails/InvalidDomain";
 import ProjectDeleted from "emails/ProjectDeleted";
 import { log } from "@/lib/cron/utils";
 import { removeDomain } from "@/lib/domains";
+import prisma from "@/lib/prisma";
 import { deleteProject, redis } from "@/lib/upstash";
 
 export const handleDomainUpdates = async (

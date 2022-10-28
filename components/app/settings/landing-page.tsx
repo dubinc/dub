@@ -49,25 +49,25 @@ export default function DefaultPage() {
           }
         });
       }}
-      className="bg-white rounded-lg border border-gray-200"
+      className="rounded-lg border border-gray-200 bg-white"
     >
       <div className="flex flex-col space-y-3 p-10">
         <h2 className="text-xl font-medium">Landing Page</h2>
-        <div className="h-7 flex items-center space-x-1">
-          <p className="text-gray-500 text-sm">
+        <div className="flex h-7 items-center space-x-1">
+          <p className="text-sm text-gray-500">
             Configure a page to redirect visitors when they land on
           </p>
           <a
             href={`https://${domain}`}
             target="_blank"
             rel="noreferrer"
-            className="text-blue-800 font-semibold text-sm hover:text-black transition-all"
+            className="text-sm font-semibold text-blue-800 transition-all hover:text-black"
           >
             {domain}
           </a>
           {domainVerified && (
-            <div className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 cursor-default">
-              <Chart className="w-4 h-4" />
+            <div className="flex cursor-default items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5">
+              <Chart className="h-4 w-4" />
               <p className="text-sm text-gray-500">
                 {isValidating || !clicks ? (
                   <LoadingDots color="#71717A" />
@@ -88,7 +88,7 @@ export default function DefaultPage() {
             placeholder="https://yourdomain.com"
             required
             defaultValue={rootDomain}
-            className="border border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500 w-full max-w-md rounded-md focus:outline-none text-sm"
+            className="w-full max-w-md rounded-md border border-gray-300 text-sm text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500"
           />
         ) : (
           <Tooltip
@@ -108,7 +108,7 @@ export default function DefaultPage() {
               )
             }
           >
-            <div className="text-left border border-gray-300 text-gray-300 text-sm px-3 py-2 w-full max-w-md cursor-not-allowed rounded-md">
+            <div className="w-full max-w-md cursor-not-allowed rounded-md border border-gray-300 px-3 py-2 text-left text-sm text-gray-300">
               https://yourdomain.com
             </div>
           </Tooltip>
@@ -117,15 +117,15 @@ export default function DefaultPage() {
 
       <div className="border-b border-gray-200" />
 
-      <div className="px-10 py-4 flex justify-end items-center">
+      <div className="flex items-center justify-end px-10 py-4">
         {domainVerified && plan !== "Free" ? (
           <button
             disabled={saving}
             className={`${
               saving
-                ? "cursor-not-allowed bg-gray-100 border-gray-200"
-                : "bg-black border-black hover:text-black hover:bg-white"
-            } text-white h-9 w-32 text-sm border rounded-md focus:outline-none transition-all ease-in-out duration-150`}
+                ? "cursor-not-allowed border-gray-200 bg-gray-100"
+                : "border-black bg-black hover:bg-white hover:text-black"
+            } h-9 w-32 rounded-md border text-sm text-white transition-all duration-150 ease-in-out focus:outline-none`}
           >
             {saving ? <LoadingDots /> : "Save Changes"}
           </button>
@@ -147,7 +147,7 @@ export default function DefaultPage() {
               )
             }
           >
-            <div className="cursor-not-allowed bg-gray-100 border-gray-200 text-gray-300 h-9 w-32 flex items-center justify-center text-sm border rounded-md">
+            <div className="flex h-9 w-32 cursor-not-allowed items-center justify-center rounded-md border border-gray-200 bg-gray-100 text-sm text-gray-300">
               Save Changes
             </div>
           </Tooltip>

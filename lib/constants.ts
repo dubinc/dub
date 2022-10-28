@@ -57,7 +57,7 @@ export const DEFAULT_REDIRECTS = {
 
 export const FREE_PLAN_PROJECT_LIMIT = 5;
 
-export const FAVICON_FOLDER = "/static/favicons";
+export const FAVICON_FOLDER = "/_static/favicons";
 
 export const COUNTRIES: { [key: string]: string } = {
   AF: "Afghanistan",

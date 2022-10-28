@@ -22,11 +22,13 @@ export default function LinkCard({
   url,
   hashes,
   setHashes,
+  setShowDefaultLink,
 }: {
   _key: string;
   url: string;
   hashes?: SimpleLinkProps[];
   setHashes?: (hashes: SimpleLinkProps[]) => void;
+  setShowDefaultLink?: (showDefaultLink: boolean) => void;
 }) {
   const apexDomain = getApexDomain(url);
 
@@ -76,11 +78,6 @@ export default function LinkCard({
     }
   };
 
-  const sendErrorToast = useDebouncedCallback(
-    () => toast.error("Cannot delete default link."),
-    100,
-  );
-
   useEffect(() => {
     const unsubscribeX = x.onChange(() => {
       if (cardElem.current) {
@@ -88,11 +85,12 @@ export default function LinkCard({
         const parentNode = cardElem.current.parentNode;
         const deleted = isDelete(childNode, parentNode);
         if (deleted) {
+          toast.success("Link deleted.");
+          if (setShowDefaultLink) {
+            setShowDefaultLink(false);
+          }
           if (hashes && setHashes) {
             setHashes(hashes.filter((hash) => hash.key !== key));
-            toast.success("Link deleted.");
-          } else {
-            sendErrorToast(); // debounce to prevent multiple toasts
           }
         }
       }
@@ -121,19 +119,19 @@ export default function LinkCard({
         onDrag={() => setVelocity(x.getVelocity())}
         onDragEnd={() => flyAway(500)}
         whileTap={{ scale: 1.05 }}
-        className="cursor-grab active:cursor-grabbing flex items-center space-x-3 border border-gray-200 hover:border-black bg-white p-3 max-w-md rounded-md transition-[border-color]"
+        className="flex max-w-md cursor-grab items-center space-x-3 rounded-md border border-gray-200 bg-white p-3 shadow-lg transition-[border-color] hover:border-black active:cursor-grabbing"
       >
         <BlurImage
           src={`https://www.google.com/s2/favicons?sz=64&domain_url=${apexDomain}`}
           alt={apexDomain}
-          className="w-10 h-10 rounded-full pointer-events-none"
+          className="pointer-events-none h-10 w-10 rounded-full"
           width={20}
           height={20}
         />
         <div>
-          <div className="flex items-center space-x-2 mb-1">
+          <div className="mb-1 flex items-center space-x-2">
             <a
-              className="text-blue-800 font-semibold"
+              className="font-semibold text-blue-800"
               href={linkConstructor({ key })}
               target="_blank"
               rel="noreferrer"
@@ -143,10 +141,10 @@ export default function LinkCard({
             <CopyButton url={linkConstructor({ key })} />
             <button
               onClick={() => setShowLinkQRModal(true)}
-              className="group p-1.5 rounded-full bg-gray-100 hover:bg-blue-100 hover:scale-105 active:scale-95 transition-all duration-75"
+              className="group rounded-full bg-gray-100 p-1.5 transition-all duration-75 hover:scale-105 hover:bg-blue-100 active:scale-95"
             >
               <span className="sr-only">Copy</span>
-              <QR className="text-gray-700 group-hover:text-blue-800 transition-all" />
+              <QR className="text-gray-700 transition-all group-hover:text-blue-800" />
             </button>
             <Link
               href={{ pathname: "/", query: { key } }}
@@ -154,20 +152,20 @@ export default function LinkCard({
               shallow
               scroll={false}
             >
-              <a className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 hover:scale-105 active:scale-95 transition-all duration-75 text-gray-700">
-                <Chart className="w-4 h-4" />
+              <a className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 text-gray-700 transition-all duration-75 hover:scale-105 active:scale-95">
+                <Chart className="h-4 w-4" />
                 <p className="text-sm">
                   {isValidating ? (
                     <LoadingDots color="#71717A" />
                   ) : (
                     nFormatter(clicks)
                   )}
-                  <span className="hidden sm:inline-block ml-1">clicks</span>
+                  <span className="ml-1 hidden sm:inline-block">clicks</span>
                 </p>
               </a>
             </Link>
           </div>
-          <p className="text-sm text-gray-500 truncate w-72">{url}</p>
+          <p className="w-72 truncate text-sm text-gray-500">{url}</p>
         </div>
       </motion.div>
     </motion.li>

@@ -31,7 +31,7 @@ export default function Locations({ data: rawData }: { data: StatsProps }) {
 
   return (
     <div
-      className="relative bg-white px-7 py-5 sm:shadow-lg sm:rounded-lg border border-gray-200 sm:border-gray-100  h-[420px] overflow-scroll scrollbar-hide"
+      className="relative h-[420px] overflow-scroll border border-gray-200 bg-white px-7 py-5 scrollbar-hide  sm:rounded-lg sm:border-gray-100 sm:shadow-lg"
       onScroll={handleScroll}
     >
       <div className="mb-5 flex justify-between">
@@ -47,38 +47,38 @@ export default function Locations({ data: rawData }: { data: StatsProps }) {
         className={
           data.locationData && data.locationData.length > 0
             ? "grid gap-4"
-            : "h-[300px] flex justify-center items-center"
+            : "flex h-[300px] items-center justify-center"
         }
       >
         {data.locationData ? (
           data.locationData.length > 0 ? (
             data.locationData.map(({ display, code, count }, idx) => (
-              <div key={idx} className="flex justify-between items-center">
-                <div className="relative flex items-center z-10 w-full max-w-[calc(100%-3rem)]">
-                  <span className="flex space-x-2 px-2 items-center z-10">
+              <div key={idx} className="flex items-center justify-between">
+                <div className="relative z-10 flex w-full max-w-[calc(100%-3rem)] items-center">
+                  <span className="z-10 flex items-center space-x-2 px-2">
                     <img
                       src={`https://flag.vercel.app/m/${code}.svg`}
-                      className="w-5 h-3"
+                      className="h-3 w-5"
                     />
-                    <p className="text-gray-800 text-sm">{display}</p>
+                    <p className="text-sm text-gray-800">{display}</p>
                   </span>
                   <motion.div
                     style={{
                       width: `${(count / data.totalClicks) * 100}%`,
                     }}
-                    className="bg-orange-100 absolute h-8 origin-left"
+                    className="absolute h-8 origin-left bg-orange-100"
                     transition={{ ease: "easeOut", duration: 0.3 }}
                     initial={{ transform: "scaleX(0)" }}
                     animate={{ transform: "scaleX(1)" }}
                   />
                 </div>
-                <p className="text-gray-600 text-sm z-10">
+                <p className="z-10 text-sm text-gray-600">
                   {nFormatter(count)}
                 </p>
               </div>
             ))
           ) : (
-            <p className="text-gray-600 text-sm">No data available</p>
+            <p className="text-sm text-gray-600">No data available</p>
           )
         ) : (
           <LoadingDots color="#71717A" />
@@ -94,7 +94,7 @@ export default function Locations({ data: rawData }: { data: StatsProps }) {
               transition: { type: "linear", duration: 0.2 },
             }}
             exit={{ opacity: 0, y: 50, transition: { duration: 0 } }}
-            className="absolute w-full h-8 flex justify-center items-center bottom-0 left-0 right-0 bg-gradient-to-b from-white to-gray-100 text-sm text-gray-500"
+            className="absolute bottom-0 left-0 right-0 flex h-8 w-full items-center justify-center bg-gradient-to-b from-white to-gray-100 text-sm text-gray-500"
           >
             Show more
           </motion.div>

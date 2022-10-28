@@ -30,7 +30,7 @@ export default function WelcomeEmail({
                 cssClass="hero"
                 padding="0"
                 align="left"
-                src="https://raw.githubusercontent.com/steven-tey/dub/main/public/static/thumbnail.png"
+                src="https://raw.githubusercontent.com/steven-tey/dub/main/public/_static/thumbnail.png"
               />
             </MjmlColumn>
           </MjmlSection>

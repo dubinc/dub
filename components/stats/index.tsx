@@ -41,9 +41,9 @@ export default function Stats({
   return (
     <div className="bg-gray-50 py-10">
       <Toggle domain={domain} atModalTop={atModalTop} />
-      <div className="max-w-4xl mx-auto grid gap-5">
+      <div className="mx-auto grid max-w-4xl gap-5">
         <Clicks data={data!} isValidating={isValidating} />
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <Locations data={data!} />
           <Devices data={data!} />
           <Referer data={data!} />

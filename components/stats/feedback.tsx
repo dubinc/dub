@@ -34,18 +34,18 @@ export default function Feedback() {
   };
 
   return (
-    <div className="relative bg-white px-7 py-5 sm:shadow-lg sm:rounded-lg border border-gray-200 sm:border-gray-100 h-[420px] overflow-scroll scrollbar-hide">
+    <div className="relative h-[420px] overflow-scroll border border-gray-200 bg-white px-7 py-5 scrollbar-hide sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
       <div className="mb-5 flex">
         <h1 className="text-xl font-semibold">Feedback</h1>
       </div>
       <AnimatePresence>
         {state === "submitted" ? (
           <motion.div
-            className="h-[280px] flex flex-col justify-center items-center space-y-3"
+            className="flex h-[280px] flex-col items-center justify-center space-y-3"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <CheckCircleFill className="w-10 h-10 text-green-500" />
+            <CheckCircleFill className="h-10 w-10 text-green-500" />
             <p className="text-gray-500">Thank you for your feedback!</p>
           </motion.div>
         ) : (
@@ -58,7 +58,7 @@ export default function Feedback() {
             <div>
               <label
                 htmlFor="email"
-                className="block text-xs font-medium text-gray-500 mb-2"
+                className="mb-2 block text-xs font-medium text-gray-500"
               >
                 EMAIL
               </label>
@@ -68,13 +68,13 @@ export default function Feedback() {
                 placeholder="panic@thedis.co"
                 autoComplete="email"
                 onChange={(e) => setData({ ...data, email: e.target.value })}
-                className="border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500 pr-10 block w-full rounded-md focus:outline-none sm:text-sm"
+                className="block w-full rounded-md border-gray-300 pr-10 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
               />
             </div>
             <div>
               <label
                 htmlFor="feedback"
-                className="block text-xs font-medium text-gray-500 mb-2"
+                className="mb-2 block text-xs font-medium text-gray-500"
               >
                 FEEDBACK
               </label>
@@ -84,7 +84,7 @@ export default function Feedback() {
                 minRows={5}
                 required={true}
                 onKeyDown={handleKeyDown}
-                className="border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500 pr-10 block w-full rounded-md focus:outline-none sm:text-sm"
+                className="block w-full rounded-md border-gray-300 pr-10 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
                 placeholder="What other data would you like to see?"
                 value={data.feedback}
                 onChange={(e) => setData({ ...data, feedback: e.target.value })}
@@ -95,9 +95,9 @@ export default function Feedback() {
               disabled={state === "submitting"}
               className={`${
                 state === "submitting"
-                  ? "cursor-not-allowed bg-gray-100 border-gray-200"
-                  : "bg-black hover:bg-white text-white hover:text-black border-black"
-              } flex justify-center items-center w-full text-sm h-10 rounded-md border transition-all focus:outline-none`}
+                  ? "cursor-not-allowed border-gray-200 bg-gray-100"
+                  : "border-black bg-black text-white hover:bg-white hover:text-black"
+              } flex h-10 w-full items-center justify-center rounded-md border text-sm transition-all focus:outline-none`}
             >
               {state === "submitting" ? (
                 <LoadingDots color="#808080" />
