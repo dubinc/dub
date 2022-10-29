@@ -19,7 +19,7 @@ export default function LinksContainer({
     slug: string;
   };
 
-  const { project: { domain } = {} } = useProject();
+  const { project: { domain } = {}, loading } = useProject();
 
   const { data: links } = useSWR<LinkProps[]>(
     domain
@@ -36,7 +36,7 @@ export default function LinksContainer({
     <MaxWidthWrapper className="pb-10">
       <LinkFilters />
       <ul className="grid grid-cols-1 gap-3">
-        {links ? (
+        {links && !loading ? (
           links.length > 0 ? (
             links.map((props) => <LinkCard key={props.key} props={props} />)
           ) : (

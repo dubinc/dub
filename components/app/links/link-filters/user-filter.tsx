@@ -2,7 +2,7 @@ import { useRouter } from "next/router";
 import { useMemo, useState } from "react";
 import useSWR from "swr";
 import BlurImage from "@/components/shared/blur-image";
-import { ChevronDown, Search, Tick, X } from "@/components/shared/icons";
+import { ChevronDown, Search, X } from "@/components/shared/icons";
 import Popover from "@/components/shared/popover";
 import { UserProps } from "@/lib/types";
 import { fetcher } from "@/lib/utils";

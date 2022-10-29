@@ -8,7 +8,7 @@ import useProject from "@/lib/swr/use-project";
 import useUsage from "@/lib/swr/use-usage";
 import { fetcher, nFormatter } from "@/lib/utils";
 
-export default function DefaultPage() {
+export default function LandingPage() {
   const router = useRouter();
   const { slug } = router.query as { slug: string };
 

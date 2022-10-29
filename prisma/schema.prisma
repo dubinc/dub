@@ -76,12 +76,23 @@ model Project {
   createdAt                   DateTime @default(now())
   updatedAt                   DateTime @updatedAt
   users                       ProjectUsers[]
+  invites                     ProjectInvite[]
   domainLastChecked           DateTime @default(now())
   usage                       Int      @default(0)
   ownerUsageLimit             Int      @default(1000)
   ownerExceededUsage          Boolean  @default(false)
   sentEmails                  SentEmail[]
   links                       Link[]
+}
+
+model ProjectInvite {
+  email       String
+  expires     DateTime
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String
+  createdAt   DateTime @default(now())
+
+  @@unique([email, projectId])
 }
 
 model ProjectUsers {

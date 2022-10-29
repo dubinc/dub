@@ -1,19 +1,19 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { getSession, withUserAuth } from "@/lib/auth";
+import { getSession, Session, withUserAuth } from "@/lib/auth";
 import { DEFAULT_REDIRECTS, RESERVED_KEYS } from "@/lib/constants";
 import { addDomain, removeDomain } from "@/lib/domains";
 import prisma from "@/lib/prisma";
 import { validDomainRegex } from "@/lib/utils";
 
 export default withUserAuth(
-  async (req: NextApiRequest, res: NextApiResponse, userId: string) => {
+  async (req: NextApiRequest, res: NextApiResponse, session: Session) => {
     // GET /api/projects – get all projects associated with the authenticated user
     if (req.method === "GET") {
       const response = await prisma.project.findMany({
         where: {
           users: {
             some: {
-              userId,
+              userId: session.user.id,
             },
           },
         },
@@ -75,7 +75,7 @@ export default withUserAuth(
             domain,
             users: {
               create: {
-                userId,
+                userId: session.user.id,
                 role: "owner",
               },
             },

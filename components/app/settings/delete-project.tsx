@@ -19,7 +19,7 @@ export default function DeleteProject() {
       <div className="flex items-center justify-end px-10 py-4">
         <button
           onClick={() => setShowDeleteProjectModal(true)}
-          className="h-9 w-32 rounded-md border border-red-500 bg-red-500 text-sm text-white transition-all duration-150 ease-in-out hover:bg-white hover:text-red-500 focus:outline-none"
+          className="h-9 w-32 rounded-md border border-red-600 bg-red-600 text-sm text-white transition-all duration-150 ease-in-out hover:bg-white hover:text-red-600 focus:outline-none"
         >
           Delete Project
         </button>

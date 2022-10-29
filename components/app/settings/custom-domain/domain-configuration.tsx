@@ -2,9 +2,9 @@ import { useState } from "react";
 import { DomainVerificationStatusProps } from "@/lib/types";
 import { getSubdomain } from "@/lib/utils";
 
-const InlineSnippet = ({ children }: { children: string }) => {
+export const InlineSnippet = ({ children }: { children: string }) => {
   return (
-    <span className="inline-block rounded-md bg-blue-100 p-1 font-mono text-blue-900">
+    <span className="inline-block rounded-md bg-blue-100 px-1 py-0.5 font-mono text-blue-900">
       {children}
     </span>
   );
