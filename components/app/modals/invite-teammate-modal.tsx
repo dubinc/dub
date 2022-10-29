@@ -11,6 +11,7 @@ import BlurImage from "@/components/shared/blur-image";
 import LoadingDots from "@/components/shared/icons/loading-dots";
 import Modal from "@/components/shared/modal";
 import useProject from "@/lib/swr/use-project";
+import toast from "react-hot-toast";
 
 function InviteTeammateModal({
   showInviteTeammateModal,
@@ -57,7 +58,9 @@ function InviteTeammateModal({
             }).then(async (res) => {
               if (res.status === 200) {
                 setState("invited");
+                toast.success("Invitation sent!");
                 mutate(`/api/projects/${slug}/invite`);
+                setShowInviteTeammateModal(false);
               } else {
                 setState("idle");
                 const response = await res.json();

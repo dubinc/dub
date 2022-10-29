@@ -11,7 +11,7 @@ import BlurImage from "@/components/shared/blur-image";
 import LoadingDots from "@/components/shared/icons/loading-dots";
 import Modal from "@/components/shared/modal";
 import useProject from "@/lib/swr/use-project";
-import { InlineSnippet } from "../settings/custom-domain/domain-configuration";
+import toast from "react-hot-toast";
 
 function AcceptInviteModal({
   showAcceptInviteModal,
@@ -42,7 +42,10 @@ function AcceptInviteModal({
           <h3 className="text-lg font-medium">Project Invitation</h3>
           <p className="text-center text-sm text-gray-500">
             You've been invited to join and collaborate on the{" "}
-            <InlineSnippet>{slug}</InlineSnippet> team on Dub
+            <span className="font-mono text-purple-600">
+              {slug || "......"}
+            </span>{" "}
+            team on Dub
           </p>
         </div>
         <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16">
@@ -52,9 +55,10 @@ function AcceptInviteModal({
               fetch(`/api/projects/${slug}/invite/accept`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-              }).then(async () => {
+              }).then(() => {
+                toast.success("You now are a part of this project!");
                 mutate(`/api/projects/${slug}`);
-                setShowAcceptInviteModal(false);
+                mutate(`/api/projects/${slug}/users`);
               });
             }}
             disabled={accepting}
