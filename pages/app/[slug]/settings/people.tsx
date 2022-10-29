@@ -60,8 +60,9 @@ export default function ProjectSettingsPeople() {
           ))}
         </div>
         <div className="grid divide-y divide-gray-200">
-          {users
-            ? users.map(({ name, email, joinedAt }) => (
+          {users ? (
+            users.length > 0 ? (
+              users.map(({ name, email, joinedAt }) => (
                 <div className="flex items-center justify-between space-x-3 px-8 py-3">
                   <div className="flex items-center space-x-3">
                     <BlurImage
@@ -86,9 +87,21 @@ export default function ProjectSettingsPeople() {
                   </p>
                 </div>
               ))
-            : Array.from({ length: 3 }).map((_, i) => (
-                <UserPlaceholder key={i} />
-              ))}
+            ) : (
+              <div className="flex flex-col items-center justify-center py-10">
+                <BlurImage
+                  src="/_static/illustrations/video-park.svg"
+                  alt="No invitations sent"
+                  width={300}
+                  height={300}
+                  className="pointer-events-none -my-8"
+                />
+                <p className="text-sm text-gray-500">No invitations sent</p>
+              </div>
+            )
+          ) : (
+            Array.from({ length: 5 }).map((_, i) => <UserPlaceholder key={i} />)
+          )}
         </div>
       </div>
     </SettingsLayout>
