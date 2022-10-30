@@ -5,7 +5,7 @@ interface MenuIconProps {
   text: string;
 }
 
-export default function MenuIcon({ icon, text }: MenuIconProps) {
+export default function IconMenu({ icon, text }: MenuIconProps) {
   return (
     <div className="flex items-center justify-start space-x-2">
       {icon}

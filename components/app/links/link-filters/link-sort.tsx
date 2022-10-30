@@ -1,7 +1,6 @@
 import { useRouter } from "next/router";
 import { useMemo, useState } from "react";
-import MenuIcon from "@/components/layout/app/menu-icon";
-import BlurImage from "@/components/shared/blur-image";
+import IconMenu from "@/components/shared/icon-menu";
 import {
   ChevronDown,
   Sort,
@@ -55,9 +54,9 @@ export default function LinkSort() {
               }}
               className="flex w-full items-center justify-between space-x-2 rounded-md px-1 py-2 hover:bg-gray-100 active:bg-gray-200"
             >
-              <MenuIcon
+              <IconMenu
                 text={display}
-                icon={<SortDesc className="w-4 h-4" />}
+                icon={<SortDesc className="h-4 w-4" />}
               />
               {selectedSort.slug === slug && (
                 <Tick className="h-4 w-4" aria-hidden="true" />
@@ -73,7 +72,7 @@ export default function LinkSort() {
         onClick={() => setOpenPopover(!openPopover)}
         className="flex w-full items-center justify-between space-x-2 rounded-md bg-white px-3 py-2.5 shadow transition-all duration-75 hover:shadow-md active:scale-95 sm:w-48"
       >
-        <MenuIcon text="Sort by" icon={<Sort className="h-4 w-4 shrink-0" />} />
+        <IconMenu text="Sort by" icon={<Sort className="h-4 w-4 shrink-0" />} />
         <ChevronDown
           className={`h-5 w-5 text-gray-400 ${
             openPopover ? "rotate-180 transform" : ""

@@ -6,7 +6,7 @@ import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal
 import { useArchiveLinkModal } from "@/components/app/modals/archive-link-modal";
 import { useDeleteLinkModal } from "@/components/app/modals/delete-link-modal";
 import { useLinkQRModal } from "@/components/app/modals/link-qr-modal";
-import MenuIcon from "@/components/layout/app/menu-icon";
+import IconMenu from "@/components/shared/icon-menu";
 import BlurImage from "@/components/shared/blur-image";
 import CopyButton from "@/components/shared/copy-button";
 import {
@@ -177,7 +177,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                     }}
                     className="w-full rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
                   >
-                    <MenuIcon text="Edit" icon={<Edit className="h-4 w-4" />} />
+                    <IconMenu text="Edit" icon={<Edit className="h-4 w-4" />} />
                   </button>
                 )}
                 <button
@@ -187,7 +187,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                   }}
                   className="w-full rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
                 >
-                  <MenuIcon
+                  <IconMenu
                     text="Archive"
                     icon={<Archive className="h-4 w-4" />}
                   />
@@ -199,7 +199,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                   }}
                   className="w-full rounded-md p-2 text-left text-sm font-medium text-red-600 transition-all duration-75 hover:bg-red-600 hover:text-white"
                 >
-                  <MenuIcon
+                  <IconMenu
                     text="Delete"
                     icon={<Delete className="h-4 w-4" />}
                   />
