@@ -75,7 +75,7 @@ export default function ProjectSettingsPeople() {
                     <div className="flex flex-col">
                       <h3 className="text-sm font-medium">
                         {currentTab === "Members"
-                          ? name || "Anonymous"
+                          ? name || email
                           : "Invitation Sent"}
                       </h3>
                       <p className="text-xs text-gray-500">{email}</p>
