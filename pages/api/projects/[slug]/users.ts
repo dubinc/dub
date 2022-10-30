@@ -1,9 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { withProjectAuth } from "@/lib/auth";
-import { removeDomain } from "@/lib/domains";
 import prisma from "@/lib/prisma";
 import { ProjectProps } from "@/lib/types";
-import { deleteProject } from "@/lib/upstash";
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse, project: ProjectProps) => {
@@ -17,21 +15,27 @@ export default withProjectAuth(
     // GET /api/projects/[slug]/users – get users for a specific project
     if (req.method === "GET") {
       const { id: projectId } = project;
-      const users = await prisma.user.findMany({
+      const users = await prisma.projectUsers.findMany({
         where: {
-          projects: {
-            some: {
-              projectId,
-            },
-          },
+          projectId,
         },
         select: {
-          id: true,
-          name: true,
-          email: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          createdAt: true,
         },
       });
-      return res.status(200).json(users);
+      return res.status(200).json(
+        users.map((u) => ({
+          ...u.user,
+          joinedAt: u.createdAt,
+        })),
+      );
     } else {
       res.setHeader("Allow", ["GET"]);
       return res

@@ -68,7 +68,7 @@ export default function Login() {
               id="email"
               name="email"
               type="email"
-              placeholder="Email Address"
+              placeholder="panic@thedis.co"
               autoComplete="email"
               required
               onChange={(e) => {

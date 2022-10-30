@@ -1,14 +1,14 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { withUserAuth } from "@/lib/auth";
+import { Session, withUserAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
 export default withUserAuth(
-  async (req: NextApiRequest, res: NextApiResponse, userId: string) => {
+  async (req: NextApiRequest, res: NextApiResponse, session: Session) => {
     // GET /api/usage – get a user's usage over all the projects they're an owner of
     if (req.method === "GET") {
       const response = await prisma.user.findUnique({
         where: {
-          id: userId,
+          id: session.user.id,
         },
         select: {
           usage: true,

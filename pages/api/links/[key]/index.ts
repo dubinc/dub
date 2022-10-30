@@ -1,12 +1,12 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { deleteLink, editLink } from "@/lib/api/links";
-import { withUserAuth } from "@/lib/auth";
+import { Session, withUserAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
 const domain = "dub.sh";
 
 export default withUserAuth(
-  async (req: NextApiRequest, res: NextApiResponse, userId: string) => {
+  async (req: NextApiRequest, res: NextApiResponse, session: Session) => {
     const { key: oldKey } = req.query as { key: string };
 
     const isOwner = await prisma.link
@@ -18,7 +18,7 @@ export default withUserAuth(
           },
         },
       })
-      .then((link) => link?.userId === userId);
+      .then((link) => link?.userId === session.user.id);
 
     if (!isOwner) {
       return res.status(403).json({ error: "Not authorized" });
@@ -35,7 +35,7 @@ export default withUserAuth(
         {
           domain,
           ...req.body,
-          userId,
+          userId: session.user.id,
         },
         oldKey,
         "dub",
