@@ -80,7 +80,7 @@ export default function Modal({
             <motion.div
               ref={mobileModalRef}
               key="mobile-modal"
-              className="group fixed bottom-0 inset-x-0 z-40 w-screen sm:hidden cursor-grab active:cursor-grabbing"
+              className="group fixed inset-x-0 bottom-0 z-40 w-screen cursor-grab active:cursor-grabbing sm:hidden"
               initial={{ y: "100%" }}
               animate={controls}
               exit={{ y: "100%" }}
@@ -92,17 +92,17 @@ export default function Modal({
               dragConstraints={{ top: 0, bottom: 0 }}
             >
               <div
-                className={`h-7 ${bgColor} w-full flex items-center justify-center rounded-t-4xl border-t border-gray-200 -mb-1`}
+                className={`h-7 ${bgColor} rounded-t-4xl -mb-1 flex w-full items-center justify-center border-t border-gray-200`}
               >
-                <div className="rounded-full h-1 w-6 -mr-1 bg-gray-300 group-active:rotate-12 transition-all" />
-                <div className="rounded-full h-1 w-6 bg-gray-300 group-active:-rotate-12 transition-all" />
+                <div className="-mr-1 h-1 w-6 rounded-full bg-gray-300 transition-all group-active:rotate-12" />
+                <div className="h-1 w-6 rounded-full bg-gray-300 transition-all group-active:-rotate-12" />
               </div>
               {children}
             </motion.div>
             <motion.div
               ref={desktopModalRef}
               key="desktop-modal"
-              className="fixed inset-0 z-40 min-h-screen hidden sm:flex items-center justify-center"
+              className="fixed inset-0 z-40 hidden min-h-screen items-center justify-center sm:flex"
               initial={{ scale: 0.95 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.95 }}

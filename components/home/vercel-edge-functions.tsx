@@ -24,7 +24,7 @@ export default function VercelEdgeFunctions() {
 
   return (
     <a
-      className={`text-transparent bg-clip-text bg-gradient-to-r ${
+      className={`bg-gradient-to-r bg-clip-text text-transparent ${
         vercelFontColor || "from-blue-600 to-cyan-600"
       }`}
       href="https://vercel.com/edge"

@@ -1,5 +1,5 @@
 <a href="https://dub.sh">
-  <img alt="Dub – an open-source link shortener SaaS with built-in analytics + free custom domains." src="/public/static/thumbnail.png">
+  <img alt="Dub – an open-source link shortener SaaS with built-in analytics + free custom domains." src="/public/_static/thumbnail.png">
   <h1 align="center">Dub</h1>
 </a>
 
@@ -26,25 +26,25 @@ Here are some of the features that Dub provides out-of-the-box:
 
 Dub provides a powerful analytics dashboard for your links, including geolocation, device, and browser information.
 
-![Analytics Dashboard](/public/static/landing/analytics.png)
+![Analytics Dashboard](/public/_static/landing/analytics.png)
 
 ### Custom domains
 
 You can easily configure custom domains on Dub – just add an A/CNAME record to your DNS provider and you're good to go. This is built on the [Vercel Domains API](https://domains-api.vercel.app/).
 
-![Custom Domains](/public/static/landing/domains.png)
+![Custom Domains](/public/_static/landing/domains.png)
 
 ### QR Code Generator
 
 You can easily generate and customize QR codes for your links, which can be used for flyers, posters, powerpoint presentations, etc.
 
-![QR Code](/public/static/landing/qr.png)
+![QR Code](/public/_static/landing/qr.png)
 
 ### OG Image Proxy
 
 Add a custom OG image in front of your target URL. Bots like Twitter/Facebook will be served this image, while users will be redirected to your target URL.
 
-![OG Image Proxy](/public/static/landing/og-image-proxy.gif)
+![OG Image Proxy](/public/_static/landing/og-image-proxy.gif)
 
 ## Deploy Your Own
 

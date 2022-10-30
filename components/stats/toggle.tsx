@@ -38,21 +38,21 @@ export default function Toggle({
 
   return (
     <div
-      className={`z-10 mb-5 ${
-        pageType === "stats" ? "top-0" : "top-24"
-      } sticky py-5 bg-gray-50 ${atTop ? "shadow-md" : ""}`}
+      className={`z-20 mb-5 ${
+        pageType === "stats" ? "top-0" : "top-[6.95rem]"
+      } sticky bg-gray-50 py-3 sm:py-5 ${atTop ? "shadow-md" : ""}`}
     >
-      <div className="max-w-4xl mx-auto flex justify-between items-center lg:px-0 px-2.5">
+      <div className="mx-auto flex max-w-4xl flex-col items-center justify-between space-y-3 px-2.5 sm:flex-row sm:space-y-0 lg:px-0">
         <a
-          className="group flex text-lg sm:text-xl text-gray-800 font-semibold"
+          className="group flex text-lg font-semibold text-gray-800 sm:text-xl"
           href={linkConstructor({ key, domain })}
           target="_blank"
           rel="noreferrer"
         >
           {linkConstructor({ key, domain, pretty: true })}
-          <ExpandingArrow className="w-5 h-5" />
+          <ExpandingArrow className="h-5 w-5" />
         </a>
-        <div className="px-3 py-1 rounded-md shadow-md border bg-white border-gray-100">
+        <div className="rounded-md border border-gray-100 bg-white px-3 py-1 shadow-md">
           <BadgeSelect
             options={INTERVALS}
             selected={currentInterval}

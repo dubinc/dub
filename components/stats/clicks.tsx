@@ -11,19 +11,19 @@ export default function Clicks({
   isValidating: boolean;
 }) {
   return (
-    <div className="max-w-4xl bg-white p-5 sm:p-10 sm:pr-20 sm:shadow-lg sm:rounded-lg border border-gray-200 sm:border-gray-100 ">
+    <div className="max-w-4xl border border-gray-200 bg-white p-5 sm:rounded-lg sm:border-gray-100 sm:p-10 sm:pr-20 sm:shadow-lg ">
       <div className="mb-5 text-left">
-        <div className="flex space-x-1 items-end">
+        <div className="flex items-end space-x-1">
           {isValidating ? (
-            <div className="h-10 w-12 rounded-md bg-gray-200 animate-pulse" />
+            <div className="h-10 w-12 animate-pulse rounded-md bg-gray-200" />
           ) : (
-            <h1 className="text-3xl sm:text-4xl font-bold">
+            <h1 className="text-3xl font-bold sm:text-4xl">
               {nFormatter(data.totalClicks)}
             </h1>
           )}
-          <Chart className="text-gray-600 w-6 h-6 mb-1" />
+          <Chart className="mb-1 h-6 w-6 text-gray-600" />
         </div>
-        <p className="uppercase text-gray-600 text-sm font-medium">
+        <p className="text-sm font-medium uppercase text-gray-600">
           Total Clicks
         </p>
       </div>

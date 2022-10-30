@@ -51,6 +51,7 @@ export interface UserProps {
   email: string;
   stripeId: string;
   usageLimit: number;
+  joinedAt?: Date;
   projects?: { projectId: string }[];
 }
 

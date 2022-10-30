@@ -78,16 +78,16 @@ function AddProjectModalHelper({
       showModal={showAddProjectModal}
       setShowModal={setShowAddProjectModal}
     >
-      <div className="inline-block w-full sm:max-w-md overflow-hidden align-middle transition-all transform bg-white sm:border sm:border-gray-200 shadow-xl sm:rounded-2xl">
-        <div className="flex flex-col justify-center items-center space-y-3 sm:px-16 px-4 pt-8 py-4 border-b border-gray-200">
+      <div className="inline-block w-full transform overflow-hidden bg-white align-middle shadow-xl transition-all sm:max-w-md sm:rounded-2xl sm:border sm:border-gray-200">
+        <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
           <BlurImage
-            src={`/static/logo.png`}
+            src={`/_static/logo.png`}
             alt={"dub.sh"}
-            className="w-10 h-10 rounded-full border border-gray-200"
+            className="h-10 w-10 rounded-full border border-gray-200"
             width={20}
             height={20}
           />
-          <h3 className="font-medium text-lg">Add a new project</h3>
+          <h3 className="text-lg font-medium">Add a new project</h3>
         </div>
 
         <form
@@ -121,7 +121,7 @@ function AddProjectModalHelper({
               }
             });
           }}
-          className="flex flex-col space-y-6 text-left bg-gray-50 sm:px-16 px-4 py-8"
+          className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16"
         >
           <div>
             <label
@@ -130,13 +130,13 @@ function AddProjectModalHelper({
             >
               Project Name
             </label>
-            <div className="flex mt-1 rounded-md shadow-sm">
+            <div className="mt-1 flex rounded-md shadow-sm">
               <input
                 name="name"
                 id="name"
                 type="text"
                 required
-                className="border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500 block w-full rounded-md focus:outline-none sm:text-sm"
+                className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
                 placeholder="Dub"
                 value={name}
                 onChange={(e) => {
@@ -154,7 +154,7 @@ function AddProjectModalHelper({
             >
               Project Slug
             </label>
-            <div className="relative flex mt-1 rounded-md shadow-sm">
+            <div className="relative mt-1 flex rounded-md shadow-sm">
               <span className="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-5 text-gray-500 sm:text-sm">
                 app.dub.sh
               </span>
@@ -168,7 +168,7 @@ function AddProjectModalHelper({
                   slugError
                     ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                     : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
-                } pr-10 block w-full rounded-r-md focus:outline-none sm:text-sm`}
+                } block w-full rounded-r-md pr-10 focus:outline-none sm:text-sm`}
                 placeholder="dub"
                 value={slug}
                 onChange={(e) => {
@@ -200,7 +200,7 @@ function AddProjectModalHelper({
             >
               Domain
             </label>
-            <div className="relative flex mt-1 rounded-md shadow-sm">
+            <div className="relative mt-1 flex rounded-md shadow-sm">
               <input
                 name="domain"
                 id="domain"
@@ -211,7 +211,7 @@ function AddProjectModalHelper({
                   domainError
                     ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                     : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
-                } pr-10 block w-full rounded-md focus:outline-none sm:text-sm`}
+                } block w-full rounded-md pr-10 focus:outline-none sm:text-sm`}
                 placeholder="dub.sh"
                 value={domain}
                 onChange={(e) => {
@@ -252,9 +252,9 @@ function AddProjectModalHelper({
             disabled={saving || slugError || domainError}
             className={`${
               saving || slugError || domainError
-                ? "cursor-not-allowed bg-gray-100 border-gray-200 text-gray-400"
-                : "bg-black hover:bg-white hover:text-black border-black text-white"
-            } flex justify-center items-center w-full text-sm h-10 rounded-md border transition-all focus:outline-none`}
+                ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
+                : "border-black bg-black text-white hover:bg-white hover:text-black"
+            } flex h-10 w-full items-center justify-center rounded-md border text-sm transition-all focus:outline-none`}
           >
             {saving ? <LoadingDots color="#808080" /> : <p>Add project</p>}
           </button>

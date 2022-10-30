@@ -31,8 +31,8 @@ export default function LinkPage({
           )}`}
         />
       </Head>
-      <main className="w-screen h-screen flex items-center justify-center">
-        <div className="w-full max-w-lg mx-5 sm:mx-0 border border-gray-200 rounded-lg overflow-hidden">
+      <main className="flex h-screen w-screen items-center justify-center">
+        <div className="mx-5 w-full max-w-lg overflow-hidden rounded-lg border border-gray-200 sm:mx-0">
           <Image
             src={image}
             alt={title}
@@ -48,11 +48,11 @@ export default function LinkPage({
               alt={title}
               width={300}
               height={300}
-              className="w-6 h-6 mt-1"
+              className="mt-1 h-6 w-6"
             />
             <div className="flex flex-col space-y-3">
-              <h1 className="text-gray-700 font-bold">{title}</h1>
-              <p className="text-gray-500 text-sm">{description}</p>
+              <h1 className="font-bold text-gray-700">{title}</h1>
+              <p className="text-sm text-gray-500">{description}</p>
             </div>
           </div>
         </div>

@@ -26,7 +26,7 @@ export default function WelcomeEmail({ name }: { name?: string }): JSX.Element {
                 cssClass="hero"
                 padding="0"
                 align="left"
-                src="https://raw.githubusercontent.com/steven-tey/dub/main/public/static/thumbnail.png"
+                src="https://dub.sh/_static/thumbnail.png"
               />
             </MjmlColumn>
           </MjmlSection>

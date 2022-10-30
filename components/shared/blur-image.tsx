@@ -12,7 +12,7 @@ export default function BlurImage(props: ImageProps) {
       src={src}
       alt={props.alt}
       className={`${props.className} ${
-        isLoading ? "grayscale blur-md" : "grayscale-0 blur-0"
+        isLoading ? "blur-md grayscale" : "blur-0 grayscale-0"
       }`}
       onLoadingComplete={async () => {
         setLoading(false);

@@ -46,7 +46,7 @@ export const updateUsage = async () => {
       sentEmails: true,
     },
     orderBy: {
-      usageUpdatedAt: "desc",
+      usageUpdatedAt: "asc",
     },
     take: 50,
   });
@@ -180,26 +180,6 @@ const getUsage = async (
     });
     results = await pipeline.exec();
   }
-
-  const updateLinks = await Promise.all(
-    links.map(({ key }, index) => {
-      return prisma.link.update({
-        where: {
-          domain_key: {
-            domain,
-            key,
-          },
-        },
-        data: {
-          clicks: results[index],
-          clicksUpdatedAt: new Date(),
-        },
-      });
-    }),
-  );
-
-  console.log(updateLinks.length, "links updated for", domain);
-
   const usage = results.reduce((acc, curr) => acc + curr, 0);
   return usage;
 };

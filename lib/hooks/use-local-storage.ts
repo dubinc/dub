@@ -14,7 +14,7 @@ const useLocalStorage = <T>(
     }
   }, [key]);
 
-  const setValue = (value: any) => {
+  const setValue = (value: T) => {
     // Save state
     setStoredValue(value);
     // Save to localStorage

@@ -15,8 +15,8 @@ export default function BadgeSelect({
           className={`${
             option === selected
               ? "bg-gray-200 text-gray-800"
-              : "bg-gray-50 hover:bg-gray-100 text-gray-600"
-          } px-2 sm:px-3 py-1 rounded-md text-sm font-medium capitalize active:scale-90 transition-all duration-75`}
+              : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+          } rounded-md px-2 py-1 text-sm font-medium capitalize transition-all duration-75 active:scale-90 sm:px-3`}
           onClick={() => selectAction(option)}
         >
           {option}

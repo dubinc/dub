@@ -32,9 +32,9 @@ export default function Devices({ data: rawData }: { data: StatsProps }) {
   };
 
   return (
-    <div className="flex flex-col justify-between bg-white pt-5 sm:shadow-lg sm:rounded-lg border border-gray-200 sm:border-gray-100  h-[420px]">
+    <div className="flex h-[420px] flex-col justify-between border border-gray-200 bg-white pt-5 sm:rounded-lg sm:border-gray-100  sm:shadow-lg">
       <div
-        className="relative h-full overflow-scroll scrollbar-hide px-7"
+        className="relative h-full overflow-scroll px-7 scrollbar-hide"
         onScroll={handleScroll}
       >
         <div className="mb-5 flex justify-between">
@@ -50,23 +50,23 @@ export default function Devices({ data: rawData }: { data: StatsProps }) {
           className={
             data.deviceData && data.deviceData.length > 0
               ? "grid gap-4"
-              : "h-[300px] flex justify-center items-center"
+              : "flex h-[300px] items-center justify-center"
           }
         >
           {data.deviceData ? (
             data.deviceData.length > 0 ? (
               <>
                 {data.deviceData.map(({ display, count }, idx) => (
-                  <div key={idx} className="flex justify-between items-center">
-                    <div className="relative flex items-center z-10 w-full max-w-[calc(100%-3rem)]">
-                      <span className="flex space-x-2 px-2 items-center z-10">
+                  <div key={idx} className="flex items-center justify-between">
+                    <div className="relative z-10 flex w-full max-w-[calc(100%-3rem)] items-center">
+                      <span className="z-10 flex items-center space-x-2 px-2">
                         <DeviceIcon
                           display={display}
                           tab={tab}
-                          className="w-4 h-4"
+                          className="h-4 w-4"
                         />
                         <p
-                          className={`text-gray-800 text-sm ${
+                          className={`text-sm text-gray-800 ${
                             display !== "iOS" ? "capitalize" : ""
                           }`}
                         >
@@ -77,20 +77,20 @@ export default function Devices({ data: rawData }: { data: StatsProps }) {
                         style={{
                           width: `${(count / data.totalClicks) * 100}%`,
                         }}
-                        className="bg-green-100 absolute h-8 origin-left"
+                        className="absolute h-8 origin-left bg-green-100"
                         transition={{ ease: "easeOut", duration: 0.3 }}
                         initial={{ transform: "scaleX(0)" }}
                         animate={{ transform: "scaleX(1)" }}
                       />
                     </div>
-                    <p className="text-gray-600 text-sm z-10">
+                    <p className="z-10 text-sm text-gray-600">
                       {nFormatter(count)}
                     </p>
                   </div>
                 ))}
               </>
             ) : (
-              <p className="text-gray-600 text-sm">No data available</p>
+              <p className="text-sm text-gray-600">No data available</p>
             )
           ) : (
             <LoadingDots color="#71717A" />
@@ -106,7 +106,7 @@ export default function Devices({ data: rawData }: { data: StatsProps }) {
                 transition: { type: "linear", duration: 0.2 },
               }}
               exit={{ opacity: 0, y: 50, transition: { duration: 0 } }}
-              className="absolute w-full h-8 flex justify-center items-center bottom-0 left-0 right-0 bg-gradient-to-b from-white to-gray-100 text-sm text-gray-500"
+              className="absolute bottom-0 left-0 right-0 flex h-8 w-full items-center justify-center bg-gradient-to-b from-white to-gray-100 text-sm text-gray-500"
             >
               Show more
             </motion.div>
@@ -114,7 +114,7 @@ export default function Devices({ data: rawData }: { data: StatsProps }) {
         </AnimatePresence>
       </div>
 
-      <div className="flex justify-start items-center space-x-2 px-7 h-12 flex-shrink-0">
+      <div className="flex h-12 flex-shrink-0 items-center justify-start space-x-2 px-7">
         <input
           id="showBots"
           aria-describedby="showBots-description"
@@ -124,7 +124,7 @@ export default function Devices({ data: rawData }: { data: StatsProps }) {
           onChange={() => setShowBots(!showBots)}
           className="h-4 w-4 rounded text-black focus:outline-none focus:ring-0"
         />
-        <label htmlFor="showBots" className="text-gray-800 text-sm">
+        <label htmlFor="showBots" className="text-sm text-gray-800">
           Include Bots
         </label>
       </div>
