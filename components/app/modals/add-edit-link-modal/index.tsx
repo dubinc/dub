@@ -9,12 +9,15 @@ import {
 } from "react";
 import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
+import IconMenu from "@/components/shared/icon-menu";
 import BlurImage from "@/components/shared/blur-image";
 import {
   AlertCircleFill,
   LoadingCircle,
   LoadingDots,
+  PlusCircle,
   Random,
+  Save,
   X,
 } from "@/components/shared/icons";
 import Modal from "@/components/shared/modal";
@@ -298,7 +301,10 @@ function AddEditLinkModal({
               {saving ? (
                 <LoadingDots color="#808080" />
               ) : (
-                <p>{props ? "Save changes" : "Add link"}</p>
+                <IconMenu
+                  icon={props && <Save className="h-5 w-5" />}
+                  text={props ? "Save changes" : "Add link"}
+                />
               )}
             </button>
           </div>

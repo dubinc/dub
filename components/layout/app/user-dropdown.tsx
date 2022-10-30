@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { signOut, useSession } from "next-auth/react";
+import { Logout } from "@/components/shared/icons";
 import Popover from "@/components/shared/popover";
+import IconMenu from "../../shared/icon-menu";
 
 export default function UserDropdown() {
   const { data: session } = useSession();
@@ -15,7 +17,7 @@ export default function UserDropdown() {
               className="relative w-full rounded-md p-2 text-left text-sm transition-all duration-75 hover:bg-gray-100"
               onClick={() => signOut()}
             >
-              Logout
+              <IconMenu text="Logout" icon={<Logout className="h-4 w-4" />} />
             </button>
           </div>
         }
