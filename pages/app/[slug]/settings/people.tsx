@@ -70,7 +70,7 @@ export default function ProjectSettingsPeople() {
                       alt={email}
                       width={40}
                       height={40}
-                      className="rounded-full border border-gray-200"
+                      className="overflow-hidden rounded-full border border-gray-200"
                     />
                     <div className="flex flex-col">
                       <h3 className="text-sm font-medium">{name || email}</h3>
