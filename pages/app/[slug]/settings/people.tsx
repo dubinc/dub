@@ -73,11 +73,7 @@ export default function ProjectSettingsPeople() {
                       className="rounded-full border border-gray-200"
                     />
                     <div className="flex flex-col">
-                      <h3 className="text-sm font-medium">
-                        {currentTab === "Members"
-                          ? name || email
-                          : "Invitation Sent"}
-                      </h3>
+                      <h3 className="text-sm font-medium">{name || email}</h3>
                       <p className="text-xs text-gray-500">{email}</p>
                     </div>
                   </div>
