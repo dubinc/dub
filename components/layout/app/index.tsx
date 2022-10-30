@@ -52,11 +52,11 @@ export default function AppLayout({
                     <Logo className="h-8 w-8 transition-all duration-75 active:scale-95" />
                   </a>
                 </Link>
-                <Divider className="ml-3 h-8 w-8 text-gray-200" />
+                <Divider className="h-8 w-8 text-gray-200 sm:ml-3" />
                 <ProjectSelect />
                 {key && slug && (
                   <>
-                    <Divider className="mr-3 h-8 w-8 text-gray-200" />
+                    <Divider className="h-8 w-8 text-gray-200 sm:mr-3" />
                     <Link href={`/${slug}/${key}`}>
                       <a className="text-sm font-medium">{key}</a>
                     </Link>

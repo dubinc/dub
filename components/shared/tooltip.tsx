@@ -13,9 +13,11 @@ import { nFormatter } from "@/lib/utils";
 export default function Tooltip({
   children,
   content,
+  fullWidth,
 }: {
   children: ReactNode;
   content: ReactNode | string;
+  fullWidth?: boolean;
 }) {
   const [openTooltip, setOpenTooltip] = useState(false);
   const mobileTooltipRef = useRef(null);
@@ -38,7 +40,7 @@ export default function Tooltip({
   return (
     <>
       <button
-        className="inline-flex sm:hidden"
+        className={`${fullWidth ? "w-full" : "inline-flex"} sm:hidden`}
         onClick={() => setOpenTooltip(true)}
       >
         {children}

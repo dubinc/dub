@@ -38,11 +38,11 @@ export default function Toggle({
 
   return (
     <div
-      className={`z-10 mb-5 ${
-        pageType === "stats" ? "top-0" : "top-24"
-      } sticky bg-gray-50 py-5 ${atTop ? "shadow-md" : ""}`}
+      className={`z-20 mb-5 ${
+        pageType === "stats" ? "top-0" : "top-[6.95rem]"
+      } sticky bg-gray-50 py-3 sm:py-5 ${atTop ? "shadow-md" : ""}`}
     >
-      <div className="mx-auto flex max-w-4xl items-center justify-between px-2.5 lg:px-0">
+      <div className="mx-auto flex max-w-4xl flex-col items-center justify-between space-y-3 px-2.5 sm:flex-row sm:space-y-0 lg:px-0">
         <a
           className="group flex text-lg font-semibold text-gray-800 sm:text-xl"
           href={linkConstructor({ key, domain })}

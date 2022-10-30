@@ -12,7 +12,7 @@ export default function Divider({ className }: { className: string }) {
       height="14"
       className={className}
     >
-      <path d="M16.88 3.549L7.12 20.451" />{" "}
+      <path d="M16.88 3.549L7.12 20.451" />
     </svg>
   );
 }

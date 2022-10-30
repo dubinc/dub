@@ -50,8 +50,8 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
           </div>
         </MaxWidthWrapper>
       </div>
-      <MaxWidthWrapper className="grid grid-cols-5 items-start gap-5 py-10">
-        <div className="col-span-1 grid gap-1">
+      <MaxWidthWrapper className="grid items-start gap-5 py-10 md:grid-cols-5">
+        <div className="flex gap-1 md:grid">
           {tabs.map(({ name, href }) => (
             <Link href={href}>
               <a
@@ -64,7 +64,7 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
             </Link>
           ))}
         </div>
-        <div className="col-span-4 grid gap-5">{children}</div>
+        <div className="grid gap-5 md:col-span-4">{children}</div>
       </MaxWidthWrapper>
     </AppLayout>
   );
