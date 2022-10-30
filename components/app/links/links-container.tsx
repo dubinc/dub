@@ -8,6 +8,7 @@ import LinkCard from "./link-card";
 import LinkCardPlaceholder from "./link-card-placeholder";
 import LinkFilters from "./link-filters";
 import NoLinksPlaceholder from "./no-links-placeholder";
+import { useMemo } from "react";
 
 export default function LinksContainer({
   AddEditLinkButton,
@@ -32,20 +33,27 @@ export default function LinksContainer({
     },
   );
 
+  const loading = useMemo(() => {
+    if (slug) {
+      // need to include `domain` because if not it flashes the "no links" placeholder
+      return links && domain ? false : true;
+    } else {
+      return links ? false : true;
+    }
+  }, [links, domain, slug]);
+
   return (
     <MaxWidthWrapper className="pb-10">
       <LinkFilters />
       <ul className="grid grid-cols-1 gap-3">
-        {links && domain ? ( // need to include `domain` because if not it flashes the "no links" placeholder
-          links.length > 0 ? (
-            links.map((props) => <LinkCard key={props.key} props={props} />)
-          ) : (
-            <NoLinksPlaceholder AddEditLinkButton={AddEditLinkButton} />
-          )
-        ) : (
+        {loading ? (
           Array.from({ length: 5 }).map((_, i) => (
             <LinkCardPlaceholder key={i} />
           ))
+        ) : links.length > 0 ? (
+          links.map((props) => <LinkCard key={props.key} props={props} />)
+        ) : (
+          <NoLinksPlaceholder AddEditLinkButton={AddEditLinkButton} />
         )}
       </ul>
     </MaxWidthWrapper>
