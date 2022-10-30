@@ -25,7 +25,7 @@ export default function UserDropdown() {
       >
         <button
           onClick={() => setOpenPopover(!openPopover)}
-          className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-gray-300 transition-all duration-75 focus:outline-none active:scale-95"
+          className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-gray-300 transition-all duration-75 focus:outline-none active:scale-95 sm:h-10 sm:w-10"
         >
           {session && (
             <img

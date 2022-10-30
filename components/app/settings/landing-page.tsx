@@ -8,7 +8,7 @@ import useProject from "@/lib/swr/use-project";
 import useUsage from "@/lib/swr/use-usage";
 import { fetcher, nFormatter } from "@/lib/utils";
 
-export default function DefaultPage() {
+export default function LandingPage() {
   const router = useRouter();
   const { slug } = router.query as { slug: string };
 
@@ -51,22 +51,22 @@ export default function DefaultPage() {
       }}
       className="rounded-lg border border-gray-200 bg-white"
     >
-      <div className="flex flex-col space-y-3 p-10">
+      <div className="relative flex flex-col space-y-3 p-5 sm:p-10">
         <h2 className="text-xl font-medium">Landing Page</h2>
-        <div className="flex h-7 items-center space-x-1">
+        <div className="flex items-center space-x-1">
           <p className="text-sm text-gray-500">
-            Configure a page to redirect visitors when they land on
+            Configure a page to redirect visitors when they land on{" "}
+            <a
+              href={`https://${domain}`}
+              target="_blank"
+              rel="noreferrer"
+              className="text-sm font-semibold text-blue-800 transition-all hover:text-black"
+            >
+              {domain}
+            </a>
           </p>
-          <a
-            href={`https://${domain}`}
-            target="_blank"
-            rel="noreferrer"
-            className="text-sm font-semibold text-blue-800 transition-all hover:text-black"
-          >
-            {domain}
-          </a>
           {domainVerified && (
-            <div className="flex cursor-default items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5">
+            <div className="absolute top-5 right-5 flex cursor-default items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 sm:relative sm:inset-auto">
               <Chart className="h-4 w-4" />
               <p className="text-sm text-gray-500">
                 {isValidating || !clicks ? (
@@ -117,15 +117,15 @@ export default function DefaultPage() {
 
       <div className="border-b border-gray-200" />
 
-      <div className="flex items-center justify-end px-10 py-4">
-        {domainVerified && plan !== "Free" ? (
+      <div className="px-5 py-4 sm:flex sm:items-center sm:justify-end sm:px-10">
+        {false ? (
           <button
             disabled={saving}
             className={`${
               saving
                 ? "cursor-not-allowed border-gray-200 bg-gray-100"
                 : "border-black bg-black hover:bg-white hover:text-black"
-            } h-9 w-32 rounded-md border text-sm text-white transition-all duration-150 ease-in-out focus:outline-none`}
+            } h-9 w-full rounded-md border text-sm text-white transition-all duration-150 ease-in-out focus:outline-none sm:w-32`}
           >
             {saving ? <LoadingDots /> : "Save Changes"}
           </button>
@@ -146,8 +146,9 @@ export default function DefaultPage() {
                 />
               )
             }
+            fullWidth
           >
-            <div className="flex h-9 w-32 cursor-not-allowed items-center justify-center rounded-md border border-gray-200 bg-gray-100 text-sm text-gray-300">
+            <div className="flex h-9 w-full cursor-not-allowed items-center justify-center rounded-md border border-gray-200 bg-gray-100 text-sm text-gray-300 sm:w-32">
               Save Changes
             </div>
           </Tooltip>

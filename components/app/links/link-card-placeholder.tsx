@@ -1,6 +1,6 @@
 export default function LinkCardPlaceholder() {
   return (
-    <li className="flex items-center rounded-lg bg-white p-4 shadow transition-all hover:shadow-md">
+    <li className="flex items-center rounded-lg bg-white px-4 py-[1.15rem] shadow transition-all hover:shadow-md">
       <div className="mr-2 h-10 w-10 animate-pulse rounded-full bg-gray-200" />
       <div>
         <div className="mb-2.5 flex items-center space-x-2">

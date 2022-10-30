@@ -28,7 +28,6 @@ export default function useProject() {
   return {
     project,
     isOwner,
-    loading: !error && !project,
     error,
   };
 }

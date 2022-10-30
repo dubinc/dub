@@ -34,17 +34,17 @@ export default function CustomDomain() {
   const { setShowEditDomainModal, EditDomainModal } = useEditDomainModal();
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white py-10">
+    <div className="max-w-full rounded-lg border border-gray-200 bg-white py-5 sm:py-10">
       {domain && <EditDomainModal />}
-      <div className="flex flex-col space-y-3 px-10">
+      <div className="flex flex-col space-y-3 px-5 sm:px-10">
         <h2 className="text-xl font-medium">Custom Domain</h2>
         <p className="text-sm text-gray-500">
           This is the custom domain associated with your project.
         </p>
       </div>
-      <div className="my-8 border-b border-gray-200" />
-      <div className="flex flex-col space-y-3 px-10">
-        <div className="flex justify-between space-x-4">
+      <div className="my-4 border-b border-gray-200 sm:my-8" />
+      <div className="flex flex-col space-y-3 px-5 sm:px-10">
+        <div className="flex flex-col justify-between space-y-4 sm:flex-row sm:space-x-4">
           {domain ? (
             <a
               href={`http://${domain}`}
