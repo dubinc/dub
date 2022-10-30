@@ -118,7 +118,7 @@ export default function LandingPage() {
       <div className="border-b border-gray-200" />
 
       <div className="px-5 py-4 sm:flex sm:items-center sm:justify-end sm:px-10">
-        {false ? (
+        {domainVerified && plan !== "Free" ? (
           <button
             disabled={saving}
             className={`${

@@ -15,11 +15,14 @@ export default function ProjectSelect() {
   const { AddProjectModal, setShowAddProjectModal } = useAddProjectModal({});
 
   const router = useRouter();
+  const { slug, key } = router.query as {
+    slug?: string;
+    key?: string;
+  };
 
   const { data: session } = useSession();
 
   const selected = useMemo(() => {
-    const { slug } = router.query;
     return (
       projects?.find((project) => project.slug === slug) || {
         name: session?.user?.name || session?.user?.email || "User",
@@ -30,7 +33,7 @@ export default function ProjectSelect() {
           `https://avatars.dicebear.com/api/micah/${session?.user?.email}.svg`,
       }
     );
-  }, [router, projects, session]);
+  }, [slug, projects, session]);
   const [openPopover, setOpenPopover] = useState(false);
 
   if (!projects || !router.isReady)
@@ -41,7 +44,7 @@ export default function ProjectSelect() {
     );
 
   return (
-    <div className="w-32 sm:w-60">
+    <div className={`${key && slug ? "w-32" : "w-48"} sm:w-60`}>
       <AddProjectModal />
       <Popover
         content={
@@ -56,7 +59,9 @@ export default function ProjectSelect() {
       >
         <button
           onClick={() => setOpenPopover(!openPopover)}
-          className="relative w-32 cursor-pointer rounded-lg bg-white py-1.5 pl-1 text-left text-sm transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 sm:w-60 sm:pl-3 sm:pr-10"
+          className={`relative ${
+            key && slug ? "w-32" : "w-48"
+          } cursor-pointer rounded-lg bg-white py-1.5 pl-1 text-left text-sm transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 sm:w-60 sm:pl-3 sm:pr-10`}
         >
           <div className="flex items-center justify-start space-x-3">
             <BlurImage
@@ -103,7 +108,7 @@ function ProjectList({
   const { plan } = useUsage();
 
   return (
-    <div className="relative mt-1 max-h-60 w-full overflow-auto rounded-md bg-white p-2 text-base sm:w-32 sm:w-60 sm:text-sm sm:shadow-lg">
+    <div className="relative mt-1 max-h-60 w-full overflow-auto rounded-md bg-white p-2 text-base sm:w-60 sm:text-sm sm:shadow-lg">
       {projects.map(({ name, slug, domain, logo }) => (
         <button
           key={slug}
