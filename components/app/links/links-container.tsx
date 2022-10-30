@@ -19,7 +19,7 @@ export default function LinksContainer({
     slug: string;
   };
 
-  const { project: { domain } = {}, loading } = useProject();
+  const { project: { domain } = {} } = useProject();
 
   const { data: links } = useSWR<LinkProps[]>(
     domain
@@ -36,14 +36,14 @@ export default function LinksContainer({
     <MaxWidthWrapper className="pb-10">
       <LinkFilters />
       <ul className="grid grid-cols-1 gap-3">
-        {links && !loading ? (
+        {links && domain ? ( // need to include `domain` because if not it flashes the "no links" placeholder
           links.length > 0 ? (
             links.map((props) => <LinkCard key={props.key} props={props} />)
           ) : (
             <NoLinksPlaceholder AddEditLinkButton={AddEditLinkButton} />
           )
         ) : (
-          Array.from({ length: 3 }).map((_, i) => (
+          Array.from({ length: 5 }).map((_, i) => (
             <LinkCardPlaceholder key={i} />
           ))
         )}

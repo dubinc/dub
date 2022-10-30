@@ -11,13 +11,13 @@ export default function useProject() {
     slug: string;
   };
 
-  const {
-    data: project,
-    isValidating,
-    error,
-  } = useSWR<ProjectProps>(slug && `/api/projects/${slug}`, fetcher, {
-    dedupingInterval: 30000,
-  });
+  const { data: project, error } = useSWR<ProjectProps>(
+    slug && `/api/projects/${slug}`,
+    fetcher,
+    {
+      dedupingInterval: 30000,
+    },
+  );
 
   const isOwner = useMemo(() => {
     if (project && Array.isArray(project.users)) {
@@ -28,7 +28,6 @@ export default function useProject() {
   return {
     project,
     isOwner,
-    loading: isValidating,
     error,
   };
 }
