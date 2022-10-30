@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { withProjectAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import sendMail from "emails";
-import TeamInvite from "emails/TeamInvite";
+import ProjectInvite from "emails/ProjectInvite";
 import { randomBytes, createHash } from "crypto";
 import { ProjectProps } from "@/lib/types";
 
@@ -63,6 +63,8 @@ export default withProjectAuth(
       const expires = new Date(Date.now() + ONE_WEEK_IN_SECONDS * 1000);
 
       // create a project invite record and a verification request token that lasts for a week
+      // here we use a try catch to account for the case where the user has already been invited
+      // for which `prisma.projectInvite.create()` will throw a unique constraint error
       try {
         await prisma.projectInvite.create({
           data: {
@@ -91,7 +93,7 @@ export default withProjectAuth(
         sendMail({
           subject: "You've been invited to join a project on Dub",
           to: email,
-          component: <TeamInvite url={url} />,
+          component: <ProjectInvite url={url} />,
         });
 
         return res.status(200).json({ message: "Invite sent" });

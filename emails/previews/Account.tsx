@@ -1,5 +1,5 @@
 import { default as LoginLinkEmail } from "../LoginLink";
-import { default as TeamInviteEmail } from "../TeamInvite";
+import { default as ProjectInviteEmail } from "../ProjectInvite";
 import { default as WelcomeEmailChild } from "../WelcomeEmail";
 
 export function LoginLink() {
@@ -8,9 +8,9 @@ export function LoginLink() {
   );
 }
 
-export function TeamInvite() {
+export function ProjectInvite() {
   return (
-    <TeamInviteEmail url="http://app.localhost:3000/api/auth/callback/email?callbackUrl=http%3A%2F%2Fapp.localhost%3A3000%2Flogin&token=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&email=youremail@gmail.com" />
+    <ProjectInviteEmail url="http://app.localhost:3000/api/auth/callback/email?callbackUrl=http%3A%2F%2Fapp.localhost%3A3000%2Flogin&token=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&email=youremail@gmail.com" />
   );
 }
 

@@ -13,7 +13,7 @@ import Head from "./components/Head";
 import Header from "./components/Header";
 import { purple } from "./components/theme";
 
-export default function TeamInvite({ url }: { url: string }): JSX.Element {
+export default function ProjectInvite({ url }: { url: string }): JSX.Element {
   return (
     <Mjml>
       <Head />
@@ -23,12 +23,13 @@ export default function TeamInvite({ url }: { url: string }): JSX.Element {
           <MjmlSection cssClass="smooth">
             <MjmlColumn>
               <MjmlText cssClass="paragraph">
-                You've been invited to join a team on Dub
+                You've been invited to join a project on Dub!
               </MjmlText>
               <MjmlText cssClass="paragraph">
-                Please click the magic link below to sign in to your account.
+                You can use the magic link below to sign in to Dub and join the
+                project.
               </MjmlText>
-              <ButtonPrimary link={url} uiText="Sign In" />
+              <ButtonPrimary link={url} uiText="Join Project" />
               <MjmlText cssClass="paragraph">
                 If you're on a mobile device, you can also copy the link below
                 and paste it into the browser of your choice.
