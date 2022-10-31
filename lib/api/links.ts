@@ -329,6 +329,7 @@ export async function changeDomain(projectId: string, domain: string, newDomain:
   const pipeline = redis.pipeline();
   links.forEach(({ key }) => {
     pipeline.rename(`${domain}:clicks:${key}`, `${newDomain}:clicks:${key}`);
+    pipeline.rename(`${domain}:${key}`, `${newDomain}:${key}`);
   });
   try {
     return await pipeline.exec();
