@@ -27,6 +27,9 @@ export default withUserAuth(
     if (req.method === "PUT") {
       const response = await archiveLink(domain, key);
       return res.status(200).json(response);
+    } else if (req.method === "DELETE") {
+      const response = await archiveLink(domain, key, false);
+      return res.status(200).json(response);
     } else {
       res.setHeader("Allow", ["PUT"]);
       return res
