@@ -317,3 +317,22 @@ export async function archiveLink(domain: string, key: string) {
     },
   });
 }
+
+export async function changeDomain(projectId: string, domain: string, newDomain: string) {
+  const links = await prisma.link.findMany({
+    where: {
+      project: {
+        id: projectId
+      }
+    }
+  });
+  const pipeline = redis.pipeline();
+  links.forEach(({ key }) => {
+    pipeline.rename(`${domain}:clicks:${key}`, `${newDomain}:clicks:${key}`);
+  });
+  try {
+    return await pipeline.exec();
+  } catch (e) {
+    return null;
+  }
+}
