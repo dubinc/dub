@@ -41,3 +41,4 @@ export { default as Archive } from "./archive";
 export { default as Delete } from "./delete";
 export { default as Logout } from "./logout";
 export { default as Save } from "./save";
+export { default as Image } from "./image";
