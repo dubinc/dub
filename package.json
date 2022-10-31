@@ -34,6 +34,7 @@
     "@visx/tooltip": "^2.10.0",
     "cloudinary": "^1.32.0",
     "cobe": "^0.6.2",
+    "copy-image-clipboard": "^2.1.2",
     "focus-trap-react": "^10.0.0",
     "framer-motion": "^7.6.2",
     "html-escaper": "^3.0.3",

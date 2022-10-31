@@ -2394,6 +2394,11 @@ cookie@^0.4.1:
   resolved "https://registry.npmjs.org/cookie/-/cookie-0.4.2.tgz"
   integrity sha512-aSWTXFzaKWkvHO1Ny/s+ePFpvKsPnjc551iI41v3ny/ow6tBG5Vd+FuqGNhh1LxOmVzOlGUriIlOaokOvhaStA==
 
+copy-image-clipboard@^2.1.2:
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/copy-image-clipboard/-/copy-image-clipboard-2.1.2.tgz#7965038faa036b1aed451df207f14b52838286a1"
+  integrity sha512-3VCXVl2IpFfOyD8drv9DozcNlwmqBqxOlsgkEGyVAzadjlPk1go8YNZyy8QmTnwHPxSFpeCR9OdsStEdVK7qDA==
+
 core-js@^2.4.0:
   version "2.6.12"
   resolved "https://registry.yarnpkg.com/core-js/-/core-js-2.6.12.tgz#d9333dfa7b065e347cc5682219d6f690859cc2ec"

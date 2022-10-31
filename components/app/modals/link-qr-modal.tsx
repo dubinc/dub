@@ -7,12 +7,13 @@ import {
   useState,
 } from "react";
 import { HexColorInput, HexColorPicker } from "react-colorful";
+import { copyImageToClipboard } from "copy-image-clipboard";
 import BlurImage from "@/components/shared/blur-image";
-import { ChevronRight, Copy, Download, Logo } from "@/components/shared/icons";
+import { ChevronRight, Copy, Logo } from "@/components/shared/icons";
 import Modal from "@/components/shared/modal";
 import Switch from "@/components/shared/switch";
 import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
-import { QRCodeSVG, getQRAsCanvas, getQRAsSVGDataUri } from "@/lib/qr";
+import { QRCodeSVG, getQRAsCanvas } from "@/lib/qr";
 import useProject from "@/lib/swr/use-project";
 import useUsage from "@/lib/swr/use-usage";
 import { SimpleLinkProps } from "@/lib/types";
@@ -124,7 +125,7 @@ function LinkQRModalHelper({
           <div className="flex gap-2 px-4 sm:px-16">
             <button
               onClick={async () =>
-                download(await getQRAsCanvas(qrData, "image/png"), "png")
+                copyImageToClipboard(await getQRAsCanvas(qrData, "image/png"))
               }
               className="flex w-full items-center justify-center gap-2 rounded-md border border-black bg-black py-1.5 px-5 text-sm text-white transition-all hover:bg-white hover:text-black"
             >
