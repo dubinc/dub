@@ -31,7 +31,7 @@ const featureList = [
         </a>
       </Link>
     ),
-    demo: "https://dubhq.s3.amazonaws.com/analytics.mp4",
+    demo: "https://d2vwwcvoksz7ty.cloudfront.net/analytics.mp4",
   },
   {
     key: "domains",
@@ -49,7 +49,7 @@ const featureList = [
         Create your project
       </a>
     ),
-    demo: "https://dubhq.s3.amazonaws.com/custom-domain.mp4",
+    demo: "https://d2vwwcvoksz7ty.cloudfront.net/custom-domain.mp4",
   },
   {
     key: "links",
@@ -67,7 +67,7 @@ const featureList = [
         Create your project
       </a>
     ), //custom cta
-    demo: "https://dubhq.s3.amazonaws.com/og.mp4",
+    demo: "https://d2vwwcvoksz7ty.cloudfront.net/og.mp4",
   },
   {
     key: "qr",
@@ -76,7 +76,7 @@ const featureList = [
     description:
       "QR codes and short links are like peas in a pod. That's why we've built a QR code generator right into Dub.",
     cta: "View demo", //custom cta
-    demo: "https://dubhq.s3.amazonaws.com/qr.mp4",
+    demo: "https://d2vwwcvoksz7ty.cloudfront.net/qr.mp4",
   },
   {
     key: "team",
@@ -94,7 +94,7 @@ const featureList = [
         Invite your teammates
       </a>
     ),
-    demo: "https://dubhq.s3.amazonaws.com/team.mp4",
+    demo: "https://d2vwwcvoksz7ty.cloudfront.net/team.mp4",
   },
 ];
 
@@ -109,7 +109,7 @@ export default function Features() {
   return (
     <div>
       <LinkQRModal />
-      <MaxWidthWrapper className="py-20">
+      <MaxWidthWrapper className="py-10">
         <div className="mx-auto max-w-md text-center sm:max-w-xl">
           <h2 className="font-display text-4xl font-extrabold leading-tight text-black sm:text-5xl sm:leading-tight">
             <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
@@ -127,7 +127,7 @@ export default function Features() {
           </p>
         </div>
 
-        <div className="my-10 h-[840px] w-full overflow-hidden rounded-lg border border-gray-200 bg-white/10 shadow-[inset_10px_-50px_94px_0_rgb(199,199,199,0.2)] backdrop-blur lg:h-[630px]">
+        <div className="my-10 h-[840px] w-full overflow-hidden rounded-xl border border-gray-200 bg-white/10 shadow-[inset_10px_-50px_94px_0_rgb(199,199,199,0.2)] backdrop-blur lg:h-[630px]">
           <div className="grid grid-cols-1 gap-10 p-5 lg:grid-cols-3">
             <Accordion
               items={featureList.map(
