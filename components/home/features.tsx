@@ -109,6 +109,10 @@ export default function Features() {
   return (
     <div>
       <LinkQRModal />
+      {featureList.map(({ key, demo }) => (
+        // preload videos
+        <link key={key} rel="preload" as="video" href={demo} />
+      ))}
       <MaxWidthWrapper className="py-10">
         <div className="mx-auto max-w-md text-center sm:max-w-xl">
           <h2 className="font-display text-4xl font-extrabold leading-tight text-black sm:text-5xl sm:leading-tight">
