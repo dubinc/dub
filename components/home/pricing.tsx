@@ -26,14 +26,14 @@ const pricingItems = [
       },
       { text: "Unlimited branded links" },
       { text: "5 projects" },
+      { text: "Password-protected links" },
+      { text: "Custom Social Previews", footnote: <OGImageProxy /> },
       {
         text: "Root domain redirect",
         footnote:
           "Redirect vistors that land on the root of your domain (e.g. yourdomain.com) to a page of your choice.",
         negative: true,
       },
-      { text: "Password-protected links", negative: true },
-      { text: "OG Image Proxy", footnote: <OGImageProxy />, negative: true },
       { text: "SSO/SAML", negative: true },
     ],
     cta: "Start for free",
@@ -50,13 +50,13 @@ const pricingItems = [
       },
       { text: "Unlimited branded links" },
       { text: "Unlimited projects" },
+      { text: "Password-protected links" },
+      { text: "Custom Social Previews", footnote: <OGImageProxy /> },
       {
         text: "Root domain redirect",
         footnote:
           "Redirect vistors that land on the root of your domain (e.g. yourdomain.com) to a page of your choice.",
       },
-      { text: "Password-protected links" },
-      { text: "OG Image Proxy", footnote: <OGImageProxy /> },
       { text: "SSO/SAML", negative: true },
     ],
     cta: "Get started",
@@ -74,13 +74,13 @@ const pricingItems = [
       },
       { text: "Unlimited branded links" },
       { text: "Unlimited projects" },
+      { text: "Password-protected links" },
+      { text: "Custom Social Previews", footnote: <OGImageProxy /> },
       {
         text: "Root domain redirect",
         footnote:
           "Redirect vistors that land on the root of your domain (e.g. yourdomain.com) to a page of your choice.",
       },
-      { text: "Password-protected links" },
-      { text: "OG Image Proxy", footnote: <OGImageProxy /> },
       { text: "SSO/SAML" },
     ],
     cta: "Contact us",
@@ -90,14 +90,14 @@ const pricingItems = [
 
 const Pricing = () => {
   const [tier, setTier] = useState(0);
-  const [annualBilling, setAnnualBilling] = useState(true);
+  const [annualBilling, setAnnualBilling] = useState(false);
   const period = useMemo(
     () => (annualBilling ? "yearly" : "monthly"),
     [annualBilling],
   );
 
   return (
-    <MaxWidthWrapper className="mt-20 mb-40 text-center">
+    <MaxWidthWrapper className="my-20 text-center">
       <div id="pricing" className="mx-auto my-10 sm:max-w-lg">
         <h2 className="font-display text-4xl font-extrabold text-black sm:text-5xl">
           Simple,{" "}
@@ -122,9 +122,10 @@ const Pricing = () => {
           trackDimensions="h-6 w-12"
           thumbDimensions="h-5 w-5"
           thumbTranslate="translate-x-6"
+          checked={false}
         />
         <p className="text-gray-600">Billed Annually</p>
-        <span className="absolute -top-8 -right-12 rounded-full bg-purple-200 px-3 py-1 text-sm text-purple-700 sm:-top-2 sm:-right-36">
+        <span className="absolute -top-8 -right-12 rounded-full bg-purple-200 px-3 py-1 text-sm text-purple-700 sm:-right-[9.5rem] sm:-top-2">
           🎁 2 months FREE
         </span>
       </div>

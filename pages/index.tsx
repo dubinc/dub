@@ -9,6 +9,7 @@ import Hero from "@/components/home/hero";
 import Logos from "@/components/home/logos";
 import Pricing from "@/components/home/pricing";
 import HomeLayout from "@/components/layout/home";
+import OSS from "@/components/home/oss";
 
 export default function Home({ stars }: { stars: number }) {
   const router = useRouter();
@@ -42,8 +43,9 @@ export default function Home({ stars }: { stars: number }) {
         <Demo />
         <Logos />
         <Globe />
-        <Features stars={stars} />
+        <Features />
         <Pricing />
+        <OSS stars={stars} />
       </div>
       <Background />
     </HomeLayout>

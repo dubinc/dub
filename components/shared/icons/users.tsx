@@ -1,4 +1,4 @@
-export default function Save({ className }: { className: string }) {
+export default function Users({ className }: { className: string }) {
   return (
     <svg
       fill="none"
@@ -12,9 +12,10 @@ export default function Save({ className }: { className: string }) {
       width="24"
       className={className}
     >
-      <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />
-      <path d="M17 21v-8H7v8" />
-      <path d="M7 3v5h8" />
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+      <circle cx="9" cy="7" r="4"></circle>
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
     </svg>
   );
 }
