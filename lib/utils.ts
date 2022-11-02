@@ -267,3 +267,8 @@ export const getQueryString = (router: NextRouter) => {
   const queryString = new URLSearchParams(queryWithoutSlug).toString();
   return `${queryString ? "?" : ""}${queryString}`;
 };
+
+export const truncate = (str: string, length: number) => {
+  if (str.length <= length) return str;
+  return `${str.slice(0, length)}...`;
+};

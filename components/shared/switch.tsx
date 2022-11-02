@@ -7,17 +7,19 @@ const Switch = ({
   trackDimensions = "h-4 w-8",
   thumbDimensions = "h-3 w-3",
   thumbTranslate = "translate-x-4",
+  checked = true,
   disabled = false,
 }: {
   fn: Dispatch<SetStateAction<boolean>> | (() => void);
   trackDimensions?: string;
   thumbDimensions?: string;
   thumbTranslate?: string;
+  checked?: boolean;
   disabled?: boolean;
 }) => {
   return (
     <SwitchPrimitive.Root
-      defaultChecked={true}
+      defaultChecked={checked}
       onCheckedChange={(checked) => fn(checked)}
       disabled={disabled}
       className={cx(
