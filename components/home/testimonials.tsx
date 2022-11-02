@@ -10,7 +10,7 @@ export default function Testimonials({
   tweets: any[];
 }) {
   return (
-    <MaxWidthWrapper className="py-20">
+    <MaxWidthWrapper className="pt-20">
       <div className="mx-auto max-w-md text-center sm:max-w-xl">
         <h2 className="font-display text-4xl font-extrabold leading-tight text-black sm:text-5xl sm:leading-tight">
           Loved by{" "}
