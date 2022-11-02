@@ -22,7 +22,7 @@ export default function Testimonials({
           Don't take it from us - here's what our users have to say about Dub.
         </p>
       </div>
-      <div className="space-y-6 py-8 sm:columns-2 sm:gap-6 xl:columns-3">
+      <div className="block space-y-6 py-8 sm:columns-2 sm:gap-6 xl:columns-3">
         {tweets.map((tweet, idx) => (
           <Tweet
             key={tweet.id}

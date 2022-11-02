@@ -1,5 +1,5 @@
 import BlurImage from "@/components/shared/blur-image";
-import { nFormatter } from "@/lib/utils";
+import { nFormatter, truncate } from "@/lib/utils";
 import { Heart, Message, Repeat, Twitter } from "./icons";
 import Tilt from "react-parallax-tilt";
 
@@ -85,7 +85,7 @@ export default function Tweet({
       <div
         className={`${
           className || ""
-        } rounded-lg border border-gray-300 bg-white/10 p-6 pb-4 shadow-[inset_10px_-50px_94px_0_rgb(199,199,199,0.3)] backdrop-blur-sm`}
+        } break-inside-avoid rounded-lg border border-gray-300 bg-white/10 p-6 pb-4 shadow-[inset_10px_-50px_94px_0_rgb(199,199,199,0.3)] backdrop-blur-sm`}
       >
         {/* User info, verified badge, twitter logo, text, etc. */}
         <div>
@@ -107,7 +107,7 @@ export default function Tweet({
                   rel="noreferrer"
                   className="flex items-center font-semibold text-gray-900"
                 >
-                  {author.name}
+                  {truncate(author.name, 20)}
                   {author.verified ? (
                     <svg
                       aria-label="Verified Account"
@@ -127,7 +127,7 @@ export default function Tweet({
                     rel="noreferrer"
                     className="text-sm text-gray-500 transition-all duration-75 hover:text-gray-900"
                   >
-                    @{author.username}
+                    @{truncate(author.username, 16)}
                   </a>
                   <p>·</p>
                   <a
