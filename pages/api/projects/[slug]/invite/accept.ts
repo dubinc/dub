@@ -1,4 +1,5 @@
 import { Session, withUserAuth } from "@/lib/auth";
+import prisma from "@/lib/prisma";
 import { NextApiRequest, NextApiResponse } from "next";
 
 export default withUserAuth(
