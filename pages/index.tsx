@@ -1,5 +1,6 @@
 import { useRouter } from "next/router";
 import { useCallback, useEffect } from "react";
+import prisma from "@/lib/prisma";
 import { useStatsModal } from "@/components/app/modals/stats-modal";
 import Background from "@/components/home/background";
 import Demo from "@/components/home/demo";
@@ -10,8 +11,18 @@ import Logos from "@/components/home/logos";
 import Pricing from "@/components/home/pricing";
 import HomeLayout from "@/components/layout/home";
 import OSS from "@/components/home/oss";
+import Testimonials from "@/components/home/testimonials";
+import getTweetsMetadata, { homepageTweets } from "@/lib/twitter";
 
-export default function Home({ stars }: { stars: number }) {
+export default function Home({
+  userCount,
+  stars,
+  tweets,
+}: {
+  userCount: number;
+  stars: number;
+  tweets: any;
+}) {
   const router = useRouter();
   const { key: stats } = router.query;
   const { setShowStatsModal, StatsModal } = useStatsModal();
@@ -44,6 +55,7 @@ export default function Home({ stars }: { stars: number }) {
         <Logos />
         <Globe />
         <Features />
+        <Testimonials userCount={userCount} tweets={tweets} />
         <Pricing />
         <OSS stars={stars} />
       </div>
@@ -53,6 +65,8 @@ export default function Home({ stars }: { stars: number }) {
 }
 
 export async function getStaticProps() {
+  const userCount = await prisma.user.count();
+
   const { stargazers_count: stars } = await fetch(
     "https://api.github.com/repos/steven-tey/dub",
     {
@@ -66,9 +80,13 @@ export async function getStaticProps() {
     },
   ).then((res) => res.json());
 
+  const tweets = await getTweetsMetadata(homepageTweets);
+
   return {
     props: {
+      userCount,
       stars,
+      tweets,
     },
     revalidate: 10,
   };
