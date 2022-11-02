@@ -88,6 +88,6 @@ export async function getStaticProps() {
       stars,
       tweets,
     },
-    revalidate: 120,
+    revalidate: 60,
   };
 }
