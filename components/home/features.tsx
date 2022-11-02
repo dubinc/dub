@@ -107,7 +107,7 @@ export default function Features() {
     },
   });
   return (
-    <div>
+    <div id="features">
       <LinkQRModal />
       {featureList.map(({ key, demo }) => (
         // preload videos
