@@ -22,7 +22,7 @@ export default function Testimonials({
           Don't take it from us - here's what our users have to say about Dub.
         </p>
       </div>
-      <div className="block space-y-6 py-8 sm:columns-2 sm:gap-6 xl:columns-3">
+      <div className="space-y-6 py-8 sm:columns-2 sm:gap-6 xl:columns-3">
         {tweets.map((tweet, idx) => (
           <Tweet
             key={tweet.id}
@@ -31,7 +31,7 @@ export default function Testimonials({
             className={
               idx < Math.floor(tweets.length / 3) ||
               idx >= Math.floor(tweets.length / 3) * 2
-                ? "lg:translate-y-16"
+                ? "relative lg:top-16"
                 : ""
             }
           />

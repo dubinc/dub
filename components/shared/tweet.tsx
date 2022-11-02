@@ -75,18 +75,15 @@ export default function Tweet({
   return (
     <Tilt
       glareEnable={true}
-      glareMaxOpacity={0.4}
+      glareMaxOpacity={0.3}
       glareColor="#ffffff"
       glarePosition="all"
       glareBorderRadius="8px"
       tiltMaxAngleX={10}
       tiltMaxAngleY={10}
+      className={className}
     >
-      <div
-        className={`${
-          className || ""
-        } break-inside-avoid rounded-lg border border-gray-300 bg-white/10 p-6 pb-4 shadow-[inset_10px_-50px_94px_0_rgb(199,199,199,0.3)] backdrop-blur-sm`}
-      >
+      <div className="break-inside-avoid rounded-lg border border-gray-300 bg-white/20 bg-clip-padding p-6 pb-4 backdrop-blur-lg backdrop-filter">
         {/* User info, verified badge, twitter logo, text, etc. */}
         <div>
           <div className="flex items-center justify-between">
