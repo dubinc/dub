@@ -301,10 +301,7 @@ function AddEditLinkModal({
               {saving ? (
                 <LoadingDots color="#808080" />
               ) : (
-                <IconMenu
-                  icon={props && <Save className="h-5 w-5" />}
-                  text={props ? "Save changes" : "Add link"}
-                />
+                <p className="text-sm">{props ? "Save changes" : "Add link"}</p>
               )}
             </button>
           </div>

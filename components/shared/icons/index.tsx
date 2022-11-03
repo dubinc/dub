@@ -42,3 +42,8 @@ export { default as Delete } from "./delete";
 export { default as Logout } from "./logout";
 export { default as Save } from "./save";
 export { default as Image } from "./image";
+export { default as Users } from "./users";
+export { default as Eye } from "./eye";
+export { default as Heart } from "./heart";
+export { default as Repeat } from "./repeat";
+export { default as Message } from "./message";

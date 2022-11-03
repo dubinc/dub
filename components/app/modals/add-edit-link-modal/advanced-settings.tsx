@@ -88,7 +88,7 @@ export default function AdvancedSettings({
                   <div className="flex h-6 items-center justify-start space-x-2">
                     <ChevronRight className="h-5 w-5 shrink-0 text-gray-700 transition-all ease-in-out group-radix-state-open:rotate-90" />
                     <span className="text-sm font-medium text-gray-900">
-                      Custom OG Tags
+                      Custom Social Previews
                     </span>
                   </div>
                   {title && description && image && (
