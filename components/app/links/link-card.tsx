@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import useSWR, { mutate } from "swr";
+import useSWR from "swr";
 import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal";
 import { useArchiveLinkModal } from "@/components/app/modals/archive-link-modal";
 import { useDeleteLinkModal } from "@/components/app/modals/delete-link-modal";
@@ -27,7 +27,6 @@ import { LinkProps } from "@/lib/types";
 import {
   fetcher,
   getApexDomain,
-  getQueryString,
   linkConstructor,
   nFormatter,
   timeAgo,
@@ -73,6 +72,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
   });
   const { setShowArchiveLinkModal, ArchiveLinkModal } = useArchiveLinkModal({
     props,
+    archived: !archived,
   });
   const { setShowDeleteLinkModal, DeleteLinkModal } = useDeleteLinkModal({
     props,
@@ -207,42 +207,13 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                 <button
                   onClick={(e) => {
                     e.preventDefault();
-                    if (!archived) {
-                      setOpenPopover(false);
-                      setShowArchiveLinkModal(true);
-                      return;
-                    }
-                    setUnarchiving(true);
-                    fetch(
-                      domain
-                        ? `/api/projects/${slug}/domains/${domain}/links/${props.key}/archive`
-                        : `/api/links/${props.key}/archive`,
-                      { method: "DELETE" },
-                    ).then(async (res) => {
-                      setUnarchiving(false);
-                      setOpenPopover(false);
-                      if (res.status === 200) {
-                        mutate(
-                          domain
-                            ? `/api/projects/${slug}/domains/${domain}/links${getQueryString(
-                                router,
-                              )}`
-                            : `/api/links${getQueryString(router)}`,
-                        );
-                        setShowArchiveLinkModal(false);
-                      }
-                    });
+                    setOpenPopover(false);
+                    setShowArchiveLinkModal(true);
                   }}
                   className="w-full rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
                 >
                   <IconMenu
-                    text={
-                      !archived
-                        ? "Archive"
-                        : unarchiving
-                        ? "Unarchiving..."
-                        : "Unarchive"
-                    }
+                    text={archived ? "Unarchive" : "Archive"}
                     icon={<Archive className="h-4 w-4" />}
                   />
                 </button>

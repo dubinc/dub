@@ -18,10 +18,12 @@ function ArchiveLinkModal({
   showArchiveLinkModal,
   setShowArchiveLinkModal,
   props,
+  archived,
 }: {
   showArchiveLinkModal: boolean;
   setShowArchiveLinkModal: Dispatch<SetStateAction<boolean>>;
   props: LinkProps;
+  archived: boolean;
 }) {
   const router = useRouter();
   const { slug } = router.query;
@@ -51,10 +53,13 @@ function ArchiveLinkModal({
             width={20}
             height={20}
           />
-          <h3 className="text-lg font-medium">Archive {shortlink}</h3>
+          <h3 className="text-lg font-medium">
+            {archived ? "Archive" : "Unarchive"} {shortlink}
+          </h3>
           <p className="text-sm text-gray-500">
-            Archived links will still work - they just won't show up on your
-            main dashboard.
+            {archived
+              ? "Archived links will still work - they just won't show up on your main dashboard."
+              : "By unarchiving this link, it will show up on your main dashboard again."}
           </p>
         </div>
 
@@ -68,7 +73,7 @@ function ArchiveLinkModal({
                   ? `/api/projects/${slug}/domains/${domain}/links/${props.key}/archive`
                   : `/api/links/${props.key}/archive`,
                 {
-                  method: "POST",
+                  method: archived ? "POST" : "DELETE",
                   headers: {
                     "Content-Type": "application/json",
                   },
@@ -97,7 +102,7 @@ function ArchiveLinkModal({
             {archiving ? (
               <LoadingDots color="#808080" />
             ) : (
-              <p>Confirm archive</p>
+              <p>Confirm {archived ? "archive" : "unarchive"}</p>
             )}
           </button>
         </div>
@@ -106,7 +111,13 @@ function ArchiveLinkModal({
   );
 }
 
-export function useArchiveLinkModal({ props }: { props?: LinkProps }) {
+export function useArchiveLinkModal({
+  props,
+  archived = true,
+}: {
+  props: LinkProps;
+  archived: boolean;
+}) {
   const [showArchiveLinkModal, setShowArchiveLinkModal] = useState(false);
 
   const ArchiveLinkModalCallback = useCallback(() => {
@@ -115,6 +126,7 @@ export function useArchiveLinkModal({ props }: { props?: LinkProps }) {
         showArchiveLinkModal={showArchiveLinkModal}
         setShowArchiveLinkModal={setShowArchiveLinkModal}
         props={props}
+        archived={archived}
       />
     ) : null;
   }, [showArchiveLinkModal, setShowArchiveLinkModal]);
