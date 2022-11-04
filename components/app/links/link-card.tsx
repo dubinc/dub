@@ -14,6 +14,7 @@ import {
   Chart,
   Delete,
   Edit,
+  Eye,
   LoadingDots,
   QR,
   ThreeDots,
@@ -33,7 +34,16 @@ import {
 } from "@/lib/utils";
 
 export default function LinkCard({ props }: { props: LinkProps }) {
-  const { key, url, createdAt, archived, expiresAt } = props;
+  const {
+    key,
+    url,
+    title,
+    description,
+    image,
+    createdAt,
+    archived,
+    expiresAt,
+  } = props;
 
   const apexDomain = getApexDomain(url);
 
@@ -136,6 +146,18 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                   </p>
                 </a>
               </Link>
+              {title && description && image && (
+                <a
+                  href={`https://dub.sh/_proxy/${
+                    domain || "dub.sh"
+                  }/${encodeURI(key)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group rounded-full bg-gray-100 p-1.5 transition-all duration-75 hover:scale-105 hover:bg-blue-100 active:scale-95"
+                >
+                  <Eye className="text-gray-700 transition-all group-hover:text-blue-800" />
+                </a>
+              )}
             </div>
             <h3 className="max-w-[200px] truncate text-sm font-medium text-gray-700 md:max-w-md lg:max-w-2xl xl:max-w-3xl">
               {url}

@@ -469,6 +469,7 @@ export async function getQRAsCanvas(props: QRProps, type: string) {
   );
 
   const image = new Image();
+  image.crossOrigin = "anonymous";
   if (calculatedImageSettings) {
     await waitUntilImageLoaded(image, imageSettings.src);
     if (calculatedImageSettings.excavation != null) {

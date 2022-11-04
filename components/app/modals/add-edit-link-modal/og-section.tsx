@@ -54,11 +54,11 @@ export default function OGSection({
   return (
     <motion.div key="og" className="grid gap-5" {...AnimationSettings}>
       <p className="mt-2 block px-5 text-sm text-gray-500">
-        If you use custom OG tags,{" "}
+        If you use custom social previews,{" "}
         <span className="font-semibold text-black">
-          be sure to set all 3 tags
+          be sure to set all 3 sections (title, description, image)
         </span>
-        , or the default tags of the target URL will be used.
+        , or the default OG tags of the target URL will be used.
       </p>
       <div className="border-t border-gray-200 px-5 pt-5 pb-2.5">
         <div className="flex items-center justify-between">
@@ -66,7 +66,7 @@ export default function OGSection({
             htmlFor="title"
             className="block text-sm font-medium text-gray-700"
           >
-            OG Title
+            Link Title
           </label>
           <button
             className={`${
@@ -104,7 +104,7 @@ export default function OGSection({
             htmlFor="description"
             className="block text-sm font-medium text-gray-700"
           >
-            OG Description
+            Link Description
           </label>
           <button
             className={`${
@@ -141,7 +141,7 @@ export default function OGSection({
       </div>
 
       <div className="border-t border-gray-200 px-5 pt-5 pb-2.5">
-        <p className="block text-sm font-medium text-gray-700">OG Image</p>
+        <p className="block text-sm font-medium text-gray-700">Link Image</p>
         <label
           htmlFor="image"
           className="group mt-1 flex h-[10.5rem] cursor-pointer flex-col items-center justify-center rounded-md border border-gray-300 bg-white shadow-sm transition-all hover:bg-gray-50"
