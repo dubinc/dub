@@ -68,7 +68,7 @@ function ArchiveLinkModal({
                   ? `/api/projects/${slug}/domains/${domain}/links/${props.key}/archive`
                   : `/api/links/${props.key}/archive`,
                 {
-                  method: "PUT",
+                  method: "POST",
                   headers: {
                     "Content-Type": "application/json",
                   },

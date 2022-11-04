@@ -217,14 +217,17 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                       domain
                         ? `/api/projects/${slug}/domains/${domain}/links/${props.key}/archive`
                         : `/api/links/${props.key}/archive`,
-                      { method: 'DELETE' }
+                      { method: "DELETE" },
                     ).then(async (res) => {
                       setUnarchiving(false);
                       setOpenPopover(false);
                       if (res.status === 200) {
-                        mutate(domain
-                          ? `/api/projects/${slug}/domains/${domain}/links${getQueryString(router)}`
-                          : `/api/links${getQueryString(router)}`
+                        mutate(
+                          domain
+                            ? `/api/projects/${slug}/domains/${domain}/links${getQueryString(
+                                router,
+                              )}`
+                            : `/api/links${getQueryString(router)}`,
                         );
                         setShowArchiveLinkModal(false);
                       }
@@ -233,7 +236,13 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                   className="w-full rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
                 >
                   <IconMenu
-                    text={!archived ? 'Archive' : unarchiving ? 'Unarchiving...' : 'Remove from archive'}
+                    text={
+                      !archived
+                        ? "Archive"
+                        : unarchiving
+                        ? "Unarchiving..."
+                        : "Unarchive"
+                    }
                     icon={<Archive className="h-4 w-4" />}
                   />
                 </button>
