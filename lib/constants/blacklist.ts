@@ -165,6 +165,19 @@ const BLACKLIST = new Set([
   "24bc42a.sunid.eu.org",
   "f29368aa90.sunid.eu.org",
   "682rb.app.link",
+  "74.mchs.gov.ru",
+  "mchs.gov.ru",
+  "zdqq.xyz",
+  "reg.eda.yandex.ru",
+  // porn sites
+  "pornhub.com",
+  "redtube.com",
+  "xnxx.com",
+  "xvideos.com",
+  "xhamster.com",
+  "spankbang.com",
+  "youporn.com",
+  "tube8.com",
 ]);
 
 export default BLACKLIST;
