@@ -1,4 +1,4 @@
-const BLACKLISTED_DOMAINS = new Set([
+const BLACKLIST = new Set([
   "lopescarvalho.adv.br",
   "piracynchill.in",
   "tgnewstv.it",
@@ -156,4 +156,4 @@ const BLACKLISTED_DOMAINS = new Set([
   "682rb.app.link",
 ]);
 
-export default BLACKLISTED_DOMAINS;
+export default BLACKLIST;

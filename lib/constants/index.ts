@@ -42,5 +42,4 @@ export const SPECIAL_APEX_DOMAINS = {
   "youtu.be": "youtube.com",
 };
 
-export { default as BLACKLISTED_DOMAINS } from "./blacklisted-domains";
-export { default as BLACKLISTED_EMAILS } from "./blacklisted-emails";
+export { default as BLACKLIST } from "./blacklist";

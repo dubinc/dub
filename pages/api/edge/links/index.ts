@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { setRandomKey } from "@/lib/upstash";
-import { BLACKLISTED_DOMAINS } from "@/lib/constants";
+import { SECOND_LEVEL_DOMAINS } from "@/lib/constants";
 import { getDomainWithoutWWW } from "@/lib/utils";
 
 export const config = {
@@ -13,7 +13,7 @@ export default async function handler(req: NextRequest) {
     if (!url) {
       return new Response(`Missing url`, { status: 400 });
     }
-    if (BLACKLISTED_DOMAINS.has(getDomainWithoutWWW(url))) {
+    if (SECOND_LEVEL_DOMAINS.has(getDomainWithoutWWW(url))) {
       return new Response(`Invalid url`, { status: 400 });
     }
     const { response, key } = await setRandomKey(url);
