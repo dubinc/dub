@@ -13,6 +13,7 @@ const BLACKLIST = new Set([
   "piracynchill.in",
   "tgnewstv.it",
   "secure.oldschool.com-os.cz",
+  "secure.oldschool.com-rr.cz",
   "rfiptv.xyz",
   "uiptv.ml",
   "8wogq.app.link",
