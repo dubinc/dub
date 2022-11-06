@@ -45,6 +45,7 @@ export default function Login() {
                 }).then((res) => {
                   setSignInClicked(false);
                   if (res?.ok && !res?.error) {
+                    setEmail("");
                     setButtonText("Email sent - check your inbox!");
                   } else {
                     setButtonText("Error sending email - try again?");
@@ -69,6 +70,7 @@ export default function Login() {
               placeholder="panic@thedis.co"
               autoComplete="email"
               required
+              value={email}
               onChange={(e) => {
                 setAccountExists(false);
                 setEmail(e.target.value);

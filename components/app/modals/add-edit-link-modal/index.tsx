@@ -42,6 +42,7 @@ function AddEditLinkModal({
   const { project: { domain } = {} } = useProject();
 
   const [keyExistsError, setKeyExistsError] = useState(false);
+  const [urlError, setUrlError] = useState(false);
   const [generatingSlug, setGeneratingSlug] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -191,8 +192,12 @@ function AddEditLinkModal({
                     : `/api/links${getQueryString(router)}`,
                 );
                 setShowAddEditLinkModal(false);
-              } else {
+              } else if (res.status === 403) {
                 setKeyExistsError(true);
+              } else if (res.status === 400) {
+                setUrlError(true);
+              } else {
+                alert("Something went wrong");
               }
             });
           }}
@@ -269,21 +274,38 @@ function AddEditLinkModal({
               >
                 Destination URL
               </label>
-              <div className="mt-1 flex rounded-md shadow-sm">
+              <div className="relative mt-1 flex rounded-md shadow-sm">
                 <input
                   name="url"
                   id="url"
                   type="url"
                   required
-                  className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
                   placeholder="https://github.com/steven-tey/dub"
                   value={url}
                   onChange={(e) => {
                     setData({ ...data, url: e.target.value });
                   }}
+                  className={`${
+                    urlError
+                      ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                      : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
+                  } block w-full rounded-md focus:outline-none sm:text-sm`}
                   aria-invalid="true"
                 />
+                {urlError && (
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                    <AlertCircleFill
+                      className="h-5 w-5 text-red-500"
+                      aria-hidden="true"
+                    />
+                  </div>
+                )}
               </div>
+              {urlError && (
+                <p className="mt-2 text-sm text-red-600" id="key-error">
+                  Invalid url.
+                </p>
+              )}
             </div>
           </div>
 

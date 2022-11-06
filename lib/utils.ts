@@ -1,7 +1,11 @@
 import { NextRouter } from "next/router";
 import ms from "ms";
 import { customAlphabet } from "nanoid";
-import { SPECIAL_APEX_DOMAINS, ccTLDs, secondLevelDomains } from "./constants";
+import {
+  SPECIAL_APEX_DOMAINS,
+  ccTLDs,
+  SECOND_LEVEL_DOMAINS,
+} from "./constants";
 
 export const nanoid = customAlphabet(
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
@@ -209,7 +213,7 @@ export const getApexDomain = (url: string) => {
   if (parts.length > 2) {
     // if this is a second-level TLD (e.g. co.uk, .com.ua, .org.tt), we need to return the last 3 parts
     if (
-      secondLevelDomains.has(parts[parts.length - 2]) &&
+      SECOND_LEVEL_DOMAINS.has(parts[parts.length - 2]) &&
       ccTLDs.has(parts[parts.length - 1])
     ) {
       return parts.slice(-3).join(".");
@@ -219,6 +223,16 @@ export const getApexDomain = (url: string) => {
   }
   // if it's a normal domain (e.g. dub.sh), we return the domain
   return domain;
+};
+
+export const getDomainWithoutWWW = (url: string) => {
+  let hostname;
+  try {
+    hostname = new URL(url).hostname;
+  } catch (e) {
+    return "";
+  }
+  return hostname.replace(/^www\./, "");
 };
 
 export const getParamsFromURL = (url: string) => {

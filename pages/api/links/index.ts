@@ -1,6 +1,8 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { addLink, getLinksForProject } from "@/lib/api/links";
 import { Session, withUserAuth } from "@/lib/auth";
+import { SECOND_LEVEL_DOMAINS } from "@/lib/constants";
+import { getDomainWithoutWWW } from "@/lib/utils";
 
 // This is a special route for retrieving and creating custom dub.sh links.
 
@@ -26,6 +28,9 @@ export default withUserAuth(
       if (!key || !url) {
         return res.status(400).json({ error: "Missing key or url" });
       }
+      if (SECOND_LEVEL_DOMAINS.has(getDomainWithoutWWW(url))) {
+        return res.status(400).json({ error: "Invalid url" });
+      }
       const response = await addLink({
         ...req.body,
         domain: "dub.sh",
@@ -33,7 +38,7 @@ export default withUserAuth(
       });
 
       if (response === null) {
-        return res.status(400).json({ error: "Key already exists" });
+        return res.status(403).json({ error: "Key already exists" });
       }
       return res.status(200).json(response);
     } else {
