@@ -283,6 +283,7 @@ function AddEditLinkModal({
                   placeholder="https://github.com/steven-tey/dub"
                   value={url}
                   onChange={(e) => {
+                    setUrlError(false);
                     setData({ ...data, url: e.target.value });
                   }}
                   className={`${
