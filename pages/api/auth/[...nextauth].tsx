@@ -5,6 +5,7 @@ import WelcomeEmail from "emails/WelcomeEmail";
 import NextAuth, { type NextAuthOptions } from "next-auth";
 import EmailProvider from "next-auth/providers/email";
 import prisma from "@/lib/prisma";
+import { BLACKLISTED_EMAILS } from "@/lib/constants";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
@@ -36,6 +37,12 @@ export const authOptions: NextAuthOptions = {
     },
   },
   callbacks: {
+    signIn: async ({ user }) => {
+      if (BLACKLISTED_EMAILS.has(user.email.split("@")[1])) {
+        return false;
+      }
+      return true;
+    },
     session: async ({ session, token }) => {
       session.user = {
         // @ts-ignore
