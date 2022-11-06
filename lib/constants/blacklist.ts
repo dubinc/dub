@@ -1,5 +1,7 @@
 /*
+ ************************************************
  * Crowdsourced list of blacklisted domains
+ ************************************************
  * How to contribute:
  * 1. Find a domain that you think should be blacklisted (contain phishing links, spam links, pornographic content, etc.)
  * 2. Do a "CMD/CTRL + F" search for the domain in this file

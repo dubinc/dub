@@ -3,6 +3,7 @@ import { addLink, getLinksForProject } from "@/lib/api/links";
 import { Session, withUserAuth } from "@/lib/auth";
 import { BLACKLIST } from "@/lib/constants";
 import { getDomainWithoutWWW } from "@/lib/utils";
+import { log } from "@/lib/utils";
 
 // This is a special route for retrieving and creating custom dub.sh links.
 
@@ -40,6 +41,7 @@ export default withUserAuth(
       if (response === null) {
         return res.status(403).json({ error: "Key already exists" });
       }
+      await log(`${session.user.email} created a new link for ${url}`, "links");
       return res.status(200).json(response);
     } else {
       res.setHeader("Allow", ["GET", "POST"]);

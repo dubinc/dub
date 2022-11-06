@@ -286,3 +286,35 @@ export const truncate = (str: string, length: number) => {
   if (str.length <= length) return str;
   return `${str.slice(0, length)}...`;
 };
+
+const logTypeToEnv = {
+  cron: process.env.DUB_SLACK_HOOK_CRON,
+  links: process.env.DUB_SLACK_HOOK_LINKS,
+};
+
+export const log = async (message: string, type: "cron" | "links") => {
+  /* Log a message to the console */
+  const HOOK = logTypeToEnv[type];
+  if (!HOOK) return;
+  try {
+    return await fetch(HOOK, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        blocks: [
+          {
+            type: "section",
+            text: {
+              type: "mrkdwn",
+              text: message,
+            },
+          },
+        ],
+      }),
+    });
+  } catch (e) {
+    console.log(`Failed to log to Vercel Slack. Error: ${e}`);
+  }
+};

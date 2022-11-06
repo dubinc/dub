@@ -3,7 +3,7 @@ import UsageExceeded from "emails/UsageExceeded";
 import prisma from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import { getFirstAndLastDay } from "@/lib/utils";
-import { log } from "./utils";
+import { log } from "@/lib/utils";
 
 export const updateUsage = async () => {
   const users = await prisma.user.findMany({
@@ -75,6 +75,7 @@ export const updateUsage = async () => {
         if (ownerExceededUsage) {
           await log(
             `${email} is over usage limit. Usage: ${totalUsage}, Limit: ${usageLimit}`,
+            "cron",
           );
           const sentFirstUsageLimitEmail = sentEmails.some(
             (email) => email.type === "firstUsageLimitEmail",
