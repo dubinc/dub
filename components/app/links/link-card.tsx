@@ -190,7 +190,10 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                     }
                   >
                     <div className="w-full cursor-not-allowed p-2 text-left text-sm font-medium text-gray-300 transition-all duration-75">
-                      Edit
+                      <IconMenu
+                        text="Edit"
+                        icon={<Edit className="h-4 w-4" />}
+                      />
                     </div>
                   </Tooltip>
                 ) : (
