@@ -13,6 +13,7 @@ const BLACKLIST = new Set([
   "gruppopiueuroparegionelazio.it",
   "rb.gy",
   "in.sv",
+  "tdy.es",
   "piracynchill.in",
   "tgnewstv.it",
   "secure.oldschool.com-os.cz",
