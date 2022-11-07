@@ -72,12 +72,6 @@ export default function WelcomeEmail({ name }: { name?: string }): JSX.Element {
                 happy to help!
               </MjmlText>
               <MjmlText cssClass="paragraph" color={grayDark}>
-                P.S.: You'll receive an email from Trustpilot in the next couple
-                of days - if you enjoyed using Dub, it would mean a lot if you
-                could leave a review; if not, I'd love to hear what I can do to
-                improve Dub!
-              </MjmlText>
-              <MjmlText cssClass="paragraph" color={grayDark}>
                 Steven from Dub
               </MjmlText>
               <Divider />

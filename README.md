@@ -8,6 +8,16 @@
 </p>
 
 <p align="center">
+  <a href="https://twitter.com/dubdotsh">
+    <img src="https://img.shields.io/twitter/follow/dubdotsh?style=flat&label=%40dubdotsh&logo=twitter&color=0bf&logoColor=fff" alt="Twitter" />
+  </a>
+  <a href="https://news.ycombinator.com/item?id=32939407"><img src="https://img.shields.io/badge/Hacker%20News-255-%23FF6600" alt="Hacker News"></a>
+  <a href="https://github.com/steven-tey/dub/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/steven-tey/dub?label=license&logo=github&color=f80&logoColor=fff" alt="License" />
+  </a>
+</p>
+
+<p align="center">
   <a href="#introduction"><strong>Introduction</strong></a> ·
   <a href="#deploy-your-own"><strong>Deploy Your Own</strong></a> ·
   <a href="#tech-stack"><strong>Tech Stack</strong></a> ·

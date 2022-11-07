@@ -29,9 +29,8 @@ async function handler(_req: NextApiRequest, res: NextApiResponse) {
     }
     const results = await pipeline.exec();
     const response = await Promise.all(
-      links.map(({ domain, key, clicks }, index) => {
+      links.map(({ domain, key }, index) => {
         const newClicks = results[index];
-        console.log(domain, key, clicks, newClicks);
         return prisma.link.update({
           where: {
             domain_key: {

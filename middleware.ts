@@ -28,9 +28,8 @@ export const config = {
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   const { domain, path, key } = parse(req);
   const home = HOME_HOSTNAMES.has(domain);
-  const app = domain === "app.dub.sh" || domain === "app.localhost:3000";
 
-  if (app) {
+  if (domain === "app.dub.sh" || domain === "app.localhost:3000") {
     return AppMiddleware(req);
   }
 

@@ -304,7 +304,11 @@ export async function deleteLink(domain: string, key: string) {
   ]);
 }
 
-export async function archiveLink(domain: string, key: string) {
+export async function archiveLink(
+  domain: string,
+  key: string,
+  archived = true,
+) {
   return await prisma.link.update({
     where: {
       domain_key: {
@@ -313,7 +317,7 @@ export async function archiveLink(domain: string, key: string) {
       },
     },
     data: {
-      archived: true,
+      archived,
     },
   });
 }

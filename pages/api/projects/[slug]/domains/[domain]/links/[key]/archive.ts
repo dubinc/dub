@@ -9,11 +9,14 @@ export default withProjectAuth(
       key: string;
     };
 
-    if (req.method === "PUT") {
+    if (req.method === "POST") {
       const response = await archiveLink(domain, key);
       return res.status(200).json(response);
+    } else if (req.method === "DELETE") {
+      const response = await archiveLink(domain, key, false);
+      return res.status(200).json(response);
     } else {
-      res.setHeader("Allow", ["PUT"]);
+      res.setHeader("Allow", ["POST", "DELETE"]);
       return res
         .status(405)
         .json({ error: `Method ${req.method} Not Allowed` });

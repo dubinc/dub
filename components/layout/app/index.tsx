@@ -32,13 +32,13 @@ export default function AppLayout({
   return (
     <div>
       <Meta />
-      {/* <Script
+      <Script
         id="script-crisp"
         dangerouslySetInnerHTML={{
           __html: CRISP_SCRIPT,
         }}
         strategy="lazyOnload"
-      /> */}
+      />
       <Toaster />
       <div
         className={`min-h-screen w-full ${bgWhite ? "bg-white" : "bg-gray-50"}`}
