@@ -8,6 +8,15 @@
 </p>
 
 <p align="center">
+  <a href="https://twitter.com/dubdotsh">
+    <img src="https://img.shields.io/twitter/follow/dubdotsh?style=for-the-badge&label=%40dubdotsh&logo=twitter&color=0bf&logoColor=fff" alt="Twitter" />
+  </a>
+  <a href="https://github.com/steven-tey/dub/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/steven-tey/dub?style=for-the-badge&label=license&logo=github&color=f80&logoColor=fff" alt="License" />
+  </a>
+</p>
+
+<p align="center">
   <a href="#introduction"><strong>Introduction</strong></a> ·
   <a href="#deploy-your-own"><strong>Deploy Your Own</strong></a> ·
   <a href="#tech-stack"><strong>Tech Stack</strong></a> ·
