@@ -11,9 +11,6 @@
 const BLACKLIST = new Set([
   "lopescarvalho.adv.br",
   "gruppopiueuroparegionelazio.it",
-  "rb.gy",
-  "in.sv",
-  "tdy.es",
   "piracynchill.in",
   "tgnewstv.it",
   "secure.oldschool.com-os.cz",
@@ -182,6 +179,12 @@ const BLACKLIST = new Set([
   "spankbang.com",
   "youporn.com",
   "tube8.com",
+  // free URL shortening services
+  "rb.gy",
+  "in.sv",
+  "tdy.es",
+  "shortest.link",
+  "zws.im",
 ]);
 
 export default BLACKLIST;
