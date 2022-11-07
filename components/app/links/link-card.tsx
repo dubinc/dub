@@ -148,7 +148,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
               </Link>
               {title && description && image && (
                 <a
-                  href={`https://dub.sh/_proxy/${
+                  href={`https://${domain || "dub.sh"}/_proxy/${
                     domain || "dub.sh"
                   }/${encodeURI(key)}`}
                   target="_blank"
