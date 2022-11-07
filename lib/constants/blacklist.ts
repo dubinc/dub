@@ -10,6 +10,9 @@
 
 const BLACKLIST = new Set([
   "lopescarvalho.adv.br",
+  "gruppopiueuroparegionelazio.it",
+  "rb.gy",
+  "in.sv",
   "piracynchill.in",
   "tgnewstv.it",
   "secure.oldschool.com-os.cz",

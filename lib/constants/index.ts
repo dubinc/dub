@@ -43,3 +43,4 @@ export const SPECIAL_APEX_DOMAINS = {
 };
 
 export { default as BLACKLIST } from "./blacklist";
+export { default as BLACKLISTED_EMAILS } from "./blacklisted-emails";
