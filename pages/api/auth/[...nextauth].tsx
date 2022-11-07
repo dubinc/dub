@@ -43,6 +43,16 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
+    jwt: async ({ token, account, profile }) => {
+      if (BLACKLISTED_EMAILS.has(token.email)) {
+        return {};
+      }
+      if (account) {
+        token.accessToken = account.access_token;
+        token.id = profile?.id;
+      }
+      return token;
+    },
     session: async ({ session, token }) => {
       session.user = {
         // @ts-ignore
