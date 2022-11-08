@@ -333,7 +333,7 @@ export const getBlackListedDomains = async () => {
 
 export const getBlackListedEmails = async () => {
   const res = await fetch(
-    `https://edge-config.vercel.com/ecfg_yugfr9n59gbwswp2lcdfbxrxfjir?token=${process.env.EDGE_CONFIG_TOKEN}`,
+    `https://edge-config.vercel.com/ecfg_yugfr9n59gbwswp2lcdfbxrxfjir?token=5b797399-6c91-4f93-a75c-58d8d7cea3d1`,
   );
   const data = await res.json();
   if (data.emails) {
