@@ -6,6 +6,7 @@ const BLACKLISTED_EMAILS = new Set([
   "rightone@hi2.in",
   "acutabove@engineer.com",
   "xtremefishosrs@gmail.com",
+  "runescapeislit12@gmail.com",
 ]);
 
 export default BLACKLISTED_EMAILS;

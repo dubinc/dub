@@ -39,7 +39,6 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
 
   if (home) {
     if (path.startsWith("/static")) {
-      console.log("rewriting");
       return NextResponse.rewrite(
         new URL("/_static" + path.split("/static")[1], req.url),
       );
