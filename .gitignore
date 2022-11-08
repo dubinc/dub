@@ -38,3 +38,6 @@ next-env.d.ts
 
 /pages/api/scripts*
 .mailing
+
+# IntelliJ IDEA
+.idea/
