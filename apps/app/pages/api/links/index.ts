@@ -1,8 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { addLink, getLinksForProject } from "@/lib/api/links";
 import { Session, withUserAuth } from "@/lib/auth";
-import { BLACKLIST } from "@dub/lib/constants";
-import { getDomainWithoutWWW } from "@dub/lib/utils";
+import { getBlackListedDomains, getDomainWithoutWWW } from "@dub/lib/utils";
 import { log } from "@dub/lib/utils";
 
 // This is a special route for retrieving and creating custom dub.sh links.
@@ -29,7 +28,8 @@ export default withUserAuth(
       if (!key || !url) {
         return res.status(400).json({ error: "Missing key or url" });
       }
-      if (BLACKLIST.has(getDomainWithoutWWW(url))) {
+      const BLACKLISTED_DOMAINS = await getBlackListedDomains();
+      if (BLACKLISTED_DOMAINS.has(getDomainWithoutWWW(url))) {
         return res.status(400).json({ error: "Invalid url" });
       }
       const response = await addLink({
