@@ -8,8 +8,8 @@ import {
   AppMiddleware,
   LinkMiddleware,
   RootMiddleware,
-} from "@/lib/middleware";
-import { parse } from "@/lib/middleware/utils";
+} from "@dub/lib/middleware";
+import { parse } from "@dub/lib/middleware/utils";
 
 export const config = {
   matcher: [
