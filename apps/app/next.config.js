@@ -1,6 +1,11 @@
 /** @type {import('next').NextConfig} */
+const withTM = require("next-transpile-modules")([
+  "@dub/lib",
+  "@dub/components",
+  "@dub/tailwind",
+]);
 
-module.exports = {
+module.exports = withTM({
   reactStrictMode: true,
   experimental: {
     transpilePackages: ["@dub/lib"],
@@ -32,4 +37,4 @@ module.exports = {
       },
     ];
   },
-};
+});

@@ -8,7 +8,8 @@
     "lint": "TIMING=1 eslint \"**/*.ts*\""
   },
   "dependencies": {
-    "@dub/lib": "*"
+    "@dub/lib": "*",
+    "@dub/tailwind": "*"
   },
   "devDependencies": {
     "@types/react": "^17.0.37",

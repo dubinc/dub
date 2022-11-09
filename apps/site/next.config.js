@@ -2,6 +2,7 @@
 const withTM = require("next-transpile-modules")([
   "@dub/lib",
   "@dub/components",
+  "@dub/tailwind",
 ]);
 
 module.exports = withTM({
