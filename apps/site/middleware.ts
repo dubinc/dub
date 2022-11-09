@@ -1,14 +1,7 @@
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
-import {
-  DEFAULT_REDIRECTS,
-  HOME_HOSTNAMES,
-  RESERVED_KEYS,
-} from "@dub/lib/constants";
-import {
-  AppMiddleware,
-  LinkMiddleware,
-  RootMiddleware,
-} from "@dub/lib/middleware";
+import { DEFAULT_REDIRECTS, RESERVED_KEYS } from "@dub/lib/constants";
+import { LinkMiddleware } from "@dub/lib/middleware";
+import RootMiddleware from "@/lib/middleware/root";
 import { parse } from "@dub/lib/middleware/utils";
 
 export const config = {
@@ -27,17 +20,16 @@ export const config = {
 
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   const { domain, path, key } = parse(req);
-  const home = HOME_HOSTNAMES.has(domain);
-
-  if (domain === "app.dub.sh" || domain === "app.localhost:3000") {
-    return AppMiddleware(req);
-  }
 
   if (key.length === 0) {
     return RootMiddleware(req, ev);
   }
 
-  if (home) {
+  if (
+    domain === "dub.sh" ||
+    domain === "localhost:3000" ||
+    domain.includes(".vercel.app")
+  ) {
     if (path.startsWith("/static")) {
       return NextResponse.rewrite(
         new URL("/_static" + path.split("/static")[1], req.url),

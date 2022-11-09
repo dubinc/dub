@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { getLinkClicksCount } from "@/lib/upstash";
+import { getLinkClicksCount } from "@dub/lib/upstash";
 import prisma from "@/lib/prisma";
 
 // This is a special route to check if a custom dub.sh links exists

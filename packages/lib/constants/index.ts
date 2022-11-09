@@ -13,13 +13,6 @@ export const FRAMER_MOTION_LIST_ITEM_VARIANTS = {
   show: { scale: 1, opacity: 1, transition: { type: "spring" } },
 };
 
-export const HOME_HOSTNAMES = new Set([
-  // comment for better diffs
-  "dub.sh",
-  "preview.dub.sh",
-  "localhost:3000",
-]);
-
 export { default as RESERVED_KEYS } from "./reserved-keys";
 export { default as DEFAULT_REDIRECTS } from "./default-redirects";
 
@@ -41,6 +34,3 @@ export const SECOND_LEVEL_DOMAINS = new Set([
 export const SPECIAL_APEX_DOMAINS = {
   "youtu.be": "youtube.com",
 };
-
-export { default as BLACKLIST } from "./blacklist";
-export { default as BLACKLISTED_EMAILS } from "./blacklisted-emails";

@@ -1,6 +1,6 @@
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 import { detectBot, parse } from "@dub/lib/middleware/utils";
-import { recordClick, redis } from "@/lib/upstash";
+import { recordClick, redis } from "@dub/lib/upstash";
 
 export default async function LinkMiddleware(
   req: NextRequest,

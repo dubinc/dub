@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { getLinkClicksCount } from "@/lib/upstash";
+import { getLinkClicksCount } from "@dub/lib/upstash";
 
 export const config = {
   runtime: "experimental-edge",

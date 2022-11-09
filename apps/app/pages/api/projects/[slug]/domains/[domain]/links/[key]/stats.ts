@@ -6,7 +6,7 @@ import {
   intervalData,
   processData,
 } from "@/lib/stats";
-import { redis } from "@/lib/upstash";
+import { redis } from "@dub/lib/upstash";
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {

@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { verifySignature } from "@upstash/qstash/nextjs";
 import prisma from "@/lib/prisma";
-import { redis } from "@/lib/upstash";
+import { redis } from "@dub/lib/upstash";
 
 /**
  * Cron to update link count

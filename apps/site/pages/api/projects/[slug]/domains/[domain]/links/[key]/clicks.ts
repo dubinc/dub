@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { withProjectAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { getLinkClicksCount } from "@/lib/upstash";
+import { getLinkClicksCount } from "@dub/lib/upstash";
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {

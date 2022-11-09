@@ -5,7 +5,7 @@ import {
   intervalData,
   processData,
 } from "@/lib/stats";
-import { redis } from "@/lib/upstash";
+import { redis } from "@dub/lib/upstash";
 
 export const config = {
   runtime: "experimental-edge",

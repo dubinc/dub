@@ -1,10 +1,5 @@
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 import {
-  DEFAULT_REDIRECTS,
-  HOME_HOSTNAMES,
-  RESERVED_KEYS,
-} from "@dub/lib/constants";
-import {
   AppMiddleware,
   LinkMiddleware,
   RootMiddleware,
@@ -26,29 +21,17 @@ export const config = {
 };
 
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
-  const { domain, path, key } = parse(req);
-  const home = HOME_HOSTNAMES.has(domain);
+  const { domain, key } = parse(req);
 
-  if (domain === "app.dub.sh" || domain === "app.localhost:3000") {
+  if (
+    domain === `app.${process.env.CUSTOM_DOMAIN}` ||
+    domain === "app.localhost:3000"
+  ) {
     return AppMiddleware(req);
   }
 
   if (key.length === 0) {
     return RootMiddleware(req, ev);
-  }
-
-  if (home) {
-    if (path.startsWith("/static")) {
-      return NextResponse.rewrite(
-        new URL("/_static" + path.split("/static")[1], req.url),
-      );
-    }
-    if (DEFAULT_REDIRECTS[key]) {
-      return NextResponse.redirect(DEFAULT_REDIRECTS[key]);
-    }
-    if (RESERVED_KEYS.has(key)) {
-      return NextResponse.next();
-    }
   }
 
   return LinkMiddleware(req, ev);

@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { withProjectAuth } from "@/lib/auth";
 import { addDomain, removeDomain } from "@/lib/domains";
 import prisma from "@/lib/prisma";
-import { changeDomain } from "@/lib/upstash";
+import { changeDomain } from "@dub/lib/upstash";
 import { validDomainRegex } from "@dub/lib/utils";
 
 export default withProjectAuth(

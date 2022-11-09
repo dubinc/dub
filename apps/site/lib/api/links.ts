@@ -2,7 +2,7 @@ import cloudinary from "cloudinary";
 import { DEFAULT_REDIRECTS, RESERVED_KEYS } from "@dub/lib/constants";
 import prisma from "@/lib/prisma";
 import { LinkProps } from "@/lib/types";
-import { redis } from "@/lib/upstash";
+import { redis } from "@dub/lib/upstash";
 import { getParamsFromURL, nanoid } from "@dub/lib/utils";
 
 const getFiltersFromStatus = (status: string) => {

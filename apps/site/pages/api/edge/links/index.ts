@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { setRandomKey } from "@/lib/upstash";
+import { setRandomKey } from "@dub/lib/upstash";
 import { BLACKLIST } from "@dub/lib/constants";
 import { getDomainWithoutWWW } from "@dub/lib/utils";
 

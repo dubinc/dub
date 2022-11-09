@@ -1,7 +1,7 @@
 import sendMail from "emails";
 import UsageExceeded from "emails/UsageExceeded";
 import prisma from "@/lib/prisma";
-import { redis } from "@/lib/upstash";
+import { redis } from "@dub/lib/upstash";
 import { getFirstAndLastDay } from "@dub/lib/utils";
 import { log } from "@dub/lib/utils";
 
