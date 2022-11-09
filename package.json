@@ -13,6 +13,8 @@
     "db:push": "turbo run db:push",
     "db:seed": "turbo run db:seed",
     "dev": "turbo run dev --parallel",
+    "app": "turbo --filter app dev",
+    "site": "turbo --filter site dev",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "format:write": "prettier --write \"**/*.{css,js,json,jsx,ts,tsx}\"",
     "generate": "turbo run generate",

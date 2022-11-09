@@ -1,0 +1,5 @@
+@import url("/_static/fonts/satoshi.css");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
