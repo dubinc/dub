@@ -76,92 +76,9 @@ export async function recordClick(
   );
 }
 
-/**
- * Get the links associated with a project
- **/
-export async function getLinksForProject(
-  domain: string,
-  userId?: string,
-): Promise<LinkProps[]> {
-  /*
-    This function is used to get all links for a project.
-
-    Only applicable for dub.sh:
-      - If a username is provided, it will only return links for that user.
-        Otherwise, it will return all links for the project.
-  */
-  const keys = await redis.zrange<string[]>(
-    `${domain}:links:timestamps${userId ? `:${userId}` : ""}`,
-    0,
-    -1,
-    {
-      rev: true,
-    },
-  );
-  if (!keys || keys.length === 0) return []; // no links for this project
-  const metadata = (await redis.hmget(`${domain}:links`, ...keys)) as {
-    [key: string]: Omit<LinkProps, "key">;
-  };
-  const links = keys.map((key) => ({
-    key,
-    ...metadata[key],
-  }));
-  return links;
-}
-
-/**
- * Get the number of links that a project has
- **/
-export async function getLinkCountForProject(slug: string) {
-  return await redis.zcard(`${slug}:links:timestamps`);
-}
-
 export async function getLinkClicksCount(domain: string, key: string) {
   const start = Date.now() - 2629746000; // 30 days ago
   return (
     (await redis.zcount(`${domain}:clicks:${key}`, start, Date.now())) || 0
   );
-}
-
-export async function changeDomain(domain: string, newHostname: string) {
-  const keys = await redis.zrange<string[]>(
-    `${domain}:links:timestamps`,
-    0,
-    -1,
-  );
-  const pipeline = redis.pipeline();
-  pipeline.rename(`${domain}:links`, `${newHostname}:links`);
-  pipeline.rename(
-    `${domain}:links:timestamps`,
-    `${newHostname}:links:timestamps`,
-  );
-  pipeline.rename(`${domain}:root:clicks`, `${newHostname}:root:clicks`);
-  keys.forEach((key) => {
-    pipeline.rename(`${domain}:clicks:${key}`, `${newHostname}:clicks:${key}`);
-  });
-  try {
-    return await pipeline.exec();
-  } catch (e) {
-    return null;
-  }
-}
-
-export async function deleteProject(domain: string) {
-  const keys = await redis.zrange<string[]>(
-    `${domain}:links:timestamps`,
-    0,
-    -1,
-  );
-  const pipeline = redis.pipeline();
-  pipeline.del(`${domain}:links`);
-  pipeline.del(`${domain}:links:timestamps`);
-  pipeline.del(`${domain}:root:clicks`);
-  keys.forEach((key) => {
-    pipeline.del(`${domain}:clicks:${key}`);
-  });
-  try {
-    return await pipeline.exec();
-  } catch (e) {
-    return null;
-  }
 }
