@@ -1,7 +1,6 @@
 import type { NextRequest } from "next/server";
 import { setRandomKey } from "@/lib/upstash";
-import { BLACKLIST } from "@/lib/constants";
-import { getDomainWithoutWWW } from "@/lib/utils";
+import { getBlackListedDomains, getDomainWithoutWWW } from "@/lib/utils";
 
 export const config = {
   runtime: "experimental-edge",
@@ -13,7 +12,8 @@ export default async function handler(req: NextRequest) {
     if (!url) {
       return new Response(`Missing url`, { status: 400 });
     }
-    if (BLACKLIST.has(getDomainWithoutWWW(url))) {
+    const BLACKLISTED_DOMAINS = await getBlackListedDomains();
+    if (BLACKLISTED_DOMAINS.has(getDomainWithoutWWW(url))) {
       return new Response(`Invalid url`, { status: 400 });
     }
     const { response, key } = await setRandomKey(url);

@@ -41,6 +41,3 @@ export const SECOND_LEVEL_DOMAINS = new Set([
 export const SPECIAL_APEX_DOMAINS = {
   "youtu.be": "youtube.com",
 };
-
-export { default as BLACKLIST } from "./blacklist";
-export { default as BLACKLISTED_EMAILS } from "./blacklisted-emails";

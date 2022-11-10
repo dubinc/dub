@@ -2,11 +2,12 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { withProjectAuth } from "@/lib/auth";
 import { addDomain, removeDomain } from "@/lib/domains";
 import prisma from "@/lib/prisma";
-import { changeDomain } from "@/lib/upstash";
 import { validDomainRegex } from "@/lib/utils";
+import { changeDomainForLinks } from "@/lib/api/links";
+import { ProjectProps } from "@/lib/types";
 
 export default withProjectAuth(
-  async (req: NextApiRequest, res: NextApiResponse) => {
+  async (req: NextApiRequest, res: NextApiResponse, project: ProjectProps) => {
     // PUT /api/projects/[slug]/domains/[domain] edit a project's domain
     if (req.method === "PUT") {
       const { slug, domain } = req.query as { slug: string; domain: string }; // slug is the domain
@@ -22,13 +23,6 @@ export default withProjectAuth(
       }
 
       if (domain !== newDomain) {
-        // make sure domain doesn't exist
-        const project = await prisma.project.findUnique({
-          where: {
-            domain: newDomain,
-          },
-          select: { slug: true },
-        });
         if (project && project.slug !== slug) {
           return res.status(400).json({ error: "Domain already exists" });
         }
@@ -36,7 +30,6 @@ export default withProjectAuth(
           await Promise.all([
             removeDomain(domain),
             addDomain(newDomain),
-            changeDomain(domain, newDomain),
             prisma.project.update({
               where: {
                 slug,
@@ -46,6 +39,7 @@ export default withProjectAuth(
                 domainVerified: false,
               },
             }),
+            changeDomainForLinks(project.id, domain, newDomain),
           ]);
 
         return res.status(200).json({

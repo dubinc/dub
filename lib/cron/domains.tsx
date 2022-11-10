@@ -4,7 +4,8 @@ import ProjectDeleted from "emails/ProjectDeleted";
 import { log } from "@/lib/utils";
 import { removeDomain } from "@/lib/domains";
 import prisma from "@/lib/prisma";
-import { deleteProject, redis } from "@/lib/upstash";
+import { deleteProjectLinks } from "@/lib/api/links";
+import { redis } from "@/lib/upstash";
 
 export const handleDomainUpdates = async (
   projectSlug: string,
@@ -52,7 +53,7 @@ export const handleDomainUpdates = async (
           },
         }),
         removeDomain(domain),
-        deleteProject(domain),
+        deleteProjectLinks(domain),
         log(
           `Domain *${domain}* has been invalid for > 30 days, deleting.`,
           "cron",

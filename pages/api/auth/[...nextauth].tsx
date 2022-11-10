@@ -5,7 +5,7 @@ import WelcomeEmail from "emails/WelcomeEmail";
 import NextAuth, { type NextAuthOptions } from "next-auth";
 import EmailProvider from "next-auth/providers/email";
 import prisma from "@/lib/prisma";
-import { BLACKLISTED_EMAILS } from "@/lib/constants";
+import { getBlackListedEmails } from "@/lib/utils";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
@@ -38,12 +38,14 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     signIn: async ({ user }) => {
+      const BLACKLISTED_EMAILS = await getBlackListedEmails();
       if (BLACKLISTED_EMAILS.has(user.email)) {
         return false;
       }
       return true;
     },
     jwt: async ({ token, account, profile }) => {
+      const BLACKLISTED_EMAILS = await getBlackListedEmails();
       if (BLACKLISTED_EMAILS.has(token.email)) {
         return {};
       }

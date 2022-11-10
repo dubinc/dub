@@ -19,9 +19,10 @@ export const config = {
      * 2. /_next (Next.js internals)
      * 3. /_proxy & /_auth (special pages for OG tag proxying and password protection)
      * 4. /_static (inside /public)
-     * 5. all root files inside /public (e.g. /favicon.ico)
+     * 5. /_vercel (Vercel internals)
+     * 6. all root files inside /public (e.g. /favicon.ico)
      */
-    "/((?!api|_next|_proxy|_auth|_static|va|[\\w-]+\\.\\w+).*)",
+    "/((?!api|_next|_proxy|_auth|_static|_vercel|[\\w-]+\\.\\w+).*)",
   ],
 };
 
@@ -39,7 +40,6 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
 
   if (home) {
     if (path.startsWith("/static")) {
-      console.log("rewriting");
       return NextResponse.rewrite(
         new URL("/_static" + path.split("/static")[1], req.url),
       );
