@@ -4,7 +4,7 @@ import ProjectDeleted from "emails/ProjectDeleted";
 import { log } from "@/lib/utils";
 import { removeDomain } from "@/lib/domains";
 import prisma from "@/lib/prisma";
-import { deleteProjectLinks } from "@/lib/api/projects";
+import { deleteProjectLinks } from "@/lib/api/links";
 import { redis } from "@/lib/upstash";
 
 export const handleDomainUpdates = async (

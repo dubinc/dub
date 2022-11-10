@@ -3,7 +3,7 @@ import { withProjectAuth } from "@/lib/auth";
 import { addDomain, removeDomain } from "@/lib/domains";
 import prisma from "@/lib/prisma";
 import { validDomainRegex } from "@/lib/utils";
-import { changeDomainForLinks } from "@/lib/api/projects";
+import { changeDomainForLinks } from "@/lib/api/links";
 import { ProjectProps } from "@/lib/types";
 
 export default withProjectAuth(
