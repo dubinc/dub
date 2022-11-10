@@ -3,13 +3,20 @@ import { unstable_getServerSession } from "next-auth/next";
 import { FREE_PLAN_PROJECT_LIMIT } from "@/lib/constants";
 import prisma from "@/lib/prisma";
 import { ProjectProps, UserProps } from "@/lib/types";
-
+import { authOptions } from "@/pages/api/auth/[...nextauth]";
 export interface Session {
   user: {
     email?: string | null;
     id?: string | null;
     name?: string | null;
   };
+}
+
+export async function getServerSession(
+  req: NextApiRequest,
+  res: NextApiResponse,
+) {
+  return (await unstable_getServerSession(req, res, authOptions)) as Session;
 }
 interface WithProjectNextApiHandler {
   (
@@ -36,7 +43,7 @@ const withProjectAuth =
     } = {},
   ) =>
   async (req: NextApiRequest, res: NextApiResponse) => {
-    const session = (await unstable_getServerSession()) as Session;
+    const session = await getServerSession(req, res);
     if (!session?.user.id) return res.status(401).end("Unauthorized");
 
     const { slug } = req.query;
@@ -142,8 +149,7 @@ const withUserAuth =
     } = {},
   ) =>
   async (req: NextApiRequest, res: NextApiResponse) => {
-    const session = (await unstable_getServerSession()) as Session;
-    console.log("session", session);
+    const session = await getServerSession(req, res);
     if (!session?.user.id) return res.status(401).end("Unauthorized");
 
     if (req.method === "GET") return handler(req, res, session);

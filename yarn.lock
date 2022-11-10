@@ -429,10 +429,10 @@
     hey-listen "^1.0.8"
     tslib "^2.3.1"
 
-"@next-auth/prisma-adapter@^1.0.4":
-  version "1.0.4"
-  resolved "https://registry.npmjs.org/@next-auth/prisma-adapter/-/prisma-adapter-1.0.4.tgz"
-  integrity sha512-jIOM6CzCbl2/Mzbx9kb2IjtHoJOeRN9wtQgLk4EUm5bhneSVGv1rtz5TDskvp2UfCa+EK9nDmug+lje41z80Gg==
+"@next-auth/prisma-adapter@^1.0.5":
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/@next-auth/prisma-adapter/-/prisma-adapter-1.0.5.tgz#41a2fc7b44907054b81d456b426164e58becf4ed"
+  integrity sha512-VqMS11IxPXrPGXw6Oul6jcyS/n8GLOWzRMrPr3EMdtD6eOalM6zz05j08PcNiis8QzkfuYnCv49OvufTuaEwYQ==
 
 "@next/env@13.0.2":
   version "13.0.2"
