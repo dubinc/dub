@@ -1,4 +1,4 @@
-export default function Copy({ className }: { className: string }) {
+export default function Copy({ className }: { className?: string }) {
   return (
     <svg
       fill="none"
