@@ -29,10 +29,11 @@ const Hero = () => {
       </p>
 
       <div className="mx-auto mt-10 flex max-w-fit space-x-4">
-        <Link href="https://app.dub.sh/register">
-          <a className="rounded-full border border-black bg-black py-2 px-5 text-sm text-white shadow-lg transition-all hover:bg-white hover:text-black">
-            Start For Free
-          </a>
+        <Link
+          href="https://app.dub.sh/register"
+          className="rounded-full border border-black bg-black py-2 px-5 text-sm text-white shadow-lg transition-all hover:bg-white hover:text-black"
+        >
+          Start For Free
         </Link>
         <a
           className="flex items-center justify-center space-x-2 rounded-full border border-gray-300 bg-white py-2 px-5 shadow-lg transition-all hover:border-gray-800"

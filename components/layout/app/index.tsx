@@ -48,17 +48,18 @@ export default function AppLayout({
             <div className="flex h-16 items-center justify-between">
               <div className="flex items-center">
                 <Link href="/">
-                  <a>
-                    <Logo className="h-8 w-8 transition-all duration-75 active:scale-95" />
-                  </a>
+                  <Logo className="h-8 w-8 transition-all duration-75 active:scale-95" />
                 </Link>
                 <Divider className="h-8 w-8 text-gray-200 sm:ml-3" />
                 <ProjectSelect />
                 {key && slug && (
                   <>
                     <Divider className="h-8 w-8 text-gray-200 sm:mr-3" />
-                    <Link href={`/${slug}/${key}`}>
-                      <a className="text-sm font-medium">{key}</a>
+                    <Link
+                      href={`/${slug}/${key}`}
+                      className="text-sm font-medium"
+                    >
+                      {key}
                     </Link>
                   </>
                 )}

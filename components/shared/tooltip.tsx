@@ -133,10 +133,11 @@ export function TooltipContent({
     <div className="flex max-w-xs flex-col items-center space-y-3 p-5 text-center">
       <p className="text-sm text-gray-700">{title}</p>
       {cta && ctaLink && (
-        <Link href={ctaLink}>
-          <a className="mt-4 rounded-full border border-black bg-black py-1.5 px-3 text-sm text-white transition-all hover:bg-white hover:text-black">
-            {cta}
-          </a>
+        <Link
+          href={ctaLink}
+          className="mt-4 rounded-full border border-black bg-black py-1.5 px-3 text-sm text-white transition-all hover:bg-white hover:text-black"
+        >
+          {cta}
         </Link>
       )}
     </div>

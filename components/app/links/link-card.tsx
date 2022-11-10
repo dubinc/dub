@@ -133,18 +133,19 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                 <span className="sr-only">Download QR</span>
                 <QR className="text-gray-700 transition-all group-hover:text-blue-800" />
               </button>
-              <Link href={`/${slug || "links"}/${encodeURI(key)}`}>
-                <a className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 transition-all duration-75 hover:scale-105 active:scale-95">
-                  <Chart className="h-4 w-4" />
-                  <p className="whitespace-nowrap text-sm text-gray-500">
-                    {isValidating ? (
-                      <LoadingDots color="#71717A" />
-                    ) : (
-                      nFormatter(clicks)
-                    )}
-                    <span className="ml-1 hidden sm:inline-block">clicks</span>
-                  </p>
-                </a>
+              <Link
+                href={`/${slug || "links"}/${encodeURI(key)}`}
+                className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 transition-all duration-75 hover:scale-105 active:scale-95"
+              >
+                <Chart className="h-4 w-4" />
+                <p className="whitespace-nowrap text-sm text-gray-500">
+                  {isValidating ? (
+                    <LoadingDots color="#71717A" />
+                  ) : (
+                    nFormatter(clicks)
+                  )}
+                  <span className="ml-1 hidden sm:inline-block">clicks</span>
+                </p>
               </Link>
               {title && description && image && (
                 <a

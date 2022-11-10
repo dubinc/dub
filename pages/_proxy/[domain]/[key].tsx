@@ -1,4 +1,4 @@
-import Image from "next/future/image";
+import Image from "next/image";
 import Head from "next/head";
 import { unescape } from "html-escaper";
 import prisma from "@/lib/prisma";

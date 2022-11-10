@@ -97,16 +97,16 @@ export default function Login() {
           {noSuchAccount ? (
             <p className="text-center text-sm text-red-500">
               No such account.{" "}
-              <Link href="/register">
-                <a className="font-semibold text-red-600">Sign up</a>
+              <Link href="/register" className="font-semibold text-red-600">
+                Sign up
               </Link>{" "}
               instead?
             </p>
           ) : (
             <p className="text-center text-sm text-gray-600">
               Don't have an account?{" "}
-              <Link href="/register">
-                <a className="font-semibold text-gray-800">Sign up</a>
+              <Link href="/register" className="font-semibold text-gray-800">
+                Sign up
               </Link>{" "}
               for free.
             </p>
