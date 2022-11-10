@@ -80,13 +80,13 @@ export async function getStaticProps() {
     },
   ).then((res) => res.json());
 
-  const tweets = await getTweetsMetadata(homepageTweets);
+  // const tweets = await getTweetsMetadata(homepageTweets);
 
   return {
     props: {
       userCount,
       stars,
-      tweets,
+      tweets: [],
     },
     revalidate: 60,
   };
