@@ -53,7 +53,7 @@ export default function Home({
         <Hero />
         <Demo />
         <Logos />
-        <Globe />
+        {/* <Globe /> */}
         <Features />
         <Testimonials userCount={userCount} tweets={tweets} />
         <Pricing />
