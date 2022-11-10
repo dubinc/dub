@@ -3,7 +3,7 @@ import { withProjectAuth } from "@/lib/auth";
 import { removeDomain } from "@/lib/domains";
 import prisma from "@/lib/prisma";
 import { ProjectProps } from "@/lib/types";
-import { deleteProject } from "@/lib/upstash";
+import { deleteProjectLinks } from "@/lib/api/projects";
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse, project: ProjectProps) => {
@@ -34,7 +34,7 @@ export default withProjectAuth(
             },
           }),
           removeDomain(domain),
-          deleteProject(domain),
+          deleteProjectLinks(domain),
         ]);
 
       return res

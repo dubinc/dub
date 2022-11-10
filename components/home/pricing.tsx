@@ -161,14 +161,17 @@ const Pricing = () => {
                       $
                       {plan === "Pro"
                         ? period === "yearly"
-                          ? nFormatter(PRO_TIERS[tier].price.yearly.amount, 1)
+                          ? nFormatter(
+                              PRO_TIERS[tier].price.yearly.amount / 12,
+                              1,
+                            )
                           : PRO_TIERS[tier].price.monthly.amount
                         : 0}
                     </p>
                   </div>
                 )}
                 <p className="text-gray-500">
-                  per {period === "yearly" ? "year" : "month"}
+                  per {period === "yearly" ? "month, billed annually" : "month"}
                 </p>
               </div>
               <div className="flex h-20 items-center justify-center border-t border-b border-gray-200 bg-gray-50">
