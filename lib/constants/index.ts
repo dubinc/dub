@@ -18,7 +18,6 @@ export const HOME_HOSTNAMES = new Set([
   "dub.sh",
   "preview.dub.sh",
   "localhost:3000",
-  "ea19-2600-1700-b5e4-b50-9cf6-7f30-1704-55e5.ngrok.io",
 ]);
 
 export { default as RESERVED_KEYS } from "./reserved-keys";
