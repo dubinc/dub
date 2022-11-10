@@ -1,7 +1,11 @@
 import { NextRouter } from "next/router";
 import ms from "ms";
 import { customAlphabet } from "nanoid";
-import { SPECIAL_APEX_DOMAINS, ccTLDs, secondLevelDomains } from "./constants";
+import {
+  SPECIAL_APEX_DOMAINS,
+  ccTLDs,
+  SECOND_LEVEL_DOMAINS,
+} from "./constants";
 
 export const nanoid = customAlphabet(
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
@@ -209,7 +213,7 @@ export const getApexDomain = (url: string) => {
   if (parts.length > 2) {
     // if this is a second-level TLD (e.g. co.uk, .com.ua, .org.tt), we need to return the last 3 parts
     if (
-      secondLevelDomains.has(parts[parts.length - 2]) &&
+      SECOND_LEVEL_DOMAINS.has(parts[parts.length - 2]) &&
       ccTLDs.has(parts[parts.length - 1])
     ) {
       return parts.slice(-3).join(".");
@@ -219,6 +223,16 @@ export const getApexDomain = (url: string) => {
   }
   // if it's a normal domain (e.g. dub.sh), we return the domain
   return domain;
+};
+
+export const getDomainWithoutWWW = (url: string) => {
+  let hostname;
+  try {
+    hostname = new URL(url).hostname;
+  } catch (e) {
+    return "";
+  }
+  return hostname.replace(/^www\./, "");
 };
 
 export const getParamsFromURL = (url: string) => {
@@ -266,4 +280,65 @@ export const getQueryString = (router: NextRouter) => {
   };
   const queryString = new URLSearchParams(queryWithoutSlug).toString();
   return `${queryString ? "?" : ""}${queryString}`;
+};
+
+export const truncate = (str: string, length: number) => {
+  if (str.length <= length) return str;
+  return `${str.slice(0, length)}...`;
+};
+
+const logTypeToEnv = {
+  cron: process.env.DUB_SLACK_HOOK_CRON,
+  links: process.env.DUB_SLACK_HOOK_LINKS,
+};
+
+export const log = async (message: string, type: "cron" | "links") => {
+  /* Log a message to the console */
+  const HOOK = logTypeToEnv[type];
+  if (!HOOK) return;
+  try {
+    return await fetch(HOOK, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        blocks: [
+          {
+            type: "section",
+            text: {
+              type: "mrkdwn",
+              text: message,
+            },
+          },
+        ],
+      }),
+    });
+  } catch (e) {
+    console.log(`Failed to log to Vercel Slack. Error: ${e}`);
+  }
+};
+
+export const getBlackListedDomains = async () => {
+  const res = await fetch(
+    `https://edge-config.vercel.com/ecfg_2yhwl7yp0dcf60nn1cdid4a5xlsa?token=2482c0cb-1101-4e4b-8538-0f54cc43469e`,
+  );
+  const data = await res.json();
+  if (data.domains) {
+    return new Set(data.domains);
+  } else {
+    return new Set();
+  }
+};
+
+export const getBlackListedEmails = async () => {
+  const res = await fetch(
+    `https://edge-config.vercel.com/ecfg_yugfr9n59gbwswp2lcdfbxrxfjir?token=5b797399-6c91-4f93-a75c-58d8d7cea3d1`,
+  );
+  const data = await res.json();
+  if (data.emails) {
+    return new Set(data.emails);
+  } else {
+    return new Set();
+  }
 };

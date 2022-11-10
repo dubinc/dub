@@ -1,7 +1,7 @@
 import sendMail from "emails";
 import InvalidDomain from "emails/InvalidDomain";
 import ProjectDeleted from "emails/ProjectDeleted";
-import { log } from "@/lib/cron/utils";
+import { log } from "@/lib/utils";
 import { removeDomain } from "@/lib/domains";
 import prisma from "@/lib/prisma";
 import { deleteProject, redis } from "@/lib/upstash";
@@ -15,7 +15,7 @@ export const handleDomainUpdates = async (
   sentEmails: string[],
 ) => {
   if (changed) {
-    await log(`Domain *${domain}* changed status to *${verified}*`);
+    await log(`Domain *${domain}* changed status to *${verified}*`, "cron");
   }
 
   if (verified) return;
@@ -53,7 +53,10 @@ export const handleDomainUpdates = async (
         }),
         removeDomain(domain),
         deleteProject(domain),
-        log(`Domain *${domain}* has been invalid for > 30 days, deleting.`),
+        log(
+          `Domain *${domain}* has been invalid for > 30 days, deleting.`,
+          "cron",
+        ),
         sendMail({
           subject: `Your project ${projectSlug} has been deleted`,
           to: ownerEmail,
@@ -65,6 +68,7 @@ export const handleDomainUpdates = async (
     } else {
       return await log(
         `Domain *${domain}* has been invalid for > 30 days but has links, not deleting.`,
+        "cron",
       );
     }
   }
@@ -79,7 +83,10 @@ const sendDomainInvalidEmail = async (
 ) => {
   const ownerEmail = await getProjectOwnerEmail(projectSlug);
   return await Promise.all([
-    log(`Domain *${domain}* is invalid for ${invalidDays} days, email sent.`),
+    log(
+      `Domain *${domain}* is invalid for ${invalidDays} days, email sent.`,
+      "cron",
+    ),
     sendMail({
       subject: `Your domain ${domain} needs to be configured`,
       to: ownerEmail,

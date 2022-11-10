@@ -14,6 +14,7 @@ import {
   Chart,
   Delete,
   Edit,
+  Eye,
   LoadingDots,
   QR,
   ThreeDots,
@@ -32,7 +33,16 @@ import {
 } from "@/lib/utils";
 
 export default function LinkCard({ props }: { props: LinkProps }) {
-  const { key, url, createdAt, archived, expiresAt } = props;
+  const {
+    key,
+    url,
+    title,
+    description,
+    image,
+    createdAt,
+    archived,
+    expiresAt,
+  } = props;
 
   const apexDomain = getApexDomain(url);
 
@@ -62,11 +72,13 @@ export default function LinkCard({ props }: { props: LinkProps }) {
   });
   const { setShowArchiveLinkModal, ArchiveLinkModal } = useArchiveLinkModal({
     props,
+    archived: !archived,
   });
   const { setShowDeleteLinkModal, DeleteLinkModal } = useDeleteLinkModal({
     props,
   });
   const [openPopover, setOpenPopover] = useState(false);
+  const [unarchiving, setUnarchiving] = useState(false);
 
   const expired = expiresAt && new Date() > new Date(expiresAt);
 
@@ -134,6 +146,18 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                   </p>
                 </a>
               </Link>
+              {title && description && image && (
+                <a
+                  href={`https://${domain || "dub.sh"}/_proxy/${
+                    domain || "dub.sh"
+                  }/${encodeURI(key)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group rounded-full bg-gray-100 p-1.5 transition-all duration-75 hover:scale-105 hover:bg-blue-100 active:scale-95"
+                >
+                  <Eye className="text-gray-700 transition-all group-hover:text-blue-800" />
+                </a>
+              )}
             </div>
             <h3 className="max-w-[200px] truncate text-sm font-medium text-gray-700 md:max-w-md lg:max-w-2xl xl:max-w-3xl">
               {url}
@@ -150,7 +174,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
           </p>
           <Popover
             content={
-              <div className="grid w-full gap-1 p-2 sm:w-40">
+              <div className="grid w-full gap-1 p-2 sm:w-48">
                 {slug && exceededUsage ? (
                   <Tooltip
                     content={
@@ -166,7 +190,10 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                     }
                   >
                     <div className="w-full cursor-not-allowed p-2 text-left text-sm font-medium text-gray-300 transition-all duration-75">
-                      Edit
+                      <IconMenu
+                        text="Edit"
+                        icon={<Edit className="h-4 w-4" />}
+                      />
                     </div>
                   </Tooltip>
                 ) : (
@@ -181,14 +208,15 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                   </button>
                 )}
                 <button
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.preventDefault();
                     setOpenPopover(false);
                     setShowArchiveLinkModal(true);
                   }}
                   className="w-full rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
                 >
                   <IconMenu
-                    text="Archive"
+                    text={archived ? "Unarchive" : "Archive"}
                     icon={<Archive className="h-4 w-4" />}
                   />
                 </button>

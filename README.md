@@ -1,10 +1,20 @@
 <a href="https://dub.sh">
-  <img alt="Dub – an open-source link shortener SaaS with built-in analytics + free custom domains." src="/public/_static/thumbnail.png">
+  <img alt="Dub – an open-source link shortener SaaS with built-in analytics + free custom domains." src="https://user-images.githubusercontent.com/28986134/200727801-6355c62e-60b5-45d7-a83d-44b11545e471.png">
   <h1 align="center">Dub</h1>
 </a>
 
 <p align="center">
   An open-source link shortener SaaS with built-in analytics + free custom domains.
+</p>
+
+<p align="center">
+  <a href="https://twitter.com/dubdotsh">
+    <img src="https://img.shields.io/twitter/follow/dubdotsh?style=flat&label=%40dubdotsh&logo=twitter&color=0bf&logoColor=fff" alt="Twitter" />
+  </a>
+  <a href="https://news.ycombinator.com/item?id=32939407"><img src="https://img.shields.io/badge/Hacker%20News-255-%23FF6600" alt="Hacker News"></a>
+  <a href="https://github.com/steven-tey/dub/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/steven-tey/dub?label=license&logo=github&color=f80&logoColor=fff" alt="License" />
+  </a>
 </p>
 
 <p align="center">
@@ -26,25 +36,25 @@ Here are some of the features that Dub provides out-of-the-box:
 
 Dub provides a powerful analytics dashboard for your links, including geolocation, device, and browser information.
 
-![Analytics Dashboard](/public/_static/landing/analytics.png)
+![Analytics Dashboard](https://user-images.githubusercontent.com/28986134/200727883-40fe9e62-93a2-48b6-8316-4ce3e6f490f0.png)
 
 ### Custom domains
 
 You can easily configure custom domains on Dub – just add an A/CNAME record to your DNS provider and you're good to go. This is built on the [Vercel Domains API](https://domains-api.vercel.app/).
 
-![Custom Domains](/public/_static/landing/domains.png)
+![Custom Domains](https://user-images.githubusercontent.com/28986134/200727913-432734b4-4fc7-46ef-b09f-cc8262dc8a0d.png)
 
 ### QR Code Generator
 
 You can easily generate and customize QR codes for your links, which can be used for flyers, posters, powerpoint presentations, etc.
 
-![QR Code](/public/_static/landing/qr.png)
+![QR Code](https://user-images.githubusercontent.com/28986134/200727932-2259628b-8f89-4017-896d-a355940222db.png)
 
 ### OG Image Proxy
 
 Add a custom OG image in front of your target URL. Bots like Twitter/Facebook will be served this image, while users will be redirected to your target URL.
 
-![OG Image Proxy](/public/_static/landing/og-image-proxy.gif)
+![OG Image Proxy](https://user-images.githubusercontent.com/28986134/200727958-e8a5ac24-644b-45c6-8018-41c4dea25cd1.gif)
 
 ## Deploy Your Own
 

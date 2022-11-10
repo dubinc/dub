@@ -150,7 +150,7 @@ model Link {
   clicksUpdatedAt  DateTime @default(now()) // last time clicks was updated
 
   // User who created the link
-  user            User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User?    @relation(fields: [userId], references: [id])
   userId          String?
 
   // Project that the link belongs to

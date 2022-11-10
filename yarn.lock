@@ -1196,6 +1196,11 @@
   resolved "https://registry.yarnpkg.com/@reecelucas/react-use-hotkeys/-/react-use-hotkeys-1.3.5.tgz#14006121e52b86695c12b0502fe4c0e333ad36e5"
   integrity sha512-mzogZ/zykHd9F88V9zwh+7ZVzlHomGjz4ztOCkHBSHmAPrM4fF4z3TMPaG4YSykB03spuVh6GbKAkSNY1rUDBQ==
 
+"@stitches/react@^1.2.8":
+  version "1.2.8"
+  resolved "https://registry.yarnpkg.com/@stitches/react/-/react-1.2.8.tgz#954f8008be8d9c65c4e58efa0937f32388ce3a38"
+  integrity sha512-9g9dWI4gsSVe8bNLlb+lMkBYsnIKCZTmvqvDG+Avnn69XfmHZKiaMrx7cgTaddq7aTPPmXiTsbFcUy0xgI4+wA==
+
 "@stripe/stripe-js@^1.36.0":
   version "1.36.0"
   resolved "https://registry.npmjs.org/@stripe/stripe-js/-/stripe-js-1.36.0.tgz"
@@ -5402,6 +5407,11 @@ react-is@^16.13.1:
   version "16.13.1"
   resolved "https://registry.npmjs.org/react-is/-/react-is-16.13.1.tgz"
   integrity sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==
+
+react-parallax-tilt@^1.7.68:
+  version "1.7.68"
+  resolved "https://registry.yarnpkg.com/react-parallax-tilt/-/react-parallax-tilt-1.7.68.tgz#0aeb733343d942706380c425c30b6f94579896b4"
+  integrity sha512-HDYxYrV8s/mu6Tm1uR+8qGGEvrblCmBEOJGxlUr6O1y0oDjhZ7d6oWr9SsqCvBU6iC/xz5b57kQy2zPeglkQ5Q==
 
 react-reconciler@^0.26.1:
   version "0.26.2"

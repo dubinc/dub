@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { deleteLink, editLink } from "@/lib/api/links";
 import { Session, withUserAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { getBlackListedDomains, getDomainWithoutWWW } from "@/lib/utils";
 
 const domain = "dub.sh";
 
@@ -30,6 +31,10 @@ export default withUserAuth(
         return res
           .status(400)
           .json({ error: "Missing key or url or title or timestamp" });
+      }
+      const BLACKLISTED_DOMAINS = await getBlackListedDomains();
+      if (BLACKLISTED_DOMAINS.has(getDomainWithoutWWW(url))) {
+        return res.status(400).json({ error: "Invalid url" });
       }
       const response = await editLink(
         {

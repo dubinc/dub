@@ -59,6 +59,7 @@ function AcceptInviteModal({
                   headers: { "Content-Type": "application/json" },
                 }).then(() => {
                   toast.success("You now are a part of this project!");
+                  mutate(`/api/projects`);
                   mutate(`/api/projects/${slug}`);
                   mutate(`/api/projects/${slug}/users`);
                 });
