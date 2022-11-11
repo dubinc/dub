@@ -1,4 +1,4 @@
-import Image, { ImageProps } from "next/future/image";
+import Image, { ImageProps } from "next/image";
 import { useEffect, useState } from "react";
 
 export default function BlurImage(props: ImageProps) {

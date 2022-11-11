@@ -25,10 +25,9 @@ const featureList = [
         as="/stats/github"
         shallow
         scroll={false}
+        className="block max-w-fit rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
       >
-        <a className="block max-w-fit rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black">
-          View demo
-        </a>
+        View demo
       </Link>
     ),
     demo: "https://d2vwwcvoksz7ty.cloudfront.net/analytics.mp4",

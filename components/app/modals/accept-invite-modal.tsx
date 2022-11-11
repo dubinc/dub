@@ -95,10 +95,11 @@ function AcceptInviteModal({
             </p>
           </div>
           <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16">
-            <Link href="/">
-              <a className="flex h-10 w-full items-center justify-center rounded-md border border-black bg-black text-sm text-white transition-all hover:bg-white hover:text-black focus:outline-none">
-                Back to dashboard
-              </a>
+            <Link
+              href="/"
+              className="flex h-10 w-full items-center justify-center rounded-md border border-black bg-black text-sm text-white transition-all hover:bg-white hover:text-black focus:outline-none"
+            >
+              Back to dashboard
             </Link>
           </div>
         </div>

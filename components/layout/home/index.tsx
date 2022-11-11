@@ -1,4 +1,4 @@
-import Image from "next/future/image";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { ReactNode } from "react";
@@ -35,15 +35,13 @@ export default function HomeLayout({
                 </a>
               ) : (
                 <Link href="/">
-                  <a>
-                    <Image
-                      src="/_static/logotype.svg"
-                      alt="Dub.sh logo"
-                      width={834}
-                      height={236}
-                      className="w-24"
-                    />
-                  </a>
+                  <Image
+                    src="/_static/logotype.svg"
+                    alt="Dub.sh logo"
+                    width={834}
+                    height={236}
+                    className="w-24"
+                  />
                 </Link>
               )}
             </div>
@@ -78,10 +76,8 @@ export default function HomeLayout({
           </a>
         ) : (
           <Link href="/">
-            <a>
-              <span className="sr-only">Dub.sh Logo</span>
-              <Logo className="h-7 w-7 text-gray-600" />
-            </a>
+            <span className="sr-only">Dub.sh Logo</span>
+            <Logo className="h-7 w-7 text-gray-600" />
           </Link>
         )}
         <a

@@ -95,16 +95,16 @@ export default function Login() {
           {accountExists ? (
             <p className="text-center text-sm text-red-500">
               This email is already registered.{" "}
-              <Link href="/login">
-                <a className="font-semibold text-red-600">Log in</a>
+              <Link href="/login" className="font-semibold text-red-600">
+                Log in
               </Link>{" "}
               instead?
             </p>
           ) : (
             <p className="text-center text-sm text-gray-600">
               Already registered?{" "}
-              <Link href="/login">
-                <a className="font-semibold text-gray-800">Sign in</a>
+              <Link href="/login" className="font-semibold text-gray-800">
+                Sign in
               </Link>{" "}
               to your account.
             </p>

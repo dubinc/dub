@@ -44,14 +44,13 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
-    jwt: async ({ token, account, profile }) => {
+    jwt: async ({ token, account }) => {
       const BLACKLISTED_EMAILS = await getBlackListedEmails();
       if (BLACKLISTED_EMAILS.has(token.email)) {
         return {};
       }
       if (account) {
         token.accessToken = account.access_token;
-        token.id = profile?.id;
       }
       return token;
     },
