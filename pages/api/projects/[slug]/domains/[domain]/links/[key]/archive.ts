@@ -22,7 +22,4 @@ export default withProjectAuth(
         .json({ error: `Method ${req.method} Not Allowed` });
     }
   },
-  {
-    needVerifiedDomain: true,
-  },
 );

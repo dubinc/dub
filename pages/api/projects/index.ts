@@ -67,12 +67,22 @@ export default withUserAuth(
         });
       }
 
+      const { usageLimit: ownerUsageLimit } = await prisma.user.findUnique({
+        where: {
+          id: session.user.id,
+        },
+        select: {
+          usageLimit: true,
+        },
+      });
+
       const [prismaResponse, domainResponse] = await Promise.all([
         prisma.project.create({
           data: {
             name,
             slug,
             domain,
+            ownerUsageLimit,
             users: {
               create: {
                 userId: session.user.id,

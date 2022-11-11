@@ -46,7 +46,6 @@ export default withProjectAuth(
     }
   },
   {
-    needVerifiedDomain: true,
     needNotExceededUsage: true,
   },
 );

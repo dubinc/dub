@@ -80,7 +80,7 @@ export default function LandingPage() {
           )}
         </div>
         <div />
-        {domainVerified && plan !== "Free" ? (
+        {plan !== "Free" ? (
           <input
             type="url"
             name="root"
@@ -93,19 +93,15 @@ export default function LandingPage() {
         ) : (
           <Tooltip
             content={
-              !domainVerified ? (
-                "You need to verify your domain first."
-              ) : (
-                <TooltipContent
-                  title={`You can't configure a custom landing page on a free plan. ${
-                    isOwner
-                      ? "Upgrade to a Pro plan to proceed."
-                      : "Ask your project owner to upgrade to a Pro plan."
-                  }`}
-                  cta={isOwner && "Upgrade to Pro"}
-                  ctaLink={isOwner && "/settings"}
-                />
-              )
+              <TooltipContent
+                title={`You can't configure a custom landing page on a free plan. ${
+                  isOwner
+                    ? "Upgrade to a Pro plan to proceed."
+                    : "Ask your project owner to upgrade to a Pro plan."
+                }`}
+                cta={isOwner && "Upgrade to Pro"}
+                ctaLink={isOwner && "/settings"}
+              />
             }
           >
             <div className="w-full max-w-md cursor-not-allowed rounded-md border border-gray-300 px-3 py-2 text-left text-sm text-gray-300">
@@ -118,7 +114,7 @@ export default function LandingPage() {
       <div className="border-b border-gray-200" />
 
       <div className="px-5 py-4 sm:flex sm:items-center sm:justify-end sm:px-10">
-        {domainVerified && plan !== "Free" ? (
+        {plan !== "Free" ? (
           <button
             disabled={saving}
             className={`${
@@ -132,19 +128,15 @@ export default function LandingPage() {
         ) : (
           <Tooltip
             content={
-              !domainVerified ? (
-                "You need to verify your domain first."
-              ) : (
-                <TooltipContent
-                  title={`You can't configure a custom landing page on a free plan. ${
-                    isOwner
-                      ? "Upgrade to a Pro plan to proceed."
-                      : "Ask your project owner to upgrade to a Pro plan."
-                  }`}
-                  cta={isOwner && "Upgrade to Pro"}
-                  ctaLink={isOwner && "/settings"}
-                />
-              )
+              <TooltipContent
+                title={`You can't configure a custom landing page on a free plan. ${
+                  isOwner
+                    ? "Upgrade to a Pro plan to proceed."
+                    : "Ask your project owner to upgrade to a Pro plan."
+                }`}
+                cta={isOwner && "Upgrade to Pro"}
+                ctaLink={isOwner && "/settings"}
+              />
             }
             fullWidth
           >

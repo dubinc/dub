@@ -339,25 +339,10 @@ function AddEditLinkButton({
   const router = useRouter();
   const { slug } = router.query as { slug?: string };
 
-  const { project, isOwner } = useProject();
+  const { isOwner } = useProject();
   const { exceededUsage } = useUsage();
 
-  return project && !project.domainVerified ? (
-    <Tooltip
-      content={
-        <TooltipContent
-          title="This domain is not correctly configured. Please configure your domain to
-start adding links."
-          cta="Configure Domain"
-          ctaLink={`/${slug}/settings`}
-        />
-      }
-    >
-      <div className="cursor-not-allowed rounded-md border border-gray-200 px-5 py-2 text-sm font-medium text-gray-300 transition-all duration-75">
-        Add
-      </div>
-    </Tooltip>
-  ) : slug && exceededUsage ? ( // only show exceeded usage tooltip if user is on a project page
+  return slug && exceededUsage ? ( // only show exceeded usage tooltip if user is on a project page
     <Tooltip
       content={
         <TooltipContent
