@@ -33,7 +33,6 @@ export default function Stats({
       }${interval ? `?interval=${interval}` : ""}`,
     fetcher,
     {
-      keepPreviousData: true,
       fallbackData: dummyData,
     },
   );
@@ -42,7 +41,7 @@ export default function Stats({
     <div className="bg-gray-50 py-10">
       <Toggle domain={domain} atModalTop={atModalTop} />
       <div className="mx-auto grid max-w-4xl gap-5">
-        <Clicks data={data!} isValidating={isValidating} />
+        <Clicks data={data!} />
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <Locations data={data!} />
           <Devices data={data!} />

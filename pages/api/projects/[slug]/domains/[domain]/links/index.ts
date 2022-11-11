@@ -27,6 +27,10 @@ export default withProjectAuth(
       if (!domain || !key || !url) {
         return res.status(400).json({ error: "Missing domain or url or key" });
       }
+      const { hostname, pathname } = new URL(url);
+      if (hostname === domain && pathname === `/${key}`) {
+        return res.status(400).json({ error: "Invalid url" });
+      }
       const response = await addLink({
         ...req.body,
         userId: session.user.id,

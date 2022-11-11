@@ -13,7 +13,6 @@ export default withProjectAuth(
         .status(400)
         .json({ error: "Missing or misconfigured project slug" });
     }
-
     // GET /api/projects/[slug] – get a specific project
     if (req.method === "GET") {
       return res.status(200).json(project);

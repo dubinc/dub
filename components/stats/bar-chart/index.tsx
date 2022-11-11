@@ -32,11 +32,9 @@ const rangeFormatter = (maxN: number): number => {
 
 const BarChart = ({
   data,
-  isValidating,
   screenWidth,
 }: {
   data: StatsProps["clicksData"];
-  isValidating: boolean;
   screenWidth?: number;
 }) => {
   const [CHART_WIDTH, CHART_HEIGHT] = useMemo(() => {
@@ -99,7 +97,7 @@ const BarChart = ({
           tickFormat={(d) => nFormatter(d as number)}
           tickLabelProps={() => ({
             fill: "#666666",
-            filter: isValidating ? "blur(8px)" : "none",
+            filter: data ? "none" : "blur(8px)",
             fontSize: 14,
             textAnchor: "start",
             transition: "all 0.4s ease-in-out",
@@ -118,7 +116,7 @@ const BarChart = ({
           tickFormat={intervalData[interval].format}
           tickLabelProps={() => ({
             fill: "#666666",
-            filter: isValidating ? "blur(8px)" : "none",
+            filter: data ? "none" : "blur(8px)",
             fontSize: 12,
             textAnchor: "middle",
             transition: "all 0.4s ease-in-out",

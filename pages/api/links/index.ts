@@ -28,6 +28,10 @@ export default withUserAuth(
       if (!key || !url) {
         return res.status(400).json({ error: "Missing key or url" });
       }
+      const { hostname, pathname } = new URL(url);
+      if (hostname === "dub.sh" && pathname === `/${key}`) {
+        return res.status(400).json({ error: "Invalid url" });
+      }
       const BLACKLISTED_DOMAINS = await getBlackListedDomains();
       if (BLACKLISTED_DOMAINS.has(getDomainWithoutWWW(url))) {
         return res.status(400).json({ error: "Invalid url" });

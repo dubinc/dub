@@ -9,15 +9,12 @@ import {
 } from "react";
 import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
-import IconMenu from "@/components/shared/icon-menu";
 import BlurImage from "@/components/shared/blur-image";
 import {
   AlertCircleFill,
   LoadingCircle,
   LoadingDots,
-  PlusCircle,
   Random,
-  Save,
   X,
 } from "@/components/shared/icons";
 import Modal from "@/components/shared/modal";

@@ -19,9 +19,6 @@ export default function ProjectCard({
   const { data: count, isValidating } = useSWR<number>(
     domainVerified && `/api/projects/${slug}/domains/${domain}/links/count`,
     fetcher,
-    {
-      keepPreviousData: true,
-    },
   );
   return (
     <Link key={slug} href={`/${slug}`}>
@@ -65,12 +62,12 @@ export default function ProjectCard({
         </div>
         <div className="flex items-center space-x-2">
           <LinkIcon className="h-5 w-5 text-gray-600" />
-          {isValidating ? (
-            <div className="h-5 w-4 animate-pulse rounded-md bg-gray-200" />
-          ) : (
+          {count ? (
             <h2 className="text-lg font-medium text-gray-700">
               {nFormatter(count)}
             </h2>
+          ) : (
+            <div className="h-5 w-4 animate-pulse rounded-md bg-gray-200" />
           )}
         </div>
       </div>
