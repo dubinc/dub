@@ -3989,7 +3989,7 @@ lru-cache@^7.4.4, lru-cache@^7.5.1, lru-cache@^7.7.1:
   resolved "https://registry.yarnpkg.com/lru-cache/-/lru-cache-7.14.0.tgz#21be64954a4680e303a09e9468f880b98a0b3c7f"
   integrity sha512-EIRtP1GrSJny0dqb50QXRUNBxHJhcpxHC++M5tD7RYbvLLn5KVWKsbyswSSqDuU15UFi3bgTQIY8nhDMeF6aDQ==
 
-mailing-core@^0.8.16:
+mailing-core@^0.8.16, mailing-core@^0.8.2:
   version "0.8.16"
   resolved "https://registry.yarnpkg.com/mailing-core/-/mailing-core-0.8.16.tgz#2d6bc5438d78ebffb91e023186757dd7887b3a23"
   integrity sha512-EtrtgJ+hRF9YL20Ge9o52Rs77xQP5PrEaKWM+Ddc86woBj0fgNkTz7d6KsdBMtYdVUrBiUQo/czt+dmLhXCmeg==
@@ -4003,7 +4003,7 @@ mailing-core@^0.8.16:
     open "^8.4.0"
     posthog-node "^2.0.2"
 
-mailing@^0.8.16:
+mailing@^0.8.3-next.0:
   version "0.8.16"
   resolved "https://registry.yarnpkg.com/mailing/-/mailing-0.8.16.tgz#684d06b43903037e170cd116fdec414648e410b6"
   integrity sha512-Yz3kIXZfR76rmCjtOAWzv0DGo+6xtIrx26gqqE9dzSpXQzSqLY7DE2Fy0Xevz61KJl6Y7//DdCAJvjCJMvLrVg==
