@@ -324,8 +324,8 @@ export const getBlackListedDomains = async () => {
     `https://edge-config.vercel.com/ecfg_2yhwl7yp0dcf60nn1cdid4a5xlsa?token=2482c0cb-1101-4e4b-8538-0f54cc43469e`,
   );
   const data = await res.json();
-  if (data.domains) {
-    return new Set(data.domains);
+  if (data?.items?.domains) {
+    return new Set(data.items.domains);
   } else {
     return new Set();
   }
@@ -336,8 +336,8 @@ export const getBlackListedEmails = async () => {
     `https://edge-config.vercel.com/ecfg_yugfr9n59gbwswp2lcdfbxrxfjir?token=5b797399-6c91-4f93-a75c-58d8d7cea3d1`,
   );
   const data = await res.json();
-  if (data.emails) {
-    return new Set(data.emails);
+  if (data?.items?.emails) {
+    return new Set(data.items.emails);
   } else {
     return new Set();
   }
