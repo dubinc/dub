@@ -1652,6 +1652,11 @@
   resolved "https://registry.yarnpkg.com/@vercel/analytics/-/analytics-0.1.1.tgz#ce036282d76f03417141b54830930f915f40504b"
   integrity sha512-34on7YtVt/yT8+QX7c5K2bcKYXnax06sQiK2PUdlQ1ABg5699mPdLGOSpS1gF//kR1s9oig4MCJ+N9nOjpaS6g==
 
+"@vercel/edge-config@^0.1.0-canary.14":
+  version "0.1.0-canary.14"
+  resolved "https://registry.yarnpkg.com/@vercel/edge-config/-/edge-config-0.1.0-canary.14.tgz#fcc14f6f6210c03731472b798432b9e27d140abb"
+  integrity sha512-i4QuCNBbdhKeFiPbrS5fdw5AEZqwHBRwrjcDwEw6eUNBq58idiu+QBly1VyCwO6GG/f4596Uoq8UQ8LLacaBtQ==
+
 "@visx/axis@^2.12.2":
   version "2.12.2"
   resolved "https://registry.npmjs.org/@visx/axis/-/axis-2.12.2.tgz"
