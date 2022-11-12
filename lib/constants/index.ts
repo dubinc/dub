@@ -20,8 +20,39 @@ export const HOME_HOSTNAMES = new Set([
   "localhost:3000",
 ]);
 
-export { default as RESERVED_KEYS } from "./reserved-keys";
-export { default as DEFAULT_REDIRECTS } from "./default-redirects";
+export const RESERVED_KEYS = new Set([
+  "api",
+  "va",
+  "static",
+  "stats",
+  "proxy",
+  "auth",
+  "pricing",
+  "about",
+  "placeholder",
+  "blog",
+  "careers",
+  "features",
+  "contact",
+  "terms",
+  "privacy",
+  "admin",
+  "help",
+  "new",
+  "info",
+  "demo",
+]);
+export const DEFAULT_REDIRECTS = {
+  home: "https://dub.sh",
+  signin: "https://app.dub.sh/login",
+  login: "https://app.dub.sh/login",
+  register: "https://app.dub.sh/register",
+  signup: "https://app.dub.sh/register",
+  app: "https://app.dub.sh",
+  dashboard: "https://app.dub.sh",
+  links: "https://app.dub.sh/links",
+  settings: "https://app.dub.sh/settings",
+};
 
 export const FREE_PLAN_PROJECT_LIMIT = 5;
 export const FAVICON_FOLDER = "/_static/favicons";
