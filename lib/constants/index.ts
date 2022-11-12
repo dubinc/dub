@@ -52,6 +52,7 @@ export const DEFAULT_REDIRECTS = {
   dashboard: "https://app.dub.sh",
   links: "https://app.dub.sh/links",
   settings: "https://app.dub.sh/settings",
+  welcome: "https://app.dub.sh/welcome",
 };
 
 export const FREE_PLAN_PROJECT_LIMIT = 5;

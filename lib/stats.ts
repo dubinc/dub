@@ -263,7 +263,7 @@ export const processRefererData = (
 export const dummyData: StatsProps = {
   key: "test",
   interval: "24h",
-  totalClicks: 0,
+  totalClicks: null,
   clicksData: getTimeIntervals("24h").timeIntervals.map((interval) => ({
     ...interval,
     count: 0,

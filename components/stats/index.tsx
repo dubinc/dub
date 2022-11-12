@@ -24,7 +24,7 @@ export default function Stats({
     interval?: string;
   };
 
-  const { data, isValidating } = useSWR<StatsProps>(
+  const { data } = useSWR<StatsProps>(
     router.isReady &&
       `${
         slug && domain

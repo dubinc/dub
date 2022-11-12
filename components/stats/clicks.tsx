@@ -8,7 +8,7 @@ export default function Clicks({ data }: { data: StatsProps }) {
     <div className="max-w-4xl border border-gray-200 bg-white p-5 sm:rounded-lg sm:border-gray-100 sm:p-10 sm:pr-20 sm:shadow-lg ">
       <div className="mb-5 text-left">
         <div className="flex items-end space-x-1">
-          {data.totalClicks ? (
+          {data.totalClicks || data.totalClicks === 0 ? (
             <h1 className="text-3xl font-bold sm:text-4xl">
               {nFormatter(data.totalClicks)}
             </h1>

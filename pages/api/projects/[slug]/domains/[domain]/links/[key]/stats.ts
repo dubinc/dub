@@ -27,7 +27,7 @@ export default withProjectAuth(
           byScore: true,
         },
       );
-      const data = await processData(key, response, interval);
+      const data = processData(key, response, interval);
       return res.status(200).json(data);
     } else {
       res.setHeader("Allow", ["GET"]);
