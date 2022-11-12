@@ -138,9 +138,9 @@ export default function Features() {
                   trigger: (
                     <div className="flex items-center space-x-3 p-3">
                       {icon}
-                      <p className="text-base font-semibold text-gray-600">
+                      <h3 className="text-base font-semibold text-gray-600">
                         {title}
-                      </p>
+                      </h3>
                     </div>
                   ),
                   content: (

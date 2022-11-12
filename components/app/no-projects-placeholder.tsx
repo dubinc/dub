@@ -16,11 +16,11 @@ export default function NoProjectsPlaceholder({
         alt="No links yet"
         width={400}
         height={400}
-        className="-my-8"
+        className="pointer-events-none -my-8"
       />
       <button
         onClick={() => setShowAddProjectModal(true)}
-        className="z-10 rounded-md border border-black bg-black px-10 py-2 text-sm font-medium text-white transition-all duration-75 hover:bg-white hover:text-black active:scale-95"
+        className="rounded-md border border-black bg-black px-10 py-2 text-sm font-medium text-white transition-all duration-75 hover:bg-white hover:text-black active:scale-95"
       >
         Create a project
       </button>

@@ -198,7 +198,7 @@ function AddProjectModalHelper({
               htmlFor="domain"
               className="block text-sm font-medium text-gray-700"
             >
-              Domain
+              Shortlink Domain
             </label>
             <div className="relative mt-1 flex rounded-md shadow-sm">
               <input
