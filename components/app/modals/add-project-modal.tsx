@@ -18,9 +18,11 @@ import { generateSlugFromName } from "@/lib/utils";
 function AddProjectModalHelper({
   showAddProjectModal,
   setShowAddProjectModal,
+  closeWithX,
 }: {
   showAddProjectModal: boolean;
   setShowAddProjectModal: Dispatch<SetStateAction<boolean>>;
+  closeWithX?: boolean;
 }) {
   const router = useRouter();
 
@@ -77,6 +79,7 @@ function AddProjectModalHelper({
     <Modal
       showModal={showAddProjectModal}
       setShowModal={setShowAddProjectModal}
+      closeWithX={closeWithX}
     >
       <div className="inline-block w-full transform overflow-hidden bg-white align-middle shadow-xl transition-all sm:max-w-md sm:rounded-2xl sm:border sm:border-gray-200">
         <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
@@ -264,7 +267,7 @@ function AddProjectModalHelper({
   );
 }
 
-export function useAddProjectModal({ domain }: { domain?: string }) {
+export function useAddProjectModal({ closeWithX }: { closeWithX?: boolean }) {
   const [showAddProjectModal, setShowAddProjectModal] = useState(false);
 
   const AddProjectModal = useCallback(() => {
@@ -272,9 +275,10 @@ export function useAddProjectModal({ domain }: { domain?: string }) {
       <AddProjectModalHelper
         showAddProjectModal={showAddProjectModal}
         setShowAddProjectModal={setShowAddProjectModal}
+        closeWithX={closeWithX}
       />
     );
-  }, [showAddProjectModal, setShowAddProjectModal, domain]);
+  }, [showAddProjectModal, setShowAddProjectModal, closeWithX]);
 
   return useMemo(
     () => ({ setShowAddProjectModal, AddProjectModal }),

@@ -2,7 +2,7 @@ import Image, { ImageProps } from "next/image";
 import { useEffect, useState } from "react";
 
 export default function BlurImage(props: ImageProps) {
-  const [isLoading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [src, setSrc] = useState(props.src);
   useEffect(() => setSrc(props.src), [props.src]); // update the `src` value when the `prop.src` value changes
 
@@ -12,7 +12,7 @@ export default function BlurImage(props: ImageProps) {
       src={src}
       alt={props.alt}
       className={`${props.className} ${
-        isLoading ? "blur-sm grayscale" : "blur-0 grayscale-0"
+        loading ? "blur-sm grayscale" : "blur-0 grayscale-0"
       }`}
       onLoadingComplete={async () => {
         setLoading(false);
