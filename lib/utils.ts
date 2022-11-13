@@ -321,25 +321,33 @@ export const log = async (message: string, type: "cron" | "links") => {
 };
 
 export const getBlackListedDomains = async () => {
-  const edgeConfig = createClient(
-    `https://edge-config.vercel.com/ecfg_2yhwl7yp0dcf60nn1cdid4a5xlsa?token=2482c0cb-1101-4e4b-8538-0f54cc43469e`,
-  );
-  const domains = await edgeConfig.get("domains");
-  if (domains) {
-    return new Set(domains);
-  } else {
+  try {
+    const edgeConfig = createClient(
+      `https://edge-config.vercel.com/ecfg_2yhwl7yp0dcf60nn1cdid4a5xlsa?token=2482c0cb-1101-4e4b-8538-0f54cc43469e`,
+    );
+    const domains = await edgeConfig.get("domains");
+    if (domains) {
+      return new Set(domains);
+    } else {
+      return new Set();
+    }
+  } catch (e) {
     return new Set();
   }
 };
 
 export const getBlackListedEmails = async () => {
-  const edgeConfig = createClient(
-    `https://edge-config.vercel.com/ecfg_yugfr9n59gbwswp2lcdfbxrxfjir?token=5b797399-6c91-4f93-a75c-58d8d7cea3d1`,
-  );
-  const emails = await edgeConfig.get("emails");
-  if (emails) {
-    return new Set(emails);
-  } else {
+  try {
+    const edgeConfig = createClient(
+      `https://edge-config.vercel.com/ecfg_yugfr9n59gbwswp2lcdfbxrxfjir?token=5b797399-6c91-4f93-a75c-58d8d7cea3d1`,
+    );
+    const emails = await edgeConfig.get("emails");
+    if (emails) {
+      return new Set(emails);
+    } else {
+      return new Set();
+    }
+  } catch (e) {
     return new Set();
   }
 };
