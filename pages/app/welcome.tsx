@@ -12,7 +12,7 @@ const staggerChildVariants = {
 };
 
 export default function Welcome() {
-  const [state, setState] = useState("interim");
+  const [state, setState] = useState("intro");
 
   const { setShowAddProjectModal, AddProjectModal } = useAddProjectModal({
     closeWithX: true,
