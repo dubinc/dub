@@ -59,8 +59,7 @@ export default function Intro({
             className="max-w-md text-gray-600 transition-colors sm:text-lg"
             variants={staggerChildVariants}
           >
-            Dub provides you with a suite of powerful features that gives you
-            marketing superpowers.
+            Dub gives you marketing superpowers with short links that stand out.
           </motion.p>
           <motion.button
             variants={staggerChildVariants}

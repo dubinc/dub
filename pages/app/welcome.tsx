@@ -12,7 +12,7 @@ const staggerChildVariants = {
 };
 
 export default function Welcome() {
-  const [state, setState] = useState("intro");
+  const [state, setState] = useState("interim");
 
   const { setShowAddProjectModal, AddProjectModal } = useAddProjectModal({
     closeWithX: true,
@@ -39,7 +39,7 @@ export default function Welcome() {
       <Background />
       <AddProjectModal />
       <AddEditLinkModal />
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {state === "intro" && (
           <Intro
             key="intro"

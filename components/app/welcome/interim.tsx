@@ -1,5 +1,7 @@
 import { Dispatch, SetStateAction, useState } from "react";
 import { motion } from "framer-motion";
+import BlurImage from "@/components/shared/blur-image";
+import { Logo } from "@/components/shared/icons";
 
 export default function Interim({
   setState,
@@ -26,26 +28,63 @@ export default function Interim({
       exit="hidden"
       transition={{ duration: 0.5, type: "spring" }}
     >
-      <motion.h1
-        className="font-display text-4xl font-bold text-gray-800 transition-colors sm:text-5xl"
+      <motion.div
         variants={staggerChildVariants}
+        className="flex flex-col items-center space-y-5 text-center"
       >
-        Welcome to Dub
-      </motion.h1>
+        <Logo className="h-11 w-11" />
+        <h1 className="font-display text-3xl font-semibold text-gray-800 transition-colors sm:text-4xl">
+          Let's get started
+        </h1>
+      </motion.div>
       <motion.p
-        className="max-w-md text-gray-600 transition-colors sm:text-lg"
+        className="text-gray-600 transition-colors sm:text-lg"
         variants={staggerChildVariants}
       >
-        Dub provides you with a suite of powerful features that gives you
-        marketing superpowers.
+        Have your own domain? Start creating branded short links for free.{" "}
+        <br className="hidden sm:block" />
+        Don't have one? Use the default{" "}
+        <a
+          className="text-gray-500 underline transition-colors hover:text-gray-700"
+          target="_blank"
+          rel="noreferrer"
+          href="https://dub.sh"
+        >
+          dub.sh
+        </a>{" "}
+        domain to create short links.
       </motion.p>
-      <motion.button
+      <motion.div
         variants={staggerChildVariants}
-        className="rounded-full bg-gray-800 px-10 py-2 font-medium text-white transition-colors hover:bg-black"
-        onClick={() => setState("interim")}
+        className="grid w-full grid-cols-1 divide-y divide-gray-100 rounded-md border border-gray-200 bg-white md:grid-cols-2 md:divide-x"
       >
-        Get Started
-      </motion.button>
+        <button
+          onClick={() => setState("project")}
+          className="flex flex-col items-center justify-center overflow-hidden p-5 transition-colors hover:bg-gray-50 md:p-10"
+        >
+          <BlurImage
+            src="/_static/illustrations/shopping-call.svg"
+            alt="No links yet"
+            width={250}
+            height={250}
+            className="pointer-events-none -mt-8 -mb-3 w-48 sm:w-60"
+          />
+          <p>I have a domain</p>
+        </button>
+        <button
+          onClick={() => setState("link")}
+          className="flex flex-col items-center justify-center overflow-hidden p-5 transition-colors hover:bg-gray-50 md:p-10"
+        >
+          <BlurImage
+            src="/_static/illustrations/call-waiting.svg"
+            alt="No links yet"
+            width={250}
+            height={250}
+            className="pointer-events-none -mt-8 -mb-3 w-48 sm:w-60"
+          />
+          <p>I don't have a domain</p>
+        </button>
+      </motion.div>
     </motion.div>
   );
 }
