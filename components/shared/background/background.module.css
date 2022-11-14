@@ -61,7 +61,7 @@
 }
 
 @media screen and (max-width: 640px) {
-  .main {
+  .main:after {
     display: none;
   }
 }
