@@ -19,7 +19,7 @@ export default withProjectAuth(
       // DELETE /api/projects/[slug] – delete a project
     } else if (req.method === "DELETE") {
       const domain = req.body;
-      if (!domain || typeof domain !== "string") {
+      if (!domain || typeof domain !== "string" || domain !== project.domain) {
         return res
           .status(400)
           .json({ error: "Missing or misconfigured domain" });
