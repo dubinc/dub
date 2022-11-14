@@ -18,7 +18,7 @@ export default function ProjectCard({
   domainVerified,
 }: ProjectProps) {
   const { data: count } = useSWR<number>(
-    domainVerified && `/api/projects/${slug}/domains/${domain}/links/count`,
+    `/api/projects/${slug}/domains/${domain}/links/count`,
     fetcher,
   );
   return (
@@ -66,7 +66,7 @@ export default function ProjectCard({
         </div>
         <div className="flex items-center space-x-2">
           <LinkIcon className="h-5 w-5 text-gray-600" />
-          {count ? (
+          {count || count === 0 ? (
             <h2 className="text-lg font-medium text-gray-700">
               {nFormatter(count)}
             </h2>
