@@ -26,8 +26,8 @@ export default async function LinkMiddleware(
       ev.waitUntil(recordClick(domain, req, key)); // track the click only if there is no `dub-no-track` header
     }
 
-    if (password && !req.cookies.get("dub_authenticated")) {
-      // rewrite to auth page (/_auth/[domain]/[key]) if the link is password protected and the user has not authenticated before
+    if (password) {
+      // rewrite to auth page (/_auth/[domain]/[key]) if the link is password protected
       return NextResponse.rewrite(new URL(`/_auth/${domain}/${key}`, req.url));
     }
 
