@@ -28,7 +28,7 @@ export default function Intro({
       <div
         className={`${
           loading ? "scale-[25%] blur-md" : "scale-100 blur-0"
-        } mt-[5vh] h-[50vh] w-screen object-cover transition-all duration-1000`}
+        } mt-[7vh] h-[50vh] w-screen object-cover transition-all duration-1000`}
       >
         <Spline
           onLoad={onLoad}

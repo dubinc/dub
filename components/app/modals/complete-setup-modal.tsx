@@ -24,7 +24,7 @@ function CompleteSetupModal({
   const tasks = [
     { display: "Set up your custom domain", cta: `/${slug}/settings` },
     { display: "Invite your teammates", cta: `/${slug}/settings/people` },
-    { display: "Import your links", cta: `/${slug}` },
+    { display: "Create or import your links", cta: "closeModal" },
   ];
 
   return (
@@ -49,8 +49,8 @@ function CompleteSetupModal({
         </div>
         <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-12">
           <div className="grid divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white">
-            {tasks.map(({ display, cta }) => (
-              <a target="_blank" rel="noreferrer" href={cta}>
+            {tasks.map(({ display, cta }) => {
+              const contents = (
                 <div className="group flex items-center justify-between p-3">
                   <div className="flex items-center space-x-3">
                     <CheckCircleFill className="h-5 w-5 text-gray-400" />
@@ -60,8 +60,20 @@ function CompleteSetupModal({
                     <ExpandingArrow />
                   </div>
                 </div>
-              </a>
-            ))}
+              );
+              if (cta === "closeModal") {
+                return (
+                  <button onClick={() => setShowCompleteSetupModal(false)}>
+                    {contents}
+                  </button>
+                );
+              }
+              return (
+                <a target="_blank" rel="noreferrer" href={cta}>
+                  {contents}
+                </a>
+              );
+            })}
           </div>
         </div>
       </div>
