@@ -29,10 +29,12 @@ function AddEditLinkModal({
   showAddEditLinkModal,
   setShowAddEditLinkModal,
   props,
+  hideXButton,
 }: {
   showAddEditLinkModal: boolean;
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
   props?: LinkProps;
+  hideXButton?: boolean;
 }) {
   const router = useRouter();
   const { slug } = router.query as { slug: string };
@@ -139,12 +141,14 @@ function AddEditLinkModal({
       closeWithX={true}
     >
       <div className="inline-block max-h-[calc(100vh-50px)] w-full transform overflow-scroll bg-white align-middle shadow-xl transition-all sm:max-w-md sm:rounded-2xl sm:border sm:border-gray-200">
-        <button
-          onClick={() => setShowAddEditLinkModal(false)}
-          className="group absolute top-0 right-0 m-3 hidden rounded-full p-2 text-gray-500 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 sm:block"
-        >
-          <X className="h-5 w-5" />
-        </button>
+        {!hideXButton && (
+          <button
+            onClick={() => setShowAddEditLinkModal(false)}
+            className="group absolute top-0 right-0 m-3 hidden rounded-full p-2 text-gray-500 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 sm:block"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        )}
 
         <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 pt-10 pb-8 sm:px-16">
           <BlurImage
@@ -188,7 +192,13 @@ function AddEditLinkModal({
                       )}`
                     : `/api/links${getQueryString(router)}`,
                 );
-                setShowAddEditLinkModal(false);
+                if (router.asPath === "/welcome") {
+                  router.push("/links").then(() => {
+                    setShowAddEditLinkModal(false);
+                  });
+                } else {
+                  setShowAddEditLinkModal(false);
+                }
               } else if (res.status === 403) {
                 setKeyExistsError(true);
               } else if (res.status === 400) {
@@ -370,7 +380,13 @@ function AddEditLinkButton({
   );
 }
 
-export function useAddEditLinkModal({ props }: { props?: LinkProps }) {
+export function useAddEditLinkModal({
+  props,
+  hideXButton,
+}: {
+  props?: LinkProps;
+  hideXButton?: boolean;
+}) {
   const [showAddEditLinkModal, setShowAddEditLinkModal] = useState(false);
 
   const AddEditLinkModalCallback = useCallback(() => {
@@ -379,9 +395,10 @@ export function useAddEditLinkModal({ props }: { props?: LinkProps }) {
         showAddEditLinkModal={showAddEditLinkModal}
         setShowAddEditLinkModal={setShowAddEditLinkModal}
         props={props}
+        hideXButton={hideXButton}
       />
     );
-  }, [showAddEditLinkModal, setShowAddEditLinkModal, props]);
+  }, [showAddEditLinkModal, setShowAddEditLinkModal, props, hideXButton]);
 
   const AddEditLinkButtonCallback = useCallback(() => {
     return (

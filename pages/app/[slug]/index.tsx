@@ -6,6 +6,7 @@ import AppLayout from "components/layout/app";
 import useProject from "@/lib/swr/use-project";
 import { useAcceptInviteModal } from "@/components/app/modals/accept-invite-modal";
 import { useEffect } from "react";
+import { useCompleteSetupModal } from "@/components/app/modals/complete-setup-modal";
 
 export default function ProjectLinks() {
   const { project, error } = useProject();
@@ -13,13 +14,17 @@ export default function ProjectLinks() {
   const { AddEditLinkModal, AddEditLinkButton } = useAddEditLinkModal({});
   const { AcceptInviteModal, setShowAcceptInviteModal } =
     useAcceptInviteModal();
+  const { CompleteSetupModal, setShowCompleteSetupModal } =
+    useCompleteSetupModal();
 
   // handle errors
   useEffect(() => {
     if (error && (error.status === 409 || error.status === 410)) {
       setShowAcceptInviteModal(true);
+    } else if (project && !project.domainVerified) {
+      setShowCompleteSetupModal(true);
     }
-  }, [error]);
+  }, [error, project]);
 
   if (error && error.status === 404) {
     return <ErrorPage statusCode={404} />;
@@ -28,6 +33,7 @@ export default function ProjectLinks() {
   return (
     <AppLayout>
       {project && <AddEditLinkModal />}
+      {!project?.domainVerified && <CompleteSetupModal />}
       {error && (error.status === 409 || error.status === 410) && (
         <AcceptInviteModal />
       )}

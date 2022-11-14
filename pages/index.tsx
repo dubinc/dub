@@ -2,7 +2,7 @@ import { useRouter } from "next/router";
 import { useCallback, useEffect } from "react";
 import prisma from "@/lib/prisma";
 import { useStatsModal } from "@/components/app/modals/stats-modal";
-import Background from "@/components/home/background";
+import Background from "@/components/shared/background";
 import Demo from "@/components/home/demo";
 import Features from "@/components/home/features";
 import Globe from "@/components/home/globe";
