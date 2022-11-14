@@ -5,6 +5,7 @@ import { AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useAddProjectModal } from "@/components/app/modals/add-project-modal";
 import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal";
+import Meta from "@/components/layout/meta";
 
 const staggerChildVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -36,6 +37,7 @@ export default function Welcome() {
 
   return (
     <div className="flex h-screen flex-col items-center">
+      <Meta title="Welcome to Dub" />
       <Background />
       <AddProjectModal />
       <AddEditLinkModal />

@@ -21,10 +21,10 @@ export default function ProjectLinks() {
   useEffect(() => {
     if (error && (error.status === 409 || error.status === 410)) {
       setShowAcceptInviteModal(true);
-    } else if (!project.domainVerified) {
+    } else if (project && !project.domainVerified) {
       setShowCompleteSetupModal(true);
     }
-  }, [error, project.domainVerified]);
+  }, [error, project]);
 
   if (error && error.status === 404) {
     return <ErrorPage statusCode={404} />;
@@ -33,7 +33,7 @@ export default function ProjectLinks() {
   return (
     <AppLayout>
       {project && <AddEditLinkModal />}
-      {!project.domainVerified && <CompleteSetupModal />}
+      {!project?.domainVerified && <CompleteSetupModal />}
       {error && (error.status === 409 || error.status === 410) && (
         <AcceptInviteModal />
       )}
