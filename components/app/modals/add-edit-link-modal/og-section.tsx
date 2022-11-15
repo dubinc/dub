@@ -40,14 +40,23 @@ export default function OGSection({
     });
   };
 
+  const [fileSizeTooBig, setFileSizeTooBig] = useState(false);
+
   const onChangePicture = useCallback(
     (e) => {
+      setFileSizeTooBig(false);
       const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setData((prev) => ({ ...prev, image: e.target.result as string }));
-      };
-      reader.readAsDataURL(file);
+      if (file) {
+        if (file.size / 1024 / 1024 > 1) {
+          setFileSizeTooBig(true);
+        } else {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            setData((prev) => ({ ...prev, image: e.target.result as string }));
+          };
+          reader.readAsDataURL(file);
+        }
+      }
     },
     [setData],
   );
@@ -141,7 +150,12 @@ export default function OGSection({
       </div>
 
       <div className="border-t border-gray-200 px-5 pt-5 pb-2.5">
-        <p className="block text-sm font-medium text-gray-700">Link Image</p>
+        <div className="flex items-center justify-between">
+          <p className="block text-sm font-medium text-gray-700">Link Image</p>
+          {fileSizeTooBig && (
+            <p className="text-sm text-red-500">File size too big (max 1MB)</p>
+          )}
+        </div>
         <label
           htmlFor="image"
           className="group mt-1 flex h-[10.5rem] cursor-pointer flex-col items-center justify-center rounded-md border border-gray-300 bg-white shadow-sm transition-all hover:bg-gray-50"
@@ -177,6 +191,7 @@ export default function OGSection({
             id="image"
             name="image"
             type="file"
+            accept="image/*"
             className="sr-only"
             onChange={onChangePicture}
           />
