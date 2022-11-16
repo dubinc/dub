@@ -53,7 +53,6 @@ export default function UTMSection({
               type="text"
               name={key}
               id={key}
-              required
               disabled={!isValidUrl}
               className={`${
                 isValidUrl ? "" : "cursor-not-allowed bg-gray-100"
