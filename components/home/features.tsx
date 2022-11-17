@@ -5,6 +5,7 @@ import {
   QR,
   Users,
   Link as LinkIcon,
+  Photo,
 } from "@/components/shared/icons";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import { useState } from "react";
@@ -31,6 +32,7 @@ const featureList = [
       </Link>
     ),
     demo: "https://d2vwwcvoksz7ty.cloudfront.net/analytics.mp4",
+    thumbnail: "/_static/features/analytics.png",
   },
   {
     key: "domains",
@@ -51,11 +53,11 @@ const featureList = [
     demo: "https://d2vwwcvoksz7ty.cloudfront.net/custom-domain.mp4",
   },
   {
-    key: "links",
-    title: "Links with superpowers",
-    icon: <LinkIcon className="h-5 w-5 text-gray-600" />,
+    key: "social",
+    title: "Custom social media cards",
+    icon: <Photo className="h-5 w-5 text-gray-600" />,
     description:
-      "Create links with custom social previews, UTM parameters, password protection, and expiration dates.",
+      "Overlay custom OG images on your links to make them stand out on social media.",
     cta: (
       <a
         href="https://app.dub.sh"
@@ -63,9 +65,27 @@ const featureList = [
         rel="noreferrer"
         className="block max-w-fit rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
       >
-        Create your project
+        Customize your links
       </a>
-    ), //custom cta
+    ),
+    demo: "https://d2vwwcvoksz7ty.cloudfront.net/og.mp4",
+  },
+  {
+    key: "builder",
+    title: "Powerful link builder",
+    icon: <LinkIcon className="h-5 w-5 text-gray-600" />,
+    description:
+      "Build your links with UTM parameters, password protection, and even expiration dates.",
+    cta: (
+      <a
+        href="https://app.dub.sh"
+        target="_blank"
+        rel="noreferrer"
+        className="block max-w-fit rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
+      >
+        Build your link
+      </a>
+    ),
     demo: "https://d2vwwcvoksz7ty.cloudfront.net/og.mp4",
   },
   {
@@ -186,9 +206,16 @@ export default function Features() {
                           stiffness: 300,
                           damping: 30,
                         }}
-                        className="min-h-[600px] w-full overflow-hidden whitespace-nowrap rounded-2xl bg-white shadow-2xl lg:mt-10 lg:w-[800px]"
+                        className="relative min-h-[600px] w-full overflow-hidden whitespace-nowrap rounded-2xl bg-white shadow-2xl lg:mt-10 lg:w-[800px]"
                       >
-                        <video autoPlay muted loop>
+                        <video
+                          autoPlay
+                          muted
+                          loop
+                          width={800}
+                          height={600}
+                          poster={feature.thumbnail}
+                        >
                           <source src={feature.demo} type="video/mp4" />
                           Your browser does not support the video tag.
                         </video>

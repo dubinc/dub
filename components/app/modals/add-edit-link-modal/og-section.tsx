@@ -135,7 +135,7 @@ export default function OGSection({
             id="description"
             minRows={3}
             className="block w-full rounded-md border-gray-300 pr-10 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-            placeholder="Dub is an open-source link shortener SaaS with built-in analytics + free custom domains."
+            placeholder="Dub is open-source link management tool for modern marketing teams to create, share, and track short links."
             value={description || ""}
             onChange={(e) => {
               setData({

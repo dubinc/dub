@@ -140,28 +140,51 @@ function AddEditLinkModal({
       setShowModal={setShowAddEditLinkModal}
       closeWithX={true}
     >
-      <div className="inline-block max-h-[calc(100vh-50px)] w-full transform overflow-scroll bg-white align-middle shadow-xl transition-all sm:max-w-md sm:rounded-2xl sm:border sm:border-gray-200">
-        {!hideXButton && (
+      <div className="grid w-full grid-cols-5 divide-x divide-gray-100 bg-white shadow-xl transition-all sm:max-w-screen-lg sm:rounded-2xl sm:border sm:border-gray-200">
+        {/* {!hideXButton && (
           <button
             onClick={() => setShowAddEditLinkModal(false)}
             className="group absolute top-0 right-0 m-3 hidden rounded-full p-2 text-gray-500 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 sm:block"
           >
             <X className="h-5 w-5" />
           </button>
-        )}
+        )} */}
 
-        <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 pt-10 pb-8 sm:px-16">
-          <BlurImage
-            src={heroProps.avatar}
-            alt={heroProps.alt}
-            className="h-10 w-10 rounded-full"
-            width={20}
-            height={20}
-          />
-          <h3 className="text-lg font-medium">{heroProps.copy}</h3>
-        </div>
+        <div className="col-span-3 max-h-[80vh] overflow-scroll rounded-l-2xl">
+          {/* <div className="flex items-center justify-center space-x-3 border-b border-gray-200 py-5 px-4 sm:px-16">
+            <div className="relative flex w-full items-center">
+              <BlurImage
+                src={heroProps.avatar}
+                alt={heroProps.alt}
+                className="absolute inset-y-0 left-0 my-2.5 ml-3 h-5 w-5 rounded-full"
+                width={20}
+                height={20}
+              />
+              <input
+                type="url"
+                placeholder="Shorten your link"
+                value={url}
+                onChange={(e) => {
+                  setKeyExistsError(false);
+                  setData({ ...data, url: e.target.value });
+                }}
+                required
+                className="peer block w-full rounded-md border border-gray-100 bg-gray-50 p-2 pl-10 text-sm placeholder:text-gray-400 focus:border-black focus:bg-white focus:outline-none focus:ring-0"
+              />
+            </div>
+          </div> */}
+          <div className="sticky top-0 z-10 flex flex-col items-center justify-center space-y-3 border-b border-gray-200 bg-white px-4 pt-10 pb-8 sm:px-16">
+            <BlurImage
+              src={heroProps.avatar}
+              alt={heroProps.alt}
+              className="h-10 w-10 rounded-full"
+              width={20}
+              height={20}
+            />
+            <h3 className="text-lg font-medium">{heroProps.copy}</h3>
+          </div>
 
-        {id && (
+          {/* {id && (
           <div className="absolute -mt-3.5 flex w-full justify-center space-x-2 [&>*]:flex [&>*]:h-7 [&>*]:items-center [&>*]:rounded-full [&>*]:px-4 [&>*]:text-xs [&>*]:uppercase [&>*]:text-white">
             {expired ? (
               <span className="bg-amber-500">Expired</span>
@@ -170,172 +193,175 @@ function AddEditLinkModal({
             )}
             {archived && <span className="bg-gray-400">Archived</span>}
           </div>
-        )}
-
-        <form
-          onSubmit={async (e) => {
-            e.preventDefault();
-            setSaving(true);
-            fetch(endpoint.url, {
-              method: endpoint.method,
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(data),
-            }).then((res) => {
-              setSaving(false);
-              if (res.status === 200) {
-                mutate(
-                  domain
-                    ? `/api/projects/${slug}/domains/${domain}/links${getQueryString(
-                        router,
-                      )}`
-                    : `/api/links${getQueryString(router)}`,
-                );
-                if (router.asPath === "/welcome") {
-                  router.push("/links").then(() => {
+        )} */}
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              setSaving(true);
+              fetch(endpoint.url, {
+                method: endpoint.method,
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+              }).then((res) => {
+                setSaving(false);
+                if (res.status === 200) {
+                  mutate(
+                    domain
+                      ? `/api/projects/${slug}/domains/${domain}/links${getQueryString(
+                          router,
+                        )}`
+                      : `/api/links${getQueryString(router)}`,
+                  );
+                  if (router.asPath === "/welcome") {
+                    router.push("/links").then(() => {
+                      setShowAddEditLinkModal(false);
+                    });
+                  } else {
                     setShowAddEditLinkModal(false);
-                  });
+                  }
+                } else if (res.status === 403) {
+                  setKeyExistsError(true);
+                } else if (res.status === 400) {
+                  setUrlError(true);
                 } else {
-                  setShowAddEditLinkModal(false);
+                  alert("Something went wrong");
                 }
-              } else if (res.status === 403) {
-                setKeyExistsError(true);
-              } else if (res.status === 400) {
-                setUrlError(true);
-              } else {
-                alert("Something went wrong");
-              }
-            });
-          }}
-          className="grid gap-6 bg-gray-50 py-8"
-        >
-          <div className="grid gap-6 px-4 sm:px-16">
-            <div>
-              <div className="flex items-center justify-between">
+              });
+            }}
+            className="grid gap-6 bg-gray-50 py-8"
+          >
+            <div className="grid gap-6 px-4 sm:px-16">
+              <div>
+                <div className="flex items-center justify-between">
+                  <label
+                    htmlFor="key"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Short Link
+                  </label>
+                  <button
+                    className="flex items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
+                    onClick={generateRandomSlug}
+                    disabled={generatingSlug}
+                    type="button"
+                  >
+                    {generatingSlug ? (
+                      <LoadingCircle />
+                    ) : (
+                      <Random className="h-3 w-3" />
+                    )}
+                    <p>{generatingSlug ? "Generating" : "Randomize"}</p>
+                  </button>
+                </div>
+                <div className="relative mt-1 flex rounded-md shadow-sm">
+                  <span className="inline-flex items-center whitespace-nowrap rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-5 text-gray-500 sm:text-sm">
+                    {domain || "dub.sh"}
+                  </span>
+                  <input
+                    type="text"
+                    name="key"
+                    id="key"
+                    required
+                    autoFocus={false}
+                    pattern="[\p{Letter}\p{Mark}\d-]+" // Unicode regex to match characters from all languages and numbers (and omit all symbols except for dashes)
+                    className={`${
+                      keyExistsError
+                        ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                        : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
+                    } block w-full rounded-r-md pr-10 focus:outline-none sm:text-sm`}
+                    placeholder="github"
+                    value={key}
+                    onChange={(e) => {
+                      setKeyExistsError(false);
+                      setData({ ...data, key: e.target.value });
+                    }}
+                    aria-invalid="true"
+                    aria-describedby="key-error"
+                  />
+                  {keyExistsError && (
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                      <AlertCircleFill
+                        className="h-5 w-5 text-red-500"
+                        aria-hidden="true"
+                      />
+                    </div>
+                  )}
+                </div>
+                {keyExistsError && (
+                  <p className="mt-2 text-sm text-red-600" id="key-error">
+                    Short link is already in use.
+                  </p>
+                )}
+              </div>
+
+              <div>
                 <label
-                  htmlFor="key"
+                  htmlFor="url"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Short Link
+                  Destination URL
                 </label>
-                <button
-                  className="flex items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
-                  onClick={generateRandomSlug}
-                  disabled={generatingSlug}
-                  type="button"
-                >
-                  {generatingSlug ? (
-                    <LoadingCircle />
-                  ) : (
-                    <Random className="h-3 w-3" />
+                <div className="relative mt-1 flex rounded-md shadow-sm">
+                  <input
+                    name="url"
+                    id="url"
+                    type="url"
+                    required
+                    placeholder="https://github.com/steven-tey/dub"
+                    value={url}
+                    onChange={(e) => {
+                      setUrlError(false);
+                      setData({ ...data, url: e.target.value });
+                    }}
+                    className={`${
+                      urlError
+                        ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                        : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
+                    } block w-full rounded-md focus:outline-none sm:text-sm`}
+                    aria-invalid="true"
+                  />
+                  {urlError && (
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                      <AlertCircleFill
+                        className="h-5 w-5 text-red-500"
+                        aria-hidden="true"
+                      />
+                    </div>
                   )}
-                  <p>{generatingSlug ? "Generating" : "Randomize"}</p>
-                </button>
-              </div>
-              <div className="relative mt-1 flex rounded-md shadow-sm">
-                <span className="inline-flex items-center whitespace-nowrap rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-5 text-gray-500 sm:text-sm">
-                  {domain || "dub.sh"}
-                </span>
-                <input
-                  type="text"
-                  name="key"
-                  id="key"
-                  required
-                  autoFocus={false}
-                  pattern="[\p{Letter}\p{Mark}\d-]+" // Unicode regex to match characters from all languages and numbers (and omit all symbols except for dashes)
-                  className={`${
-                    keyExistsError
-                      ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                      : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
-                  } block w-full rounded-r-md pr-10 focus:outline-none sm:text-sm`}
-                  placeholder="github"
-                  value={key}
-                  onChange={(e) => {
-                    setKeyExistsError(false);
-                    setData({ ...data, key: e.target.value });
-                  }}
-                  aria-invalid="true"
-                  aria-describedby="key-error"
-                />
-                {keyExistsError && (
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                    <AlertCircleFill
-                      className="h-5 w-5 text-red-500"
-                      aria-hidden="true"
-                    />
-                  </div>
-                )}
-              </div>
-              {keyExistsError && (
-                <p className="mt-2 text-sm text-red-600" id="key-error">
-                  Short link is already in use.
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label
-                htmlFor="url"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Destination URL
-              </label>
-              <div className="relative mt-1 flex rounded-md shadow-sm">
-                <input
-                  name="url"
-                  id="url"
-                  type="url"
-                  required
-                  placeholder="https://github.com/steven-tey/dub"
-                  value={url}
-                  onChange={(e) => {
-                    setUrlError(false);
-                    setData({ ...data, url: e.target.value });
-                  }}
-                  className={`${
-                    urlError
-                      ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                      : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
-                  } block w-full rounded-md focus:outline-none sm:text-sm`}
-                  aria-invalid="true"
-                />
+                </div>
                 {urlError && (
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                    <AlertCircleFill
-                      className="h-5 w-5 text-red-500"
-                      aria-hidden="true"
-                    />
-                  </div>
+                  <p className="mt-2 text-sm text-red-600" id="key-error">
+                    Invalid url.
+                  </p>
                 )}
               </div>
-              {urlError && (
-                <p className="mt-2 text-sm text-red-600" id="key-error">
-                  Invalid url.
-                </p>
-              )}
             </div>
-          </div>
 
-          <AdvancedSettings data={data} setData={setData} />
+            <AdvancedSettings data={data} setData={setData} />
 
-          <div className="px-4 sm:px-16">
-            <button
-              disabled={saving || keyExistsError}
-              className={`${
-                saving || keyExistsError
-                  ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
-                  : "border-black bg-black text-white hover:bg-white hover:text-black"
-              } flex h-10 w-full items-center justify-center rounded-md border text-sm transition-all focus:outline-none`}
-            >
-              {saving ? (
-                <LoadingDots color="#808080" />
-              ) : (
-                <p className="text-sm">{props ? "Save changes" : "Add link"}</p>
-              )}
-            </button>
-          </div>
-        </form>
+            <div className="px-4 sm:px-16">
+              <button
+                disabled={saving || keyExistsError}
+                className={`${
+                  saving || keyExistsError
+                    ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
+                    : "border-black bg-black text-white hover:bg-white hover:text-black"
+                } flex h-10 w-full items-center justify-center rounded-md border text-sm transition-all focus:outline-none`}
+              >
+                {saving ? (
+                  <LoadingDots color="#808080" />
+                ) : (
+                  <p className="text-sm">
+                    {props ? "Save changes" : "Add link"}
+                  </p>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+        <div className="col-span-2 rounded-r-2xl">preview</div>
       </div>
     </Modal>
   );
