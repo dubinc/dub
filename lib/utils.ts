@@ -323,7 +323,7 @@ export const log = async (message: string, type: "cron" | "links") => {
 export const getBlackListedDomains = async () => {
   try {
     const edgeConfig = createClient(
-      `https://edge-config.vercel.com/ecfg_2yhwl7yp0dcf60nn1cdid4a5xlsa?token=2482c0cb-1101-4e4b-8538-0f54cc43469e`,
+      `https://edge-config.vercel.com/ecfg_ylmguwihofcfezyvdvhvbjd2tifa?token=2d5563f7-d33f-425d-8a71-8bf689ef2fb0`,
     );
     const domains = await edgeConfig.get("domains");
     if (domains) {
@@ -339,7 +339,7 @@ export const getBlackListedDomains = async () => {
 export const getBlackListedEmails = async () => {
   try {
     const edgeConfig = createClient(
-      `https://edge-config.vercel.com/ecfg_yugfr9n59gbwswp2lcdfbxrxfjir?token=5b797399-6c91-4f93-a75c-58d8d7cea3d1`,
+      `https://edge-config.vercel.com/ecfg_qiw8g02joy21b1w8p2d84wuiu6pc?token=04defb1e-4ec3-427b-881e-e49d482ed36f`,
     );
     const emails = await edgeConfig.get("emails");
     if (emails) {
