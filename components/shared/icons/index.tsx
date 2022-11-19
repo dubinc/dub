@@ -11,6 +11,8 @@ export { default as Divider } from "./divider";
 export { default as Logo } from "./logo";
 export { default as Github } from "./github";
 export { default as Twitter } from "./twitter";
+export { default as Facebook } from "./facebook";
+export { default as LinkedIn } from "./linkedin";
 export { default as ChevronRight } from "./chevron-right";
 export { default as ChevronLeft } from "./chevron-left";
 export { default as ChevronDown } from "./chevron-down";

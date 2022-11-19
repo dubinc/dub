@@ -40,6 +40,7 @@ export default function Tooltip({
   return (
     <>
       <button
+        type="button"
         className={`${fullWidth ? "w-full" : "inline-flex"} sm:hidden`}
         onClick={() => setOpenTooltip(true)}
       >

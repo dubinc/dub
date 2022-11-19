@@ -13,6 +13,13 @@ export const FRAMER_MOTION_LIST_ITEM_VARIANTS = {
   show: { scale: 1, opacity: 1, transition: { type: "spring" } },
 };
 
+export const ANIMATION_SETTINGS = {
+  initial: { height: 0 },
+  animate: { height: "auto" },
+  exit: { height: 0 },
+  transition: { duration: 0.2, bounce: 0 },
+};
+
 export const HOME_HOSTNAMES = new Set([
   // comment for better diffs
   "dub.sh",

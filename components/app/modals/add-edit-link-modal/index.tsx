@@ -23,7 +23,11 @@ import useProject from "@/lib/swr/use-project";
 import useUsage from "@/lib/swr/use-usage";
 import { LinkProps } from "@/lib/types";
 import { getApexDomain, getQueryString, linkConstructor } from "@/lib/utils";
-import AdvancedSettings from "./advanced-settings";
+import ExpirationSection from "./expiration-section";
+import OGSection from "./og-section";
+import PasswordSection from "./password-section";
+import UTMSection from "./utm-section";
+import Preview from "./preview";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
@@ -63,28 +67,7 @@ function AddEditLinkModal({
       createdAt: new Date(),
     },
   );
-  const { id, key, url, archived, expiresAt } = data;
-
-  const heroProps = useMemo(() => {
-    if (props?.url) {
-      const apexDomain = getApexDomain(props.url);
-      return {
-        avatar: `https://www.google.com/s2/favicons?sz=64&domain_url=${apexDomain}`,
-        alt: apexDomain,
-        copy: `Edit ${linkConstructor({
-          key: props.key,
-          domain,
-          pretty: true,
-        })}`,
-      };
-    } else {
-      return {
-        avatar: "/_static/logo.png",
-        alt: "Dub.sh",
-        copy: "Add a new link",
-      };
-    }
-  }, [props]);
+  const { key, url, expiresAt } = data;
 
   const [debouncedKey] = useDebounce(key, 500);
   useEffect(() => {
@@ -114,6 +97,39 @@ function AddEditLinkModal({
     setGeneratingSlug(false);
   }, []);
 
+  const [generatingMetatags, setGeneratingMetatags] = useState(false);
+
+  const [debouncedUrl] = useDebounce(url, 500);
+  useEffect(() => {
+    try {
+      new URL(debouncedUrl);
+      if (
+        (!props?.image || debouncedUrl !== props?.url) &&
+        showAddEditLinkModal
+      ) {
+        setGeneratingMetatags(true);
+        // using a setTimeout to delay until the loading screen fades in (0.2 delay in framer motion as well)
+        setTimeout(() => {
+          setData((prev) => ({
+            ...prev,
+            title: null,
+            description: null,
+            image: null,
+          }));
+        }, 200);
+        fetch(`/api/edge/metatags?url=${debouncedUrl}`).then(async (res) => {
+          if (res.status === 200) {
+            const results = await res.json();
+            setData((prev) => ({ ...prev, ...results }));
+          }
+          setGeneratingMetatags(false);
+        });
+      }
+    } catch (e) {
+      console.log("not a valid url");
+    }
+  }, [debouncedUrl]);
+
   const endpoint = useMemo(() => {
     if (props?.key) {
       return {
@@ -140,17 +156,17 @@ function AddEditLinkModal({
       setShowModal={setShowAddEditLinkModal}
       closeWithX={true}
     >
-      <div className="grid w-full grid-cols-5 divide-x divide-gray-100 bg-white shadow-xl transition-all sm:max-w-screen-lg sm:rounded-2xl sm:border sm:border-gray-200">
-        {/* {!hideXButton && (
+      <div className="grid max-h-[80vh] w-full divide-x divide-gray-100 overflow-scroll bg-white shadow-xl transition-all scrollbar-hide sm:max-w-screen-lg sm:grid-cols-2 sm:rounded-2xl sm:border sm:border-gray-200">
+        {!hideXButton && (
           <button
             onClick={() => setShowAddEditLinkModal(false)}
             className="group absolute top-0 right-0 m-3 hidden rounded-full p-2 text-gray-500 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 sm:block"
           >
             <X className="h-5 w-5" />
           </button>
-        )} */}
+        )}
 
-        <div className="col-span-3 max-h-[80vh] overflow-scroll rounded-l-2xl">
+        <div className="max-h-[80vh] overflow-scroll rounded-l-2xl">
           {/* <div className="flex items-center justify-center space-x-3 border-b border-gray-200 py-5 px-4 sm:px-16">
             <div className="relative flex w-full items-center">
               <BlurImage
@@ -175,13 +191,27 @@ function AddEditLinkModal({
           </div> */}
           <div className="sticky top-0 z-10 flex flex-col items-center justify-center space-y-3 border-b border-gray-200 bg-white px-4 pt-10 pb-8 sm:px-16">
             <BlurImage
-              src={heroProps.avatar}
-              alt={heroProps.alt}
+              src={
+                data.url || props
+                  ? `https://www.google.com/s2/favicons?sz=64&domain_url=${getApexDomain(
+                      data.url || props.url,
+                    )}`
+                  : "/_static/logo.png"
+              }
+              alt="Logo"
               className="h-10 w-10 rounded-full"
               width={20}
               height={20}
             />
-            <h3 className="text-lg font-medium">{heroProps.copy}</h3>
+            <h3 className="text-lg font-medium">
+              {props
+                ? `Edit ${linkConstructor({
+                    key: props.key,
+                    domain,
+                    pretty: true,
+                  })}`
+                : "Add a new link"}
+            </h3>
           </div>
 
           {/* {id && (
@@ -230,7 +260,7 @@ function AddEditLinkModal({
                 }
               });
             }}
-            className="grid gap-6 bg-gray-50 py-8"
+            className="grid gap-6 bg-gray-50 pt-8"
           >
             <div className="grid gap-6 px-4 sm:px-16">
               <div>
@@ -256,7 +286,7 @@ function AddEditLinkModal({
                   </button>
                 </div>
                 <div className="relative mt-1 flex rounded-md shadow-sm">
-                  <span className="inline-flex items-center whitespace-nowrap rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-5 text-gray-500 sm:text-sm">
+                  <span className="inline-flex items-center whitespace-nowrap rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-5 text-sm text-gray-500">
                     {domain || "dub.sh"}
                   </span>
                   <input
@@ -270,7 +300,7 @@ function AddEditLinkModal({
                       keyExistsError
                         ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                         : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
-                    } block w-full rounded-r-md pr-10 focus:outline-none sm:text-sm`}
+                    } block w-full rounded-r-md pr-10 text-sm focus:outline-none`}
                     placeholder="github"
                     value={key}
                     onChange={(e) => {
@@ -319,7 +349,7 @@ function AddEditLinkModal({
                       urlError
                         ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                         : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
-                    } block w-full rounded-md focus:outline-none sm:text-sm`}
+                    } block w-full rounded-md text-sm focus:outline-none`}
                     aria-invalid="true"
                   />
                   {urlError && (
@@ -339,9 +369,32 @@ function AddEditLinkModal({
               </div>
             </div>
 
-            <AdvancedSettings data={data} setData={setData} />
+            {/* Divider */}
+            <div className="relative py-5">
+              <div
+                className="absolute inset-0 flex items-center px-4 sm:px-16"
+                aria-hidden="true"
+              >
+                <div className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center">
+                <span className="bg-gray-50 px-2 text-sm text-gray-500">
+                  Optional
+                </span>
+              </div>
+            </div>
 
-            <div className="px-4 sm:px-16">
+            <div className="grid gap-8 px-4 sm:px-16">
+              <OGSection
+                {...{ data, setData }}
+                generatingMetatags={generatingMetatags}
+              />
+              <UTMSection {...{ data, setData }} />
+              <PasswordSection {...{ data, setData }} />
+              <ExpirationSection {...{ data, setData }} />
+            </div>
+
+            <div className="sticky bottom-0 bg-gray-50 px-4 py-8 sm:px-16">
               <button
                 disabled={saving || keyExistsError}
                 className={`${
@@ -361,7 +414,9 @@ function AddEditLinkModal({
             </div>
           </form>
         </div>
-        <div className="col-span-2 rounded-r-2xl">preview</div>
+        <div className="max-h-[80vh] overflow-scroll rounded-r-2xl">
+          <Preview data={data} generatingMetatags={generatingMetatags} />
+        </div>
       </div>
     </Modal>
   );
