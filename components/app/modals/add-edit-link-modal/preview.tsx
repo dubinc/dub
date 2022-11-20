@@ -1,7 +1,16 @@
 import BlurImage from "@/components/shared/blur-image";
-import { Facebook, LinkedIn, Photo, Twitter } from "@/components/shared/icons";
+import {
+  ExternalLink,
+  Facebook,
+  LinkedIn,
+  LoadingCircle,
+  Photo,
+  Twitter,
+} from "@/components/shared/icons";
 import { LinkProps } from "@/lib/types";
+import { getDomainWithoutWWW } from "@/lib/utils";
 import { useMemo } from "react";
+import { useDebounce } from "use-debounce";
 
 export default function Preview({
   data,
@@ -11,40 +20,18 @@ export default function Preview({
   generatingMetatags: boolean;
 }) {
   const { title, description, image, url, password } = data;
-  let hostname;
-  try {
-    hostname = new URL(url).hostname.replace(/^www\./, "");
-  } catch (e) {
-    hostname = url;
-  }
-
-  const { previewTitle, previewDescription, previewHostname } = useMemo(() => {
-    if (password) {
-      return {
-        previewTitle: "Password Required",
-        previewDescription:
-          "This link is password protected. Please enter the password to view it.",
-        previewHostname: "dub.sh",
-      };
-    } else {
-      return {
-        previewTitle: title,
-        previewDescription: description,
-        previewHostname: hostname,
-      };
-    }
-  }, [password, title, description, hostname]);
+  const [debouncedUrl] = useDebounce(url, 500);
+  const hostname = useMemo(() => {
+    if (password) return "dub.sh";
+    return getDomainWithoutWWW(debouncedUrl);
+  }, [password, debouncedUrl]);
 
   const previewImage = useMemo(() => {
-    if (password) {
+    if (generatingMetatags) {
       return (
-        <BlurImage
-          src="/_static/password-protected.png"
-          alt="Preview"
-          width={1200}
-          height={627}
-          className="h-[250px] w-full border-b border-gray-300 object-cover"
-        />
+        <div className="flex h-[250px] w-full flex-col items-center justify-center space-y-4 border-b border-gray-300 bg-gray-100">
+          <LoadingCircle />
+        </div>
       );
     }
     if (image) {
@@ -77,7 +64,7 @@ export default function Preview({
         </div>
       );
     }
-  }, [image, password]);
+  }, [image]);
 
   return (
     <div className="h-[1200px]">
@@ -99,27 +86,26 @@ export default function Preview({
               <div className="flex items-center space-x-2 bg-white px-3">
                 <Twitter className="h-4 w-4 text-[#1DA1F2]" />
                 <p className="text-sm text-gray-400">Twitter</p>
+                <ExternalLink className="h-4 w-4 text-gray-400" />
               </div>
             </div>
           </div>
           <div className="overflow-hidden rounded-md border border-gray-300">
             {previewImage}
             <div className="grid gap-1 p-3">
-              {previewHostname ? (
-                <p className="text-sm text-[#536471]">{previewHostname}</p>
+              {hostname ? (
+                <p className="text-sm text-[#536471]">{hostname}</p>
               ) : (
                 <div className="mb-1 h-4 w-24 rounded-md bg-gray-100" />
               )}
-              {previewTitle ? (
-                <h3 className="truncate text-sm text-[#0f1419]">
-                  {previewTitle}
-                </h3>
+              {title ? (
+                <h3 className="truncate text-sm text-[#0f1419]">{title}</h3>
               ) : (
                 <div className="mb-1 h-4 w-full rounded-md bg-gray-100" />
               )}
-              {previewDescription ? (
+              {description ? (
                 <p className="text-sm text-[#536471] line-clamp-2">
-                  {previewDescription}
+                  {description}
                 </p>
               ) : (
                 <div className="grid gap-2">
@@ -150,23 +136,23 @@ export default function Preview({
           <div className="border border-gray-300">
             {previewImage}
             <div className="grid gap-1 bg-[#f2f3f5] p-3">
-              {previewHostname ? (
+              {hostname ? (
                 <p className="text-[0.8rem] uppercase text-[#606770]">
-                  {previewHostname}
+                  {hostname}
                 </p>
               ) : (
                 <div className="mb-1 h-4 w-24 rounded-md bg-gray-200" />
               )}
-              {previewTitle ? (
+              {title ? (
                 <h3 className="truncate font-semibold text-[#1d2129]">
-                  {previewTitle}
+                  {title}
                 </h3>
               ) : (
                 <div className="mb-1 h-5 w-full rounded-md bg-gray-200" />
               )}
-              {previewDescription ? (
+              {description ? (
                 <p className="text-sm text-[#606770] line-clamp-2">
-                  {previewDescription}
+                  {description}
                 </p>
               ) : (
                 <div className="grid gap-2">
@@ -197,15 +183,15 @@ export default function Preview({
           <div className="overflow-hidden rounded-[2px] shadow-[0_0_0_1px_rgba(0,0,0,0.15),0_2px_3px_rgba(0,0,0,0.2)]">
             {previewImage}
             <div className="grid gap-1 bg-white p-3">
-              {previewTitle ? (
+              {title ? (
                 <h3 className="truncate font-semibold text-[#000000E6]">
-                  {previewTitle}
+                  {title}
                 </h3>
               ) : (
                 <div className="mb-1 h-5 w-full rounded-md bg-gray-200" />
               )}
-              {previewHostname ? (
-                <p className="text-xs text-[#00000099]">{previewHostname}</p>
+              {hostname ? (
+                <p className="text-xs text-[#00000099]">{hostname}</p>
               ) : (
                 <div className="mb-1 h-4 w-24 rounded-md bg-gray-200" />
               )}

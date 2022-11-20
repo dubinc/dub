@@ -35,8 +35,33 @@ const getMetadataFromUrl = async (url: string) => {
     })
     .then((body: string) => {
       const obj = {};
+      // get all meta tags
       body.replace(
         /<meta\s+(?:name|property|itemprop|http-equiv)="([^"]+)"\s+content="([^"]+)"/g,
+        // @ts-ignore
+        (_, key, value) => {
+          obj[key] = unescape(value);
+        },
+      );
+      // get all meta tags (reversed order for content & name/property)
+      body.replace(
+        /<meta\s+content="([^"]+)"\s+(?:name|property|itemprop|http-equiv)="([^"]+)"/g,
+        // @ts-ignore
+        (_, value, key) => {
+          obj[key] = unescape(value);
+        },
+      );
+      // get all title tags
+      body.replace(
+        /<title>([^<]+)<\/title>/g,
+        // @ts-ignore
+        (_, value) => {
+          obj["title"] = unescape(value);
+        },
+      );
+      // get all link tags
+      body.replace(
+        /<link\s+(?:rel|itemprop)="([^"]+)"\s+href="([^"]+)"/g,
         // @ts-ignore
         (_, key, value) => {
           obj[key] = unescape(value);
@@ -50,7 +75,11 @@ const getMetadataFromUrl = async (url: string) => {
           obj["description"] ||
           obj["og:description"] ||
           obj["twitter:description"],
-        image: obj["og:image"] || obj["twitter:image"],
+        image:
+          obj["og:image"] ||
+          obj["twitter:image"] ||
+          obj["icon"] ||
+          obj["image_src"],
       };
     })
     .catch((err) => {

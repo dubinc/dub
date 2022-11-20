@@ -63,13 +63,16 @@ function CompleteSetupModal({
               );
               if (cta === "closeModal") {
                 return (
-                  <button onClick={() => setShowCompleteSetupModal(false)}>
+                  <button
+                    key={display}
+                    onClick={() => setShowCompleteSetupModal(false)}
+                  >
                     {contents}
                   </button>
                 );
               }
               return (
-                <a target="_blank" rel="noreferrer" href={cta}>
+                <a key={display} target="_blank" rel="noreferrer" href={cta}>
                   {contents}
                 </a>
               );

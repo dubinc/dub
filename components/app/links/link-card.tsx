@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import useSWR from "swr";
 import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal";
 import { useArchiveLinkModal } from "@/components/app/modals/archive-link-modal";
@@ -14,6 +14,7 @@ import {
   Chart,
   Delete,
   Edit,
+  Eye,
   LoadingDots,
   QR,
   ThreeDots,
@@ -30,6 +31,7 @@ import {
   nFormatter,
   timeAgo,
 } from "@/lib/utils";
+import useIntersectionObserver from "@/lib/hooks/use-intersection-observer";
 
 export default function LinkCard({ props }: { props: LinkProps }) {
   const {
@@ -53,13 +55,19 @@ export default function LinkCard({ props }: { props: LinkProps }) {
   const { isOwner } = useProject();
   const { exceededUsage } = useUsage();
 
+  const linkRef = useRef<any>();
+  const entry = useIntersectionObserver(linkRef, {});
+  const isVisible = !!entry?.isIntersecting;
+
   const { data: clicks, isValidating } = useSWR<number>(
-    domain
-      ? `/api/projects/${slug}/domains/${domain}/links/${key}/clicks`
-      : `/api/links/${key}/clicks`,
+    isVisible &&
+      (domain
+        ? `/api/projects/${slug}/domains/${domain}/links/${key}/clicks`
+        : `/api/links/${key}/clicks`),
     fetcher,
     {
       fallbackData: props.clicks,
+      dedupingInterval: 15000, // fetch at most once every 15 seconds
     },
   );
 
@@ -77,12 +85,14 @@ export default function LinkCard({ props }: { props: LinkProps }) {
     props,
   });
   const [openPopover, setOpenPopover] = useState(false);
-  const [unarchiving, setUnarchiving] = useState(false);
 
   const expired = expiresAt && new Date() > new Date(expiresAt);
 
   return (
-    <div className="relative rounded-lg border border-gray-100 bg-white p-3 pr-1 shadow transition-all hover:shadow-md sm:p-4">
+    <div
+      ref={linkRef}
+      className="relative rounded-lg border border-gray-100 bg-white p-3 pr-1 shadow transition-all hover:shadow-md sm:p-4"
+    >
       <LinkQRModal />
       <AddEditLinkModal />
       <ArchiveLinkModal />
@@ -146,6 +156,18 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                   <span className="ml-1 hidden sm:inline-block">clicks</span>
                 </p>
               </Link>
+              {title && description && image && (
+                <a
+                  href={`https://${domain || "dub.sh"}/_proxy/${
+                    domain || "dub.sh"
+                  }/${encodeURI(key)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group rounded-full bg-gray-100 p-1.5 transition-all duration-75 hover:scale-105 hover:bg-blue-100 active:scale-95"
+                >
+                  <Eye className="text-gray-700 transition-all group-hover:text-blue-800" />
+                </a>
+              )}
             </div>
             <h3 className="max-w-[200px] truncate text-sm font-medium text-gray-700 md:max-w-md lg:max-w-2xl xl:max-w-3xl">
               {url}

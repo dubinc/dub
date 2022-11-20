@@ -2,9 +2,11 @@ import { useRouter } from "next/router";
 import {
   Dispatch,
   SetStateAction,
+  UIEvent,
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { mutate } from "swr";
@@ -67,7 +69,7 @@ function AddEditLinkModal({
       createdAt: new Date(),
     },
   );
-  const { key, url, expiresAt } = data;
+  const { key, url, password, expiresAt } = data;
 
   const [debouncedKey] = useDebounce(key, 500);
   useEffect(() => {
@@ -97,26 +99,59 @@ function AddEditLinkModal({
     setGeneratingSlug(false);
   }, []);
 
-  const [generatingMetatags, setGeneratingMetatags] = useState(false);
+  // const onPaste = useCallback(
+  //   (e: React.ClipboardEvent<HTMLInputElement>) => {
+  //     if (props) return;
+  //     const url = e.clipboardData.getData("text");
+  //     setShowAddEditLinkModal(true);
+  //     try {
+  //       new URL(url);
+  //       console.log(url);
+  //       setData((prev) => ({ ...prev, url }));
+  //     } catch (e) {
+  //       console.log("not a valid url");
+  //     }
+  //   },
+  //   [props, showAddEditLinkModal, setData],
+  // );
 
-  const [debouncedUrl] = useDebounce(url, 500);
+  // useEffect(() => {
+  //   window.addEventListener("paste", onPaste as any);
+  //   return () => window.removeEventListener("paste", onPaste as any);
+  // }, [onPaste]);
+
+  const [generatingMetatags, setGeneratingMetatags] = useState(false);
+  const [debouncedUrl] = useDebounce(url.split("?")[0], 500);
   useEffect(() => {
-    try {
-      new URL(debouncedUrl);
-      if (
-        (!props?.image || debouncedUrl !== props?.url) &&
-        showAddEditLinkModal
-      ) {
+    // if there's a password, no need to generate metatags
+    if (password) {
+      setData((prev) => ({
+        ...prev,
+        title: "Password Required",
+        description:
+          "This link is password protected. Please enter the password to view it.",
+        image: "/_static/password-protected.png",
+      }));
+      return;
+    }
+    if (
+      // only generate metatags if:
+      showAddEditLinkModal && // modal is open
+      (!props?.image || debouncedUrl !== props?.url.split("?")[0]) // there's no image or the url has changed
+    ) {
+      // using a setTimeout to delay until the loading screen fades in (0.2 delay in framer motion as well)
+      setTimeout(() => {
+        setData((prev) => ({
+          ...prev,
+          title: null,
+          description: null,
+          image: null,
+        }));
+      }, 200);
+      try {
+        // if url is valid, continue to generate metatags, else return null
+        new URL(debouncedUrl);
         setGeneratingMetatags(true);
-        // using a setTimeout to delay until the loading screen fades in (0.2 delay in framer motion as well)
-        setTimeout(() => {
-          setData((prev) => ({
-            ...prev,
-            title: null,
-            description: null,
-            image: null,
-          }));
-        }, 200);
         fetch(`/api/edge/metatags?url=${debouncedUrl}`).then(async (res) => {
           if (res.status === 200) {
             const results = await res.json();
@@ -124,11 +159,21 @@ function AddEditLinkModal({
           }
           setGeneratingMetatags(false);
         });
+      } catch (e) {
+        console.log("not a valid url");
       }
-    } catch (e) {
-      console.log("not a valid url");
     }
-  }, [debouncedUrl]);
+  }, [props, debouncedUrl, password]);
+
+  const logo = useMemo(() => {
+    if (password || (!debouncedUrl && !props)) {
+      return "/_static/logo.png";
+    } else {
+      return `https://www.google.com/s2/favicons?sz=64&domain_url=${getApexDomain(
+        debouncedUrl || props.url,
+      )}`;
+    }
+  }, [password, debouncedUrl, props]);
 
   const endpoint = useMemo(() => {
     if (props?.key) {
@@ -150,6 +195,15 @@ function AddEditLinkModal({
 
   const expired = expiresAt && new Date() > new Date(expiresAt);
 
+  const [scrolled, setScrolled] = useState(false);
+  const handleScroll = (event: UIEvent<HTMLElement>) => {
+    if (event.currentTarget.scrollTop > 144) {
+      setScrolled(true);
+    } else {
+      setScrolled(false);
+    }
+  };
+
   return (
     <Modal
       showModal={showAddEditLinkModal}
@@ -166,52 +220,33 @@ function AddEditLinkModal({
           </button>
         )}
 
-        <div className="max-h-[80vh] overflow-scroll rounded-l-2xl">
-          {/* <div className="flex items-center justify-center space-x-3 border-b border-gray-200 py-5 px-4 sm:px-16">
-            <div className="relative flex w-full items-center">
-              <BlurImage
-                src={heroProps.avatar}
-                alt={heroProps.alt}
-                className="absolute inset-y-0 left-0 my-2.5 ml-3 h-5 w-5 rounded-full"
-                width={20}
-                height={20}
-              />
-              <input
-                type="url"
-                placeholder="Shorten your link"
-                value={url}
-                onChange={(e) => {
-                  setKeyExistsError(false);
-                  setData({ ...data, url: e.target.value });
-                }}
-                required
-                className="peer block w-full rounded-md border border-gray-100 bg-gray-50 p-2 pl-10 text-sm placeholder:text-gray-400 focus:border-black focus:bg-white focus:outline-none focus:ring-0"
-              />
-            </div>
-          </div> */}
-          <div className="sticky top-0 z-10 flex flex-col items-center justify-center space-y-3 border-b border-gray-200 bg-white px-4 pt-10 pb-8 sm:px-16">
+        <div
+          className="max-h-[80vh] overflow-scroll rounded-l-2xl"
+          onScroll={handleScroll}
+        >
+          <div
+            className={`${
+              scrolled ? "py-5" : "pt-10 pb-8"
+            } sticky top-0 z-10 flex flex-col items-center justify-center space-y-3 border-b border-gray-200 bg-white px-4 transition-all sm:px-16`}
+          >
             <BlurImage
-              src={
-                data.url || props
-                  ? `https://www.google.com/s2/favicons?sz=64&domain_url=${getApexDomain(
-                      data.url || props.url,
-                    )}`
-                  : "/_static/logo.png"
-              }
+              src={logo}
               alt="Logo"
               className="h-10 w-10 rounded-full"
               width={20}
               height={20}
             />
-            <h3 className="text-lg font-medium">
-              {props
-                ? `Edit ${linkConstructor({
-                    key: props.key,
-                    domain,
-                    pretty: true,
-                  })}`
-                : "Add a new link"}
-            </h3>
+            {!scrolled && (
+              <h3 className="text-lg font-medium">
+                {props
+                  ? `Edit ${linkConstructor({
+                      key: props.key,
+                      domain,
+                      pretty: true,
+                    })}`
+                  : "Add a new link"}
+              </h3>
+            )}
           </div>
 
           {/* {id && (
