@@ -134,9 +134,9 @@ model Link {
   expiresAt       DateTime? // when the link expires – stored on Redis via ttl
   password        String?  // password to access the link – also stored on Redis
 
-  customOg        Boolean  @default(false) // Custom OG tags – if false, will use OG tags from target url
-  title           String?  // OG title for the link (e.g. Dub - Open-Source Bitly Alternative)
-  description     String?  // OG description for the link (e.g. An open-source link management tool for modern marketing teams to create, share, and track short links.)
+  proxy           Boolean  @default(false) // Proxy to use custom OG tags – if false, will use OG tags from target url
+  title           String?  @db.VarChar(120) // OG title for the link (e.g. Dub - Open-Source Bitly Alternative)
+  description     String?  @db.VarChar(240) // OG description for the link (e.g. An open-source link management tool for modern marketing teams to create, share, and track short links.)
   image           String?  // OG image for the link (e.g. https://dub.sh/og-image.png)
 
   // UTM parameters
@@ -145,6 +145,10 @@ model Link {
   utm_campaign    String?   // UTM campaign for the link (e.g. summer-sale)
   utm_term        String?   // UTM term for the link (e.g. dub)
   utm_content     String?   // UTM content for the link (e.g. description)
+
+  // Custom device targeting
+  ios             String?   @db.LongText  // custom link for iOS devices
+  android         String?   @db.LongText  // custom link for Android devices
   
   clicks          Int       @default(0) // number of clicks (updated every day via cron + real-time when user views links)
   clicksUpdatedAt  DateTime @default(now()) // last time clicks was updated

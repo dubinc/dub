@@ -24,7 +24,7 @@ export default function OGSection({
   setData: Dispatch<SetStateAction<LinkProps>>;
   generatingMetatags: boolean;
 }) {
-  const { title, description, image, customOg } = data;
+  const { title, description, image, proxy } = data;
 
   const [fileSizeTooBig, setFileSizeTooBig] = useState(false);
 
@@ -48,7 +48,7 @@ export default function OGSection({
   );
 
   useEffect(() => {
-    if (customOg && props) {
+    if (proxy && props) {
       // if custom OG is enabled
       setData((prev) => ({
         ...prev,
@@ -57,7 +57,7 @@ export default function OGSection({
         image: props.image || image,
       }));
     }
-  }, [customOg, props]);
+  }, [proxy, props]);
 
   const randomIdx = Math.floor(Math.random() * 100);
 
@@ -68,12 +68,12 @@ export default function OGSection({
           Custom Social Media Cards
         </h2>
         <Switch
-          fn={() => setData((prev) => ({ ...prev, customOg: !customOg }))}
-          checked={customOg}
+          fn={() => setData((prev) => ({ ...prev, proxy: !proxy }))}
+          checked={proxy}
         />
       </div>
 
-      {customOg && (
+      {proxy && (
         <motion.div
           key="og-options"
           {...FADE_IN_ANIMATION_SETTINGS}
@@ -136,12 +136,10 @@ export default function OGSection({
           </div>
 
           <div>
-            <label
-              htmlFor={`title-${randomIdx}`}
-              className="block text-sm font-medium text-gray-700"
-            >
-              Title
-            </label>
+            <div className="flex items-center justify-between">
+              <p className="block text-sm font-medium text-gray-700">Title</p>
+              <p className="text-sm text-gray-500">{title?.length || 0}/120</p>
+            </div>
             <div className="relative mt-1 flex rounded-md shadow-sm">
               {generatingMetatags && (
                 <div className="absolute flex h-full w-full items-center justify-center rounded-md border border-gray-300 bg-white">
@@ -165,12 +163,14 @@ export default function OGSection({
           </div>
 
           <div>
-            <label
-              htmlFor={`description-${randomIdx}`}
-              className="block text-sm font-medium text-gray-700"
-            >
-              Description
-            </label>
+            <div className="flex items-center justify-between">
+              <p className="block text-sm font-medium text-gray-700">
+                Description
+              </p>
+              <p className="text-sm text-gray-500">
+                {description?.length || 0}/240
+              </p>
+            </div>
             <div className="relative mt-1 flex rounded-md shadow-sm">
               {generatingMetatags && (
                 <div className="absolute flex h-full w-full items-center justify-center rounded-md border border-gray-300 bg-white">
@@ -181,15 +181,14 @@ export default function OGSection({
                 name="description"
                 id={`description-${randomIdx}`}
                 minRows={3}
-                maxLength={280}
+                maxLength={240}
                 className="block w-full rounded-md border-gray-300 pr-10 text-sm text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500"
                 placeholder="Dub is open-source link management tool for modern marketing teams to create, share, and track short links."
                 value={description || ""}
                 onChange={(e) => {
                   setData({
                     ...data,
-                    description:
-                      e.target.value.length > 0 ? e.target.value : undefined,
+                    description: e.target.value,
                   });
                 }}
                 aria-invalid="true"

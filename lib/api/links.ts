@@ -3,7 +3,7 @@ import { DEFAULT_REDIRECTS, RESERVED_KEYS } from "@/lib/constants";
 import prisma from "@/lib/prisma";
 import { LinkProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
-import { getParamsFromURL, nanoid } from "@/lib/utils";
+import { getParamsFromURL, nanoid, truncate } from "@/lib/utils";
 
 const getFiltersFromStatus = (status: string) => {
   if (status === "all" || status === "none") {
@@ -126,7 +126,19 @@ export async function checkIfKeyExists(domain: string, key: string) {
 }
 
 export async function addLink(link: LinkProps) {
-  const { domain, key, url, expiresAt, password, image, customOg } = link;
+  const {
+    domain,
+    key,
+    url,
+    expiresAt,
+    password,
+    title,
+    description,
+    image,
+    proxy,
+    ios,
+    android,
+  } = link;
   const hasPassword = password && password.length > 0 ? true : false;
   const exat = expiresAt ? new Date(expiresAt).getTime() / 1000 : null;
   const uploadedImage = image && image.startsWith("data:image") ? true : false;
@@ -141,6 +153,8 @@ export async function addLink(link: LinkProps) {
     prisma.link.create({
       data: {
         ...link,
+        title: truncate(title, 120),
+        description: truncate(description, 240),
         image: uploadedImage ? undefined : image,
         utm_source,
         utm_medium,
@@ -154,7 +168,9 @@ export async function addLink(link: LinkProps) {
       {
         url,
         password: hasPassword,
-        proxy: customOg,
+        proxy,
+        ios,
+        android,
       },
       {
         nx: true,
@@ -163,7 +179,7 @@ export async function addLink(link: LinkProps) {
       },
     ),
   ]);
-  if (customOg && image) {
+  if (proxy && image) {
     const { secure_url } = await cloudinary.v2.uploader.upload(image, {
       public_id: key,
       folder: domain,
@@ -187,7 +203,20 @@ export async function editLink(
   oldKey: string,
   projectSlug: string,
 ) {
-  const { id, domain, key, url, expiresAt, password, image, customOg } = link;
+  const {
+    id,
+    domain,
+    key,
+    url,
+    expiresAt,
+    password,
+    title,
+    description,
+    image,
+    proxy,
+    ios,
+    android,
+  } = link;
   const hasPassword = password && password.length > 0 ? true : false;
   const exat = expiresAt ? new Date(expiresAt).getTime() : null;
   const changedKey = key !== oldKey;
@@ -207,6 +236,8 @@ export async function editLink(
       },
       data: {
         ...link,
+        title: truncate(title, 120),
+        description: truncate(description, 240),
         image: uploadedImage ? undefined : image,
         utm_source,
         utm_medium,
@@ -215,8 +246,8 @@ export async function editLink(
         utm_content,
       },
     }),
-    // only upload image to cloudinary if customOg is true and there's an image
-    customOg && image
+    // only upload image to cloudinary if proxy is true and there's an image
+    proxy && image
       ? cloudinary.v2.uploader.upload(image, {
           public_id: key,
           folder: domain,
@@ -231,7 +262,9 @@ export async function editLink(
       {
         url,
         password: hasPassword,
-        proxy: customOg,
+        proxy,
+        ios,
+        android,
       },
       {
         // if the key has an expiry, set exat
@@ -253,13 +286,13 @@ export async function editLink(
         ]
       : []),
     // if this link has custom OG tags and the key is the same, update the proxy cache
-    customOg &&
+    proxy &&
       !changedKey &&
       (await fetch(
         `https://dub.sh/api/projects/${projectSlug}/domains/${domain}/links/${oldKey}/revalidate?secret=${process.env.REVALIDATE_TOKEN}`,
       )),
   ]);
-  if (customOg && image) {
+  if (proxy && image) {
     const { secure_url } = effects[0];
     response.image = secure_url;
     await prisma.link.update({

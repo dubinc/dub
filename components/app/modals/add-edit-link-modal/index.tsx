@@ -6,7 +6,6 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 import { mutate } from "swr";
@@ -34,6 +33,7 @@ import ExpirationSection from "./expiration-section";
 import OGSection from "./og-section";
 import PasswordSection from "./password-section";
 import UTMSection from "./utm-section";
+import IOSSection from "./ios-section";
 import Preview from "./preview";
 
 function AddEditLinkModal({
@@ -68,15 +68,17 @@ function AddEditLinkModal({
       title: null,
       description: null,
       image: null,
+      ios: null,
+      android: null,
 
       clicks: 0,
       userId: "",
       createdAt: new Date(),
 
-      customOg: false,
+      proxy: false,
     },
   );
-  const { key, url, password, customOg } = data;
+  const { key, url, password, proxy } = data;
 
   const [debouncedKey] = useDebounce(key, 500);
   useEffect(() => {
@@ -148,7 +150,7 @@ function AddEditLinkModal({
      **/
     if (
       showAddEditLinkModal &&
-      (!customOg || debouncedUrl !== getUrlWithoutUTMParams(props?.url))
+      (!proxy || debouncedUrl !== getUrlWithoutUTMParams(props?.url))
     ) {
       setData((prev) => ({
         ...prev,
@@ -173,7 +175,7 @@ function AddEditLinkModal({
     } else {
       setGeneratingMetatags(false);
     }
-  }, [debouncedUrl, password, showAddEditLinkModal, customOg]);
+  }, [debouncedUrl, password, showAddEditLinkModal, proxy]);
 
   const logo = useMemo(() => {
     if (password || (!debouncedUrl && !props)) {
@@ -449,6 +451,7 @@ function AddEditLinkModal({
               <UTMSection {...{ props, data, setData }} />
               <PasswordSection {...{ props, data, setData }} />
               <ExpirationSection {...{ props, data, setData }} />
+              <IOSSection {...{ props, data, setData }} />
             </div>
 
             <div className="sticky bottom-0 bg-gray-50 px-4 py-8 sm:px-16">

@@ -47,6 +47,7 @@ export { default as Save } from "./save";
 export { default as Photo } from "./photo";
 export { default as Users } from "./users";
 export { default as Eye } from "./eye";
+export { default as EyeOff } from "./eye-off";
 export { default as Heart } from "./heart";
 export { default as Repeat } from "./repeat";
 export { default as Message } from "./message";
