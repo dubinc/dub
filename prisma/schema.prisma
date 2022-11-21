@@ -134,7 +134,7 @@ model Link {
   expiresAt       DateTime? // when the link expires – stored on Redis via ttl
   password        String?  // password to access the link – also stored on Redis
 
-  // Custom OG tags – if not set, will use OG tags from target url
+  customOg        Boolean  @default(false) // Custom OG tags – if false, will use OG tags from target url
   title           String?  // OG title for the link (e.g. Dub - Open-Source Bitly Alternative)
   description     String?  // OG description for the link (e.g. An open-source link management tool for modern marketing teams to create, share, and track short links.)
   image           String?  // OG image for the link (e.g. https://dub.sh/og-image.png)

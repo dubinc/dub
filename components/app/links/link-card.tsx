@@ -34,16 +34,7 @@ import {
 import useIntersectionObserver from "@/lib/hooks/use-intersection-observer";
 
 export default function LinkCard({ props }: { props: LinkProps }) {
-  const {
-    key,
-    url,
-    title,
-    description,
-    image,
-    createdAt,
-    archived,
-    expiresAt,
-  } = props;
+  const { key, url, customOg, createdAt, archived, expiresAt } = props;
 
   const apexDomain = getApexDomain(url);
 
@@ -156,7 +147,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                   <span className="ml-1 hidden sm:inline-block">clicks</span>
                 </p>
               </Link>
-              {title && description && image && (
+              {customOg && (
                 <a
                   href={`https://${domain || "dub.sh"}/_proxy/${
                     domain || "dub.sh"

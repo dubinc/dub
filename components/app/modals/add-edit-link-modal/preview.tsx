@@ -64,7 +64,7 @@ export default function Preview({
         </div>
       );
     }
-  }, [image]);
+  }, [image, generatingMetatags]);
 
   return (
     <div className="h-[1200px]">

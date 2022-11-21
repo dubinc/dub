@@ -24,7 +24,12 @@ import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 import useProject from "@/lib/swr/use-project";
 import useUsage from "@/lib/swr/use-usage";
 import { LinkProps } from "@/lib/types";
-import { getApexDomain, getQueryString, linkConstructor } from "@/lib/utils";
+import {
+  getApexDomain,
+  getQueryString,
+  getUrlWithoutUTMParams,
+  linkConstructor,
+} from "@/lib/utils";
 import ExpirationSection from "./expiration-section";
 import OGSection from "./og-section";
 import PasswordSection from "./password-section";
@@ -52,32 +57,26 @@ function AddEditLinkModal({
   const [saving, setSaving] = useState(false);
 
   const [data, setData] = useState<LinkProps>(
-    props
-      ? {
-          ...props,
-          ogEnabled:
-            props.title && props.description && props.image ? true : false,
-        }
-      : {
-          domain: domain || "",
-          key: "",
-          url: "",
-          archived: false,
-          expiresAt: null,
-          password: null,
+    props || {
+      domain: domain || "",
+      key: "",
+      url: "",
+      archived: false,
+      expiresAt: null,
+      password: null,
 
-          title: null,
-          description: null,
-          image: null,
+      title: null,
+      description: null,
+      image: null,
 
-          clicks: 0,
-          userId: "",
-          createdAt: new Date(),
+      clicks: 0,
+      userId: "",
+      createdAt: new Date(),
 
-          ogEnabled: false,
-        },
+      customOg: false,
+    },
   );
-  const { key, url, password, ogEnabled } = data;
+  const { key, url, password, customOg } = data;
 
   const [debouncedKey] = useDebounce(key, 500);
   useEffect(() => {
@@ -129,7 +128,7 @@ function AddEditLinkModal({
   // }, [onPaste]);
 
   const [generatingMetatags, setGeneratingMetatags] = useState(false);
-  const [debouncedUrl] = useDebounce(url.split("?")[0], 500);
+  const [debouncedUrl] = useDebounce(getUrlWithoutUTMParams(url), 500);
   useEffect(() => {
     // if there's a password, no need to generate metatags
     if (password) {
@@ -145,18 +144,18 @@ function AddEditLinkModal({
     /**
      * Only generate metatags if:
      * - modal is open
-     * - there's no image or the url has changed
+     * - custom OG is not enabled or the url has changed
      **/
-    if (showAddEditLinkModal && !ogEnabled) {
-      // using a setTimeout to delay until the loading screen fades in (0.2 delay in framer motion as well)
-      setTimeout(() => {
-        setData((prev) => ({
-          ...prev,
-          title: null,
-          description: null,
-          image: null,
-        }));
-      }, 200);
+    if (
+      showAddEditLinkModal &&
+      (!customOg || debouncedUrl !== getUrlWithoutUTMParams(props?.url))
+    ) {
+      setData((prev) => ({
+        ...prev,
+        title: null,
+        description: null,
+        image: null,
+      }));
       try {
         // if url is valid, continue to generate metatags, else return null
         new URL(debouncedUrl);
@@ -171,8 +170,10 @@ function AddEditLinkModal({
       } catch (e) {
         console.log("not a valid url");
       }
+    } else {
+      setGeneratingMetatags(false);
     }
-  }, [props, debouncedUrl, password]);
+  }, [debouncedUrl, password, showAddEditLinkModal, customOg]);
 
   const logo = useMemo(() => {
     if (password || (!debouncedUrl && !props)) {
@@ -227,7 +228,7 @@ function AddEditLinkModal({
       keyExistsError ||
       urlError ||
       (props &&
-        Object.entries(props).every(([key, value]) => value === data[key]))
+        Object.entries(props).every(([key, value]) => data[key] === value))
     ) {
       return true;
     } else {
@@ -284,18 +285,12 @@ function AddEditLinkModal({
             onSubmit={async (e) => {
               e.preventDefault();
               setSaving(true);
-              const { ogEnabled, ...rest } = data;
               fetch(endpoint.url, {
                 method: endpoint.method,
                 headers: {
                   "Content-Type": "application/json",
                 },
-                body: JSON.stringify({
-                  ...rest,
-                  title: ogEnabled ? rest.title : null,
-                  description: ogEnabled ? rest.description : null,
-                  image: ogEnabled ? rest.image : null,
-                }),
+                body: JSON.stringify(data),
               }).then((res) => {
                 setSaving(false);
                 if (res.status === 200) {
@@ -448,7 +443,7 @@ function AddEditLinkModal({
 
             <div className="grid gap-5 px-4 sm:px-16">
               <OGSection
-                {...{ data, setData }}
+                {...{ props, data, setData }}
                 generatingMetatags={generatingMetatags}
               />
               <UTMSection {...{ props, data, setData }} />

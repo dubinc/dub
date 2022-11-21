@@ -1,4 +1,10 @@
-import { Dispatch, SetStateAction, useCallback, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 import { motion } from "framer-motion";
 import TextareaAutosize from "react-textarea-autosize";
 import BlurImage from "@/components/shared/blur-image";
@@ -8,15 +14,17 @@ import Switch from "@/components/shared/switch";
 import { FADE_IN_ANIMATION_SETTINGS } from "@/lib/constants";
 
 export default function OGSection({
+  props,
   data,
   setData,
   generatingMetatags,
 }: {
+  props: LinkProps;
   data: LinkProps;
   setData: Dispatch<SetStateAction<LinkProps>>;
   generatingMetatags: boolean;
 }) {
-  const { title, description, image, ogEnabled } = data;
+  const { title, description, image, customOg } = data;
 
   const [fileSizeTooBig, setFileSizeTooBig] = useState(false);
 
@@ -39,6 +47,18 @@ export default function OGSection({
     [setData],
   );
 
+  useEffect(() => {
+    if (customOg && props) {
+      // if custom OG is enabled
+      setData((prev) => ({
+        ...prev,
+        title: props.title || title,
+        description: props.description || description,
+        image: props.image || image,
+      }));
+    }
+  }, [customOg, props]);
+
   const randomIdx = Math.floor(Math.random() * 100);
 
   return (
@@ -48,8 +68,8 @@ export default function OGSection({
           Custom Social Media Cards
         </h2>
         <Switch
-          fn={() => setData((prev) => ({ ...prev, ogEnabled: !ogEnabled }))}
-          checked={ogEnabled}
+          fn={() => setData((prev) => ({ ...prev, customOg: !customOg }))}
+          checked={customOg}
         />
       </div>
       {/* <p className="mt-2 block text-sm text-gray-500">
@@ -60,7 +80,7 @@ export default function OGSection({
         , or the default OG tags of the target URL will be used.
       </p> */}
 
-      {ogEnabled && (
+      {customOg && (
         <motion.div
           key="og-options"
           {...FADE_IN_ANIMATION_SETTINGS}
@@ -80,12 +100,9 @@ export default function OGSection({
               className="group relative mt-1 flex h-[14rem] cursor-pointer flex-col items-center justify-center rounded-md border border-gray-300 bg-white shadow-sm transition-all hover:bg-gray-50"
             >
               {generatingMetatags && (
-                <motion.div
-                  className="absolute flex h-full w-full items-center justify-center rounded-md bg-white"
-                  {...FADE_IN_ANIMATION_SETTINGS}
-                >
+                <div className="absolute flex h-full w-full items-center justify-center rounded-md bg-white">
                   <LoadingCircle />
-                </motion.div>
+                </div>
               )}
               {image ? (
                 image.startsWith("https://res.cloudinary.com") ? (
@@ -134,12 +151,9 @@ export default function OGSection({
             </label>
             <div className="relative mt-1 flex rounded-md shadow-sm">
               {generatingMetatags && (
-                <motion.div
-                  className="absolute flex h-full w-full items-center justify-center rounded-md border border-gray-300 bg-white"
-                  {...FADE_IN_ANIMATION_SETTINGS}
-                >
+                <div className="absolute flex h-full w-full items-center justify-center rounded-md border border-gray-300 bg-white">
                   <LoadingCircle />
-                </motion.div>
+                </div>
               )}
               <TextareaAutosize
                 name="title"
@@ -166,12 +180,9 @@ export default function OGSection({
             </label>
             <div className="relative mt-1 flex rounded-md shadow-sm">
               {generatingMetatags && (
-                <motion.div
-                  className="absolute flex h-full w-full items-center justify-center rounded-md border border-gray-300 bg-white"
-                  {...FADE_IN_ANIMATION_SETTINGS}
-                >
+                <div className="absolute flex h-full w-full items-center justify-center rounded-md border border-gray-300 bg-white">
                   <LoadingCircle />
-                </motion.div>
+                </div>
               )}
               <TextareaAutosize
                 name="description"

@@ -1,17 +1,14 @@
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { LinkProps } from "@/lib/types";
 import { motion } from "framer-motion";
-import { constructURLFromUTMParams, getParamsFromURL } from "@/lib/utils";
+import {
+  constructURLFromUTMParams,
+  getParamsFromURL,
+  paramsMetadata,
+  getUrlWithoutUTMParams,
+} from "@/lib/utils";
 import Switch from "@/components/shared/switch";
 import { FADE_IN_ANIMATION_SETTINGS } from "@/lib/constants";
-
-const paramsMetadata = [
-  { display: "UTM Source", key: "utm_source", examples: "twitter, facebook" },
-  { display: "UTM Medium", key: "utm_medium", examples: "social, email" },
-  { display: "UTM Campaign", key: "utm_campaign", examples: "summer_sale" },
-  { display: "UTM Term", key: "utm_term", examples: "blue_shoes" },
-  { display: "UTM Content", key: "utm_content", examples: "logolink" },
-];
 
 export default function UTMSection({
   props,
@@ -43,22 +40,13 @@ export default function UTMSection({
   useEffect(() => {
     if (enabled) {
       // if enabling, add all params from props if exists
-      setData((prev) => ({
-        ...prev,
+      setData({
+        ...data,
         url: props?.url || url,
-      }));
+      });
     } else {
       // if disabling, remove all UTM params
-      let newURL;
-      try {
-        newURL = new URL(url);
-        paramsMetadata.forEach((param) =>
-          newURL.searchParams.delete(param.key),
-        );
-        setData((prev) => ({ ...prev, url: newURL.toString() }));
-      } catch (e) {
-        setData((prev) => ({ ...prev, url }));
-      }
+      setData({ ...data, url: getUrlWithoutUTMParams(url) });
     }
   }, [enabled]);
 

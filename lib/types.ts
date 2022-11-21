@@ -12,6 +12,7 @@ export interface LinkProps {
   expiresAt: Date | null;
   password: string | null;
 
+  customOg: boolean;
   title: string | null;
   description: string | null;
   image: string | null;
@@ -20,9 +21,6 @@ export interface LinkProps {
   userId: string;
 
   createdAt: Date;
-
-  // only used on client-side
-  ogEnabled?: boolean;
 }
 
 export interface ProjectProps {
