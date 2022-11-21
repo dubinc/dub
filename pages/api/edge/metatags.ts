@@ -68,17 +68,26 @@ const getMetadataFromUrl = async (url: string) => {
         },
       );
       console.log(obj);
+
+      let image =
+        obj["og:image"] ||
+        obj["twitter:image"] ||
+        obj["icon"] ||
+        obj["image_src"];
+
+      if (image && image.startsWith("//")) {
+        image = "https:" + image;
+      } else if (image && image.startsWith("/")) {
+        image = new URL(url).origin + image;
+      }
+
       return {
         title: obj["title"] || obj["og:title"] || obj["twitter:title"],
         description:
           obj["description"] ||
           obj["og:description"] ||
           obj["twitter:description"],
-        image:
-          obj["og:image"] ||
-          obj["twitter:image"] ||
-          obj["icon"] ||
-          obj["image_src"],
+        image,
       };
     })
     .catch((err) => {

@@ -39,10 +39,14 @@ export default function UTMSection({
 
   useEffect(() => {
     if (enabled) {
-      // if enabling, add all params from props if exists
+      // if enabling, add all params from props if exists && it's still the same URL
       setData({
         ...data,
-        url: props?.url || url,
+        url:
+          props?.url &&
+          getUrlWithoutUTMParams(props?.url) === getUrlWithoutUTMParams(url)
+            ? props?.url
+            : url,
       });
     } else {
       // if disabling, remove all UTM params
