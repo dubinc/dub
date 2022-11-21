@@ -20,6 +20,9 @@ export interface LinkProps {
   userId: string;
 
   createdAt: Date;
+
+  // only used on client-side
+  ogEnabled?: boolean;
 }
 
 export interface ProjectProps {

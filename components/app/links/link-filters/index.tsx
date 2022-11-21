@@ -2,7 +2,7 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, Filter } from "@/components/shared/icons";
-import { ANIMATION_SETTINGS } from "@/lib/constants";
+import { SWIPE_REVEAL_ANIMATION_SETTINGS } from "@/lib/constants";
 import LinkSort from "./link-sort";
 import StatusFilter from "./status-filter";
 import UserFilter from "./user-filter";
@@ -32,7 +32,7 @@ export default function LinkFilters() {
         {showFilters && (
           <motion.div
             className="flex w-full flex-col space-y-2 border-t border-gray-200 py-5 sm:hidden"
-            {...ANIMATION_SETTINGS}
+            {...SWIPE_REVEAL_ANIMATION_SETTINGS}
           >
             <LinkSort />
             <StatusFilter />

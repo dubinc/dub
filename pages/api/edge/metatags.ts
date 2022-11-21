@@ -69,7 +69,6 @@ const getMetadataFromUrl = async (url: string) => {
       );
       console.log(obj);
       return {
-        hostname: new URL(url).hostname,
         title: obj["title"] || obj["og:title"] || obj["twitter:title"],
         description:
           obj["description"] ||

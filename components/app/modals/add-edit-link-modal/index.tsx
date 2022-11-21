@@ -31,6 +31,16 @@ import PasswordSection from "./password-section";
 import UTMSection from "./utm-section";
 import Preview from "./preview";
 
+function process(data: LinkProps) {
+  const { ogEnabled, ...rest } = data;
+  return {
+    ...rest,
+    title: ogEnabled ? rest.title : null,
+    description: ogEnabled ? rest.description : null,
+    image: ogEnabled ? rest.image : null,
+  };
+}
+
 function AddEditLinkModal({
   showAddEditLinkModal,
   setShowAddEditLinkModal,
@@ -52,24 +62,32 @@ function AddEditLinkModal({
   const [saving, setSaving] = useState(false);
 
   const [data, setData] = useState<LinkProps>(
-    props || {
-      domain: domain || "",
-      key: "",
-      url: "",
-      archived: false,
-      expiresAt: null,
-      password: null,
+    props
+      ? {
+          ...props,
+          ogEnabled:
+            props.title && props.description && props.image ? true : false,
+        }
+      : {
+          domain: domain || "",
+          key: "",
+          url: "",
+          archived: false,
+          expiresAt: null,
+          password: null,
 
-      title: null,
-      description: null,
-      image: null,
+          title: null,
+          description: null,
+          image: null,
 
-      clicks: 0,
-      userId: "",
-      createdAt: new Date(),
-    },
+          clicks: 0,
+          userId: "",
+          createdAt: new Date(),
+
+          ogEnabled: false,
+        },
   );
-  const { key, url, password, expiresAt } = data;
+  const { key, url, password, title, description, image, ogEnabled } = data;
 
   const [debouncedKey] = useDebounce(key, 500);
   useEffect(() => {
@@ -134,11 +152,12 @@ function AddEditLinkModal({
       }));
       return;
     }
-    if (
-      // only generate metatags if:
-      showAddEditLinkModal && // modal is open
-      (!props?.image || debouncedUrl !== props?.url.split("?")[0]) // there's no image or the url has changed
-    ) {
+    /**
+     * Only generate metatags if:
+     * - modal is open
+     * - there's no image or the url has changed
+     **/
+    if (showAddEditLinkModal && !ogEnabled) {
       // using a setTimeout to delay until the loading screen fades in (0.2 delay in framer motion as well)
       setTimeout(() => {
         setData((prev) => ({
@@ -153,11 +172,11 @@ function AddEditLinkModal({
         new URL(debouncedUrl);
         setGeneratingMetatags(true);
         fetch(`/api/edge/metatags?url=${debouncedUrl}`).then(async (res) => {
+          setGeneratingMetatags(false);
           if (res.status === 200) {
             const results = await res.json();
             setData((prev) => ({ ...prev, ...results }));
           }
-          setGeneratingMetatags(false);
         });
       } catch (e) {
         console.log("not a valid url");
@@ -193,8 +212,6 @@ function AddEditLinkModal({
     }
   }, [props]);
 
-  const expired = expiresAt && new Date() > new Date(expiresAt);
-
   const [scrolled, setScrolled] = useState(false);
   const handleScroll = (event: UIEvent<HTMLElement>) => {
     if (event.currentTarget.scrollTop > 144) {
@@ -203,6 +220,30 @@ function AddEditLinkModal({
       setScrolled(false);
     }
   };
+
+  const saveDisabled = useMemo(() => {
+    /* 
+      Disable save if:
+      - modal is not open
+      - saving is in progress
+      - key is invalid
+      - url is invalid
+      - for an existing link, there's no changes
+    */
+    if (!showAddEditLinkModal) {
+      return true;
+    } else if (
+      saving ||
+      keyExistsError ||
+      urlError ||
+      (props &&
+        Object.entries(props).every(([key, value]) => value === data[key]))
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  }, [saving, keyExistsError, urlError, props, data, showAddEditLinkModal]);
 
   return (
     <Modal
@@ -249,16 +290,6 @@ function AddEditLinkModal({
             )}
           </div>
 
-          {/* {id && (
-          <div className="absolute -mt-3.5 flex w-full justify-center space-x-2 [&>*]:flex [&>*]:h-7 [&>*]:items-center [&>*]:rounded-full [&>*]:px-4 [&>*]:text-xs [&>*]:uppercase [&>*]:text-white">
-            {expired ? (
-              <span className="bg-amber-500">Expired</span>
-            ) : (
-              <span className="bg-green-500">Active</span>
-            )}
-            {archived && <span className="bg-gray-400">Archived</span>}
-          </div>
-        )} */}
           <form
             onSubmit={async (e) => {
               e.preventDefault();
@@ -268,7 +299,7 @@ function AddEditLinkModal({
                 headers: {
                   "Content-Type": "application/json",
                 },
-                body: JSON.stringify(data),
+                body: JSON.stringify(process(data)),
               }).then((res) => {
                 setSaving(false);
                 if (res.status === 200) {
@@ -419,21 +450,21 @@ function AddEditLinkModal({
               </div>
             </div>
 
-            <div className="grid gap-8 px-4 sm:px-16">
+            <div className="grid gap-5 px-4 sm:px-16">
               <OGSection
                 {...{ data, setData }}
                 generatingMetatags={generatingMetatags}
               />
-              <UTMSection {...{ data, setData }} />
+              <UTMSection {...{ props, data, setData }} />
               <PasswordSection {...{ data, setData }} />
               <ExpirationSection {...{ data, setData }} />
             </div>
 
             <div className="sticky bottom-0 bg-gray-50 px-4 py-8 sm:px-16">
               <button
-                disabled={saving || keyExistsError}
+                disabled={saveDisabled}
                 className={`${
-                  saving || keyExistsError
+                  saveDisabled
                     ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
                     : "border-black bg-black text-white hover:bg-white hover:text-black"
                 } flex h-10 w-full items-center justify-center rounded-md border text-sm transition-all focus:outline-none`}

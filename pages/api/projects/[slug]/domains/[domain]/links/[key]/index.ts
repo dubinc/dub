@@ -26,7 +26,6 @@ export default withProjectAuth(
         {
           domain,
           ...req.body,
-          userId: session.user.id,
         },
         oldKey,
         slug,
