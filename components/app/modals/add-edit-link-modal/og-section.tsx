@@ -72,13 +72,6 @@ export default function OGSection({
           checked={customOg}
         />
       </div>
-      {/* <p className="mt-2 block text-sm text-gray-500">
-        If you use custom social previews,{" "}
-        <span className="font-semibold text-black">
-          be sure to set all 3 sections (title, description, image)
-        </span>
-        , or the default OG tags of the target URL will be used.
-      </p> */}
 
       {customOg && (
         <motion.div
@@ -159,7 +152,7 @@ export default function OGSection({
                 name="title"
                 id={`title-${randomIdx}`}
                 minRows={3}
-                maxLength={60}
+                maxLength={120}
                 className="block w-full rounded-md border-gray-300 pr-10 text-sm text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500"
                 placeholder="Dub - Open Source Bitly Alternative"
                 value={title || ""}
@@ -188,7 +181,7 @@ export default function OGSection({
                 name="description"
                 id={`description-${randomIdx}`}
                 minRows={3}
-                maxLength={200}
+                maxLength={280}
                 className="block w-full rounded-md border-gray-300 pr-10 text-sm text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500"
                 placeholder="Dub is open-source link management tool for modern marketing teams to create, share, and track short links."
                 value={description || ""}

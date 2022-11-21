@@ -2,6 +2,14 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { deleteLink, editLink } from "@/lib/api/links";
 import { withProjectAuth } from "@/lib/auth";
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: "1500kb",
+    },
+  },
+};
+
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse, _, session) => {
     const {

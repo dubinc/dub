@@ -97,7 +97,7 @@ export const getDateTimeLocal = (timestamp?: Date): string => {
     .join(":");
 };
 
-export const generateSlugFromName = (name: string) => {
+export const generateDomainFromName = (name: string) => {
   const normalizedName = name.toLowerCase().replaceAll(" ", "-");
   if (normalizedName.length < 3) {
     return "";
@@ -111,20 +111,11 @@ export const generateSlugFromName = (name: string) => {
     return `${devowel.slice(0, -2)}.${devowel.slice(-2)}`;
   }
 
-  const acronym = normalizedName
-    .split("-")
-    .map((word) => word[0])
-    .join("");
-
-  if (acronym.length >= 3 && ccTLDs.has(acronym.slice(-2))) {
-    return `${acronym.slice(0, -2)}.${acronym.slice(-2)}`;
-  }
-
-  const shortestString = [normalizedName, devowel, acronym].reduce((a, b) =>
+  const shortestString = [normalizedName, devowel].reduce((a, b) =>
     a.length < b.length ? a : b,
   );
 
-  return `${shortestString}.sh`;
+  return `${shortestString}.to`;
 };
 
 export const validDomainRegex = new RegExp(

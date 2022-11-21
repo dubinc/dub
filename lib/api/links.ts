@@ -129,6 +129,7 @@ export async function addLink(link: LinkProps) {
   const { domain, key, url, expiresAt, password, image, customOg } = link;
   const hasPassword = password && password.length > 0 ? true : false;
   const exat = expiresAt ? new Date(expiresAt).getTime() / 1000 : null;
+  const uploadedImage = image && image.startsWith("data:image") ? true : false;
 
   const exists = await checkIfKeyExists(domain, key);
   if (exists) return null;
@@ -140,6 +141,7 @@ export async function addLink(link: LinkProps) {
     prisma.link.create({
       data: {
         ...link,
+        image: uploadedImage ? undefined : image,
         utm_source,
         utm_medium,
         utm_campaign,
@@ -189,6 +191,7 @@ export async function editLink(
   const hasPassword = password && password.length > 0 ? true : false;
   const exat = expiresAt ? new Date(expiresAt).getTime() : null;
   const changedKey = key !== oldKey;
+  const uploadedImage = image && image.startsWith("data:image") ? true : false;
 
   if (changedKey) {
     const exists = await checkIfKeyExists(domain, key);
@@ -204,6 +207,7 @@ export async function editLink(
       },
       data: {
         ...link,
+        image: uploadedImage ? undefined : image,
         utm_source,
         utm_medium,
         utm_campaign,
@@ -212,14 +216,16 @@ export async function editLink(
       },
     }),
     // only upload image to cloudinary if customOg is true and there's an image
-    customOg &&
-      image &&
-      cloudinary.v2.uploader.upload(image, {
-        public_id: key,
-        folder: domain,
-        overwrite: true,
-        invalidate: true,
-      }),
+    customOg && image
+      ? cloudinary.v2.uploader.upload(image, {
+          public_id: key,
+          folder: domain,
+          overwrite: true,
+          invalidate: true,
+        })
+      : cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
+          invalidate: true,
+        }),
     redis.set(
       `${domain}:${key}`,
       {

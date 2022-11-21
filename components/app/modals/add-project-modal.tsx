@@ -13,7 +13,7 @@ import { useDebounce } from "use-debounce";
 import BlurImage from "@/components/shared/blur-image";
 import { AlertCircleFill, LoadingDots } from "@/components/shared/icons";
 import Modal from "@/components/shared/modal";
-import { generateSlugFromName } from "@/lib/utils";
+import { generateDomainFromName } from "@/lib/utils";
 
 function AddProjectModalHelper({
   showAddProjectModal,
@@ -71,7 +71,7 @@ function AddProjectModalHelper({
     setData((prev) => ({
       ...prev,
       slug: name.toLowerCase().replaceAll(" ", "-"),
-      domain: generateSlugFromName(name),
+      domain: generateDomainFromName(name),
     }));
   }, [name]);
 

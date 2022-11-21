@@ -447,8 +447,8 @@ function AddEditLinkModal({
                 generatingMetatags={generatingMetatags}
               />
               <UTMSection {...{ props, data, setData }} />
-              <PasswordSection {...{ data, setData }} />
-              <ExpirationSection {...{ data, setData }} />
+              <PasswordSection {...{ props, data, setData }} />
+              <ExpirationSection {...{ props, data, setData }} />
             </div>
 
             <div className="sticky bottom-0 bg-gray-50 px-4 py-8 sm:px-16">
