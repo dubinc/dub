@@ -48,8 +48,17 @@ export default function UTMSection({
         url: props?.url || url,
       }));
     } else {
-      // if disabling, remove all params
-      setData((prev) => ({ ...prev, url: prev.url.split("?")[0] }));
+      // if disabling, remove all UTM params
+      let newURL;
+      try {
+        newURL = new URL(url);
+        paramsMetadata.forEach((param) =>
+          newURL.searchParams.delete(param.key),
+        );
+        setData((prev) => ({ ...prev, url: newURL.toString() }));
+      } catch (e) {
+        setData((prev) => ({ ...prev, url }));
+      }
     }
   }, [enabled]);
 

@@ -31,16 +31,6 @@ import PasswordSection from "./password-section";
 import UTMSection from "./utm-section";
 import Preview from "./preview";
 
-function process(data: LinkProps) {
-  const { ogEnabled, ...rest } = data;
-  return {
-    ...rest,
-    title: ogEnabled ? rest.title : null,
-    description: ogEnabled ? rest.description : null,
-    image: ogEnabled ? rest.image : null,
-  };
-}
-
 function AddEditLinkModal({
   showAddEditLinkModal,
   setShowAddEditLinkModal,
@@ -87,7 +77,7 @@ function AddEditLinkModal({
           ogEnabled: false,
         },
   );
-  const { key, url, password, title, description, image, ogEnabled } = data;
+  const { key, url, password, ogEnabled } = data;
 
   const [debouncedKey] = useDebounce(key, 500);
   useEffect(() => {
@@ -294,12 +284,18 @@ function AddEditLinkModal({
             onSubmit={async (e) => {
               e.preventDefault();
               setSaving(true);
+              const { ogEnabled, ...rest } = data;
               fetch(endpoint.url, {
                 method: endpoint.method,
                 headers: {
                   "Content-Type": "application/json",
                 },
-                body: JSON.stringify(process(data)),
+                body: JSON.stringify({
+                  ...rest,
+                  title: ogEnabled ? rest.title : null,
+                  description: ogEnabled ? rest.description : null,
+                  image: ogEnabled ? rest.image : null,
+                }),
               }).then((res) => {
                 setSaving(false);
                 if (res.status === 200) {
