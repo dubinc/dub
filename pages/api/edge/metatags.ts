@@ -82,7 +82,7 @@ const getMetadataFromUrl = async (url: string) => {
       }
 
       return {
-        title: obj["title"] || obj["og:title"] || obj["twitter:title"],
+        title: obj["og:title"] || obj["twitter:title"] || obj["title"],
         description:
           obj["description"] ||
           obj["og:description"] ||

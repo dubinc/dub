@@ -57,7 +57,7 @@ export default function OGSection({
         image: props.image || image,
       }));
     }
-  }, [proxy, props]);
+  }, [proxy]);
 
   const randomIdx = Math.floor(Math.random() * 100);
 
@@ -93,35 +93,39 @@ export default function OGSection({
               className="group relative mt-1 flex h-[14rem] cursor-pointer flex-col items-center justify-center rounded-md border border-gray-300 bg-white shadow-sm transition-all hover:bg-gray-50"
             >
               {generatingMetatags && (
-                <div className="absolute flex h-full w-full items-center justify-center rounded-md bg-white">
+                <div className="absolute z-[5] flex h-full w-full items-center justify-center rounded-md bg-white">
                   <LoadingCircle />
                 </div>
               )}
-              {image ? (
-                image.startsWith("https://res.cloudinary.com") ? (
+              <div
+                className={`absolute z-[3] flex h-full w-full flex-col items-center justify-center rounded-md transition-all ${
+                  image
+                    ? "bg-white/80 opacity-0 hover:opacity-100 hover:backdrop-blur-md"
+                    : "bg-white opacity-100 hover:bg-gray-50"
+                }`}
+              >
+                <UploadCloud className="h-7 w-7 text-gray-500 transition-all duration-75 group-hover:scale-110 group-active:scale-95" />
+                <p className="mt-2 text-sm text-gray-500">
+                  Recommended: 1200 x 627 pixels
+                </p>
+                <span className="sr-only">OG Image upload</span>
+              </div>
+              {image &&
+                (image.startsWith("https://res.cloudinary.com") ? (
                   <BlurImage
                     src={image}
                     alt="Preview"
                     width={1200}
                     height={627}
-                    className="h-full w-full rounded-md object-cover transition-all hover:brightness-95"
+                    className="h-full w-full rounded-md object-cover"
                   />
                 ) : (
                   <img
                     src={image}
                     alt="Preview"
-                    className="h-full w-full rounded-md object-cover transition-all hover:brightness-95"
+                    className="h-full w-full rounded-md object-cover"
                   />
-                )
-              ) : (
-                <>
-                  <UploadCloud className="h-7 w-7 text-gray-500 transition-all duration-75 group-hover:scale-110 group-active:scale-95" />
-                  <p className="mt-2 text-sm text-gray-500">
-                    Recommended: 1200 x 627 pixels
-                  </p>
-                  <span className="sr-only">OG Image upload</span>
-                </>
-              )}
+                ))}
             </label>
             <div className="mt-1 flex rounded-md shadow-sm">
               <input

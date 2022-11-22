@@ -35,6 +35,7 @@ import PasswordSection from "./password-section";
 import UTMSection from "./utm-section";
 import IOSSection from "./ios-section";
 import Preview from "./preview";
+import AndroidSection from "./android-section";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
@@ -163,11 +164,12 @@ function AddEditLinkModal({
         new URL(debouncedUrl);
         setGeneratingMetatags(true);
         fetch(`/api/edge/metatags?url=${debouncedUrl}`).then(async (res) => {
-          setGeneratingMetatags(false);
           if (res.status === 200) {
             const results = await res.json();
             setData((prev) => ({ ...prev, ...results }));
           }
+          // set timeout to prevent flickering
+          setTimeout(() => setGeneratingMetatags(false), 200);
         });
       } catch (e) {
         console.log("not a valid url");
@@ -205,14 +207,15 @@ function AddEditLinkModal({
     }
   }, [props]);
 
-  const [scrolled, setScrolled] = useState(false);
-  const handleScroll = (event: UIEvent<HTMLElement>) => {
-    if (event.currentTarget.scrollTop > 144) {
-      setScrolled(true);
+  const [atBottom, setAtBottom] = useState(false);
+  const handleScroll = useCallback((event: UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
+    if (Math.abs(scrollHeight - scrollTop - clientHeight) < 5) {
+      setAtBottom(true);
     } else {
-      setScrolled(false);
+      setAtBottom(false);
     }
-  };
+  }, []);
 
   const saveDisabled = useMemo(() => {
     /* 
@@ -244,7 +247,7 @@ function AddEditLinkModal({
       setShowModal={setShowAddEditLinkModal}
       closeWithX={true}
     >
-      <div className="grid max-h-[80vh] w-full divide-x divide-gray-100 overflow-scroll bg-white shadow-xl transition-all scrollbar-hide sm:max-w-screen-lg sm:grid-cols-2 sm:rounded-2xl sm:border sm:border-gray-200">
+      <div className="grid max-h-[min(918px,_90vh)] w-full divide-x divide-gray-100 overflow-scroll bg-white shadow-xl transition-all scrollbar-hide sm:max-w-screen-lg sm:grid-cols-2 sm:rounded-2xl sm:border sm:border-gray-200">
         {!hideXButton && (
           <button
             onClick={() => setShowAddEditLinkModal(false)}
@@ -255,14 +258,10 @@ function AddEditLinkModal({
         )}
 
         <div
-          className="max-h-[80vh] overflow-scroll rounded-l-2xl"
+          className="max-h-[min(918px,_90vh)] overflow-scroll rounded-l-2xl"
           onScroll={handleScroll}
         >
-          <div
-            className={`${
-              scrolled ? "py-5" : "pt-10 pb-8"
-            } sticky top-0 z-10 flex flex-col items-center justify-center space-y-3 border-b border-gray-200 bg-white px-4 transition-all sm:px-16`}
-          >
+          <div className="sticky top-0 z-10 flex flex-col items-center justify-center space-y-3 border-b border-gray-200 bg-white px-4 pt-8 pb-8 transition-all sm:px-16">
             <BlurImage
               src={logo}
               alt="Logo"
@@ -270,17 +269,15 @@ function AddEditLinkModal({
               width={20}
               height={20}
             />
-            {!scrolled && (
-              <h3 className="text-lg font-medium">
-                {props
-                  ? `Edit ${linkConstructor({
-                      key: props.key,
-                      domain,
-                      pretty: true,
-                    })}`
-                  : "Add a new link"}
-              </h3>
-            )}
+            <h3 className="text-lg font-medium">
+              {props
+                ? `Edit ${linkConstructor({
+                    key: props.key,
+                    domain,
+                    pretty: true,
+                  })}`
+                : "Add a new link"}
+            </h3>
           </div>
 
           <form
@@ -452,9 +449,14 @@ function AddEditLinkModal({
               <PasswordSection {...{ props, data, setData }} />
               <ExpirationSection {...{ props, data, setData }} />
               <IOSSection {...{ props, data, setData }} />
+              <AndroidSection {...{ props, data, setData }} />
             </div>
 
-            <div className="sticky bottom-0 bg-gray-50 px-4 py-8 sm:px-16">
+            <div
+              className={`${
+                atBottom ? "" : "shadow-[0_-20px_30px_-10px_rgba(0,0,0,0.1)]"
+              } sticky bottom-0 bg-gray-50 px-4 py-8  transition-all sm:px-16`}
+            >
               <button
                 disabled={saveDisabled}
                 className={`${
@@ -474,7 +476,7 @@ function AddEditLinkModal({
             </div>
           </form>
         </div>
-        <div className="max-h-[80vh] overflow-scroll rounded-r-2xl">
+        <div className="max-h-[min(918px,_90vh)] overflow-scroll rounded-r-2xl">
           <Preview data={data} generatingMetatags={generatingMetatags} />
         </div>
       </div>
