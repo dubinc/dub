@@ -83,7 +83,6 @@ function LinkQRModalHelper({
 
   const copyToClipboard = async () => {
     try {
-      console.log(qrData);
       const canvas = await getQRAsCanvas(qrData, "image/png", true);
       (canvas as HTMLCanvasElement).toBlob(async function (blob) {
         const item = new ClipboardItem({ "image/png": blob });

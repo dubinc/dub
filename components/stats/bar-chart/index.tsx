@@ -189,7 +189,11 @@ const BarChart = ({
             </h3>
             <p className="text-xs text-gray-600">
               {intervalData[interval].format(tooltipData.start)} -{" "}
-              {intervalData[interval].format(tooltipData.end)}
+              {interval === "24h"
+                ? new Date(tooltipData.end).toLocaleTimeString("en-us", {
+                    hour: "numeric",
+                  })
+                : intervalData[interval].format(tooltipData.end)}
             </p>
           </div>
         </TooltipInPortal>
