@@ -149,12 +149,9 @@ function AddEditLinkModal({
     /**
      * Only generate metatags if:
      * - modal is open
-     * - custom OG is not enabled or the url has changed
+     * - custom OG proxy is not enabled
      **/
-    if (
-      showAddEditLinkModal &&
-      (!proxy || debouncedUrl !== getUrlWithoutUTMParams(props?.url))
-    ) {
+    if (showAddEditLinkModal && !proxy) {
       setData((prev) => ({
         ...prev,
         title: null,
@@ -459,7 +456,7 @@ function AddEditLinkModal({
             <div
               className={`${
                 atBottom ? "" : "sm:shadow-[0_-20px_30px_-10px_rgba(0,0,0,0.1)]"
-              } bg-gray-50 px-4 py-8 transition-all sm:sticky  sm:bottom-0 sm:px-16`}
+              } z-10 bg-gray-50 px-4 py-8 transition-all sm:sticky  sm:bottom-0 sm:px-16`}
             >
               <button
                 disabled={saveDisabled}
