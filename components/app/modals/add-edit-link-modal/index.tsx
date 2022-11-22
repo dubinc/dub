@@ -130,7 +130,9 @@ function AddEditLinkModal({
   //   return () => window.removeEventListener("paste", onPaste as any);
   // }, [onPaste]);
 
-  const [generatingMetatags, setGeneratingMetatags] = useState(false);
+  const [generatingMetatags, setGeneratingMetatags] = useState(
+    props ? true : false,
+  );
   const [debouncedUrl] = useDebounce(getUrlWithoutUTMParams(url), 500);
   useEffect(() => {
     // if there's a password, no need to generate metatags
