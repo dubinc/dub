@@ -370,7 +370,7 @@ export async function changeDomainForLinks(
   }
 }
 
-/* Change the domain for all images on Cloudinary */
+/* Change the domain for all images for a given project on Cloudinary */
 export async function changeDomainForImages(
   projectId: string,
   domain: string,

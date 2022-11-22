@@ -67,10 +67,9 @@ export default function Preview({
   }, [image, generatingMetatags]);
 
   return (
-    <div className="h-[1200px]">
-      <div className="flex items-center justify-between border-b border-gray-200 px-5 py-10">
-        <h2 className="text-lg font-medium">Preview</h2>
-        <div className="flex items-center"></div>
+    <div>
+      <div className="z-10 flex items-center justify-center border-b border-gray-200 bg-white px-5 py-10 sm:sticky sm:top-0">
+        <h2 className="text-lg font-medium">Social Previews</h2>
       </div>
       <div className="grid gap-5 p-5">
         {/* Twitter */}
@@ -86,7 +85,6 @@ export default function Preview({
               <div className="flex items-center space-x-2 bg-white px-3">
                 <Twitter className="h-4 w-4 text-[#1DA1F2]" />
                 <p className="text-sm text-gray-400">Twitter</p>
-                <ExternalLink className="h-4 w-4 text-gray-400" />
               </div>
             </div>
           </div>

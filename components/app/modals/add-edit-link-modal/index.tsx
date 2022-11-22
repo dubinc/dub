@@ -260,10 +260,10 @@ function AddEditLinkModal({
         )}
 
         <div
-          className="max-h-[min(906px,_90vh)] overflow-scroll rounded-l-2xl"
+          className="rounded-l-2xl sm:max-h-[min(906px,_90vh)] sm:overflow-scroll"
           onScroll={handleScroll}
         >
-          <div className="sticky top-0 z-10 flex flex-col items-center justify-center space-y-3 border-b border-gray-200 bg-white px-4 pt-8 pb-8 transition-all sm:px-16">
+          <div className="z-10 flex flex-col items-center justify-center space-y-3 border-b border-gray-200 bg-white px-4 pt-8 pb-8 transition-all sm:sticky sm:top-0 sm:px-16">
             <BlurImage
               src={logo}
               alt="Logo"
@@ -456,8 +456,8 @@ function AddEditLinkModal({
 
             <div
               className={`${
-                atBottom ? "" : "shadow-[0_-20px_30px_-10px_rgba(0,0,0,0.1)]"
-              } sticky bottom-0 bg-gray-50 px-4 py-8  transition-all sm:px-16`}
+                atBottom ? "" : "sm:shadow-[0_-20px_30px_-10px_rgba(0,0,0,0.1)]"
+              } bg-gray-50 px-4 py-8 transition-all sm:sticky  sm:bottom-0 sm:px-16`}
             >
               <button
                 disabled={saveDisabled}
@@ -478,7 +478,7 @@ function AddEditLinkModal({
             </div>
           </form>
         </div>
-        <div className="max-h-[min(906px,_90vh)] overflow-scroll rounded-r-2xl">
+        <div className="rounded-r-2xl sm:max-h-[min(906px,_90vh)] sm:overflow-scroll">
           <Preview data={data} generatingMetatags={generatingMetatags} />
         </div>
       </div>

@@ -107,26 +107,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
           />
           <div>
             <div className="flex max-w-fit items-center space-x-2">
-              {domainVerified ? (
-                <a
-                  className="w-24 truncate text-sm font-semibold text-blue-800 sm:w-full sm:text-base"
-                  href={linkConstructor({ key, domain })}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <span className="hidden sm:block">
-                    {linkConstructor({ key, domain, pretty: true })}
-                  </span>
-                  <span className="sm:hidden">
-                    {linkConstructor({
-                      key,
-                      domain,
-                      pretty: true,
-                      noDomain: true,
-                    })}
-                  </span>
-                </a>
-              ) : (
+              {slug && !domainVerified ? (
                 <Tooltip
                   content={
                     <TooltipContent
@@ -150,6 +131,25 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                     </span>
                   </div>
                 </Tooltip>
+              ) : (
+                <a
+                  className="w-24 truncate text-sm font-semibold text-blue-800 sm:w-full sm:text-base"
+                  href={linkConstructor({ key, domain })}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <span className="hidden sm:block">
+                    {linkConstructor({ key, domain, pretty: true })}
+                  </span>
+                  <span className="sm:hidden">
+                    {linkConstructor({
+                      key,
+                      domain,
+                      pretty: true,
+                      noDomain: true,
+                    })}
+                  </span>
+                </a>
               )}
               <CopyButton url={linkConstructor({ key, domain })} />
               <button
@@ -173,18 +173,6 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                   <span className="ml-1 hidden sm:inline-block">clicks</span>
                 </p>
               </Link>
-              {proxy && (
-                <a
-                  href={`https://${domain || "dub.sh"}/_proxy/${
-                    domain || "dub.sh"
-                  }/${encodeURI(key)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="group rounded-full bg-gray-100 p-1.5 transition-all duration-75 hover:scale-105 hover:bg-blue-100 active:scale-95"
-                >
-                  <Eye className="h-3 w-3 text-gray-700 transition-all group-hover:text-blue-800" />
-                </a>
-              )}
             </div>
             <h3 className="max-w-[200px] truncate text-sm font-medium text-gray-700 md:max-w-md lg:max-w-2xl xl:max-w-3xl">
               {url}
