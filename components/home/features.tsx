@@ -75,7 +75,7 @@ const featureList = [
     title: "Powerful link builder",
     icon: <LinkIcon className="h-5 w-5 text-gray-600" />,
     description:
-      "Build your links with UTM parameters, password protection, and even expiration dates.",
+      "Build your links with UTM parameters, password protection, expiration dates, iOS/Android targeting, etc.",
     cta: (
       <a
         href="https://app.dub.sh"
@@ -86,7 +86,7 @@ const featureList = [
         Build your link
       </a>
     ),
-    demo: "https://d2vwwcvoksz7ty.cloudfront.net/og.mp4",
+    demo: "https://d2vwwcvoksz7ty.cloudfront.net/link.mp4",
   },
   {
     key: "qr",
