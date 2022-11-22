@@ -18,7 +18,7 @@ export default function BlurImage(props: ImageProps) {
         setLoading(false);
       }}
       onError={() => {
-        setSrc(`https://avatar.tobi.sh/${props.alt}`); // if the image fails to load, use the default avatar
+        setSrc(`https://avatar.vercel.sh/${props.alt}`); // if the image fails to load, use the default avatar
       }}
     />
   );

@@ -81,48 +81,6 @@ export function linkConstructor({
   return pretty ? link.replace(/^https?:\/\//, "") : link;
 }
 
-export const getTitleFromUrl = async (url: string) => {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 2000); // timeout if it takes longer than 2 seconds
-  const title = await fetch(url, { signal: controller.signal })
-    .then((res) => {
-      clearTimeout(timeoutId);
-      return res.text();
-    })
-    .then((body: string) => {
-      let match = body.match(/<title>([^<]*)<\/title>/); // regular expression to parse contents of the <title> tag
-      if (!match || typeof match[1] !== "string") return "No title found"; // if no title found, return "No title found"
-      return match[1];
-    })
-    .catch((err) => {
-      console.log(err);
-      return "No title found"; // if there's an error, return "No title found"
-    });
-  return title;
-};
-
-export const getDescriptionFromUrl = async (url: string) => {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 2000); // timeout if it takes longer than 2 seconds
-  const description = await fetch(url, { signal: controller.signal })
-    .then((res) => {
-      clearTimeout(timeoutId);
-      return res.text();
-    })
-    .then((body: string) => {
-      let match = body.match(/<meta name="description" content="(.*?)"\/>/g); // regular expression to parse contents of the description meta tag
-      if (!match || typeof match[0] !== "string") return "No description found"; // if no title found, return "No title found"
-      let description = match[0].match(/content="(.*)"\/>/).pop();
-      if (!description) return "No description found";
-      return description;
-    })
-    .catch((err) => {
-      console.log(err);
-      return "No description found"; // if there's an error, return "No title found"
-    });
-  return description;
-};
-
 export const timeAgo = (timestamp: Date, timeOnly?: boolean): string => {
   if (!timestamp) return "never";
   return `${ms(Date.now() - new Date(timestamp).getTime())}${
@@ -139,7 +97,7 @@ export const getDateTimeLocal = (timestamp?: Date): string => {
     .join(":");
 };
 
-export const generateSlugFromName = (name: string) => {
+export const generateDomainFromName = (name: string) => {
   const normalizedName = name.toLowerCase().replaceAll(" ", "-");
   if (normalizedName.length < 3) {
     return "";
@@ -153,20 +111,11 @@ export const generateSlugFromName = (name: string) => {
     return `${devowel.slice(0, -2)}.${devowel.slice(-2)}`;
   }
 
-  const acronym = normalizedName
-    .split("-")
-    .map((word) => word[0])
-    .join("");
-
-  if (acronym.length >= 3 && ccTLDs.has(acronym.slice(-2))) {
-    return `${acronym.slice(0, -2)}.${acronym.slice(-2)}`;
-  }
-
-  const shortestString = [normalizedName, devowel, acronym].reduce((a, b) =>
+  const shortestString = [normalizedName, devowel].reduce((a, b) =>
     a.length < b.length ? a : b,
   );
 
-  return `${shortestString}.sh`;
+  return `${shortestString}.to`;
 };
 
 export const validDomainRegex = new RegExp(
@@ -258,19 +207,44 @@ export const constructURLFromUTMParams = (
 ) => {
   if (!url) return "";
   try {
-    const params = new URL(url).searchParams;
+    const newURL = new URL(url);
     for (const [key, value] of Object.entries(utmParams)) {
       if (value === "") {
-        params.delete(key);
+        newURL.searchParams.delete(key);
       } else {
-        params.set(key, value);
+        newURL.searchParams.set(key, value);
       }
     }
-    return `${url.split("?")[0]}${
-      params.toString() ? `?${params.toString()}` : ""
-    }`;
+    return newURL.toString();
   } catch (e) {
     return "";
+  }
+};
+
+export const paramsMetadata = [
+  { display: "UTM Source", key: "utm_source", examples: "twitter, facebook" },
+  { display: "UTM Medium", key: "utm_medium", examples: "social, email" },
+  { display: "UTM Campaign", key: "utm_campaign", examples: "summer_sale" },
+  { display: "UTM Term", key: "utm_term", examples: "blue_shoes" },
+  { display: "UTM Content", key: "utm_content", examples: "logolink" },
+];
+
+export const getUrlWithoutUTMParams = (url: string) => {
+  try {
+    const newURL = new URL(url);
+    paramsMetadata.forEach((param) => newURL.searchParams.delete(param.key));
+    return newURL.toString();
+  } catch (e) {
+    return url;
+  }
+};
+
+export const isValidUrl = (url: string) => {
+  try {
+    new URL(url);
+    return true;
+  } catch (e) {
+    return false;
   }
 };
 
@@ -284,7 +258,7 @@ export const getQueryString = (router: NextRouter) => {
 };
 
 export const truncate = (str: string, length: number) => {
-  if (str.length <= length) return str;
+  if (!str || str.length <= length) return str;
   return `${str.slice(0, length)}...`;
 };
 

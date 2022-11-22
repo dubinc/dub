@@ -12,9 +12,13 @@ export interface LinkProps {
   expiresAt: Date | null;
   password: string | null;
 
+  proxy: boolean;
   title: string | null;
   description: string | null;
   image: string | null;
+
+  ios: string | null;
+  android: string | null;
 
   clicks: number;
   userId: string;

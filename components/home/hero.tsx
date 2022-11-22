@@ -16,17 +16,17 @@ const Hero = () => {
         </p>
       </a>
 
-      <h1 className="mt-5 font-display text-5xl font-extrabold leading-tight text-black sm:text-6xl sm:leading-tight">
-        Open Source
+      <h1 className="mt-5 font-display text-5xl font-extrabold leading-[1.15] text-black sm:text-6xl sm:leading-[1.15]">
+        Short Links With
         <br />
         <span className="bg-gradient-to-r from-amber-500 via-orange-600 to-yellow-500 bg-clip-text text-transparent">
-          Bitly Alternative
+          Superpowers
         </span>
       </h1>
-      <p className="mt-5 text-xl text-gray-600 sm:text-2xl">
-        Dub is an open-source link shortener with built-in analytics and free
-        custom domains.
-      </p>
+      <h2 className="mt-5 text-lg text-gray-600 sm:text-xl">
+        Dub is an open-source link management tool for modern marketing teams to
+        create, share, and track short links.
+      </h2>
 
       <div className="mx-auto mt-10 flex max-w-fit space-x-4">
         <Link

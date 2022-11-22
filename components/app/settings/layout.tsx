@@ -55,6 +55,7 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
           {tabs.map(({ name, href }) => (
             <Link
               href={href}
+              key={href}
               className={`${
                 router.asPath === href ? "font-semibold text-black" : ""
               } rounded-md p-2.5 text-sm transition-all duration-75 hover:bg-gray-100 active:bg-gray-200`}

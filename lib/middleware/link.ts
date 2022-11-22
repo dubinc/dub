@@ -1,4 +1,9 @@
-import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
+import {
+  NextFetchEvent,
+  NextRequest,
+  NextResponse,
+  userAgent,
+} from "next/server";
 import { detectBot, parse } from "@/lib/middleware/utils";
 import { recordClick, redis } from "@/lib/upstash";
 
@@ -17,8 +22,10 @@ export default async function LinkMiddleware(
     url: string;
     password?: boolean;
     proxy?: boolean;
+    ios?: string;
+    android?: string;
   }>(`${domain}:${key}`);
-  const { url: target, password, proxy } = response || {};
+  const { url: target, password, proxy, ios, android } = response || {};
 
   if (target) {
     // special case for link health monitoring with planetfall.io :)
@@ -35,6 +42,12 @@ export default async function LinkMiddleware(
     if (isBot && proxy) {
       // rewrite to proxy page (/_proxy/[domain]/[key]) if it's a bot
       return NextResponse.rewrite(new URL(`/_proxy/${domain}/${key}`, req.url));
+    } else if (ios && userAgent(req).os?.name === "iOS") {
+      // redirect to iOS link if it is specified and the user is on an iOS device
+      return NextResponse.redirect(ios);
+    } else if (android && userAgent(req).os?.name === "Android") {
+      // redirect to Android link if it is specified and the user is on an Android device
+      return NextResponse.redirect(android);
     } else {
       return NextResponse.redirect(target);
     }

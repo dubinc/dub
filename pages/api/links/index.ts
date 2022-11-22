@@ -4,8 +4,15 @@ import { Session, withUserAuth } from "@/lib/auth";
 import { getBlackListedDomains, getDomainWithoutWWW } from "@/lib/utils";
 import { log } from "@/lib/utils";
 
-// This is a special route for retrieving and creating custom dub.sh links.
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: "1500kb",
+    },
+  },
+};
 
+// This is a special route for retrieving and creating custom dub.sh links.
 export default withUserAuth(
   async (req: NextApiRequest, res: NextApiResponse, session: Session) => {
     // GET /api/links – get all dub.sh links created by the user

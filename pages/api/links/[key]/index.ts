@@ -4,6 +4,14 @@ import { Session, withUserAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { getBlackListedDomains, getDomainWithoutWWW } from "@/lib/utils";
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: "1500kb",
+    },
+  },
+};
+
 const domain = "dub.sh";
 
 export default withUserAuth(

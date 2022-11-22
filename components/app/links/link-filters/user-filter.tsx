@@ -48,7 +48,7 @@ export default function UserFilter() {
               className="flex w-full items-center space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
             >
               <BlurImage
-                src={`https://avatar.tobi.sh/${email}`}
+                src={`https://avatar.vercel.sh/${email}`}
                 alt={email}
                 width={28}
                 height={28}

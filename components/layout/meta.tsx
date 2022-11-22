@@ -2,8 +2,8 @@ import Head from "next/head";
 import { FAVICON_FOLDER } from "@/lib/constants";
 
 export default function Meta({
-  title = "Dub - Open-Source Bitly Alternative",
-  description = "An open-source link shortener SaaS with built-in analytics and free custom domains.",
+  title = "Dub - Link Management for Modern Marketing Teams",
+  description = "Dub is an open-source link management tool for modern marketing teams to create, share, and track short links.",
   image = "https://dub.sh/_static/thumbnail.png",
 }: {
   title?: string;

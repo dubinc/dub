@@ -3,7 +3,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useAnimation, useMotionValue } from "framer-motion";
 import toast from "react-hot-toast";
 import useSWR from "swr";
-import { useDebouncedCallback } from "use-debounce";
 import { useLinkQRModal } from "@/components/app/modals/link-qr-modal";
 import BlurImage from "@/components/shared/blur-image";
 import CopyButton from "@/components/shared/copy-button";

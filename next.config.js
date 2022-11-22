@@ -4,7 +4,7 @@ module.exports = {
   images: {
     domains: [
       "www.google.com",
-      "avatar.tobi.sh",
+      "avatar.vercel.sh",
       "faisalman.github.io",
       "avatars.dicebear.com",
       "res.cloudinary.com",

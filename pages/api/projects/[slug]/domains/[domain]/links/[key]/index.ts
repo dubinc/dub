@@ -2,8 +2,16 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { deleteLink, editLink } from "@/lib/api/links";
 import { withProjectAuth } from "@/lib/auth";
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: "1500kb",
+    },
+  },
+};
+
 export default withProjectAuth(
-  async (req: NextApiRequest, res: NextApiResponse, _, session) => {
+  async (req: NextApiRequest, res: NextApiResponse, project) => {
     const {
       slug,
       domain,
@@ -13,6 +21,12 @@ export default withProjectAuth(
       domain: string;
       key: string;
     };
+
+    if (domain !== project.domain) {
+      return res
+        .status(400)
+        .json({ error: "Domain does not match project domain" });
+    }
 
     // PUT /api/projects/[slug]/domains/[domain]/links/[key] - edit a link
     if (req.method === "PUT") {
@@ -26,7 +40,6 @@ export default withProjectAuth(
         {
           domain,
           ...req.body,
-          userId: session.user.id,
         },
         oldKey,
         slug,

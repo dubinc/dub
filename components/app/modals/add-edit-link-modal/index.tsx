@@ -2,6 +2,7 @@ import { useRouter } from "next/router";
 import {
   Dispatch,
   SetStateAction,
+  UIEvent,
   useCallback,
   useEffect,
   useMemo,
@@ -22,8 +23,19 @@ import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 import useProject from "@/lib/swr/use-project";
 import useUsage from "@/lib/swr/use-usage";
 import { LinkProps } from "@/lib/types";
-import { getApexDomain, getQueryString, linkConstructor } from "@/lib/utils";
-import AdvancedSettings from "./advanced-settings";
+import {
+  getApexDomain,
+  getQueryString,
+  getUrlWithoutUTMParams,
+  linkConstructor,
+} from "@/lib/utils";
+import ExpirationSection from "./expiration-section";
+import OGSection from "./og-section";
+import PasswordSection from "./password-section";
+import UTMSection from "./utm-section";
+import IOSSection from "./ios-section";
+import Preview from "./preview";
+import AndroidSection from "./android-section";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
@@ -57,34 +69,17 @@ function AddEditLinkModal({
       title: null,
       description: null,
       image: null,
+      ios: null,
+      android: null,
 
       clicks: 0,
       userId: "",
       createdAt: new Date(),
+
+      proxy: false,
     },
   );
-  const { id, key, url, archived, expiresAt } = data;
-
-  const heroProps = useMemo(() => {
-    if (props?.url) {
-      const apexDomain = getApexDomain(props.url);
-      return {
-        avatar: `https://www.google.com/s2/favicons?sz=64&domain_url=${apexDomain}`,
-        alt: apexDomain,
-        copy: `Edit ${linkConstructor({
-          key: props.key,
-          domain,
-          pretty: true,
-        })}`,
-      };
-    } else {
-      return {
-        avatar: "/_static/logo.png",
-        alt: "Dub.sh",
-        copy: "Add a new link",
-      };
-    }
-  }, [props]);
+  const { key, url, password, proxy } = data;
 
   const [debouncedKey] = useDebounce(key, 500);
   useEffect(() => {
@@ -114,6 +109,86 @@ function AddEditLinkModal({
     setGeneratingSlug(false);
   }, []);
 
+  // const onPaste = useCallback(
+  //   (e: React.ClipboardEvent<HTMLInputElement>) => {
+  //     if (props) return;
+  //     const url = e.clipboardData.getData("text");
+  //     setShowAddEditLinkModal(true);
+  //     try {
+  //       new URL(url);
+  //       console.log(url);
+  //       setData((prev) => ({ ...prev, url }));
+  //     } catch (e) {
+  //       console.log("not a valid url");
+  //     }
+  //   },
+  //   [props, showAddEditLinkModal, setData],
+  // );
+
+  // useEffect(() => {
+  //   window.addEventListener("paste", onPaste as any);
+  //   return () => window.removeEventListener("paste", onPaste as any);
+  // }, [onPaste]);
+
+  const [generatingMetatags, setGeneratingMetatags] = useState(false);
+  const [debouncedUrl] = useDebounce(getUrlWithoutUTMParams(url), 500);
+  useEffect(() => {
+    // if there's a password, no need to generate metatags
+    if (password) {
+      setData((prev) => ({
+        ...prev,
+        title: "Password Required",
+        description:
+          "This link is password protected. Please enter the password to view it.",
+        image: "/_static/password-protected.png",
+      }));
+      return;
+    }
+    /**
+     * Only generate metatags if:
+     * - modal is open
+     * - custom OG is not enabled or the url has changed
+     **/
+    if (
+      showAddEditLinkModal &&
+      (!proxy || debouncedUrl !== getUrlWithoutUTMParams(props?.url))
+    ) {
+      setData((prev) => ({
+        ...prev,
+        title: null,
+        description: null,
+        image: null,
+      }));
+      try {
+        // if url is valid, continue to generate metatags, else return null
+        new URL(debouncedUrl);
+        setGeneratingMetatags(true);
+        fetch(`/api/edge/metatags?url=${debouncedUrl}`).then(async (res) => {
+          if (res.status === 200) {
+            const results = await res.json();
+            setData((prev) => ({ ...prev, ...results }));
+          }
+          // set timeout to prevent flickering
+          setTimeout(() => setGeneratingMetatags(false), 200);
+        });
+      } catch (e) {
+        console.log("not a valid url");
+      }
+    } else {
+      setGeneratingMetatags(false);
+    }
+  }, [debouncedUrl, password, showAddEditLinkModal, proxy]);
+
+  const logo = useMemo(() => {
+    if (password || (!debouncedUrl && !props)) {
+      return "/_static/logo.png";
+    } else {
+      return `https://www.google.com/s2/favicons?sz=64&domain_url=${getApexDomain(
+        debouncedUrl || props.url,
+      )}`;
+    }
+  }, [password, debouncedUrl, props]);
+
   const endpoint = useMemo(() => {
     if (props?.key) {
       return {
@@ -132,7 +207,41 @@ function AddEditLinkModal({
     }
   }, [props]);
 
-  const expired = expiresAt && new Date() > new Date(expiresAt);
+  const [atBottom, setAtBottom] = useState(false);
+  const handleScroll = useCallback((event: UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
+    if (Math.abs(scrollHeight - scrollTop - clientHeight) < 5) {
+      setAtBottom(true);
+    } else {
+      setAtBottom(false);
+    }
+  }, []);
+
+  const saveDisabled = useMemo(() => {
+    /* 
+      Disable save if:
+      - modal is not open
+      - saving is in progress
+      - key is invalid
+      - url is invalid
+      - for an existing link, there's no changes
+    */
+    if (!showAddEditLinkModal) {
+      return true;
+    } else if (
+      saving ||
+      keyExistsError ||
+      urlError ||
+      (props &&
+        Object.entries(props).every(([key, value]) => data[key] === value))
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  }, [saving, keyExistsError, urlError, props, data, showAddEditLinkModal]);
+
+  const randomIdx = Math.floor(Math.random() * 100);
 
   return (
     <Modal
@@ -140,7 +249,7 @@ function AddEditLinkModal({
       setShowModal={setShowAddEditLinkModal}
       closeWithX={true}
     >
-      <div className="inline-block max-h-[calc(100vh-50px)] w-full transform overflow-scroll bg-white align-middle shadow-xl transition-all sm:max-w-md sm:rounded-2xl sm:border sm:border-gray-200">
+      <div className="grid max-h-[min(906px,_90vh)] w-full divide-x divide-gray-100 overflow-scroll bg-white shadow-xl transition-all scrollbar-hide sm:max-w-screen-lg sm:grid-cols-2 sm:rounded-2xl sm:border sm:border-gray-200">
         {!hideXButton && (
           <button
             onClick={() => setShowAddEditLinkModal(false)}
@@ -150,192 +259,228 @@ function AddEditLinkModal({
           </button>
         )}
 
-        <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 pt-10 pb-8 sm:px-16">
-          <BlurImage
-            src={heroProps.avatar}
-            alt={heroProps.alt}
-            className="h-10 w-10 rounded-full"
-            width={20}
-            height={20}
-          />
-          <h3 className="text-lg font-medium">{heroProps.copy}</h3>
-        </div>
-
-        {id && (
-          <div className="absolute -mt-3.5 flex w-full justify-center space-x-2 [&>*]:flex [&>*]:h-7 [&>*]:items-center [&>*]:rounded-full [&>*]:px-4 [&>*]:text-xs [&>*]:uppercase [&>*]:text-white">
-            {expired ? (
-              <span className="bg-amber-500">Expired</span>
-            ) : (
-              <span className="bg-green-500">Active</span>
-            )}
-            {archived && <span className="bg-gray-400">Archived</span>}
-          </div>
-        )}
-
-        <form
-          onSubmit={async (e) => {
-            e.preventDefault();
-            setSaving(true);
-            fetch(endpoint.url, {
-              method: endpoint.method,
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(data),
-            }).then((res) => {
-              setSaving(false);
-              if (res.status === 200) {
-                mutate(
-                  domain
-                    ? `/api/projects/${slug}/domains/${domain}/links${getQueryString(
-                        router,
-                      )}`
-                    : `/api/links${getQueryString(router)}`,
-                );
-                if (router.asPath === "/welcome") {
-                  router.push("/links").then(() => {
-                    setShowAddEditLinkModal(false);
-                  });
-                } else {
-                  setShowAddEditLinkModal(false);
-                }
-              } else if (res.status === 403) {
-                setKeyExistsError(true);
-              } else if (res.status === 400) {
-                setUrlError(true);
-              } else {
-                alert("Something went wrong");
-              }
-            });
-          }}
-          className="grid gap-6 bg-gray-50 py-8"
+        <div
+          className="rounded-l-2xl sm:max-h-[min(906px,_90vh)] sm:overflow-scroll"
+          onScroll={handleScroll}
         >
-          <div className="grid gap-6 px-4 sm:px-16">
-            <div>
-              <div className="flex items-center justify-between">
+          <div className="z-10 flex flex-col items-center justify-center space-y-3 border-b border-gray-200 bg-white px-4 pt-8 pb-8 transition-all sm:sticky sm:top-0 sm:px-16">
+            <BlurImage
+              src={logo}
+              alt="Logo"
+              className="h-10 w-10 rounded-full"
+              width={20}
+              height={20}
+            />
+            <h3 className="text-lg font-medium">
+              {props
+                ? `Edit ${linkConstructor({
+                    key: props.key,
+                    domain,
+                    pretty: true,
+                  })}`
+                : "Add a new link"}
+            </h3>
+          </div>
+
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              setSaving(true);
+              fetch(endpoint.url, {
+                method: endpoint.method,
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+              }).then((res) => {
+                setSaving(false);
+                if (res.status === 200) {
+                  mutate(
+                    domain
+                      ? `/api/projects/${slug}/domains/${domain}/links${getQueryString(
+                          router,
+                        )}`
+                      : `/api/links${getQueryString(router)}`,
+                  );
+                  if (router.asPath === "/welcome") {
+                    router.push("/links").then(() => {
+                      setShowAddEditLinkModal(false);
+                    });
+                  } else {
+                    setShowAddEditLinkModal(false);
+                  }
+                } else if (res.status === 403) {
+                  setKeyExistsError(true);
+                } else if (res.status === 400) {
+                  setUrlError(true);
+                } else {
+                  alert("Something went wrong");
+                }
+              });
+            }}
+            className="grid gap-6 bg-gray-50 pt-8"
+          >
+            <div className="grid gap-6 px-4 sm:px-16">
+              <div>
+                <div className="flex items-center justify-between">
+                  <label
+                    htmlFor={`key-${randomIdx}`}
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Short Link
+                  </label>
+                  <button
+                    className="flex items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
+                    onClick={generateRandomSlug}
+                    disabled={generatingSlug}
+                    type="button"
+                  >
+                    {generatingSlug ? (
+                      <LoadingCircle />
+                    ) : (
+                      <Random className="h-3 w-3" />
+                    )}
+                    <p>{generatingSlug ? "Generating" : "Randomize"}</p>
+                  </button>
+                </div>
+                <div className="relative mt-1 flex rounded-md shadow-sm">
+                  <span className="inline-flex items-center whitespace-nowrap rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-5 text-sm text-gray-500">
+                    {domain || "dub.sh"}
+                  </span>
+                  <input
+                    type="text"
+                    name="key"
+                    id={`key-${randomIdx}`}
+                    required
+                    autoFocus={false}
+                    pattern="[\p{Letter}\p{Mark}\d-]+" // Unicode regex to match characters from all languages and numbers (and omit all symbols except for dashes)
+                    className={`${
+                      keyExistsError
+                        ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                        : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
+                    } block w-full rounded-r-md pr-10 text-sm focus:outline-none`}
+                    placeholder="github"
+                    value={key}
+                    onChange={(e) => {
+                      setKeyExistsError(false);
+                      setData({ ...data, key: e.target.value });
+                    }}
+                    aria-invalid="true"
+                    aria-describedby="key-error"
+                  />
+                  {keyExistsError && (
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                      <AlertCircleFill
+                        className="h-5 w-5 text-red-500"
+                        aria-hidden="true"
+                      />
+                    </div>
+                  )}
+                </div>
+                {keyExistsError && (
+                  <p className="mt-2 text-sm text-red-600" id="key-error">
+                    Short link is already in use.
+                  </p>
+                )}
+              </div>
+
+              <div>
                 <label
-                  htmlFor="key"
+                  htmlFor={`url-${randomIdx}`}
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Short Link
+                  Destination URL
                 </label>
-                <button
-                  className="flex items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
-                  onClick={generateRandomSlug}
-                  disabled={generatingSlug}
-                  type="button"
-                >
-                  {generatingSlug ? (
-                    <LoadingCircle />
-                  ) : (
-                    <Random className="h-3 w-3" />
+                <div className="relative mt-1 flex rounded-md shadow-sm">
+                  <input
+                    name="url"
+                    id={`url-${randomIdx}`}
+                    type="url"
+                    required
+                    placeholder="https://github.com/steven-tey/dub"
+                    value={url}
+                    onChange={(e) => {
+                      setUrlError(false);
+                      setData({ ...data, url: e.target.value });
+                    }}
+                    className={`${
+                      urlError
+                        ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                        : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
+                    } block w-full rounded-md text-sm focus:outline-none`}
+                    aria-invalid="true"
+                  />
+                  {urlError && (
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                      <AlertCircleFill
+                        className="h-5 w-5 text-red-500"
+                        aria-hidden="true"
+                      />
+                    </div>
                   )}
-                  <p>{generatingSlug ? "Generating" : "Randomize"}</p>
-                </button>
-              </div>
-              <div className="relative mt-1 flex rounded-md shadow-sm">
-                <span className="inline-flex items-center whitespace-nowrap rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-5 text-gray-500 sm:text-sm">
-                  {domain || "dub.sh"}
-                </span>
-                <input
-                  type="text"
-                  name="key"
-                  id="key"
-                  required
-                  autoFocus={false}
-                  pattern="[\p{Letter}\p{Mark}\d-]+" // Unicode regex to match characters from all languages and numbers (and omit all symbols except for dashes)
-                  className={`${
-                    keyExistsError
-                      ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                      : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
-                  } block w-full rounded-r-md pr-10 focus:outline-none sm:text-sm`}
-                  placeholder="github"
-                  value={key}
-                  onChange={(e) => {
-                    setKeyExistsError(false);
-                    setData({ ...data, key: e.target.value });
-                  }}
-                  aria-invalid="true"
-                  aria-describedby="key-error"
-                />
-                {keyExistsError && (
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                    <AlertCircleFill
-                      className="h-5 w-5 text-red-500"
-                      aria-hidden="true"
-                    />
-                  </div>
-                )}
-              </div>
-              {keyExistsError && (
-                <p className="mt-2 text-sm text-red-600" id="key-error">
-                  Short link is already in use.
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label
-                htmlFor="url"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Destination URL
-              </label>
-              <div className="relative mt-1 flex rounded-md shadow-sm">
-                <input
-                  name="url"
-                  id="url"
-                  type="url"
-                  required
-                  placeholder="https://github.com/steven-tey/dub"
-                  value={url}
-                  onChange={(e) => {
-                    setUrlError(false);
-                    setData({ ...data, url: e.target.value });
-                  }}
-                  className={`${
-                    urlError
-                      ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                      : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
-                  } block w-full rounded-md focus:outline-none sm:text-sm`}
-                  aria-invalid="true"
-                />
+                </div>
                 {urlError && (
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                    <AlertCircleFill
-                      className="h-5 w-5 text-red-500"
-                      aria-hidden="true"
-                    />
-                  </div>
+                  <p className="mt-2 text-sm text-red-600" id="key-error">
+                    Invalid url.
+                  </p>
                 )}
               </div>
-              {urlError && (
-                <p className="mt-2 text-sm text-red-600" id="key-error">
-                  Invalid url.
-                </p>
-              )}
             </div>
-          </div>
 
-          <AdvancedSettings data={data} setData={setData} />
+            {/* Divider */}
+            <div className="relative py-5">
+              <div
+                className="absolute inset-0 flex items-center px-4 sm:px-16"
+                aria-hidden="true"
+              >
+                <div className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center">
+                <span className="bg-gray-50 px-2 text-sm text-gray-500">
+                  Optional
+                </span>
+              </div>
+            </div>
 
-          <div className="px-4 sm:px-16">
-            <button
-              disabled={saving || keyExistsError}
+            <div className="grid gap-5 px-4 sm:px-16">
+              <OGSection
+                {...{ props, data, setData }}
+                generatingMetatags={generatingMetatags}
+              />
+              <UTMSection {...{ props, data, setData }} />
+              <PasswordSection {...{ props, data, setData }} />
+              <ExpirationSection {...{ props, data, setData }} />
+              <IOSSection {...{ props, data, setData }} />
+              <AndroidSection {...{ props, data, setData }} />
+            </div>
+
+            <div
               className={`${
-                saving || keyExistsError
-                  ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
-                  : "border-black bg-black text-white hover:bg-white hover:text-black"
-              } flex h-10 w-full items-center justify-center rounded-md border text-sm transition-all focus:outline-none`}
+                atBottom ? "" : "sm:shadow-[0_-20px_30px_-10px_rgba(0,0,0,0.1)]"
+              } bg-gray-50 px-4 py-8 transition-all sm:sticky  sm:bottom-0 sm:px-16`}
             >
-              {saving ? (
-                <LoadingDots color="#808080" />
-              ) : (
-                <p className="text-sm">{props ? "Save changes" : "Add link"}</p>
-              )}
-            </button>
-          </div>
-        </form>
+              <button
+                disabled={saveDisabled}
+                className={`${
+                  saveDisabled
+                    ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
+                    : "border-black bg-black text-white hover:bg-white hover:text-black"
+                } flex h-10 w-full items-center justify-center rounded-md border text-sm transition-all focus:outline-none`}
+              >
+                {saving ? (
+                  <LoadingDots color="#808080" />
+                ) : (
+                  <p className="text-sm">
+                    {props ? "Save changes" : "Add link"}
+                  </p>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+        <div className="rounded-r-2xl sm:max-h-[min(906px,_90vh)] sm:overflow-scroll">
+          <Preview data={data} generatingMetatags={generatingMetatags} />
+        </div>
       </div>
     </Modal>
   );
