@@ -275,7 +275,7 @@ export async function editLink(
     ...(changedKey
       ? [
           cloudinary.v2.uploader
-            .rename(`${domain}/${oldKey}`, `${domain}/${key}`, {
+            .destroy(`${domain}/${oldKey}`, {
               invalidate: true,
             })
             .catch(() => {}),
