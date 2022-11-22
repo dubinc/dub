@@ -4,6 +4,7 @@ import { removeDomain } from "@/lib/domains";
 import prisma from "@/lib/prisma";
 import { ProjectProps } from "@/lib/types";
 import { deleteProjectLinks } from "@/lib/api/links";
+import cloudinary from "cloudinary";
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse, project: ProjectProps) => {
@@ -25,20 +26,28 @@ export default withProjectAuth(
           .json({ error: "Missing or misconfigured domain" });
       }
 
-      const [prismaResponse, domainResponse, upstashResponse] =
-        await Promise.all([
-          prisma.project.delete({
-            where: {
-              slug,
-            },
-          }),
-          removeDomain(domain),
-          deleteProjectLinks(domain),
-        ]);
+      const [
+        prismaResponse,
+        domainResponse,
+        upstashResponse,
+        cloudinaryResponse,
+      ] = await Promise.all([
+        prisma.project.delete({
+          where: {
+            slug,
+          },
+        }),
+        removeDomain(domain),
+        deleteProjectLinks(domain),
+        cloudinary.v2.api.delete_resources_by_prefix(domain),
+      ]);
 
-      return res
-        .status(200)
-        .json({ prismaResponse, domainResponse, upstashResponse });
+      return res.status(200).json({
+        prismaResponse,
+        domainResponse,
+        upstashResponse,
+        cloudinaryResponse,
+      });
     } else {
       res.setHeader("Allow", ["GET", "DELETE"]);
       return res

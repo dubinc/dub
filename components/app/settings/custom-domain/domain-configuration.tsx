@@ -120,7 +120,8 @@ export default function DomainConfiguration({
         </div>
         <p className="mt-3 text-sm">
           Note: for TTL, if <InlineSnippet>86400</InlineSnippet> is not
-          available, set the highest value possible
+          available, set the highest value possible. Also, domain propagation
+          can take up to an hour.
         </p>
       </div>
     </div>

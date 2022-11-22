@@ -42,7 +42,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
   const { slug } = router.query as { slug: string };
 
   const { project } = useProject();
-  const { domain } = project || {};
+  const { domain, domainVerified } = project || {};
   const { isOwner } = useProject();
   const { exceededUsage } = useUsage();
 
@@ -107,24 +107,50 @@ export default function LinkCard({ props }: { props: LinkProps }) {
           />
           <div>
             <div className="flex max-w-fit items-center space-x-2">
-              <a
-                className="w-24 truncate text-sm font-semibold text-blue-800 sm:w-full sm:text-base"
-                href={linkConstructor({ key, domain })}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <span className="hidden sm:block">
-                  {linkConstructor({ key, domain, pretty: true })}
-                </span>
-                <span className="sm:hidden">
-                  {linkConstructor({
-                    key,
-                    domain,
-                    pretty: true,
-                    noDomain: true,
-                  })}
-                </span>
-              </a>
+              {domainVerified ? (
+                <a
+                  className="w-24 truncate text-sm font-semibold text-blue-800 sm:w-full sm:text-base"
+                  href={linkConstructor({ key, domain })}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <span className="hidden sm:block">
+                    {linkConstructor({ key, domain, pretty: true })}
+                  </span>
+                  <span className="sm:hidden">
+                    {linkConstructor({
+                      key,
+                      domain,
+                      pretty: true,
+                      noDomain: true,
+                    })}
+                  </span>
+                </a>
+              ) : (
+                <Tooltip
+                  content={
+                    <TooltipContent
+                      title="Your branded links won't work until you verify your domain."
+                      cta="Verify your domain"
+                      ctaLink={`/${slug}/settings`}
+                    />
+                  }
+                >
+                  <div className="w-24 -translate-x-2 cursor-not-allowed truncate text-sm font-semibold text-gray-400 line-through sm:w-full sm:text-base">
+                    <span className="hidden sm:block">
+                      {linkConstructor({ key, domain, pretty: true })}
+                    </span>
+                    <span className="sm:hidden">
+                      {linkConstructor({
+                        key,
+                        domain,
+                        pretty: true,
+                        noDomain: true,
+                      })}
+                    </span>
+                  </div>
+                </Tooltip>
+              )}
               <CopyButton url={linkConstructor({ key, domain })} />
               <button
                 onClick={() => setShowLinkQRModal(true)}

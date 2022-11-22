@@ -370,6 +370,36 @@ export async function changeDomainForLinks(
   }
 }
 
+/* Change the domain for all images on Cloudinary */
+export async function changeDomainForImages(
+  projectId: string,
+  domain: string,
+  newDomain: string,
+) {
+  const links = await prisma.link.findMany({
+    where: {
+      project: {
+        id: projectId,
+      },
+    },
+  });
+  try {
+    return await Promise.all(
+      links.map(({ key }) =>
+        cloudinary.v2.uploader.rename(
+          `${domain}/${key}`,
+          `${newDomain}/${key}`,
+          {
+            invalidate: true,
+          },
+        ),
+      ),
+    );
+  } catch (e) {
+    return null;
+  }
+}
+
 /* Delete all links & stats associated with a project when it's deleted */
 export async function deleteProjectLinks(domain: string) {
   const links = await prisma.link.findMany({

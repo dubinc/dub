@@ -241,13 +241,15 @@ function AddEditLinkModal({
     }
   }, [saving, keyExistsError, urlError, props, data, showAddEditLinkModal]);
 
+  const randomIdx = Math.floor(Math.random() * 100);
+
   return (
     <Modal
       showModal={showAddEditLinkModal}
       setShowModal={setShowAddEditLinkModal}
       closeWithX={true}
     >
-      <div className="grid max-h-[min(918px,_90vh)] w-full divide-x divide-gray-100 overflow-scroll bg-white shadow-xl transition-all scrollbar-hide sm:max-w-screen-lg sm:grid-cols-2 sm:rounded-2xl sm:border sm:border-gray-200">
+      <div className="grid max-h-[min(906px,_90vh)] w-full divide-x divide-gray-100 overflow-scroll bg-white shadow-xl transition-all scrollbar-hide sm:max-w-screen-lg sm:grid-cols-2 sm:rounded-2xl sm:border sm:border-gray-200">
         {!hideXButton && (
           <button
             onClick={() => setShowAddEditLinkModal(false)}
@@ -258,7 +260,7 @@ function AddEditLinkModal({
         )}
 
         <div
-          className="max-h-[min(918px,_90vh)] overflow-scroll rounded-l-2xl"
+          className="max-h-[min(906px,_90vh)] overflow-scroll rounded-l-2xl"
           onScroll={handleScroll}
         >
           <div className="sticky top-0 z-10 flex flex-col items-center justify-center space-y-3 border-b border-gray-200 bg-white px-4 pt-8 pb-8 transition-all sm:px-16">
@@ -322,7 +324,7 @@ function AddEditLinkModal({
               <div>
                 <div className="flex items-center justify-between">
                   <label
-                    htmlFor="key"
+                    htmlFor={`key-${randomIdx}`}
                     className="block text-sm font-medium text-gray-700"
                   >
                     Short Link
@@ -348,7 +350,7 @@ function AddEditLinkModal({
                   <input
                     type="text"
                     name="key"
-                    id="key"
+                    id={`key-${randomIdx}`}
                     required
                     autoFocus={false}
                     pattern="[\p{Letter}\p{Mark}\d-]+" // Unicode regex to match characters from all languages and numbers (and omit all symbols except for dashes)
@@ -384,7 +386,7 @@ function AddEditLinkModal({
 
               <div>
                 <label
-                  htmlFor="url"
+                  htmlFor={`url-${randomIdx}`}
                   className="block text-sm font-medium text-gray-700"
                 >
                   Destination URL
@@ -392,7 +394,7 @@ function AddEditLinkModal({
                 <div className="relative mt-1 flex rounded-md shadow-sm">
                   <input
                     name="url"
-                    id="url"
+                    id={`url-${randomIdx}`}
                     type="url"
                     required
                     placeholder="https://github.com/steven-tey/dub"
@@ -476,7 +478,7 @@ function AddEditLinkModal({
             </div>
           </form>
         </div>
-        <div className="max-h-[min(918px,_90vh)] overflow-scroll rounded-r-2xl">
+        <div className="max-h-[min(906px,_90vh)] overflow-scroll rounded-r-2xl">
           <Preview data={data} generatingMetatags={generatingMetatags} />
         </div>
       </div>
