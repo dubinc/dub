@@ -26,7 +26,7 @@ const getMetadataFromUrl = async (url: string) => {
   const metatags = await fetch(url, {
     signal: controller.signal,
     headers: {
-      "User-Agent": "dub-bot/1.0",
+      "User-Agent": "duh-bot/1.0",
     },
   })
     .then((res) => {
