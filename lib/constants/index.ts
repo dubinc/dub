@@ -45,6 +45,7 @@ export const RESERVED_KEYS = new Set([
   "pricing",
   "about",
   "placeholder",
+  "metatags",
   "blog",
   "careers",
   "docs",

@@ -10,7 +10,6 @@ export default function Metatags({ tweets }: { tweets: any }) {
   const [url, setUrl] = useState("");
   return (
     <HomeLayout
-      domain="api.dub.sh"
       meta={
         <Meta
           title="Metatags API - The Free API to Get Meta Tags from a URL"
