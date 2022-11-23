@@ -81,7 +81,7 @@ export async function recordClick(
  **/
 export async function recordMetatags(url: string, error: boolean) {
   if (url === "https://github.com/steven-tey/dub") {
-    // ignore metatag generation for default URL
+    // don't log metatag generation for default URL
     return null;
   } else {
     return await redis.lpush(error ? "metatags-errors" : "metatags", {
