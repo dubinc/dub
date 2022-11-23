@@ -99,7 +99,7 @@ export default function Metatags({ tweets }: { tweets: any }) {
 }
 
 export async function getStaticProps() {
-  const tweets = await getTweetsMetadata(["1595459224498233347"]);
+  const tweets = await getTweetsMetadata(["1595465648938930180"]);
 
   return {
     props: {
