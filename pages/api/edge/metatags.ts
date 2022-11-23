@@ -41,7 +41,7 @@ const getMetadataFromUrl = async (url: string, ev: NextFetchEvent) => {
         /<meta\s+(?:name|property|itemprop|http-equiv)="([^"]+)"\s+content="([^"]+)"/g,
         // @ts-ignore
         (_, key, value) => {
-          obj[key] = unescape(value);
+          obj[key] = unescape(value).replaceAll("&#x27;", "'");
         },
       );
       // get all meta tags (reversed order for content & name/property)
@@ -49,7 +49,7 @@ const getMetadataFromUrl = async (url: string, ev: NextFetchEvent) => {
         /<meta\s+content="([^"]+)"\s+(?:name|property|itemprop|http-equiv)="([^"]+)"/g,
         // @ts-ignore
         (_, value, key) => {
-          obj[key] = unescape(value);
+          obj[key] = unescape(value).replaceAll("&#x27;", "'");
         },
       );
       // get all title tags
@@ -57,7 +57,7 @@ const getMetadataFromUrl = async (url: string, ev: NextFetchEvent) => {
         /<title>([^<]+)<\/title>/g,
         // @ts-ignore
         (_, value) => {
-          obj["title"] = unescape(value);
+          obj["title"] = unescape(value).replaceAll("&#x27;", "'");
         },
       );
       // get all link tags
@@ -65,7 +65,7 @@ const getMetadataFromUrl = async (url: string, ev: NextFetchEvent) => {
         /<link\s+(?:rel|itemprop)="([^"]+)"\s+href="([^"]+)"/g,
         // @ts-ignore
         (_, key, value) => {
-          obj[key] = unescape(value);
+          obj[key] = unescape(value).replaceAll("&#x27;", "'");
         },
       );
 

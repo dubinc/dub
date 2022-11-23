@@ -1,5 +1,5 @@
 import HomeLayout from "@/components/layout/home";
-import { Twitter } from "@/components/shared/icons";
+import { Github, Twitter } from "@/components/shared/icons";
 import getTweetsMetadata from "@/lib/twitter";
 import Tweet from "@/components/shared/tweet";
 import { useState } from "react";
@@ -38,27 +38,19 @@ export default function Metatags({ tweets }: { tweets: any }) {
           API
         </h1>
         <h2 className="mt-5 text-lg text-gray-600 sm:text-xl">
-          A dead-simple API to retrieve the meta tags for a URL, using{" "}
-          <a
-            href="https://vercel.com/edge"
-            target="_blank"
-            rel="noreferrer"
-            className="underline decoration-dotted hover:text-black"
-          >
-            Vercel Edge Functions ↗
-          </a>
-          .
+          A dead-simple API to retrieve the meta tags for a URL. Completely free
+          and open-source.
         </h2>
 
-        <div className="mx-auto mt-5 mb-10 flex justify-center space-x-4 lg:-mb-5">
+        <div className="mt-5 mb-10 lg:-mb-5">
           <form
-            className="relative mt-1 flex rounded-md shadow-sm"
+            className="relative mt-1 flex w-full rounded-md shadow-sm"
             onSubmit={(e) => {
               e.preventDefault();
               window.open(`https://api.dub.sh/metatags?url=${url}`);
             }}
           >
-            <span className="inline-flex items-center whitespace-nowrap rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-5 text-sm text-gray-500">
+            <span className="inline-flex items-center whitespace-nowrap rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500">
               api.dub.sh/metatags?url=
             </span>
             <input
@@ -66,16 +58,25 @@ export default function Metatags({ tweets }: { tweets: any }) {
               id="url"
               type="url"
               required
-              className="w-66 block rounded-r-md border-gray-300 pr-12 text-sm text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:w-72"
+              className="w-66 block w-full rounded-r-md border-gray-300 pr-12 text-sm text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500"
               placeholder="https://vercel.com"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               aria-invalid="true"
             />
-            <button className="group absolute inset-y-0 right-0 my-1.5 mr-1.5 w-8 rounded border border-gray-200 font-sans text-sm font-medium text-gray-400 hover:border-gray-700 hover:text-gray-700 peer-focus:border-gray-700 peer-focus:text-gray-700">
+            <button className="group absolute inset-y-0 right-2 my-1.5 w-8 rounded border border-gray-200 font-sans text-sm font-medium text-gray-400 hover:border-gray-700 hover:text-gray-700 peer-focus:border-gray-700 peer-focus:text-gray-700">
               <p>↵</p>
             </button>
           </form>
+          <a
+            href="https://dub.sh/metatags-code"
+            target="_blank"
+            rel="noreferrer"
+            className="mx-auto mt-2 flex items-center justify-center space-x-2 text-sm text-gray-500 transition-all hover:text-black"
+          >
+            <Github className="h-4 w-4" />
+            <p>View the source code</p>
+          </a>
         </div>
 
         <div className="text-left">
