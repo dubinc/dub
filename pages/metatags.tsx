@@ -62,9 +62,9 @@ export default function Metatags({ tweets }: { tweets: any }) {
               api.dub.sh/metatags?url=
             </span>
             <input
-              name="slug"
-              id="slug"
-              type="text"
+              name="url"
+              id="url"
+              type="url"
               required
               className="w-66 block rounded-r-md border-gray-300 pr-12 text-sm text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:w-72"
               placeholder="https://vercel.com"
