@@ -119,7 +119,7 @@ function UpgradePlanModal({
             )}
           </button>
           <a
-            href="mailto:steven@dub.sh?subject=Upgrade%20to%20Enterprise%20Plan"
+            href="mailto:support@tripthe.fan?subject=Upgrade%20to%20Enterprise%20Plan"
             className="text-sm text-gray-500 transition-all hover:text-gray-700"
           >
             Or contact us for Enterprise

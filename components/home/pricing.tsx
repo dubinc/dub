@@ -84,7 +84,8 @@ const pricingItems = [
       { text: "SSO/SAML" },
     ],
     cta: "Contact us",
-    ctaLink: "mailto:steven@dub.sh?subject=Interested%20in%20Dub%20Enterprise",
+    ctaLink:
+      "mailto:support@tripthe.fan?subject=Interested%20in%20Dub%20Enterprise",
   },
 ];
 
