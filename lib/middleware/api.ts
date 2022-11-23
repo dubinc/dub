@@ -4,7 +4,13 @@ import { parse } from "@/lib/middleware/utils";
 export default async function ApiMiddleware(req: NextRequest) {
   const { path } = parse(req);
   if (path.startsWith("/metatags")) {
-    return NextResponse.rewrite(new URL(`/api/edge${path}`, req.url));
+    const url = req.nextUrl.searchParams.get("url");
+    if (!url) {
+      return NextResponse.next();
+    }
+    return NextResponse.rewrite(
+      new URL(`/api/edge/metatags?url=${url}`, req.url),
+    );
   }
   return NextResponse.rewrite(new URL(`/api${path}`, req.url));
 }
