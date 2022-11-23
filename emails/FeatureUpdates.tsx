@@ -77,7 +77,7 @@ export default function FeatureUpdates(): JSX.Element {
               </MjmlText>
               <MjmlText cssClass="paragraph">
                 Start{" "}
-                <a href="https://app.dub.sh" target="_blank">
+                <a href="https://app.duh.fan" target="_blank">
                   shortening your links
                 </a>{" "}
                 with your own domain.

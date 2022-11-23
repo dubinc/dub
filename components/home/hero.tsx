@@ -30,7 +30,7 @@ const Hero = () => {
 
       <div className="mx-auto mt-10 flex max-w-fit space-x-4">
         <Link
-          href="https://app.dub.sh/register"
+          href="https://app.duh.fan/register"
           className="rounded-full border border-black bg-black py-2 px-5 text-sm text-white shadow-lg transition-all hover:bg-white hover:text-black"
         >
           Start For Free

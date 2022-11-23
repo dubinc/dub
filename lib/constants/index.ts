@@ -30,7 +30,7 @@ export const FADE_IN_ANIMATION_SETTINGS = {
 export const HOME_HOSTNAMES = new Set([
   // comment for better diffs
   "dub.sh",
-  "preview.dub.sh",
+  "preview.duh.fan",
   "localhost:3000",
   "c623-2600-1700-b5e4-b50-d083-66f5-64b2-e8bb.ngrok.io",
 ]);
@@ -59,15 +59,15 @@ export const RESERVED_KEYS = new Set([
 ]);
 export const DEFAULT_REDIRECTS = {
   home: "https://dub.sh",
-  signin: "https://app.dub.sh/login",
-  login: "https://app.dub.sh/login",
-  register: "https://app.dub.sh/register",
-  signup: "https://app.dub.sh/register",
-  app: "https://app.dub.sh",
-  dashboard: "https://app.dub.sh",
-  links: "https://app.dub.sh/links",
-  settings: "https://app.dub.sh/settings",
-  welcome: "https://app.dub.sh/welcome",
+  signin: "https://app.duh.fan/login",
+  login: "https://app.duh.fan/login",
+  register: "https://app.duh.fan/register",
+  signup: "https://app.duh.fan/register",
+  app: "https://app.duh.fan",
+  dashboard: "https://app.duh.fan",
+  links: "https://app.duh.fan/links",
+  settings: "https://app.duh.fan/settings",
+  welcome: "https://app.duh.fan/welcome",
 };
 
 export const FREE_PLAN_PROJECT_LIMIT = 5;

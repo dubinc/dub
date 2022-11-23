@@ -43,7 +43,7 @@ export default function ProjectDeleted({
                   </a>
                 </code>{" "}
                 for your Dub project{" "}
-                <a href={`https://app.dub.sh/${projectSlug}`} target="_blank">
+                <a href={`https://app.duh.fan/${projectSlug}`} target="_blank">
                   {projectSlug}↗
                 </a>{" "}
                 has been invalid for 30 days. As a result, your project has been
@@ -54,7 +54,7 @@ export default function ProjectDeleted({
                 it again on Dub with the link below.
               </MjmlText>
               <ButtonPrimary
-                link={`https://app.dub.sh/`}
+                link={`https://app.duh.fan/`}
                 uiText="Create a new project"
               />
               <MjmlText cssClass="paragraph">

@@ -47,14 +47,14 @@ export default function HomeLayout({
             </div>
             {session ? (
               <a
-                href="https://app.dub.sh"
+                href="https://app.duh.fan"
                 className="rounded-full border border-black bg-black py-1.5 px-5 text-sm text-white transition-all hover:bg-white hover:text-black"
               >
                 Dashboard
               </a>
             ) : (
               <a
-                href="https://app.dub.sh/login"
+                href="https://app.duh.fan/login"
                 className="rounded-full border border-black bg-black py-1.5 px-5 text-sm text-white transition-all hover:bg-white hover:text-black"
               >
                 Sign in

@@ -37,7 +37,7 @@ const pricingItems = [
       { text: "SSO/SAML", negative: true },
     ],
     cta: "Start for free",
-    ctaLink: "https://app.dub.sh/register",
+    ctaLink: "https://app.duh.fan/register",
   },
   {
     plan: "Pro",
@@ -60,7 +60,7 @@ const pricingItems = [
       { text: "SSO/SAML", negative: true },
     ],
     cta: "Get started",
-    ctaLink: "https://app.dub.sh/register",
+    ctaLink: "https://app.duh.fan/register",
   },
   {
     plan: "Enterprise",

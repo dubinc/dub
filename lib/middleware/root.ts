@@ -14,7 +14,7 @@ export default async function RootMiddleware(
 
   if (
     domain === "dub.sh" ||
-    domain === "preview.dub.sh" ||
+    domain === "preview.duh.fan" ||
     domain.endsWith(".vercel.app")
   ) {
     ev.waitUntil(redis.incr("dub.sh:root:clicks")); // increment root clicks (only for dub.sh)
@@ -24,7 +24,7 @@ export default async function RootMiddleware(
 
   if (
     domain === "dub.sh" ||
-    domain === "preview.dub.sh" ||
+    domain === "preview.duh.fan" ||
     domain.endsWith(".vercel.app")
   ) {
     return NextResponse.next();

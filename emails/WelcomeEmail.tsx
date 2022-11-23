@@ -44,13 +44,13 @@ export default function WelcomeEmail({ name }: { name?: string }): JSX.Element {
               </MjmlText>
               <MjmlText cssClass="li">
                 •&nbsp;&nbsp;Create a custom{" "}
-                <a href="https://app.dub.sh/links" target="_blank">
+                <a href="https://app.duh.fan/links" target="_blank">
                   Dub.sh short link
                 </a>
               </MjmlText>
               <MjmlText cssClass="li">
                 •&nbsp;&nbsp;Create a new{" "}
-                <a href="https://app.dub.sh/" target="_blank">
+                <a href="https://app.duh.fan/" target="_blank">
                   project
                 </a>{" "}
                 and add your custom domain

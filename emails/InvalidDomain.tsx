@@ -45,7 +45,7 @@ export default function InvalidDomain({
                   </a>
                 </code>{" "}
                 for your Dub project{" "}
-                <a href={`https://app.dub.sh/${projectSlug}`} target="_blank">
+                <a href={`https://app.duh.fan/${projectSlug}`} target="_blank">
                   {projectSlug}↗
                 </a>{" "}
                 has been invalid for {invalidDays} days.
@@ -56,13 +56,13 @@ export default function InvalidDomain({
                 configure your domain.
               </MjmlText>
               <ButtonPrimary
-                link={`https://app.dub.sh/${projectSlug}/settings`}
+                link={`https://app.duh.fan/${projectSlug}/settings`}
                 uiText="Configure my domain"
               />
               <MjmlText cssClass="paragraph">
                 If you do not want to keep this project on Dub, you can{" "}
                 <a
-                  href={`https://app.dub.sh/${projectSlug}/settings`}
+                  href={`https://app.duh.fan/${projectSlug}/settings`}
                   target="_blank"
                 >
                   delete it
