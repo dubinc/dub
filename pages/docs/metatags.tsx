@@ -1,14 +1,25 @@
 import HomeLayout from "@/components/layout/home";
-import { ExpandingArrow, Github, Twitter } from "@/components/shared/icons";
+import { Twitter } from "@/components/shared/icons";
 import getTweetsMetadata from "@/lib/twitter";
 import Tweet from "@/components/shared/tweet";
 import { useState } from "react";
+import Background from "@/components/shared/background";
+import Meta from "@/components/layout/meta";
 
 export default function Metatags({ tweets }: { tweets: any }) {
   const [url, setUrl] = useState("");
   return (
-    <HomeLayout domain="api.dub.sh">
-      <div className="mx-auto my-10 max-w-md px-2.5 text-center sm:max-w-lg sm:px-0 lg:mb-28">
+    <HomeLayout
+      domain="api.dub.sh"
+      meta={
+        <Meta
+          title="Metatags API - The Free API to Get Meta Tags from a URL"
+          description="Dub's Metatags API is a free & simple API to retrieve meta & OG tags from a URL, powered by Vercel Edge Functions."
+        />
+      }
+    >
+      <Background />
+      <div className="z-10 mx-auto my-10 max-w-md px-2.5 text-center sm:max-w-lg sm:px-0 lg:mb-28">
         <a
           href="https://twitter.com/dubdotsh/status/1595459224498233347"
           target="_blank"

@@ -9,16 +9,18 @@ import Meta from "../meta";
 export default function HomeLayout({
   children,
   domain,
+  meta = <Meta />,
 }: {
   children: ReactNode;
   domain?: string;
+  meta?: ReactNode;
 }) {
   const { data: session } = useSession();
   const router = useRouter();
   const { key } = router.query as { key?: string };
   return (
     <div className="flex min-h-screen flex-col justify-between">
-      <Meta />
+      {meta}
       <div className={`${key ? "bg-gray-50" : ""} z-20`}>
         <div className="mx-auto max-w-screen-xl px-5 md:px-20">
           <div className="flex h-16 items-center justify-between">
