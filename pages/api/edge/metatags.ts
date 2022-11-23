@@ -38,7 +38,7 @@ const getMetadataFromUrl = async (url: string, ev: NextFetchEvent) => {
       const obj = {};
       // get all meta tags
       body.replace(
-        /<meta\s+(?:name|property|itemprop|http-equiv)="([^"]+)"\s+content="([^"]+)"/g,
+        /<meta\s+(?:name|property|itemprop|tags|robots|http-equiv)="([^"]+)"\s+content="([^"]+)"/g,
         // @ts-ignore
         (_, key, value) => {
           obj[key] = unescape(value);
@@ -46,7 +46,7 @@ const getMetadataFromUrl = async (url: string, ev: NextFetchEvent) => {
       );
       // get all meta tags (reversed order for content & name/property)
       body.replace(
-        /<meta\s+content="([^"]+)"\s+(?:name|property|itemprop|http-equiv)="([^"]+)"/g,
+        /<meta\s+content="([^"]+)"\s+(?:name|property|itemprop|tags|robots|http-equiv)="([^"]+)"/g,
         // @ts-ignore
         (_, value, key) => {
           obj[key] = unescape(value);
@@ -75,6 +75,10 @@ const getMetadataFromUrl = async (url: string, ev: NextFetchEvent) => {
         obj["description"] ||
         obj["og:description"] ||
         obj["twitter:description"];
+        
+      const keywords = obj["keywords"];
+
+      const robots = obj["robots"];
 
       let image =
         obj["og:image"] ||
@@ -96,6 +100,8 @@ const getMetadataFromUrl = async (url: string, ev: NextFetchEvent) => {
         title,
         description,
         image,
+        keywords,
+        robots
       };
     })
     .catch((err) => {
