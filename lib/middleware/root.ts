@@ -13,18 +13,18 @@ export default async function RootMiddleware(
   }
 
   if (
-    domain === "dub.sh" ||
-    domain === "preview.dub.sh" ||
+    domain === "duh.fan" ||
+    domain === "preview.duh.fan" ||
     domain.endsWith(".vercel.app")
   ) {
-    ev.waitUntil(redis.incr("dub.sh:root:clicks")); // increment root clicks (only for dub.sh)
+    ev.waitUntil(redis.incr("duh.fan:root:clicks")); // increment root clicks (only for duh.fan)
   } else {
-    ev.waitUntil(recordClick(domain, req)); // record clicks on root page (if domain is not dub.sh)
+    ev.waitUntil(recordClick(domain, req)); // record clicks on root page (if domain is not duh.fan)
   }
 
   if (
-    domain === "dub.sh" ||
-    domain === "preview.dub.sh" ||
+    domain === "duh.fan" ||
+    domain === "preview.duh.fan" ||
     domain.endsWith(".vercel.app")
   ) {
     return NextResponse.next();

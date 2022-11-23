@@ -44,7 +44,7 @@ const Demo = () => {
                 title="Maximum number of links reached. Swipe to delete existing links or
               create a free account."
                 cta="Start For Free"
-                ctaLink="https://app.dub.sh/register"
+                ctaLink="https://app.duh.fan/register"
               />
             }
           >
@@ -129,7 +129,7 @@ const Demo = () => {
         >
           Note: Public links will be automatically-deleted after 30 minutes.{" "}
           <a
-            href="https://app.dub.sh/register"
+            href="https://app.duh.fan/register"
             target="_blank"
             rel="noreferrer"
             className="font-medium text-gray-700 underline transition-all hover:text-black"

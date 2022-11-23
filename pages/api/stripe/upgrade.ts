@@ -19,12 +19,12 @@ export default withUserAuth(
         billing_address_collection: "required",
         success_url: `${
           process.env.VERCEL === "1"
-            ? "https://app.dub.sh"
+            ? "https://app.duh.fan"
             : "http://app.localhost:3000"
         }/settings`,
         cancel_url: `${
           process.env.VERCEL === "1"
-            ? "https://app.dub.sh"
+            ? "https://app.duh.fan"
             : "http://app.localhost:3000"
         }/settings`,
         line_items: [{ price: priceId, quantity: 1 }],

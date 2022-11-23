@@ -159,8 +159,8 @@ const getUsage = async (
   const links = await prisma.link.findMany({
     where: {
       domain,
-      // only for dub.sh, pull data for owner's usage only
-      ...(domain === "dub.sh" && {
+      // only for duh.fan, pull data for owner's usage only
+      ...(domain === "duh.fan" && {
         userId: process.env.DUB_OWNER_ID,
       }),
     },

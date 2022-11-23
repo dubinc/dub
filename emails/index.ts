@@ -10,7 +10,7 @@ const sendMail = buildSendMail({
       pass: process.env.POSTMARK_API_KEY,
     },
   }),
-  defaultFrom: "Steven from Dub <steven@dub.sh>",
+  defaultFrom: "Felix from duh.fan <support@duh.fan>",
   configPath: "./mailing.config.json",
 });
 
@@ -22,9 +22,9 @@ export const sendMarketingMail = buildSendMail({
     port: 587,
     auth: {
       user: process.env.POSTMARK_MARKETING_API_KEY,
-      pass: process.env.POSTMARK_MARKETING_API_SECRET,
+      pass: process.env.POSTMARK_MARKETING_API_KEY,
     },
   }),
-  defaultFrom: "Steven from Dub <steven@ship.dub.sh>",
+  defaultFrom: "Felix from duh.fan <you@duh.fan>",
   configPath: "./mailing.config.json",
 });

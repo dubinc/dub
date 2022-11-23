@@ -12,7 +12,7 @@ export const config = {
   },
 };
 
-const domain = "dub.sh";
+const domain = "duh.fan";
 
 export default withUserAuth(
   async (req: NextApiRequest, res: NextApiResponse, session: Session) => {
@@ -51,7 +51,7 @@ export default withUserAuth(
           userId: session.user.id,
         },
         oldKey,
-        "dub",
+        "duh",
       );
       if (response === null) {
         return res.status(400).json({ error: "Key already exists" });

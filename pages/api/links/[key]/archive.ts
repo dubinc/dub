@@ -3,7 +3,7 @@ import { archiveLink } from "@/lib/api/links";
 import { Session, withUserAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
-const domain = "dub.sh";
+const domain = "duh.fan";
 
 export default withUserAuth(
   async (req: NextApiRequest, res: NextApiResponse, session: Session) => {

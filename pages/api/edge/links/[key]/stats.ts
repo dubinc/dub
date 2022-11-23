@@ -21,7 +21,7 @@ export default async function handler(req: NextRequest) {
     const start = Date.now() - intervalData[interval || "24h"].milliseconds;
     const end = Date.now();
     const response = await redis.zrange<RawStatsProps[]>(
-      `dub.sh:clicks:${key}`,
+      `duh.fan:clicks:${key}`,
       start,
       end,
       {

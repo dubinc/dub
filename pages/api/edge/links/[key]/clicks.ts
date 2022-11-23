@@ -9,7 +9,7 @@ export default async function handler(req: NextRequest) {
   if (req.method === "GET") {
     const url = req.nextUrl.pathname;
     const key = decodeURIComponent(url.split("/")[4]);
-    const response = await getLinkClicksCount("dub.sh", key);
+    const response = await getLinkClicksCount("duh.fan", key);
     return new Response(JSON.stringify(response), { status: 200 });
   } else {
     return new Response(`Method ${req.method} Not Allowed`, { status: 405 });

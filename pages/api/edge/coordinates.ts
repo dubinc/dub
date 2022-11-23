@@ -11,7 +11,7 @@ export default async function handler(req: NextRequest) {
     const numPoints = 50;
     const domain = req.nextUrl.searchParams.get("domain");
     const rawData = await redis.zrange<RawStatsProps[]>(
-      domain ? `${domain}:root:clicks` : "dub.sh:clicks:github",
+      domain ? `${domain}:root:clicks` : "duh.fan:clicks:github",
       0,
       numPoints,
       { rev: true },

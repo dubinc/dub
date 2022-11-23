@@ -145,11 +145,11 @@ const GlobeAnimation = ({
               This map shows the locations of the last 50 clicks on{" "}
               <a
                 className="font-semibold text-blue-800"
-                href={domain ? `https://${domain}` : "https://dub.sh/github"}
+                href={domain ? `https://${domain}` : "https://duh.fan/github"}
                 target="_blank"
                 rel="noreferrer"
               >
-                {domain || "dub.sh/github"}
+                {domain || "duh.fan/github"}
               </a>{" "}
               in real time.
             </p>

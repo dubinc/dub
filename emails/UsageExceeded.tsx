@@ -48,7 +48,7 @@ export default function UsageExceeded({
                 their stats, edit them, or add more links.
               </MjmlText>
               <ButtonPrimary
-                link={`https://app.dub.sh/settings`}
+                link={`https://app.duh.fan/settings`}
                 uiText="Upgrade my plan"
               />
               <MjmlText cssClass="paragraph">

@@ -166,7 +166,7 @@ export default function PlanUsage() {
             <div className="flex space-x-3">
               {plan === "Pro 1M" && (
                 <a
-                  href="mailto:steven@dub.sh?subject=Upgrade%20to%20Enterprise%20Plan"
+                  href="mailto:support@tripthe.fan?subject=Upgrade%20to%20Enterprise%20Plan"
                   className="flex h-9 w-24 items-center justify-center rounded-md border border-violet-600 bg-violet-600 text-sm text-white transition-all duration-150 ease-in-out hover:bg-white hover:text-violet-600 focus:outline-none"
                 >
                   Contact Us

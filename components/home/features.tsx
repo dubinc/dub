@@ -42,7 +42,7 @@ const featureList = [
       "Dub offers free custom domains on all plans - start personalizing your links today.",
     cta: (
       <a
-        href="https://app.dub.sh"
+        href="https://app.duh.fan"
         target="_blank"
         rel="noreferrer"
         className="block max-w-fit rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
@@ -60,7 +60,7 @@ const featureList = [
       "Overlay custom OG images on your links to make them stand out on social media.",
     cta: (
       <a
-        href="https://app.dub.sh"
+        href="https://app.duh.fan"
         target="_blank"
         rel="noreferrer"
         className="block max-w-fit rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
@@ -78,7 +78,7 @@ const featureList = [
       "Build your links with UTM parameters, password protection, expiration dates, iOS/Android targeting, etc.",
     cta: (
       <a
-        href="https://app.dub.sh"
+        href="https://app.duh.fan"
         target="_blank"
         rel="noreferrer"
         className="block max-w-fit rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
@@ -105,7 +105,7 @@ const featureList = [
       "With Dub, you can invite unlimited team members to collaborate on your project for free - no more sharing logins via Google groups.",
     cta: (
       <a
-        href="https://app.dub.sh"
+        href="https://app.duh.fan"
         target="_blank"
         rel="noreferrer"
         className="block max-w-fit rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"

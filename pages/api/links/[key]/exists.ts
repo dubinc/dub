@@ -2,14 +2,14 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { checkIfKeyExists } from "@/lib/api/links";
 import { withUserAuth } from "@/lib/auth";
 
-// This is a special route to check if a custom dub.sh links exists
+// This is a special route to check if a custom duh.fan links exists
 
 export default withUserAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {
     // GET /api/links/[key]/exists - check if a key exists
     if (req.method === "GET") {
       const { key } = req.query as { key: string };
-      const response = await checkIfKeyExists("dub.sh", key);
+      const response = await checkIfKeyExists("duh.fan", key);
       return res.status(200).json(response);
     } else {
       res.setHeader("Allow", ["GET"]);

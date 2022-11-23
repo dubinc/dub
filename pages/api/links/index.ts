@@ -12,17 +12,17 @@ export const config = {
   },
 };
 
-// This is a special route for retrieving and creating custom dub.sh links.
+// This is a special route for retrieving and creating custom duh.fan links.
 export default withUserAuth(
   async (req: NextApiRequest, res: NextApiResponse, session: Session) => {
-    // GET /api/links – get all dub.sh links created by the user
+    // GET /api/links – get all duh.fan links created by the user
     if (req.method === "GET") {
       const { status, sort } = req.query as {
         status?: string;
         sort?: "createdAt" | "clicks";
       };
       const response = await getLinksForProject({
-        domain: "dub.sh",
+        domain: "duh.fan",
         status,
         sort,
         userId: session.user.id,
@@ -36,7 +36,7 @@ export default withUserAuth(
         return res.status(400).json({ error: "Missing key or url" });
       }
       const { hostname, pathname } = new URL(url);
-      if (hostname === "dub.sh" && pathname === `/${key}`) {
+      if (hostname === "duh.fan" && pathname === `/${key}`) {
         return res.status(400).json({ error: "Invalid url" });
       }
       const BLACKLISTED_DOMAINS = await getBlackListedDomains();
@@ -45,7 +45,7 @@ export default withUserAuth(
       }
       const response = await addLink({
         ...req.body,
-        domain: "dub.sh",
+        domain: "duh.fan",
         userId: session.user.id,
       });
 
