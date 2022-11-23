@@ -75,6 +75,16 @@ export async function recordClick(
   );
 }
 
+/**
+ * Recording metatags that were generated via `/api/edge/metatags`
+ * If there's an error, it will be logged to a separate redis list for debugging
+ **/
+export async function recordMetatags(url: string, error: boolean) {
+  return await redis.lpush(error ? "metatags-errors" : "metatags", {
+    url,
+  });
+}
+
 export async function getLinkClicksCount(domain: string, key: string) {
   const start = Date.now() - 2629746000; // 30 days ago
   return (

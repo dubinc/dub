@@ -47,6 +47,7 @@ export const RESERVED_KEYS = new Set([
   "placeholder",
   "blog",
   "careers",
+  "docs",
   "features",
   "contact",
   "terms",
@@ -68,6 +69,8 @@ export const DEFAULT_REDIRECTS = {
   links: "https://app.dub.sh/links",
   settings: "https://app.dub.sh/settings",
   welcome: "https://app.dub.sh/welcome",
+  slack: "https://dub.slack.com",
+  discord: "https://twitter.com/dubdotsh", // placeholder for now
 };
 
 export const FREE_PLAN_PROJECT_LIMIT = 5;
@@ -87,4 +90,25 @@ export const SECOND_LEVEL_DOMAINS = new Set([
 
 export const SPECIAL_APEX_DOMAINS = {
   "youtu.be": "youtube.com",
+};
+
+export const DEFAULT_LINK_PROPS = {
+  key: "github",
+  url: "https://github.com/steven-tey/dub",
+  domain: "dub.sh",
+  archived: false,
+  expiresAt: null,
+  password: null,
+
+  title: null,
+  description: null,
+  image: null,
+  ios: null,
+  android: null,
+
+  clicks: 0,
+  userId: "",
+  createdAt: new Date(),
+
+  proxy: false,
 };

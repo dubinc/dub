@@ -1,11 +1,12 @@
-import type { NextRequest } from "next/server";
+import type { NextFetchEvent, NextRequest } from "next/server";
 import { unescape } from "html-escaper";
+import { recordMetatags } from "@/lib/upstash";
 
 export const config = {
   runtime: "experimental-edge",
 };
 
-export default async function handler(req: NextRequest) {
+export default async function handler(req: NextRequest, ev: NextFetchEvent) {
   if (req.method === "GET") {
     const url = req.nextUrl.searchParams.get("url");
     try {
@@ -13,14 +14,14 @@ export default async function handler(req: NextRequest) {
     } catch (e) {
       return new Response("Invalid URL", { status: 400 });
     }
-    const metatags = await getMetadataFromUrl(url);
+    const metatags = await getMetadataFromUrl(url, ev);
     return new Response(JSON.stringify(metatags), { status: 200 });
   } else {
     return new Response(`Method ${req.method} Not Allowed`, { status: 405 });
   }
 }
 
-const getMetadataFromUrl = async (url: string) => {
+const getMetadataFromUrl = async (url: string, ev: NextFetchEvent) => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 5000); // timeout if it takes longer than 5 seconds
   const metatags = await fetch(url, {
@@ -67,7 +68,13 @@ const getMetadataFromUrl = async (url: string) => {
           obj[key] = unescape(value);
         },
       );
-      console.log(obj);
+
+      const title = obj["og:title"] || obj["twitter:title"] || obj["title"];
+
+      const description =
+        obj["description"] ||
+        obj["og:description"] ||
+        obj["twitter:description"];
 
       let image =
         obj["og:image"] ||
@@ -81,12 +88,13 @@ const getMetadataFromUrl = async (url: string) => {
         image = new URL(url).origin + image;
       }
 
+      ev.waitUntil(
+        recordMetatags(url, title && description && image ? false : true),
+      );
+
       return {
-        title: obj["og:title"] || obj["twitter:title"] || obj["title"],
-        description:
-          obj["description"] ||
-          obj["og:description"] ||
-          obj["twitter:description"],
+        title,
+        description,
         image,
       };
     })

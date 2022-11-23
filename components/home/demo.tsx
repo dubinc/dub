@@ -48,7 +48,7 @@ const Demo = () => {
               />
             }
           >
-            <div className="relative flex items-center">
+            <div className="relative flex w-full items-center">
               <div className="block w-full rounded-md border border-gray-200 bg-white p-2 pl-3 pr-12 text-sm text-gray-400 shadow-lg focus:border-black">
                 Shorten your link
               </div>

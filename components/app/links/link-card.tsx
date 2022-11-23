@@ -14,7 +14,6 @@ import {
   Chart,
   Delete,
   Edit,
-  Eye,
   LoadingDots,
   QR,
   ThreeDots,
@@ -34,7 +33,7 @@ import {
 import useIntersectionObserver from "@/lib/hooks/use-intersection-observer";
 
 export default function LinkCard({ props }: { props: LinkProps }) {
-  const { key, url, proxy, createdAt, archived, expiresAt } = props;
+  const { key, url, createdAt, archived, expiresAt } = props;
 
   const apexDomain = getApexDomain(url);
 
