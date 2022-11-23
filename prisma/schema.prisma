@@ -127,7 +127,7 @@ model SentEmail {
 
 model Link {
   id              String   @id @default(cuid())
-  domain          String   // domain of the link (e.g. dub.sh) – also stored on Redis
+  domain          String   // domain of the link (e.g. duh.fan) – also stored on Redis
   key             String   // key of the link (e.g. /github) – also stored on Redis
   url             String   @db.LongText // target url (e.g. https://github.com/steven-tey/dub) – also stored on Redis
   archived        Boolean  @default(false) // whether the link is archived or not
@@ -137,7 +137,7 @@ model Link {
   proxy           Boolean  @default(false) // Proxy to use custom OG tags – if false, will use OG tags from target url
   title           String?   // OG title for the link (e.g. Dub - Open-Source Bitly Alternative)
   description     String?  @db.VarChar(240) // OG description for the link (e.g. An open-source link management tool for modern marketing teams to create, share, and track short links.)
-  image           String?  // OG image for the link (e.g. https://dub.sh/og-image.png)
+  image           String?  // OG image for the link (e.g. https://duh.fan/og-image.png)
 
   // UTM parameters
   utm_source      String?   // UTM source for the link (e.g. youtube.com)

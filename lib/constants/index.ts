@@ -29,7 +29,7 @@ export const FADE_IN_ANIMATION_SETTINGS = {
 
 export const HOME_HOSTNAMES = new Set([
   // comment for better diffs
-  "dub.sh",
+  "duh.fan",
   "preview.duh.fan",
   "localhost:3000",
   "c623-2600-1700-b5e4-b50-d083-66f5-64b2-e8bb.ngrok.io",
@@ -58,7 +58,7 @@ export const RESERVED_KEYS = new Set([
   "demo",
 ]);
 export const DEFAULT_REDIRECTS = {
-  home: "https://dub.sh",
+  home: "https://duh.fan",
   signin: "https://app.duh.fan/login",
   login: "https://app.duh.fan/login",
   register: "https://app.duh.fan/register",

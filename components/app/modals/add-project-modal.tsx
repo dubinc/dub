@@ -56,7 +56,7 @@ function AddProjectModalHelper({
   const [debouncedDomain] = useDebounce(domain, 500);
   useEffect(() => {
     if (debouncedDomain.length > 0 && !domainError) {
-      fetch(`/api/projects/dub.sh/domains/${debouncedDomain}/exists`).then(
+      fetch(`/api/projects/duh.fan/domains/${debouncedDomain}/exists`).then(
         async (res) => {
           if (res.status === 200) {
             const exists = await res.json();
@@ -85,7 +85,7 @@ function AddProjectModalHelper({
         <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
           <BlurImage
             src={`/_static/logo.png`}
-            alt={"dub.sh"}
+            alt={"duh.fan"}
             className="h-10 w-10 rounded-full border border-gray-200"
             width={20}
             height={20}
@@ -215,7 +215,7 @@ function AddProjectModalHelper({
                     ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                     : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
                 } block w-full rounded-md pr-10 focus:outline-none sm:text-sm`}
-                placeholder="dub.sh"
+                placeholder="duh.fan"
                 value={domain}
                 onChange={(e) => {
                   setDomainError(null);

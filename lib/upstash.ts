@@ -16,14 +16,14 @@ export const ratelimit = new Ratelimit({
   limiter: Ratelimit.slidingWindow(10, "10 s"),
 });
 
-// only for dub.sh public demo
+// only for duh.fan public demo
 export async function setRandomKey(
   url: string,
 ): Promise<{ response: string; key: string }> {
   /* recursively set link till successful */
   const key = nanoid();
   const response = await redis.set(
-    `dub.sh:${key}`,
+    `duh.fan:${key}`,
     {
       url,
     },
@@ -37,16 +37,16 @@ export async function setRandomKey(
     return setRandomKey(url);
   } else {
     const pipeline = redis.pipeline();
-    pipeline.zadd(`dub.sh:clicks:${key}`, {
+    pipeline.zadd(`duh.fan:clicks:${key}`, {
       score: Date.now(),
       member: {
         geo: LOCALHOST_GEO_DATA,
         ua: "Dub-Bot",
-        referer: "https://dub.sh",
+        referer: "https://duh.fan",
         timestamp: Date.now(),
       },
     });
-    pipeline.expire(`dub.sh:clicks:${key}`, 30 * 60); // 30 minutes
+    pipeline.expire(`duh.fan:clicks:${key}`, 30 * 60); // 30 minutes
     await pipeline.exec();
     return { response, key };
   }

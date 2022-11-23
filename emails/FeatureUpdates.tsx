@@ -58,7 +58,7 @@ export default function FeatureUpdates(): JSX.Element {
               <MjmlText cssClass="li">•&nbsp;&nbsp;Expiration dates</MjmlText>
               <MjmlText cssClass="paragraph">
                 See{" "}
-                <a href="https://dub.sh#features" target="_blank">
+                <a href="https://duh.fan#features" target="_blank">
                   how this works
                 </a>
                 .
@@ -99,7 +99,7 @@ export default function FeatureUpdates(): JSX.Element {
               </MjmlText>
               <MjmlText cssClass="paragraph">
                 Check out a live demo{" "}
-                <a href="https://dub.sh/stats/github" target="_blank">
+                <a href="https://duh.fan/stats/github" target="_blank">
                   here
                 </a>
                 .

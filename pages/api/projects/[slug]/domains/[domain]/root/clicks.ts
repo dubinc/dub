@@ -9,8 +9,8 @@ export default withProjectAuth(
     // GET /api/projects/[slug]/domains/[domain]/root/clicks - get number of clicks on root domain
     if (req.method === "GET") {
       const clicks =
-        domain === "dub.sh"
-          ? await redis.get("dub.sh:root:clicks") // we store dub.sh root clicks in a string instead of zset because it has a ton of clicks
+        domain === "duh.fan"
+          ? await redis.get("duh.fan:root:clicks") // we store duh.fan root clicks in a string instead of zset because it has a ton of clicks
           : await redis.zcard(`${domain}:root:clicks`);
       return res.status(200).json(clicks);
     } else {

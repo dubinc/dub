@@ -24,7 +24,7 @@ export default function HomeLayout({
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center">
               {domain ? (
-                <a href="https://dub.sh" target="_blank" rel="noreferrer">
+                <a href="https://duh.fan" target="_blank" rel="noreferrer">
                   <Image
                     src="/_static/logotype.svg"
                     alt="Dub.sh logo"
@@ -70,7 +70,7 @@ export default function HomeLayout({
           <Twitter className="h-6 w-6 text-gray-600" />
         </a>
         {domain ? (
-          <a href="https://dub.sh" target="_blank" rel="noreferrer">
+          <a href="https://duh.fan" target="_blank" rel="noreferrer">
             <span className="sr-only">Dub.sh Logo</span>
             <Logo className="h-7 w-7 text-gray-600" />
           </a>

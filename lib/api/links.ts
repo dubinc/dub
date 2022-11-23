@@ -109,10 +109,10 @@ export async function getRandomKey(domain: string): Promise<string> {
 
 export async function checkIfKeyExists(domain: string, key: string) {
   if (
-    domain === "dub.sh" &&
+    domain === "duh.fan" &&
     (RESERVED_KEYS.has(key) || DEFAULT_REDIRECTS[key])
   ) {
-    return true; // reserved keys for dub.sh
+    return true; // reserved keys for duh.fan
   }
   const link = await prisma.link.findUnique({
     where: {
@@ -289,7 +289,7 @@ export async function editLink(
     proxy &&
       !changedKey &&
       (await fetch(
-        `https://dub.sh/api/projects/${projectSlug}/domains/${domain}/links/${oldKey}/revalidate?secret=${process.env.REVALIDATE_TOKEN}`,
+        `https://duh.fan/api/projects/${projectSlug}/domains/${domain}/links/${oldKey}/revalidate?secret=${process.env.REVALIDATE_TOKEN}`,
       )),
   ]);
   if (proxy && image) {
