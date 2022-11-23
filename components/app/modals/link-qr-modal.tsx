@@ -354,7 +354,7 @@ export function useLinkQRModal({ props }: { props: SimpleLinkProps }) {
   }, [showLinkQRModal, setShowLinkQRModal, props]);
 
   return useMemo(
-    () => ({ setShowLinkQRModal, LinkQRModal }),
-    [setShowLinkQRModal, LinkQRModal],
+    () => ({ showLinkQRModal, setShowLinkQRModal, LinkQRModal }),
+    [showLinkQRModal, setShowLinkQRModal, LinkQRModal],
   );
 }

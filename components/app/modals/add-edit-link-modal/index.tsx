@@ -36,17 +36,20 @@ import UTMSection from "./utm-section";
 import IOSSection from "./ios-section";
 import Preview from "./preview";
 import AndroidSection from "./android-section";
+import { DEFAULT_LINK_PROPS } from "@/lib/constants";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
   setShowAddEditLinkModal,
   props,
   hideXButton,
+  homepageDemo,
 }: {
   showAddEditLinkModal: boolean;
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
   props?: LinkProps;
   hideXButton?: boolean;
+  homepageDemo?: boolean;
 }) {
   const router = useRouter();
   const { slug } = router.query as { slug: string };
@@ -59,24 +62,10 @@ function AddEditLinkModal({
 
   const [data, setData] = useState<LinkProps>(
     props || {
+      ...DEFAULT_LINK_PROPS,
       domain: domain || "",
       key: "",
       url: "",
-      archived: false,
-      expiresAt: null,
-      password: null,
-
-      title: null,
-      description: null,
-      image: null,
-      ios: null,
-      android: null,
-
-      clicks: 0,
-      userId: "",
-      createdAt: new Date(),
-
-      proxy: false,
     },
   );
   const { key, url, password, proxy } = data;
@@ -225,9 +214,8 @@ function AddEditLinkModal({
       - url is invalid
       - for an existing link, there's no changes
     */
-    if (!showAddEditLinkModal) {
-      return true;
-    } else if (
+    if (
+      !showAddEditLinkModal ||
       saving ||
       keyExistsError ||
       urlError ||
@@ -246,10 +234,10 @@ function AddEditLinkModal({
     <Modal
       showModal={showAddEditLinkModal}
       setShowModal={setShowAddEditLinkModal}
-      closeWithX={true}
+      closeWithX={homepageDemo ? false : true}
     >
       <div className="grid max-h-[min(906px,_90vh)] w-full divide-x divide-gray-100 overflow-scroll bg-white shadow-xl transition-all scrollbar-hide sm:max-w-screen-lg sm:grid-cols-2 sm:rounded-2xl sm:border sm:border-gray-200">
-        {!hideXButton && (
+        {!hideXButton && !homepageDemo && (
           <button
             onClick={() => setShowAddEditLinkModal(false)}
             className="group absolute top-0 right-0 m-3 hidden rounded-full p-2 text-gray-500 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 sm:block"
@@ -458,22 +446,36 @@ function AddEditLinkModal({
                 atBottom ? "" : "sm:shadow-[0_-20px_30px_-10px_rgba(0,0,0,0.1)]"
               } z-10 bg-gray-50 px-4 py-8 transition-all sm:sticky  sm:bottom-0 sm:px-16`}
             >
-              <button
-                disabled={saveDisabled}
-                className={`${
-                  saveDisabled
-                    ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
-                    : "border-black bg-black text-white hover:bg-white hover:text-black"
-                } flex h-10 w-full items-center justify-center rounded-md border text-sm transition-all focus:outline-none`}
-              >
-                {saving ? (
-                  <LoadingDots color="#808080" />
-                ) : (
-                  <p className="text-sm">
-                    {props ? "Save changes" : "Add link"}
-                  </p>
-                )}
-              </button>
+              {homepageDemo ? (
+                <Tooltip
+                  content="This is a demo link. You can't edit it."
+                  fullWidth
+                >
+                  <button
+                    disabled={true}
+                    className=" flex h-10 w-full cursor-not-allowed items-center justify-center rounded-md border border-gray-200 bg-gray-100 text-sm text-gray-400 transition-all focus:outline-none"
+                  >
+                    <p className="text-sm">Save changes</p>
+                  </button>
+                </Tooltip>
+              ) : (
+                <button
+                  disabled={saveDisabled}
+                  className={`${
+                    saveDisabled
+                      ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
+                      : "border-black bg-black text-white hover:bg-white hover:text-black"
+                  } flex h-10 w-full items-center justify-center rounded-md border text-sm transition-all focus:outline-none`}
+                >
+                  {saving ? (
+                    <LoadingDots color="#808080" />
+                  ) : (
+                    <p className="text-sm">
+                      {props ? "Save changes" : "Add link"}
+                    </p>
+                  )}
+                </button>
+              )}
             </div>
           </form>
         </div>
@@ -527,9 +529,11 @@ function AddEditLinkButton({
 export function useAddEditLinkModal({
   props,
   hideXButton,
+  homepageDemo,
 }: {
   props?: LinkProps;
   hideXButton?: boolean;
+  homepageDemo?: boolean;
 }) {
   const [showAddEditLinkModal, setShowAddEditLinkModal] = useState(false);
 
@@ -540,9 +544,16 @@ export function useAddEditLinkModal({
         setShowAddEditLinkModal={setShowAddEditLinkModal}
         props={props}
         hideXButton={hideXButton}
+        homepageDemo={homepageDemo}
       />
     );
-  }, [showAddEditLinkModal, setShowAddEditLinkModal, props, hideXButton]);
+  }, [
+    showAddEditLinkModal,
+    setShowAddEditLinkModal,
+    props,
+    hideXButton,
+    homepageDemo,
+  ]);
 
   const AddEditLinkButtonCallback = useCallback(() => {
     return (
@@ -552,11 +563,13 @@ export function useAddEditLinkModal({
 
   return useMemo(
     () => ({
+      showAddEditLinkModal,
       setShowAddEditLinkModal,
       AddEditLinkModal: AddEditLinkModalCallback,
       AddEditLinkButton: AddEditLinkButtonCallback,
     }),
     [
+      showAddEditLinkModal,
       setShowAddEditLinkModal,
       AddEditLinkModalCallback,
       AddEditLinkButtonCallback,

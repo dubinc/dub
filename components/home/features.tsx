@@ -12,6 +12,8 @@ import { useState } from "react";
 import Accordion from "@/components/shared/accordion";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLinkQRModal } from "../app/modals/link-qr-modal";
+import { DEFAULT_LINK_PROPS } from "@/lib/constants";
+import { useAddEditLinkModal } from "../app/modals/add-edit-link-modal";
 
 const featureList = [
   {
@@ -53,40 +55,22 @@ const featureList = [
     demo: "https://d2vwwcvoksz7ty.cloudfront.net/custom-domain.mp4",
   },
   {
+    key: "link",
+    title: "Powerful link builder",
+    icon: <LinkIcon className="h-5 w-5 text-gray-600" />,
+    description:
+      "Build your links with UTM parameters, password protection, expiration dates, iOS/Android targeting, etc.",
+    cta: "View demo", //custom cta
+    demo: "https://d2vwwcvoksz7ty.cloudfront.net/link.mp4",
+  },
+  {
     key: "social",
     title: "Custom social media cards",
     icon: <Photo className="h-5 w-5 text-gray-600" />,
     description:
       "Overlay custom OG images on your links to make them stand out on social media.",
-    cta: (
-      <a
-        href="https://app.dub.sh"
-        target="_blank"
-        rel="noreferrer"
-        className="block max-w-fit rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
-      >
-        Customize your links
-      </a>
-    ),
+    cta: "View demo", //custom cta
     demo: "https://d2vwwcvoksz7ty.cloudfront.net/og.mp4",
-  },
-  {
-    key: "builder",
-    title: "Powerful link builder",
-    icon: <LinkIcon className="h-5 w-5 text-gray-600" />,
-    description:
-      "Build your links with UTM parameters, password protection, expiration dates, iOS/Android targeting, etc.",
-    cta: (
-      <a
-        href="https://app.dub.sh"
-        target="_blank"
-        rel="noreferrer"
-        className="block max-w-fit rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
-      >
-        Build your link
-      </a>
-    ),
-    demo: "https://d2vwwcvoksz7ty.cloudfront.net/link.mp4",
   },
   {
     key: "qr",
@@ -119,6 +103,11 @@ const featureList = [
 
 export default function Features() {
   const [activeFeature, setActiveFeature] = useState(0);
+
+  const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal({
+    props: DEFAULT_LINK_PROPS,
+    homepageDemo: true,
+  });
   const { setShowLinkQRModal, LinkQRModal } = useLinkQRModal({
     props: {
       key: "github",
@@ -127,6 +116,7 @@ export default function Features() {
   });
   return (
     <div id="features">
+      <AddEditLinkModal />
       <LinkQRModal />
       {featureList.map(({ key, demo }) => (
         // preload videos
@@ -168,7 +158,14 @@ export default function Features() {
                       <p className="mb-4 text-sm text-gray-500">
                         {description}
                       </p>
-                      {key === "qr" ? (
+                      {key === "link" || key === "social" ? (
+                        <button
+                          onClick={() => setShowAddEditLinkModal(true)}
+                          className="block max-w-fit rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
+                        >
+                          View demo
+                        </button>
+                      ) : key === "qr" ? (
                         <button
                           onClick={() => setShowLinkQRModal(true)}
                           className="block max-w-fit rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
