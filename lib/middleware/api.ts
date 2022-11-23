@@ -6,7 +6,7 @@ export default async function ApiMiddleware(req: NextRequest) {
   if (path.startsWith("/metatags")) {
     const url = req.nextUrl.searchParams.get("url");
     if (!url) {
-      return NextResponse.next();
+      return NextResponse.rewrite(new URL("/docs/metatags", req.url));
     }
     return NextResponse.rewrite(
       new URL(`/api/edge/metatags?url=${url}`, req.url),
