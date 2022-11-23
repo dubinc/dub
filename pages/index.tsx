@@ -17,11 +17,11 @@ import getTweetsMetadata, { homepageTweets } from "@/lib/twitter";
 export default function Home({
   userCount,
   stars,
-  tweets,
+  // tweets,
 }: {
   userCount: number;
   stars: number;
-  tweets: any;
+  // tweets: any;
 }) {
   const router = useRouter();
   const { key: stats } = router.query;
@@ -55,7 +55,7 @@ export default function Home({
         <Logos />
         <Globe />
         <Features />
-        <Testimonials userCount={userCount} tweets={tweets} />
+        {/* <Testimonials userCount={userCount} tweets={tweets} /> */}
         <Pricing />
         <OSS stars={stars} />
       </div>
@@ -80,13 +80,13 @@ export async function getStaticProps() {
     },
   ).then((res) => res.json());
 
-  const tweets = await getTweetsMetadata(homepageTweets);
+  // const tweets = await getTweetsMetadata(homepageTweets);
 
   return {
     props: {
       userCount,
       stars,
-      tweets,
+      // tweets,
     },
     revalidate: 60,
   };
