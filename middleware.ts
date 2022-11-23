@@ -6,6 +6,7 @@ import {
 } from "@/lib/constants";
 import {
   AppMiddleware,
+  ApiMiddleware,
   LinkMiddleware,
   RootMiddleware,
 } from "@/lib/middleware";
@@ -32,6 +33,10 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
 
   if (domain === "app.dub.sh" || domain === "app.localhost:3000") {
     return AppMiddleware(req);
+  }
+
+  if (domain === "api.dub.sh" || domain === "api.localhost:3000") {
+    return ApiMiddleware(req);
   }
 
   if (key.length === 0) {
