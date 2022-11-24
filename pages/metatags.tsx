@@ -88,7 +88,7 @@ export default function Metatags({ tweets }: { tweets: any }) {
           />
         </div>
 
-        <div className="relative overflow-hidden rounded-md border border-gray-300">
+        <div className="relative overflow-hidden rounded-md border border-gray-300 bg-gray-50">
           {isValidating && (
             <div className="absolute flex h-[250px] w-full flex-col items-center justify-center space-y-4 border-b border-gray-300 bg-gray-50">
               <LoadingCircle />
@@ -101,7 +101,7 @@ export default function Metatags({ tweets }: { tweets: any }) {
               className="h-[250px] w-full border-b border-gray-300 object-cover"
             />
           ) : (
-            <div className="flex h-[250px] w-full flex-col items-center justify-center space-y-4 border-b border-gray-300 bg-gray-50">
+            <div className="flex h-[250px] w-full flex-col items-center justify-center space-y-4 border-b border-gray-300">
               <Photo className="h-8 w-8 text-gray-400" />
               <p className="text-sm text-gray-400">
                 Enter a link to generate a preview.
@@ -186,7 +186,7 @@ export default function Metatags({ tweets }: { tweets: any }) {
         </a>
 
         <div className="text-left">
-          {tweets.map((tweet, idx) => (
+          {tweets.map((tweet) => (
             <Tweet
               key={tweet.id}
               id={tweet.id}
