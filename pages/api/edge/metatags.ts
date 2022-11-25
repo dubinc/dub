@@ -1,9 +1,86 @@
-import type { NextFetchEvent, NextRequest } from "next/server";
-import { unescape } from "html-escaper";
+import { NextFetchEvent, NextRequest } from "next/server";
+import { parse, walk, ELEMENT_NODE } from "ultrahtml";
+import he from "he";
 import { recordMetatags } from "@/lib/upstash";
+import { isValidUrl } from "@/lib/utils";
 
-export const config = {
-  runtime: "experimental-edge",
+const getHtml = async (url: string) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000); // timeout if it takes longer than 5 seconds
+  return await fetch(url, {
+    signal: controller.signal,
+    headers: {
+      "User-Agent": "dub-bot/1.0",
+    },
+  }).then((res) => {
+    clearTimeout(timeoutId);
+    return res.text();
+  });
+};
+
+const getAst = async (url: string) => {
+  const html = await getHtml(url);
+  const ast = parse(html);
+  return ast;
+};
+
+const escapeEntities = (string: string) => {
+  return he.decode(string);
+};
+
+const getRelativeUrl = (url: string, imageUrl: string) => {
+  if (!imageUrl) return null;
+  if (isValidUrl(imageUrl)) {
+    return imageUrl;
+  }
+  const { protocol, host } = new URL(url);
+  const baseURL = `${protocol}//${host}`;
+  return new URL(imageUrl, baseURL).toString();
+};
+
+export const getMetaTags = async (url: string, ev: NextFetchEvent) => {
+  const obj = {};
+  const ast = await getAst(url);
+
+  await walk(ast, (node) => {
+    if (node.type === ELEMENT_NODE) {
+      const { name, attributes } = node;
+      const property =
+        attributes.name ||
+        attributes.property ||
+        attributes.itemprop ||
+        attributes.rel ||
+        attributes["http-equiv"];
+      const content = attributes.content || attributes.href;
+
+      if (name === "title") {
+        obj["title"] = escapeEntities(node.children[0].value);
+        // if content is not string, skip
+      } else if (typeof content !== "string") {
+        return;
+      } else {
+        obj[property] = escapeEntities(content);
+      }
+    }
+  });
+
+  const title = obj["og:title"] || obj["twitter:title"] || obj["title"];
+
+  const description =
+    obj["description"] || obj["og:description"] || obj["twitter:description"];
+
+  const image =
+    obj["og:image"] || obj["twitter:image"] || obj["image_src"] || obj["icon"];
+
+  ev.waitUntil(
+    recordMetatags(url, title && description && image ? false : true),
+  );
+
+  return {
+    title,
+    description,
+    image: getRelativeUrl(url, image),
+  };
 };
 
 export default async function handler(req: NextRequest, ev: NextFetchEvent) {
@@ -14,93 +91,13 @@ export default async function handler(req: NextRequest, ev: NextFetchEvent) {
     } catch (e) {
       return new Response("Invalid URL", { status: 400 });
     }
-    const metatags = await getMetadataFromUrl(url, ev);
+    const metatags = await getMetaTags(url, ev);
     return new Response(JSON.stringify(metatags), { status: 200 });
   } else {
     return new Response(`Method ${req.method} Not Allowed`, { status: 405 });
   }
 }
 
-const getMetadataFromUrl = async (url: string, ev: NextFetchEvent) => {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 5000); // timeout if it takes longer than 5 seconds
-  const metatags = await fetch(url, {
-    signal: controller.signal,
-    headers: {
-      "User-Agent": "dub-bot/1.0",
-    },
-  })
-    .then((res) => {
-      clearTimeout(timeoutId);
-      return res.text();
-    })
-    .then((body: string) => {
-      const obj = {};
-      // get all meta tags
-      body.replace(
-        /<meta\s+(?:name|property|itemprop|http-equiv)="([^"]+)"\s+content="([^"]+)"/g,
-        // @ts-ignore
-        (_, key, value) => {
-          obj[key] = unescape(value).replaceAll("&#x27;", "'");
-        },
-      );
-      // get all meta tags (reversed order for content & name/property)
-      body.replace(
-        /<meta\s+content="([^"]+)"\s+(?:name|property|itemprop|http-equiv)="([^"]+)"/g,
-        // @ts-ignore
-        (_, value, key) => {
-          obj[key] = unescape(value).replaceAll("&#x27;", "'");
-        },
-      );
-      // get all title tags
-      body.replace(
-        /<title>([^<]+)<\/title>/g,
-        // @ts-ignore
-        (_, value) => {
-          obj["title"] = unescape(value).replaceAll("&#x27;", "'");
-        },
-      );
-      // get all link tags
-      body.replace(
-        /<link\s+(?:rel|itemprop)="([^"]+)"\s+href="([^"]+)"/g,
-        // @ts-ignore
-        (_, key, value) => {
-          obj[key] = unescape(value).replaceAll("&#x27;", "'");
-        },
-      );
-
-      const title = obj["og:title"] || obj["twitter:title"] || obj["title"];
-
-      const description =
-        obj["description"] ||
-        obj["og:description"] ||
-        obj["twitter:description"];
-
-      let image =
-        obj["og:image"] ||
-        obj["twitter:image"] ||
-        obj["icon"] ||
-        obj["image_src"];
-
-      if (image && image.startsWith("//")) {
-        image = "https:" + image;
-      } else if (image && image.startsWith("/")) {
-        image = new URL(url).origin + image;
-      }
-
-      ev.waitUntil(
-        recordMetatags(url, title && description && image ? false : true),
-      );
-
-      return {
-        title,
-        description,
-        image,
-      };
-    })
-    .catch((err) => {
-      console.log(err);
-      return {}; // if there's an error, return ""
-    });
-  return metatags;
+export const config = {
+  runtime: "experimental-edge",
 };
