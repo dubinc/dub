@@ -1,7 +1,8 @@
-import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
+import { NextFetchEvent, NextRequest } from "next/server";
 import { parse, walk, ELEMENT_NODE } from "ultrahtml";
 import he from "he";
 import { recordMetatags } from "@/lib/upstash";
+import { isValidUrl } from "@/lib/utils";
 
 const getHtml = async (url: string) => {
   const controller = new AbortController();
@@ -27,90 +28,58 @@ const escapeEntities = (string: string) => {
   return he.decode(string);
 };
 
-const validateUrl = (input: string) => {
-  let url: URL;
-
-  try {
-    url = new URL(input);
-  } catch (_) {
-    return false;
+const getRelativeUrl = (url: string, imageUrl: string) => {
+  if (!imageUrl) return null;
+  if (isValidUrl(imageUrl)) {
+    return imageUrl;
   }
-
-  return url.protocol === "http:" || url.protocol === "https:";
+  const { protocol, host } = new URL(url);
+  const baseURL = `${protocol}//${host}`;
+  return new URL(imageUrl, baseURL).toString();
 };
 
 export const getMetaTags = async (url: string, ev: NextFetchEvent) => {
+  const obj = {};
   const ast = await getAst(url);
-
-  let data = {
-    title: new Set(),
-    description: new Set(),
-    image: new Set(),
-  };
-
-  // I use a Set here because Set.has() is O(1). Array.includes() is O(n)
-  const combinations = {
-    description: new Set([
-      "description",
-      "og:description",
-      "twitter:description",
-    ]),
-    image: new Set(["og:image", "twitter:image", "icon", "image_src"]),
-    title: new Set(["og:title", "twitter:title", "title"]),
-  };
 
   await walk(ast, (node) => {
     if (node.type === ELEMENT_NODE) {
       const { name, attributes } = node;
-
-      const { content: unescapedContent } = attributes;
-
-      const property = attributes.property || attributes.name;
+      const property =
+        attributes.name ||
+        attributes.property ||
+        attributes.itemprop ||
+        attributes.rel ||
+        attributes["http-equiv"];
+      const content = attributes.content || attributes.href;
 
       if (name === "title") {
-        const title: string = node.children[0].value;
-        title && data.title.add(title);
-      }
-
-      if (unescapedContent) {
-        const content = escapeEntities(unescapedContent);
-
-        if (name === "meta") {
-          const { description, image, title } = combinations;
-          if (description.has(property)) {
-            data.description.add(content);
-          }
-
-          if (image.has(property)) {
-            const isUrl = validateUrl(content);
-            let value = "";
-            if (isUrl) {
-              value = content;
-            } else {
-              const { protocol, host } = new URL(url);
-              const baseURL = `${protocol}//${host}`;
-
-              value = new URL(content, baseURL).toString();
-            }
-            data.image.add(value);
-          }
-
-          if (title.has(property)) {
-            data.title.add(content);
-          }
-        }
+        obj["title"] = node.children[0].value;
+        // if content is not string, skip
+      } else if (typeof content !== "string") {
+        return;
+      } else {
+        obj[property] = escapeEntities(content);
       }
     }
   });
 
-  // ev.waitUntil(
-  //   recordMetatags(url, data.title && data.description && data.image ? false : true),
-  // );
+  const title = obj["og:title"] || obj["twitter:title"] || obj["title"];
+
+  const description =
+    obj["description"] || obj["og:description"] || obj["twitter:description"];
+
+  const image =
+    obj["og:image"] || obj["twitter:image"] || obj["image_src"] || obj["icon"];
+
+  ev.waitUntil(
+    recordMetatags(url, title && description && image ? false : true),
+  );
 
   return {
-    title: [...data.title],
-    description: [...data.description],
-    image: [...data.image],
+    title,
+    description,
+    image: getRelativeUrl(url, image),
   };
 };
 
