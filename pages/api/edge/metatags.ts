@@ -19,7 +19,7 @@ const getHtml = async (url: string) => {
   });
 };
 
-const specialHostnames = new Set(["developer.mozilla.org", "quora.com"]);
+const specialHostnames = new Set(["developer.mozilla.org"]);
 
 const getAst = async (url: string) => {
   const html = await getHtml(url);
