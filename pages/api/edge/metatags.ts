@@ -49,8 +49,8 @@ export const getMetaTags = async (url: string, ev: NextFetchEvent) => {
         attributes.name ||
         attributes.property ||
         attributes.itemprop ||
-        attributes.rel ||
-        attributes["http-equiv"];
+        attributes.rel;
+
       const content = attributes.content || attributes.href;
 
       if (name === "title") {
@@ -70,7 +70,11 @@ export const getMetaTags = async (url: string, ev: NextFetchEvent) => {
     obj["description"] || obj["og:description"] || obj["twitter:description"];
 
   const image =
-    obj["og:image"] || obj["twitter:image"] || obj["image_src"] || obj["icon"];
+    obj["og:image"] ||
+    obj["twitter:image"] ||
+    obj["image_src"] ||
+    obj["icon"] ||
+    obj["shortcut icon"];
 
   ev.waitUntil(
     recordMetatags(url, title && description && image ? false : true),
