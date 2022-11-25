@@ -175,16 +175,6 @@ export const getApexDomain = (url: string) => {
   return domain;
 };
 
-export const getDomainWithoutWWW = (url: string) => {
-  let hostname;
-  try {
-    hostname = new URL(url).hostname;
-  } catch (e) {
-    return "";
-  }
-  return hostname.replace(/^www\./, "");
-};
-
 export const getParamsFromURL = (url: string) => {
   if (!url) return {};
   try {
@@ -245,6 +235,30 @@ export const isValidUrl = (url: string) => {
     return true;
   } catch (e) {
     return false;
+  }
+};
+
+export const getUrlFromString = (str: string) => {
+  if (isValidUrl(str)) return str;
+  try {
+    if (str.includes(".") && !str.includes(" ")) {
+      return new URL(`https://${str}`).toString();
+    }
+  } catch (e) {
+    return null;
+  }
+};
+
+export const getDomainWithoutWWW = (url: string) => {
+  if (isValidUrl(url)) {
+    return new URL(url).hostname.replace(/^www\./, "");
+  }
+  try {
+    if (url.includes(".") && !url.includes(" ")) {
+      return new URL(`https://${url}`).hostname.replace(/^www\./, "");
+    }
+  } catch (e) {
+    return null;
   }
 };
 

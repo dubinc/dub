@@ -13,13 +13,12 @@ import { useMemo, useState } from "react";
 import Background from "@/components/shared/background";
 import Meta from "@/components/layout/meta";
 import { useDebounce } from "use-debounce";
-import { getDomainWithoutWWW } from "@/lib/utils";
+import { fetcher, getDomainWithoutWWW, getUrlFromString } from "@/lib/utils";
 import useSWR from "swr";
-import { fetcher, isValidUrl } from "@/lib/utils";
 
 export default function Metatags({ tweets }: { tweets: any }) {
   const [url, setUrl] = useState("https://github.com/steven-tey/dub");
-  const [debouncedUrl] = useDebounce(url, 500);
+  const [debouncedUrl] = useDebounce(getUrlFromString(url), 500);
   const hostname = useMemo(() => {
     return getDomainWithoutWWW(debouncedUrl);
   }, [debouncedUrl]);
@@ -28,13 +27,9 @@ export default function Metatags({ tweets }: { tweets: any }) {
     title: string | null;
     description: string | null;
     image: string | null;
-  }>(
-    isValidUrl(debouncedUrl) && `/api/edge/metatags?url=${debouncedUrl}`,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-    },
-  );
+  }>(debouncedUrl && `/api/edge/metatags?url=${debouncedUrl}`, fetcher, {
+    revalidateOnFocus: false,
+  });
 
   const { title, description, image } = data || {};
 
@@ -79,7 +74,6 @@ export default function Metatags({ tweets }: { tweets: any }) {
             name="url"
             id="url"
             type="url"
-            required
             className="block w-full rounded-md border-gray-300 text-sm text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500"
             placeholder="Enter your URL"
             value={url}
@@ -149,7 +143,7 @@ export default function Metatags({ tweets }: { tweets: any }) {
           <div className="w-11/12 overflow-scroll scrollbar-hide">
             <p className="whitespace-nowrap text-sm font-medium text-gray-600">
               https://api.dub.sh/metatags?url=
-              <span className="text-amber-600">{url}</span>
+              <span className="text-amber-600">{getUrlFromString(url)}</span>
             </p>
           </div>
           <span className="absolute inset-y-0 top-1 right-1 flex h-8 w-8 items-center justify-center rounded-full bg-black/[0.07] transition-all group-hover:bg-black/10">

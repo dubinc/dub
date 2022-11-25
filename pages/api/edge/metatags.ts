@@ -100,10 +100,8 @@ export const getMetaTags = async (url: string, ev: NextFetchEvent) => {
 
 export default async function handler(req: NextRequest, ev: NextFetchEvent) {
   if (req.method === "GET") {
-    const url = req.nextUrl.searchParams.get("url");
-    try {
-      new URL(url).hostname;
-    } catch (e) {
+    let url = req.nextUrl.searchParams.get("url");
+    if (!isValidUrl(url)) {
       return new Response("Invalid URL", { status: 400 });
     }
     const metatags = await getMetaTags(url, ev);
