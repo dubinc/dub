@@ -1,8 +1,9 @@
 import { NextFetchEvent, NextRequest } from "next/server";
-import { parse, walk, ELEMENT_NODE } from "ultrahtml";
+import { parse, walk, ELEMENT_NODE, transform } from "ultrahtml";
 import he from "he";
 import { recordMetatags } from "@/lib/upstash";
-import { isValidUrl } from "@/lib/utils";
+import { getDomainWithoutWWW, isValidUrl } from "@/lib/utils";
+import sanitize from "ultrahtml/transformers/sanitize";
 
 const getHtml = async (url: string) => {
   const controller = new AbortController();
@@ -18,9 +19,19 @@ const getHtml = async (url: string) => {
   });
 };
 
+const specialHostnames = new Set(["developer.mozilla.org", "quora.com"]);
+
 const getAst = async (url: string) => {
   const html = await getHtml(url);
-  const ast = parse(html);
+  const ast = parse(
+    specialHostnames.has(getDomainWithoutWWW(url))
+      ? await transform(html, [
+          sanitize({
+            blockElements: ["script"],
+          }),
+        ])
+      : html,
+  );
   return ast;
 };
 
