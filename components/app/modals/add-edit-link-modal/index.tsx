@@ -311,6 +311,49 @@ function AddEditLinkModal({
               <div>
                 <div className="flex items-center justify-between">
                   <label
+                    htmlFor={`url-${randomIdx}`}
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Destination URL
+                  </label>
+                  {urlError && (
+                    <p className="text-sm text-red-600" id="key-error">
+                      Invalid url.
+                    </p>
+                  )}
+                </div>
+                <div className="relative mt-1 flex rounded-md shadow-sm">
+                  <input
+                    name="url"
+                    id={`url-${randomIdx}`}
+                    type="url"
+                    required
+                    placeholder="https://github.com/steven-tey/dub"
+                    value={url}
+                    onChange={(e) => {
+                      setUrlError(false);
+                      setData({ ...data, url: e.target.value });
+                    }}
+                    className={`${
+                      urlError
+                        ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                        : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
+                    } block w-full rounded-md text-sm focus:outline-none`}
+                    aria-invalid="true"
+                  />
+                  {urlError && (
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                      <AlertCircleFill
+                        className="h-5 w-5 text-red-500"
+                        aria-hidden="true"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center justify-between">
+                  <label
                     htmlFor={`key-${randomIdx}`}
                     className="block text-sm font-medium text-gray-700"
                   >
@@ -367,48 +410,6 @@ function AddEditLinkModal({
                 {keyExistsError && (
                   <p className="mt-2 text-sm text-red-600" id="key-error">
                     Short link is already in use.
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label
-                  htmlFor={`url-${randomIdx}`}
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Destination URL
-                </label>
-                <div className="relative mt-1 flex rounded-md shadow-sm">
-                  <input
-                    name="url"
-                    id={`url-${randomIdx}`}
-                    type="url"
-                    required
-                    placeholder="https://github.com/steven-tey/dub"
-                    value={url}
-                    onChange={(e) => {
-                      setUrlError(false);
-                      setData({ ...data, url: e.target.value });
-                    }}
-                    className={`${
-                      urlError
-                        ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                        : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
-                    } block w-full rounded-md text-sm focus:outline-none`}
-                    aria-invalid="true"
-                  />
-                  {urlError && (
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                      <AlertCircleFill
-                        className="h-5 w-5 text-red-500"
-                        aria-hidden="true"
-                      />
-                    </div>
-                  )}
-                </div>
-                {urlError && (
-                  <p className="mt-2 text-sm text-red-600" id="key-error">
-                    Invalid url.
                   </p>
                 )}
               </div>
