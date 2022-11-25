@@ -54,7 +54,7 @@ export const getMetaTags = async (url: string, ev: NextFetchEvent) => {
       const content = attributes.content || attributes.href;
 
       if (name === "title") {
-        obj["title"] = node.children[0].value;
+        obj["title"] = escapeEntities(node.children[0].value);
         // if content is not string, skip
       } else if (typeof content !== "string") {
         return;
