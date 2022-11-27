@@ -61,14 +61,7 @@ export default function LinkPage({
   );
 }
 
-export function getStaticPaths() {
-  return {
-    paths: [],
-    fallback: "blocking",
-  };
-}
-
-export async function getStaticProps(ctx) {
+export async function getServerSideProps(ctx) {
   const { domain, key } = ctx.params as { domain: string; key: string };
   const link = await prisma.link.findUnique({
     where: {
@@ -84,14 +77,12 @@ export async function getStaticProps(ctx) {
   if (!url) {
     return {
       notFound: true,
-      revalidate: 1,
     };
   } else if (!image) {
     return {
       redirect: {
         destination: url,
       },
-      revalidate: 1,
     };
   }
 
@@ -106,6 +97,5 @@ export async function getStaticProps(ctx) {
       description,
       image,
     },
-    revalidate: 300,
   };
 }
