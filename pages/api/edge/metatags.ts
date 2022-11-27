@@ -1,136 +1,129 @@
 import { NextFetchEvent, NextRequest } from "next/server";
-import { parse, walk, ELEMENT_NODE, transform } from "ultrahtml";
-import he from "he";
-import { recordMetatags } from "@/lib/upstash";
+import { parse } from "node-html-parser";
 import { getDomainWithoutWWW, isValidUrl } from "@/lib/utils";
-import sanitize from "ultrahtml/transformers/sanitize";
-import { ratelimit } from "@/lib/upstash";
+import { ratelimit, recordMetatags } from "@/lib/upstash";
 import { getToken } from "next-auth/jwt";
 
 export const config = {
-  runtime: "experimental-edge",
+	runtime: "experimental-edge",
 };
 
 export default async function handler(req: NextRequest, ev: NextFetchEvent) {
-  if (req.method === "GET") {
-    let url = req.nextUrl.searchParams.get("url");
-    if (!isValidUrl(url)) {
-      return new Response("Invalid URL", { status: 400 });
-    }
+	if (req.method === "GET") {
+		let url = req.nextUrl.searchParams.get("url");
+		if (!isValidUrl(url)) {
+			return new Response("Invalid URL", { status: 400 });
+		}
 
-    // Rate limit if user is not logged in
-    const session = await getToken({
-      req,
-      secret: process.env.NEXTAUTH_SECRET,
-    });
-    if (!session?.email) {
-      const { success } = await ratelimit.limit("metatags");
-      if (!success) {
-        return new Response("Don't DDoS me pls 🥺", { status: 429 });
-      }
-    }
+		// Rate limit if user is not logged in
+		const session = await getToken({
+			req,
+			secret: process.env.NEXTAUTH_SECRET,
+		});
+		if (!session?.email) {
+			const { success } = await ratelimit.limit("metatags");
+			if (!success) {
+				return new Response("Don't DDoS me pls 🥺", { status: 429 });
+			}
+		}
 
-    const metatags = await getMetaTags(url, ev);
-    return new Response(JSON.stringify(metatags), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-  } else {
-    return new Response(`Method ${req.method} Not Allowed`, { status: 405 });
-  }
+		const metatags = await getMetaTags(url, ev);
+		return new Response(JSON.stringify(metatags), {
+			status: 200,
+			headers: {
+				"Content-Type": "application/json",
+			},
+		});
+	} else {
+		return new Response(`Method ${req.method} Not Allowed`, { status: 405 });
+	}
 }
 
 const getHtml = async (url: string) => {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 5000); // timeout if it takes longer than 5 seconds
-  return await fetch(url, {
-    signal: controller.signal,
-    headers: {
-      "User-Agent": "dub-bot/1.0",
-    },
-  }).then((res) => {
-    clearTimeout(timeoutId);
-    return res.text();
-  });
+	const controller = new AbortController();
+	const timeoutId = setTimeout(() => controller.abort(), 5000); // timeout if it takes longer than 5 seconds
+	return await fetch(url, {
+		signal: controller.signal,
+		headers: {
+			"User-Agent": "dub-bot/1.0",
+		},
+	}).then((res) => {
+		clearTimeout(timeoutId);
+		return res.text();
+	});
 };
 
-const specialHostnames = new Set(["developer.mozilla.org"]);
-
-const getAst = async (url: string) => {
-  const html = await getHtml(url);
-  const ast = parse(
-    specialHostnames.has(getDomainWithoutWWW(url))
-      ? await transform(html, [
-          sanitize({
-            blockElements: ["script"],
-          }),
-        ])
-      : html,
-  );
-  return ast;
+const getAst = (html: string) => {
+	const ast = parse(html);
+	return ast;
 };
 
-const escapeEntities = (string: string) => {
-  return he.decode(string);
+const getHeadChildNodes = (ast: ReturnType<typeof getAst>) => {
+	const metaTags = ast.querySelectorAll("meta").map(({ attributes }) => {
+		const property = attributes.property || attributes.name || attributes.href;
+		return {
+			property,
+			content: attributes.content,
+		};
+	});
+	const title = ast.querySelector("title").innerText;
+	const linkTags = ast.querySelectorAll("link").map((node) => node.attributes);
+
+	return { metaTags, title, linkTags };
 };
 
 const getRelativeUrl = (url: string, imageUrl: string) => {
-  if (!imageUrl) return null;
-  if (isValidUrl(imageUrl)) {
-    return imageUrl;
-  }
-  const { protocol, host } = new URL(url);
-  const baseURL = `${protocol}//${host}`;
-  return new URL(imageUrl, baseURL).toString();
+	if (!imageUrl) {
+		return null;
+	}
+	if (isValidUrl(imageUrl)) {
+		return imageUrl;
+	}
+	const { protocol, host } = new URL(url);
+	const baseURL = `${protocol}//${host}`;
+	return new URL(imageUrl, baseURL).toString();
 };
 
 export const getMetaTags = async (url: string, ev: NextFetchEvent) => {
-  const obj = {};
-  const ast = await getAst(url);
+	const html = await getHtml(url);
+	const headAst = getAst(html);
+	const { metaTags, title: pageTitle, linkTags } = getHeadChildNodes(headAst);
 
-  await walk(ast, (node) => {
-    if (node.type === ELEMENT_NODE) {
-      const { name, attributes } = node;
-      const property =
-        attributes.name ||
-        attributes.property ||
-        attributes.itemprop ||
-        attributes.rel;
+	let object = {};
 
-      const content = attributes.content || attributes.href;
+	for (let k in metaTags) {
+		let { property, content } = metaTags[k];
 
-      if (name === "title") {
-        obj["title"] = escapeEntities(node.children[0].value);
-        // if content is not string, skip
-      } else if (typeof content !== "string") {
-        return;
-      } else {
-        obj[property] = escapeEntities(content);
-      }
-    }
-  });
+		property && (object[property] = content);
+	}
 
-  const title = obj["og:title"] || obj["twitter:title"] || obj["title"];
+	for (let m in linkTags) {
+		let { rel, href } = linkTags[m];
 
-  const description =
-    obj["description"] || obj["og:description"] || obj["twitter:description"];
+		rel && (object[rel] = href);
+	}
 
-  const image =
-    obj["og:image"] ||
-    obj["twitter:image"] ||
-    obj["image_src"] ||
-    obj["icon"] ||
-    obj["shortcut icon"];
+	const title = object["og:title"] || object["twitter:title"] || pageTitle;
 
-  ev.waitUntil(
-    recordMetatags(url, title && description && image ? false : true),
-  );
+	const description =
+		object["description"] ||
+		object["og:description"] ||
+		object["twitter:description"];
 
-  return {
-    title,
-    description,
-    image: getRelativeUrl(url, image),
-  };
+	const image =
+		object["og:image"] ||
+		object["twitter:image"] ||
+		object["image_src"] ||
+		object["icon"] ||
+		object["shortcut icon"];
+
+	ev.waitUntil(
+		recordMetatags(url, title && description && image ? false : true),
+	);
+
+	return {
+		title,
+		description,
+		image: getRelativeUrl(url, image),
+	};
 };
