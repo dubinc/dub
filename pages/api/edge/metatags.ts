@@ -5,6 +5,7 @@ import { recordMetatags } from "@/lib/upstash";
 import { getDomainWithoutWWW, isValidUrl } from "@/lib/utils";
 import sanitize from "ultrahtml/transformers/sanitize";
 import { ratelimit } from "@/lib/upstash";
+import { getToken } from "next-auth/jwt";
 
 export const config = {
   runtime: "experimental-edge",
@@ -16,13 +17,26 @@ export default async function handler(req: NextRequest, ev: NextFetchEvent) {
     if (!isValidUrl(url)) {
       return new Response("Invalid URL", { status: 400 });
     }
-    const { success } = await ratelimit.limit("metatags");
-    if (!success) {
-      return new Response("Don't DDoS me pls 🥺", { status: 429 });
+
+    // Rate limit if user is not logged in
+    const session = await getToken({
+      req,
+      secret: process.env.NEXTAUTH_SECRET,
+    });
+    if (!session?.email) {
+      const { success } = await ratelimit.limit("metatags");
+      if (!success) {
+        return new Response("Don't DDoS me pls 🥺", { status: 429 });
+      }
     }
 
     const metatags = await getMetaTags(url, ev);
-    return new Response(JSON.stringify(metatags), { status: 200 });
+    return new Response(JSON.stringify(metatags), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
   } else {
     return new Response(`Method ${req.method} Not Allowed`, { status: 405 });
   }
