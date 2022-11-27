@@ -67,7 +67,13 @@ const getHeadChildNodes = (ast: ReturnType<typeof getAst>) => {
 		};
 	});
 	const title = ast.querySelector("title").innerText;
-	const linkTags = ast.querySelectorAll("link").map((node) => node.attributes);
+	const linkTags = ast.querySelectorAll("link").map(({ attributes }) => {
+		const { rel, href } = attributes;
+		return {
+			rel,
+			href,
+		};
+	});
 
 	return { metaTags, title, linkTags };
 };
