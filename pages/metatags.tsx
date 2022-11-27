@@ -45,7 +45,7 @@ export default function Metatags({ tweets }: { tweets: any }) {
       }
     >
       <Background />
-      <div className="z-10 mx-auto my-10 flex max-w-md flex-col space-y-5 px-2.5 text-center sm:max-w-lg sm:px-0 lg:mb-28">
+      <div className="z-10 mx-2 my-10 flex max-w-md flex-col space-y-5 px-2.5 text-center sm:mx-auto sm:max-w-lg sm:px-0 lg:mb-28">
         <a
           href="https://twitter.com/dubdotsh/status/1595459224498233347"
           target="_blank"
