@@ -6,13 +6,6 @@ import { getDomainWithoutWWW, isValidUrl } from "@/lib/utils";
 import sanitize from "ultrahtml/transformers/sanitize";
 import { ratelimit } from "@/lib/upstash";
 
-const ALLOWLIST = new Set([
-  "dub.sh",
-  "app.dub.sh",
-  "localhost:3000",
-  "app.localhost:3000",
-]);
-
 export const config = {
   runtime: "experimental-edge",
 };
@@ -23,13 +16,11 @@ export default async function handler(req: NextRequest, ev: NextFetchEvent) {
     if (!isValidUrl(url)) {
       return new Response("Invalid URL", { status: 400 });
     }
-    const hostname = req.headers.get("host");
-    if (!ALLOWLIST.has(hostname)) {
-      const { success } = await ratelimit.limit("metatags");
-      if (!success) {
-        return new Response("Don't DDoS me pls 🥺", { status: 429 });
-      }
+    const { success } = await ratelimit.limit("metatags");
+    if (!success) {
+      return new Response("Don't DDoS me pls 🥺", { status: 429 });
     }
+
     const metatags = await getMetaTags(url, ev);
     return new Response(JSON.stringify(metatags), { status: 200 });
   } else {
