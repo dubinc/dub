@@ -132,7 +132,7 @@ export default function Metatags({ tweets }: { tweets: any }) {
           className="hover:bg/black-[0.08] group relative flex cursor-copy items-center space-x-5 rounded-full bg-black/5 py-2.5 pr-3 pl-5 transition-all"
           onClick={() => {
             navigator.clipboard.writeText(
-              `https://api.dub.sh/metatags?url=${url}`,
+              `https://api.dub.sh/metatags?url=${getUrlFromString(url)}`,
             );
             setCopied(true);
             setTimeout(() => {
