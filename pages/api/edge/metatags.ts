@@ -4,6 +4,38 @@ import he from "he";
 import { recordMetatags } from "@/lib/upstash";
 import { getDomainWithoutWWW, isValidUrl } from "@/lib/utils";
 import sanitize from "ultrahtml/transformers/sanitize";
+import { ratelimit } from "@/lib/upstash";
+
+const ALLOWLIST = new Set([
+  "dub.sh",
+  "app.dub.sh",
+  "localhost:3000",
+  "app.localhost:3000",
+]);
+
+export const config = {
+  runtime: "experimental-edge",
+};
+
+export default async function handler(req: NextRequest, ev: NextFetchEvent) {
+  if (req.method === "GET") {
+    let url = req.nextUrl.searchParams.get("url");
+    if (!isValidUrl(url)) {
+      return new Response("Invalid URL", { status: 400 });
+    }
+    const hostname = req.headers.get("host");
+    if (!ALLOWLIST.has(hostname)) {
+      const { success } = await ratelimit.limit("metatags");
+      if (!success) {
+        return new Response("Don't DDoS me pls 🥺", { status: 429 });
+      }
+    }
+    const metatags = await getMetaTags(url, ev);
+    return new Response(JSON.stringify(metatags), { status: 200 });
+  } else {
+    return new Response(`Method ${req.method} Not Allowed`, { status: 405 });
+  }
+}
 
 const getHtml = async (url: string) => {
   const controller = new AbortController();
@@ -96,21 +128,4 @@ export const getMetaTags = async (url: string, ev: NextFetchEvent) => {
     description,
     image: getRelativeUrl(url, image),
   };
-};
-
-export default async function handler(req: NextRequest, ev: NextFetchEvent) {
-  if (req.method === "GET") {
-    let url = req.nextUrl.searchParams.get("url");
-    if (!isValidUrl(url)) {
-      return new Response("Invalid URL", { status: 400 });
-    }
-    const metatags = await getMetaTags(url, ev);
-    return new Response(JSON.stringify(metatags), { status: 200 });
-  } else {
-    return new Response(`Method ${req.method} Not Allowed`, { status: 405 });
-  }
-}
-
-export const config = {
-  runtime: "experimental-edge",
 };
