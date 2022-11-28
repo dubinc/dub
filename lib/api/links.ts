@@ -285,12 +285,6 @@ export async function editLink(
             .catch(() => {}),
         ]
       : []),
-    // if this link has custom OG tags and the key is the same, update the proxy cache
-    proxy &&
-      !changedKey &&
-      (await fetch(
-        `https://dub.sh/api/projects/${projectSlug}/domains/${domain}/links/${oldKey}/revalidate?secret=${process.env.REVALIDATE_TOKEN}`,
-      )),
   ]);
   if (proxy && image) {
     const { secure_url } = effects[0];

@@ -17,6 +17,7 @@ const satoshi = localFont({
 
 const inter = Inter({
   variable: "--font-inter",
+  subsets: ["latin"],
 });
 
 function MyApp({

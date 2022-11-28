@@ -45,7 +45,7 @@ export default function Metatags({ tweets }: { tweets: any }) {
       }
     >
       <Background />
-      <div className="z-10 mx-auto my-10 flex max-w-md flex-col space-y-5 px-2.5 text-center sm:max-w-lg sm:px-0 lg:mb-28">
+      <div className="z-10 mx-2 my-10 flex max-w-md flex-col space-y-5 px-2.5 text-center sm:mx-auto sm:max-w-lg sm:px-0 lg:mb-28">
         <a
           href="https://twitter.com/dubdotsh/status/1595459224498233347"
           target="_blank"
@@ -132,7 +132,7 @@ export default function Metatags({ tweets }: { tweets: any }) {
           className="hover:bg/black-[0.08] group relative flex cursor-copy items-center space-x-5 rounded-full bg-black/5 py-2.5 pr-3 pl-5 transition-all"
           onClick={() => {
             navigator.clipboard.writeText(
-              `https://api.dub.sh/metatags?url=${url}`,
+              `https://api.dub.sh/metatags?url=${getUrlFromString(url)}`,
             );
             setCopied(true);
             setTimeout(() => {
