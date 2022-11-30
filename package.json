@@ -21,7 +21,7 @@
     "@radix-ui/react-switch": "^1.0.1",
     "@radix-ui/react-tooltip": "^1.0.2",
     "@splinetool/react-spline": "^2.2.3",
-    "@splinetool/runtime": "^0.9.144",
+    "@splinetool/runtime": "^0.9.146",
     "@stitches/react": "^1.2.8",
     "@stripe/stripe-js": "^1.44.1",
     "@tailwindcss/forms": "^0.5.3",
