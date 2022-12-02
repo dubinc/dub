@@ -21,7 +21,7 @@ export default function LinkPage({
         <meta property="og:image" content={unescape(image)} />
         <meta
           property="og:image:alt"
-          content={`OG image for ${title} (${shortLink})`}
+          content={`OG image for ${unescape(title)} (${shortLink})`}
         />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:site" content={unescape(fullDomain)} />
@@ -30,7 +30,7 @@ export default function LinkPage({
         <meta name="twitter:image" content={unescape(image)} />
         <meta
           property="twitter:image:alt"
-          content={`OG image for ${title} (${shortLink})`}
+          content={`OG image for ${unescape(title)} (${shortLink})`}
         />
         <meta charSet="utf-8" />
         <link
