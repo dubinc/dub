@@ -28,6 +28,10 @@ export default function LinkPage({
         <meta name="twitter:title" content={unescape(title)} />
         <meta name="twitter:description" content={unescape(description)} />
         <meta name="twitter:image" content={unescape(image)} />
+        <meta
+          property="twitter:image:alt"
+          content={`OG image for ${title} (${shortLink})`}
+        />
         <meta charSet="utf-8" />
         <link
           rel="icon"
