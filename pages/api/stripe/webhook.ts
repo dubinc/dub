@@ -4,6 +4,8 @@ import Stripe from "stripe";
 import prisma from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { PRO_TIERS } from "@/lib/stripe/constants";
+import { redis } from "@/lib/upstash";
+import { log } from "@/lib/utils";
 
 // Stripe requires the raw body to construct the event.
 export const config = {
@@ -125,23 +127,30 @@ export default async function webhookHandler(
           // If a user deletes their subscription, reset their usage limit in the database to 1000.
           // We also need to reset the ownerUsageLimit field for all their projects to 1000.
 
-          const { projects } = await prisma.user.findUnique({
+          const { email, usage, projects } = await prisma.user.findUnique({
             where: {
               stripeId,
             },
             select: {
+              email: true,
+              usage: true,
               projects: {
                 where: {
                   role: "owner",
                 },
                 select: {
                   projectId: true,
+                  project: {
+                    select: {
+                      domain: true,
+                    },
+                  },
                 },
               },
             },
           });
 
-          await Promise.all([
+          const response = await Promise.all([
             prisma.user.update({
               where: {
                 stripeId,
@@ -151,18 +160,27 @@ export default async function webhookHandler(
               },
             }),
             Promise.all(
-              projects.map(async ({ projectId }) => {
-                return await prisma.project.update({
-                  where: {
-                    id: projectId,
-                  },
-                  data: {
-                    ownerUsageLimit: 1000,
-                  },
-                });
+              projects.map(async ({ projectId, project: { domain } }) => {
+                return await Promise.all([
+                  prisma.project.update({
+                    where: {
+                      id: projectId,
+                    },
+                    data: {
+                      ownerUsageLimit: 1000,
+                      ownerExceededUsage: usage > 1000,
+                    },
+                  }),
+                  redis.del(`root:${domain}`), // remove root domain redirect
+                ]);
               }),
             ),
+            log(
+              ":cry: User *`" + email + "`* deleted their subscription",
+              "links",
+            ),
           ]);
+          console.log(response);
         } else {
           throw new Error("Unhandled relevant event!");
         }
