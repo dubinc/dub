@@ -88,7 +88,7 @@ const getRelativeUrl = (url: string, imageUrl: string) => {
 
 export const getMetaTags = async (url: string, ev: NextFetchEvent) => {
   const html = await getHtml(url);
-  const { metaTags, title: pageTitle, linkTags } = getHeadChildNodes(html);
+  const { metaTags, title: titleTag, linkTags } = getHeadChildNodes(html);
 
   let object = {};
 
@@ -104,7 +104,7 @@ export const getMetaTags = async (url: string, ev: NextFetchEvent) => {
     rel && (object[rel] = href);
   }
 
-  const title = object["og:title"] || object["twitter:title"] || pageTitle;
+  const title = object["og:title"] || object["twitter:title"] || titleTag;
 
   const description =
     object["description"] ||
