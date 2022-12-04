@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { getApexDomain } from "@/lib/utils";
 
 export default function LinkPage({
+  shortLink,
   fullDomain,
   apexDomain,
   title,
@@ -18,11 +19,19 @@ export default function LinkPage({
         <meta property="og:site_name" content={unescape(fullDomain)} />
         <meta property="og:description" content={unescape(description)} />
         <meta property="og:image" content={unescape(image)} />
+        <meta
+          property="og:image:alt"
+          content={`OG image for ${unescape(title)} (${shortLink})`}
+        />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:site" content={unescape(fullDomain)} />
         <meta name="twitter:title" content={unescape(title)} />
         <meta name="twitter:description" content={unescape(description)} />
         <meta name="twitter:image" content={unescape(image)} />
+        <meta
+          property="twitter:image:alt"
+          content={`OG image for ${unescape(title)} (${shortLink})`}
+        />
         <meta charSet="utf-8" />
         <link
           rel="icon"
@@ -91,6 +100,7 @@ export async function getServerSideProps(ctx) {
 
   return {
     props: {
+      shortLink: `${domain}/${key}`,
       fullDomain,
       apexDomain,
       title,
