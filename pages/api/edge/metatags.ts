@@ -53,12 +53,8 @@ const getHtml = async (url: string) => {
   });
 };
 
-const getAst = (html: string) => {
-  const ast = parse(html);
-  return ast;
-};
-
-const getHeadChildNodes = (ast: ReturnType<typeof getAst>) => {
+const getHeadChildNodes = (html) => {
+  const ast = parse(html); // parse the html into AST format with node-html-parser
   const metaTags = ast.querySelectorAll("meta").map(({ attributes }) => {
     const property = attributes.property || attributes.name || attributes.href;
     return {
@@ -92,8 +88,7 @@ const getRelativeUrl = (url: string, imageUrl: string) => {
 
 export const getMetaTags = async (url: string, ev: NextFetchEvent) => {
   const html = await getHtml(url);
-  const headAst = getAst(html);
-  const { metaTags, title: pageTitle, linkTags } = getHeadChildNodes(headAst);
+  const { metaTags, title: pageTitle, linkTags } = getHeadChildNodes(html);
 
   let object = {};
 
