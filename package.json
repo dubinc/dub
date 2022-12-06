@@ -41,13 +41,13 @@
     "cobe": "^0.6.2",
     "focus-trap-react": "^10.0.1",
     "framer-motion": "^7.6.12",
-    "he": "^1.2.0",
     "html-escaper": "^3.0.3",
     "i": "^0.3.7",
     "mailing-core": "^0.9.1",
     "ms": "^2.1.3",
     "next": "^13.0.5",
     "next-auth": "^4.17.0",
+    "node-html-parser": "^6.1.4",
     "nodemailer": "^6.8.0",
     "npm": "^9.1.2",
     "prisma": "^4.6.1",
@@ -63,7 +63,6 @@
     "swr": "^1.3.0",
     "tailwind-scrollbar-hide": "^1.1.7",
     "topojson-client": "^3.1.0",
-    "ultrahtml": "^1.0.1",
     "use-debounce": "^8.0.4"
   },
   "devDependencies": {

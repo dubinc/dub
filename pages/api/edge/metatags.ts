@@ -1,10 +1,7 @@
 import { NextFetchEvent, NextRequest } from "next/server";
-import { parse, walk, ELEMENT_NODE, transform } from "ultrahtml";
-import he from "he";
-import { recordMetatags } from "@/lib/upstash";
-import { getDomainWithoutWWW, isValidUrl } from "@/lib/utils";
-import sanitize from "ultrahtml/transformers/sanitize";
-import { ratelimit } from "@/lib/upstash";
+import { parse } from "node-html-parser";
+import { isValidUrl } from "@/lib/utils";
+import { ratelimit, recordMetatags } from "@/lib/upstash";
 import { getToken } from "next-auth/jwt";
 
 export const config = {
@@ -56,28 +53,31 @@ const getHtml = async (url: string) => {
   });
 };
 
-const specialHostnames = new Set(["developer.mozilla.org"]);
+const getHeadChildNodes = (html) => {
+  const ast = parse(html); // parse the html into AST format with node-html-parser
+  const metaTags = ast.querySelectorAll("meta").map(({ attributes }) => {
+    const property = attributes.property || attributes.name || attributes.href;
+    return {
+      property,
+      content: attributes.content,
+    };
+  });
+  const title = ast.querySelector("title").innerText;
+  const linkTags = ast.querySelectorAll("link").map(({ attributes }) => {
+    const { rel, href } = attributes;
+    return {
+      rel,
+      href,
+    };
+  });
 
-const getAst = async (url: string) => {
-  const html = await getHtml(url);
-  const ast = parse(
-    specialHostnames.has(getDomainWithoutWWW(url))
-      ? await transform(html, [
-          sanitize({
-            blockElements: ["script"],
-          }),
-        ])
-      : html,
-  );
-  return ast;
-};
-
-const escapeEntities = (string: string) => {
-  return he.decode(string);
+  return { metaTags, title, linkTags };
 };
 
 const getRelativeUrl = (url: string, imageUrl: string) => {
-  if (!imageUrl) return null;
+  if (!imageUrl) {
+    return null;
+  }
   if (isValidUrl(imageUrl)) {
     return imageUrl;
   }
@@ -87,42 +87,36 @@ const getRelativeUrl = (url: string, imageUrl: string) => {
 };
 
 export const getMetaTags = async (url: string, ev: NextFetchEvent) => {
-  const obj = {};
-  const ast = await getAst(url);
+  const html = await getHtml(url);
+  const { metaTags, title: titleTag, linkTags } = getHeadChildNodes(html);
 
-  await walk(ast, (node) => {
-    if (node.type === ELEMENT_NODE) {
-      const { name, attributes } = node;
-      const property =
-        attributes.name ||
-        attributes.property ||
-        attributes.itemprop ||
-        attributes.rel;
+  let object = {};
 
-      const content = attributes.content || attributes.href;
+  for (let k in metaTags) {
+    let { property, content } = metaTags[k];
 
-      if (name === "title") {
-        obj["title"] = escapeEntities(node.children[0].value);
-        // if content is not string, skip
-      } else if (typeof content !== "string") {
-        return;
-      } else {
-        obj[property] = escapeEntities(content);
-      }
-    }
-  });
+    property && (object[property] = content);
+  }
 
-  const title = obj["og:title"] || obj["twitter:title"] || obj["title"];
+  for (let m in linkTags) {
+    let { rel, href } = linkTags[m];
+
+    rel && (object[rel] = href);
+  }
+
+  const title = object["og:title"] || object["twitter:title"] || titleTag;
 
   const description =
-    obj["description"] || obj["og:description"] || obj["twitter:description"];
+    object["description"] ||
+    object["og:description"] ||
+    object["twitter:description"];
 
   const image =
-    obj["og:image"] ||
-    obj["twitter:image"] ||
-    obj["image_src"] ||
-    obj["icon"] ||
-    obj["shortcut icon"];
+    object["og:image"] ||
+    object["twitter:image"] ||
+    object["image_src"] ||
+    object["icon"] ||
+    object["shortcut icon"];
 
   ev.waitUntil(
     recordMetatags(url, title && description && image ? false : true),
