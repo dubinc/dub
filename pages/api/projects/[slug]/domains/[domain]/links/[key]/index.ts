@@ -12,12 +12,7 @@ export const config = {
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse, project) => {
-    const {
-      slug,
-      domain,
-      key: oldKey,
-    } = req.query as {
-      slug: string;
+    const { domain, key: oldKey } = req.query as {
       domain: string;
       key: string;
     };
@@ -42,7 +37,6 @@ export default withProjectAuth(
           ...req.body,
         },
         oldKey,
-        slug,
       );
       if (response === null) {
         return res.status(400).json({ error: "Key already exists" });

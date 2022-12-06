@@ -198,11 +198,7 @@ export async function addLink(link: LinkProps) {
   return response;
 }
 
-export async function editLink(
-  link: LinkProps,
-  oldKey: string,
-  projectSlug: string,
-) {
+export async function editLink(link: LinkProps, oldKey: string) {
   const {
     id,
     domain,
