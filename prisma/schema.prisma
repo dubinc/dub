@@ -137,7 +137,7 @@ model Link {
   proxy           Boolean  @default(false) // Proxy to use custom OG tags – if false, will use OG tags from target url
   title           String?   // OG title for the link (e.g. Dub - Open-Source Bitly Alternative)
   description     String?  @db.VarChar(240) // OG description for the link (e.g. An open-source link management tool for modern marketing teams to create, share, and track short links.)
-  image           String?  // OG image for the link (e.g. https://dub.sh/og-image.png)
+  image           String?  @db.LongText // OG image for the link (e.g. https://dub.sh/og-image.png)
 
   // UTM parameters
   utm_source      String?   // UTM source for the link (e.g. youtube.com)
