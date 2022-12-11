@@ -42,8 +42,12 @@ export const handleDomainUpdates = async (
   }
 
   if (invalidDays >= 30) {
-    const hasLinks = await redis.exists(`${domain}:links`);
-    if (hasLinks === 0) {
+    const existingLinks = await prisma.link.findMany({
+      where: {
+        domain,
+      },
+    });
+    if (existingLinks.length === 0) {
       // only delete if there are no resources recorded (links, stats, etc.)
       const ownerEmail = await getProjectOwnerEmail(projectSlug);
       return await Promise.all([
