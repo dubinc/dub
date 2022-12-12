@@ -35,12 +35,17 @@ export default function Globe({ domain }: { domain?: string }) {
   );
 
   useEffect(() => {
+    const canvas = window.document.createElement("canvas");
     try {
-      const canvas = window.document.createElement("canvas");
-      const ctx =
-        canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-      (ctx as any).getSupportedExtensions();
+      const ctx = canvas.getContext("webgl");
+      if (ctx === null) throw new Error('not supported');
+      ctx.getSupportedExtensions();
     } catch (e) {
+      const ctxExperimental = canvas.getContext('experimental-webgl');
+      if (ctxExperimental !== null && 'getSupportedExtensions' in ctxExperimental) {
+        ctxExperimental.getSupportedExtensions();
+        return;
+      }
       // WebGL isn't properly supported
       setWebglSupported(false);
       console.log("WebGL not supported, hiding globe animation...");
