@@ -70,7 +70,7 @@ export default function ProjectSelect() {
                 `https://www.google.com/s2/favicons?sz=64&domain_url=${selected.domain}`
               }
               alt={selected.slug}
-              className="h-6 w-6 flex-shrink-0 overflow-hidden rounded-full sm:h-8 sm:w-8"
+              className="h-6 w-6 overflow-hidden rounded-full sm:h-8 sm:w-8"
               width={48}
               height={48}
             />

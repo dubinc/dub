@@ -3,6 +3,7 @@ import { signOut, useSession } from "next-auth/react";
 import { Logout } from "@/components/shared/icons";
 import Popover from "@/components/shared/popover";
 import IconMenu from "../../shared/icon-menu";
+import Image from "next/image";
 
 export default function UserDropdown() {
   const { data: session } = useSession();
@@ -30,9 +31,14 @@ export default function UserDropdown() {
           className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-gray-300 transition-all duration-75 focus:outline-none active:scale-95 sm:h-10 sm:w-10"
         >
           {session && (
-            <img
+            <Image
               alt={session?.user?.email || "Avatar for logged in user"}
-              src={`https://avatars.dicebear.com/api/micah/${session?.user?.email}.svg`}
+              src={
+                session?.user?.image ||
+                `https://avatars.dicebear.com/api/micah/${session?.user?.email}.svg`
+              }
+              width={40}
+              height={40}
             />
           )}
         </button>

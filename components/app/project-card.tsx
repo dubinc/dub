@@ -30,7 +30,7 @@ export default function ProjectCard({
               logo ||
               `https://www.google.com/s2/favicons?sz=64&domain_url=${domain}`
             }
-            alt={name}
+            alt={slug}
             className="h-9 w-9 flex-shrink-0 overflow-hidden rounded-full"
             width={48}
             height={48}
