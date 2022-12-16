@@ -5,6 +5,8 @@ import { ReactNode } from "react";
 import { useSession } from "next-auth/react";
 import { Github, Logo, Twitter } from "@/components/shared/icons";
 import Meta from "../meta";
+import { motion, AnimatePresence } from "framer-motion";
+import { FADE_IN_ANIMATION_SETTINGS } from "@/lib/constants";
 
 export default function HomeLayout({
   children,
@@ -47,21 +49,26 @@ export default function HomeLayout({
                 </Link>
               )}
             </div>
-            {session ? (
-              <a
-                href="https://app.dub.sh"
-                className="rounded-full border border-black bg-black py-1.5 px-5 text-sm text-white transition-all hover:bg-white hover:text-black"
-              >
-                Dashboard
-              </a>
-            ) : (
-              <a
-                href="https://app.dub.sh/login"
-                className="rounded-full border border-black bg-black py-1.5 px-5 text-sm text-white transition-all hover:bg-white hover:text-black"
-              >
-                Sign in
-              </a>
-            )}
+
+            <AnimatePresence>
+              {session ? (
+                <motion.a
+                  {...FADE_IN_ANIMATION_SETTINGS}
+                  href="https://app.dub.sh"
+                  className="rounded-full border border-black bg-black py-1.5 px-5 text-sm text-white transition-all hover:bg-white hover:text-black"
+                >
+                  Dashboard
+                </motion.a>
+              ) : (
+                <motion.a
+                  {...FADE_IN_ANIMATION_SETTINGS}
+                  href="https://app.dub.sh/login"
+                  className="rounded-full border border-black bg-black py-1.5 px-5 text-sm text-white transition-all hover:bg-white hover:text-black"
+                >
+                  Sign in
+                </motion.a>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </div>
