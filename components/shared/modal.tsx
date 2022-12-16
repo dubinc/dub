@@ -6,7 +6,6 @@ import {
   useRef,
   useState,
 } from "react";
-import FocusTrap from "focus-trap-react";
 import { AnimatePresence, motion, useAnimation } from "framer-motion";
 import * as Dialog from "@radix-ui/react-dialog";
 
@@ -97,15 +96,13 @@ export default function Modal({
           <Dialog.Portal forceMount>
             <Dialog.Overlay
               forceMount
-              className="fixed inset-0 z-30 bg-gray-100 bg-opacity-10 backdrop-blur"
+              className="fixed inset-0 z-30 bg-gray-100 bg-opacity-10 backdrop-blur transition-all"
             />
             <Dialog.Content
               className="overflow-hidden rounded-t-xl"
               asChild
               forceMount
             >
-              {/* <FocusTrap /> breaks this modal. Probably not needed w/Radix UI  */}
-              {/* <FocusTrap focusTrapOptions={{ initialFocus: false }}> */}
               <div className="absolute">
                 {isMobile ? (
                   <motion.div
@@ -148,7 +145,6 @@ export default function Modal({
                   </motion.div>
                 )}
               </div>
-              {/* </FocusTrap> */}
             </Dialog.Content>
           </Dialog.Portal>
         )}
