@@ -18,20 +18,12 @@ import useUsage from "@/lib/swr/use-usage";
 import { SimpleLinkProps } from "@/lib/types";
 import { getApexDomain, linkConstructor } from "@/lib/utils";
 import IconMenu from "@/components/shared/icon-menu";
-import { Download, Photo } from "@/components/shared/icons";
+import { Download, Photo, QR } from "@/components/shared/icons";
 import Popover from "@/components/shared/popover";
 import toast from "react-hot-toast";
 import { useSession } from "next-auth/react";
 
-function LinkQRModalHelper({
-  showLinkQRModal,
-  setShowLinkQRModal,
-  props,
-}: {
-  showLinkQRModal: boolean;
-  setShowLinkQRModal: Dispatch<SetStateAction<boolean>>;
-  props: SimpleLinkProps;
-}) {
+function LinkQRModalHelper({ props }: { props: SimpleLinkProps }) {
   const anchorRef = useRef<HTMLAnchorElement>();
   const { project: { domain, logo } = {} } = useProject();
   const { avatarUrl, apexDomain } = useMemo(() => {
@@ -94,7 +86,14 @@ function LinkQRModalHelper({
   };
 
   return (
-    <Modal showModal={showLinkQRModal} setShowModal={setShowLinkQRModal}>
+    <Modal
+      trigger={
+        <button className="group rounded-full bg-gray-100 p-1.5 transition-all duration-75 hover:scale-105 hover:bg-blue-100 active:scale-95">
+          <span className="sr-only">Copy</span>
+          <QR className="text-gray-700 transition-all group-hover:text-blue-800" />
+        </button>
+      }
+    >
       <div className="inline-block w-full transform bg-white align-middle shadow-xl transition-all sm:max-w-md sm:rounded-2xl sm:border sm:border-gray-200">
         <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
           {avatarUrl ? (
@@ -341,20 +340,9 @@ function QrDropdown({ download, qrData, showLogo, logo }) {
 }
 
 export function useLinkQRModal({ props }: { props: SimpleLinkProps }) {
-  const [showLinkQRModal, setShowLinkQRModal] = useState(false);
-
   const LinkQRModal = useCallback(() => {
-    return (
-      <LinkQRModalHelper
-        showLinkQRModal={showLinkQRModal}
-        setShowLinkQRModal={setShowLinkQRModal}
-        props={props}
-      />
-    );
-  }, [showLinkQRModal, setShowLinkQRModal, props]);
+    return <LinkQRModalHelper props={props} />;
+  }, [props]);
 
-  return useMemo(
-    () => ({ showLinkQRModal, setShowLinkQRModal, LinkQRModal }),
-    [showLinkQRModal, setShowLinkQRModal, LinkQRModal],
-  );
+  return useMemo(() => ({ LinkQRModal }), [LinkQRModal]);
 }
