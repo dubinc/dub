@@ -40,7 +40,7 @@ export default withProjectAuth(
           return res.status(400).json({ error: "Domain already exists" });
         }
         const [removeResponse, addResponse, upstashResponse, prismaResponse] =
-          await Promise.all([
+          await Promise.allSettled([
             removeDomain(domain),
             addDomain(newDomain),
             prisma.project.update({
