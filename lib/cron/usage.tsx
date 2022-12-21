@@ -1,9 +1,8 @@
 import sendMail from "emails";
 import UsageExceeded from "emails/UsageExceeded";
 import prisma from "@/lib/prisma";
-import { redis } from "@/lib/upstash";
-import { getFirstAndLastDay } from "@/lib/utils";
-import { log } from "@/lib/utils";
+import { getClicks } from "@/lib/tinybird";
+import { getFirstAndLastDay, log } from "@/lib/utils";
 
 export const updateUsage = async () => {
   const users = await prisma.user.findMany({
@@ -156,32 +155,11 @@ const getUsage = async (
 ): Promise<number> => {
   const { firstDay, lastDay } = getFirstAndLastDay(billingCycleStart);
 
-  const links = await prisma.link.findMany({
-    where: {
-      domain,
-      // only for dub.sh, pull data for owner's usage only
-      ...(domain === "dub.sh" && {
-        userId: process.env.DUB_OWNER_ID,
-      }),
-    },
-    select: {
-      key: true,
-    },
+  const usage = await getClicks({
+    domain,
+    start: firstDay.toISOString().replace("T", " ").replace("Z", ""),
+    end: lastDay.toISOString().replace("T", " ").replace("Z", ""),
   });
-  let results: number[] = [];
-
-  if (links.length > 0) {
-    const pipeline = redis.pipeline();
-    links.forEach(({ key }) => {
-      pipeline.zcount(
-        `${domain}:clicks:${key}`,
-        firstDay.getTime(),
-        lastDay.getTime(),
-      );
-    });
-    results = await pipeline.exec();
-  }
-  const usage = results.reduce((acc, curr) => acc + curr, 0);
   return usage;
 };
 

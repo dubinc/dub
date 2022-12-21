@@ -5,7 +5,8 @@ import {
   userAgent,
 } from "next/server";
 import { detectBot, parse } from "@/lib/middleware/utils";
-import { recordClick, redis } from "@/lib/upstash";
+import { redis } from "@/lib/upstash";
+import { recordClick } from "@/lib/tinybird";
 
 export default async function LinkMiddleware(
   req: NextRequest,

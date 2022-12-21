@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { LinkProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { getParamsFromURL, nanoid, truncate } from "@/lib/utils";
+import { getLinksByClicks } from "../tinybird";
 
 const getFiltersFromStatus = (status: string) => {
   if (status === "all" || status === "none") {
