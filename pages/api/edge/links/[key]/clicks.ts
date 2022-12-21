@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { getLinkClicksCount } from "@/lib/upstash";
+import { getStats } from "@/lib/stats";
 
 export const config = {
   runtime: "experimental-edge",
@@ -7,10 +7,23 @@ export const config = {
 
 export default async function handler(req: NextRequest) {
   if (req.method === "GET") {
-    const url = req.nextUrl.pathname;
-    const key = decodeURIComponent(url.split("/")[4]);
-    const response = await getLinkClicksCount("dub.sh", key);
-    return new Response(JSON.stringify(response), { status: 200 });
+    const key = req.nextUrl.searchParams.get("key");
+    const interval = req.nextUrl.searchParams.get("interval");
+    const response = await getStats({
+      domain: "dub.sh",
+      key,
+      endpoint: "clicks",
+      interval,
+    });
+
+    let clicks = 0;
+    try {
+      clicks = response[0]["count()"];
+    } catch (e) {
+      console.log(e);
+    }
+
+    return new Response(JSON.stringify(clicks), { status: 200 });
   } else {
     return new Response(`Method ${req.method} Not Allowed`, { status: 405 });
   }

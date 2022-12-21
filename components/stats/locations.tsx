@@ -1,39 +1,49 @@
-import { useMemo } from "react";
-import { UIEvent, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useState } from "react";
+import { motion } from "framer-motion";
 import BadgeSelect from "@/components/shared/badge-select";
-import { LocationTabs, StatsProps, processLocationData } from "@/lib/stats";
+import { COUNTRIES } from "@/lib/constants";
+import { LocationTabs } from "@/lib/stats";
 import { nFormatter } from "@/lib/utils";
-import { LoadingDots } from "../shared/icons";
+import { LoadingCircle } from "../shared/icons";
+import { useRouter } from "next/router";
+import useSWR from "swr";
+import { fetcher } from "@/lib/utils";
+import useProject from "@/lib/swr/use-project";
 
-export default function Locations({ data: rawData }: { data: StatsProps }) {
+export default function Locations() {
   const [tab, setTab] = useState<LocationTabs>("country");
-  const data = {
-    ...rawData,
-    locationData: useMemo(() => {
-      if (rawData?.locationData) {
-        return processLocationData(rawData.locationData, tab);
-      } else {
-        return null;
-      }
-    }, [rawData, tab]),
+  const router = useRouter();
+
+  const { slug, key, interval } = router.query as {
+    slug?: string;
+    key: string;
+    interval?: string;
   };
 
-  const [scrolled, setScrolled] = useState(false);
+  const { project: { domain } = {} } = useProject();
 
-  const handleScroll = (event: UIEvent<HTMLElement>) => {
-    if (event.currentTarget.scrollTop > 0) {
-      setScrolled(true);
-    } else {
-      setScrolled(false);
-    }
-  };
+  const { data } = useSWR<{ country: string; city: string; clicks: number }[]>(
+    router.isReady &&
+      `${
+        slug && domain
+          ? `/api/projects/${slug}/domains/${domain}/links/${key}/stats/${tab}`
+          : `/api/edge/links/${key}/stats/${tab}`
+      }${interval ? `?interval=${interval}` : ""}`,
+    fetcher,
+  );
+
+  const { data: totalClicks } = useSWR<number>(
+    router.isReady &&
+      `${
+        slug && domain
+          ? `/api/projects/${slug}/domains/${domain}/links/${key}/clicks`
+          : `/api/edge/links/${key}/clicks`
+      }${interval ? `?interval=${interval}` : "24h"}`,
+    fetcher,
+  );
 
   return (
-    <div
-      className="relative h-[420px] overflow-scroll border border-gray-200 bg-white px-7 py-5 scrollbar-hide  sm:rounded-lg sm:border-gray-100 sm:shadow-lg"
-      onScroll={handleScroll}
-    >
+    <div className="relative h-[420px] overflow-scroll border border-gray-200 bg-white px-7 py-5 scrollbar-hide  sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
       <div className="mb-5 flex justify-between">
         <h1 className="text-xl font-semibold">Locations</h1>
         <BadgeSelect
@@ -45,26 +55,28 @@ export default function Locations({ data: rawData }: { data: StatsProps }) {
       </div>
       <div
         className={
-          data.locationData && data.locationData.length > 0
+          data && data.length > 0
             ? "grid gap-4"
             : "flex h-[300px] items-center justify-center"
         }
       >
-        {data.locationData ? (
-          data.locationData.length > 0 ? (
-            data.locationData.map(({ display, code, count }, idx) => (
+        {data ? (
+          data.length > 0 ? (
+            data.map(({ country, city, clicks }, idx) => (
               <div key={idx} className="flex items-center justify-between">
                 <div className="relative z-10 flex w-full max-w-[calc(100%-3rem)] items-center">
                   <span className="z-10 flex items-center space-x-2 px-2">
                     <img
-                      src={`https://flag.vercel.app/m/${code}.svg`}
+                      src={`https://flag.vercel.app/m/${country}.svg`}
                       className="h-3 w-5"
                     />
-                    <p className="text-sm text-gray-800">{display}</p>
+                    <p className="text-sm text-gray-800">
+                      {tab === "country" ? COUNTRIES[country] : city}
+                    </p>
                   </span>
                   <motion.div
                     style={{
-                      width: `${(count / data.totalClicks) * 100}%`,
+                      width: `${(clicks / totalClicks) * 100}%`,
                     }}
                     className="absolute h-8 origin-left bg-orange-100"
                     transition={{ ease: "easeOut", duration: 0.3 }}
@@ -73,7 +85,7 @@ export default function Locations({ data: rawData }: { data: StatsProps }) {
                   />
                 </div>
                 <p className="z-10 text-sm text-gray-600">
-                  {nFormatter(count)}
+                  {nFormatter(clicks)}
                 </p>
               </div>
             ))
@@ -81,25 +93,9 @@ export default function Locations({ data: rawData }: { data: StatsProps }) {
             <p className="text-sm text-gray-600">No data available</p>
           )
         ) : (
-          <LoadingDots color="#71717A" />
+          <LoadingCircle />
         )}
       </div>
-      <AnimatePresence>
-        {data.locationData && data.locationData.length > 9 && !scrolled && (
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{
-              opacity: 1,
-              y: 0,
-              transition: { type: "linear", duration: 0.2 },
-            }}
-            exit={{ opacity: 0, y: 50, transition: { duration: 0 } }}
-            className="absolute bottom-0 left-0 right-0 flex h-8 w-full items-center justify-center bg-gradient-to-b from-white to-gray-100 text-sm text-gray-500"
-          >
-            Show more
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

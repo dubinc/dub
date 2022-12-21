@@ -1,11 +1,16 @@
 import { useRouter } from "next/router";
-import { useMemo } from "react";
-import BadgeSelect from "@/components/shared/badge-select";
-import { ExpandingArrow } from "@/components/shared/icons";
+import { useMemo, useState } from "react";
+import {
+  Calendar,
+  ChevronDown,
+  ExpandingArrow,
+  Tick,
+} from "@/components/shared/icons";
 import { INTERVALS } from "@/lib/constants";
 import useScroll from "@/lib/hooks/use-scroll";
-import { IntervalProps } from "@/lib/stats";
 import { linkConstructor } from "@/lib/utils";
+import IconMenu from "@/components/shared/icon-menu";
+import Popover from "@/components/shared/popover";
 
 export default function Toggle({
   domain,
@@ -15,7 +20,11 @@ export default function Toggle({
   atModalTop?: boolean;
 }) {
   const router = useRouter();
-  const { slug, key, interval } = router.query as {
+  const {
+    slug,
+    key,
+    interval = "24h",
+  } = router.query as {
     slug?: string;
     key: string;
     interval?: string;
@@ -32,9 +41,12 @@ export default function Toggle({
     return "stats";
   }, [slug, key, router.asPath]);
 
-  const currentInterval = (interval as IntervalProps) || "24h";
-
   const atTop = useScroll(80) || atModalTop;
+  const [openPopover, setOpenPopover] = useState(false);
+
+  const selectedInterval = useMemo(() => {
+    return INTERVALS.find((s) => s.slug === interval) || INTERVALS[1];
+  }, [interval]);
 
   return (
     <div
@@ -52,7 +64,55 @@ export default function Toggle({
           {linkConstructor({ key, domain, pretty: true })}
           <ExpandingArrow className="h-5 w-5" />
         </a>
-        <div className="rounded-md border border-gray-100 bg-white px-3 py-1 shadow-md">
+        <Popover
+          content={
+            <div className="w-full p-2 md:w-48">
+              {INTERVALS.map(({ display, slug }) => (
+                <button
+                  key={slug}
+                  onClick={() => {
+                    router.push(
+                      {
+                        query: {
+                          ...router.query,
+                          interval: slug,
+                        },
+                      },
+                      `/${pageType}/${encodeURI(
+                        router.query.key as string,
+                      )}?interval=${slug}`,
+                      { shallow: true },
+                    );
+                  }}
+                  className="flex w-full items-center justify-between space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
+                >
+                  <p className="text-sm">{display}</p>
+                  {selectedInterval.slug === slug && (
+                    <Tick className="h-4 w-4" aria-hidden="true" />
+                  )}
+                </button>
+              ))}
+            </div>
+          }
+          openPopover={openPopover}
+          setOpenPopover={setOpenPopover}
+        >
+          <button
+            onClick={() => setOpenPopover(!openPopover)}
+            className="flex w-full items-center justify-between space-x-2 rounded-md bg-white px-3 py-2.5 shadow transition-all duration-75 hover:shadow-md active:scale-95 sm:w-48"
+          >
+            <IconMenu
+              text={selectedInterval.display}
+              icon={<Calendar className="h-4 w-4" />}
+            />
+            <ChevronDown
+              className={`h-5 w-5 text-gray-400 ${
+                openPopover ? "rotate-180 transform" : ""
+              } transition-all duration-75`}
+            />
+          </button>
+        </Popover>
+        {/* <div className="rounded-md border border-gray-100 bg-white px-3 py-1 shadow-md">
           <BadgeSelect
             options={INTERVALS}
             selected={currentInterval}
@@ -72,7 +132,7 @@ export default function Toggle({
               );
             }}
           />
-        </div>
+        </div> */}
       </div>
     </div>
   );

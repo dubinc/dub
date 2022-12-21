@@ -60,6 +60,11 @@ export function nFormatter(num: number, digits?: number) {
     : "0";
 }
 
+export function capitalize(str: string) {
+  if (!str || typeof str !== "string") return str;
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 export function linkConstructor({
   key,
   domain = "dub.sh",
@@ -97,6 +102,28 @@ export const getDateTimeLocal = (timestamp?: Date): string => {
     .join(":");
 };
 
+export const getFirstAndLastDay = (day: number) => {
+  const today = new Date();
+  const currentDay = today.getDate();
+  const currentMonth = today.getMonth();
+  const currentYear = today.getFullYear();
+  if (currentDay >= day) {
+    // if the current day is greater than target day, it means that we just passed it
+    return {
+      firstDay: new Date(currentYear, currentMonth, day),
+      lastDay: new Date(currentYear, currentMonth + 1, day - 1),
+    };
+  } else {
+    // if the current day is less than target day, it means that we haven't passed it yet
+    const lastYear = currentMonth === 0 ? currentYear - 1 : currentYear; // if the current month is January, we need to go back a year
+    const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1; // if the current month is January, we need to go back to December
+    return {
+      firstDay: new Date(lastYear, lastMonth, day),
+      lastDay: new Date(currentYear, currentMonth, day - 1),
+    };
+  }
+};
+
 export const generateDomainFromName = (name: string) => {
   const normalizedName = name.toLowerCase().replaceAll(" ", "-");
   if (normalizedName.length < 3) {
@@ -121,28 +148,6 @@ export const generateDomainFromName = (name: string) => {
 export const validDomainRegex = new RegExp(
   "^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$",
 );
-
-export const getFirstAndLastDay = (day: number) => {
-  const today = new Date();
-  const currentDay = today.getDate();
-  const currentMonth = today.getMonth();
-  const currentYear = today.getFullYear();
-  if (currentDay >= day) {
-    // if the current day is greater than target day, it means that we just passed it
-    return {
-      firstDay: new Date(currentYear, currentMonth, day),
-      lastDay: new Date(currentYear, currentMonth + 1, day - 1),
-    };
-  } else {
-    // if the current day is less than target day, it means that we haven't passed it yet
-    const lastYear = currentMonth === 0 ? currentYear - 1 : currentYear; // if the current month is January, we need to go back a year
-    const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1; // if the current month is January, we need to go back to December
-    return {
-      firstDay: new Date(lastYear, lastMonth, day),
-      lastDay: new Date(currentYear, currentMonth, day - 1),
-    };
-  }
-};
 
 export const getSubdomain = (name: string, apexName: string) => {
   if (name === apexName) return null;
@@ -173,6 +178,53 @@ export const getApexDomain = (url: string) => {
   }
   // if it's a normal domain (e.g. dub.sh), we return the domain
   return domain;
+};
+
+export const isValidUrl = (url: string) => {
+  try {
+    new URL(url);
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
+
+export const getUrlFromString = (str: string) => {
+  if (isValidUrl(str)) return str;
+  try {
+    if (str.includes(".") && !str.includes(" ")) {
+      return new URL(`https://${str}`).toString();
+    }
+  } catch (e) {
+    return null;
+  }
+};
+
+export const getDomainWithoutWWW = (url: string) => {
+  if (isValidUrl(url)) {
+    return new URL(url).hostname.replace(/^www\./, "");
+  }
+  try {
+    if (url.includes(".") && !url.includes(" ")) {
+      return new URL(`https://${url}`).hostname.replace(/^www\./, "");
+    }
+  } catch (e) {
+    return null;
+  }
+};
+
+export const getQueryString = (router: NextRouter) => {
+  const { slug: omit, ...queryWithoutSlug } = router.query as {
+    slug: string;
+    [key: string]: string;
+  };
+  const queryString = new URLSearchParams(queryWithoutSlug).toString();
+  return `${queryString ? "?" : ""}${queryString}`;
+};
+
+export const truncate = (str: string, length: number) => {
+  if (!str || str.length <= length) return str;
+  return `${str.slice(0, length)}...`;
 };
 
 export const getParamsFromURL = (url: string) => {
@@ -227,53 +279,6 @@ export const getUrlWithoutUTMParams = (url: string) => {
   } catch (e) {
     return url;
   }
-};
-
-export const isValidUrl = (url: string) => {
-  try {
-    new URL(url);
-    return true;
-  } catch (e) {
-    return false;
-  }
-};
-
-export const getUrlFromString = (str: string) => {
-  if (isValidUrl(str)) return str;
-  try {
-    if (str.includes(".") && !str.includes(" ")) {
-      return new URL(`https://${str}`).toString();
-    }
-  } catch (e) {
-    return null;
-  }
-};
-
-export const getDomainWithoutWWW = (url: string) => {
-  if (isValidUrl(url)) {
-    return new URL(url).hostname.replace(/^www\./, "");
-  }
-  try {
-    if (url.includes(".") && !url.includes(" ")) {
-      return new URL(`https://${url}`).hostname.replace(/^www\./, "");
-    }
-  } catch (e) {
-    return null;
-  }
-};
-
-export const getQueryString = (router: NextRouter) => {
-  const { slug: omit, ...queryWithoutSlug } = router.query as {
-    slug: string;
-    [key: string]: string;
-  };
-  const queryString = new URLSearchParams(queryWithoutSlug).toString();
-  return `${queryString ? "?" : ""}${queryString}`;
-};
-
-export const truncate = (str: string, length: number) => {
-  if (!str || str.length <= length) return str;
-  return `${str.slice(0, length)}...`;
 };
 
 const logTypeToEnv = {

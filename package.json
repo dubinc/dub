@@ -75,6 +75,7 @@
     "@types/react": "18.0.25",
     "@types/react-dom": "18.0.9",
     "@types/topojson-client": "^3.1.1",
+    "array-to-ndjson": "^1.0.1",
     "autoprefixer": "^10.4.13",
     "mailing": "^0.9.1",
     "postcss": "^8.4.19",
