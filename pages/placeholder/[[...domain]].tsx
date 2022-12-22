@@ -6,7 +6,7 @@ import HomeLayout from "@/components/layout/home";
 export default function Placeholder({ domain }: { domain: string }) {
   return (
     <HomeLayout domain={domain}>
-      <Globe domain={domain} />
+      <Globe />
     </HomeLayout>
   );
 }

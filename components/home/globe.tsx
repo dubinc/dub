@@ -13,7 +13,7 @@ interface MarkerProps {
   size: number;
 }
 
-export default function Globe({ domain }: { domain?: string }) {
+export default function Globe() {
   const divRef = useRef<any>();
   const entry = useIntersectionObserver(divRef, {});
   const isVisible = !!entry?.isIntersecting;
@@ -30,7 +30,7 @@ export default function Globe({ domain }: { domain?: string }) {
   const [webglSupported, setWebglSupported] = useState(true);
 
   const { data: markers } = useSWR<MarkerProps[]>(
-    `/api/edge/coordinates${domain ? `?domain=${domain}` : ""}`,
+    `/api/edge/coordinates`,
     fetcher,
   );
 
@@ -55,20 +55,12 @@ export default function Globe({ domain }: { domain?: string }) {
         webglSupported ? "min-h-[500px] sm:min-h-[1000px]" : "min-h-[50px]"
       } h-full`}
     >
-      {webglSupported && showGlobe && (
-        <GlobeAnimation domain={domain} markers={markers} />
-      )}
+      {webglSupported && showGlobe && <GlobeAnimation markers={markers} />}
     </div>
   );
 }
 
-const GlobeAnimation = ({
-  domain,
-  markers,
-}: {
-  domain?: string;
-  markers: MarkerProps[];
-}) => {
+const GlobeAnimation = ({ markers }: { markers: MarkerProps[] }) => {
   const canvasRef = useRef<any>();
   const pointerInteracting = useRef(null);
   const pointerInteractionMovement = useRef(0);
@@ -145,25 +137,23 @@ const GlobeAnimation = ({
               This map shows the locations of the last 50 clicks on{" "}
               <a
                 className="font-semibold text-blue-800"
-                href={domain ? `https://${domain}` : "https://dub.sh/github"}
+                href="https://dub.sh/github"
                 target="_blank"
                 rel="noreferrer"
               >
-                {domain || "dub.sh/github"}
+                dub.sh/github
               </a>{" "}
               in real time.
             </p>
-            {!domain && (
-              <Link
-                href={{ pathname: "/", query: { key: "github" } }}
-                as="/stats/github"
-                shallow
-                scroll={false}
-                className="mx-auto mt-2 block max-w-fit rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white hover:bg-white hover:text-black sm:mt-4"
-              >
-                View all stats
-              </Link>
-            )}
+            <Link
+              href={{ pathname: "/", query: { key: "github" } }}
+              as="/stats/github"
+              shallow
+              scroll={false}
+              className="mx-auto mt-2 block max-w-fit rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white hover:bg-white hover:text-black sm:mt-4"
+            >
+              View all stats
+            </Link>
           </motion.div>
         )}
       </AnimatePresence>
