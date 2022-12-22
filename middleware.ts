@@ -16,14 +16,14 @@ export const config = {
   matcher: [
     /*
      * Match all paths except for:
-     * 1. /api routes
+     * 1. /api/ routes
      * 2. /_next (Next.js internals)
      * 3. /_proxy & /_auth (special pages for OG tag proxying and password protection)
      * 4. /_static (inside /public)
      * 5. /_vercel (Vercel internals)
      * 6. all root files inside /public (e.g. /favicon.ico)
      */
-    "/((?!api|_next|_proxy|_auth|_static|_vercel|[\\w-]+\\.\\w+).*)",
+    "/((?!api/|_next|_proxy|_auth|_static|_vercel|[\\w-]+\\.\\w+).*)",
   ],
 };
 
