@@ -3,6 +3,7 @@ import { redis } from "@/lib/upstash";
 import { HOME_HOSTNAMES } from "@/lib/constants";
 import { recordClick } from "@/lib/tinybird";
 import { parse } from "./utils";
+import { RootDomainProps } from "../types";
 
 export default async function RootMiddleware(
   req: NextRequest,
@@ -25,13 +26,17 @@ export default async function RootMiddleware(
   ) {
     return NextResponse.next();
   } else {
-    const target = await redis.get<string>(`root:${domain}`);
+    const { target, rewrite } =
+      (await redis.get<RootDomainProps>(`root:${domain}`)) || {};
     if (target) {
-      return NextResponse.redirect(target);
+      if (rewrite) {
+        return NextResponse.rewrite(target);
+      } else {
+        return NextResponse.redirect(target);
+      }
     } else {
-      const url = req.nextUrl;
-      url.pathname = `/placeholder/${domain}`; // rewrite to a /placeholder page unless the user defines a site to redirect to
-      return NextResponse.rewrite(url);
+      // rewrite to a /placeholder page unless the user defines a site to redirect to
+      return NextResponse.rewrite(new URL(`/placeholder/${domain}`, req.url));
     }
   }
 }

@@ -65,3 +65,8 @@ export type DomainVerificationStatusProps =
   | "Pending Verification"
   | "Domain Not Found"
   | "Unknown Error";
+
+export interface RootDomainProps {
+  target: string;
+  rewrite?: boolean;
+}

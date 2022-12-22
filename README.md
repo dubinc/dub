@@ -58,6 +58,8 @@ Add a custom OG image in front of your target URL. Bots like Twitter/Facebook wi
 
 ## Deploy Your Own
 
+> Note: one-click deployment is a bit broken at the moment – you'll need to change some of the hard-coded values in the codebase to get it working. We're working on fixing this.
+
 You can deploy your own hosted version of Dub for greater privacy & control. Just click the link below to deploy a ready-to-go version of Dub to Vercel.
 
 [![Deploy with Vercel](https://vercel.com/button)](https://dub.sh/deploy)
