@@ -276,9 +276,6 @@ export async function editLink(link: LinkProps, oldKey: string) {
             })
             .catch(() => {}),
           redis.del(`${domain}:${oldKey}`),
-          redis
-            .rename(`${domain}:clicks:${oldKey}`, `${domain}:clicks:${key}`)
-            .catch(() => {}),
         ]
       : []),
   ]);
@@ -312,7 +309,6 @@ export async function deleteLink(domain: string, key: string) {
       invalidate: true,
     }),
     redis.del(`${domain}:${key}`),
-    redis.del(`${domain}:clicks:${key}`),
   ]);
 }
 
@@ -348,10 +344,8 @@ export async function changeDomainForLinks(
     },
   });
   const pipeline = redis.pipeline();
-  pipeline.rename(`${domain}:root:clicks`, `${newDomain}:root:clicks`);
   links.forEach(({ key }) => {
     pipeline.rename(`${domain}:${key}`, `${newDomain}:${key}`);
-    pipeline.rename(`${domain}:clicks:${key}`, `${newDomain}:clicks:${key}`);
   });
   try {
     return await pipeline.exec();
@@ -400,10 +394,8 @@ export async function deleteProjectLinks(domain: string) {
     },
   });
   const pipeline = redis.pipeline();
-  pipeline.del(`${domain}:root:clicks`);
   links.forEach(({ key }) => {
     pipeline.del(`${domain}:${key}`);
-    pipeline.del(`${domain}:clicks:${key}`);
   });
   try {
     return await pipeline.exec();

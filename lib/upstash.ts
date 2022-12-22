@@ -36,43 +36,8 @@ export async function setRandomKey(
     // by the off chance that key already exists
     return setRandomKey(url);
   } else {
-    const pipeline = redis.pipeline();
-    pipeline.zadd(`dub.sh:clicks:${key}`, {
-      score: Date.now(),
-      member: {
-        geo: LOCALHOST_GEO_DATA,
-        ua: "Dub-Bot",
-        referer: "https://dub.sh",
-        timestamp: Date.now(),
-      },
-    });
-    pipeline.expire(`dub.sh:clicks:${key}`, 30 * 60); // 30 minutes
-    await pipeline.exec();
     return { response, key };
   }
-}
-
-/**
- * Recording clicks with geo, ua, referer and timestamp data
- * If key is not specified, record click as the root click
- **/
-export async function recordClick(
-  domain: string,
-  req: NextRequest,
-  key?: string,
-) {
-  return await redis.zadd(
-    key ? `${domain}:clicks:${key}` : `${domain}:root:clicks`,
-    {
-      score: Date.now(),
-      member: {
-        geo: process.env.VERCEL === "1" ? req.geo : LOCALHOST_GEO_DATA,
-        ua: userAgent(req),
-        referer: req.headers.get("referer"),
-        timestamp: Date.now(),
-      },
-    },
-  );
 }
 
 /**
@@ -88,11 +53,4 @@ export async function recordMetatags(url: string, error: boolean) {
       url,
     });
   }
-}
-
-export async function getLinkClicksCount(domain: string, key: string) {
-  const start = Date.now() - 2629746000; // 30 days ago
-  return (
-    (await redis.zcount(`${domain}:clicks:${key}`, start, Date.now())) || 0
-  );
 }

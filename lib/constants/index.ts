@@ -6,7 +6,28 @@ export const LOCALHOST_GEO_DATA = {
   longitude: "-122.385",
 };
 
-export const INTERVALS = ["1h", "24h", "7d", "30d"];
+export const INTERVALS = [
+  {
+    display: "Last hour",
+    slug: "1h",
+  },
+  {
+    display: "Last 24 hours",
+    slug: "24h",
+  },
+  {
+    display: "Last 7 days",
+    slug: "7d",
+  },
+  {
+    display: "Last 30 days",
+    slug: "30d",
+  },
+  {
+    display: "Last 3 months",
+    slug: "90d",
+  },
+];
 
 export const FRAMER_MOTION_LIST_ITEM_VARIANTS = {
   hidden: { scale: 0.8, opacity: 0 },

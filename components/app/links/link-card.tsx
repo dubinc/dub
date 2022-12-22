@@ -49,11 +49,11 @@ export default function LinkCard({ props }: { props: LinkProps }) {
   const entry = useIntersectionObserver(linkRef, {});
   const isVisible = !!entry?.isIntersecting;
 
-  const { data: clicks, isValidating } = useSWR<number>(
+  const { data: clicks } = useSWR<number>(
     isVisible &&
       (domain
         ? `/api/projects/${slug}/domains/${domain}/links/${key}/clicks`
-        : `/api/links/${key}/clicks`),
+        : `/api/edge/links/${key}/clicks`),
     fetcher,
     {
       fallbackData: props.clicks,
@@ -164,11 +164,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
               >
                 <Chart className="h-4 w-4" />
                 <p className="whitespace-nowrap text-sm text-gray-500">
-                  {isValidating ? (
-                    <LoadingDots color="#71717A" />
-                  ) : (
-                    nFormatter(clicks)
-                  )}
+                  {nFormatter(clicks)}
                   <span className="ml-1 hidden sm:inline-block">clicks</span>
                 </p>
               </Link>

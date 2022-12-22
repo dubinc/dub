@@ -148,8 +148,7 @@ model Link {
   ios             String?   @db.LongText  // custom link for iOS devices
   android         String?   @db.LongText  // custom link for Android devices
   
-  clicks          Int       @default(0) // number of clicks (updated every day via cron + real-time when user views links)
-  clicksUpdatedAt  DateTime @default(now()) // last time clicks was updated
+  clicks          Int       @default(0) // number of clicks
 
   // User who created the link
   user            User?    @relation(fields: [userId], references: [id])

@@ -114,7 +114,7 @@ export default function LinkCard({
       homepageDemo: true,
     });
 
-  const { data: clicks, isValidating } = useSWR<number>(
+  const { data: clicks } = useSWR<number>(
     `/api/edge/links/${key}/clicks`,
     fetcher,
     {
@@ -174,7 +174,7 @@ export default function LinkCard({
               >
                 <Chart className="h-4 w-4" />
                 <p className="text-sm">
-                  {isValidating ? (
+                  {!clicks && clicks != 0 ? (
                     <LoadingDots color="#71717A" />
                   ) : (
                     nFormatter(clicks)
