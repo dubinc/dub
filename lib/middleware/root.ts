@@ -15,17 +15,11 @@ export default async function RootMiddleware(
     return NextResponse.next();
   }
 
-  if (!HOME_HOSTNAMES.has(domain) && !domain.endsWith(".vercel.app")) {
-    ev.waitUntil(recordClick(domain, req)); // record clicks on root page (if domain is not dub.sh)
-  }
-
-  if (
-    domain === "dub.sh" ||
-    domain === "preview.dub.sh" ||
-    domain.endsWith(".vercel.app")
-  ) {
+  if (HOME_HOSTNAMES.has(domain) || domain.endsWith(".vercel.app")) {
     return NextResponse.next();
   } else {
+    ev.waitUntil(recordClick(domain, req)); // record clicks on root page (if domain is not dub.sh)
+
     const { target, rewrite } =
       (await redis.get<RootDomainProps>(`root:${domain}`)) || {};
     if (target) {
