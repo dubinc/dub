@@ -68,6 +68,7 @@ You can deploy your own hosted version of Dub for greater privacy & control. Jus
 - [Typescript](https://www.typescriptlang.org/) – language
 - [Tailwind](https://tailwindcss.com/) – CSS
 - [Upstash](https://upstash.com/) – redis
+- [Tinybird](https://tinybird.com/) – analytics
 - [Planetscale](https://planetscale.com/) – database
 - [NextAuth.js](https://next-auth.js.org/) – auth
 - [Vercel](https://vercel.com/) – hosting
@@ -77,11 +78,9 @@ You can deploy your own hosted version of Dub for greater privacy & control. Jus
 
 Dub is built as a standard Next.js application with [Middleware](https://nextjs.org/docs/advanced-features/middleware) to handle multi-tenancy, inspired by [the Vercel Platforms Starter Kit](https://github.com/vercel/platforms).
 
-[Redis](https://redis.io/) is used as the caching layer for all short links. Redis also has the Sorted Set data type, which is perfect for storing & retrieving time-series analytics data. Here's the full schema:
+[Redis](https://redis.io/) is used as the caching layer for all short links.
 
-- `{domain}:{key}` – string containing a JSON object with the target URL and password (optional). Also has an optional TTL.
-- `{domain}:clicks:{key}` – sorted set of all clicks for a given link (e.g. `dub.sh:clicks:github`)
-- `{domain}:root:clicks` – sorted set of all root link clicks for a given domain (e.g. `dub.sh:root:clicks`)
+[Clickhouse](https://clickhouse.com/) ([Tinybird](https://tinybird.com/)) is used as the analytics database for storing link click data.
 
 [MySQL](https://www.mysql.com/) is used as the database for storing user data, project data, and link metadata. You can refer to the Prisma schema [here](/prisma/schema.prisma).
 

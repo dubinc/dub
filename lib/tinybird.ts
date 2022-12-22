@@ -92,18 +92,3 @@ export async function getClicks({
   }
   return clicks;
 }
-
-export async function getLinksByClicks(domain: string) {
-  const response = await fetch(
-    `https://api.us-east.tinybird.co/v0/pipes/links.json?domain=${domain}`,
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
-      },
-    },
-  )
-    .then((res) => res.json())
-    .then((res) => res.data);
-
-  return response;
-}

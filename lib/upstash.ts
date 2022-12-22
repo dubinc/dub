@@ -36,18 +36,6 @@ export async function setRandomKey(
     // by the off chance that key already exists
     return setRandomKey(url);
   } else {
-    const pipeline = redis.pipeline();
-    pipeline.zadd(`dub.sh:clicks:${key}`, {
-      score: Date.now(),
-      member: {
-        geo: LOCALHOST_GEO_DATA,
-        ua: "Dub-Bot",
-        referer: "https://dub.sh",
-        timestamp: Date.now(),
-      },
-    });
-    pipeline.expire(`dub.sh:clicks:${key}`, 30 * 60); // 30 minutes
-    await pipeline.exec();
     return { response, key };
   }
 }
@@ -65,11 +53,4 @@ export async function recordMetatags(url: string, error: boolean) {
       url,
     });
   }
-}
-
-export async function getLinkClicksCount(domain: string, key: string) {
-  const start = Date.now() - 2629746000; // 30 days ago
-  return (
-    (await redis.zcount(`${domain}:clicks:${key}`, start, Date.now())) || 0
-  );
 }

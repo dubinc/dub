@@ -25,12 +25,12 @@ export default function DomainConfiguration({
     );
     return (
       <div className="border-t border-gray-200 pt-5">
-        <p className="mb-5 text-sm">
+        <p className="text-sm">
           Please set the following TXT record on{" "}
           <InlineSnippet>{domainJson.apexName}</InlineSnippet> to prove
           ownership of <InlineSnippet>{domainJson.name}</InlineSnippet>:
         </p>
-        <div className="flex items-start justify-start space-x-10 rounded-md bg-gray-50 p-2">
+        <div className="my-5 flex items-start justify-start space-x-10 rounded-md bg-gray-50 p-2">
           <div>
             <p className="text-sm font-bold">Type</p>
             <p className="mt-2 font-mono text-sm">{txtVerification.type}</p>
@@ -51,6 +51,11 @@ export default function DomainConfiguration({
             </p>
           </div>
         </div>
+        <p className="text-sm">
+          Warning: if you are using this domain for another site, setting this
+          TXT record will transfer domain ownership away from that site and
+          break it. Please exercise caution when setting this record.
+        </p>
       </div>
     );
   }
@@ -118,7 +123,7 @@ export default function DomainConfiguration({
             <p className="mt-2 font-mono text-sm">86400</p>
           </div>
         </div>
-        <p className="mt-3 text-sm">
+        <p className="mt-5 text-sm">
           Note: for TTL, if <InlineSnippet>86400</InlineSnippet> is not
           available, set the highest value possible. Also, domain propagation
           can take up to an hour.

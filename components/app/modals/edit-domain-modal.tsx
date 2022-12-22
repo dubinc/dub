@@ -61,7 +61,7 @@ function EditDomainModal({
           <h3 className="text-lg font-medium">Change Domain</h3>
           <p className="text-center text-sm text-gray-500">
             Warning: Changing your project's domain will break all existing
-            short links.
+            short links and reset their analytics.
           </p>
         </div>
 
