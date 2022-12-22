@@ -5,8 +5,7 @@ import { log } from "@/lib/utils";
 import { removeDomain } from "@/lib/domains";
 import prisma from "@/lib/prisma";
 import { deleteProjectLinks } from "@/lib/api/links";
-import { redis } from "@/lib/upstash";
-import { getClicks } from "../tinybird";
+import { getClicks } from "@/lib/tinybird";
 
 export const handleDomainUpdates = async (
   projectSlug: string,
@@ -44,8 +43,8 @@ export const handleDomainUpdates = async (
 
   if (invalidDays >= 30) {
     const clicks = await getClicks({ domain });
+    // only delete if there are no clicks recorded in Tinybird
     if (clicks === 0) {
-      // only delete if there are no clicks recorded in Tinybird
       const ownerEmail = await getProjectOwnerEmail(projectSlug);
       return await Promise.all([
         prisma.project.delete({
@@ -69,7 +68,7 @@ export const handleDomainUpdates = async (
       ]);
     } else {
       return await log(
-        `Domain *${domain}* has been invalid for > 30 days but has links, not deleting.`,
+        `Domain *${domain}* has been invalid for > 30 days but has link clicks, not deleting.`,
         "cron",
       );
     }

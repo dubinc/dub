@@ -16,7 +16,7 @@ export async function recordClick(
   const ua = userAgent(req);
   const referer = req.headers.get("referer");
 
-  const response = await Promise.allSettled([
+  return await Promise.allSettled([
     fetch(
       "https://api.us-east.tinybird.co/v0/events?name=click_events&wait=true",
       {
@@ -58,8 +58,6 @@ export async function recordClick(
       ),
     ]),
   ]);
-  console.log(response);
-  return response;
 }
 
 export async function getClicks({
