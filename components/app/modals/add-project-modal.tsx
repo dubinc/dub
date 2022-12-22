@@ -43,19 +43,21 @@ function AddProjectModalHelper({
 
   const [debouncedSlug] = useDebounce(slug, 500);
   useEffect(() => {
-    if (debouncedSlug.length > 0 && !slugError) {
+    if (debouncedSlug.length > 0) {
       fetch(`/api/projects/${slug}/exists`).then(async (res) => {
         if (res.status === 200) {
           const exists = await res.json();
           setSlugError(exists === 1 ? "Slug is already in use." : null);
         }
       });
+    } else {
+      setSlugError(null);
     }
   }, [debouncedSlug, slugError]);
 
   const [debouncedDomain] = useDebounce(domain, 500);
   useEffect(() => {
-    if (debouncedDomain.length > 0 && !domainError) {
+    if (debouncedDomain.length > 0) {
       fetch(`/api/projects/dub.sh/domains/${debouncedDomain}/exists`).then(
         async (res) => {
           if (res.status === 200) {
@@ -64,13 +66,18 @@ function AddProjectModalHelper({
           }
         },
       );
+    } else {
+      setDomainError(null);
     }
   }, [debouncedDomain, domainError]);
 
   useEffect(() => {
     setData((prev) => ({
       ...prev,
-      slug: name.toLowerCase().replaceAll(" ", "-"),
+      slug: name
+        .toLowerCase()
+        .trim()
+        .replace(/[\W_]+/g, "-"),
       domain: generateDomainFromName(name),
     }));
   }, [name]);

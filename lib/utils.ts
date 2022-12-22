@@ -125,7 +125,10 @@ export const getFirstAndLastDay = (day: number) => {
 };
 
 export const generateDomainFromName = (name: string) => {
-  const normalizedName = name.toLowerCase().replaceAll(" ", "-");
+  const normalizedName = name
+    .toLowerCase()
+    .trim()
+    .replace(/[\W_]+/g, "");
   if (normalizedName.length < 3) {
     return "";
   }
