@@ -29,8 +29,8 @@ export default async function RootMiddleware(
         return NextResponse.redirect(target);
       }
     } else {
-      // rewrite to a /placeholder page unless the user defines a site to redirect to
-      return NextResponse.rewrite("https://dub.sh");
+      // rewrite to root page unless the user defines a site to redirect to
+      return NextResponse.next();
     }
   }
 }
