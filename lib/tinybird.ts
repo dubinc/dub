@@ -60,7 +60,7 @@ export async function recordClick(
   ]);
 }
 
-export async function getClicks({
+export async function getClicksUsage({
   domain,
   start,
   end,

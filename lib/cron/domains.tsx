@@ -5,7 +5,7 @@ import { log } from "@/lib/utils";
 import { removeDomain } from "@/lib/domains";
 import prisma from "@/lib/prisma";
 import { deleteProjectLinks } from "@/lib/api/links";
-import { getClicks } from "@/lib/tinybird";
+import { getClicksUsage } from "@/lib/tinybird";
 
 export const handleDomainUpdates = async (
   projectSlug: string,
@@ -42,7 +42,7 @@ export const handleDomainUpdates = async (
   }
 
   if (invalidDays >= 30) {
-    const clicks = await getClicks({ domain });
+    const clicks = await getClicksUsage({ domain });
     // only delete if there are no clicks recorded in Tinybird
     if (clicks === 0) {
       const ownerEmail = await getProjectOwnerEmail(projectSlug);

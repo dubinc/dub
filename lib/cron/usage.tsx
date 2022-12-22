@@ -1,7 +1,7 @@
 import sendMail from "emails";
 import UsageExceeded from "emails/UsageExceeded";
 import prisma from "@/lib/prisma";
-import { getClicks } from "@/lib/tinybird";
+import { getClicksUsage } from "@/lib/tinybird";
 import { getFirstAndLastDay, log } from "@/lib/utils";
 
 export const updateUsage = async () => {
@@ -155,7 +155,7 @@ const getUsage = async (
 ): Promise<number> => {
   const { firstDay, lastDay } = getFirstAndLastDay(billingCycleStart);
 
-  const usage = await getClicks({
+  const usage = await getClicksUsage({
     domain,
     start: firstDay.toISOString().replace("T", " ").replace("Z", ""),
     end: lastDay.toISOString().replace("T", " ").replace("Z", ""),
