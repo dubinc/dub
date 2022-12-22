@@ -223,11 +223,11 @@ function AddEditLinkModal({
       setShowModal={setShowAddEditLinkModal}
       closeWithX={homepageDemo ? false : true}
     >
-      <div className="grid max-h-[min(906px,_90vh)] w-full divide-x divide-gray-100 overflow-scroll bg-white shadow-xl transition-all scrollbar-hide sm:max-w-screen-lg sm:grid-cols-2 sm:rounded-2xl sm:border sm:border-gray-200">
+      <div className="relative grid max-h-[min(906px,_90vh)] w-full divide-x divide-gray-100 overflow-scroll bg-white shadow-xl transition-all scrollbar-hide sm:max-w-screen-lg sm:grid-cols-2 sm:rounded-2xl sm:border sm:border-gray-200">
         {!hideXButton && !homepageDemo && (
           <button
             onClick={() => setShowAddEditLinkModal(false)}
-            className="group absolute top-0 right-0 m-3 hidden rounded-full p-2 text-gray-500 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 sm:block"
+            className="group absolute top-0 right-0 z-20 m-3 hidden rounded-full p-2 text-gray-500 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 sm:block"
           >
             <X className="h-5 w-5" />
           </button>

@@ -30,7 +30,7 @@ export default async function RootMiddleware(
       }
     } else {
       // rewrite to a /placeholder page unless the user defines a site to redirect to
-      return NextResponse.rewrite(new URL(`/placeholder/${domain}`, req.url));
+      return NextResponse.rewrite("https://dub.sh");
     }
   }
 }

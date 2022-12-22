@@ -3,9 +3,9 @@ import { ParsedUrlQuery } from "querystring";
 import Globe from "@/components/home/globe";
 import HomeLayout from "@/components/layout/home";
 
-export default function Placeholder({ domain }: { domain: string }) {
+export default function Placeholder() {
   return (
-    <HomeLayout domain={domain}>
+    <HomeLayout>
       <Globe />
     </HomeLayout>
   );
@@ -15,12 +15,8 @@ interface Params extends ParsedUrlQuery {
 }
 
 export const getStaticPaths = async () => {
-  const paths = [
-    { params: { domain: [] } },
-    { params: { domain: ["stey.me"] } },
-  ];
   return {
-    paths,
+    paths: [],
     fallback: "blocking",
   };
 };
@@ -29,7 +25,7 @@ export const getStaticProps: GetStaticProps = async (context) => {
   const { domain } = context.params as Params;
   return {
     props: {
-      domain: domain ? domain[0] : "dub.sh",
+      domain,
     },
   };
 };
