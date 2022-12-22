@@ -112,27 +112,6 @@ export default function Toggle({
             />
           </button>
         </Popover>
-        {/* <div className="rounded-md border border-gray-100 bg-white px-3 py-1 shadow-md">
-          <BadgeSelect
-            options={INTERVALS}
-            selected={currentInterval}
-            // @ts-ignore
-            selectAction={(interval) => {
-              router.push(
-                {
-                  query: {
-                    ...router.query,
-                    interval,
-                  },
-                },
-                `/${pageType}/${encodeURI(
-                  router.query.key as string,
-                )}?interval=${interval}`,
-                { shallow: true },
-              );
-            }}
-          />
-        </div> */}
       </div>
     </div>
   );

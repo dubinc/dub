@@ -18,11 +18,13 @@ export default async function handler(req: NextRequest) {
       let clicks = 0;
       try {
         clicks = response.rows[0]["clicks"];
+        return new Response(JSON.stringify(clicks), { status: 200 });
       } catch (e) {
         console.log(e);
       }
-      return new Response(JSON.stringify(clicks), { status: 200 });
     }
+
+    // if Planetscale fails or no interval is provided, get the total clicks from Tinybird
     const response = await getStats({
       domain: "dub.sh",
       key,
