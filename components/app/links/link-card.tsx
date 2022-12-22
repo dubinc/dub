@@ -57,7 +57,6 @@ export default function LinkCard({ props }: { props: LinkProps }) {
     fetcher,
     {
       fallbackData: props.clicks,
-      dedupingInterval: 15000, // fetch at most once every 15 seconds
     },
   );
 
