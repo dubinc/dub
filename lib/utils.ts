@@ -78,9 +78,9 @@ export function linkConstructor({
   pretty?: boolean;
   noDomain?: boolean;
 }) {
-  const link = `${
-    localhost ? "http://localhost:3000" : `https://${domain}`
-  }/${key}`;
+  const link = `${localhost ? "http://localhost:3000" : `https://${domain}`}${
+    key !== "_root" ? `/${key}` : ""
+  }`;
 
   if (noDomain) return `/${key}`;
   return pretty ? link.replace(/^https?:\/\//, "") : link;
