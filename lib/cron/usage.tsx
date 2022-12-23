@@ -64,7 +64,7 @@ export const updateUsage = async () => {
           projects.map(async ({ project: { id, domain } }) => {
             return {
               id,
-              usage: await getUsage(domain, billingCycleStart),
+              usage: await getUsageForProject(domain, billingCycleStart),
             };
           }),
         );
@@ -149,7 +149,7 @@ export const updateUsage = async () => {
 /**
  * Get the usage for a project
  **/
-const getUsage = async (
+const getUsageForProject = async (
   domain: string,
   billingCycleStart: number,
 ): Promise<number> => {
