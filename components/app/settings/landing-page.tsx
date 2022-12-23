@@ -7,6 +7,7 @@ import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 import useProject from "@/lib/swr/use-project";
 import useUsage from "@/lib/swr/use-usage";
 import { fetcher, nFormatter } from "@/lib/utils";
+import Link from "next/link";
 
 export default function LandingPage() {
   const router = useRouter();
@@ -21,7 +22,7 @@ export default function LandingPage() {
     fetcher,
   );
 
-  const { data: clicks, isValidating } = useSWR<string>(
+  const { data: clicks } = useSWR<string>(
     slug && domain && `/api/projects/${slug}/domains/${domain}/root/clicks`,
     fetcher,
   );
@@ -66,17 +67,20 @@ export default function LandingPage() {
             </a>
           </p>
           {domainVerified && (
-            <div className="absolute top-5 right-5 flex cursor-default items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 sm:relative sm:inset-auto">
+            <Link
+              href={`/${slug}/_root`}
+              className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 transition-all duration-75 hover:scale-105 active:scale-95"
+            >
               <Chart className="h-4 w-4" />
               <p className="text-sm text-gray-500">
-                {isValidating || !clicks ? (
+                {!clicks ? (
                   <LoadingDots color="#71717A" />
                 ) : (
                   nFormatter(parseInt(clicks))
                 )}{" "}
                 clicks
               </p>
-            </div>
+            </Link>
           )}
         </div>
         <div />

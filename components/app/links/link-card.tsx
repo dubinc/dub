@@ -159,7 +159,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
               </button>
               <Link
                 href={`/${slug || "links"}/${encodeURI(key)}`}
-                className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 transition-all duration-75 hover:scale-105 active:scale-95"
+                className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 transition-all duration-75 hover:scale-105 active:scale-100"
               >
                 <Chart className="h-4 w-4" />
                 <p className="whitespace-nowrap text-sm text-gray-500">
