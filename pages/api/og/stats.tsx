@@ -58,7 +58,7 @@ export default async function handler(req: NextRequest) {
             fontWeight: "bold",
             fontFamily: "Inter",
             color: "black",
-            opacity: 0.7,
+            opacity: 0.6,
             marginTop: "16px",
           }}
         >
