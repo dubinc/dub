@@ -1,14 +1,9 @@
 import { GetStaticProps } from "next";
 import { ParsedUrlQuery } from "querystring";
-import Globe from "@/components/home/globe";
 import HomeLayout from "@/components/layout/home";
 
 export default function Placeholder() {
-  return (
-    <HomeLayout>
-      <Globe />
-    </HomeLayout>
-  );
+  return <HomeLayout>hello</HomeLayout>;
 }
 interface Params extends ParsedUrlQuery {
   slug: string[];

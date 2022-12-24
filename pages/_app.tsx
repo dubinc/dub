@@ -8,7 +8,7 @@ import localFont from "@next/font/local";
 import { Inter } from "@next/font/google";
 
 const satoshi = localFont({
-  src: "./Satoshi-Variable.woff2",
+  src: "../styles/Satoshi-Variable.woff2",
   variable: "--font-satoshi",
   weight: "300 900",
   display: "swap",

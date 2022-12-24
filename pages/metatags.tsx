@@ -37,12 +37,11 @@ export default function Metatags({ tweets }: { tweets: any }) {
 
   return (
     <HomeLayout
-      meta={
-        <Meta
-          title="Metatags API - The Free API to Get Meta Tags from a URL"
-          description="Dub's Metatags API is a free & simple API to retrieve meta & OG tags from a URL, powered by Vercel Edge Functions."
-        />
-      }
+      meta={{
+        title: "Metatags API - The Free API to Get Meta Tags from a URL",
+        description:
+          "Dub's Metatags API is a free & simple API to retrieve meta & OG tags from a URL, powered by Vercel Edge Functions.",
+      }}
     >
       <Background />
       <div className="z-10 mx-2 my-10 flex max-w-md flex-col space-y-5 px-2.5 text-center sm:mx-auto sm:max-w-lg sm:px-0 lg:mb-28">
