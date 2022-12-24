@@ -86,6 +86,7 @@ export const getStaticPaths = async () => {
   const domains = await prisma.project.findMany({
     where: {
       domainVerified: true,
+      ownerUsageLimit: 1000,
     },
     select: {
       domain: true,
