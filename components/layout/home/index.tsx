@@ -63,7 +63,7 @@ export default function HomeLayout({
         </div>
       </div>
       {children}
-      <div className="z-10 flex h-20 items-center justify-center space-x-12 border-t border-gray-200 bg-white">
+      <div className="z-10 flex h-20 items-center justify-center space-x-12 border-t border-gray-200">
         <a href="https://twitter.com/dubdotsh" target="_blank" rel="noreferrer">
           <span className="sr-only">Twitter</span>
           <Twitter className="h-6 w-6 text-gray-600" />

@@ -7,35 +7,19 @@ export default function Logo({ className }: { className: string }) {
       viewBox="0 0 191 191"
       className={className}
     >
-      <g clipPath="url(#clip0_36_30)">
+      <g clipPath="url(#clip0_928_108)">
         <path
           fill="currentColor"
-          d="M191 95.5c0 52.743-42.757 95.5-95.5 95.5S0 148.243 0 95.5 42.757 0 95.5 0 191 42.757 191 95.5z"
+          fillRule="evenodd"
+          d="M122-14h22v27.215a94.965 94.965 0 00-22-9.49V-14zm0 17.725A95.548 95.548 0 0095.5 0C42.757 0 0 42.757 0 95.5S42.757 191 95.5 191 191 148.243 191 95.5c0-35.038-18.869-65.669-47-82.285V148h-22v-7.103A48.776 48.776 0 0195 149c-27.062 0-49-21.938-49-49s21.938-49 49-49a48.773 48.773 0 0127 8.103V3.725z"
+          clipRule="evenodd"
         ></path>
-        <mask
-          id="mask0_36_30"
-          style={{ maskType: "alpha" }}
-          width="191"
-          height="191"
-          x="0"
-          y="0"
-          maskUnits="userSpaceOnUse"
-        >
-          <path
-            fill="currentColor"
-            d="M191 95.5c0 52.743-42.757 95.5-95.5 95.5S0 148.243 0 95.5 42.757 0 95.5 0 191 42.757 191 95.5z"
-          ></path>
-        </mask>
-        <g fill="#fff" mask="url(#mask0_36_30)">
-          <circle cx="95" cy="100" r="49"></circle>
-          <path d="M122-14h22v162h-22V-14z"></path>
-        </g>
       </g>
       <defs>
-        <clipPath id="clip0_36_30">
-          <path fill="#fff" d="M0 0H191V191H0z"></path>
+        <clipPath id="clip0_928_108">
+          <rect width="191" height="191" fill="#fff" rx="95.5"></rect>
         </clipPath>
-      </defs>{" "}
+      </defs>
     </svg>
   );
 }
