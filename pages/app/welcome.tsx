@@ -2,15 +2,10 @@ import Background from "@/components/shared/background";
 import Intro from "@/components/app/welcome/intro";
 import Interim from "@/components/app/welcome/interim";
 import { AnimatePresence } from "framer-motion";
-import { Suspense, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAddProjectModal } from "@/components/app/modals/add-project-modal";
 import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal";
 import Meta from "@/components/layout/meta";
-
-const staggerChildVariants = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.4, type: "spring" } },
-};
 
 export default function Welcome() {
   const [state, setState] = useState("intro");
@@ -41,24 +36,10 @@ export default function Welcome() {
       <Background />
       <AddProjectModal />
       <AddEditLinkModal />
-      <Suspense>
-        <AnimatePresence mode="wait">
-          {state === "intro" && (
-            <Intro
-              key="intro"
-              setState={setState}
-              staggerChildVariants={staggerChildVariants}
-            />
-          )}
-          {state === "interim" && (
-            <Interim
-              key="interim"
-              setState={setState}
-              staggerChildVariants={staggerChildVariants}
-            />
-          )}
-        </AnimatePresence>
-      </Suspense>
+      <AnimatePresence mode="wait">
+        {state === "intro" && <Intro key="intro" setState={setState} />}
+        {state === "interim" && <Interim key="interim" setState={setState} />}
+      </AnimatePresence>
     </div>
   );
 }

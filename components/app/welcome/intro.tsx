@@ -2,13 +2,12 @@ import Spline from "@splinetool/react-spline";
 import { Dispatch, SetStateAction, useState } from "react";
 import { useDebounce } from "use-debounce";
 import { motion } from "framer-motion";
+import { STAGGER_CHILD_VARIANTS } from "@/lib/constants";
 
 export default function Intro({
   setState,
-  staggerChildVariants,
 }: {
   setState: Dispatch<SetStateAction<string>>;
-  staggerChildVariants: any;
 }) {
   const [loading, setLoading] = useState(true);
   const onLoad = () => {
@@ -51,18 +50,18 @@ export default function Intro({
         >
           <motion.h1
             className="font-display text-4xl font-bold text-gray-800 transition-colors sm:text-5xl"
-            variants={staggerChildVariants}
+            variants={STAGGER_CHILD_VARIANTS}
           >
             Welcome to Dub
           </motion.h1>
           <motion.p
             className="max-w-md text-gray-600 transition-colors sm:text-lg"
-            variants={staggerChildVariants}
+            variants={STAGGER_CHILD_VARIANTS}
           >
             Dub gives you marketing superpowers with short links that stand out.
           </motion.p>
           <motion.button
-            variants={staggerChildVariants}
+            variants={STAGGER_CHILD_VARIANTS}
             className="rounded-full bg-gray-800 px-10 py-2 font-medium text-white transition-colors hover:bg-black"
             onClick={() => setState("interim")}
           >

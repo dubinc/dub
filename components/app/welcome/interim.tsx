@@ -2,13 +2,12 @@ import { Dispatch, SetStateAction, useState } from "react";
 import { motion } from "framer-motion";
 import BlurImage from "@/components/shared/blur-image";
 import { Logo } from "@/components/shared/icons";
+import { STAGGER_CHILD_VARIANTS } from "@/lib/constants";
 
 export default function Interim({
   setState,
-  staggerChildVariants,
 }: {
   setState: Dispatch<SetStateAction<string>>;
-  staggerChildVariants: any;
 }) {
   return (
     <motion.div
@@ -29,7 +28,7 @@ export default function Interim({
       transition={{ duration: 0.5, type: "spring" }}
     >
       <motion.div
-        variants={staggerChildVariants}
+        variants={STAGGER_CHILD_VARIANTS}
         className="flex flex-col items-center space-y-5 text-center"
       >
         <Logo className="h-11 w-11" />
@@ -39,7 +38,7 @@ export default function Interim({
       </motion.div>
       <motion.p
         className="text-gray-600 transition-colors sm:text-lg"
-        variants={staggerChildVariants}
+        variants={STAGGER_CHILD_VARIANTS}
       >
         Have your own domain? Start creating branded short links for free.{" "}
         <br className="hidden sm:block" />
@@ -55,7 +54,7 @@ export default function Interim({
         domain to create short links.
       </motion.p>
       <motion.div
-        variants={staggerChildVariants}
+        variants={STAGGER_CHILD_VARIANTS}
         className="grid w-full grid-cols-1 divide-y divide-gray-100 rounded-md border border-gray-200 bg-white md:grid-cols-2 md:divide-x"
       >
         <button

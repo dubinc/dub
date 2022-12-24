@@ -30,7 +30,7 @@ export default async function RootMiddleware(
       }
     } else {
       // rewrite to root page unless the user defines a site to redirect to
-      return NextResponse.next();
+      return NextResponse.rewrite(new URL(`/_root/${domain}`, req.url));
     }
   }
 }

@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode } from "react";
 import { useSession } from "next-auth/react";
 import { Github, Logo, Twitter } from "@/components/shared/icons";
 import Meta from "../meta";
@@ -22,12 +22,6 @@ export default function HomeLayout({
   const { data: session, status } = useSession();
   const router = useRouter();
   const { key } = router.query as { key?: string };
-
-  const [hostname, setHostname] = useState("dub.sh");
-  useEffect(() => {
-    setHostname(window.location.origin);
-  }, []);
-
   return (
     <div className="flex min-h-screen flex-col justify-between">
       <Meta {...meta} />
@@ -35,7 +29,7 @@ export default function HomeLayout({
         <div className="mx-auto max-w-screen-xl px-5 md:px-20">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center">
-              <Link href={hostname === "dub.sh" ? "/" : `https://dub.sh/`}>
+              <Link href="/">
                 <Image
                   src="/_static/logotype.svg"
                   alt="Dub.sh logo"
@@ -69,12 +63,12 @@ export default function HomeLayout({
         </div>
       </div>
       {children}
-      <div className="z-10 flex h-20 items-center justify-center space-x-12 border-t border-gray-200">
+      <div className="z-10 flex h-20 items-center justify-center space-x-12 border-t border-gray-200 bg-white">
         <a href="https://twitter.com/dubdotsh" target="_blank" rel="noreferrer">
           <span className="sr-only">Twitter</span>
           <Twitter className="h-6 w-6 text-gray-600" />
         </a>
-        <Link href={hostname === "https://dub.sh" ? "/" : `https://dub.sh/`}>
+        <Link href="/">
           <span className="sr-only">Dub.sh Logo</span>
           <Logo className="h-7 w-7 text-gray-600" />
         </Link>
