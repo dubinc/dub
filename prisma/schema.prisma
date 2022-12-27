@@ -8,6 +8,7 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearch", "fullTextIndex"]
 }
 
 model User {
@@ -69,6 +70,9 @@ model Project {
   name               String
   slug               String          @unique
   logo               String?
+  domain             String          @unique
+  domainVerified     Boolean         @default(false)
+  domainLastChecked  DateTime        @default(now())
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
   users              ProjectUsers[]
@@ -165,7 +169,7 @@ model Link {
 
   // Project that the link belongs to
   project       Project? @relation(fields: [projectId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  projectId     String
+  projectId     String?
   // Relational reference to the project domain
   projectDomain Domain?  @relation(fields: [domain], references: [slug], onUpdate: Cascade, onDelete: Cascade)
 
@@ -181,8 +185,10 @@ model Link {
   // TODO: might wanna add indices for utm_source, utm_medium, utm_campaign
 
   @@unique([domain, key])
-  @@index([projectId, key])
+  @@index([projectId])
   @@index(domain)
+  @@index([tagId])
+  @@fulltext([key, url, title, description])
   @@index(proxy)
   @@index(password)
   @@index(createdAt(sort: Desc))
