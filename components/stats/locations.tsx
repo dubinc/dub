@@ -28,7 +28,7 @@ export default function Locations() {
         slug && domain
           ? `/api/projects/${slug}/domains/${domain}/links/${key}/stats/${tab}`
           : `/api/edge/links/${key}/stats/${tab}`
-      }${interval ? `?interval=${interval}` : ""}`,
+      }?interval=${interval || "24h"}`,
     fetcher,
   );
 

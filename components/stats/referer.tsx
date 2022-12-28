@@ -24,7 +24,7 @@ export default function Referer() {
         slug && domain
           ? `/api/projects/${slug}/domains/${domain}/links/${key}/stats/referer`
           : `/api/edge/links/${key}/stats/referer`
-      }${interval ? `?interval=${interval}` : ""}`,
+      }?interval=${interval || "24h"}`,
     fetcher,
   );
 
