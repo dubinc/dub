@@ -185,9 +185,9 @@ model Link {
   // TODO: might wanna add indices for utm_source, utm_medium, utm_campaign
 
   @@unique([domain, key])
-  @@index([projectId])
+  @@index(projectId)
   @@index(domain)
-  @@index([tagId])
+  @@index(tagId)
   @@fulltext([key, url, title, description])
   @@index(proxy)
   @@index(password)
@@ -206,4 +206,5 @@ model Tag {
   links     Link[]
 
   @@unique([name, projectId])
+  @@index(projectId)
 }

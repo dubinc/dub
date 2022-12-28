@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 import useSWR from "swr";
-import { fetcher } from "@/lib/utils";
+import { fetcher, getQueryString } from "@/lib/utils";
 import { useDebounce } from "use-debounce";
 import { LinkProps } from "@/lib/types";
 import { LoadingSpinner, Search } from "@/components/shared/icons";
@@ -8,20 +8,20 @@ import { useState } from "react";
 
 export default function SearchBar() {
   const router = useRouter();
-  const { page, search } = router.query as { page?: string; search?: string };
-  const [debouncedSearch] = useDebounce(search, 500);
-  // const { data, isValidating } = useSWR<LinkProps[]>(
-  //   `/api/conversations?type=${type}${page ? `&page=${page}` : ""}${
-  //     debouncedSearch && debouncedSearch.length > 2
-  //       ? `&search=${debouncedSearch}`
-  //       : ""
-  //   }`,
-  //   fetcher,
-  //   {
-  //     keepPreviousData: true,
-  //   }
-  // );
-  const isValidating = false;
+  const { slug } = router.query as {
+    slug: string;
+  };
+  const { search } = router.query as { page?: string; search?: string };
+  const { isValidating } = useSWR<LinkProps[]>(
+    slug
+      ? `/api/projects/${slug}/links${getQueryString(router)}`
+      : `/api/links${getQueryString(router)}`,
+    fetcher,
+    {
+      // disable this because it keeps refreshing the state of the modal when its open
+      revalidateOnFocus: false,
+    },
+  );
   const [focused, setFocused] = useState(false);
   return (
     <div className="relative mx-2 mt-10 rounded-md shadow-sm sm:max-w-screen-lg lg:mx-auto">
