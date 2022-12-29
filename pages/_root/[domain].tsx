@@ -64,7 +64,13 @@ export default function Placeholder({ domain }: { domain: string }) {
               className="max-w-xl text-gray-600 transition-colors sm:text-lg"
               variants={STAGGER_CHILD_VARIANTS}
             >
-              <InlineSnippet>{domain}</InlineSnippet> is a custom domain on Dub
+              <InlineSnippet>{domain}</InlineSnippet> is a custom domain on{" "}
+              <a
+                className="bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text font-semibold text-transparent decoration-rose-600 hover:underline"
+                href="https://dub.sh"
+              >
+                Dub
+              </a>{" "}
               - a link management tool for modern marketing teams to create,
               share, and track short links.
             </motion.p>
