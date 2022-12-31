@@ -5,7 +5,6 @@ import prisma from "@/lib/prisma";
 import { validDomainRegex } from "@/lib/utils";
 import { changeDomainForImages, changeDomainForLinks } from "@/lib/api/links";
 import { ProjectProps } from "@/lib/types";
-import cloudinary from "cloudinary";
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse, project: ProjectProps) => {

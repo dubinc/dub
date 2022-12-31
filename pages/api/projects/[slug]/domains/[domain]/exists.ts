@@ -6,7 +6,7 @@ export default withUserAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {
     const { domain } = req.query as { domain: string };
 
-    // GET /api/projects/dub/domains/[domain]/exists – check if a domain exists (using `dub` as the default project slug)
+    // GET /api/projects/[slug]/domains/[domain]/exists – check if a domain exists
     if (req.method === "GET") {
       const project = await prisma.project.findUnique({
         where: {

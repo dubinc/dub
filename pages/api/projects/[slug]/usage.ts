@@ -14,7 +14,6 @@ export default withProjectAuth(
     // GET /api/projects/[slug]/usage – get the usage stats specific project (dependent on owner's plan)
     if (req.method === "GET") {
       return res.status(200).json(project);
-      // DELETE /api/projects/[slug] – delete a project
     } else {
       res.setHeader("Allow", ["GET"]);
       return res
