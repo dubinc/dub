@@ -316,27 +316,28 @@ export const log = async (message: string, type: "cron" | "links") => {
   }
 };
 
+export const edgeConfig = createClient(
+  `https://edge-config.vercel.com/ecfg_eh6zdvznm70adch6q0mqxshrt4ny?token=64aef40c-ea06-4aeb-b528-b94d924ec05a`,
+);
+
 export const getBlackListedDomains = async () => {
   try {
-    const edgeConfig = createClient(
-      `https://edge-config.vercel.com/ecfg_ylmguwihofcfezyvdvhvbjd2tifa?token=2d5563f7-d33f-425d-8a71-8bf689ef2fb0`,
-    );
     const domains = await edgeConfig.get("domains");
-    if (domains) {
-      return new Set(domains);
-    } else {
-      return new Set();
-    }
+    return domains || [];
   } catch (e) {
-    return new Set();
+    return [];
   }
+};
+
+export const isBlacklistedDomain = async (domain: string) => {
+  const blacklistedDomains = await getBlackListedDomains();
+  return new RegExp(blacklistedDomains.join("|")).test(
+    getDomainWithoutWWW(domain),
+  );
 };
 
 export const getBlackListedEmails = async () => {
   try {
-    const edgeConfig = createClient(
-      `https://edge-config.vercel.com/ecfg_qiw8g02joy21b1w8p2d84wuiu6pc?token=04defb1e-4ec3-427b-881e-e49d482ed36f`,
-    );
     const emails = await edgeConfig.get("emails");
     if (emails) {
       return new Set(emails);
