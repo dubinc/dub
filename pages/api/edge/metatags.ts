@@ -62,7 +62,7 @@ const getHeadChildNodes = (html) => {
       content: attributes.content,
     };
   });
-  const title = ast.querySelector("title").innerText;
+  const title = ast.querySelector("title")?.innerText;
   const linkTags = ast.querySelectorAll("link").map(({ attributes }) => {
     const { rel, href } = attributes;
     return {
