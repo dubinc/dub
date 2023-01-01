@@ -46,6 +46,7 @@ export default function ProjectSettingsPeople() {
         <div className="flex space-x-3 border-b border-gray-200 px-3 sm:px-7">
           {tabs.map((tab) => (
             <div
+              key={tab}
               className={`${
                 tab === currentTab ? "border-black" : "border-transparent"
               } border-b py-1`}
@@ -63,7 +64,10 @@ export default function ProjectSettingsPeople() {
           {users ? (
             users.length > 0 ? (
               users.map(({ name, email, joinedAt }) => (
-                <div className="flex items-center justify-between space-x-3 px-4 py-3 sm:px-8">
+                <div
+                  key={email}
+                  className="flex items-center justify-between space-x-3 px-4 py-3 sm:px-8"
+                >
                   <div className="flex items-center space-x-3">
                     <BlurImage
                       src={`https://avatars.dicebear.com/api/micah/${email}.svg`}
