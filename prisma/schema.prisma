@@ -17,10 +17,13 @@ model User {
   email             String?        @unique
   emailVerified     DateTime?
   image             String?
+
+  // we need to move all 4 of these over to project level
   stripeId          String?        @unique // Stripe customer ID
   usage             Int            @default(0)
   usageLimit        Int            @default(1000)
   billingCycleStart Int? // day of the month when the billing cycle starts
+
   accounts          Account[]
   sessions          Session[]
   projects          ProjectUsers[]
@@ -95,6 +98,7 @@ model Domain {
   updatedAt         DateTime @updatedAt
   project           Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId         String?
+  primary           Boolean  @default(false)
   links             Link[]
 }
 

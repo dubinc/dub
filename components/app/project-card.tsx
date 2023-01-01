@@ -18,7 +18,7 @@ export default function ProjectCard({
   domainVerified,
 }: ProjectProps) {
   const { data: count } = useSWR<number>(
-    `/api/projects/${slug}/domains/${domain}/links/count`,
+    `/api/projects/${slug}/links/count`,
     fetcher,
   );
   return (

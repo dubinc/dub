@@ -40,15 +40,6 @@ export async function getLinksForProject({
   });
 }
 
-export async function getLinkCountForProject(domain: string) {
-  return await prisma.link.count({
-    where: {
-      domain,
-      archived: false,
-    },
-  });
-}
-
 export async function getRandomKey(domain: string): Promise<string> {
   /* recursively get random key till it gets one that's avaialble */
   const key = nanoid();
