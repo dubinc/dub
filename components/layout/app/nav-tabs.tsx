@@ -12,6 +12,7 @@ const TabsHelper = (router: NextRouter): { name: string; href: string }[] => {
   } else if (slug) {
     return [
       { name: "Links", href: `/${slug}` },
+      { name: "Domains", href: `/${slug}/domains` },
       { name: "Settings", href: `/${slug}/settings` },
     ];
   }

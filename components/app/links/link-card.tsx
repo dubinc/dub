@@ -31,18 +31,18 @@ import {
   timeAgo,
 } from "@/lib/utils";
 import useIntersectionObserver from "@/lib/hooks/use-intersection-observer";
+import useDomains from "@/lib/swr/use-domains";
 
 export default function LinkCard({ props }: { props: LinkProps }) {
-  const { key, url, createdAt, archived, expiresAt } = props;
+  const { key, domain, url, createdAt, archived, expiresAt } = props;
 
   const apexDomain = getApexDomain(url);
 
   const router = useRouter();
   const { slug } = router.query as { slug: string };
 
-  const { project } = useProject();
-  const { domain, domainVerified } = project || {};
   const { isOwner } = useProject();
+  const { verified } = useDomains(domain);
   const { exceededUsage } = useUsage();
 
   const linkRef = useRef<any>();
@@ -52,7 +52,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
   const { data: clicks } = useSWR<number>(
     isVisible &&
       (domain
-        ? `/api/projects/${slug}/domains/${domain}/links/${key}/clicks`
+        ? `/api/projects/${slug}/links/${key}/clicks?domain=${domain}`
         : `/api/edge/links/${key}/clicks`),
     fetcher,
     {
@@ -105,7 +105,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
           />
           <div>
             <div className="flex max-w-fit items-center space-x-2">
-              {slug && !domainVerified ? (
+              {slug && !verified ? (
                 <Tooltip
                   content={
                     <TooltipContent
@@ -158,7 +158,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                 <QR className="text-gray-700 transition-all group-hover:text-blue-800" />
               </button>
               <Link
-                href={`/${slug || "links"}/${encodeURI(key)}`}
+                href={`/${`${slug}/${domain}` || "links"}/${encodeURI(key)}`}
                 className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 transition-all duration-75 hover:scale-105 active:scale-100"
               >
                 <Chart className="h-4 w-4" />

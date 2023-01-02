@@ -5,7 +5,7 @@ import { getStats } from "@/lib/stats";
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {
-    // GET /api/projects/[slug]/domains/[domain]/links/[key]/clicks - get link clicks
+    // GET /api/projects/[slug]/links/[key]/clicks - get link clicks
     if (req.method === "GET") {
       const { domain, key, interval } = req.query as {
         domain: string;

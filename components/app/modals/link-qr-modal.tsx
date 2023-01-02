@@ -15,7 +15,7 @@ import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 import { QRCodeSVG, getQRAsCanvas, getQRAsSVGDataUri } from "@/lib/qr";
 import useProject from "@/lib/swr/use-project";
 import useUsage from "@/lib/swr/use-usage";
-import { SimpleLinkProps } from "@/lib/types";
+import { LinkProps, SimpleLinkProps } from "@/lib/types";
 import { getApexDomain, linkConstructor } from "@/lib/utils";
 import IconMenu from "@/components/shared/icon-menu";
 import { Download, Photo } from "@/components/shared/icons";
@@ -30,10 +30,10 @@ function LinkQRModalHelper({
 }: {
   showLinkQRModal: boolean;
   setShowLinkQRModal: Dispatch<SetStateAction<boolean>>;
-  props: SimpleLinkProps;
+  props: LinkProps;
 }) {
   const anchorRef = useRef<HTMLAnchorElement>();
-  const { project: { domain, logo } = {} } = useProject();
+  const { project: { logo } = {} } = useProject();
   const { avatarUrl, apexDomain } = useMemo(() => {
     try {
       const apexDomain = getApexDomain(props.url);
@@ -62,9 +62,13 @@ function LinkQRModalHelper({
 
   const [showLogo, setShowLogo] = useState(true);
   const [fgColor, setFgColor] = useState("#000000");
+
   const qrData = useMemo(
     () => ({
-      value: linkConstructor({ key: props.key, domain }),
+      value: linkConstructor({
+        key: props.key,
+        domain: props.domain || "dub.sh",
+      }),
       bgColor: "#ffffff",
       fgColor,
       size: 1024,
@@ -78,7 +82,7 @@ function LinkQRModalHelper({
         },
       }),
     }),
-    [props.key, domain, fgColor, showLogo, qrLogoUrl],
+    [props, fgColor, showLogo, qrLogoUrl],
   );
 
   const copyToClipboard = async () => {
@@ -340,7 +344,7 @@ function QrDropdown({ download, qrData, showLogo, logo }) {
   );
 }
 
-export function useLinkQRModal({ props }: { props: SimpleLinkProps }) {
+export function useLinkQRModal({ props }: { props: LinkProps }) {
   const [showLinkQRModal, setShowLinkQRModal] = useState(false);
 
   const LinkQRModal = useCallback(() => {

@@ -70,3 +70,9 @@ export interface RootDomainProps {
   target: string;
   rewrite?: boolean;
 }
+
+export interface DomainProps {
+  slug: string;
+  verified: boolean;
+  primary: boolean;
+}

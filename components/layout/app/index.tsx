@@ -56,7 +56,7 @@ export default function AppLayout({
                   <>
                     <Divider className="h-8 w-8 text-gray-200 sm:mr-3" />
                     <Link
-                      href={`/${slug}/${key}`}
+                      href={`/${slug}/links/${key}`}
                       className="text-sm font-medium"
                     >
                       {key}

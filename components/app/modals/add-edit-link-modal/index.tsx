@@ -38,6 +38,7 @@ import IOSSection from "./ios-section";
 import Preview from "./preview";
 import AndroidSection from "./android-section";
 import { DEFAULT_LINK_PROPS } from "@/lib/constants";
+import useDomains from "@/lib/swr/use-domains";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
@@ -54,29 +55,31 @@ function AddEditLinkModal({
 }) {
   const router = useRouter();
   const { slug } = router.query as { slug: string };
-  const { project: { domain } = {} } = useProject();
 
   const [keyExistsError, setKeyExistsError] = useState(false);
   const [urlError, setUrlError] = useState(false);
   const [generatingSlug, setGeneratingSlug] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  const { domains, primaryDomain } = useDomains();
+
   const [data, setData] = useState<LinkProps>(
     props || {
       ...DEFAULT_LINK_PROPS,
-      domain: domain || "",
+      domain: primaryDomain || "",
       key: "",
       url: "",
     },
   );
-  const { key, url, password, proxy } = data;
+
+  const { domain, key, url, password, proxy } = data;
 
   const [debouncedKey] = useDebounce(key, 500);
   useEffect(() => {
     if (debouncedKey.length > 0 && debouncedKey !== props?.key) {
       fetch(
         domain
-          ? `/api/projects/${slug}/domains/${domain}/links/${debouncedKey}/exists`
+          ? `/api/projects/${slug}/links/${debouncedKey}/exists?domain=${domain}`
           : `/api/links/${debouncedKey}/exists`,
       ).then(async (res) => {
         if (res.status === 200) {
@@ -91,7 +94,7 @@ function AddEditLinkModal({
     setGeneratingSlug(true);
     const res = await fetch(
       domain
-        ? `/api/projects/${slug}/domains/${domain}/links/random`
+        ? `/api/projects/${slug}/links/random?domain=${domain}`
         : `/api/links/random`,
     );
     const key = await res.json();
@@ -162,14 +165,14 @@ function AddEditLinkModal({
       return {
         method: "PUT",
         url: domain
-          ? `/api/projects/${slug}/domains/${domain}/links/${props.key}`
+          ? `/api/projects/${slug}/links/${props.key}?domain=${domain}`
           : `/api/links/${props.key}`,
       };
     } else {
       return {
         method: "POST",
         url: domain
-          ? `/api/projects/${slug}/domains/${domain}/links`
+          ? `/api/projects/${slug}/links?domain=${domain}`
           : `/api/links`,
       };
     }
@@ -271,9 +274,7 @@ function AddEditLinkModal({
                 if (res.status === 200) {
                   mutate(
                     domain
-                      ? `/api/projects/${slug}/domains/${domain}/links${getQueryString(
-                          router,
-                        )}`
+                      ? `/api/projects/${slug}/links${getQueryString(router)}`
                       : `/api/links${getQueryString(router)}`,
                   );
                   if (router.asPath === "/welcome") {
@@ -376,9 +377,26 @@ function AddEditLinkModal({
                   )}
                 </div>
                 <div className="relative mt-1 flex rounded-md shadow-sm">
-                  <span className="inline-flex items-center whitespace-nowrap rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-5 text-sm text-gray-500">
-                    {domain || "dub.sh"}
-                  </span>
+                  <select
+                    disabled={lockKey}
+                    dir="ltr"
+                    className={`${
+                      lockKey ? "cursor-not-allowed" : ""
+                    } w-40 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-5 text-sm text-gray-500 focus:border-gray-300 focus:outline-none focus:ring-0`}
+                  >
+                    {domains?.map(({ slug }) => (
+                      <option
+                        key={slug}
+                        value={slug}
+                        selected={slug === domain}
+                        onClick={() => {
+                          setData({ ...data, domain: slug });
+                        }}
+                      >
+                        {slug}
+                      </option>
+                    ))}
+                  </select>
                   {lockKey ? (
                     <div className="block w-full cursor-not-allowed select-none rounded-r-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-500">
                       {props.key}

@@ -12,7 +12,6 @@ import { nFormatter } from "@/lib/utils";
 import styles from "./bar-chart.module.css";
 import useSWR from "swr";
 import { fetcher } from "@/lib/utils";
-import useProject from "@/lib/swr/use-project";
 import { LoadingCircle } from "@/components/shared/icons";
 
 const LEFT_AXIS_WIDTH = 30;
@@ -39,23 +38,23 @@ const BarChart = ({ screenWidth }: { screenWidth?: number }) => {
 
   const {
     slug,
+    domain,
     key,
     interval = "24h",
   } = router.query as {
     slug?: string;
+    domain?: string;
     key: string;
     interval?: string;
   };
-
-  const { project: { domain } = {} } = useProject();
 
   const { data } = useSWR<{ start: Date; clicks: number }[]>(
     router.isReady &&
       `${
         slug && domain
-          ? `/api/projects/${slug}/domains/${domain}/links/${key}/stats/timeseries`
+          ? `/api/projects/${slug}/links/${key}/stats/timeseries`
           : `/api/edge/links/${key}/stats/timeseries`
-      }${interval ? `?interval=${interval}` : ""}`,
+      }?interval=${interval || "24h"}&domain=${domain}`,
     fetcher,
   );
 

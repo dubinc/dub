@@ -12,27 +12,23 @@ import { linkConstructor } from "@/lib/utils";
 import IconMenu from "@/components/shared/icon-menu";
 import Popover from "@/components/shared/popover";
 
-export default function Toggle({
-  domain,
-  atModalTop,
-}: {
-  domain?: string;
-  atModalTop?: boolean;
-}) {
+export default function Toggle({ atModalTop }: { atModalTop?: boolean }) {
   const router = useRouter();
   const {
     slug,
+    domain,
     key,
     interval = "24h",
   } = router.query as {
     slug?: string;
+    domain?: string;
     key: string;
     interval?: string;
   };
 
   const pageType = useMemo(() => {
     if (slug && key) {
-      return slug;
+      return `${slug}/${domain}`;
     } else if (key && router.asPath.startsWith("/links")) {
       return "links";
     } else if (key && router.asPath.startsWith("/stats")) {

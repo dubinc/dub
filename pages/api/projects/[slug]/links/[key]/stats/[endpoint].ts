@@ -4,7 +4,7 @@ import { getStats, IntervalProps } from "@/lib/stats";
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {
-    // GET /api/projects/[slug]/domains/[domain]/links/[key]/stats/[endpoint] - get link stats from Tinybird
+    // GET /api/projects/[slug]/links/[key]/stats/[endpoint] - get link stats from Tinybird
     if (req.method === "GET") {
       const { domain, key, endpoint, interval } = req.query as {
         domain: string;

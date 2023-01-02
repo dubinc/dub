@@ -20,7 +20,7 @@ export default function LinksContainer({
     slug: string;
   };
 
-  const { project: { domain } = {} } = useProject();
+  const { project } = useProject();
 
   const { data: links } = useSWR<LinkProps[]>(
     slug
@@ -36,11 +36,11 @@ export default function LinksContainer({
   const loading = useMemo(() => {
     if (slug) {
       // need to include `domain` because if not it flashes the "no links" placeholder
-      return links && domain ? false : true;
+      return links && project ? false : true;
     } else {
       return links ? false : true;
     }
-  }, [links, domain, slug]);
+  }, [links, project, slug]);
 
   return (
     <MaxWidthWrapper className="pb-10">

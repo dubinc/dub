@@ -8,19 +8,17 @@ import { nFormatter } from "@/lib/utils";
 import DeviceIcon from "./device-icon";
 import useSWR from "swr";
 import { fetcher } from "@/lib/utils";
-import useProject from "@/lib/swr/use-project";
 
 export default function Devices() {
   const [tab, setTab] = useState<DeviceTabs>("device");
   const router = useRouter();
 
-  const { slug, key, interval } = router.query as {
+  const { slug, domain, key, interval } = router.query as {
     slug?: string;
+    domain?: string;
     key: string;
     interval?: string;
   };
-
-  const { project: { domain } = {} } = useProject();
 
   const { data } = useSWR<
     ({
@@ -30,9 +28,9 @@ export default function Devices() {
     router.isReady &&
       `${
         slug && domain
-          ? `/api/projects/${slug}/domains/${domain}/links/${key}/stats/${tab}`
+          ? `/api/projects/${slug}/links/${key}/stats/${tab}`
           : `/api/edge/links/${key}/stats/${tab}`
-      }?interval=${interval || "24h"}`,
+      }?interval=${interval || "24h"}&domain=${domain}`,
     fetcher,
   );
 
@@ -40,9 +38,9 @@ export default function Devices() {
     router.isReady &&
       `${
         slug && domain
-          ? `/api/projects/${slug}/domains/${domain}/links/${key}/clicks`
+          ? `/api/projects/${slug}/links/${key}/clicks`
           : `/api/edge/links/${key}/clicks`
-      }?interval=${interval || "24h"}`,
+      }?interval=${interval || "24h"}&domain=${domain}`,
     fetcher,
   );
 

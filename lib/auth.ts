@@ -59,8 +59,6 @@ const withProjectAuth =
         id: true,
         name: true,
         slug: true,
-        domain: true,
-        domainVerified: true,
         logo: true,
         ownerUsageLimit: true,
         ownerExceededUsage: true,

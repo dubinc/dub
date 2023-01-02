@@ -23,9 +23,9 @@ export default function Clicks() {
     router.isReady &&
       `${
         slug && domain
-          ? `/api/projects/${slug}/domains/${domain}/links/${key}/clicks`
+          ? `/api/projects/${slug}/links/${key}/clicks`
           : `/api/edge/links/${key}/clicks`
-      }${interval ? `?interval=${interval}` : ""}`,
+      }?interval=${interval || "24h"}&domain=${domain}`,
     fetcher,
   );
 

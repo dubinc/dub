@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { useDebounce } from "use-debounce";
 import { STAGGER_CHILD_VARIANTS } from "@/lib/constants";
 import Spline from "@splinetool/react-spline";
-import { InlineSnippet } from "@/components/app/settings/custom-domain/domain-configuration";
+import { InlineSnippet } from "@/components/app/domains/domain-configuration";
 
 export default function Placeholder({ domain }: { domain: string }) {
   const [loading, setLoading] = useState(true);

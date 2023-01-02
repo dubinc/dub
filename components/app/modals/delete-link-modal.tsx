@@ -26,16 +26,17 @@ function DeleteLinkModal({
   const router = useRouter();
   const { slug } = router.query;
   const [deleting, setDeleting] = useState(false);
-  const { project: { domain } = {} } = useProject();
   const apexDomain = getApexDomain(props.url);
+
+  const { key, domain } = props;
 
   const shortlink = useMemo(() => {
     return linkConstructor({
-      key: props.key,
+      key,
       domain,
       pretty: true,
     });
-  }, [props, domain]);
+  }, [key, domain]);
 
   return (
     <Modal
@@ -64,7 +65,7 @@ function DeleteLinkModal({
             setDeleting(true);
             fetch(
               domain
-                ? `/api/projects/${slug}/domains/${domain}/links/${props.key}`
+                ? `/api/projects/${slug}/links/${props.key}?domain=${domain}`
                 : `/api/links/${props.key}`,
               {
                 method: "DELETE",
@@ -77,9 +78,7 @@ function DeleteLinkModal({
               if (res.status === 200) {
                 mutate(
                   domain
-                    ? `/api/projects/${slug}/domains/${domain}/links${getQueryString(
-                        router,
-                      )}`
+                    ? `/api/projects/${slug}/links${getQueryString(router)}`
                     : `/api/links${getQueryString(router)}`,
                 );
                 setShowDeleteLinkModal(false);
