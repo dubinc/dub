@@ -2,18 +2,16 @@ import sendMail from "emails";
 import InvalidDomain from "emails/InvalidDomain";
 import ProjectDeleted from "emails/ProjectDeleted";
 import { log } from "@/lib/utils";
-import { removeDomain } from "@/lib/domains";
+import { removeDomain } from "@/lib/api/domains";
 import prisma from "@/lib/prisma";
 import { deleteProjectLinks } from "@/lib/api/links";
 import { getClicksUsage } from "@/lib/tinybird";
 
 export const handleDomainUpdates = async (
-  projectSlug: string,
   domain: string,
   createdAt: Date,
   verified: boolean,
   changed: boolean,
-  sentEmails: string[],
 ) => {
   if (changed) {
     await log(`Domain *${domain}* changed status to *${verified}*`, "cron");

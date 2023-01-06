@@ -5,7 +5,7 @@ import {
   getConfigResponse,
   getDomainResponse,
   verifyDomain,
-} from "@/lib/domains";
+} from "@/lib/api/domains";
 import prisma from "@/lib/prisma";
 
 /**
@@ -17,13 +17,12 @@ import prisma from "@/lib/prisma";
 
 async function handler(_req: NextApiRequest, res: NextApiResponse) {
   try {
-    const projects = await prisma.project.findMany({
+    const domains = await prisma.domain.findMany({
       select: {
         slug: true,
-        domain: true,
         domainVerified: true,
         createdAt: true,
-        sentEmails: true,
+        projectId: true,
       },
       orderBy: {
         domainLastChecked: "asc",
@@ -31,12 +30,12 @@ async function handler(_req: NextApiRequest, res: NextApiResponse) {
       take: 100,
     });
 
-    const results = await Promise.all(
-      projects.map(async (project) => {
-        const { domain, domainVerified, createdAt } = project;
+    const results = await Promise.allSettled(
+      domains.map(async (domain) => {
+        const { slug, domainVerified, createdAt, projectId } = domain;
         const [domainJson, configJson] = await Promise.all([
-          getDomainResponse(domain),
-          getConfigResponse(domain),
+          getDomainResponse(slug),
+          getConfigResponse(slug),
         ]);
 
         let newDomainVerified;
@@ -44,7 +43,7 @@ async function handler(_req: NextApiRequest, res: NextApiResponse) {
         if (domainJson?.error?.code === "not_found") {
           newDomainVerified = false;
         } else if (!domainJson.verified) {
-          const verificationJson = await verifyDomain(domain);
+          const verificationJson = await verifyDomain(slug);
           if (verificationJson && verificationJson.verified) {
             newDomainVerified = true;
           } else {
@@ -56,9 +55,9 @@ async function handler(_req: NextApiRequest, res: NextApiResponse) {
           newDomainVerified = false;
         }
 
-        const prismaResponse = await prisma.project.update({
+        const prismaResponse = await prisma.domain.update({
           where: {
-            domain,
+            slug,
           },
           data: {
             domainVerified: newDomainVerified,
@@ -69,12 +68,10 @@ async function handler(_req: NextApiRequest, res: NextApiResponse) {
         const changed = newDomainVerified !== domainVerified;
 
         const updates = await handleDomainUpdates(
-          project.slug,
-          domain,
+          slug,
           createdAt,
           newDomainVerified,
           changed,
-          project.sentEmails.map((email) => email.type),
         );
 
         return {

@@ -22,7 +22,7 @@ function DeleteProjectModal({
 }) {
   const router = useRouter();
   const { slug } = router.query as { slug: string };
-  const { project: { domain } = {} } = useProject();
+  const { project: { logo } = {} } = useProject();
   const [deleting, setDeleting] = useState(false);
 
   return (
@@ -33,8 +33,8 @@ function DeleteProjectModal({
       <div className="inline-block w-full transform overflow-hidden bg-white align-middle shadow-xl transition-all sm:max-w-md sm:rounded-2xl sm:border sm:border-gray-200">
         <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
           <BlurImage
-            src={`https://www.google.com/s2/favicons?sz=64&domain_url=${domain}`}
-            alt={domain}
+            src={logo || `https://avatar.vercel.sh/${slug}`}
+            alt={`Logo for ${slug}`}
             className="h-10 w-10 rounded-full border border-gray-200"
             width={20}
             height={20}
@@ -55,7 +55,6 @@ function DeleteProjectModal({
               headers: {
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify(domain),
             }).then(async (res) => {
               setDeleting(false);
               if (res.status === 200) {

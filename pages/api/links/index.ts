@@ -3,6 +3,7 @@ import { addLink, getLinksForProject } from "@/lib/api/links";
 import { Session, withUserAuth } from "@/lib/auth";
 import { isBlacklistedDomain } from "@/lib/utils";
 import { log } from "@/lib/utils";
+import { DUB_PROJECT_ID } from "@/lib/constants";
 
 export const config = {
   api: {
@@ -22,7 +23,7 @@ export default withUserAuth(
         sort?: "createdAt" | "clicks";
       };
       const response = await getLinksForProject({
-        domain: "dub.sh",
+        projectId: DUB_PROJECT_ID,
         status,
         sort,
         userId: session.user.id,

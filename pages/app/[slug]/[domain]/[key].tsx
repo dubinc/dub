@@ -16,7 +16,6 @@ export default function StatsPage() {
   if (error && error.status === 404) {
     return <ErrorPage statusCode={404} />;
   }
-
   return (
     <AppLayout>
       {exceededUsage && (
@@ -51,7 +50,7 @@ export default function StatsPage() {
           </div>
         </MaxWidthWrapper>
       )}
-      {project && !exceededUsage && <Stats domain={project.domain} />}
+      {project && !exceededUsage && <Stats />}
     </AppLayout>
   );
 }

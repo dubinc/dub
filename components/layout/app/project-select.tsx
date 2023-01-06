@@ -15,9 +15,8 @@ export default function ProjectSelect() {
   const { AddProjectModal, setShowAddProjectModal } = useAddProjectModal({});
 
   const router = useRouter();
-  const { slug, key } = router.query as {
+  const { slug } = router.query as {
     slug?: string;
-    key?: string;
   };
 
   const { data: session } = useSession();
@@ -25,7 +24,7 @@ export default function ProjectSelect() {
   const selected = useMemo(() => {
     return (
       projects?.find((project) => project.slug === slug) || {
-        name: session?.user?.name || session?.user?.email || "User",
+        name: session?.user?.name || session?.user?.email,
         slug: "/",
         domain: "dub.sh",
         logo:
@@ -44,7 +43,7 @@ export default function ProjectSelect() {
     );
 
   return (
-    <div className={`${key && slug ? "w-32" : "w-48"} sm:w-60`}>
+    <div>
       <AddProjectModal />
       <Popover
         content={
@@ -59,31 +58,24 @@ export default function ProjectSelect() {
       >
         <button
           onClick={() => setOpenPopover(!openPopover)}
-          className={`relative ${
-            key && slug ? "w-32" : "w-48"
-          } cursor-pointer rounded-lg bg-white py-1.5 pl-1 text-left text-sm transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 sm:w-60 sm:pl-3 sm:pr-10`}
+          className="flex w-60 items-center justify-between rounded-lg bg-white p-1.5 text-left text-sm transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200"
         >
-          <div className="flex items-center justify-start space-x-3">
+          <div className="flex items-center justify-start space-x-3 pr-2">
             <BlurImage
               src={
                 selected.logo ||
                 `https://www.google.com/s2/favicons?sz=64&domain_url=${selected.domain}`
               }
               alt={selected.slug}
-              className="h-6 w-6 overflow-hidden rounded-full sm:h-8 sm:w-8"
+              className="h-6 w-6 flex-none overflow-hidden rounded-full sm:h-8 sm:w-8"
               width={48}
               height={48}
             />
-            <span className="block truncate text-sm font-medium">
+            <span className="truncate text-sm font-medium">
               {selected.name}
             </span>
           </div>
-          <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-1 sm:pr-2">
-            <ChevronUpDown
-              className="h-4 w-4 text-gray-400"
-              aria-hidden="true"
-            />
-          </span>
+          <ChevronUpDown className="h-4 w-4 text-gray-400" aria-hidden="true" />
         </button>
       </Popover>
     </div>

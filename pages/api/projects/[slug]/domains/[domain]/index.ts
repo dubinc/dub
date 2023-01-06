@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { withProjectAuth } from "@/lib/auth";
-import { addDomain, removeDomain } from "@/lib/domains";
+import { addDomain, removeDomain } from "@/lib/api/domains";
 import prisma from "@/lib/prisma";
 import { validDomainRegex } from "@/lib/utils";
 import { changeDomainForImages, changeDomainForLinks } from "@/lib/api/links";
@@ -42,13 +42,12 @@ export default withProjectAuth(
           await Promise.allSettled([
             removeDomain(domain),
             addDomain(newDomain),
-            prisma.project.update({
+            prisma.domain.update({
               where: {
-                slug,
+                slug: domain,
               },
               data: {
-                domain: newDomain,
-                domainVerified: false,
+                slug: newDomain,
               },
             }),
             changeDomainForLinks(project.id, domain, newDomain),

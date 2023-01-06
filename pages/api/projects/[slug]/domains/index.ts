@@ -2,6 +2,8 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { withProjectAuth } from "@/lib/auth";
 import { ProjectProps } from "@/lib/types";
 import prisma from "@/lib/prisma";
+import { addDomain } from "@/lib/api/domains";
+import { redis } from "@/lib/upstash";
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse, project: ProjectProps) => {
@@ -15,11 +17,47 @@ export default withProjectAuth(
           slug: true,
           verified: true,
           primary: true,
+          target: true,
+          type: true,
         },
       });
       return res.status(200).json(domains);
 
-      // PUT /api/projects/[slug]/domains/[domain]/root - change root domain
+      // POST /api/projects/[slug]/domains - add a domain
+    } else if (req.method === "POST") {
+      const { slug: domain, primary, target, type } = req.body;
+      if (!domain || typeof domain !== "string") {
+        return res.status(400).json({ error: "Missing domain" });
+      }
+      const response = await Promise.allSettled([
+        prisma.domain.create({
+          data: {
+            slug: domain,
+            type,
+            projectId: project.id,
+            primary,
+          },
+        }),
+        addDomain(domain),
+        target &&
+          redis.set(`root:${domain}`, {
+            target,
+            rewrite: type === "rewrite",
+          }),
+        primary &&
+          (await prisma.domain.updateMany({
+            where: {
+              projectId: project.id,
+              slug: {
+                not: domain,
+              },
+            },
+            data: {
+              primary: false,
+            },
+          })),
+      ]);
+      return res.status(200).json(response);
     } else {
       res.setHeader("Allow", ["GET", "POST"]);
       return res

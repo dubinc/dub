@@ -209,16 +209,11 @@ function AddEditLinkModal({
     } else {
       return false;
     }
-  }, [saving, keyExistsError, urlError, props, data, showAddEditLinkModal]);
+  }, [showAddEditLinkModal, saving, keyExistsError, urlError, props, data]);
 
   const randomIdx = Math.floor(Math.random() * 100);
 
-  const [lockKey, setLockKey] = useState(false);
-  useEffect(() => {
-    if (props?.key) {
-      setLockKey(true);
-    }
-  }, [props?.key]);
+  const [lockKey, setLockKey] = useState(true);
 
   return (
     <Modal
@@ -252,7 +247,7 @@ function AddEditLinkModal({
               {props
                 ? `Edit ${linkConstructor({
                     key: props.key,
-                    domain,
+                    domain: props.domain,
                     pretty: true,
                   })}`
                 : "Add a new link"}
@@ -347,7 +342,7 @@ function AddEditLinkModal({
                   >
                     Short Link
                   </label>
-                  {lockKey ? (
+                  {props && lockKey ? (
                     <button
                       className="flex items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
                       type="button"
@@ -378,26 +373,22 @@ function AddEditLinkModal({
                 </div>
                 <div className="relative mt-1 flex rounded-md shadow-sm">
                   <select
-                    disabled={lockKey}
-                    dir="ltr"
+                    disabled={props && lockKey}
+                    value={domain}
+                    onChange={(e) => {
+                      setData({ ...data, domain: e.target.value });
+                    }}
                     className={`${
-                      lockKey ? "cursor-not-allowed" : ""
+                      props && lockKey ? "cursor-not-allowed" : ""
                     } w-40 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-5 text-sm text-gray-500 focus:border-gray-300 focus:outline-none focus:ring-0`}
                   >
                     {domains?.map(({ slug }) => (
-                      <option
-                        key={slug}
-                        value={slug}
-                        selected={slug === domain}
-                        onClick={() => {
-                          setData({ ...data, domain: slug });
-                        }}
-                      >
+                      <option key={slug} value={slug}>
                         {slug}
                       </option>
                     ))}
                   </select>
-                  {lockKey ? (
+                  {props && lockKey ? (
                     <div className="block w-full cursor-not-allowed select-none rounded-r-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-500">
                       {props.key}
                     </div>

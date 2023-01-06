@@ -42,7 +42,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
   const { slug } = router.query as { slug: string };
 
   const { isOwner } = useProject();
-  const { verified } = useDomains(domain);
+  const { verified, loading } = useDomains(domain);
   const { exceededUsage } = useUsage();
 
   const linkRef = useRef<any>();
@@ -105,7 +105,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
           />
           <div>
             <div className="flex max-w-fit items-center space-x-2">
-              {slug && !verified ? (
+              {slug && !verified && !loading ? (
                 <Tooltip
                   content={
                     <TooltipContent
@@ -116,17 +116,11 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                   }
                 >
                   <div className="w-24 -translate-x-2 cursor-not-allowed truncate text-sm font-semibold text-gray-400 line-through sm:w-full sm:text-base">
-                    <span className="hidden sm:block">
-                      {linkConstructor({ key, domain, pretty: true })}
-                    </span>
-                    <span className="sm:hidden">
-                      {linkConstructor({
-                        key,
-                        domain,
-                        pretty: true,
-                        noDomain: true,
-                      })}
-                    </span>
+                    {linkConstructor({
+                      key,
+                      domain,
+                      pretty: true,
+                    })}
                   </div>
                 </Tooltip>
               ) : (
@@ -136,17 +130,11 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  <span className="hidden sm:block">
-                    {linkConstructor({ key, domain, pretty: true })}
-                  </span>
-                  <span className="sm:hidden">
-                    {linkConstructor({
-                      key,
-                      domain,
-                      pretty: true,
-                      noDomain: true,
-                    })}
-                  </span>
+                  {linkConstructor({
+                    key,
+                    domain,
+                    pretty: true,
+                  })}
                 </a>
               )}
               <CopyButton url={linkConstructor({ key, domain })} />

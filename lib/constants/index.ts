@@ -137,3 +137,5 @@ export const DEFAULT_LINK_PROPS = {
 
   proxy: false,
 };
+
+export const DUB_PROJECT_ID = "cl7pj5kq4006835rbjlt2ofka";

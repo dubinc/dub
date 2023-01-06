@@ -1,3 +1,26 @@
+import prisma from "@/lib/prisma";
+import { validDomainRegex } from "@/lib/utils";
+
+export const validateDomain = async (domain: string) => {
+  const validDomain =
+    validDomainRegex.test(domain) && !domain.endsWith(".dub.sh");
+  if (!validDomain) {
+    return "Invalid domain";
+  }
+  const domainExists = await prisma.domain.findUnique({
+    where: {
+      slug: domain,
+    },
+    select: {
+      slug: true,
+    },
+  });
+  if (domainExists) {
+    return "Domain is already in use.";
+  }
+  return true;
+};
+
 interface CustomResponse extends Response {
   json: () => Promise<any>;
   error?: { code: string; projectId: string; message: string };

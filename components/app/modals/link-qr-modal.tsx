@@ -15,7 +15,7 @@ import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 import { QRCodeSVG, getQRAsCanvas, getQRAsSVGDataUri } from "@/lib/qr";
 import useProject from "@/lib/swr/use-project";
 import useUsage from "@/lib/swr/use-usage";
-import { LinkProps, SimpleLinkProps } from "@/lib/types";
+import { SimpleLinkProps } from "@/lib/types";
 import { getApexDomain, linkConstructor } from "@/lib/utils";
 import IconMenu from "@/components/shared/icon-menu";
 import { Download, Photo } from "@/components/shared/icons";
@@ -30,7 +30,7 @@ function LinkQRModalHelper({
 }: {
   showLinkQRModal: boolean;
   setShowLinkQRModal: Dispatch<SetStateAction<boolean>>;
-  props: LinkProps;
+  props: SimpleLinkProps;
 }) {
   const anchorRef = useRef<HTMLAnchorElement>();
   const { project: { logo } = {} } = useProject();
@@ -344,7 +344,7 @@ function QrDropdown({ download, qrData, showLogo, logo }) {
   );
 }
 
-export function useLinkQRModal({ props }: { props: LinkProps }) {
+export function useLinkQRModal({ props }: { props: SimpleLinkProps }) {
   const [showLinkQRModal, setShowLinkQRModal] = useState(false);
 
   const LinkQRModal = useCallback(() => {

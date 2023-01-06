@@ -24,8 +24,9 @@ export default function AppLayout({
   bgWhite?: boolean;
 }) {
   const router = useRouter();
-  const { slug, key } = router.query as {
+  const { slug, domain, key } = router.query as {
     slug?: string;
+    domain?: string;
     key?: string;
   };
 
@@ -59,7 +60,7 @@ export default function AppLayout({
                       href={`/${slug}/links/${key}`}
                       className="text-sm font-medium"
                     >
-                      {key}
+                      {domain || "dub.sh"}/{key}
                     </Link>
                   </>
                 )}

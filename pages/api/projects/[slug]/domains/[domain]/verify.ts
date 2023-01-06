@@ -4,7 +4,7 @@ import {
   getConfigResponse,
   getDomainResponse,
   verifyDomain,
-} from "@/lib/domains";
+} from "@/lib/api/domains";
 import prisma from "@/lib/prisma";
 import { DomainVerificationStatusProps } from "@/lib/types";
 

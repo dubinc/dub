@@ -1,11 +1,13 @@
 import DeleteProject from "@/components/app/settings/delete-project";
-import LandingPage from "@/components/app/settings/landing-page";
+import ProjectName from "@/components/app/settings/project-name";
 import SettingsLayout from "@/components/app/settings/layout";
+import ProjectSlug from "@/components/app/settings/project-slug";
 
 export default function ProjectSettingsGeneral() {
   return (
     <SettingsLayout>
-      <LandingPage />
+      <ProjectName />
+      <ProjectSlug />
       <DeleteProject />
     </SettingsLayout>
   );

@@ -14,8 +14,9 @@ export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse, project, session) => {
     // GET /api/projects/[slug]/domains/[domain]/links - Get all links for a project
     if (req.method === "GET") {
-      const { domain, tag, search, sort, userId } = req.query as {
+      const { domain, status, tag, search, sort, userId } = req.query as {
         domain?: string;
+        status?: string;
         tag?: string;
         search?: string;
         sort?: "createdAt" | "clicks";
@@ -24,6 +25,7 @@ export default withProjectAuth(
       const response = await getLinksForProject({
         projectId: project.id,
         domain,
+        status,
         tag,
         search,
         sort,
