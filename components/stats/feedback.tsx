@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import TextareaAutosize from "react-textarea-autosize";
 import LoadingDots from "@/components/shared/icons/loading-dots";
 import { CheckCircleFill } from "../shared/icons";
+import { useDebouncedCallback } from "use-debounce";
 
 export default function Feedback() {
   const { data: session } = useSession();
@@ -32,6 +33,24 @@ export default function Feedback() {
       await handleSubmit(e);
     }
   };
+
+  // Pre-warm the API endpoint to avoid cold start
+  // Ideally we'd use an edge function for this but
+  // node-mailer is not edge compatible
+  const prewarm = useDebouncedCallback(
+    () => {
+      fetch("/api/site/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: "prewarm",
+          feedback: null,
+        }),
+      });
+    },
+    30000,
+    { leading: true },
+  );
 
   return (
     <div className="relative h-[420px] overflow-scroll border border-gray-200 bg-white px-7 py-5 scrollbar-hide sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
@@ -67,6 +86,7 @@ export default function Feedback() {
                 type="email"
                 placeholder="panic@thedis.co"
                 autoComplete="email"
+                onFocus={prewarm}
                 onChange={(e) => setData({ ...data, email: e.target.value })}
                 className="block w-full rounded-md border-gray-300 pr-10 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
               />
@@ -87,6 +107,7 @@ export default function Feedback() {
                 className="block w-full rounded-md border-gray-300 pr-10 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
                 placeholder="What other data would you like to see?"
                 value={data.feedback}
+                onFocus={prewarm}
                 onChange={(e) => setData({ ...data, feedback: e.target.value })}
                 aria-invalid="true"
               />

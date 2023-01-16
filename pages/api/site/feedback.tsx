@@ -14,6 +14,9 @@ export default async function handler(
     }
 
     const { email, feedback } = req.body;
+    if (email === "prewarm") {
+      return res.status(200).json({ response: "pre-warmed" });
+    }
     if (!feedback) {
       return res.status(400).json({ error: "Missing feedback" });
     }
