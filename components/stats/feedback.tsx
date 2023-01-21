@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useSession } from "next-auth/react";
-import TextareaAutosize from "react-textarea-autosize";
 import LoadingDots from "@/components/shared/icons/loading-dots";
 import { CheckCircleFill } from "../shared/icons";
 import { useDebouncedCallback } from "use-debounce";
@@ -98,11 +97,11 @@ export default function Feedback() {
               >
                 FEEDBACK
               </label>
-              <TextareaAutosize
+              <textarea
                 name="feedback"
                 id="feedback"
-                minRows={5}
                 required={true}
+                rows={6}
                 onKeyDown={handleKeyDown}
                 className="block w-full rounded-md border-gray-300 pr-10 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
                 placeholder="What other data would you like to see?"
