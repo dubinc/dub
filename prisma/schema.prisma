@@ -4,12 +4,12 @@
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
-  referentialIntegrity = "prisma"
+  relationMode = "prisma"
 }
 
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["referentialIntegrity", "fullTextSearch", "fullTextIndex"]
+  previewFeatures = ["fullTextSearch", "fullTextIndex"]
 }
 
 model User {
@@ -51,6 +51,7 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 model Session {
@@ -59,6 +60,8 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
 }
 
 model VerificationToken {
@@ -115,6 +118,7 @@ model ProjectInvite {
   createdAt DateTime @default(now())
 
   @@unique([email, projectId])
+  @@index([projectId])
 }
 
 model ProjectUsers {
@@ -128,6 +132,7 @@ model ProjectUsers {
   projectId String
 
   @@unique([userId, projectId])
+  @@index([projectId])
 }
 
 enum EmailType {
@@ -145,6 +150,9 @@ model SentEmail {
   userId    String?
   project   Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId String?
+
+  @@index([userId])
+  @@index([projectId])
 }
 
 model Link {
