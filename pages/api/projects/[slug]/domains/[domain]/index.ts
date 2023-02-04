@@ -1,8 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { withProjectAuth } from "@/lib/auth";
-import { addDomain, removeDomain } from "@/lib/api/domains";
+import { addDomain, removeDomain, validateDomain } from "@/lib/api/domains";
 import prisma from "@/lib/prisma";
-import { validDomainRegex } from "@/lib/utils";
 import { changeDomainForImages, changeDomainForLinks } from "@/lib/api/links";
 import { ProjectProps } from "@/lib/types";
 
@@ -25,42 +24,35 @@ export default withProjectAuth(
 
       const newDomain = req.body;
 
-      const validDomain =
-        validDomainRegex.test(newDomain) && !newDomain.endsWith(".dub.sh");
+      const validDomain = await validateDomain(newDomain);
 
-      if (!validDomain) {
+      if (validDomain !== true) {
         return res.status(422).json({
-          domainError: "Invalid domain",
+          domainError: validDomain,
         });
       }
 
-      if (domain !== newDomain) {
+      if (newDomain !== domain) {
         if (project && project.slug !== slug) {
-          return res.status(400).json({ error: "Domain already exists" });
+          return res.status(400).json({ error: "Invalid project slug" });
         }
-        const [removeResponse, addResponse, upstashResponse, prismaResponse] =
-          await Promise.allSettled([
-            removeDomain(domain),
-            addDomain(newDomain),
-            prisma.domain.update({
-              where: {
-                slug: domain,
-              },
-              data: {
-                slug: newDomain,
-              },
-            }),
-            changeDomainForLinks(project.id, domain, newDomain),
-            changeDomainForImages(project.id, domain, newDomain),
-          ]);
-
-        return res.status(200).json({
-          removeResponse,
-          addResponse,
-          upstashResponse,
-          prismaResponse,
-        });
+        const response = await Promise.allSettled([
+          await prisma.domain.update({
+            where: {
+              slug: domain,
+            },
+            data: {
+              slug: newDomain,
+            },
+          }),
+          removeDomain(domain),
+          addDomain(newDomain),
+          changeDomainForLinks(project.id, domain, newDomain),
+          changeDomainForImages(project.id, domain, newDomain),
+        ]);
+        return res.status(200).json(response);
       }
+
       return res.status(200).json({ message: "Domains are the same" });
     } else {
       res.setHeader("Allow", ["PUT"]);

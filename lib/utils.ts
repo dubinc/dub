@@ -148,8 +148,9 @@ export const generateDomainFromName = (name: string) => {
   return `${shortestString}.to`;
 };
 
+// courtesy of ChatGPT: https://sharegpt.com/c/pUYXtRs
 export const validDomainRegex = new RegExp(
-  "^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$",
+  /^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/,
 );
 
 export const getSubdomain = (name: string, apexName: string) => {

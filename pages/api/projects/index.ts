@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { Session, withUserAuth } from "@/lib/auth";
 import { DEFAULT_REDIRECTS, RESERVED_KEYS } from "@/lib/constants";
-import { addDomain, removeDomain } from "@/lib/api/domains";
+import { addDomain, removeDomain, validateDomain } from "@/lib/api/domains";
 import prisma from "@/lib/prisma";
 import { validDomainRegex } from "@/lib/utils";
 
@@ -34,12 +34,11 @@ export default withUserAuth(
       } else if (RESERVED_KEYS.has(slug) || DEFAULT_REDIRECTS[slug]) {
         slugError = "Cannot use reserved slugs";
       }
-      const validDomain =
-        validDomainRegex.test(domain) && !domain.endsWith(".dub.sh");
+      const validDomain = await validateDomain(domain);
       if (slugError || !validDomain) {
         return res.status(422).json({
           slugError,
-          domainError: validDomain ? null : "Invalid domain",
+          domainError: validDomain || "Invalid domain",
         });
       }
       const [slugExist, domainExist] = await Promise.all([

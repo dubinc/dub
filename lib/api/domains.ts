@@ -2,8 +2,12 @@ import prisma from "@/lib/prisma";
 import { validDomainRegex } from "@/lib/utils";
 
 export const validateDomain = async (domain: string) => {
+  if (!domain || typeof domain !== "string") {
+    return "Missing domain";
+  }
   const validDomain =
     validDomainRegex.test(domain) && !domain.endsWith(".dub.sh");
+
   if (!validDomain) {
     return "Invalid domain";
   }

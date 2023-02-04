@@ -45,7 +45,7 @@ function AddEditDomainModal({
 
   const [debouncedDomain] = useDebounce(domain, 500);
   useEffect(() => {
-    if (debouncedDomain.length > 0 && debouncedDomain !== domain) {
+    if (debouncedDomain.length > 0 && debouncedDomain !== props?.slug) {
       fetch(`/api/projects/${slug}/domains/${debouncedDomain}/exists`).then(
         async (res) => {
           if (res.status === 200) {
@@ -176,7 +176,7 @@ function AddEditDomainModal({
                   name="domain"
                   id="domain"
                   required
-                  pattern="[a-zA-Z0-9\-.]+"
+                  pattern="[[\p{Letter}\p{Mark}\d-.]+"
                   className={`${
                     domainError
                       ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"

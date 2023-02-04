@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { withProjectAuth } from "@/lib/auth";
 import { ProjectProps } from "@/lib/types";
 import prisma from "@/lib/prisma";
-import { addDomain } from "@/lib/api/domains";
+import { addDomain, validateDomain } from "@/lib/api/domains";
 import { redis } from "@/lib/upstash";
 
 export default withProjectAuth(
@@ -26,11 +26,16 @@ export default withProjectAuth(
       // POST /api/projects/[slug]/domains - add a domain
     } else if (req.method === "POST") {
       const { slug: domain, primary, target, type } = req.body;
-      if (!domain || typeof domain !== "string") {
-        return res.status(400).json({ error: "Missing domain" });
+
+      const validDomain = await validateDomain(domain);
+      if (validDomain !== true) {
+        return res.status(422).json({
+          domainError: validDomain,
+        });
       }
+
       const response = await Promise.allSettled([
-        prisma.domain.create({
+        await prisma.domain.create({
           data: {
             slug: domain,
             type,

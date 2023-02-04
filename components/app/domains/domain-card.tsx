@@ -58,7 +58,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
           <div className="flex space-x-3">
             <button
               onClick={() => {
-                mutate(`/api/projects/${slug}/domains/${slug}/verify`);
+                mutate(`/api/projects/${slug}/domains/${domain}/verify`);
               }}
               disabled={isValidating}
               className={`${

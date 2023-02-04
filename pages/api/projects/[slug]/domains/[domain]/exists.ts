@@ -8,12 +8,12 @@ export default withUserAuth(
 
     // GET /api/projects/[slug]/domains/[domain]/exists – check if a domain exists
     if (req.method === "GET") {
-      const project = await prisma.project.findUnique({
+      const project = await prisma.domain.findUnique({
         where: {
-          domain,
+          slug: domain,
         },
         select: {
-          domain: true,
+          slug: true,
         },
       });
       if (project) {
