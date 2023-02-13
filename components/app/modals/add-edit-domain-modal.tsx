@@ -60,18 +60,21 @@ function AddEditDomainModal({
   const [lockDomain, setLockDomain] = useState(true);
   const [saving, setSaving] = useState(false);
   const [domainError, setDomainError] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const saveDisabled = useMemo(() => {
     /* 
       Disable save if:
       - modal is not open
       - saving is in progress
+      - deleting is in progress
       - domain is invalid
       - for an existing domain, there's no changes
     */
     if (
       !showAddEditDomainModal ||
       saving ||
+      deleting ||
       domainError ||
       (props &&
         Object.entries(props).every(([key, value]) => data[key] === value))
@@ -95,6 +98,21 @@ function AddEditDomainModal({
       };
     }
   }, [props]);
+
+  async function deleteDomain() {
+    setDeleting(true);
+    fetch(`/api/projects/${slug}/domains/${domain}`, {
+      method: "DELETE",
+    }).then(async (res) => {
+      setDeleting(false);
+      if (res.status === 200) {
+        mutate(`/api/projects/${slug}/domains`);
+        setShowAddEditDomainModal(false);
+      } else {
+        setDomainError("Something went wrong. Please try again.");
+      }
+    });
+  }
 
   return (
     <Modal
@@ -262,20 +280,43 @@ function AddEditDomainModal({
             </select>
           </div>
 
-          <button
-            disabled={saveDisabled}
-            className={`${
-              saveDisabled
-                ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
-                : "border-black bg-black text-white hover:bg-white hover:text-black"
-            } flex h-10 w-full items-center justify-center rounded-md border text-sm transition-all focus:outline-none`}
-          >
-            {saving ? (
-              <LoadingDots color="#808080" />
-            ) : (
-              <p>{props ? "Save changes" : "Add domain"}</p>
+          <div className="grid gap-2">
+            <button
+              disabled={saveDisabled}
+              className={`${
+                saveDisabled
+                  ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
+                  : "border-black bg-black text-white hover:bg-white hover:text-black"
+              } flex h-10 w-full items-center justify-center rounded-md border text-sm transition-all focus:outline-none`}
+            >
+              {saving ? (
+                <LoadingDots color="#808080" />
+              ) : (
+                <p>{props ? "Save changes" : "Add domain"}</p>
+              )}
+            </button>
+            {props && (
+              <button
+                type="button"
+                className={`${
+                  deleting
+                    ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
+                    : "border-red-500 bg-red-500 text-white hover:bg-white hover:text-red-500"
+                } flex h-10 w-full items-center justify-center rounded-md border text-sm transition-all focus:outline-none`}
+                onClick={() => {
+                  window.confirm(
+                    "Warning: Deleting your project's domain will delete all existing short links using the domain. Are you sure you want to continue?",
+                  ) && deleteDomain();
+                }}
+              >
+                {deleting ? (
+                  <LoadingDots color="#808080" />
+                ) : (
+                  <p>Delete domain</p>
+                )}
+              </button>
             )}
-          </button>
+          </div>
         </form>
       </div>
     </Modal>

@@ -78,7 +78,7 @@ function AddEditLinkModal({
   useEffect(() => {
     if (debouncedKey.length > 0 && debouncedKey !== props?.key) {
       fetch(
-        domain
+        slug
           ? `/api/projects/${slug}/links/${debouncedKey}/exists?domain=${domain}`
           : `/api/links/${debouncedKey}/exists`,
       ).then(async (res) => {
@@ -93,7 +93,7 @@ function AddEditLinkModal({
   const generateRandomSlug = useCallback(async () => {
     setGeneratingSlug(true);
     const res = await fetch(
-      domain
+      slug
         ? `/api/projects/${slug}/links/random?domain=${domain}`
         : `/api/links/random`,
     );
@@ -164,14 +164,14 @@ function AddEditLinkModal({
     if (props?.key) {
       return {
         method: "PUT",
-        url: domain
+        url: slug
           ? `/api/projects/${slug}/links/${props.key}?domain=${domain}`
           : `/api/links/${props.key}`,
       };
     } else {
       return {
         method: "POST",
-        url: domain
+        url: slug
           ? `/api/projects/${slug}/links?domain=${domain}`
           : `/api/links`,
       };

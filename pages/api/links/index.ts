@@ -47,6 +47,7 @@ export default withUserAuth(
       const response = await addLink({
         ...req.body,
         domain: "dub.sh",
+        projectId: DUB_PROJECT_ID,
         userId: session.user.id,
       });
 

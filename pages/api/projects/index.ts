@@ -1,7 +1,12 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { Session, withUserAuth } from "@/lib/auth";
 import { DEFAULT_REDIRECTS, RESERVED_KEYS } from "@/lib/constants";
-import { addDomain, removeDomain, validateDomain } from "@/lib/api/domains";
+import {
+  addDomain,
+  removeDomain,
+  setRootDomain,
+  validateDomain,
+} from "@/lib/api/domains";
 import prisma from "@/lib/prisma";
 import { validDomainRegex } from "@/lib/utils";
 

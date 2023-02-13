@@ -46,6 +46,7 @@ export default withProjectAuth(
       }
       const response = await addLink({
         ...req.body,
+        projectId: project.id,
         userId: session.user.id,
       });
       if (response === null) {

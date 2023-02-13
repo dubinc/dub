@@ -38,6 +38,7 @@ export default withProjectAuth(
         await prisma.domain.create({
           data: {
             slug: domain,
+            target,
             type,
             projectId: project.id,
             primary,

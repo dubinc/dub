@@ -1,7 +1,5 @@
-import { NextRequest, userAgent } from "next/server";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
-import { LOCALHOST_GEO_DATA } from "@/lib/constants";
 import { nanoid } from "@/lib/utils";
 
 // Initiate Redis instance
