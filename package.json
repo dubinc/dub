@@ -27,7 +27,7 @@
     "@stripe/stripe-js": "^1.44.1",
     "@tailwindcss/forms": "^0.5.3",
     "@upstash/qstash": "^0.3.0",
-    "@upstash/ratelimit": "^0.1.5",
+    "@upstash/ratelimit": "^0.3.6",
     "@upstash/redis": "^1.18.0",
     "@vercel/analytics": "^0.1.5",
     "@vercel/edge-config": "^0.1.0-canary.15",
