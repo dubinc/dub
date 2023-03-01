@@ -38,6 +38,7 @@ import IOSSection from "./ios-section";
 import Preview from "./preview";
 import AndroidSection from "./android-section";
 import { DEFAULT_LINK_PROPS } from "@/lib/constants";
+import { toast } from "react-hot-toast";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
@@ -281,6 +282,19 @@ function AddEditLinkModal({
                       setShowAddEditLinkModal(false);
                     });
                   } else {
+                    // copy shortlink to clipboard when adding a new link
+                    if (!props) {
+                      navigator.clipboard
+                        .writeText(
+                          linkConstructor({
+                            key: data.key,
+                            domain,
+                          }),
+                        )
+                        .then(() => {
+                          toast.success("Copied shortlink to clipboard");
+                        });
+                    }
                     setShowAddEditLinkModal(false);
                   }
                 } else if (res.status === 403) {
