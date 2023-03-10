@@ -4,8 +4,8 @@ import type { Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
 import "@/styles/globals.css";
 import cx from "classnames";
-import localFont from "@next/font/local";
-import { Inter } from "@next/font/google";
+import localFont from "next/font/local";
+import { Inter } from "next/font/google";
 
 const satoshi = localFont({
   src: "../styles/Satoshi-Variable.woff2",

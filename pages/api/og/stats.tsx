@@ -19,6 +19,7 @@ export default async function handler(req: NextRequest) {
   const [satoshiData, interData] = await Promise.all([satoshi, inter]);
 
   const { searchParams } = req.nextUrl;
+  const domain = searchParams.get("domain") || "dub.sh";
   const key = searchParams.get("key") || "github";
   const clicks = searchParams.get("clicks") || "12702";
 
@@ -50,7 +51,7 @@ export default async function handler(req: NextRequest) {
             marginTop: "100px",
           }}
         >
-          dub.sh/{truncate(key, 12)}
+          ${domain}/{truncate(key, 12)}
         </h1>
         <p
           style={{

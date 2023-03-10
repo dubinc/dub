@@ -2,82 +2,70 @@ import HomeLayout from "@/components/layout/home";
 import Stats from "@/components/stats";
 import prisma from "@/lib/prisma";
 import { nFormatter } from "@/lib/utils";
+import { HOME_HOSTNAMES } from "@/lib/constants";
+import { GetServerSideProps } from "next";
+import { conn } from "@/lib/planetscale";
+
+export const config = {
+  runtime: "edge",
+};
 
 export default function StatsPage({
-  _key,
   url,
   clicks,
+  _key,
+  domain,
 }: {
-  _key: string;
   url: string;
   clicks: number;
+  _key: string;
+  domain?: string;
 }) {
   return (
     <HomeLayout
       meta={{
-        title: `Stats for dub.sh/${_key} (${nFormatter(clicks)} clicks) - Dub`,
-        description: `Stats page for dub.sh/${_key}, which redirects to ${url} and has received ${nFormatter(
+        title: `Stats for ${domain}/${_key} (${nFormatter(
+          clicks,
+        )} clicks) - Dub`,
+        description: `Stats page for ${domain}/${_key}, which redirects to ${url} and has received ${nFormatter(
           clicks,
         )} total clicks.`,
-        image: `https://dub.sh/api/og/stats?key=${_key}&clicks=${clicks}`,
+        image: `https://dub.sh/api/og/stats?domain=${domain}&key=${_key}&clicks=${clicks}`,
       }}
     >
       <div className="bg-gray-50">
-        <Stats />
+        <Stats domain={domain} />
       </div>
     </HomeLayout>
   );
 }
 
-export const getStaticPaths = async () => {
-  const links = await prisma.link.findMany({
-    where: {
-      domain: "dub.sh",
-    },
-    select: {
-      key: true,
-    },
-    orderBy: {
-      clicks: "desc",
-    },
-    take: 100,
-  });
-  return {
-    paths: links.map(({ key }) => ({
-      params: {
-        key,
-      },
-    })),
-    fallback: true,
-  };
-};
+export const getServerSideProps: GetServerSideProps = async ({
+  req,
+  params,
+}) => {
+  const { key } = params as { key: string };
+  let domain = req.headers.host;
+  if (HOME_HOSTNAMES.has(domain) || domain.endsWith(".vercel.app"))
+    domain = "dub.sh";
 
-export const getStaticProps = async (context) => {
-  const { key } = context.params;
+  const { rows } =
+    (await conn.execute(
+      "SELECT `key`, url, clicks FROM Link WHERE domain = ? AND `key` = ?",
+      [domain, key],
+    )) || {};
 
-  const props = await prisma.link.findUnique({
-    where: {
-      domain_key: {
-        domain: "dub.sh",
-        key,
-      },
-    },
-    select: {
-      key: true,
-      url: true,
-      clicks: true,
-    },
-  });
+  console.log(rows);
 
-  if (props) {
+  if (rows && Array.isArray(rows) && rows.length > 0) {
     return {
       props: {
-        ...props,
+        ...rows[0],
         _key: key,
+        domain,
       },
-      revalidate: 60,
     };
   } else {
-    return { notFound: true, revalidate: 0 };
+    return { notFound: true };
   }
 };
