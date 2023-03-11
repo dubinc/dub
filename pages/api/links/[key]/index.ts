@@ -18,22 +18,24 @@ export default withUserAuth(
   async (req: NextApiRequest, res: NextApiResponse, session: Session) => {
     const { key: oldKey } = req.query as { key: string };
 
-    const isOwner = await prisma.link
-      .findUnique({
-        where: {
-          domain_key: {
-            domain,
-            key: oldKey,
-          },
+    const link = await prisma.link.findUnique({
+      where: {
+        domain_key: {
+          domain,
+          key: oldKey,
         },
-      })
-      .then((link) => link?.userId === session.user.id);
+      },
+    });
+
+    const isOwner = link.userId === session.user.id;
 
     if (!isOwner) {
       return res.status(403).json({ error: "Not authorized" });
     }
 
-    if (req.method === "PUT") {
+    if (req.method === "GET") {
+      return res.status(200).json(link);
+    } else if (req.method === "PUT") {
       let { key, url } = req.body;
       if (!key || !url) {
         return res
@@ -60,7 +62,7 @@ export default withUserAuth(
       const response = await deleteLink(domain, oldKey);
       return res.status(200).json(response);
     } else {
-      res.setHeader("Allow", ["PUT", "DELETE"]);
+      res.setHeader("Allow", ["GET", "PUT", "DELETE"]);
       return res
         .status(405)
         .json({ error: `Method ${req.method} Not Allowed` });

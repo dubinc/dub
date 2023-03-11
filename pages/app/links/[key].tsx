@@ -4,16 +4,12 @@ import Stats from "@/components/stats";
 import useLink from "@/lib/swr/use-link";
 
 export default function StatsPage() {
-  const { isOwner } = useLink();
+  const { loading, error } = useLink();
 
   // if not owner, show 404 page
-  if (!isOwner) {
+  if (error) {
     return <ErrorPage statusCode={404} />;
   }
 
-  return (
-    <AppLayout>
-      <Stats />
-    </AppLayout>
-  );
+  return <AppLayout>{!loading && !error && <Stats />}</AppLayout>;
 }
