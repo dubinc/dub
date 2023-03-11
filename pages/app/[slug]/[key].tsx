@@ -51,7 +51,7 @@ export default function StatsPage() {
           </div>
         </MaxWidthWrapper>
       )}
-      {project && !exceededUsage && <Stats domain={project.domain} />}
+      {project && !exceededUsage && <Stats />}
     </AppLayout>
   );
 }

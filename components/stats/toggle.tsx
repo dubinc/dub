@@ -4,6 +4,7 @@ import {
   Calendar,
   ChevronDown,
   ExpandingArrow,
+  Share,
   Tick,
 } from "@/components/shared/icons";
 import { INTERVALS } from "@/lib/constants";
@@ -11,13 +12,17 @@ import useScroll from "@/lib/hooks/use-scroll";
 import { linkConstructor } from "@/lib/utils";
 import IconMenu from "@/components/shared/icon-menu";
 import Popover from "@/components/shared/popover";
+import useSWR from "swr";
+import { fetcher } from "@/lib/utils";
 
 export default function Toggle({
-  domain,
   atModalTop,
+  domain,
+  publicPage,
 }: {
-  domain?: string;
   atModalTop?: boolean;
+  domain?: string;
+  publicPage?: boolean;
 }) {
   const router = useRouter();
   const {
@@ -42,7 +47,8 @@ export default function Toggle({
   }, [slug, key, router.asPath]);
 
   const atTop = useScroll(80) || atModalTop;
-  const [openPopover, setOpenPopover] = useState(false);
+  const [openSharePopover, setopenSharePopoverPopover] = useState(false);
+  const [openDatePopover, setOpenDatePopover] = useState(false);
 
   const selectedInterval = useMemo(() => {
     return INTERVALS.find((s) => s.slug === interval) || INTERVALS[1];
@@ -64,54 +70,77 @@ export default function Toggle({
           {linkConstructor({ key, domain, pretty: true })}
           <ExpandingArrow className="h-5 w-5" />
         </a>
-        <Popover
-          content={
-            <div className="w-full p-2 md:w-48">
-              {INTERVALS.map(({ display, slug }) => (
-                <button
-                  key={slug}
-                  onClick={() => {
-                    router.push(
-                      {
-                        query: {
-                          ...router.query,
-                          interval: slug,
+        <div className="flex items-center">
+          {!publicPage && (
+            <Popover
+              content={
+                <form className="w-full p-2 sm:w-60">
+                  <p className="truncate text-sm font-semibold">
+                    Share stats for{" "}
+                    {linkConstructor({ key, domain, pretty: true })}
+                  </p>
+                </form>
+              }
+              openPopover={openSharePopover}
+              setOpenPopover={setopenSharePopoverPopover}
+            >
+              <button
+                onClick={() => setopenSharePopoverPopover(!openSharePopover)}
+                className="mr-2 flex w-24 items-center justify-center space-x-2 rounded-md bg-white px-3 py-2.5 shadow transition-all duration-75 hover:shadow-md active:scale-95"
+              >
+                <IconMenu text="Share" icon={<Share className="h-4 w-4" />} />
+              </button>
+            </Popover>
+          )}
+          <Popover
+            content={
+              <div className="w-full p-2 md:w-48">
+                {INTERVALS.map(({ display, slug }) => (
+                  <button
+                    key={slug}
+                    onClick={() => {
+                      router.push(
+                        {
+                          query: {
+                            ...router.query,
+                            interval: slug,
+                          },
                         },
-                      },
-                      `/${pageType}/${encodeURI(
-                        router.query.key as string,
-                      )}?interval=${slug}`,
-                      { shallow: true },
-                    );
-                  }}
-                  className="flex w-full items-center justify-between space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
-                >
-                  <p className="text-sm">{display}</p>
-                  {selectedInterval.slug === slug && (
-                    <Tick className="h-4 w-4" aria-hidden="true" />
-                  )}
-                </button>
-              ))}
-            </div>
-          }
-          openPopover={openPopover}
-          setOpenPopover={setOpenPopover}
-        >
-          <button
-            onClick={() => setOpenPopover(!openPopover)}
-            className="flex w-full items-center justify-between space-x-2 rounded-md bg-white px-3 py-2.5 shadow transition-all duration-75 hover:shadow-md active:scale-95 sm:w-48"
+                        `/${pageType}/${encodeURI(
+                          router.query.key as string,
+                        )}?interval=${slug}`,
+                        { shallow: true },
+                      );
+                    }}
+                    className="flex w-full items-center justify-between space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
+                  >
+                    <p className="text-sm">{display}</p>
+                    {selectedInterval.slug === slug && (
+                      <Tick className="h-4 w-4" aria-hidden="true" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            }
+            openPopover={openDatePopover}
+            setOpenPopover={setOpenDatePopover}
           >
-            <IconMenu
-              text={selectedInterval.display}
-              icon={<Calendar className="h-4 w-4" />}
-            />
-            <ChevronDown
-              className={`h-5 w-5 text-gray-400 ${
-                openPopover ? "rotate-180 transform" : ""
-              } transition-all duration-75`}
-            />
-          </button>
-        </Popover>
+            <button
+              onClick={() => setOpenDatePopover(!openDatePopover)}
+              className="flex w-full items-center justify-between space-x-2 rounded-md bg-white px-3 py-2.5 shadow transition-all duration-75 hover:shadow-md active:scale-95 sm:w-48"
+            >
+              <IconMenu
+                text={selectedInterval.display}
+                icon={<Calendar className="h-4 w-4" />}
+              />
+              <ChevronDown
+                className={`h-5 w-5 text-gray-400 ${
+                  openDatePopover ? "rotate-180 transform" : ""
+                } transition-all duration-75`}
+              />
+            </button>
+          </Popover>
+        </div>
       </div>
     </div>
   );

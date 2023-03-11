@@ -49,7 +49,7 @@ function StatsModalHelper({
         >
           <X className="h-6 w-6" />
         </button>
-        <Stats atModalTop={atModalTop} />
+        <Stats atModalTop={atModalTop} publicPage />
       </div>
     </Modal>
   );

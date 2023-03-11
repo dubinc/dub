@@ -5,3 +5,20 @@ export const pscale_config = {
 };
 
 export const conn = connect(pscale_config);
+
+export async function getLinkViaEdge(domain: string, key: string) {
+  const { rows } =
+    (await conn.execute(
+      "SELECT `key`, url, clicks, publicStats FROM Link WHERE domain = ? AND `key` = ?",
+      [domain, key],
+    )) || {};
+
+  return rows && Array.isArray(rows) && rows.length > 0
+    ? (rows[0] as {
+        key: string;
+        url: string;
+        clicks: number;
+        publicStats: boolean;
+      })
+    : null;
+}

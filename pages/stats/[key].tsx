@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma";
 import { nFormatter } from "@/lib/utils";
 import { HOME_HOSTNAMES } from "@/lib/constants";
 import { GetServerSideProps } from "next";
-import { conn } from "@/lib/planetscale";
+import { getLinkViaEdge } from "@/lib/planetscale";
 
 export const config = {
   runtime: "edge",
@@ -34,7 +34,7 @@ export default function StatsPage({
       }}
     >
       <div className="bg-gray-50">
-        <Stats domain={domain} />
+        <Stats domain={domain} publicPage />
       </div>
     </HomeLayout>
   );
@@ -49,18 +49,12 @@ export const getServerSideProps: GetServerSideProps = async ({
   if (HOME_HOSTNAMES.has(domain) || domain.endsWith(".vercel.app"))
     domain = "dub.sh";
 
-  const { rows } =
-    (await conn.execute(
-      "SELECT `key`, url, clicks FROM Link WHERE domain = ? AND `key` = ?",
-      [domain, key],
-    )) || {};
+  const data = await getLinkViaEdge(domain, key);
 
-  console.log(rows);
-
-  if (rows && Array.isArray(rows) && rows.length > 0) {
+  if (data && (domain === "dub.sh" || data.publicStats)) {
     return {
       props: {
-        ...rows[0],
+        ...data,
         _key: key,
         domain,
       },

@@ -8,13 +8,15 @@ import Toggle from "@/components/stats/toggle";
 export default function Stats({
   atModalTop,
   domain,
+  publicPage,
 }: {
   atModalTop?: boolean;
   domain?: string;
+  publicPage?: boolean;
 }) {
   return (
     <div className="bg-gray-50 py-10">
-      <Toggle domain={domain} atModalTop={atModalTop} />
+      <Toggle atModalTop={atModalTop} domain={domain} publicPage={publicPage} />
       <div className="mx-auto grid max-w-4xl gap-5">
         <Clicks />
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">

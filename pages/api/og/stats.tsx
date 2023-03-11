@@ -1,4 +1,3 @@
-import { getStats } from "@/lib/stats";
 import { nFormatter, truncate } from "@/lib/utils";
 import { ImageResponse } from "@vercel/og";
 import { NextRequest } from "next/server";
@@ -41,7 +40,7 @@ export default async function handler(req: NextRequest) {
       >
         <h1
           style={{
-            fontSize: "100px",
+            fontSize: "80px",
             fontWeight: "bold",
             fontFamily: "Satoshi",
             background:
@@ -49,18 +48,19 @@ export default async function handler(req: NextRequest) {
             backgroundClip: "text",
             color: "transparent",
             marginTop: "100px",
+            lineHeight: "7rem",
           }}
         >
-          ${domain}/{truncate(key, 12)}
+          {domain}/{truncate(key, 12)}
         </h1>
         <p
           style={{
-            fontSize: "50px",
+            fontSize: "45px",
             fontWeight: "bold",
             fontFamily: "Inter",
             color: "black",
-            opacity: 0.6,
-            marginTop: "16px",
+            opacity: 0.8,
+            marginTop: "12px",
           }}
         >
           {nFormatter(parseInt(clicks))} TOTAL CLICKS
