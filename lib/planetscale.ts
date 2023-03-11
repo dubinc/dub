@@ -9,7 +9,7 @@ export const conn = connect(pscale_config);
 export async function getLinkViaEdge(domain: string, key: string) {
   const { rows } =
     (await conn.execute(
-      "SELECT `key`, url, clicks, publicStats FROM Link WHERE domain = ? AND `key` = ?",
+      "SELECT `key`, url, clicks, userId, publicStats FROM Link WHERE domain = ? AND `key` = ?",
       [domain, key],
     )) || {};
 
@@ -18,6 +18,7 @@ export async function getLinkViaEdge(domain: string, key: string) {
         key: string;
         url: string;
         clicks: number;
+        userId: number;
         publicStats: boolean;
       })
     : null;
