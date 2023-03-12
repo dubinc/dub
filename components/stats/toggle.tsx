@@ -178,29 +178,12 @@ const SharePopover = ({ domain }: { domain: string }) => {
           <div className="p-4">
             <div className="mb-2 flex items-center justify-between">
               <p className="font-semibold text-gray-800">Public Stats Page</p>
-              <Switch
-                checked={slug ? publicStats : true}
-                fn={handleChange}
-                disabled={!slug}
-              />
+              <Switch checked={publicStats} fn={handleChange} />
             </div>
-            {slug ? (
-              <p className="text-gray-500">
-                Making stats public will allow anyone with the link to see the
-                stats for this short link.
-              </p>
-            ) : (
-              <p className="text-gray-500">
-                Dub.sh links have public stats pages by default.{" "}
-                <Link
-                  href="/"
-                  className="font-medium text-gray-700 underline transition-colors hover:text-black"
-                >
-                  Create a project
-                </Link>{" "}
-                to make stats private.
-              </p>
-            )}
+            <p className="text-gray-500">
+              Making stats public will allow anyone with the link to see the
+              stats for this short link.
+            </p>
           </div>
           <div className="p-4">
             <p className="font-semibold text-gray-800">Share Link</p>
