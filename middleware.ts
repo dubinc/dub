@@ -46,7 +46,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
     return NextResponse.next();
   }
 
-  // for Root pages (e.g. dub.sh, vercel.fyi, etc.)
+  // for root pages (e.g. dub.sh, vercel.fyi, etc.)
   if (key.length === 0) {
     return RootMiddleware(req, ev);
   }
