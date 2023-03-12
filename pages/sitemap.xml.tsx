@@ -15,11 +15,12 @@ function generateSiteMap({
          <loc>${hostname}</loc>
        </url>
        ${
-         hostname === "https://dub.sh" &&
-         `<url>
+         hostname === "https://dub.sh"
+           ? `<url>
           <loc>${hostname}/metatags</loc>
         </url>
         `
+           : ""
        }
        ${links
          .map(({ key }) => {
