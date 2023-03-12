@@ -163,6 +163,7 @@ const SharePopover = ({ domain }: { domain: string }) => {
       },
     );
   };
+  const [copied, setCopied] = useState(false);
 
   return (
     <Popover
@@ -215,10 +216,16 @@ const SharePopover = ({ domain }: { domain: string }) => {
                   navigator.clipboard.writeText(
                     `https://${domain}/stats/${key}`,
                   );
+                  setCopied(true);
                   toast.success("Copied to clipboard");
+                  setTimeout(() => setCopied(false), 3000);
                 }}
               >
-                <Copy className="h-4 w-4 text-gray-500" />
+                {copied ? (
+                  <Tick className="h-4 w-4 text-gray-500" />
+                ) : (
+                  <Copy className="h-4 w-4 text-gray-500" />
+                )}
               </button>
             </div>
           </div>
