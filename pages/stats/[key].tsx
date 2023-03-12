@@ -1,83 +1,56 @@
 import HomeLayout from "@/components/layout/home";
 import Stats from "@/components/stats";
-import prisma from "@/lib/prisma";
-import { nFormatter } from "@/lib/utils";
+import { isHomeHostname, nFormatter } from "@/lib/utils";
+import { GetServerSideProps } from "next";
+import { getLinkViaEdge } from "@/lib/planetscale";
+
+export const config = {
+  runtime: "experimental-edge",
+};
 
 export default function StatsPage({
-  _key,
   url,
-  clicks,
+  _key,
+  domain,
 }: {
-  _key: string;
   url: string;
-  clicks: number;
+  _key: string;
+  domain?: string;
 }) {
   return (
     <HomeLayout
       meta={{
-        title: `Stats for dub.sh/${_key} (${nFormatter(clicks)} clicks) - Dub`,
-        description: `Stats page for dub.sh/${_key}, which redirects to ${url} and has received ${nFormatter(
-          clicks,
-        )} total clicks.`,
-        image: `https://dub.sh/api/og/stats?key=${_key}&clicks=${clicks}`,
+        title: `Stats for ${domain}/${_key} - Dub`,
+        description: `Stats page for ${domain}/${_key}, which redirects to ${url}.`,
+        image: `https://dub.sh/api/og/stats?domain=${domain}&key=${_key}`,
       }}
     >
       <div className="bg-gray-50">
-        <Stats />
+        <Stats domain={domain} />
       </div>
     </HomeLayout>
   );
 }
 
-export const getStaticPaths = async () => {
-  const links = await prisma.link.findMany({
-    where: {
-      domain: "dub.sh",
-    },
-    select: {
-      key: true,
-    },
-    orderBy: {
-      clicks: "desc",
-    },
-    take: 100,
-  });
-  return {
-    paths: links.map(({ key }) => ({
-      params: {
-        key,
-      },
-    })),
-    fallback: true,
-  };
-};
+export const getServerSideProps: GetServerSideProps = async ({
+  req,
+  params,
+}) => {
+  const { key } = params as { key: string };
+  let domain = req.headers.host;
+  if (isHomeHostname(domain)) domain = "dub.sh";
 
-export const getStaticProps = async (context) => {
-  const { key } = context.params;
+  const data = await getLinkViaEdge(domain, key);
 
-  const props = await prisma.link.findUnique({
-    where: {
-      domain_key: {
-        domain: "dub.sh",
-        key,
-      },
-    },
-    select: {
-      key: true,
-      url: true,
-      clicks: true,
-    },
-  });
-
-  if (props) {
+  if (data && data.publicStats) {
     return {
       props: {
-        ...props,
+        ...data,
         _key: key,
+        domain,
       },
-      revalidate: 60,
     };
   } else {
-    return { notFound: true, revalidate: 0 };
+    return { notFound: true };
   }
 };

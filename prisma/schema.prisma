@@ -141,7 +141,7 @@ model Link {
   expiresAt       DateTime? // when the link expires – stored on Redis via ttl
   password        String?  // password to access the link – also stored on Redis
 
-  proxy           Boolean  @default(false) // Proxy to use custom OG tags – if false, will use OG tags from target url
+  proxy           Boolean  @default(false) // Proxy to use custom OG tags (stored on redis) – if false, will use OG tags from target url
   title           String?   // OG title for the link (e.g. Dub - Open-Source Bitly Alternative)
   description     String?  @db.VarChar(280) // OG description for the link (e.g. An open-source link management tool for modern marketing teams to create, share, and track short links.)
   image           String?  @db.LongText // OG image for the link (e.g. https://dub.sh/og-image.png)
@@ -157,7 +157,9 @@ model Link {
   ios             String?   @db.LongText  // custom link for iOS devices
   android         String?   @db.LongText  // custom link for Android devices
   
+  // Click related stats/settings
   clicks          Int       @default(0) // number of clicks
+  publicStats     Boolean   @default(false) // whether to show public stats or not
 
   // User who created the link
   user            User?    @relation(fields: [userId], references: [id])

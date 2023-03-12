@@ -46,6 +46,7 @@ export async function getServerSideProps({
   const links = await prisma.link.findMany({
     where: {
       domain: "dub.sh",
+      publicStats: true,
     },
     select: {
       key: true,

@@ -1,8 +1,10 @@
 import type { NextRequest } from "next/server";
 import { getStats } from "@/lib/stats";
+import { getLinkViaEdge } from "@/lib/planetscale";
+import { isHomeHostname } from "@/lib/utils";
 
 export const config = {
-  runtime: "experimental-edge",
+  runtime: "edge",
 };
 
 export default async function handler(req: NextRequest) {
@@ -10,9 +12,18 @@ export default async function handler(req: NextRequest) {
     const key = req.nextUrl.searchParams.get("key");
     const interval = req.nextUrl.searchParams.get("interval") || "24h";
     const endpoint = req.nextUrl.searchParams.get("endpoint");
+    let domain = req.headers.get("host");
+    if (isHomeHostname(domain)) domain = "dub.sh";
+
+    const data = await getLinkViaEdge(domain, key);
+    if (!data?.publicStats) {
+      return new Response(`Stats for this link are not public`, {
+        status: 403,
+      });
+    }
 
     const response = await getStats({
-      domain: "dub.sh",
+      domain,
       key,
       endpoint,
       interval,

@@ -5,36 +5,24 @@ import { Link, LoadingCircle } from "@/components/shared/icons";
 import { nFormatter } from "@/lib/utils";
 import useSWR from "swr";
 import { fetcher } from "@/lib/utils";
-import useProject from "@/lib/swr/use-project";
+import useEndpoint from "@/lib/hooks/use-endpoint";
 
 export default function Referer() {
   const router = useRouter();
 
-  const { slug, key, interval } = router.query as {
-    slug?: string;
-    key: string;
+  const { interval } = router.query as {
     interval?: string;
   };
 
-  const { project: { domain } = {} } = useProject();
+  const { endpoint } = useEndpoint();
 
   const { data } = useSWR<{ referer: string; clicks: number }[]>(
-    router.isReady &&
-      `${
-        slug && domain
-          ? `/api/projects/${slug}/domains/${domain}/links/${key}/stats/referer`
-          : `/api/edge/links/${key}/stats/referer`
-      }?interval=${interval || "24h"}`,
+    router.isReady && `${endpoint}/referer?interval=${interval || "24h"}`,
     fetcher,
   );
 
   const { data: totalClicks } = useSWR<number>(
-    router.isReady &&
-      `${
-        slug && domain
-          ? `/api/projects/${slug}/domains/${domain}/links/${key}/clicks`
-          : `/api/edge/links/${key}/clicks`
-      }?interval=${interval || "24h"}`,
+    router.isReady && `${endpoint}/clicks?interval=${interval || "24h"}`,
     fetcher,
   );
 

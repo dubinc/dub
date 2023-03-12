@@ -51,3 +51,4 @@ export { default as EyeOff } from "./eye-off";
 export { default as Heart } from "./heart";
 export { default as Repeat } from "./repeat";
 export { default as Message } from "./message";
+export { default as Share } from "./share";
