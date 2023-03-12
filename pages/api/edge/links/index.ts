@@ -3,7 +3,7 @@ import { setRandomKey } from "@/lib/upstash";
 import { isBlacklistedDomain } from "@/lib/utils";
 
 export const config = {
-  runtime: "experimental-edge",
+  runtime: "edge",
 };
 
 export default async function handler(req: NextRequest) {

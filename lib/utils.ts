@@ -5,6 +5,7 @@ import {
   SPECIAL_APEX_DOMAINS,
   ccTLDs,
   SECOND_LEVEL_DOMAINS,
+  HOME_HOSTNAMES,
 } from "./constants";
 import { createClient } from "@vercel/edge-config";
 
@@ -190,6 +191,14 @@ export const isValidUrl = (url: string) => {
   } catch (e) {
     return false;
   }
+};
+
+export const isHomeHostname = (domain: string) => {
+  return (
+    HOME_HOSTNAMES.has(domain) ||
+    domain.endsWith(".vercel.app") ||
+    domain.endsWith(".localhost:3000")
+  );
 };
 
 export const getUrlFromString = (str: string) => {

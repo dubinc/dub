@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import {
   Calendar,
   ChevronDown,
+  Copy,
   ExpandingArrow,
   Share,
   Tick,
@@ -12,17 +13,20 @@ import useScroll from "@/lib/hooks/use-scroll";
 import { linkConstructor } from "@/lib/utils";
 import IconMenu from "@/components/shared/icon-menu";
 import Popover from "@/components/shared/popover";
-import useSWR from "swr";
+import useSWR, { mutate } from "swr";
 import { fetcher } from "@/lib/utils";
+import { useSession } from "next-auth/react";
+import { toast } from "react-hot-toast";
+import useProject from "@/lib/swr/use-project";
+import Switch from "../shared/switch";
+import Link from "next/link";
 
 export default function Toggle({
   atModalTop,
-  domain,
-  publicPage,
+  domain: staticDomain,
 }: {
   atModalTop?: boolean;
   domain?: string;
-  publicPage?: boolean;
 }) {
   const router = useRouter();
   const {
@@ -35,24 +39,30 @@ export default function Toggle({
     interval?: string;
   };
 
-  const pageType = useMemo(() => {
+  const { project: { domain: projectDomain } = {} } = useProject();
+
+  const { pageType, domain } = useMemo(() => {
+    // Project link page, e.g. app.dub.sh/dub/github
     if (slug && key) {
-      return slug;
+      return { pageType: slug, domain: projectDomain };
+
+      // Generic Dub.sh link page, e.g. app.dub.sh/links/steven
     } else if (key && router.asPath.startsWith("/links")) {
-      return "links";
-    } else if (key && router.asPath.startsWith("/stats")) {
-      return "stats";
+      return { pageType: "links", domain: "dub.sh" };
     }
-    return "stats";
+
+    // Public stats page, e.g. dub.sh/stats/github
+    return { pageType: "stats", domain: staticDomain };
   }, [slug, key, router.asPath]);
 
   const atTop = useScroll(80) || atModalTop;
-  const [openSharePopover, setopenSharePopoverPopover] = useState(false);
   const [openDatePopover, setOpenDatePopover] = useState(false);
 
   const selectedInterval = useMemo(() => {
     return INTERVALS.find((s) => s.slug === interval) || INTERVALS[1];
   }, [interval]);
+
+  const { data: session } = useSession();
 
   return (
     <div
@@ -71,27 +81,7 @@ export default function Toggle({
           <ExpandingArrow className="h-5 w-5" />
         </a>
         <div className="flex items-center">
-          {!publicPage && (
-            <Popover
-              content={
-                <form className="w-full p-2 sm:w-60">
-                  <p className="truncate text-sm font-semibold">
-                    Share stats for{" "}
-                    {linkConstructor({ key, domain, pretty: true })}
-                  </p>
-                </form>
-              }
-              openPopover={openSharePopover}
-              setOpenPopover={setopenSharePopoverPopover}
-            >
-              <button
-                onClick={() => setopenSharePopoverPopover(!openSharePopover)}
-                className="mr-2 flex w-24 items-center justify-center space-x-2 rounded-md bg-white px-3 py-2.5 shadow transition-all duration-75 hover:shadow-md active:scale-95"
-              >
-                <IconMenu text="Share" icon={<Share className="h-4 w-4" />} />
-              </button>
-            </Popover>
-          )}
+          {session && <SharePopover domain={domain} />}
           <Popover
             content={
               <div className="w-full p-2 md:w-48">
@@ -145,3 +135,119 @@ export default function Toggle({
     </div>
   );
 }
+
+const SharePopover = ({ domain }: { domain: string }) => {
+  const router = useRouter();
+  const { slug, key } = router.query as {
+    slug?: string;
+    key: string;
+  };
+
+  const [openSharePopover, setopenSharePopoverPopover] = useState(false);
+
+  const { data: { publicStats } = {} } = useSWR<{ publicStats: boolean }>(
+    slug && `/api/projects/${slug}/domains/${domain}/links/${key}/stats`,
+    fetcher,
+  );
+
+  const handleChange = async () => {
+    toast.promise(
+      new Promise<void>(async (resolve) => {
+        const res = await fetch(
+          `/api/projects/${slug}/domains/${domain}/links/${key}/stats`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              publicStats: !publicStats,
+            }),
+          },
+        );
+        if (res.status === 200) {
+          mutate(`/api/projects/${slug}/domains/${domain}/links/${key}/stats`);
+        }
+        resolve();
+      }),
+      {
+        loading: "Updating...",
+        success: `Stats page is now ${publicStats ? "private" : "public"}`,
+        error: "Something went wrong",
+      },
+    );
+  };
+
+  return (
+    <Popover
+      content={
+        <div className="w-full divide-y divide-gray-200 text-sm sm:w-60">
+          <div className="p-4">
+            <p className="text-gray-500">Share stats for</p>
+            <p className="truncate font-semibold text-gray-800">
+              {linkConstructor({ key, domain, pretty: true })}
+            </p>
+          </div>
+          <div className="p-4">
+            <div className="mb-2 flex items-center justify-between">
+              <p className="font-semibold text-gray-800">Public Stats Page</p>
+              <Switch
+                checked={slug ? publicStats : true}
+                fn={handleChange}
+                disabled={!slug}
+              />
+            </div>
+            {slug ? (
+              <p className="text-gray-500">
+                Making stats public will allow anyone with the link to see the
+                stats for this short link.
+              </p>
+            ) : (
+              <p className="text-gray-500">
+                Dub.sh links have public stats pages by default.{" "}
+                <Link
+                  href="/"
+                  className="font-medium text-gray-700 underline transition-colors hover:text-black"
+                >
+                  Create a project
+                </Link>{" "}
+                to make stats private.
+              </p>
+            )}
+          </div>
+          <div className="p-4">
+            <p className="font-semibold text-gray-800">Share Link</p>
+            <div className="divide-x-200 mt-2 flex items-center justify-between divide-x overflow-hidden rounded-md border border-gray-200 bg-gray-100">
+              <div className="overflow-scroll pl-2 scrollbar-hide">
+                <p className="text-gray-600">
+                  https://{domain}/stats/{key}
+                </p>
+              </div>
+              <button
+                className="h-8 flex-none border-l bg-white px-2 hover:bg-gray-50 active:bg-gray-100"
+                onClick={() => {
+                  navigator.clipboard.writeText(
+                    `https://${domain}/stats/${key}`,
+                  );
+                  toast.success("Copied to clipboard");
+                }}
+              >
+                <Copy className="h-4 w-4 text-gray-500" />
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+      align="end"
+      openPopover={openSharePopover}
+      setOpenPopover={setopenSharePopoverPopover}
+    >
+      <button
+        onClick={() => setopenSharePopoverPopover(!openSharePopover)}
+        className="mr-2 flex w-24 items-center justify-center space-x-2 rounded-md bg-white px-3 py-2.5 shadow transition-all duration-75 hover:shadow-md active:scale-95"
+      >
+        <IconMenu text="Share" icon={<Share className="h-4 w-4" />} />
+      </button>
+    </Popover>
+  );
+};

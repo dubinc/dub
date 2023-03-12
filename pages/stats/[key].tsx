@@ -1,8 +1,7 @@
 import HomeLayout from "@/components/layout/home";
 import Stats from "@/components/stats";
 import prisma from "@/lib/prisma";
-import { nFormatter } from "@/lib/utils";
-import { HOME_HOSTNAMES } from "@/lib/constants";
+import { isHomeHostname, nFormatter } from "@/lib/utils";
 import { GetServerSideProps } from "next";
 import { getLinkViaEdge } from "@/lib/planetscale";
 
@@ -34,7 +33,7 @@ export default function StatsPage({
       }}
     >
       <div className="bg-gray-50">
-        <Stats domain={domain} publicPage />
+        <Stats domain={domain} />
       </div>
     </HomeLayout>
   );
@@ -46,8 +45,7 @@ export const getServerSideProps: GetServerSideProps = async ({
 }) => {
   const { key } = params as { key: string };
   let domain = req.headers.host;
-  if (HOME_HOSTNAMES.has(domain) || domain.endsWith(".vercel.app"))
-    domain = "dub.sh";
+  if (isHomeHostname(domain)) domain = "dub.sh";
 
   const data = await getLinkViaEdge(domain, key);
 

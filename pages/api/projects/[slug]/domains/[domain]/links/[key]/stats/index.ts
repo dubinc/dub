@@ -28,6 +28,7 @@ export default withProjectAuth(
           publicStats: true,
         },
       });
+
       return res.status(200).json(link);
 
       // PUT /api/projects/[slug]/domains/[domain]/links/[key]/stats - edit a link's stats page privacy

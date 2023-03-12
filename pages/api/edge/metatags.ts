@@ -5,7 +5,7 @@ import { ratelimit, recordMetatags } from "@/lib/upstash";
 import { getToken } from "next-auth/jwt";
 
 export const config = {
-  runtime: "experimental-edge",
+  runtime: "edge",
 };
 
 export default async function handler(req: NextRequest, ev: NextFetchEvent) {

@@ -1,9 +1,10 @@
 import type { NextRequest } from "next/server";
 import { getStats } from "@/lib/stats";
 import { getLinkViaEdge } from "@/lib/planetscale";
+import { isHomeHostname } from "@/lib/utils";
 
 export const config = {
-  runtime: "experimental-edge",
+  runtime: "edge",
 };
 
 export default async function handler(req: NextRequest) {
@@ -11,7 +12,8 @@ export default async function handler(req: NextRequest) {
     const key = req.nextUrl.searchParams.get("key");
     const interval = req.nextUrl.searchParams.get("interval") || "24h";
     const endpoint = req.nextUrl.searchParams.get("endpoint");
-    const domain = req.nextUrl.searchParams.get("domain") || "dub.sh";
+    let domain = req.headers.get("host");
+    if (isHomeHostname(domain)) domain = "dub.sh";
 
     if (domain !== "dub.sh") {
       const data = await getLinkViaEdge(key, domain);

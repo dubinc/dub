@@ -1,19 +1,24 @@
 import type { NextRequest } from "next/server";
 import { getStats } from "@/lib/stats";
+import { isHomeHostname } from "@/lib/utils";
 import { conn } from "@/lib/planetscale";
 
 export const config = {
-  runtime: "experimental-edge",
+  runtime: "edge",
 };
 
 export default async function handler(req: NextRequest) {
   if (req.method === "GET") {
     const key = req.nextUrl.searchParams.get("key");
     const interval = req.nextUrl.searchParams.get("interval");
+
+    let domain = req.headers.get("host");
+    if (isHomeHostname(domain)) domain = "dub.sh";
+
     if (!interval) {
       const response = await conn.execute(
         "SELECT clicks FROM Link WHERE domain = ? AND `key` = ?",
-        ["dub.sh", key],
+        [domain, key],
       );
       let clicks = 0;
       try {
@@ -24,9 +29,9 @@ export default async function handler(req: NextRequest) {
       }
     }
 
-    // if Planetscale fails or no interval is provided, get the total clicks from Tinybird
+    // if Planetscale fails or interval is provided, get the total clicks from Tinybird
     const response = await getStats({
-      domain: "dub.sh",
+      domain,
       key,
       endpoint: "clicks",
       interval,
