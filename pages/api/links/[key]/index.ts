@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { deleteLink, editLink } from "@/lib/api/links";
 import { Session, withUserAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { isBlacklistedDomain } from "@/lib/utils";
+import { isBlacklistedDomain, isBlacklistedKey } from "@/lib/utils";
 
 export const config = {
   api: {
@@ -41,6 +41,10 @@ export default withUserAuth(
         return res
           .status(400)
           .json({ error: "Missing key or url or title or timestamp" });
+      }
+      const keyBlacklisted = await isBlacklistedKey(key);
+      if (keyBlacklisted) {
+        return res.status(400).json({ error: "Invalid key" });
       }
       const domainBlacklisted = await isBlacklistedDomain(url);
       if (domainBlacklisted) {
