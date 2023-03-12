@@ -59,9 +59,22 @@ export default async function handler(req: NextRequest) {
           ).toString()})`,
         }}
       >
+        <img
+          src={new URL(
+            "../../../public/_static/logo.png",
+            import.meta.url,
+          ).toString()}
+          style={{
+            width: "80px",
+            height: "80px",
+            position: "absolute",
+            top: "40px",
+            right: "40px",
+          }}
+        />
         <h1
           style={{
-            fontSize: "80px",
+            fontSize: "90px",
             fontFamily: "Satoshi Black",
             background:
               "linear-gradient(95.78deg, #C7BF00 21.66%, #E43838 86.47%)",
@@ -75,11 +88,11 @@ export default async function handler(req: NextRequest) {
         </h1>
         <p
           style={{
-            fontSize: "40px",
+            fontSize: "50px",
             fontFamily: "Satoshi Bold",
             color: "black",
             opacity: 0.8,
-            marginTop: "-10px",
+            marginTop: "0px",
           }}
         >
           {nFormatter(totalClicks)} clicks in the last 30 days
@@ -87,7 +100,7 @@ export default async function handler(req: NextRequest) {
         <div
           style={{
             position: "absolute",
-            bottom: "80px",
+            bottom: "0px",
             display: "flex",
             flexDirection: "row",
             alignItems: "flex-end",
@@ -103,48 +116,13 @@ export default async function handler(req: NextRequest) {
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                width: "20px",
-                height: `${(clicks / maxClicks) * 300}px`, // normalize clicks count to scale of 300px
-                marginRight: "10px",
+                width: "25px",
+                height: `${(clicks / maxClicks) * 360}px`, // normalize clicks count to scale of 360px
+                marginRight: "12px",
                 backgroundColor: "#2563eb",
               }}
             />
           ))}
-        </div>
-        <div
-          style={{
-            position: "absolute",
-            bottom: "0px",
-            height: "80px",
-            width: "100%",
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "rgba(255, 255, 255, 0.4)",
-            backdropFilter: "blur(30px)",
-          }}
-        >
-          <img
-            src={new URL(
-              "../../../public/_static/logo.png",
-              import.meta.url,
-            ).toString()}
-            style={{
-              width: "40px",
-              height: "40px",
-            }}
-          />
-          <h2
-            style={{
-              fontSize: "25px",
-              fontFamily: "Satoshi Bold",
-              color: "#000",
-              marginLeft: "20px",
-            }}
-          >
-            Dub.sh - Link Management For Modern Marketing Teams
-          </h2>
         </div>
       </div>
     ),
