@@ -341,6 +341,20 @@ export const isBlacklistedDomain = async (domain: string) => {
   );
 };
 
+export const getBlacklistedKeys = async () => {
+  try {
+    const domains = await edgeConfig.get("keys");
+    return domains || [];
+  } catch (e) {
+    return [];
+  }
+};
+
+export const isBlacklistedKey = async (key: string) => {
+  const blacklistedKeys = await getBlacklistedKeys();
+  return new RegExp(blacklistedKeys.join("|"), "i").test(key);
+};
+
 export const getBlackListedEmails = async () => {
   try {
     const emails = await edgeConfig.get("emails");
