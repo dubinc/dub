@@ -1,12 +1,11 @@
 import HomeLayout from "@/components/layout/home";
 import Stats from "@/components/stats";
-import prisma from "@/lib/prisma";
 import { isHomeHostname, nFormatter } from "@/lib/utils";
 import { GetServerSideProps } from "next";
 import { getLinkViaEdge } from "@/lib/planetscale";
 
 export const config = {
-  runtime: "edge",
+  runtime: "experimental-edge",
 };
 
 export default function StatsPage({
