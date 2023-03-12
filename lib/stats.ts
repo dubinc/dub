@@ -1,3 +1,5 @@
+import { conn } from "./planetscale";
+
 export type IntervalProps = "1h" | "24h" | "7d" | "30d" | "90d";
 
 export const intervalData = {
@@ -120,6 +122,21 @@ export const getStats = async ({
     return null;
   }
 
+  // get all-time clicks count
+  if (endpoint === "clicks" && !interval) {
+    const response = await conn.execute(
+      "SELECT clicks FROM Link WHERE domain = ? AND `key` = ?",
+      [domain, key],
+    );
+    let clicks = 0;
+    try {
+      clicks = response.rows[0]["clicks"];
+      return new Response(JSON.stringify(clicks), { status: 200 });
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
   let url = new URL(
     `https://api.us-east.tinybird.co/v0/pipes/${endpoint}.json`,
   );
@@ -147,6 +164,14 @@ export const getStats = async ({
   })
     .then((res) => res.json())
     .then(({ data }) => {
+      if (endpoint === "clicks") {
+        try {
+          const clicks = data[0]["count()"];
+          return clicks || "0";
+        } catch (e) {
+          console.log(e);
+        }
+      }
       return data;
     });
 };

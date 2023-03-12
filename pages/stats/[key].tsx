@@ -10,25 +10,19 @@ export const config = {
 
 export default function StatsPage({
   url,
-  clicks,
   _key,
   domain,
 }: {
   url: string;
-  clicks: number;
   _key: string;
   domain?: string;
 }) {
   return (
     <HomeLayout
       meta={{
-        title: `Stats for ${domain}/${_key} (${nFormatter(
-          clicks,
-        )} clicks) - Dub`,
-        description: `Stats page for ${domain}/${_key}, which redirects to ${url} and has received ${nFormatter(
-          clicks,
-        )} total clicks.`,
-        image: `https://dub.sh/api/og/stats?domain=${domain}&key=${_key}&clicks=${clicks}`,
+        title: `Stats for ${domain}/${_key} - Dub`,
+        description: `Stats page for ${domain}/${_key}, which redirects to ${url}.`,
+        image: `https://dub.sh/api/og/stats?domain=${domain}&key=${_key}`,
       }}
     >
       <div className="bg-gray-50">
@@ -48,7 +42,7 @@ export const getServerSideProps: GetServerSideProps = async ({
 
   const data = await getLinkViaEdge(domain, key);
 
-  if (data && (domain === "dub.sh" || data.publicStats)) {
+  if (data && data.publicStats) {
     return {
       props: {
         ...data,

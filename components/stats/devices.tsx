@@ -8,41 +8,29 @@ import { nFormatter } from "@/lib/utils";
 import DeviceIcon from "./device-icon";
 import useSWR from "swr";
 import { fetcher } from "@/lib/utils";
-import useProject from "@/lib/swr/use-project";
+import useEndpoint from "@/lib/hooks/use-endpoint";
 
 export default function Devices() {
   const [tab, setTab] = useState<DeviceTabs>("device");
   const router = useRouter();
 
-  const { slug, key, interval } = router.query as {
-    slug?: string;
-    key: string;
+  const { interval } = router.query as {
     interval?: string;
   };
 
-  const { project: { domain } = {} } = useProject();
+  const { endpoint } = useEndpoint();
 
   const { data } = useSWR<
     ({
       [key in DeviceTabs]: string;
     } & { clicks: number })[]
   >(
-    router.isReady &&
-      `${
-        slug && domain
-          ? `/api/projects/${slug}/domains/${domain}/links/${key}/stats/${tab}`
-          : `/api/edge/links/${key}/stats/${tab}`
-      }?interval=${interval || "24h"}`,
+    router.isReady && `${endpoint}/${tab}?interval=${interval || "24h"}`,
     fetcher,
   );
 
   const { data: totalClicks } = useSWR<number>(
-    router.isReady &&
-      `${
-        slug && domain
-          ? `/api/projects/${slug}/domains/${domain}/links/${key}/clicks`
-          : `/api/edge/links/${key}/clicks`
-      }?interval=${interval || "24h"}`,
+    router.isReady && `${endpoint}/clicks?interval=${interval || "24h"}`,
     fetcher,
   );
 

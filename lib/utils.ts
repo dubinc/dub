@@ -194,11 +194,7 @@ export const isValidUrl = (url: string) => {
 };
 
 export const isHomeHostname = (domain: string) => {
-  return (
-    HOME_HOSTNAMES.has(domain) ||
-    domain.endsWith(".vercel.app") ||
-    domain.endsWith(".localhost:3000")
-  );
+  return HOME_HOSTNAMES.has(domain) || domain.endsWith(".vercel.app");
 };
 
 export const getUrlFromString = (str: string) => {

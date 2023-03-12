@@ -17,9 +17,9 @@ import useSWR, { mutate } from "swr";
 import { fetcher } from "@/lib/utils";
 import { useSession } from "next-auth/react";
 import { toast } from "react-hot-toast";
-import useProject from "@/lib/swr/use-project";
 import Switch from "../shared/switch";
 import Link from "next/link";
+import useEndpoint from "@/lib/hooks/use-endpoint";
 
 export default function Toggle({
   atModalTop,
@@ -29,31 +29,12 @@ export default function Toggle({
   domain?: string;
 }) {
   const router = useRouter();
-  const {
-    slug,
-    key,
-    interval = "24h",
-  } = router.query as {
-    slug?: string;
+  const { key, interval = "24h" } = router.query as {
     key: string;
     interval?: string;
   };
 
-  const { project: { domain: projectDomain } = {} } = useProject();
-
-  const { pageType, domain } = useMemo(() => {
-    // Project link page, e.g. app.dub.sh/dub/github
-    if (slug && key) {
-      return { pageType: slug, domain: projectDomain };
-
-      // Generic Dub.sh link page, e.g. app.dub.sh/links/steven
-    } else if (key && router.asPath.startsWith("/links")) {
-      return { pageType: "links", domain: "dub.sh" };
-    }
-
-    // Public stats page, e.g. dub.sh/stats/github
-    return { pageType: "stats", domain: staticDomain };
-  }, [slug, key, router.asPath]);
+  const { pageType, domain } = useEndpoint(staticDomain);
 
   const atTop = useScroll(80) || atModalTop;
   const [openDatePopover, setOpenDatePopover] = useState(false);
@@ -145,28 +126,33 @@ const SharePopover = ({ domain }: { domain: string }) => {
 
   const [openSharePopover, setopenSharePopoverPopover] = useState(false);
 
+  const endpoint = useMemo(() => {
+    if (slug) {
+      return `/api/projects/${slug}/domains/${domain}/links/${key}/stats`;
+    } else {
+      return `/api/links/${key}/stats`;
+    }
+  }, [slug]);
+
   const { data: { publicStats } = {} } = useSWR<{ publicStats: boolean }>(
-    slug && `/api/projects/${slug}/domains/${domain}/links/${key}/stats`,
+    endpoint,
     fetcher,
   );
 
   const handleChange = async () => {
     toast.promise(
       new Promise<void>(async (resolve) => {
-        const res = await fetch(
-          `/api/projects/${slug}/domains/${domain}/links/${key}/stats`,
-          {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              publicStats: !publicStats,
-            }),
+        const res = await fetch(endpoint, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
           },
-        );
+          body: JSON.stringify({
+            publicStats: !publicStats,
+          }),
+        });
         if (res.status === 200) {
-          mutate(`/api/projects/${slug}/domains/${domain}/links/${key}/stats`);
+          mutate(endpoint);
         }
         resolve();
       }),

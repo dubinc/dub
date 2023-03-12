@@ -15,13 +15,11 @@ export default async function handler(req: NextRequest) {
     let domain = req.headers.get("host");
     if (isHomeHostname(domain)) domain = "dub.sh";
 
-    if (domain !== "dub.sh") {
-      const data = await getLinkViaEdge(key, domain);
-      if (!data.publicStats) {
-        return new Response(`Method ${req.method} Not Allowed`, {
-          status: 405,
-        });
-      }
+    const data = await getLinkViaEdge(domain, key);
+    if (!data?.publicStats) {
+      return new Response(`Stats for this link are not public`, {
+        status: 403,
+      });
     }
 
     const response = await getStats({
