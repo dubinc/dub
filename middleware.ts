@@ -1,9 +1,5 @@
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
-import {
-  DEFAULT_REDIRECTS,
-  HOME_HOSTNAMES,
-  RESERVED_KEYS,
-} from "@/lib/constants";
+import { DEFAULT_REDIRECTS } from "@/lib/constants";
 import {
   AppMiddleware,
   ApiMiddleware,
@@ -11,6 +7,7 @@ import {
   RootMiddleware,
 } from "@/lib/middleware";
 import { parse } from "@/lib/middleware/utils";
+import { isReservedKey } from "./lib/utils";
 
 export const config = {
   matcher: [
@@ -60,7 +57,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
     if (DEFAULT_REDIRECTS[key]) {
       return NextResponse.redirect(DEFAULT_REDIRECTS[key]);
     }
-    if (RESERVED_KEYS.has(key)) {
+    if (await isReservedKey(key)) {
       return NextResponse.next();
     }
   }

@@ -1,9 +1,9 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { Session, withUserAuth } from "@/lib/auth";
-import { DEFAULT_REDIRECTS, RESERVED_KEYS } from "@/lib/constants";
-import { addDomain, removeDomain } from "@/lib/domains";
+import { DEFAULT_REDIRECTS } from "@/lib/constants";
+import { addDomain } from "@/lib/domains";
 import prisma from "@/lib/prisma";
-import { validDomainRegex } from "@/lib/utils";
+import { isReservedKey, validDomainRegex } from "@/lib/utils";
 
 export default withUserAuth(
   async (req: NextApiRequest, res: NextApiResponse, session: Session) => {
@@ -31,7 +31,7 @@ export default withUserAuth(
       let slugError = null;
       if (slug.includes(" ") || slug.includes(".")) {
         slugError = "Slug cannot contain spaces or periods";
-      } else if (RESERVED_KEYS.has(slug) || DEFAULT_REDIRECTS[slug]) {
+      } else if ((await isReservedKey(slug)) || DEFAULT_REDIRECTS[slug]) {
         slugError = "Cannot use reserved slugs";
       }
       const validDomain =

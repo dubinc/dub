@@ -60,29 +60,6 @@ export const HOME_HOSTNAMES = new Set([
   "localhost:3000",
 ]);
 
-export const RESERVED_KEYS = new Set([
-  "api",
-  "va",
-  "static",
-  "stats",
-  "proxy",
-  "auth",
-  "pricing",
-  "about",
-  "metatags",
-  "blog",
-  "careers",
-  "docs",
-  "features",
-  "contact",
-  "terms",
-  "privacy",
-  "admin",
-  "help",
-  "new",
-  "info",
-  "demo",
-]);
 export const DEFAULT_REDIRECTS = {
   home: "https://dub.sh",
   signin: "https://app.dub.sh/login",

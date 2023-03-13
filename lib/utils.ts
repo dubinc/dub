@@ -325,33 +325,25 @@ export const edgeConfig = createClient(
   `https://edge-config.vercel.com/ecfg_eh6zdvznm70adch6q0mqxshrt4ny?token=64aef40c-ea06-4aeb-b528-b94d924ec05a`,
 );
 
-export const getBlackListedDomains = async () => {
-  try {
-    const domains = await edgeConfig.get("domains");
-    return domains || [];
-  } catch (e) {
-    return [];
-  }
-};
-
 export const isBlacklistedDomain = async (domain: string) => {
-  const blacklistedDomains = await getBlackListedDomains();
+  let blacklistedDomains;
+  try {
+    blacklistedDomains = await edgeConfig.get("domains");
+  } catch (e) {
+    blacklistedDomains = [];
+  }
   return new RegExp(blacklistedDomains.join("|")).test(
     getDomainWithoutWWW(domain),
   );
 };
 
-export const getBlacklistedKeys = async () => {
-  try {
-    const domains = await edgeConfig.get("keys");
-    return domains || [];
-  } catch (e) {
-    return [];
-  }
-};
-
 export const isBlacklistedKey = async (key: string) => {
-  const blacklistedKeys = await getBlacklistedKeys();
+  let blacklistedKeys;
+  try {
+    blacklistedKeys = await edgeConfig.get("keys");
+  } catch (e) {
+    blacklistedKeys = [];
+  }
   return new RegExp(blacklistedKeys.join("|"), "i").test(key);
 };
 
@@ -366,4 +358,14 @@ export const getBlackListedEmails = async () => {
   } catch (e) {
     return new Set();
   }
+};
+
+export const isReservedKey = async (key: string) => {
+  let reservedKey;
+  try {
+    reservedKey = await edgeConfig.get("reserved");
+  } catch (e) {
+    reservedKey = [];
+  }
+  return new Set(reservedKey).has(key);
 };
