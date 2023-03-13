@@ -347,17 +347,14 @@ export const isBlacklistedKey = async (key: string) => {
   return new RegExp(blacklistedKeys.join("|"), "i").test(key);
 };
 
-export const getBlackListedEmails = async () => {
+export const isBlacklistedEmail = async (email: string) => {
+  let blacklistedEmails;
   try {
-    const emails = await edgeConfig.get("emails");
-    if (emails) {
-      return new Set(emails);
-    } else {
-      return new Set();
-    }
+    blacklistedEmails = await edgeConfig.get("emails");
   } catch (e) {
-    return new Set();
+    blacklistedEmails = [];
   }
+  return new Set(blacklistedEmails).has(email);
 };
 
 export const isReservedKey = async (key: string) => {
