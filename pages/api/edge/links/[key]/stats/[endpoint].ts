@@ -31,9 +31,6 @@ export default async function handler(req: NextRequest) {
       endpoint,
       interval,
     });
-    if (!response) {
-      return new Response(`Method ${req.method} Not Allowed`, { status: 405 });
-    }
 
     return new Response(JSON.stringify(response), { status: 200 });
   } else {

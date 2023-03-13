@@ -1,12 +1,14 @@
 import { connect } from "@planetscale/database";
 
 export const pscale_config = {
-  url: process.env["DATABASE_URL"] || "mysql://user:pass@host",
+  url: process.env.DATABASE_URL || "mysql://user:pass@host",
 };
 
-export const conn = connect(pscale_config);
+export const conn = process.env.DATABASE_URL ? connect(pscale_config) : null;
 
 export async function getLinkViaEdge(domain: string, key: string) {
+  if (!conn) return null;
+
   const { rows } =
     (await conn.execute(
       "SELECT `key`, url, clicks, userId, publicStats FROM Link WHERE domain = ? AND `key` = ?",

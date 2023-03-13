@@ -9,11 +9,14 @@ export const redis = new Redis({
 });
 
 // Create a new ratelimiter, that allows 10 requests per 10 seconds
-export const ratelimit = new Ratelimit({
-  redis: Redis.fromEnv(),
-  limiter: Ratelimit.slidingWindow(10, "10 s"),
-  analytics: true,
-});
+export const ratelimit =
+  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+    ? new Ratelimit({
+        redis: Redis.fromEnv(),
+        limiter: Ratelimit.slidingWindow(10, "10 s"),
+        analytics: true,
+      })
+    : null;
 
 // only for dub.sh public demo
 export async function setRandomKey(

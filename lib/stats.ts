@@ -118,12 +118,20 @@ export const getStats = async ({
   endpoint: string;
   interval?: string;
 }) => {
+  if (!process.env.TINYBIRD_API_KEY) {
+    return null;
+  }
+
   if (!VALID_TINYBIRD_ENDPOINTS.has(endpoint)) {
     return null;
   }
 
-  // get all-time clicks count
-  if (endpoint === "clicks" && !interval) {
+  // get all-time clicks count if:
+  // 1. endpoint is /clicks
+  // 2. interval is not defined
+  // 3. there's a connection to MySQL
+
+  if (endpoint === "clicks" && !interval && conn) {
     const response = await conn.execute(
       "SELECT clicks FROM Link WHERE domain = ? AND `key` = ?",
       [domain, key],
