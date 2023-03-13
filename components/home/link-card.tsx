@@ -115,7 +115,7 @@ export default function LinkCard({
     });
 
   const { data: clicks } = useSWR<number>(
-    `/api/edge/links/${key}/clicks`,
+    `/api/edge/links/${key}/stats/clicks`,
     fetcher,
     {
       // avoid revalidation on focus when modals are open to prevent rerendering
