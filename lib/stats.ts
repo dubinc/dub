@@ -128,10 +128,9 @@ export const getStats = async ({
       "SELECT clicks FROM Link WHERE domain = ? AND `key` = ?",
       [domain, key],
     );
-    let clicks = 0;
     try {
-      clicks = response.rows[0]["clicks"];
-      return new Response(JSON.stringify(clicks), { status: 200 });
+      const clicks = response.rows[0]["clicks"];
+      return clicks || "0";
     } catch (e) {
       console.log(e);
     }
