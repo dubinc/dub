@@ -27,6 +27,7 @@ export default function OGSection({
   const { title, description, image, proxy } = data;
 
   const [fileSizeTooBig, setFileSizeTooBig] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
 
   const onChangePicture = useCallback(
     (e) => {
@@ -98,34 +99,73 @@ export default function OGSection({
                 </div>
               )}
               <div
-                className={`absolute z-[3] flex h-full w-full flex-col items-center justify-center rounded-md transition-all ${
+                className="absolute z-[5] h-full w-full rounded-md"
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setDragActive(true);
+                }}
+                onDragEnter={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setDragActive(true);
+                }}
+                onDragLeave={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setDragActive(false);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setDragActive(false);
+                  setFileSizeTooBig(false);
+                  const file = e.dataTransfer.files && e.dataTransfer.files[0];
+                  if (file) {
+                    if (file.size / 1024 / 1024 > 5) {
+                      setFileSizeTooBig(true);
+                    } else {
+                      const reader = new FileReader();
+                      reader.onload = (e) => {
+                        setData((prev) => ({
+                          ...prev,
+                          image: e.target?.result as string,
+                        }));
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }
+                }}
+              />
+              <div
+                className={`${
+                  dragActive ? "border-2 border-black bg-gray-50" : ""
+                } absolute z-[3] flex h-full w-full flex-col items-center justify-center rounded-md bg-white transition-all ${
                   image
-                    ? "bg-white/80 opacity-0 hover:opacity-100 hover:backdrop-blur-md"
-                    : "bg-white opacity-100 hover:bg-gray-50"
+                    ? "opacity-0 group-hover:opacity-100"
+                    : "group-hover:bg-gray-50"
                 }`}
               >
-                <UploadCloud className="h-7 w-7 text-gray-500 transition-all duration-75 group-hover:scale-110 group-active:scale-95" />
-                <p className="mt-2 text-sm text-gray-500">
+                <UploadCloud
+                  className={`${
+                    dragActive ? "scale-110" : "scale-100"
+                  } h-7 w-7 text-gray-500 transition-all duration-75 group-hover:scale-110 group-active:scale-95`}
+                />
+                <p className="mt-2 text-center text-sm text-gray-500">
+                  Drag and drop or click to upload.
+                </p>
+                <p className="mt-2 text-center text-sm text-gray-500">
                   Recommended: 1200 x 627 pixels
                 </p>
-                <span className="sr-only">OG Image upload</span>
+                <span className="sr-only">OG image upload</span>
               </div>
-              {image &&
-                (image.startsWith("https://res.cloudinary.com") ? (
-                  <BlurImage
-                    src={image}
-                    alt="Preview"
-                    width={1200}
-                    height={627}
-                    className="h-full w-full rounded-md object-cover"
-                  />
-                ) : (
-                  <img
-                    src={image}
-                    alt="Preview"
-                    className="h-full w-full rounded-md object-cover"
-                  />
-                ))}
+              {image && (
+                <img
+                  src={image}
+                  alt="Preview"
+                  className="h-full w-full rounded-md object-cover"
+                />
+              )}
             </label>
             <div className="mt-1 flex rounded-md shadow-sm">
               <input
