@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { addLink, getLinksForProject } from "@/lib/api/links";
 import { Session, withUserAuth } from "@/lib/auth";
-import { isBlacklistedDomain } from "@/lib/utils";
+import { isBlacklistedDomain, isBlacklistedKey } from "@/lib/utils";
 import { log } from "@/lib/utils";
 import { DUB_PROJECT_ID } from "@/lib/constants";
 
@@ -36,9 +36,9 @@ export default withUserAuth(
       if (!key || !url) {
         return res.status(400).json({ error: "Missing key or url" });
       }
-      const { hostname, pathname } = new URL(url);
-      if (hostname === "dub.sh" && pathname === `/${key}`) {
-        return res.status(400).json({ error: "Invalid url" });
+      const keyBlacklisted = await isBlacklistedKey(key);
+      if (keyBlacklisted) {
+        return res.status(400).json({ error: "Invalid key" });
       }
       const domainBlacklisted = await isBlacklistedDomain(url);
       if (domainBlacklisted) {

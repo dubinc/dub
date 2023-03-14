@@ -5,6 +5,7 @@ import {
   SPECIAL_APEX_DOMAINS,
   ccTLDs,
   SECOND_LEVEL_DOMAINS,
+  HOME_HOSTNAMES,
 } from "./constants";
 import { createClient } from "@vercel/edge-config";
 
@@ -95,6 +96,7 @@ export const timeAgo = (timestamp: Date, timeOnly?: boolean): string => {
 
 export const getDateTimeLocal = (timestamp?: Date): string => {
   const d = timestamp ? new Date(timestamp) : new Date();
+  if (d.toString() === "Invalid Date") return "";
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
     .toISOString()
     .split(":")
@@ -191,6 +193,10 @@ export const isValidUrl = (url: string) => {
   } catch (e) {
     return false;
   }
+};
+
+export const isHomeHostname = (domain: string) => {
+  return HOME_HOSTNAMES.has(domain) || domain.endsWith(".vercel.app");
 };
 
 export const getUrlFromString = (str: string) => {
@@ -321,31 +327,44 @@ export const edgeConfig = createClient(
   `https://edge-config.vercel.com/ecfg_eh6zdvznm70adch6q0mqxshrt4ny?token=64aef40c-ea06-4aeb-b528-b94d924ec05a`,
 );
 
-export const getBlackListedDomains = async () => {
-  try {
-    const domains = await edgeConfig.get("domains");
-    return domains || [];
-  } catch (e) {
-    return [];
-  }
-};
-
 export const isBlacklistedDomain = async (domain: string) => {
-  const blacklistedDomains = await getBlackListedDomains();
+  let blacklistedDomains;
+  try {
+    blacklistedDomains = await edgeConfig.get("domains");
+  } catch (e) {
+    blacklistedDomains = [];
+  }
   return new RegExp(blacklistedDomains.join("|")).test(
     getDomainWithoutWWW(domain),
   );
 };
 
-export const getBlackListedEmails = async () => {
+export const isBlacklistedKey = async (key: string) => {
+  let blacklistedKeys;
   try {
-    const emails = await edgeConfig.get("emails");
-    if (emails) {
-      return new Set(emails);
-    } else {
-      return new Set();
-    }
+    blacklistedKeys = await edgeConfig.get("keys");
   } catch (e) {
-    return new Set();
+    blacklistedKeys = [];
   }
+  return new RegExp(blacklistedKeys.join("|"), "i").test(key);
+};
+
+export const isBlacklistedEmail = async (email: string) => {
+  let blacklistedEmails;
+  try {
+    blacklistedEmails = await edgeConfig.get("emails");
+  } catch (e) {
+    blacklistedEmails = [];
+  }
+  return new Set(blacklistedEmails).has(email);
+};
+
+export const isReservedKey = async (key: string) => {
+  let reservedKey;
+  try {
+    reservedKey = await edgeConfig.get("reserved");
+  } catch (e) {
+    reservedKey = [];
+  }
+  return new Set(reservedKey).has(key);
 };

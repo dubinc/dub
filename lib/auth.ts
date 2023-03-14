@@ -4,6 +4,7 @@ import { FREE_PLAN_PROJECT_LIMIT } from "@/lib/constants";
 import prisma from "@/lib/prisma";
 import { ProjectProps, UserProps } from "@/lib/types";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
+
 export interface Session {
   user: {
     email?: string | null;

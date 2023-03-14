@@ -1,9 +1,5 @@
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
-import {
-  DEFAULT_REDIRECTS,
-  HOME_HOSTNAMES,
-  RESERVED_KEYS,
-} from "@/lib/constants";
+import { DEFAULT_REDIRECTS } from "@/lib/constants";
 import {
   AppMiddleware,
   ApiMiddleware,
@@ -11,6 +7,7 @@ import {
   RootMiddleware,
 } from "@/lib/middleware";
 import { parse } from "@/lib/middleware/utils";
+import { isReservedKey } from "./lib/utils";
 
 export const config = {
   matcher: [
@@ -29,16 +26,24 @@ export const config = {
 
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   const { domain, path, key } = parse(req);
-  const home = HOME_HOSTNAMES.has(domain);
+  const home = domain === "dub.sh";
 
+  // for App (app.dub.sh and app.localhost:3000)
   if (domain === "app.dub.sh" || domain === "app.localhost:3000") {
     return AppMiddleware(req);
   }
 
+  // for API (api.dub.sh and api.localhost:3000)
   if (domain === "api.dub.sh" || domain === "api.localhost:3000") {
     return ApiMiddleware(req);
   }
 
+  // for public stats pages (e.g. dub.sh/stats/github)
+  if (path.startsWith("/stats/")) {
+    return NextResponse.next();
+  }
+
+  // for root pages (e.g. dub.sh, vercel.fyi, etc.)
   if (key.length === 0) {
     return RootMiddleware(req, ev);
   }
@@ -52,7 +57,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
     if (DEFAULT_REDIRECTS[key]) {
       return NextResponse.redirect(DEFAULT_REDIRECTS[key]);
     }
-    if (RESERVED_KEYS.has(key)) {
+    if (await isReservedKey(key)) {
       return NextResponse.next();
     }
   }

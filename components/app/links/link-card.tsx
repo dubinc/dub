@@ -52,8 +52,8 @@ export default function LinkCard({ props }: { props: LinkProps }) {
   const { data: clicks } = useSWR<number>(
     isVisible &&
       (slug
-        ? `/api/projects/${slug}/links/${key}/clicks?domain=${domain}`
-        : `/api/edge/links/${key}/clicks`),
+        ? `/api/projects/${slug}/links/${key}/stats/clicks?domain=${domain}`
+        : `/api/edge/links/${key}/stats/clicks`),
     fetcher,
     {
       fallbackData: props.clicks,

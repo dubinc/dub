@@ -1,9 +1,9 @@
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 import { redis } from "@/lib/upstash";
-import { HOME_HOSTNAMES } from "@/lib/constants";
 import { recordClick } from "@/lib/tinybird";
 import { parse } from "./utils";
 import { RootDomainProps } from "../types";
+import { isHomeHostname } from "../utils";
 
 export default async function RootMiddleware(
   req: NextRequest,
@@ -15,7 +15,7 @@ export default async function RootMiddleware(
     return NextResponse.next();
   }
 
-  if (HOME_HOSTNAMES.has(domain) || domain.endsWith(".vercel.app")) {
+  if (isHomeHostname(domain)) {
     return NextResponse.next();
   } else {
     ev.waitUntil(recordClick(domain, req)); // record clicks on root page (if domain is not dub.sh)

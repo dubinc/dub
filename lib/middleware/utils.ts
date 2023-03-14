@@ -17,9 +17,10 @@ export const detectBot = (req: NextRequest) => {
     /* Note:
      * - bot is for most bots & crawlers
      * - facebookexternalhit is for Facebook crawler
+     * - WhatsApp is for WhatsApp crawler
      * - MetaInspector is for https://metatags.io/
      */
-    return /bot|facebookexternalhit|google|baidu|bing|msn|duckduckbot|teoma|slurp|yandex|MetaInspector/i.test(
+    return /bot|facebookexternalhit|WhatsApp|google|baidu|bing|msn|duckduckbot|teoma|slurp|yandex|MetaInspector/i.test(
       ua,
     );
   }

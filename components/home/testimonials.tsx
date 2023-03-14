@@ -25,8 +25,8 @@ export default function Testimonials({
       <div className="space-y-6 py-8 sm:columns-2 sm:gap-6 xl:columns-3">
         {tweets.map((tweet, idx) => (
           <Tweet
-            key={tweet.id}
-            id={tweet.id}
+            key={idx}
+            id={idx.toString()}
             metadata={JSON.stringify(tweet)}
             className={
               idx < Math.floor(tweets.length / 3) ||

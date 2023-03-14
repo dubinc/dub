@@ -13,6 +13,7 @@ import styles from "./bar-chart.module.css";
 import useSWR from "swr";
 import { fetcher } from "@/lib/utils";
 import { LoadingCircle } from "@/components/shared/icons";
+import useEndpoint from "@/lib/hooks/use-endpoint";
 
 const LEFT_AXIS_WIDTH = 30;
 const CHART_MAX_HEIGHT = 400;
@@ -36,25 +37,15 @@ const rangeFormatter = (maxN: number): number => {
 const BarChart = ({ screenWidth }: { screenWidth?: number }) => {
   const router = useRouter();
 
-  const {
-    slug,
-    domain,
-    key,
-    interval = "24h",
-  } = router.query as {
-    slug?: string;
-    domain?: string;
-    key: string;
+  const { interval = "24h" } = router.query as {
     interval?: string;
   };
 
+  const { endpoint } = useEndpoint();
+
   const { data } = useSWR<{ start: Date; clicks: number }[]>(
     router.isReady &&
-      `${
-        slug && domain
-          ? `/api/projects/${slug}/links/${key}/stats/timeseries`
-          : `/api/edge/links/${key}/stats/timeseries`
-      }?interval=${interval || "24h"}&domain=${domain}`,
+      `${endpoint}/timeseries${interval ? `?interval=${interval}` : ""}`,
     fetcher,
   );
 

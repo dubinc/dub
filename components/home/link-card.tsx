@@ -115,7 +115,7 @@ export default function LinkCard({
     });
 
   const { data: clicks } = useSWR<number>(
-    `/api/edge/links/${key}/clicks`,
+    `/api/edge/links/${key}/stats/clicks`,
     fetcher,
     {
       // avoid revalidation on focus when modals are open to prevent rerendering
@@ -174,7 +174,7 @@ export default function LinkCard({
               >
                 <Chart className="h-4 w-4" />
                 <p className="text-sm">
-                  {!clicks && clicks != 0 ? (
+                  {!clicks && clicks !== 0 ? (
                     <LoadingDots color="#71717A" />
                   ) : (
                     nFormatter(clicks)

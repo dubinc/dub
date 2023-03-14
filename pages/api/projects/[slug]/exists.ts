@@ -1,7 +1,8 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { withUserAuth } from "@/lib/auth";
-import { DEFAULT_REDIRECTS, RESERVED_KEYS } from "@/lib/constants";
+import { DEFAULT_REDIRECTS } from "@/lib/constants";
 import prisma from "@/lib/prisma";
+import { isReservedKey } from "@/lib/utils";
 
 export default withUserAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {
@@ -9,7 +10,7 @@ export default withUserAuth(
 
     // GET /api/projects/[slug]/exists – check if a project exists
     if (req.method === "GET") {
-      if (RESERVED_KEYS.has(slug) || DEFAULT_REDIRECTS[slug]) {
+      if ((await isReservedKey(slug)) || DEFAULT_REDIRECTS[slug]) {
         return res.status(200).json(1);
       }
       const project = await prisma.project.findUnique({

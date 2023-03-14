@@ -39,6 +39,7 @@ import Preview from "./preview";
 import AndroidSection from "./android-section";
 import { DEFAULT_LINK_PROPS } from "@/lib/constants";
 import useDomains from "@/lib/swr/use-domains";
+import { toast } from "react-hot-toast";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
@@ -58,7 +59,7 @@ function AddEditLinkModal({
 
   const [keyExistsError, setKeyExistsError] = useState(false);
   const [urlError, setUrlError] = useState(false);
-  const [generatingSlug, setGeneratingSlug] = useState(false);
+  const [generatingKey, setGeneratingKey] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const { domains, primaryDomain } = useDomains();
@@ -90,8 +91,8 @@ function AddEditLinkModal({
     }
   }, [debouncedKey]);
 
-  const generateRandomSlug = useCallback(async () => {
-    setGeneratingSlug(true);
+  const generateRandomKey = useCallback(async () => {
+    setGeneratingKey(true);
     const res = await fetch(
       slug
         ? `/api/projects/${slug}/links/random?domain=${domain}`
@@ -99,7 +100,7 @@ function AddEditLinkModal({
     );
     const key = await res.json();
     setData((prev) => ({ ...prev, key }));
-    setGeneratingSlug(false);
+    setGeneratingKey(false);
   }, []);
 
   const [generatingMetatags, setGeneratingMetatags] = useState(
@@ -277,6 +278,19 @@ function AddEditLinkModal({
                       setShowAddEditLinkModal(false);
                     });
                   } else {
+                    // copy shortlink to clipboard when adding a new link
+                    if (!props) {
+                      navigator.clipboard
+                        .writeText(
+                          linkConstructor({
+                            key: data.key,
+                            domain,
+                          }),
+                        )
+                        .then(() => {
+                          toast.success("Copied shortlink to clipboard");
+                        });
+                    }
                     setShowAddEditLinkModal(false);
                   }
                 } else if (res.status === 403) {
@@ -358,16 +372,16 @@ function AddEditLinkModal({
                   ) : (
                     <button
                       className="flex items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
-                      onClick={generateRandomSlug}
-                      disabled={generatingSlug}
+                      onClick={generateRandomKey}
+                      disabled={generatingKey}
                       type="button"
                     >
-                      {generatingSlug ? (
+                      {generatingKey ? (
                         <LoadingCircle />
                       ) : (
                         <Random className="h-3 w-3" />
                       )}
-                      <p>{generatingSlug ? "Generating" : "Randomize"}</p>
+                      <p>{generatingKey ? "Generating" : "Randomize"}</p>
                     </button>
                   )}
                 </div>

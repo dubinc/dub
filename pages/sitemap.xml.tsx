@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { isHomeHostname } from "@/lib/utils";
 import { NextApiRequest, NextApiResponse } from "next";
 
 function generateSiteMap({
@@ -13,9 +14,14 @@ function generateSiteMap({
        <url>
          <loc>${hostname}</loc>
        </url>
-       <url>
-         <loc>${hostname}/metatags</loc>
-       </url>
+       ${
+         hostname === "https://dub.sh"
+           ? `<url>
+          <loc>${hostname}/metatags</loc>
+        </url>
+        `
+           : ""
+       }
        ${links
          .map(({ key }) => {
            return `
@@ -40,14 +46,17 @@ export async function getServerSideProps({
   req: NextApiRequest;
   res: NextApiResponse;
 }) {
-  const hostname = `https://dub.sh`;
+  let domain = req.headers.host;
+  if (isHomeHostname(domain)) domain = "dub.sh";
 
   // Get top 100 links (sorted by clicks in descending order)
   const links = await prisma.link.findMany({
     where: {
-      domain: "dub.sh",
+      domain: domain,
+      publicStats: true,
     },
     select: {
+      domain: true,
       key: true,
     },
     orderBy: {
@@ -58,7 +67,7 @@ export async function getServerSideProps({
 
   // We generate the XML sitemap with the posts data
   const sitemap = generateSiteMap({
-    hostname,
+    hostname: `https://${domain}`,
     links,
   });
 

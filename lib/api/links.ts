@@ -1,9 +1,9 @@
 import cloudinary from "cloudinary";
-import { DEFAULT_REDIRECTS, RESERVED_KEYS } from "@/lib/constants";
+import { DEFAULT_REDIRECTS } from "@/lib/constants";
 import prisma from "@/lib/prisma";
 import { LinkProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
-import { getParamsFromURL, nanoid, truncate } from "@/lib/utils";
+import { getParamsFromURL, isReservedKey, nanoid, truncate } from "@/lib/utils";
 
 const getFiltersFromStatus = (status: string) => {
   if (status === "all" || status === "none") {
@@ -115,7 +115,7 @@ export async function getRandomKey(domain: string): Promise<string> {
 export async function checkIfKeyExists(domain: string, key: string) {
   if (
     domain === "dub.sh" &&
-    (RESERVED_KEYS.has(key) || DEFAULT_REDIRECTS[key])
+    ((await isReservedKey(key)) || DEFAULT_REDIRECTS[key])
   ) {
     return true; // reserved keys for dub.sh
   }
@@ -171,7 +171,7 @@ export async function addLink(link: LinkProps) {
     redis.set(
       `${domain}:${key}`,
       {
-        url,
+        url: encodeURIComponent(url),
         password: hasPassword,
         proxy,
         ios,
@@ -261,7 +261,7 @@ export async function editLink(link: LinkProps, oldKey: string) {
     redis.set(
       `${domain}:${key}`,
       {
-        url,
+        url: encodeURIComponent(url),
         password: hasPassword,
         proxy,
         ios,

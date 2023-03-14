@@ -1,3 +1,5 @@
+import { conn } from "./planetscale";
+
 export type IntervalProps = "1h" | "24h" | "7d" | "30d" | "90d";
 
 export const intervalData = {
@@ -116,8 +118,30 @@ export const getStats = async ({
   endpoint: string;
   interval?: string;
 }) => {
+  if (!process.env.TINYBIRD_API_KEY) {
+    return null;
+  }
+
   if (!VALID_TINYBIRD_ENDPOINTS.has(endpoint)) {
     return null;
+  }
+
+  // get all-time clicks count if:
+  // 1. endpoint is /clicks
+  // 2. interval is not defined
+  // 3. there's a connection to MySQL
+
+  if (endpoint === "clicks" && !interval && conn) {
+    const response = await conn.execute(
+      "SELECT clicks FROM Link WHERE domain = ? AND `key` = ?",
+      [domain, key],
+    );
+    try {
+      const clicks = response.rows[0]["clicks"];
+      return clicks || "0";
+    } catch (e) {
+      console.log(e, "Potential reason: Link is not in MySQL DB");
+    }
   }
 
   let url = new URL(
@@ -147,6 +171,14 @@ export const getStats = async ({
   })
     .then((res) => res.json())
     .then(({ data }) => {
+      if (endpoint === "clicks") {
+        try {
+          const clicks = data[0]["count()"];
+          return clicks || "0";
+        } catch (e) {
+          console.log(e);
+        }
+      }
       return data;
     });
 };

@@ -65,7 +65,7 @@ export default function Home({
 }
 
 export async function getStaticProps() {
-  const userCount = await prisma.user.count();
+  const userCount = process.env.DATABASE_URL ? await prisma.user.count() : 5000;
 
   const { stargazers_count: stars } = await fetch(
     "https://api.github.com/repos/steven-tey/dub",
