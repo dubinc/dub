@@ -139,7 +139,9 @@ export default function OGSection({
               />
               <div
                 className={`${
-                  dragActive ? "border-2 border-black bg-gray-50" : ""
+                  dragActive
+                    ? "cursor-copy border-2 border-black bg-gray-50 opacity-100"
+                    : ""
                 } absolute z-[3] flex h-full w-full flex-col items-center justify-center rounded-md bg-white transition-all ${
                   image
                     ? "opacity-0 group-hover:opacity-100"
