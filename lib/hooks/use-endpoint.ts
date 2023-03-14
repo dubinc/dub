@@ -17,7 +17,7 @@ export default function useEndpoint(staticDomain?: string) {
       return {
         pageType: slug,
         domain: projectDomain,
-        endpoint: `/api/projects/${slug}/domains/${projectDomain}/links/${key}/stats`,
+        endpoint: `/api/projects/${slug}/links/${key}/stats`,
       };
 
       // Generic Dub.sh link page, e.g. app.dub.sh/links/steven
