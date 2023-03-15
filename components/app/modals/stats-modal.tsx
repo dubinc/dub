@@ -41,7 +41,7 @@ function StatsModalHelper({
         align-middle shadow-xl scrollbar-hide sm:rounded-2xl sm:border sm:border-gray-200"
       >
         <button
-          className="group sticky top-4 z-30 float-right m-4 hidden rounded-full p-3 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:scale-75 sm:block"
+          className="group sticky top-4 right-4 z-30 float-right hidden rounded-full p-3 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:scale-75 sm:block"
           autoFocus={false}
           onClick={() => {
             router.push("/", undefined, { scroll: false });

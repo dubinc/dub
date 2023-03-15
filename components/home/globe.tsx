@@ -142,8 +142,8 @@ const GlobeAnimation = ({ markers }: { markers: MarkerProps[] }) => {
                 rel="noreferrer"
               >
                 dub.sh/github
-              </a>{" "}
-              in real time.
+              </a>
+              .
             </p>
             <Link
               href={{ pathname: "/", query: { key: "github" } }}
