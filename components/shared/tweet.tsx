@@ -21,11 +21,9 @@ function getRemainingTime(ISOString: Date) {
 }
 
 export default function Tweet({
-  id,
   metadata,
   className,
 }: {
-  id: string;
   metadata: any;
   className?: string;
 }) {
@@ -47,6 +45,7 @@ export default function Tweet({
 
   const parsedMetadata = JSON.parse(metadata.replace(/\n/g, "\\n"));
 
+  const id = parsedMetadata.id;
   const text = parsedMetadata.text;
   const author = parsedMetadata.author;
   const media = parsedMetadata.media;
@@ -65,6 +64,20 @@ export default function Tweet({
   const createdAt = new Date(created_at);
 
   const formattedText = text
+    // remove hyperlink if it's present at the end of the tweet (similar to how Twitter does it)
+    .replace(/https?:\/\/\S+$/, () => {
+      return "";
+    })
+    // format all hyperlinks
+    .replace(/https?:\/\/\S+(?=\s)/g, (match) => {
+      return `<a style="color: rgb(29,161,242); font-weight:normal; text-decoration: none" href="${match}" target="_blank">${match
+        .replace(/^https?:\/\//i, "")
+        .replace(/\/+$/, "")}</a>`;
+    })
+    // if @ mention is at the front of the tweet, remove it completely,
+    .replace(/^(@\w+\s+)+/, () => {
+      return "";
+    })
     .replace(/\B\@([\w\-]+)/gim, (match) => {
       // format all @ mentions
       return `<a style="color: rgb(29,161,242); font-weight:normal; text-decoration: none" href="https://twitter.com/${match.replace(
@@ -319,7 +332,7 @@ export default function Tweet({
             </div>
           )}
           {quoteTweet && quoteTweet.author && (
-            <Tweet id={quoteTweet.id} metadata={JSON.stringify(quoteTweet)} />
+            <Tweet metadata={JSON.stringify(quoteTweet)} />
           )}
         </div>
 

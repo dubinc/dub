@@ -26,11 +26,12 @@ export default function Testimonials({
         {tweets.map((tweet, idx) => (
           <Tweet
             key={idx}
-            id={idx.toString()}
             metadata={JSON.stringify(tweet)}
             className={
+              // this is a bit hacky but it allows us to have a 3-column mosaic layout on desktop
+              // it basically says "if the card is NOT in the middle column, push it down by 4rem
               idx < Math.floor(tweets.length / 3) ||
-              idx >= Math.floor(tweets.length / 3) * 2
+              idx >= Math.floor(tweets.length / 3) * 2 + 1
                 ? "relative lg:top-16"
                 : ""
             }
