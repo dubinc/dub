@@ -15,10 +15,8 @@ import IconMenu from "@/components/shared/icon-menu";
 import Popover from "@/components/shared/popover";
 import useSWR, { mutate } from "swr";
 import { fetcher } from "@/lib/utils";
-import { useSession } from "next-auth/react";
 import { toast } from "react-hot-toast";
 import Switch from "../shared/switch";
-import Link from "next/link";
 import useEndpoint from "@/lib/hooks/use-endpoint";
 
 export default function Toggle({
@@ -43,8 +41,6 @@ export default function Toggle({
     return INTERVALS.find((s) => s.slug === interval) || INTERVALS[1];
   }, [interval]);
 
-  const { data: session } = useSession();
-
   return (
     <div
       className={`z-20 mb-5 ${
@@ -62,7 +58,7 @@ export default function Toggle({
           <ExpandingArrow className="h-5 w-5" />
         </a>
         <div className="flex items-center">
-          {session && <SharePopover domain={domain} />}
+          {pageType !== "stats" && <SharePopover domain={domain} />}
           <Popover
             content={
               <div className="w-full p-2 md:w-48">
