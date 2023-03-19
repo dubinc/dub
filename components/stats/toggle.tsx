@@ -58,7 +58,9 @@ export default function Toggle({
           <ExpandingArrow className="h-5 w-5" />
         </a>
         <div className="flex items-center">
-          {pageType !== "stats" && <SharePopover domain={domain} />}
+          {pageType !== "stats" && key !== "_root" && (
+            <SharePopover domain={domain} />
+          )}
           <Popover
             content={
               <div className="w-full p-2 md:w-48">
@@ -130,10 +132,9 @@ const SharePopover = ({ domain }: { domain: string }) => {
     }
   }, [slug]);
 
-  const { data: { publicStats } = {} } = useSWR<{ publicStats: boolean }>(
-    endpoint,
-    fetcher,
-  );
+  const {
+    data: { publicStats },
+  } = useSWR<{ publicStats: boolean }>(endpoint, fetcher);
 
   const handleChange = async () => {
     toast.promise(
