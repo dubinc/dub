@@ -132,9 +132,10 @@ const SharePopover = ({ domain }: { domain: string }) => {
     }
   }, [slug]);
 
-  const {
-    data: { publicStats },
-  } = useSWR<{ publicStats: boolean }>(endpoint, fetcher);
+  const { data: { publicStats } = {} } = useSWR<{ publicStats: boolean }>(
+    endpoint,
+    fetcher,
+  );
 
   const handleChange = async () => {
     toast.promise(
