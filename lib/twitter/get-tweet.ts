@@ -71,7 +71,7 @@ export const getTweet = async (id: string) => {
       url_meta:
         media || referenced_tweets.length > 0 || !tweet.data?.entities?.urls
           ? null
-          : tweet.data?.entities?.urls[0],
+          : tweet.data?.entities?.urls.at(-1), // take the last unfurled URL in the tweet (similar to Twitter's behavior)
       video:
         media &&
         media[0] &&
