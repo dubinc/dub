@@ -75,6 +75,12 @@ export const DEFAULT_REDIRECTS = {
   discord: "https://twitter.com/dubdotsh", // placeholder for now
 };
 
+export const REDIRECT_HEADERS = {
+  headers: {
+    "x-powered-by": "Dub.sh - Link management for modern marketing teams",
+  },
+};
+
 export const FREE_PLAN_PROJECT_LIMIT = 5;
 export const FAVICON_FOLDER = "/_static/favicons";
 export { default as COUNTRIES } from "./countries";

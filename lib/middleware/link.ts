@@ -7,6 +7,7 @@ import {
 import { detectBot, parse } from "@/lib/middleware/utils";
 import { redis } from "@/lib/upstash";
 import { recordClick } from "@/lib/tinybird";
+import { REDIRECT_HEADERS } from "../constants";
 
 export default async function LinkMiddleware(
   req: NextRequest,
@@ -45,15 +46,15 @@ export default async function LinkMiddleware(
       return NextResponse.rewrite(new URL(`/_proxy/${domain}/${key}`, req.url));
     } else if (ios && userAgent(req).os?.name === "iOS") {
       // redirect to iOS link if it is specified and the user is on an iOS device
-      return NextResponse.redirect(ios);
+      return NextResponse.redirect(ios, REDIRECT_HEADERS);
     } else if (android && userAgent(req).os?.name === "Android") {
       // redirect to Android link if it is specified and the user is on an Android device
-      return NextResponse.redirect(android);
+      return NextResponse.redirect(android, REDIRECT_HEADERS);
     } else {
-      return NextResponse.redirect(target);
+      return NextResponse.redirect(target, REDIRECT_HEADERS);
     }
   } else {
     url.pathname = "/";
-    return NextResponse.redirect(url);
+    return NextResponse.redirect(url, REDIRECT_HEADERS);
   }
 }
