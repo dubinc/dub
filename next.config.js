@@ -32,15 +32,6 @@ module.exports = {
         ],
       },
       {
-        source: "/auth/:path*",
-        headers: [
-          {
-            key: "X-Frame-Options",
-            value: "DENY",
-          },
-        ],
-      },
-      {
         source: "/:path*",
         headers: [
           {
