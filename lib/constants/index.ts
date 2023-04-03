@@ -5,6 +5,7 @@ export const LOCALHOST_GEO_DATA = {
   latitude: "37.7695",
   longitude: "-122.385",
 };
+export const LOCALHOST_IP = "63.141.56.109";
 
 export const INTERVALS = [
   {

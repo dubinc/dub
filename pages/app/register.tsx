@@ -38,27 +38,32 @@ export default function Login() {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ email }),
-            }).then(async (res) => {
-              const { exists } = await res.json();
-              if (!exists) {
-                signIn("email", {
-                  email,
-                  redirect: false,
-                  callbackUrl: "/welcome",
-                }).then((res) => {
+            })
+              .then(async (res) => {
+                const { exists } = await res.json();
+                if (!exists) {
+                  signIn("email", {
+                    email,
+                    redirect: false,
+                    callbackUrl: "/welcome",
+                  }).then((res) => {
+                    setSignInClicked(false);
+                    if (res?.ok && !res?.error) {
+                      setEmail("");
+                      setButtonText("Email sent - check your inbox!");
+                    } else {
+                      setButtonText("Error sending email - try again?");
+                    }
+                  });
+                } else {
+                  setAccountExists(true);
                   setSignInClicked(false);
-                  if (res?.ok && !res?.error) {
-                    setEmail("");
-                    setButtonText("Email sent - check your inbox!");
-                  } else {
-                    setButtonText("Error sending email - try again?");
-                  }
-                });
-              } else {
-                setAccountExists(true);
+                }
+              })
+              .catch(() => {
                 setSignInClicked(false);
-              }
-            });
+                setButtonText("Error sending email - try again?");
+              });
           }}
           className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 sm:px-16"
         >

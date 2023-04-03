@@ -1686,6 +1686,11 @@
   resolved "https://registry.yarnpkg.com/@vercel/edge-config/-/edge-config-0.1.0-canary.15.tgz#eee68c1b1350dc6a987fb519e85241b4d9f67e64"
   integrity sha512-CgafJ+qlF2XZU5z6YJ/Dc06A9z/3KHeuenQqZdQQNMEm1yYyZcKkL3i68qSXT/4h4axZ2oqzcdwHJA2A6Yqt9g==
 
+"@vercel/edge@^0.3.1":
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/@vercel/edge/-/edge-0.3.1.tgz#6ee14551d109a1e06a7e25cab97df98dc5b5a58c"
+  integrity sha512-NdJxoaUI/AMvSu9dBM5MA1mxzk+Xo1sMrjyNRtNGsH5iKYyMdMWNUEvHdkyn1kN6opM03rQHYOYgXhBwNyIfdQ==
+
 "@vercel/og@^0.0.21":
   version "0.0.21"
   resolved "https://registry.yarnpkg.com/@vercel/og/-/og-0.0.21.tgz#9d2421a241a0cfbdc3841b88bf323d980339da40"

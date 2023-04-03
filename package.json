@@ -29,6 +29,7 @@
     "@upstash/ratelimit": "^0.3.6",
     "@upstash/redis": "^1.18.0",
     "@vercel/analytics": "^0.1.5",
+    "@vercel/edge": "^0.3.1",
     "@vercel/edge-config": "^0.1.0-canary.15",
     "@vercel/og": "^0.0.21",
     "@visx/axis": "^2.14.0",
