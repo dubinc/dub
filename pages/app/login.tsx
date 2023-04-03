@@ -5,16 +5,17 @@ import Meta from "@/components/layout/meta";
 import BlurImage from "@/components/shared/blur-image";
 import { LoadingDots } from "@/components/shared/icons";
 import Background from "@/components/shared/background";
+import { toast, Toaster } from "react-hot-toast";
 
 export default function Login() {
   const [signInClicked, setSignInClicked] = useState(false);
   const [noSuchAccount, setNoSuchAccount] = useState(false);
   const [email, setEmail] = useState("");
-  const [buttonText, setButtonText] = useState("Send magic link");
 
   return (
     <div className="flex h-screen w-screen items-center justify-center bg-gray-50">
       <Meta title="Sign in to Dub" />
+      <Toaster />
       <Background />
       <div className="z-10 w-full max-w-md overflow-hidden rounded-2xl border border-gray-100 shadow-xl">
         <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 bg-white px-4 py-6 pt-8 text-center sm:px-16">
@@ -51,9 +52,9 @@ export default function Login() {
                     setSignInClicked(false);
                     if (res?.ok && !res?.error) {
                       setEmail("");
-                      setButtonText("Email sent - check your inbox!");
+                      toast.success("Email sent - check your inbox!");
                     } else {
-                      setButtonText("Error sending email - try again?");
+                      toast.error("Error sending email - try again?");
                     }
                   });
                 } else {
@@ -63,7 +64,7 @@ export default function Login() {
               })
               .catch(() => {
                 setSignInClicked(false);
-                setButtonText("Error sending email - try again?");
+                toast.error("Error sending email - try again?");
               });
           }}
           className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 sm:px-16"
@@ -98,7 +99,7 @@ export default function Login() {
             {signInClicked ? (
               <LoadingDots color="#808080" />
             ) : (
-              <p>{buttonText}</p>
+              <p>Send magic link</p>
             )}
           </button>
           {noSuchAccount ? (
