@@ -5,6 +5,7 @@ export const LOCALHOST_GEO_DATA = {
   latitude: "37.7695",
   longitude: "-122.385",
 };
+export const LOCALHOST_IP = "63.141.56.109";
 
 export const INTERVALS = [
   {
@@ -73,6 +74,12 @@ export const DEFAULT_REDIRECTS = {
   welcome: "https://app.dub.sh/welcome",
   slack: "https://dub.slack.com",
   discord: "https://twitter.com/dubdotsh", // placeholder for now
+};
+
+export const REDIRECT_HEADERS = {
+  headers: {
+    "x-powered-by": "Dub.sh - Link management for modern marketing teams",
+  },
 };
 
 export const FREE_PLAN_PROJECT_LIMIT = 5;

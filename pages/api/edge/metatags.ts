@@ -3,6 +3,8 @@ import { parse } from "node-html-parser";
 import { isValidUrl } from "@/lib/utils";
 import { ratelimit, recordMetatags } from "@/lib/upstash";
 import { getToken } from "next-auth/jwt";
+import { ipAddress } from "@vercel/edge";
+import { LOCALHOST_IP } from "@/lib/constants";
 
 export const config = {
   runtime: "edge",
@@ -21,7 +23,8 @@ export default async function handler(req: NextRequest, ev: NextFetchEvent) {
       secret: process.env.NEXTAUTH_SECRET,
     });
     if (!session?.email) {
-      const { success } = await ratelimit.limit("metatags");
+      const ip = ipAddress(req) || LOCALHOST_IP;
+      const { success } = await ratelimit().limit(ip);
       if (!success) {
         return new Response("Don't DDoS me pls 🥺", { status: 429 });
       }

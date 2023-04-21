@@ -31,7 +31,7 @@ export default function Testimonials({
               // this is a bit hacky but it allows us to have a 3-column mosaic layout on desktop
               // it basically says "if the card is NOT in the middle column, push it down by 4rem
               idx < Math.floor(tweets.length / 3) ||
-              idx >= Math.floor(tweets.length / 3) * 2 + 1
+              idx >= Math.floor(tweets.length / 3) * 2
                 ? "relative lg:top-16"
                 : ""
             }

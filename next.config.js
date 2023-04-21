@@ -14,6 +14,24 @@ module.exports = {
   async headers() {
     return [
       {
+        source: "/login",
+        headers: [
+          {
+            key: "X-Frame-Options",
+            value: "DENY",
+          },
+        ],
+      },
+      {
+        source: "/register",
+        headers: [
+          {
+            key: "X-Frame-Options",
+            value: "DENY",
+          },
+        ],
+      },
+      {
         source: "/:path*",
         headers: [
           {

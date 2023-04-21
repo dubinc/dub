@@ -15,13 +15,7 @@ export default withProjectAuth(
         endpoint: "clicks",
       });
 
-      let clicks = 0;
-      try {
-        clicks = response[0]["count()"];
-      } catch (e) {
-        console.log(e);
-      }
-      return res.status(200).json(clicks);
+      return res.status(200).json(response);
     } else {
       res.setHeader("Allow", ["GET"]);
       return res
