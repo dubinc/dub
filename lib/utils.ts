@@ -7,7 +7,7 @@ import {
   SECOND_LEVEL_DOMAINS,
   HOME_HOSTNAMES,
 } from "./constants";
-import { createClient } from "@vercel/edge-config";
+import { get } from "@vercel/edge-config";
 
 export const nanoid = customAlphabet(
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
@@ -322,14 +322,10 @@ export const log = async (message: string, type: "cron" | "links") => {
   }
 };
 
-export const edgeConfig = createClient(
-  `https://edge-config.vercel.com/ecfg_eh6zdvznm70adch6q0mqxshrt4ny?token=64aef40c-ea06-4aeb-b528-b94d924ec05a`,
-);
-
 export const isBlacklistedDomain = async (domain: string) => {
   let blacklistedDomains;
   try {
-    blacklistedDomains = await edgeConfig.get("domains");
+    blacklistedDomains = await get("domains");
   } catch (e) {
     blacklistedDomains = [];
   }
@@ -341,7 +337,7 @@ export const isBlacklistedDomain = async (domain: string) => {
 export const isBlacklistedKey = async (key: string) => {
   let blacklistedKeys;
   try {
-    blacklistedKeys = await edgeConfig.get("keys");
+    blacklistedKeys = await get("keys");
   } catch (e) {
     blacklistedKeys = [];
   }
@@ -351,7 +347,7 @@ export const isBlacklistedKey = async (key: string) => {
 export const isBlacklistedEmail = async (email: string) => {
   let blacklistedEmails;
   try {
-    blacklistedEmails = await edgeConfig.get("emails");
+    blacklistedEmails = await get("emails");
   } catch (e) {
     blacklistedEmails = [];
   }
@@ -361,7 +357,7 @@ export const isBlacklistedEmail = async (email: string) => {
 export const isReservedKey = async (key: string) => {
   let reservedKey;
   try {
-    reservedKey = await edgeConfig.get("reserved");
+    reservedKey = await get("reserved");
   } catch (e) {
     reservedKey = [];
   }

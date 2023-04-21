@@ -8,7 +8,7 @@ export default async function handler(
   res: NextApiResponse,
 ) {
   if (req.method === "POST") {
-    const { success } = await ratelimit.limit("feedback");
+    const { success } = await ratelimit().limit("feedback");
     if (!success) {
       res.status(429).json({ error: "Don't DDoS me pls 🥺" });
     }
