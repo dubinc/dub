@@ -1,9 +1,8 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { withProjectAuth } from "@/lib/auth";
-import { removeDomain } from "@/lib/api/domains";
+import { removeDomain, deleteDomainLinks } from "@/lib/api/domains";
 import prisma from "@/lib/prisma";
 import { ProjectProps } from "@/lib/types";
-import { deleteProjectLinks } from "@/lib/api/links";
 import cloudinary from "cloudinary";
 
 export default withProjectAuth(
@@ -57,10 +56,7 @@ export default withProjectAuth(
           },
         }),
         ...domains.map((domain) => removeDomain(domain)),
-        ...domains.map((domain) => deleteProjectLinks(domain)),
-        ...domains.map((domain) =>
-          cloudinary.v2.api.delete_resources_by_prefix(domain),
-        ),
+        ...domains.map((domain) => deleteDomainLinks(domain)),
       ]);
 
       return res.status(200).json(response);

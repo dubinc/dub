@@ -1,21 +1,12 @@
 import ErrorPage from "next/error";
-import LinksContainer from "@/components/app/links/links-container";
 import { useAddEditDomainModal } from "@/components/app/modals/add-edit-domain-modal";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import AppLayout from "components/layout/app";
 import useProject from "@/lib/swr/use-project";
-import { DomainProps } from "@/lib/types";
-import useSWR from "swr";
-import { useRouter } from "next/router";
-import { fetcher } from "@/lib/utils";
 import DomainCard from "@/components/app/domains/domain-card";
+import useDomains from "@/lib/swr/use-domains";
 
 export default function ProjectDomains() {
-  const router = useRouter();
-  const { slug } = router.query as {
-    slug: string;
-  };
-
   const { project, error } = useProject();
 
   const { AddEditDomainModal, AddEditDomainButton } = useAddEditDomainModal({});
@@ -24,14 +15,7 @@ export default function ProjectDomains() {
     return <ErrorPage statusCode={404} />;
   }
 
-  const { data: domains } = useSWR<DomainProps[]>(
-    `/api/projects/${slug}/domains`,
-    fetcher,
-    {
-      // disable this because it keeps refreshing the state of the modal when its open
-      revalidateOnFocus: false,
-    },
-  );
+  const { domains } = useDomains();
 
   return (
     <AppLayout>

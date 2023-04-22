@@ -11,7 +11,7 @@ export default function useDomains(domain?: string) {
     slug: string;
   };
 
-  if (!slug) {
+  if (!slug && router.isReady) {
     slug = "dub";
   }
 

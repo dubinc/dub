@@ -115,27 +115,6 @@ export async function setRootDomain(
   }
 }
 
-export async function deleteRootDomainAndLinks(domain: string) {
-  const links = await prisma.link.findMany({
-    where: {
-      domain,
-    },
-    select: {
-      key: true,
-    },
-  });
-  const pipeline = redis.pipeline();
-  links.forEach(({ key }) => {
-    pipeline.del(`${domain}:${key}`);
-  });
-  pipeline.del(`root:${domain}`);
-  try {
-    return await pipeline.exec();
-  } catch (e) {
-    return null;
-  }
-}
-
 /* Change the domain for every link and its respective stats when the project domain is changed */
 export async function changeDomainForLinks(domain: string, newDomain: string) {
   const links = await prisma.link.findMany({
@@ -186,7 +165,7 @@ export async function changeDomainForImages(domain: string, newDomain: string) {
   }
 }
 
-/* Delete all links & stats associated with a domain when it's deleted */
+/* Delete all links & images associated with a domain when it's deleted */
 export async function deleteDomainLinks(domain: string) {
   const links = await prisma.link.findMany({
     where: {
@@ -197,9 +176,10 @@ export async function deleteDomainLinks(domain: string) {
   links.forEach(({ key }) => {
     pipeline.del(`${domain}:${key}`);
   });
-  try {
-    return await pipeline.exec();
-  } catch (e) {
-    return null;
-  }
+  pipeline.del(`root:${domain}`);
+  return await Promise.allSettled([
+    pipeline.exec(), // delete all links from redis
+    // remove all images from cloudinary
+    cloudinary.v2.api.delete_resources_by_prefix(domain),
+  ]);
 }

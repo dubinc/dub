@@ -16,7 +16,11 @@ import Modal from "@/components/shared/modal";
 import { DomainProps } from "@/lib/types";
 import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 import useProject from "@/lib/swr/use-project";
-import { getPlanFromUsageLimit } from "@/lib/stripe/constants";
+import useUsage from "@/lib/swr/use-usage";
+import { AnimatePresence, motion } from "framer-motion";
+import { SWIPE_REVEAL_ANIMATION_SETTINGS } from "@/lib/constants";
+import Switch from "@/components/shared/switch";
+import useDomains from "@/lib/swr/use-domains";
 
 function AddEditDomainModal({
   showAddEditDomainModal,
@@ -29,7 +33,9 @@ function AddEditDomainModal({
 }) {
   const router = useRouter();
   const { slug } = router.query;
-  const { project: { logo } = {} } = useProject();
+  const { project: { logo } = {}, isOwner } = useProject();
+  const { plan } = useUsage();
+  const { domains } = useDomains();
 
   const [data, setData] = useState<DomainProps>(
     props || {
@@ -245,39 +251,72 @@ function AddEditDomainModal({
             >
               Landing Page
             </label>
-            <div className="relative mt-1 rounded-md shadow-sm">
-              <input
-                type="url"
-                name="target"
-                id="target"
-                className="block w-full rounded-md border-gray-300 pr-10 text-sm text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500"
-                placeholder="https://example.com"
-                value={target}
-                onChange={(e) => setData({ ...data, target: e.target.value })}
-              />
-            </div>
+            {plan !== "Free" ? (
+              <div className="relative mt-1 rounded-md shadow-sm">
+                <input
+                  type="url"
+                  name="target"
+                  id="target"
+                  className="block w-full rounded-md border-gray-300 pr-10 text-sm text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500"
+                  placeholder="https://example.com"
+                  value={target}
+                  onChange={(e) => setData({ ...data, target: e.target.value })}
+                />
+              </div>
+            ) : (
+              <Tooltip
+                content={
+                  <TooltipContent
+                    title={`You can't configure a custom landing page on a free plan. ${
+                      isOwner
+                        ? "Upgrade to a Pro plan to proceed."
+                        : "Ask your project owner to upgrade to a Pro plan."
+                    }`}
+                    cta={isOwner && "Upgrade to Pro"}
+                    ctaLink={isOwner && "/settings"}
+                  />
+                }
+                fullWidth
+              >
+                <div className="mt-1 w-full cursor-not-allowed rounded-md border border-gray-300 px-3 py-2 text-left text-sm text-gray-300 sm:max-w-md">
+                  https://yourdomain.com
+                </div>
+              </Tooltip>
+            )}
           </div>
 
-          <div>
-            <label
-              htmlFor="type"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Behavior
-            </label>
-            <select
-              value={type}
-              onChange={(e) =>
-                setData({
-                  ...data,
-                  type: e.target.value as "redirect" | "rewrite",
-                })
-              }
-              className="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-500 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-gray-500"
-            >
-              <option value="redirect">Redirect</option>
-              <option value="rewrite">Rewrite</option>
-            </select>
+          <AnimatePresence initial={false}>
+            {target && (
+              <motion.div key="type" {...SWIPE_REVEAL_ANIMATION_SETTINGS}>
+                <label
+                  htmlFor="type"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Behavior
+                </label>
+                <select
+                  value={type}
+                  onChange={(e) =>
+                    setData({
+                      ...data,
+                      type: e.target.value as "redirect" | "rewrite",
+                    })
+                  }
+                  className="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-500 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-gray-500"
+                >
+                  <option value="redirect">Redirect</option>
+                  <option value="rewrite">Rewrite</option>
+                </select>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <div className="flex items-center justify-between bg-gray-50">
+            <p className="text-sm font-medium text-gray-900">Primary Domain</p>
+            <Switch
+              fn={() => setData((prev) => ({ ...prev, primary: !primary }))}
+              checked={primary}
+            />
           </div>
 
           <div className="grid gap-2">
@@ -295,7 +334,7 @@ function AddEditDomainModal({
                 <p>{props ? "Save changes" : "Add domain"}</p>
               )}
             </button>
-            {props && (
+            {props && domains.length > 1 && (
               <button
                 type="button"
                 className={`${
@@ -331,15 +370,14 @@ function AddEditDomainButton({
   const router = useRouter();
   const { slug } = router.query as { slug?: string };
 
-  const { project: { ownerUsageLimit } = {} } = useProject();
+  const { plan } = useUsage();
+  const { domains } = useDomains();
 
-  return slug && ownerUsageLimit < 1000000 ? ( // only show exceeded usage tooltip if user is on a project page
+  return slug && plan === "Free" && domains?.length >= 1 ? (
     <Tooltip
       content={
         <TooltipContent
-          title={`You can only add 1 custom domain on the ${getPlanFromUsageLimit(
-            ownerUsageLimit,
-          )} plan. Upgrade to add more.`}
+          title={`You can only add 1 custom domain on the ${plan} plan. Upgrade to add more.`}
           cta="Upgrade"
           ctaLink="/settings"
         />

@@ -25,6 +25,27 @@ function DeleteProjectModal({
   const { project: { logo } = {} } = useProject();
   const [deleting, setDeleting] = useState(false);
 
+  async function deleteProject() {
+    setDeleting(true);
+    await fetch(`/api/projects/${slug}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }).catch((err) => {
+      setDeleting(false);
+      throw new Error(err);
+    });
+    router.push("/");
+    mutate("/api/projects");
+    // delay to allow for the route change to complete
+    await new Promise((resolve) =>
+      setTimeout(() => {
+        resolve(null);
+      }, 200),
+    );
+  }
+
   return (
     <Modal
       showModal={showDeleteProjectModal}
@@ -42,30 +63,17 @@ function DeleteProjectModal({
           <h3 className="text-lg font-medium">Delete Project</h3>
           <p className="text-center text-sm text-gray-500">
             Warning: This will permanently delete your project, custom domain,
-            and all associated links + their stats.
+            and all associated links and their respective stats.
           </p>
         </div>
 
         <form
           onSubmit={async (e) => {
             e.preventDefault();
-            setDeleting(true);
-            fetch(`/api/projects/${slug}`, {
-              method: "DELETE",
-              headers: {
-                "Content-Type": "application/json",
-              },
-            }).then(async (res) => {
-              setDeleting(false);
-              if (res.status === 200) {
-                router.push("/");
-                mutate("/api/projects");
-                setShowDeleteProjectModal(false);
-                toast.success("Project deleted successfully.");
-              } else {
-                const error = await res.json();
-                toast.error(JSON.stringify(error));
-              }
+            toast.promise(deleteProject(), {
+              loading: "Deleting project...",
+              success: "Project deleted successfully!",
+              error: (err) => err,
             });
           }}
           className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16"

@@ -111,7 +111,6 @@ function AddProjectModalHelper({
               },
               body: JSON.stringify(data),
             }).then(async (res) => {
-              setSaving(false);
               if (res.status === 200) {
                 mutate(`/api/projects`);
                 router.push(`/${slug}`);
@@ -129,6 +128,7 @@ function AddProjectModalHelper({
               } else {
                 setDomainError("Something went wrong.");
               }
+              setSaving(false);
             });
           }}
           className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16"

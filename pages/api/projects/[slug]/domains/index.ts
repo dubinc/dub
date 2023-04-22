@@ -33,9 +33,31 @@ export default withProjectAuth(
           domainError: validDomain,
         });
       }
-
+      /* 
+        If the domain is being added, we need to:
+          1. Add the domain to Vercel
+          2. If there's a landing page set, update the root domain in Redis
+          3. If the domain is being set as the primary domain, set all other domains to not be the primary domain
+          4. Add the domain to the database along with its primary status
+      */
       const response = await Promise.allSettled([
-        await prisma.domain.create({
+        addDomain(domain),
+        target &&
+          redis.set(`root:${domain}`, {
+            target,
+            rewrite: type === "rewrite",
+          }),
+        primary &&
+          prisma.domain.updateMany({
+            where: {
+              projectId: project.id,
+              primary: true,
+            },
+            data: {
+              primary: false,
+            },
+          }),
+        prisma.domain.create({
           data: {
             slug: domain,
             target,
@@ -44,24 +66,6 @@ export default withProjectAuth(
             primary,
           },
         }),
-        addDomain(domain),
-        target &&
-          redis.set(`root:${domain}`, {
-            target,
-            rewrite: type === "rewrite",
-          }),
-        primary &&
-          (await prisma.domain.updateMany({
-            where: {
-              projectId: project.id,
-              slug: {
-                not: domain,
-              },
-            },
-            data: {
-              primary: false,
-            },
-          })),
       ]);
       return res.status(200).json(response);
     } else {
@@ -73,7 +77,6 @@ export default withProjectAuth(
   },
   {
     excludeGet: true,
-    needNotExceededUsage: true,
     needProSubscription: true,
   },
 );
