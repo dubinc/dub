@@ -22,7 +22,6 @@ import {
 import Modal from "@/components/shared/modal";
 import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 import useProject from "@/lib/swr/use-project";
-import useUsage from "@/lib/swr/use-usage";
 import { LinkProps } from "@/lib/types";
 import {
   getApexDomain,
@@ -89,7 +88,7 @@ function AddEditLinkModal({
         }
       });
     }
-  }, [debouncedKey]);
+  }, [debouncedKey, domain]);
 
   const generateRandomKey = useCallback(async () => {
     setGeneratingKey(true);
@@ -251,7 +250,7 @@ function AddEditLinkModal({
                     domain: props.domain,
                     pretty: true,
                   })}`
-                : "Add a new link"}
+                : "Create a new link"}
             </h3>
           </div>
 
@@ -502,7 +501,7 @@ function AddEditLinkModal({
                     <LoadingDots color="#808080" />
                   ) : (
                     <p className="text-sm">
-                      {props ? "Save changes" : "Add link"}
+                      {props ? "Save changes" : "Create link"}
                     </p>
                   )}
                 </button>
@@ -526,25 +525,20 @@ function AddEditLinkButton({
   const router = useRouter();
   const { slug } = router.query as { slug?: string };
 
-  const { isOwner } = useProject();
-  const { exceededUsage } = useUsage();
+  const { exceededUsage } = useProject();
 
   return slug && exceededUsage ? ( // only show exceeded usage tooltip if user is on a project page
     <Tooltip
       content={
         <TooltipContent
-          title={
-            isOwner
-              ? "You have exceeded your usage limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
-              : "The owner of this project has exceeded their usage limit. We're still collecting data on all existing links, but they need to upgrade their plan to add more links."
-          }
-          cta={isOwner && "Upgrade"}
-          ctaLink={isOwner && "/settings"}
+          title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
+          cta="Upgrade"
+          ctaLink={`/${slug}/settings/billing`}
         />
       }
     >
       <div className="cursor-not-allowed rounded-md border border-gray-200 px-5 py-2 text-sm font-medium text-gray-300 transition-all duration-75">
-        Add
+        Create link
       </div>
     </Tooltip>
   ) : (
@@ -552,7 +546,7 @@ function AddEditLinkButton({
       onClick={() => setShowAddEditLinkModal(true)}
       className="rounded-md border border-black bg-black px-5 py-2 text-sm font-medium text-white transition-all duration-75 hover:bg-white hover:text-black active:scale-95"
     >
-      Add
+      Create link
     </button>
   );
 }
@@ -565,7 +559,7 @@ export function useAddEditLinkModal({
   props?: LinkProps;
   hideXButton?: boolean;
   homepageDemo?: boolean;
-}) {
+} = {}) {
   const [showAddEditLinkModal, setShowAddEditLinkModal] = useState(false);
 
   const AddEditLinkModalCallback = useCallback(() => {

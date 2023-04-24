@@ -3,7 +3,6 @@ import { withProjectAuth } from "@/lib/auth";
 import { removeDomain, deleteDomainLinks } from "@/lib/api/domains";
 import prisma from "@/lib/prisma";
 import { ProjectProps } from "@/lib/types";
-import cloudinary from "cloudinary";
 
 export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse, project: ProjectProps) => {

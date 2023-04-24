@@ -11,17 +11,11 @@ export const config = {
 };
 
 export default withProjectAuth(
-  async (req: NextApiRequest, res: NextApiResponse, project) => {
+  async (req: NextApiRequest, res: NextApiResponse) => {
     const { domain, key: oldKey } = req.query as {
       domain: string;
       key: string;
     };
-
-    if (domain !== project.domain) {
-      return res
-        .status(400)
-        .json({ error: "Domain does not match project domain" });
-    }
 
     // PUT /api/projects/[slug]/domains/[domain]/links/[key] - edit a link
     if (req.method === "PUT") {

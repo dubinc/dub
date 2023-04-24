@@ -10,19 +10,15 @@ import useEndpoint from "@/lib/hooks/use-endpoint";
 export default function Referer() {
   const router = useRouter();
 
-  const { interval } = router.query as {
-    interval?: string;
-  };
-
-  const { endpoint } = useEndpoint();
+  const { endpoint, queryString } = useEndpoint();
 
   const { data } = useSWR<{ referer: string; clicks: number }[]>(
-    router.isReady && `${endpoint}/referer?interval=${interval || "24h"}`,
+    router.isReady && `${endpoint}/referer${queryString}`,
     fetcher,
   );
 
   const { data: totalClicks } = useSWR<number>(
-    router.isReady && `${endpoint}/clicks?interval=${interval || "24h"}`,
+    router.isReady && `${endpoint}/clicks${queryString}`,
     fetcher,
   );
 

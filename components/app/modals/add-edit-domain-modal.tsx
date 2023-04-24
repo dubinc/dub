@@ -16,7 +16,6 @@ import Modal from "@/components/shared/modal";
 import { DomainProps } from "@/lib/types";
 import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 import useProject from "@/lib/swr/use-project";
-import useUsage from "@/lib/swr/use-usage";
 import { AnimatePresence, motion } from "framer-motion";
 import { SWIPE_REVEAL_ANIMATION_SETTINGS } from "@/lib/constants";
 import Switch from "@/components/shared/switch";
@@ -33,8 +32,7 @@ function AddEditDomainModal({
 }) {
   const router = useRouter();
   const { slug } = router.query;
-  const { project: { logo } = {}, isOwner } = useProject();
-  const { plan } = useUsage();
+  const { logo, plan } = useProject();
   const { domains } = useDomains();
 
   const [data, setData] = useState<DomainProps>(
@@ -251,7 +249,7 @@ function AddEditDomainModal({
             >
               Landing Page
             </label>
-            {plan !== "Free" ? (
+            {plan !== "free" ? (
               <div className="relative mt-1 rounded-md shadow-sm">
                 <input
                   type="url"
@@ -267,13 +265,9 @@ function AddEditDomainModal({
               <Tooltip
                 content={
                   <TooltipContent
-                    title={`You can't configure a custom landing page on a free plan. ${
-                      isOwner
-                        ? "Upgrade to a Pro plan to proceed."
-                        : "Ask your project owner to upgrade to a Pro plan."
-                    }`}
-                    cta={isOwner && "Upgrade to Pro"}
-                    ctaLink={isOwner && "/settings"}
+                    title="You can't configure a custom landing page on a free plan. Upgrade to a Pro plan to proceed."
+                    cta="Upgrade to Pro"
+                    ctaLink={`/${slug}/settings`}
                   />
                 }
                 fullWidth
@@ -370,10 +364,16 @@ function AddEditDomainButton({
   const router = useRouter();
   const { slug } = router.query as { slug?: string };
 
-  const { plan } = useUsage();
-  const { domains } = useDomains();
+  const { plan } = useProject();
 
-  return slug && plan === "Free" && domains?.length >= 1 ? (
+  return slug && plan && plan !== "free" ? (
+    <button
+      onClick={() => setShowAddEditDomainModal(true)}
+      className="rounded-md border border-black bg-black px-5 py-2 text-sm font-medium text-white transition-all duration-75 hover:bg-white hover:text-black active:scale-95"
+    >
+      Add Domain
+    </button>
+  ) : (
     <Tooltip
       content={
         <TooltipContent
@@ -384,20 +384,13 @@ function AddEditDomainButton({
       }
     >
       <div className="cursor-not-allowed rounded-md border border-gray-200 px-5 py-2 text-sm font-medium text-gray-300 transition-all duration-75">
-        Add
+        Add Domain
       </div>
     </Tooltip>
-  ) : (
-    <button
-      onClick={() => setShowAddEditDomainModal(true)}
-      className="rounded-md border border-black bg-black px-5 py-2 text-sm font-medium text-white transition-all duration-75 hover:bg-white hover:text-black active:scale-95"
-    >
-      Add
-    </button>
   );
 }
 
-export function useAddEditDomainModal({ props }: { props?: DomainProps }) {
+export function useAddEditDomainModal({ props }: { props?: DomainProps } = {}) {
   const [showAddEditDomainModal, setShowAddEditDomainModal] = useState(false);
 
   const AddEditDomainModalCallback = useCallback(() => {

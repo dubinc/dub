@@ -1,29 +1,41 @@
 import { useRouter } from "next/router";
 import { useMemo } from "react";
-import useProject from "@/lib/swr/use-project";
 
 export default function useEndpoint(staticDomain?: string) {
   const router = useRouter();
-  const { slug, key } = router.query as {
+  const {
+    slug,
+    domain: domainSlug,
+    key,
+    interval = "24h",
+  } = router.query as {
     slug?: string;
+    domain?: string;
     key: string;
+    interval?: string;
   };
 
-  const { project: { domain: projectDomain } = {} } = useProject();
+  const queryString =
+    interval || domainSlug
+      ? `?${new URLSearchParams({
+          interval,
+          domain: domainSlug,
+        }).toString()}`
+      : "";
 
-  const { pageType, domain, endpoint } = useMemo(() => {
-    // Project link page, e.g. app.dub.sh/dub/github
-    if (slug && key) {
+  const { basePath, domain, endpoint } = useMemo(() => {
+    // Project link page, e.g. app.dub.sh/dub/dub.sh/github
+    if (slug && domainSlug && key) {
       return {
-        pageType: slug,
-        domain: projectDomain,
+        basePath: `/${slug}/${domainSlug}/${key}`,
+        domain: domainSlug,
         endpoint: `/api/projects/${slug}/links/${key}/stats`,
       };
 
       // Generic Dub.sh link page, e.g. app.dub.sh/links/steven
     } else if (key && router.asPath.startsWith("/links")) {
       return {
-        pageType: "links",
+        basePath: `/links/${key}`,
         domain: "dub.sh",
         endpoint: `/api/links/${key}/stats`,
       };
@@ -31,15 +43,16 @@ export default function useEndpoint(staticDomain?: string) {
 
     // Public stats page, e.g. dub.sh/stats/github
     return {
-      pageType: "stats",
+      basePath: `/stats/${key}`,
       domain: staticDomain,
       endpoint: `/api/edge/links/${key}/stats`,
     };
   }, [slug, key, router.asPath]);
 
   return {
-    pageType,
+    basePath,
     domain,
     endpoint,
+    queryString,
   };
 }

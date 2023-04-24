@@ -9,7 +9,7 @@ export default function ProjectName() {
   const router = useRouter();
   const { slug } = router.query as { slug: string };
 
-  const { project: { name } = {} } = useProject();
+  const { name } = useProject();
   const [newName, setNewName] = useState(null);
   useEffect(() => {
     setNewName(name);
@@ -35,7 +35,7 @@ export default function ProjectName() {
         }).then(async (res) => {
           setSaving(false);
           if (res.status === 200) {
-            mutate(`/api/projects`);
+            mutate("/api/projects");
             mutate(`/api/projects/${slug}`);
             toast.success("Successfully updated project name");
           }

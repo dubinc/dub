@@ -9,6 +9,7 @@ export default withProjectAuth(
   async (req: NextApiRequest, res: NextApiResponse, project: ProjectProps) => {
     // GET /api/projects/[slug]/domains – get all domains for a project
     if (req.method === "GET") {
+      const { includeLinkCount } = req.query;
       const domains = await prisma.domain.findMany({
         where: {
           projectId: project.id,
@@ -19,6 +20,13 @@ export default withProjectAuth(
           primary: true,
           target: true,
           type: true,
+          ...(includeLinkCount && {
+            _count: {
+              select: {
+                links: true,
+              },
+            },
+          }),
         },
       });
       return res.status(200).json(domains);
@@ -77,6 +85,6 @@ export default withProjectAuth(
   },
   {
     excludeGet: true,
-    needProSubscription: true,
+    requiredPlan: ["pro", "enterprise"],
   },
 );

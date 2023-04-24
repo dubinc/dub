@@ -21,7 +21,6 @@ import {
 import Popover from "@/components/shared/popover";
 import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 import useProject from "@/lib/swr/use-project";
-import useUsage from "@/lib/swr/use-usage";
 import { LinkProps } from "@/lib/types";
 import {
   fetcher,
@@ -41,9 +40,8 @@ export default function LinkCard({ props }: { props: LinkProps }) {
   const router = useRouter();
   const { slug } = router.query as { slug: string };
 
-  const { isOwner } = useProject();
-  const { verified, loading } = useDomains(domain);
-  const { exceededUsage } = useUsage();
+  const { exceededUsage } = useProject();
+  const { verified, loading } = useDomains({ domain });
 
   const linkRef = useRef<any>();
   const entry = useIntersectionObserver(linkRef, {});
@@ -53,7 +51,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
     isVisible &&
       (slug
         ? `/api/projects/${slug}/links/${key}/stats/clicks?domain=${domain}`
-        : `/api/edge/links/${key}/stats/clicks`),
+        : `/api/links/${key}/stats/clicks`),
     fetcher,
     {
       fallbackData: props.clicks,
@@ -80,20 +78,20 @@ export default function LinkCard({ props }: { props: LinkProps }) {
   return (
     <div
       ref={linkRef}
-      className="relative rounded-lg border border-gray-100 bg-white p-3 pr-1 shadow transition-all hover:shadow-md sm:p-4"
+      className="relative rounded-lg border border-gray-100 bg-white p-3 pr-1 shadow transition-all hover:shadow-md sm:p-4 "
     >
       <LinkQRModal />
       <AddEditLinkModal />
       <ArchiveLinkModal />
       <DeleteLinkModal />
-      <div className="absolute top-0 left-0 flex h-full w-1.5 flex-col overflow-hidden rounded-l-lg">
+      {/* <div className="absolute top-0 left-0 flex h-full w-1.5 flex-col overflow-hidden rounded-l-lg">
         {archived && <div className="h-full w-full bg-gray-400" />}
         {expired ? (
           <div className="h-full w-full bg-amber-500" />
         ) : (
           <div className="h-full w-full bg-green-500" />
         )}
-      </div>
+      </div> */}
       <li className="relative flex items-center justify-between">
         <div className="relative flex shrink items-center space-x-2 sm:space-x-4">
           <BlurImage
@@ -146,7 +144,9 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                 <QR className="text-gray-700 transition-all group-hover:text-blue-800" />
               </button>
               <Link
-                href={`/${`${slug}/${domain}` || "links"}/${encodeURI(key)}`}
+                href={`/${slug ? `${slug}/${domain}` : "links"}/${encodeURI(
+                  key,
+                )}`}
                 className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 transition-all duration-75 hover:scale-105 active:scale-100"
               >
                 <Chart className="h-4 w-4" />
@@ -156,7 +156,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                 </p>
               </Link>
             </div>
-            <h3 className="max-w-[200px] truncate text-sm font-medium text-gray-700 md:max-w-md lg:max-w-2xl xl:max-w-3xl">
+            <h3 className="max-w-[200px] truncate text-sm font-medium text-gray-700 md:max-w-md xl:max-w-lg">
               {url}
             </h3>
           </div>
@@ -176,13 +176,9 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                   <Tooltip
                     content={
                       <TooltipContent
-                        title={
-                          isOwner
-                            ? "You have exceeded your usage limit. We're still collecting data on your existing links, but you need to upgrade to edit them."
-                            : "The owner of this project has exceeded their usage limit. We're still collecting data on all existing links, but they need to upgrade their plan to edit them."
-                        }
-                        cta={isOwner && "Upgrade"}
-                        ctaLink={isOwner && "/settings"}
+                        title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to edit them."
+                        cta="Upgrade"
+                        ctaLink={`/${slug}/settings/billing`}
                       />
                     }
                   >

@@ -33,7 +33,7 @@ export default function ProjectSlug() {
         }).then(async (res) => {
           setSaving(false);
           if (res.status === 200) {
-            mutate(`/api/projects`);
+            mutate("/api/projects");
             router.push(`/${newSlug}/settings`);
             toast.success("Successfully updated project slug");
           } else if (res.status === 422) {

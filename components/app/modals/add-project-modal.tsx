@@ -104,7 +104,7 @@ function AddProjectModalHelper({
           onSubmit={async (e: FormEvent<HTMLFormElement>) => {
             e.preventDefault();
             setSaving(true);
-            fetch(`/api/projects`, {
+            fetch("/api/projects", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -112,7 +112,7 @@ function AddProjectModalHelper({
               body: JSON.stringify(data),
             }).then(async (res) => {
               if (res.status === 200) {
-                mutate(`/api/projects`);
+                mutate("/api/projects");
                 router.push(`/${slug}`);
               } else if (res.status === 422) {
                 const {
@@ -274,7 +274,9 @@ function AddProjectModalHelper({
   );
 }
 
-export function useAddProjectModal({ closeWithX }: { closeWithX?: boolean }) {
+export function useAddProjectModal({
+  closeWithX,
+}: { closeWithX?: boolean } = {}) {
   const [showAddProjectModal, setShowAddProjectModal] = useState(false);
 
   const AddProjectModal = useCallback(() => {

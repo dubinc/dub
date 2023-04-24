@@ -10,9 +10,9 @@ import { useCompleteSetupModal } from "@/components/app/modals/complete-setup-mo
 import useDomains from "@/lib/swr/use-domains";
 
 export default function ProjectLinks() {
-  const { project, error } = useProject();
+  const { slug, error } = useProject();
 
-  const { AddEditLinkModal, AddEditLinkButton } = useAddEditLinkModal({});
+  const { AddEditLinkModal, AddEditLinkButton } = useAddEditLinkModal();
   const { AcceptInviteModal, setShowAcceptInviteModal } =
     useAcceptInviteModal();
   const { CompleteSetupModal, setShowCompleteSetupModal } =
@@ -35,7 +35,7 @@ export default function ProjectLinks() {
 
   return (
     <AppLayout>
-      {project && <AddEditLinkModal />}
+      {slug && <AddEditLinkModal />}
       {!verified && <CompleteSetupModal />}
       {error && (error.status === 409 || error.status === 410) && (
         <AcceptInviteModal />

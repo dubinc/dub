@@ -77,37 +77,30 @@ model Project {
   name               String
   slug               String          @unique
   logo               String?
+
+  // TO DELETE
   domain             String          @unique
   domainVerified     Boolean         @default(false)
   domainLastChecked  DateTime        @default(now())
+
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
   users              ProjectUsers[]
   invites            ProjectInvite[]
   usage              Int             @default(0)
+  usageLimit         Int             @default(1000)
+  plan               String          @default("free")
+  stripeId           String?         @unique // Stripe subscription ID
+  billingCycleStart  Int?            // day of the month when the billing cycle starts
+
+  // TO DELETE
   ownerUsageLimit    Int             @default(1000)
   ownerExceededUsage Boolean         @default(false)
+  
   sentEmails         SentEmail[]
   domains            Domain[]
   links              Link[]
   tags               Tag[]
-}
-
-model Domain {
-  id          String   @id @default(cuid())
-  slug        String   @unique
-  verified    Boolean  @default(false)
-  target      String?
-  type        String   @default("redirect")
-  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  projectId   String?
-  primary     Boolean  @default(false)
-  links       Link[]
-  lastChecked DateTime @default(now())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index(projectId)
 }
 
 model ProjectInvite {
@@ -153,6 +146,24 @@ model SentEmail {
 
   @@index([userId])
   @@index([projectId])
+}
+
+model Domain {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  verified    Boolean  @default(false)
+  target      String?
+  type        String   @default("redirect")
+  description String?
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String?
+  primary     Boolean  @default(false)
+  links       Link[]
+  lastChecked DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index(projectId)
 }
 
 model Link {

@@ -18,13 +18,17 @@ export default withUserAuth(
   async (req: NextApiRequest, res: NextApiResponse, session: Session) => {
     // GET /api/links – get all dub.sh links created by the user
     if (req.method === "GET") {
-      const { status, sort } = req.query as {
+      const { status, tag, search, sort } = req.query as {
         status?: string;
+        tag?: string;
+        search?: string;
         sort?: "createdAt" | "clicks";
       };
       const response = await getLinksForProject({
         projectId: DUB_PROJECT_ID,
         status,
+        tag,
+        search,
         sort,
         userId: session.user.id,
       });

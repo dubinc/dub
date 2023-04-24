@@ -89,17 +89,17 @@ export default function Placeholder({ domain }: { domain: string }) {
 }
 
 export const getStaticPaths = async () => {
-  const domains = await prisma.project.findMany({
+  const domains = await prisma.domain.findMany({
     where: {
-      domainVerified: true,
-      ownerUsageLimit: 1000,
+      verified: true,
+      target: null,
     },
     select: {
-      domain: true,
+      slug: true,
     },
   });
   return {
-    paths: domains.map(({ domain }) => ({
+    paths: domains.map(({ slug: domain }) => ({
       params: {
         domain,
       },

@@ -59,24 +59,24 @@ export default withProjectAuth(
 
       let prismaResponse = null;
       if (!configJson.misconfigured) {
-        prismaResponse = await prisma.project.update({
+        prismaResponse = await prisma.domain.update({
           where: {
-            slug,
+            slug: domain,
           },
           data: {
-            domainVerified: true,
-            domainLastChecked: new Date(),
+            verified: true,
+            lastChecked: new Date(),
           },
         });
       } else {
         status = "Invalid Configuration";
-        prismaResponse = await prisma.project.update({
+        prismaResponse = await prisma.domain.update({
           where: {
-            slug,
+            slug: domain,
           },
           data: {
-            domainVerified: false,
-            domainLastChecked: new Date(),
+            verified: false,
+            lastChecked: new Date(),
           },
         });
       }

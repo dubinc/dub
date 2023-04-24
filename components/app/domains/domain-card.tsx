@@ -9,7 +9,12 @@ import {
   XCircleFill,
 } from "@/components/shared/icons";
 import { DomainProps, DomainVerificationStatusProps } from "@/lib/types";
-import { capitalize, fetcher, getDomainWithoutWWW } from "@/lib/utils";
+import {
+  capitalize,
+  fetcher,
+  getDomainWithoutWWW,
+  truncate,
+} from "@/lib/utils";
 import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
 import DomainConfiguration from "./domain-configuration";
 
@@ -111,7 +116,10 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                   rel="noreferrer"
                   className="text-sm font-medium text-gray-600"
                 >
-                  {getDomainWithoutWWW(target)}
+                  {truncate(
+                    target.replace(/^(?:https?:\/\/)?(?:www\.)?/i, ""),
+                    24,
+                  )}
                 </a>
               )}
             </div>

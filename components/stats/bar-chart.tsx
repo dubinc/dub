@@ -41,11 +41,10 @@ const BarChart = ({ screenWidth }: { screenWidth?: number }) => {
     interval?: string;
   };
 
-  const { endpoint } = useEndpoint();
+  const { endpoint, queryString } = useEndpoint();
 
   const { data } = useSWR<{ start: Date; clicks: number }[]>(
-    router.isReady &&
-      `${endpoint}/timeseries${interval ? `?interval=${interval}` : ""}`,
+    router.isReady && `${endpoint}/timeseries${queryString}`,
     fetcher,
   );
 

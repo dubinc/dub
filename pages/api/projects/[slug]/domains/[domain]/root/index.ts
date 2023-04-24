@@ -30,7 +30,7 @@ export default withProjectAuth(
   },
   {
     excludeGet: true,
+    requiredPlan: ["pro", "enterprise"],
     needNotExceededUsage: true,
-    needProSubscription: true,
   },
 );

@@ -10,9 +10,9 @@ import { mutate } from "swr";
 import BlurImage from "@/components/shared/blur-image";
 import LoadingDots from "@/components/shared/icons/loading-dots";
 import Modal from "@/components/shared/modal";
-import useProject from "@/lib/swr/use-project";
 import { LinkProps } from "@/lib/types";
 import { getApexDomain, getQueryString, linkConstructor } from "@/lib/utils";
+import { toast } from "react-hot-toast";
 
 function DeleteLinkModal({
   showDeleteLinkModal,
@@ -82,6 +82,9 @@ function DeleteLinkModal({
                     : `/api/links${getQueryString(router)}`,
                 );
                 setShowDeleteLinkModal(false);
+              } else {
+                const { error } = await res.json();
+                toast.error(error);
               }
             });
           }}

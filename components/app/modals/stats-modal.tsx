@@ -49,7 +49,7 @@ function StatsModalHelper({
         >
           <X className="h-6 w-6" />
         </button>
-        <Stats atModalTop={atModalTop} domain="dub.sh" />
+        <Stats atModalTop={atModalTop} staticDomain="dub.sh" />
       </div>
     </Modal>
   );

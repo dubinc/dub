@@ -224,12 +224,37 @@ export const getDomainWithoutWWW = (url: string) => {
 };
 
 export const getQueryString = (router: NextRouter) => {
-  const { slug: omit, ...queryWithoutSlug } = router.query as {
-    slug: string;
-    [key: string]: string;
-  };
-  const queryString = new URLSearchParams(queryWithoutSlug).toString();
+  // here, we omit the slug from the query string because
+  // for some reason it breaks the router because of middleware rewrites
+  const { slug, ...queryWithoutSlug } = router.query as Record<string, string>;
+  const queryString = new URLSearchParams({
+    ...queryWithoutSlug,
+  }).toString();
   return `${queryString ? "?" : ""}${queryString}`;
+};
+
+export const setQueryString = (
+  router: NextRouter,
+  param: string,
+  value: string,
+) => {
+  if (param !== "page") delete router.query.page;
+  let newQuery;
+  if (value.length > 0) {
+    newQuery = {
+      ...router.query,
+      [param]: value,
+    };
+  } else {
+    delete router.query[param];
+    newQuery = { ...router.query };
+  }
+  // here, we omit the slug from the query string as well
+  const { slug, ...finalQuery } = newQuery;
+  router.replace({
+    pathname: `/${router.query.slug || "links"}`,
+    query: finalQuery,
+  });
 };
 
 export const truncate = (str: string, length: number) => {

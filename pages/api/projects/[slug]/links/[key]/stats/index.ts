@@ -3,17 +3,11 @@ import { withProjectAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
 export default withProjectAuth(
-  async (req: NextApiRequest, res: NextApiResponse, project) => {
+  async (req: NextApiRequest, res: NextApiResponse) => {
     const { domain, key } = req.query as {
       domain: string;
       key: string;
     };
-
-    if (domain !== project.domain) {
-      return res
-        .status(400)
-        .json({ error: "Domain does not match project domain" });
-    }
 
     // GET /api/projects/[slug]/domains/[domain]/links/[key]/stats - get a link's stats page privacy
     if (req.method === "GET") {
@@ -48,7 +42,7 @@ export default withProjectAuth(
 
       return res.status(200).json(response);
     } else {
-      res.setHeader("Allow", ["PUT"]);
+      res.setHeader("Allow", ["GET", "PUT"]);
       return res
         .status(405)
         .json({ error: `Method ${req.method} Not Allowed` });

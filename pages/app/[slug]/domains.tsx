@@ -5,11 +5,12 @@ import AppLayout from "components/layout/app";
 import useProject from "@/lib/swr/use-project";
 import DomainCard from "@/components/app/domains/domain-card";
 import useDomains from "@/lib/swr/use-domains";
+import DomainCardPlaceholder from "@/components/app/domains/domain-card-placeholder";
 
 export default function ProjectDomains() {
-  const { project, error } = useProject();
+  const { id: projectId, error } = useProject();
 
-  const { AddEditDomainModal, AddEditDomainButton } = useAddEditDomainModal({});
+  const { AddEditDomainModal, AddEditDomainButton } = useAddEditDomainModal();
 
   if (error && error.status === 404) {
     return <ErrorPage statusCode={404} />;
@@ -19,7 +20,7 @@ export default function ProjectDomains() {
 
   return (
     <AppLayout>
-      {project && <AddEditDomainModal />}
+      {projectId && <AddEditDomainModal />}
       <div className="flex h-36 items-center border-b border-gray-200 bg-white">
         <MaxWidthWrapper>
           <div className="flex items-center justify-between">
@@ -28,8 +29,8 @@ export default function ProjectDomains() {
           </div>
         </MaxWidthWrapper>
       </div>
-      {domains && (
-        <MaxWidthWrapper className="py-10">
+      <MaxWidthWrapper className="py-10">
+        {domains ? (
           <ul className="grid grid-cols-1 gap-3">
             {domains.map((domain) => (
               <li key={domain.slug}>
@@ -37,8 +38,10 @@ export default function ProjectDomains() {
               </li>
             ))}
           </ul>
-        </MaxWidthWrapper>
-      )}
+        ) : (
+          <DomainCardPlaceholder />
+        )}
+      </MaxWidthWrapper>
     </AppLayout>
   );
 }

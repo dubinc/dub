@@ -1,18 +1,16 @@
 import { useRouter } from "next/router";
 import { useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
-import useSWR from "swr";
 import { useAddProjectModal } from "@/components/app/modals/add-project-modal";
 import BlurImage from "@/components/shared/blur-image";
 import { ChevronUpDown, PlusCircle, Tick } from "@/components/shared/icons";
 import Popover from "@/components/shared/popover";
-import useUsage from "@/lib/swr/use-usage";
-import { ProjectProps } from "@/lib/types";
-import { fetcher } from "@/lib/utils";
+import { ProjectWithDomainProps } from "@/lib/types";
+import useProjects from "@/lib/swr/use-projects";
 
 export default function ProjectSelect() {
-  const { data: projects } = useSWR<ProjectProps[]>("/api/projects", fetcher);
-  const { AddProjectModal, setShowAddProjectModal } = useAddProjectModal({});
+  const { projects } = useProjects();
+  const { AddProjectModal, setShowAddProjectModal } = useAddProjectModal();
 
   const router = useRouter();
   const { slug } = router.query as {
@@ -22,17 +20,27 @@ export default function ProjectSelect() {
   const { data: session } = useSession();
 
   const selected = useMemo(() => {
-    return (
-      projects?.find((project) => project.slug === slug) || {
+    if (slug && projects) {
+      const selectedProject = projects?.find(
+        (project) => project.slug === slug,
+      );
+      return {
+        ...selectedProject,
+        image:
+          selectedProject?.logo ||
+          `https://www.google.com/s2/favicons?sz=64&domain_url=${selectedProject?.primaryDomain?.slug}`,
+      };
+    } else {
+      return {
         name: session?.user?.name || session?.user?.email,
         slug: "/",
-        domain: "dub.sh",
-        logo:
+        image:
           session?.user?.image ||
           `https://avatars.dicebear.com/api/micah/${session?.user?.email}.svg`,
-      }
-    );
+      };
+    }
   }, [slug, projects, session]);
+
   const [openPopover, setOpenPopover] = useState(false);
 
   if (!projects || !router.isReady)
@@ -62,10 +70,7 @@ export default function ProjectSelect() {
         >
           <div className="flex items-center justify-start space-x-3 pr-2">
             <BlurImage
-              src={
-                selected.logo ||
-                `https://www.google.com/s2/favicons?sz=64&domain_url=${selected.domain}`
-              }
+              src={selected.image}
               alt={selected.slug}
               className="h-6 w-6 flex-none overflow-hidden rounded-full sm:h-8 sm:w-8"
               width={48}
@@ -90,18 +95,16 @@ function ProjectList({
   selected: {
     name: string;
     slug: string;
-    domain: string;
-    logo?: string;
+    image?: string;
   };
-  projects: ProjectProps[];
+  projects: ProjectWithDomainProps[];
   setShowAddProjectModal?: (show: boolean) => void;
 }) {
   const router = useRouter();
-  const { plan } = useUsage();
 
   return (
     <div className="relative mt-1 max-h-60 w-full overflow-auto rounded-md bg-white p-2 text-base sm:w-60 sm:text-sm sm:shadow-lg">
-      {projects.map(({ name, slug, domain, logo }) => (
+      {projects.map(({ name, slug, logo, primaryDomain }) => (
         <button
           key={slug}
           className={`relative flex w-full items-center space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200 ${
@@ -112,7 +115,7 @@ function ProjectList({
           <BlurImage
             src={
               logo ||
-              `https://www.google.com/s2/favicons?sz=64&domain_url=${domain}`
+              `https://www.google.com/s2/favicons?sz=64&domain_url=${primaryDomain?.slug}`
             }
             alt={slug}
             className="h-7 w-7 overflow-hidden rounded-full"
@@ -133,16 +136,14 @@ function ProjectList({
           ) : null}
         </button>
       ))}
-      {!(plan === "Free" && projects.length >= 5) && (
-        <button
-          key="add"
-          onClick={() => setShowAddProjectModal(true)}
-          className="flex w-full cursor-pointer items-center space-x-2 rounded-md p-2 transition-all duration-75 hover:bg-gray-100"
-        >
-          <PlusCircle className="h-7 w-7 text-gray-600" />
-          <span className="block truncate">Add a new project</span>
-        </button>
-      )}
+      <button
+        key="add"
+        onClick={() => setShowAddProjectModal(true)}
+        className="flex w-full cursor-pointer items-center space-x-2 rounded-md p-2 transition-all duration-75 hover:bg-gray-100"
+      >
+        <PlusCircle className="h-7 w-7 text-gray-600" />
+        <span className="block truncate">Add a new project</span>
+      </button>
     </div>
   );
 }

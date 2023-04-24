@@ -31,31 +31,42 @@ export interface ProjectProps {
   id: string;
   name: string;
   slug: string;
-  domain: string;
-  domainVerified: boolean;
   logo?: string;
+  usage: number;
+  usageLimit: number;
+  plan: "free" | "pro" | "enterprise";
+  billingCycleStart?: number;
+
+  // TO DELETE
   ownerUsageLimit?: number;
   ownerExceededUsage?: boolean;
+
   users?: {
     role: string;
   }[];
 }
 
+export interface ProjectWithDomainProps extends ProjectProps {
+  domains: DomainProps[];
+  primaryDomain: DomainProps;
+}
+
 export interface UsageProps {
   usage: number;
   usageLimit: number;
-  projectCount?: number;
+  plan: "free" | "pro" | "enterprise";
   billingCycleStart?: number;
-  ownerUsageLimit?: number;
-  ownerExceededUsage?: boolean;
 }
 
 export interface UserProps {
   id: string;
   name: string;
   email: string;
+
+  // TO DELETE
   stripeId: string;
   usageLimit: number;
+
   joinedAt?: Date;
   projects?: { projectId: string }[];
 }
@@ -78,4 +89,7 @@ export interface DomainProps {
   primary: boolean;
   target?: string;
   type: "redirect" | "rewrite";
+  _count?: {
+    links: number;
+  };
 }

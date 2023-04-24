@@ -82,7 +82,6 @@ export const REDIRECT_HEADERS = {
   },
 };
 
-export const FREE_PLAN_PROJECT_LIMIT = 5;
 export const FAVICON_FOLDER = "/_static/favicons";
 export { default as COUNTRIES } from "./countries";
 export { default as ccTLDs } from "./cctlds";

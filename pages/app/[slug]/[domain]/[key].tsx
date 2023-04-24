@@ -6,11 +6,9 @@ import { Lock } from "@/components/shared/icons";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import Stats from "@/components/stats";
 import useProject from "@/lib/swr/use-project";
-import useUsage from "@/lib/swr/use-usage";
 
 export default function StatsPage() {
-  const { project, isOwner, error } = useProject();
-  const { exceededUsage } = useUsage();
+  const { slug, exceededUsage, error } = useProject();
 
   // handle error page
   if (error && error.status === 404) {
@@ -28,9 +26,9 @@ export default function StatsPage() {
               Stats Locked
             </h1>
             <p className="z-10 max-w-sm text-center text-sm text-gray-600">
-              {isOwner
-                ? "You have exceeded your usage limits. We're still collecting data on your link, but you need to upgrade to view them."
-                : "The owner of this project has exceeded their usage limits. We're still collecting data on this link, but they need to upgrade to view them."}
+              Your project has exceeded your usage limits. We're still
+              collecting data on your link, but you need to upgrade to view
+              them.
             </p>
             <BlurImage
               src="/_static/illustrations/video-park.svg"
@@ -39,18 +37,16 @@ export default function StatsPage() {
               height={400}
               className="-my-8"
             />
-            {isOwner && (
-              <Link
-                href="/settings"
-                className="z-10 rounded-md border border-black bg-black px-10 py-2 text-sm font-medium text-white transition-all duration-75 hover:bg-white hover:text-black"
-              >
-                Upgrade now
-              </Link>
-            )}
+            <Link
+              href="/settings"
+              className="z-10 rounded-md border border-black bg-black px-10 py-2 text-sm font-medium text-white transition-all duration-75 hover:bg-white hover:text-black"
+            >
+              Upgrade now
+            </Link>
           </div>
         </MaxWidthWrapper>
       )}
-      {project && !exceededUsage && <Stats />}
+      {slug && !exceededUsage && <Stats />}
     </AppLayout>
   );
 }

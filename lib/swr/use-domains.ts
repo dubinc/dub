@@ -4,7 +4,10 @@ import useSWR from "swr";
 import { DomainProps } from "@/lib/types";
 import { fetcher } from "@/lib/utils";
 
-export default function useDomains(domain?: string) {
+export default function useDomains({
+  domain,
+  includeLinkCount,
+}: { domain?: string; includeLinkCount?: boolean } = {}) {
   const router = useRouter();
 
   let { slug } = router.query as {
@@ -16,7 +19,10 @@ export default function useDomains(domain?: string) {
   }
 
   const { data: domains, error } = useSWR<DomainProps[]>(
-    slug && `/api/projects/${slug}/domains`,
+    slug &&
+      `/api/projects/${slug}/domains${
+        includeLinkCount ? "?includeLinkCount=true" : ""
+      }`,
     fetcher,
     {
       dedupingInterval: 30000,
@@ -30,8 +36,10 @@ export default function useDomains(domain?: string) {
       [domains],
     ),
     verified: domain
-      ? domains?.find((d) => d.slug === domain)?.verified
-      : domains?.find((d) => d.primary)?.verified,
+      ? // If a domain is passed, check if it's verified
+        domains?.find((d) => d.slug === domain)?.verified
+      : // If no domain is passed, check if any of the domains are verified
+        domains?.some((d) => d.verified),
     loading: !domains && !error,
     error,
   };

@@ -17,6 +17,9 @@ export default withUserAuth(
             },
           },
         },
+        include: {
+          domains: true,
+        },
       });
       return res.status(200).json(response);
 
@@ -80,7 +83,6 @@ export default withUserAuth(
           name,
           slug,
           domain,
-          ownerUsageLimit,
           users: {
             create: {
               userId: session.user.id,
