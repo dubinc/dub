@@ -22,7 +22,7 @@ function DeleteProjectModal({
 }) {
   const router = useRouter();
   const { slug } = router.query as { slug: string };
-  const { project: { logo } = {} } = useProject();
+  const { logo } = useProject();
   const [deleting, setDeleting] = useState(false);
 
   async function deleteProject() {
