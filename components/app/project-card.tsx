@@ -23,7 +23,7 @@ export default function ProjectCard({
     <Link
       key={slug}
       href={`/${slug}`}
-      className="flex flex-col space-y-10 rounded-lg bg-white p-6 shadow transition-all hover:shadow-lg"
+      className="flex flex-col space-y-10 rounded-lg border border-gray-100 bg-white p-6 shadow transition-all hover:shadow-lg"
     >
       <div className="flex items-center space-x-3">
         <BlurImage
