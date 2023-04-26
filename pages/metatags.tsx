@@ -49,7 +49,7 @@ export default function Metatags({ tweets }: { tweets: any }) {
           href="https://twitter.com/dubdotsh/status/1595459224498233347"
           target="_blank"
           rel="noreferrer"
-          className="mx-auto flex max-w-fit items-center justify-center space-x-2 overflow-hidden rounded-full bg-blue-100 px-7 py-2 transition-all hover:bg-blue-200"
+          className="flex items-center justify-center py-2 mx-auto space-x-2 overflow-hidden transition-all bg-blue-100 rounded-full max-w-fit px-7 hover:bg-blue-200"
         >
           <Twitter className="h-5 w-5 text-[#1d9bf0]" />
           <p className="text-sm font-semibold text-[#1d9bf0]">
@@ -58,7 +58,7 @@ export default function Metatags({ tweets }: { tweets: any }) {
         </a>
 
         <h1 className="font-display text-5xl font-extrabold leading-[1.15] text-black sm:text-6xl sm:leading-[1.15]">
-          <span className="bg-gradient-to-r from-amber-500 via-orange-600 to-yellow-500 bg-clip-text text-transparent">
+          <span className="text-transparent bg-gradient-to-r from-amber-500 via-orange-600 to-yellow-500 bg-clip-text">
             Metatags
           </span>{" "}
           API
@@ -73,7 +73,7 @@ export default function Metatags({ tweets }: { tweets: any }) {
             name="url"
             id="url"
             type="url"
-            className="block w-full rounded-md border-gray-300 text-sm text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500"
+            className="block w-full text-sm text-gray-900 placeholder-gray-300 border-gray-300 rounded-md focus:border-gray-500 focus:outline-none focus:ring-gray-500"
             placeholder="Enter your URL"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
@@ -81,7 +81,7 @@ export default function Metatags({ tweets }: { tweets: any }) {
           />
         </div>
 
-        <div className="relative overflow-hidden rounded-md border border-gray-300 bg-gray-50">
+        <div className="relative overflow-hidden border border-gray-300 rounded-md bg-gray-50">
           {isValidating && (
             <div className="absolute flex h-[250px] w-full flex-col items-center justify-center space-y-4 border-b border-gray-300 bg-gray-50">
               <LoadingCircle />
@@ -95,24 +95,24 @@ export default function Metatags({ tweets }: { tweets: any }) {
             />
           ) : (
             <div className="flex h-[250px] w-full flex-col items-center justify-center space-y-4 border-b border-gray-300">
-              <Photo className="h-8 w-8 text-gray-400" />
+              <Photo className="w-8 h-8 text-gray-400" />
               <p className="text-sm text-gray-400">
                 Enter a link to generate a preview.
               </p>
             </div>
           )}
-          <div className="grid gap-1 bg-white p-3 text-left">
+          <div className="grid gap-1 p-3 text-left bg-white">
             {hostname ? (
               <p className="text-sm text-[#536471]">{hostname}</p>
             ) : (
-              <div className="mb-1 h-4 w-24 rounded-md bg-gray-100" />
+              <div className="w-24 h-4 mb-1 bg-gray-100 rounded-md" />
             )}
             {title ? (
               <h3 className="truncate text-sm font-medium text-[#0f1419]">
                 {title}
               </h3>
             ) : (
-              <div className="mb-1 h-4 w-full rounded-md bg-gray-100" />
+              <div className="w-full h-4 mb-1 bg-gray-100 rounded-md" />
             )}
             {description ? (
               <p className="text-sm text-[#536471] line-clamp-2">
@@ -120,8 +120,8 @@ export default function Metatags({ tweets }: { tweets: any }) {
               </p>
             ) : (
               <div className="grid gap-2">
-                <div className="h-4 w-full rounded-md bg-gray-100" />
-                <div className="h-4 w-48 rounded-md bg-gray-100" />
+                <div className="w-full h-4 bg-gray-100 rounded-md" />
+                <div className="w-48 h-4 bg-gray-100 rounded-md" />
               </div>
             )}
           </div>
@@ -140,21 +140,21 @@ export default function Metatags({ tweets }: { tweets: any }) {
           }}
         >
           <div className="w-11/12 overflow-scroll scrollbar-hide">
-            <p className="whitespace-nowrap text-sm font-medium text-gray-600">
+            <p className="text-sm font-medium text-gray-600 whitespace-nowrap">
               https://api.dub.sh/metatags?url=
               <span className="text-amber-600">{getUrlFromString(url)}</span>
             </p>
           </div>
           <span className="absolute inset-y-0 top-1 right-1 flex h-8 w-8 items-center justify-center rounded-full bg-black/[0.07] transition-all group-hover:bg-black/10">
             {copied ? (
-              <Tick className="h-4 w-4 text-gray-700" />
+              <Tick className="w-4 h-4 text-gray-700" />
             ) : (
-              <Copy className="h-4 w-4 text-gray-700" />
+              <Copy className="w-4 h-4 text-gray-700" />
             )}
           </span>
         </button>
 
-        <pre className="overflow-auto rounded-md border border-gray-400 bg-stone-800 p-5 text-left">
+        <pre className="p-5 overflow-auto text-left border border-gray-400 rounded-md bg-stone-800">
           <code className="text-xs text-white">
             {JSON.stringify(
               {
@@ -172,14 +172,14 @@ export default function Metatags({ tweets }: { tweets: any }) {
           href="https://dub.sh/metatags-code"
           target="_blank"
           rel="noreferrer"
-          className="mx-auto mt-2 flex items-center justify-center space-x-2 text-sm text-gray-500 transition-all hover:text-black"
+          className="flex items-center justify-center mx-auto mt-2 space-x-2 text-sm text-gray-500 transition-all hover:text-black"
         >
-          <Github className="h-4 w-4" />
+          <Github className="w-4 h-4" />
           <p>View the source code</p>
         </a>
 
         <div className="text-left">
-          {tweets.map((tweet) => (
+          {tweets.filter(Boolean).map((tweet) => (
             <Tweet key={tweet.id} metadata={JSON.stringify(tweet)} />
           ))}
         </div>
