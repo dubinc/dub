@@ -1,9 +1,4 @@
-import { useRouter } from "next/router";
-import useSWR from "swr";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
-import useProject from "@/lib/swr/use-project";
-import { LinkProps } from "@/lib/types";
-import { fetcher, getQueryString } from "@/lib/utils";
 import LinkCard from "./link-card";
 import LinkCardPlaceholder from "./link-card-placeholder";
 import LinkFilters from "./link-filters";

@@ -222,7 +222,7 @@ model Link {
   @@index(createdAt(sort: Desc))
   @@index(clicks(sort: Desc))
   @@index(userId)
-  @@fulltext([key, url, title, description])
+  @@fulltext([key, url])
 }
 
 model Tag {

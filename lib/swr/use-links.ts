@@ -10,7 +10,7 @@ export default function useLinks() {
     slug: string;
   };
 
-  const { data: links } = useSWR<LinkProps[]>(
+  const { data: links, isValidating } = useSWR<LinkProps[]>(
     router.isReady &&
       (slug
         ? `/api/projects/${slug}/links${getQueryString(router)}`
@@ -26,5 +26,6 @@ export default function useLinks() {
   return {
     links,
     loading: links ? false : true,
+    isValidating,
   };
 }

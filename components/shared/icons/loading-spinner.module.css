@@ -2,9 +2,9 @@
   color: gray;
   display: inline-block;
   position: relative;
-  width: 80px;
-  height: 80px;
-  transform: scale(0.3) translateX(-95px);
+  width: 70px;
+  height: 70px;
+  transform: scale(0.3) translateX(-90px) translateY(-5px);
 }
 .spinner div {
   transform-origin: 40px 40px;
@@ -14,7 +14,7 @@
   content: " ";
   display: block;
   position: absolute;
-  top: 3px;
+  top: 5px;
   left: 37px;
   width: 6px;
   height: 20px;

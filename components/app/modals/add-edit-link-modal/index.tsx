@@ -44,12 +44,14 @@ function AddEditLinkModal({
   showAddEditLinkModal,
   setShowAddEditLinkModal,
   props,
+  duplicateProps,
   hideXButton,
   homepageDemo,
 }: {
   showAddEditLinkModal: boolean;
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
   props?: LinkProps;
+  duplicateProps?: LinkProps;
   hideXButton?: boolean;
   homepageDemo?: boolean;
 }) {
@@ -64,19 +66,30 @@ function AddEditLinkModal({
   const { domains, primaryDomain } = useDomains();
 
   const [data, setData] = useState<LinkProps>(
-    props || {
-      ...DEFAULT_LINK_PROPS,
-      domain: primaryDomain || "",
-      key: "",
-      url: "",
-    },
+    props ||
+      duplicateProps || {
+        ...DEFAULT_LINK_PROPS,
+        domain: primaryDomain || "",
+        key: "",
+        url: "",
+      },
   );
 
   const { domain, key, url, password, proxy } = data;
 
   const [debouncedKey] = useDebounce(key, 500);
   useEffect(() => {
-    if (debouncedKey.length > 0 && debouncedKey !== props?.key) {
+    /**
+     * Only check if key exists if:
+     * - modal is open
+     * - key is not empty
+     * - key is not the same as the original key
+     **/
+    if (
+      showAddEditLinkModal &&
+      debouncedKey.length > 0 &&
+      debouncedKey !== props?.key
+    ) {
       fetch(
         slug
           ? `/api/projects/${slug}/links/${debouncedKey}/exists?domain=${domain}`
@@ -553,10 +566,12 @@ function AddEditLinkButton({
 
 export function useAddEditLinkModal({
   props,
+  duplicateProps,
   hideXButton,
   homepageDemo,
 }: {
   props?: LinkProps;
+  duplicateProps?: LinkProps;
   hideXButton?: boolean;
   homepageDemo?: boolean;
 } = {}) {
@@ -568,6 +583,7 @@ export function useAddEditLinkModal({
         showAddEditLinkModal={showAddEditLinkModal}
         setShowAddEditLinkModal={setShowAddEditLinkModal}
         props={props}
+        duplicateProps={duplicateProps}
         hideXButton={hideXButton}
         homepageDemo={homepageDemo}
       />
@@ -576,6 +592,7 @@ export function useAddEditLinkModal({
     showAddEditLinkModal,
     setShowAddEditLinkModal,
     props,
+    duplicateProps,
     hideXButton,
     homepageDemo,
   ]);

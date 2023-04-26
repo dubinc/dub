@@ -12,6 +12,7 @@ import Tooltip from "@/components/shared/tooltip";
 import { getFirstAndLastDay, nFormatter } from "@/lib/utils";
 import useProject from "@/lib/swr/use-project";
 import useDomains from "@/lib/swr/use-domains";
+import PlanBadge from "./plan-badge";
 
 export default function PlanUsage() {
   const router = useRouter();
@@ -47,17 +48,7 @@ export default function PlanUsage() {
         <p className="text-sm text-gray-500">
           You are currently on the{" "}
           {plan ? (
-            <span
-              className={`capitalize ${
-                plan === "enterprise"
-                  ? "border-violet-600 bg-violet-600 text-white"
-                  : plan === "pro"
-                  ? "border-blue-500 bg-blue-500 text-white"
-                  : "border-black bg-black text-white"
-              } rounded-full border px-2 py-0.5 text-xs font-medium`}
-            >
-              {plan}
-            </span>
+            <PlanBadge plan={plan} />
           ) : (
             <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-200">
               load

@@ -22,9 +22,10 @@ export interface LinkProps {
   android: string | null;
 
   clicks: number;
-  userId: string;
+  userId?: string;
 
-  createdAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface ProjectProps {
@@ -49,13 +50,6 @@ export interface ProjectProps {
 export interface ProjectWithDomainProps extends ProjectProps {
   domains: DomainProps[];
   primaryDomain: DomainProps;
-}
-
-export interface UsageProps {
-  usage: number;
-  usageLimit: number;
-  plan: "free" | "pro" | "enterprise";
-  billingCycleStart?: number;
 }
 
 export interface UserProps {
@@ -89,7 +83,4 @@ export interface DomainProps {
   primary: boolean;
   target?: string;
   type: "redirect" | "rewrite";
-  _count?: {
-    links: number;
-  };
 }

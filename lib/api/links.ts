@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { LinkProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { getParamsFromURL, isReservedKey, nanoid, truncate } from "@/lib/utils";
+import { NextApiRequest } from "next";
 
 const getFiltersFromStatus = (status: string) => {
   if (status === "all" || status === "none") {
@@ -71,23 +72,17 @@ export async function getLinksForProject({
   sort?: "createdAt" | "clicks"; // always descending for both
   userId?: string;
 }): Promise<LinkProps[]> {
-  console.log({ projectId, domain, status, tag, search, sort, userId });
   const filters = getFiltersFromStatus(status);
   return await prisma.link.findMany({
     where: {
       projectId,
       ...(domain && { domain }),
       ...(search && {
-        OR: [{ key: { contains: search } }, { url: { contains: search } }],
+        key: { search },
+        url: { search },
       }),
       ...filters,
       // ...(tag && { tags: { has: tag } }),
-      // ...(search && {
-      //   key: { search },
-      //   url: { search },
-      //   title: { search },
-      //   description: { search },
-      // }),
       ...(userId && { userId }),
     },
     orderBy: {
@@ -95,6 +90,57 @@ export async function getLinksForProject({
     },
     take: 100,
   });
+}
+
+export async function getLinksCount({
+  req,
+  projectId,
+  userId,
+}: {
+  req: NextApiRequest;
+  projectId: string;
+  userId?: string;
+}) {
+  const { groupBy, search, domain } = req.query as {
+    groupBy?: "domain";
+    search?: string;
+    domain?: string;
+  };
+
+  if (groupBy) {
+    return await prisma.link.groupBy({
+      by: [groupBy],
+      where: {
+        projectId,
+        ...(userId && { userId }),
+        ...(search && {
+          key: { search },
+          url: { search },
+        }),
+        ...(domain &&
+          groupBy !== "domain" && {
+            domain,
+          }),
+      },
+      _count: true,
+      orderBy: {
+        _count: {
+          [groupBy]: "desc",
+        },
+      },
+    });
+  } else {
+    return await prisma.link.count({
+      where: {
+        projectId,
+        ...(userId && { userId }),
+        ...(search && {
+          key: { search },
+          url: { search },
+        }),
+      },
+    });
+  }
 }
 
 export async function getRandomKey(domain: string): Promise<string> {

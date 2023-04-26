@@ -13,8 +13,6 @@ import {
   Archive,
   Chart,
   Delete,
-  Edit,
-  LoadingDots,
   QR,
   ThreeDots,
 } from "@/components/shared/icons";
@@ -31,6 +29,7 @@ import {
 } from "@/lib/utils";
 import useIntersectionObserver from "@/lib/hooks/use-intersection-observer";
 import useDomains from "@/lib/swr/use-domains";
+import { CopyPlus, Edit3 } from "lucide-react";
 
 export default function LinkCard({ props }: { props: LinkProps }) {
   const { key, domain, url, createdAt, archived, expiresAt } = props;
@@ -64,6 +63,26 @@ export default function LinkCard({ props }: { props: LinkProps }) {
   const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal({
     props,
   });
+
+  // Duplicate link Modal
+  const {
+    id: _,
+    createdAt: __,
+    updatedAt: ___,
+    userId: ____,
+    ...propsToDuplicate
+  } = props;
+  const {
+    setShowAddEditLinkModal: setShowDuplicateLinkModal,
+    AddEditLinkModal: DuplicateLinkModal,
+  } = useAddEditLinkModal({
+    duplicateProps: {
+      ...propsToDuplicate,
+      key: `${key}-copy`,
+      clicks: 0,
+    },
+  });
+
   const { setShowArchiveLinkModal, ArchiveLinkModal } = useArchiveLinkModal({
     props,
     archived: !archived,
@@ -82,6 +101,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
     >
       <LinkQRModal />
       <AddEditLinkModal />
+      <DuplicateLinkModal />
       <ArchiveLinkModal />
       <DeleteLinkModal />
       {/* <div className="absolute top-0 left-0 flex h-full w-1.5 flex-col overflow-hidden rounded-l-lg">
@@ -185,7 +205,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                     <div className="w-full cursor-not-allowed p-2 text-left text-sm font-medium text-gray-300 transition-all duration-75">
                       <IconMenu
                         text="Edit"
-                        icon={<Edit className="h-4 w-4" />}
+                        icon={<Edit3 className="h-4 w-4" />}
                       />
                     </div>
                   </Tooltip>
@@ -197,7 +217,41 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                     }}
                     className="w-full rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
                   >
-                    <IconMenu text="Edit" icon={<Edit className="h-4 w-4" />} />
+                    <IconMenu
+                      text="Edit"
+                      icon={<Edit3 className="h-4 w-4" />}
+                    />
+                  </button>
+                )}
+                {slug && exceededUsage ? (
+                  <Tooltip
+                    content={
+                      <TooltipContent
+                        title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to edit them."
+                        cta="Upgrade"
+                        ctaLink={`/${slug}/settings/billing`}
+                      />
+                    }
+                  >
+                    <div className="w-full cursor-not-allowed p-2 text-left text-sm font-medium text-gray-300 transition-all duration-75">
+                      <IconMenu
+                        text="Duplicate"
+                        icon={<CopyPlus className="h-4 w-4" />}
+                      />
+                    </div>
+                  </Tooltip>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setOpenPopover(false);
+                      setShowDuplicateLinkModal(true);
+                    }}
+                    className="w-full rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
+                  >
+                    <IconMenu
+                      text="Duplicate"
+                      icon={<CopyPlus className="h-4 w-4" />}
+                    />
                   </button>
                 )}
                 <button

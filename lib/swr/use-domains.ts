@@ -4,37 +4,40 @@ import useSWR from "swr";
 import { DomainProps } from "@/lib/types";
 import { fetcher } from "@/lib/utils";
 
-export default function useDomains({
-  domain,
-  includeLinkCount,
-}: { domain?: string; includeLinkCount?: boolean } = {}) {
+export default function useDomains({ domain }: { domain?: string } = {}) {
   const router = useRouter();
 
   let { slug } = router.query as {
     slug: string;
   };
 
-  if (!slug && router.isReady) {
-    slug = "dub";
-  }
-
-  const { data: domains, error } = useSWR<DomainProps[]>(
-    slug &&
-      `/api/projects/${slug}/domains${
-        includeLinkCount ? "?includeLinkCount=true" : ""
-      }`,
+  const { data, error } = useSWR<DomainProps[]>(
+    slug && `/api/projects/${slug}/domains`,
     fetcher,
     {
-      dedupingInterval: 30000,
+      dedupingInterval: 60000,
     },
   );
 
+  const domains = useMemo(() => {
+    if (router.isReady) {
+      return slug
+        ? data
+        : ([
+            {
+              slug: "dub.sh",
+              verified: true,
+              primary: true,
+              target: "https://dub.sh",
+              type: "redirect",
+            },
+          ] as DomainProps[]);
+    }
+  }, [data, router.isReady]);
+
   return {
     domains,
-    primaryDomain: useMemo(
-      () => domains?.find((domain) => domain.primary)?.slug,
-      [domains],
-    ),
+    primaryDomain: domains?.find((domain) => domain.primary)?.slug,
     verified: domain
       ? // If a domain is passed, check if it's verified
         domains?.find((d) => d.slug === domain)?.verified

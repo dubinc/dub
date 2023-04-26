@@ -40,7 +40,6 @@ export default withProjectAuth(
       if (!domain || !key || !url) {
         return res.status(400).json({ error: "Missing domain or url or key" });
       }
-
       // Prevent the creation of recursive links
       const { hostname, pathname } = new URL(url);
       if (hostname === domain && pathname === `/${key}`) {

@@ -1,15 +1,17 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { withProjectAuth } from "@/lib/auth";
-import { ProjectProps } from "@/lib/types";
+import { Session, withUserAuth } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { DUB_PROJECT_ID } from "@/lib/constants";
 import { getLinksCount } from "@/lib/api/links";
 
-export default withProjectAuth(
-  async (req: NextApiRequest, res: NextApiResponse, project: ProjectProps) => {
-    // GET /api/projects/[slug]/domains/[domain]/links/count – count the number of links for a project
+export default withUserAuth(
+  async (req: NextApiRequest, res: NextApiResponse, session: Session) => {
+    // GET /api/links/count – get the count for dub.sh links created by the user
     if (req.method === "GET") {
       const count = await getLinksCount({
         req,
-        projectId: project.id,
+        projectId: DUB_PROJECT_ID,
+        userId: session.user.id,
       });
       return res.status(200).json(count);
     } else {

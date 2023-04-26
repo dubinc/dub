@@ -7,9 +7,13 @@ import { AnimatePresence, motion } from "framer-motion";
 import { SWIPE_REVEAL_ANIMATION_SETTINGS } from "@/lib/constants";
 import { useDebouncedCallback } from "use-debounce";
 import Link from "next/link";
+import useLinks from "@/lib/swr/use-links";
+import { LoadingSpinner } from "@/components/shared/icons";
+import useLinksCount from "@/lib/swr/use-links-count";
 
 export default function LinkFilters() {
-  const { domains } = useDomains({ includeLinkCount: true });
+  const { primaryDomain } = useDomains();
+  const { data: domains } = useLinksCount({ groupBy: "domain" });
   const router = useRouter();
   const { slug, search, domain, status } = router.query;
   const searchInputRef = useRef(); // this is a hack to clear the search input when the clear button is clicked
@@ -27,10 +31,14 @@ export default function LinkFilters() {
       </div>
       <FilterGroup
         param="domain"
-        options={domains?.map(({ slug, _count }) => ({
-          value: slug,
-          count: _count.links,
-        }))}
+        options={
+          domains.length === 0
+            ? [{ value: primaryDomain, count: 0 }]
+            : domains.map(({ domain, _count }) => ({
+                value: domain,
+                count: _count,
+              }))
+        }
         cta={{
           type: "link",
           text: "Add a domain",
@@ -49,11 +57,16 @@ const SearchBox = ({ searchInputRef }: { searchInputRef }) => {
   const debounced = useDebouncedCallback((value) => {
     setQueryString(router, "search", value);
   }, 500);
+  const { isValidating } = useLinks();
 
   return (
     <div className="relative">
       <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-        <Search className="h-4 w-4 text-gray-400" />
+        {isValidating ? (
+          <LoadingSpinner />
+        ) : (
+          <Search className="h-4 w-4 text-gray-400" />
+        )}
       </div>
       <input
         ref={searchInputRef}

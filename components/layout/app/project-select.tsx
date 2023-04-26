@@ -7,6 +7,7 @@ import { ChevronUpDown, PlusCircle, Tick } from "@/components/shared/icons";
 import Popover from "@/components/shared/popover";
 import { ProjectWithDomainProps } from "@/lib/types";
 import useProjects from "@/lib/swr/use-projects";
+import PlanBadge from "@/components/app/settings/plan-badge";
 
 export default function ProjectSelect() {
   const { projects } = useProjects();
@@ -37,9 +38,15 @@ export default function ProjectSelect() {
         image:
           session?.user?.image ||
           `https://avatars.dicebear.com/api/micah/${session?.user?.email}.svg`,
+        plan: "free",
       };
     }
-  }, [slug, projects, session]);
+  }, [slug, projects, session]) as {
+    name: string;
+    slug: string;
+    image: string;
+    plan: "free" | "pro" | "enterprise";
+  };
 
   const [openPopover, setOpenPopover] = useState(false);
 
@@ -68,7 +75,7 @@ export default function ProjectSelect() {
           onClick={() => setOpenPopover(!openPopover)}
           className="flex w-60 items-center justify-between rounded-lg bg-white p-1.5 text-left text-sm transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200"
         >
-          <div className="flex items-center justify-start space-x-3 pr-2">
+          <div className="flex items-center space-x-3 pr-2">
             <BlurImage
               src={selected.image}
               alt={selected.slug}
@@ -79,6 +86,7 @@ export default function ProjectSelect() {
             <span className="truncate text-sm font-medium">
               {selected.name}
             </span>
+            {selected.slug !== "/" && <PlanBadge plan={selected.plan} />}
           </div>
           <ChevronUpDown className="h-4 w-4 text-gray-400" aria-hidden="true" />
         </button>
@@ -95,7 +103,8 @@ function ProjectList({
   selected: {
     name: string;
     slug: string;
-    image?: string;
+    image: string;
+    plan: "free" | "pro" | "enterprise";
   };
   projects: ProjectWithDomainProps[];
   setShowAddProjectModal?: (show: boolean) => void;
