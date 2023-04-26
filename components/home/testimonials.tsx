@@ -23,7 +23,7 @@ export default function Testimonials({
         </p>
       </div>
       <div className="space-y-6 py-8 sm:columns-2 sm:gap-6 xl:columns-3">
-        {tweets.map((tweet, idx) => (
+        {tweets.filter(Boolean).map((tweet, idx) => (
           <Tweet
             key={idx}
             metadata={JSON.stringify(tweet)}
