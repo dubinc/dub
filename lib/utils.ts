@@ -225,7 +225,7 @@ export const getDomainWithoutWWW = (url: string) => {
 
 export const getQueryString = (
   router: NextRouter,
-  opts: Record<string, string>,
+  opts?: Record<string, string>,
 ) => {
   // here, we omit the slug from the query string because
   // for some reason it breaks the router because of middleware rewrites
