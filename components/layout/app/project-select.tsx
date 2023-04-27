@@ -5,7 +5,7 @@ import { useAddProjectModal } from "@/components/app/modals/add-project-modal";
 import BlurImage from "@/components/shared/blur-image";
 import { ChevronUpDown, PlusCircle, Tick } from "@/components/shared/icons";
 import Popover from "@/components/shared/popover";
-import { ProjectWithDomainProps } from "@/lib/types";
+import { PlanProps, ProjectWithDomainProps } from "@/lib/types";
 import useProjects from "@/lib/swr/use-projects";
 import PlanBadge from "@/components/app/settings/plan-badge";
 
@@ -45,7 +45,7 @@ export default function ProjectSelect() {
     name: string;
     slug: string;
     image: string;
-    plan: "free" | "pro" | "enterprise";
+    plan: PlanProps;
   };
 
   const [openPopover, setOpenPopover] = useState(false);
@@ -104,7 +104,7 @@ function ProjectList({
     name: string;
     slug: string;
     image: string;
-    plan: "free" | "pro" | "enterprise";
+    plan: PlanProps;
   };
   projects: ProjectWithDomainProps[];
   setShowAddProjectModal?: (show: boolean) => void;

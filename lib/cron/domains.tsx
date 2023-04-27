@@ -1,18 +1,24 @@
 import sendMail from "emails";
 import InvalidDomain from "emails/InvalidDomain";
-import ProjectDeleted from "emails/ProjectDeleted";
+import DomainDeleted from "emails/DomainDeleted";
 import { log } from "@/lib/utils";
 import { removeDomain } from "@/lib/api/domains";
 import prisma from "@/lib/prisma";
-import { deleteProjectLinks } from "@/lib/api/links";
-import { getClicksUsage } from "@/lib/tinybird";
+import { redis } from "../upstash";
 
-export const handleDomainUpdates = async (
-  domain: string,
-  createdAt: Date,
-  verified: boolean,
-  changed: boolean,
-) => {
+export const handleDomainUpdates = async ({
+  domain,
+  createdAt,
+  verified,
+  changed,
+  linksCount,
+}: {
+  domain: string;
+  createdAt: Date;
+  verified: boolean;
+  changed: boolean;
+  linksCount: number;
+}) => {
   if (changed) {
     await log(`Domain *${domain}* changed status to *${verified}*`, "cron");
   }
@@ -23,64 +29,118 @@ export const handleDomainUpdates = async (
     (new Date().getTime() - new Date(createdAt).getTime()) / (1000 * 3600 * 24),
   );
 
-  if (invalidDays >= 14 && invalidDays < 28) {
-    const sentFirstDomainInvalidEmail = sentEmails.includes(
-      "firstDomainInvalidEmail",
-    );
-    if (!sentFirstDomainInvalidEmail) {
-      sendDomainInvalidEmail(projectSlug, domain, invalidDays, "first");
-    }
-  } else if (invalidDays >= 28) {
-    const sentSecondDomainInvalidEmail = sentEmails.includes(
-      "secondDomainInvalidEmail",
-    );
-    if (!sentSecondDomainInvalidEmail) {
-      sendDomainInvalidEmail(projectSlug, domain, invalidDays, "second");
-    }
-  }
+  // do nothing if domain is invalid for less than 14 days
+  if (invalidDays < 14) return;
 
+  const project = await prisma.project.findFirst({
+    where: {
+      domains: {
+        some: {
+          slug: domain,
+        },
+      },
+    },
+    select: {
+      slug: true,
+      sentEmails: true,
+      users: {
+        where: {
+          role: "owner",
+        },
+        select: {
+          user: {
+            select: {
+              email: true,
+            },
+          },
+        },
+      },
+    },
+  });
+  const projectSlug = project.slug;
+  const sentEmails = project.sentEmails.map((email) => email.type);
+  const ownerEmail = project.users[0].user.email;
+
+  // if domain is invalid for more than 30 days, check if we can delete it
   if (invalidDays >= 30) {
-    const clicks = await getClicksUsage({ domain });
-    // only delete if there are no clicks recorded in Tinybird
-    if (clicks === 0) {
-      const ownerEmail = await getProjectOwnerEmail(projectSlug);
+    // only delete if there are no links associated with the domain
+    if (linksCount === 0) {
       return await Promise.all([
-        prisma.project.delete({
+        removeDomain(domain), // remove domain from Vercel project
+        redis.del(`root:${domain}`), // there are no links anyway, so you can just delete the root domain from redis if exists
+        prisma.domain.delete({
           where: {
-            domain,
+            slug: domain,
           },
         }),
-        removeDomain(domain),
-        deleteProjectLinks(domain),
         log(
           `Domain *${domain}* has been invalid for > 30 days, deleting.`,
           "cron",
         ),
         sendMail({
-          subject: `Your project ${projectSlug} has been deleted`,
+          subject: `Your domain ${domain} has been deleted`,
           to: ownerEmail,
           component: (
-            <ProjectDeleted domain={domain} projectSlug={projectSlug} />
+            <DomainDeleted domain={domain} projectSlug={projectSlug} />
           ),
         }),
       ]);
     } else {
-      return await log(
-        `Domain *${domain}* has been invalid for > 30 days but has link clicks, not deleting.`,
+      console.log(
+        `Domain *${domain}* has been invalid for > 30 days but has links, not deleting.`,
         "cron",
       );
     }
+    return;
+  }
+
+  if (invalidDays >= 28) {
+    const sentSecondDomainInvalidEmail = sentEmails.includes(
+      "secondDomainInvalidEmail",
+    );
+    if (!sentSecondDomainInvalidEmail) {
+      sendDomainInvalidEmail({
+        projectSlug,
+        domain,
+        invalidDays,
+        ownerEmail,
+        type: "second",
+      });
+    }
+    return;
+  }
+
+  if (invalidDays >= 14) {
+    const sentFirstDomainInvalidEmail = sentEmails.includes(
+      "firstDomainInvalidEmail",
+    );
+    if (!sentFirstDomainInvalidEmail) {
+      sendDomainInvalidEmail({
+        projectSlug,
+        domain,
+        invalidDays,
+        ownerEmail,
+        type: "first",
+      });
+    }
+    return;
   }
   return;
 };
 
-const sendDomainInvalidEmail = async (
-  projectSlug: string,
-  domain: string,
-  invalidDays: number,
-  type: "first" | "second",
-) => {
-  const ownerEmail = await getProjectOwnerEmail(projectSlug);
+const sendDomainInvalidEmail = async ({
+  projectSlug,
+  domain,
+  invalidDays,
+  ownerEmail,
+  type,
+}: {
+  projectSlug: string;
+  domain: string;
+  invalidDays: number;
+  ownerEmail: string;
+  type: "first" | "second";
+}) => {
   return await Promise.all([
     log(
       `Domain *${domain}* is invalid for ${invalidDays} days, email sent.`,
@@ -108,25 +168,4 @@ const sendDomainInvalidEmail = async (
       },
     }),
   ]);
-};
-
-const getProjectOwnerEmail = async (projectSlug: string) => {
-  const owner = await prisma.project.findUnique({
-    where: { slug: projectSlug },
-    select: {
-      users: {
-        where: {
-          role: "owner",
-        },
-        select: {
-          user: {
-            select: {
-              email: true,
-            },
-          },
-        },
-      },
-    },
-  });
-  return owner?.users[0].user.email;
 };

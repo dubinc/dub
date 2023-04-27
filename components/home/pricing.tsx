@@ -38,6 +38,7 @@ const pricingItems = [
         negative: true,
       },
       { text: "SSO/SAML", negative: true },
+      { text: "Priority support", negative: true },
     ],
     cta: "Start for free",
   },
@@ -62,6 +63,7 @@ const pricingItems = [
           "Redirect vistors that land on the root of your domain (e.g. yourdomain.com) to a page of your choice.",
       },
       { text: "SSO/SAML", negative: true },
+      { text: "Priority support", negative: true },
     ],
     cta: "Get started",
   },
@@ -85,7 +87,11 @@ const pricingItems = [
         footnote:
           "Redirect vistors that land on the root of your domain (e.g. yourdomain.com) to a page of your choice.",
       },
-      { text: "SSO/SAML" },
+      { text: "SSO/SAML", footnote: "Under development. ETA: Q4 2023" },
+      {
+        text: "Priority support",
+        footnote: "Email & chat support within 24 hours.",
+      },
     ],
     cta: "Get started",
   },

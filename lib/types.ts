@@ -28,6 +28,8 @@ export interface LinkProps {
   updatedAt?: Date;
 }
 
+export type PlanProps = "free" | "pro" | "enterprise";
+
 export interface ProjectProps {
   id: string;
   name: string;
@@ -35,7 +37,7 @@ export interface ProjectProps {
   logo?: string;
   usage: number;
   usageLimit: number;
-  plan: "free" | "pro" | "enterprise";
+  plan: PlanProps;
   stripeId?: string;
   billingCycleStart?: number;
 

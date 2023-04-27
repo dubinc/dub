@@ -6,6 +6,7 @@ import useProject from "@/lib/swr/use-project";
 import DomainCard from "@/components/app/domains/domain-card";
 import useDomains from "@/lib/swr/use-domains";
 import DomainCardPlaceholder from "@/components/app/domains/domain-card-placeholder";
+import NoDomainsPlaceholder from "@/components/app/domains/no-domains-placeholder";
 
 export default function ProjectDomains() {
   const { id: projectId, error } = useProject();
@@ -31,13 +32,17 @@ export default function ProjectDomains() {
       </div>
       <MaxWidthWrapper className="py-10">
         {domains ? (
-          <ul className="grid grid-cols-1 gap-3">
-            {domains.map((domain) => (
-              <li key={domain.slug}>
-                <DomainCard props={domain} />
-              </li>
-            ))}
-          </ul>
+          domains.length > 0 ? (
+            <ul className="grid grid-cols-1 gap-3">
+              {domains.map((domain) => (
+                <li key={domain.slug}>
+                  <DomainCard props={domain} />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <NoDomainsPlaceholder AddEditDomainButton={AddEditDomainButton} />
+          )
         ) : (
           <DomainCardPlaceholder />
         )}

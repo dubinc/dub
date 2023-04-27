@@ -11,21 +11,37 @@ import prisma from "@/lib/prisma";
 /**
  * Cron to check if domains are verified.
  * Runs every 3 hours
- * TODO: If a domain is invalid for more than 7 days, we send an email to the project owner.
- * If a domain is invalid for more than 30 days, we delete it and the associating project from the database.
+ * If a domain is invalid for more than 14 days, we send a reminder email to the project owner.
+ * If a domain is invalid for more than 28 days, we send a second and final reminder email to the project owner.
+ * If a domain is invalid for more than 30 days, we delete it from the database.
  **/
 
 async function handler(_req: NextApiRequest, res: NextApiResponse) {
   try {
     const domains = await prisma.domain.findMany({
+      where: {
+        slug: {
+          // exclude domains that belong to us
+          notIn: [
+            "dub.sh",
+            "stey.me",
+            "steven.yt",
+            "vercel.fyi",
+            "vercel.link",
+            "owd.li",
+            "chatg.pt",
+            "elegance.ai",
+          ],
+        },
+      },
       select: {
         slug: true,
         verified: true,
         createdAt: true,
         projectId: true,
-        project: {
+        _count: {
           select: {
-            createdAt: true,
+            links: true,
           },
         },
       },
@@ -37,27 +53,27 @@ async function handler(_req: NextApiRequest, res: NextApiResponse) {
 
     const results = await Promise.allSettled(
       domains.map(async (domain) => {
-        const { slug, verified, createdAt, projectId } = domain;
+        const { slug, verified, createdAt, _count } = domain;
         const [domainJson, configJson] = await Promise.all([
           getDomainResponse(slug),
           getConfigResponse(slug),
         ]);
 
-        let newDomainVerified;
+        let newVerified;
 
         if (domainJson?.error?.code === "not_found") {
-          newDomainVerified = false;
+          newVerified = false;
         } else if (!domainJson.verified) {
           const verificationJson = await verifyDomain(slug);
           if (verificationJson && verificationJson.verified) {
-            newDomainVerified = true;
+            newVerified = true;
           } else {
-            newDomainVerified = false;
+            newVerified = false;
           }
         } else if (!configJson.misconfigured) {
-          newDomainVerified = true;
+          newVerified = true;
         } else {
-          newDomainVerified = false;
+          newVerified = false;
         }
 
         const prismaResponse = await prisma.domain.update({
@@ -65,24 +81,25 @@ async function handler(_req: NextApiRequest, res: NextApiResponse) {
             slug,
           },
           data: {
-            verified: newDomainVerified,
+            verified: newVerified,
             lastChecked: new Date(),
           },
         });
 
-        const changed = newDomainVerified !== verified;
+        const changed = newVerified !== verified;
 
-        const updates = await handleDomainUpdates(
-          slug,
+        const updates = await handleDomainUpdates({
+          domain: slug,
           createdAt,
-          newDomainVerified,
+          verified: newVerified,
           changed,
-        );
+          linksCount: _count.links,
+        });
 
         return {
           domain,
           previousStatus: verified,
-          currentStatus: newDomainVerified,
+          currentStatus: newVerified,
           changed,
           updates,
           prismaResponse,

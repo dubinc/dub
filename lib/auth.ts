@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { unstable_getServerSession } from "next-auth/next";
 import prisma from "@/lib/prisma";
-import { ProjectProps, UserProps } from "@/lib/types";
+import { PlanProps, ProjectProps, UserProps } from "@/lib/types";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 
 export interface Session {
@@ -36,7 +36,7 @@ const withProjectAuth =
       needNotExceededUsage, // if the action needs the user to not have exceeded their usage
     }: {
       excludeGet?: boolean;
-      requiredPlan?: Array<"free" | "pro" | "enterprise">;
+      requiredPlan?: Array<PlanProps>;
       needNotExceededUsage?: boolean;
     } = {},
   ) =>

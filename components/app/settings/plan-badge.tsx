@@ -1,8 +1,6 @@
-export default function PlanBadge({
-  plan,
-}: {
-  plan: "free" | "pro" | "enterprise";
-}) {
+import { PlanProps } from "@/lib/types";
+
+export default function PlanBadge({ plan }: { plan: PlanProps }) {
   return (
     <span
       className={`capitalize ${
