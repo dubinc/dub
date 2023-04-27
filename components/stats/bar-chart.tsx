@@ -12,7 +12,6 @@ import { nFormatter } from "@/lib/utils";
 import styles from "./bar-chart.module.css";
 import useSWR from "swr";
 import { fetcher } from "@/lib/utils";
-import useProject from "@/lib/swr/use-project";
 import { LoadingCircle } from "@/components/shared/icons";
 import useEndpoint from "@/lib/hooks/use-endpoint";
 
@@ -42,11 +41,10 @@ const BarChart = ({ screenWidth }: { screenWidth?: number }) => {
     interval?: string;
   };
 
-  const { endpoint } = useEndpoint();
+  const { endpoint, queryString } = useEndpoint();
 
   const { data } = useSWR<{ start: Date; clicks: number }[]>(
-    router.isReady &&
-      `${endpoint}/timeseries${interval ? `?interval=${interval}` : ""}`,
+    router.isReady && `${endpoint}/timeseries${queryString}`,
     fetcher,
   );
 

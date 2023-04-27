@@ -14,19 +14,15 @@ export default function Locations() {
   const [tab, setTab] = useState<LocationTabs>("country");
   const router = useRouter();
 
-  const { interval } = router.query as {
-    interval?: string;
-  };
-
-  const { endpoint } = useEndpoint();
+  const { endpoint, queryString } = useEndpoint();
 
   const { data } = useSWR<{ country: string; city: string; clicks: number }[]>(
-    router.isReady && `${endpoint}/${tab}?interval=${interval || "24h"}`,
+    router.isReady && `${endpoint}/${tab}${queryString}`,
     fetcher,
   );
 
   const { data: totalClicks } = useSWR<number>(
-    router.isReady && `${endpoint}/clicks?interval=${interval || "24h"}`,
+    router.isReady && `${endpoint}/clicks${queryString}`,
     fetcher,
   );
 

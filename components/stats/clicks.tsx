@@ -8,14 +8,10 @@ import useEndpoint from "@/lib/hooks/use-endpoint";
 
 export default function Clicks() {
   const router = useRouter();
-  const { interval = "24h" } = router.query as {
-    interval?: string;
-  };
-  const { endpoint } = useEndpoint();
+  const { endpoint, queryString } = useEndpoint();
 
   const { data: totalClicks } = useSWR<number>(
-    router.isReady &&
-      `${endpoint}/clicks${interval ? `?interval=${interval}` : ""}`,
+    router.isReady && `${endpoint}/clicks${queryString}`,
     fetcher,
   );
 

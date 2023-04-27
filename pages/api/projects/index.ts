@@ -1,9 +1,9 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { Session, withUserAuth } from "@/lib/auth";
 import { DEFAULT_REDIRECTS } from "@/lib/constants";
-import { addDomain } from "@/lib/domains";
+import { addDomain, validateDomain } from "@/lib/api/domains";
 import prisma from "@/lib/prisma";
-import { isReservedKey, validDomainRegex } from "@/lib/utils";
+import { isReservedKey } from "@/lib/utils";
 
 export default withUserAuth(
   async (req: NextApiRequest, res: NextApiResponse, session: Session) => {
@@ -16,6 +16,9 @@ export default withUserAuth(
               userId: session.user.id,
             },
           },
+        },
+        include: {
+          domains: true,
         },
       });
       return res.status(200).json(response);
@@ -34,12 +37,11 @@ export default withUserAuth(
       } else if ((await isReservedKey(slug)) || DEFAULT_REDIRECTS[slug]) {
         slugError = "Cannot use reserved slugs";
       }
-      const validDomain =
-        validDomainRegex.test(domain) && !domain.endsWith(".dub.sh");
+      const validDomain = await validateDomain(domain);
       if (slugError || !validDomain) {
         return res.status(422).json({
           slugError,
-          domainError: validDomain ? null : "Invalid domain",
+          domainError: validDomain || "Invalid domain",
         });
       }
       const [slugExist, domainExist] = await Promise.all([
@@ -51,12 +53,12 @@ export default withUserAuth(
             slug: true,
           },
         }),
-        prisma.project.findUnique({
+        prisma.domain.findUnique({
           where: {
-            domain,
+            slug: domain,
           },
           select: {
-            domain: true,
+            slug: true,
           },
         }),
       ]);
@@ -67,35 +69,32 @@ export default withUserAuth(
         });
       }
 
-      const { usageLimit: ownerUsageLimit } = await prisma.user.findUnique({
-        where: {
-          id: session.user.id,
-        },
-        select: {
-          usageLimit: true,
+      const project = await prisma.project.create({
+        data: {
+          name,
+          slug,
+          domain,
+          users: {
+            create: {
+              userId: session.user.id,
+              role: "owner",
+            },
+          },
+          billingCycleStart: new Date().getDate(),
         },
       });
-
-      const [prismaResponse, domainResponse] = await Promise.all([
-        prisma.project.create({
+      const response = await Promise.allSettled([
+        prisma.domain.create({
           data: {
-            name,
-            slug,
-            domain,
-            ownerUsageLimit,
-            users: {
-              create: {
-                userId: session.user.id,
-                role: "owner",
-              },
-            },
+            slug: domain,
+            projectId: project.id,
+            primary: true,
           },
         }),
         addDomain(domain),
       ]);
-      return res
-        .status(200)
-        .json({ project: prismaResponse, domain: domainResponse });
+
+      return res.status(200).json({ project, ...response });
     } else {
       res.setHeader("Allow", ["GET", "POST"]);
       return res

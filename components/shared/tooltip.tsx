@@ -6,9 +6,6 @@ import { ReactNode, useRef, useState } from "react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { AnimatePresence, motion, useAnimation } from "framer-motion";
 import BlurImage from "@/components/shared/blur-image";
-import Slider from "@/components/shared/slider";
-import { PRO_TIERS } from "@/lib/stripe/constants";
-import { nFormatter } from "@/lib/utils";
 
 export default function Tooltip({
   children,
@@ -156,42 +153,11 @@ export function OGImageProxy() {
         className="w-full overflow-hidden rounded-md shadow-md"
       />
       <p className="text-sm text-gray-700">
-        Add a custom OG image in front of your target URL. Bots like
-        Twitter/Facebook will be served this image, while users will be
-        redirected to your target URL.
+        Password protection, link expiration, device targeting, custom social
+        media cards, etc. Add a custom OG image in front of your target URL.
+        Bots like Twitter/Facebook will be served this image, while users will
+        be redirected to your target URL.
       </p>
-    </div>
-  );
-}
-
-export function ProTiers({ usageLimit }: { usageLimit?: number }) {
-  const [tier, setTier] = useState(
-    usageLimit > 1000 ? PRO_TIERS.map((t) => t.quota).indexOf(usageLimit) : 0,
-  );
-
-  return (
-    <div className="w-full rounded-md">
-      <div className="flex w-full max-w-md items-center justify-between p-5">
-        <h3 className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-2xl text-transparent">
-          {PRO_TIERS[tier].name}
-        </h3>
-        <div className="flex items-center">
-          <p className="text-2xl font-semibold text-gray-700">
-            ${PRO_TIERS[tier].price.monthly.amount}
-          </p>
-          <p className="text-sm text-gray-700">/mo</p>
-        </div>
-      </div>
-      <div className="flex w-full flex-col items-center space-y-1 border-t border-gray-200 bg-gray-50 p-5 text-center">
-        <Slider
-          value={tier}
-          setValue={setTier}
-          maxValue={PRO_TIERS.length - 1}
-        />
-        <p className="text-sm text-gray-700">
-          Up to {nFormatter(PRO_TIERS[tier].quota)} link clicks/mo
-        </p>
-      </div>
     </div>
   );
 }

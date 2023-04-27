@@ -21,10 +21,10 @@ import useEndpoint from "@/lib/hooks/use-endpoint";
 
 export default function Toggle({
   atModalTop,
-  domain: staticDomain,
+  staticDomain,
 }: {
   atModalTop?: boolean;
-  domain?: string;
+  staticDomain?: string;
 }) {
   const router = useRouter();
   const { key, interval = "24h" } = router.query as {
@@ -32,7 +32,7 @@ export default function Toggle({
     interval?: string;
   };
 
-  const { pageType, domain } = useEndpoint(staticDomain);
+  const { basePath, domain } = useEndpoint(staticDomain);
 
   const atTop = useScroll(80) || atModalTop;
   const [openDatePopover, setOpenDatePopover] = useState(false);
@@ -44,7 +44,7 @@ export default function Toggle({
   return (
     <div
       className={`z-20 mb-5 ${
-        pageType === "stats" ? "top-0" : "top-[6.95rem]"
+        basePath.startsWith("/stats") ? "top-0" : "top-[6.95rem]"
       } sticky bg-gray-50 py-3 sm:py-5 ${atTop ? "shadow-md" : ""}`}
     >
       <div className="mx-auto flex max-w-4xl flex-col items-center justify-between space-y-3 px-2.5 sm:flex-row sm:space-y-0 lg:px-0">
@@ -58,7 +58,7 @@ export default function Toggle({
           <ExpandingArrow className="h-5 w-5" />
         </a>
         <div className="flex items-center">
-          {pageType !== "stats" && key !== "_root" && (
+          {!basePath.startsWith("/stats") && key !== "_root" && (
             <SharePopover domain={domain} />
           )}
           <Popover
@@ -75,9 +75,7 @@ export default function Toggle({
                             interval: slug,
                           },
                         },
-                        `/${pageType}/${encodeURI(
-                          router.query.key as string,
-                        )}?interval=${slug}`,
+                        `${basePath}?interval=${slug}`,
                         { shallow: true },
                       );
                     }}
@@ -124,16 +122,10 @@ const SharePopover = ({ domain }: { domain: string }) => {
 
   const [openSharePopover, setopenSharePopoverPopover] = useState(false);
 
-  const endpoint = useMemo(() => {
-    if (slug) {
-      return `/api/projects/${slug}/domains/${domain}/links/${key}/stats`;
-    } else {
-      return `/api/links/${key}/stats`;
-    }
-  }, [slug]);
+  const { endpoint, queryString } = useEndpoint(domain);
 
   const { data: { publicStats } = {} } = useSWR<{ publicStats: boolean }>(
-    endpoint,
+    endpoint + queryString,
     fetcher,
   );
 
@@ -187,7 +179,7 @@ const SharePopover = ({ domain }: { domain: string }) => {
             <p className="font-semibold text-gray-800">Share Link</p>
             <div className="divide-x-200 mt-2 flex items-center justify-between divide-x overflow-hidden rounded-md border border-gray-200 bg-gray-100">
               <div className="overflow-scroll pl-2 scrollbar-hide">
-                <p className="text-gray-600">
+                <p className="whitespace-nowrap text-gray-600">
                   https://{domain}/stats/{key}
                 </p>
               </div>

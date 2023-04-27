@@ -6,24 +6,23 @@ import {
   MjmlText,
   MjmlWrapper,
 } from "mjml-react";
-import { getPlanFromUsageLimit } from "@/lib/stripe/constants";
-import { nFormatter } from "@/lib/utils";
+import { capitalize, nFormatter } from "@/lib/utils";
 import ButtonPrimary from "./components/ButtonPrimary";
 import Divider from "./components/Divider";
 import Footer from "./components/Footer";
 import Head from "./components/Head";
 import Header from "./components/Header";
 import { grayDark } from "./components/theme";
+import { ProjectProps } from "@/lib/types";
 
 export default function UsageExceeded({
-  usage,
-  usageLimit,
+  project,
   type,
 }: {
-  usage: number;
-  usageLimit: number;
+  project: ProjectProps;
   type: "first" | "second";
 }): JSX.Element {
+  const { slug, name, usage, usageLimit, plan } = project;
   return (
     <Mjml>
       <Head />
@@ -34,9 +33,9 @@ export default function UsageExceeded({
             <MjmlColumn>
               <MjmlText cssClass="paragraph">Hey there!</MjmlText>
               <MjmlText cssClass="paragraph">
-                Just wanted to reach out and let you know that your account has
-                exceeded the
-                <strong> {getPlanFromUsageLimit(usageLimit)} Plan </strong>
+                Just wanted to reach out and let you know that your project,{" "}
+                <strong> {name} </strong> has exceeded the
+                <strong> {capitalize(plan)} Plan </strong>
                 limit of <strong>{nFormatter(usageLimit)} link clicks</strong>.
                 You have used{" "}
                 <strong>{nFormatter(usage, 2)} link clicks</strong> across all
@@ -48,14 +47,14 @@ export default function UsageExceeded({
                 their stats, edit them, or add more links.
               </MjmlText>
               <ButtonPrimary
-                link={`https://app.dub.sh/settings`}
+                link={`https://app.dub.sh/${slug}/settings/billing`}
                 uiText="Upgrade my plan"
               />
               <MjmlText cssClass="paragraph">
                 To respect your inbox,{" "}
                 {type === "first"
                   ? "I will only send you one more email about this in 3 days"
-                  : "this will be the last time I'll email you about this"}
+                  : "this will be the last time I'll email you about this for the current billing cycle"}
                 . Feel free to ignore this email if you don't plan on upgrading,
                 or reply to let me know if you have any questions!
               </MjmlText>

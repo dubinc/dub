@@ -150,8 +150,9 @@ export const generateDomainFromName = (name: string) => {
   return `${shortestString}.to`;
 };
 
+// courtesy of ChatGPT: https://sharegpt.com/c/pUYXtRs
 export const validDomainRegex = new RegExp(
-  "^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$",
+  /^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/,
 );
 
 export const getSubdomain = (name: string, apexName: string) => {
@@ -222,13 +223,42 @@ export const getDomainWithoutWWW = (url: string) => {
   }
 };
 
-export const getQueryString = (router: NextRouter) => {
-  const { slug: omit, ...queryWithoutSlug } = router.query as {
-    slug: string;
-    [key: string]: string;
-  };
-  const queryString = new URLSearchParams(queryWithoutSlug).toString();
+export const getQueryString = (
+  router: NextRouter,
+  opts?: Record<string, string>,
+) => {
+  // here, we omit the slug from the query string because
+  // for some reason it breaks the router because of middleware rewrites
+  const { slug, ...queryWithoutSlug } = router.query as Record<string, string>;
+  const queryString = new URLSearchParams({
+    ...queryWithoutSlug,
+    ...opts,
+  }).toString();
   return `${queryString ? "?" : ""}${queryString}`;
+};
+
+export const setQueryString = (
+  router: NextRouter,
+  param: string,
+  value: string,
+) => {
+  if (param !== "page") delete router.query.page;
+  let newQuery;
+  if (value.length > 0) {
+    newQuery = {
+      ...router.query,
+      [param]: value,
+    };
+  } else {
+    delete router.query[param];
+    newQuery = { ...router.query };
+  }
+  // here, we omit the slug from the query string as well
+  const { slug, ...finalQuery } = newQuery;
+  router.replace({
+    pathname: `/${router.query.slug || "links"}`,
+    query: finalQuery,
+  });
 };
 
 export const truncate = (str: string, length: number) => {
@@ -289,6 +319,23 @@ export const getUrlWithoutUTMParams = (url: string) => {
     return url;
   }
 };
+
+export async function generateMD5Hash(message) {
+  // Convert the message string to a Uint8Array
+  const encoder = new TextEncoder();
+  const data = encoder.encode(message);
+
+  // Generate the hash using the SubtleCrypto interface
+  const hashBuffer = await crypto.subtle.digest("MD5", data);
+
+  // Convert the hash to a hexadecimal string
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+
+  return hashHex;
+}
 
 const logTypeToEnv = {
   cron: process.env.DUB_SLACK_HOOK_CRON,

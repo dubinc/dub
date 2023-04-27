@@ -33,6 +33,10 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
       href: `/${slug}/settings`,
     },
     {
+      name: "Billing",
+      href: `/${slug}/settings/billing`,
+    },
+    {
       name: "People",
       href: `/${slug}/settings/people`,
     },

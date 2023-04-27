@@ -25,7 +25,7 @@ function InviteTeammateModal({
   const [state, setState] = useState("idle");
   const [error, setError] = useState(null);
   const [email, setEmail] = useState("");
-  const { project: { logo } = {} } = useProject();
+  const { logo } = useProject();
 
   return (
     <Modal

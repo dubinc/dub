@@ -22,8 +22,29 @@ function DeleteProjectModal({
 }) {
   const router = useRouter();
   const { slug } = router.query as { slug: string };
-  const { project: { domain } = {} } = useProject();
+  const { logo } = useProject();
   const [deleting, setDeleting] = useState(false);
+
+  async function deleteProject() {
+    setDeleting(true);
+    await fetch(`/api/projects/${slug}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }).catch((err) => {
+      setDeleting(false);
+      throw new Error(err);
+    });
+    router.push("/");
+    mutate("/api/projects");
+    // delay to allow for the route change to complete
+    await new Promise((resolve) =>
+      setTimeout(() => {
+        resolve(null);
+      }, 200),
+    );
+  }
 
   return (
     <Modal
@@ -33,8 +54,8 @@ function DeleteProjectModal({
       <div className="inline-block w-full transform overflow-hidden bg-white align-middle shadow-xl transition-all sm:max-w-md sm:rounded-2xl sm:border sm:border-gray-200">
         <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
           <BlurImage
-            src={`https://www.google.com/s2/favicons?sz=64&domain_url=${domain}`}
-            alt={domain}
+            src={logo || `https://avatar.vercel.sh/${slug}`}
+            alt={`Logo for ${slug}`}
             className="h-10 w-10 rounded-full border border-gray-200"
             width={20}
             height={20}
@@ -42,31 +63,17 @@ function DeleteProjectModal({
           <h3 className="text-lg font-medium">Delete Project</h3>
           <p className="text-center text-sm text-gray-500">
             Warning: This will permanently delete your project, custom domain,
-            and all associated links + their stats.
+            and all associated links and their respective stats.
           </p>
         </div>
 
         <form
           onSubmit={async (e) => {
             e.preventDefault();
-            setDeleting(true);
-            fetch(`/api/projects/${slug}`, {
-              method: "DELETE",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(domain),
-            }).then(async (res) => {
-              setDeleting(false);
-              if (res.status === 200) {
-                router.push("/");
-                mutate("/api/projects");
-                setShowDeleteProjectModal(false);
-                toast.success("Project deleted successfully.");
-              } else {
-                const error = await res.json();
-                toast.error(JSON.stringify(error));
-              }
+            toast.promise(deleteProject(), {
+              loading: "Deleting project...",
+              success: "Project deleted successfully!",
+              error: (err) => err,
             });
           }}
           className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16"

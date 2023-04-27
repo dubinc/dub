@@ -1,12 +1,5 @@
 import Link from "next/link";
-import {
-  Airplay,
-  Chart,
-  QR,
-  Users,
-  Link as LinkIcon,
-  Photo,
-} from "@/components/shared/icons";
+import { Airplay, Chart, QR, Users, Photo } from "@/components/shared/icons";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import { useState } from "react";
 import Accordion from "@/components/shared/accordion";
@@ -14,6 +7,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useLinkQRModal } from "../app/modals/link-qr-modal";
 import { DEFAULT_LINK_PROPS } from "@/lib/constants";
 import { useAddEditLinkModal } from "../app/modals/add-edit-link-modal";
+import { Link2 } from "lucide-react";
 
 const featureList = [
   {
@@ -57,7 +51,7 @@ const featureList = [
   {
     key: "link",
     title: "Powerful link builder",
-    icon: <LinkIcon className="h-5 w-5 text-gray-600" />,
+    icon: <Link2 className="h-5 w-5 text-gray-600" />,
     description:
       "Build your links with UTM parameters, password protection, expiration dates, iOS/Android targeting, etc.",
     cta: "View demo", //custom cta

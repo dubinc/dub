@@ -1,61 +1,45 @@
-import { useRouter } from "next/router";
-import useSWR from "swr";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
-import useProject from "@/lib/swr/use-project";
-import { LinkProps } from "@/lib/types";
-import { fetcher, getQueryString } from "@/lib/utils";
 import LinkCard from "./link-card";
 import LinkCardPlaceholder from "./link-card-placeholder";
 import LinkFilters from "./link-filters";
 import NoLinksPlaceholder from "./no-links-placeholder";
-import { useMemo } from "react";
+import LinkSort from "./link-sort";
+import useLinks from "@/lib/swr/use-links";
+import { useLinkFiltersModal } from "../modals/link-filters-modal";
 
 export default function LinksContainer({
   AddEditLinkButton,
 }: {
   AddEditLinkButton: () => JSX.Element;
 }) {
-  const router = useRouter();
-  const { slug } = router.query as {
-    slug: string;
-  };
-
-  const { project: { domain } = {} } = useProject();
-
-  const { data: links } = useSWR<LinkProps[]>(
-    domain
-      ? `/api/projects/${slug}/domains/${domain}/links${getQueryString(router)}`
-      : `/api/links${getQueryString(router)}`,
-    fetcher,
-    {
-      // disable this because it keeps refreshing the state of the modal when its open
-      revalidateOnFocus: false,
-    },
-  );
-
-  const loading = useMemo(() => {
-    if (slug) {
-      // need to include `domain` because if not it flashes the "no links" placeholder
-      return links && domain ? false : true;
-    } else {
-      return links ? false : true;
-    }
-  }, [links, domain, slug]);
+  const { links, loading } = useLinks();
+  const { LinkFiltersButton, LinkFiltersModal } = useLinkFiltersModal();
 
   return (
-    <MaxWidthWrapper className="pb-10">
-      <LinkFilters />
-      <ul className="grid grid-cols-1 gap-3">
-        {loading ? (
-          Array.from({ length: 5 }).map((_, i) => (
-            <LinkCardPlaceholder key={i} />
-          ))
-        ) : links.length > 0 ? (
-          links.map((props) => <LinkCard key={props.key} props={props} />)
-        ) : (
-          <NoLinksPlaceholder AddEditLinkButton={AddEditLinkButton} />
-        )}
-      </ul>
-    </MaxWidthWrapper>
+    <>
+      <LinkFiltersModal />
+      <MaxWidthWrapper className="pb-10">
+        <div className="my-5 flex w-full justify-center lg:justify-end">
+          <LinkFiltersButton />
+          <LinkSort />
+        </div>
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-7">
+          <div className="sticky top-32 col-span-2 hidden max-h-[500px] self-start rounded-lg border border-gray-100 bg-white shadow lg:block">
+            <LinkFilters />
+          </div>
+          <ul className="col-span-1 grid auto-rows-min grid-cols-1 gap-3 lg:col-span-5">
+            {loading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <LinkCardPlaceholder key={i} />
+              ))
+            ) : links.length > 0 ? (
+              links.map((props) => <LinkCard key={props.id} props={props} />)
+            ) : (
+              <NoLinksPlaceholder AddEditLinkButton={AddEditLinkButton} />
+            )}
+          </ul>
+        </div>
+      </MaxWidthWrapper>
+    </>
   );
 }

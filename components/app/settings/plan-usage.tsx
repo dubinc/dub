@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useUpgradePlanModal } from "@/components/app/modals/upgrade-plan-modal";
 import {
@@ -8,17 +8,20 @@ import {
   LoadingDots,
   QuestionCircle,
 } from "@/components/shared/icons";
-import Tooltip, { ProTiers } from "@/components/shared/tooltip";
-import { getPlanFromUsageLimit } from "@/lib/stripe/constants";
-import useUsage from "@/lib/swr/use-usage";
+import Tooltip from "@/components/shared/tooltip";
 import { getFirstAndLastDay, nFormatter } from "@/lib/utils";
+import useProject from "@/lib/swr/use-project";
+import useDomains from "@/lib/swr/use-domains";
+import PlanBadge from "./plan-badge";
+import { toast } from "react-hot-toast";
+import { mutate } from "swr";
+import va from "@vercel/analytics";
 
 export default function PlanUsage() {
   const router = useRouter();
-  const {
-    data: { usage, usageLimit, billingCycleStart, projectCount } = {},
-    loading,
-  } = useUsage();
+
+  const { slug, plan, usage, usageLimit, billingCycleStart } = useProject();
+  const { domains } = useDomains();
 
   const [clicked, setClicked] = useState(false);
 
@@ -38,9 +41,20 @@ export default function PlanUsage() {
     return [];
   }, [billingCycleStart]);
 
-  const plan = usageLimit && getPlanFromUsageLimit(usageLimit);
-
   const { UpgradePlanModal, setShowUpgradePlanModal } = useUpgradePlanModal();
+
+  useEffect(() => {
+    if (router.query.success) {
+      toast.success("Upgrade success!");
+      setTimeout(() => {
+        mutate(`/api/projects/${slug}`);
+        // track upgrade to pro event
+        va.track("Upgraded Plan", {
+          plan,
+        });
+      }, 1000);
+    }
+  }, [router.query.success, plan]);
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white">
@@ -50,17 +64,7 @@ export default function PlanUsage() {
         <p className="text-sm text-gray-500">
           You are currently on the{" "}
           {plan ? (
-            <span
-              className={`capitalize ${
-                plan.startsWith("Enterprise")
-                  ? "border-violet-600 bg-violet-600 text-white"
-                  : plan.startsWith("Pro")
-                  ? "border-blue-500 bg-blue-500 text-white"
-                  : "border-black bg-black text-white"
-              } rounded-full border px-2 py-0.5 text-xs font-medium`}
-            >
-              {plan}
-            </span>
+            <PlanBadge plan={plan} />
           ) : (
             <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-200">
               load
@@ -90,7 +94,7 @@ export default function PlanUsage() {
               </div>
             </Tooltip>
           </div>
-          {!loading ? (
+          {usageLimit ? (
             <p className="text-sm text-gray-600">
               {nFormatter(usage)} / {nFormatter(usageLimit)} clicks (
               {((usage / usageLimit) * 100).toFixed(1)}%)
@@ -102,7 +106,7 @@ export default function PlanUsage() {
             <motion.div
               initial={{ width: 0 }}
               animate={{
-                width: !loading ? (usage / usageLimit) * 100 + "%" : "0%",
+                width: usageLimit ? (usage / usageLimit) * 100 + "%" : "0%",
               }}
               transition={{ duration: 0.5, type: "spring" }}
               className={`${
@@ -112,48 +116,36 @@ export default function PlanUsage() {
           </div>
         </div>
         <div className="p-10">
-          <h3 className="font-medium">Number of Projects</h3>
+          <h3 className="font-medium">Number of Domains</h3>
           <div className="mt-4 flex items-center">
-            {projectCount ? (
+            {domains ? (
               <p className="text-2xl font-semibold text-black">
-                {nFormatter(projectCount)}
+                {nFormatter(domains.length)}
               </p>
             ) : (
               <div className="h-8 w-8 animate-pulse rounded-md bg-gray-200" />
             )}
             <Divider className="h-8 w-8 text-gray-500" />
-            <Infinity className="h-8 w-8 text-gray-500" />
+            {plan === "free" ? (
+              <p className="text-2xl font-semibold text-black">1</p>
+            ) : (
+              <Infinity className="h-8 w-8 text-gray-500" />
+            )}
           </div>
         </div>
       </div>
       <div className="border-b border-gray-200" />
       <div className="flex flex-col items-center justify-between space-y-3 px-10 py-4 text-center sm:flex-row sm:space-y-0 sm:text-left">
         {plan ? (
-          plan === "Pro 1M" ? (
-            <p className="text-sm text-gray-500">
-              For higher limits, contact us to upgrade to the Enterprise plan.
-            </p>
-          ) : (
-            <p className="text-sm text-gray-500">
-              {plan === "Free" ? "For " : "To "}
-              <Tooltip content={<ProTiers usageLimit={usageLimit} />}>
-                {/* TODO - a simpler version of the homepage slider */}
-                <span className="cursor-default font-medium text-gray-700 underline underline-offset-2 hover:text-black">
-                  {plan === "Free"
-                    ? "increased limits"
-                    : "change your monthly click limits"}
-                </span>
-              </Tooltip>
-              {plan === "Free"
-                ? ", upgrade to a Pro subscription."
-                : ", manage your subscription on Stripe."}
-            </p>
-          )
+          <p className="text-sm text-gray-500">
+            For higher limits, upgrade to the{" "}
+            {plan === "free" ? "Pro" : "Enterprise"} plan.
+          </p>
         ) : (
           <div className="h-3 w-28 animate-pulse rounded-full bg-gray-200" />
         )}
         {plan ? (
-          plan === "Free" ? (
+          plan === "free" ? (
             <button
               onClick={() => {
                 setShowUpgradePlanModal(true);
@@ -163,40 +155,30 @@ export default function PlanUsage() {
               Upgrade
             </button>
           ) : (
-            <div className="flex space-x-3">
-              {plan === "Pro 1M" && (
-                <a
-                  href="mailto:steven@dub.sh?subject=Upgrade%20to%20Enterprise%20Plan"
-                  className="flex h-9 w-24 items-center justify-center rounded-md border border-violet-600 bg-violet-600 text-sm text-white transition-all duration-150 ease-in-out hover:bg-white hover:text-violet-600 focus:outline-none"
-                >
-                  Contact Us
-                </a>
-              )}
-              <button
-                onClick={() => {
-                  setClicked(true);
-                  fetch(`/api/stripe/manage-subscription`, {
-                    method: "POST",
+            <button
+              onClick={() => {
+                setClicked(true);
+                fetch(`/api/projects/${slug}/billing/manage`, {
+                  method: "POST",
+                })
+                  .then(async (res) => {
+                    const url = await res.json();
+                    router.push(url);
                   })
-                    .then(async (res) => {
-                      const url = await res.json();
-                      router.push(url);
-                    })
-                    .catch((err) => {
-                      alert(err);
-                      setClicked(false);
-                    });
-                }}
-                disabled={clicked}
-                className={`${
-                  clicked
-                    ? "cursor-not-allowed border-gray-200 bg-gray-100"
-                    : "border-black bg-black text-white hover:bg-white hover:text-black"
-                }  h-9 w-40 rounded-md border text-sm transition-all duration-150 ease-in-out focus:outline-none`}
-              >
-                {clicked ? <LoadingDots /> : "Manage Subscription"}
-              </button>
-            </div>
+                  .catch((err) => {
+                    alert(err);
+                    setClicked(false);
+                  });
+              }}
+              disabled={clicked}
+              className={`${
+                clicked
+                  ? "cursor-not-allowed border-gray-200 bg-gray-100"
+                  : "border-black bg-black text-white hover:bg-white hover:text-black"
+              }  h-9 w-40 rounded-md border text-sm transition-all duration-150 ease-in-out focus:outline-none`}
+            >
+              {clicked ? <LoadingDots /> : "Manage Subscription"}
+            </button>
           )
         ) : (
           <div className="h-9 w-24 animate-pulse rounded-md bg-gray-200" />

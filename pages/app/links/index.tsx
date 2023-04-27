@@ -4,7 +4,7 @@ import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import AppLayout from "components/layout/app";
 
 export default function Links() {
-  const { AddEditLinkModal, AddEditLinkButton } = useAddEditLinkModal({});
+  const { AddEditLinkModal, AddEditLinkButton } = useAddEditLinkModal();
 
   return (
     <AppLayout>

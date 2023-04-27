@@ -1,4 +1,3 @@
-import PlanUsage from "@/components/app/settings/plan-usage";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import AppLayout from "components/layout/app";
 
@@ -12,11 +11,6 @@ export default function Settings() {
           </div>
         </MaxWidthWrapper>
       </div>
-      <MaxWidthWrapper>
-        <div className="grid gap-5 py-10">
-          <PlanUsage />
-        </div>
-      </MaxWidthWrapper>
     </AppLayout>
   );
 }

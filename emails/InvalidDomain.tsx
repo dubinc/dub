@@ -51,18 +51,18 @@ export default function InvalidDomain({
                 has been invalid for {invalidDays} days.
               </MjmlText>
               <MjmlText cssClass="paragraph">
-                If your domain remains unconfigured for 30 days, your project
-                will be automatically deleted. Please click the link below to
+                If your domain remains unconfigured for 30 days, it will be
+                automatically deleted from Dub. Please click the link below to
                 configure your domain.
               </MjmlText>
               <ButtonPrimary
-                link={`https://app.dub.sh/${projectSlug}/settings`}
+                link={`https://app.dub.sh/${projectSlug}/domains`}
                 uiText="Configure my domain"
               />
               <MjmlText cssClass="paragraph">
-                If you do not want to keep this project on Dub, you can{" "}
+                If you do not want to keep this domain on Dub, you can{" "}
                 <a
-                  href={`https://app.dub.sh/${projectSlug}/settings`}
+                  href={`https://app.dub.sh/${projectSlug}/domains`}
                   target="_blank"
                 >
                   delete it

@@ -14,6 +14,7 @@ import BlurImage from "@/components/shared/blur-image";
 import { AlertCircleFill, LoadingDots } from "@/components/shared/icons";
 import Modal from "@/components/shared/modal";
 import { generateDomainFromName } from "@/lib/utils";
+import va from "@vercel/analytics";
 
 function AddProjectModalHelper({
   showAddProjectModal,
@@ -104,16 +105,17 @@ function AddProjectModalHelper({
           onSubmit={async (e: FormEvent<HTMLFormElement>) => {
             e.preventDefault();
             setSaving(true);
-            fetch(`/api/projects`, {
+            fetch("/api/projects", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
               },
               body: JSON.stringify(data),
             }).then(async (res) => {
-              setSaving(false);
               if (res.status === 200) {
-                mutate(`/api/projects`);
+                // track project creation event
+                va.track("Created Project");
+                mutate("/api/projects");
                 router.push(`/${slug}`);
               } else if (res.status === 422) {
                 const {
@@ -129,6 +131,7 @@ function AddProjectModalHelper({
               } else {
                 setDomainError("Something went wrong.");
               }
+              setSaving(false);
             });
           }}
           className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16"
@@ -274,7 +277,9 @@ function AddProjectModalHelper({
   );
 }
 
-export function useAddProjectModal({ closeWithX }: { closeWithX?: boolean }) {
+export function useAddProjectModal({
+  closeWithX,
+}: { closeWithX?: boolean } = {}) {
   const [showAddProjectModal, setShowAddProjectModal] = useState(false);
 
   const AddProjectModal = useCallback(() => {

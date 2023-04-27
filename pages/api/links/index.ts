@@ -3,6 +3,7 @@ import { addLink, getLinksForProject } from "@/lib/api/links";
 import { Session, withUserAuth } from "@/lib/auth";
 import { isBlacklistedDomain, isBlacklistedKey } from "@/lib/utils";
 import { log } from "@/lib/utils";
+import { DUB_PROJECT_ID } from "@/lib/constants";
 
 export const config = {
   api: {
@@ -17,13 +18,17 @@ export default withUserAuth(
   async (req: NextApiRequest, res: NextApiResponse, session: Session) => {
     // GET /api/links – get all dub.sh links created by the user
     if (req.method === "GET") {
-      const { status, sort } = req.query as {
+      const { status, tag, search, sort } = req.query as {
         status?: string;
+        tag?: string;
+        search?: string;
         sort?: "createdAt" | "clicks";
       };
       const response = await getLinksForProject({
-        domain: "dub.sh",
+        projectId: DUB_PROJECT_ID,
         status,
+        tag,
+        search,
         sort,
         userId: session.user.id,
       });
@@ -46,6 +51,7 @@ export default withUserAuth(
       const response = await addLink({
         ...req.body,
         domain: "dub.sh",
+        projectId: DUB_PROJECT_ID,
         userId: session.user.id,
       });
 

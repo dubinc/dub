@@ -82,7 +82,6 @@ export const REDIRECT_HEADERS = {
   },
 };
 
-export const FREE_PLAN_PROJECT_LIMIT = 5;
 export const FAVICON_FOLDER = "/_static/favicons";
 export { default as COUNTRIES } from "./countries";
 export { default as ccTLDs } from "./cctlds";
@@ -121,3 +120,5 @@ export const DEFAULT_LINK_PROPS = {
 
   proxy: false,
 };
+
+export const DUB_PROJECT_ID = "cl7pj5kq4006835rbjlt2ofka";

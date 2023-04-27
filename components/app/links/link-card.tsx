@@ -13,15 +13,12 @@ import {
   Archive,
   Chart,
   Delete,
-  Edit,
-  LoadingDots,
   QR,
   ThreeDots,
 } from "@/components/shared/icons";
 import Popover from "@/components/shared/popover";
 import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 import useProject from "@/lib/swr/use-project";
-import useUsage from "@/lib/swr/use-usage";
 import { LinkProps } from "@/lib/types";
 import {
   fetcher,
@@ -31,19 +28,19 @@ import {
   timeAgo,
 } from "@/lib/utils";
 import useIntersectionObserver from "@/lib/hooks/use-intersection-observer";
+import useDomains from "@/lib/swr/use-domains";
+import { CopyPlus, Edit3 } from "lucide-react";
 
 export default function LinkCard({ props }: { props: LinkProps }) {
-  const { key, url, createdAt, archived, expiresAt } = props;
+  const { key, domain, url, createdAt, archived, expiresAt } = props;
 
   const apexDomain = getApexDomain(url);
 
   const router = useRouter();
   const { slug } = router.query as { slug: string };
 
-  const { project } = useProject();
-  const { domain, domainVerified } = project || {};
-  const { isOwner } = useProject();
-  const { exceededUsage } = useUsage();
+  const { exceededUsage } = useProject();
+  const { verified, loading } = useDomains({ domain });
 
   const linkRef = useRef<any>();
   const entry = useIntersectionObserver(linkRef, {});
@@ -51,8 +48,8 @@ export default function LinkCard({ props }: { props: LinkProps }) {
 
   const { data: clicks } = useSWR<number>(
     isVisible &&
-      (domain
-        ? `/api/projects/${slug}/domains/${domain}/links/${key}/stats/clicks`
+      (slug
+        ? `/api/projects/${slug}/links/${key}/stats/clicks?domain=${domain}`
         : `/api/links/${key}/stats/clicks`),
     fetcher,
     {
@@ -66,6 +63,26 @@ export default function LinkCard({ props }: { props: LinkProps }) {
   const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal({
     props,
   });
+
+  // Duplicate link Modal
+  const {
+    id: _,
+    createdAt: __,
+    updatedAt: ___,
+    userId: ____,
+    ...propsToDuplicate
+  } = props;
+  const {
+    setShowAddEditLinkModal: setShowDuplicateLinkModal,
+    AddEditLinkModal: DuplicateLinkModal,
+  } = useAddEditLinkModal({
+    duplicateProps: {
+      ...propsToDuplicate,
+      key: `${key}-copy`,
+      clicks: 0,
+    },
+  });
+
   const { setShowArchiveLinkModal, ArchiveLinkModal } = useArchiveLinkModal({
     props,
     archived: !archived,
@@ -80,20 +97,21 @@ export default function LinkCard({ props }: { props: LinkProps }) {
   return (
     <div
       ref={linkRef}
-      className="relative rounded-lg border border-gray-100 bg-white p-3 pr-1 shadow transition-all hover:shadow-md sm:p-4"
+      className="relative rounded-lg border border-gray-100 bg-white p-3 pr-1 shadow transition-all hover:shadow-md sm:p-4 "
     >
       <LinkQRModal />
       <AddEditLinkModal />
+      <DuplicateLinkModal />
       <ArchiveLinkModal />
       <DeleteLinkModal />
-      <div className="absolute top-0 left-0 flex h-full w-1.5 flex-col overflow-hidden rounded-l-lg">
+      {/* <div className="absolute top-0 left-0 flex h-full w-1.5 flex-col overflow-hidden rounded-l-lg">
         {archived && <div className="h-full w-full bg-gray-400" />}
         {expired ? (
           <div className="h-full w-full bg-amber-500" />
         ) : (
           <div className="h-full w-full bg-green-500" />
         )}
-      </div>
+      </div> */}
       <li className="relative flex items-center justify-between">
         <div className="relative flex shrink items-center space-x-2 sm:space-x-4">
           <BlurImage
@@ -105,7 +123,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
           />
           <div>
             <div className="flex max-w-fit items-center space-x-2">
-              {slug && !domainVerified ? (
+              {slug && !verified && !loading ? (
                 <Tooltip
                   content={
                     <TooltipContent
@@ -116,17 +134,11 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                   }
                 >
                   <div className="w-24 -translate-x-2 cursor-not-allowed truncate text-sm font-semibold text-gray-400 line-through sm:w-full sm:text-base">
-                    <span className="hidden sm:block">
-                      {linkConstructor({ key, domain, pretty: true })}
-                    </span>
-                    <span className="sm:hidden">
-                      {linkConstructor({
-                        key,
-                        domain,
-                        pretty: true,
-                        noDomain: true,
-                      })}
-                    </span>
+                    {linkConstructor({
+                      key,
+                      domain,
+                      pretty: true,
+                    })}
                   </div>
                 </Tooltip>
               ) : (
@@ -136,17 +148,11 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  <span className="hidden sm:block">
-                    {linkConstructor({ key, domain, pretty: true })}
-                  </span>
-                  <span className="sm:hidden">
-                    {linkConstructor({
-                      key,
-                      domain,
-                      pretty: true,
-                      noDomain: true,
-                    })}
-                  </span>
+                  {linkConstructor({
+                    key,
+                    domain,
+                    pretty: true,
+                  })}
                 </a>
               )}
               <CopyButton url={linkConstructor({ key, domain })} />
@@ -158,7 +164,9 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                 <QR className="text-gray-700 transition-all group-hover:text-blue-800" />
               </button>
               <Link
-                href={`/${slug || "links"}/${encodeURI(key)}`}
+                href={`/${slug ? `${slug}/${domain}` : "links"}/${encodeURI(
+                  key,
+                )}`}
                 className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 transition-all duration-75 hover:scale-105 active:scale-100"
               >
                 <Chart className="h-4 w-4" />
@@ -168,7 +176,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                 </p>
               </Link>
             </div>
-            <h3 className="max-w-[200px] truncate text-sm font-medium text-gray-700 md:max-w-md lg:max-w-2xl xl:max-w-3xl">
+            <h3 className="max-w-[200px] truncate text-sm font-medium text-gray-700 md:max-w-md xl:max-w-lg">
               {url}
             </h3>
           </div>
@@ -188,20 +196,16 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                   <Tooltip
                     content={
                       <TooltipContent
-                        title={
-                          isOwner
-                            ? "You have exceeded your usage limit. We're still collecting data on your existing links, but you need to upgrade to edit them."
-                            : "The owner of this project has exceeded their usage limit. We're still collecting data on all existing links, but they need to upgrade their plan to edit them."
-                        }
-                        cta={isOwner && "Upgrade"}
-                        ctaLink={isOwner && "/settings"}
+                        title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to edit them."
+                        cta="Upgrade"
+                        ctaLink={`/${slug}/settings/billing`}
                       />
                     }
                   >
                     <div className="w-full cursor-not-allowed p-2 text-left text-sm font-medium text-gray-300 transition-all duration-75">
                       <IconMenu
                         text="Edit"
-                        icon={<Edit className="h-4 w-4" />}
+                        icon={<Edit3 className="h-4 w-4" />}
                       />
                     </div>
                   </Tooltip>
@@ -213,7 +217,41 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                     }}
                     className="w-full rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
                   >
-                    <IconMenu text="Edit" icon={<Edit className="h-4 w-4" />} />
+                    <IconMenu
+                      text="Edit"
+                      icon={<Edit3 className="h-4 w-4" />}
+                    />
+                  </button>
+                )}
+                {slug && exceededUsage ? (
+                  <Tooltip
+                    content={
+                      <TooltipContent
+                        title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to edit them."
+                        cta="Upgrade"
+                        ctaLink={`/${slug}/settings/billing`}
+                      />
+                    }
+                  >
+                    <div className="w-full cursor-not-allowed p-2 text-left text-sm font-medium text-gray-300 transition-all duration-75">
+                      <IconMenu
+                        text="Duplicate"
+                        icon={<CopyPlus className="h-4 w-4" />}
+                      />
+                    </div>
+                  </Tooltip>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setOpenPopover(false);
+                      setShowDuplicateLinkModal(true);
+                    }}
+                    className="w-full rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
+                  >
+                    <IconMenu
+                      text="Duplicate"
+                      icon={<CopyPlus className="h-4 w-4" />}
+                    />
                   </button>
                 )}
                 <button
