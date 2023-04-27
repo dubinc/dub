@@ -56,7 +56,7 @@ export default function ProjectCard({
                       title="This domain is not correctly configured. Please configure your domain to
                   start adding links."
                       cta="Configure Domain"
-                      ctaLink={`/${slug}/settings`}
+                      ctaLink={`/${slug}/domains`}
                     />
                   }
                 >
