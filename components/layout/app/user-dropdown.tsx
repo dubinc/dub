@@ -4,6 +4,7 @@ import { Logout } from "@/components/shared/icons";
 import Popover from "@/components/shared/popover";
 import IconMenu from "../../shared/icon-menu";
 import Image from "next/image";
+import va from "@vercel/analytics";
 
 export default function UserDropdown() {
   const { data: session } = useSession();
@@ -16,7 +17,11 @@ export default function UserDropdown() {
           <div className="w-full rounded-md bg-white p-1 sm:w-56">
             <button
               className="relative w-full rounded-md p-2 text-left text-sm transition-all duration-75 hover:bg-gray-100"
-              onClick={() => signOut()}
+              onClick={() => {
+                signOut();
+                // track logout event
+                va.track("Logout");
+              }}
             >
               <IconMenu text="Logout" icon={<Logout className="h-4 w-4" />} />
             </button>

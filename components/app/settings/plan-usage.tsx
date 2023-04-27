@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useUpgradePlanModal } from "@/components/app/modals/upgrade-plan-modal";
 import {
@@ -13,6 +13,9 @@ import { getFirstAndLastDay, nFormatter } from "@/lib/utils";
 import useProject from "@/lib/swr/use-project";
 import useDomains from "@/lib/swr/use-domains";
 import PlanBadge from "./plan-badge";
+import { toast } from "react-hot-toast";
+import { mutate } from "swr";
+import va from "@vercel/analytics";
 
 export default function PlanUsage() {
   const router = useRouter();
@@ -39,6 +42,19 @@ export default function PlanUsage() {
   }, [billingCycleStart]);
 
   const { UpgradePlanModal, setShowUpgradePlanModal } = useUpgradePlanModal();
+
+  useEffect(() => {
+    if (router.query.success) {
+      toast.success("Upgrade success!");
+      setTimeout(() => {
+        mutate(`/api/projects/${slug}`);
+        // track upgrade to pro event
+        va.track("Upgraded Plan", {
+          plan,
+        });
+      }, 1000);
+    }
+  }, [router.query.success, plan]);
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white">

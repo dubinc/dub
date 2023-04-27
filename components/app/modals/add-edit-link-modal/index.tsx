@@ -39,6 +39,7 @@ import AndroidSection from "./android-section";
 import { DEFAULT_LINK_PROPS } from "@/lib/constants";
 import useDomains from "@/lib/swr/use-domains";
 import { toast } from "react-hot-toast";
+import va from "@vercel/analytics";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
@@ -280,11 +281,17 @@ function AddEditLinkModal({
               }).then((res) => {
                 setSaving(false);
                 if (res.status === 200) {
+                  // track link creation event
+                  endpoint.method === "POST" &&
+                    va.track("Created Link", {
+                      type: slug ? "Custom Domain" : "Default Domain",
+                    });
                   mutate(
-                    domain
+                    slug
                       ? `/api/projects/${slug}/links${getQueryString(router)}`
                       : `/api/links${getQueryString(router)}`,
                   );
+                  // for welcome page, redirect to links page after adding a link
                   if (router.asPath === "/welcome") {
                     router.push("/links").then(() => {
                       setShowAddEditLinkModal(false);

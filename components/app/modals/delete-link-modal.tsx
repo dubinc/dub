@@ -64,7 +64,7 @@ function DeleteLinkModal({
             e.preventDefault();
             setDeleting(true);
             fetch(
-              domain
+              slug
                 ? `/api/projects/${slug}/links/${props.key}?domain=${domain}`
                 : `/api/links/${props.key}`,
               {
@@ -77,7 +77,7 @@ function DeleteLinkModal({
               setDeleting(false);
               if (res.status === 200) {
                 mutate(
-                  domain
+                  slug
                     ? `/api/projects/${slug}/links${getQueryString(router)}`
                     : `/api/links${getQueryString(router)}`,
                 );

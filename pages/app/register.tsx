@@ -6,6 +6,7 @@ import BlurImage from "@/components/shared/blur-image";
 import { LoadingDots } from "@/components/shared/icons";
 import Background from "@/components/shared/background";
 import { toast, Toaster } from "react-hot-toast";
+import va from "@vercel/analytics";
 
 export default function Login() {
   const [signInClicked, setSignInClicked] = useState(false);
@@ -52,6 +53,8 @@ export default function Login() {
                     if (res?.ok && !res?.error) {
                       setEmail("");
                       toast.success("Email sent - check your inbox!");
+                      // track signup event
+                      va.track("Sign Up");
                     } else {
                       toast.error("Error sending email - try again?");
                     }

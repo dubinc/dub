@@ -14,6 +14,7 @@ import BlurImage from "@/components/shared/blur-image";
 import { AlertCircleFill, LoadingDots } from "@/components/shared/icons";
 import Modal from "@/components/shared/modal";
 import { generateDomainFromName } from "@/lib/utils";
+import va from "@vercel/analytics";
 
 function AddProjectModalHelper({
   showAddProjectModal,
@@ -112,6 +113,8 @@ function AddProjectModalHelper({
               body: JSON.stringify(data),
             }).then(async (res) => {
               if (res.status === 200) {
+                // track project creation event
+                va.track("Created Project");
                 mutate("/api/projects");
                 router.push(`/${slug}`);
               } else if (res.status === 422) {

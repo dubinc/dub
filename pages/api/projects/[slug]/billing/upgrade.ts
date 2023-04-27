@@ -14,7 +14,7 @@ export default withProjectAuth(async (req, res, project, session) => {
         process.env.VERCEL === "1"
           ? "https://app.dub.sh"
           : "http://app.localhost:3000"
-      }/${slug}/settings/billing`,
+      }/${slug}/settings/billing?success=true`,
       cancel_url: `${
         process.env.VERCEL === "1"
           ? "https://app.dub.sh"

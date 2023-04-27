@@ -51,12 +51,13 @@ export async function recordClick(
       },
     ).then((res) => res.json()),
     // increment the click count for the link if key is specified (not root click)
+    // also increment the usage count for the project, and then we have a cron that will reset it at the start of new billing cycle
+    // TODO: might wanna include root clicks in the usage count as well?
     ...(key && [
       conn.execute(
         "UPDATE Link SET clicks = clicks + 1 WHERE domain = ? AND `key` = ?",
         [domain, key],
       ),
-      // increment the usage count for the project, and then we have a cron that will reset it at the start of new billing cycle
       conn.execute(
         "UPDATE Project p JOIN Domain d ON p.id = d.projectId SET p.usage = p.usage + 1 WHERE d.slug = ?",
         [domain],
