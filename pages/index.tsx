@@ -85,7 +85,7 @@ export async function getStaticProps() {
   return {
     props: {
       userCount,
-      stars,
+      stars: stars || 6100,
       tweets,
     },
     revalidate: 60,
