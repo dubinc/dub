@@ -37,6 +37,10 @@ const pricingItems = [
           "Redirect vistors that land on the root of your domain (e.g. yourdomain.com) to a page of your choice.",
         negative: true,
       },
+      {
+        text: "Custom QR Code Logo",
+        negative: true,
+      },
       { text: "SSO/SAML", negative: true },
       { text: "Priority support", negative: true },
     ],
@@ -62,6 +66,9 @@ const pricingItems = [
         footnote:
           "Redirect vistors that land on the root of your domain (e.g. yourdomain.com) to a page of your choice.",
       },
+      {
+        text: "Custom QR Code Logo",
+      },
       { text: "SSO/SAML", negative: true },
       { text: "Priority support", negative: true },
     ],
@@ -86,6 +93,9 @@ const pricingItems = [
         text: "Root domain redirect",
         footnote:
           "Redirect vistors that land on the root of your domain (e.g. yourdomain.com) to a page of your choice.",
+      },
+      {
+        text: "Custom QR Code Logo",
       },
       { text: "SSO/SAML", footnote: "Under development. ETA: Q4 2023" },
       {
