@@ -40,6 +40,7 @@ import { DEFAULT_LINK_PROPS } from "@/lib/constants";
 import useDomains from "@/lib/swr/use-domains";
 import { toast } from "react-hot-toast";
 import va from "@vercel/analytics";
+import punycode from "punycode/";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
@@ -261,7 +262,7 @@ function AddEditLinkModal({
               {props
                 ? `Edit ${linkConstructor({
                     key: props.key,
-                    domain: props.domain,
+                    domain: punycode.toUnicode(props.domain),
                     pretty: true,
                   })}`
                 : "Create a new link"}
@@ -428,7 +429,7 @@ function AddEditLinkModal({
                   >
                     {domains?.map(({ slug }) => (
                       <option key={slug} value={slug}>
-                        {slug}
+                        {punycode.toUnicode(slug)}
                       </option>
                     ))}
                   </select>
