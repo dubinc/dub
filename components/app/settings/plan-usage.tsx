@@ -126,11 +126,7 @@ export default function PlanUsage() {
               <div className="h-8 w-8 animate-pulse rounded-md bg-gray-200" />
             )}
             <Divider className="h-8 w-8 text-gray-500" />
-            {plan === "free" ? (
-              <p className="text-2xl font-semibold text-black">1</p>
-            ) : (
-              <Infinity className="h-8 w-8 text-gray-500" />
-            )}
+            <Infinity className="h-8 w-8 text-gray-500" />
           </div>
         </div>
       </div>
