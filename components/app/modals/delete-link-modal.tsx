@@ -81,6 +81,17 @@ function DeleteLinkModal({
                     ? `/api/projects/${slug}/links${getQueryString(router)}`
                     : `/api/links${getQueryString(router)}`,
                 );
+                mutate(
+                  (key) =>
+                    typeof key === "string" &&
+                    key.startsWith(
+                      slug
+                        ? `/api/projects/${slug}/links/count`
+                        : `/api/links/count`,
+                    ),
+                  undefined,
+                  { revalidate: true },
+                );
                 setShowDeleteLinkModal(false);
               } else {
                 const { error } = await res.json();

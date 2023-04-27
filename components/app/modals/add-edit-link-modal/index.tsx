@@ -291,6 +291,17 @@ function AddEditLinkModal({
                       ? `/api/projects/${slug}/links${getQueryString(router)}`
                       : `/api/links${getQueryString(router)}`,
                   );
+                  mutate(
+                    (key) =>
+                      typeof key === "string" &&
+                      key.startsWith(
+                        slug
+                          ? `/api/projects/${slug}/links/count`
+                          : `/api/links/count`,
+                      ),
+                    undefined,
+                    { revalidate: true },
+                  );
                   // for welcome page, redirect to links page after adding a link
                   if (router.asPath === "/welcome") {
                     router.push("/links").then(() => {
