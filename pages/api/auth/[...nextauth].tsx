@@ -71,10 +71,6 @@ export const authOptions: NextAuthOptions = {
             to: email,
             component: <WelcomeEmail />,
           }),
-          prisma.user.update({
-            where: { email },
-            data: { billingCycleStart: new Date().getDate() },
-          }),
         ]);
       }
     },

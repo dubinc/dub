@@ -69,15 +69,6 @@ export default withUserAuth(
         });
       }
 
-      const { usageLimit: ownerUsageLimit } = await prisma.user.findUnique({
-        where: {
-          id: session.user.id,
-        },
-        select: {
-          usageLimit: true,
-        },
-      });
-
       const project = await prisma.project.create({
         data: {
           name,
@@ -89,6 +80,7 @@ export default withUserAuth(
               role: "owner",
             },
           },
+          billingCycleStart: new Date().getDate(),
         },
       });
       const response = await Promise.allSettled([

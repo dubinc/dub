@@ -1,9 +1,8 @@
-import { NextApiRequest, NextApiResponse } from "next";
 import { withProjectAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
 export default withProjectAuth(
-  async (req: NextApiRequest, res: NextApiResponse) => {
+  async (req, res) => {
     const { domain, key } = req.query as {
       domain: string;
       key: string;

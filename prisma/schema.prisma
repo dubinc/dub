@@ -24,6 +24,7 @@ model User {
   usage             Int     @default(0)
   usageLimit        Int     @default(1000)
   billingCycleStart Int? // day of the month when the billing cycle starts
+  usageUpdatedAt DateTime       @default(now())
 
   accounts       Account[]
   sessions       Session[]
@@ -31,7 +32,6 @@ model User {
   sentEmails     SentEmail[]
   links          Link[]
   createdAt      DateTime       @default(now())
-  usageUpdatedAt DateTime       @default(now())
 }
 
 model Account {
@@ -83,8 +83,6 @@ model Project {
   domainVerified     Boolean         @default(false)
   domainLastChecked  DateTime        @default(now())
 
-  createdAt          DateTime        @default(now())
-  updatedAt          DateTime        @updatedAt
   users              ProjectUsers[]
   invites            ProjectInvite[]
   usage              Int             @default(0)
@@ -101,6 +99,12 @@ model Project {
   domains            Domain[]
   links              Link[]
   tags               Tag[]
+
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  usageUpdatedAt     DateTime        @default(now())
+
+  @@index(usageUpdatedAt)
 }
 
 model ProjectInvite {

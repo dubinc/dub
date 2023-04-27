@@ -1,4 +1,3 @@
-import { NextApiRequest, NextApiResponse } from "next";
 import { deleteLink, editLink } from "@/lib/api/links";
 import { withProjectAuth } from "@/lib/auth";
 
@@ -11,7 +10,7 @@ export const config = {
 };
 
 export default withProjectAuth(
-  async (req: NextApiRequest, res: NextApiResponse) => {
+  async (req, res) => {
     const { domain, key: oldKey } = req.query as {
       domain: string;
       key: string;

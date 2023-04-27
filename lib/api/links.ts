@@ -72,7 +72,6 @@ export async function getLinksForProject({
   sort?: "createdAt" | "clicks"; // always descending for both
   userId?: string;
 }): Promise<LinkProps[]> {
-  const filters = getFiltersFromStatus(status);
   return await prisma.link.findMany({
     where: {
       projectId,
@@ -81,7 +80,6 @@ export async function getLinksForProject({
         key: { search },
         url: { search },
       }),
-      ...filters,
       // ...(tag && { tags: { has: tag } }),
       ...(userId && { userId }),
     },

@@ -1,4 +1,3 @@
-import { NextApiRequest, NextApiResponse } from "next";
 import { addLink, getLinksForProject } from "@/lib/api/links";
 import { withProjectAuth } from "@/lib/auth";
 
@@ -11,7 +10,7 @@ export const config = {
 };
 
 export default withProjectAuth(
-  async (req: NextApiRequest, res: NextApiResponse, project, session) => {
+  async (req, res, project, session) => {
     // GET /api/projects/[slug]/links - Get all links for a project
     if (req.method === "GET") {
       const { domain, status, tag, search, sort, userId } = req.query as {

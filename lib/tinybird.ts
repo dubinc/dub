@@ -56,6 +56,11 @@ export async function recordClick(
         "UPDATE Link SET clicks = clicks + 1 WHERE domain = ? AND `key` = ?",
         [domain, key],
       ),
+      // increment the usage count for the project, and then we have a cron that will reset it at the start of new billing cycle
+      conn.execute(
+        "UPDATE Project p JOIN Domain d ON p.id = d.projectId SET p.usage = p.usage + 1 WHERE d.slug = ?",
+        [domain],
+      ),
     ]),
   ]);
 }

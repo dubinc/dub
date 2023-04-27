@@ -56,7 +56,7 @@ export default function Home({
         <Globe />
         <Features />
         <Testimonials userCount={userCount} tweets={tweets} />
-        <Pricing />
+        <Pricing homePage />
         <OSS stars={stars} />
       </div>
       <Background />

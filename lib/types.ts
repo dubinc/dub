@@ -36,6 +36,7 @@ export interface ProjectProps {
   usage: number;
   usageLimit: number;
   plan: "free" | "pro" | "enterprise";
+  stripeId?: string;
   billingCycleStart?: number;
 
   // TO DELETE

@@ -17,7 +17,7 @@ import PlanBadge from "./plan-badge";
 export default function PlanUsage() {
   const router = useRouter();
 
-  const { plan, usage, usageLimit, billingCycleStart } = useProject();
+  const { slug, plan, usage, usageLimit, billingCycleStart } = useProject();
   const { domains } = useDomains();
 
   const [clicked, setClicked] = useState(false);
@@ -142,7 +142,7 @@ export default function PlanUsage() {
             <button
               onClick={() => {
                 setClicked(true);
-                fetch(`/api/stripe/manage-subscription`, {
+                fetch(`/api/projects/${slug}/billing/manage`, {
                   method: "POST",
                 })
                   .then(async (res) => {
