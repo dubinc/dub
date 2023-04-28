@@ -142,7 +142,7 @@ const FilterGroup = ({
                   htmlFor={value}
                   className="flex w-full cursor-pointer justify-between px-3 py-2 pl-0 text-sm font-medium text-gray-700"
                 >
-                  <p>{punycode.toUnicode(value)}</p>
+                  <p>{punycode.toUnicode(value || "")}</p>
                   <p className="text-gray-500">{nFormatter(count)}</p>
                 </label>
               </div>

@@ -137,7 +137,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                   <div className="w-24 -translate-x-2 cursor-not-allowed truncate text-sm font-semibold text-gray-400 line-through sm:w-full sm:text-base">
                     {linkConstructor({
                       key,
-                      domain: punycode.toUnicode(domain),
+                      domain: punycode.toUnicode(domain || ""),
                       pretty: true,
                     })}
                   </div>
@@ -151,7 +151,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                 >
                   {linkConstructor({
                     key,
-                    domain: punycode.toUnicode(domain),
+                    domain: punycode.toUnicode(domain || ""),
                     pretty: true,
                   })}
                 </a>

@@ -11,7 +11,7 @@ import Divider from "./components/Divider";
 import Footer from "./components/Footer";
 import Head from "./components/Head";
 import Header from "./components/Header";
-import { grayDark, purple } from "./components/theme";
+import { grayDark } from "./components/theme";
 
 export default function FeatureUpdates(): JSX.Element {
   return (
