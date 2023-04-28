@@ -74,7 +74,7 @@ export const handleDomainUpdates = async ({
           },
         }),
         log(
-          `Domain *${domain}* has been invalid for > 30 days, deleting.`,
+          `Domain *${domain}* has been invalid for > 30 days and has no links, deleting.`,
           "cron",
         ),
         sendMail({
