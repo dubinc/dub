@@ -28,16 +28,17 @@ function ArchiveLinkModal({
   const router = useRouter();
   const { slug } = router.query;
   const [archiving, setArchiving] = useState(false);
-  const { project: { domain } = {} } = useProject();
   const apexDomain = getApexDomain(props.url);
+
+  const { key, domain } = props;
 
   const shortlink = useMemo(() => {
     return linkConstructor({
-      key: props.key,
+      key,
       domain,
       pretty: true,
     });
-  }, [props, domain]);
+  }, [key, domain]);
 
   return (
     <Modal
@@ -70,7 +71,7 @@ function ArchiveLinkModal({
               setArchiving(true);
               fetch(
                 domain
-                  ? `/api/projects/${slug}/domains/${domain}/links/${props.key}/archive`
+                  ? `/api/projects/${slug}/links/${props.key}/archive?domain=${domain}`
                   : `/api/links/${props.key}/archive`,
                 {
                   method: archived ? "POST" : "DELETE",
@@ -83,9 +84,7 @@ function ArchiveLinkModal({
                 if (res.status === 200) {
                   mutate(
                     domain
-                      ? `/api/projects/${slug}/domains/${domain}/links${getQueryString(
-                          router,
-                        )}`
+                      ? `/api/projects/${slug}/links${getQueryString(router)}`
                       : `/api/links${getQueryString(router)}`,
                   );
                   setShowArchiveLinkModal(false);

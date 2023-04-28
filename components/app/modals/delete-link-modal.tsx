@@ -10,9 +10,9 @@ import { mutate } from "swr";
 import BlurImage from "@/components/shared/blur-image";
 import LoadingDots from "@/components/shared/icons/loading-dots";
 import Modal from "@/components/shared/modal";
-import useProject from "@/lib/swr/use-project";
 import { LinkProps } from "@/lib/types";
 import { getApexDomain, getQueryString, linkConstructor } from "@/lib/utils";
+import { toast } from "react-hot-toast";
 
 function DeleteLinkModal({
   showDeleteLinkModal,
@@ -26,16 +26,17 @@ function DeleteLinkModal({
   const router = useRouter();
   const { slug } = router.query;
   const [deleting, setDeleting] = useState(false);
-  const { project: { domain } = {} } = useProject();
   const apexDomain = getApexDomain(props.url);
+
+  const { key, domain } = props;
 
   const shortlink = useMemo(() => {
     return linkConstructor({
-      key: props.key,
+      key,
       domain,
       pretty: true,
     });
-  }, [props, domain]);
+  }, [key, domain]);
 
   return (
     <Modal
@@ -63,8 +64,8 @@ function DeleteLinkModal({
             e.preventDefault();
             setDeleting(true);
             fetch(
-              domain
-                ? `/api/projects/${slug}/domains/${domain}/links/${props.key}`
+              slug
+                ? `/api/projects/${slug}/links/${props.key}?domain=${domain}`
                 : `/api/links/${props.key}`,
               {
                 method: "DELETE",
@@ -76,13 +77,25 @@ function DeleteLinkModal({
               setDeleting(false);
               if (res.status === 200) {
                 mutate(
-                  domain
-                    ? `/api/projects/${slug}/domains/${domain}/links${getQueryString(
-                        router,
-                      )}`
+                  slug
+                    ? `/api/projects/${slug}/links${getQueryString(router)}`
                     : `/api/links${getQueryString(router)}`,
                 );
+                mutate(
+                  (key) =>
+                    typeof key === "string" &&
+                    key.startsWith(
+                      slug
+                        ? `/api/projects/${slug}/links/count`
+                        : `/api/links/count`,
+                    ),
+                  undefined,
+                  { revalidate: true },
+                );
                 setShowDeleteLinkModal(false);
+              } else {
+                const { error } = await res.json();
+                toast.error(error);
               }
             });
           }}

@@ -1,10 +1,9 @@
-import { NextApiRequest, NextApiResponse } from "next";
 import { withProjectAuth } from "@/lib/auth";
 import { redis } from "@/lib/upstash";
 import { RootDomainProps } from "@/lib/types";
 
 export default withProjectAuth(
-  async (req: NextApiRequest, res: NextApiResponse) => {
+  async (req, res) => {
     const { domain } = req.query as { domain: string };
 
     // GET /api/projects/[slug]/domains/[domain]/root - get root domain
@@ -30,7 +29,7 @@ export default withProjectAuth(
   },
   {
     excludeGet: true,
+    requiredPlan: ["pro", "enterprise"],
     needNotExceededUsage: true,
-    needProSubscription: true,
   },
 );

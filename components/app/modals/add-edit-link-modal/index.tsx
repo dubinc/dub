@@ -22,7 +22,6 @@ import {
 import Modal from "@/components/shared/modal";
 import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 import useProject from "@/lib/swr/use-project";
-import useUsage from "@/lib/swr/use-usage";
 import { LinkProps } from "@/lib/types";
 import {
   getApexDomain,
@@ -38,46 +37,64 @@ import IOSSection from "./ios-section";
 import Preview from "./preview";
 import AndroidSection from "./android-section";
 import { DEFAULT_LINK_PROPS } from "@/lib/constants";
+import useDomains from "@/lib/swr/use-domains";
 import { toast } from "react-hot-toast";
+import va from "@vercel/analytics";
+import punycode from "punycode/";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
   setShowAddEditLinkModal,
   props,
+  duplicateProps,
   hideXButton,
   homepageDemo,
 }: {
   showAddEditLinkModal: boolean;
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
   props?: LinkProps;
+  duplicateProps?: LinkProps;
   hideXButton?: boolean;
   homepageDemo?: boolean;
 }) {
   const router = useRouter();
   const { slug } = router.query as { slug: string };
-  const { project: { domain } = {} } = useProject();
 
   const [keyExistsError, setKeyExistsError] = useState(false);
   const [urlError, setUrlError] = useState(false);
   const [generatingKey, setGeneratingKey] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  const { domains, primaryDomain } = useDomains();
+
   const [data, setData] = useState<LinkProps>(
-    props || {
-      ...DEFAULT_LINK_PROPS,
-      domain: domain || "",
-      key: "",
-      url: "",
-    },
+    props ||
+      duplicateProps || {
+        ...DEFAULT_LINK_PROPS,
+        domain: primaryDomain || "",
+        key: "",
+        url: "",
+      },
   );
-  const { key, url, password, proxy } = data;
+
+  const { domain, key, url, password, proxy } = data;
 
   const [debouncedKey] = useDebounce(key, 500);
   useEffect(() => {
-    if (debouncedKey.length > 0 && debouncedKey !== props?.key) {
+    /**
+     * Only check if key exists if:
+     * - modal is open
+     * - key is not empty
+     * - key is not the same as the original key
+     **/
+    if (
+      showAddEditLinkModal &&
+      debouncedKey.length > 0 &&
+      debouncedKey !== props?.key
+    ) {
       fetch(
-        domain
-          ? `/api/projects/${slug}/domains/${domain}/links/${debouncedKey}/exists`
+        slug
+          ? `/api/projects/${slug}/links/${debouncedKey}/exists?domain=${domain}`
           : `/api/links/${debouncedKey}/exists`,
       ).then(async (res) => {
         if (res.status === 200) {
@@ -86,13 +103,13 @@ function AddEditLinkModal({
         }
       });
     }
-  }, [debouncedKey]);
+  }, [debouncedKey, domain]);
 
   const generateRandomKey = useCallback(async () => {
     setGeneratingKey(true);
     const res = await fetch(
-      domain
-        ? `/api/projects/${slug}/domains/${domain}/links/random`
+      slug
+        ? `/api/projects/${slug}/links/random?domain=${domain}`
         : `/api/links/random`,
     );
     const key = await res.json();
@@ -162,15 +179,15 @@ function AddEditLinkModal({
     if (props?.key) {
       return {
         method: "PUT",
-        url: domain
-          ? `/api/projects/${slug}/domains/${domain}/links/${props.key}`
+        url: slug
+          ? `/api/projects/${slug}/links/${props.key}?domain=${domain}`
           : `/api/links/${props.key}`,
       };
     } else {
       return {
         method: "POST",
-        url: domain
-          ? `/api/projects/${slug}/domains/${domain}/links`
+        url: slug
+          ? `/api/projects/${slug}/links?domain=${domain}`
           : `/api/links`,
       };
     }
@@ -207,16 +224,11 @@ function AddEditLinkModal({
     } else {
       return false;
     }
-  }, [saving, keyExistsError, urlError, props, data, showAddEditLinkModal]);
+  }, [showAddEditLinkModal, saving, keyExistsError, urlError, props, data]);
 
   const randomIdx = Math.floor(Math.random() * 100);
 
-  const [lockKey, setLockKey] = useState(false);
-  useEffect(() => {
-    if (props?.key) {
-      setLockKey(true);
-    }
-  }, [props?.key]);
+  const [lockKey, setLockKey] = useState(true);
 
   return (
     <Modal
@@ -250,10 +262,10 @@ function AddEditLinkModal({
               {props
                 ? `Edit ${linkConstructor({
                     key: props.key,
-                    domain,
+                    domain: punycode.toUnicode(props.domain),
                     pretty: true,
                   })}`
-                : "Add a new link"}
+                : "Create a new link"}
             </h3>
           </div>
 
@@ -270,13 +282,28 @@ function AddEditLinkModal({
               }).then((res) => {
                 setSaving(false);
                 if (res.status === 200) {
+                  // track link creation event
+                  endpoint.method === "POST" &&
+                    va.track("Created Link", {
+                      type: slug ? "Custom Domain" : "Default Domain",
+                    });
                   mutate(
-                    domain
-                      ? `/api/projects/${slug}/domains/${domain}/links${getQueryString(
-                          router,
-                        )}`
+                    slug
+                      ? `/api/projects/${slug}/links${getQueryString(router)}`
                       : `/api/links${getQueryString(router)}`,
                   );
+                  mutate(
+                    (key) =>
+                      typeof key === "string" &&
+                      key.startsWith(
+                        slug
+                          ? `/api/projects/${slug}/links/count`
+                          : `/api/links/count`,
+                      ),
+                    undefined,
+                    { revalidate: true },
+                  );
+                  // for welcome page, redirect to links page after adding a link
                   if (router.asPath === "/welcome") {
                     router.push("/links").then(() => {
                       setShowAddEditLinkModal(false);
@@ -360,7 +387,7 @@ function AddEditLinkModal({
                   >
                     Short Link
                   </label>
-                  {lockKey ? (
+                  {props && lockKey ? (
                     <button
                       className="flex items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
                       type="button"
@@ -390,10 +417,23 @@ function AddEditLinkModal({
                   )}
                 </div>
                 <div className="relative mt-1 flex rounded-md shadow-sm">
-                  <span className="inline-flex items-center whitespace-nowrap rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-5 text-sm text-gray-500">
-                    {domain || "dub.sh"}
-                  </span>
-                  {lockKey ? (
+                  <select
+                    disabled={props && lockKey}
+                    value={domain}
+                    onChange={(e) => {
+                      setData({ ...data, domain: e.target.value });
+                    }}
+                    className={`${
+                      props && lockKey ? "cursor-not-allowed" : ""
+                    } w-40 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-5 text-sm text-gray-500 focus:border-gray-300 focus:outline-none focus:ring-0`}
+                  >
+                    {domains?.map(({ slug }) => (
+                      <option key={slug} value={slug}>
+                        {punycode.toUnicode(slug)}
+                      </option>
+                    ))}
+                  </select>
+                  {props && lockKey ? (
                     <div className="block w-full cursor-not-allowed select-none rounded-r-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-500">
                       {props.key}
                     </div>
@@ -493,7 +533,7 @@ function AddEditLinkModal({
                     <LoadingDots color="#808080" />
                   ) : (
                     <p className="text-sm">
-                      {props ? "Save changes" : "Add link"}
+                      {props ? "Save changes" : "Create link"}
                     </p>
                   )}
                 </button>
@@ -517,25 +557,20 @@ function AddEditLinkButton({
   const router = useRouter();
   const { slug } = router.query as { slug?: string };
 
-  const { isOwner } = useProject();
-  const { exceededUsage } = useUsage();
+  const { exceededUsage } = useProject();
 
   return slug && exceededUsage ? ( // only show exceeded usage tooltip if user is on a project page
     <Tooltip
       content={
         <TooltipContent
-          title={
-            isOwner
-              ? "You have exceeded your usage limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
-              : "The owner of this project has exceeded their usage limit. We're still collecting data on all existing links, but they need to upgrade their plan to add more links."
-          }
-          cta={isOwner && "Upgrade"}
-          ctaLink={isOwner && "/settings"}
+          title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
+          cta="Upgrade"
+          ctaLink={`/${slug}/settings/billing`}
         />
       }
     >
       <div className="cursor-not-allowed rounded-md border border-gray-200 px-5 py-2 text-sm font-medium text-gray-300 transition-all duration-75">
-        Add
+        Create link
       </div>
     </Tooltip>
   ) : (
@@ -543,20 +578,22 @@ function AddEditLinkButton({
       onClick={() => setShowAddEditLinkModal(true)}
       className="rounded-md border border-black bg-black px-5 py-2 text-sm font-medium text-white transition-all duration-75 hover:bg-white hover:text-black active:scale-95"
     >
-      Add
+      Create link
     </button>
   );
 }
 
 export function useAddEditLinkModal({
   props,
+  duplicateProps,
   hideXButton,
   homepageDemo,
 }: {
   props?: LinkProps;
+  duplicateProps?: LinkProps;
   hideXButton?: boolean;
   homepageDemo?: boolean;
-}) {
+} = {}) {
   const [showAddEditLinkModal, setShowAddEditLinkModal] = useState(false);
 
   const AddEditLinkModalCallback = useCallback(() => {
@@ -565,6 +602,7 @@ export function useAddEditLinkModal({
         showAddEditLinkModal={showAddEditLinkModal}
         setShowAddEditLinkModal={setShowAddEditLinkModal}
         props={props}
+        duplicateProps={duplicateProps}
         hideXButton={hideXButton}
         homepageDemo={homepageDemo}
       />
@@ -573,6 +611,7 @@ export function useAddEditLinkModal({
     showAddEditLinkModal,
     setShowAddEditLinkModal,
     props,
+    duplicateProps,
     hideXButton,
     homepageDemo,
   ]);

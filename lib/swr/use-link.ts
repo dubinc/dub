@@ -1,5 +1,4 @@
 import { useRouter } from "next/router";
-import { useMemo } from "react";
 import useSWR from "swr";
 import { LinkProps } from "@/lib/types";
 import { fetcher } from "@/lib/utils";

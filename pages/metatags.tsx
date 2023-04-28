@@ -179,7 +179,7 @@ export default function Metatags({ tweets }: { tweets: any }) {
         </a>
 
         <div className="text-left">
-          {tweets.map((tweet) => (
+          {tweets.filter(Boolean).map((tweet) => (
             <Tweet key={tweet.id} metadata={JSON.stringify(tweet)} />
           ))}
         </div>

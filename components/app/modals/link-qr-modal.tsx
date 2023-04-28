@@ -14,7 +14,6 @@ import Switch from "@/components/shared/switch";
 import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 import { QRCodeSVG, getQRAsCanvas, getQRAsSVGDataUri } from "@/lib/qr";
 import useProject from "@/lib/swr/use-project";
-import useUsage from "@/lib/swr/use-usage";
 import { SimpleLinkProps } from "@/lib/types";
 import { getApexDomain, linkConstructor } from "@/lib/utils";
 import IconMenu from "@/components/shared/icon-menu";
@@ -33,7 +32,7 @@ function LinkQRModalHelper({
   props: SimpleLinkProps;
 }) {
   const anchorRef = useRef<HTMLAnchorElement>();
-  const { project: { domain, logo } = {} } = useProject();
+  const { logo } = useProject();
   const { avatarUrl, apexDomain } = useMemo(() => {
     try {
       const apexDomain = getApexDomain(props.url);
@@ -62,9 +61,13 @@ function LinkQRModalHelper({
 
   const [showLogo, setShowLogo] = useState(true);
   const [fgColor, setFgColor] = useState("#000000");
+
   const qrData = useMemo(
     () => ({
-      value: linkConstructor({ key: props.key, domain }),
+      value: linkConstructor({
+        key: props.key,
+        domain: props.domain || "dub.sh",
+      }),
       bgColor: "#ffffff",
       fgColor,
       size: 1024,
@@ -78,7 +81,7 @@ function LinkQRModalHelper({
         },
       }),
     }),
-    [props.key, domain, fgColor, showLogo, qrLogoUrl],
+    [props, fgColor, showLogo, qrLogoUrl],
   );
 
   const copyToClipboard = async () => {
@@ -170,8 +173,7 @@ function LinkQRModalHelper({
 }
 
 function AdvancedSettings({ qrData, setFgColor, setShowLogo }) {
-  const { data: session } = useSession();
-  const { plan } = session ? useUsage() : { plan: "free" };
+  const { plan } = useProject();
   const [expanded, setExpanded] = useState(false);
 
   const isApp = useMemo(() => {
@@ -204,7 +206,17 @@ function AdvancedSettings({ qrData, setFgColor, setShowLogo }) {
             >
               Logo
             </label>
-            {!plan || plan === "Free" ? (
+            {plan && plan !== "free" ? (
+              <div className="mt-1 flex items-center space-x-2">
+                <Switch
+                  fn={setShowLogo}
+                  trackDimensions="h-6 w-12"
+                  thumbDimensions="w-5 h-5"
+                  thumbTranslate="translate-x-6"
+                />
+                <p className="text-sm text-gray-600">Show Dub.sh Logo</p>
+              </div>
+            ) : (
               <Tooltip
                 content={
                   <TooltipContent
@@ -225,16 +237,6 @@ function AdvancedSettings({ qrData, setFgColor, setShowLogo }) {
                   <p className="text-sm text-gray-600">Show Dub.sh Logo</p>
                 </div>
               </Tooltip>
-            ) : (
-              <div className="mt-1 flex items-center space-x-2">
-                <Switch
-                  fn={setShowLogo}
-                  trackDimensions="h-6 w-12"
-                  thumbDimensions="w-5 h-5"
-                  thumbTranslate="translate-x-6"
-                />
-                <p className="text-sm text-gray-600">Show Dub.sh Logo</p>
-              </div>
             )}
           </div>
           <div>

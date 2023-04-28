@@ -3,7 +3,7 @@ import { Readable } from "node:stream";
 import Stripe from "stripe";
 import prisma from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
-import { PRO_TIERS } from "@/lib/stripe/constants";
+import { PLANS } from "@/lib/stripe/constants";
 import { redis } from "@/lib/upstash";
 import { log } from "@/lib/utils";
 
@@ -32,7 +32,7 @@ export default async function webhookHandler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
-  // POST /api/projects/[slug]/upgrade/webhook – listen to Stripe webhooks
+  // POST /api/stripe/webhook – listen to Stripe webhooks
   if (req.method === "POST") {
     const buf = await buffer(req);
     const sig = req.headers["stripe-signature"];
@@ -50,10 +50,11 @@ export default async function webhookHandler(
         if (event.type === "checkout.session.completed") {
           const checkoutSession = event.data.object as Stripe.Checkout.Session;
 
-          // when the user subscribes to a plan, set their stripe customer ID
+          // when the project subscribes to a plan, set their stripe customer ID
           // in the database for easy identification in future webhook events
+          // also update the billingCycleStart to today's date
 
-          await prisma.user.update({
+          await prisma.project.update({
             where: {
               id: checkoutSession.client_reference_id,
             },
@@ -69,114 +70,62 @@ export default async function webhookHandler(
             process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
               ? "production"
               : "test";
-          const tier = PRO_TIERS.find(
-            (tier) =>
-              tier.price.monthly.priceIds[env] === newPriceId ||
-              tier.price.yearly.priceIds[env] === newPriceId,
+          const plan = PLANS.find(
+            (plan) =>
+              plan.price.monthly.priceIds[env] === newPriceId ||
+              plan.price.yearly.priceIds[env] === newPriceId,
           );
-          const usageLimit = tier.quota;
+          const usageLimit = plan.quota;
           const stripeId = subscriptionUpdated.customer.toString();
 
-          // If a user upgrades/downgrades their subscription, update their usage limit in the database.
-          // We also need to update the ownerUsageLimit field for all their projects.
-
-          const { projects } = await prisma.user.findUnique({
+          // If a project upgrades/downgrades their subscription, update their usage limit in the database.
+          await prisma.project.update({
             where: {
               stripeId,
             },
-            select: {
-              projects: {
-                where: {
-                  role: "owner",
-                },
-                select: {
-                  projectId: true,
-                },
-              },
+            data: {
+              usageLimit,
+              plan: plan.slug,
             },
           });
-
-          await Promise.all([
-            prisma.user.update({
-              where: {
-                stripeId,
-              },
-              data: {
-                usageLimit,
-                billingCycleStart: new Date().getDate(),
-              },
-            }),
-            Promise.all(
-              projects.map(async ({ projectId }) => {
-                return await prisma.project.update({
-                  where: {
-                    id: projectId,
-                  },
-                  data: {
-                    ownerUsageLimit: usageLimit,
-                  },
-                });
-              }),
-            ),
-          ]);
         } else if (event.type === "customer.subscription.deleted") {
           const subscriptionDeleted = event.data.object as Stripe.Subscription;
 
           const stripeId = subscriptionDeleted.customer.toString();
 
-          // If a user deletes their subscription, reset their usage limit in the database to 1000.
-          // We also need to reset the ownerUsageLimit field for all their projects to 1000.
-
-          const { email, usage, projects } = await prisma.user.findUnique({
+          // If a project deletes their subscription, reset their usage limit in the database to 1000.
+          // Also remove the root domain redirect for all their domains from Redis.
+          const project = await prisma.project.findUnique({
             where: {
               stripeId,
             },
             select: {
-              email: true,
-              usage: true,
-              projects: {
-                where: {
-                  role: "owner",
-                },
-                select: {
-                  projectId: true,
-                  project: {
-                    select: {
-                      domain: true,
-                    },
-                  },
-                },
-              },
+              name: true,
+              domains: true,
             },
           });
 
+          const projectDomains = project.domains.map((domain) => domain.slug);
+
+          const pipeline = redis.pipeline();
+          // remove root domain redirect for all domains
+          projectDomains.forEach((domain) => {
+            pipeline.del(`root:${domain}`);
+          });
+
           const response = await Promise.all([
-            prisma.user.update({
+            prisma.project.update({
               where: {
                 stripeId,
               },
               data: {
                 usageLimit: 1000,
+                plan: "free",
               },
             }),
-            Promise.all(
-              projects.map(async ({ projectId, project: { domain } }) => {
-                return await Promise.all([
-                  prisma.project.update({
-                    where: {
-                      id: projectId,
-                    },
-                    data: {
-                      ownerUsageLimit: 1000,
-                      ownerExceededUsage: usage > 1000,
-                    },
-                  }),
-                  redis.del(`root:${domain}`), // remove root domain redirect
-                ]);
-              }),
-            ),
+            pipeline.exec(),
             log(
-              ":cry: User *`" + email + "`* deleted their subscription",
+              ":cry: Project *`" + name + "`* deleted their subscription",
               "links",
             ),
           ]);

@@ -56,7 +56,7 @@ export default function Home({
         <Globe />
         <Features />
         <Testimonials userCount={userCount} tweets={tweets} />
-        <Pricing />
+        <Pricing homePage />
         <OSS stars={stars} />
       </div>
       <Background />
@@ -85,7 +85,7 @@ export async function getStaticProps() {
   return {
     props: {
       userCount,
-      stars,
+      stars: stars || 6100,
       tweets,
     },
     revalidate: 60,

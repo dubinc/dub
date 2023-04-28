@@ -22,7 +22,7 @@ function CompleteSetupModal({
   const { slug } = router.query as { slug: string };
 
   const tasks = [
-    { display: "Set up your custom domain", cta: `/${slug}/settings` },
+    { display: "Set up your custom domain", cta: `/${slug}/domains` },
     { display: "Invite your teammates", cta: `/${slug}/settings/people` },
     { display: "Create or import your links", cta: "closeModal" },
   ];

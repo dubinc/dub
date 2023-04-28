@@ -28,9 +28,13 @@
 
 ## Introduction
 
-Dub is an open-source link management tool for modern marketing teams to create, share, and track short links. Built with [Vercel Edge Functions](http://vercel.com/edge), [Upstash Redis](https://docs.upstash.com/redis), and [Planetscale MySQL](https://planetscale.com/).
+Dub is an open-source link management tool for modern marketing teams to create, share, and track short links. Built with [Vercel Edge Functions](http://vercel.com/edge), [Upstash Redis](https://docs.upstash.com/redis), and [PlanetScale MySQL](https://planetscale.com/).
 
 Here are some of the features that Dub provides out-of-the-box:
+- [Built-in Analytics](#built-in-analytics)
+- [Custom Domains](#custom-domains)
+- [QR Code Generator](#qr-code-generator)
+- [OG Image Proxy](#og-image-proxy)
 
 ### Built-in Analytics
 
@@ -38,7 +42,7 @@ Dub provides a powerful analytics dashboard for your links, including geolocatio
 
 ![Analytics Dashboard](https://user-images.githubusercontent.com/28986134/200727883-40fe9e62-93a2-48b6-8316-4ce3e6f490f0.png)
 
-### Custom domains
+### Custom Domains
 
 You can easily configure custom domains on Dub – just add an A/CNAME record to your DNS provider and you're good to go. This is built on the [Vercel Domains API](https://domains-api.vercel.app/).
 
@@ -71,7 +75,7 @@ You can deploy your own hosted version of Dub for greater privacy & control. Jus
 - [Tailwind](https://tailwindcss.com/) – CSS
 - [Upstash](https://upstash.com/) – redis
 - [Tinybird](https://tinybird.com/) – analytics
-- [Planetscale](https://planetscale.com/) – database
+- [PlanetScale](https://planetscale.com/) – database
 - [NextAuth.js](https://next-auth.js.org/) – auth
 - [Vercel](https://vercel.com/) – hosting
 - [Stripe](https://stripe.com/) – payments

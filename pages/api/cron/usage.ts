@@ -4,7 +4,7 @@ import { updateUsage } from "@/lib/cron/usage";
 
 /**
  * Cron to update the usage stats of each project.
- * Runs every 6 hours (might need to change this if we have more users).
+ * Runs once every day at 7AM PST.
  **/
 
 async function handler(_req: NextApiRequest, res: NextApiResponse) {
@@ -22,7 +22,15 @@ async function handler(_req: NextApiRequest, res: NextApiResponse) {
  * To test out the endpoint manually (wihtout using QStash), you can do `export default handler` instead and
  * hit this endpoint via http://localhost:3000/api/cron/domains
  */
-export default verifySignature(handler);
+const Cron = () => {
+  if (process.env.NODE_ENV === "development") {
+    return handler;
+  } else {
+    return verifySignature(handler);
+  }
+};
+
+export default Cron();
 
 export const config = {
   api: {

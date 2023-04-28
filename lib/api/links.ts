@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { LinkProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { getParamsFromURL, isReservedKey, nanoid, truncate } from "@/lib/utils";
+import { NextApiRequest } from "next";
 
 const getFiltersFromStatus = (status: string) => {
   if (status === "all" || status === "none") {
@@ -55,21 +56,31 @@ const getFiltersFromStatus = (status: string) => {
 };
 
 export async function getLinksForProject({
+  projectId,
   domain,
   status = "active",
+  tag,
+  search,
   sort = "createdAt",
   userId,
 }: {
-  domain: string;
+  projectId: string;
+  domain?: string;
   status?: string;
+  tag?: string;
+  search?: string;
   sort?: "createdAt" | "clicks"; // always descending for both
   userId?: string;
 }): Promise<LinkProps[]> {
-  const filters = getFiltersFromStatus(status);
   return await prisma.link.findMany({
     where: {
-      domain,
-      ...filters,
+      projectId,
+      ...(domain && { domain }),
+      ...(search && {
+        key: { search },
+        url: { search },
+      }),
+      // ...(tag && { tags: { has: tag } }),
       ...(userId && { userId }),
     },
     orderBy: {
@@ -79,13 +90,55 @@ export async function getLinksForProject({
   });
 }
 
-export async function getLinkCountForProject(domain: string) {
-  return await prisma.link.count({
-    where: {
-      domain,
-      archived: false,
-    },
-  });
+export async function getLinksCount({
+  req,
+  projectId,
+  userId,
+}: {
+  req: NextApiRequest;
+  projectId: string;
+  userId?: string;
+}) {
+  const { groupBy, search, domain } = req.query as {
+    groupBy?: "domain";
+    search?: string;
+    domain?: string;
+  };
+
+  if (groupBy) {
+    return await prisma.link.groupBy({
+      by: [groupBy],
+      where: {
+        projectId,
+        ...(userId && { userId }),
+        ...(search && {
+          key: { search },
+          url: { search },
+        }),
+        ...(domain &&
+          groupBy !== "domain" && {
+            domain,
+          }),
+      },
+      _count: true,
+      orderBy: {
+        _count: {
+          [groupBy]: "desc",
+        },
+      },
+    });
+  } else {
+    return await prisma.link.count({
+      where: {
+        projectId,
+        ...(userId && { userId }),
+        ...(search && {
+          key: { search },
+          url: { search },
+        }),
+      },
+    });
+  }
 }
 
 export async function getRandomKey(domain: string): Promise<string> {
@@ -328,78 +381,4 @@ export async function archiveLink(
       archived,
     },
   });
-}
-
-/* Change the domain for every link and its respective stats when the project domain is changed */
-export async function changeDomainForLinks(
-  projectId: string,
-  domain: string,
-  newDomain: string,
-) {
-  const links = await prisma.link.findMany({
-    where: {
-      project: {
-        id: projectId,
-      },
-    },
-  });
-  const pipeline = redis.pipeline();
-  links.forEach(({ key }) => {
-    pipeline.rename(`${domain}:${key}`, `${newDomain}:${key}`);
-  });
-  try {
-    return await pipeline.exec();
-  } catch (e) {
-    return null;
-  }
-}
-
-/* Change the domain for all images for a given project on Cloudinary */
-export async function changeDomainForImages(
-  projectId: string,
-  domain: string,
-  newDomain: string,
-) {
-  const links = await prisma.link.findMany({
-    where: {
-      project: {
-        id: projectId,
-      },
-    },
-  });
-  try {
-    return await Promise.all(
-      links.map(({ key }) =>
-        cloudinary.v2.uploader.rename(
-          `${domain}/${key}`,
-          `${newDomain}/${key}`,
-          {
-            invalidate: true,
-          },
-        ),
-      ),
-    );
-  } catch (e) {
-    return null;
-  }
-}
-
-/* Delete all links & stats associated with a project when it's deleted */
-export async function deleteProjectLinks(domain: string) {
-  const links = await prisma.link.findMany({
-    where: {
-      project: {
-        domain,
-      },
-    },
-  });
-  const pipeline = redis.pipeline();
-  links.forEach(({ key }) => {
-    pipeline.del(`${domain}:${key}`);
-  });
-  try {
-    return await pipeline.exec();
-  } catch (e) {
-    return null;
-  }
 }

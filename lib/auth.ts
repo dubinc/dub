@@ -1,8 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { unstable_getServerSession } from "next-auth/next";
-import { FREE_PLAN_PROJECT_LIMIT } from "@/lib/constants";
 import prisma from "@/lib/prisma";
-import { ProjectProps, UserProps } from "@/lib/types";
+import { PlanProps, ProjectProps, UserProps } from "@/lib/types";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 
 export interface Session {
@@ -33,11 +32,11 @@ const withProjectAuth =
     handler: WithProjectNextApiHandler,
     {
       excludeGet, // if the action doesn't need to be gated for GET requests
-      needProSubscription, // if the action needs a pro subscription
+      requiredPlan = ["free", "pro", "enterprise"], // if the action needs a specific plan
       needNotExceededUsage, // if the action needs the user to not have exceeded their usage
     }: {
       excludeGet?: boolean;
-      needProSubscription?: boolean;
+      requiredPlan?: Array<PlanProps>;
       needNotExceededUsage?: boolean;
     } = {},
   ) =>
@@ -60,11 +59,12 @@ const withProjectAuth =
         id: true,
         name: true,
         slug: true,
-        domain: true,
-        domainVerified: true,
         logo: true,
-        ownerUsageLimit: true,
-        ownerExceededUsage: true,
+        usage: true,
+        usageLimit: true,
+        plan: true,
+        stripeId: true,
+        billingCycleStart: true,
         users: {
           where: {
             userId: session.user.id,
@@ -106,15 +106,12 @@ const withProjectAuth =
     // if the action doesn't need to be gated for GET requests, return handler now
     if (req.method === "GET" && excludeGet) return handler(req, res, project);
 
-    if (needNotExceededUsage || needProSubscription) {
-      if (needNotExceededUsage && project.ownerExceededUsage) {
-        return res.status(403).end("Unauthorized: Usage limits exceeded.");
-      }
+    if (needNotExceededUsage && project.usage > project.usageLimit) {
+      return res.status(403).end("Unauthorized: Usage limits exceeded.");
+    }
 
-      const freePlan = project.ownerUsageLimit === 1000;
-      if (needProSubscription && freePlan) {
-        return res.status(403).end("Unauthorized: Need pro subscription");
-      }
+    if (!requiredPlan.includes(project.plan)) {
+      return res.status(403).end("Unauthorized: Need higher plan.");
     }
 
     return handler(req, res, project, session);
@@ -171,17 +168,6 @@ const withUserAuth =
           }),
         },
       })) as UserProps;
-
-      const freePlan = user.usageLimit === 1000;
-      if (
-        needProSubscription &&
-        freePlan &&
-        user.projects.length >= FREE_PLAN_PROJECT_LIMIT
-      ) {
-        return res
-          .status(403)
-          .end("Unauthorized: Can't add more projects, need pro subscription");
-      }
 
       return handler(req, res, session, user);
     }

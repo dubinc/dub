@@ -1,4 +1,5 @@
 export interface SimpleLinkProps {
+  domain?: string;
   key: string;
   url: string;
 }
@@ -21,40 +22,48 @@ export interface LinkProps {
   android: string | null;
 
   clicks: number;
-  userId: string;
+  userId?: string;
 
-  createdAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
+
+export type PlanProps = "free" | "pro" | "enterprise";
 
 export interface ProjectProps {
   id: string;
   name: string;
   slug: string;
-  domain: string;
-  domainVerified: boolean;
   logo?: string;
+  usage: number;
+  usageLimit: number;
+  plan: PlanProps;
+  stripeId?: string;
+  billingCycleStart?: number;
+
+  // TO DELETE
   ownerUsageLimit?: number;
   ownerExceededUsage?: boolean;
+
   users?: {
     role: string;
   }[];
 }
 
-export interface UsageProps {
-  usage: number;
-  usageLimit: number;
-  projectCount?: number;
-  billingCycleStart?: number;
-  ownerUsageLimit?: number;
-  ownerExceededUsage?: boolean;
+export interface ProjectWithDomainProps extends ProjectProps {
+  domains: DomainProps[];
+  primaryDomain: DomainProps;
 }
 
 export interface UserProps {
   id: string;
   name: string;
   email: string;
+
+  // TO DELETE
   stripeId: string;
   usageLimit: number;
+
   joinedAt?: Date;
   projects?: { projectId: string }[];
 }
@@ -69,4 +78,12 @@ export type DomainVerificationStatusProps =
 export interface RootDomainProps {
   target: string;
   rewrite?: boolean;
+}
+
+export interface DomainProps {
+  slug: string;
+  verified: boolean;
+  primary: boolean;
+  target?: string;
+  type: "redirect" | "rewrite";
 }

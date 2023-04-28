@@ -2,47 +2,51 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 datasource db {
-  provider             = "mysql"
-  url                  = env("DATABASE_URL")
-  relationMode         = "prisma"
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch", "fullTextIndex"]
 }
 
 model User {
-  id                    String    @id @default(cuid())
-  name                  String?
-  email                 String?   @unique
-  emailVerified         DateTime?
-  image                 String?
-  stripeId              String?   @unique // Stripe customer ID
-  usage                 Int       @default(0)
-  usageLimit            Int       @default(1000)
-  billingCycleStart     Int?      // day of the month when the billing cycle starts
-  accounts              Account[]
-  sessions              Session[]
-  projects              ProjectUsers[]
-  sentEmails            SentEmail[]
-  links                 Link[]
-  createdAt             DateTime  @default(now())
-  usageUpdatedAt        DateTime  @default(now())
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+
+  // we need to move all 4 of these over to project level
+  stripeId          String? @unique // Stripe customer ID
+  usage             Int     @default(0)
+  usageLimit        Int     @default(1000)
+  billingCycleStart Int? // day of the month when the billing cycle starts
+  usageUpdatedAt DateTime       @default(now())
+
+  accounts       Account[]
+  sessions       Session[]
+  projects       ProjectUsers[]
+  sentEmails     SentEmail[]
+  links          Link[]
+  createdAt      DateTime       @default(now())
 }
 
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?  @db.Text
-  access_token       String?  @db.Text
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?  @db.Text
-  session_state      String?
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -56,7 +60,7 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@index([userId])
 }
 
@@ -69,30 +73,46 @@ model VerificationToken {
 }
 
 model Project {
-  id                          String   @id @default(cuid())
-  name                        String
-  slug                        String   @unique
-  logo                        String?
-  domain                      String   @unique
-  domainVerified              Boolean  @default(false)
-  createdAt                   DateTime @default(now())
-  updatedAt                   DateTime @updatedAt
-  users                       ProjectUsers[]
-  invites                     ProjectInvite[]
-  domainLastChecked           DateTime @default(now())
-  usage                       Int      @default(0)
-  ownerUsageLimit             Int      @default(1000)
-  ownerExceededUsage          Boolean  @default(false)
-  sentEmails                  SentEmail[]
-  links                       Link[]
+  id                 String          @id @default(cuid())
+  name               String
+  slug               String          @unique
+  logo               String?
+
+  // TO DELETE
+  domain             String          @unique
+  domainVerified     Boolean         @default(false)
+  domainLastChecked  DateTime        @default(now())
+
+  users              ProjectUsers[]
+  invites            ProjectInvite[]
+  usage              Int             @default(0)
+  usageLimit         Int             @default(1000)
+  plan               String          @default("free")
+  stripeId           String?         @unique // Stripe subscription ID
+  billingCycleStart  Int?            // day of the month when the billing cycle starts
+
+  // TO DELETE
+  ownerUsageLimit    Int             @default(1000)
+  ownerExceededUsage Boolean         @default(false)
+  
+  sentEmails         SentEmail[]
+  domains            Domain[]
+  links              Link[]
+  tags               Tag[]
+
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  usageUpdatedAt     DateTime        @default(now())
+
+  @@index(usageUpdatedAt)
 }
 
 model ProjectInvite {
-  email       String
-  expires     DateTime
-  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  projectId   String
-  createdAt   DateTime @default(now())
+  email     String
+  expires   DateTime
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String
+  createdAt DateTime @default(now())
 
   @@unique([email, projectId])
   @@index([projectId])
@@ -120,67 +140,104 @@ enum EmailType {
 }
 
 model SentEmail {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   type      EmailType
-  createdAt DateTime @default(now())
-  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  user      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String?
-  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project   Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId String?
 
   @@index([userId])
   @@index([projectId])
 }
 
-model Link {
-  id              String   @id @default(cuid())
-  domain          String   // domain of the link (e.g. dub.sh) – also stored on Redis
-  key             String   // key of the link (e.g. /github) – also stored on Redis
-  url             String   @db.LongText // target url (e.g. https://github.com/steven-tey/dub) – also stored on Redis
-  archived        Boolean  @default(false) // whether the link is archived or not
-  expiresAt       DateTime? // when the link expires – stored on Redis via ttl
-  password        String?  // password to access the link – also stored on Redis
+model Domain {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  verified    Boolean  @default(false)
+  target      String?
+  type        String   @default("redirect")
+  description String?
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String?
+  primary     Boolean  @default(false)
+  links       Link[]
+  lastChecked DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  proxy           Boolean  @default(false) // Proxy to use custom OG tags (stored on redis) – if false, will use OG tags from target url
-  title           String?   // OG title for the link (e.g. Dub - Open-Source Bitly Alternative)
-  description     String?  @db.VarChar(280) // OG description for the link (e.g. An open-source link management tool for modern marketing teams to create, share, and track short links.)
-  image           String?  @db.LongText // OG image for the link (e.g. https://dub.sh/og-image.png)
+  @@index(projectId)
+}
+
+model Link {
+  id        String    @id @default(cuid())
+  domain    String // domain of the link (e.g. dub.sh) – also stored on Redis
+  key       String // key of the link (e.g. /github) – also stored on Redis
+  url       String    @db.LongText // target url (e.g. https://github.com/steven-tey/dub) – also stored on Redis
+  archived  Boolean   @default(false) // whether the link is archived or not (TODO: REMOVE AFTER ADDING TAGS)
+  expiresAt DateTime? // when the link expires – stored on Redis via ttl
+  password  String? // password to access the link – also stored on Redis
+
+  proxy       Boolean @default(false) // Proxy to use custom OG tags (stored on redis) – if false, will use OG tags from target url
+  title       String? // OG title for the link (e.g. Dub - Open-Source Bitly Alternative)
+  description String? @db.VarChar(280) // OG description for the link (e.g. An open-source link management tool for modern marketing teams to create, share, and track short links.)
+  image       String? @db.LongText // OG image for the link (e.g. https://dub.sh/og-image.png)
 
   // UTM parameters
-  utm_source      String?   // UTM source for the link (e.g. youtube.com)
-  utm_medium      String?   // UTM medium for the link (e.g. social)
-  utm_campaign    String?   // UTM campaign for the link (e.g. summer-sale)
-  utm_term        String?   // UTM term for the link (e.g. dub)
-  utm_content     String?   // UTM content for the link (e.g. description)
+  utm_source   String? // UTM source for the link (e.g. youtube.com)
+  utm_medium   String? // UTM medium for the link (e.g. social)
+  utm_campaign String? // UTM campaign for the link (e.g. summer-sale)
+  utm_term     String? // UTM term for the link (e.g. dub)
+  utm_content  String? // UTM content for the link (e.g. description)
 
   // Custom device targeting
-  ios             String?   @db.LongText  // custom link for iOS devices
-  android         String?   @db.LongText  // custom link for Android devices
-  
-  // Click related stats/settings
-  clicks          Int       @default(0) // number of clicks
-  publicStats     Boolean   @default(false) // whether to show public stats or not
+  ios     String? @db.LongText // custom link for iOS devices
+  android String? @db.LongText // custom link for Android devices
 
   // User who created the link
-  user            User?    @relation(fields: [userId], references: [id])
-  userId          String?
+  user   User?   @relation(fields: [userId], references: [id])
+  userId String?
 
   // Project that the link belongs to
-  project         Project? @relation(fields: [domain], references: [domain], onUpdate: Cascade, onDelete: Cascade)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  project       Project? @relation(fields: [projectId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  projectId     String?
+  // Relational reference to the project domain
+  projectDomain Domain?  @relation(fields: [domain], references: [slug], onUpdate: Cascade, onDelete: Cascade)
 
-  @@unique([domain, key])
+  // Link metadata
+  clicks      Int      @default(0) // number of clicks
+  publicStats Boolean  @default(false) // whether to show public stats or not
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  // indices for links per domain/project
-  @@index([domain, archived, expiresAt, createdAt(sort: Desc)])
-  @@index([domain, archived, expiresAt, clicks(sort: Desc)])
-
-  // indices for links per domain/project specific to a user
-  @@index([domain, archived, expiresAt, userId, createdAt(sort: Desc)])
-  @@index([domain, archived, expiresAt, userId, clicks(sort: Desc)])
+  // Link tags
+  tag   Tag?    @relation(fields: [tagId], references: [id])
+  tagId String?
 
   // TODO: might wanna add indices for utm_source, utm_medium, utm_campaign
-  
-  @@index([userId])
+
+  @@unique([domain, key])
+  @@index(projectId)
+  @@index(domain)
+  @@index(tagId)
+  @@index(proxy)
+  @@index(password)
+  @@index(createdAt(sort: Desc))
+  @@index(clicks(sort: Desc))
+  @@index(userId)
+  @@fulltext([key, url])
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  project   Project  @relation(fields: [projectId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  projectId String
+  links     Link[]
+
+  @@unique([name, projectId])
+  @@index(projectId)
 }

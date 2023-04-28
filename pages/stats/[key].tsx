@@ -26,7 +26,7 @@ export default function StatsPage({
       }}
     >
       <div className="bg-gray-50">
-        <Stats domain={domain} />
+        <Stats staticDomain={domain} />
       </div>
     </HomeLayout>
   );

@@ -14,23 +14,16 @@ export default function Devices() {
   const [tab, setTab] = useState<DeviceTabs>("device");
   const router = useRouter();
 
-  const { interval } = router.query as {
-    interval?: string;
-  };
-
-  const { endpoint } = useEndpoint();
+  const { endpoint, queryString } = useEndpoint();
 
   const { data } = useSWR<
     ({
       [key in DeviceTabs]: string;
     } & { clicks: number })[]
-  >(
-    router.isReady && `${endpoint}/${tab}?interval=${interval || "24h"}`,
-    fetcher,
-  );
+  >(router.isReady && `${endpoint}/${tab}${queryString}`, fetcher);
 
   const { data: totalClicks } = useSWR<number>(
-    router.isReady && `${endpoint}/clicks?interval=${interval || "24h"}`,
+    router.isReady && `${endpoint}/clicks${queryString}`,
     fetcher,
   );
 

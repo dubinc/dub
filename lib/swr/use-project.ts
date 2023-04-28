@@ -1,8 +1,8 @@
 import { useRouter } from "next/router";
-import { useMemo } from "react";
 import useSWR from "swr";
 import { ProjectProps } from "@/lib/types";
 import { fetcher } from "@/lib/utils";
+import { useMemo } from "react";
 
 export default function useProject() {
   const router = useRouter();
@@ -19,15 +19,15 @@ export default function useProject() {
     },
   );
 
-  const isOwner = useMemo(() => {
-    if (project && Array.isArray(project.users)) {
-      return project.users[0].role === "owner";
+  const exceededUsage = useMemo(() => {
+    if (project) {
+      return project.usage > project.usageLimit;
     }
   }, [project]);
 
   return {
-    project,
-    isOwner,
+    ...project,
+    exceededUsage,
     error,
   };
 }

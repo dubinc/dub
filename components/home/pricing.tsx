@@ -3,98 +3,120 @@ import { useMemo, useState } from "react";
 import Confetti from "react-dom-confetti";
 import {
   CheckCircleFill,
+  LoadingDots,
   QuestionCircle,
   XCircleFill,
 } from "@/components/shared/icons";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
-import Slider from "@/components/shared/slider";
 import Switch from "@/components/shared/switch";
-import Tooltip, { OGImageProxy } from "@/components/shared/tooltip";
-import { PRO_TIERS } from "@/lib/stripe/constants";
-import { nFormatter } from "@/lib/utils";
+import Tooltip from "@/components/shared/tooltip";
+import { getStripe } from "@/lib/stripe/client";
+import { PLANS } from "@/lib/stripe/constants";
+import { capitalize, nFormatter } from "@/lib/utils";
+import useProject from "@/lib/swr/use-project";
 
 const pricingItems = [
   {
     plan: "Free",
     tagline: "For startups & side projects",
-    clicksLimit: "Up to 1K link clicks/mo",
+    quota: 1000,
     features: [
-      {
-        text: "Free custom domains",
-        footnote:
-          "Just bring any domain you own and turn it into a custom domain link shortener for free.",
-      },
+      { text: "Unlimited users" },
       { text: "Unlimited branded links" },
-      { text: "5 projects" },
-      { text: "Password-protected links" },
-      { text: "Custom Social Previews", footnote: <OGImageProxy /> },
+      {
+        text: "Unlimited custom domains",
+      },
+      {
+        text: "Advanced link features",
+        footnote:
+          "Password protection, link expiration, device targeting, custom social media cards, etc.",
+      },
       {
         text: "Root domain redirect",
         footnote:
           "Redirect vistors that land on the root of your domain (e.g. yourdomain.com) to a page of your choice.",
         negative: true,
       },
+      {
+        text: "Custom QR Code Logo",
+        negative: true,
+      },
       { text: "SSO/SAML", negative: true },
+      { text: "Priority support", negative: true },
     ],
     cta: "Start for free",
-    ctaLink: "https://app.dub.sh/register",
   },
   {
     plan: "Pro",
     tagline: "For larger teams with increased usage",
+    quota: PLANS.find((p) => p.slug === "pro").quota,
     features: [
-      {
-        text: "Free custom domains",
-        footnote:
-          "Just bring any domain you own and turn it into a custom domain link shortener for free.",
-      },
+      { text: "Unlimited users" },
       { text: "Unlimited branded links" },
-      { text: "Unlimited projects" },
-      { text: "Password-protected links" },
-      { text: "Custom Social Previews", footnote: <OGImageProxy /> },
+      {
+        text: "Unlimited custom domains",
+      },
+      {
+        text: "Advanced link features",
+        footnote:
+          "Password protection, link expiration, device targeting, custom social media cards, etc.",
+      },
       {
         text: "Root domain redirect",
         footnote:
           "Redirect vistors that land on the root of your domain (e.g. yourdomain.com) to a page of your choice.",
       },
+      {
+        text: "Custom QR Code Logo",
+      },
       { text: "SSO/SAML", negative: true },
+      { text: "Priority support", negative: true },
     ],
     cta: "Get started",
-    ctaLink: "https://app.dub.sh/register",
   },
   {
     plan: "Enterprise",
     tagline: "For businesses with custom needs",
-    clicksLimit: "Unlimited link clicks",
+    quota: PLANS.find((p) => p.slug === "enterprise").quota,
     features: [
-      {
-        text: "Free custom domains",
-        footnote:
-          "Just bring any domain you own and turn it into a custom domain link shortener for free.",
-      },
+      { text: "Unlimited users" },
       { text: "Unlimited branded links" },
-      { text: "Unlimited projects" },
-      { text: "Password-protected links" },
-      { text: "Custom Social Previews", footnote: <OGImageProxy /> },
+      {
+        text: "Unlimited custom domains",
+      },
+      {
+        text: "Advanced link features",
+        footnote:
+          "Password protection, link expiration, device targeting, custom social media cards, etc.",
+      },
       {
         text: "Root domain redirect",
         footnote:
           "Redirect vistors that land on the root of your domain (e.g. yourdomain.com) to a page of your choice.",
       },
-      { text: "SSO/SAML" },
+      {
+        text: "Custom QR Code Logo",
+      },
+      { text: "SSO/SAML", footnote: "Under development. ETA: Q4 2023" },
+      {
+        text: "Priority support",
+        footnote: "Email & chat support within 24 hours.",
+      },
     ],
-    cta: "Contact us",
-    ctaLink: "mailto:steven@dub.sh?subject=Interested%20in%20Dub%20Enterprise",
+    cta: "Get started",
   },
 ];
 
-const Pricing = () => {
-  const [tier, setTier] = useState(0);
-  const [annualBilling, setAnnualBilling] = useState(false);
+const Pricing = ({ homePage }: { homePage?: boolean }) => {
+  const [annualBilling, setAnnualBilling] = useState(homePage ? false : true);
   const period = useMemo(
     () => (annualBilling ? "yearly" : "monthly"),
     [annualBilling],
   );
+  const { plan: currentPlan, slug } = useProject();
+  const [clicked, setClicked] = useState(false);
+  const env =
+    process.env.NEXT_PUBLIC_VERCEL_ENV === "production" ? "production" : "test";
 
   return (
     <MaxWidthWrapper className="my-20 text-center">
@@ -102,12 +124,13 @@ const Pricing = () => {
         <h2 className="font-display text-4xl font-extrabold text-black sm:text-5xl">
           Simple,{" "}
           <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-            usage-based
+            affordable
           </span>{" "}
-          pricing
+          pricing.
         </h2>
         <p className="mt-5 text-gray-600 sm:text-lg">
-          Start for free, no credit card required. Upgrade anytime.
+          Shorten your links without breaking your bank. <br />
+          Start for free, no credit card required.
         </p>
       </div>
 
@@ -122,7 +145,7 @@ const Pricing = () => {
           trackDimensions="h-6 w-12"
           thumbDimensions="h-5 w-5"
           thumbTranslate="translate-x-6"
-          checked={false}
+          checked={annualBilling}
         />
         <p className="text-gray-600">Billed Annually</p>
         <span className="absolute -top-8 -right-12 rounded-full bg-purple-200 px-3 py-1 text-sm text-purple-700 sm:-right-[9.5rem] sm:-top-2">
@@ -131,80 +154,53 @@ const Pricing = () => {
       </div>
 
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-3">
-        {pricingItems.map(
-          ({ plan, tagline, clicksLimit, features, cta, ctaLink }) => (
+        {pricingItems.map(({ plan, tagline, quota, features, cta }) => {
+          const price =
+            PLANS.find((p) => p.slug === plan.toLowerCase())?.price[period]
+              .amount || 0;
+          const highlighted =
+            (currentPlan && currentPlan === plan.toLowerCase()) ||
+            (plan === "Pro" && !currentPlan);
+          return (
             <div
               key={plan}
               className={`relative rounded-2xl bg-white ${
-                plan === "Pro"
+                highlighted
                   ? "border-2 border-blue-600 shadow-blue-200"
                   : "border border-gray-200"
               } shadow-lg`}
             >
-              {plan === "Pro" && (
+              {highlighted && (
                 <div className="absolute -top-5 left-0 right-0 mx-auto w-32 rounded-full bg-gradient-to-r from-blue-600 to-cyan-600 px-3 py-2 text-sm font-medium text-white">
-                  Popular
+                  {currentPlan ? "Current Plan" : "Popular"}
                 </div>
               )}
+
               <div className="p-5">
                 <h3 className="my-3 text-center font-display text-3xl font-bold">
                   {plan}
                 </h3>
                 <p className="text-gray-500">{tagline}</p>
-                {plan === "Enterprise" ? (
-                  <p className="my-5 font-display text-6xl font-semibold">
-                    Custom
-                  </p>
-                ) : (
-                  <div className="my-5 flex justify-center">
-                    <p className="font-display text-6xl font-semibold">
-                      $
-                      {plan === "Pro"
-                        ? period === "yearly"
-                          ? nFormatter(
-                              PRO_TIERS[tier].price.yearly.amount / 12,
-                              1,
-                            )
-                          : PRO_TIERS[tier].price.monthly.amount
-                        : 0}
-                    </p>
-                  </div>
-                )}
+                <p className="my-5 font-display text-6xl font-semibold">
+                  ${period === "yearly" ? nFormatter(price / 12, 1) : price}
+                </p>
                 <p className="text-gray-500">
                   per {period === "yearly" ? "month, billed annually" : "month"}
                 </p>
               </div>
               <div className="flex h-20 items-center justify-center border-t border-b border-gray-200 bg-gray-50">
-                {plan === "Pro" ? (
-                  <div className="flex flex-col items-center space-y-1">
-                    <Slider
-                      value={tier}
-                      setValue={setTier}
-                      maxValue={PRO_TIERS.length - 1}
-                    />
-                    <div className="flex items-center">
-                      <p className="text-sm text-gray-600">
-                        Up to {nFormatter(PRO_TIERS[tier].quota)} link clicks/mo
-                      </p>
-                      <Tooltip content="If you exceed your monthly usage, your existing links will still work, but you need to upgrade to view their stats/add more links. Link clicks are shared across all projects.">
-                        <div className="flex h-4 w-6 justify-center">
-                          <QuestionCircle className="h-4 w-4 text-gray-600" />
-                        </div>
-                      </Tooltip>
+                <div className="flex items-center">
+                  <p className="text-gray-600">
+                    Up to {nFormatter(quota)} link clicks/mo
+                  </p>
+                  <Tooltip content="If you exceed your monthly usage, your existing links will still work, but you need to upgrade to view their stats/add more links. Link clicks are shared across all projects.">
+                    <div className="flex h-4 w-8 justify-center">
+                      <QuestionCircle className="h-4 w-4 text-gray-600" />
                     </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center">
-                    <p className="text-gray-600">{clicksLimit}</p>
-                    <Tooltip content="If you exceed your monthly usage, your existing links will still work, but you need to upgrade to view their stats/add more links. Link clicks are shared across all projects.">
-                      <div className="flex h-4 w-8 justify-center">
-                        <QuestionCircle className="h-4 w-4 text-gray-600" />
-                      </div>
-                    </Tooltip>
-                  </div>
-                )}
+                  </Tooltip>
+                </div>
               </div>
-              <ul className="my-10 space-y-5 px-10">
+              <ul className="my-10 space-y-5 px-8">
                 {features.map(({ text, footnote, negative }) => (
                   <li key={text} className="flex space-x-5">
                     <div className="flex-shrink-0">
@@ -241,20 +237,63 @@ const Pricing = () => {
               </ul>
               <div className="border-t border-gray-200" />
               <div className="p-5">
-                <Link
-                  href={ctaLink}
-                  className={`${
-                    plan === "Pro"
-                      ? "border border-transparent bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:border-blue-700 hover:bg-white hover:bg-clip-text hover:text-transparent"
-                      : "border border-gray-200 bg-black text-white hover:border-black hover:bg-white hover:text-black"
-                  } block w-full rounded-full py-2 font-medium transition-all`}
-                >
-                  {cta}
-                </Link>
+                {currentPlan ? (
+                  <button
+                    disabled={clicked || highlighted}
+                    onClick={() => {
+                      setClicked(true);
+                      fetch(
+                        `/api/projects/${slug}/billing/upgrade?priceId=${
+                          PLANS.find((p) => p.slug === plan.toLowerCase())
+                            .price[period].priceIds[env]
+                        }`,
+                        {
+                          method: "POST",
+                        },
+                      )
+                        .then(async (res) => {
+                          const data = await res.json();
+                          const { id: sessionId } = data;
+                          const stripe = await getStripe();
+                          stripe.redirectToCheckout({ sessionId });
+                        })
+                        .catch((err) => {
+                          alert(err);
+                          setClicked(false);
+                        });
+                    }}
+                    className={`${
+                      clicked || highlighted
+                        ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
+                        : "border-blue-500 bg-blue-500 text-white hover:bg-white hover:text-blue-500"
+                    } mb-2 flex h-10 w-full items-center justify-center rounded-md border text-sm transition-all focus:outline-none`}
+                  >
+                    {clicked ? (
+                      <LoadingDots color="#808080" />
+                    ) : (
+                      <p>
+                        {highlighted
+                          ? "Current Plan"
+                          : `Upgrade to ${plan} ${capitalize(period)}`}
+                      </p>
+                    )}
+                  </button>
+                ) : (
+                  <Link
+                    href="https://app.dub.sh/register"
+                    className={`${
+                      plan === "Pro"
+                        ? "border border-transparent bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:border-blue-700 hover:bg-white hover:bg-clip-text hover:text-transparent"
+                        : "border border-gray-200 bg-black text-white hover:border-black hover:bg-white hover:text-black"
+                    } block w-full rounded-full py-2 font-medium transition-all`}
+                  >
+                    {cta}
+                  </Link>
+                )}
               </div>
             </div>
-          ),
-        )}
+          );
+        })}
       </div>
     </MaxWidthWrapper>
   );
