@@ -7,7 +7,7 @@ import { Github, Logo, Twitter } from "@/components/shared/icons";
 import Meta from "../meta";
 import { motion, AnimatePresence } from "framer-motion";
 import { FADE_IN_ANIMATION_SETTINGS } from "@/lib/constants";
-import NavigationMenu from "./navigation-menu";
+import NavigationMenu from "../../../app/(marketing)/navigation-menu";
 
 export default function HomeLayout({
   meta,

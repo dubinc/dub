@@ -20,7 +20,6 @@ import IconMenu from "@/components/shared/icon-menu";
 import { Download, Photo } from "@/components/shared/icons";
 import Popover from "@/components/shared/popover";
 import toast from "react-hot-toast";
-import { useSession } from "next-auth/react";
 
 function LinkQRModalHelper({
   showLinkQRModal,
@@ -31,7 +30,7 @@ function LinkQRModalHelper({
   setShowLinkQRModal: Dispatch<SetStateAction<boolean>>;
   props: SimpleLinkProps;
 }) {
-  const anchorRef = useRef<HTMLAnchorElement>();
+  const anchorRef = useRef<HTMLAnchorElement>(null);
   const { logo } = useProject();
   const { avatarUrl, apexDomain } = useMemo(() => {
     try {
@@ -41,7 +40,10 @@ function LinkQRModalHelper({
         apexDomain,
       };
     } catch (e) {
-      return null;
+      return {
+        avatarUrl: null,
+        apexDomain: null,
+      };
     }
   }, [props]);
 
@@ -88,6 +90,7 @@ function LinkQRModalHelper({
     try {
       const canvas = await getQRAsCanvas(qrData, "image/png", true);
       (canvas as HTMLCanvasElement).toBlob(async function (blob) {
+        // @ts-ignore
         const item = new ClipboardItem({ "image/png": blob });
         await navigator.clipboard.write([item]);
       });
@@ -123,11 +126,16 @@ function LinkQRModalHelper({
               fgColor={qrData.fgColor}
               level={qrData.level}
               includeMargin={false}
+              // @ts-ignore
               imageSettings={
                 showLogo && {
                   ...qrData.imageSettings,
-                  height: qrData.imageSettings.height / 8,
-                  width: qrData.imageSettings.width / 8,
+                  height: qrData.imageSettings
+                    ? qrData.imageSettings.height / 8
+                    : 0,
+                  width: qrData.imageSettings
+                    ? qrData.imageSettings.width / 8
+                    : 0,
                 }
               }
             />

@@ -39,3 +39,5 @@ next-env.d.ts
 /pages/api/scripts*
 deleted-projects.json
 .mailing
+.contentlayer
+.vscode

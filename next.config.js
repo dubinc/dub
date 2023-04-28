@@ -1,6 +1,11 @@
+const { withContentlayer } = require("next-contentlayer");
+
 /** @type {import('next').NextConfig} */
-module.exports = {
+const nextConfig = {
   reactStrictMode: false,
+  experimental: {
+    appDir: true,
+  },
   images: {
     domains: [
       "www.google.com",
@@ -9,6 +14,7 @@ module.exports = {
       "avatars.dicebear.com",
       "res.cloudinary.com",
       "pbs.twimg.com",
+      "images.unsplash.com",
     ],
   },
   async headers() {
@@ -47,3 +53,5 @@ module.exports = {
     ];
   },
 };
+
+module.exports = withContentlayer(nextConfig);

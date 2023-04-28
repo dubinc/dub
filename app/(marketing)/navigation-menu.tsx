@@ -1,3 +1,5 @@
+"use client";
+
 import { ChevronDown } from "@/components/shared/icons";
 import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu";
 import clsx from "classnames";
@@ -111,7 +113,7 @@ export default function NavigationMenu() {
 
         <NavigationMenuPrimitive.Item asChild>
           <NavigationMenuPrimitive.Link
-            href="/pricing"
+            href="/#pricing"
             className={clsx(
               "rounded-md px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-900",
               "text-sm font-medium text-gray-700 dark:text-gray-100",
@@ -135,13 +137,13 @@ export default function NavigationMenu() {
 
         <NavigationMenuPrimitive.Item asChild>
           <NavigationMenuPrimitive.Link
-            href="/docs"
+            href="/changelog"
             className={clsx(
               "rounded-md px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-900",
               "text-sm font-medium text-gray-700 dark:text-gray-100",
             )}
           >
-            Docs
+            Changelog
           </NavigationMenuPrimitive.Link>
         </NavigationMenuPrimitive.Item>
 

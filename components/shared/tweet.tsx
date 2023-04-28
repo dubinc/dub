@@ -1,3 +1,5 @@
+"use client";
+
 import BlurImage from "@/components/shared/blur-image";
 import { nFormatter, truncate } from "@/lib/utils";
 import { Heart, Message, Repeat, Twitter } from "./icons";

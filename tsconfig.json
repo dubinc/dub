@@ -9,7 +9,8 @@
       "@/components/*": ["components/*"],
       "@/pages/*": ["pages/*"],
       "@/lib/*": ["lib/*"],
-      "@/styles/*": ["styles/*"]
+      "@/styles/*": ["styles/*"],
+      "contentlayer/generated": ["./.contentlayer/generated"]
     },
     "downlevelIteration": true,
     "forceConsistentCasingInFileNames": true,
@@ -21,8 +22,14 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-    "strict": false
+    "strict": false,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "strictNullChecks": true
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
 }

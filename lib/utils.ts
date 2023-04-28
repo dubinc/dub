@@ -104,6 +104,15 @@ export const getDateTimeLocal = (timestamp?: Date): string => {
     .join(":");
 };
 
+export const formatDate = (dateString: string) => {
+  return new Date(`${dateString}T00:00:00Z`).toLocaleDateString("en-US", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+};
+
 export const getFirstAndLastDay = (day: number) => {
   const today = new Date();
   const currentDay = today.getDate();
@@ -377,7 +386,7 @@ export const isBlacklistedDomain = async (domain: string) => {
     blacklistedDomains = [];
   }
   return new RegExp(blacklistedDomains.join("|")).test(
-    getDomainWithoutWWW(domain),
+    getDomainWithoutWWW(domain) || domain,
   );
 };
 
