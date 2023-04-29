@@ -1,15 +1,17 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import Script from "next/script";
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { Divider, Logo } from "@/components/shared/icons";
 import Meta from "../meta";
 import ProjectSelect from "./project-select";
 import UserDropdown from "./user-dropdown";
-
-const CRISP_SCRIPT = `window.$crisp=[];window.CRISP_WEBSITE_ID="2c09b1ee-14c2-46d1-bf72-1dbb998a19e0";(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();`;
+import useProject from "@/lib/swr/use-project";
+import { Crisp } from "crisp-sdk-web";
+import { useSession } from "next-auth/react";
+import ProBanner from "./pro-banner";
+import Cookies from "js-cookie";
 
 const NavTabs = dynamic(() => import("./nav-tabs"), {
   ssr: false,
@@ -30,17 +32,44 @@ export default function AppLayout({
     key?: string;
   };
 
+  useEffect(() => {
+    Crisp.configure("2c09b1ee-14c2-46d1-bf72-1dbb998a19e0");
+  }, []);
+
+  const { data: session } = useSession();
+  useEffect(() => {
+    if (session?.user?.email) {
+      Crisp.user.setEmail(session.user.email);
+      Crisp.user.setNickname(session.user.name || session.user.email);
+    }
+  }, [session]);
+
+  const { id, name, plan, stripeId } = useProject();
+  const [showProBanner, setShowProBanner] = useState(false);
+  useEffect(() => {
+    if (plan) {
+      Crisp.session.setData({
+        projectId: id,
+        projectName: name,
+        projectSlug: slug,
+        plan,
+        ...(stripeId && { stripeId }),
+      });
+      if (plan === "free" && !Cookies.get("hideProBanner")) {
+        Crisp.chat.hide();
+        setShowProBanner(true);
+      } else {
+        Crisp.chat.show();
+        setShowProBanner(false);
+      }
+    }
+  }, [plan, id, name, slug, stripeId]);
+
   return (
     <div>
       <Meta />
-      <Script
-        id="script-crisp"
-        dangerouslySetInnerHTML={{
-          __html: CRISP_SCRIPT,
-        }}
-        strategy="lazyOnload"
-      />
       <Toaster />
+      {showProBanner && <ProBanner setShowProBanner={setShowProBanner} />}
       <div
         className={`min-h-screen w-full ${bgWhite ? "bg-white" : "bg-gray-50"}`}
       >

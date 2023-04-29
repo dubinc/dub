@@ -262,7 +262,7 @@ function AddEditLinkModal({
               {props
                 ? `Edit ${linkConstructor({
                     key: props.key,
-                    domain: punycode.toUnicode(props.domain),
+                    domain: punycode.toUnicode(props.domain || ""),
                     pretty: true,
                   })}`
                 : "Create a new link"}
@@ -429,7 +429,7 @@ function AddEditLinkModal({
                   >
                     {domains?.map(({ slug }) => (
                       <option key={slug} value={slug}>
-                        {punycode.toUnicode(slug)}
+                        {punycode.toUnicode(slug || "")}
                       </option>
                     ))}
                   </select>

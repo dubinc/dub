@@ -65,13 +65,11 @@ export const authOptions: NextAuthOptions = {
     async signIn(message) {
       if (message.isNewUser) {
         const email = message.user.email;
-        await Promise.all([
-          sendMarketingMail({
-            subject: "✨ Welcome to Dub",
-            to: email,
-            component: <WelcomeEmail />,
-          }),
-        ]);
+        await sendMarketingMail({
+          subject: "✨ Welcome to Dub",
+          to: email,
+          component: <WelcomeEmail />,
+        });
       }
     },
   },

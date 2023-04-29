@@ -52,6 +52,7 @@ export default function Head(): JSX.Element {
         .paragraph a, .li a {
           color: ${blue} !important;
           text-decoration: none;
+          font-weight: 700;
         }
         .paragraph code, .li code {
           color: ${purple} !important;
