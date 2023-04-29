@@ -46,7 +46,7 @@
     "contentlayer": "^0.3.2",
     "crisp-sdk-web": "^1.0.18",
     "focus-trap-react": "^10.0.1",
-    "framer-motion": "^7.6.12",
+    "framer-motion": "^10.12.4",
     "html-escaper": "^3.0.3",
     "i": "^0.3.7",
     "js-cookie": "^3.0.5",
