@@ -9,7 +9,7 @@ export interface GithubRepoProps {
   forks: number;
 }
 
-export default function RepoCard({
+export default function GithubRepo({
   url,
   description,
   stars,
