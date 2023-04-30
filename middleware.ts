@@ -7,7 +7,7 @@ import {
   RootMiddleware,
 } from "@/lib/middleware";
 import { parse } from "@/lib/middleware/utils";
-import { isReservedKey } from "./lib/utils";
+import { isHomeHostname, isReservedKey } from "./lib/utils";
 
 export const config = {
   matcher: [
@@ -26,7 +26,7 @@ export const config = {
 
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   const { domain, path, key } = parse(req);
-  const home = domain === "dub.sh" || domain.endsWith(".vercel.app");
+  const home = isHomeHostname(domain);
 
   // for App (app.dub.sh and app.localhost:3000)
   if (domain === "app.dub.sh" || domain === "app.localhost:3000") {
