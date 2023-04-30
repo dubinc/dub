@@ -12,7 +12,8 @@ export default async function handler(req: NextRequest) {
     const key = req.nextUrl.searchParams.get("key");
     const interval = req.nextUrl.searchParams.get("interval");
     const endpoint = req.nextUrl.searchParams.get("endpoint");
-    let domain = req.headers.get("host");
+    console.log("domain", req.headers.get("host"), req.nextUrl.hostname);
+    let domain = req.nextUrl.hostname;
     if (isHomeHostname(domain)) domain = "dub.sh";
 
     // don't need to check if the link has public stats if the link is dub.sh/github (demo link)
