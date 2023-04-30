@@ -5,6 +5,8 @@ import { Metadata } from "next";
 import { formatDate } from "@/lib/utils";
 import Link from "next/link";
 import { MDX } from "../components/mdx";
+import { Twitter } from "@/components/shared/icons";
+import { Rss } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Changelog - Dub",
@@ -15,15 +17,32 @@ export const metadata: Metadata = {
 export default async function Changelog() {
   return (
     <div className="mx-auto max-w-screen-xl md:px-20">
-      <div className="grid border-b border-gray-200 py-20 md:grid-cols-4">
+      <div className="relative grid border-b border-gray-200 py-20 md:grid-cols-4">
         <div className="md:col-span-1" />
         <div className="mx-5 flex flex-col space-y-6 md:col-span-3 md:mx-0">
           <h1 className="font-display text-4xl font-bold tracking-tight text-gray-800 md:text-5xl">
             Changelog
           </h1>
           <p className="text-lg text-gray-500">
-            All the latest updates, improvements, and fixes to Dub
+            All the latest updates, improvements, and fixes to Dub.
           </p>
+        </div>
+        <div className="absolute bottom-2 right-0 flex items-center space-x-2">
+          <p className="text-sm text-gray-500">Subscribe to updates →</p>
+          <Link
+            href="https://twitter.com/dubdotsh"
+            className="rounded-full bg-blue-100 p-2 transition-colors hover:bg-blue-200"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Twitter className="h-4 w-4 text-[#1d9bf0]" />
+          </Link>
+          <Link
+            href="/atom"
+            className="rounded-full bg-gray-100 p-2 transition-colors hover:bg-gray-200"
+          >
+            <Rss className="h-4 w-4 text-gray-500" />
+          </Link>
         </div>
       </div>
 
@@ -42,9 +61,14 @@ export default async function Changelog() {
               className="grid py-20 md:grid-cols-4 md:px-5 xl:px-0"
             >
               <div className="sticky top-10 hidden self-start md:col-span-1 md:block">
-                <time dateTime={post.publishedAt} className="text-gray-500">
-                  {formatDate(post.publishedAt)}
-                </time>
+                <Link href={`/changelog/${post.slug}`}>
+                  <time
+                    dateTime={post.publishedAt}
+                    className="text-gray-500 transition-colors hover:text-gray-800"
+                  >
+                    {formatDate(post.publishedAt)}
+                  </time>
+                </Link>
               </div>
               <div className="md:col-span-3">
                 <div className="flex flex-col gap-6">

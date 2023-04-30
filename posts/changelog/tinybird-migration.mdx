@@ -1,0 +1,15 @@
+---
+title: Tinybird migration
+publishedAt: 2023-01-03
+summary: "We recently migrated all Dub's time-series analytics data from Redis to Tinybird, which resulted in a ~100x reduction in request speeds"
+image: "https://d2vwwcvoksz7ty.cloudfront.net/changelog/tinybird-migration.png"
+author: "steventey"
+---
+
+We recently migrated all Dub's time-series analytics data from Redis to [Tinybird](https://www.tinybird.co/).
+
+This resulted in a ~100x reduction in request bandwidth (and a similar reduction in request speeds).
+
+For context, Tinybird is a serverless analytical backend for you to ingest data and analyze it with SQL. Built on top of [Clickhouse](https://github.com/ClickHouse/ClickHouse), Tinybird is incredibly scalable when it comes to storing and processing time-series events.
+
+Expect faster load times for your link stats pages moving forward!

@@ -34,10 +34,10 @@ export async function generateMetadata({
   } = post;
 
   return {
-    title,
+    title: `${title} - Dub Changelog`,
     description,
     openGraph: {
-      title,
+      title: `${title} - Dub Changelog`,
       description,
       type: "article",
       publishedTime,
@@ -70,7 +70,10 @@ export default async function ChangelogPost({
   return (
     <div className="mx-auto my-20 grid max-w-screen-xl md:grid-cols-4 md:px-20">
       <div className="sticky top-10 hidden self-start md:col-span-1 md:block">
-        <Link href="/changelog" className="text-sm text-gray-500">
+        <Link
+          href="/changelog"
+          className="text-sm text-gray-500 transition-colors hover:text-gray-800"
+        >
           ← Back to Changelog
         </Link>
       </div>
