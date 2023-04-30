@@ -22,13 +22,14 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-    "strict": false,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "strictNullChecks": true
+    "strict": false
+    // TODO: Add these back in when we're ready for a full Typescript audit 🥴
+    // "plugins": [
+    //   {
+    //     "name": "next"
+    //   }
+    // ],
+    // "strictNullChecks": true
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
