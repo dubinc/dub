@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@next-auth/prisma-adapter": "^1.0.5",
-    "@planetscale/database": "^1.5.0",
+    "@planetscale/database": "^1.7.0",
     "@prisma/client": "^4.6.1",
     "@radix-ui/react-accordion": "^1.0.1",
     "@radix-ui/react-navigation-menu": "^1.1.2",

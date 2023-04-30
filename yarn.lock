@@ -1179,10 +1179,10 @@
     tslib "^2.4.1"
     webcrypto-core "^1.7.4"
 
-"@planetscale/database@^1.5.0":
-  version "1.6.0"
-  resolved "https://registry.yarnpkg.com/@planetscale/database/-/database-1.6.0.tgz#f0f602e9067acb4023b4468f65dad2d5a6accca2"
-  integrity sha512-eb02567S706Xme/nVwx+EN/wyoHhHBXl1a7+67R/Xm91myEpLn0vZNl58TvLZztBxje4gga16lc8dLt0elNrJA==
+"@planetscale/database@^1.7.0":
+  version "1.7.0"
+  resolved "https://registry.yarnpkg.com/@planetscale/database/-/database-1.7.0.tgz#1e1a44c03d7b118a9bc1b37b18c9cfbf3aaaa08d"
+  integrity sha512-lWR6biXChUyQnxsT4RT1CIeR3ZJvwTQXiQ+158MnY3VjLwjHEGakDzdH9kwUGPk6CHvu6UeqRXp1DgUOVHJFTw==
 
 "@prisma/client@^4.4.0":
   version "4.6.1"
