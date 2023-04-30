@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { Airplay, Chart, QR, Users, Photo } from "@/components/shared/icons";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";

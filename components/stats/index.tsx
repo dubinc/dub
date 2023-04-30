@@ -1,3 +1,5 @@
+"use client";
+
 import Clicks from "@/components/stats/clicks";
 import Devices from "@/components/stats/devices";
 import Feedback from "@/components/stats/feedback";

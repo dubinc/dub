@@ -1,6 +1,18 @@
+const { withContentlayer } = require("next-contentlayer");
+
 /** @type {import('next').NextConfig} */
-module.exports = {
+const nextConfig = {
   reactStrictMode: false,
+  experimental: {
+    appDir: true,
+  },
+  typescript: {
+    // !! WARN !!
+    // Dangerously allow production builds to successfully complete even if
+    // your project has type errors.
+    // !! WARN !!
+    ignoreBuildErrors: true,
+  },
   images: {
     domains: [
       "www.google.com",
@@ -9,6 +21,7 @@ module.exports = {
       "avatars.dicebear.com",
       "res.cloudinary.com",
       "pbs.twimg.com",
+      "d2vwwcvoksz7ty.cloudfront.net",
     ],
   },
   async headers() {
@@ -47,3 +60,5 @@ module.exports = {
     ];
   },
 };
+
+module.exports = withContentlayer(nextConfig);

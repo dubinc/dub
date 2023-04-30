@@ -38,7 +38,7 @@ export async function fetcher<JSON = any>(
   return res.json();
 }
 
-export function nFormatter(num: number, digits?: number) {
+export function nFormatter(num?: number, digits?: number) {
   if (!num) return "0";
   const lookup = [
     { value: 1, symbol: "" },
@@ -101,7 +101,7 @@ export function linkConstructor({
   return pretty ? link.replace(/^https?:\/\//, "") : link;
 }
 
-export const timeAgo = (timestamp: Date, timeOnly?: boolean): string => {
+export const timeAgo = (timestamp?: Date, timeOnly?: boolean): string => {
   if (!timestamp) return "never";
   return `${ms(Date.now() - new Date(timestamp).getTime())}${
     timeOnly ? "" : " ago"
@@ -116,6 +116,15 @@ export const getDateTimeLocal = (timestamp?: Date): string => {
     .split(":")
     .slice(0, 2)
     .join(":");
+};
+
+export const formatDate = (dateString: string) => {
+  return new Date(`${dateString}T00:00:00Z`).toLocaleDateString("en-US", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  });
 };
 
 export const getFirstAndLastDay = (day: number) => {
@@ -391,7 +400,7 @@ export const isBlacklistedDomain = async (domain: string) => {
     blacklistedDomains = [];
   }
   return new RegExp(blacklistedDomains.join("|")).test(
-    getDomainWithoutWWW(domain),
+    getDomainWithoutWWW(domain) || domain,
   );
 };
 

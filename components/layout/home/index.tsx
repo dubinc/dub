@@ -7,6 +7,7 @@ import { Github, Logo, Twitter } from "@/components/shared/icons";
 import Meta from "../meta";
 import { motion, AnimatePresence } from "framer-motion";
 import { FADE_IN_ANIMATION_SETTINGS } from "@/lib/constants";
+import NavigationMenu from "../../../app/(marketing)/navigation-menu";
 
 export default function HomeLayout({
   meta,
@@ -40,33 +41,39 @@ export default function HomeLayout({
               </Link>
             </div>
 
-            <AnimatePresence>
-              {!session && status !== "loading" ? (
-                <motion.a
-                  {...FADE_IN_ANIMATION_SETTINGS}
-                  href={
-                    process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-                      ? "https://app.dub.sh/login"
-                      : "http://app.localhost:3000/login"
-                  }
-                  className="rounded-full border border-black bg-black py-1.5 px-5 text-sm text-white transition-all hover:bg-white hover:text-black"
-                >
-                  Sign in
-                </motion.a>
-              ) : (
-                <motion.a
-                  {...FADE_IN_ANIMATION_SETTINGS}
-                  href={
-                    process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-                      ? "https://app.dub.sh"
-                      : "http://app.localhost:3000"
-                  }
-                  className="rounded-full border border-black bg-black py-1.5 px-5 text-sm text-white transition-all hover:bg-white hover:text-black"
-                >
-                  Dashboard
-                </motion.a>
+            <NavigationMenu />
+
+            <div className="w-24">
+              {status !== "loading" && (
+                <AnimatePresence>
+                  {session ? (
+                    <motion.a
+                      {...FADE_IN_ANIMATION_SETTINGS}
+                      href={
+                        process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
+                          ? "https://app.dub.sh"
+                          : "http://app.localhost:3000"
+                      }
+                      className="rounded-full border border-black bg-black py-1.5 px-5 text-sm text-white transition-all hover:bg-white hover:text-black"
+                    >
+                      Dashboard
+                    </motion.a>
+                  ) : (
+                    <motion.a
+                      {...FADE_IN_ANIMATION_SETTINGS}
+                      href={
+                        process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
+                          ? "https://app.dub.sh/login"
+                          : "http://app.localhost:3000/login"
+                      }
+                      className="rounded-full border border-black bg-black py-1.5 px-5 text-sm text-white transition-all hover:bg-white hover:text-black"
+                    >
+                      Sign in
+                    </motion.a>
+                  )}
+                </AnimatePresence>
               )}
-            </AnimatePresence>
+            </div>
           </div>
         </div>
       </div>

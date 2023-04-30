@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import Confetti from "react-dom-confetti";

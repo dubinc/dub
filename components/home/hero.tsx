@@ -4,7 +4,7 @@ import { Github, Twitter } from "@/components/shared/icons";
 const Hero = () => {
   return (
     <div className="mx-auto mt-20 mb-10 max-w-md px-2.5 text-center sm:max-w-lg sm:px-0">
-      <a
+      <Link
         href="https://dub.sh/launch"
         target="_blank"
         rel="noreferrer"
@@ -14,7 +14,7 @@ const Hero = () => {
         <p className="text-sm font-semibold text-[#1d9bf0]">
           Introducing Dub.sh
         </p>
-      </a>
+      </Link>
 
       <h1 className="mt-5 font-display text-5xl font-extrabold leading-[1.15] text-black sm:text-6xl sm:leading-[1.15]">
         Short Links With
@@ -35,7 +35,7 @@ const Hero = () => {
         >
           Start For Free
         </Link>
-        <a
+        <Link
           className="flex items-center justify-center space-x-2 rounded-full border border-gray-300 bg-white py-2 px-5 shadow-lg transition-all hover:border-gray-800"
           href="https://dub.sh/github"
           target="_blank"
@@ -43,7 +43,7 @@ const Hero = () => {
         >
           <Github className="h-5 w-5 text-black" />
           <p className="text-sm">Star on GitHub</p>
-        </a>
+        </Link>
       </div>
     </div>
   );

@@ -26,7 +26,7 @@ export const config = {
 
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   const { domain, path, key } = parse(req);
-  const home = domain === "dub.sh";
+  const home = domain === "dub.sh" || domain.endsWith(".vercel.app");
 
   // for App (app.dub.sh and app.localhost:3000)
   if (domain === "app.dub.sh" || domain === "app.localhost:3000") {
