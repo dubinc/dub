@@ -58,6 +58,7 @@ export const HOME_HOSTNAMES = new Set([
   // comment for better diffs
   "dub.sh",
   "preview.dub.sh",
+  "localhost",
   "localhost:3000",
 ]);
 
