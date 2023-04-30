@@ -19,13 +19,6 @@ model User {
   emailVerified DateTime?
   image         String?
 
-  // we need to move all 4 of these over to project level
-  stripeId          String? @unique // Stripe customer ID
-  usage             Int     @default(0)
-  usageLimit        Int     @default(1000)
-  billingCycleStart Int? // day of the month when the billing cycle starts
-  usageUpdatedAt DateTime       @default(now())
-
   accounts       Account[]
   sessions       Session[]
   projects       ProjectUsers[]
@@ -78,11 +71,6 @@ model Project {
   slug               String          @unique
   logo               String?
 
-  // TO DELETE
-  domain             String          @unique
-  domainVerified     Boolean         @default(false)
-  domainLastChecked  DateTime        @default(now())
-
   users              ProjectUsers[]
   invites            ProjectInvite[]
   usage              Int             @default(0)
@@ -90,10 +78,6 @@ model Project {
   plan               String          @default("free")
   stripeId           String?         @unique // Stripe subscription ID
   billingCycleStart  Int?            // day of the month when the billing cycle starts
-
-  // TO DELETE
-  ownerUsageLimit    Int             @default(1000)
-  ownerExceededUsage Boolean         @default(false)
   
   sentEmails         SentEmail[]
   domains            Domain[]
@@ -102,9 +86,6 @@ model Project {
 
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
-  usageUpdatedAt     DateTime        @default(now())
-
-  @@index(usageUpdatedAt)
 }
 
 model ProjectInvite {
@@ -168,6 +149,7 @@ model Domain {
   updatedAt   DateTime @updatedAt
 
   @@index(projectId)
+  @@index(lastChecked)
 }
 
 model Link {
