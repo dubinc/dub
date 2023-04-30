@@ -28,7 +28,7 @@ export default function NavigationMenu() {
   return (
     <NavigationMenuPrimitive.Root className="relative hidden md:block">
       <NavigationMenuPrimitive.List className="flex flex-row space-x-2 p-2">
-        <NavigationMenuPrimitive.Item>
+        {/* <NavigationMenuPrimitive.Item>
           <NavigationMenuPrimitive.Trigger
             className={clsx(
               "group flex items-center space-x-2 rounded-md px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-900",
@@ -109,7 +109,7 @@ export default function NavigationMenu() {
               </div>
             </div>
           </NavigationMenuPrimitive.Content>
-        </NavigationMenuPrimitive.Item>
+        </NavigationMenuPrimitive.Item> */}
 
         <NavigationMenuPrimitive.Item asChild>
           <NavigationMenuPrimitive.Link
@@ -123,7 +123,7 @@ export default function NavigationMenu() {
           </NavigationMenuPrimitive.Link>
         </NavigationMenuPrimitive.Item>
 
-        <NavigationMenuPrimitive.Item asChild>
+        {/* <NavigationMenuPrimitive.Item asChild>
           <NavigationMenuPrimitive.Link
             href="/blog"
             className={clsx(
@@ -133,7 +133,7 @@ export default function NavigationMenu() {
           >
             Blog
           </NavigationMenuPrimitive.Link>
-        </NavigationMenuPrimitive.Item>
+        </NavigationMenuPrimitive.Item> */}
 
         <NavigationMenuPrimitive.Item asChild>
           <NavigationMenuPrimitive.Link
