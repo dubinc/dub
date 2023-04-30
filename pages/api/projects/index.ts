@@ -68,41 +68,35 @@ export default withUserAuth(
           domainError: domainExist ? "Domain is already in use." : null,
         });
       }
-
-      const project = await prisma.project.create({
-        data: {
-          name,
-          slug,
-          domain,
-          users: {
-            create: {
-              userId: session.user.id,
-              role: "owner",
-            },
-          },
-          billingCycleStart: new Date().getDate(),
-        },
-      });
       const response = await Promise.allSettled([
-        prisma.domain.create({
+        prisma.project.create({
           data: {
-            slug: domain,
-            projectId: project.id,
-            primary: true,
+            name,
+            slug,
+            users: {
+              create: {
+                userId: session.user.id,
+                role: "owner",
+              },
+            },
+            domains: {
+              create: {
+                slug: domain,
+                primary: true,
+              },
+            },
+            billingCycleStart: new Date().getDate(),
           },
         }),
         addDomain(domain),
       ]);
 
-      return res.status(200).json({ project, ...response });
+      return res.status(200).json(response);
     } else {
       res.setHeader("Allow", ["GET", "POST"]);
       return res
         .status(405)
         .json({ error: `Method ${req.method} Not Allowed` });
     }
-  },
-  {
-    needProSubscription: true,
   },
 );
