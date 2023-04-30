@@ -133,10 +133,8 @@ const withUserAuth =
     handler: WithUsertNextApiHandler,
     {
       needUserDetails, // if the action needs the user's details
-      needProSubscription, // if the action needs a pro subscription
     }: {
       needUserDetails?: boolean;
-      needProSubscription?: boolean;
     } = {},
   ) =>
   async (req: NextApiRequest, res: NextApiResponse) => {
@@ -145,7 +143,7 @@ const withUserAuth =
 
     if (req.method === "GET") return handler(req, res, session);
 
-    if (needUserDetails || needProSubscription) {
+    if (needUserDetails) {
       const user = (await prisma.user.findUnique({
         where: {
           id: session.user.id,
@@ -154,18 +152,6 @@ const withUserAuth =
           id: true,
           name: true,
           email: true,
-          stripeId: true,
-          usageLimit: true,
-          ...(needProSubscription && {
-            projects: {
-              where: {
-                role: "owner",
-              },
-              select: {
-                projectId: true,
-              },
-            },
-          }),
         },
       })) as UserProps;
 
