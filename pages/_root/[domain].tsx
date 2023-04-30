@@ -89,7 +89,7 @@ export default function Placeholder({ domain }: { domain: string }) {
 }
 
 export const getStaticPaths = async () => {
-  const domains = process.env.VERCEL_ENV !== "production" ? await prisma.domain.findMany({
+  const domains = process.env.VERCEL_ENV === "production" ? await prisma.domain.findMany({
     where: {
       verified: true,
       target: null,
