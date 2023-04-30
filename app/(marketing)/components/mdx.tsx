@@ -69,7 +69,7 @@ export function MDX({ code, images, tweets, repos }: MDXProps) {
   };
 
   return (
-    <article className="prose-lg prose-gray mx-5 w-full prose-headings:font-display prose-h2:text-3xl prose-thead:text-lg sm:mx-auto">
+    <article className="prose prose-gray mx-5 w-full prose-headings:font-display prose-h2:text-3xl prose-thead:text-lg md:mx-0 md:prose-lg">
       <Component components={{ ...components, MDXImage, MDXTweet, MDXRepo }} />
     </article>
   );

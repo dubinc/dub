@@ -68,68 +68,75 @@ export default async function ChangelogPost({
   }
 
   return (
-    <div className="mx-auto my-20 flex max-w-screen-md flex-col space-y-8">
-      <div className="mx-5 grid gap-5 md:mx-0">
-        <div className="flex space-x-4">
-          <Link
-            href="/changelog"
-            className="flex max-w-fit items-center justify-center rounded-full bg-gray-200 px-3 py-1 text-sm text-gray-500"
-          >
-            Changelog
-          </Link>
-          <time
-            dateTime={post.publishedAt}
-            className="flex items-center text-sm text-gray-500"
-          >
-            {formatDate(post.publishedAt)}
-          </time>
-        </div>
-        <h1 className="font-display text-3xl font-bold tracking-tight text-gray-800 sm:text-4xl">
-          {post.title}
-        </h1>
+    <div className="mx-auto my-20 grid max-w-screen-xl md:grid-cols-4 md:px-20">
+      <div className="sticky top-10 hidden self-start md:col-span-1 md:block">
+        <Link href="/changelog" className="text-sm text-gray-500">
+          ← Back to Changelog
+        </Link>
       </div>
-      <BlurImage
-        src={post.image}
-        alt={post.title}
-        width={1200}
-        height={900}
-        priority // since it's above the fold
-        placeholder="blur"
-        blurDataURL={await getBlurDataURL(post.image!)}
-        className="border border-gray-100 md:rounded-2xl"
-      />
-      <div className="mb-10 flex items-center justify-between">
-        {/* @ts-expect-error Async Server Component */}
-        <Author username={post.author} />
-        <div className="flex items-center space-x-6">
-          <Link
-            href={`https://twitter.com/intent/tweet?text=${post.title}&url=https://dub.sh/changelog/${post.slug}&via=${post.author}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="transition-all hover:scale-110"
-          >
-            <Twitter className="h-6 w-6" />
-          </Link>
-          <Link
-            href={`
+      <div className="flex flex-col space-y-8 md:col-span-3">
+        <div className="mx-5 grid gap-5 md:mx-0">
+          <div className="flex flex-col">
+            <Link
+              href="/changelog"
+              className="my-5 text-sm text-gray-500 md:hidden"
+            >
+              ← Back to Changelog
+            </Link>
+            <time
+              dateTime={post.publishedAt}
+              className="flex items-center text-sm text-gray-500 md:text-base"
+            >
+              {formatDate(post.publishedAt)}
+            </time>
+          </div>
+          <h1 className="font-display text-3xl font-bold tracking-tight text-gray-800 sm:text-4xl">
+            {post.title}
+          </h1>
+        </div>
+        <BlurImage
+          src={post.image}
+          alt={post.title}
+          width={1200}
+          height={900}
+          priority // since it's above the fold
+          placeholder="blur"
+          blurDataURL={await getBlurDataURL(post.image!)}
+          className="border border-gray-100 md:rounded-2xl"
+        />
+        <div className="mx-5 mb-10 flex items-center justify-between md:mx-0">
+          {/* @ts-expect-error Async Server Component */}
+          <Author username={post.author} />
+          <div className="flex items-center space-x-6">
+            <Link
+              href={`https://twitter.com/intent/tweet?text=${post.title}&url=https://dub.sh/changelog/${post.slug}&via=${post.author}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-all hover:scale-110"
+            >
+              <Twitter className="h-6 w-6" />
+            </Link>
+            <Link
+              href={`
             http://www.linkedin.com/shareArticle?mini=true&url=https://dub.sh/changelog/${post.slug}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="transition-all hover:scale-110"
-          >
-            <LinkedIn className="h-6 w-6" fill="black" />
-          </Link>
-          <Link
-            href={`https://www.facebook.com/sharer/sharer.php?u=https://dub.sh/changelog/${post.slug}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="transition-all hover:scale-110"
-          >
-            <Facebook className="h-6 w-6" fill="black" />
-          </Link>
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-all hover:scale-110"
+            >
+              <LinkedIn className="h-6 w-6" fill="black" />
+            </Link>
+            <Link
+              href={`https://www.facebook.com/sharer/sharer.php?u=https://dub.sh/changelog/${post.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-all hover:scale-110"
+            >
+              <Facebook className="h-6 w-6" fill="black" />
+            </Link>
+          </div>
         </div>
+        <MDX code={post.body.code} />
       </div>
-      <MDX code={post.body.code} />
     </div>
   );
 }
