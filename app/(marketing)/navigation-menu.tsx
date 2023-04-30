@@ -1,6 +1,5 @@
 "use client";
 
-import { ChevronDown } from "@/components/shared/icons";
 import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu";
 import clsx from "classnames";
 import React from "react";
