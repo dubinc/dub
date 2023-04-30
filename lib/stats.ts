@@ -132,12 +132,10 @@ export const getStats = async ({
   // 3. interval is not defined
   // 4. there's a connection to MySQL
   if (endpoint === "clicks" && key !== "_root" && !interval && conn) {
-    console.log("Getting all-time clicks count from MySQL", domain, key);
     const response = await conn.execute(
       "SELECT clicks FROM Link WHERE domain = ? AND `key` = ?",
       [domain, key],
     );
-    console.log("MySQL response", response);
     try {
       const clicks = response.rows[0]["clicks"];
       return clicks || "0";
