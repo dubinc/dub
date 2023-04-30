@@ -67,10 +67,8 @@ export default async function ChangelogPost({
     notFound();
   }
 
-  const images = await getImages(post.images || []);
-
   return (
-    <div className="mx-auto my-20 max-w-screen-md">
+    <div className="mx-auto my-20 flex max-w-screen-md flex-col space-y-8">
       <div className="mx-5 grid gap-5 md:mx-0">
         <div className="flex space-x-4">
           <Link
@@ -86,7 +84,7 @@ export default async function ChangelogPost({
             {formatDate(post.publishedAt)}
           </time>
         </div>
-        <h1 className="font-display text-4xl font-bold tracking-tight text-gray-800 sm:text-5xl">
+        <h1 className="font-display text-3xl font-bold tracking-tight text-gray-800 sm:text-4xl">
           {post.title}
         </h1>
       </div>
@@ -98,7 +96,7 @@ export default async function ChangelogPost({
         priority // since it's above the fold
         placeholder="blur"
         blurDataURL={await getBlurDataURL(post.image!)}
-        className="my-10 md:rounded-2xl"
+        className="border border-gray-100 md:rounded-2xl"
       />
       <div className="mb-10 flex items-center justify-between">
         {/* @ts-expect-error Async Server Component */}
@@ -131,7 +129,7 @@ export default async function ChangelogPost({
           </Link>
         </div>
       </div>
-      <MDX code={post.body.code} images={images} />
+      <MDX code={post.body.code} />
     </div>
   );
 }

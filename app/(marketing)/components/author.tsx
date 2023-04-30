@@ -1,7 +1,13 @@
 import BlurImage from "@/components/shared/blur-image";
 import Link from "next/link";
 
-export default async function Author({ username }: { username: string }) {
+export default async function Author({
+  username,
+  imageOnly,
+}: {
+  username: string;
+  imageOnly?: boolean;
+}) {
   const response = await fetch(
     `https://api.twitter.com/1.1/users/show.json?screen_name=${username}`,
     {
@@ -22,7 +28,15 @@ export default async function Author({ username }: { username: string }) {
     return null;
   }
 
-  return (
+  return imageOnly ? (
+    <BlurImage
+      src={data.profile_image_url_https.replace("_normal", "")}
+      alt={data.name}
+      width={36}
+      height={36}
+      className="rounded-full transition-all group-hover:brightness-90"
+    />
+  ) : (
     <Link
       href={`https://twitter.com/${data.screen_name}`}
       className="group flex items-center space-x-3"

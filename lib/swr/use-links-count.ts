@@ -2,9 +2,7 @@ import { useRouter } from "next/router";
 import useSWR from "swr";
 import { fetcher, getQueryString } from "@/lib/utils";
 
-export default function useLinksCount({
-  groupBy,
-}: { groupBy?: "domain" } = {}) {
+export default function useLinksCount({ groupBy }: { groupBy: "domain" }) {
   const router = useRouter();
 
   const { slug } = router.query as {

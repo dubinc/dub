@@ -30,7 +30,7 @@ const components = {
 
 interface MDXProps {
   code: string;
-  images: { url: string; blurDataURL: string }[];
+  images?: { url: string; blurDataURL: string }[];
   tweets?: any[];
   repos?: GithubRepoProps[];
 }
@@ -39,6 +39,7 @@ export function MDX({ code, images, tweets, repos }: MDXProps) {
   const Component = useMDXComponent(code);
 
   const MDXImage = (props: any) => {
+    if (!images) return null;
     const blurDataURL = images.find(
       (image) => image.url === props.src,
     )?.blurDataURL;
@@ -68,7 +69,7 @@ export function MDX({ code, images, tweets, repos }: MDXProps) {
   };
 
   return (
-    <article className="prose prose-neutral mx-5 prose-headings:font-display prose-h2:text-3xl prose-thead:text-lg sm:mx-auto">
+    <article className="prose-lg prose-gray mx-5 w-full prose-headings:font-display prose-h2:text-3xl prose-thead:text-lg sm:mx-auto">
       <Component components={{ ...components, MDXImage, MDXTweet, MDXRepo }} />
     </article>
   );

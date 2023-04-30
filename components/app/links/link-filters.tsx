@@ -34,7 +34,7 @@ export default function LinkFilters() {
         param="domain"
         options={
           domains.length === 0
-            ? [{ value: primaryDomain, count: 0 }]
+            ? [{ value: primaryDomain || "", count: 0 }]
             : domains.map(({ domain, _count }) => ({
                 value: domain,
                 count: _count,
@@ -147,7 +147,7 @@ const FilterGroup = ({
                 </label>
               </div>
             ))}
-            {router.query.slug && (
+            {router.query.slug && cta.href && (
               <Link
                 href={cta.href}
                 className="rounded-md border border-gray-300 p-1 text-center text-sm"

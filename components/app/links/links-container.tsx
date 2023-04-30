@@ -12,7 +12,7 @@ export default function LinksContainer({
 }: {
   AddEditLinkButton: () => JSX.Element;
 }) {
-  const { links, loading } = useLinks();
+  const { links } = useLinks();
   const { LinkFiltersButton, LinkFiltersModal } = useLinkFiltersModal();
 
   return (
@@ -28,14 +28,16 @@ export default function LinksContainer({
             <LinkFilters />
           </div>
           <ul className="col-span-1 grid auto-rows-min grid-cols-1 gap-3 lg:col-span-5">
-            {loading ? (
+            {links ? (
+              links.length > 0 ? (
+                links.map((props) => <LinkCard key={props.id} props={props} />)
+              ) : (
+                <NoLinksPlaceholder AddEditLinkButton={AddEditLinkButton} />
+              )
+            ) : (
               Array.from({ length: 5 }).map((_, i) => (
                 <LinkCardPlaceholder key={i} />
               ))
-            ) : links.length > 0 ? (
-              links.map((props) => <LinkCard key={props.id} props={props} />)
-            ) : (
-              <NoLinksPlaceholder AddEditLinkButton={AddEditLinkButton} />
             )}
           </ul>
         </div>
