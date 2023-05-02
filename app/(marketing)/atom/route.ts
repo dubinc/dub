@@ -18,7 +18,7 @@ export async function GET() {
             <updated>${post.publishedAt}</updated>
             <author><name>${post.author}</name></author>
         </entry>`;
-        })}
+        }).join("")}
     </feed>`,
     {
       headers: {
