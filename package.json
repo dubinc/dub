@@ -59,7 +59,7 @@
     "node-html-parser": "^6.1.4",
     "nodemailer": "^6.8.0",
     "npm": "^9.1.2",
-    "prisma": "^4.6.1",
+    "prisma": "^4.13.0",
     "punycode": "^2.3.0",
     "react": "^18.2.0",
     "react-colorful": "^5.6.1",

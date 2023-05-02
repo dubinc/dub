@@ -4,11 +4,10 @@ import { allChangelogPosts } from "contentlayer/generated";
 import { MDX } from "app/(marketing)/components/mdx";
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
-import { getBlurDataURL, getImages } from "@/lib/images";
+import { getBlurDataURL } from "@/lib/images";
 import BlurImage from "@/components/shared/blur-image";
 import Author from "app/(marketing)/components/author";
 import { Facebook, LinkedIn, Twitter } from "@/components/shared/icons";
-import { Edit3 } from "lucide-react";
 
 export async function generateStaticParams() {
   return allChangelogPosts.map((post) => ({
