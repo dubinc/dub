@@ -240,7 +240,7 @@ function AddEditLinkModal({
         {!hideXButton && !homepageDemo && (
           <button
             onClick={() => setShowAddEditLinkModal(false)}
-            className="group absolute top-0 right-0 z-20 m-3 hidden rounded-full p-2 text-gray-500 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 sm:block"
+            className="group absolute right-0 top-0 z-20 m-3 hidden rounded-full p-2 text-gray-500 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 sm:block"
           >
             <X className="h-5 w-5" />
           </button>
@@ -250,7 +250,7 @@ function AddEditLinkModal({
           className="rounded-l-2xl sm:max-h-[min(906px,_90vh)] sm:overflow-scroll"
           onScroll={handleScroll}
         >
-          <div className="z-10 flex flex-col items-center justify-center space-y-3 border-b border-gray-200 bg-white px-4 pt-8 pb-8 transition-all sm:sticky sm:top-0 sm:px-16">
+          <div className="z-10 flex flex-col items-center justify-center space-y-3 border-b border-gray-200 bg-white px-4 pb-8 pt-8 transition-all sm:sticky sm:top-0 sm:px-16">
             <BlurImage
               src={logo}
               alt="Logo"
@@ -559,6 +559,25 @@ function AddEditLinkButton({
 
   const { exceededUsage } = useProject();
 
+  const onKeyDown = useCallback((e: KeyboardEvent) => {
+    const target = e.target as HTMLElement;
+    const existingModalBackdrop = document.getElementById("modal-backdrop");
+
+    if (
+      e.key === "c" &&
+      target.tagName !== "INPUT" &&
+      target.tagName !== "TEXTAREA" &&
+      !existingModalBackdrop
+    ) {
+      setShowAddEditLinkModal(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [onKeyDown]);
+
   return slug && exceededUsage ? ( // only show exceeded usage tooltip if user is on a project page
     <Tooltip
       content={
@@ -569,16 +588,22 @@ function AddEditLinkButton({
         />
       }
     >
-      <div className="cursor-not-allowed rounded-md border border-gray-200 px-5 py-2 text-sm font-medium text-gray-300 transition-all duration-75">
-        Create link
+      <div className="flex cursor-not-allowed items-center space-x-3 rounded-md border border-gray-200 px-3 py-2 text-sm font-medium text-gray-300">
+        <p>Create link</p>
+        <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-300 sm:inline-block">
+          C
+        </kbd>
       </div>
     </Tooltip>
   ) : (
     <button
       onClick={() => setShowAddEditLinkModal(true)}
-      className="rounded-md border border-black bg-black px-5 py-2 text-sm font-medium text-white transition-all duration-75 hover:bg-white hover:text-black active:scale-95"
+      className="group flex items-center space-x-3 rounded-md border border-black bg-black px-3 py-2 text-sm font-medium text-white transition-all duration-75 hover:bg-white hover:text-black active:scale-95"
     >
-      Create link
+      <p>Create link</p>
+      <kbd className="hidden rounded bg-zinc-700 px-2 py-0.5 text-xs font-light text-gray-400 transition-all duration-75 group-hover:bg-gray-100 group-hover:text-gray-500 sm:inline-block">
+        C
+      </kbd>
     </button>
   );
 }

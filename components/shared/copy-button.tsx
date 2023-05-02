@@ -5,7 +5,8 @@ export default function CopyButton({ url }: { url: string }) {
   const [copied, setCopied] = useState(false);
   return (
     <button
-      onClick={() => {
+      onClick={(e) => {
+        e.stopPropagation();
         setCopied(true);
         navigator.clipboard.writeText(url);
         setTimeout(() => setCopied(false), 3000);

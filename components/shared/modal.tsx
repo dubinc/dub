@@ -119,6 +119,7 @@ export default function Modal({
               </motion.div>
             )}
             <motion.div
+              id="modal-backdrop"
               key="backdrop"
               className="fixed inset-0 z-30 bg-gray-100 bg-opacity-10 backdrop-blur"
               initial={{ opacity: 0 }}
