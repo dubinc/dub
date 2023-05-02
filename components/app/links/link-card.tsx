@@ -98,10 +98,13 @@ export default function LinkCard({ props }: { props: LinkProps }) {
   // do this via event listener
 
   const onClick = (e: any) => {
-    if (linkRef.current && !linkRef.current.contains(e.target)) {
-      setSelected(false);
-    } else {
-      setSelected(!selected);
+    const existingModalBackdrop = document.getElementById("modal-backdrop");
+    if (!existingModalBackdrop) {
+      if (linkRef.current && !linkRef.current.contains(e.target)) {
+        setSelected(false);
+      } else {
+        setSelected(!selected);
+      }
     }
   };
 
@@ -109,7 +112,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
   const onKeyDown = (e: any) => {
     // only run shortcut logic if link is selected or the 3 dots menu is open
     if ((selected || openPopover) && shortcuts.includes(e.key)) {
-      setOpenPopover(false);
+      setSelected(false);
       switch (e.key) {
         case "e":
           setShowAddEditLinkModal(true);
@@ -134,7 +137,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
       document.removeEventListener("click", onClick);
       document.removeEventListener("keydown", onKeyDown);
     };
-  }, [onClick]);
+  }, [onClick, onKeyDown]);
 
   return (
     <div
