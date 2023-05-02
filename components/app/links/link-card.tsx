@@ -107,8 +107,8 @@ export default function LinkCard({ props }: { props: LinkProps }) {
 
   const shortcuts = ["e", "d", "a", "x"];
   const onKeyDown = (e: any) => {
-    if (!selected && !openPopover) return;
-    if (shortcuts.includes(e.key)) {
+    // only run shortcut logic if link is selected or the 3 dots menu is open
+    if ((selected || openPopover) && shortcuts.includes(e.key)) {
       setOpenPopover(false);
       switch (e.key) {
         case "e":

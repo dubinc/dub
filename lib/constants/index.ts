@@ -57,9 +57,14 @@ export const FADE_IN_ANIMATION_SETTINGS = {
 export const HOME_HOSTNAMES = new Set([
   // comment for better diffs
   "dub.sh",
-  "preview.dub.sh",
   "localhost",
   "localhost:3000",
+]);
+
+export const APP_HOSTNAMES = new Set([
+  "app.dub.sh",
+  "app.localhost:3000",
+  "preview.dub.sh",
 ]);
 
 export const DEFAULT_REDIRECTS = {
