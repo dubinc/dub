@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { nFormatter, setQueryString } from "@/lib/utils";
 import { ChevronRight, XCircle, Search } from "lucide-react";
 import useDomains from "@/lib/swr/use-domains";
@@ -23,7 +23,7 @@ export default function LinkFilters() {
     <div className="grid w-full gap-6 rounded-md bg-white p-5 lg:divide-y lg:divide-gray-300">
       <div className="grid gap-3">
         <div className="flex items-center justify-between">
-          <h3 className="mt-2 ml-1 font-semibold">Filter Links</h3>
+          <h3 className="ml-1 mt-2 font-semibold">Filter Links</h3>
           {(search || domain || status) && (
             <ClearButton searchInputRef={searchInputRef} />
           )}
@@ -59,6 +59,26 @@ const SearchBox = ({ searchInputRef }: { searchInputRef }) => {
     setQueryString(router, "search", value);
   }, 500);
   const { isValidating } = useLinks();
+
+  const onKeyDown = useCallback((e: KeyboardEvent) => {
+    const target = e.target as HTMLElement;
+    // only focus on filter input when:
+    // - user is not typing in an input or textarea
+    // - there is no existing modal backdrop (i.e. no other modal is open)
+    if (
+      e.key === "/" &&
+      target.tagName !== "INPUT" &&
+      target.tagName !== "TEXTAREA"
+    ) {
+      e.preventDefault();
+      searchInputRef.current?.focus();
+    }
+  }, []);
+
+  useEffect(() => {
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [onKeyDown]);
 
   return (
     <div className="relative">

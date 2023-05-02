@@ -1,5 +1,5 @@
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
-import { DEFAULT_REDIRECTS } from "@/lib/constants";
+import { APP_HOSTNAMES, DEFAULT_REDIRECTS } from "@/lib/constants";
 import {
   AppMiddleware,
   ApiMiddleware,
@@ -28,8 +28,8 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   const { domain, path, key } = parse(req);
   const home = isHomeHostname(domain);
 
-  // for App (app.dub.sh and app.localhost:3000)
-  if (domain === "app.dub.sh" || domain === "app.localhost:3000") {
+  // for App (e.g. app.dub.sh)
+  if (APP_HOSTNAMES.has(domain)) {
     return AppMiddleware(req);
   }
 

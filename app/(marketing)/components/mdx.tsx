@@ -69,7 +69,15 @@ export function MDX({ code, images, tweets, repos }: MDXProps) {
   };
 
   return (
-    <article className="prose prose-gray mx-5 w-full transition-all prose-headings:font-display prose-h2:text-3xl prose-a:font-medium prose-a:text-gray-500 prose-a:underline-offset-4 hover:prose-a:text-black prose-thead:text-lg md:mx-0 md:prose-lg">
+    <article
+      className={`
+                  prose prose-gray mx-5 transition-all md:prose-lg prose-headings:font-display prose-h2:text-3xl
+                  prose-a:font-medium prose-a:text-gray-500 
+                  prose-a:underline-offset-4 hover:prose-a:text-black prose-code:rounded-md prose-code:bg-gray-200 
+                  prose-code:px-2 prose-code:py-1 prose-code:font-medium prose-code:text-rose-500 prose-code:before:hidden prose-code:after:hidden prose-thead:text-lg
+                  md:mx-0 md:w-full
+                `}
+    >
       <Component components={{ ...components, MDXImage, MDXTweet, MDXRepo }} />
     </article>
   );

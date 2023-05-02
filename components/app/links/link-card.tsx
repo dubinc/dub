@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useSWR from "swr";
 import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal";
 import { useArchiveLinkModal } from "@/components/app/modals/archive-link-modal";
@@ -92,27 +92,62 @@ export default function LinkCard({ props }: { props: LinkProps }) {
     props,
   });
   const [openPopover, setOpenPopover] = useState(false);
+  const [selected, setSelected] = useState(false);
+  // if clicked on linkRef, setSelected to true
+  // else setSelected to false
+  // do this via event listener
 
-  const expired = expiresAt && new Date() > new Date(expiresAt);
+  const onClick = (e: any) => {
+    if (linkRef.current && !linkRef.current.contains(e.target)) {
+      setSelected(false);
+    } else {
+      setSelected(!selected);
+    }
+  };
+
+  const shortcuts = ["e", "d", "a", "x"];
+  const onKeyDown = (e: any) => {
+    // only run shortcut logic if link is selected or the 3 dots menu is open
+    if ((selected || openPopover) && shortcuts.includes(e.key)) {
+      setOpenPopover(false);
+      switch (e.key) {
+        case "e":
+          setShowAddEditLinkModal(true);
+          break;
+        case "d":
+          setShowDuplicateLinkModal(true);
+          break;
+        case "a":
+          setShowArchiveLinkModal(true);
+          break;
+        case "x":
+          setShowDeleteLinkModal(true);
+          break;
+      }
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("click", onClick);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("click", onClick);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [onClick]);
 
   return (
     <div
       ref={linkRef}
-      className="relative rounded-lg border border-gray-100 bg-white p-3 pr-1 shadow transition-all hover:shadow-md sm:p-4 "
+      className={`${
+        selected ? "border-black" : "border-gray-50"
+      } relative rounded-lg border-2 bg-white p-3 pr-1 shadow transition-all hover:shadow-md sm:p-4`}
     >
       <LinkQRModal />
       <AddEditLinkModal />
       <DuplicateLinkModal />
       <ArchiveLinkModal />
       <DeleteLinkModal />
-      {/* <div className="absolute top-0 left-0 flex h-full w-1.5 flex-col overflow-hidden rounded-l-lg">
-        {archived && <div className="h-full w-full bg-gray-400" />}
-        {expired ? (
-          <div className="h-full w-full bg-amber-500" />
-        ) : (
-          <div className="h-full w-full bg-green-500" />
-        )}
-      </div> */}
       <li className="relative flex items-center justify-between">
         <div className="relative flex shrink items-center space-x-2 sm:space-x-4">
           <BlurImage
@@ -144,6 +179,9 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                 </Tooltip>
               ) : (
                 <a
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
                   className="w-24 truncate text-sm font-semibold text-blue-800 sm:w-full sm:text-base"
                   href={linkConstructor({ key, domain })}
                   target="_blank"
@@ -158,13 +196,19 @@ export default function LinkCard({ props }: { props: LinkProps }) {
               )}
               <CopyButton url={linkConstructor({ key, domain })} />
               <button
-                onClick={() => setShowLinkQRModal(true)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowLinkQRModal(true);
+                }}
                 className="group rounded-full bg-gray-100 p-1.5 transition-all duration-75 hover:scale-105 hover:bg-blue-100 active:scale-95"
               >
                 <span className="sr-only">Download QR</span>
                 <QR className="text-gray-700 transition-all group-hover:text-blue-800" />
               </button>
               <Link
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
                 href={`/${slug ? `${slug}/${domain}` : "links"}/${encodeURI(
                   key,
                 )}`}
@@ -203,11 +247,14 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                       />
                     }
                   >
-                    <div className="w-full cursor-not-allowed p-2 text-left text-sm font-medium text-gray-300 transition-all duration-75">
+                    <div className="flex w-full cursor-not-allowed items-center justify-between p-2 text-left text-sm font-medium text-gray-300 transition-all duration-75">
                       <IconMenu
                         text="Edit"
                         icon={<Edit3 className="h-4 w-4" />}
                       />
+                      <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-300 transition-all duration-75 sm:inline-block">
+                        E
+                      </kbd>
                     </div>
                   </Tooltip>
                 ) : (
@@ -216,29 +263,35 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                       setOpenPopover(false);
                       setShowAddEditLinkModal(true);
                     }}
-                    className="w-full rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
+                    className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
                   >
                     <IconMenu
                       text="Edit"
                       icon={<Edit3 className="h-4 w-4" />}
                     />
+                    <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 transition-all duration-75 group-hover:bg-gray-200 sm:inline-block">
+                      E
+                    </kbd>
                   </button>
                 )}
                 {slug && exceededUsage ? (
                   <Tooltip
                     content={
                       <TooltipContent
-                        title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to edit them."
+                        title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to create a new link."
                         cta="Upgrade"
                         ctaLink={`/${slug}/settings/billing`}
                       />
                     }
                   >
-                    <div className="w-full cursor-not-allowed p-2 text-left text-sm font-medium text-gray-300 transition-all duration-75">
+                    <div className="flex w-full cursor-not-allowed items-center justify-between p-2 text-left text-sm font-medium text-gray-300 transition-all duration-75">
                       <IconMenu
                         text="Duplicate"
                         icon={<CopyPlus className="h-4 w-4" />}
                       />
+                      <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-300 transition-all duration-75 sm:inline-block">
+                        D
+                      </kbd>
                     </div>
                   </Tooltip>
                 ) : (
@@ -247,12 +300,15 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                       setOpenPopover(false);
                       setShowDuplicateLinkModal(true);
                     }}
-                    className="w-full rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
+                    className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
                   >
                     <IconMenu
                       text="Duplicate"
                       icon={<CopyPlus className="h-4 w-4" />}
                     />
+                    <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 transition-all duration-75 group-hover:bg-gray-200 sm:inline-block">
+                      D
+                    </kbd>
                   </button>
                 )}
                 <button
@@ -261,24 +317,30 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                     setOpenPopover(false);
                     setShowArchiveLinkModal(true);
                   }}
-                  className="w-full rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
+                  className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
                 >
                   <IconMenu
                     text={archived ? "Unarchive" : "Archive"}
                     icon={<Archive className="h-4 w-4" />}
                   />
+                  <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 transition-all duration-75 group-hover:bg-gray-200 sm:inline-block">
+                    A
+                  </kbd>
                 </button>
                 <button
                   onClick={() => {
                     setOpenPopover(false);
                     setShowDeleteLinkModal(true);
                   }}
-                  className="w-full rounded-md p-2 text-left text-sm font-medium text-red-600 transition-all duration-75 hover:bg-red-600 hover:text-white"
+                  className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-red-600 transition-all duration-75 hover:bg-red-600 hover:text-white"
                 >
                   <IconMenu
                     text="Delete"
                     icon={<Delete className="h-4 w-4" />}
                   />
+                  <kbd className="hidden rounded bg-red-100 px-2 py-0.5 text-xs font-light text-red-600 transition-all duration-75 group-hover:bg-red-500 group-hover:text-white sm:inline-block">
+                    X
+                  </kbd>
                 </button>
               </div>
             }
@@ -288,7 +350,10 @@ export default function LinkCard({ props }: { props: LinkProps }) {
           >
             <button
               type="button"
-              onClick={() => setOpenPopover(!openPopover)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpenPopover(!openPopover);
+              }}
               className="rounded-md px-1 py-2 transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
             >
               <ThreeDots className="h-5 w-5 text-gray-500" />
