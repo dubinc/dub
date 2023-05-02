@@ -8,6 +8,7 @@ import { getBlurDataURL, getImages } from "@/lib/images";
 import BlurImage from "@/components/shared/blur-image";
 import Author from "app/(marketing)/components/author";
 import { Facebook, LinkedIn, Twitter } from "@/components/shared/icons";
+import { Edit3 } from "lucide-react";
 
 export async function generateStaticParams() {
   return allChangelogPosts.map((post) => ({
@@ -139,6 +140,16 @@ export default async function ChangelogPost({
           </div>
         </div>
         <MDX code={post.body.code} />
+        <div className="mt-10 flex justify-end border-t border-gray-200 pt-5">
+          <Link
+            href={`https://github.com/steven-tey/dub/blob/main/posts/changelog/${params.slug}.mdx`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-gray-500 transition-colors hover:text-gray-800"
+          >
+            <p>Found a typo? Edit this page →</p>
+          </Link>
+        </div>
       </div>
     </div>
   );
