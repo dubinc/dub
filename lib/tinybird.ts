@@ -25,11 +25,11 @@ export async function recordClick(
           timestamp: new Date(Date.now()).toISOString(),
           domain,
           key: key || "_root",
-          country: geo.country || "Unknown",
-          city: geo.city || "Unknown",
-          region: geo.region || "Unknown",
-          latitude: geo.latitude || "Unknown",
-          longitude: geo.longitude || "Unknown",
+          country: geo?.country || "Unknown",
+          city: geo?.city || "Unknown",
+          region: geo?.region || "Unknown",
+          latitude: geo?.latitude || "Unknown",
+          longitude: geo?.longitude || "Unknown",
           ua: ua.ua || "Unknown",
           browser: ua.browser.name || "Unknown",
           browser_version: ua.browser.version || "Unknown",
@@ -42,7 +42,7 @@ export async function recordClick(
           device_model: ua.device.model || "Unknown",
           cpu_architecture: ua.cpu?.architecture || "Unknown",
           bot: ua.isBot,
-          referer: getDomainWithoutWWW(referer) || "(direct)",
+          referer: referer ? getDomainWithoutWWW(referer) : "(direct)",
           referer_url: referer || "(direct)",
         }),
         headers: {
@@ -53,16 +53,18 @@ export async function recordClick(
     // increment the click count for the link if key is specified (not root click)
     // also increment the usage count for the project, and then we have a cron that will reset it at the start of new billing cycle
     // TODO: might wanna include root clicks in the usage count as well?
-    ...(key && [
-      conn.execute(
-        "UPDATE Link SET clicks = clicks + 1 WHERE domain = ? AND `key` = ?",
-        [domain, key],
-      ),
-      conn.execute(
-        "UPDATE Project p JOIN Domain d ON p.id = d.projectId SET p.usage = p.usage + 1 WHERE d.slug = ?",
-        [domain],
-      ),
-    ]),
+    ...(key && conn
+      ? [
+          conn.execute(
+            "UPDATE Link SET clicks = clicks + 1 WHERE domain = ? AND `key` = ?",
+            [domain, key],
+          ),
+          conn.execute(
+            "UPDATE Project p JOIN Domain d ON p.id = d.projectId SET p.usage = p.usage + 1 WHERE d.slug = ?",
+            [domain],
+          ),
+        ]
+      : []),
   ]);
 }
 

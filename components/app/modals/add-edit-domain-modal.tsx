@@ -310,6 +310,7 @@ function AddEditDomainModal({
             <Switch
               fn={() => setData((prev) => ({ ...prev, primary: !primary }))}
               checked={primary}
+              disabled={props && domains.length === 1}
             />
           </div>
 
