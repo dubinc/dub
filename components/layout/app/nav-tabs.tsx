@@ -8,7 +8,11 @@ const TabsHelper = (router: NextRouter): { name: string; href: string }[] => {
     key?: string;
   };
   if (key) {
-    return [{ name: "← All Links", href: `/${slug || "links"}` }];
+    if (key === "_root") {
+      return [{ name: "← All Domains", href: `/${slug}/domains` }];
+    } else {
+      return [{ name: "← All Links", href: `/${slug || "links"}` }];
+    }
   } else if (slug) {
     return [
       { name: "Links", href: `/${slug}` },

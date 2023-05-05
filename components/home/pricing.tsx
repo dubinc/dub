@@ -29,6 +29,9 @@ const pricingItems = [
         text: "Unlimited custom domains",
       },
       {
+        text: "Free SSL certificates",
+      },
+      {
         text: "Advanced link features",
         footnote:
           "Password protection, link expiration, device targeting, custom social media cards, etc.",
@@ -59,6 +62,9 @@ const pricingItems = [
         text: "Unlimited custom domains",
       },
       {
+        text: "Free SSL certificates",
+      },
+      {
         text: "Advanced link features",
         footnote:
           "Password protection, link expiration, device targeting, custom social media cards, etc.",
@@ -85,6 +91,9 @@ const pricingItems = [
       { text: "Unlimited branded links" },
       {
         text: "Unlimited custom domains",
+      },
+      {
+        text: "Free SSL certificates",
       },
       {
         text: "Advanced link features",
@@ -150,7 +159,7 @@ const Pricing = ({ homePage }: { homePage?: boolean }) => {
           checked={annualBilling}
         />
         <p className="text-gray-600">Billed Annually</p>
-        <span className="absolute -top-8 -right-12 rounded-full bg-purple-200 px-3 py-1 text-sm text-purple-700 sm:-right-[9.5rem] sm:-top-2">
+        <span className="absolute -right-12 -top-8 rounded-full bg-purple-200 px-3 py-1 text-sm text-purple-700 sm:-right-[9.5rem] sm:-top-2">
           🎁 2 months FREE
         </span>
       </div>
@@ -190,7 +199,7 @@ const Pricing = ({ homePage }: { homePage?: boolean }) => {
                   per {period === "yearly" ? "month, billed annually" : "month"}
                 </p>
               </div>
-              <div className="flex h-20 items-center justify-center border-t border-b border-gray-200 bg-gray-50">
+              <div className="flex h-20 items-center justify-center border-b border-t border-gray-200 bg-gray-50">
                 <div className="flex items-center">
                   <p className="text-gray-600">
                     Up to {nFormatter(quota)} link clicks/mo
