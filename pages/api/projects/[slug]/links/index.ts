@@ -28,6 +28,7 @@ export default withProjectAuth(
         tag,
         search,
         sort,
+        // @ts-ignore
         userId,
       });
       return res.status(200).json(response);

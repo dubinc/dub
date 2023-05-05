@@ -41,7 +41,7 @@ export default function useEndpoint(staticDomain?: string) {
       };
     }
 
-    // Public stats page, e.g. dub.sh/stats/github
+    // Public stats page, e.g. dub.sh/stats/github, stey.me/stats/weathergpt
     return {
       basePath: `/stats/${key}`,
       domain: staticDomain,

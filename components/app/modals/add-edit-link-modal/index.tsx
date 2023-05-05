@@ -563,10 +563,14 @@ function AddEditLinkButton({
     const target = e.target as HTMLElement;
     const existingModalBackdrop = document.getElementById("modal-backdrop");
     // only open modal with keyboard shortcut if:
+    // - c is pressed
+    // - user is not pressing cmd/ctrl + c
     // - user is not typing in an input or textarea
     // - there is no existing modal backdrop (i.e. no other modal is open)
     if (
       e.key === "c" &&
+      !e.metaKey &&
+      !e.ctrlKey &&
       target.tagName !== "INPUT" &&
       target.tagName !== "TEXTAREA" &&
       !existingModalBackdrop

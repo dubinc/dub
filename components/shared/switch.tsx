@@ -19,7 +19,7 @@ const Switch = ({
 }) => {
   return (
     <SwitchPrimitive.Root
-      defaultChecked={checked}
+      checked={checked}
       onCheckedChange={(checked) => fn(checked)}
       disabled={disabled}
       className={cx(

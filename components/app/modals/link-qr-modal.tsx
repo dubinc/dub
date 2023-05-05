@@ -144,6 +144,7 @@ function LinkQRModalHelper({
           <AdvancedSettings
             qrData={qrData}
             setFgColor={setFgColor}
+            showLogo={showLogo}
             setShowLogo={setShowLogo}
           />
 
@@ -156,7 +157,7 @@ function LinkQRModalHelper({
                   error: "Failed to copy",
                 });
               }}
-              className="flex items-center justify-center gap-2 rounded-md border border-black bg-black py-1.5 px-5 text-sm text-white transition-all hover:bg-white hover:text-black"
+              className="flex items-center justify-center gap-2 rounded-md border border-black bg-black px-5 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
             >
               <Clipboard className="h-4 w-4" /> Copy
             </button>
@@ -180,7 +181,7 @@ function LinkQRModalHelper({
   );
 }
 
-function AdvancedSettings({ qrData, setFgColor, setShowLogo }) {
+function AdvancedSettings({ qrData, setFgColor, showLogo, setShowLogo }) {
   const { plan } = useProject();
   const [expanded, setExpanded] = useState(false);
 
@@ -206,7 +207,7 @@ function AdvancedSettings({ qrData, setFgColor, setShowLogo }) {
         </button>
       </div>
       {expanded && (
-        <div className="mt-4 grid gap-5 border-t border-b border-gray-200 bg-white px-4 py-8 sm:px-16">
+        <div className="mt-4 grid gap-5 border-b border-t border-gray-200 bg-white px-4 py-8 sm:px-16">
           <div>
             <label
               htmlFor="logo-toggle"
@@ -218,6 +219,7 @@ function AdvancedSettings({ qrData, setFgColor, setShowLogo }) {
               <div className="mt-1 flex items-center space-x-2">
                 <Switch
                   fn={setShowLogo}
+                  checked={showLogo}
                   trackDimensions="h-6 w-12"
                   thumbDimensions="w-5 h-5"
                   thumbTranslate="translate-x-6"
@@ -237,6 +239,7 @@ function AdvancedSettings({ qrData, setFgColor, setShowLogo }) {
                 <div className="pointer-events-none mt-1 flex cursor-not-allowed items-center space-x-2 sm:pointer-events-auto">
                   <Switch
                     fn={setShowLogo}
+                    checked={showLogo}
                     trackDimensions="h-6 w-12"
                     thumbDimensions="w-5 h-5"
                     thumbTranslate="translate-x-6"
@@ -340,7 +343,7 @@ function QrDropdown({ download, qrData, showLogo, logo }) {
       >
         <button
           onClick={() => setOpenPopover(!openPopover)}
-          className="flex w-full items-center justify-center gap-2 rounded-md border border-black bg-black py-1.5 px-5 text-sm text-white transition-all hover:bg-white hover:text-black"
+          className="flex w-full items-center justify-center gap-2 rounded-md border border-black bg-black px-5 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
         >
           <Download />
           Export

@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { nFormatter, setQueryString } from "@/lib/utils";
 import { ChevronRight, XCircle, Search } from "lucide-react";
 import useDomains from "@/lib/swr/use-domains";
@@ -11,25 +11,33 @@ import useLinks from "@/lib/swr/use-links";
 import { LoadingSpinner } from "@/components/shared/icons";
 import useLinksCount from "@/lib/swr/use-links-count";
 import punycode from "punycode/";
+import Switch from "@/components/shared/switch";
+import { useSession } from "next-auth/react";
 
 export default function LinkFilters() {
   const { primaryDomain } = useDomains();
   const { data: domains } = useLinksCount({ groupBy: "domain" });
   const router = useRouter();
-  const { slug, search, domain, status } = router.query;
+  const { slug, search, domain, userId } = router.query as {
+    slug: string;
+    search?: string;
+    domain?: string;
+    userId?: string;
+  };
   const searchInputRef = useRef(); // this is a hack to clear the search input when the clear button is clicked
 
   return domains ? (
-    <div className="grid w-full gap-6 rounded-md bg-white p-5 lg:divide-y lg:divide-gray-300">
-      <div className="grid gap-3">
+    <div className="grid w-full rounded-md bg-white px-5 lg:divide-y lg:divide-gray-300">
+      <div className="grid gap-3 py-6">
         <div className="flex items-center justify-between">
           <h3 className="ml-1 mt-2 font-semibold">Filter Links</h3>
-          {(search || domain || status) && (
+          {(search || domain || userId) && (
             <ClearButton searchInputRef={searchInputRef} />
           )}
         </div>
         <SearchBox searchInputRef={searchInputRef} />
       </div>
+      {slug && <MyLinksFilter />}
       <FilterGroup
         param="domain"
         options={
@@ -103,6 +111,27 @@ const SearchBox = ({ searchInputRef }: { searchInputRef }) => {
   );
 };
 
+const MyLinksFilter = () => {
+  const router = useRouter();
+  const { userId } = router.query as { userId?: string };
+  const { data: session } = useSession();
+
+  return (
+    <div className="flex items-center justify-between py-6">
+      <label className="text-sm font-medium text-gray-600">
+        Show my links only
+      </label>
+      <Switch
+        fn={() =>
+          // @ts-ignore
+          setQueryString(router, "userId", userId ? "" : session?.user.id)
+        }
+        checked={userId ? true : false}
+      />
+    </div>
+  );
+};
+
 const FilterGroup = ({
   param,
   options,
@@ -121,7 +150,7 @@ const FilterGroup = ({
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <fieldset className="pt-6">
+    <fieldset className="py-6">
       <div className="flex h-8 items-center justify-between">
         <button
           onClick={() => {

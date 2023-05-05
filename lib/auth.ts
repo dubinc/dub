@@ -104,7 +104,8 @@ const withProjectAuth =
     }
 
     // if the action doesn't need to be gated for GET requests, return handler now
-    if (req.method === "GET" && excludeGet) return handler(req, res, project);
+    if (req.method === "GET" && excludeGet)
+      return handler(req, res, project, session);
 
     if (needNotExceededUsage && project.usage > project.usageLimit) {
       return res.status(403).end("Unauthorized: Usage limits exceeded.");

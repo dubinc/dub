@@ -153,10 +153,10 @@ const Pricing = ({ homePage }: { homePage?: boolean }) => {
         />
         <Switch
           fn={setAnnualBilling}
+          checked={annualBilling}
           trackDimensions="h-6 w-12"
           thumbDimensions="h-5 w-5"
           thumbTranslate="translate-x-6"
-          checked={annualBilling}
         />
         <p className="text-gray-600">Billed Annually</p>
         <span className="absolute -right-12 -top-8 rounded-full bg-purple-200 px-3 py-1 text-sm text-purple-700 sm:-right-[9.5rem] sm:-top-2">

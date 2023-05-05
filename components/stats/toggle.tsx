@@ -59,7 +59,7 @@ export default function Toggle({
         </a>
         <div className="flex items-center">
           {!basePath.startsWith("/stats") && key !== "_root" && (
-            <SharePopover domain={domain} />
+            <SharePopover />
           )}
           <Popover
             content={
@@ -113,26 +113,28 @@ export default function Toggle({
   );
 }
 
-const SharePopover = ({ domain }: { domain: string }) => {
+const SharePopover = () => {
   const router = useRouter();
-  const { slug, key } = router.query as {
-    slug?: string;
+  const { key } = router.query as {
     key: string;
   };
 
   const [openSharePopover, setopenSharePopoverPopover] = useState(false);
 
-  const { endpoint, queryString } = useEndpoint(domain);
+  const { endpoint, domain } = useEndpoint();
 
   const { data: { publicStats } = {} } = useSWR<{ publicStats: boolean }>(
-    endpoint + queryString,
+    `${endpoint}?domain=${domain}`,
     fetcher,
   );
+
+  const [updating, setUpdating] = useState(false);
 
   const handleChange = async () => {
     toast.promise(
       new Promise<void>(async (resolve) => {
-        const res = await fetch(endpoint, {
+        setUpdating(true);
+        const res = await fetch(`${endpoint}?domain=${domain}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -142,8 +144,11 @@ const SharePopover = ({ domain }: { domain: string }) => {
           }),
         });
         if (res.status === 200) {
-          mutate(endpoint);
+          mutate(`${endpoint}?domain=${domain}`);
+          // artificial delay to sync toast with the switch change
+          await new Promise((r) => setTimeout(r, 200));
         }
+        setUpdating(false);
         resolve();
       }),
       {
@@ -168,7 +173,11 @@ const SharePopover = ({ domain }: { domain: string }) => {
           <div className="p-4">
             <div className="mb-2 flex items-center justify-between">
               <p className="font-semibold text-gray-800">Public Stats Page</p>
-              <Switch checked={publicStats} fn={handleChange} />
+              <Switch
+                checked={publicStats}
+                fn={handleChange}
+                disabled={updating}
+              />
             </div>
             <p className="text-gray-500">
               Making stats public will allow anyone with the link to see the
