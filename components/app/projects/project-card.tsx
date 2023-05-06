@@ -6,7 +6,7 @@ import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
 import { ProjectWithDomainProps } from "@/lib/types";
 import { fetcher, nFormatter } from "@/lib/utils";
 import { BarChart2, Globe, Link2 } from "lucide-react";
-import PlanBadge from "./settings/plan-badge";
+import PlanBadge from "../settings/plan-badge";
 
 export default function ProjectCard({
   name,

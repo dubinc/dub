@@ -52,7 +52,7 @@ export interface ProjectProps {
 
 export interface ProjectWithDomainProps extends ProjectProps {
   domains: DomainProps[];
-  primaryDomain: DomainProps;
+  primaryDomain?: DomainProps;
 }
 
 export interface UserProps {

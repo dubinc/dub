@@ -1,7 +1,7 @@
 import { useAddProjectModal } from "@/components/app/modals/add-project-modal";
-import NoProjectsPlaceholder from "@/components/app/no-projects-placeholder";
-import ProjectCard from "@/components/app/project-card";
-import ProjectCardPlaceholder from "@/components/app/project-card-placeholder";
+import NoProjectsPlaceholder from "@/components/app/projects/no-projects-placeholder";
+import ProjectCard from "@/components/app/projects/project-card";
+import ProjectCardPlaceholder from "@/components/app/projects/project-card-placeholder";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import AppLayout from "components/layout/app";
 import useProjects from "@/lib/swr/use-projects";
