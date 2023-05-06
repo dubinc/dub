@@ -33,9 +33,10 @@ export const updateUsage = async () => {
     },
   });
 
-  // Get all projects that have billingCycleStart today
+  // Get all paid projects that have billingCycleStart today
   const billingReset = projects.filter(
-    ({ billingCycleStart }) => billingCycleStart === new Date().getDate(),
+    ({ plan, billingCycleStart }) =>
+      plan !== "free" && billingCycleStart === new Date().getDate(),
   );
 
   // Get all projects that have exceeded usage
