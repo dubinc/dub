@@ -116,7 +116,7 @@ export const getStats = async ({
   domain: string;
   key: string;
   endpoint: string;
-  interval?: string;
+  interval?: string | null;
 }) => {
   if (!process.env.TINYBIRD_API_KEY) {
     return null;

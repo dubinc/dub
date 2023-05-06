@@ -57,9 +57,16 @@ export const handleDomainUpdates = async ({
       },
     },
   });
+  if (!project) {
+    await log(
+      `Domain *${domain}* is invalid but not associated with any project, skipping.`,
+      "cron",
+    );
+    return;
+  }
   const projectSlug = project.slug;
   const sentEmails = project.sentEmails.map((email) => email.type);
-  const ownerEmail = project.users[0].user.email;
+  const ownerEmail = project.users[0].user.email as string;
 
   // if domain is invalid for more than 30 days, check if we can delete it
   if (invalidDays >= 30) {

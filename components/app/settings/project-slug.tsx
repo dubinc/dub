@@ -8,7 +8,7 @@ export default function ProjectSlug() {
   const router = useRouter();
   const { slug } = router.query as { slug: string };
 
-  const [newSlug, setNewSlug] = useState(null);
+  const [newSlug, setNewSlug] = useState<string | undefined | null>(null);
   useEffect(() => {
     setNewSlug(slug);
   }, [slug]);

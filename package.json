@@ -42,6 +42,7 @@
     "@visx/shape": "^2.12.2",
     "@visx/tooltip": "^2.16.0",
     "cloudinary": "^1.32.0",
+    "clsx": "^1.2.1",
     "cobe": "^0.6.2",
     "contentlayer": "^0.3.2",
     "crisp-sdk-web": "^1.0.18",

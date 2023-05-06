@@ -42,7 +42,7 @@ export default function LinkCard({
 
   const [constrained, setConstrained] = useState(true);
 
-  const [velocity, setVelocity] = useState<number>();
+  const [velocity, setVelocity] = useState<number>(0);
 
   const isDelete = (childNode, parentNode) => {
     const childRect = childNode.getBoundingClientRect();
@@ -61,7 +61,9 @@ export default function LinkCard({
   const flyAway = (min) => {
     const flyAwayDistance = (direction) => {
       const parentWidth =
+        // @ts-ignore
         cardElem.current.parentNode.getBoundingClientRect().width;
+      // @ts-ignore
       const childWidth = cardElem.current.getBoundingClientRect().width;
       return direction === "left"
         ? -parentWidth / 2 - childWidth / 2
@@ -80,6 +82,7 @@ export default function LinkCard({
     const unsubscribeX = x.onChange(() => {
       if (cardElem.current) {
         const childNode = cardElem.current;
+        // @ts-ignore
         const parentNode = cardElem.current.parentNode;
         const deleted = isDelete(childNode, parentNode);
         if (deleted) {

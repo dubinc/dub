@@ -28,6 +28,7 @@ import {
   getQueryString,
   getUrlWithoutUTMParams,
   linkConstructor,
+  truncate,
 } from "@/lib/utils";
 import ExpirationSection from "./expiration-section";
 import OGSection from "./og-section";
@@ -152,7 +153,15 @@ function AddEditLinkModal({
         fetch(`/api/edge/metatags?url=${debouncedUrl}`).then(async (res) => {
           if (res.status === 200) {
             const results = await res.json();
-            setData((prev) => ({ ...prev, ...results }));
+            setData((prev) => ({
+              ...prev,
+              // TODO: can remove this eventually when I figure out Why am I storing the metatags data for links with proxy: false???
+              ...{
+                title: truncate(results.title, 120),
+                description: truncate(results.description, 240),
+                image: results.image,
+              },
+            }));
           }
           // set timeout to prevent flickering
           setTimeout(() => setGeneratingMetatags(false), 200);
@@ -166,11 +175,14 @@ function AddEditLinkModal({
   }, [debouncedUrl, password, showAddEditLinkModal, proxy]);
 
   const logo = useMemo(() => {
+    // if the link is password protected, or if it's a new link and there's no URL yet,
+    // return the default Dub logo
     if (password || (!debouncedUrl && !props)) {
       return "/_static/logo.png";
+      // otherwise, get the favicon of the URL
     } else {
       return `https://www.google.com/s2/favicons?sz=64&domain_url=${getApexDomain(
-        debouncedUrl || props.url,
+        debouncedUrl || props?.url || "https://dub.sh",
       )}`;
     }
   }, [password, debouncedUrl, props]);
@@ -210,6 +222,7 @@ function AddEditLinkModal({
       - saving is in progress
       - key is invalid
       - url is invalid
+      - metatags is being generated
       - for an existing link, there's no changes
     */
     if (
@@ -217,14 +230,30 @@ function AddEditLinkModal({
       saving ||
       keyExistsError ||
       urlError ||
+      generatingMetatags ||
       (props &&
-        Object.entries(props).every(([key, value]) => data[key] === value))
+        Object.entries(props).every(([key, value]) => {
+          // only check for discrepancy in title and description if proxy is enabled
+          if (proxy && (key === "title" || key === "description")) {
+            return true;
+          } else {
+            return data[key] === value;
+          }
+        }))
     ) {
       return true;
     } else {
       return false;
     }
-  }, [showAddEditLinkModal, saving, keyExistsError, urlError, props, data]);
+  }, [
+    showAddEditLinkModal,
+    saving,
+    keyExistsError,
+    urlError,
+    generatingMetatags,
+    props,
+    data,
+  ]);
 
   const randomIdx = Math.floor(Math.random() * 100);
 

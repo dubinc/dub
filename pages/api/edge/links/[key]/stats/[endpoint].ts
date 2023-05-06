@@ -11,7 +11,7 @@ export default async function handler(req: NextRequest) {
   if (req.method === "GET") {
     const key = req.nextUrl.pathname.split("/")[4];
     const interval = req.nextUrl.searchParams.get("interval");
-    const endpoint = req.nextUrl.searchParams.get("endpoint");
+    const endpoint = req.nextUrl.searchParams.get("endpoint") as string;
     let domain = req.nextUrl.hostname;
     if (isHomeHostname(domain)) domain = "dub.sh";
 

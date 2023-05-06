@@ -10,7 +10,7 @@ export default function ExpirationSection({
   data,
   setData,
 }: {
-  props: LinkProps;
+  props?: LinkProps;
   data: LinkProps;
   setData: Dispatch<SetStateAction<LinkProps>>;
 }) {

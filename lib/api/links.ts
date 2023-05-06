@@ -70,7 +70,7 @@ export async function getLinksForProject({
   tag?: string;
   search?: string;
   sort?: "createdAt" | "clicks"; // always descending for both
-  userId?: string;
+  userId?: string | null;
 }): Promise<LinkProps[]> {
   return await prisma.link.findMany({
     where: {
@@ -97,7 +97,7 @@ export async function getLinksCount({
 }: {
   req: NextApiRequest;
   projectId: string;
-  userId?: string;
+  userId?: string | null;
 }) {
   const { groupBy, search, domain } = req.query as {
     groupBy?: "domain";
@@ -226,6 +226,7 @@ export async function addLink(link: LinkProps) {
         android,
       },
       {
+        // @ts-ignore
         nx: true,
         // if the key has an expiry, set exat
         ...(exat && { exat }),
@@ -315,10 +316,7 @@ export async function editLink(link: LinkProps, oldKey: string) {
         ios,
         android,
       },
-      {
-        // if the key has an expiry, set exat
-        ...(exat && { exat }),
-      },
+      exat ? { exat } : {},
     ),
     // if key is changed: rename resource in Cloudinary, delete the old key in Redis and change the clicks key name
     ...(changedKey

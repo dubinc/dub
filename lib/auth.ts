@@ -6,9 +6,9 @@ import { authOptions } from "@/pages/api/auth/[...nextauth]";
 
 export interface Session {
   user: {
-    email?: string | null;
-    id?: string | null;
-    name?: string | null;
+    email: string;
+    id: string;
+    name: string;
   };
 }
 
@@ -16,14 +16,15 @@ export async function getServerSession(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
+  // @ts-ignore
   return (await unstable_getServerSession(req, res, authOptions)) as Session;
 }
 interface WithProjectNextApiHandler {
   (
     req: NextApiRequest,
     res: NextApiResponse,
-    project?: ProjectProps,
-    session?: Session,
+    project: ProjectProps,
+    session: Session,
   ): Promise<void>;
 }
 
@@ -78,7 +79,7 @@ const withProjectAuth =
 
     if (project) {
       // project exists but user is not part of it
-      if (project.users.length === 0) {
+      if (project.users && project.users.length === 0) {
         const pendingInvites = await prisma.projectInvite.findUnique({
           where: {
             email_projectId: {

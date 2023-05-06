@@ -10,7 +10,7 @@ export default function ProjectName() {
   const { slug } = router.query as { slug: string };
 
   const { name } = useProject();
-  const [newName, setNewName] = useState(null);
+  const [newName, setNewName] = useState<string | undefined | null>(null);
   useEffect(() => {
     setNewName(name);
   }, [name]);

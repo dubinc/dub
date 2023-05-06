@@ -15,7 +15,7 @@ export default function UTMSection({
   data,
   setData,
 }: {
-  props: LinkProps;
+  props?: LinkProps;
   data: LinkProps;
   setData: Dispatch<SetStateAction<LinkProps>>;
 }) {

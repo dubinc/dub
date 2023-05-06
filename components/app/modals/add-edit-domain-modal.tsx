@@ -11,7 +11,6 @@ import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
 import BlurImage from "@/components/shared/blur-image";
 import { AlertCircleFill, Lock } from "@/components/shared/icons";
-import LoadingDots from "@/components/shared/icons/loading-dots";
 import Modal from "@/components/shared/modal";
 import { DomainProps } from "@/lib/types";
 import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
@@ -20,6 +19,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { SWIPE_REVEAL_ANIMATION_SETTINGS } from "@/lib/constants";
 import Switch from "@/components/shared/switch";
 import useDomains from "@/lib/swr/use-domains";
+import Button from "app/ui/button";
 
 function AddEditDomainModal({
   showAddEditDomainModal,
@@ -63,7 +63,7 @@ function AddEditDomainModal({
 
   const [lockDomain, setLockDomain] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [domainError, setDomainError] = useState(null);
+  const [domainError, setDomainError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   const saveDisabled = useMemo(() => {
@@ -310,46 +310,34 @@ function AddEditDomainModal({
             <Switch
               fn={() => setData((prev) => ({ ...prev, primary: !primary }))}
               checked={primary}
-              disabled={props && domains.length === 1}
+              disabled={props?.primary}
             />
           </div>
 
           <div className="grid gap-2">
-            <button
+            <Button
+              text={props ? "Save changes" : "Add domain"}
               disabled={saveDisabled}
-              className={`${
-                saveDisabled
-                  ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
-                  : "border-black bg-black text-white hover:bg-white hover:text-black"
-              } flex h-10 w-full items-center justify-center rounded-md border text-sm transition-all focus:outline-none`}
-            >
-              {saving ? (
-                <LoadingDots color="#808080" />
+              loading={saving}
+            />
+            {props &&
+              (props.primary ? (
+                <Button
+                  disabledTooltip="You can't delete your primary domain."
+                  text="Delete domain"
+                />
               ) : (
-                <p>{props ? "Save changes" : "Add domain"}</p>
-              )}
-            </button>
-            {props && domains.length > 1 && (
-              <button
-                type="button"
-                className={`${
-                  deleting
-                    ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
-                    : "border-red-500 bg-red-500 text-white hover:bg-white hover:text-red-500"
-                } flex h-10 w-full items-center justify-center rounded-md border text-sm transition-all focus:outline-none`}
-                onClick={() => {
-                  window.confirm(
-                    "Warning: Deleting your project's domain will delete all existing short links using the domain. Are you sure you want to continue?",
-                  ) && deleteDomain();
-                }}
-              >
-                {deleting ? (
-                  <LoadingDots color="#808080" />
-                ) : (
-                  <p>Delete domain</p>
-                )}
-              </button>
-            )}
+                <Button
+                  variant="danger"
+                  text="Delete domain"
+                  onClick={() => {
+                    window.confirm(
+                      "Warning: Deleting your project's domain will delete all existing short links using the domain. Are you sure you want to continue?",
+                    ) && deleteDomain();
+                  }}
+                  loading={deleting}
+                />
+              ))}
           </div>
         </form>
       </div>
