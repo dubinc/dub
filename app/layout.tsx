@@ -1,7 +1,7 @@
 import "@/styles/globals.css";
 import { satoshi, inter } from "@/styles/fonts";
 import { Analytics } from "@vercel/analytics/react";
-import cx from "classnames";
+import clsx from "clsx";
 
 export default async function RootLayout({
   children,
@@ -10,7 +10,7 @@ export default async function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={cx(satoshi.variable, inter.variable)}>
+      <body className={clsx(satoshi.variable, inter.variable)}>
         {children}
         <Analytics />
       </body>

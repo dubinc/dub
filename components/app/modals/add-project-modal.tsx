@@ -11,10 +11,11 @@ import {
 import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
 import BlurImage from "@/components/shared/blur-image";
-import { AlertCircleFill, LoadingDots } from "@/components/shared/icons";
+import { AlertCircleFill } from "@/components/shared/icons";
 import Modal from "@/components/shared/modal";
 import { generateDomainFromName } from "@/lib/utils";
 import va from "@vercel/analytics";
+import Button from "app/ui/button";
 
 function AddProjectModalHelper({
   showAddProjectModal,
@@ -27,8 +28,8 @@ function AddProjectModalHelper({
 }) {
   const router = useRouter();
 
-  const [slugError, setSlugError] = useState(null);
-  const [domainError, setDomainError] = useState(null);
+  const [slugError, setSlugError] = useState<string | null>(null);
+  const [domainError, setDomainError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   const [data, setData] = useState<{
@@ -261,16 +262,11 @@ function AddProjectModalHelper({
               ))}
           </div>
 
-          <button
-            disabled={saving || slugError || domainError}
-            className={`${
-              saving || slugError || domainError
-                ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
-                : "border-black bg-black text-white hover:bg-white hover:text-black"
-            } flex h-10 w-full items-center justify-center rounded-md border text-sm transition-all focus:outline-none`}
-          >
-            {saving ? <LoadingDots color="#808080" /> : <p>Add project</p>}
-          </button>
+          <Button
+            disabled={slugError || domainError ? true : false}
+            loading={saving}
+            text="Add project"
+          />
         </form>
       </div>
     </Modal>
