@@ -19,7 +19,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { SWIPE_REVEAL_ANIMATION_SETTINGS } from "@/lib/constants";
 import Switch from "@/components/shared/switch";
 import useDomains from "@/lib/swr/use-domains";
-import Button from "app/ui/button";
+import Button from "@/ui/button";
 
 function AddEditDomainModal({
   showAddEditDomainModal,

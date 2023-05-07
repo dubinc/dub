@@ -42,7 +42,7 @@ import useDomains from "@/lib/swr/use-domains";
 import { toast } from "react-hot-toast";
 import va from "@vercel/analytics";
 import punycode from "punycode/";
-import Button from "app/ui/button";
+import Button from "@/ui/button";
 
 function AddEditLinkModal({
   showAddEditLinkModal,

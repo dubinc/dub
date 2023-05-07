@@ -15,7 +15,7 @@ import { AlertCircleFill } from "@/components/shared/icons";
 import Modal from "@/components/shared/modal";
 import { generateDomainFromName } from "@/lib/utils";
 import va from "@vercel/analytics";
-import Button from "app/ui/button";
+import Button from "@/ui/button";
 
 function AddProjectModalHelper({
   showAddProjectModal,
