@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Toaster } from "react-hot-toast";
-import LinkCard from "@/components/home/link-card";
-import PlaceholderCard from "@/components/home/placeholder-card";
-import { Link, LoadingDots } from "@/components/shared/icons";
-import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
+import LinkCard from "#/ui/home/link-card";
+import PlaceholderCard from "#/ui/home/placeholder-card";
+import { LoadingDots } from "#/ui/icons";
+import { Link2 } from "lucide-react";
+import Tooltip, { TooltipContent } from "#/ui/tooltip";
 import { FRAMER_MOTION_LIST_ITEM_VARIANTS } from "@/lib/constants";
 import useLocalStorage from "@/lib/hooks/use-local-storage";
 import { SimpleLinkProps } from "@/lib/types";
@@ -61,7 +62,7 @@ const Demo = () => {
           </Tooltip>
         ) : (
           <div className="relative flex items-center">
-            <Link className="absolute inset-y-0 left-0 my-2 ml-3 w-5 text-gray-400" />
+            <Link2 className="absolute inset-y-0 left-0 my-2 ml-3 w-5 text-gray-400" />
             <input
               type="url"
               placeholder="Shorten your link"

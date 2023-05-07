@@ -1,6 +1,8 @@
+"use client";
+
 import React, { ReactNode } from "react";
 import { styled, keyframes } from "@stitches/react";
-import { ChevronDown } from "./icons";
+import { ChevronDown } from "lucide-react";
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
 
 const slideDown = keyframes({

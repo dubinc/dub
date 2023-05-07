@@ -1,4 +1,4 @@
-import BlurImage from "@/components/shared/blur-image";
+import BlurImage from "#/ui/blur-image";
 import { Apple, Chrome, Safari } from "@/components/shared/icons/devices";
 import { DeviceTabs } from "@/lib/stats";
 

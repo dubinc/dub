@@ -4,7 +4,7 @@ import BadgeSelect from "@/components/shared/badge-select";
 import { COUNTRIES } from "@/lib/constants";
 import { LocationTabs } from "@/lib/stats";
 import { nFormatter } from "@/lib/utils";
-import { LoadingCircle } from "../shared/icons";
+import { LoadingCircle } from "#/ui/icons";
 import { useRouter } from "next/router";
 import useSWR from "swr";
 import { fetcher } from "@/lib/utils";

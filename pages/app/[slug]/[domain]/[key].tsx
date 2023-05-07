@@ -1,7 +1,7 @@
 import ErrorPage from "next/error";
 import Link from "next/link";
 import AppLayout from "@/components/layout/app";
-import BlurImage from "@/components/shared/blur-image";
+import BlurImage from "#/ui/blur-image";
 import { Lock } from "@/components/shared/icons";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import Stats from "@/components/stats";

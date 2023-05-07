@@ -3,15 +3,15 @@ import { useCallback, useEffect } from "react";
 import prisma from "@/lib/prisma";
 import { useStatsModal } from "@/components/app/modals/stats-modal";
 import Background from "@/components/shared/background";
-import Demo from "@/components/home/demo";
-import Features from "@/components/home/features";
-import Globe from "@/components/home/globe";
-import Hero from "@/components/home/hero";
-import Logos from "@/components/home/logos";
-import Pricing from "@/components/home/pricing";
+import Demo from "#/ui/home/demo";
+import Features from "#/ui/home/features";
+import Globe from "#/ui/home/globe";
+import Hero from "#/ui/home/hero";
+import Logos from "#/ui/home/logos";
+import Pricing from "#/ui/home/pricing";
 import HomeLayout from "@/components/layout/home";
-import OSS from "@/components/home/oss";
-import Testimonials from "@/components/home/testimonials";
+import OSS from "#/ui/home/oss";
+import Testimonials from "#/ui/home/testimonials";
 import getTweetsMetadata, { homepageTweets } from "@/lib/twitter";
 
 export default function Home({

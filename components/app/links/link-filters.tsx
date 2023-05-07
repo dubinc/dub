@@ -11,7 +11,7 @@ import useLinks from "@/lib/swr/use-links";
 import { LoadingSpinner } from "@/components/shared/icons";
 import useLinksCount from "@/lib/swr/use-links-count";
 import punycode from "punycode/";
-import Switch from "@/components/shared/switch";
+import Switch from "#/ui/switch";
 import { useSession } from "next-auth/react";
 
 export default function LinkFilters() {

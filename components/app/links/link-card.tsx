@@ -7,7 +7,7 @@ import { useArchiveLinkModal } from "@/components/app/modals/archive-link-modal"
 import { useDeleteLinkModal } from "@/components/app/modals/delete-link-modal";
 import { useLinkQRModal } from "@/components/app/modals/link-qr-modal";
 import IconMenu from "@/components/shared/icon-menu";
-import BlurImage from "@/components/shared/blur-image";
+import BlurImage from "#/ui/blur-image";
 import CopyButton from "@/components/shared/copy-button";
 import {
   Archive,
@@ -17,7 +17,7 @@ import {
   ThreeDots,
 } from "@/components/shared/icons";
 import Popover from "@/components/shared/popover";
-import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
+import Tooltip, { TooltipContent } from "#/ui/tooltip";
 import useProject from "@/lib/swr/use-project";
 import { LinkProps } from "@/lib/types";
 import {

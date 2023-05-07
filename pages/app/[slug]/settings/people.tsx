@@ -3,7 +3,7 @@ import { useInviteTeammateModal } from "components/app/modals/invite-teammate-mo
 import { useState } from "react";
 import { useRouter } from "next/router";
 import useSWR from "swr";
-import BlurImage from "@/components/shared/blur-image";
+import BlurImage from "#/ui/blur-image";
 import { UserProps } from "@/lib/types";
 import { fetcher, timeAgo } from "@/lib/utils";
 

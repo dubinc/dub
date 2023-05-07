@@ -5,17 +5,17 @@ import { useMemo, useState } from "react";
 import Confetti from "react-dom-confetti";
 import {
   CheckCircleFill,
-  LoadingDots,
   QuestionCircle,
   XCircleFill,
 } from "@/components/shared/icons";
+import { LoadingDots } from "#/ui/icons";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
-import Switch from "@/components/shared/switch";
-import Tooltip from "@/components/shared/tooltip";
+import Switch from "#/ui/switch";
+import Tooltip from "#/ui/tooltip";
 import { getStripe } from "@/lib/stripe/client";
 import { PLANS } from "@/lib/stripe/constants";
 import { capitalize, nFormatter } from "@/lib/utils";
-import useProject from "@/lib/swr/use-project";
+import useProject from "#/lib/hooks/use-project";
 
 const pricingItems = [
   {

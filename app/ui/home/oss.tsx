@@ -1,9 +1,25 @@
-import { Github, UploadCloud } from "@/components/shared/icons";
-import CountingNumbers from "../shared/counting-numbers";
-import MaxWidthWrapper from "../shared/max-width-wrapper";
+import { Github } from "@/components/shared/icons";
+import CountingNumbers from "../../../components/shared/counting-numbers";
+import MaxWidthWrapper from "../../../components/shared/max-width-wrapper";
 import styles from "./features.module.css";
 
-export default function OSS({ stars }: { stars: number }) {
+export default async function OSS() {
+  const { stargazers_count: stars } = await fetch(
+    "https://api.github.com/repos/steven-tey/dub",
+    {
+      // optional – feel free to remove if you don't want to display star count
+      ...(process.env.GITHUB_OAUTH_TOKEN && {
+        headers: {
+          Authorization: `Bearer ${process.env.GITHUB_OAUTH_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      }),
+      next: {
+        revalidate: 60,
+      },
+    },
+  ).then((res) => res.json());
+
   return (
     <MaxWidthWrapper className="mb-20 py-20">
       <div className="mx-auto max-w-md text-center sm:max-w-xl">

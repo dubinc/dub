@@ -4,11 +4,11 @@ import Link from "next/link";
 import { Airplay, Chart, QR, Users, Photo } from "@/components/shared/icons";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import { useState } from "react";
-import Accordion from "@/components/shared/accordion";
+import Accordion from "#/ui/accordion";
 import { AnimatePresence, motion } from "framer-motion";
-import { useLinkQRModal } from "../app/modals/link-qr-modal";
+import { useLinkQRModal } from "#/ui/modals/link-qr-modal";
 import { DEFAULT_LINK_PROPS } from "@/lib/constants";
-import { useAddEditLinkModal } from "../app/modals/add-edit-link-modal";
+import { useAddEditLinkModal } from "#/ui/modals/add-edit-link-modal";
 import { Link2 } from "lucide-react";
 
 const featureList = [

@@ -21,6 +21,9 @@ export const getTweet = async (id: string) => {
         headers: {
           Authorization: `Bearer ${process.env.TWITTER_AUTH_TOKEN}`,
         },
+        next: {
+          revalidate: 3600, // revalidate every 1 hour
+        },
       },
     );
     const tweet = await response.json();

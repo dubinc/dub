@@ -1,4 +1,11 @@
-import { useRouter } from "next/router";
+"use client";
+
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -13,13 +20,12 @@ import { useDebounce } from "use-debounce";
 import BlurImage from "#/ui/blur-image";
 import { AlertCircleFill, Lock, Random, X } from "@/components/shared/icons";
 import { LoadingCircle } from "#/ui/icons";
-import Modal from "@/components/shared/modal";
+import Modal from "#/ui/modal";
 import Tooltip, { TooltipContent } from "#/ui/tooltip";
-import useProject from "@/lib/swr/use-project";
+import useProject from "#/lib/hooks/use-project";
 import { LinkProps } from "@/lib/types";
 import {
   getApexDomain,
-  getQueryString,
   getUrlWithoutUTMParams,
   linkConstructor,
   truncate,
@@ -32,7 +38,7 @@ import IOSSection from "./ios-section";
 import Preview from "./preview";
 import AndroidSection from "./android-section";
 import { DEFAULT_LINK_PROPS, GOOGLE_FAVICON_URL } from "@/lib/constants";
-import useDomains from "@/lib/swr/use-domains";
+import useDomains from "#/lib/hooks/use-domains";
 import { toast } from "react-hot-toast";
 import va from "@vercel/analytics";
 import punycode from "punycode/";
@@ -53,8 +59,10 @@ function AddEditLinkModal({
   hideXButton?: boolean;
   homepageDemo?: boolean;
 }) {
+  const { slug } = useParams() as { slug?: string };
+  const searchParams = useSearchParams();
   const router = useRouter();
-  const { slug } = router.query as { slug: string };
+  const pathname = usePathname();
 
   const [keyExistsError, setKeyExistsError] = useState(false);
   const [urlError, setUrlError] = useState(false);
@@ -306,8 +314,12 @@ function AddEditLinkModal({
                     });
                   mutate(
                     slug
-                      ? `/api/projects/${slug}/links${getQueryString(router)}`
-                      : `/api/links${getQueryString(router)}`,
+                      ? `/api/projects/${slug}/links${
+                          searchParams ? `?${searchParams.toString()}` : ""
+                        }`
+                      : `/api/links${
+                          searchParams ? `?${searchParams.toString()}` : ""
+                        }`,
                   );
                   mutate(
                     (key) =>
@@ -321,10 +333,9 @@ function AddEditLinkModal({
                     { revalidate: true },
                   );
                   // for welcome page, redirect to links page after adding a link
-                  if (router.asPath === "/welcome") {
-                    router.push("/links").then(() => {
-                      setShowAddEditLinkModal(false);
-                    });
+                  if (pathname === "/welcome") {
+                    router.push("/links");
+                    setShowAddEditLinkModal(false);
                   } else {
                     // copy shortlink to clipboard when adding a new link
                     if (!props) {
@@ -553,8 +564,7 @@ function AddEditLinkButton({
 }: {
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const router = useRouter();
-  const { slug } = router.query as { slug?: string };
+  const { slug } = useParams() as { slug?: string };
 
   const { exceededUsage } = useProject();
 

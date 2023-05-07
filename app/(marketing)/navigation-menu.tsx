@@ -2,6 +2,7 @@
 
 import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu";
 import clsx from "clsx";
+import Link from "next/link";
 import React from "react";
 
 const comparisons = [
@@ -88,7 +89,7 @@ export default function NavigationMenu() {
             <div className="w-[16rem] p-3 lg:w-[18rem]">
               <div className="grid w-full gap-2">
                 {comparisons.map(({ title, slug }) => (
-                  <NavigationMenuPrimitive.Link
+                  <Link
                     key={slug}
                     className={clsx(
                       "w-full rounded-md px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-900",
@@ -103,7 +104,7 @@ export default function NavigationMenu() {
                     <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                       Lorem ipsum dolor sit amet.
                     </div>
-                  </NavigationMenuPrimitive.Link>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -111,7 +112,7 @@ export default function NavigationMenu() {
         </NavigationMenuPrimitive.Item> */}
 
         <NavigationMenuPrimitive.Item asChild>
-          <NavigationMenuPrimitive.Link
+          <Link
             href="/#pricing"
             className={clsx(
               "rounded-md px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-900",
@@ -119,11 +120,11 @@ export default function NavigationMenu() {
             )}
           >
             Pricing
-          </NavigationMenuPrimitive.Link>
+          </Link>
         </NavigationMenuPrimitive.Item>
 
         {/* <NavigationMenuPrimitive.Item asChild>
-          <NavigationMenuPrimitive.Link
+          <Link
             href="/blog"
             className={clsx(
               "rounded-md px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-900",
@@ -131,11 +132,11 @@ export default function NavigationMenu() {
             )}
           >
             Blog
-          </NavigationMenuPrimitive.Link>
+          </Link>
         </NavigationMenuPrimitive.Item> */}
 
         <NavigationMenuPrimitive.Item asChild>
-          <NavigationMenuPrimitive.Link
+          <Link
             href="/changelog"
             className={clsx(
               "rounded-md px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-900",
@@ -143,7 +144,7 @@ export default function NavigationMenu() {
             )}
           >
             Changelog
-          </NavigationMenuPrimitive.Link>
+          </Link>
         </NavigationMenuPrimitive.Item>
 
         <NavigationMenuPrimitive.Indicator

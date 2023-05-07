@@ -1,3 +1,5 @@
+"use client";
+
 import { Dispatch, SetStateAction } from "react";
 import * as SwitchPrimitive from "@radix-ui/react-switch";
 import clsx from "clsx";

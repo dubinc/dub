@@ -3,7 +3,6 @@ import { LinkProps } from "@/lib/types";
 import { getDateTimeLocal } from "@/lib/utils";
 import Switch from "#/ui/switch";
 import { motion } from "framer-motion";
-import { FADE_IN_ANIMATION_SETTINGS } from "@/lib/constants";
 
 export default function ExpirationSection({
   props,

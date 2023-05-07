@@ -1,6 +1,6 @@
 import Link from "next/link";
-import BlurImage from "../shared/blur-image";
-import { ExpandingArrow } from "../shared/icons";
+import BlurImage from "#/ui/blur-image";
+import { ExpandingArrow } from "#/ui/icons";
 
 const logos = [
   {

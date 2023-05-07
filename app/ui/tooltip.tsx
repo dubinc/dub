@@ -1,3 +1,5 @@
+"use client";
+
 /***********************************/
 
 /*  Tooltip Contents  */
@@ -5,7 +7,7 @@ import Link from "next/link";
 import { ReactNode, useRef, useState } from "react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { AnimatePresence, motion, useAnimation } from "framer-motion";
-import BlurImage from "@/components/shared/blur-image";
+import BlurImage from "#/ui/blur-image";
 
 export default function Tooltip({
   children,

@@ -2,8 +2,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import Meta from "@/components/layout/meta";
-import BlurImage from "@/components/shared/blur-image";
-import { LoadingDots } from "@/components/shared/icons";
+import BlurImage from "#/ui/blur-image";
+import { LoadingDots } from "#/ui/icons";
 import Background from "@/components/shared/background";
 import { toast, Toaster } from "react-hot-toast";
 

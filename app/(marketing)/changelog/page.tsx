@@ -1,10 +1,10 @@
-import BlurImage from "@/components/shared/blur-image";
+import BlurImage from "#/ui/blur-image";
 import { getBlurDataURL } from "@/lib/images";
 import { allChangelogPosts } from "contentlayer/generated";
 import { Metadata } from "next";
 import { formatDate } from "@/lib/utils";
 import Link from "next/link";
-import { MDX } from "@/ui/blog/mdx";
+import { MDX } from "#/ui/blog/mdx";
 import { Twitter } from "@/components/shared/icons";
 import { Rss } from "lucide-react";
 

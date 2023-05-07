@@ -8,7 +8,7 @@ import {
   LoadingDots,
   QuestionCircle,
 } from "@/components/shared/icons";
-import Tooltip from "@/components/shared/tooltip";
+import Tooltip from "#/ui/tooltip";
 import { getFirstAndLastDay, nFormatter } from "@/lib/utils";
 import useProject from "@/lib/swr/use-project";
 import useDomains from "@/lib/swr/use-domains";

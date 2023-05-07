@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { allChangelogPosts } from "contentlayer/generated";
-import { MDX } from "@/ui/blog/mdx";
+import { MDX } from "#/ui/blog/mdx";
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
 import { getBlurDataURL } from "@/lib/images";
-import BlurImage from "@/components/shared/blur-image";
-import Author from "@/ui/blog/author";
+import BlurImage from "#/ui/blur-image";
+import Author from "#/ui/blog/author";
 import { Facebook, LinkedIn, Twitter } from "@/components/shared/icons";
 
 export async function generateStaticParams() {

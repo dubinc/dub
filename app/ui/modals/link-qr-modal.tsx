@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Dispatch,
   SetStateAction,
@@ -9,16 +11,16 @@ import {
 import { HexColorInput, HexColorPicker } from "react-colorful";
 import BlurImage from "#/ui/blur-image";
 import { ChevronRight, Clipboard, Logo } from "@/components/shared/icons";
-import Modal from "@/components/shared/modal";
+import Modal from "#/ui/modal";
 import Switch from "#/ui/switch";
 import Tooltip, { TooltipContent } from "#/ui/tooltip";
 import { QRCodeSVG, getQRAsCanvas, getQRAsSVGDataUri } from "@/lib/qr";
-import useProject from "@/lib/swr/use-project";
+import useProject from "#/lib/hooks/use-project";
 import { SimpleLinkProps } from "@/lib/types";
 import { getApexDomain, linkConstructor } from "@/lib/utils";
 import IconMenu from "@/components/shared/icon-menu";
 import { Download, Photo } from "@/components/shared/icons";
-import Popover from "@/components/shared/popover";
+import Popover from "#/ui/popover";
 import toast from "react-hot-toast";
 import { GOOGLE_FAVICON_URL } from "@/lib/constants";
 

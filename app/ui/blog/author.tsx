@@ -1,4 +1,4 @@
-import BlurImage from "@/components/shared/blur-image";
+import BlurImage from "#/ui/blur-image";
 import Link from "next/link";
 
 export default async function Author({

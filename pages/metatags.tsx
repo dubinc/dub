@@ -1,12 +1,6 @@
 import HomeLayout from "@/components/layout/home";
-import {
-  Copy,
-  Github,
-  LoadingCircle,
-  Photo,
-  Tick,
-  Twitter,
-} from "@/components/shared/icons";
+import { Copy, Github, Photo, Tick, Twitter } from "@/components/shared/icons";
+import { LoadingCircle } from "#/ui/icons";
 import getTweetsMetadata from "@/lib/twitter";
 import Tweet from "@/components/shared/tweet";
 import { useMemo, useState } from "react";

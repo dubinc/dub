@@ -9,17 +9,17 @@ import {
 } from "react";
 import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
-import BlurImage from "@/components/shared/blur-image";
+import BlurImage from "#/ui/blur-image";
 import { AlertCircleFill, Lock } from "@/components/shared/icons";
 import Modal from "@/components/shared/modal";
 import { DomainProps } from "@/lib/types";
-import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
+import Tooltip, { TooltipContent } from "#/ui/tooltip";
 import useProject from "@/lib/swr/use-project";
 import { AnimatePresence, motion } from "framer-motion";
 import { SWIPE_REVEAL_ANIMATION_SETTINGS } from "@/lib/constants";
-import Switch from "@/components/shared/switch";
+import Switch from "#/ui/switch";
 import useDomains from "@/lib/swr/use-domains";
-import Button from "@/ui/button";
+import Button from "#/ui/button";
 
 function AddEditDomainModal({
   showAddEditDomainModal,

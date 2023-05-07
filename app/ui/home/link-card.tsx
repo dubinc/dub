@@ -3,10 +3,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useAnimation, useMotionValue } from "framer-motion";
 import toast from "react-hot-toast";
 import useSWR from "swr";
-import { useLinkQRModal } from "@/components/app/modals/link-qr-modal";
-import BlurImage from "@/components/shared/blur-image";
+import { useAddEditLinkModal } from "#/ui/modals/add-edit-link-modal";
+import { useLinkQRModal } from "#/ui/modals/link-qr-modal";
+import BlurImage from "#/ui/blur-image";
 import CopyButton from "@/components/shared/copy-button";
-import { Chart, LoadingDots, QR, ThreeDots } from "@/components/shared/icons";
+import { Chart, QR, ThreeDots } from "@/components/shared/icons";
+import { LoadingDots } from "#/ui/icons";
 import {
   DEFAULT_LINK_PROPS,
   FRAMER_MOTION_LIST_ITEM_VARIANTS,
@@ -19,7 +21,6 @@ import {
   linkConstructor,
   nFormatter,
 } from "@/lib/utils";
-import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal";
 
 export default function LinkCard({
   _key: key,

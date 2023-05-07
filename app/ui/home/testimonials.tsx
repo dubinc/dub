@@ -1,14 +1,13 @@
+import prisma from "@/lib/prisma";
 import { nFormatter } from "@/lib/utils";
+import getTweetsMetadata, { homepageTweets } from "@/lib/twitter";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import Tweet from "@/components/shared/tweet";
 
-export default function Testimonials({
-  userCount,
-  tweets,
-}: {
-  userCount: number;
-  tweets: any[];
-}) {
+export default async function Testimonials() {
+  const userCount = process.env.DATABASE_URL ? await prisma.user.count() : 5000;
+  const tweets = await getTweetsMetadata(homepageTweets);
+
   return (
     <MaxWidthWrapper className="pt-20">
       <div className="mx-auto max-w-md text-center sm:max-w-xl">

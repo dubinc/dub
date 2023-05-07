@@ -1,7 +1,8 @@
 import { useRouter } from "next/router";
 import { motion } from "framer-motion";
-import BlurImage from "@/components/shared/blur-image";
-import { Link, LoadingCircle } from "@/components/shared/icons";
+import BlurImage from "#/ui/blur-image";
+import { Link2 } from "lucide-react";
+import { LoadingCircle } from "#/ui/icons";
 import { nFormatter } from "@/lib/utils";
 import useSWR from "swr";
 import { fetcher } from "@/lib/utils";
@@ -42,7 +43,7 @@ export default function Referer() {
                 <div className="relative z-10 flex w-full max-w-[calc(100%-3rem)] items-center">
                   <span className="z-10 flex items-center space-x-2 px-2">
                     {referer === "(direct)" ? (
-                      <Link className="h-4 w-4" />
+                      <Link2 className="h-4 w-4" />
                     ) : (
                       <BlurImage
                         src={`${GOOGLE_FAVICON_URL}${referer}`}

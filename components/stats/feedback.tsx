@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useSession } from "next-auth/react";
-import LoadingDots from "@/components/shared/icons/loading-dots";
+import { LoadingDots } from "#/ui/icons";
 import { CheckCircleFill } from "../shared/icons";
 import { useDebouncedCallback } from "use-debounce";
 
