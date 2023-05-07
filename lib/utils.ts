@@ -286,7 +286,7 @@ export const setQueryString = (
 
 export const truncate = (str: string | null, length: number) => {
   if (!str || str.length <= length) return str;
-  return `${str.slice(0, length)}...`;
+  return `${str.slice(0, length - 3)}...`;
 };
 
 export const getParamsFromURL = (url: string) => {

@@ -158,6 +158,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
             src={`${GOOGLE_FAVICON_URL}${apexDomain}`}
             alt={apexDomain}
             className="h-8 w-8 rounded-full sm:h-10 sm:w-10"
+            unoptimized
             width={20}
             height={20}
           />

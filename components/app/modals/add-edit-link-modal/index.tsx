@@ -156,7 +156,6 @@ function AddEditLinkModal({
             const results = await res.json();
             setData((prev) => ({
               ...prev,
-              // TODO: can remove this eventually when I figure out Why am I storing the metatags data for links with proxy: false???
               ...{
                 title: truncate(results.title, 120),
                 description: truncate(results.description, 240),
