@@ -124,7 +124,6 @@ export const DEFAULT_LINK_PROPS = {
 
   clicks: 0,
   userId: "",
-  createdAt: new Date(),
 
   proxy: false,
 };
