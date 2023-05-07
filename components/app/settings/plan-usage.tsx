@@ -2,12 +2,8 @@ import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useUpgradePlanModal } from "@/components/app/modals/upgrade-plan-modal";
-import {
-  Infinity,
-  Divider,
-  LoadingDots,
-  QuestionCircle,
-} from "@/components/shared/icons";
+import { Infinity, Divider, QuestionCircle } from "@/components/shared/icons";
+import { LoadingDots } from "#/ui/icons";
 import Tooltip from "#/ui/tooltip";
 import { getFirstAndLastDay, nFormatter } from "@/lib/utils";
 import useProject from "@/lib/swr/use-project";
