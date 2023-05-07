@@ -38,13 +38,13 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     signIn: async ({ user }) => {
-      if (await isBlacklistedEmail(user.email)) {
+      if (!user.email || (await isBlacklistedEmail(user.email))) {
         return false;
       }
       return true;
     },
     jwt: async ({ token, account }) => {
-      if (await isBlacklistedEmail(token.email)) {
+      if (!token.email || (await isBlacklistedEmail(token.email))) {
         return {};
       }
       if (account) {
@@ -64,7 +64,7 @@ export const authOptions: NextAuthOptions = {
   events: {
     async signIn(message) {
       if (message.isNewUser) {
-        const email = message.user.email;
+        const email = message.user.email as string;
         await sendMarketingMail({
           subject: "✨ Welcome to Dub",
           to: email,

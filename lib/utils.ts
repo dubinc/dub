@@ -284,9 +284,9 @@ export const setQueryString = (
   });
 };
 
-export const truncate = (str: string, length: number) => {
+export const truncate = (str: string | null, length: number) => {
   if (!str || str.length <= length) return str;
-  return `${str.slice(0, length)}...`;
+  return `${str.slice(0, length - 3)}...`;
 };
 
 export const getParamsFromURL = (url: string) => {
@@ -363,9 +363,14 @@ export async function generateMD5Hash(message) {
 const logTypeToEnv = {
   cron: process.env.DUB_SLACK_HOOK_CRON,
   links: process.env.DUB_SLACK_HOOK_LINKS,
+  error: process.env.DUB_SLACK_HOOK_ERROR,
 };
 
-export const log = async (message: string, type: "cron" | "links") => {
+export const log = async (
+  message: string,
+  type: "cron" | "links" | "error",
+  mention?: boolean,
+) => {
   /* Log a message to the console */
   const HOOK = logTypeToEnv[type];
   if (!HOOK) return;
@@ -381,7 +386,7 @@ export const log = async (message: string, type: "cron" | "links") => {
             type: "section",
             text: {
               type: "mrkdwn",
-              text: message,
+              text: `${mention ? "<@U0404G6J3NJ> " : ""}${message}`,
             },
           },
         ],

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { motion } from "framer-motion";
 import BadgeSelect from "@/components/shared/badge-select";
@@ -65,8 +65,11 @@ export default function Devices() {
                       width: `${
                         (d.clicks /
                           (tab === "bot"
-                            ? data?.reduce((acc, curr) => acc + curr.clicks, 0)
-                            : totalClicks)) *
+                            ? data?.reduce(
+                                (acc, curr) => acc + curr.clicks,
+                                0,
+                              ) || 0
+                            : totalClicks || 0)) *
                         100
                       }%`,
                     }}

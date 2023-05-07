@@ -7,6 +7,7 @@ import { ProjectWithDomainProps } from "@/lib/types";
 import { fetcher, nFormatter } from "@/lib/utils";
 import { BarChart2, Globe, Link2 } from "lucide-react";
 import PlanBadge from "../settings/plan-badge";
+import { GOOGLE_FAVICON_URL } from "@/lib/constants";
 
 export default function ProjectCard({
   name,
@@ -30,10 +31,7 @@ export default function ProjectCard({
       <div className="flex items-start justify-between">
         <div className="flex items-center space-x-3">
           <BlurImage
-            src={
-              logo ||
-              `https://www.google.com/s2/favicons?sz=64&domain_url=${primaryDomain?.slug}`
-            }
+            src={logo || `${GOOGLE_FAVICON_URL}${primaryDomain?.slug}`}
             alt={slug}
             className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full"
             width={48}

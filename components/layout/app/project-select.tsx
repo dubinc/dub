@@ -8,6 +8,7 @@ import Popover from "@/components/shared/popover";
 import { PlanProps, ProjectWithDomainProps } from "@/lib/types";
 import useProjects from "@/lib/swr/use-projects";
 import PlanBadge from "@/components/app/settings/plan-badge";
+import { GOOGLE_FAVICON_URL } from "@/lib/constants";
 
 export default function ProjectSelect() {
   const { projects } = useProjects();
@@ -29,7 +30,7 @@ export default function ProjectSelect() {
         ...selectedProject,
         image:
           selectedProject?.logo ||
-          `https://www.google.com/s2/favicons?sz=64&domain_url=${selectedProject?.primaryDomain?.slug}`,
+          `${GOOGLE_FAVICON_URL}${selectedProject?.primaryDomain?.slug}`,
       };
     } else {
       return {
@@ -107,7 +108,7 @@ function ProjectList({
     plan: PlanProps;
   };
   projects: ProjectWithDomainProps[];
-  setShowAddProjectModal?: (show: boolean) => void;
+  setShowAddProjectModal: (show: boolean) => void;
 }) {
   const router = useRouter();
 
@@ -122,10 +123,7 @@ function ProjectList({
           onClick={() => router.push(`/${slug}`)}
         >
           <BlurImage
-            src={
-              logo ||
-              `https://www.google.com/s2/favicons?sz=64&domain_url=${primaryDomain?.slug}`
-            }
+            src={logo || `${GOOGLE_FAVICON_URL}${primaryDomain?.slug}`}
             alt={slug}
             className="h-7 w-7 overflow-hidden rounded-full"
             width={48}

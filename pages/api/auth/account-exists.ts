@@ -18,6 +18,12 @@ export default async function handler(req: NextRequest) {
 
     const { email } = (await req.json()) as { email: string };
 
+    if (!conn) {
+      return new Response("Database connection not established", {
+        status: 500,
+      });
+    }
+
     const user = await conn
       .execute("SELECT email FROM User WHERE email = ?", [email])
       .then((res) => res.rows[0]);

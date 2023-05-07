@@ -7,7 +7,6 @@ import {
 } from "react";
 import { motion } from "framer-motion";
 import TextareaAutosize from "react-textarea-autosize";
-import BlurImage from "@/components/shared/blur-image";
 import { LoadingCircle, UploadCloud } from "@/components/shared/icons";
 import { LinkProps } from "@/lib/types";
 import Switch from "@/components/shared/switch";
@@ -19,7 +18,7 @@ export default function OGSection({
   setData,
   generatingMetatags,
 }: {
-  props: LinkProps;
+  props?: LinkProps;
   data: LinkProps;
   setData: Dispatch<SetStateAction<LinkProps>>;
   generatingMetatags: boolean;
@@ -39,7 +38,7 @@ export default function OGSection({
         } else {
           const reader = new FileReader();
           reader.onload = (e) => {
-            setData((prev) => ({ ...prev, image: e.target.result as string }));
+            setData((prev) => ({ ...prev, image: e.target?.result as string }));
           };
           reader.readAsDataURL(file);
         }

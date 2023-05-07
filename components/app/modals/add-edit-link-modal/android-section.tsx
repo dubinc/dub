@@ -9,7 +9,7 @@ export default function AndroidSection({
   data,
   setData,
 }: {
-  props: LinkProps;
+  props?: LinkProps;
   data: LinkProps;
   setData: Dispatch<SetStateAction<LinkProps>>;
 }) {
@@ -44,7 +44,7 @@ export default function AndroidSection({
             id="android-url"
             type="url"
             placeholder="https://play.google.com/store/apps/details?id=com.disney.disneyplus"
-            value={android}
+            value={android || ""}
             onChange={(e) => {
               setData({ ...data, android: e.target.value });
             }}

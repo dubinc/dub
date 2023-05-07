@@ -89,6 +89,8 @@ export const REDIRECT_HEADERS = {
 };
 
 export const FAVICON_FOLDER = "/_static/favicons";
+export const GOOGLE_FAVICON_URL =
+  "https://www.google.com/s2/favicons?sz=64&domain_url=";
 export { default as COUNTRIES } from "./countries";
 export { default as ccTLDs } from "./cctlds";
 
@@ -122,7 +124,6 @@ export const DEFAULT_LINK_PROPS = {
 
   clicks: 0,
   userId: "",
-  createdAt: new Date(),
 
   proxy: false,
 };

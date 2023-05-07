@@ -10,7 +10,7 @@ export default function PasswordSection({
   data,
   setData,
 }: {
-  props: LinkProps;
+  props?: LinkProps;
   data: LinkProps;
   setData: Dispatch<SetStateAction<LinkProps>>;
 }) {

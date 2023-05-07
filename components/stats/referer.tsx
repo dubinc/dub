@@ -6,6 +6,7 @@ import { nFormatter } from "@/lib/utils";
 import useSWR from "swr";
 import { fetcher } from "@/lib/utils";
 import useEndpoint from "@/lib/hooks/use-endpoint";
+import { GOOGLE_FAVICON_URL } from "@/lib/constants";
 
 export default function Referer() {
   const router = useRouter();
@@ -44,7 +45,7 @@ export default function Referer() {
                       <Link className="h-4 w-4" />
                     ) : (
                       <BlurImage
-                        src={`https://www.google.com/s2/favicons?sz=64&domain_url=${referer}`}
+                        src={`${GOOGLE_FAVICON_URL}${referer}`}
                         alt={referer}
                         width={20}
                         height={20}
@@ -55,7 +56,7 @@ export default function Referer() {
                   </span>
                   <motion.div
                     style={{
-                      width: `${(clicks / totalClicks) * 100}%`,
+                      width: `${(clicks / (totalClicks || 0)) * 100}%`,
                     }}
                     className="absolute h-8 origin-left rounded bg-red-100"
                     transition={{ ease: "easeOut", duration: 0.3 }}

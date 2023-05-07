@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { HOME_HOSTNAMES } from "@/lib/constants";
 
 export const parse = (req: NextRequest) => {
-  let domain = req.headers.get("host");
+  let domain = req.headers.get("host") as string;
   domain = domain.replace("www.", ""); // remove www. from domain
   if (HOME_HOSTNAMES.has(domain)) domain = "dub.sh";
   const path = req.nextUrl.pathname;

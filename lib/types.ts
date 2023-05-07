@@ -22,7 +22,7 @@ export interface LinkProps {
   android: string | null;
 
   clicks: number;
-  userId?: string;
+  userId?: string | null;
 
   createdAt?: Date;
   updatedAt?: Date;

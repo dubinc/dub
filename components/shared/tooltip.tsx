@@ -25,6 +25,7 @@ export default function Tooltip({
   async function handleDragEnd(_, info) {
     const offset = info.offset.y;
     const velocity = info.velocity.y;
+    // @ts-ignore
     const height = mobileTooltipRef.current.getBoundingClientRect().height;
     if (offset > height / 2 || velocity > 800) {
       await controls.start({ y: "100%", transition: transitionProps });
@@ -133,7 +134,7 @@ export function TooltipContent({
       {cta && ctaLink && (
         <Link
           href={ctaLink}
-          className="mt-4 rounded-full border border-black bg-black py-1.5 px-3 text-sm text-white transition-all hover:bg-white hover:text-black"
+          className="mt-4 rounded-full border border-black bg-black px-3 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
         >
           {cta}
         </Link>

@@ -3,7 +3,7 @@ import { addLink, getLinksForProject } from "@/lib/api/links";
 import { Session, withUserAuth } from "@/lib/auth";
 import { isBlacklistedDomain, isBlacklistedKey } from "@/lib/utils";
 import { log } from "@/lib/utils";
-import { DUB_PROJECT_ID } from "@/lib/constants";
+import { DUB_PROJECT_ID, GOOGLE_FAVICON_URL } from "@/lib/constants";
 
 export const config = {
   api: {
@@ -48,17 +48,29 @@ export default withUserAuth(
       if (domainBlacklisted) {
         return res.status(400).json({ error: "Invalid url" });
       }
-      const response = await addLink({
-        ...req.body,
-        domain: "dub.sh",
-        projectId: DUB_PROJECT_ID,
-        userId: session.user.id,
-      });
+      const [response, invalidFavicon] = await Promise.allSettled([
+        addLink({
+          ...req.body,
+          domain: "dub.sh",
+          projectId: DUB_PROJECT_ID,
+          userId: session.user.id,
+        }),
+        fetch(`${GOOGLE_FAVICON_URL}${url}}`).then((res) => !res.ok),
+        // @ts-ignore
+      ]).then((results) => results.map((result) => result.value));
 
       if (response === null) {
         return res.status(403).json({ error: "Key already exists" });
       }
-      await log(`${session.user.email} created a new link for ${url}`, "links");
+      await log(
+        `*${
+          session.user.email
+        }* created a new link (*dub.sh${key}*) for ${url} ${
+          invalidFavicon ? " but it has an invalid favicon :thinking_face:" : ""
+        }`,
+        "links",
+        invalidFavicon ? true : false,
+      );
       return res.status(200).json(response);
     } else {
       res.setHeader("Allow", ["GET", "POST"]);

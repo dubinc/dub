@@ -13,6 +13,7 @@ import Modal from "@/components/shared/modal";
 import { LinkProps } from "@/lib/types";
 import { getApexDomain, getQueryString, linkConstructor } from "@/lib/utils";
 import { toast } from "react-hot-toast";
+import { GOOGLE_FAVICON_URL } from "@/lib/constants";
 
 function DeleteLinkModal({
   showDeleteLinkModal,
@@ -46,7 +47,7 @@ function DeleteLinkModal({
       <div className="inline-block w-full transform overflow-hidden bg-white align-middle shadow-xl transition-all sm:max-w-md sm:rounded-2xl sm:border sm:border-gray-200">
         <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
           <BlurImage
-            src={`https://www.google.com/s2/favicons?sz=64&domain_url=${apexDomain}`}
+            src={`${GOOGLE_FAVICON_URL}${apexDomain}`}
             alt={apexDomain}
             className="h-10 w-10 rounded-full"
             width={20}

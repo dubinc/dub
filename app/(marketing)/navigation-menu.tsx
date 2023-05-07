@@ -1,7 +1,7 @@
 "use client";
 
 import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu";
-import clsx from "classnames";
+import clsx from "clsx";
 import React from "react";
 
 const comparisons = [

@@ -60,7 +60,7 @@ export default function Locations() {
                   </span>
                   <motion.div
                     style={{
-                      width: `${(clicks / totalClicks) * 100}%`,
+                      width: `${(clicks / (totalClicks || 0)) * 100}%`,
                     }}
                     className="absolute h-8 origin-left bg-orange-100"
                     transition={{ ease: "easeOut", duration: 0.3 }}

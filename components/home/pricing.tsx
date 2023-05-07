@@ -54,7 +54,7 @@ const pricingItems = [
   {
     plan: "Pro",
     tagline: "For larger teams with increased usage",
-    quota: PLANS.find((p) => p.slug === "pro").quota,
+    quota: PLANS.find((p) => p.slug === "pro")!.quota,
     features: [
       { text: "Unlimited users" },
       { text: "Unlimited branded links" },
@@ -85,7 +85,7 @@ const pricingItems = [
   {
     plan: "Enterprise",
     tagline: "For businesses with custom needs",
-    quota: PLANS.find((p) => p.slug === "enterprise").quota,
+    quota: PLANS.find((p) => p.slug === "enterprise")!.quota,
     features: [
       { text: "Unlimited users" },
       { text: "Unlimited branded links" },
@@ -255,7 +255,7 @@ const Pricing = ({ homePage }: { homePage?: boolean }) => {
                       setClicked(true);
                       fetch(
                         `/api/projects/${slug}/billing/upgrade?priceId=${
-                          PLANS.find((p) => p.slug === plan.toLowerCase())
+                          PLANS.find((p) => p.slug === plan.toLowerCase())!
                             .price[period].priceIds[env]
                         }`,
                         {
@@ -266,7 +266,7 @@ const Pricing = ({ homePage }: { homePage?: boolean }) => {
                           const data = await res.json();
                           const { id: sessionId } = data;
                           const stripe = await getStripe();
-                          stripe.redirectToCheckout({ sessionId });
+                          stripe?.redirectToCheckout({ sessionId });
                         })
                         .catch((err) => {
                           alert(err);

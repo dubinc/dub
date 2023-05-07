@@ -13,7 +13,7 @@ interface CoordinateProps {
 export default async function handler(req: NextRequest) {
   if (req.method === "GET") {
     const count = 50;
-    let latestCoordinates = [];
+    let latestCoordinates: CoordinateProps[] = [];
 
     // Check if coordinates are cached in Redis
     const cachedCoordinates = await redis.get<CoordinateProps[]>("coordinates");

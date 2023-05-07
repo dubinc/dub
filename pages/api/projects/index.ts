@@ -31,7 +31,7 @@ export default withUserAuth(
           .status(422)
           .json({ error: "Missing name or slug or domain" });
       }
-      let slugError = null;
+      let slugError: string | null = null;
       if (slug.includes(" ") || slug.includes(".")) {
         slugError = "Slug cannot contain spaces or periods";
       } else if ((await isReservedKey(slug)) || DEFAULT_REDIRECTS[slug]) {

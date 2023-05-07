@@ -18,8 +18,8 @@ export default function useEndpoint(staticDomain?: string) {
   const queryString =
     interval || domainSlug
       ? `?${new URLSearchParams({
-          interval,
-          domain: domainSlug,
+          ...(interval && { interval }),
+          ...(domainSlug && { domain: domainSlug }),
         }).toString()}`
       : "";
 

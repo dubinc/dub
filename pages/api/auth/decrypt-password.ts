@@ -7,10 +7,14 @@ export default async function handler(
 ) {
   if (req.method === "POST") {
     const { domain, key, password } = req.body;
-    const { url, password: realPassword } = await prisma.link.findUnique({
+    const link = await prisma.link.findUnique({
       where: { domain_key: { domain, key } },
       select: { url: true, password: true },
     });
+    if (!link) {
+      return res.status(404).json({ error: "Link not found" });
+    }
+    const { url, password: realPassword } = link;
     const validPassword = password === realPassword;
     if (validPassword) {
       return res.status(200).json({ url });

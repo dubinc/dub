@@ -53,6 +53,7 @@ export const updateUsage = async () => {
       await log(
         `${name} is over usage limit. Usage: ${usage}, Limit: ${usageLimit}`,
         "cron",
+        true,
       );
       const sentFirstUsageLimitEmail = sentEmails.some(
         (email) => email.type === "firstUsageLimitEmail",

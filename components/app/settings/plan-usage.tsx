@@ -50,7 +50,7 @@ export default function PlanUsage() {
         mutate(`/api/projects/${slug}`);
         // track upgrade to pro event
         va.track("Upgraded Plan", {
-          plan,
+          plan: "pro",
         });
       }, 1000);
     }
@@ -84,7 +84,7 @@ export default function PlanUsage() {
         </p>
       </div>
       <div className="border-b border-gray-200" />
-      <div className="grid grid-cols-1 divide-y divide-gray-200 sm:grid-cols-2 sm:divide-y-0 sm:divide-x">
+      <div className="grid grid-cols-1 divide-y divide-gray-200 sm:grid-cols-2 sm:divide-x sm:divide-y-0">
         <div className="flex flex-col space-y-2 p-10">
           <div className="flex items-center">
             <h3 className="font-medium">Total Link Clicks</h3>
@@ -94,7 +94,7 @@ export default function PlanUsage() {
               </div>
             </Tooltip>
           </div>
-          {usageLimit ? (
+          {usage && usageLimit ? (
             <p className="text-sm text-gray-600">
               {nFormatter(usage)} / {nFormatter(usageLimit)} clicks (
               {((usage / usageLimit) * 100).toFixed(1)}%)
@@ -106,11 +106,14 @@ export default function PlanUsage() {
             <motion.div
               initial={{ width: 0 }}
               animate={{
-                width: usageLimit ? (usage / usageLimit) * 100 + "%" : "0%",
+                width:
+                  usage && usageLimit ? (usage / usageLimit) * 100 + "%" : "0%",
               }}
               transition={{ duration: 0.5, type: "spring" }}
               className={`${
-                usage > usageLimit ? "bg-red-500" : "bg-blue-500"
+                usage && usageLimit && usage > usageLimit
+                  ? "bg-red-500"
+                  : "bg-blue-500"
               } h-3 rounded-full`}
             />
           </div>

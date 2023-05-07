@@ -1,8 +1,8 @@
-import Image from "next/image";
 import Head from "next/head";
 import { unescape } from "html-escaper";
 import prisma from "@/lib/prisma";
 import { getApexDomain } from "@/lib/utils";
+import { GOOGLE_FAVICON_URL } from "@/lib/constants";
 
 export default function LinkPage({
   shortLink,
@@ -35,28 +35,16 @@ export default function LinkPage({
         <meta charSet="utf-8" />
         <link
           rel="icon"
-          href={`https://www.google.com/s2/favicons?sz=64&domain_url=${unescape(
-            apexDomain,
-          )}`}
+          href={`${GOOGLE_FAVICON_URL}${unescape(apexDomain)}`}
         />
       </Head>
       <main className="flex h-screen w-screen items-center justify-center">
         <div className="mx-5 w-full max-w-lg overflow-hidden rounded-lg border border-gray-200 sm:mx-0">
-          <Image
-            src={image}
-            alt={title}
-            width={1200}
-            height={627}
-            className="w-full object-cover"
-          />
+          <img src={image} alt={title} className="w-full object-cover" />
           <div className="flex space-x-3 bg-gray-100 p-5">
-            <Image
-              src={`https://www.google.com/s2/favicons?sz=64&domain_url=${unescape(
-                apexDomain,
-              )}`}
+            <img
+              src={`${GOOGLE_FAVICON_URL}${unescape(apexDomain)}`}
               alt={title}
-              width={300}
-              height={300}
               className="mt-1 h-6 w-6"
             />
             <div className="flex flex-col space-y-3">
@@ -81,13 +69,14 @@ export async function getServerSideProps(ctx) {
     },
   });
 
-  const { url, title, description, image } = link || {};
+  const { url, proxy, title, description, image } = link || {};
 
   if (!url) {
     return {
       notFound: true,
     };
-  } else if (!image) {
+    // if it's not a proxy page, redirect to the original URL
+  } else if (!proxy) {
     return {
       redirect: {
         destination: url,

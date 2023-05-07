@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 /**
  * @license qrcode.react
  * Copyright (c) Paul O'Shannessy

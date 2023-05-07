@@ -9,7 +9,7 @@ export default function IOSSection({
   data,
   setData,
 }: {
-  props: LinkProps;
+  props?: LinkProps;
   data: LinkProps;
   setData: Dispatch<SetStateAction<LinkProps>>;
 }) {
@@ -44,7 +44,7 @@ export default function IOSSection({
             id="ios-url"
             type="url"
             placeholder="https://apps.apple.com/app/1611158928"
-            value={ios}
+            value={ios || ""}
             onChange={(e) => {
               setData({ ...data, ios: e.target.value });
             }}

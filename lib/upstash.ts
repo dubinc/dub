@@ -25,7 +25,11 @@ export const ratelimit = (
         limiter: Ratelimit.slidingWindow(requests, seconds),
         analytics: true,
       })
-    : null;
+    : // if Redis is not configured, return a dummy ratelimiter
+      // with the function limit() that always returns true
+      {
+        limit: () => ({ success: true }),
+      };
 };
 
 // only for dub.sh public demo

@@ -19,14 +19,15 @@ export default function Popover({
 }) {
   const router = useRouter();
 
-  const mobileTooltipRef = useRef(null);
+  const mobileTooltipRef = useRef<HTMLDivElement | null>(null);
   const controls = useAnimation();
   const transitionProps = { type: "spring", stiffness: 500, damping: 30 };
 
   async function handleDragEnd(_, info) {
     const offset = info.offset.y;
     const velocity = info.velocity.y;
-    const height = mobileTooltipRef.current.getBoundingClientRect().height;
+    const height =
+      mobileTooltipRef.current?.getBoundingClientRect().height || 0;
     if (offset > height / 2 || velocity > 800) {
       await controls.start({ y: "100%", transition: transitionProps });
       setOpenPopover(false);

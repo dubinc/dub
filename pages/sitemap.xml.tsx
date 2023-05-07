@@ -46,7 +46,7 @@ export async function getServerSideProps({
   req: NextApiRequest;
   res: NextApiResponse;
 }) {
-  let domain = req.headers.host;
+  let domain = req.headers.host as string;
   if (isHomeHostname(domain)) domain = "dub.sh";
 
   // Get top 100 links (sorted by clicks in descending order)
