@@ -8,7 +8,7 @@ import { SWIPE_REVEAL_ANIMATION_SETTINGS } from "@/lib/constants";
 import { useDebouncedCallback } from "use-debounce";
 import Link from "next/link";
 import useLinks from "@/lib/swr/use-links";
-import { LoadingSpinner } from "@/components/shared/icons";
+import { LoadingSpinner } from "#/ui/icons";
 import useLinksCount from "@/lib/swr/use-links-count";
 import punycode from "punycode/";
 import Switch from "#/ui/switch";
