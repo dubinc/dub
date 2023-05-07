@@ -37,11 +37,12 @@ import UTMSection from "./utm-section";
 import IOSSection from "./ios-section";
 import Preview from "./preview";
 import AndroidSection from "./android-section";
-import { DEFAULT_LINK_PROPS } from "@/lib/constants";
+import { DEFAULT_LINK_PROPS, GOOGLE_FAVICON_URL } from "@/lib/constants";
 import useDomains from "@/lib/swr/use-domains";
 import { toast } from "react-hot-toast";
 import va from "@vercel/analytics";
 import punycode from "punycode/";
+import Button from "app/ui/button";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
@@ -181,7 +182,7 @@ function AddEditLinkModal({
       return "/_static/logo.png";
       // otherwise, get the favicon of the URL
     } else {
-      return `https://www.google.com/s2/favicons?sz=64&domain_url=${getApexDomain(
+      return `${GOOGLE_FAVICON_URL}${getApexDomain(
         debouncedUrl || props?.url || "https://dub.sh",
       )}`;
     }
@@ -230,30 +231,24 @@ function AddEditLinkModal({
       saving ||
       keyExistsError ||
       urlError ||
-      generatingMetatags ||
       (props &&
         Object.entries(props).every(([key, value]) => {
-          // only check for discrepancy in title and description if proxy is enabled
-          if (proxy && (key === "title" || key === "description")) {
+          // If the key is "title" or "description" and proxy is not enabled, return true (skip the check)
+          if (
+            (key === "title" || key === "description" || key === "image") &&
+            !proxy
+          ) {
             return true;
-          } else {
-            return data[key] === value;
           }
+          // Otherwise, check for discrepancy in the current key-value pair
+          return data[key] === value;
         }))
     ) {
       return true;
     } else {
       return false;
     }
-  }, [
-    showAddEditLinkModal,
-    saving,
-    keyExistsError,
-    urlError,
-    generatingMetatags,
-    props,
-    data,
-  ]);
+  }, [showAddEditLinkModal, saving, keyExistsError, urlError, props, data]);
 
   const randomIdx = Math.floor(Math.random() * 100);
 
@@ -538,34 +533,16 @@ function AddEditLinkModal({
               } z-10 bg-gray-50 px-4 py-8 transition-all sm:sticky  sm:bottom-0 sm:px-16`}
             >
               {homepageDemo ? (
-                <Tooltip
-                  content="This is a demo link. You can't edit it."
-                  fullWidth
-                >
-                  <button
-                    disabled={true}
-                    className=" flex h-10 w-full cursor-not-allowed items-center justify-center rounded-md border border-gray-200 bg-gray-100 text-sm text-gray-400 transition-all focus:outline-none"
-                  >
-                    <p className="text-sm">Save changes</p>
-                  </button>
-                </Tooltip>
+                <Button
+                  disabledTooltip="This is a demo link. You can't edit it."
+                  text="Save changes"
+                />
               ) : (
-                <button
+                <Button
                   disabled={saveDisabled}
-                  className={`${
-                    saveDisabled
-                      ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
-                      : "border-black bg-black text-white hover:bg-white hover:text-black"
-                  } flex h-10 w-full items-center justify-center rounded-md border text-sm transition-all focus:outline-none`}
-                >
-                  {saving ? (
-                    <LoadingDots color="#808080" />
-                  ) : (
-                    <p className="text-sm">
-                      {props ? "Save changes" : "Create link"}
-                    </p>
-                  )}
-                </button>
+                  loading={saving}
+                  text={props ? "Save changes" : "Create link"}
+                />
               )}
             </div>
           </form>

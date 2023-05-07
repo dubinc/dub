@@ -43,17 +43,27 @@ export default async function handler(req: NextRequest, ev: NextFetchEvent) {
 }
 
 const getHtml = async (url: string) => {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 5000); // timeout if it takes longer than 5 seconds
-  return await fetch(url, {
-    signal: controller.signal,
-    headers: {
-      "User-Agent": "dub-bot/1.0",
-    },
-  }).then((res) => {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // timeout if it takes longer than 5 seconds
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        "User-Agent": "dub-bot/1.0",
+      },
+    });
     clearTimeout(timeoutId);
-    return res.text();
-  });
+    return await response.text();
+  } catch (error) {
+    if (error.name === "AbortError") {
+      // Handle fetch request abort (e.g., due to timeout)
+      console.error("Fetch request aborted due to timeout.");
+    } else {
+      // Handle other fetch errors
+      console.error("Fetch request failed:", error);
+    }
+    return null;
+  }
 };
 
 const getHeadChildNodes = (html) => {
@@ -91,6 +101,13 @@ const getRelativeUrl = (url: string, imageUrl: string) => {
 
 export const getMetaTags = async (url: string, ev: NextFetchEvent) => {
   const html = await getHtml(url);
+  if (!html) {
+    return {
+      title: url,
+      description: "No description",
+      image: null,
+    };
+  }
   const { metaTags, title: titleTag, linkTags } = getHeadChildNodes(html);
 
   let object = {};
@@ -126,8 +143,8 @@ export const getMetaTags = async (url: string, ev: NextFetchEvent) => {
   );
 
   return {
-    title,
-    description,
+    title: title || url,
+    description: description || "No description",
     image: getRelativeUrl(url, image),
   };
 };

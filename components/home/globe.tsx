@@ -57,14 +57,16 @@ export default function Globe() {
         webglSupported ? "min-h-[500px] sm:min-h-[1000px]" : "min-h-[50px]"
       } h-full`}
     >
-      {webglSupported && showGlobe && <GlobeAnimation markers={markers} />}
+      {webglSupported && showGlobe && (
+        <GlobeAnimation markers={markers || []} />
+      )}
     </div>
   );
 }
 
 const GlobeAnimation = ({ markers }: { markers: MarkerProps[] }) => {
   const canvasRef = useRef<any>();
-  const pointerInteracting = useRef(null);
+  const pointerInteracting = useRef<number | null>(null);
   const pointerInteractionMovement = useRef(0);
 
   const [{ r }, api] = useSpring(() => ({
@@ -127,7 +129,7 @@ const GlobeAnimation = ({ markers }: { markers: MarkerProps[] }) => {
             className="group absolute left-0 right-0 z-10 mx-auto max-w-sm rounded-md border border-gray-200 bg-white bg-opacity-90 px-5 py-4 shadow-md backdrop-blur-md sm:py-7"
           >
             <button
-              className="group visible absolute top-0 right-0 float-right m-3 rounded-full p-1 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:scale-75 group-hover:visible sm:invisible"
+              className="group visible absolute right-0 top-0 float-right m-3 rounded-full p-1 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:scale-75 group-hover:visible sm:invisible"
               autoFocus={false}
               onClick={() => setShowModal(false)}
             >

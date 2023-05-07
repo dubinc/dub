@@ -2,7 +2,8 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { deleteLink, editLink } from "@/lib/api/links";
 import { Session, withUserAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { isBlacklistedDomain, isBlacklistedKey } from "@/lib/utils";
+import { isBlacklistedDomain, isBlacklistedKey, log } from "@/lib/utils";
+import { GOOGLE_FAVICON_URL } from "@/lib/constants";
 
 export const config = {
   api: {
@@ -27,7 +28,7 @@ export default withUserAuth(
       },
     });
 
-    const isOwner = link.userId === session.user.id;
+    const isOwner = link?.userId === session.user.id;
 
     if (!isOwner) {
       return res.status(403).json({ error: "Not authorized" });
@@ -50,17 +51,29 @@ export default withUserAuth(
       if (domainBlacklisted) {
         return res.status(400).json({ error: "Invalid url" });
       }
-      const response = await editLink(
-        {
-          domain,
-          ...req.body,
-          userId: session.user.id,
-        },
-        oldKey,
-      );
+      const [response, invalidFavicon] = await Promise.allSettled([
+        editLink(
+          {
+            domain,
+            ...req.body,
+            userId: session.user.id,
+          },
+          oldKey,
+        ),
+        fetch(`${GOOGLE_FAVICON_URL}${url}}`).then((res) => !res.ok),
+        // @ts-ignore
+      ]).then((results) => results.map((result) => result.value));
+
       if (response === null) {
         return res.status(400).json({ error: "Key already exists" });
       }
+      await log(
+        `*${session.user.email}* edited a link (*dub.sh${key}*) to the ${url} ${
+          invalidFavicon ? " but it has an invalid favicon :thinking_face:" : ""
+        }`,
+        "links",
+        invalidFavicon ? true : false,
+      );
       return res.status(200).json(response);
     } else if (req.method === "DELETE") {
       const response = await deleteLink(domain, oldKey);

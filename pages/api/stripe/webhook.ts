@@ -15,7 +15,7 @@ export const config = {
 };
 
 async function buffer(readable: Readable) {
-  const chunks = [];
+  const chunks: Buffer[] = [];
   for await (const chunk of readable) {
     chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
   }
@@ -50,6 +50,24 @@ export default async function webhookHandler(
         if (event.type === "checkout.session.completed") {
           const checkoutSession = event.data.object as Stripe.Checkout.Session;
 
+          if (checkoutSession.client_reference_id === null) {
+            await log(
+              "Missing client reference ID in Stripe webhook callback",
+              "cron",
+              true,
+            );
+            return;
+          }
+
+          if (checkoutSession.customer === null) {
+            await log(
+              "Missing customer ID in Stripe webhook callback",
+              "cron",
+              true,
+            );
+            return;
+          }
+
           // when the project subscribes to a plan, set their stripe customer ID
           // in the database for easy identification in future webhook events
           // also update the billingCycleStart to today's date
@@ -74,7 +92,7 @@ export default async function webhookHandler(
             (plan) =>
               plan.price.monthly.priceIds[env] === newPriceId ||
               plan.price.yearly.priceIds[env] === newPriceId,
-          );
+          )!;
           const usageLimit = plan.quota;
           const stripeId = subscriptionUpdated.customer.toString();
 
@@ -105,6 +123,15 @@ export default async function webhookHandler(
             },
           });
 
+          if (!project) {
+            await log(
+              "Project not found in Stripe webhook `customer.subscription.deleted` callback",
+              "cron",
+              true,
+            );
+            return;
+          }
+
           const projectDomains = project.domains.map((domain) => domain.slug);
 
           const pipeline = redis.pipeline();
@@ -126,15 +153,19 @@ export default async function webhookHandler(
             pipeline.exec(),
             log(
               ":cry: Project *`" + name + "`* deleted their subscription",
-              "links",
+              "cron",
+              true,
             ),
           ]);
-          console.log(response);
         } else {
           throw new Error("Unhandled relevant event!");
         }
       } catch (error) {
-        console.log(error);
+        await log(
+          `Stripe wekbook failed. Error: ${error.message}`,
+          "cron",
+          true,
+        );
         return res
           .status(400)
           .send('Webhook error: "Webhook handler failed. View logs."');

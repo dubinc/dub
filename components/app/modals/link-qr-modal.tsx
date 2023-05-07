@@ -20,6 +20,7 @@ import IconMenu from "@/components/shared/icon-menu";
 import { Download, Photo } from "@/components/shared/icons";
 import Popover from "@/components/shared/popover";
 import toast from "react-hot-toast";
+import { GOOGLE_FAVICON_URL } from "@/lib/constants";
 
 function LinkQRModalHelper({
   showLinkQRModal,
@@ -36,7 +37,7 @@ function LinkQRModalHelper({
     try {
       const apexDomain = getApexDomain(props.url);
       return {
-        avatarUrl: `https://www.google.com/s2/favicons?sz=64&domain_url=${apexDomain}`,
+        avatarUrl: `${GOOGLE_FAVICON_URL}${apexDomain}`,
         apexDomain,
       };
     } catch (e) {

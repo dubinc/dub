@@ -55,7 +55,7 @@ export default withProjectAuth(async (req, res) => {
       });
     }
 
-    let prismaResponse = null;
+    let prismaResponse: any = null;
     if (!configJson.misconfigured) {
       prismaResponse = await prisma.domain.update({
         where: {

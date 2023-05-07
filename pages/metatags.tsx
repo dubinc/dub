@@ -11,7 +11,6 @@ import getTweetsMetadata from "@/lib/twitter";
 import Tweet from "@/components/shared/tweet";
 import { useMemo, useState } from "react";
 import Background from "@/components/shared/background";
-import Meta from "@/components/layout/meta";
 import { useDebounce } from "use-debounce";
 import { fetcher, getDomainWithoutWWW, getUrlFromString } from "@/lib/utils";
 import useSWR from "swr";
@@ -20,7 +19,7 @@ export default function Metatags({ tweets }: { tweets: any }) {
   const [url, setUrl] = useState("https://github.com/steven-tey/dub");
   const [debouncedUrl] = useDebounce(getUrlFromString(url), 500);
   const hostname = useMemo(() => {
-    return getDomainWithoutWWW(debouncedUrl);
+    return getDomainWithoutWWW(debouncedUrl || "");
   }, [debouncedUrl]);
 
   const { data, isValidating } = useSWR<{
@@ -115,7 +114,7 @@ export default function Metatags({ tweets }: { tweets: any }) {
               <div className="mb-1 h-4 w-full rounded-md bg-gray-100" />
             )}
             {description ? (
-              <p className="text-sm text-[#536471] line-clamp-2">
+              <p className="line-clamp-2 text-sm text-[#536471]">
                 {description}
               </p>
             ) : (
@@ -128,7 +127,7 @@ export default function Metatags({ tweets }: { tweets: any }) {
         </div>
 
         <button
-          className="hover:bg/black-[0.08] group relative flex cursor-copy items-center space-x-5 rounded-full bg-black/5 py-2.5 pr-3 pl-5 transition-all"
+          className="hover:bg/black-[0.08] group relative flex cursor-copy items-center space-x-5 rounded-full bg-black/5 py-2.5 pl-5 pr-3 transition-all"
           onClick={() => {
             navigator.clipboard.writeText(
               `https://api.dub.sh/metatags?url=${getUrlFromString(url)}`,
@@ -145,7 +144,7 @@ export default function Metatags({ tweets }: { tweets: any }) {
               <span className="text-amber-600">{getUrlFromString(url)}</span>
             </p>
           </div>
-          <span className="absolute inset-y-0 top-1 right-1 flex h-8 w-8 items-center justify-center rounded-full bg-black/[0.07] transition-all group-hover:bg-black/10">
+          <span className="absolute inset-y-0 right-1 top-1 flex h-8 w-8 items-center justify-center rounded-full bg-black/[0.07] transition-all group-hover:bg-black/10">
             {copied ? (
               <Tick className="h-4 w-4 text-gray-700" />
             ) : (

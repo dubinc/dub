@@ -3,6 +3,7 @@ import Head from "next/head";
 import { unescape } from "html-escaper";
 import prisma from "@/lib/prisma";
 import { getApexDomain } from "@/lib/utils";
+import { GOOGLE_FAVICON_URL } from "@/lib/constants";
 
 export default function LinkPage({
   shortLink,
@@ -35,9 +36,7 @@ export default function LinkPage({
         <meta charSet="utf-8" />
         <link
           rel="icon"
-          href={`https://www.google.com/s2/favicons?sz=64&domain_url=${unescape(
-            apexDomain,
-          )}`}
+          href={`${GOOGLE_FAVICON_URL}${unescape(apexDomain)}`}
         />
       </Head>
       <main className="flex h-screen w-screen items-center justify-center">
@@ -51,9 +50,7 @@ export default function LinkPage({
           />
           <div className="flex space-x-3 bg-gray-100 p-5">
             <Image
-              src={`https://www.google.com/s2/favicons?sz=64&domain_url=${unescape(
-                apexDomain,
-              )}`}
+              src={`${GOOGLE_FAVICON_URL}${unescape(apexDomain)}`}
               alt={title}
               width={300}
               height={300}

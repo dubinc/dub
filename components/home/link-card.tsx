@@ -10,6 +10,7 @@ import { Chart, LoadingDots, QR, ThreeDots } from "@/components/shared/icons";
 import {
   DEFAULT_LINK_PROPS,
   FRAMER_MOTION_LIST_ITEM_VARIANTS,
+  GOOGLE_FAVICON_URL,
 } from "@/lib/constants";
 import { SimpleLinkProps } from "@/lib/types";
 import {
@@ -35,7 +36,7 @@ export default function LinkCard({
 }) {
   const apexDomain = getApexDomain(url);
 
-  const cardElem = useRef(null);
+  const cardElem = useRef<HTMLDivElement | null>(null);
 
   const x = useMotionValue(0);
   const controls = useAnimation();
@@ -62,9 +63,8 @@ export default function LinkCard({
     const flyAwayDistance = (direction) => {
       const parentWidth =
         // @ts-ignore
-        cardElem.current.parentNode.getBoundingClientRect().width;
-      // @ts-ignore
-      const childWidth = cardElem.current.getBoundingClientRect().width;
+        cardElem.current?.parentNode?.getBoundingClientRect().width || 0;
+      const childWidth = cardElem.current?.getBoundingClientRect().width || 0;
       return direction === "left"
         ? -parentWidth / 2 - childWidth / 2
         : parentWidth / 2 + childWidth / 2;
@@ -144,7 +144,7 @@ export default function LinkCard({
       >
         <div className="flex items-center space-x-3">
           <BlurImage
-            src={`https://www.google.com/s2/favicons?sz=64&domain_url=${apexDomain}`}
+            src={`${GOOGLE_FAVICON_URL}${apexDomain}`}
             alt={apexDomain}
             className="pointer-events-none h-10 w-10 rounded-full"
             width={20}

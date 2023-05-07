@@ -31,6 +31,7 @@ import useIntersectionObserver from "@/lib/hooks/use-intersection-observer";
 import useDomains from "@/lib/swr/use-domains";
 import { CopyPlus, Edit3 } from "lucide-react";
 import punycode from "punycode/";
+import { GOOGLE_FAVICON_URL } from "@/lib/constants";
 
 export default function LinkCard({ props }: { props: LinkProps }) {
   const { key, domain, url, createdAt, archived, expiresAt } = props;
@@ -154,7 +155,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
       <li className="relative flex items-center justify-between">
         <div className="relative flex shrink items-center space-x-2 sm:space-x-4">
           <BlurImage
-            src={`https://www.google.com/s2/favicons?sz=64&domain_url=${apexDomain}`}
+            src={`${GOOGLE_FAVICON_URL}${apexDomain}`}
             alt={apexDomain}
             className="h-8 w-8 rounded-full sm:h-10 sm:w-10"
             width={20}

@@ -7,7 +7,6 @@ export default async function handler(
 ) {
   if (req.method === "GET") {
     const response = await getRandomKey("dub.sh");
-    console.log(response);
     return res.status(200).json(response);
   } else {
     res.setHeader("Allow", ["GET"]);

@@ -20,7 +20,11 @@ export const handleDomainUpdates = async ({
   linksCount: number;
 }) => {
   if (changed) {
-    await log(`Domain *${domain}* changed status to *${verified}*`, "cron");
+    await log(
+      `Domain *${domain}* changed status to *${verified}*`,
+      "cron",
+      verified,
+    );
   }
 
   if (verified) return;
@@ -61,6 +65,7 @@ export const handleDomainUpdates = async ({
     await log(
       `Domain *${domain}* is invalid but not associated with any project, skipping.`,
       "cron",
+      true,
     );
     return;
   }
@@ -96,6 +101,7 @@ export const handleDomainUpdates = async ({
       console.log(
         `Domain *${domain}* has been invalid for > 30 days but has links, not deleting.`,
         "cron",
+        true,
       );
     }
     return;

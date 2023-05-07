@@ -37,7 +37,7 @@ export const getServerSideProps: GetServerSideProps = async ({
   params,
 }) => {
   const { key } = params as { key: string };
-  let domain = req.headers.host;
+  let domain = req.headers.host as string;
   if (isHomeHostname(domain)) domain = "dub.sh";
 
   const data = await getLinkViaEdge(domain, key);
