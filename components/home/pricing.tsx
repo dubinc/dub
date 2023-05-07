@@ -72,7 +72,7 @@ const pricingItems = [
       {
         text: "Root domain redirect",
         footnote:
-          "Redirect vistors that land on the root of your domain (e.g. yourdomain.com) to a page of your choice.",
+          "Redirect visitors that land on the root of your domain (e.g. yourdomain.com) to a page of your choice.",
       },
       {
         text: "Custom QR Code Logo",
@@ -103,7 +103,7 @@ const pricingItems = [
       {
         text: "Root domain redirect",
         footnote:
-          "Redirect vistors that land on the root of your domain (e.g. yourdomain.com) to a page of your choice.",
+          "Redirect visitors that land on the root of your domain (e.g. yourdomain.com) to a page of your choice.",
       },
       {
         text: "Custom QR Code Logo",
