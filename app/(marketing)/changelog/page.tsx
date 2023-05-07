@@ -4,7 +4,7 @@ import { allChangelogPosts } from "contentlayer/generated";
 import { Metadata } from "next";
 import { formatDate } from "@/lib/utils";
 import Link from "next/link";
-import { MDX } from "../components/mdx";
+import { MDX } from "@/ui/blog/mdx";
 import { Twitter } from "@/components/shared/icons";
 import { Rss } from "lucide-react";
 
