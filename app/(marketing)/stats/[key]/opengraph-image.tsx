@@ -2,7 +2,7 @@ import { ImageResponse } from "next/server";
 import { headers } from "next/headers";
 import { getLinkViaEdge } from "@/lib/planetscale";
 import { getStats } from "@/lib/stats";
-import { isHomeHostname, nFormatter, truncate } from "@/lib/utils";
+import { getDomain, nFormatter, truncate } from "@/lib/utils";
 
 export const runtime = "edge";
 export const contentType = "image/png";
@@ -21,9 +21,7 @@ export default async function StatsOG({ params }: { params: { key: string } }) {
     satoshiBold,
   ]);
 
-  const headersList = headers();
-  let domain = headersList.get("host") as string;
-  if (isHomeHostname(domain)) domain = "dub.sh";
+  const domain = getDomain(headers());
 
   const data = await getLinkViaEdge(domain, params.key);
   if (!data?.publicStats) {

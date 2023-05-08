@@ -1,12 +1,10 @@
-import { isHomeHostname } from "@/lib/utils";
 import { headers } from "next/headers";
+import { getDomain } from "@/lib/utils";
 import prisma from "@/lib/prisma";
 import { allChangelogPosts } from "contentlayer/generated";
 
 export default async function Sitemap() {
-  const headersList = headers();
-  let domain = headersList.get("host") as string;
-  if (isHomeHostname(domain)) domain = "dub.sh";
+  const domain = getDomain(headers());
 
   // Get top 100 links (sorted by clicks in descending order)
   const links = await prisma.link.findMany({

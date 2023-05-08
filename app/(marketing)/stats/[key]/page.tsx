@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
-import { isHomeHostname } from "@/lib/utils";
+import { getDomain } from "@/lib/utils";
 import { getLinkViaEdge } from "@/lib/planetscale";
 import Stats from "#/ui/stats";
 
@@ -11,9 +11,7 @@ export async function generateMetadata({
 }: {
   params: { key: string };
 }) {
-  const headersList = headers();
-  let domain = headersList.get("host") as string;
-  if (isHomeHostname(domain)) domain = "dub.sh";
+  const domain = getDomain(headers());
 
   const data = await getLinkViaEdge(domain, params.key);
 
@@ -41,9 +39,7 @@ export default async function StatsPage({
 }: {
   params: { key: string };
 }) {
-  const headersList = headers();
-  let domain = headersList.get("host") as string;
-  if (isHomeHostname(domain)) domain = "dub.sh";
+  const domain = getDomain(headers());
   const data = await getLinkViaEdge(domain, params.key);
 
   if (!data || !data.publicStats) {

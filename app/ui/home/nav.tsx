@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname, useSelectedLayoutSegment } from "next/navigation";
+import { useSelectedLayoutSegment } from "next/navigation";
 import useScroll from "#/lib/hooks/use-scroll";
 import clsx from "clsx";
 
 const transparentHeaderSegments = new Set(["metatags"]);
 
-export default function Nav() {
+export default function Nav({ domain }: { domain?: string }) {
   const scrolled = useScroll(80);
   const segment = useSelectedLayoutSegment();
 
@@ -22,7 +22,7 @@ export default function Nav() {
     >
       <div className="mx-auto w-full max-w-screen-xl px-5 md:px-20">
         <div className="flex h-16 items-center justify-between">
-          <Link href="/">
+          <Link href={domain === "dub.sh" ? "/" : `https://dub.sh`}>
             <Image
               src="/_static/logotype.svg"
               alt="Dub.sh logo"
@@ -34,7 +34,9 @@ export default function Nav() {
 
           <div className="flex items-center space-x-6">
             <Link
-              href="/metatags"
+              href={
+                domain === "dub.sh" ? "/metatags" : `https://dub.sh/metatags`
+              }
               className={`hidden rounded-md text-sm font-medium ${
                 segment === "metatags" ? "text-black" : "text-gray-500"
               } transition-colors ease-out hover:text-black sm:block`}
@@ -42,7 +44,9 @@ export default function Nav() {
               Metatags API
             </Link>
             <Link
-              href="/changelog"
+              href={
+                domain === "dub.sh" ? "/changelog" : `https://dub.sh/changelog`
+              }
               className={`rounded-md text-sm font-medium ${
                 segment === "changelog" ? "text-black" : "text-gray-500"
               } transition-colors ease-out hover:text-black`}
