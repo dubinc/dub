@@ -9,7 +9,7 @@ import {
 } from "react";
 import FocusTrap from "focus-trap-react";
 import { AnimatePresence, motion, useAnimation } from "framer-motion";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 export default function Modal({
   children,
@@ -27,7 +27,6 @@ export default function Modal({
   mobileOnly?: boolean;
 }) {
   const router = useRouter();
-  const { key } = useParams() as { key?: string };
   const mobileModalRef = useRef<HTMLDivElement | null>(null);
   const desktopModalRef = useRef<HTMLDivElement | null>(null);
 
@@ -35,13 +34,11 @@ export default function Modal({
     (closeWithX?: boolean) => {
       if (closeWithX) {
         return;
-      } else if (key) {
-        router.push("/");
       } else {
         setShowModal(false);
       }
     },
-    [key, router, setShowModal],
+    [router, setShowModal],
   );
 
   const onKeyDown = useCallback((e: KeyboardEvent) => {

@@ -26,7 +26,7 @@ const comparisons = [
 
 export default function NavigationMenu() {
   return (
-    <NavigationMenuPrimitive.Root className="relative hidden md:block">
+    <NavigationMenuPrimitive.Root>
       <NavigationMenuPrimitive.List className="flex flex-row space-x-2 p-2">
         {/* <NavigationMenuPrimitive.Item>
           <NavigationMenuPrimitive.Trigger
@@ -111,25 +111,19 @@ export default function NavigationMenu() {
           </NavigationMenuPrimitive.Content>
         </NavigationMenuPrimitive.Item> */}
 
-        <NavigationMenuPrimitive.Item asChild>
+        {/* <NavigationMenuPrimitive.Item asChild>
           <Link
-            href="/#pricing"
-            className={clsx(
-              "rounded-md px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-900",
-              "text-sm font-medium text-gray-700 dark:text-gray-100",
-            )}
+            href="/pricing"
+            className="rounded-md px-3 py-2 text-sm font-medium text-gray-500 transition-colors ease-out hover:text-black"
           >
             Pricing
           </Link>
-        </NavigationMenuPrimitive.Item>
+        </NavigationMenuPrimitive.Item> */}
 
         {/* <NavigationMenuPrimitive.Item asChild>
           <Link
             href="/blog"
-            className={clsx(
-              "rounded-md px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-900",
-              "text-sm font-medium text-gray-700 dark:text-gray-100",
-            )}
+            className="rounded-md px-3 py-2 text-sm font-medium text-gray-500 transition-colors ease-out hover:text-black"
           >
             Blog
           </Link>
@@ -138,10 +132,7 @@ export default function NavigationMenu() {
         <NavigationMenuPrimitive.Item asChild>
           <Link
             href="/changelog"
-            className={clsx(
-              "rounded-md px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-900",
-              "text-sm font-medium text-gray-700 dark:text-gray-100",
-            )}
+            className="rounded-md px-3 py-2 text-sm font-medium text-gray-500 transition-colors ease-out hover:text-black"
           >
             Changelog
           </Link>

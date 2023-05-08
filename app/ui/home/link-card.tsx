@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useAnimation, useMotionValue } from "framer-motion";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import useSWR from "swr";
 import { useAddEditLinkModal } from "#/ui/modals/add-edit-link-modal";
 import { useLinkQRModal } from "#/ui/modals/link-qr-modal";
@@ -170,10 +170,7 @@ export default function LinkCard({
                 <QR className="text-gray-700 transition-all group-hover:text-blue-800" />
               </button>
               <Link
-                href={{ pathname: "/", query: { key } }}
-                as={`/stats/${encodeURI(key)}`}
-                shallow
-                scroll={false}
+                href={`/stats/${encodeURI(key)}`}
                 className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 text-gray-700 transition-all duration-75 hover:scale-105 active:scale-95"
               >
                 <Chart className="h-4 w-4" />

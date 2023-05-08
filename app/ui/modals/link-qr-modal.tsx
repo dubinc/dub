@@ -21,7 +21,7 @@ import { getApexDomain, linkConstructor } from "@/lib/utils";
 import IconMenu from "@/components/shared/icon-menu";
 import { Download, Photo } from "@/components/shared/icons";
 import Popover from "#/ui/popover";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { GOOGLE_FAVICON_URL } from "@/lib/constants";
 
 function LinkQRModalHelper({
@@ -154,7 +154,7 @@ function LinkQRModalHelper({
           <div className="grid grid-cols-2 gap-2 px-4 sm:px-16">
             <button
               onClick={async () => {
-                toast.promise(copyToClipboard(), {
+                toast.promise(copyToClipboard, {
                   loading: "Copying...",
                   success: "Copied!",
                   error: "Failed to copy",

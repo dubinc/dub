@@ -1,32 +1,31 @@
+import { ImageResponse } from "next/server";
+import { headers } from "next/headers";
 import { getLinkViaEdge } from "@/lib/planetscale";
 import { getStats } from "@/lib/stats";
-import { nFormatter, truncate } from "@/lib/utils";
-import { ImageResponse } from "@vercel/og";
-import { NextRequest } from "next/server";
+import { isHomeHostname, nFormatter, truncate } from "@/lib/utils";
 
-export const config = {
-  runtime: "edge",
-};
+export const runtime = "edge";
+export const contentType = "image/png";
 
 const satoshiBLack = fetch(
-  new URL("../../../styles/Satoshi-Black.ttf", import.meta.url),
+  new URL("@/styles/Satoshi-Black.ttf", import.meta.url),
 ).then((res) => res.arrayBuffer());
 
 const satoshiBold = fetch(
-  new URL("../../../styles/Satoshi-Bold.ttf", import.meta.url),
+  new URL("@/styles/Satoshi-Bold.ttf", import.meta.url),
 ).then((res) => res.arrayBuffer());
 
-export default async function handler(req: NextRequest) {
+export default async function StatsOG({ params }: { params: { key: string } }) {
   const [satoshiBlackData, satoshiBoldData] = await Promise.all([
     satoshiBLack,
     satoshiBold,
   ]);
 
-  const { searchParams } = req.nextUrl;
-  const domain = searchParams.get("domain") || "dub.sh";
-  const key = searchParams.get("key") || "github";
+  const headersList = headers();
+  let domain = headersList.get("host") as string;
+  if (isHomeHostname(domain)) domain = "dub.sh";
 
-  const data = await getLinkViaEdge(domain, key);
+  const data = await getLinkViaEdge(domain, params.key);
   if (!data?.publicStats) {
     return new Response(`Stats for this link are not public`, {
       status: 403,
@@ -35,7 +34,7 @@ export default async function handler(req: NextRequest) {
 
   const timeseries = await getStats({
     domain,
-    key,
+    key: params.key,
     endpoint: "timeseries",
     interval: "30d",
   });
@@ -54,16 +53,13 @@ export default async function handler(req: NextRequest) {
           alignItems: "center",
           backgroundColor: "white",
           backgroundImage: `url(${new URL(
-            "../../../public/_static/background.png",
+            "./background.png",
             import.meta.url,
           ).toString()})`,
         }}
       >
         <img
-          src={new URL(
-            "../../../public/_static/logo.png",
-            import.meta.url,
-          ).toString()}
+          src={new URL("./logo.png", import.meta.url).toString()}
           style={{
             width: "80px",
             height: "80px",
@@ -84,7 +80,7 @@ export default async function handler(req: NextRequest) {
             lineHeight: "7rem",
           }}
         >
-          {domain}/{truncate(key, 12)}
+          {domain}/{truncate(params.key, 12)}
         </h1>
         <p
           style={{

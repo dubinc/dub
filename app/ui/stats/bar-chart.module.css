@@ -1,0 +1,26 @@
+.bar {
+  transform-origin: bottom !important;
+  fill: #2563eb;
+}
+
+.tooltip {
+  z-index: 40;
+  width: 200px;
+  padding: 1rem !important;
+  border-radius: 5px !important;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px !important;
+}
+
+.tooltip::after {
+  content: "";
+  position: absolute;
+  width: 0px;
+  height: 0px;
+  margin: auto;
+
+  border: 7px solid transparent;
+  border-top-color: white;
+
+  top: 100%;
+  left: 95px;
+}

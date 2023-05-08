@@ -1,5 +1,4 @@
-import { useRouter } from "next/router";
-import { useMemo, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import {
   Calendar,
   ChevronDown,
@@ -9,32 +8,19 @@ import {
 } from "@/components/shared/icons";
 import { ExpandingArrow } from "#/ui/icons";
 import { INTERVALS } from "@/lib/constants";
-import useScroll from "#/lib/hooks/use-scroll";
 import { linkConstructor } from "@/lib/utils";
 import IconMenu from "@/components/shared/icon-menu";
-import Popover from "@/components/shared/popover";
+import Popover from "#/ui/popover";
 import useSWR, { mutate } from "swr";
 import { fetcher } from "@/lib/utils";
 import { toast } from "react-hot-toast";
 import Switch from "#/ui/switch";
-import useEndpoint from "@/lib/hooks/use-endpoint";
+import Link from "next/link";
+import { StatsContext } from ".";
 
-export default function Toggle({
-  atModalTop,
-  staticDomain,
-}: {
-  atModalTop?: boolean;
-  staticDomain?: string;
-}) {
-  const router = useRouter();
-  const { key, interval = "24h" } = router.query as {
-    key: string;
-    interval?: string;
-  };
+export default function Toggle({ scrolled }: { scrolled: boolean }) {
+  const { basePath, domain, interval, key } = useContext(StatsContext);
 
-  const { basePath, domain } = useEndpoint(staticDomain);
-
-  const atTop = useScroll(80) || atModalTop;
   const [openDatePopover, setOpenDatePopover] = useState(false);
 
   const selectedInterval = useMemo(() => {
@@ -45,7 +31,7 @@ export default function Toggle({
     <div
       className={`z-20 mb-5 ${
         basePath.startsWith("/stats") ? "top-0" : "top-[6.95rem]"
-      } sticky bg-gray-50 py-3 sm:py-5 ${atTop ? "shadow-md" : ""}`}
+      } sticky bg-gray-50 py-3 sm:py-5 ${scrolled ? "shadow-md" : ""}`}
     >
       <div className="mx-auto flex max-w-4xl flex-col items-center justify-between space-y-3 px-2.5 sm:flex-row sm:space-y-0 lg:px-0">
         <a
@@ -65,27 +51,16 @@ export default function Toggle({
             content={
               <div className="w-full p-2 md:w-48">
                 {INTERVALS.map(({ display, slug }) => (
-                  <button
+                  <Link
                     key={slug}
-                    onClick={() => {
-                      router.push(
-                        {
-                          query: {
-                            ...router.query,
-                            interval: slug,
-                          },
-                        },
-                        `${basePath}?interval=${slug}`,
-                        { shallow: true },
-                      );
-                    }}
+                    href={`${basePath}?interval=${slug}`}
                     className="flex w-full items-center justify-between space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
                   >
                     <p className="text-sm">{display}</p>
                     {selectedInterval.slug === slug && (
                       <Tick className="h-4 w-4" aria-hidden="true" />
                     )}
-                  </button>
+                  </Link>
                 ))}
               </div>
             }
@@ -114,14 +89,9 @@ export default function Toggle({
 }
 
 const SharePopover = () => {
-  const router = useRouter();
-  const { key } = router.query as {
-    key: string;
-  };
-
   const [openSharePopover, setopenSharePopoverPopover] = useState(false);
 
-  const { endpoint, domain } = useEndpoint();
+  const { endpoint, domain, key } = useContext(StatsContext);
 
   const { data: { publicStats } = {} } = useSWR<{ publicStats: boolean }>(
     `${endpoint}?domain=${domain}`,

@@ -150,10 +150,7 @@ const GlobeAnimation = ({ markers }: { markers: MarkerProps[] }) => {
               .
             </p>
             <Link
-              href={{ pathname: "/", query: { key: "github" } }}
-              as="/stats/github"
-              shallow
-              scroll={false}
+              href="/stats/github"
               className="mx-auto mt-2 block max-w-fit rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white hover:bg-white hover:text-black sm:mt-4"
             >
               View all stats

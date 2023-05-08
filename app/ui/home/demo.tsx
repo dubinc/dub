@@ -11,6 +11,7 @@ import Tooltip, { TooltipContent } from "#/ui/tooltip";
 import { FRAMER_MOTION_LIST_ITEM_VARIANTS } from "@/lib/constants";
 import useLocalStorage from "@/lib/hooks/use-local-storage";
 import { SimpleLinkProps } from "@/lib/types";
+import { toast } from "sonner";
 
 const Demo = () => {
   const [saving, setSaving] = useState(false);
@@ -36,6 +37,12 @@ const Demo = () => {
               const json = await response.json();
               setHashes([...hashes, json]);
               setUrl("");
+              // auto copy to clipboard
+              navigator.clipboard
+                .writeText(`https://dub.sh/${json.key}`)
+                .then(() => {
+                  toast.success("Copied shortlink to clipboard!");
+                });
             }
           });
         }}
