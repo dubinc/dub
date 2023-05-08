@@ -49,11 +49,6 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   }
 
   if (home) {
-    if (path.startsWith("/static")) {
-      return NextResponse.rewrite(
-        new URL("/_static" + path.split("/static")[1], req.url),
-      );
-    }
     if (DEFAULT_REDIRECTS[key]) {
       return NextResponse.redirect(DEFAULT_REDIRECTS[key]);
     }
