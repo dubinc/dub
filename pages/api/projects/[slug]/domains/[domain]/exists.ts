@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { withUserAuth } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { domainExists } from "@/lib/api/domains";
 
 export default withUserAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {
@@ -8,15 +8,8 @@ export default withUserAuth(
 
     // GET /api/projects/[slug]/domains/[domain]/exists – check if a domain exists
     if (req.method === "GET") {
-      const project = await prisma.domain.findUnique({
-        where: {
-          slug: domain,
-        },
-        select: {
-          slug: true,
-        },
-      });
-      if (project) {
+      const exists = await domainExists(domain);
+      if (exists) {
         return res.status(200).json(1);
       } else {
         return res.status(200).json(0);

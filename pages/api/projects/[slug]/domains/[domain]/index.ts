@@ -22,6 +22,17 @@ export default withProjectAuth(async (req, res, project) => {
       .json({ error: "Missing or misconfigured project slug or domain" });
   }
 
+  // prevent unauthorized access to domains that don't belong to the project
+  const domainBelongsToProject = await prisma.domain.findFirst({
+    where: {
+      slug: domain,
+      projectId: project.id,
+    },
+  });
+  if (!domainBelongsToProject) {
+    return res.status(404).json({ error: "Domain not found" });
+  }
+
   // PUT /api/projects/[slug]/domains/[domain] edit a project's domain
   if (req.method === "PUT") {
     const { slug: newDomain, target, type, primary } = req.body;

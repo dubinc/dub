@@ -1,9 +1,9 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { Session, withUserAuth } from "@/lib/auth";
 import { DEFAULT_REDIRECTS } from "@/lib/constants";
-import { addDomain, validateDomain } from "@/lib/api/domains";
+import { addDomain, domainExists, validateDomain } from "@/lib/api/domains";
 import prisma from "@/lib/prisma";
-import { isReservedKey } from "@/lib/utils";
+import { getApexDomain, isReservedKey } from "@/lib/utils";
 
 export default withUserAuth(
   async (req: NextApiRequest, res: NextApiResponse, session: Session) => {
@@ -53,14 +53,7 @@ export default withUserAuth(
             slug: true,
           },
         }),
-        prisma.domain.findUnique({
-          where: {
-            slug: domain,
-          },
-          select: {
-            slug: true,
-          },
-        }),
+        domainExists(domain),
       ]);
       if (slugExist || domainExist) {
         return res.status(422).json({
