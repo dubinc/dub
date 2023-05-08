@@ -2,18 +2,22 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useSelectedLayoutSegment } from "next/navigation";
 import useScroll from "#/lib/hooks/use-scroll";
 import clsx from "clsx";
 
+const transparentHeaderSegments = new Set(["metatags"]);
+
 export default function Nav() {
-  const pathname = usePathname();
   const scrolled = useScroll(80);
+  const segment = useSelectedLayoutSegment();
+
   return (
     <div
       className={clsx(`sticky inset-x-0 top-0 z-20 w-full transition-all`, {
         "border-b border-gray-200 bg-white/75 backdrop-blur-lg": scrolled,
-        "border-b border-gray-200": pathname !== "/",
+        "border-b border-gray-200 bg-white":
+          segment && !transparentHeaderSegments.has(segment),
       })}
     >
       <div className="mx-auto w-full max-w-screen-xl px-5 md:px-20">
@@ -30,8 +34,18 @@ export default function Nav() {
 
           <div className="flex items-center space-x-6">
             <Link
+              href="/metatags"
+              className={`hidden rounded-md text-sm font-medium ${
+                segment === "metatags" ? "text-black" : "text-gray-500"
+              } transition-colors ease-out hover:text-black sm:block`}
+            >
+              Metatags API
+            </Link>
+            <Link
               href="/changelog"
-              className="rounded-md text-sm font-medium text-gray-500 transition-colors ease-out hover:text-black"
+              className={`rounded-md text-sm font-medium ${
+                segment === "changelog" ? "text-black" : "text-gray-500"
+              } transition-colors ease-out hover:text-black`}
             >
               Changelog
             </Link>

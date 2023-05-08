@@ -5,9 +5,10 @@ import Nav from "#/ui/home/nav";
 export default function MarketingLayout(props) {
   return (
     <div className="flex min-h-screen flex-col justify-between">
+      {/* Only show stats modal if not on the /stats page */}
+      {props.children.props.childProp.segment !== "stats" && props.modal}
       <Nav />
       {props.children}
-      {props.modal}
       <div className="z-10 flex h-20 items-center justify-center space-x-12 border-t border-gray-200">
         <a href="https://twitter.com/dubdotsh" target="_blank" rel="noreferrer">
           <span className="sr-only">Twitter</span>
