@@ -34,6 +34,14 @@ export async function generateMetadata({
   };
 }
 
+export async function generateStaticParams() {
+  return [
+    {
+      key: "github",
+    },
+  ];
+}
+
 export default async function StatsPage({
   params,
 }: {
