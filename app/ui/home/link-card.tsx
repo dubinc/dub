@@ -87,7 +87,7 @@ export default function LinkCard({
         const parentNode = cardElem.current.parentNode;
         const deleted = isDelete(childNode, parentNode);
         if (deleted) {
-          toast.success("Link deleted.");
+          toast.success("Link deleted!");
           if (setShowDefaultLink) {
             setShowDefaultLink(false);
           }

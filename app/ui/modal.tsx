@@ -5,7 +5,6 @@ import {
   SetStateAction,
   useCallback,
   useEffect,
-  useMemo,
   useRef,
 } from "react";
 import { useRouter } from "next/navigation";
@@ -86,7 +85,7 @@ export default function Modal({
             <motion.div
               ref={mobileModalRef}
               key="mobile-modal"
-              className="group fixed inset-x-0 bottom-0 z-40 w-screen cursor-grab active:cursor-grabbing sm:hidden"
+              className="group fixed inset-x-0 bottom-0 z-40 max-h-[80vh] w-screen cursor-grab active:cursor-grabbing md:hidden"
               initial={{ y: "100%" }}
               animate={controls}
               exit={{ y: "100%" }}
@@ -109,7 +108,7 @@ export default function Modal({
               <motion.div
                 ref={desktopModalRef}
                 key="desktop-modal"
-                className="fixed inset-0 z-40 hidden min-h-screen items-center justify-center sm:flex"
+                className="fixed inset-0 z-40 hidden min-h-screen items-center justify-center md:flex"
                 initial={{ scale: 0.95 }}
                 animate={{ scale: 1 }}
                 exit={{ scale: 0.95 }}

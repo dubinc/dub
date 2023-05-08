@@ -10,7 +10,7 @@ export default function CopyButton({ url }: { url: string }) {
         e.stopPropagation();
         setCopied(true);
         navigator.clipboard.writeText(url).then(() => {
-          toast.success("Copied shortlink to clipboard");
+          toast.success("Copied shortlink to clipboard!");
         });
         setTimeout(() => setCopied(false), 3000);
       }}

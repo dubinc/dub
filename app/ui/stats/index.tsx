@@ -106,7 +106,7 @@ export default function Stats({
         <Toggle />
         <div className="mx-auto grid max-w-4xl gap-5">
           <Clicks />
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <Locations />
             <Devices />
             <Referer />

@@ -261,21 +261,21 @@ function AddEditLinkModal({
       setShowModal={setShowAddEditLinkModal}
       closeWithX={homepageDemo ? false : true}
     >
-      <div className="relative grid max-h-[min(906px,_90vh)] w-full divide-x divide-gray-100 overflow-scroll bg-white shadow-xl transition-all scrollbar-hide sm:max-w-screen-lg sm:grid-cols-2 sm:rounded-2xl sm:border sm:border-gray-200">
+      <div className="relative grid max-h-[80vh] w-full divide-x divide-gray-100 overflow-scroll bg-white shadow-xl transition-all scrollbar-hide md:max-h-[min(906px,_90vh)] md:max-w-screen-lg md:grid-cols-2 md:rounded-2xl md:border md:border-gray-200">
         {!hideXButton && !homepageDemo && (
           <button
             onClick={() => setShowAddEditLinkModal(false)}
-            className="group absolute right-0 top-0 z-20 m-3 hidden rounded-full p-2 text-gray-500 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 sm:block"
+            className="group absolute right-0 top-0 z-20 m-3 hidden rounded-full p-2 text-gray-500 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 md:block"
           >
             <X className="h-5 w-5" />
           </button>
         )}
 
         <div
-          className="rounded-l-2xl sm:max-h-[min(906px,_90vh)] sm:overflow-scroll"
+          className="rounded-l-2xl md:max-h-[min(906px,_90vh)] md:overflow-scroll"
           onScroll={handleScroll}
         >
-          <div className="z-10 flex flex-col items-center justify-center space-y-3 border-b border-gray-200 bg-white px-4 pb-8 pt-8 transition-all sm:sticky sm:top-0 sm:px-16">
+          <div className="z-10 flex flex-col items-center justify-center space-y-3 border-b border-gray-200 bg-white px-4 pb-8 pt-8 transition-all md:sticky md:top-0 md:px-16">
             <BlurImage
               src={logo}
               alt="Logo"
@@ -363,7 +363,7 @@ function AddEditLinkModal({
             }}
             className="grid gap-6 bg-gray-50 pt-8"
           >
-            <div className="grid gap-6 px-4 sm:px-16">
+            <div className="grid gap-6 px-4 md:px-16">
               <div>
                 <div className="flex items-center justify-between">
                   <label
@@ -507,7 +507,7 @@ function AddEditLinkModal({
             {/* Divider */}
             <div className="relative py-5">
               <div
-                className="absolute inset-0 flex items-center px-4 sm:px-16"
+                className="absolute inset-0 flex items-center px-4 md:px-16"
                 aria-hidden="true"
               >
                 <div className="w-full border-t border-gray-300" />
@@ -519,7 +519,7 @@ function AddEditLinkModal({
               </div>
             </div>
 
-            <div className="grid gap-5 px-4 sm:px-16">
+            <div className="grid gap-5 px-4 md:px-16">
               <OGSection
                 {...{ props, data, setData }}
                 generatingMetatags={generatingMetatags}
@@ -533,8 +533,8 @@ function AddEditLinkModal({
 
             <div
               className={`${
-                atBottom ? "" : "sm:shadow-[0_-20px_30px_-10px_rgba(0,0,0,0.1)]"
-              } z-10 bg-gray-50 px-4 py-8 transition-all sm:sticky  sm:bottom-0 sm:px-16`}
+                atBottom ? "" : "md:shadow-[0_-20px_30px_-10px_rgba(0,0,0,0.1)]"
+              } z-10 bg-gray-50 px-4 py-8 transition-all md:sticky md:bottom-0 md:px-16`}
             >
               {homepageDemo ? (
                 <Button
@@ -551,7 +551,7 @@ function AddEditLinkModal({
             </div>
           </form>
         </div>
-        <div className="rounded-r-2xl sm:max-h-[min(906px,_90vh)] sm:overflow-scroll">
+        <div className="rounded-r-2xl md:max-h-[min(906px,_90vh)] md:overflow-scroll">
           <Preview data={data} generatingMetatags={generatingMetatags} />
         </div>
       </div>
@@ -605,7 +605,7 @@ function AddEditLinkButton({
     >
       <div className="flex cursor-not-allowed items-center space-x-3 rounded-md border border-gray-200 px-3 py-2 text-sm font-medium text-gray-300">
         <p>Create link</p>
-        <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-300 sm:inline-block">
+        <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-300 md:inline-block">
           C
         </kbd>
       </div>
@@ -616,7 +616,7 @@ function AddEditLinkButton({
       className="group flex items-center space-x-3 rounded-md border border-black bg-black px-3 py-2 text-sm font-medium text-white transition-all duration-75 hover:bg-white hover:text-black active:scale-95"
     >
       <p>Create link</p>
-      <kbd className="hidden rounded bg-zinc-700 px-2 py-0.5 text-xs font-light text-gray-400 transition-all duration-75 group-hover:bg-gray-100 group-hover:text-gray-500 sm:inline-block">
+      <kbd className="hidden rounded bg-zinc-700 px-2 py-0.5 text-xs font-light text-gray-400 transition-all duration-75 group-hover:bg-gray-100 group-hover:text-gray-500 md:inline-block">
         C
       </kbd>
     </button>

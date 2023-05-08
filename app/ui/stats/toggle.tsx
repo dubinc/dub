@@ -33,12 +33,12 @@ export default function Toggle() {
   return (
     <div
       className={`z-20 mb-5 ${
-        basePath.startsWith("/stats") ? "top-16" : "top-[6.95rem]"
-      } sticky bg-gray-50 py-3 sm:py-5 ${scrolled ? "shadow-md" : ""}`}
+        basePath.startsWith("/stats") ? "top-0 md:top-16" : "top-[6.95rem]"
+      } sticky bg-gray-50 py-3 md:py-5 ${scrolled ? "shadow-md" : ""}`}
     >
-      <div className="mx-auto flex max-w-4xl flex-col items-center justify-between space-y-3 px-2.5 sm:flex-row sm:space-y-0 lg:px-0">
+      <div className="mx-auto flex max-w-4xl flex-col items-center justify-between space-y-3 px-2.5 md:flex-row md:space-y-0 lg:px-0">
         <a
-          className="group flex text-lg font-semibold text-gray-800 sm:text-xl"
+          className="group flex text-lg font-semibold text-gray-800 md:text-xl"
           href={linkConstructor({ key, domain })}
           target="_blank"
           rel="noreferrer"
@@ -72,7 +72,7 @@ export default function Toggle() {
           >
             <button
               onClick={() => setOpenDatePopover(!openDatePopover)}
-              className="flex w-full items-center justify-between space-x-2 rounded-md bg-white px-3 py-2.5 shadow transition-all duration-75 hover:shadow-md active:scale-95 sm:w-48"
+              className="flex w-full items-center justify-between space-x-2 rounded-md bg-white px-3 py-2.5 shadow transition-all duration-75 hover:shadow-md active:scale-95 md:w-48"
             >
               <IconMenu
                 text={selectedInterval.display}
@@ -136,7 +136,7 @@ const SharePopover = () => {
   return (
     <Popover
       content={
-        <div className="w-full divide-y divide-gray-200 text-sm sm:w-60">
+        <div className="w-full divide-y divide-gray-200 text-sm md:w-60">
           <div className="p-4">
             <p className="text-gray-500">Share stats for</p>
             <p className="truncate font-semibold text-gray-800">
