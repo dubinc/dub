@@ -10,17 +10,11 @@ import {
 } from "react";
 import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
-import BlurImage from "@/components/shared/blur-image";
-import {
-  AlertCircleFill,
-  LoadingCircle,
-  LoadingDots,
-  Lock,
-  Random,
-  X,
-} from "@/components/shared/icons";
+import BlurImage from "#/ui/blur-image";
+import { AlertCircleFill, Lock, Random, X } from "@/components/shared/icons";
+import { LoadingCircle } from "#/ui/icons";
 import Modal from "@/components/shared/modal";
-import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
+import Tooltip, { TooltipContent } from "#/ui/tooltip";
 import useProject from "@/lib/swr/use-project";
 import { LinkProps } from "@/lib/types";
 import {
@@ -42,7 +36,7 @@ import useDomains from "@/lib/swr/use-domains";
 import { toast } from "react-hot-toast";
 import va from "@vercel/analytics";
 import punycode from "punycode/";
-import Button from "@/ui/button";
+import Button from "#/ui/button";
 
 function AddEditLinkModal({
   showAddEditLinkModal,

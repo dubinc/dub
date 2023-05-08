@@ -1,6 +1,6 @@
 "use client";
 
-import BlurImage from "@/components/shared/blur-image";
+import BlurImage from "#/ui/blur-image";
 import { nFormatter, truncate } from "@/lib/utils";
 import { Heart, Message, Repeat, Twitter } from "./icons";
 import Tilt from "react-parallax-tilt";
@@ -187,13 +187,13 @@ export default function Tweet({
             </div>
           )}
           <div
-            className="mt-4 mb-2 truncate whitespace-pre-wrap text-[15px] text-gray-700"
+            className="mb-2 mt-4 truncate whitespace-pre-wrap text-[15px] text-gray-700"
             dangerouslySetInnerHTML={{ __html: formattedText }}
           />
         </div>
 
         {/* Images, Preview images, videos, polls, etc. */}
-        <div className="mt-3 -mb-2">
+        <div className="-mb-2 mt-3">
           {media && media.length ? (
             <div
               className={
@@ -254,10 +254,10 @@ export default function Tweet({
                   className="h-40 object-cover"
                 />
                 <div className="w-full bg-white p-3">
-                  <p className="text-sm font-semibold line-clamp-1">
+                  <p className="line-clamp-1 text-sm font-semibold">
                     {url_meta.title}
                   </p>
-                  <p className="text-sm text-gray-500 line-clamp-2">
+                  <p className="line-clamp-2 text-sm text-gray-500">
                     {url_meta.description}
                   </p>
                 </div>
@@ -315,7 +315,7 @@ export default function Tweet({
                               ? "bg-[#1da1f2] font-bold"
                               : "bg-gray-300"
                           }
-                            absolute top-0 left-0 h-full w-full rounded-md                          
+                            absolute left-0 top-0 h-full w-full rounded-md                          
                           `}
                           style={{
                             width: `${Math.round(

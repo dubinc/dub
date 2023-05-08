@@ -10,12 +10,12 @@ import {
 } from "react";
 import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
-import BlurImage from "@/components/shared/blur-image";
+import BlurImage from "#/ui/blur-image";
 import { AlertCircleFill } from "@/components/shared/icons";
 import Modal from "@/components/shared/modal";
 import { generateDomainFromName } from "@/lib/utils";
 import va from "@vercel/analytics";
-import Button from "@/ui/button";
+import Button from "#/ui/button";
 
 function AddProjectModalHelper({
   showAddProjectModal,

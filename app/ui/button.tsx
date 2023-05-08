@@ -1,7 +1,7 @@
 "use client";
 
-import { LoadingDots } from "@/components/shared/icons";
-import Tooltip from "@/components/shared/tooltip";
+import { LoadingDots } from "#/ui/icons";
+import Tooltip from "#/ui/tooltip";
 import clsx from "clsx";
 import { ReactNode } from "react";
 

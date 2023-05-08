@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { motion } from "framer-motion";
 import BadgeSelect from "@/components/shared/badge-select";
-import { LoadingCircle } from "@/components/shared/icons";
+import { LoadingCircle } from "#/ui/icons";
 import { DeviceTabs, uaToBot } from "@/lib/stats";
 import { nFormatter } from "@/lib/utils";
 import DeviceIcon from "./device-icon";

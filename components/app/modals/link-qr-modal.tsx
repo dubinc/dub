@@ -7,11 +7,11 @@ import {
   useState,
 } from "react";
 import { HexColorInput, HexColorPicker } from "react-colorful";
-import BlurImage from "@/components/shared/blur-image";
+import BlurImage from "#/ui/blur-image";
 import { ChevronRight, Clipboard, Logo } from "@/components/shared/icons";
 import Modal from "@/components/shared/modal";
-import Switch from "@/components/shared/switch";
-import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
+import Switch from "#/ui/switch";
+import Tooltip, { TooltipContent } from "#/ui/tooltip";
 import { QRCodeSVG, getQRAsCanvas, getQRAsSVGDataUri } from "@/lib/qr";
 import useProject from "@/lib/swr/use-project";
 import { SimpleLinkProps } from "@/lib/types";

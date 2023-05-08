@@ -7,9 +7,10 @@ import {
   useMemo,
   useState,
 } from "react";
-import BlurImage from "@/components/shared/blur-image";
+import BlurImage from "#/ui/blur-image";
 import Modal from "@/components/shared/modal";
-import { CheckCircleFill, ExpandingArrow } from "@/components/shared/icons";
+import { CheckCircleFill } from "@/components/shared/icons";
+import { ExpandingArrow } from "#/ui/icons";
 
 function CompleteSetupModal({
   showCompleteSetupModal,

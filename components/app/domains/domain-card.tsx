@@ -5,10 +5,9 @@ import {
   Chart,
   CheckCircleFill,
   ExternalLink,
-  LoadingCircle,
-  LoadingDots,
   XCircleFill,
 } from "@/components/shared/icons";
+import { LoadingCircle, LoadingDots } from "#/ui/icons";
 import { DomainProps, DomainVerificationStatusProps } from "@/lib/types";
 import { capitalize, fetcher, nFormatter, truncate } from "@/lib/utils";
 import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";

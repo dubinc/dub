@@ -1,8 +1,8 @@
 import Link from "next/link";
 import useSWR from "swr";
-import BlurImage from "@/components/shared/blur-image";
+import BlurImage from "#/ui/blur-image";
 import { CheckCircleFill, XCircleFill } from "@/components/shared/icons";
-import Tooltip, { TooltipContent } from "@/components/shared/tooltip";
+import Tooltip, { TooltipContent } from "#/ui/tooltip";
 import { ProjectWithDomainProps } from "@/lib/types";
 import { fetcher, nFormatter } from "@/lib/utils";
 import { BarChart2, Globe, Link2 } from "lucide-react";

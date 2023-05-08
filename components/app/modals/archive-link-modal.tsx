@@ -7,10 +7,9 @@ import {
   useState,
 } from "react";
 import { mutate } from "swr";
-import BlurImage from "@/components/shared/blur-image";
-import LoadingDots from "@/components/shared/icons/loading-dots";
+import BlurImage from "#/ui/blur-image";
+import { LoadingDots } from "#/ui/icons";
 import Modal from "@/components/shared/modal";
-import useProject from "@/lib/swr/use-project";
 import { LinkProps } from "@/lib/types";
 import { getApexDomain, getQueryString, linkConstructor } from "@/lib/utils";
 import { GOOGLE_FAVICON_URL } from "@/lib/constants";

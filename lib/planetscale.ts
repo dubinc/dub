@@ -6,7 +6,7 @@ export const pscale_config = {
 
 export const conn = process.env.DATABASE_URL ? connect(pscale_config) : null;
 
-export async function getLinkViaEdge(domain: string, key: string) {
+export const getLinkViaEdge = async (domain: string, key: string) => {
   if (!conn) return null;
 
   const { rows } =
@@ -24,4 +24,4 @@ export async function getLinkViaEdge(domain: string, key: string) {
         publicStats: boolean;
       })
     : null;
-}
+};

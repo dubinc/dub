@@ -1,5 +1,5 @@
 import Link from "next/link";
-import BlurImage from "@/components/shared/blur-image";
+import BlurImage from "#/ui/blur-image";
 
 export default function NoProjectsPlaceholder({
   setShowAddProjectModal,

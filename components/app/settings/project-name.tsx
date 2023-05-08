@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
-import { LoadingDots } from "@/components/shared/icons";
+import { LoadingDots } from "#/ui/icons";
 import useProject from "@/lib/swr/use-project";
 import { mutate } from "swr";
 

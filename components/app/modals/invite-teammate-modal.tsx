@@ -7,8 +7,8 @@ import {
   useState,
 } from "react";
 import { mutate } from "swr";
-import BlurImage from "@/components/shared/blur-image";
-import LoadingDots from "@/components/shared/icons/loading-dots";
+import BlurImage from "#/ui/blur-image";
+import { LoadingDots } from "#/ui/icons";
 import Modal from "@/components/shared/modal";
 import useProject from "@/lib/swr/use-project";
 import toast from "react-hot-toast";
@@ -95,7 +95,7 @@ function InviteTeammateModal({
               state === "inviting"
                 ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
                 : "border-black bg-black text-white hover:bg-white hover:text-black"
-            } mt-4 mb-2 flex h-10 w-full items-center justify-center rounded-md border text-sm transition-all focus:outline-none`}
+            } mb-2 mt-4 flex h-10 w-full items-center justify-center rounded-md border text-sm transition-all focus:outline-none`}
           >
             {state === "inviting" ? (
               <LoadingDots color="#808080" />

@@ -1,8 +1,9 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import BlurImage from "@/components/shared/blur-image";
-import { AlertCircleFill, LoadingDots } from "@/components/shared/icons";
+import BlurImage from "#/ui/blur-image";
+import { AlertCircleFill } from "@/components/shared/icons";
+import { LoadingDots } from "#/ui/icons";
 import { FAVICON_FOLDER } from "@/lib/constants";
 
 const title = "Password Required";
