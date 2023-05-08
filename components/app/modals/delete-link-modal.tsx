@@ -45,7 +45,7 @@ function DeleteLinkModal({
       setShowModal={setShowDeleteLinkModal}
     >
       <div className="inline-block w-full transform overflow-hidden bg-white align-middle shadow-xl transition-all sm:max-w-md sm:rounded-2xl sm:border sm:border-gray-200">
-        <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
+        <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 text-center sm:px-16">
           <BlurImage
             src={`${GOOGLE_FAVICON_URL}${apexDomain}`}
             alt={apexDomain}
@@ -54,7 +54,7 @@ function DeleteLinkModal({
             height={20}
           />
           <h3 className="text-lg font-medium">Delete {shortlink}</h3>
-          <p className="text-center text-sm text-gray-500">
+          <p className="text-sm text-gray-500">
             Warning: Deleting this link will remove all of its stats. This
             action cannot be undone.
           </p>

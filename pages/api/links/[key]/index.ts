@@ -68,7 +68,7 @@ export default withUserAuth(
         return res.status(400).json({ error: "Key already exists" });
       }
       await log(
-        `*${session.user.email}* edited a link (*dub.sh${key}*) to the ${url} ${
+        `*${session.user.email}* edited a link (*dub.sh/${key}*) to the ${url} ${
           invalidFavicon ? " but it has an invalid favicon :thinking_face:" : ""
         }`,
         "links",

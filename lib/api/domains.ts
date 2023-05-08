@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import cloudinary from "cloudinary";
-import { validDomainRegex } from "@/lib/utils";
+import { getApexDomain, validDomainRegex } from "@/lib/utils";
 
 export const validateDomain = async (domain: string) => {
   if (!domain || typeof domain !== "string") {
@@ -13,18 +13,35 @@ export const validateDomain = async (domain: string) => {
   if (!validDomain) {
     return "Invalid domain";
   }
-  const domainExists = await prisma.domain.findUnique({
+  const exists = await domainExists(domain);
+  if (exists) {
+    return "Domain is already in use.";
+  }
+  return true;
+};
+
+export const domainExists = async (domain: string) => {
+  const apexDomain = getApexDomain(`https://${domain}`);
+  const response = await prisma.domain.findFirst({
     where: {
-      slug: domain,
+      OR: [
+        // if someone tries to add "sub.domain.com" but "domain.com" is already in use
+        {
+          slug: apexDomain,
+        },
+        // if someone tries to add "domain.com" but "sub.domain.com" is already in use
+        {
+          slug: {
+            endsWith: `.${apexDomain}`,
+          },
+        },
+      ],
     },
     select: {
       slug: true,
     },
   });
-  if (domainExists) {
-    return "Domain is already in use.";
-  }
-  return true;
+  return response ? true : false;
 };
 
 interface CustomResponse extends Response {
