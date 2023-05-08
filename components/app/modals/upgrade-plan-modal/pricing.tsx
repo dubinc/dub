@@ -12,8 +12,10 @@ import { LoadingDots } from "#/ui/icons";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import Switch from "#/ui/switch";
 import Tooltip from "#/ui/tooltip";
+import { getStripe } from "@/lib/stripe/client";
 import { PLANS } from "@/lib/stripe/constants";
 import { capitalize, nFormatter } from "@/lib/utils";
+import useProject from "@/lib/swr/use-project";
 
 const pricingItems = [
   {
@@ -122,6 +124,10 @@ const Pricing = ({ homePage }: { homePage?: boolean }) => {
     () => (annualBilling ? "yearly" : "monthly"),
     [annualBilling],
   );
+  const { plan: currentPlan, slug } = useProject();
+  const [clicked, setClicked] = useState(false);
+  const env =
+    process.env.NEXT_PUBLIC_VERCEL_ENV === "production" ? "production" : "test";
 
   return (
     <MaxWidthWrapper className="my-20 text-center">
@@ -163,18 +169,19 @@ const Pricing = ({ homePage }: { homePage?: boolean }) => {
           const price =
             PLANS.find((p) => p.slug === plan.toLowerCase())?.price[period]
               .amount || 0;
+          const highlighted = currentPlan && currentPlan === plan.toLowerCase();
           return (
             <div
               key={plan}
               className={`relative rounded-2xl bg-white ${
-                plan === "Pro"
+                highlighted
                   ? "border-2 border-blue-600 shadow-blue-200"
                   : "border border-gray-200"
               } shadow-lg`}
             >
-              {plan === "Pro" && (
+              {highlighted && (
                 <div className="absolute -top-5 left-0 right-0 mx-auto w-32 rounded-full bg-gradient-to-r from-blue-600 to-cyan-600 px-3 py-2 text-sm font-medium text-white">
-                  Popular
+                  {currentPlan ? "Current Plan" : "Popular"}
                 </div>
               )}
 
@@ -239,16 +246,47 @@ const Pricing = ({ homePage }: { homePage?: boolean }) => {
               </ul>
               <div className="border-t border-gray-200" />
               <div className="p-5">
-                <Link
-                  href="https://app.dub.sh/register"
+                <button
+                  disabled={clicked || highlighted}
+                  onClick={() => {
+                    setClicked(true);
+                    fetch(
+                      `/api/projects/${slug}/billing/upgrade?priceId=${
+                        PLANS.find((p) => p.slug === plan.toLowerCase())!.price[
+                          period
+                        ].priceIds[env]
+                      }`,
+                      {
+                        method: "POST",
+                      },
+                    )
+                      .then(async (res) => {
+                        const data = await res.json();
+                        const { id: sessionId } = data;
+                        const stripe = await getStripe();
+                        stripe?.redirectToCheckout({ sessionId });
+                      })
+                      .catch((err) => {
+                        alert(err);
+                        setClicked(false);
+                      });
+                  }}
                   className={`${
-                    plan === "Pro"
-                      ? "border border-transparent bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:border-blue-700 hover:bg-white hover:bg-clip-text hover:text-transparent"
-                      : "border border-gray-200 bg-black text-white hover:border-black hover:bg-white hover:text-black"
-                  } block w-full rounded-full py-2 font-medium transition-all`}
+                    clicked || highlighted
+                      ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
+                      : "border-blue-500 bg-blue-500 text-white hover:bg-white hover:text-blue-500"
+                  } mb-2 flex h-10 w-full items-center justify-center rounded-md border text-sm transition-all focus:outline-none`}
                 >
-                  {cta}
-                </Link>
+                  {clicked ? (
+                    <LoadingDots color="#808080" />
+                  ) : (
+                    <p>
+                      {highlighted
+                        ? "Current Plan"
+                        : `Upgrade to ${plan} ${capitalize(period)}`}
+                    </p>
+                  )}
+                </button>
               </div>
             </div>
           );

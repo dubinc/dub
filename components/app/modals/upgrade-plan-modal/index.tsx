@@ -6,7 +6,7 @@ import {
   useState,
 } from "react";
 import Modal from "@/components/shared/modal";
-import Pricing from "#/ui/home/pricing";
+import Pricing from "./pricing";
 
 function UpgradePlanModal({
   showUpgradePlanModal,
