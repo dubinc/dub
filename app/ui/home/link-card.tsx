@@ -192,6 +192,7 @@ export default function LinkCard({
           onClick={() => setShowAddEditLinkModal(true)}
           className="rounded-md px-1 py-2 transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
         >
+          <span className="sr-only">Edit</span>
           <ThreeDots className="h-5 w-5 text-gray-500" />
         </button>
       </motion.div>

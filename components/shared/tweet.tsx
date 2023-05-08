@@ -171,6 +171,7 @@ export default function Tweet({
               </div>
             </div>
             <a href={tweetUrl} target="_blank" rel="noreferrer">
+              <span className="sr-only">Link to tweet</span>
               <Twitter className="h-5 w-5 text-[#3BA9EE] transition-all ease-in-out hover:scale-105" />
             </a>
           </div>

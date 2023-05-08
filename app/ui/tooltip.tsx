@@ -44,6 +44,7 @@ export default function Tooltip({
         className={`${fullWidth ? "w-full" : "inline-flex"} sm:hidden`}
         onClick={() => setOpenTooltip(true)}
       >
+        <span className="sr-only">Open tooltip</span>
         {children}
       </button>
       <AnimatePresence>

@@ -8,12 +8,11 @@ import {
   QuestionCircle,
   XCircleFill,
 } from "@/components/shared/icons";
-import { LoadingDots } from "#/ui/icons";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import Switch from "#/ui/switch";
 import Tooltip from "#/ui/tooltip";
 import { PLANS } from "@/lib/stripe/constants";
-import { capitalize, nFormatter } from "@/lib/utils";
+import { nFormatter } from "@/lib/utils";
 
 const pricingItems = [
   {
