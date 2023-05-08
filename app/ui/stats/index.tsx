@@ -16,7 +16,6 @@ import Feedback from "./feedback";
 import Locations from "./locations";
 import Referer from "./referer";
 import Toggle from "./toggle";
-import useScroll from "#/lib/hooks/use-scroll";
 
 export const StatsContext = createContext<{
   basePath: string;
@@ -41,9 +40,6 @@ export default function Stats({
   staticDomain?: string;
   staticKey?: string;
 }) {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const scrolled = useScroll(80, ref);
-
   const params = useParams();
   const searchParams = useSearchParams() || new URLSearchParams();
   const pathname = usePathname();
@@ -106,8 +102,8 @@ export default function Stats({
         key, // link key (e.g. github, weathergpt, etc.)
       }}
     >
-      <div ref={ref} className="bg-gray-50 py-10">
-        <Toggle scrolled={scrolled} />
+      <div className="bg-gray-50 py-10">
+        <Toggle />
         <div className="mx-auto grid max-w-4xl gap-5">
           <Clicks />
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">

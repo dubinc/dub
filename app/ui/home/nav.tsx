@@ -14,7 +14,7 @@ export default function Nav() {
 
   return (
     <div
-      className={clsx(`sticky inset-x-0 top-0 z-20 w-full transition-all`, {
+      className={clsx(`sticky inset-x-0 top-0 z-30 w-full transition-all`, {
         "border-b border-gray-200 bg-white/75 backdrop-blur-lg": scrolled,
         "border-b border-gray-200 bg-white":
           segment && !transparentHeaderSegments.has(segment),

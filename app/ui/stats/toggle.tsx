@@ -17,8 +17,9 @@ import { toast } from "react-hot-toast";
 import Switch from "#/ui/switch";
 import Link from "next/link";
 import { StatsContext } from ".";
+import useScroll from "#/lib/hooks/use-scroll";
 
-export default function Toggle({ scrolled }: { scrolled: boolean }) {
+export default function Toggle() {
   const { basePath, domain, interval, key } = useContext(StatsContext);
 
   const [openDatePopover, setOpenDatePopover] = useState(false);
@@ -27,10 +28,12 @@ export default function Toggle({ scrolled }: { scrolled: boolean }) {
     return INTERVALS.find((s) => s.slug === interval) || INTERVALS[1];
   }, [interval]);
 
+  const scrolled = useScroll(80);
+
   return (
     <div
       className={`z-20 mb-5 ${
-        basePath.startsWith("/stats") ? "top-0" : "top-[6.95rem]"
+        basePath.startsWith("/stats") ? "top-16" : "top-[6.95rem]"
       } sticky bg-gray-50 py-3 sm:py-5 ${scrolled ? "shadow-md" : ""}`}
     >
       <div className="mx-auto flex max-w-4xl flex-col items-center justify-between space-y-3 px-2.5 sm:flex-row sm:space-y-0 lg:px-0">

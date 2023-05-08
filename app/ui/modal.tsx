@@ -5,11 +5,12 @@ import {
   SetStateAction,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
 } from "react";
+import { useRouter } from "next/navigation";
 import FocusTrap from "focus-trap-react";
 import { AnimatePresence, motion, useAnimation } from "framer-motion";
-import { useRouter } from "next/navigation";
 
 export default function Modal({
   children,
@@ -20,8 +21,8 @@ export default function Modal({
   mobileOnly,
 }: {
   children: React.ReactNode;
-  showModal: boolean;
-  setShowModal: Dispatch<SetStateAction<boolean>>;
+  showModal?: boolean;
+  setShowModal?: Dispatch<SetStateAction<boolean>>;
   bgColor?: string;
   closeWithX?: boolean;
   mobileOnly?: boolean;
@@ -35,15 +36,19 @@ export default function Modal({
       if (closeWithX) {
         return;
       } else {
-        setShowModal(false);
+        if (setShowModal) {
+          setShowModal(false);
+        } else {
+          router.back();
+        }
       }
     },
-    [router, setShowModal],
+    [setShowModal, router],
   );
 
   const onKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === "Escape" && !closeWithX) {
-      setShowModal(false);
+    if (e.key === "Escape") {
+      closeModal(closeWithX);
     }
   }, []);
 
@@ -75,7 +80,7 @@ export default function Modal({
 
   return (
     <AnimatePresence>
-      {showModal && (
+      {(setShowModal ? showModal : true) && (
         <FocusTrap focusTrapOptions={{ initialFocus: false }}>
           <div className="absolute">
             <motion.div
