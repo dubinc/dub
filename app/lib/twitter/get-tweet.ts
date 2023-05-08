@@ -1,8 +1,6 @@
-import { stringify as queryStringify } from "querystring";
-
 import { getTwitterMedia } from "./twitter-media";
 
-const queryParams = queryStringify({
+const queryParams = new URLSearchParams({
   expansions:
     "author_id,attachments.media_keys,referenced_tweets.id,referenced_tweets.id.author_id,attachments.poll_ids",
   "tweet.fields":
@@ -11,7 +9,7 @@ const queryParams = queryStringify({
   "media.fields":
     "duration_ms,height,media_key,preview_image_url,type,url,width,public_metrics",
   "poll.fields": "duration_minutes,end_datetime,id,options,voting_status",
-});
+}).toString();
 
 export const getTweet = async (id: string) => {
   try {
