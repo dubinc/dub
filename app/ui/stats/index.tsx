@@ -8,7 +8,7 @@
   We use the `useEndpoint()` hook to get the correct layout
 */
 
-import { createContext, useMemo, useRef } from "react";
+import { createContext, useCallback, useMemo, useRef, useState } from "react";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
 import Clicks from "./clicks";
 import Devices from "./devices";
@@ -16,6 +16,7 @@ import Feedback from "./feedback";
 import Locations from "./locations";
 import Referer from "./referer";
 import Toggle from "./toggle";
+import useScroll from "#/lib/hooks/use-scroll";
 
 export const StatsContext = createContext<{
   basePath: string;
@@ -24,6 +25,7 @@ export const StatsContext = createContext<{
   interval: string;
   domain: string;
   key: string;
+  modal?: boolean;
 }>({
   basePath: "",
   endpoint: "",
@@ -31,14 +33,17 @@ export const StatsContext = createContext<{
   interval: "",
   domain: "",
   key: "",
+  modal: false,
 });
 
 export default function Stats({
   staticDomain,
   staticKey,
+  modal,
 }: {
   staticDomain?: string;
   staticKey?: string;
+  modal?: boolean;
 }) {
   const params = useParams();
   const searchParams = useSearchParams() || new URLSearchParams();
@@ -100,6 +105,7 @@ export default function Stats({
         queryString, // query string for the API (e.g. ?interval=24h&domain=dub.sh, ?interval=24h, etc.)
         interval, // time interval (e.g. 24h, 7d, 30d, etc.)
         key, // link key (e.g. github, weathergpt, etc.)
+        modal, // whether or not this is a modal
       }}
     >
       <div className="bg-gray-50 py-10">

@@ -20,7 +20,7 @@ import { StatsContext } from ".";
 import useScroll from "#/lib/hooks/use-scroll";
 
 export default function Toggle() {
-  const { basePath, domain, interval, key } = useContext(StatsContext);
+  const { basePath, domain, interval, key, modal } = useContext(StatsContext);
 
   const [openDatePopover, setOpenDatePopover] = useState(false);
 
@@ -33,8 +33,12 @@ export default function Toggle() {
   return (
     <div
       className={`z-20 mb-5 ${
-        basePath.startsWith("/stats") ? "top-0 md:top-16" : "top-[6.95rem]"
-      } sticky bg-gray-50 py-3 md:py-5 ${scrolled ? "shadow-md" : ""}`}
+        basePath.startsWith("/stats")
+          ? `top-0 ${!modal ? "md:top-16" : ""}`
+          : "top-[6.95rem]"
+      } sticky bg-gray-50 py-3 md:py-5 ${
+        scrolled && !modal ? "shadow-md" : ""
+      }`}
     >
       <div className="mx-auto flex max-w-4xl flex-col items-center justify-between space-y-3 px-2.5 md:flex-row md:space-y-0 lg:px-0">
         <a
