@@ -2,7 +2,7 @@
 
 import BlurImage from "#/ui/blur-image";
 import { nFormatter, truncate } from "@/lib/utils";
-import { Heart, Message, Repeat, Twitter } from "./icons";
+import { Heart, Message, Repeat, Twitter } from "@/components/shared/icons";
 import Tilt from "react-parallax-tilt";
 
 function getRemainingTime(ISOString: Date) {

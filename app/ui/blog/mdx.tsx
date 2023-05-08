@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMDXComponent } from "next-contentlayer/hooks";
-import Tweet from "../../../components/shared/tweet";
+import Tweet from "../tweet";
 import GithubRepo, { GithubRepoProps } from "@/components/shared/github-repo";
 import BlurImage from "#/ui/blur-image";
 

@@ -1,8 +1,8 @@
 import prisma from "@/lib/prisma";
 import { nFormatter } from "@/lib/utils";
-import getTweetsMetadata, { homepageTweets } from "@/lib/twitter";
+import getTweetsMetadata, { homepageTweets } from "#/lib/twitter";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
-import Tweet from "@/components/shared/tweet";
+import Tweet from "#/ui/tweet";
 
 export default async function Testimonials() {
   const userCount = process.env.DATABASE_URL ? await prisma.user.count() : 5000;
