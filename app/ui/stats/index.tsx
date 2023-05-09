@@ -9,7 +9,12 @@
 */
 
 import { createContext, useCallback, useMemo, useRef, useState } from "react";
-import { useParams, usePathname, useSearchParams } from "next/navigation";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import Clicks from "./clicks";
 import Devices from "./devices";
 import Feedback from "./feedback";
@@ -17,6 +22,7 @@ import Locations from "./locations";
 import Referer from "./referer";
 import Toggle from "./toggle";
 import useScroll from "#/lib/hooks/use-scroll";
+import { X } from "lucide-react";
 
 export const StatsContext = createContext<{
   basePath: string;
@@ -48,6 +54,7 @@ export default function Stats({
   const params = useParams();
   const searchParams = useSearchParams() || new URLSearchParams();
   const pathname = usePathname();
+  const router = useRouter();
 
   let {
     slug,
@@ -108,6 +115,15 @@ export default function Stats({
         modal, // whether or not this is a modal
       }}
     >
+      {modal && (
+        <button
+          className="group sticky right-4 top-4 z-30 float-right hidden rounded-full p-3 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:scale-75 md:block"
+          autoFocus={false}
+          onClick={() => router.back()}
+        >
+          <X className="h-6 w-6" />
+        </button>
+      )}
       <div className="bg-gray-50 py-10">
         <Toggle />
         <div className="mx-auto grid max-w-4xl gap-5">
