@@ -1,10 +1,9 @@
-import Link from "next/link";
 import { Github, Twitter } from "@/components/shared/icons";
 
 const Hero = () => {
   return (
     <div className="mx-auto mb-10 mt-20 max-w-md px-2.5 text-center sm:max-w-lg sm:px-0">
-      <Link
+      <a
         href="https://dub.sh/launch"
         target="_blank"
         rel="noreferrer"
@@ -14,7 +13,7 @@ const Hero = () => {
         <p className="text-sm font-semibold text-[#1d9bf0]">
           Introducing Dub.sh
         </p>
-      </Link>
+      </a>
 
       <h1 className="mt-5 font-display text-4xl font-extrabold leading-[1.15] text-black sm:text-6xl sm:leading-[1.15]">
         Short Links With
@@ -29,13 +28,13 @@ const Hero = () => {
       </h2>
 
       <div className="mx-auto mt-10 flex max-w-fit space-x-4">
-        <Link
+        <a
           href="https://app.dub.sh/register"
           className="rounded-full border border-black bg-black px-5 py-2 text-sm text-white shadow-lg transition-all hover:bg-white hover:text-black"
         >
           Start For Free
-        </Link>
-        <Link
+        </a>
+        <a
           className="flex items-center justify-center space-x-2 rounded-full border border-gray-300 bg-white px-5 py-2 shadow-lg transition-all hover:border-gray-800"
           href="https://dub.sh/github"
           target="_blank"
@@ -43,7 +42,7 @@ const Hero = () => {
         >
           <Github className="h-5 w-5 text-black" />
           <p className="text-sm">Star on GitHub</p>
-        </Link>
+        </a>
       </div>
     </div>
   );
