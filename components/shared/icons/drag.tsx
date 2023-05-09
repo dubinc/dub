@@ -1,3 +1,5 @@
+"use client";
+
 export default function Drag({ className }: { className: string }) {
   return (
     <svg

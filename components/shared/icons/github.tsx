@@ -1,3 +1,5 @@
+"use client";
+
 export default function Github({ className }: { className?: string }) {
   return (
     <svg

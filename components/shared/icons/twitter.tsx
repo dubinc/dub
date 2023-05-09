@@ -1,3 +1,5 @@
+"use client";
+
 export default function Twitter({ className }: { className?: string }) {
   return (
     <svg
