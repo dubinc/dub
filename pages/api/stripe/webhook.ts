@@ -140,7 +140,7 @@ export default async function webhookHandler(
             pipeline.del(`root:${domain}`);
           });
 
-          const response = await Promise.all([
+          await Promise.all([
             prisma.project.update({
               where: {
                 stripeId,
@@ -152,7 +152,9 @@ export default async function webhookHandler(
             }),
             pipeline.exec(),
             log(
-              ":cry: Project *`" + name + "`* deleted their subscription",
+              ":cry: Project *`" +
+                project.name +
+                "`* deleted their subscription",
               "cron",
               true,
             ),
