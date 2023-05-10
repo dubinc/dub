@@ -19,7 +19,7 @@ import { getApexDomain, linkConstructor } from "@/lib/utils";
 import IconMenu from "@/components/shared/icon-menu";
 import { Download, Photo } from "@/components/shared/icons";
 import Popover from "@/components/shared/popover";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { GOOGLE_FAVICON_URL } from "@/lib/constants";
 
 function LinkQRModalHelper({
@@ -153,8 +153,8 @@ function LinkQRModalHelper({
             <button
               onClick={async () => {
                 toast.promise(copyToClipboard(), {
-                  loading: "Copying...",
-                  success: "Copied!",
+                  loading: "Copying QR code to clipboard...",
+                  success: "Copied QR code to clipboard!",
                   error: "Failed to copy",
                 });
               }}

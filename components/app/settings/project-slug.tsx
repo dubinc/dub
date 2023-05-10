@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { LoadingDots } from "#/ui/icons";
 import { mutate } from "swr";
 
@@ -35,7 +35,7 @@ export default function ProjectSlug() {
           if (res.status === 200) {
             mutate("/api/projects");
             router.push(`/${newSlug}/settings`);
-            toast.success("Successfully updated project slug");
+            toast.success("Successfully updated project slug!");
           } else if (res.status === 422) {
             toast.error("Project slug already exists");
           } else {

@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { LoadingDots } from "#/ui/icons";
 import useProject from "@/lib/swr/use-project";
 import { mutate } from "swr";
@@ -37,7 +37,7 @@ export default function ProjectName() {
           if (res.status === 200) {
             mutate("/api/projects");
             mutate(`/api/projects/${slug}`);
-            toast.success("Successfully updated project name");
+            toast.success("Successfully updated project name!");
           }
         });
       }}

@@ -155,8 +155,8 @@ function LinkQRModalHelper({
             <button
               onClick={async () => {
                 toast.promise(copyToClipboard, {
-                  loading: "Copying...",
-                  success: "Copied!",
+                  loading: "Copying QR code to clipboard...",
+                  success: "Copied QR code to clipboard!",
                   error: "Failed to copy",
                 });
               }}

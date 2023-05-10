@@ -9,7 +9,7 @@ import { getFirstAndLastDay, nFormatter } from "@/lib/utils";
 import useProject from "@/lib/swr/use-project";
 import useDomains from "@/lib/swr/use-domains";
 import PlanBadge from "./plan-badge";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 import { mutate } from "swr";
 import va from "@vercel/analytics";
 

@@ -13,7 +13,7 @@ import IconMenu from "@/components/shared/icon-menu";
 import Popover from "#/ui/popover";
 import useSWR, { mutate } from "swr";
 import { fetcher } from "@/lib/utils";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 import Switch from "#/ui/switch";
 import Link from "next/link";
 import { StatsContext } from ".";

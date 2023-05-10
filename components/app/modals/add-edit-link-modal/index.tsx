@@ -33,7 +33,7 @@ import Preview from "./preview";
 import AndroidSection from "./android-section";
 import { DEFAULT_LINK_PROPS, GOOGLE_FAVICON_URL } from "@/lib/constants";
 import useDomains from "@/lib/swr/use-domains";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 import va from "@vercel/analytics";
 import punycode from "punycode/";
 import Button from "#/ui/button";
@@ -336,7 +336,7 @@ function AddEditLinkModal({
                           }),
                         )
                         .then(() => {
-                          toast.success("Copied shortlink to clipboard");
+                          toast.success("Copied shortlink to clipboard!");
                         });
                     }
                     setShowAddEditLinkModal(false);

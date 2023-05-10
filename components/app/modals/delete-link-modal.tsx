@@ -12,7 +12,7 @@ import { LoadingDots } from "#/ui/icons";
 import Modal from "@/components/shared/modal";
 import { LinkProps } from "@/lib/types";
 import { getApexDomain, getQueryString, linkConstructor } from "@/lib/utils";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 import { GOOGLE_FAVICON_URL } from "@/lib/constants";
 
 function DeleteLinkModal({
@@ -94,6 +94,7 @@ function DeleteLinkModal({
                   { revalidate: true },
                 );
                 setShowDeleteLinkModal(false);
+                toast.success("Deleted shortlink!");
               } else {
                 const { error } = await res.json();
                 toast.error(error);

@@ -6,7 +6,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { mutate } from "swr";
 import BlurImage from "#/ui/blur-image";
 import { LoadingDots } from "#/ui/icons";

@@ -12,7 +12,7 @@ import BlurImage from "#/ui/blur-image";
 import { LoadingDots } from "#/ui/icons";
 import Modal from "@/components/shared/modal";
 import useProject from "@/lib/swr/use-project";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 function AcceptInviteModal({
   showAcceptInviteModal,

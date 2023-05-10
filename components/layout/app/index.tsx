@@ -2,7 +2,6 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { ReactNode, useEffect, useState } from "react";
-import { Toaster } from "react-hot-toast";
 import { Divider, Logo } from "@/components/shared/icons";
 import Meta from "../meta";
 import ProjectSelect from "./project-select";
@@ -68,12 +67,11 @@ export default function AppLayout({
   return (
     <div>
       <Meta />
-      <Toaster />
       {showProBanner && <ProBanner setShowProBanner={setShowProBanner} />}
       <div
         className={`min-h-screen w-full ${bgWhite ? "bg-white" : "bg-gray-50"}`}
       >
-        <div className="sticky top-0 left-0 right-0 z-30 border-b border-gray-200 bg-white">
+        <div className="sticky left-0 right-0 top-0 z-30 border-b border-gray-200 bg-white">
           <div className="mx-auto max-w-screen-xl px-2.5 md:px-20">
             <div className="flex h-16 items-center justify-between">
               <div className="flex items-center">

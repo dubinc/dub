@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Toaster } from "react-hot-toast";
 import LinkCard from "#/ui/home/link-card";
 import PlaceholderCard from "#/ui/home/placeholder-card";
 import { LoadingDots } from "#/ui/icons";
@@ -21,7 +20,6 @@ const Demo = () => {
 
   return (
     <div className="mx-auto w-full max-w-md px-2.5 sm:px-0">
-      <Toaster />
       <form
         onSubmit={async (e) => {
           e.preventDefault();

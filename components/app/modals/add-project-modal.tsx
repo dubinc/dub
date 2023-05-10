@@ -16,6 +16,7 @@ import Modal from "@/components/shared/modal";
 import { generateDomainFromName } from "@/lib/utils";
 import va from "@vercel/analytics";
 import Button from "#/ui/button";
+import { toast } from "sonner";
 
 function AddProjectModalHelper({
   showAddProjectModal,
@@ -116,6 +117,7 @@ function AddProjectModalHelper({
                 va.track("Created Project");
                 mutate("/api/projects");
                 router.push(`/${slug}`);
+                toast.success("Successfully created project!");
               } else if (res.status === 422) {
                 const {
                   slugError: slugErrorResponse,

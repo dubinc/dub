@@ -15,7 +15,7 @@ import IconMenu from "@/components/shared/icon-menu";
 import Popover from "@/components/shared/popover";
 import useSWR, { mutate } from "swr";
 import { fetcher } from "@/lib/utils";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 import Switch from "#/ui/switch";
 import useEndpoint from "@/lib/hooks/use-endpoint";
 

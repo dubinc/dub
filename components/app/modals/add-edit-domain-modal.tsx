@@ -19,6 +19,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { SWIPE_REVEAL_ANIMATION_SETTINGS } from "@/lib/constants";
 import Switch from "#/ui/switch";
 import Button from "#/ui/button";
+import { toast } from "sonner";
 
 function AddEditDomainModal({
   showAddEditDomainModal,
@@ -92,11 +93,13 @@ function AddEditDomainModal({
       return {
         method: "PUT",
         url: `/api/projects/${slug}/domains/${domain}`,
+        successMessage: "Successfully updated domain!",
       };
     } else {
       return {
         method: "POST",
         url: `/api/projects/${slug}/domains`,
+        successMessage: "Successfully added domain!",
       };
     }
   }, [props]);
@@ -110,6 +113,7 @@ function AddEditDomainModal({
       if (res.status === 200) {
         mutate(`/api/projects/${slug}/domains`);
         setShowAddEditDomainModal(false);
+        toast.success("Successfully deleted domain!");
       } else {
         setDomainError("Something went wrong. Please try again.");
       }
@@ -150,6 +154,7 @@ function AddEditDomainModal({
               if (res.status === 200) {
                 mutate(`/api/projects/${slug}/domains`);
                 setShowAddEditDomainModal(false);
+                toast.success(endpoint.successMessage);
               } else if (res.status === 422) {
                 const { domainError: domainErrorResponse } = await res.json();
                 if (domainErrorResponse) {
