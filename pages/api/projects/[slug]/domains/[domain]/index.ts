@@ -1,5 +1,9 @@
 import { withProjectAuth } from "@/lib/auth";
-import { addDomain, removeDomain, validateDomain } from "@/lib/api/domains";
+import {
+  addDomainToVercel,
+  removeDomainFromVercel,
+  validateDomain,
+} from "@/lib/api/domains";
 import prisma from "@/lib/prisma";
 import {
   changeDomainForImages,
@@ -37,8 +41,8 @@ export default withProjectAuth(async (req, res, project) => {
   if (req.method === "PUT") {
     const { slug: newDomain, target, type, primary } = req.body;
 
-    const validDomain = await validateDomain(newDomain);
-    if (!validDomain) {
+    const validDomain = await validateDomain(newDomain, project.id);
+    if (validDomain !== true) {
       return res.status(422).json({
         domainError: validDomain,
       });
@@ -52,8 +56,9 @@ export default withProjectAuth(async (req, res, project) => {
       //  4. Update all images in the project to point to the new domain
       ...(newDomain !== domain
         ? [
-            removeDomain(domain),
-            addDomain(newDomain),
+            removeDomainFromVercel(domain).then(() =>
+              addDomainToVercel(newDomain),
+            ),
             changeDomainForLinks(domain, newDomain),
             changeDomainForImages(domain, newDomain),
           ]
@@ -104,7 +109,7 @@ export default withProjectAuth(async (req, res, project) => {
     // DELETE /api/projects/[slug]/domains/[domain] delete a project's domain
   } else if (req.method === "DELETE") {
     const response = await Promise.allSettled([
-      removeDomain(domain),
+      removeDomainFromVercel(domain),
       deleteDomainLinks(domain),
       prisma.domain.delete({
         where: {

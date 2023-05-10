@@ -1,5 +1,5 @@
 import { withProjectAuth } from "@/lib/auth";
-import { removeDomain, deleteDomainLinks } from "@/lib/api/domains";
+import { removeDomainFromVercel, deleteDomainLinks } from "@/lib/api/domains";
 import prisma from "@/lib/prisma";
 
 export default withProjectAuth(async (req, res, project) => {
@@ -51,7 +51,7 @@ export default withProjectAuth(async (req, res, project) => {
           slug,
         },
       }),
-      ...domains.map((domain) => removeDomain(domain)),
+      ...domains.map((domain) => removeDomainFromVercel(domain)),
       ...domains.map((domain) => deleteDomainLinks(domain)),
     ]);
 

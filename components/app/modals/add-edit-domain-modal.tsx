@@ -18,7 +18,6 @@ import useProject from "@/lib/swr/use-project";
 import { AnimatePresence, motion } from "framer-motion";
 import { SWIPE_REVEAL_ANIMATION_SETTINGS } from "@/lib/constants";
 import Switch from "#/ui/switch";
-import useDomains from "@/lib/swr/use-domains";
 import Button from "#/ui/button";
 
 function AddEditDomainModal({
@@ -33,7 +32,6 @@ function AddEditDomainModal({
   const router = useRouter();
   const { slug } = router.query;
   const { logo, plan } = useProject();
-  const { domains } = useDomains();
 
   const [data, setData] = useState<DomainProps>(
     props || {

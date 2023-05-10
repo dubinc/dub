@@ -1,9 +1,13 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { Session, withUserAuth } from "@/lib/auth";
 import { DEFAULT_REDIRECTS } from "@/lib/constants";
-import { addDomain, domainExists, validateDomain } from "@/lib/api/domains";
+import {
+  addDomainToVercel,
+  domainExists,
+  validateDomain,
+} from "@/lib/api/domains";
 import prisma from "@/lib/prisma";
-import { getApexDomain, isReservedKey } from "@/lib/utils";
+import { isReservedKey } from "@/lib/utils";
 
 export default withUserAuth(
   async (req: NextApiRequest, res: NextApiResponse, session: Session) => {
@@ -38,7 +42,7 @@ export default withUserAuth(
         slugError = "Cannot use reserved slugs";
       }
       const validDomain = await validateDomain(domain);
-      if (slugError || !validDomain) {
+      if (slugError || validDomain !== true) {
         return res.status(422).json({
           slugError,
           domainError: validDomain || "Invalid domain",
@@ -81,7 +85,7 @@ export default withUserAuth(
             billingCycleStart: new Date().getDate(),
           },
         }),
-        addDomain(domain),
+        addDomainToVercel(domain),
       ]);
 
       return res.status(200).json(response);

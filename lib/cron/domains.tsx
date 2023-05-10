@@ -2,7 +2,7 @@ import sendMail from "emails";
 import InvalidDomain from "emails/InvalidDomain";
 import DomainDeleted from "emails/DomainDeleted";
 import { log } from "@/lib/utils";
-import { removeDomain } from "@/lib/api/domains";
+import { removeDomainFromVercel } from "@/lib/api/domains";
 import prisma from "@/lib/prisma";
 import { redis } from "../upstash";
 
@@ -78,7 +78,7 @@ export const handleDomainUpdates = async ({
     // only delete if there are no links associated with the domain
     if (linksCount === 0) {
       return await Promise.all([
-        removeDomain(domain), // remove domain from Vercel project
+        removeDomainFromVercel(domain), // remove domain from Vercel project
         redis.del(`root:${domain}`), // there are no links anyway, so you can just delete the root domain from redis if exists
         prisma.domain.delete({
           where: {

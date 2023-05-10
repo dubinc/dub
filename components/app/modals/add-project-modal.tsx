@@ -60,14 +60,12 @@ function AddProjectModalHelper({
   const [debouncedDomain] = useDebounce(domain, 500);
   useEffect(() => {
     if (debouncedDomain.length > 0) {
-      fetch(`/api/projects/dub.sh/domains/${debouncedDomain}/exists`).then(
-        async (res) => {
-          if (res.status === 200) {
-            const exists = await res.json();
-            setDomainError(exists === 1 ? "Domain is already in use." : null);
-          }
-        },
-      );
+      fetch(`/api/domains/${debouncedDomain}/exists`).then(async (res) => {
+        if (res.status === 200) {
+          const exists = await res.json();
+          setDomainError(exists === 1 ? "Domain is already in use." : null);
+        }
+      });
     } else {
       setDomainError(null);
     }

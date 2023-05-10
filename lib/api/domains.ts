@@ -3,7 +3,10 @@ import { redis } from "@/lib/upstash";
 import cloudinary from "cloudinary";
 import { getApexDomain, validDomainRegex } from "@/lib/utils";
 
-export const validateDomain = async (domain: string) => {
+export const validateDomain = async (
+  domain: string,
+  projectId?: string | null,
+) => {
   if (!domain || typeof domain !== "string") {
     return "Missing domain";
   }
@@ -13,14 +16,17 @@ export const validateDomain = async (domain: string) => {
   if (!validDomain) {
     return "Invalid domain";
   }
-  const exists = await domainExists(domain);
+  const exists = await domainExists(domain, projectId);
   if (exists) {
     return "Domain is already in use.";
   }
   return true;
 };
 
-export const domainExists = async (domain: string) => {
+export const domainExists = async (
+  domain: string,
+  projectId?: string | null,
+) => {
   const apexDomain = getApexDomain(`https://${domain}`);
   const response = await prisma.domain.findFirst({
     where: {
@@ -39,9 +45,16 @@ export const domainExists = async (domain: string) => {
     },
     select: {
       slug: true,
+      ...(projectId && { projectId: true }),
     },
   });
-  return response ? true : false;
+  if (response) {
+    if (projectId && response.projectId === projectId) {
+      return false;
+    }
+    return true;
+  }
+  return false;
 };
 
 interface CustomResponse extends Response {
@@ -49,7 +62,9 @@ interface CustomResponse extends Response {
   error?: { code: string; projectId: string; message: string };
 }
 
-export const addDomain = async (domain: string): Promise<CustomResponse> => {
+export const addDomainToVercel = async (
+  domain: string,
+): Promise<CustomResponse> => {
   return await fetch(
     `https://api.vercel.com/v9/projects/${process.env.PROJECT_ID_VERCEL}/domains?teamId=${process.env.TEAM_ID_VERCEL}`,
     {
@@ -63,16 +78,47 @@ export const addDomain = async (domain: string): Promise<CustomResponse> => {
   ).then((res) => res.json());
 };
 
-export const removeDomain = async (domain: string) => {
-  return await fetch(
-    `https://api.vercel.com/v6/domains/${domain}?teamId=${process.env.TEAM_ID_VERCEL}`,
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN}`,
-      },
-      method: "DELETE",
+export const removeDomainFromVercel = async (domain: string) => {
+  const apexDomain = getApexDomain(`https://${domain}`);
+  const domainCount = await prisma.domain.count({
+    where: {
+      OR: [
+        {
+          slug: apexDomain,
+        },
+        {
+          slug: {
+            endsWith: `.${apexDomain}`,
+          },
+        },
+      ],
     },
-  ).then((res) => res.json());
+  });
+  if (domainCount > 1) {
+    // the apex domain is being used by other domains
+    // so we should only remove it from our Vercel project
+    return await fetch(
+      `https://api.vercel.com/v9/projects/${process.env.PROJECT_ID_VERCEL}/domains/${domain}?teamId=${process.env.TEAM_ID_VERCEL}`,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN}`,
+        },
+        method: "DELETE",
+      },
+    ).then((res) => res.json());
+  } else {
+    // this is the only domain using this apex domain
+    // so we can remove it entirely from our Vercel team
+    return await fetch(
+      `https://api.vercel.com/v6/domains/${domain}?teamId=${process.env.TEAM_ID_VERCEL}`,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN}`,
+        },
+        method: "DELETE",
+      },
+    ).then((res) => res.json());
+  }
 };
 
 export const getDomainResponse = async (domain: string) => {

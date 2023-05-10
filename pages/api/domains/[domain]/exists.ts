@@ -1,12 +1,14 @@
-import { withProjectAuth } from "@/lib/auth";
+import { withUserAuth } from "@/lib/auth";
 import { domainExists } from "@/lib/api/domains";
 
-export default withProjectAuth(async (req, res, project) => {
+export default withUserAuth(async (req, res) => {
   const { domain } = req.query as { domain: string };
 
-  // GET /api/projects/[slug]/domains/[domain]/exists – check if a domain exists
+  // GET /api/domains/[domain]/exists – check if a domain exists
+  // This is used for project creation only, if you add a domain within an existing project,
+  // use the /api/projects/[slug]/domains/[domain]/exists endpoint instead
   if (req.method === "GET") {
-    const exists = await domainExists(domain, project.id);
+    const exists = await domainExists(domain);
     if (exists) {
       return res.status(200).json(1);
     } else {

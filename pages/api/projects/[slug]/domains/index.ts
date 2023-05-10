@@ -1,6 +1,6 @@
 import { withProjectAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { addDomain, validateDomain } from "@/lib/api/domains";
+import { addDomainToVercel, validateDomain } from "@/lib/api/domains";
 import { redis } from "@/lib/upstash";
 
 export default withProjectAuth(async (req, res, project) => {
@@ -24,7 +24,7 @@ export default withProjectAuth(async (req, res, project) => {
   } else if (req.method === "POST") {
     const { slug: domain, primary, target, type } = req.body;
 
-    const validDomain = await validateDomain(domain);
+    const validDomain = await validateDomain(domain, project.id);
     if (validDomain !== true) {
       return res.status(422).json({
         domainError: validDomain,
@@ -38,7 +38,7 @@ export default withProjectAuth(async (req, res, project) => {
           4. Add the domain to the database along with its primary status
       */
     const response = await Promise.allSettled([
-      addDomain(domain),
+      addDomainToVercel(domain),
       target &&
         redis.set(`root:${domain}`, {
           target,
