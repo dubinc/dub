@@ -10,13 +10,18 @@ interface CoordinateProps {
   size: number;
 }
 
+const hasRedisEnv =
+  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN;
+
 export default async function handler(req: NextRequest) {
   if (req.method === "GET") {
     const count = 50;
     let latestCoordinates: CoordinateProps[] = [];
 
     // Check if coordinates are cached in Redis
-    const cachedCoordinates = await redis.get<CoordinateProps[]>("coordinates");
+    const cachedCoordinates =
+      hasRedisEnv && (await redis.get<CoordinateProps[]>("coordinates"));
+
     if (cachedCoordinates) {
       latestCoordinates = cachedCoordinates;
 
@@ -41,9 +46,10 @@ export default async function handler(req: NextRequest) {
       });
 
       // cache coordinates in Redis for 24 hours
-      await redis.set("coordinates", JSON.stringify(latestCoordinates), {
-        ex: 86400,
-      });
+      hasRedisEnv &&
+        (await redis.set("coordinates", JSON.stringify(latestCoordinates), {
+          ex: 86400,
+        }));
     }
 
     return new Response(JSON.stringify(latestCoordinates), {
