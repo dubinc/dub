@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { LoadingDots } from "#/ui/icons";
 import { CheckCircle } from "lucide-react";
 import { useDebouncedCallback } from "use-debounce";
+import { toast } from "sonner";
 
 export default function Feedback() {
   const [data, setData] = useState({
@@ -22,6 +23,7 @@ export default function Feedback() {
       .then((res) => res.json())
       .then(() => {
         setState("submitted");
+        toast.success("Succesfully submitted feedback!");
       });
   };
 
@@ -61,10 +63,7 @@ export default function Feedback() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <CheckCircle
-              fill="currentColor"
-              className="h-10 w-10 text-green-500"
-            />
+            <CheckCircle className="h-8 w-8 text-green-500" />
             <p className="text-gray-500">Thank you for your feedback!</p>
           </motion.div>
         ) : (

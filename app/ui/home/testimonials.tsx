@@ -5,10 +5,14 @@ import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import Tweet from "#/ui/tweet";
 
 export default async function Testimonials() {
-  const userCount = conn
-    ? // await prisma.user.count()
-      (await conn.execute("SELECT COUNT(id) FROM User")).rows[0]["count(id)"]
-    : 5000;
+  let userCount = 6000;
+  try {
+    if (conn) {
+      userCount = (await conn.execute("SELECT COUNT(id) FROM User")).rows[0][
+        "count(id)"
+      ];
+    }
+  } catch (_) {}
 
   const tweets = await getTweetsMetadata(homepageTweets);
 
