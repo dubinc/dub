@@ -3168,10 +3168,10 @@ cmd-shim@^6.0.0:
   resolved "https://registry.yarnpkg.com/cmd-shim/-/cmd-shim-6.0.0.tgz#6c4eb6437defacf0ae8e9d281d5b06749730a65b"
   integrity sha512-wx+RWLgiSU6SCDzMtxG0Dv1lsuOcEfqq5SbqAViezaJIkR5sbveKzFU31YnWhqrJx3o3Iu3H0Rq8R00OS3oI+Q==
 
-cobe@^0.6.2:
-  version "0.6.2"
-  resolved "https://registry.yarnpkg.com/cobe/-/cobe-0.6.2.tgz#dd236999ff5193d64ad780726e3023f3687b0239"
-  integrity sha512-0lU+QD18yzxsWsuTy4HB+kRYT/SugVPRx95MhfteZgD2UgEJ+6fScChroCVqIXWi5IxL0T8Ywm8avHvmOsl5xQ==
+cobe@^0.6.3:
+  version "0.6.3"
+  resolved "https://registry.yarnpkg.com/cobe/-/cobe-0.6.3.tgz#9c3d45ae3a328b7bf709eb17b02f9caff41b22f0"
+  integrity sha512-WHr7X4o1ym94GZ96h7b1pNemZJacbOzd02dZtnVwuC4oWBaLg96PBmp2rIS1SAhUDhhC/QyS9WEqkpZIs/ZBTg==
   dependencies:
     phenomenon "^1.6.0"
 
@@ -4212,10 +4212,10 @@ fraction.js@^4.2.0:
   resolved "https://registry.yarnpkg.com/fraction.js/-/fraction.js-4.2.0.tgz#448e5109a313a3527f5a3ab2119ec4cf0e0e2950"
   integrity sha512-MhLuK+2gUcnZe8ZHlaaINnQLl0xRIGRfcGk2yl8xoQAfHrSsL3rYu6FCmBdkdbhc9EPlwyGHewaRsvwRMJtAlA==
 
-framer-motion@^10.12.8:
-  version "10.12.8"
-  resolved "https://registry.yarnpkg.com/framer-motion/-/framer-motion-10.12.8.tgz#2b2c99818d9e8531165d07eef569828a3b135d51"
-  integrity sha512-ylobYq3tGFjjAmRdBs5pL/R1+4AmOm69g/JbF5DcNETfRe8L9CjaX4acG83MjYdIsbsTGJmtR5qKx4glNmXO4A==
+framer-motion@^10.12.10:
+  version "10.12.10"
+  resolved "https://registry.yarnpkg.com/framer-motion/-/framer-motion-10.12.10.tgz#39aff293d8c520f6d9a4a34bf25121a8f1a12d6d"
+  integrity sha512-f/VkrpxfG4xSmBi105/NCfcTt219IgglQEUR0BsuFZAg+be6N3QAcujFyBEvBvbDOSP9Ccv6OMiaY0HFMnBoMA==
   dependencies:
     tslib "^2.4.0"
   optionalDependencies:

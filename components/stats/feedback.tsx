@@ -65,7 +65,7 @@ export default function Feedback() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <CheckCircle className="h-10 w-10 text-green-500" />
+            <CheckCircle className="h-8 w-8 text-green-500" />
             <p className="text-gray-500">Thank you for your feedback!</p>
           </motion.div>
         ) : (
