@@ -65,9 +65,9 @@ function DeleteLinkModal({
             e.preventDefault();
             setDeleting(true);
             fetch(
-              slug
-                ? `/api/projects/${slug}/links/${props.key}?domain=${domain}`
-                : `/api/links/${props.key}`,
+              `/api/links/${encodeURIComponent(props.key)}${
+                slug ? `?slug=${slug}&domain=${domain}` : ""
+              }`,
               {
                 method: "DELETE",
                 headers: {
@@ -77,24 +77,18 @@ function DeleteLinkModal({
             ).then(async (res) => {
               setDeleting(false);
               if (res.status === 200) {
-                mutate(
-                  slug
-                    ? `/api/projects/${slug}/links${getQueryString(router)}`
-                    : `/api/links${getQueryString(router)}`,
-                );
+                mutate(`/api/links${getQueryString(router)}`);
                 mutate(
                   (key) =>
                     typeof key === "string" &&
                     key.startsWith(
-                      slug
-                        ? `/api/projects/${slug}/links/count`
-                        : `/api/links/count`,
+                      `/api/links/count${slug ? `?slug=${slug}` : ""}`,
                     ),
                   undefined,
                   { revalidate: true },
                 );
                 setShowDeleteLinkModal(false);
-                toast.success("Deleted shortlink!");
+                toast.success("Successfully deleted shortlink!");
               } else {
                 const { error } = await res.json();
                 toast.error(error);

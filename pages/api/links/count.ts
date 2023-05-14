@@ -1,24 +1,19 @@
-import { NextApiRequest, NextApiResponse } from "next";
-import { Session, withUserAuth } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { withLinksAuth } from "@/lib/auth";
 import { DUB_PROJECT_ID } from "@/lib/constants";
 import { getLinksCount } from "@/lib/api/links";
 
-export default withUserAuth(
-  async (req: NextApiRequest, res: NextApiResponse, session: Session) => {
-    // GET /api/links/count – get the count for dub.sh links created by the user
-    if (req.method === "GET") {
-      const count = await getLinksCount({
-        req,
-        projectId: DUB_PROJECT_ID,
-        userId: session.user.id,
-      });
-      return res.status(200).json(count);
-    } else {
-      res.setHeader("Allow", ["GET"]);
-      return res
-        .status(405)
-        .json({ error: `Method ${req.method} Not Allowed` });
-    }
-  },
-);
+export default withLinksAuth(async (req, res, session, project) => {
+  // GET /api/links/count – get the number of links for a project
+  if (req.method === "GET") {
+    const { userId } = req.query as { userId?: string };
+    const count = await getLinksCount({
+      req,
+      projectId: project?.id || DUB_PROJECT_ID,
+      userId: project?.id ? userId : session.user.id,
+    });
+    return res.status(200).json(count);
+  } else {
+    res.setHeader("Allow", ["GET"]);
+    return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
+  }
+});

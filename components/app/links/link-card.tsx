@@ -50,9 +50,9 @@ export default function LinkCard({ props }: { props: LinkProps }) {
 
   const { data: clicks } = useSWR<number>(
     isVisible &&
-      (slug
-        ? `/api/projects/${slug}/links/${key}/stats/clicks?domain=${domain}`
-        : `/api/links/${key}/stats/clicks`),
+      `/api/links/${key}/stats/clicks${
+        slug ? `?slug=${slug}&domain=${domain}` : ""
+      }`,
     fetcher,
     {
       fallbackData: props.clicks,
@@ -111,8 +111,15 @@ export default function LinkCard({ props }: { props: LinkProps }) {
 
   const shortcuts = ["e", "d", "a", "x"];
   const onKeyDown = (e: any) => {
-    // only run shortcut logic if link is selected or the 3 dots menu is open
-    if ((selected || openPopover) && shortcuts.includes(e.key)) {
+    // only run shortcut logic if:
+    // - usage is not exceeded
+    // - link is selected or the 3 dots menu is open
+    // - the key pressed is one of the shortcuts
+    if (
+      !exceededUsage &&
+      (selected || openPopover) &&
+      shortcuts.includes(e.key)
+    ) {
       setSelected(false);
       switch (e.key) {
         case "e":
@@ -214,9 +221,9 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                 onClick={(e) => {
                   e.stopPropagation();
                 }}
-                href={`/${slug ? `${slug}/${domain}` : "links"}/${encodeURI(
-                  key,
-                )}`}
+                href={`/${
+                  slug ? `${slug}/${domain}` : "links"
+                }/${encodeURIComponent(key)}`}
                 className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 transition-all duration-75 hover:scale-105 active:scale-100"
               >
                 <Chart className="h-4 w-4" />

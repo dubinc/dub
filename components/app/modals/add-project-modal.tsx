@@ -46,33 +46,31 @@ function AddProjectModalHelper({
 
   const [debouncedSlug] = useDebounce(slug, 500);
   useEffect(() => {
-    if (debouncedSlug.length > 0) {
+    if (debouncedSlug.length > 0 && !slugError) {
       fetch(`/api/projects/${slug}/exists`).then(async (res) => {
         if (res.status === 200) {
           const exists = await res.json();
           setSlugError(exists === 1 ? "Slug is already in use." : null);
         }
       });
-    } else {
-      setSlugError(null);
     }
   }, [debouncedSlug, slugError]);
 
   const [debouncedDomain] = useDebounce(domain, 500);
   useEffect(() => {
-    if (debouncedDomain.length > 0) {
+    if (debouncedDomain.length > 0 && !domainError) {
       fetch(`/api/domains/${debouncedDomain}/exists`).then(async (res) => {
         if (res.status === 200) {
           const exists = await res.json();
           setDomainError(exists === 1 ? "Domain is already in use." : null);
         }
       });
-    } else {
-      setDomainError(null);
     }
   }, [debouncedDomain, domainError]);
 
   useEffect(() => {
+    setSlugError(null);
+    setDomainError(null);
     setData((prev) => ({
       ...prev,
       slug: name
@@ -125,12 +123,14 @@ function AddProjectModalHelper({
                 } = await res.json();
                 if (slugErrorResponse) {
                   setSlugError(slugErrorResponse);
+                  toast.error(slugErrorResponse);
                 }
                 if (domainErrorResponse) {
                   setDomainError(domainErrorResponse);
+                  toast.error(domainErrorResponse);
                 }
               } else {
-                setDomainError("Something went wrong.");
+                toast.error(res.statusText);
               }
               setSaving(false);
             });

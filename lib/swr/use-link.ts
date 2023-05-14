@@ -11,7 +11,7 @@ export default function useLink() {
   };
 
   const { data: link, error } = useSWR<LinkProps>(
-    key && `/api/links/${key}`,
+    key && `/api/links/${encodeURIComponent(key)}`,
     fetcher,
     {
       dedupingInterval: 10000,

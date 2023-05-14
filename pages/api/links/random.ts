@@ -1,15 +1,12 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { withLinksAuth } from "@/lib/auth";
 import { getRandomKey } from "@/lib/api/links";
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse,
-) {
+export default withLinksAuth(async (req, res, _session, _project, domain) => {
   if (req.method === "GET") {
-    const response = await getRandomKey("dub.sh");
+    const response = await getRandomKey(domain || "dub.sh");
     return res.status(200).json(response);
   } else {
     res.setHeader("Allow", ["GET"]);
     return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
   }
-}
+});

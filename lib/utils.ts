@@ -258,11 +258,12 @@ export const getQueryString = (
 ) => {
   // here, we omit the slug from the query string because
   // for some reason it breaks the router because of middleware rewrites
-  const { slug, ...queryWithoutSlug } = router.query as Record<string, string>;
+  // const { slug, ...queryWithoutSlug } = router.query as Record<string, string>;
   const queryString = new URLSearchParams({
-    ...queryWithoutSlug,
+    ...(router.query as Record<string, string>),
     ...opts,
   }).toString();
+  console.log(queryString);
   return `${queryString ? "?" : ""}${queryString}`;
 };
 

@@ -72,6 +72,7 @@ export default function Stats({
   const queryString =
     interval || domainSlug
       ? `?${new URLSearchParams({
+          ...(slug && { slug }),
           ...(interval && { interval }),
           ...(domainSlug && { domain: domainSlug }),
         }).toString()}`
@@ -81,25 +82,25 @@ export default function Stats({
     // Project link page, e.g. app.dub.sh/dub/dub.sh/github
     if (slug && domainSlug && key) {
       return {
-        basePath: `/${slug}/${domainSlug}/${key}`,
+        basePath: `/${slug}/${domainSlug}/${encodeURIComponent(key)}`,
         domain: domainSlug,
-        endpoint: `/api/projects/${slug}/links/${key}/stats`,
+        endpoint: `/api/links/${encodeURIComponent(key)}/stats`,
       };
 
       // Generic Dub.sh link page, e.g. app.dub.sh/links/steven
     } else if (key && pathname?.startsWith("/links")) {
       return {
-        basePath: `/links/${key}`,
+        basePath: `/links/${encodeURIComponent(key)}`,
         domain: "dub.sh",
-        endpoint: `/api/links/${key}/stats`,
+        endpoint: `/api/links/${encodeURIComponent(key)}/stats`,
       };
     }
 
     // Public stats page, e.g. dub.sh/stats/github, stey.me/stats/weathergpt
     return {
-      basePath: `/stats/${key}`,
+      basePath: `/stats/${encodeURIComponent(key)}`,
       domain: staticDomain,
-      endpoint: `/api/edge/links/${key}/stats`,
+      endpoint: `/api/edge/links/${encodeURIComponent(key)}/stats`,
     };
   }, [slug, key, pathname]);
 

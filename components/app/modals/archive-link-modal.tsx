@@ -13,6 +13,7 @@ import Modal from "@/components/shared/modal";
 import { LinkProps } from "@/lib/types";
 import { getApexDomain, getQueryString, linkConstructor } from "@/lib/utils";
 import { GOOGLE_FAVICON_URL } from "@/lib/constants";
+import { toast } from "sonner";
 
 function ArchiveLinkModal({
   showArchiveLinkModal,
@@ -70,9 +71,9 @@ function ArchiveLinkModal({
               e.preventDefault();
               setArchiving(true);
               fetch(
-                domain
-                  ? `/api/projects/${slug}/links/${props.key}/archive?domain=${domain}`
-                  : `/api/links/${props.key}/archive`,
+                `/api/links/${props.key}/archive${
+                  slug ? `?slug=${slug}&domain=${domain}` : ""
+                }}`,
                 {
                   method: archived ? "POST" : "DELETE",
                   headers: {
@@ -82,12 +83,10 @@ function ArchiveLinkModal({
               ).then(async (res) => {
                 setArchiving(false);
                 if (res.status === 200) {
-                  mutate(
-                    domain
-                      ? `/api/projects/${slug}/links${getQueryString(router)}`
-                      : `/api/links${getQueryString(router)}`,
-                  );
+                  mutate(`/api/links${getQueryString(router)}`);
                   setShowArchiveLinkModal(false);
+                } else {
+                  toast.error(res.statusText);
                 }
               });
             }}

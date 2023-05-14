@@ -56,8 +56,8 @@ function AddEditLinkModal({
   const router = useRouter();
   const { slug } = router.query as { slug: string };
 
-  const [keyExistsError, setKeyExistsError] = useState(false);
-  const [urlError, setUrlError] = useState(false);
+  const [keyError, setKeyError] = useState<string | null>(null);
+  const [urlError, setUrlError] = useState<string | null>(null);
   const [generatingKey, setGeneratingKey] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -86,16 +86,17 @@ function AddEditLinkModal({
     if (
       showAddEditLinkModal &&
       debouncedKey.length > 0 &&
-      debouncedKey !== props?.key
+      debouncedKey !== props?.key &&
+      !keyError
     ) {
       fetch(
-        slug
-          ? `/api/projects/${slug}/links/${debouncedKey}/exists?domain=${domain}`
-          : `/api/links/${debouncedKey}/exists`,
+        `/api/links/${encodeURIComponent(debouncedKey)}/exists${
+          slug ? `?slug=${slug}&domain=${domain}` : ""
+        }`,
       ).then(async (res) => {
         if (res.status === 200) {
           const exists = await res.json();
-          setKeyExistsError(exists);
+          setKeyError(exists ? "Key already exists" : null);
         }
       });
     }
@@ -104,9 +105,7 @@ function AddEditLinkModal({
   const generateRandomKey = useCallback(async () => {
     setGeneratingKey(true);
     const res = await fetch(
-      slug
-        ? `/api/projects/${slug}/links/random?domain=${domain}`
-        : `/api/links/random`,
+      `/api/links/random${slug ? `?slug=${slug}&domain=${domain}` : ""}`,
     );
     const key = await res.json();
     setData((prev) => ({ ...prev, key }));
@@ -185,16 +184,14 @@ function AddEditLinkModal({
     if (props?.key) {
       return {
         method: "PUT",
-        url: slug
-          ? `/api/projects/${slug}/links/${props.key}?domain=${domain}`
-          : `/api/links/${props.key}`,
+        url: `/api/links/${props.key}${
+          slug ? `?slug=${slug}&domain=${domain}` : ""
+        }`,
       };
     } else {
       return {
         method: "POST",
-        url: slug
-          ? `/api/projects/${slug}/links?domain=${domain}`
-          : `/api/links`,
+        url: `/api/links${slug ? `?slug=${slug}&domain=${domain}` : ""}`,
       };
     }
   }, [props]);
@@ -222,7 +219,7 @@ function AddEditLinkModal({
     if (
       !showAddEditLinkModal ||
       saving ||
-      keyExistsError ||
+      keyError ||
       urlError ||
       (props &&
         Object.entries(props).every(([key, value]) => {
@@ -241,7 +238,7 @@ function AddEditLinkModal({
     } else {
       return false;
     }
-  }, [showAddEditLinkModal, saving, keyExistsError, urlError, props, data]);
+  }, [showAddEditLinkModal, saving, keyError, urlError, props, data]);
 
   const randomIdx = Math.floor(Math.random() * 100);
 
@@ -296,7 +293,7 @@ function AddEditLinkModal({
                   "Content-Type": "application/json",
                 },
                 body: JSON.stringify(data),
-              }).then((res) => {
+              }).then(async (res) => {
                 setSaving(false);
                 if (res.status === 200) {
                   // track link creation event
@@ -304,18 +301,12 @@ function AddEditLinkModal({
                     va.track("Created Link", {
                       type: slug ? "Custom Domain" : "Default Domain",
                     });
-                  mutate(
-                    slug
-                      ? `/api/projects/${slug}/links${getQueryString(router)}`
-                      : `/api/links${getQueryString(router)}`,
-                  );
+                  mutate(`/api/links${getQueryString(router)}`);
                   mutate(
                     (key) =>
                       typeof key === "string" &&
                       key.startsWith(
-                        slug
-                          ? `/api/projects/${slug}/links/count`
-                          : `/api/links/count`,
+                        `/api/links/count${slug ? `?slug=${slug}` : ""}`,
                       ),
                     undefined,
                     { revalidate: true },
@@ -338,15 +329,23 @@ function AddEditLinkModal({
                         .then(() => {
                           toast.success("Copied shortlink to clipboard!");
                         });
+                    } else {
+                      toast.success("Successfully updated shortlink!");
                     }
                     setShowAddEditLinkModal(false);
                   }
-                } else if (res.status === 403) {
-                  setKeyExistsError(true);
-                } else if (res.status === 400) {
-                  setUrlError(true);
                 } else {
-                  alert("Something went wrong");
+                  const error = await res.text();
+                  if (error) {
+                    toast.error(error);
+                    if (error.toLowerCase().includes("key")) {
+                      setKeyError(error);
+                    } else if (error.toLowerCase().includes("url")) {
+                      setUrlError(error);
+                    }
+                  } else {
+                    toast.error(res.statusText);
+                  }
                 }
               });
             }}
@@ -376,7 +375,7 @@ function AddEditLinkModal({
                     placeholder="https://github.com/steven-tey/dub"
                     value={url}
                     onChange={(e) => {
-                      setUrlError(false);
+                      setUrlError(null);
                       setData({ ...data, url: e.target.value });
                     }}
                     className={`${
@@ -460,23 +459,24 @@ function AddEditLinkModal({
                       name="key"
                       id={`key-${randomIdx}`}
                       required
-                      pattern="[\p{Letter}\p{Mark}\d-]+" // Unicode regex to match characters from all languages and numbers (and omit all symbols except for dashes)
+                      // Unicode regex to match characters from all languages and numbers (and omit all symbols except for dashes and slashes)
+                      pattern="[\p{Letter}\p{Mark}\d/-]+"
                       className={`${
-                        keyExistsError
+                        keyError
                           ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                           : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
                       } block w-full rounded-r-md pr-10 text-sm focus:outline-none`}
                       placeholder="github"
                       value={key}
                       onChange={(e) => {
-                        setKeyExistsError(false);
+                        setKeyError(null);
                         setData({ ...data, key: e.target.value });
                       }}
                       aria-invalid="true"
                       aria-describedby="key-error"
                     />
                   )}
-                  {keyExistsError && (
+                  {keyError && (
                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                       <AlertCircleFill
                         className="h-5 w-5 text-red-500"
@@ -485,9 +485,9 @@ function AddEditLinkModal({
                     </div>
                   )}
                 </div>
-                {keyExistsError && (
+                {keyError && (
                   <p className="mt-2 text-sm text-red-600" id="key-error">
-                    Short link is already in use.
+                    {keyError}
                   </p>
                 )}
               </div>
@@ -562,11 +562,13 @@ function AddEditLinkButton({
     const target = e.target as HTMLElement;
     const existingModalBackdrop = document.getElementById("modal-backdrop");
     // only open modal with keyboard shortcut if:
+    // - project has not exceeded usage limit
     // - c is pressed
     // - user is not pressing cmd/ctrl + c
     // - user is not typing in an input or textarea
     // - there is no existing modal backdrop (i.e. no other modal is open)
     if (
+      !exceededUsage &&
       e.key === "c" &&
       !e.metaKey &&
       !e.ctrlKey &&
