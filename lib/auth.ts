@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth/next";
 import prisma from "@/lib/prisma";
 import { LinkProps, PlanProps, ProjectProps, UserProps } from "@/lib/types";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
-import { isBlacklistedKey } from "./utils";
 
 export interface Session {
   user: {
@@ -175,6 +174,24 @@ interface WithLinksAuthNextApiHandler {
   ): any;
 }
 
+/* 
+  This is the auth handler for all link-related actions.
+
+  In the future, we might want to combine this with other endpoints as well (e.g. /projects, /domains, etc.)
+  
+  Here's an outline of the flow:
+  1. Check if user is logged in, if not, return 401 right away.
+  2. Check if there's a `slug` in the query params:
+    a. If there is no slug, it means that it's the generic dub.sh links
+      i. Make sure the domain is `dub.sh` (prevent SQL injection)
+      ii. If link `key` is provided, make sure user is the owner of the link
+    b. If there is a slug, it means that it's a custom project
+      i. Make sure the project exists
+      ii. Make sure the user is part of the project
+      iii. Make sure the project is within its usage limits
+      iv. Make sure the domain is part of the project (prevent SQL injection)
+*/
+
 const withLinksAuth =
   (
     handler: WithLinksAuthNextApiHandler,
@@ -187,10 +204,10 @@ const withLinksAuth =
     } = {},
   ) =>
   async (req: NextApiRequest, res: NextApiResponse) => {
-    // if user is not logged in
     const session = await getSession(req, res);
-    if (!session?.user.id)
+    if (!session?.user.id) {
       return res.status(401).end("Unauthorized: Login required.");
+    }
 
     const { slug, domain } = req.query as {
       slug?: string;
@@ -204,8 +221,12 @@ const withLinksAuth =
 
     // if there is no slug, it's the default dub.sh link
     if (!slug) {
-      // if domain is defined, check if it's dub.sh
-      if (domain && domain !== "dub.sh") {
+      // prevent domain from being SQL injected by
+      // making sure that all instances of `domain` are `dub.sh`
+      if (
+        (domain && domain !== "dub.sh") ||
+        (req.body.domain && req.body.domain !== "dub.sh")
+      ) {
         return res.status(403).end("Unauthorized: Invalid domain.");
       }
 
@@ -275,8 +296,15 @@ const withLinksAuth =
           return res.status(403).end("Unauthorized: Usage limits exceeded.");
         }
 
-        // if domain is defined, check if it's owned by the project
+        // if domain is defined
         if (domain) {
+          // prevent domain from being SQL injected by
+          // comparing the domain in the query params to the domain in the body
+          if (req.body.domain && req.body.domain !== domain) {
+            return res.status(403).end("Unauthorized: Invalid domain.");
+          }
+
+          // check if the domain is part of the project
           const domainProjectId = await prisma.domain.findUnique({
             where: {
               slug: domain,

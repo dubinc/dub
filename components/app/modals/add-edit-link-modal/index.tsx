@@ -195,7 +195,7 @@ function AddEditLinkModal({
         url: `/api/links${slug ? `?slug=${slug}&domain=${domain}` : ""}`,
       };
     }
-  }, [props]);
+  }, [props, slug, domain]);
 
   const [atBottom, setAtBottom] = useState(false);
   const handleScroll = useCallback((event: UIEvent<HTMLDivElement>) => {
