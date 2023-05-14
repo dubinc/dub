@@ -103,6 +103,7 @@ function AddEditLinkModal({
   }, [debouncedKey, domain]);
 
   const generateRandomKey = useCallback(async () => {
+    setKeyError(null);
     setGeneratingKey(true);
     const res = await fetch(
       `/api/links/random${slug ? `?slug=${slug}&domain=${domain}` : ""}`,
