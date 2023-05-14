@@ -81,9 +81,7 @@ function DeleteLinkModal({
                 mutate(
                   (key) =>
                     typeof key === "string" &&
-                    key.startsWith(
-                      `/api/links/count${slug ? `?slug=${slug}` : ""}`,
-                    ),
+                    key.startsWith(`/api/links/count`),
                   undefined,
                   { revalidate: true },
                 );
