@@ -333,6 +333,7 @@ export const constructURLFromUTMParams = (
 };
 
 export const paramsMetadata = [
+  { display: "Referral (ref)", key: "ref", examples: "twitter, facebook" },
   { display: "UTM Source", key: "utm_source", examples: "twitter, facebook" },
   { display: "UTM Medium", key: "utm_medium", examples: "social, email" },
   { display: "UTM Campaign", key: "utm_campaign", examples: "summer_sale" },
