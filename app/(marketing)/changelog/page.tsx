@@ -8,8 +8,6 @@ import { MDX } from "#/ui/blog/mdx";
 import { Twitter } from "@/components/shared/icons";
 import { Rss } from "lucide-react";
 
-export const runtime = "edge";
-
 export const metadata: Metadata = {
   title: "Changelog - Dub",
   description:
