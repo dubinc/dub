@@ -14,6 +14,7 @@ import { LinkProps } from "@/lib/types";
 import { getApexDomain, getQueryString, linkConstructor } from "@/lib/utils";
 import { GOOGLE_FAVICON_URL } from "@/lib/constants";
 import { toast } from "sonner";
+import Button from "#/ui/button";
 
 function TagLinkModal({
   showTagLinkModal,
@@ -29,7 +30,7 @@ function TagLinkModal({
   const [tagging, setTagging] = useState(false);
   const apexDomain = getApexDomain(props.url);
 
-  const { key, domain } = props;
+  const { key, domain, tagId } = props;
 
   const shortlink = useMemo(() => {
     return linkConstructor({
@@ -52,48 +53,34 @@ function TagLinkModal({
           />
           <h3 className="text-lg font-medium">Tag {shortlink}</h3>
           <p className="text-sm text-gray-500">
-            {/* {archived
-              ? "Archived links will still work - they just won't show up on your main dashboard."
-              : "By untagging this link, it will show up on your main dashboard again."} */}
             Assign a tag to your short link
           </p>
         </div>
 
-        <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16">
-          <button
-            onClick={async (e) => {
-              e.preventDefault();
-              setTagging(true);
-              fetch(
-                `/api/links/${props.key}/tag${
-                  slug ? `?slug=${slug}&domain=${domain}` : ""
-                }}`,
-                {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                },
-              ).then(async (res) => {
-                setTagging(false);
-                if (res.status === 200) {
-                  mutate(`/api/links${getQueryString(router)}`);
-                  setShowTagLinkModal(false);
-                } else {
-                  toast.error(res.statusText);
-                }
-              });
-            }}
-            disabled={tagging}
-            className={`${
-              tagging
-                ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
-                : "border-black bg-black text-white hover:bg-white hover:text-black"
-            } flex h-10 w-full items-center justify-center rounded-md border text-sm transition-all focus:outline-none`}
-          >
-            {tagging ? <LoadingDots color="#808080" /> : <p>Confirm tag</p>}
-          </button>
-        </div>
+        <form
+          className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            setTagging(true);
+            fetch(`/api/links/${props.key}/tag?slug=${slug}&domain=${domain}`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }).then(async (res) => {
+              setTagging(false);
+              if (res.status === 200) {
+                mutate(`/api/links${getQueryString(router)}`);
+                setShowTagLinkModal(false);
+              } else {
+                const error = await res.text();
+                toast.error(error);
+              }
+            });
+          }}
+        >
+          <Button loading={tagging} text="Confirm tag" />
+        </form>
       </div>
     </Modal>
   );

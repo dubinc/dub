@@ -19,7 +19,7 @@ export default function ProjectCard({
   primaryDomain,
 }: ProjectWithDomainProps) {
   const { data: count } = useSWR<number>(
-    `/api/links/count?slug=${slug}`,
+    `/api/links/_count?slug=${slug}`,
     fetcher,
   );
   return (

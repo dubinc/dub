@@ -113,7 +113,7 @@ function ProjectList({
         className={`relative flex w-full items-center space-x-2 rounded-md px-2 py-1.5 hover:bg-gray-100 active:bg-gray-200 ${
           selected.slug === "/" ? "font-medium" : ""
         } transition-all duration-75`}
-        onClick={() => router.push("/")}
+        onClick={() => router.push("/links")}
       >
         <BlurImage
           src={

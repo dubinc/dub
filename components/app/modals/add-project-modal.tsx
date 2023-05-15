@@ -96,7 +96,7 @@ function AddProjectModalHelper({
             width={20}
             height={20}
           />
-          <h3 className="text-lg font-medium">Add a new project</h3>
+          <h3 className="text-lg font-medium">Create a new project</h3>
         </div>
 
         <form

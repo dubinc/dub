@@ -17,22 +17,23 @@ export default withLinksAuth(
     // GET /api/links – get all links for a project
     // if no project, get all dub.sh links for user
     if (req.method === "GET") {
-      const { domain, status, tag, search, sort, userId } = req.query as {
-        domain?: string;
-        status?: string;
-        tag?: string;
-        search?: string;
-        sort?: "createdAt" | "clicks";
-        userId?: string;
-      };
+      const { domain, tagId, search, sort, userId, showArchived } =
+        req.query as {
+          domain?: string;
+          tagId?: string;
+          search?: string;
+          sort?: "createdAt" | "clicks";
+          userId?: string;
+          showArchived?: boolean;
+        };
       const response = await getLinksForProject({
         projectId: project?.id || DUB_PROJECT_ID,
         domain,
-        status,
-        tag,
+        tagId,
         search,
         sort,
         userId: project?.id ? userId : session.user.id,
+        showArchived,
       });
       return res.status(200).json(response);
 
@@ -65,7 +66,7 @@ export default withLinksAuth(
           userId: session.user.id,
         }),
         ...(!project
-          ? [fetch(`${GOOGLE_FAVICON_URL}${url}}`).then((res) => !res.ok)]
+          ? [fetch(`${GOOGLE_FAVICON_URL}${url}`).then((res) => !res.ok)]
           : []),
         // @ts-ignore
       ]).then((results) => results.map((result) => result.value));
@@ -91,9 +92,7 @@ export default withLinksAuth(
       return res.status(200).json(response);
     } else {
       res.setHeader("Allow", ["GET", "POST"]);
-      return res
-        .status(405)
-        .json({ error: `Method ${req.method} Not Allowed` });
+      return res.status(405).end(`Method ${req.method} Not Allowed`);
     }
   },
   {

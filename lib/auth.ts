@@ -189,7 +189,8 @@ interface WithLinksAuthNextApiHandler {
       i. Make sure the project exists
       ii. Make sure the user is part of the project
       iii. Make sure the project is within its usage limits
-      iv. Make sure the domain is part of the project (prevent query injection)
+      iv. Make sure the action is allowed for the project's plan
+      v. Make sure the domain is part of the project (prevent query injection)
 */
 
 const withLinksAuth =
@@ -198,9 +199,11 @@ const withLinksAuth =
     {
       needNotExceededUsage, // if the action needs the user to not have exceeded their usage
       excludeGet, // if the action doesn't need to be gated for GET requests
+      requiredPlan = ["free", "pro", "enterprise"], // if the action needs a specific plan
     }: {
       needNotExceededUsage?: boolean;
       excludeGet?: boolean;
+      requiredPlan?: Array<PlanProps>;
     } = {},
   ) =>
   async (req: NextApiRequest, res: NextApiResponse) => {
@@ -296,6 +299,10 @@ const withLinksAuth =
           project.usage > project.usageLimit
         ) {
           return res.status(403).end("Unauthorized: Usage limits exceeded.");
+        }
+
+        if (requiredPlan && !requiredPlan.includes(project.plan)) {
+          return res.status(403).end("Unauthorized: Need higher plan.");
         }
 
         // if domain is defined

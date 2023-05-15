@@ -23,6 +23,7 @@ export interface LinkProps {
 
   clicks: number;
   userId?: string | null;
+  tagId?: string | null;
 
   createdAt?: Date;
   updatedAt?: Date;

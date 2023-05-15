@@ -112,7 +112,7 @@ function AddEditLinkModal({
   const generateRandomKey = useCallback(async () => {
     setGeneratingKey(true);
     const res = await fetch(
-      `/api/links/random${slug ? `?slug=${slug}&domain=${domain}` : ""}`,
+      `/api/links/_random${slug ? `?slug=${slug}&domain=${domain}` : ""}`,
     );
     const key = await res.json();
     setData((prev) => ({ ...prev, key }));
@@ -316,7 +316,7 @@ function AddEditLinkModal({
                   mutate(
                     (key) =>
                       typeof key === "string" &&
-                      key.startsWith(`/api/links/count`),
+                      key.startsWith(`/api/links/_count`),
                     undefined,
                     { revalidate: true },
                   );

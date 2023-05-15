@@ -50,7 +50,7 @@ export default withLinksAuth(
           oldKey,
         ),
         ...(!project
-          ? [fetch(`${GOOGLE_FAVICON_URL}${url}}`).then((res) => !res.ok)]
+          ? [fetch(`${GOOGLE_FAVICON_URL}${url}`).then((res) => !res.ok)]
           : []),
         // @ts-ignore
       ]).then((results) => results.map((result) => result.value));
@@ -80,9 +80,7 @@ export default withLinksAuth(
       return res.status(200).json(response);
     } else {
       res.setHeader("Allow", ["GET", "PUT", "DELETE"]);
-      return res
-        .status(405)
-        .json({ error: `Method ${req.method} Not Allowed` });
+      return res.status(405).end(`Method ${req.method} Not Allowed`);
     }
   },
   {

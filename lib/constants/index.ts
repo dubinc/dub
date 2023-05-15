@@ -44,7 +44,7 @@ export const SWIPE_REVEAL_ANIMATION_SETTINGS = {
   initial: { height: 0 },
   animate: { height: "auto" },
   exit: { height: 0 },
-  transition: { duration: 0.2, bounce: 0 },
+  transition: { duration: 0.15, ease: "easeOut" },
 };
 
 export const FADE_IN_ANIMATION_SETTINGS = {
