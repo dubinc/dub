@@ -14,7 +14,7 @@ export default async function LinkMiddleware(
   ev: NextFetchEvent,
 ) {
   const url = req.nextUrl.clone();
-  const { domain, key } = parse(req);
+  const { domain, fullKey: key } = parse(req);
 
   if (!domain || !key) {
     return NextResponse.next();

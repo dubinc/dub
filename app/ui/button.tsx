@@ -15,7 +15,7 @@ export default function Button({
 }: {
   text: string;
   variant?: "primary" | "secondary" | "danger";
-  onClick?: () => void;
+  onClick?: any;
   disabled?: boolean;
   loading?: boolean;
   disabledTooltip?: string | ReactNode;

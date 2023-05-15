@@ -1,5 +1,12 @@
 import { useRouter } from "next/router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { nFormatter, setQueryString } from "@/lib/utils";
 import { ChevronRight, XCircle, Search } from "lucide-react";
 import useDomains from "@/lib/swr/use-domains";
@@ -13,54 +20,112 @@ import useLinksCount from "@/lib/swr/use-links-count";
 import punycode from "punycode/";
 import Switch from "#/ui/switch";
 import { useSession } from "next-auth/react";
+import { toast } from "sonner";
+import { ModalContext } from "#/ui/modal-provider";
 
 export default function LinkFilters() {
   const { primaryDomain } = useDomains();
   const { data: domains } = useLinksCount({ groupBy: "domain" });
+  // const { data: tags } = useLinksCount({ groupBy: "tagId" });
   const router = useRouter();
-  const { slug, search, domain, userId } = router.query as {
+  const { slug, search, domain, userId, tagId } = router.query as {
     slug: string;
     search?: string;
     domain?: string;
     userId?: string;
+    tagId?: string;
   };
   const searchInputRef = useRef(); // this is a hack to clear the search input when the clear button is clicked
 
+  const { setShowAddProjectModal } = useContext(ModalContext);
+
+  // return domains && tags ? (
   return domains ? (
     <div className="grid w-full rounded-md bg-white px-5 lg:divide-y lg:divide-gray-300">
       <div className="grid gap-3 py-6">
         <div className="flex items-center justify-between">
           <h3 className="ml-1 mt-2 font-semibold">Filter Links</h3>
-          {(search || domain || userId) && (
+          {(search || domain || userId || tagId) && (
             <ClearButton searchInputRef={searchInputRef} />
           )}
         </div>
         <SearchBox searchInputRef={searchInputRef} />
       </div>
-      {slug && <MyLinksFilter />}
       <FilterGroup
+        displayName="Domains"
         param="domain"
         options={
           domains.length === 0
-            ? [{ value: primaryDomain || "", count: 0 }]
+            ? [
+                {
+                  name: primaryDomain || "",
+                  value: primaryDomain || "",
+                  count: 0,
+                },
+              ]
             : domains.map(({ domain, _count }) => ({
+                name: domain,
                 value: domain,
                 count: _count,
               }))
         }
-        cta={{
-          type: "link",
-          text: "Add a domain",
-          href: `/${slug}/domains`,
-        }}
+        checkDefault={domains.length <= 1}
+        cta={
+          slug ? (
+            <Link
+              href={`/${slug}/domains`}
+              className="rounded-md border border-gray-300 p-1 text-center text-sm"
+            >
+              Add a domain
+            </Link>
+          ) : (
+            <button
+              onClick={() => {
+                setShowAddProjectModal(true);
+                toast.error(
+                  "You can only add a domain to a custom project. Please create a new project or navigate to an existing one.",
+                );
+              }}
+              className="rounded-md border border-gray-300 p-1 text-center text-sm"
+            >
+              Add a domain
+            </button>
+          )
+        }
       />
+      {slug && (
+        <>
+          {/* <FilterGroup
+            displayName="Tags"
+            param="tagId"
+            options={tags.map(({ tag, tagId, _count }) => ({
+              name: tag,
+              value: tagId,
+              count: _count,
+            }))}
+            cta={
+              <button
+                onClick={() => {
+                  toast.success("add a tag to a project");
+                }}
+                className="rounded-md border border-gray-300 p-1 text-center text-sm"
+              >
+                Add a tag
+              </button>
+            }
+          /> */}
+          <MyLinksFilter />
+        </>
+      )}
+      <ArchiveFilter />
     </div>
   ) : (
     <div className="grid h-full gap-6 rounded-md bg-white p-5">
-      <div className="h-[300px] w-full animate-pulse rounded-md bg-gray-200" />
+      <div className="h-[400px] w-full animate-pulse rounded-md bg-gray-200" />
     </div>
   );
 }
+
 const SearchBox = ({ searchInputRef }: { searchInputRef }) => {
   const router = useRouter();
   const debounced = useDebouncedCallback((value) => {
@@ -132,25 +197,44 @@ const MyLinksFilter = () => {
   );
 };
 
+const ArchiveFilter = () => {
+  const router = useRouter();
+  const { showArchived } = router.query as { showArchived?: string };
+
+  return (
+    <div className="flex items-center justify-between py-6">
+      <label className="text-sm font-medium text-gray-600">
+        Include archived links
+      </label>
+      <Switch
+        fn={() =>
+          // @ts-ignore
+          setQueryString(router, "showArchived", showArchived ? "" : "true")
+        }
+        checked={showArchived ? true : false}
+      />
+    </div>
+  );
+};
+
 const FilterGroup = ({
+  displayName,
   param,
   options,
+  checkDefault = false,
   cta,
 }: {
+  displayName: string;
   param: string;
-  options: { value: string; count: number }[];
-  cta: {
-    type: "link" | "button";
-    text: string;
-    href?: string;
-    action?: () => void;
-  };
+  options: { name: string; value: string; count: number }[];
+  checkDefault?: boolean;
+  cta: ReactNode;
 }) => {
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <fieldset className="py-6">
+    <fieldset className="overflow-hidden py-6">
       <div className="flex h-8 items-center justify-between">
         <button
           onClick={() => {
@@ -161,7 +245,7 @@ const FilterGroup = ({
           <ChevronRight
             className={`${collapsed ? "" : "rotate-90"} h-5 w-5 transition-all`}
           />
-          <h4 className="font-medium capitalize text-gray-900">{param}</h4>
+          <h4 className="font-medium text-gray-900">{displayName}</h4>
         </button>
       </div>
       <AnimatePresence initial={false}>
@@ -170,7 +254,7 @@ const FilterGroup = ({
             className="mt-4 grid gap-2"
             {...SWIPE_REVEAL_ANIMATION_SETTINGS}
           >
-            {options?.map(({ value, count }) => (
+            {options?.map(({ name, value, count }) => (
               <div
                 key={value}
                 className="relative flex cursor-pointer items-center space-x-3 rounded-md bg-gray-50 transition-all hover:bg-gray-100"
@@ -178,9 +262,7 @@ const FilterGroup = ({
                 <input
                   id={value}
                   name={value}
-                  checked={
-                    router.query[param] === value || options.length === 1
-                  }
+                  checked={router.query[param] === value || checkDefault}
                   onChange={() => {
                     setQueryString(router, param, value);
                   }}
@@ -191,19 +273,12 @@ const FilterGroup = ({
                   htmlFor={value}
                   className="flex w-full cursor-pointer justify-between px-3 py-2 pl-0 text-sm font-medium text-gray-700"
                 >
-                  <p>{punycode.toUnicode(value || "")}</p>
+                  <p>{punycode.toUnicode(name || "")}</p>
                   <p className="text-gray-500">{nFormatter(count)}</p>
                 </label>
               </div>
             ))}
-            {router.query.slug && cta.href && (
-              <Link
-                href={cta.href}
-                className="rounded-md border border-gray-300 p-1 text-center text-sm"
-              >
-                {cta.text}
-              </Link>
-            )}
+            {cta}
           </motion.div>
         )}
       </AnimatePresence>
@@ -228,5 +303,13 @@ const ClearButton = ({ searchInputRef }: { searchInputRef }) => {
         Clear
       </p>
     </button>
+  );
+};
+
+const FilterGroupPlaceholder = () => {
+  return (
+    <div className="py-6">
+      <div className="h-8 animate-pulse rounded-md bg-gray-100" />
+    </div>
   );
 };

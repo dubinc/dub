@@ -1,11 +1,10 @@
 import { withLinksAuth } from "@/lib/auth";
-import { checkIfKeyExists } from "@/lib/api/links";
+import { getRandomKey } from "@/lib/api/links";
 
 export default withLinksAuth(async (req, res, _session, _project, domain) => {
-  // GET /api/links/[key]/exists - check if a key exists
+  // GET /api/links/_random – get a random key for a project
   if (req.method === "GET") {
-    const { key } = req.query as { key: string };
-    const response = await checkIfKeyExists(domain || "dub.sh", key);
+    const response = await getRandomKey(domain || "dub.sh");
     return res.status(200).json(response);
   } else {
     res.setHeader("Allow", ["GET"]);

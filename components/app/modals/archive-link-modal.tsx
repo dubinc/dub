@@ -13,6 +13,8 @@ import Modal from "@/components/shared/modal";
 import { LinkProps } from "@/lib/types";
 import { getApexDomain, getQueryString, linkConstructor } from "@/lib/utils";
 import { GOOGLE_FAVICON_URL } from "@/lib/constants";
+import { toast } from "sonner";
+import Button from "#/ui/button";
 
 function ArchiveLinkModal({
   showArchiveLinkModal,
@@ -65,14 +67,14 @@ function ArchiveLinkModal({
         </div>
 
         <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16">
-          <button
+          <Button
             onClick={async (e) => {
               e.preventDefault();
               setArchiving(true);
               fetch(
-                domain
-                  ? `/api/projects/${slug}/links/${props.key}/archive?domain=${domain}`
-                  : `/api/links/${props.key}/archive`,
+                `/api/links/${props.key}/archive${
+                  slug ? `?slug=${slug}&domain=${domain}` : ""
+                }`,
                 {
                   method: archived ? "POST" : "DELETE",
                   headers: {
@@ -82,28 +84,28 @@ function ArchiveLinkModal({
               ).then(async (res) => {
                 setArchiving(false);
                 if (res.status === 200) {
+                  mutate(`/api/links${getQueryString(router)}`);
                   mutate(
-                    domain
-                      ? `/api/projects/${slug}/links${getQueryString(router)}`
-                      : `/api/links${getQueryString(router)}`,
+                    (key) =>
+                      typeof key === "string" &&
+                      key.startsWith(`/api/links/_count`),
+                    undefined,
+                    { revalidate: true },
                   );
                   setShowArchiveLinkModal(false);
+                  toast.success(
+                    `Successfully ${
+                      archived ? "archived" : "unarchived"
+                    } link!`,
+                  );
+                } else {
+                  toast.error(res.statusText);
                 }
               });
             }}
-            disabled={archiving}
-            className={`${
-              archiving
-                ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
-                : "border-black bg-black text-white hover:bg-white hover:text-black"
-            } flex h-10 w-full items-center justify-center rounded-md border text-sm transition-all focus:outline-none`}
-          >
-            {archiving ? (
-              <LoadingDots color="#808080" />
-            ) : (
-              <p>Confirm {archived ? "archive" : "unarchive"}</p>
-            )}
-          </button>
+            loading={archiving}
+            text={`Confirm ${archived ? "archive" : "unarchive"}`}
+          />
         </div>
       </div>
     </Modal>

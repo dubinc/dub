@@ -58,29 +58,33 @@ const getFiltersFromStatus = (status: string) => {
 export async function getLinksForProject({
   projectId,
   domain,
-  status = "active",
-  tag,
+  tagId,
   search,
   sort = "createdAt",
   userId,
+  showArchived,
 }: {
   projectId: string;
   domain?: string;
-  status?: string;
-  tag?: string;
+  tagId?: string;
   search?: string;
   sort?: "createdAt" | "clicks"; // always descending for both
   userId?: string | null;
+  showArchived?: boolean;
 }): Promise<LinkProps[]> {
+  /*
+  TODO: add pagination
+  */
   return await prisma.link.findMany({
     where: {
       projectId,
+      archived: showArchived ? undefined : false,
       ...(domain && { domain }),
       ...(search && {
         key: { search },
         url: { search },
       }),
-      // ...(tag && { tags: { has: tag } }),
+      ...(tagId && { tagId }),
       ...(userId && { userId }),
     },
     orderBy: {
@@ -99,17 +103,20 @@ export async function getLinksCount({
   projectId: string;
   userId?: string | null;
 }) {
-  const { groupBy, search, domain } = req.query as {
-    groupBy?: "domain";
+  let { groupBy, search, domain, tagId, showArchived } = req.query as {
+    groupBy?: "domain" | "tagId";
     search?: string;
     domain?: string;
+    tagId?: string;
+    showArchived?: boolean;
   };
 
   if (groupBy) {
-    return await prisma.link.groupBy({
+    const inputs = await prisma.link.groupBy({
       by: [groupBy],
       where: {
         projectId,
+        archived: showArchived ? undefined : false,
         ...(userId && { userId }),
         ...(search && {
           key: { search },
@@ -119,6 +126,12 @@ export async function getLinksCount({
           groupBy !== "domain" && {
             domain,
           }),
+        ...(groupBy === "tagId" && {
+          tagId,
+          NOT: {
+            tagId: null,
+          },
+        }),
       },
       _count: true,
       orderBy: {
@@ -127,6 +140,27 @@ export async function getLinksCount({
         },
       },
     });
+    if (groupBy === "tagId") {
+      // for tags, we need to get the tag name
+      const tags = await prisma.tag.findMany({
+        where: {
+          projectId,
+          id: {
+            // @ts-ignore
+            in: inputs.map((input) => input.tagId),
+          },
+        },
+      });
+      return inputs.map((input) => {
+        const tag = tags.find((tag) => tag.id === input.tagId)!;
+        return {
+          ...input,
+          tag: tag.name,
+        };
+      });
+    } else {
+      return inputs;
+    }
   } else {
     return await prisma.link.count({
       where: {

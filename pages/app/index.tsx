@@ -1,18 +1,18 @@
-import { useAddProjectModal } from "@/components/app/modals/add-project-modal";
 import NoProjectsPlaceholder from "@/components/app/projects/no-projects-placeholder";
 import ProjectCard from "@/components/app/projects/project-card";
 import ProjectCardPlaceholder from "@/components/app/projects/project-card-placeholder";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import AppLayout from "components/layout/app";
 import useProjects from "@/lib/swr/use-projects";
+import { useContext } from "react";
+import { ModalContext } from "#/ui/modal-provider";
 
 export default function App() {
   const { projects } = useProjects();
-  const { setShowAddProjectModal, AddProjectModal } = useAddProjectModal();
+  const { setShowAddProjectModal } = useContext(ModalContext);
 
   return (
     <AppLayout>
-      <AddProjectModal />
       <div className="flex h-36 items-center border-b border-gray-200 bg-white">
         <MaxWidthWrapper>
           <div className="flex items-center justify-between">
@@ -36,9 +36,7 @@ export default function App() {
             projects.length > 0 ? (
               projects.map((d) => <ProjectCard key={d.slug} {...d} />)
             ) : (
-              <NoProjectsPlaceholder
-                setShowAddProjectModal={setShowAddProjectModal}
-              />
+              <NoProjectsPlaceholder />
             )
           ) : (
             Array.from({ length: 6 }).map((_, i) => (

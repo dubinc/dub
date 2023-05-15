@@ -256,11 +256,8 @@ export const getQueryString = (
   router: NextRouter,
   opts?: Record<string, string>,
 ) => {
-  // here, we omit the slug from the query string because
-  // for some reason it breaks the router because of middleware rewrites
-  const { slug, ...queryWithoutSlug } = router.query as Record<string, string>;
   const queryString = new URLSearchParams({
-    ...queryWithoutSlug,
+    ...(router.query as Record<string, string>),
     ...opts,
   }).toString();
   return `${queryString ? "?" : ""}${queryString}`;
@@ -332,6 +329,7 @@ export const constructURLFromUTMParams = (
 };
 
 export const paramsMetadata = [
+  { display: "Referral (ref)", key: "ref", examples: "twitter, facebook" },
   { display: "UTM Source", key: "utm_source", examples: "twitter, facebook" },
   { display: "UTM Medium", key: "utm_medium", examples: "social, email" },
   { display: "UTM Campaign", key: "utm_campaign", examples: "summer_sale" },

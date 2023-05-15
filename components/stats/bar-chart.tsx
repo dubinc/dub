@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useMemo } from "react";
+import { useContext, useMemo } from "react";
 import { AxisBottom, AxisLeft } from "@visx/axis";
 import { localPoint } from "@visx/event";
 import { GridRows } from "@visx/grid";
@@ -13,7 +13,7 @@ import styles from "./bar-chart.module.css";
 import useSWR from "swr";
 import { fetcher } from "@/lib/utils";
 import { LoadingCircle } from "#/ui/icons";
-import useEndpoint from "@/lib/hooks/use-endpoint";
+import { StatsContext } from ".";
 
 const LEFT_AXIS_WIDTH = 30;
 const CHART_MAX_HEIGHT = 400;
@@ -41,7 +41,7 @@ const BarChart = ({ screenWidth }: { screenWidth?: number }) => {
     interval?: string;
   };
 
-  const { endpoint, queryString } = useEndpoint();
+  const { endpoint, queryString } = useContext(StatsContext);
 
   const { data } = useSWR<{ start: Date; clicks: number }[]>(
     router.isReady && `${endpoint}/timeseries${queryString}`,
