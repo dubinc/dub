@@ -6,12 +6,10 @@ export const parse = (req: NextRequest) => {
   domain = domain.replace("www.", ""); // remove www. from domain
   if (HOME_HOSTNAMES.has(domain)) domain = "dub.sh";
   const path = req.nextUrl.pathname;
+  const key = decodeURIComponent(path.split("/")[1]); // decodeURIComponentto handle foreign languages like Hebrew
+  const fullKey = decodeURIComponent(path).slice(1);
 
-  // decodeURIComponent to handle foreign languages like Hebrew
-  // slice(1) to remove the leading slash
-  const key = decodeURIComponent(path).slice(1);
-
-  return { domain, path, key };
+  return { domain, path, key, fullKey };
 };
 
 export const detectBot = (req: NextRequest) => {
