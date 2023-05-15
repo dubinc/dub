@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { motion } from "framer-motion";
 import BadgeSelect from "@/components/shared/badge-select";
 import { COUNTRIES } from "@/lib/constants";
@@ -8,13 +8,13 @@ import { LoadingCircle } from "#/ui/icons";
 import { useRouter } from "next/router";
 import useSWR from "swr";
 import { fetcher } from "@/lib/utils";
-import useEndpoint from "@/lib/hooks/use-endpoint";
+import { StatsContext } from ".";
 
 export default function Locations() {
   const [tab, setTab] = useState<LocationTabs>("country");
   const router = useRouter();
 
-  const { endpoint, queryString } = useEndpoint();
+  const { endpoint, queryString } = useContext(StatsContext);
 
   const { data } = useSWR<{ country: string; city: string; clicks: number }[]>(
     router.isReady && `${endpoint}/${tab}${queryString}`,

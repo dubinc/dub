@@ -15,20 +15,18 @@ import { getApexDomain, getQueryString, linkConstructor } from "@/lib/utils";
 import { GOOGLE_FAVICON_URL } from "@/lib/constants";
 import { toast } from "sonner";
 
-function ArchiveLinkModal({
-  showArchiveLinkModal,
-  setShowArchiveLinkModal,
+function TagLinkModal({
+  showTagLinkModal,
+  setShowTagLinkModal,
   props,
-  archived,
 }: {
-  showArchiveLinkModal: boolean;
-  setShowArchiveLinkModal: Dispatch<SetStateAction<boolean>>;
+  showTagLinkModal: boolean;
+  setShowTagLinkModal: Dispatch<SetStateAction<boolean>>;
   props: LinkProps;
-  archived: boolean;
 }) {
   const router = useRouter();
   const { slug } = router.query;
-  const [archiving, setArchiving] = useState(false);
+  const [tagging, setTagging] = useState(false);
   const apexDomain = getApexDomain(props.url);
 
   const { key, domain } = props;
@@ -42,10 +40,7 @@ function ArchiveLinkModal({
   }, [key, domain]);
 
   return (
-    <Modal
-      showModal={showArchiveLinkModal}
-      setShowModal={setShowArchiveLinkModal}
-    >
+    <Modal showModal={showTagLinkModal} setShowModal={setShowTagLinkModal}>
       <div className="inline-block w-full transform overflow-hidden bg-white align-middle shadow-xl transition-all sm:max-w-md sm:rounded-2xl sm:border sm:border-gray-200">
         <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 text-center sm:px-16">
           <BlurImage
@@ -55,13 +50,12 @@ function ArchiveLinkModal({
             width={20}
             height={20}
           />
-          <h3 className="text-lg font-medium">
-            {archived ? "Archive" : "Unarchive"} {shortlink}
-          </h3>
+          <h3 className="text-lg font-medium">Tag {shortlink}</h3>
           <p className="text-sm text-gray-500">
-            {archived
+            {/* {archived
               ? "Archived links will still work - they just won't show up on your main dashboard."
-              : "By unarchiving this link, it will show up on your main dashboard again."}
+              : "By untagging this link, it will show up on your main dashboard again."} */}
+            Assign a tag to your short link
           </p>
         </div>
 
@@ -69,39 +63,35 @@ function ArchiveLinkModal({
           <button
             onClick={async (e) => {
               e.preventDefault();
-              setArchiving(true);
+              setTagging(true);
               fetch(
-                `/api/links/${props.key}/archive${
+                `/api/links/${props.key}/tag${
                   slug ? `?slug=${slug}&domain=${domain}` : ""
                 }}`,
                 {
-                  method: archived ? "POST" : "DELETE",
+                  method: "POST",
                   headers: {
                     "Content-Type": "application/json",
                   },
                 },
               ).then(async (res) => {
-                setArchiving(false);
+                setTagging(false);
                 if (res.status === 200) {
                   mutate(`/api/links${getQueryString(router)}`);
-                  setShowArchiveLinkModal(false);
+                  setShowTagLinkModal(false);
                 } else {
                   toast.error(res.statusText);
                 }
               });
             }}
-            disabled={archiving}
+            disabled={tagging}
             className={`${
-              archiving
+              tagging
                 ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
                 : "border-black bg-black text-white hover:bg-white hover:text-black"
             } flex h-10 w-full items-center justify-center rounded-md border text-sm transition-all focus:outline-none`}
           >
-            {archiving ? (
-              <LoadingDots color="#808080" />
-            ) : (
-              <p>Confirm {archived ? "archive" : "unarchive"}</p>
-            )}
+            {tagging ? <LoadingDots color="#808080" /> : <p>Confirm tag</p>}
           </button>
         </div>
       </div>
@@ -109,31 +99,24 @@ function ArchiveLinkModal({
   );
 }
 
-export function useArchiveLinkModal({
-  props,
-  archived = true,
-}: {
-  props: LinkProps;
-  archived: boolean;
-}) {
-  const [showArchiveLinkModal, setShowArchiveLinkModal] = useState(false);
+export function useTagLinkModal({ props }: { props: LinkProps }) {
+  const [showTagLinkModal, setShowTagLinkModal] = useState(false);
 
-  const ArchiveLinkModalCallback = useCallback(() => {
+  const TagLinkModalCallback = useCallback(() => {
     return props ? (
-      <ArchiveLinkModal
-        showArchiveLinkModal={showArchiveLinkModal}
-        setShowArchiveLinkModal={setShowArchiveLinkModal}
+      <TagLinkModal
+        showTagLinkModal={showTagLinkModal}
+        setShowTagLinkModal={setShowTagLinkModal}
         props={props}
-        archived={archived}
       />
     ) : null;
-  }, [showArchiveLinkModal, setShowArchiveLinkModal]);
+  }, [showTagLinkModal, setShowTagLinkModal]);
 
   return useMemo(
     () => ({
-      setShowArchiveLinkModal,
-      ArchiveLinkModal: ArchiveLinkModalCallback,
+      setShowTagLinkModal,
+      TagLinkModal: TagLinkModalCallback,
     }),
-    [setShowArchiveLinkModal, ArchiveLinkModalCallback],
+    [setShowTagLinkModal, TagLinkModalCallback],
   );
 }

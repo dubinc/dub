@@ -121,6 +121,7 @@ function AddProjectModalHelper({
                   slugError: slugErrorResponse,
                   domainError: domainErrorResponse,
                 } = await res.json();
+
                 if (slugErrorResponse) {
                   setSlugError(slugErrorResponse);
                   toast.error(slugErrorResponse);

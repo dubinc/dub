@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useMemo, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useAddProjectModal } from "@/components/app/modals/add-project-modal";
 import BlurImage from "#/ui/blur-image";
@@ -9,10 +9,10 @@ import { PlanProps, ProjectWithDomainProps } from "@/lib/types";
 import useProjects from "@/lib/swr/use-projects";
 import PlanBadge from "@/components/app/settings/plan-badge";
 import { GOOGLE_FAVICON_URL } from "@/lib/constants";
+import { ModalContext } from "#/ui/modal-provider";
 
 export default function ProjectSelect() {
   const { projects } = useProjects();
-  const { AddProjectModal, setShowAddProjectModal } = useAddProjectModal();
 
   const router = useRouter();
   const { slug } = router.query as {
@@ -60,15 +60,8 @@ export default function ProjectSelect() {
 
   return (
     <div>
-      <AddProjectModal />
       <Popover
-        content={
-          <ProjectList
-            selected={selected}
-            projects={projects}
-            setShowAddProjectModal={setShowAddProjectModal}
-          />
-        }
+        content={<ProjectList selected={selected} projects={projects} />}
         openPopover={openPopover}
         setOpenPopover={setOpenPopover}
       >
@@ -99,7 +92,6 @@ export default function ProjectSelect() {
 function ProjectList({
   selected,
   projects,
-  setShowAddProjectModal,
 }: {
   selected: {
     name: string;
@@ -108,16 +100,51 @@ function ProjectList({
     plan: PlanProps;
   };
   projects: ProjectWithDomainProps[];
-  setShowAddProjectModal: (show: boolean) => void;
 }) {
   const router = useRouter();
+  const { data: session } = useSession();
+  const { setShowAddProjectModal } = useContext(ModalContext);
 
   return (
-    <div className="relative mt-1 max-h-60 w-full overflow-auto rounded-md bg-white p-2 text-base sm:w-60 sm:text-sm sm:shadow-lg">
+    <div className="relative mt-1 max-h-72 w-full space-y-0.5 overflow-auto rounded-md bg-white p-2 text-base sm:w-60 sm:text-sm sm:shadow-lg">
+      <div className="p-2 text-xs text-gray-500">Personal Account</div>
+      <button
+        key="personal"
+        className={`relative flex w-full items-center space-x-2 rounded-md px-2 py-1.5 hover:bg-gray-100 active:bg-gray-200 ${
+          selected.slug === "/" ? "font-medium" : ""
+        } transition-all duration-75`}
+        onClick={() => router.push("/")}
+      >
+        <BlurImage
+          src={
+            session?.user?.image ||
+            `https://avatars.dicebear.com/api/micah/${session?.user?.email}.svg`
+          }
+          alt={
+            session?.user?.name || session?.user?.email || "Personal Account"
+          }
+          className="h-7 w-7 overflow-hidden rounded-full"
+          width={48}
+          height={48}
+        />
+        <span
+          className={`block truncate text-sm ${
+            selected.slug === "/" ? "font-medium" : "font-normal"
+          }`}
+        >
+          {session?.user?.name || session?.user?.email}
+        </span>
+        {selected.slug === "/" ? (
+          <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-black">
+            <Tick className="h-5 w-5" aria-hidden="true" />
+          </span>
+        ) : null}
+      </button>
+      <div className="p-2 text-xs text-gray-500">Custom Projects</div>
       {projects.map(({ name, slug, logo, primaryDomain }) => (
         <button
           key={slug}
-          className={`relative flex w-full items-center space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200 ${
+          className={`relative flex w-full items-center space-x-2 rounded-md px-2 py-1.5 hover:bg-gray-100 active:bg-gray-200 ${
             selected.slug === slug ? "font-medium" : ""
           } transition-all duration-75`}
           onClick={() => router.push(`/${slug}`)}

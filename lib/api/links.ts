@@ -99,10 +99,11 @@ export async function getLinksCount({
   projectId: string;
   userId?: string | null;
 }) {
-  const { groupBy, search, domain } = req.query as {
-    groupBy?: "domain";
+  const { groupBy, search, domain, tagId } = req.query as {
+    groupBy?: "domain" | "tagId";
     search?: string;
     domain?: string;
+    tagId?: string;
   };
 
   if (groupBy) {
@@ -118,6 +119,10 @@ export async function getLinksCount({
         ...(domain &&
           groupBy !== "domain" && {
             domain,
+          }),
+        ...(tagId &&
+          groupBy !== "tagId" && {
+            tagId,
           }),
       },
       _count: true,

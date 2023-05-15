@@ -4,11 +4,12 @@ import { nFormatter } from "@/lib/utils";
 import { useRouter } from "next/router";
 import useSWR from "swr";
 import { fetcher } from "@/lib/utils";
-import useEndpoint from "@/lib/hooks/use-endpoint";
+import { useContext } from "react";
+import { StatsContext } from ".";
 
 export default function Clicks() {
   const router = useRouter();
-  const { endpoint, queryString } = useEndpoint();
+  const { endpoint, queryString } = useContext(StatsContext);
 
   const { data: totalClicks } = useSWR<number>(
     router.isReady && `${endpoint}/clicks${queryString}`,

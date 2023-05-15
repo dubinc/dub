@@ -1,5 +1,13 @@
 import { useRouter } from "next/router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { nFormatter, setQueryString } from "@/lib/utils";
 import { ChevronRight, XCircle, Search } from "lucide-react";
 import useDomains from "@/lib/swr/use-domains";
@@ -13,6 +21,8 @@ import useLinksCount from "@/lib/swr/use-links-count";
 import punycode from "punycode/";
 import Switch from "#/ui/switch";
 import { useSession } from "next-auth/react";
+import { toast } from "sonner";
+import { ModalContext } from "#/ui/modal-provider";
 
 export default function LinkFilters() {
   const { primaryDomain } = useDomains();
@@ -25,6 +35,8 @@ export default function LinkFilters() {
     userId?: string;
   };
   const searchInputRef = useRef(); // this is a hack to clear the search input when the clear button is clicked
+
+  const { setShowAddProjectModal } = useContext(ModalContext);
 
   return domains ? (
     <div className="grid w-full rounded-md bg-white px-5 lg:divide-y lg:divide-gray-300">
@@ -48,11 +60,28 @@ export default function LinkFilters() {
                 count: _count,
               }))
         }
-        cta={{
-          type: "link",
-          text: "Add a domain",
-          href: `/${slug}/domains`,
-        }}
+        cta={
+          slug ? (
+            <Link
+              href={`/${slug}/domains`}
+              className="rounded-md border border-gray-300 p-1 text-center text-sm"
+            >
+              Add a domain
+            </Link>
+          ) : (
+            <button
+              onClick={() => {
+                setShowAddProjectModal(true);
+                toast.error(
+                  "You can only add a domain to a project. Please create a new project or navigate to an existing one.",
+                );
+              }}
+              className="rounded-md border border-gray-300 p-1 text-center text-sm"
+            >
+              Add a domain
+            </button>
+          )
+        }
       />
     </div>
   ) : (
@@ -61,6 +90,7 @@ export default function LinkFilters() {
     </div>
   );
 }
+
 const SearchBox = ({ searchInputRef }: { searchInputRef }) => {
   const router = useRouter();
   const debounced = useDebouncedCallback((value) => {
@@ -139,12 +169,7 @@ const FilterGroup = ({
 }: {
   param: string;
   options: { value: string; count: number }[];
-  cta: {
-    type: "link" | "button";
-    text: string;
-    href?: string;
-    action?: () => void;
-  };
+  cta: ReactNode;
 }) => {
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
@@ -196,14 +221,7 @@ const FilterGroup = ({
                 </label>
               </div>
             ))}
-            {router.query.slug && cta.href && (
-              <Link
-                href={cta.href}
-                className="rounded-md border border-gray-300 p-1 text-center text-sm"
-              >
-                {cta.text}
-              </Link>
-            )}
+            {cta}
           </motion.div>
         )}
       </AnimatePresence>

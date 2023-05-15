@@ -6,6 +6,7 @@ import { Toaster } from "sonner";
 import "@/styles/globals.css";
 import clsx from "clsx";
 import { satoshi, inter } from "@/styles/fonts";
+import ModalProvider from "#/ui/modal-provider";
 
 function MyApp({
   Component,
@@ -14,9 +15,11 @@ function MyApp({
   return (
     <SessionProvider session={session}>
       <Toaster />
-      <main className={clsx(satoshi.variable, inter.variable)}>
-        <Component {...pageProps} />
-      </main>
+      <ModalProvider>
+        <main className={clsx(satoshi.variable, inter.variable)}>
+          <Component {...pageProps} />
+        </main>
+      </ModalProvider>
       <Analytics />
     </SessionProvider>
   );

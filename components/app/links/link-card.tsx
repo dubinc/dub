@@ -3,19 +3,13 @@ import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 import useSWR from "swr";
 import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal";
-import { useArchiveLinkModal } from "@/components/app/modals/archive-link-modal";
+import { useTagLinkModal } from "@/components/app/modals/tag-link-modal";
 import { useDeleteLinkModal } from "@/components/app/modals/delete-link-modal";
 import { useLinkQRModal } from "@/components/app/modals/link-qr-modal";
 import IconMenu from "@/components/shared/icon-menu";
 import BlurImage from "#/ui/blur-image";
 import CopyButton from "@/components/shared/copy-button";
-import {
-  Archive,
-  Chart,
-  Delete,
-  QR,
-  ThreeDots,
-} from "@/components/shared/icons";
+import { Chart, Delete, QR, ThreeDots } from "@/components/shared/icons";
 import Popover from "@/components/shared/popover";
 import Tooltip, { TooltipContent } from "#/ui/tooltip";
 import useProject from "@/lib/swr/use-project";
@@ -29,7 +23,7 @@ import {
 } from "@/lib/utils";
 import useIntersectionObserver from "@/lib/hooks/use-intersection-observer";
 import useDomains from "@/lib/swr/use-domains";
-import { CopyPlus, Edit3 } from "lucide-react";
+import { CopyPlus, Edit3, Tag } from "lucide-react";
 import punycode from "punycode/";
 import { GOOGLE_FAVICON_URL } from "@/lib/constants";
 
@@ -85,9 +79,8 @@ export default function LinkCard({ props }: { props: LinkProps }) {
     },
   });
 
-  const { setShowArchiveLinkModal, ArchiveLinkModal } = useArchiveLinkModal({
+  const { setShowTagLinkModal, TagLinkModal } = useTagLinkModal({
     props,
-    archived: !archived,
   });
   const { setShowDeleteLinkModal, DeleteLinkModal } = useDeleteLinkModal({
     props,
@@ -109,7 +102,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
     }
   };
 
-  const shortcuts = ["e", "d", "a", "x"];
+  const shortcuts = ["e", "d", "t", "x"];
   const onKeyDown = (e: any) => {
     // only run shortcut logic if:
     // - usage is not exceeded
@@ -128,8 +121,8 @@ export default function LinkCard({ props }: { props: LinkProps }) {
         case "d":
           setShowDuplicateLinkModal(true);
           break;
-        case "a":
-          setShowArchiveLinkModal(true);
+        case "t":
+          setShowTagLinkModal(true);
           break;
         case "x":
           setShowDeleteLinkModal(true);
@@ -157,7 +150,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
       <LinkQRModal />
       <AddEditLinkModal />
       <DuplicateLinkModal />
-      <ArchiveLinkModal />
+      <TagLinkModal />
       <DeleteLinkModal />
       <li className="relative flex items-center justify-between">
         <div className="relative flex shrink items-center space-x-2 sm:space-x-4">
@@ -327,16 +320,13 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                   onClick={(e) => {
                     e.preventDefault();
                     setOpenPopover(false);
-                    setShowArchiveLinkModal(true);
+                    setShowTagLinkModal(true);
                   }}
                   className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
                 >
-                  <IconMenu
-                    text={archived ? "Unarchive" : "Archive"}
-                    icon={<Archive className="h-4 w-4" />}
-                  />
+                  <IconMenu text="Tag" icon={<Tag className="h-4 w-4" />} />
                   <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 transition-all duration-75 group-hover:bg-gray-200 sm:inline-block">
-                    A
+                    T
                   </kbd>
                 </button>
                 <button

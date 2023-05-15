@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useMemo, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import {
   Calendar,
   ChevronDown,
@@ -17,22 +17,12 @@ import useSWR, { mutate } from "swr";
 import { fetcher } from "@/lib/utils";
 import { toast } from "sonner";
 import Switch from "#/ui/switch";
-import useEndpoint from "@/lib/hooks/use-endpoint";
+import { StatsContext } from ".";
 
-export default function Toggle({
-  atModalTop,
-  staticDomain,
-}: {
-  atModalTop?: boolean;
-  staticDomain?: string;
-}) {
+export default function Toggle({ atModalTop }: { atModalTop?: boolean }) {
   const router = useRouter();
-  const { key, interval = "24h" } = router.query as {
-    key: string;
-    interval?: string;
-  };
 
-  const { basePath, domain } = useEndpoint(staticDomain);
+  const { basePath, domain, interval, key } = useContext(StatsContext);
 
   const atTop = useScroll(80) || atModalTop;
   const [openDatePopover, setOpenDatePopover] = useState(false);
@@ -121,10 +111,10 @@ const SharePopover = () => {
 
   const [openSharePopover, setopenSharePopoverPopover] = useState(false);
 
-  const { endpoint, domain } = useEndpoint();
+  const { endpoint, domain, queryString } = useContext(StatsContext);
 
   const { data: { publicStats } = {} } = useSWR<{ publicStats: boolean }>(
-    `${endpoint}?domain=${domain}`,
+    `${endpoint}${queryString}`,
     fetcher,
   );
 
@@ -134,7 +124,7 @@ const SharePopover = () => {
     toast.promise(
       new Promise<void>(async (resolve) => {
         setUpdating(true);
-        const res = await fetch(`${endpoint}?domain=${domain}`, {
+        const res = await fetch(`${endpoint}${queryString}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -144,7 +134,7 @@ const SharePopover = () => {
           }),
         });
         if (res.status === 200) {
-          mutate(`${endpoint}?domain=${domain}`);
+          mutate(`${endpoint}${queryString}`);
           // artificial delay to sync toast with the switch change
           await new Promise((r) => setTimeout(r, 200));
         }

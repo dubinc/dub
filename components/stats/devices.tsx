@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { motion } from "framer-motion";
 import BadgeSelect from "@/components/shared/badge-select";
@@ -8,13 +8,13 @@ import { nFormatter } from "@/lib/utils";
 import DeviceIcon from "./device-icon";
 import useSWR from "swr";
 import { fetcher } from "@/lib/utils";
-import useEndpoint from "@/lib/hooks/use-endpoint";
+import { StatsContext } from ".";
 
 export default function Devices() {
   const [tab, setTab] = useState<DeviceTabs>("device");
   const router = useRouter();
 
-  const { endpoint, queryString } = useEndpoint();
+  const { endpoint, queryString } = useContext(StatsContext);
 
   const { data } = useSWR<
     ({

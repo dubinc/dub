@@ -8,7 +8,7 @@
   We use the `useEndpoint()` hook to get the correct layout
 */
 
-import { createContext, useCallback, useMemo, useRef, useState } from "react";
+import { createContext, useMemo } from "react";
 import {
   useParams,
   usePathname,
@@ -21,7 +21,6 @@ import Feedback from "./feedback";
 import Locations from "./locations";
 import Referer from "./referer";
 import Toggle from "./toggle";
-import useScroll from "#/lib/hooks/use-scroll";
 import { X } from "lucide-react";
 
 export const StatsContext = createContext<{
