@@ -9,8 +9,6 @@ import BlurImage from "#/ui/blur-image";
 import Author from "#/ui/blog/author";
 import { Facebook, LinkedIn, Twitter } from "@/components/shared/icons";
 
-export const runtime = "edge";
-
 export async function generateStaticParams() {
   return allChangelogPosts.map((post) => ({
     slug: post.slug,
