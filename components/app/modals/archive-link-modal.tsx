@@ -72,7 +72,7 @@ function ArchiveLinkModal({
               e.preventDefault();
               setArchiving(true);
               fetch(
-                `/api/links/${props.key}/archive${
+                `/api/links/${encodeURIComponent(props.key)}/archive${
                   slug ? `?slug=${slug}&domain=${domain}` : ""
                 }`,
                 {

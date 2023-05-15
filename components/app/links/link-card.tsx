@@ -45,7 +45,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
 
   const { data: clicks } = useSWR<number>(
     isVisible &&
-      `/api/links/${key}/stats/clicks${
+      `/api/links/${encodeURIComponent(key)}/stats/clicks${
         slug ? `?slug=${slug}&domain=${domain}` : ""
       }`,
     fetcher,

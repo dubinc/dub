@@ -8,7 +8,6 @@ import {
 } from "react";
 import { mutate } from "swr";
 import BlurImage from "#/ui/blur-image";
-import { LoadingDots } from "#/ui/icons";
 import Modal from "@/components/shared/modal";
 import { LinkProps } from "@/lib/types";
 import { getApexDomain, getQueryString, linkConstructor } from "@/lib/utils";
@@ -62,12 +61,17 @@ function TagLinkModal({
           onSubmit={async (e) => {
             e.preventDefault();
             setTagging(true);
-            fetch(`/api/links/${props.key}/tag?slug=${slug}&domain=${domain}`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
+            fetch(
+              `/api/links/${encodeURIComponent(
+                props.key,
+              )}/tag?slug=${slug}&domain=${domain}`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
               },
-            }).then(async (res) => {
+            ).then(async (res) => {
               setTagging(false);
               if (res.status === 200) {
                 mutate(`/api/links${getQueryString(router)}`);
