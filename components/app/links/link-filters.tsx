@@ -121,7 +121,7 @@ export default function LinkFilters() {
     </div>
   ) : (
     <div className="grid h-full gap-6 rounded-md bg-white p-5">
-      <div className="h-[calc(100vh-190px)] w-full animate-pulse rounded-md bg-gray-200" />
+      <div className="h-[400px] w-full animate-pulse rounded-md bg-gray-200" />
     </div>
   );
 }
