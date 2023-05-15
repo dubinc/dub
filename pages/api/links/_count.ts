@@ -3,7 +3,7 @@ import { DUB_PROJECT_ID } from "@/lib/constants";
 import { getLinksCount } from "@/lib/api/links";
 
 export default withLinksAuth(async (req, res, session, project) => {
-  // GET /api/links/count – get the number of links for a project
+  // GET /api/links/_count – get the number of links for a project
   if (req.method === "GET") {
     const { userId } = req.query as { userId?: string };
     const count = await getLinksCount({
