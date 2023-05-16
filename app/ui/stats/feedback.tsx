@@ -23,7 +23,7 @@ export default function Feedback() {
       .then((res) => res.json())
       .then(() => {
         setState("submitted");
-        toast.success("Succesfully submitted feedback!");
+        toast.success("Successfully submitted feedback!");
       });
   };
 

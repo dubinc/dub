@@ -6,6 +6,7 @@ import useSWR from "swr";
 import { Copy, Photo, Tick } from "@/components/shared/icons";
 import { LoadingCircle } from "#/ui/icons";
 import { fetcher, getDomainWithoutWWW, getUrlFromString } from "@/lib/utils";
+import { toast } from "sonner";
 
 export default function MetatagsContent() {
   const [url, setUrl] = useState("https://github.com/steven-tey/dub");
@@ -91,6 +92,7 @@ export default function MetatagsContent() {
             `https://api.dub.sh/metatags?url=${getUrlFromString(url)}`,
           );
           setCopied(true);
+          toast.success("Copied URL to clipboard!");
           setTimeout(() => {
             setCopied(false);
           }, 2000);
