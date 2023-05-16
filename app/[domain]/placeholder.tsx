@@ -1,14 +1,16 @@
-import prisma from "@/lib/prisma";
+"use client";
+
 import Background from "@/components/shared/background";
-import Meta from "@/components/layout/meta";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useDebounce } from "use-debounce";
 import { STAGGER_CHILD_VARIANTS } from "@/lib/constants";
 import Spline from "@splinetool/react-spline";
 import { InlineSnippet } from "@/components/app/domains/domain-configuration";
+import { useParams } from "next/navigation";
 
-export default function Placeholder({ domain }: { domain: string }) {
+export default function PlaceholderContent() {
+  const { domain } = useParams() as { domain: string };
   const [loading, setLoading] = useState(true);
   const onLoad = () => {
     setLoading(false);
@@ -20,10 +22,6 @@ export default function Placeholder({ domain }: { domain: string }) {
 
   return (
     <div className="flex h-screen flex-col items-center">
-      <Meta
-        title={`${domain.toUpperCase()} - A Dub Custom Domain`}
-        description={`${domain.toUpperCase()} is a custom domain on Dub - an open-source link management tool for modern marketing teams to create, share, and track short links.`}
-      />
       <Background />
       <motion.div
         className="z-10"
@@ -87,33 +85,3 @@ export default function Placeholder({ domain }: { domain: string }) {
     </div>
   );
 }
-
-export const getStaticPaths = async () => {
-  const domains = process.env.VERCEL_ENV === "production" ? await prisma.domain.findMany({
-    where: {
-      verified: true,
-      target: null,
-    },
-    select: {
-      slug: true,
-    },
-  }) : []
-
-  return {
-    paths: domains.map(({ slug: domain }) => ({
-      params: {
-        domain,
-      },
-    })),
-    fallback: "blocking",
-  };
-};
-
-export const getStaticProps = async (context) => {
-  const { domain } = context.params;
-  return {
-    props: {
-      domain,
-    },
-  };
-};

@@ -11,24 +11,25 @@ export async function generateMetadata({
 }: {
   params: { key: string };
 }) {
-  const domain = getDomain(headers());
-
-  const data = await getLinkViaEdge(domain, params.key);
+  const data = await getLinkViaEdge("dub.sh", params.key);
 
   if (!data || !data.publicStats) {
     return;
   }
 
-  const title = `Stats for ${domain}/${params.key} - Dub`;
-  const description = `Stats page for ${domain}/${params.key}, which redirects to ${data.url}.`;
+  const title = `Stats for dub.sh/${params.key} - Dub`;
+  const description = `Stats page for dub.sh/${params.key}, which redirects to ${data.url}.`;
+  const image = `https://dub.sh/api/og/stats?domain=dub.sh&key=${params.key}`;
 
   return {
     title,
     description,
+    image,
     twitter: {
       card: "summary_large_image",
       title,
       description,
+      image,
       creator: "@dubdotsh",
     },
   };
