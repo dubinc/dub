@@ -1,15 +1,24 @@
+import prisma from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import { getLinkViaEdge } from "@/lib/planetscale";
 import Stats from "#/ui/stats";
-
-export const runtime = "edge";
 
 export async function generateMetadata({
   params,
 }: {
   params: { domain: string; key: string };
 }) {
-  const data = await getLinkViaEdge(params.domain, params.key);
+  const data = await prisma.link.findUnique({
+    where: {
+      domain_key: {
+        domain: params.domain,
+        key: params.key,
+      },
+    },
+    select: {
+      publicStats: true,
+      url: true,
+    },
+  });
 
   if (!data || !data.publicStats) {
     return;
@@ -33,12 +42,45 @@ export async function generateMetadata({
   };
 }
 
+export async function generateStaticParams() {
+  const links =
+    process.env.VERCEL_ENV === "production"
+      ? await prisma.link.findMany({
+          where: {
+            publicStats: true,
+            NOT: {
+              id: "cl9knuml512583yhrbjk0k55yl", // omit `dub.sh/github` since it's already statically generated
+            },
+          },
+          select: {
+            domain: true,
+            key: true,
+          },
+        })
+      : [];
+
+  return links.map(({ domain, key }) => ({
+    domain,
+    key,
+  }));
+}
+
 export default async function StatsPage({
   params,
 }: {
   params: { domain: string; key: string };
 }) {
-  const data = await getLinkViaEdge(params.domain, params.key);
+  const data = await prisma.link.findUnique({
+    where: {
+      domain_key: {
+        domain: params.domain,
+        key: params.key,
+      },
+    },
+    select: {
+      publicStats: true,
+    },
+  });
 
   if (!data || !data.publicStats) {
     notFound();
