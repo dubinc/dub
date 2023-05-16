@@ -1,4 +1,4 @@
-import { conn } from "@/lib/planetscale";
+import prisma from "@/lib/prisma";
 import { nFormatter } from "@/lib/utils";
 import getTweetsMetadata, { homepageTweets } from "#/lib/twitter";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
@@ -6,15 +6,7 @@ import Tweet from "#/ui/tweet";
 import TestimonialsMobile from "./testimonials-mobile";
 
 export default async function Testimonials() {
-  let userCount = 6000;
-  try {
-    if (conn) {
-      userCount = (await conn.execute("SELECT COUNT(id) FROM User")).rows[0][
-        "count(id)"
-      ];
-    }
-  } catch (_) {}
-
+  const userCount = await prisma.user.count();
   const tweets = await getTweetsMetadata(homepageTweets);
 
   return (

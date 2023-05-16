@@ -7,7 +7,6 @@ import Logos from "#/ui/home/logos";
 import Pricing from "#/ui/home/pricing";
 import OSS from "#/ui/home/oss";
 import Testimonials from "#/ui/home/testimonials";
-import { Suspense } from "react";
 
 export default function Home() {
   return (
@@ -18,15 +17,11 @@ export default function Home() {
         <Logos />
         <Globe />
         <Features />
-        <Suspense fallback="">
-          {/* @ts-expect-error Async Server Component */}
-          <Testimonials />
-        </Suspense>
+        {/* @ts-expect-error Async Server Component */}
+        <Testimonials />
         <Pricing homePage />
-        <Suspense fallback="">
-          {/* @ts-expect-error Async Server Component */}
-          <OSS />
-        </Suspense>
+        {/* @ts-expect-error Async Server Component */}
+        <OSS />
       </div>
       <Background />
     </>
