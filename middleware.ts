@@ -26,7 +26,6 @@ export const config = {
 
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   const { domain, path, key } = parse(req);
-  const home = isHomeHostname(domain);
 
   // for App (e.g. app.dub.sh)
   if (APP_HOSTNAMES.has(domain)) {
@@ -48,7 +47,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
     return RootMiddleware(req, ev);
   }
 
-  if (home) {
+  if (domain === "dub.sh") {
     if (DEFAULT_REDIRECTS[key]) {
       return NextResponse.redirect(DEFAULT_REDIRECTS[key]);
     }
