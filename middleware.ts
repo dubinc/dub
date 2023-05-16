@@ -15,12 +15,12 @@ export const config = {
      * Match all paths except for:
      * 1. /api/ routes
      * 2. /_next/ (Next.js internals)
-     * 3. /_proxy/, /_auth/, /_root/ (special pages for OG tags proxying, password protection, and placeholder _root pages)
+     * 3. /_proxy/, /_auth/ (special pages for OG tags proxying and password protection)
      * 4. /_static (inside /public)
      * 5. /_vercel (Vercel internals)
      * 6. all root files inside /public (e.g. /favicon.ico)
      */
-    "/((?!api/|_next/|_proxy/|_auth/|_root/|_static|_vercel|[\\w-]+\\.\\w+).*)",
+    "/((?!api/|_next/|_proxy/|_auth/|_static|_vercel|favicon.ico).*)",
   ],
 };
 
@@ -40,7 +40,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
 
   // for public stats pages (e.g. dub.sh/stats/github)
   if (path.startsWith("/stats/")) {
-    return NextResponse.next();
+    return NextResponse.rewrite(new URL(`/${domain}${path}`, req.url));
   }
 
   // for root pages (e.g. dub.sh, vercel.fyi, etc.)
@@ -53,7 +53,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
       return NextResponse.redirect(DEFAULT_REDIRECTS[key]);
     }
     if (await isReservedKey(key)) {
-      return NextResponse.next();
+      return NextResponse.rewrite(new URL(`/dub.sh${path}`, req.url));
     }
   }
 

@@ -1,8 +1,7 @@
-import { ImageResponse } from "next/server";
-import { headers } from "next/headers";
+import { ImageResponse, NextRequest } from "next/server";
 import { getLinkViaEdge } from "@/lib/planetscale";
 import { getStats } from "@/lib/stats";
-import { getDomain, nFormatter, truncate } from "@/lib/utils";
+import { nFormatter, truncate } from "@/lib/utils";
 
 export const runtime = "edge";
 export const contentType = "image/png";
@@ -15,15 +14,16 @@ const satoshiBold = fetch(
   new URL("@/styles/Satoshi-Bold.ttf", import.meta.url),
 ).then((res) => res.arrayBuffer());
 
-export default async function StatsOG({ params }: { params: { key: string } }) {
+export default async function handler(req: NextRequest) {
   const [satoshiBlackData, satoshiBoldData] = await Promise.all([
     satoshiBLack,
     satoshiBold,
   ]);
 
-  const domain = getDomain(headers());
+  const domain = req.nextUrl.searchParams.get("domain") || "dub.sh";
+  const key = req.nextUrl.searchParams.get("key") || "github";
 
-  const data = await getLinkViaEdge(domain, params.key);
+  const data = await getLinkViaEdge(domain, key);
   if (!data?.publicStats) {
     return new Response(`Stats for this link are not public`, {
       status: 403,
@@ -32,7 +32,7 @@ export default async function StatsOG({ params }: { params: { key: string } }) {
 
   const timeseries = await getStats({
     domain,
-    key: params.key,
+    key,
     endpoint: "timeseries",
     interval: "30d",
   });
@@ -51,13 +51,16 @@ export default async function StatsOG({ params }: { params: { key: string } }) {
           alignItems: "center",
           backgroundColor: "white",
           backgroundImage: `url(${new URL(
-            "./background.png",
+            "../../../public/_static/background.png",
             import.meta.url,
           ).toString()})`,
         }}
       >
         <img
-          src={new URL("./logo.png", import.meta.url).toString()}
+          src={new URL(
+            "../../../public/_static/logo.png",
+            import.meta.url,
+          ).toString()}
           style={{
             width: "80px",
             height: "80px",
@@ -78,7 +81,7 @@ export default async function StatsOG({ params }: { params: { key: string } }) {
             lineHeight: "7rem",
           }}
         >
-          {domain}/{truncate(params.key, 12)}
+          {domain}/{truncate(key, 12)}
         </h1>
         <p
           style={{

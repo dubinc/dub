@@ -17,7 +17,7 @@ export default async function RootMiddleware(
   }
 
   if (isHomeHostname(domain)) {
-    return NextResponse.next();
+    return NextResponse.rewrite(new URL(`/dub.sh`, req.url));
   } else {
     ev.waitUntil(recordClick(domain, req)); // record clicks on root page (if domain is not dub.sh)
 
@@ -31,7 +31,7 @@ export default async function RootMiddleware(
       }
     } else {
       // rewrite to root page unless the user defines a site to redirect to
-      return NextResponse.rewrite(new URL(`/_root/${domain}`, req.url));
+      return NextResponse.rewrite(new URL(`/${domain}`, req.url));
     }
   }
 }

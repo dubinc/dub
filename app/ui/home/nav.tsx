@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useSelectedLayoutSegment } from "next/navigation";
+import { useParams, useSelectedLayoutSegment } from "next/navigation";
 import useScroll from "#/lib/hooks/use-scroll";
 import clsx from "clsx";
 
 const transparentHeaderSegments = new Set(["metatags"]);
 
-export default function Nav({ domain }: { domain?: string }) {
+export default function Nav() {
+  const { domain = "dub.sh" } = useParams() as { domain: string };
+
   const scrolled = useScroll(80);
   const segment = useSelectedLayoutSegment();
 
