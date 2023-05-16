@@ -7,14 +7,25 @@ import { Providers } from "./providers";
 const title = "Dub - Link Management for Modern Marketing Teams";
 const description =
   "Dub is an open-source link management tool for modern marketing teams to create, share, and track short links.";
+const image = "https://dub.sh/_static/thumbnail.png";
 
 export const metadata = {
   title,
   description,
+  openGraph: {
+    title,
+    description,
+    images: [
+      {
+        url: image,
+      },
+    ],
+  },
   twitter: {
     card: "summary_large_image",
     title,
     description,
+    images: [image],
     creator: "@dubdotsh",
   },
   metadataBase: new URL("https://dub.sh"),

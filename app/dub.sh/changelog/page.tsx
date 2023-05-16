@@ -8,10 +8,30 @@ import { MDX } from "#/ui/blog/mdx";
 import { Twitter } from "@/components/shared/icons";
 import { Rss } from "lucide-react";
 
+const title = "Changelog - Dub";
+const description =
+  "All the latest updates, improvements, and fixes to Dub - the link management tool for modern marketing teams.";
+const image = "https://dub.sh/api/og/changelog";
+
 export const metadata: Metadata = {
-  title: "Changelog - Dub",
-  description:
-    "All the latest updates, improvements, and fixes to Dub - the link management tool for modern marketing teams.",
+  title,
+  description,
+  openGraph: {
+    title,
+    description,
+    images: [
+      {
+        url: image,
+      },
+    ],
+  },
+  twitter: {
+    title,
+    description,
+    images: [image],
+  },
+  metadataBase: new URL("https://dub.sh"),
+  themeColor: "#FFF",
 };
 
 export default async function Changelog() {
