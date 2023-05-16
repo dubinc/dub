@@ -9,8 +9,6 @@ import OSS from "#/ui/home/oss";
 import Testimonials from "#/ui/home/testimonials";
 import { Suspense } from "react";
 
-export const runtime = "edge";
-
 export default function Home() {
   return (
     <>

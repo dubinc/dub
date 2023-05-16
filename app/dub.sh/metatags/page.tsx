@@ -4,8 +4,6 @@ import Background from "@/components/shared/background";
 import LaunchTweet from "./launch";
 import MetatagsContent from "./content";
 
-export const runtime = "edge";
-
 export const metadata = {
   title: "Metatags API - The Free API to Get Meta Tags from a URL",
   description:
