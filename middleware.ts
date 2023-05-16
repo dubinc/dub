@@ -7,7 +7,7 @@ import {
   RootMiddleware,
 } from "@/lib/middleware";
 import { parse } from "@/lib/middleware/utils";
-import { isHomeHostname, isReservedKey } from "./lib/utils";
+import { isReservedKey } from "./lib/utils";
 
 export const config = {
   matcher: [
@@ -18,9 +18,9 @@ export const config = {
      * 3. /_proxy/, /_auth/ (special pages for OG tags proxying and password protection)
      * 4. /_static (inside /public)
      * 5. /_vercel (Vercel internals)
-     * 6. all root files inside /public (e.g. /favicon.ico)
+     * 6. /favicon.ico, /sitemap.xml (static files)
      */
-    "/((?!api/|_next/|_proxy/|_auth/|_static|_vercel|favicon.ico).*)",
+    "/((?!api/|_next/|_proxy/|_auth/|_static|_vercel|favicon.ico|sitemap.xml).*)",
   ],
 };
 
