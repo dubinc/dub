@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import prisma from "@/lib/prisma";
 import { nFormatter } from "@/lib/utils";
 import getTweetsMetadata, { homepageTweets } from "#/lib/twitter";
@@ -6,7 +7,15 @@ import Tweet from "#/ui/tweet";
 import TestimonialsMobile from "./testimonials-mobile";
 
 export default async function Testimonials() {
-  const userCount = await prisma.user.count();
+  const userCount = await unstable_cache(
+    async () => {
+      return prisma.user.count();
+    },
+    [],
+    {
+      revalidate: 300,
+    },
+  )();
   const tweets = await getTweetsMetadata(homepageTweets);
 
   return (
