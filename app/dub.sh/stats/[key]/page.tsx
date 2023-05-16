@@ -1,6 +1,4 @@
-import { headers } from "next/headers";
 import { notFound } from "next/navigation";
-import { getDomain } from "@/lib/utils";
 import { getLinkViaEdge } from "@/lib/planetscale";
 import Stats from "#/ui/stats";
 
@@ -48,8 +46,7 @@ export default async function StatsPage({
 }: {
   params: { key: string };
 }) {
-  const domain = getDomain(headers());
-  const data = await getLinkViaEdge(domain, params.key);
+  const data = await getLinkViaEdge("dub.sh", params.key);
 
   if (!data || !data.publicStats) {
     notFound();
@@ -57,7 +54,7 @@ export default async function StatsPage({
 
   return (
     <div className="bg-gray-50">
-      <Stats staticDomain={domain} />
+      <Stats staticDomain="dub.sh" />
     </div>
   );
 }
