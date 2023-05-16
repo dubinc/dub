@@ -13,6 +13,7 @@ export default function ProjectLinks() {
   const { slug, error } = useProject();
 
   const { AddEditLinkModal, AddEditLinkButton } = useAddEditLinkModal();
+
   const { AcceptInviteModal, setShowAcceptInviteModal } =
     useAcceptInviteModal();
   const { CompleteSetupModal, setShowCompleteSetupModal } =
@@ -24,10 +25,16 @@ export default function ProjectLinks() {
   useEffect(() => {
     if (error && (error.status === 409 || error.status === 410)) {
       setShowAcceptInviteModal(true);
-    } else if (!verified && !loading) {
-      setShowCompleteSetupModal(true);
     }
   }, [error, verified, loading]);
+
+  useEffect(() => {
+    if (!verified && !loading && !error) {
+      setShowCompleteSetupModal(true);
+    } else {
+      setShowCompleteSetupModal(false);
+    }
+  }, [verified, loading, error]);
 
   if (error && error.status === 404) {
     return <ErrorPage statusCode={404} />;

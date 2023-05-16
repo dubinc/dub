@@ -59,9 +59,13 @@ function AcceptInviteModal({
                   headers: { "Content-Type": "application/json" },
                 }).then(() => {
                   toast.success("You now are a part of this project!");
-                  mutate("/api/projects");
-                  mutate(`/api/projects/${slug}`);
-                  mutate(`/api/projects/${slug}/users`);
+                  mutate(
+                    (key) =>
+                      typeof key === "string" &&
+                      key.startsWith(`/api/projects`),
+                    undefined,
+                    { revalidate: true },
+                  );
                 });
               }}
               disabled={accepting}
