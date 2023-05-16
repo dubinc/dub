@@ -5,9 +5,6 @@ import Globe from "#/ui/home/globe";
 import Hero from "#/ui/home/hero";
 import Logos from "#/ui/home/logos";
 import Pricing from "#/ui/home/pricing";
-import OSS from "#/ui/home/oss";
-import Testimonials from "#/ui/home/testimonials";
-import { Suspense } from "react";
 
 export default function Home() {
   return (
@@ -18,15 +15,7 @@ export default function Home() {
         <Logos />
         <Globe />
         <Features />
-        <Suspense fallback="">
-          {/* @ts-expect-error Async Server Component */}
-          <Testimonials />
-        </Suspense>
         <Pricing homePage />
-        <Suspense fallback="">
-          {/* @ts-expect-error Async Server Component */}
-          <OSS />
-        </Suspense>
       </div>
       <Background />
     </>
