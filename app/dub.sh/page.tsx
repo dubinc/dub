@@ -5,6 +5,8 @@ import Globe from "#/ui/home/globe";
 import Hero from "#/ui/home/hero";
 import Logos from "#/ui/home/logos";
 import Pricing from "#/ui/home/pricing";
+import OSS from "#/ui/home/oss";
+import Testimonials from "#/ui/home/testimonials";
 
 export default function Home() {
   return (
@@ -15,7 +17,11 @@ export default function Home() {
         <Logos />
         <Globe />
         <Features />
+        {/* @ts-expect-error Async Server Component */}
+        <Testimonials />
         <Pricing homePage />
+        {/* @ts-expect-error Async Server Component */}
+        <OSS />
       </div>
       <Background />
     </>
