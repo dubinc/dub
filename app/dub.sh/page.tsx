@@ -1,7 +1,8 @@
 import Background from "@/components/shared/background";
 import Demo from "#/ui/home/demo";
-import Features from "#/ui/home/features";
 import Globe from "#/ui/home/globe";
+import Stats from "#/ui/home/stats";
+import Features from "#/ui/home/features";
 import Hero from "#/ui/home/hero";
 import Logos from "#/ui/home/logos";
 import Pricing from "#/ui/home/pricing";
@@ -15,7 +16,10 @@ export default function Home() {
         <Hero />
         <Demo />
         <Logos />
+        {/* @ts-expect-error Async Server Component */}
         <Globe />
+        {/* @ts-expect-error Async Server Component */}
+        <Stats />
         <Features />
         {/* @ts-expect-error Async Server Component */}
         <Testimonials />
