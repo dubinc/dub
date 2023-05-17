@@ -32,7 +32,7 @@ export default function Toggle() {
 
   return (
     <div
-      className={`z-20 mb-5 ${
+      className={`z-10 mb-5 ${
         basePath.startsWith("/stats")
           ? `top-0 ${!modal ? "md:top-16" : ""}`
           : "top-[6.95rem]"

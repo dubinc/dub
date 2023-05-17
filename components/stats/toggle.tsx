@@ -33,7 +33,7 @@ export default function Toggle({ atModalTop }: { atModalTop?: boolean }) {
 
   return (
     <div
-      className={`z-20 mb-5 ${
+      className={`z-10 mb-5 ${
         basePath.startsWith("/stats") ? "top-0" : "top-[6.95rem]"
       } sticky bg-gray-50 py-3 sm:py-5 ${atTop ? "shadow-md" : ""}`}
     >

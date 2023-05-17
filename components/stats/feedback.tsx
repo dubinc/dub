@@ -54,7 +54,7 @@ export default function Feedback() {
   );
 
   return (
-    <div className="relative h-[420px] overflow-scroll border border-gray-200 bg-white px-7 py-5 scrollbar-hide sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
+    <div className="relative z-0 h-[420px] overflow-scroll border border-gray-200 bg-white px-7 py-5 scrollbar-hide sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
       <div className="mb-5 flex">
         <h1 className="text-xl font-semibold">Feedback</h1>
       </div>
