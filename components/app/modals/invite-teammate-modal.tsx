@@ -8,10 +8,11 @@ import {
 } from "react";
 import { mutate } from "swr";
 import BlurImage from "#/ui/blur-image";
-import { LoadingDots } from "#/ui/icons";
+import va from "@vercel/analytics";
 import Modal from "@/components/shared/modal";
 import useProject from "@/lib/swr/use-project";
 import { toast } from "sonner";
+import Button from "#/ui/button";
 
 function InviteTeammateModal({
   showInviteTeammateModal,
@@ -22,8 +23,7 @@ function InviteTeammateModal({
 }) {
   const router = useRouter();
   const { slug } = router.query as { slug: string };
-  const [state, setState] = useState("idle");
-  const [error, setError] = useState(null);
+  const [inviting, setInviting] = useState(false);
   const [email, setEmail] = useState("");
   const { logo } = useProject();
 
@@ -44,32 +44,34 @@ function InviteTeammateModal({
           <h3 className="text-lg font-medium">Invite Teammate</h3>
           <p className="text-center text-sm text-gray-500">
             Invite a teammate to join your project. Invitations will be valid
-            for 7 days.
+            for 14 days.
           </p>
         </div>
 
         <form
           onSubmit={async (e) => {
             e.preventDefault();
-            setState("inviting");
+            setInviting(true);
             fetch(`/api/projects/${slug}/invite`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ email }),
             }).then(async (res) => {
+              setInviting(false);
               if (res.status === 200) {
-                setState("invited");
                 toast.success("Invitation sent!");
+                va.track("User invited teammate", {
+                  project: slug,
+                });
                 mutate(`/api/projects/${slug}/invite`);
                 setShowInviteTeammateModal(false);
               } else {
-                setState("idle");
-                const response = await res.json();
-                setError(response.error);
+                const error = await res.text();
+                toast.error(error);
               }
             });
           }}
-          className="flex flex-col bg-gray-50 px-4 py-8 text-left sm:px-16"
+          className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 text-left sm:px-16"
         >
           <div>
             <label htmlFor="email" className="block text-sm text-gray-700">
@@ -89,21 +91,7 @@ function InviteTeammateModal({
             </div>
           </div>
 
-          <button
-            disabled={state === "inviting"}
-            className={`${
-              state === "inviting"
-                ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
-                : "border-black bg-black text-white hover:bg-white hover:text-black"
-            } mb-2 mt-4 flex h-10 w-full items-center justify-center rounded-md border text-sm transition-all focus:outline-none`}
-          >
-            {state === "inviting" ? (
-              <LoadingDots color="#808080" />
-            ) : (
-              <p>Send invite</p>
-            )}
-          </button>
-          {error && <p className="text-center text-xs text-red-500">{error}</p>}
+          <Button loading={inviting} text="Send invite" />
         </form>
       </div>
     </Modal>

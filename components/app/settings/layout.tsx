@@ -1,31 +1,14 @@
-import ErrorPage from "next/error";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import AppLayout from "components/layout/app";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
-import useProject from "@/lib/swr/use-project";
-import { useAcceptInviteModal } from "@/components/app/modals/accept-invite-modal";
-import { ReactNode, useEffect } from "react";
+import { ReactNode } from "react";
 
 export default function SettingsLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { slug } = router.query as {
     slug?: string;
   };
-  const { error } = useProject();
-  const { AcceptInviteModal, setShowAcceptInviteModal } =
-    useAcceptInviteModal();
-
-  // handle errors
-  useEffect(() => {
-    if (error && (error.status === 409 || error.status === 410)) {
-      setShowAcceptInviteModal(true);
-    }
-  }, [error]);
-
-  if (error && error.status === 404) {
-    return <ErrorPage statusCode={404} />;
-  }
 
   const tabs = [
     {
@@ -44,9 +27,6 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
 
   return (
     <AppLayout bgWhite>
-      {error && (error.status === 409 || error.status === 410) && (
-        <AcceptInviteModal />
-      )}
       <div className="flex h-36 items-center border-b border-gray-200 bg-white">
         <MaxWidthWrapper>
           <div className="flex items-center justify-between">

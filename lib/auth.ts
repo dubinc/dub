@@ -23,7 +23,7 @@ interface WithProjectNextApiHandler {
     res: NextApiResponse,
     project: ProjectProps,
     session: Session,
-  ): Promise<void>;
+  ): any;
 }
 
 const withProjectAuth =

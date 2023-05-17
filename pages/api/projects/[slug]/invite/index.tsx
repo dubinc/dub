@@ -49,15 +49,13 @@ export default withProjectAuth(async (req, res, project) => {
       },
     });
     if (alreadyInTeam) {
-      return res
-        .status(400)
-        .json({ error: "User already exists in this project" });
+      return res.status(400).end("User already exists in this project.");
     }
 
     // same method of generating a token as next-auth
     const token = randomBytes(32).toString("hex");
-    const ONE_WEEK_IN_SECONDS = 604800;
-    const expires = new Date(Date.now() + ONE_WEEK_IN_SECONDS * 1000);
+    const TWO_WEEKS_IN_SECONDS = 60 * 60 * 24 * 14;
+    const expires = new Date(Date.now() + TWO_WEEKS_IN_SECONDS * 1000);
 
     // create a project invite record and a verification request token that lasts for a week
     // here we use a try catch to account for the case where the user has already been invited
@@ -95,7 +93,7 @@ export default withProjectAuth(async (req, res, project) => {
 
       return res.status(200).json({ message: "Invite sent" });
     } catch (error) {
-      return res.status(400).json({ error: "User already invited" });
+      return res.status(400).end("User already invited.");
     }
   } else {
     res.setHeader("Allow", ["GET", "POST"]);
