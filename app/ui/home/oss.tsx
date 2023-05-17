@@ -1,5 +1,5 @@
 import { Github } from "@/components/shared/icons";
-import CountingNumbers from "../../../components/shared/counting-numbers";
+import CountingNumbers from "../counting-numbers";
 import MaxWidthWrapper from "../../../components/shared/max-width-wrapper";
 import styles from "./features.module.css";
 
