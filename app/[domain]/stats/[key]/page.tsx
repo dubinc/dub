@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Stats from "#/ui/stats";
+import { Suspense } from "react";
 
 export async function generateMetadata({
   params,
@@ -88,7 +89,9 @@ export default async function StatsPage({
 
   return (
     <div className="bg-gray-50">
-      <Stats staticDomain={params.domain} />
+      <Suspense>
+        <Stats staticDomain={params.domain} />
+      </Suspense>
     </div>
   );
 }

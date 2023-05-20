@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getLinkViaEdge } from "@/lib/planetscale";
 import Stats from "#/ui/stats";
+import { Suspense } from "react";
 
 export const runtime = "edge";
 
@@ -54,7 +55,9 @@ export default async function StatsPage({
 
   return (
     <div className="bg-gray-50">
-      <Stats staticDomain="dub.sh" />
+      <Suspense>
+        <Stats staticDomain="dub.sh" />
+      </Suspense>
     </div>
   );
 }
