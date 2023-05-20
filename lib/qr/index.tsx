@@ -284,6 +284,7 @@ export function QRCodeCanvas(props: QRPropsCanvas) {
   if (imgSrc != null) {
     img = (
       <img
+        alt="QR code"
         src={imgSrc}
         key={imgSrc}
         style={{ display: "none" }}

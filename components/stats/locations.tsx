@@ -51,6 +51,7 @@ export default function Locations() {
                 <div className="relative z-10 flex w-full max-w-[calc(100%-3rem)] items-center">
                   <span className="z-10 flex items-center space-x-2 px-2">
                     <img
+                      alt={country}
                       src={`https://flag.vercel.app/m/${country}.svg`}
                       className="h-3 w-5"
                     />

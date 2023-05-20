@@ -47,6 +47,7 @@ export function MDX({ code, images, tweets, repos }: MDXProps) {
     return (
       <BlurImage
         {...props}
+        alt={props.alt || "Image"}
         placeholder="blur"
         blurDataURL={
           blurDataURL ||

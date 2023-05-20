@@ -3,23 +3,13 @@ import { Suspense } from "react";
 import Background from "@/components/shared/background";
 import LaunchTweet from "./launch";
 import MetatagsContent from "./content";
+import { constructMetadata } from "@/lib/utils";
 
-const title = "Metatags API - The Free API to Get Meta Tags from a URL";
-const description =
-  "Dub's Metatags API is a free & simple API to retrieve meta & OG tags from a URL, powered by Vercel Edge Functions.";
-
-export const metadata = {
-  title,
-  description,
-  openGraph: {
-    title,
-    description,
-  },
-  twitter: {
-    title,
-    description,
-  },
-};
+export const metadata = constructMetadata({
+  title: "Metatags API - The Free API to Get Meta Tags from a URL",
+  description:
+    "Dub's Metatags API is a free & simple API to retrieve meta & OG tags from a URL, powered by Vercel Edge Functions.",
+});
 
 export default function Metatags() {
   return (

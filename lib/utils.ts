@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { NextRouter } from "next/router";
 import ms from "ms";
 import { customAlphabet } from "nanoid";
@@ -8,6 +9,39 @@ import {
   HOME_HOSTNAMES,
 } from "./constants";
 import { get } from "@vercel/edge-config";
+
+export function constructMetadata({
+  title = "Dub - Link Management for Modern Marketing Teams",
+  description = "Dub is an open-source link management tool for modern marketing teams to create, share, and track short links.",
+  image = "https://dub.sh/_static/thumbnail.png",
+}: {
+  title?: string;
+  description?: string;
+  image?: string;
+}): Metadata {
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: [
+        {
+          url: image,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [image],
+      creator: "@dubdotsh",
+    },
+    metadataBase: new URL("https://dub.sh"),
+    themeColor: "#FFF",
+  };
+}
 
 export const nanoid = customAlphabet(
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
