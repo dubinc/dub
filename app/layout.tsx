@@ -1,28 +1,27 @@
+import { title, description, image } from "@/lib/constants";
 import "@/styles/globals.css";
 import { satoshi, inter } from "@/styles/fonts";
 import { Analytics } from "@vercel/analytics/react";
 import clsx from "clsx";
 import { Providers } from "./providers";
 
-const title = "Dub - Link Management for Modern Marketing Teams";
-const description =
-  "Dub is an open-source link management tool for modern marketing teams to create, share, and track short links.";
-
 export const metadata = {
-  title: {
-    default: title,
-  },
+  title,
   description,
   openGraph: {
     title,
     description,
-    images: "/_static/thumbnail.png",
+    images: [
+      {
+        url: image,
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title,
     description,
-    images: "/_static/thumbnail.png",
+    images: [image],
     creator: "@dubdotsh",
   },
   metadataBase: new URL("https://dub.sh"),

@@ -1,3 +1,8 @@
+export const title = "Dub - Link Management for Modern Marketing Teams";
+export const description =
+  "Dub is an open-source link management tool for modern marketing teams to create, share, and track short links.";
+export const image = "https://dub.sh/_static/thumbnail.png";
+
 export const LOCALHOST_GEO_DATA = {
   city: "San Francisco",
   region: "CA",

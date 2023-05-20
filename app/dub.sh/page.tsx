@@ -1,3 +1,4 @@
+import { title, description, image } from "@/lib/constants";
 import Background from "@/components/shared/background";
 import Demo from "#/ui/home/demo";
 import Globe from "#/ui/home/globe";
@@ -8,6 +9,28 @@ import Logos from "#/ui/home/logos";
 import Pricing from "#/ui/home/pricing";
 import OSS from "#/ui/home/oss";
 import Testimonials from "#/ui/home/testimonials";
+
+export const metadata = {
+  title,
+  description,
+  image,
+  openGraph: {
+    title,
+    description,
+    images: [
+      {
+        url: image,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title,
+    description,
+    images: [image],
+    creator: "@dubdotsh",
+  },
+};
 
 export default function Home() {
   return (
