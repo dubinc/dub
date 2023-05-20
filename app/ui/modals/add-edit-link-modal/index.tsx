@@ -9,6 +9,7 @@ import {
 import {
   Dispatch,
   SetStateAction,
+  Suspense,
   UIEvent,
   useCallback,
   useEffect,
@@ -632,14 +633,16 @@ export function useAddEditLinkModal({
 
   const AddEditLinkModalCallback = useCallback(() => {
     return (
-      <AddEditLinkModal
-        showAddEditLinkModal={showAddEditLinkModal}
-        setShowAddEditLinkModal={setShowAddEditLinkModal}
-        props={props}
-        duplicateProps={duplicateProps}
-        hideXButton={hideXButton}
-        homepageDemo={homepageDemo}
-      />
+      <Suspense>
+        <AddEditLinkModal
+          showAddEditLinkModal={showAddEditLinkModal}
+          setShowAddEditLinkModal={setShowAddEditLinkModal}
+          props={props}
+          duplicateProps={duplicateProps}
+          hideXButton={hideXButton}
+          homepageDemo={homepageDemo}
+        />
+      </Suspense>
     );
   }, [
     showAddEditLinkModal,
