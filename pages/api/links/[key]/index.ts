@@ -63,7 +63,7 @@ export default withLinksAuth(
         await log(
           `*${
             session.user.email
-          }* edited a link (*dub.sh/${key}*) to the ${url} ${
+          }* edited a link (dub.sh/${key}) to the ${url} ${
             invalidFavicon
               ? " but it has an invalid favicon :thinking_face:"
               : ""
