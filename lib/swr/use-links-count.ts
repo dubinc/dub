@@ -17,7 +17,7 @@ export default function useLinksCount({
       )}`,
     fetcher,
     {
-      dedupingInterval: 10000,
+      dedupingInterval: 30000,
       keepPreviousData: true,
     },
   );

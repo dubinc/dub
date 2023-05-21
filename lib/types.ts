@@ -29,6 +29,12 @@ export interface LinkProps {
   updatedAt?: Date;
 }
 
+export interface TagProps {
+  id: string;
+  name: string;
+  color: string;
+}
+
 export type PlanProps = "free" | "pro" | "enterprise";
 
 export interface ProjectProps {

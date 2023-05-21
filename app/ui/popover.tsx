@@ -4,7 +4,7 @@ import { useParams } from "next/navigation";
 import { ReactNode, useEffect, useRef } from "react";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { AnimatePresence, motion, useAnimation } from "framer-motion";
-import useViewportSize from "@/lib/hooks/use-viewport-size";
+import useWindowSize from "#/lib/hooks/use-window-size";
 
 export default function Popover({
   children,
@@ -37,7 +37,7 @@ export default function Popover({
       controls.start({ y: 0, transition: transitionProps });
     }
   }
-  const { width } = useViewportSize();
+  const { width } = useWindowSize();
 
   // workaround to make popover close when route changes on desktop
   useEffect(() => {

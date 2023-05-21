@@ -1,7 +1,6 @@
 import { useRouter } from "next/router";
 import { useContext, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
-import { useAddProjectModal } from "@/components/app/modals/add-project-modal";
 import BlurImage from "#/ui/blur-image";
 import { ChevronUpDown, PlusCircle, Tick } from "@/components/shared/icons";
 import Popover from "@/components/shared/popover";

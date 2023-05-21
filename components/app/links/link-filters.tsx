@@ -22,11 +22,15 @@ import Switch from "#/ui/switch";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { ModalContext } from "#/ui/modal-provider";
+import useTags from "@/lib/swr/use-tags";
 
 export default function LinkFilters() {
   const { primaryDomain } = useDomains();
   const { data: domains } = useLinksCount({ groupBy: "domain" });
-  // const { data: tags } = useLinksCount({ groupBy: "tagId" });
+
+  const { tags } = useTags();
+  const { data: tagsCount } = useLinksCount({ groupBy: "tagId" });
+
   const router = useRouter();
   const { slug, search, domain, userId, tagId } = router.query as {
     slug: string;
@@ -95,25 +99,27 @@ export default function LinkFilters() {
       />
       {slug && (
         <>
-          {/* <FilterGroup
-            displayName="Tags"
-            param="tagId"
-            options={tags.map(({ tag, tagId, _count }) => ({
-              name: tag,
-              value: tagId,
-              count: _count,
-            }))}
-            cta={
-              <button
-                onClick={() => {
-                  toast.success("add a tag to a project");
-                }}
-                className="rounded-md border border-gray-300 p-1 text-center text-sm"
-              >
-                Add a tag
-              </button>
-            }
-          /> */}
+          {tagsCount && (
+            <FilterGroup
+              displayName="Tags"
+              param="tagId"
+              options={tagsCount.map(({ tagId, _count }) => ({
+                name: tags?.find((tag) => tag.id === tagId)?.name || "",
+                value: tagId,
+                count: _count,
+              }))}
+              cta={
+                <button
+                  onClick={() => {
+                    toast.success("add a tag to a project");
+                  }}
+                  className="rounded-md border border-gray-300 p-1 text-center text-sm"
+                >
+                  Add a tag
+                </button>
+              }
+            />
+          )}
           <MyLinksFilter />
         </>
       )}

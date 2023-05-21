@@ -1,6 +1,6 @@
 import { useContext, useState } from "react";
 import { motion } from "framer-motion";
-import BadgeSelect from "@/components/shared/badge-select";
+import TabSelect from "@/components/shared/tab-select";
 import { LoadingCircle } from "#/ui/icons";
 import { DeviceTabs, uaToBot } from "@/lib/stats";
 import { nFormatter } from "@/lib/utils";
@@ -29,7 +29,7 @@ export default function Devices() {
     <div className="relative z-0 h-[420px] overflow-scroll border border-gray-200 bg-white px-7 py-5 scrollbar-hide  sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
       <div className="mb-5 flex justify-between">
         <h1 className="text-xl font-semibold">Devices</h1>
-        <BadgeSelect
+        <TabSelect
           options={["device", "browser", "os", "bot"]}
           selected={tab}
           // @ts-ignore

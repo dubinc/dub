@@ -17,6 +17,8 @@ module.exports = {
         default: ["var(--font-inter)", "system-ui", "sans-serif"],
       },
       animation: {
+        // Input Select
+        "slide-down": "slide-down 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
         // Tooltip
         "slide-up-fade": "slide-up-fade 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
         "slide-right-fade":
@@ -36,6 +38,11 @@ module.exports = {
         wiggle: "wiggle 0.75s infinite",
       },
       keyframes: {
+        // Input Select
+        "slide-down": {
+          "0%": { transform: "translateY(-8px)" },
+          "100%": { transform: "translateY(0)" },
+        },
         // Tooltip
         "slide-up-fade": {
           "0%": { opacity: 0, transform: "translateY(2px)" },
@@ -89,6 +96,20 @@ module.exports = {
           "45%": { transform: "translateX(-6px) rotate(-2.4deg)" },
           "60%": { transform: "translateX(2px) rotate(1.6deg)" },
           "75%": { transform: "translateX(-1px) rotate(-0.8deg)" },
+        },
+      },
+      colors: {
+        brown: {
+          50: "#fdf8f6",
+          100: "#f2e8e5",
+          200: "#eaddd7",
+          300: "#e0cec7",
+          400: "#d2bab0",
+          500: "#bfa094",
+          600: "#a18072",
+          700: "#977669",
+          800: "#846358",
+          900: "#43302b",
         },
       },
     },

@@ -80,6 +80,7 @@ export const DEFAULT_REDIRECTS = {
   welcome: "https://app.dub.sh/welcome",
   slack: "https://dub.slack.com",
   discord: "https://twitter.com/dubdotsh", // placeholder for now
+  tags: "https://dub.sh/changelog/introducing-tags",
 };
 
 export const REDIRECT_HEADERS = {

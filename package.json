@@ -43,6 +43,7 @@
     "@visx/tooltip": "^2.16.0",
     "cloudinary": "^1.36.4",
     "clsx": "^1.2.1",
+    "cmdk": "^0.2.0",
     "cobe": "^0.6.3",
     "contentlayer": "^0.3.2",
     "crisp-sdk-web": "^1.0.18",
@@ -83,7 +84,6 @@
     "use-debounce": "^8.0.4"
   },
   "devDependencies": {
-    "@tailwindcss/line-clamp": "^0.4.2",
     "@trivago/prettier-plugin-sort-imports": "^4.0.0",
     "@types/he": "^1.1.2",
     "@types/html-escaper": "^3.0.0",

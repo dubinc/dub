@@ -124,7 +124,7 @@ interface WithUsertNextApiHandler {
     res: NextApiResponse,
     session: Session,
     user?: UserProps,
-  ): Promise<void>;
+  ): any;
 }
 
 const withUserAuth =
@@ -207,7 +207,7 @@ const withLinksAuth =
     } = {},
   ) =>
   async (req: NextApiRequest, res: NextApiResponse) => {
-    console.log("Running withLinksAuth helper for endpoint: ", req.url);
+    // console.log("Running withLinksAuth helper for endpoint: ", req.url);
 
     const session = await getSession(req, res);
     if (!session?.user.id) {

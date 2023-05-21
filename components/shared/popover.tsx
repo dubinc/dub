@@ -1,8 +1,8 @@
 import { useRouter } from "next/router";
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { ReactNode, useEffect, useRef } from "react";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { AnimatePresence, motion, useAnimation } from "framer-motion";
-import useViewportSize from "@/lib/hooks/use-viewport-size";
+import useWindowSize from "#/lib/hooks/use-window-size";
 
 export default function Popover({
   children,
@@ -14,8 +14,8 @@ export default function Popover({
   children: ReactNode;
   content: ReactNode | string;
   align?: "center" | "start" | "end";
-  openPopover;
-  setOpenPopover;
+  openPopover: boolean;
+  setOpenPopover: (open: boolean) => void;
 }) {
   const router = useRouter();
 
@@ -35,7 +35,7 @@ export default function Popover({
       controls.start({ y: 0, transition: transitionProps });
     }
   }
-  const { width } = useViewportSize();
+  const { width } = useWindowSize();
 
   // workaround to make popover close when route changes on desktop
   useEffect(() => {
@@ -89,7 +89,7 @@ export default function Popover({
       <PopoverPrimitive.Root
         // workaround to make popover work on mobile (without this it'll automatically close on click without changing route)
         open={width > 640 && openPopover}
-        onOpenChange={width > 640 && setOpenPopover}
+        onOpenChange={width > 640 ? setOpenPopover : undefined}
       >
         <PopoverPrimitive.Trigger className="hidden md:inline-flex" asChild>
           {children}
