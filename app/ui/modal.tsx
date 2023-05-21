@@ -84,8 +84,12 @@ export default function Modal({
           focusTrapOptions={{
             initialFocus: false,
             onActivate: () => {
-              // prevent scroll outside of modal
+              // prevent scroll outside of modal when modal is open
               document.body.style.overflow = "hidden";
+            },
+            onDeactivate: () => {
+              // allow scroll outside of modal when modal is closed
+              document.body.style.overflow = "auto";
             },
           }}
         >
