@@ -80,7 +80,15 @@ export default function Modal({
   return (
     <AnimatePresence>
       {(setShowModal ? showModal : true) && (
-        <FocusTrap focusTrapOptions={{ initialFocus: false }}>
+        <FocusTrap
+          focusTrapOptions={{
+            initialFocus: false,
+            onActivate: () => {
+              // prevent scroll outside of modal
+              document.body.style.overflow = "hidden";
+            },
+          }}
+        >
           <div className="absolute">
             <motion.div
               ref={mobileModalRef}
