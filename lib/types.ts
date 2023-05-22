@@ -32,8 +32,17 @@ export interface LinkProps {
 export interface TagProps {
   id: string;
   name: string;
-  color: string;
+  color: TagColorProps;
 }
+
+export type TagColorProps =
+  | "red"
+  | "yellow"
+  | "green"
+  | "blue"
+  | "purple"
+  | "pink"
+  | "brown";
 
 export type PlanProps = "free" | "pro" | "enterprise";
 

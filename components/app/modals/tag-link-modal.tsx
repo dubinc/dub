@@ -16,11 +16,13 @@ import { LinkProps } from "@/lib/types";
 import { getApexDomain, getQueryString, linkConstructor } from "@/lib/utils";
 import { GOOGLE_FAVICON_URL } from "@/lib/constants";
 import { toast } from "sonner";
-import { ChevronDown, Search, X } from "lucide-react";
+import { Check, ChevronDown, Search, X } from "lucide-react";
 import { Command } from "cmdk";
 import Button from "#/ui/button";
 import useTags from "@/lib/swr/use-tags";
 import Badge from "@/components/shared/badge";
+import va from "@vercel/analytics";
+import useWindowSize from "#/lib/hooks/use-window-size";
 
 function TagLinkModal({
   showTagLinkModal,
@@ -39,10 +41,9 @@ function TagLinkModal({
   const { key, domain, tagId } = props;
 
   const { tags } = useTags();
-  const [selectedTag, setSelectedTag] = useState(
-    tags?.find((t) => t.id === tagId),
+  const [tagValue, setTagValue] = useState(
+    tags?.find((t) => t.id === tagId)?.name || "",
   );
-  const [value, setValue] = useState(selectedTag?.name || "");
 
   const shortlink = useMemo(() => {
     return linkConstructor({
@@ -56,53 +57,57 @@ function TagLinkModal({
     async (e?: SyntheticEvent) => {
       e?.preventDefault();
       setTagging(true);
-      console.log(selectedTag, value);
       fetch(
         `/api/links/${encodeURIComponent(
           props.key,
         )}/tag?slug=${slug}&domain=${domain}`,
         {
-          method: "POST",
+          method: tagValue.length > 0 ? "POST" : "DELETE",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            tagId:
-              selectedTag && value === selectedTag.name ? selectedTag.id : null,
+          ...(tagValue.length > 0 && {
+            body: JSON.stringify({ tag: tagValue }),
           }),
         },
       ).then(async (res) => {
         setTagging(false);
         if (res.status === 200) {
           mutate(`/api/links${getQueryString(router)}`);
+          mutate(`/api/projects/${slug}/tags`);
           mutate(
             `/api/links/_count${getQueryString(router, {
               groupBy: "tagId",
             })}`,
           );
           setShowTagLinkModal(false);
-          toast.success(`Successfully tagged shortlink!`);
+          toast.success(`Successfully updated shortlink!`);
+          tagValue.length > 0 && va.track("Tagged Link");
         } else {
           const error = await res.text();
           toast.error(error);
         }
       });
     },
-    [props, selectedTag, slug, domain, router],
+    [props, tagValue, slug, domain, router],
   );
 
-  const ref = useRef<HTMLDivElement | null>(null);
+  const commandRef = useRef<HTMLDivElement | null>(null);
   const [open, setOpen] = useState(false);
-
+  const { width } = useWindowSize();
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) {
+      if (commandRef.current && !commandRef.current.contains(e.target)) {
         setOpen(false);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [ref]);
+    // only for desktop
+    if (width > 768) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [commandRef, width]);
 
   return (
     <Modal showModal={showTagLinkModal} setShowModal={setShowTagLinkModal}>
@@ -122,87 +127,100 @@ function TagLinkModal({
         </div>
 
         <form
-          className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 text-left sm:px-16"
+          className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 text-left sm:rounded-b-2xl sm:px-16"
           onSubmit={handleSubmit}
         >
-          <div>
-            <label
-              htmlFor="Tag Selection"
-              className="block text-sm text-gray-700"
-            >
-              Tag
-            </label>
-            <Command ref={ref} className="relative" loop>
-              <div className="relative mt-3 w-full rounded-md">
-                <Search className="absolute inset-y-0 left-0 my-auto h-7 w-7 pl-3 text-gray-400" />
-                <Command.Input
-                  placeholder="Choose tag"
-                  onFocus={() => setOpen(true)}
-                  value={value}
-                  onValueChange={setValue}
-                  onKeyDown={(e) => {
-                    if (e.key === "Escape") {
-                      e.stopPropagation();
+          <Command
+            ref={commandRef}
+            className="relative"
+            loop
+            shouldFilter={
+              tagValue.length > 0 && !tags?.find((t) => t.name === tagValue)
+            }
+          >
+            <div className="relative mt-1 w-full rounded-md">
+              <Search className="absolute inset-y-0 left-0 my-auto h-7 w-7 pl-3 text-gray-400" />
+              <Command.Input
+                placeholder="Choose tag"
+                onFocus={() => tags && tags.length > 0 && setOpen(true)}
+                value={tagValue}
+                onValueChange={setTagValue}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") {
+                    e.stopPropagation();
+                    setOpen(false);
+                  } else if (e.key === "Enter") {
+                    if (open) {
+                      // if dropdown is open, close it
                       setOpen(false);
-                    } else if (e.key === "Enter") {
-                      if (open) {
-                        // if dropdown is open, close it
-                        setOpen(false);
-                      } else {
-                        // if dropdown is already closed, submit form
-                        handleSubmit();
-                      }
                     } else {
-                      setOpen(true);
+                      // if dropdown is already closed, submit form
+                      handleSubmit();
                     }
+                  } else {
+                    setOpen(true);
+                  }
+                }}
+                className="block w-full rounded-md border-gray-300 px-10 text-sm text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500"
+              />
+              {tagValue ? (
+                <button
+                  onClick={() => {
+                    setTagValue("");
+                    setOpen(true);
                   }}
-                  className="block w-full rounded-md border-gray-300 px-10 text-sm text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500"
-                />
-                {value ? (
-                  <button
-                    onClick={() => {
-                      setValue("");
-                      setOpen(true);
-                    }}
-                    className="absolute inset-y-0 right-0 my-auto"
-                  >
-                    <X className="h-7 w-7 pr-3 text-gray-400" />
-                  </button>
-                ) : (
-                  <ChevronDown className="absolute inset-y-0 right-0 my-auto h-7 w-7 pr-3 text-gray-400" />
-                )}
-              </div>
-              {open && (
-                <Command.List className="absolute z-10 mt-2 max-h-[300px] w-full animate-slide-down overflow-auto rounded-md border border-gray-200 bg-white p-2 transition-all">
-                  <Command.Empty>
-                    <button
-                      type="button"
-                      className="flex w-full cursor-pointer items-center rounded-md px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 hover:text-gray-900 aria-selected:bg-gray-100 aria-selected:text-gray-900"
-                    >
-                      Create tag{" "}
-                      <span className="ml-1.5 rounded-md bg-red-100 px-2 py-0.5 text-red-600">
-                        {value}
-                      </span>
-                    </button>
-                  </Command.Empty>
-                  {tags?.map((tag) => (
-                    <Command.Item
-                      key={tag.id}
-                      value={tag.name}
-                      onSelect={() => {
-                        setValue(tag.name);
-                        setSelectedTag(tag);
-                        setOpen(false);
-                      }}
-                      className="flex cursor-pointer items-center rounded-md px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 aria-selected:bg-gray-100 aria-selected:text-gray-900"
-                    >
-                      <Badge {...tag} />
-                    </Command.Item>
-                  ))}
-                </Command.List>
+                  className="absolute inset-y-0 right-0 my-auto"
+                >
+                  <X className="h-7 w-7 pr-3 text-gray-400" />
+                </button>
+              ) : (
+                <ChevronDown className="absolute inset-y-0 right-0 my-auto h-7 w-7 pr-3 text-gray-400" />
               )}
-            </Command>
-          </div>
+            </div>
+            {open && (
+              <Command.List
+                style={{
+                  animationFillMode: "forwards", // to keep the last frame of the animation
+                }}
+                className="absolute z-10 h-[300px] w-full animate-input-select-slide-up overflow-auto rounded-md border border-gray-200 bg-white p-2 transition-all sm:h-auto sm:max-h-[300px] sm:animate-input-select-slide-down"
+              >
+                <Command.Empty>
+                  <button
+                    type="button"
+                    onClick={() => setOpen(false)}
+                    className="flex w-full cursor-pointer items-center rounded-md bg-gray-100 px-4 py-2 text-sm text-gray-900 hover:text-gray-900 aria-selected:bg-gray-100 aria-selected:text-gray-900"
+                  >
+                    {tagValue.length > 0 ? (
+                      <>
+                        Create tag{" "}
+                        <span className="ml-1.5 rounded-md bg-blue-100 px-2 py-0.5 text-blue-600">
+                          {tagValue}
+                        </span>
+                      </>
+                    ) : (
+                      <p className="py-0.5">Start typing to create tag...</p>
+                    )}
+                  </button>
+                </Command.Empty>
+                {tags?.map((tag) => (
+                  <Command.Item
+                    key={tag.id}
+                    value={tag.name}
+                    onSelect={() => {
+                      setTagValue(tag.name);
+                      setOpen(false);
+                    }}
+                    className="flex cursor-pointer items-center justify-between rounded-md px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 aria-selected:bg-gray-100 aria-selected:text-gray-900"
+                  >
+                    <Badge {...tag} />
+                    {tagValue === tag.name && (
+                      <Check className="h-4 w-4 text-gray-500" />
+                    )}
+                  </Command.Item>
+                ))}
+              </Command.List>
+            )}
+          </Command>
 
           <Button loading={tagging} text="Confirm selection" />
         </form>

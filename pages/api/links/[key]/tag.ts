@@ -36,8 +36,21 @@ export default withLinksAuth(async (req, res, _session, project, domain) => {
       },
     });
     return res.status(200).json(response);
+  } else if (req.method === "DELETE") {
+    const response = await prisma.link.update({
+      where: {
+        domain_key: {
+          domain: domain || "dub.sh",
+          key,
+        },
+      },
+      data: {
+        tagId: null,
+      },
+    });
+    return res.status(200).json(response);
   } else {
-    res.setHeader("Allow", ["POST"]);
+    res.setHeader("Allow", ["POST", "DELETE"]);
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 });

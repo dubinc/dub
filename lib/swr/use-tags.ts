@@ -8,7 +8,7 @@ export default function useTags() {
   const { slug } = router.query as { slug?: string };
 
   const { data: tags, isValidating } = useSWR<TagProps[]>(
-    router.isReady && `/api/projects/${slug}/tags`,
+    slug && `/api/projects/${slug}/tags`,
     fetcher,
     {
       dedupingInterval: 30000,

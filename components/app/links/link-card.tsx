@@ -255,9 +255,9 @@ export default function LinkCard({ props }: { props: LinkProps }) {
               {tag?.color && (
                 <button
                   onClick={() => setShowTagLinkModal(true)}
-                  className="transition-all duration-75 hover:scale-105 active:scale-100"
+                  className="hidden transition-all duration-75 hover:scale-105 active:scale-100 sm:block"
                 >
-                  <Badge {...tag} />
+                  <Badge {...tag} withIcon />
                 </button>
               )}
             </div>
@@ -353,8 +353,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                 )}
                 {slug && (
                   <button
-                    onClick={(e) => {
-                      e.preventDefault();
+                    onClick={() => {
                       setOpenPopover(false);
                       setShowTagLinkModal(true);
                     }}
@@ -367,8 +366,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                   </button>
                 )}
                 <button
-                  onClick={(e) => {
-                    e.preventDefault();
+                  onClick={() => {
                     setOpenPopover(false);
                     setShowArchiveLinkModal(true);
                   }}

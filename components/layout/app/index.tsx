@@ -31,43 +31,43 @@ export default function AppLayout({
     key?: string;
   };
 
-  useEffect(() => {
-    Crisp.configure("2c09b1ee-14c2-46d1-bf72-1dbb998a19e0");
-  }, []);
+  // useEffect(() => {
+  //   Crisp.configure("2c09b1ee-14c2-46d1-bf72-1dbb998a19e0");
+  // }, []);
 
-  const { data: session } = useSession();
-  useEffect(() => {
-    if (session?.user?.email) {
-      Crisp.user.setEmail(session.user.email);
-      Crisp.user.setNickname(session.user.name || session.user.email);
-    }
-  }, [session]);
+  // const { data: session } = useSession();
+  // useEffect(() => {
+  //   if (session?.user?.email) {
+  //     Crisp.user.setEmail(session.user.email);
+  //     Crisp.user.setNickname(session.user.name || session.user.email);
+  //   }
+  // }, [session]);
 
-  const { id, name, plan, stripeId } = useProject();
-  const [showProBanner, setShowProBanner] = useState(false);
-  useEffect(() => {
-    if (plan) {
-      Crisp.session.setData({
-        projectId: id,
-        projectName: name,
-        projectSlug: slug,
-        plan,
-        ...(stripeId && { stripeId }),
-      });
-      if (plan === "free" && !Cookies.get("hideProBanner")) {
-        Crisp.chat.hide();
-        setShowProBanner(true);
-      } else {
-        Crisp.chat.show();
-        setShowProBanner(false);
-      }
-    }
-  }, [plan, id, name, slug, stripeId]);
+  // const { id, name, plan, stripeId } = useProject();
+  // const [showProBanner, setShowProBanner] = useState(false);
+  // useEffect(() => {
+  //   if (plan) {
+  //     Crisp.session.setData({
+  //       projectId: id,
+  //       projectName: name,
+  //       projectSlug: slug,
+  //       plan,
+  //       ...(stripeId && { stripeId }),
+  //     });
+  //     if (plan === "free" && !Cookies.get("hideProBanner")) {
+  //       Crisp.chat.hide();
+  //       setShowProBanner(true);
+  //     } else {
+  //       Crisp.chat.show();
+  //       setShowProBanner(false);
+  //     }
+  //   }
+  // }, [plan, id, name, slug, stripeId]);
 
   return (
     <div>
       <Meta />
-      {showProBanner && <ProBanner setShowProBanner={setShowProBanner} />}
+      {/* {showProBanner && <ProBanner setShowProBanner={setShowProBanner} />} */}
       <div
         className={`min-h-screen w-full ${bgWhite ? "bg-white" : "bg-gray-50"}`}
       >

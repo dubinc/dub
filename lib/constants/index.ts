@@ -69,6 +69,7 @@ export const APP_HOSTNAMES = new Set([
 
 export const DEFAULT_REDIRECTS = {
   home: "https://dub.sh",
+  dub: "https://dub.sh",
   signin: "https://app.dub.sh/login",
   login: "https://app.dub.sh/login",
   register: "https://app.dub.sh/register",

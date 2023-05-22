@@ -114,13 +114,10 @@ export default function Modal({
               {children}
             </motion.div>
             {!mobileOnly && (
-              <motion.div
+              <div
                 ref={desktopModalRef}
                 key="desktop-modal"
-                className="fixed inset-0 z-40 hidden min-h-screen items-center justify-center sm:flex"
-                initial={{ scale: 0.95 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0.95 }}
+                className="fixed inset-0 z-40 hidden min-h-screen animate-scale-in items-center justify-center sm:flex"
                 onMouseDown={(e) => {
                   if (desktopModalRef.current === e.target) {
                     closeModal(closeWithX);
@@ -128,7 +125,7 @@ export default function Modal({
                 }}
               >
                 {children}
-              </motion.div>
+              </div>
             )}
             <motion.div
               id="modal-backdrop"

@@ -4,6 +4,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -23,6 +24,7 @@ import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { ModalContext } from "#/ui/modal-provider";
 import useTags from "@/lib/swr/use-tags";
+import Badge from "@/components/shared/badge";
 
 export default function LinkFilters() {
   const { primaryDomain } = useDomains();
@@ -41,9 +43,6 @@ export default function LinkFilters() {
   };
   const searchInputRef = useRef(); // this is a hack to clear the search input when the clear button is clicked
 
-  const { setShowAddProjectModal } = useContext(ModalContext);
-
-  // return domains && tags ? (
   return domains ? (
     <div className="grid w-full rounded-md bg-white px-5 lg:divide-y lg:divide-gray-300">
       <div className="grid gap-3 py-6">
@@ -55,71 +54,10 @@ export default function LinkFilters() {
         </div>
         <SearchBox searchInputRef={searchInputRef} />
       </div>
-      <FilterGroup
-        displayName="Domains"
-        param="domain"
-        options={
-          domains.length === 0
-            ? [
-                {
-                  name: primaryDomain || "",
-                  value: primaryDomain || "",
-                  count: 0,
-                },
-              ]
-            : domains.map(({ domain, _count }) => ({
-                name: domain,
-                value: domain,
-                count: _count,
-              }))
-        }
-        checkDefault={domains.length <= 1}
-        cta={
-          slug ? (
-            <Link
-              href={`/${slug}/domains`}
-              className="rounded-md border border-gray-300 p-1 text-center text-sm"
-            >
-              Add a domain
-            </Link>
-          ) : (
-            <button
-              onClick={() => {
-                setShowAddProjectModal(true);
-                toast.error(
-                  "You can only add a domain to a custom project. Please create a new project or navigate to an existing one.",
-                );
-              }}
-              className="rounded-md border border-gray-300 p-1 text-center text-sm"
-            >
-              Add a domain
-            </button>
-          )
-        }
-      />
+      <DomainsFilter domains={domains} primaryDomain={primaryDomain} />
       {slug && (
         <>
-          {tagsCount && (
-            <FilterGroup
-              displayName="Tags"
-              param="tagId"
-              options={tagsCount.map(({ tagId, _count }) => ({
-                name: tags?.find((tag) => tag.id === tagId)?.name || "",
-                value: tagId,
-                count: _count,
-              }))}
-              cta={
-                <button
-                  onClick={() => {
-                    toast.success("add a tag to a project");
-                  }}
-                  className="rounded-md border border-gray-300 p-1 text-center text-sm"
-                >
-                  Add a tag
-                </button>
-              }
-            />
-          )}
+          {tagsCount && <TagsFilter tags={tags} tagsCount={tagsCount} />}
           <MyLinksFilter />
         </>
       )}
@@ -132,7 +70,27 @@ export default function LinkFilters() {
   );
 }
 
-const SearchBox = ({ searchInputRef }: { searchInputRef }) => {
+const ClearButton = ({ searchInputRef }) => {
+  const router = useRouter();
+  const { slug } = router.query;
+  return (
+    <button
+      onClick={() => {
+        router.replace(`/${slug || "links"}`).then(() => {
+          searchInputRef.current.value = "";
+        });
+      }}
+      className="group flex items-center justify-center space-x-1 rounded-md border border-gray-500 px-2 py-1 transition-all hover:border-black"
+    >
+      <XCircle className="h-4 w-4 text-gray-500 transition-all group-hover:text-black" />
+      <p className="text-sm text-gray-500 transition-all group-hover:text-black">
+        Clear
+      </p>
+    </button>
+  );
+};
+
+const SearchBox = ({ searchInputRef }) => {
   const router = useRouter();
   const debounced = useDebouncedCallback((value) => {
     setQueryString(router, "search", value);
@@ -182,6 +140,196 @@ const SearchBox = ({ searchInputRef }: { searchInputRef }) => {
   );
 };
 
+const DomainsFilter = ({ domains, primaryDomain }) => {
+  const router = useRouter();
+  const { slug } = router.query as { slug?: string };
+
+  const [collapsed, setCollapsed] = useState(false);
+
+  const options =
+    domains.length === 0
+      ? [
+          {
+            name: primaryDomain || "",
+            value: primaryDomain || "",
+            count: 0,
+          },
+        ]
+      : domains.map(({ domain, _count }) => ({
+          name: domain,
+          value: domain,
+          count: _count,
+        }));
+
+  const { setShowAddProjectModal } = useContext(ModalContext);
+
+  return (
+    <fieldset className="overflow-hidden py-6">
+      <div className="flex h-8 items-center justify-between">
+        <button
+          onClick={() => {
+            setCollapsed(!collapsed);
+          }}
+          className="flex items-center space-x-2"
+        >
+          <ChevronRight
+            className={`${collapsed ? "" : "rotate-90"} h-5 w-5 transition-all`}
+          />
+          <h4 className="font-medium text-gray-900">Domains</h4>
+        </button>
+      </div>
+      <AnimatePresence initial={false}>
+        {!collapsed && (
+          <motion.div
+            className="mt-4 grid gap-2"
+            {...SWIPE_REVEAL_ANIMATION_SETTINGS}
+          >
+            {options?.map(({ name, value, count }) => (
+              <div
+                key={value}
+                className="relative flex cursor-pointer items-center space-x-3 rounded-md bg-gray-50 transition-all hover:bg-gray-100"
+              >
+                <input
+                  id={value}
+                  name={value}
+                  checked={router.query.domain === value || domains.length <= 1}
+                  onChange={() => {
+                    setQueryString(router, "domain", value);
+                  }}
+                  type="radio"
+                  className="ml-3 h-4 w-4 cursor-pointer rounded-full border-gray-300 text-black focus:outline-none focus:ring-0"
+                />
+                <label
+                  htmlFor={value}
+                  className="flex w-full cursor-pointer justify-between px-3 py-2 pl-0 text-sm font-medium text-gray-700"
+                >
+                  <p>{punycode.toUnicode(name || "")}</p>
+                  <p className="text-gray-500">{nFormatter(count)}</p>
+                </label>
+              </div>
+            ))}
+            {slug ? (
+              <Link
+                href={`/${slug}/domains`}
+                className="rounded-md border border-gray-300 p-1 text-center text-sm"
+              >
+                Add a domain
+              </Link>
+            ) : (
+              <button
+                onClick={() => {
+                  setShowAddProjectModal(true);
+                  toast.error(
+                    "You can only add a domain to a custom project. Please create a new project or navigate to an existing one.",
+                  );
+                }}
+                className="rounded-md border border-gray-300 p-1 text-center text-sm"
+              >
+                Add a domain
+              </button>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </fieldset>
+  );
+};
+
+const TagsFilter = ({ tags, tagsCount }) => {
+  const router = useRouter();
+  const [collapsed, setCollapsed] = useState(tagsCount.length === 0);
+  const [search, setSearch] = useState("");
+  const [showMore, setShowMore] = useState(false);
+
+  const options = useMemo(() => {
+    const initialOptions = tagsCount.map(({ tagId, _count }) => ({
+      id: tagId,
+      name: tags?.find((tag) => tag.id === tagId)?.name || "",
+      color: tags?.find((tag) => tag.id === tagId)?.color || "blue",
+      count: _count,
+    }));
+    if (search.length > 0) {
+      return initialOptions.filter(({ name }) =>
+        name.toLowerCase().includes(search.toLowerCase()),
+      );
+    }
+    return initialOptions;
+  }, [tagsCount, tags, search]);
+
+  return (
+    <fieldset className="overflow-hidden py-6">
+      <div className="flex h-8 items-center justify-between">
+        <button
+          onClick={() => {
+            setCollapsed(!collapsed);
+          }}
+          className="flex items-center space-x-2"
+        >
+          <ChevronRight
+            className={`${collapsed ? "" : "rotate-90"} h-5 w-5 transition-all`}
+          />
+          <h4 className="font-medium text-gray-900">Tags</h4>
+        </button>
+      </div>
+      <AnimatePresence initial={false}>
+        {!collapsed && (
+          <motion.div
+            className="mt-4 grid gap-2"
+            {...SWIPE_REVEAL_ANIMATION_SETTINGS}
+          >
+            <div className="relative mb-1">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                <Search className="h-4 w-4 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                className="peer w-full rounded-md border border-gray-300 py-1.5 pl-10 text-sm text-black placeholder:text-gray-400 focus:border-black focus:ring-0"
+                placeholder="Filter tags"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            {(showMore ? options : options.slice(0, 4)).map(
+              ({ id, name, color, count }) => (
+                <div
+                  key={id}
+                  className="relative flex cursor-pointer items-center space-x-3 rounded-md bg-gray-50 transition-all hover:bg-gray-100"
+                >
+                  <input
+                    id={id}
+                    name={id}
+                    checked={router.query.tagId === id}
+                    onChange={() => {
+                      setQueryString(router, "tagId", id);
+                    }}
+                    type="radio"
+                    className="ml-3 h-4 w-4 cursor-pointer rounded-full border-gray-300 text-black focus:outline-none focus:ring-0"
+                  />
+                  <label
+                    htmlFor={id}
+                    className="flex w-full cursor-pointer justify-between px-3 py-1.5 pl-0 text-sm font-medium text-gray-700"
+                  >
+                    <Badge name={name} color={color} />
+                    <p className="text-gray-500">{nFormatter(count)}</p>
+                  </label>
+                </div>
+              ),
+            )}
+            {options.length > 4 && (
+              <button
+                onClick={() => setShowMore(!showMore)}
+                className="rounded-md border border-gray-300 p-1 text-center text-sm"
+              >
+                Show {showMore ? "less" : "more"}
+              </button>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </fieldset>
+  );
+};
+
 const MyLinksFilter = () => {
   const router = useRouter();
   const { userId } = router.query as { userId?: string };
@@ -219,103 +367,6 @@ const ArchiveFilter = () => {
         }
         checked={showArchived ? true : false}
       />
-    </div>
-  );
-};
-
-const FilterGroup = ({
-  displayName,
-  param,
-  options,
-  checkDefault = false,
-  cta,
-}: {
-  displayName: string;
-  param: string;
-  options: { name: string; value: string; count: number }[];
-  checkDefault?: boolean;
-  cta: ReactNode;
-}) => {
-  const router = useRouter();
-  const [collapsed, setCollapsed] = useState(false);
-
-  return (
-    <fieldset className="overflow-hidden py-6">
-      <div className="flex h-8 items-center justify-between">
-        <button
-          onClick={() => {
-            setCollapsed(!collapsed);
-          }}
-          className="flex items-center space-x-2"
-        >
-          <ChevronRight
-            className={`${collapsed ? "" : "rotate-90"} h-5 w-5 transition-all`}
-          />
-          <h4 className="font-medium text-gray-900">{displayName}</h4>
-        </button>
-      </div>
-      <AnimatePresence initial={false}>
-        {!collapsed && (
-          <motion.div
-            className="mt-4 grid gap-2"
-            {...SWIPE_REVEAL_ANIMATION_SETTINGS}
-          >
-            {options?.map(({ name, value, count }) => (
-              <div
-                key={value}
-                className="relative flex cursor-pointer items-center space-x-3 rounded-md bg-gray-50 transition-all hover:bg-gray-100"
-              >
-                <input
-                  id={value}
-                  name={value}
-                  checked={router.query[param] === value || checkDefault}
-                  onChange={() => {
-                    setQueryString(router, param, value);
-                  }}
-                  type="radio"
-                  className="ml-3 h-4 w-4 cursor-pointer rounded-full border-gray-300 text-black focus:outline-none focus:ring-0"
-                />
-                <label
-                  htmlFor={value}
-                  className="flex w-full cursor-pointer justify-between px-3 py-2 pl-0 text-sm font-medium text-gray-700"
-                >
-                  <p>{punycode.toUnicode(name || "")}</p>
-                  <p className="text-gray-500">{nFormatter(count)}</p>
-                </label>
-              </div>
-            ))}
-            {cta}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </fieldset>
-  );
-};
-
-const ClearButton = ({ searchInputRef }: { searchInputRef }) => {
-  const router = useRouter();
-  const { slug } = router.query;
-  return (
-    <button
-      onClick={() => {
-        router.replace(`/${slug || "links"}`).then(() => {
-          searchInputRef.current.value = "";
-        });
-      }}
-      className="group flex items-center justify-center space-x-1 rounded-md border border-gray-500 px-2 py-1 transition-all hover:border-black"
-    >
-      <XCircle className="h-4 w-4 text-gray-500 transition-all group-hover:text-black" />
-      <p className="text-sm text-gray-500 transition-all group-hover:text-black">
-        Clear
-      </p>
-    </button>
-  );
-};
-
-const FilterGroupPlaceholder = () => {
-  return (
-    <div className="py-6">
-      <div className="h-8 animate-pulse rounded-md bg-gray-100" />
     </div>
   );
 };
