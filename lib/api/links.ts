@@ -176,7 +176,7 @@ export async function getLinksCount({
 }
 
 export async function getRandomKey(domain: string): Promise<string> {
-  /* recursively get random key till it gets one that's avaialble */
+  /* recursively get random key till it gets one that's available */
   const key = nanoid();
   const response = await prisma.link.findUnique({
     where: {
