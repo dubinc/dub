@@ -22,7 +22,7 @@ import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { ModalContext } from "#/ui/modal-provider";
 import useTags from "@/lib/swr/use-tags";
-import Badge from "@/components/shared/badge";
+import TagBadge from "@/components/app/links/tag-badge";
 import { TagProps } from "@/lib/types";
 
 export default function LinkFilters() {
@@ -236,7 +236,7 @@ const TagsFilter = ({
 }) => {
   const router = useRouter();
   const { slug } = router.query as { slug?: string };
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(tags.length === 0 ? true : false);
   const [search, setSearch] = useState("");
   const [showMore, setShowMore] = useState(false);
 
@@ -282,6 +282,9 @@ const TagsFilter = ({
             className={`${collapsed ? "" : "rotate-90"} h-5 w-5 transition-all`}
           />
           <h4 className="font-medium text-gray-900">Tags</h4>
+          <span className="-mt-3 rounded-full border border-blue-500 bg-blue-500 px-2 py-0.5 text-xs font-medium text-white">
+            New
+          </span>
         </button>
         <button
           onClick={addTag}
@@ -348,7 +351,7 @@ const TagsFilter = ({
                     htmlFor={id}
                     className="flex w-full cursor-pointer justify-between px-3 py-1.5 pl-0 text-sm font-medium text-gray-700"
                   >
-                    <Badge name={name} color={color} />
+                    <TagBadge name={name} color={color} />
                     <p className="text-gray-500">{nFormatter(count)}</p>
                   </label>
                 </div>

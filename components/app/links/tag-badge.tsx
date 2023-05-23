@@ -3,7 +3,7 @@ import { truncate } from "@/lib/utils";
 import clsx from "clsx";
 import { Tag } from "lucide-react";
 
-export default function Badge({
+export default function TagBadge({
   name,
   color,
   withIcon,

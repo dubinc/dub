@@ -28,7 +28,7 @@ import { Archive, CopyPlus, Edit3, Tag } from "lucide-react";
 import punycode from "punycode/";
 import { GOOGLE_FAVICON_URL } from "@/lib/constants";
 import useTags from "@/lib/swr/use-tags";
-import Badge from "@/components/shared/badge";
+import TagBadge from "@/components/app/links/tag-badge";
 
 export default function LinkCard({ props }: { props: LinkProps }) {
   const { key, domain, url, createdAt, archived, tagId } = props;
@@ -268,7 +268,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                   onClick={() => setShowTagLinkModal(true)}
                   className="hidden transition-all duration-75 hover:scale-105 active:scale-100 sm:block"
                 >
-                  <Badge {...tag} withIcon />
+                  <TagBadge {...tag} withIcon />
                 </button>
               )}
             </div>

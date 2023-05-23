@@ -1,4 +1,4 @@
-import { randomBadgeColor } from "@/components/shared/badge";
+import { randomBadgeColor } from "@/components/app/links/tag-badge";
 import { withProjectAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 

@@ -20,7 +20,7 @@ import { Check, ChevronDown, Search, Trash, X } from "lucide-react";
 import { Command } from "cmdk";
 import Button from "#/ui/button";
 import useTags from "@/lib/swr/use-tags";
-import Badge, { COLORS_LIST } from "@/components/shared/badge";
+import TagBadge, { COLORS_LIST } from "@/components/app/links/tag-badge";
 import va from "@vercel/analytics";
 import { ThreeDots } from "@/components/shared/icons";
 import Popover from "@/components/shared/popover";
@@ -153,7 +153,17 @@ function TagLinkModal({
             height={20}
           />
           <h3 className="text-lg font-medium">{type.title}</h3>
-          <p className="text-sm text-gray-500">{type.description}</p>
+          <p className="text-sm text-gray-500">
+            {type.description} <br className="mt-1" />
+            <a
+              className="underline underline-offset-4 transition-colors hover:text-black"
+              href="https://dub.sh/tags"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Read the announcement.
+            </a>
+          </p>
         </div>
 
         <form
@@ -249,7 +259,7 @@ function TagLinkModal({
                     }}
                     className="group flex cursor-pointer items-center justify-between rounded-md px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 aria-selected:bg-gray-100 aria-selected:text-gray-900"
                   >
-                    <Badge {...tag} />
+                    <TagBadge {...tag} />
                     <TagPopover key={tag.id} tag={tag} />
                   </Command.Item>
                 ))}
