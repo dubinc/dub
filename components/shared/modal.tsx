@@ -16,6 +16,7 @@ export default function Modal({
   bgColor = "bg-white",
   closeWithX,
   mobileOnly,
+  pauseTrap,
 }: {
   children: React.ReactNode;
   showModal: boolean;
@@ -23,6 +24,7 @@ export default function Modal({
   bgColor?: string;
   closeWithX?: boolean;
   mobileOnly?: boolean;
+  pauseTrap?: boolean;
 }) {
   const router = useRouter();
   const { key } = router.query;
@@ -78,6 +80,7 @@ export default function Modal({
     <AnimatePresence>
       {showModal && (
         <FocusTrap
+          active={!pauseTrap}
           focusTrapOptions={{
             initialFocus: false,
             onActivate: () => {

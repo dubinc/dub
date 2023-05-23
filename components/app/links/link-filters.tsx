@@ -34,8 +34,9 @@ export default function LinkFilters() {
   const { data: tagsCount } = useLinksCount({ groupBy: "tagId" });
 
   const router = useRouter();
-  const { slug, search, domain, userId, tagId } = router.query as {
+  const { slug, sort, search, domain, userId, tagId } = router.query as {
     slug: string;
+    sort?: string;
     search?: string;
     domain?: string;
     userId?: string;
@@ -48,7 +49,7 @@ export default function LinkFilters() {
       <div className="grid gap-3 py-6">
         <div className="flex items-center justify-between">
           <h3 className="ml-1 mt-2 font-semibold">Filter Links</h3>
-          {(search || domain || userId || tagId) && (
+          {(sort || search || domain || userId || tagId) && (
             <ClearButton searchInputRef={searchInputRef} />
           )}
         </div>
@@ -248,12 +249,12 @@ const TagsFilter = ({ tags, tagsCount }) => {
       color: tags?.find((tag) => tag.id === tagId)?.color || "blue",
       count: _count,
     }));
-    if (search.length > 0) {
-      return initialOptions.filter(({ name }) =>
-        name.toLowerCase().includes(search.toLowerCase()),
-      );
-    }
-    return initialOptions;
+    // filter options based on search
+    return search.length > 0
+      ? initialOptions.filter(({ name }) =>
+          name.toLowerCase().includes(search.toLowerCase()),
+        )
+      : initialOptions;
   }, [tagsCount, tags, search]);
 
   return (
@@ -277,20 +278,42 @@ const TagsFilter = ({ tags, tagsCount }) => {
             className="mt-4 grid gap-2"
             {...SWIPE_REVEAL_ANIMATION_SETTINGS}
           >
-            <div className="relative mb-1">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <Search className="h-4 w-4 text-gray-400" />
-              </div>
-              <input
-                type="text"
-                className="peer w-full rounded-md border border-gray-300 py-1.5 pl-10 text-sm text-black placeholder:text-gray-400 focus:border-black focus:ring-0"
-                placeholder="Filter tags"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-            {(showMore ? options : options.slice(0, 4)).map(
-              ({ id, name, color, count }) => (
+            {tags?.length === 0 ? ( // if the project has no tags
+              <p className="text-center text-sm text-gray-500">
+                No tags yet.{" "}
+                <a
+                  className="font-medium underline underline-offset-4 transition-colors hover:text-black"
+                  href="https://dub.sh/guides/how-to-use-tags"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Add one.
+                </a>
+              </p>
+            ) : (
+              <>
+                <div className="relative mb-1">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                    <Search className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    className="peer w-full rounded-md border border-gray-300 py-1.5 pl-10 text-sm text-black placeholder:text-gray-400 focus:border-black focus:ring-0"
+                    placeholder="Filter tags"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                </div>
+                {options.length === 0 && (
+                  <p className="text-center text-sm text-gray-500">
+                    No tags match your search.
+                  </p>
+                )}
+              </>
+            )}
+            {options
+              .slice(0, showMore ? options.length : 4)
+              .map(({ id, name, color, count }) => (
                 <div
                   key={id}
                   className="relative flex cursor-pointer items-center space-x-3 rounded-md bg-gray-50 transition-all hover:bg-gray-100"
@@ -313,8 +336,7 @@ const TagsFilter = ({ tags, tagsCount }) => {
                     <p className="text-gray-500">{nFormatter(count)}</p>
                   </label>
                 </div>
-              ),
-            )}
+              ))}
             {options.length > 4 && (
               <button
                 onClick={() => setShowMore(!showMore)}

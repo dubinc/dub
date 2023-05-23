@@ -24,7 +24,13 @@ export default function Nav() {
     >
       <div className="mx-auto w-full max-w-screen-xl px-5 md:px-20">
         <div className="flex h-16 items-center justify-between">
-          <Link href={domain === "dub.sh" ? "/" : `https://dub.sh`}>
+          <Link
+            href={
+              domain === "dub.sh"
+                ? "/"
+                : `https://dub.sh?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`
+            }
+          >
             <Image
               src="/_static/logotype.svg"
               alt="Dub.sh logo"
@@ -37,7 +43,9 @@ export default function Nav() {
           <div className="flex items-center space-x-6">
             <Link
               href={
-                domain === "dub.sh" ? "/metatags" : `https://dub.sh/metatags`
+                domain === "dub.sh"
+                  ? "/metatags"
+                  : `https://dub.sh/metatags?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`
               }
               className={`hidden rounded-md text-sm font-medium ${
                 segment === "metatags" ? "text-black" : "text-gray-500"
@@ -47,7 +55,9 @@ export default function Nav() {
             </Link>
             <Link
               href={
-                domain === "dub.sh" ? "/changelog" : `https://dub.sh/changelog`
+                domain === "dub.sh"
+                  ? "/changelog"
+                  : `https://dub.sh/changelog?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`
               }
               className={`rounded-md text-sm font-medium ${
                 segment === "changelog" ? "text-black" : "text-gray-500"

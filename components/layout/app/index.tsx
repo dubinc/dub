@@ -54,7 +54,7 @@ export default function AppLayout({
         plan,
         ...(stripeId && { stripeId }),
       });
-      if (plan === "free" && !Cookies.get("hideProBanner")) {
+      if (plan === "free" && Cookies.get("hideProBanner") !== slug) {
         Crisp.chat.hide();
         setShowProBanner(true);
       } else {

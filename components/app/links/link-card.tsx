@@ -96,20 +96,32 @@ export default function LinkCard({ props }: { props: LinkProps }) {
   });
   const [openPopover, setOpenPopover] = useState(false);
   const [selected, setSelected] = useState(false);
-  // if clicked on linkRef, setSelected to true
-  // else setSelected to false
-  // do this via event listener
 
-  const onClick = (e: any) => {
+  useEffect(() => {
+    // if there's an existing modal backdrop and the link is selected, unselect it
     const existingModalBackdrop = document.getElementById("modal-backdrop");
-    if (!existingModalBackdrop) {
-      if (linkRef.current && !linkRef.current.contains(e.target)) {
-        setSelected(false);
-      } else {
-        setSelected(!selected);
-      }
+    if (existingModalBackdrop && selected) {
+      setSelected(false);
+    }
+  });
+
+  const handlClickOnLinkCard = (e: any) => {
+    // if clicked on linkRef, setSelected to true
+    // else setSelected to false
+    // do this via event listener
+    if (linkRef.current && !linkRef.current.contains(e.target)) {
+      setSelected(false);
+    } else {
+      setSelected(!selected);
     }
   };
+
+  useEffect(() => {
+    document.addEventListener("click", handlClickOnLinkCard);
+    return () => {
+      document.removeEventListener("click", handlClickOnLinkCard);
+    };
+  }, [handlClickOnLinkCard]);
 
   const shortcuts = slug ? ["e", "d", "t", "a", "x"] : ["e", "d", "a", "x"];
   const onKeyDown = (e: any) => {
@@ -117,6 +129,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
     // - usage is not exceeded
     // - link is selected or the 3 dots menu is open
     // - the key pressed is one of the shortcuts
+    // - there is no existing modal backdrop
     if (
       !exceededUsage &&
       (selected || openPopover) &&
@@ -144,13 +157,11 @@ export default function LinkCard({ props }: { props: LinkProps }) {
   };
 
   useEffect(() => {
-    document.addEventListener("click", onClick);
     document.addEventListener("keydown", onKeyDown);
     return () => {
-      document.removeEventListener("click", onClick);
       document.removeEventListener("keydown", onKeyDown);
     };
-  }, [onClick, onKeyDown]);
+  }, [onKeyDown]);
 
   return (
     <div

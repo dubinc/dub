@@ -24,7 +24,7 @@ export default function ProBanner({
           onClick={() => {
             setShowProBanner(false);
             va.track("Hid Pro Banner");
-            Cookies.set("hideProBanner", true, { expires: 7 });
+            Cookies.set("hideProBanner", slug, { expires: 7 });
           }}
           className="w-full rounded-md border border-gray-300 p-2 text-center text-sm font-medium text-gray-500 transition-all hover:border-gray-700 hover:text-gray-600"
         >
