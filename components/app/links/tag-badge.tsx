@@ -22,7 +22,6 @@ export default function TagBadge({
         color === "green" && "bg-green-100 text-green-600",
         color === "blue" && "bg-blue-100 text-blue-600",
         color === "purple" && "bg-purple-100 text-purple-600",
-        color === "pink" && "bg-pink-100 text-pink-600",
         color === "brown" && "bg-brown-100 text-brown-600",
       )}
     >
@@ -52,10 +51,6 @@ export const COLORS_LIST: { color: TagColorProps; css: string }[] = [
   {
     color: "purple",
     css: "bg-purple-100 text-purple-600",
-  },
-  {
-    color: "pink",
-    css: "bg-pink-100 text-pink-600",
   },
   {
     color: "brown",
