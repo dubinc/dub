@@ -13,7 +13,13 @@ export default function Footer() {
         <span className="sr-only">Twitter</span>
         <Twitter className="h-6 w-6 text-gray-600" />
       </a>
-      <Link href={domain === "dub.sh" ? "/" : `https://dub.sh`}>
+      <Link
+        href={
+          domain === "dub.sh"
+            ? "/"
+            : `https://dub.sh?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`
+        }
+      >
         <span className="sr-only">Dub.sh Logo</span>
         <Logo className="h-7 w-7 text-gray-600" />
       </Link>

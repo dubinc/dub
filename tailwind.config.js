@@ -17,6 +17,13 @@ module.exports = {
         default: ["var(--font-inter)", "system-ui", "sans-serif"],
       },
       animation: {
+        // Modal
+        "scale-in": "scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+        // Input Select
+        "input-select-slide-up":
+          "input-select-slide-up 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+        "input-select-slide-down":
+          "input-select-slide-down 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
         // Tooltip
         "slide-up-fade": "slide-up-fade 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
         "slide-right-fade":
@@ -30,12 +37,24 @@ module.exports = {
         "exit-to-left": "exit-to-left 0.25s ease",
         "scale-in-content": "scale-in-content 0.2s ease",
         "scale-out-content": "scale-out-content 0.2s ease",
-        "fade-in": "fade-in 0.2s ease",
-        "fade-out": "fade-out 0.2s ease",
         // Custom wiggle animation
         wiggle: "wiggle 0.75s infinite",
       },
       keyframes: {
+        // Modal
+        "scale-in": {
+          "0%": { transform: "scale(0.95)" },
+          "100%": { transform: "scale(1)" },
+        },
+        // Input Select
+        "input-select-slide-up": {
+          "0%": { transform: "translateY(-342px)" },
+          "100%": { transform: "translateY(-350px)" },
+        },
+        "input-select-slide-down": {
+          "0%": { transform: "translateY(0px)" },
+          "100%": { transform: "translateY(8px)" },
+        },
         // Tooltip
         "slide-up-fade": {
           "0%": { opacity: 0, transform: "translateY(2px)" },
@@ -89,6 +108,20 @@ module.exports = {
           "45%": { transform: "translateX(-6px) rotate(-2.4deg)" },
           "60%": { transform: "translateX(2px) rotate(1.6deg)" },
           "75%": { transform: "translateX(-1px) rotate(-0.8deg)" },
+        },
+      },
+      colors: {
+        brown: {
+          50: "#fdf8f6",
+          100: "#f2e8e5",
+          200: "#eaddd7",
+          300: "#e0cec7",
+          400: "#d2bab0",
+          500: "#bfa094",
+          600: "#a18072",
+          700: "#977669",
+          800: "#846358",
+          900: "#43302b",
         },
       },
     },

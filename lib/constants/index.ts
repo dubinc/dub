@@ -69,6 +69,7 @@ export const APP_HOSTNAMES = new Set([
 
 export const DEFAULT_REDIRECTS = {
   home: "https://dub.sh",
+  dub: "https://dub.sh",
   signin: "https://app.dub.sh/login",
   login: "https://app.dub.sh/login",
   register: "https://app.dub.sh/register",
@@ -80,6 +81,7 @@ export const DEFAULT_REDIRECTS = {
   welcome: "https://app.dub.sh/welcome",
   slack: "https://dub.slack.com",
   discord: "https://twitter.com/dubdotsh", // placeholder for now
+  tags: "https://dub.sh/changelog/introducing-tags",
 };
 
 export const REDIRECT_HEADERS = {

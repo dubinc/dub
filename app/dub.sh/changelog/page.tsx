@@ -1,7 +1,6 @@
 import BlurImage from "#/ui/blur-image";
 import { getBlurDataURL } from "@/lib/images";
 import { allChangelogPosts } from "contentlayer/generated";
-import { Metadata } from "next";
 import { constructMetadata, formatDate } from "@/lib/utils";
 import Link from "next/link";
 import { MDX } from "#/ui/blog/mdx";

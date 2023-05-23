@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import useSWR from "swr";
 import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal";
 import { useTagLinkModal } from "@/components/app/modals/tag-link-modal";
@@ -27,9 +27,13 @@ import useDomains from "@/lib/swr/use-domains";
 import { Archive, CopyPlus, Edit3, Tag } from "lucide-react";
 import punycode from "punycode/";
 import { GOOGLE_FAVICON_URL } from "@/lib/constants";
+import useTags from "@/lib/swr/use-tags";
+import TagBadge from "@/components/app/links/tag-badge";
 
 export default function LinkCard({ props }: { props: LinkProps }) {
-  const { key, domain, url, createdAt, archived, expiresAt } = props;
+  const { key, domain, url, createdAt, archived, tagId } = props;
+  const { tags } = useTags();
+  const tag = useMemo(() => tags?.find((t) => t.id === tagId), [tags, tagId]);
 
   const apexDomain = getApexDomain(url);
 
@@ -92,28 +96,40 @@ export default function LinkCard({ props }: { props: LinkProps }) {
   });
   const [openPopover, setOpenPopover] = useState(false);
   const [selected, setSelected] = useState(false);
-  // if clicked on linkRef, setSelected to true
-  // else setSelected to false
-  // do this via event listener
 
-  const onClick = (e: any) => {
+  useEffect(() => {
+    // if there's an existing modal backdrop and the link is selected, unselect it
     const existingModalBackdrop = document.getElementById("modal-backdrop");
-    if (!existingModalBackdrop) {
-      if (linkRef.current && !linkRef.current.contains(e.target)) {
-        setSelected(false);
-      } else {
-        setSelected(!selected);
-      }
+    if (existingModalBackdrop && selected) {
+      setSelected(false);
+    }
+  });
+
+  const handlClickOnLinkCard = (e: any) => {
+    // if clicked on linkRef, setSelected to true
+    // else setSelected to false
+    // do this via event listener
+    if (linkRef.current && !linkRef.current.contains(e.target)) {
+      setSelected(false);
+    } else {
+      setSelected(!selected);
     }
   };
 
-  // const shortcuts = slug ? ["e", "d", "t", "a", "x"] : ["e", "d", "a", "x"];
-  const shortcuts = ["e", "d", "a", "x"];
+  useEffect(() => {
+    document.addEventListener("click", handlClickOnLinkCard);
+    return () => {
+      document.removeEventListener("click", handlClickOnLinkCard);
+    };
+  }, [handlClickOnLinkCard]);
+
+  const shortcuts = slug ? ["e", "d", "t", "a", "x"] : ["e", "d", "a", "x"];
   const onKeyDown = (e: any) => {
     // only run shortcut logic if:
     // - usage is not exceeded
     // - link is selected or the 3 dots menu is open
     // - the key pressed is one of the shortcuts
+    // - there is no existing modal backdrop
     if (
       !exceededUsage &&
       (selected || openPopover) &&
@@ -127,9 +143,9 @@ export default function LinkCard({ props }: { props: LinkProps }) {
         case "d":
           setShowDuplicateLinkModal(true);
           break;
-        // case "t":
-        //   setShowTagLinkModal(true);
-        //   break;
+        case "t":
+          setShowTagLinkModal(true);
+          break;
         case "a":
           setShowArchiveLinkModal(true);
           break;
@@ -141,13 +157,11 @@ export default function LinkCard({ props }: { props: LinkProps }) {
   };
 
   useEffect(() => {
-    document.addEventListener("click", onClick);
     document.addEventListener("keydown", onKeyDown);
     return () => {
-      document.removeEventListener("click", onClick);
       document.removeEventListener("keydown", onKeyDown);
     };
-  }, [onClick, onKeyDown]);
+  }, [onKeyDown]);
 
   return (
     <div
@@ -159,7 +173,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
       <LinkQRModal />
       <AddEditLinkModal />
       <DuplicateLinkModal />
-      {/* {slug && <TagLinkModal />} */}
+      {slug && <TagLinkModal />}
       <ArchiveLinkModal />
       <DeleteLinkModal />
       <li className="relative flex items-center justify-between">
@@ -249,6 +263,14 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                   <span className="ml-1 hidden sm:inline-block">clicks</span>
                 </p>
               </Link>
+              {tag?.color && (
+                <button
+                  onClick={() => setShowTagLinkModal(true)}
+                  className="hidden transition-all duration-75 hover:scale-105 active:scale-100 sm:block"
+                >
+                  <TagBadge {...tag} withIcon />
+                </button>
+              )}
             </div>
             <h3 className="max-w-[200px] truncate text-sm font-medium text-gray-700 md:max-w-md xl:max-w-lg">
               {url}
@@ -340,10 +362,9 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                     </kbd>
                   </button>
                 )}
-                {/* {slug && (
+                {slug && (
                   <button
-                    onClick={(e) => {
-                      e.preventDefault();
+                    onClick={() => {
                       setOpenPopover(false);
                       setShowTagLinkModal(true);
                     }}
@@ -354,10 +375,9 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                       T
                     </kbd>
                   </button>
-                )} */}
+                )}
                 <button
-                  onClick={(e) => {
-                    e.preventDefault();
+                  onClick={() => {
                     setOpenPopover(false);
                     setShowArchiveLinkModal(true);
                   }}

@@ -90,7 +90,7 @@ export default function PlanUsage() {
               </div>
             </Tooltip>
           </div>
-          {usage && usageLimit ? (
+          {usage !== undefined && usageLimit ? (
             <p className="text-sm text-gray-600">
               {nFormatter(usage)} / {nFormatter(usageLimit)} clicks (
               {((usage / usageLimit) * 100).toFixed(1)}%)
@@ -103,7 +103,9 @@ export default function PlanUsage() {
               initial={{ width: 0 }}
               animate={{
                 width:
-                  usage && usageLimit ? (usage / usageLimit) * 100 + "%" : "0%",
+                  usage !== undefined && usageLimit
+                    ? (usage / usageLimit) * 100 + "%"
+                    : "0%",
               }}
               transition={{ duration: 0.5, type: "spring" }}
               className={`${

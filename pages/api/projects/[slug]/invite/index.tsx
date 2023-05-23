@@ -11,13 +11,6 @@ const hashToken = (token: string) => {
 };
 
 export default withProjectAuth(async (req, res, project) => {
-  const { slug } = req.query;
-  if (!slug || typeof slug !== "string") {
-    return res
-      .status(400)
-      .json({ error: "Missing or misconfigured project slug" });
-  }
-
   // GET /api/projects/[slug]/invite - Get all pending invites for a project
   if (req.method === "GET") {
     const invites = await prisma.projectInvite.findMany({
@@ -78,7 +71,7 @@ export default withProjectAuth(async (req, res, project) => {
       });
 
       const params = new URLSearchParams({
-        callbackUrl: `${process.env.NEXTAUTH_URL}/${slug}`,
+        callbackUrl: `${process.env.NEXTAUTH_URL}/${project.slug}`,
         email,
         token,
       });

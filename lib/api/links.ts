@@ -112,7 +112,7 @@ export async function getLinksCount({
   };
 
   if (groupBy) {
-    const inputs = await prisma.link.groupBy({
+    return await prisma.link.groupBy({
       by: [groupBy],
       where: {
         projectId,
@@ -122,12 +122,18 @@ export async function getLinksCount({
           key: { search },
           url: { search },
         }),
+        // when filtering by domain, only filter by domain if the filter group is not "Domains"
         ...(domain &&
           groupBy !== "domain" && {
             domain,
           }),
+        // when filtering by tagId, only filter by tagId if the filter group is not "Tags"
+        ...(tagId &&
+          groupBy !== "tagId" && {
+            tagId,
+          }),
+        // for the "Tags" filter group, only count links that have a tagId
         ...(groupBy === "tagId" && {
-          tagId,
           NOT: {
             tagId: null,
           },
@@ -140,27 +146,6 @@ export async function getLinksCount({
         },
       },
     });
-    if (groupBy === "tagId") {
-      // for tags, we need to get the tag name
-      const tags = await prisma.tag.findMany({
-        where: {
-          projectId,
-          id: {
-            // @ts-ignore
-            in: inputs.map((input) => input.tagId),
-          },
-        },
-      });
-      return inputs.map((input) => {
-        const tag = tags.find((tag) => tag.id === input.tagId)!;
-        return {
-          ...input,
-          tag: tag.name,
-        };
-      });
-    } else {
-      return inputs;
-    }
   } else {
     return await prisma.link.count({
       where: {

@@ -1,7 +1,7 @@
 import { unstable_cache } from "next/cache";
 import prisma from "@/lib/prisma";
 import { nFormatter } from "@/lib/utils";
-import getTweetsMetadata, { homepageTweets } from "#/lib/twitter";
+import getTweets, { homepageTweets } from "#/lib/twitter";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import Tweet from "#/ui/tweet";
 import TestimonialsMobile from "./testimonials-mobile";
@@ -16,7 +16,7 @@ export default async function Testimonials() {
       revalidate: 300,
     },
   )();
-  const tweets = await getTweetsMetadata(homepageTweets);
+  const tweets = await getTweets(homepageTweets);
 
   return (
     <MaxWidthWrapper className="pt-20">
