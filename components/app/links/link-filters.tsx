@@ -1,6 +1,5 @@
 import { useRouter } from "next/router";
 import {
-  ReactNode,
   useCallback,
   useContext,
   useEffect,
@@ -14,7 +13,6 @@ import useDomains from "@/lib/swr/use-domains";
 import { AnimatePresence, motion } from "framer-motion";
 import { SWIPE_REVEAL_ANIMATION_SETTINGS } from "@/lib/constants";
 import { useDebouncedCallback } from "use-debounce";
-import Link from "next/link";
 import useLinks from "@/lib/swr/use-links";
 import { LoadingSpinner } from "#/ui/icons";
 import useLinksCount from "@/lib/swr/use-links-count";
@@ -25,6 +23,7 @@ import { toast } from "sonner";
 import { ModalContext } from "#/ui/modal-provider";
 import useTags from "@/lib/swr/use-tags";
 import Badge from "@/components/shared/badge";
+import { TagProps } from "@/lib/types";
 
 export default function LinkFilters() {
   const { primaryDomain } = useDomains();
@@ -44,7 +43,7 @@ export default function LinkFilters() {
   };
   const searchInputRef = useRef(); // this is a hack to clear the search input when the clear button is clicked
 
-  return domains ? (
+  return domains && tags && tagsCount ? (
     <div className="grid w-full rounded-md bg-white px-5 lg:divide-y lg:divide-gray-300">
       <div className="grid gap-3 py-6">
         <div className="flex items-center justify-between">
@@ -56,12 +55,8 @@ export default function LinkFilters() {
         <SearchBox searchInputRef={searchInputRef} />
       </div>
       <DomainsFilter domains={domains} primaryDomain={primaryDomain} />
-      {slug && (
-        <>
-          {tagsCount && <TagsFilter tags={tags} tagsCount={tagsCount} />}
-          <MyLinksFilter />
-        </>
-      )}
+      <TagsFilter tags={tags} tagsCount={tagsCount} />
+      {slug && <MyLinksFilter />}
       <ArchiveFilter />
     </div>
   ) : (
@@ -81,7 +76,7 @@ const ClearButton = ({ searchInputRef }) => {
           searchInputRef.current.value = "";
         });
       }}
-      className="group flex items-center justify-center space-x-1 rounded-md border border-gray-500 px-2 py-1 transition-all hover:border-black"
+      className="group flex items-center justify-center space-x-1 rounded-md border border-gray-400 px-2 py-1 transition-all hover:border-gray-600 active:bg-gray-100"
     >
       <XCircle className="h-4 w-4 text-gray-500 transition-all group-hover:text-black" />
       <p className="text-sm text-gray-500 transition-all group-hover:text-black">
@@ -162,7 +157,8 @@ const DomainsFilter = ({ domains, primaryDomain }) => {
           count: _count,
         }));
 
-  const { setShowAddProjectModal } = useContext(ModalContext);
+  const { setShowAddEditDomainModal, setShowAddProjectModal } =
+    useContext(ModalContext);
 
   return (
     <fieldset className="overflow-hidden py-6">
@@ -177,6 +173,21 @@ const DomainsFilter = ({ domains, primaryDomain }) => {
             className={`${collapsed ? "" : "rotate-90"} h-5 w-5 transition-all`}
           />
           <h4 className="font-medium text-gray-900">Domains</h4>
+        </button>
+        <button
+          onClick={() => {
+            if (slug) {
+              setShowAddEditDomainModal(true);
+            } else {
+              setShowAddProjectModal(true);
+              toast.error(
+                "You can only add a domain to a custom project. Please create a new project or navigate to an existing one.",
+              );
+            }
+          }}
+          className="mr-2 rounded-md border border-gray-200 px-3 py-1 transition-all hover:border-gray-600 active:bg-gray-100"
+        >
+          <p className="text-sm text-gray-500">Add</p>
         </button>
       </div>
       <AnimatePresence initial={false}>
@@ -209,26 +220,6 @@ const DomainsFilter = ({ domains, primaryDomain }) => {
                 </label>
               </div>
             ))}
-            {slug ? (
-              <Link
-                href={`/${slug}/domains`}
-                className="rounded-md border border-gray-300 p-1 text-center text-sm"
-              >
-                Add a domain
-              </Link>
-            ) : (
-              <button
-                onClick={() => {
-                  setShowAddProjectModal(true);
-                  toast.error(
-                    "You can only add a domain to a custom project. Please create a new project or navigate to an existing one.",
-                  );
-                }}
-                className="rounded-md border border-gray-300 p-1 text-center text-sm"
-              >
-                Add a domain
-              </button>
-            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -236,19 +227,26 @@ const DomainsFilter = ({ domains, primaryDomain }) => {
   );
 };
 
-const TagsFilter = ({ tags, tagsCount }) => {
+const TagsFilter = ({
+  tags,
+  tagsCount,
+}: {
+  tags: TagProps[];
+  tagsCount: { tagId: string; _count: number }[];
+}) => {
   const router = useRouter();
-  const [collapsed, setCollapsed] = useState(tagsCount.length === 0);
+  const { slug } = router.query as { slug?: string };
+  const [collapsed, setCollapsed] = useState(false);
   const [search, setSearch] = useState("");
   const [showMore, setShowMore] = useState(false);
 
   const options = useMemo(() => {
-    const initialOptions = tagsCount.map(({ tagId, _count }) => ({
-      id: tagId,
-      name: tags?.find((tag) => tag.id === tagId)?.name || "",
-      color: tags?.find((tag) => tag.id === tagId)?.color || "blue",
-      count: _count,
-    }));
+    const initialOptions = tags
+      .map((tag) => ({
+        ...tag,
+        count: tagsCount.find(({ tagId }) => tagId === tag.id)?._count || 0,
+      }))
+      .sort((a, b) => b.count - a.count);
     // filter options based on search
     return search.length > 0
       ? initialOptions.filter(({ name }) =>
@@ -256,6 +254,20 @@ const TagsFilter = ({ tags, tagsCount }) => {
         )
       : initialOptions;
   }, [tagsCount, tags, search]);
+
+  const { setShowTagLinkModal, setShowAddProjectModal } =
+    useContext(ModalContext);
+
+  const addTag = useCallback(() => {
+    if (slug) {
+      setShowTagLinkModal(true);
+    } else {
+      setShowAddProjectModal(true);
+      toast.error(
+        "You can only add a domain to a custom project. Please create a new project or navigate to an existing one.",
+      );
+    }
+  }, [setShowTagLinkModal, setShowAddProjectModal, slug]);
 
   return (
     <fieldset className="overflow-hidden py-6">
@@ -271,6 +283,12 @@ const TagsFilter = ({ tags, tagsCount }) => {
           />
           <h4 className="font-medium text-gray-900">Tags</h4>
         </button>
+        <button
+          onClick={addTag}
+          className="mr-2 rounded-md border border-gray-200 px-3 py-1 transition-all hover:border-gray-600 active:bg-gray-100"
+        >
+          <p className="text-sm text-gray-500">Add</p>
+        </button>
       </div>
       <AnimatePresence initial={false}>
         {!collapsed && (
@@ -281,14 +299,12 @@ const TagsFilter = ({ tags, tagsCount }) => {
             {tags?.length === 0 ? ( // if the project has no tags
               <p className="text-center text-sm text-gray-500">
                 No tags yet.{" "}
-                <a
+                <button
                   className="font-medium underline underline-offset-4 transition-colors hover:text-black"
-                  href="https://dub.sh/guides/how-to-use-tags"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  onClick={addTag}
                 >
                   Add one.
-                </a>
+                </button>
               </p>
             ) : (
               <>
@@ -305,7 +321,7 @@ const TagsFilter = ({ tags, tagsCount }) => {
                   />
                 </div>
                 {options.length === 0 && (
-                  <p className="text-center text-sm text-gray-500">
+                  <p className="mt-1 text-center text-sm text-gray-500">
                     No tags match your search.
                   </p>
                 )}

@@ -16,7 +16,6 @@ export default function Modal({
   bgColor = "bg-white",
   closeWithX,
   mobileOnly,
-  pauseTrap,
 }: {
   children: React.ReactNode;
   showModal: boolean;
@@ -24,7 +23,6 @@ export default function Modal({
   bgColor?: string;
   closeWithX?: boolean;
   mobileOnly?: boolean;
-  pauseTrap?: boolean;
 }) {
   const router = useRouter();
   const { key } = router.query;
@@ -80,9 +78,9 @@ export default function Modal({
     <AnimatePresence>
       {showModal && (
         <FocusTrap
-          active={!pauseTrap}
           focusTrapOptions={{
             initialFocus: false,
+            clickOutsideDeactivates: true,
             onActivate: () => {
               // prevent scroll outside of modal when modal is open
               document.body.style.overflow = "hidden";

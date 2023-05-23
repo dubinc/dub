@@ -89,7 +89,7 @@ function AddEditDomainModal({
   }, [showAddEditDomainModal, saving, domainError, props, data]);
 
   const endpoint = useMemo(() => {
-    if (props?.slug) {
+    if (props) {
       return {
         method: "PUT",
         url: `/api/projects/${slug}/domains/${domain}`,
@@ -128,7 +128,7 @@ function AddEditDomainModal({
       <div className="inline-block w-full transform overflow-hidden bg-white align-middle shadow-xl transition-all sm:max-w-md sm:rounded-2xl sm:border sm:border-gray-200">
         <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
           <BlurImage
-            src={logo || `https://avatar.vercel.sh/${slug}`}
+            src={logo || "/_static/logo.png"}
             alt={`Logo for ${slug}`}
             className="h-10 w-10 rounded-full border border-gray-200"
             width={20}
@@ -155,6 +155,9 @@ function AddEditDomainModal({
                 mutate(`/api/projects/${slug}/domains`);
                 setShowAddEditDomainModal(false);
                 toast.success(endpoint.successMessage);
+                if (!props) {
+                  router.push(`/${slug}/domains`);
+                }
               } else if (res.status === 422) {
                 const { domainError: domainErrorResponse } = await res.json();
                 if (domainErrorResponse) {

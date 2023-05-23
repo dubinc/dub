@@ -1,19 +1,38 @@
 import { randomBadgeColor } from "@/components/shared/badge";
 import { withLinksAuth } from "@/lib/auth";
-import { DUB_PROJECT_ID } from "@/lib/constants";
 import prisma from "@/lib/prisma";
 
 export default withLinksAuth(async (req, res, _session, project, domain) => {
   const { key } = req.query as { key: string };
   const { tag } = req.body as { tag: string };
   if (!key) {
-    return res.status(400).json({ error: "Missing key" });
+    return res.status(400).end("Missing key");
+  }
+  if (!project || !domain) {
+    return res.status(400).end("Missing project or domain");
   }
   if (req.method === "POST") {
+    const tags = await prisma.tag.findMany({
+      where: {
+        projectId: project.id,
+      },
+    });
+    // if on a free plan and trying to create more than 3 tags
+    if (
+      project.plan === "free" &&
+      tags.length >= 3 &&
+      !tags.find((t) => t.name === tag)
+    ) {
+      return res
+        .status(403)
+        .end(
+          "You can only create 3 tags in the Free plan. Upgrade to Pro to create unlimited tags.",
+        );
+    }
     const response = await prisma.link.update({
       where: {
         domain_key: {
-          domain: domain || "dub.sh",
+          domain,
           key,
         },
       },
@@ -23,13 +42,13 @@ export default withLinksAuth(async (req, res, _session, project, domain) => {
             where: {
               name_projectId: {
                 name: tag,
-                projectId: project?.id || DUB_PROJECT_ID,
+                projectId: project.id,
               },
             },
             create: {
               name: tag,
               color: randomBadgeColor(),
-              projectId: project?.id || DUB_PROJECT_ID,
+              projectId: project.id,
             },
           },
         },
@@ -40,7 +59,7 @@ export default withLinksAuth(async (req, res, _session, project, domain) => {
     const response = await prisma.link.update({
       where: {
         domain_key: {
-          domain: domain || "dub.sh",
+          domain,
           key,
         },
       },

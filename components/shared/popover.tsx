@@ -91,7 +91,7 @@ export default function Popover({
           </AnimatePresence>
         </>
       )}
-      <PopoverPrimitive.Root modal>
+      <PopoverPrimitive.Root open={openPopover} onOpenChange={setOpenPopover}>
         <PopoverPrimitive.Trigger
           {...(!desktopOnly && {
             className: "hidden md:inline-flex",

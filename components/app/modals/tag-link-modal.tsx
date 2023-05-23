@@ -34,14 +34,14 @@ function TagLinkModal({
 }: {
   showTagLinkModal: boolean;
   setShowTagLinkModal: Dispatch<SetStateAction<boolean>>;
-  props: LinkProps;
+  props?: LinkProps;
 }) {
   const router = useRouter();
   const { slug } = router.query;
   const [tagging, setTagging] = useState(false);
-  const apexDomain = getApexDomain(props.url);
+  const apexDomain = props?.url ? getApexDomain(props.url) : "dub.sh";
 
-  const { key, domain, tagId } = props;
+  const { domain, tagId } = props || {};
 
   const { tags } = useTags();
   const [tagValue, setTagValue] = useState(
@@ -56,44 +56,61 @@ function TagLinkModal({
       : false;
   }, [tagging, tagId, tags, tagValue]);
 
-  const shortlink = useMemo(() => {
-    return linkConstructor({
-      key,
-      domain,
-      pretty: true,
-    });
-  }, [key, domain]);
+  const type = useMemo(() => {
+    if (props) {
+      return {
+        title: `Tag ${linkConstructor({
+          key: props.key,
+          domain,
+          pretty: true,
+        })}`,
+        description: "Assign a tag to your short link",
+        endpoint: `/api/links/${encodeURIComponent(
+          props.key,
+        )}/tag?slug=${slug}&domain=${domain}`,
+        method: tagValue.length > 0 ? "POST" : "DELETE",
+      };
+    } else {
+      return {
+        title: "Add a Tag",
+        description: "Tags can be used to group short links together.",
+        endpoint: `/api/projects/${slug}/tags`,
+        method: "POST",
+      };
+    }
+  }, [props, slug, domain, tagValue]);
 
   const handleSubmit = useCallback(
     async (e?: SyntheticEvent) => {
       e?.preventDefault();
       setTagging(true);
-      fetch(
-        `/api/links/${encodeURIComponent(
-          props.key,
-        )}/tag?slug=${slug}&domain=${domain}`,
-        {
-          method: tagValue.length > 0 ? "POST" : "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          ...(tagValue.length > 0 && {
-            body: JSON.stringify({ tag: tagValue }),
-          }),
+      fetch(type.endpoint, {
+        method: type.method,
+        headers: {
+          "Content-Type": "application/json",
         },
-      ).then(async (res) => {
+        ...(tagValue.length > 0 && {
+          body: JSON.stringify({ tag: tagValue }),
+        }),
+      }).then(async (res) => {
         setTagging(false);
         if (res.status === 200) {
-          mutate(`/api/links${getQueryString(router)}`);
           mutate(`/api/projects/${slug}/tags`);
-          mutate(
-            `/api/links/_count${getQueryString(router, {
-              groupBy: "tagId",
-            })}`,
-          );
-          setShowTagLinkModal(false);
-          toast.success(`Successfully updated shortlink!`);
-          tagValue.length > 0 && va.track("Tagged Link");
+          if (props) {
+            mutate(`/api/links${getQueryString(router)}`);
+            mutate(
+              `/api/links/_count${getQueryString(router, {
+                groupBy: "tagId",
+              })}`,
+            );
+            setShowTagLinkModal(false);
+            toast.success(`Successfully updated shortlink!`);
+            tagValue.length > 0 && va.track("Tagged Link");
+          } else {
+            toast.success(`Successfully added tag!`);
+            setOpenCommandList(true);
+            va.track("Added Tag");
+          }
         } else {
           const error = await res.text();
           toast.error(error);
@@ -104,7 +121,7 @@ function TagLinkModal({
   );
 
   const commandRef = useRef<HTMLDivElement | null>(null);
-  const [open, setOpen] = useState(false);
+  const [openCommandList, setOpenCommandList] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -115,21 +132,17 @@ function TagLinkModal({
         // the data-exclude-click attribute
         e.target.closest("[data-exclude-click]") === null
       ) {
-        setOpen(false);
+        setOpenCommandList(false);
       }
     };
-    if (showTagLinkModal && open) {
+    if (showTagLinkModal && openCommandList) {
       document.addEventListener("click", handleClickOutside);
       return () => document.removeEventListener("click", handleClickOutside);
     }
-  }, [commandRef, showTagLinkModal, open]);
+  }, [commandRef, showTagLinkModal, openCommandList]);
 
   return (
-    <Modal
-      showModal={showTagLinkModal}
-      setShowModal={setShowTagLinkModal}
-      pauseTrap={open}
-    >
+    <Modal showModal={showTagLinkModal} setShowModal={setShowTagLinkModal}>
       <div className="inline-block w-full bg-white align-middle shadow-xl transition-all sm:max-w-md sm:rounded-2xl sm:border sm:border-gray-200">
         <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 text-center sm:px-16">
           <BlurImage
@@ -139,10 +152,8 @@ function TagLinkModal({
             width={20}
             height={20}
           />
-          <h3 className="text-lg font-medium">Tag {shortlink}</h3>
-          <p className="text-sm text-gray-500">
-            Assign a tag to your short link
-          </p>
+          <h3 className="text-lg font-medium">{type.title}</h3>
+          <p className="text-sm text-gray-500">{type.description}</p>
         </div>
 
         <form
@@ -160,26 +171,29 @@ function TagLinkModal({
             <div className="relative mt-1 w-full rounded-md">
               <Search className="absolute inset-y-0 left-0 my-auto h-7 w-7 pl-3 text-gray-400" />
               <Command.Input
-                placeholder="Choose tag"
+                placeholder={props ? "Choose tag" : "Add a tag"}
+                required={!props}
                 // only show the dropdown if there are tags and the tagValue is not empty
-                onFocus={() => tags && tags.length > 0 && setOpen(true)}
+                onFocus={() =>
+                  tags && tags.length > 0 && setOpenCommandList(true)
+                }
                 value={tagValue}
                 onValueChange={setTagValue}
                 onKeyDown={(e) => {
                   if (e.key === "Escape") {
                     e.stopPropagation();
-                    setOpen(false);
+                    setOpenCommandList(false);
                   } else if (e.key === "Enter") {
-                    if (open) {
-                      // if dropdown is open, close it
-                      setOpen(false);
+                    if (openCommandList) {
+                      // if dropdown is openCommandList, close it
+                      setOpenCommandList(false);
                     } else {
                       // if dropdown is already closed, submit form
                       handleSubmit();
                     }
-                    // if it's a letter or a number and there's no meta key pressed, open dropdown
+                    // if it's a letter or a number and there's no meta key pressed, openCommandList dropdown
                   } else if (e.key.match(/^[a-z0-9]$/i) && !e.metaKey) {
-                    setOpen(true);
+                    setOpenCommandList(true);
                   }
                 }}
                 className="block w-full rounded-md border-gray-300 px-10 text-sm text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500"
@@ -189,7 +203,7 @@ function TagLinkModal({
                   onClick={(e) => {
                     e.stopPropagation();
                     setTagValue("");
-                    setOpen(true);
+                    setOpenCommandList(true);
                   }}
                   className="absolute inset-y-0 right-0 my-auto"
                 >
@@ -199,7 +213,7 @@ function TagLinkModal({
                 <ChevronDown className="absolute inset-y-0 right-0 my-auto h-7 w-7 pr-3 text-gray-400" />
               )}
             </div>
-            {open && (
+            {openCommandList && (
               <Command.List
                 data-exclude-click
                 style={{
@@ -210,7 +224,7 @@ function TagLinkModal({
                 <Command.Empty>
                   <button
                     type="button"
-                    onClick={() => setOpen(false)}
+                    onClick={() => setOpenCommandList(false)}
                     className="flex w-full cursor-pointer items-center rounded-md bg-gray-100 px-4 py-2 text-sm text-gray-900 hover:text-gray-900 aria-selected:bg-gray-100 aria-selected:text-gray-900"
                   >
                     {tagValue.length > 0 ? (
@@ -231,7 +245,7 @@ function TagLinkModal({
                     value={tag.name}
                     onSelect={() => {
                       setTagValue(tag.name);
-                      setOpen(false);
+                      setOpenCommandList(false);
                     }}
                     className="group flex cursor-pointer items-center justify-between rounded-md px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 aria-selected:bg-gray-100 aria-selected:text-gray-900"
                   >
@@ -346,7 +360,8 @@ const TagPopover = ({ tag }: { tag: TagProps }) => {
           </div>
           <div className="p-2">
             <button
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 confirm(
                   "Are you sure you want to delete this tag? All tagged links will be untagged, but they won't be deleted.",
                 ) && handleDelete();
@@ -384,17 +399,17 @@ const TagPopover = ({ tag }: { tag: TagProps }) => {
   );
 };
 
-export function useTagLinkModal({ props }: { props: LinkProps }) {
+export function useTagLinkModal({ props }: { props?: LinkProps }) {
   const [showTagLinkModal, setShowTagLinkModal] = useState(false);
 
   const TagLinkModalCallback = useCallback(() => {
-    return props ? (
+    return (
       <TagLinkModal
         showTagLinkModal={showTagLinkModal}
         setShowTagLinkModal={setShowTagLinkModal}
         props={props}
       />
-    ) : null;
+    );
   }, [showTagLinkModal, setShowTagLinkModal]);
 
   return useMemo(

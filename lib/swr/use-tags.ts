@@ -16,7 +16,7 @@ export default function useTags() {
   );
 
   return {
-    tags,
+    tags: slug ? tags : [],
     loading: tags ? false : true,
     isValidating,
   };
