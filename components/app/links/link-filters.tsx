@@ -264,7 +264,7 @@ const TagsFilter = ({
     } else {
       setShowAddProjectModal(true);
       toast.error(
-        "You can only add a domain to a custom project. Please create a new project or navigate to an existing one.",
+        "You can only add a tag to a custom project. Please create a new project or navigate to an existing one.",
       );
     }
   }, [setShowTagLinkModal, setShowAddProjectModal, slug]);

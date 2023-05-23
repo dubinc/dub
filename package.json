@@ -2,7 +2,7 @@
   "private": true,
   "license": "AGPL-3.0-or-later",
   "scripts": {
-    "dev": "next dev",
+    "dev": "concurrently \"next dev\" \"prisma studio\" \"mailing\"",
     "build": "next build",
     "format:write": "prettier --write \"**/*.{css,js,json,jsx,ts,tsx}\"",
     "format": "prettier \"**/*.{css,js,json,jsx,ts,tsx}\"",
@@ -45,6 +45,7 @@
     "clsx": "^1.2.1",
     "cmdk": "^0.2.0",
     "cobe": "^0.6.3",
+    "concurrently": "^8.0.1",
     "contentlayer": "^0.3.2",
     "crisp-sdk-web": "^1.0.18",
     "focus-trap-react": "^10.0.1",
