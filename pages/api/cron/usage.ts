@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { verifySignature } from "@upstash/qstash/nextjs";
 import { updateUsage } from "@/lib/cron/usage";
+import { log } from "@/lib/utils";
 
 /**
  * Cron to update the usage stats of each project.
@@ -12,6 +13,7 @@ async function handler(_req: NextApiRequest, res: NextApiResponse) {
     const results = await updateUsage();
     res.status(200).json(results);
   } catch (error) {
+    await log("Usage cron failed. Error: " + error.message, "cron", true);
     res.status(500).json({ error: error.message });
   }
 }
