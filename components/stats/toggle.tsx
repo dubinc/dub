@@ -18,11 +18,16 @@ import { fetcher } from "@/lib/utils";
 import { toast } from "sonner";
 import Switch from "#/ui/switch";
 import { StatsContext } from ".";
+import useProject from "@/lib/swr/use-project";
+import Tooltip, { TooltipContent } from "#/ui/tooltip";
+import { ModalContext } from "#/ui/modal-provider";
 
 export default function Toggle({ atModalTop }: { atModalTop?: boolean }) {
   const router = useRouter();
+  const { slug: projectSlug } = router.query as { slug?: string };
 
   const { basePath, domain, interval, key } = useContext(StatsContext);
+  const { setShowAddProjectModal } = useContext(ModalContext);
 
   const atTop = useScroll(80) || atModalTop;
   const [openDatePopover, setOpenDatePopover] = useState(false);
@@ -30,6 +35,8 @@ export default function Toggle({ atModalTop }: { atModalTop?: boolean }) {
   const selectedInterval = useMemo(() => {
     return INTERVALS.find((s) => s.slug === interval) || INTERVALS[1];
   }, [interval]);
+
+  const { plan } = useProject();
 
   return (
     <div
@@ -54,29 +61,58 @@ export default function Toggle({ atModalTop }: { atModalTop?: boolean }) {
           <Popover
             content={
               <div className="w-full p-2 md:w-48">
-                {INTERVALS.map(({ display, slug }) => (
-                  <button
-                    key={slug}
-                    onClick={() => {
-                      router.push(
-                        {
-                          query: {
-                            ...router.query,
-                            interval: slug,
+                {INTERVALS.map(({ display, slug }) =>
+                  slug === "eternity" && (!plan || plan === "free") ? (
+                    <Tooltip
+                      content={
+                        <TooltipContent
+                          title={
+                            projectSlug
+                              ? "All-time stats can only be viewed on a Pro plan or higher. Upgrade now to view all-time stats."
+                              : "All-time stats can only be viewed on a project with a Pro plan. Create a project or navigate to an existing project to upgrade."
+                          }
+                          cta={
+                            projectSlug ? "Upgrade to Pro" : "Create Project"
+                          }
+                          {...(projectSlug
+                            ? { href: `/${projectSlug}/settings/billing` }
+                            : {
+                                onClick: () => {
+                                  setShowAddProjectModal(true);
+                                  setOpenDatePopover(false);
+                                },
+                              })}
+                        />
+                      }
+                    >
+                      <div className="flex w-full cursor-not-allowed items-center justify-between space-x-2 rounded-md p-2 text-sm text-gray-400">
+                        {display}
+                      </div>
+                    </Tooltip>
+                  ) : (
+                    <button
+                      key={slug}
+                      onClick={() => {
+                        router.push(
+                          {
+                            query: {
+                              ...router.query,
+                              interval: slug,
+                            },
                           },
-                        },
-                        `${basePath}?interval=${slug}`,
-                        { shallow: true },
-                      );
-                    }}
-                    className="flex w-full items-center justify-between space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
-                  >
-                    <p className="text-sm">{display}</p>
-                    {selectedInterval.slug === slug && (
-                      <Tick className="h-4 w-4" aria-hidden="true" />
-                    )}
-                  </button>
-                ))}
+                          `${basePath}?interval=${slug}`,
+                          { shallow: true },
+                        );
+                      }}
+                      className="flex w-full items-center justify-between space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
+                    >
+                      <p className="text-sm">{display}</p>
+                      {selectedInterval.slug === slug && (
+                        <Tick className="h-4 w-4" aria-hidden="true" />
+                      )}
+                    </button>
+                  ),
+                )}
               </div>
             }
             openPopover={openDatePopover}

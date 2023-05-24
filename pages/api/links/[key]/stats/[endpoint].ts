@@ -2,7 +2,7 @@ import { withLinksAuth } from "@/lib/auth";
 import { getStats, IntervalProps } from "@/lib/stats";
 
 export default withLinksAuth(
-  async (req, res, _session, _project, domain) => {
+  async (req, res, _session, project, domain) => {
     // GET /api/links/[key]/stats/[endpoint] - get link stats from Tinybird
     if (req.method === "GET") {
       const { key, endpoint, interval } = req.query as {
@@ -10,12 +10,18 @@ export default withLinksAuth(
         endpoint: string;
         interval: IntervalProps;
       };
+
+      if (interval === "eternity" && (!project || project.plan === "free")) {
+        return res.status(403).end("Forbidden: Require higher plan");
+      }
+
       const response = await getStats({
         domain: domain || "dub.sh",
         key,
         endpoint,
         interval,
       });
+      if (endpoint === "timeseries") console.log(response);
 
       if (!response) {
         return res.status(405).end(`Method ${req.method} Not Allowed`);

@@ -28,6 +28,10 @@ export const INTERVALS = [
     display: "Last 3 months",
     slug: "90d",
   },
+  {
+    display: "All Time",
+    slug: "eternity",
+  },
 ];
 
 export const FRAMER_MOTION_LIST_ITEM_VARIANTS = {

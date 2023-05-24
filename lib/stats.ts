@@ -1,6 +1,6 @@
 import { conn } from "./planetscale";
 
-export type IntervalProps = "1h" | "24h" | "7d" | "30d" | "90d";
+export type IntervalProps = "1h" | "24h" | "7d" | "30d" | "90d" | "eternity";
 
 export const intervalData = {
   "1h": {
@@ -54,6 +54,17 @@ export const intervalData = {
       new Date(e).toLocaleDateString("en-us", {
         month: "short",
         day: "numeric",
+      }),
+  },
+  eternity: {
+    // difference between now and Sep 22, 2022
+    milliseconds: Date.now() - new Date("2022-09-22").getTime(),
+    interval: 2629746000,
+    granularity: "month",
+    format: (e: number) =>
+      new Date(e).toLocaleDateString("en-us", {
+        month: "short",
+        year: "numeric",
       }),
   },
 };
@@ -149,6 +160,7 @@ export const getStats = async ({
   );
   url.searchParams.append("domain", domain);
   url.searchParams.append("key", key);
+
   if (interval) {
     url.searchParams.append(
       "start",
@@ -164,7 +176,7 @@ export const getStats = async ({
     url.searchParams.append("granularity", intervalData[interval].granularity);
   }
 
-  return await fetch(url, {
+  return await fetch(url.toString(), {
     headers: {
       Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
     },

@@ -273,7 +273,7 @@ function AddEditDomainModal({
                   <TooltipContent
                     title="You can't configure a custom landing page on a free plan. Upgrade to a Pro plan to proceed."
                     cta="Upgrade to Pro"
-                    ctaLink={`/${slug}/settings/billing`}
+                    href={`/${slug}/settings/billing`}
                   />
                 }
                 fullWidth

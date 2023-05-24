@@ -125,23 +125,33 @@ export default function Tooltip({
 export function TooltipContent({
   title,
   cta,
-  ctaLink,
+  href,
+  onClick,
 }: {
   title: string;
   cta?: string;
-  ctaLink?: string;
+  href?: string;
+  onClick?: () => void;
 }) {
   return (
     <div className="flex max-w-xs flex-col items-center space-y-3 p-5 text-center">
       <p className="text-sm text-gray-700">{title}</p>
-      {cta && ctaLink && (
-        <Link
-          href={ctaLink}
-          className="mt-4 rounded-full border border-black bg-black px-3 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
-        >
-          {cta}
-        </Link>
-      )}
+      {cta &&
+        (href ? (
+          <Link
+            href={href}
+            className="mt-4 rounded-md border border-black bg-black px-5 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
+          >
+            {cta}
+          </Link>
+        ) : onClick ? (
+          <button
+            className="mt-4 rounded-md border border-black bg-black px-5 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
+            onClick={onClick}
+          >
+            {cta}
+          </button>
+        ) : null)}
     </div>
   );
 }
