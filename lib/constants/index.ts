@@ -30,7 +30,7 @@ export const INTERVALS = [
   },
   {
     display: "All Time",
-    slug: "eternity",
+    slug: "all",
   },
 ];
 

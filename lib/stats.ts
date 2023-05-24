@@ -1,6 +1,6 @@
 import { conn } from "./planetscale";
 
-export type IntervalProps = "1h" | "24h" | "7d" | "30d" | "90d" | "eternity";
+export type IntervalProps = "1h" | "24h" | "7d" | "30d" | "90d" | "all";
 
 export const intervalData = {
   "1h": {
@@ -56,7 +56,7 @@ export const intervalData = {
         day: "numeric",
       }),
   },
-  eternity: {
+  all: {
     // difference between now and Sep 22, 2022
     milliseconds: Date.now() - new Date("2022-09-22").getTime(),
     interval: 2629746000,

@@ -11,7 +11,10 @@ export default withLinksAuth(
         interval: IntervalProps;
       };
 
-      if (interval === "eternity" && (!project || project.plan === "free")) {
+      if (
+        (interval === "all" || interval === "90d") &&
+        (!project || project.plan === "free")
+      ) {
         return res.status(403).end("Forbidden: Require higher plan");
       }
 

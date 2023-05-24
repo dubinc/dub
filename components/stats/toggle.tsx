@@ -21,6 +21,7 @@ import { StatsContext } from ".";
 import useProject from "@/lib/swr/use-project";
 import Tooltip, { TooltipContent } from "#/ui/tooltip";
 import { ModalContext } from "#/ui/modal-provider";
+import { Lock } from "lucide-react";
 
 export default function Toggle({ atModalTop }: { atModalTop?: boolean }) {
   const router = useRouter();
@@ -62,14 +63,15 @@ export default function Toggle({ atModalTop }: { atModalTop?: boolean }) {
             content={
               <div className="w-full p-2 md:w-48">
                 {INTERVALS.map(({ display, slug }) =>
-                  slug === "eternity" && (!plan || plan === "free") ? (
+                  (slug === "all" || slug === "90d") &&
+                  (!plan || plan === "free") ? (
                     <Tooltip
                       content={
                         <TooltipContent
                           title={
                             projectSlug
-                              ? "All-time stats can only be viewed on a Pro plan or higher. Upgrade now to view all-time stats."
-                              : "All-time stats can only be viewed on a project with a Pro plan. Create a project or navigate to an existing project to upgrade."
+                              ? `${display} stats can only be viewed on a Pro plan or higher. Upgrade now to view all-time stats.`
+                              : `${display} stats can only be viewed on a project with a Pro plan. Create a project or navigate to an existing project to upgrade.`
                           }
                           cta={
                             projectSlug ? "Upgrade to Pro" : "Create Project"
@@ -86,7 +88,8 @@ export default function Toggle({ atModalTop }: { atModalTop?: boolean }) {
                       }
                     >
                       <div className="flex w-full cursor-not-allowed items-center justify-between space-x-2 rounded-md p-2 text-sm text-gray-400">
-                        {display}
+                        <p>{display}</p>
+                        <Lock className="h-4 w-4" aria-hidden="true" />
                       </div>
                     </Tooltip>
                   ) : (
