@@ -8,7 +8,7 @@ import {
   Tick,
 } from "@/components/shared/icons";
 import { ExpandingArrow } from "#/ui/icons";
-import { INTERVALS } from "@/lib/constants";
+import { INTERVALS } from "@/lib/stats";
 import useScroll from "#/lib/hooks/use-scroll";
 import { linkConstructor } from "@/lib/utils";
 import IconMenu from "@/components/shared/icon-menu";
@@ -18,11 +18,17 @@ import { fetcher } from "@/lib/utils";
 import { toast } from "sonner";
 import Switch from "#/ui/switch";
 import { StatsContext } from ".";
+import useProject from "@/lib/swr/use-project";
+import Tooltip, { TooltipContent } from "#/ui/tooltip";
+import { ModalContext } from "#/ui/modal-provider";
+import { Lock } from "lucide-react";
 
 export default function Toggle({ atModalTop }: { atModalTop?: boolean }) {
   const router = useRouter();
+  const { slug: projectSlug } = router.query as { slug?: string };
 
   const { basePath, domain, interval, key } = useContext(StatsContext);
+  const { setShowAddProjectModal } = useContext(ModalContext);
 
   const atTop = useScroll(80) || atModalTop;
   const [openDatePopover, setOpenDatePopover] = useState(false);
@@ -30,6 +36,8 @@ export default function Toggle({ atModalTop }: { atModalTop?: boolean }) {
   const selectedInterval = useMemo(() => {
     return INTERVALS.find((s) => s.slug === interval) || INTERVALS[1];
   }, [interval]);
+
+  const { plan } = useProject();
 
   return (
     <div
@@ -54,29 +62,61 @@ export default function Toggle({ atModalTop }: { atModalTop?: boolean }) {
           <Popover
             content={
               <div className="w-full p-2 md:w-48">
-                {INTERVALS.map(({ display, slug }) => (
-                  <button
-                    key={slug}
-                    onClick={() => {
-                      router.push(
-                        {
-                          query: {
-                            ...router.query,
-                            interval: slug,
+                {INTERVALS.map(({ display, slug }) =>
+                  (slug === "all" || slug === "90d") &&
+                  (!plan || plan === "free") ? (
+                    <Tooltip
+                      key={slug}
+                      content={
+                        <TooltipContent
+                          title={
+                            projectSlug
+                              ? `${display} stats can only be viewed on a Pro plan or higher. Upgrade now to view all-time stats.`
+                              : `${display} stats can only be viewed on a project with a Pro plan or higher. Create a project or navigate to an existing project to upgrade.`
+                          }
+                          cta={
+                            projectSlug ? "Upgrade to Pro" : "Create Project"
+                          }
+                          {...(projectSlug
+                            ? { href: `/${projectSlug}/settings/billing` }
+                            : {
+                                onClick: () => {
+                                  setShowAddProjectModal(true);
+                                  setOpenDatePopover(false);
+                                },
+                              })}
+                        />
+                      }
+                    >
+                      <div className="flex w-full cursor-not-allowed items-center justify-between space-x-2 rounded-md p-2 text-sm text-gray-400">
+                        <p>{display}</p>
+                        <Lock className="h-4 w-4" aria-hidden="true" />
+                      </div>
+                    </Tooltip>
+                  ) : (
+                    <button
+                      key={slug}
+                      onClick={() => {
+                        router.push(
+                          {
+                            query: {
+                              ...router.query,
+                              interval: slug,
+                            },
                           },
-                        },
-                        `${basePath}?interval=${slug}`,
-                        { shallow: true },
-                      );
-                    }}
-                    className="flex w-full items-center justify-between space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
-                  >
-                    <p className="text-sm">{display}</p>
-                    {selectedInterval.slug === slug && (
-                      <Tick className="h-4 w-4" aria-hidden="true" />
-                    )}
-                  </button>
-                ))}
+                          `${basePath}?interval=${slug}`,
+                          { shallow: true },
+                        );
+                      }}
+                      className="flex w-full items-center justify-between space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
+                    >
+                      <p className="text-sm">{display}</p>
+                      {selectedInterval.slug === slug && (
+                        <Tick className="h-4 w-4" aria-hidden="true" />
+                      )}
+                    </button>
+                  ),
+                )}
               </div>
             }
             openPopover={openDatePopover}

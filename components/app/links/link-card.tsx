@@ -206,7 +206,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                     <TooltipContent
                       title="Your branded links won't work until you verify your domain."
                       cta="Verify your domain"
-                      ctaLink={`/${slug}/domains`}
+                      href={`/${slug}/domains`}
                     />
                   }
                 >
@@ -293,8 +293,8 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                     content={
                       <TooltipContent
                         title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to edit them."
-                        cta="Upgrade"
-                        ctaLink={`/${slug}/settings/billing`}
+                        cta="Upgrade to Pro"
+                        href={`/${slug}/settings/billing`}
                       />
                     }
                   >
@@ -330,8 +330,8 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                     content={
                       <TooltipContent
                         title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to create a new link."
-                        cta="Upgrade"
-                        ctaLink={`/${slug}/settings/billing`}
+                        cta="Upgrade to Pro"
+                        href={`/${slug}/settings/billing`}
                       />
                     }
                   >

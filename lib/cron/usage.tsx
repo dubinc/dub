@@ -51,7 +51,7 @@ export const updateUsage = async () => {
       const email = users[0].user.email;
 
       await log(
-        `${name} is over usage limit. Usage: ${usage}, Limit: ${usageLimit}`,
+        `${name} is over usage limit. Usage: ${usage}, Limit: ${usageLimit}, Email: ${email}`,
         "cron",
         true,
       );

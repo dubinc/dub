@@ -591,8 +591,8 @@ function AddEditLinkButton({
       content={
         <TooltipContent
           title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
-          cta="Upgrade"
-          ctaLink={`/${slug}/settings/billing`}
+          cta="Upgrade to Pro"
+          href={`/${slug}/settings/billing`}
         />
       }
     >
