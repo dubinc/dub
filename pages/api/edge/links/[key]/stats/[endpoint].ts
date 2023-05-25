@@ -30,6 +30,7 @@ export default async function handler(req: NextRequest) {
       key,
       endpoint,
       interval,
+      createdAt: new Date("2022-09-22"),
     });
 
     return new Response(JSON.stringify(response), { status: 200 });

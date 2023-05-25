@@ -25,7 +25,6 @@ export default withLinksAuth(
         interval,
         createdAt: link?.createdAt || new Date("2022-09-22"),
       });
-      if (endpoint === "timeseries") console.log(response);
 
       if (!response) {
         return res.status(405).end(`Method ${req.method} Not Allowed`);
