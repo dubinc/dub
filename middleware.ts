@@ -11,16 +11,6 @@ import { isReservedKey } from "./lib/utils";
 
 export const config = {
   matcher: [
-    // Exclude `dub.sh` marketing pages
-    {
-      source: "/",
-      missing: [
-        {
-          type: "host",
-          value: "preview.dub.sh",
-        },
-      ],
-    },
     /*
      * Match all paths except for:
      * 1. /api/ routes
