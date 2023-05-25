@@ -224,6 +224,9 @@ const withLinksAuth =
       return res.status(400).end("Missing or misconfigured project slug.");
     }
 
+    let project: ProjectProps | undefined;
+    let link: LinkProps | undefined;
+
     // if there is no slug, it's the default dub.sh link
     if (!slug) {
       // prevent domain from being query injected by
@@ -235,35 +238,9 @@ const withLinksAuth =
         return res.status(403).end("Unauthorized: Invalid domain.");
       }
 
-      let link: LinkProps | undefined;
-      // if key is defined, check if the  current user is the owner of the link
-      const { key } = req.query;
-      if (key) {
-        if (typeof key !== "string") {
-          return res.status(400).end("Missing or misconfigured link key.");
-        } else {
-          link =
-            (await prisma.link.findUnique({
-              where: {
-                domain_key: {
-                  domain: "dub.sh",
-                  key,
-                },
-              },
-            })) || undefined;
-          if (!link) {
-            return res.status(404).end("Link not found.");
-          } else if (link.userId !== session.user.id) {
-            return res.status(403).end("Unauthorized: Not link owner.");
-          }
-        }
-      }
-
-      return handler(req, res, session, undefined, "dub.sh", link);
-
       // if project slug is defined, that means it's a custom project on Dub
     } else {
-      const project = (await prisma.project.findUnique({
+      project = (await prisma.project.findUnique({
         where: {
           slug,
         },
@@ -319,9 +296,34 @@ const withLinksAuth =
           return res.status(403).end("Unauthorized: Invalid domain.");
         }
       }
-
-      return handler(req, res, session, project, domain);
     }
+
+    // if key is defined, check if the  current user is the owner of the link
+    const { key } = req.query;
+    if (key) {
+      if (typeof key !== "string") {
+        return res.status(400).end("Missing or misconfigured link key.");
+      } else {
+        link =
+          (await prisma.link.findUnique({
+            where: {
+              domain_key: {
+                domain: domain || "dub.sh",
+                key,
+              },
+            },
+          })) || undefined;
+        if (!link) {
+          return res.status(404).end("Link not found.");
+
+          // for dub.sh links, check if the user is the owner of the link
+        } else if (!slug && link.userId !== session.user.id) {
+          return res.status(403).end("Unauthorized: Not link owner.");
+        }
+      }
+    }
+
+    return handler(req, res, session, project, domain, link);
   };
 
 export { withLinksAuth };

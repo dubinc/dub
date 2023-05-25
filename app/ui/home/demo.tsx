@@ -52,7 +52,7 @@ const Demo = () => {
                 title="Maximum number of links reached. Swipe to delete existing links or
               create a free account."
                 cta="Start For Free"
-                ctaLink="https://app.dub.sh/register"
+                href="https://app.dub.sh/register"
               />
             }
           >
