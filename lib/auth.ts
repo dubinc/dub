@@ -200,10 +200,12 @@ const withLinksAuth =
       needNotExceededUsage, // if the action needs the user to not have exceeded their usage
       excludeGet, // if the action doesn't need to be gated for GET requests
       requiredPlan = ["free", "pro", "enterprise"], // if the action needs a specific plan
+      skipKeyCheck, // if the action doesn't need to check if the user is the owner of the link (/exists endpoint)
     }: {
       needNotExceededUsage?: boolean;
       excludeGet?: boolean;
       requiredPlan?: Array<PlanProps>;
+      skipKeyCheck?: boolean;
     } = {},
   ) =>
   async (req: NextApiRequest, res: NextApiResponse) => {
@@ -300,7 +302,7 @@ const withLinksAuth =
 
     // if key is defined, check if the  current user is the owner of the link
     const { key } = req.query;
-    if (key) {
+    if (key && !skipKeyCheck) {
       if (typeof key !== "string") {
         return res.status(400).end("Missing or misconfigured link key.");
       } else {
