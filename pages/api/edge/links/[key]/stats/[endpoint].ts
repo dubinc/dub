@@ -15,9 +15,10 @@ export default async function handler(req: NextRequest) {
     let domain = req.nextUrl.hostname;
     if (isHomeHostname(domain)) domain = "dub.sh";
 
+    let data;
     // don't need to check if the link has public stats if the link is dub.sh/github (demo link)
     if (!(domain === "dub.sh" || key === "github")) {
-      const data = await getLinkViaEdge(domain, key);
+      data = await getLinkViaEdge(domain, key);
       if (!data?.publicStats) {
         return new Response(`Stats for this link are not public`, {
           status: 403,
@@ -30,7 +31,7 @@ export default async function handler(req: NextRequest) {
       key,
       endpoint,
       interval,
-      createdAt: new Date("2022-09-22"),
+      createdAt: data.createdAt,
     });
 
     return new Response(JSON.stringify(response), { status: 200 });

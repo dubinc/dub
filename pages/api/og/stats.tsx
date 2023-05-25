@@ -35,6 +35,7 @@ export default async function handler(req: NextRequest) {
     key,
     endpoint: "timeseries",
     interval: "30d",
+    createdAt: data.createdAt,
   });
 
   const maxClicks = Math.max(...timeseries.map((t) => t.clicks));
