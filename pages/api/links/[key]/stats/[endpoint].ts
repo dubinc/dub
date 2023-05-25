@@ -2,7 +2,7 @@ import { withLinksAuth } from "@/lib/auth";
 import { getStats, IntervalProps } from "@/lib/stats";
 
 export default withLinksAuth(
-  async (req, res, _session, project, domain) => {
+  async (req, res, _session, project, domain, link) => {
     // GET /api/links/[key]/stats/[endpoint] - get link stats from Tinybird
     if (req.method === "GET") {
       const { key, endpoint, interval } = req.query as {
@@ -23,6 +23,7 @@ export default withLinksAuth(
         key,
         endpoint,
         interval,
+        createdAt: link?.createdAt || new Date("2022-09-22"),
       });
       if (endpoint === "timeseries") console.log(response);
 

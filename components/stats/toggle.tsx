@@ -8,7 +8,7 @@ import {
   Tick,
 } from "@/components/shared/icons";
 import { ExpandingArrow } from "#/ui/icons";
-import { INTERVALS } from "@/lib/constants";
+import { INTERVALS } from "@/lib/stats";
 import useScroll from "#/lib/hooks/use-scroll";
 import { linkConstructor } from "@/lib/utils";
 import IconMenu from "@/components/shared/icon-menu";
@@ -66,12 +66,13 @@ export default function Toggle({ atModalTop }: { atModalTop?: boolean }) {
                   (slug === "all" || slug === "90d") &&
                   (!plan || plan === "free") ? (
                     <Tooltip
+                      key={slug}
                       content={
                         <TooltipContent
                           title={
                             projectSlug
                               ? `${display} stats can only be viewed on a Pro plan or higher. Upgrade now to view all-time stats.`
-                              : `${display} stats can only be viewed on a project with a Pro plan. Create a project or navigate to an existing project to upgrade.`
+                              : `${display} stats can only be viewed on a project with a Pro plan or higher. Create a project or navigate to an existing project to upgrade.`
                           }
                           cta={
                             projectSlug ? "Upgrade to Pro" : "Create Project"

@@ -1,4 +1,4 @@
-import { useMemo, useContext } from "react";
+import { useMemo, useContext, useCallback } from "react";
 import { AxisBottom, AxisLeft } from "@visx/axis";
 import { localPoint } from "@visx/event";
 import { GridRows } from "@visx/grid";
@@ -73,6 +73,42 @@ export default function BarChart() {
     });
   }, [data, interval]);
 
+  const formatTimestamp = useCallback(
+    (e: Date) => {
+      let finalInterval = interval;
+      // for all-time data, we want to show:
+      // - the 1h interval if the link was created in the last hour
+      // - the 24h interval if the link was created in the last 24 hours
+      if (data && interval === "all") {
+        if (new Date(data[0].start) > intervalData["1h"].startDate) {
+          finalInterval = "1h";
+        } else if (new Date(data[0].start) > intervalData["24h"].startDate) {
+          finalInterval = "24h";
+        }
+      }
+      switch (finalInterval) {
+        case "1h":
+          return new Date(e).toLocaleTimeString("en-us", {
+            hour: "numeric",
+            minute: "numeric",
+          });
+        case "24h":
+          return new Date(e)
+            .toLocaleDateString("en-us", {
+              month: "short",
+              day: "numeric",
+              hour: "numeric",
+            })
+            .replace(",", " ");
+        default:
+          return new Date(e).toLocaleDateString("en-us", {
+            month: "short",
+            day: "numeric",
+          });
+      }
+    },
+    [data, interval],
+  );
   const {
     tooltipOpen,
     tooltipLeft,
@@ -127,7 +163,7 @@ export default function BarChart() {
               hideAxisLine
               hideTicks
               scale={xScale}
-              tickFormat={intervalData[interval].format}
+              tickFormat={formatTimestamp}
               tickLabelProps={() => ({
                 fill: "#666666",
                 filter: data ? "none" : "blur(8px)",
@@ -144,7 +180,7 @@ export default function BarChart() {
               stroke="#E1E1E1"
               width={CHART_WIDTH}
             />
-            {data.map(({ start, clicks }) => {
+            {data.map(({ start, clicks }, idx) => {
               const barWidth = xScale.bandwidth();
               const barHeight = CHART_HEIGHT - (yScale(clicks) ?? 0);
               const barX = xScale(start) ?? 0;
@@ -178,9 +214,7 @@ export default function BarChart() {
                     showTooltip({
                       tooltipData: {
                         start,
-                        end:
-                          new Date(start).getTime() +
-                          intervalData[interval].interval,
+                        end: data[idx + 1]?.start ?? new Date(),
                         clicks,
                         link: "https://google.com",
                       },
@@ -203,15 +237,15 @@ export default function BarChart() {
                   <span className="text-2xl font-semibold">
                     {nFormatter(tooltipData.clicks)}
                   </span>{" "}
-                  clicks
+                  click{tooltipData.clicks === 1 ? "" : "s"}
                 </h3>
                 <p className="text-xs text-gray-600">
-                  {intervalData[interval].format(tooltipData.start)} -{" "}
+                  {formatTimestamp(tooltipData.start)} -{" "}
                   {interval === "24h"
                     ? new Date(tooltipData.end).toLocaleTimeString("en-us", {
                         hour: "numeric",
                       })
-                    : intervalData[interval].format(tooltipData.end)}
+                    : formatTimestamp(tooltipData.end)}
                 </p>
               </div>
             </TooltipInPortal>
