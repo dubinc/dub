@@ -198,7 +198,7 @@ export async function checkIfKeyExists(domain: string, key: string) {
 }
 
 export async function addLink(link: LinkProps) {
-  const {
+  let {
     domain,
     key,
     url,
@@ -211,6 +211,8 @@ export async function addLink(link: LinkProps) {
     ios,
     android,
   } = link;
+  // remove leading and trailing slashes from key
+  key = key.replace(/^\/|\/$/g, "");
   const hasPassword = password && password.length > 0 ? true : false;
   const exat = expiresAt ? new Date(expiresAt).getTime() / 1000 : null;
   const uploadedImage = image && image.startsWith("data:image") ? true : false;
@@ -225,6 +227,7 @@ export async function addLink(link: LinkProps) {
     prisma.link.create({
       data: {
         ...link,
+        key,
         title: truncate(title, 120),
         description: truncate(description, 240),
         image: uploadedImage ? undefined : image,
@@ -272,7 +275,7 @@ export async function addLink(link: LinkProps) {
 }
 
 export async function editLink(link: LinkProps, oldKey: string) {
-  const {
+  let {
     id,
     domain,
     key,
@@ -286,6 +289,8 @@ export async function editLink(link: LinkProps, oldKey: string) {
     ios,
     android,
   } = link;
+  // remove leading and trailing slashes from key
+  key = key.replace(/^\/|\/$/g, "");
   const hasPassword = password && password.length > 0 ? true : false;
   const exat = expiresAt ? new Date(expiresAt).getTime() : null;
   const changedKey = key !== oldKey;
@@ -305,6 +310,7 @@ export async function editLink(link: LinkProps, oldKey: string) {
       },
       data: {
         ...link,
+        key,
         title: truncate(title, 120),
         description: truncate(description, 240),
         image: uploadedImage ? undefined : image,

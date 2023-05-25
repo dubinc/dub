@@ -322,7 +322,8 @@ function AddEditLinkModal({
                       navigator.clipboard
                         .writeText(
                           linkConstructor({
-                            key: data.key,
+                            // remove leading and trailing slashes
+                            key: data.key.replace(/^\/|\/$/g, ""),
                             domain,
                           }),
                         )
