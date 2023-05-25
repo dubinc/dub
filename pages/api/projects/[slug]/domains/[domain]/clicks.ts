@@ -11,6 +11,7 @@ export default withProjectAuth(async (req, res) => {
       domain,
       key: "_root",
       endpoint: "clicks",
+      createdAt: new Date("2021-09-22"),
     });
 
     return res.status(200).json(response);

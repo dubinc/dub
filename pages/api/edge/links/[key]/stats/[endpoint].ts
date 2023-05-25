@@ -31,7 +31,7 @@ export default async function handler(req: NextRequest) {
       key,
       endpoint,
       interval,
-      createdAt: data.createdAt,
+      createdAt: data?.createdAt,
     });
 
     return new Response(JSON.stringify(response), { status: 200 });
