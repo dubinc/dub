@@ -6,55 +6,6 @@ import { redis } from "@/lib/upstash";
 import { getParamsFromURL, isReservedKey, nanoid, truncate } from "@/lib/utils";
 import { NextApiRequest } from "next";
 
-const getFiltersFromStatus = (status: string) => {
-  if (status === "all" || status === "none") {
-    return {
-      archived: undefined,
-      expiresAt: undefined,
-    };
-  }
-  const selectedStatus = status.split(",");
-  const activeSelected = selectedStatus.includes("active");
-  const expiredSelected = selectedStatus.includes("expired");
-  const archivedSelected = selectedStatus.includes("archived");
-  return {
-    AND: [
-      {
-        // archived can be either true or false
-        archived:
-          archivedSelected && selectedStatus.length === 1
-            ? true
-            : !archivedSelected
-            ? false
-            : undefined,
-      },
-      {
-        OR: [
-          {
-            /* expiresAt can be either:
-              - null
-              - a date that's in the past 
-              - a date that's in the future
-            */
-            expiresAt:
-              expiredSelected && !activeSelected
-                ? { lt: new Date() }
-                : activeSelected && !expiredSelected
-                ? { gte: new Date() }
-                : undefined,
-          },
-          {
-            expiresAt: activeSelected && !expiredSelected ? null : undefined,
-          },
-          {
-            archived: archivedSelected && !activeSelected ? true : undefined,
-          },
-        ],
-      },
-    ],
-  };
-};
-
 export async function getLinksForProject({
   projectId,
   domain,

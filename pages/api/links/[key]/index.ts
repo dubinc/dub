@@ -51,7 +51,7 @@ export default withLinksAuth(
             userId: session.user.id,
           },
           {
-            oldDomain,
+            oldDomain: oldDomain || "dub.sh",
             oldKey,
           },
         ),
