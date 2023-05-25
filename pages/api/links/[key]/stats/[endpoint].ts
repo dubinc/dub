@@ -23,7 +23,6 @@ export default withLinksAuth(
         key,
         endpoint,
         interval,
-        createdAt: link?.createdAt || new Date("2022-09-22"),
       });
 
       if (!response) {

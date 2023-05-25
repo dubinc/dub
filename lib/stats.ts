@@ -111,13 +111,11 @@ export const getStats = async ({
   key,
   endpoint,
   interval,
-  createdAt,
 }: {
   domain: string;
   key: string;
   endpoint: string;
   interval?: string | null;
-  createdAt: Date;
 }) => {
   if (!process.env.TINYBIRD_API_KEY) {
     return null;
@@ -152,24 +150,19 @@ export const getStats = async ({
   url.searchParams.append("key", key);
 
   if (interval) {
-    // use createdAt if interval is all-time and createdAt is before 30d
-    const finalStartDate =
-      interval === "all" ? createdAt : intervalData[interval].startDate;
-
     url.searchParams.append(
       "start",
-      finalStartDate.toISOString().replace("T", " ").replace("Z", ""),
+      intervalData[interval].startDate
+        .toISOString()
+        .replace("T", " ")
+        .replace("Z", ""),
     );
     url.searchParams.append(
       "end",
       new Date(Date.now()).toISOString().replace("T", " ").replace("Z", ""),
     );
 
-    const finalGranularity =
-      interval === "all" && createdAt > intervalData["24h"].startDate
-        ? "hour"
-        : intervalData[interval].granularity;
-    url.searchParams.append("granularity", finalGranularity);
+    url.searchParams.append("granularity", intervalData[interval].granularity);
   }
 
   return await fetch(url.toString(), {

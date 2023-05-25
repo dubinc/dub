@@ -80,18 +80,7 @@ const BarChart = ({ screenWidth }: { screenWidth?: number }) => {
 
   const formatTimestamp = useCallback(
     (e: Date) => {
-      let finalInterval = interval;
-      // for all-time data, we want to show:
-      // - the 1h interval if the link was created in the last hour
-      // - the 24h interval if the link was created in the last 24 hours
-      if (data && interval === "all") {
-        if (new Date(data[0].start) > intervalData["1h"].startDate) {
-          finalInterval = "1h";
-        } else if (new Date(data[0].start) > intervalData["24h"].startDate) {
-          finalInterval = "24h";
-        }
-      }
-      switch (finalInterval) {
+      switch (interval) {
         case "1h":
           return new Date(e).toLocaleTimeString("en-us", {
             hour: "numeric",
