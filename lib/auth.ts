@@ -268,6 +268,11 @@ const withLinksAuth =
           slug,
         },
         include: {
+          domains: {
+            select: {
+              slug: true,
+            },
+          },
           users: {
             where: {
               userId: session.user.id,
@@ -305,26 +310,13 @@ const withLinksAuth =
           return res.status(403).end("Unauthorized: Need higher plan.");
         }
 
-        // if domain is defined
-        if (domain) {
-          // prevent domain from being query injected by
-          // comparing the domain in the query params to the domain in the body
-          if (req.body.domain && req.body.domain !== domain) {
-            return res.status(403).end("Unauthorized: Invalid domain.");
-          }
-
-          // check if the domain is part of the project
-          const domainProjectId = await prisma.domain.findUnique({
-            where: {
-              slug: domain,
-            },
-            select: {
-              projectId: true,
-            },
-          });
-          if (domainProjectId?.projectId !== project.id) {
-            return res.status(403).end("Unauthorized: Invalid domain.");
-          }
+        // prevent unauthorized access to domains
+        if (
+          (domain && !project.domains?.find((d) => d.slug === domain)) ||
+          (req.body.domain &&
+            !project.domains?.find((d) => d.slug === req.body.domain))
+        ) {
+          return res.status(403).end("Unauthorized: Invalid domain.");
         }
       }
 

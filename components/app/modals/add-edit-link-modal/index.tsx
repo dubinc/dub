@@ -187,7 +187,7 @@ function AddEditLinkModal({
       return {
         method: "PUT",
         url: `/api/links/${encodeURIComponent(props.key)}${
-          slug ? `?slug=${slug}&domain=${domain}` : ""
+          slug ? `?slug=${slug}&domain=${props.domain}` : ""
         }`,
       };
     } else {

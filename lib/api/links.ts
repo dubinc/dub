@@ -274,7 +274,16 @@ export async function addLink(link: LinkProps) {
   return response;
 }
 
-export async function editLink(link: LinkProps, oldKey: string) {
+export async function editLink(
+  link: LinkProps,
+  {
+    oldDomain,
+    oldKey,
+  }: {
+    oldDomain: string;
+    oldKey: string;
+  },
+) {
   let {
     id,
     domain,
@@ -294,9 +303,10 @@ export async function editLink(link: LinkProps, oldKey: string) {
   const hasPassword = password && password.length > 0 ? true : false;
   const exat = expiresAt ? new Date(expiresAt).getTime() : null;
   const changedKey = key !== oldKey;
+  const changedDomain = domain !== oldDomain;
   const uploadedImage = image && image.startsWith("data:image") ? true : false;
 
-  if (changedKey) {
+  if (changedDomain || changedKey) {
     const exists = await checkIfKeyExists(domain, key);
     if (exists) return null;
   }
@@ -344,14 +354,14 @@ export async function editLink(link: LinkProps, oldKey: string) {
       exat ? { exat } : {},
     ),
     // if key is changed: rename resource in Cloudinary, delete the old key in Redis and change the clicks key name
-    ...(changedKey
+    ...(changedDomain || changedKey
       ? [
           cloudinary.v2.uploader
-            .destroy(`${domain}/${oldKey}`, {
+            .destroy(`${oldDomain}/${oldKey}`, {
               invalidate: true,
             })
             .catch(() => {}),
-          redis.del(`${domain}:${oldKey}`),
+          redis.del(`${oldDomain}:${oldKey}`),
         ]
       : []),
   ]);

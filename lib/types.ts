@@ -57,10 +57,9 @@ export interface ProjectProps {
   stripeId?: string;
   billingCycleStart?: number;
 
-  // TO DELETE
-  ownerUsageLimit?: number;
-  ownerExceededUsage?: boolean;
-
+  domains?: {
+    slug: string;
+  }[];
   users?: {
     role: string;
   }[];
