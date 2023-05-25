@@ -50,6 +50,30 @@ const nextConfig = {
       },
     ];
   },
+  async rewrites() {
+    return [
+      {
+        source: "/",
+        has: [
+          {
+            type: "host",
+            value: "preview.dub.sh",
+          },
+        ],
+        destination: "/dub.sh",
+      },
+      {
+        source: "/:path*",
+        has: [
+          {
+            type: "host",
+            value: "preview.dub.sh",
+          },
+        ],
+        destination: "/dub.sh/:path*",
+      },
+    ];
+  },
 };
 
 module.exports = withContentlayer(nextConfig);

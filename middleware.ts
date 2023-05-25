@@ -11,6 +11,16 @@ import { isReservedKey } from "./lib/utils";
 
 export const config = {
   matcher: [
+    // Exclude `dub.sh` marketing pages
+    {
+      source: "/",
+      missing: [
+        {
+          type: "host",
+          value: "preview.dub.sh",
+        },
+      ],
+    },
     /*
      * Match all paths except for:
      * 1. /api/ routes
@@ -44,6 +54,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
 
   // for root pages (e.g. dub.sh, vercel.fyi, etc.)
   if (key.length === 0) {
+    console.log("RootMiddleware", domain, req.headers.get("host"));
     return RootMiddleware(req, ev);
   }
 
