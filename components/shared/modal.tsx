@@ -33,8 +33,6 @@ export default function Modal({
     (closeWithX?: boolean) => {
       if (closeWithX) {
         return;
-      } else if (key) {
-        router.push("/");
       } else {
         setShowModal(false);
       }
