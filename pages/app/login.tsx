@@ -7,6 +7,7 @@ import Background from "@/components/shared/background";
 import { toast } from "sonner";
 import Button from "#/ui/button";
 import { Google } from "@/components/shared/icons";
+import { SSOWaitlist } from "#/ui/tooltip";
 
 export default function Login() {
   const [showEmailOption, setShowEmailOption] = useState(false);
@@ -120,7 +121,7 @@ export default function Login() {
           <Button
             text="Continue with SAML SSO"
             disabled
-            disabledTooltip="SAML/SSO is coming soon"
+            disabledTooltip={<SSOWaitlist />}
           />
 
           {noSuchAccount && (

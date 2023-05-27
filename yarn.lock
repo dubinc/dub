@@ -8439,10 +8439,10 @@ socks@^2.3.3, socks@^2.6.2:
     ip "^2.0.0"
     smart-buffer "^4.2.0"
 
-sonner@^0.3.5:
-  version "0.3.5"
-  resolved "https://registry.yarnpkg.com/sonner/-/sonner-0.3.5.tgz#5ef175732cb7b637c6460620ab01a0fba0e6a36b"
-  integrity sha512-yIwaQ4dftMvFApuruto2t7wGyyaPRpj5qYBWYJIz4Z7uGcVn0IfqI/hWN0JyJN4izNbZFuCYZISf3fOGnvSlNQ==
+sonner@^0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/sonner/-/sonner-0.4.0.tgz#65c4930a31f5fc3a98fe1ace1971050726bc155d"
+  integrity sha512-zEU/Mzur39xYPpyQOOCmN6YQftl5v+TSmdsmWEbWf6ovnOvnHyRwR7+/6BIBbzwRa8+3v06FJlpF7J3KS4Ll9Q==
 
 sort-keys@^5.0.0:
   version "5.0.0"

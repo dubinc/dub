@@ -8,6 +8,8 @@ import { ReactNode, useRef, useState } from "react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { AnimatePresence, motion, useAnimation } from "framer-motion";
 import BlurImage from "#/ui/blur-image";
+import Button from "./button";
+import Script from "next/script";
 
 export default function Tooltip({
   children,
@@ -173,5 +175,35 @@ export function OGImageProxy() {
         be redirected to your target URL.
       </p>
     </div>
+  );
+}
+
+export function SSOWaitlist() {
+  const [opening, setOpening] = useState(false);
+  return (
+    <>
+      <Script src="https://tally.so/widgets/embed.js" strategy="lazyOnload" />
+
+      <div className="flex max-w-sm flex-col items-center space-y-3 p-5 text-center">
+        <h3 className="font-semibold text-gray-800">SAML/SSO</h3>
+        <p className="text-sm text-gray-600">
+          SAML/SSO is coming soon. Interested in early access? Join the
+          waitlist.
+        </p>
+
+        <Button
+          text="Join waitlist"
+          loading={opening}
+          onClick={() => {
+            setOpening(true);
+            // @ts-ignore
+            window.Tally?.openPopup("waexqB", {
+              width: 540,
+              onOpen: () => setOpening(false),
+            });
+          }}
+        />
+      </div>
+    </>
   );
 }

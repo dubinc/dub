@@ -1,10 +1,16 @@
+import Button from "#/ui/button";
 import Form from "#/ui/form";
+import { useDeleteAccountModal } from "@/components/app/modals/delete-account-modal";
 import SettingsLayout from "@/components/layout/app/settings-layout";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
 export default function PersonalSettings() {
   const { data: session, update } = useSession();
+
+  const { setShowDeleteAccountModal, DeleteAccountModal } =
+    useDeleteAccountModal();
+
   return (
     <SettingsLayout>
       <Form
@@ -62,6 +68,29 @@ export default function PersonalSettings() {
           })
         }
       />
+
+      <div className="rounded-lg border border-red-600 bg-white">
+        <DeleteAccountModal />
+        <div className="flex flex-col space-y-3 p-5 sm:p-10">
+          <h2 className="text-xl font-medium">Delete Account</h2>
+          <p className="text-sm text-gray-500">
+            Permanently delete your Dub account and all of your Dub.sh links +
+            their stats. This action cannot be undone - please proceed with
+            caution.
+          </p>
+        </div>
+        <div className="border-b border-red-600" />
+
+        <div className="flex items-center justify-end p-3 sm:px-10">
+          <div className="w-32">
+            <Button
+              text="Delete Account"
+              variant="danger"
+              onClick={() => setShowDeleteAccountModal(true)}
+            />
+          </div>
+        </div>
+      </div>
     </SettingsLayout>
   );
 }

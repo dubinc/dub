@@ -5,6 +5,7 @@ import BlurImage from "#/ui/blur-image";
 import Background from "@/components/shared/background";
 import { Google } from "@/components/shared/icons";
 import Button from "#/ui/button";
+import { SSOWaitlist, TooltipContent } from "#/ui/tooltip";
 
 export default function Register() {
   const [clickedGoogle, setClickedGoogle] = useState(false);
@@ -41,7 +42,7 @@ export default function Register() {
           <Button
             text="Continue with SAML SSO"
             disabled
-            disabledTooltip="SAML/SSO is coming soon"
+            disabledTooltip={<SSOWaitlist />}
           />
         </div>
       </div>

@@ -12,6 +12,7 @@ import BlurImage from "#/ui/blur-image";
 import { LoadingDots } from "#/ui/icons";
 import Modal from "@/components/shared/modal";
 import useProject from "@/lib/swr/use-project";
+import Button from "#/ui/button";
 
 function DeleteProjectModal({
   showDeleteProjectModal,
@@ -123,20 +124,11 @@ function DeleteProjectModal({
             </div>
           </div>
 
-          <button
-            disabled={deleting}
-            className={`${
-              deleting
-                ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
-                : "border-red-600 bg-red-600 text-white hover:bg-white hover:text-red-600"
-            } flex h-10 w-full items-center justify-center rounded-md border text-sm transition-all focus:outline-none`}
-          >
-            {deleting ? (
-              <LoadingDots color="#808080" />
-            ) : (
-              <p>Confirm delete project</p>
-            )}
-          </button>
+          <Button
+            text="Confirm delete project"
+            variant="danger"
+            loading={deleting}
+          />
         </form>
       </div>
     </Modal>
