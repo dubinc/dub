@@ -52,9 +52,15 @@ export const authOptions: NextAuthOptions = {
       }
       if (account?.provider === "google") {
         // update the user entry with the name and image
-        await prisma.user.update({
+        await prisma.user.upsert({
           where: { email: user.email },
-          data: {
+          create: {
+            email: user.email,
+            name: profile?.name,
+            // @ts-ignore - this is a bug in the types, `picture` is a valid on the `Profile` type
+            image: profile?.picture,
+          },
+          update: {
             name: profile?.name,
             // @ts-ignore - this is a bug in the types, `picture` is a valid on the `Profile` type
             image: profile?.picture,
@@ -94,11 +100,24 @@ export const authOptions: NextAuthOptions = {
     async signIn(message) {
       if (message.isNewUser) {
         const email = message.user.email as string;
-        await sendMarketingMail({
-          subject: "✨ Welcome to Dub",
-          to: email,
-          component: <WelcomeEmail />,
+        const user = await prisma.user.findUnique({
+          where: { email },
+          select: {
+            createdAt: true,
+          },
         });
+        // only send the welcome email if the user was created in the last 1 minute
+        // (this is a workaround because the `isNewUser` flag is triggered when a user does `dangerousEmailAccountLinking`)
+        if (
+          user?.createdAt &&
+          new Date(user.createdAt).getTime() > Date.now() - 60000
+        ) {
+          sendMarketingMail({
+            subject: "Welcome to Dub.sh!",
+            to: email,
+            component: <WelcomeEmail />,
+          });
+        }
       }
     },
   },
