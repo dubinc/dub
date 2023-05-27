@@ -46,7 +46,7 @@ function GoogleOauthModal({
             onClick={() => {
               setClickedGoogle(true);
               signIn("google", {
-                callbackUrl: "/settings",
+                callbackUrl: "/settings?google=true",
               });
             }}
             loading={clickedGoogle}

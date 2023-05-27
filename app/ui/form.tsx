@@ -38,7 +38,7 @@ export default function Form({
           <p className="text-sm text-gray-500">{description}</p>
         </div>
         <div />
-        {inputData.defaultValue ? (
+        {typeof inputData.defaultValue === "string" ? (
           <input
             {...inputData}
             type="text"

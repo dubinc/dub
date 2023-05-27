@@ -42,9 +42,6 @@ export const authOptions: NextAuthOptions = {
       },
     },
   },
-  pages: {
-    newUser: "/welcome",
-  },
   callbacks: {
     signIn: async ({ user, account, profile }) => {
       if (!user.email || (await isBlacklistedEmail(user.email))) {

@@ -36,7 +36,7 @@ export default function Login() {
             Start creating short links with superpowers.
           </p>
         </div>
-        <div className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 sm:px-16">
+        <div className="flex flex-col space-y-3 bg-gray-50 px-4 py-8 sm:px-16">
           <Button
             text="Continue with Google"
             onClick={() => {
@@ -82,11 +82,11 @@ export default function Login() {
                   toast.error("Error sending email - try again?");
                 });
             }}
-            className="flex flex-col space-y-4"
+            className="flex flex-col space-y-3"
           >
             {showEmailOption && (
               <div>
-                <div className="mb-6 mt-2 border-t border-gray-300" />
+                <div className="mb-4 mt-1 border-t border-gray-300" />
                 <input
                   id="email"
                   name="email"
@@ -124,13 +124,24 @@ export default function Login() {
             disabledTooltip={<SSOWaitlist />}
           />
 
-          {noSuchAccount && (
+          {noSuchAccount ? (
             <p className="text-center text-sm text-red-500">
               No such account.{" "}
               <Link href="/register" className="font-semibold text-red-600">
                 Sign up
               </Link>{" "}
               instead?
+            </p>
+          ) : (
+            <p className="text-center text-sm text-gray-500">
+              Don't have an account?{" "}
+              <Link
+                href="/register"
+                className="font-semibold text-gray-500 transition-colors hover:text-black"
+              >
+                Sign up
+              </Link>
+              .
             </p>
           )}
         </div>

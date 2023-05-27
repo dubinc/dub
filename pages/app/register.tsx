@@ -6,6 +6,7 @@ import Background from "@/components/shared/background";
 import { Google } from "@/components/shared/icons";
 import Button from "#/ui/button";
 import { SSOWaitlist, TooltipContent } from "#/ui/tooltip";
+import Link from "next/link";
 
 export default function Register() {
   const [clickedGoogle, setClickedGoogle] = useState(false);
@@ -29,12 +30,14 @@ export default function Register() {
           </p>
         </div>
 
-        <div className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 sm:px-16">
+        <div className="flex flex-col space-y-3 bg-gray-50 px-4 py-8 sm:px-16">
           <Button
             text="Continue with Google"
             onClick={() => {
               setClickedGoogle(true);
-              signIn("google");
+              signIn("google", {
+                callbackUrl: "/welcome",
+              });
             }}
             loading={clickedGoogle}
             icon={<Google className="h-4 w-4" />}
@@ -44,6 +47,16 @@ export default function Register() {
             disabled
             disabledTooltip={<SSOWaitlist />}
           />
+          <p className="text-center text-sm text-gray-500">
+            Already have an account?{" "}
+            <Link
+              href="/login"
+              className="font-semibold text-gray-500 transition-colors hover:text-black"
+            >
+              Sign in
+            </Link>
+            .
+          </p>
         </div>
       </div>
     </div>

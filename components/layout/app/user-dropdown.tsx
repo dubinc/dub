@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 import { Logout } from "@/components/shared/icons";
 import Popover from "@/components/shared/popover";
@@ -6,20 +6,61 @@ import IconMenu from "../../shared/icon-menu";
 import Image from "next/image";
 import va from "@vercel/analytics";
 import Link from "next/link";
-import { Settings } from "lucide-react";
+import { MessageCircle, Settings } from "lucide-react";
+import { Crisp } from "crisp-sdk-web";
+import { LoadingCircle } from "#/ui/icons";
 
 export default function UserDropdown() {
   const { data: session } = useSession();
   const [openPopover, setOpenPopover] = useState(false);
+  const [openingSupport, setOpeningSupport] = useState(false);
+
+  useEffect(() => {
+    Crisp.chat.onChatOpened(() => {
+      va.track("Open support chat");
+      setOpeningSupport(false);
+    });
+    Crisp.chat.onChatClose(() => {
+      Crisp.chat.hide();
+    });
+  }, []);
 
   return (
     <div className="relative inline-block text-left">
       <Popover
         content={
-          <div className="w-full rounded-md bg-white p-2 sm:w-52">
+          <div className="flex w-full flex-col space-y-px rounded-md bg-white p-3 sm:w-56">
+            <div className="p-2">
+              {session?.user?.name && (
+                <p className="truncate text-sm font-medium text-gray-900">
+                  {session?.user?.name}
+                </p>
+              )}
+              <p className="truncate text-sm text-gray-500">
+                {session?.user?.email}
+              </p>
+            </div>
+            <button
+              className="w-full rounded-md p-2 text-left text-sm transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
+              onClick={() => {
+                setOpeningSupport(true);
+                Crisp.chat.open();
+              }}
+            >
+              <IconMenu
+                text="Support"
+                icon={
+                  openingSupport ? (
+                    <LoadingCircle />
+                  ) : (
+                    <MessageCircle className="h-4 w-4" />
+                  )
+                }
+              />
+            </button>
             <Link
               href="/settings"
-              className="block w-full rounded-md p-2 text-left text-sm transition-all duration-75 hover:bg-gray-100"
+              className="block w-full rounded-md p-2 text-left text-sm transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
             >
               <IconMenu
                 text="Settings"
@@ -27,7 +68,7 @@ export default function UserDropdown() {
               />
             </Link>
             <button
-              className="w-full rounded-md p-2 text-left text-sm transition-all duration-75 hover:bg-gray-100"
+              className="w-full rounded-md p-2 text-left text-sm transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
               onClick={() => {
                 signOut();
                 // track logout event

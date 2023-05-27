@@ -3,6 +3,8 @@ import Form from "#/ui/form";
 import { useDeleteAccountModal } from "@/components/app/modals/delete-account-modal";
 import SettingsLayout from "@/components/layout/app/settings-layout";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/router";
+import { useEffect } from "react";
 import { toast } from "sonner";
 
 export default function PersonalSettings() {
@@ -11,6 +13,16 @@ export default function PersonalSettings() {
   const { setShowDeleteAccountModal, DeleteAccountModal } =
     useDeleteAccountModal();
 
+  const router = useRouter();
+
+  useEffect(() => {
+    if (router.query.google === "true") {
+      toast.success(
+        "Successfully connected your Google account! You can log in with Google from now on.",
+      );
+    }
+  }, [router.query.google]);
+
   return (
     <SettingsLayout>
       <Form
@@ -18,7 +30,7 @@ export default function PersonalSettings() {
         description="This will be your display name on Dub."
         inputData={{
           name: "name",
-          defaultValue: session?.user?.name || undefined,
+          defaultValue: session?.user?.name || "",
           placeholder: "Steve Jobs",
           maxLength: 32,
         }}

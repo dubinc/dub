@@ -32,7 +32,9 @@ export default function AppLayout({
   };
 
   useEffect(() => {
-    Crisp.configure("2c09b1ee-14c2-46d1-bf72-1dbb998a19e0");
+    Crisp.configure("2c09b1ee-14c2-46d1-bf72-1dbb998a19e0", {
+      autoload: false,
+    });
   }, []);
 
   const { data: session } = useSession();
@@ -43,8 +45,9 @@ export default function AppLayout({
     }
   }, [session]);
 
-  const { id, name, plan, stripeId } = useProject();
+  const { id, name, plan, stripeId, createdAt } = useProject();
   const [showProBanner, setShowProBanner] = useState(false);
+
   useEffect(() => {
     if (plan) {
       Crisp.session.setData({
@@ -55,11 +58,7 @@ export default function AppLayout({
         ...(stripeId && { stripeId }),
       });
       if (plan === "free" && Cookies.get("hideProBanner") !== slug) {
-        Crisp.chat.hide();
         setShowProBanner(true);
-      } else {
-        Crisp.chat.show();
-        setShowProBanner(false);
       }
     }
   }, [plan, id, name, slug, stripeId]);
