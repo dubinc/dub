@@ -88,7 +88,7 @@ export default function ProjectSelect() {
               } w-28 items-center space-x-3 sm:flex sm:w-40`}
             >
               <span className="truncate whitespace-nowrap text-sm font-medium">
-                {selected.name} asiudgyav auyksgdkasd
+                {selected.name}
               </span>
               {selected.slug !== "/" && <PlanBadge plan={selected.plan} />}
             </div>
