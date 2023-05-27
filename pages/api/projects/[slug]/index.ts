@@ -9,7 +9,7 @@ export default withProjectAuth(async (req, res, project) => {
 
     // PUT /api/projects/[slug] – edit a specific project
   } else if (req.method === "PUT") {
-    const { name, newSlug } = req.body;
+    const { name, slug } = req.body;
     try {
       const response = await prisma.project.update({
         where: {
@@ -17,13 +17,13 @@ export default withProjectAuth(async (req, res, project) => {
         },
         data: {
           ...(name && { name }),
-          ...(newSlug && { slug: newSlug }),
+          ...(slug && { slug }),
         },
       });
       return res.status(200).json(response);
     } catch (error) {
       if (error.code === "P2002") {
-        return res.status(422).json({ error: "Key already exists" });
+        return res.status(422).end("Project slug already exists.");
       }
     }
     // DELETE /api/projects/[slug] – delete a project

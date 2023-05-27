@@ -1,4 +1,4 @@
-import SettingsLayout from "@/components/app/settings/layout";
+import SettingsLayout from "@/components/layout/app/settings-layout";
 import { useInviteTeammateModal } from "components/app/modals/invite-teammate-modal";
 import { useState } from "react";
 import { useRouter } from "next/router";

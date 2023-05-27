@@ -316,25 +316,24 @@ function AddEditLinkModal({
                     router.push("/links").then(() => {
                       setShowAddEditLinkModal(false);
                     });
-                  } else {
-                    // copy shortlink to clipboard when adding a new link
-                    if (!props) {
-                      navigator.clipboard
-                        .writeText(
-                          linkConstructor({
-                            // remove leading and trailing slashes
-                            key: data.key.replace(/^\/|\/$/g, ""),
-                            domain,
-                          }),
-                        )
-                        .then(() => {
-                          toast.success("Copied shortlink to clipboard!");
-                        });
-                    } else {
-                      toast.success("Successfully updated shortlink!");
-                    }
-                    setShowAddEditLinkModal(false);
                   }
+                  // copy shortlink to clipboard when adding a new link
+                  if (!props) {
+                    navigator.clipboard
+                      .writeText(
+                        linkConstructor({
+                          // remove leading and trailing slashes
+                          key: data.key.replace(/^\/|\/$/g, ""),
+                          domain,
+                        }),
+                      )
+                      .then(() => {
+                        toast.success("Copied shortlink to clipboard!");
+                      });
+                  } else {
+                    toast.success("Successfully updated shortlink!");
+                  }
+                  setShowAddEditLinkModal(false);
                 } else {
                   const error = await res.text();
                   if (error) {

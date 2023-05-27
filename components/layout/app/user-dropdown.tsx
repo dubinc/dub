@@ -5,6 +5,8 @@ import Popover from "@/components/shared/popover";
 import IconMenu from "../../shared/icon-menu";
 import Image from "next/image";
 import va from "@vercel/analytics";
+import Link from "next/link";
+import { Settings } from "lucide-react";
 
 export default function UserDropdown() {
   const { data: session } = useSession();
@@ -14,9 +16,18 @@ export default function UserDropdown() {
     <div className="relative inline-block text-left">
       <Popover
         content={
-          <div className="w-full rounded-md bg-white p-1 sm:w-56">
+          <div className="w-full rounded-md bg-white p-2 sm:w-52">
+            <Link
+              href="/settings"
+              className="block w-full rounded-md p-2 text-left text-sm transition-all duration-75 hover:bg-gray-100"
+            >
+              <IconMenu
+                text="Settings"
+                icon={<Settings className="h-4 w-4" />}
+              />
+            </Link>
             <button
-              className="relative w-full rounded-md p-2 text-left text-sm transition-all duration-75 hover:bg-gray-100"
+              className="w-full rounded-md p-2 text-left text-sm transition-all duration-75 hover:bg-gray-100"
               onClick={() => {
                 signOut();
                 // track logout event

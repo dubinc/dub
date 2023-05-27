@@ -80,11 +80,13 @@ export default function AppLayout({
                 </Link>
                 <Divider className="h-8 w-8 text-gray-200 sm:ml-3" />
                 <ProjectSelect />
-                {key && slug && (
+                {key && (
                   <>
                     <Divider className="h-8 w-8 text-gray-200 sm:mr-3" />
                     <Link
-                      href={`/${slug}/links/${key}`}
+                      href={
+                        slug ? `/${slug}/${domain}/${key}` : `/links/${key}`
+                      }
                       className="text-sm font-medium"
                     >
                       {domain || "dub.sh"}/{key}

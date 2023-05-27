@@ -4,7 +4,6 @@ import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import AppLayout from "components/layout/app";
 import useProject from "@/lib/swr/use-project";
 import { useEffect } from "react";
-import ErrorPage from "next/error";
 import { useCompleteSetupModal } from "@/components/app/modals/complete-setup-modal";
 import useDomains from "@/lib/swr/use-domains";
 
@@ -25,10 +24,6 @@ export default function ProjectLinks() {
       setShowCompleteSetupModal(false);
     }
   }, [verified, loading, error]);
-
-  if (error && error.status === 404) {
-    return <ErrorPage statusCode={404} />;
-  }
 
   return (
     <AppLayout>

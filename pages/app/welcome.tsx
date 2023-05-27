@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useAddProjectModal } from "@/components/app/modals/add-project-modal";
 import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal";
 import Meta from "@/components/layout/meta";
+import va from "@vercel/analytics";
 
 export default function Welcome() {
   const [state, setState] = useState("intro");
@@ -16,6 +17,10 @@ export default function Welcome() {
   const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal({
     hideXButton: true,
   });
+
+  useEffect(() => {
+    va.track("Sign Up");
+  }, []);
 
   useEffect(() => {
     if (state === "project") {

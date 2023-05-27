@@ -1,4 +1,3 @@
-import ErrorPage from "next/error";
 import Link from "next/link";
 import AppLayout from "@/components/layout/app";
 import BlurImage from "#/ui/blur-image";
@@ -8,12 +7,8 @@ import Stats from "@/components/stats";
 import useProject from "@/lib/swr/use-project";
 
 export default function StatsPage() {
-  const { slug, exceededUsage, error } = useProject();
+  const { slug, exceededUsage } = useProject();
 
-  // handle error page
-  if (error && error.status === 404) {
-    return <ErrorPage statusCode={404} />;
-  }
   return (
     <AppLayout>
       {exceededUsage && (

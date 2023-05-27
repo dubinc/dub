@@ -13,16 +13,20 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
   const tabs = [
     {
       name: "General",
-      href: `/${slug}/settings`,
+      href: slug ? `/${slug}/settings` : "/settings",
     },
-    {
-      name: "Billing",
-      href: `/${slug}/settings/billing`,
-    },
-    {
-      name: "People",
-      href: `/${slug}/settings/people`,
-    },
+    ...(slug
+      ? [
+          {
+            name: "Billing",
+            href: `/${slug}/settings/billing`,
+          },
+          {
+            name: "People",
+            href: `/${slug}/settings/people`,
+          },
+        ]
+      : []),
   ];
 
   return (

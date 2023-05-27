@@ -1,16 +1,67 @@
-import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
-import AppLayout from "components/layout/app";
+import Form from "#/ui/form";
+import SettingsLayout from "@/components/layout/app/settings-layout";
+import { useSession } from "next-auth/react";
+import { toast } from "sonner";
 
-export default function Settings() {
+export default function PersonalSettings() {
+  const { data: session, update } = useSession();
   return (
-    <AppLayout>
-      <div className="flex h-36 items-center border-b border-gray-200 bg-white">
-        <MaxWidthWrapper>
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl text-gray-600">Settings</h1>
-          </div>
-        </MaxWidthWrapper>
-      </div>
-    </AppLayout>
+    <SettingsLayout>
+      <Form
+        title="Your Name"
+        description="This will be your display name on Dub."
+        inputData={{
+          name: "name",
+          defaultValue: session?.user?.name || undefined,
+          placeholder: "Steve Jobs",
+          maxLength: 32,
+        }}
+        helpText="Max 32 characters."
+        handleSubmit={(data) =>
+          fetch("/api/user", {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          }).then(async (res) => {
+            if (res.status === 200) {
+              update();
+              toast.success("Successfully updated your name!");
+            } else {
+              const errorMessage = await res.text();
+              toast.error(errorMessage || "Something went wrong");
+            }
+          })
+        }
+      />
+      <Form
+        title="Your Email"
+        description="This will be the email you use to log in to Dub and receive notifications."
+        inputData={{
+          name: "email",
+          defaultValue: session?.user?.email || undefined,
+          placeholder: "panic@thedis.co",
+        }}
+        helpText="Must be a valid email address."
+        handleSubmit={(data) =>
+          fetch("/api/user", {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          }).then(async (res) => {
+            if (res.status === 200) {
+              update();
+              toast.success("Successfully updated your email!");
+            } else {
+              const errorMessage = await res.text();
+              toast.error(errorMessage || "Something went wrong");
+            }
+          })
+        }
+      />
+    </SettingsLayout>
   );
 }
