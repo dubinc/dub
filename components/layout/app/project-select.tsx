@@ -85,10 +85,10 @@ export default function ProjectSelect() {
             <div
               className={`${
                 key ? "hidden" : "flex"
-              } items-center space-x-3 sm:flex`}
+              } w-28 items-center space-x-3 sm:flex sm:w-40`}
             >
-              <span className="whitespace-nowrap text-sm font-medium">
-                {truncate(selected.name, 12)}
+              <span className="truncate whitespace-nowrap text-sm font-medium">
+                {selected.name} asiudgyav auyksgdkasd
               </span>
               {selected.slug !== "/" && <PlanBadge plan={selected.plan} />}
             </div>
