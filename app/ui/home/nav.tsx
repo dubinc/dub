@@ -69,7 +69,7 @@ export default function Nav() {
                   ? "https://app.dub.sh/register"
                   : "http://app.localhost:3000/register"
               }
-              className="rounded-full border border-black bg-black px-4 py-1 text-sm text-white transition-all hover:bg-white hover:text-black"
+              className="rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
             >
               Sign Up
             </Link>

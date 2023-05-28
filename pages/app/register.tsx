@@ -35,9 +35,7 @@ export default function Register() {
             text="Continue with Google"
             onClick={() => {
               setClickedGoogle(true);
-              signIn("google", {
-                callbackUrl: "/welcome",
-              });
+              signIn("google");
             }}
             loading={clickedGoogle}
             icon={<Google className="h-4 w-4" />}

@@ -98,7 +98,7 @@ export const handleDomainUpdates = async ({
         }),
       ]);
     } else {
-      console.log(
+      await log(
         `Domain *${domain}* has been invalid for > 30 days but has links, not deleting.`,
         "cron",
         true,

@@ -312,7 +312,7 @@ function AddEditLinkModal({
                     { revalidate: true },
                   );
                   // for welcome page, redirect to links page after adding a link
-                  if (router.asPath === "/welcome") {
+                  if (router.pathname === "/app/welcome") {
                     router.push("/links").then(() => {
                       setShowAddEditLinkModal(false);
                     });

@@ -76,10 +76,7 @@ export interface UserProps {
   name: string;
   email: string;
   image?: string;
-
-  // TO DELETE
-  stripeId: string;
-  usageLimit: number;
+  createdAt: Date;
 
   joinedAt?: Date;
   projects?: { projectId: string }[];

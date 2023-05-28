@@ -104,11 +104,11 @@ export const authOptions: NextAuthOptions = {
             createdAt: true,
           },
         });
-        // only send the welcome email if the user was created in the last 1 minute
+        // only send the welcome email if the user was created in the last 10 seconds
         // (this is a workaround because the `isNewUser` flag is triggered when a user does `dangerousEmailAccountLinking`)
         if (
           user?.createdAt &&
-          new Date(user.createdAt).getTime() > Date.now() - 60000
+          new Date(user.createdAt).getTime() > Date.now() - 10000
         ) {
           sendMarketingMail({
             subject: "Welcome to Dub.sh!",

@@ -44,10 +44,6 @@ export default withUserAuth(async (req, res, session) => {
           id: session.user.id,
         },
       });
-      console.log({
-        deleteLinks: JSON.stringify(deleteLinks),
-        response,
-      });
       return res.status(200).json({ deleteLinks, response });
     }
   } else {

@@ -383,21 +383,27 @@ export async function deleteUserLinks(userId: string) {
   links.forEach(({ key }) => {
     pipeline.del(`dub.sh:${key}`);
   });
-  return await Promise.allSettled([
-    pipeline.exec(), // delete all links from redis
-    // remove all images from cloudinary
-    ...links.map(({ key, proxy }) =>
-      proxy
-        ? cloudinary.v2.uploader.destroy(`dub.sh/${key}`, {
-            invalidate: true,
-          })
-        : Promise.resolve(),
-    ),
-    prisma.link.deleteMany({
-      where: {
-        userId,
-        domain: "dub.sh",
-      },
-    }),
-  ]);
+  const [deleteRedis, deleteCloudinary, deletePrisma] =
+    await Promise.allSettled([
+      pipeline.exec(), // delete all links from redis
+      // remove all images from cloudinary
+      ...links.map(({ key, proxy }) =>
+        proxy
+          ? cloudinary.v2.uploader.destroy(`dub.sh/${key}`, {
+              invalidate: true,
+            })
+          : Promise.resolve(),
+      ),
+      prisma.link.deleteMany({
+        where: {
+          userId,
+          domain: "dub.sh",
+        },
+      }),
+    ]);
+  return {
+    deleteRedis,
+    deleteCloudinary,
+    deletePrisma,
+  };
 }
