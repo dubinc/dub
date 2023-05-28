@@ -37,7 +37,15 @@ function GoogleOauthModal({
           />
           <h3 className="text-lg font-medium">Connect your Google Account</h3>
           <p className="text-center text-sm text-gray-500">
-            This allows you to sign in to your Dub account with Google.
+            This allows you to sign in to your Dub account with Google.{" "}
+            <a
+              className="underline underline-offset-4 transition-colors hover:text-black"
+              href="https://dub.sh/changelog/sign-in-with-google"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Read the announcement.
+            </a>
           </p>
         </div>
         <div className="flex flex-col space-y-3 bg-gray-50 px-4 py-8 text-left sm:px-16">
