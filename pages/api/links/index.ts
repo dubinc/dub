@@ -57,6 +57,8 @@ export default withLinksAuth(
         if (domainBlacklisted) {
           return res.status(422).end("Invalid url.");
         }
+      } else if (key === "/") {
+        return res.status(422).end("Key cannot be '/'.");
       }
 
       const [response, invalidFavicon] = await Promise.allSettled([
