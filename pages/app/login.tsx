@@ -22,7 +22,13 @@ export default function Login() {
       <Background />
       <div className="z-10 mt-[calc(30vh)] h-fit w-full max-w-md overflow-hidden border border-gray-100 sm:rounded-2xl sm:shadow-xl">
         <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 bg-white px-4 py-6 pt-8 text-center sm:px-16">
-          <a href="https://dub.sh">
+          <a
+            href={
+              process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
+                ? "https://dub.sh"
+                : "http://localhost:3000"
+            }
+          >
             <BlurImage
               src="/_static/logo.png"
               alt="Dub.sh logo"
