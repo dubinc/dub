@@ -175,6 +175,8 @@ const SharePopover = () => {
         });
         if (res.status === 200) {
           mutate(`${endpoint}${queryString}`);
+          !publicStats &&
+            navigator.clipboard.writeText(`https://${domain}/stats/${key}`);
           // artificial delay to sync toast with the switch change
           await new Promise((r) => setTimeout(r, 200));
         }
@@ -183,7 +185,9 @@ const SharePopover = () => {
       }),
       {
         loading: "Updating...",
-        success: `Stats page is now ${publicStats ? "private" : "public"}`,
+        success: `Stats page is now ${
+          publicStats ? "private." : "public. Link copied to clipboard."
+        }`,
         error: "Something went wrong",
       },
     );
