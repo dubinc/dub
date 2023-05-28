@@ -48,21 +48,22 @@ export const authOptions: NextAuthOptions = {
         return false;
       }
       if (account?.provider === "google") {
-        // update the user entry with the name and image
-        await prisma.user.upsert({
+        const userExists = await prisma.user.findUnique({
           where: { email: user.email },
-          create: {
-            email: user.email,
-            name: profile?.name,
-            // @ts-ignore - this is a bug in the types, `picture` is a valid on the `Profile` type
-            image: profile?.picture,
-          },
-          update: {
-            name: profile?.name,
-            // @ts-ignore - this is a bug in the types, `picture` is a valid on the `Profile` type
-            image: profile?.picture,
-          },
+          select: { name: true },
         });
+        // if the user already exists via email,
+        // update the user with their name and image from Google
+        if (userExists && !userExists.name) {
+          await prisma.user.update({
+            where: { email: user.email },
+            data: {
+              name: profile?.name,
+              // @ts-ignore - this is a bug in the types, `picture` is a valid on the `Profile` type
+              image: profile?.picture,
+            },
+          });
+        }
       }
       return true;
     },

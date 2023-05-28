@@ -44,7 +44,11 @@ export default function Tooltip({
       <button
         type="button"
         className={`${fullWidth ? "w-full" : "inline-flex"} sm:hidden`}
-        onClick={() => setOpenTooltip(true)}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setOpenTooltip(true);
+        }}
       >
         <span className="sr-only">Open tooltip</span>
         {children}
@@ -108,7 +112,7 @@ export default function Tooltip({
           >
             <TooltipPrimitive.Arrow className="fill-current text-white" />
             {typeof content === "string" ? (
-              <div className="p-5">
+              <div className="p-4">
                 <span className="block max-w-xs text-center text-sm text-gray-700">
                   {content}
                 </span>
@@ -136,19 +140,19 @@ export function TooltipContent({
   onClick?: () => void;
 }) {
   return (
-    <div className="flex max-w-xs flex-col items-center space-y-3 p-5 text-center">
+    <div className="flex max-w-xs flex-col items-center space-y-3 p-4 text-center">
       <p className="text-sm text-gray-700">{title}</p>
       {cta &&
         (href ? (
           <Link
             href={href}
-            className="mt-4 rounded-md border border-black bg-black px-5 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
+            className="mt-4 w-full rounded-md border border-black bg-black px-3 py-1.5 text-center text-sm text-white transition-all hover:bg-white hover:text-black"
           >
             {cta}
           </Link>
         ) : onClick ? (
           <button
-            className="mt-4 rounded-md border border-black bg-black px-5 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
+            className="mt-4 w-full rounded-md border border-black bg-black px-3 py-1.5 text-center text-sm text-white transition-all hover:bg-white hover:text-black"
             onClick={onClick}
           >
             {cta}
@@ -160,7 +164,7 @@ export function TooltipContent({
 
 export function OGImageProxy() {
   return (
-    <div className="flex max-w-md flex-col items-center space-y-5 p-5 text-center">
+    <div className="flex max-w-md flex-col items-center space-y-5 p-4 text-center">
       <BlurImage
         alt="Demo GIF for OG Image Proxy"
         src="https://res.cloudinary.com/dubdotsh/image/upload/v1664425639/og-image-proxy-demo.gif"
@@ -184,7 +188,7 @@ export function SSOWaitlist() {
     <>
       <Script src="https://tally.so/widgets/embed.js" strategy="lazyOnload" />
 
-      <div className="flex max-w-sm flex-col items-center space-y-3 p-5 text-center">
+      <div className="flex max-w-sm flex-col items-center space-y-3 p-4 text-center">
         <h3 className="font-semibold text-gray-800">SAML/SSO</h3>
         <p className="text-sm text-gray-600">
           SAML/SSO is coming soon. Interested in early access? Join the

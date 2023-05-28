@@ -26,7 +26,7 @@ export default function UserDropdown() {
   }, []);
 
   return (
-    <div className="relative inline-block text-left">
+    <div className="relative inline-block">
       <Popover
         content={
           <div className="flex w-full flex-col space-y-px rounded-md bg-white p-3 sm:w-56">
@@ -41,7 +41,7 @@ export default function UserDropdown() {
               </p>
             </div>
             <button
-              className="w-full rounded-md p-2 text-left text-sm transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
+              className="w-full rounded-md p-2 text-sm transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
               onClick={() => {
                 setOpeningSupport(true);
                 Crisp.chat.open();
@@ -60,7 +60,7 @@ export default function UserDropdown() {
             </button>
             <Link
               href="/settings"
-              className="block w-full rounded-md p-2 text-left text-sm transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
+              className="block w-full rounded-md p-2 text-sm transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
             >
               <IconMenu
                 text="Settings"
@@ -68,7 +68,7 @@ export default function UserDropdown() {
               />
             </Link>
             <button
-              className="w-full rounded-md p-2 text-left text-sm transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
+              className="w-full rounded-md p-2 text-sm transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
               onClick={() => {
                 signOut();
                 // track logout event

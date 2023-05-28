@@ -63,14 +63,17 @@ export default function ProjectSettingsPeople() {
         <div className="grid divide-y divide-gray-200">
           {users ? (
             users.length > 0 ? (
-              users.map(({ name, email, joinedAt }) => (
+              users.map(({ name, email, image, joinedAt }) => (
                 <div
                   key={email}
                   className="flex items-center justify-between space-x-3 px-4 py-3 sm:px-8"
                 >
                   <div className="flex items-center space-x-3">
                     <BlurImage
-                      src={`https://avatars.dicebear.com/api/micah/${email}.svg`}
+                      src={
+                        image ||
+                        `https://avatars.dicebear.com/api/micah/${email}.svg`
+                      }
                       alt={email}
                       width={40}
                       height={40}

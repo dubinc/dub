@@ -1,14 +1,11 @@
-import { Dispatch, SetStateAction, useState } from "react";
+import { useRouter } from "next/router";
 import { motion } from "framer-motion";
 import BlurImage from "#/ui/blur-image";
 import { Logo } from "@/components/shared/icons";
 import { STAGGER_CHILD_VARIANTS } from "@/lib/constants";
 
-export default function Interim({
-  setState,
-}: {
-  setState: Dispatch<SetStateAction<string>>;
-}) {
+export default function Interim() {
+  const router = useRouter();
   return (
     <motion.div
       className="z-10 mx-5 my-auto flex flex-col items-center space-y-10 text-center sm:mx-auto"
@@ -18,14 +15,14 @@ export default function Interim({
           opacity: 1,
           scale: 1,
           transition: {
-            staggerChildren: 0.3,
+            staggerChildren: 0.2,
           },
         },
       }}
       initial="hidden"
       animate="show"
       exit="hidden"
-      transition={{ duration: 0.5, type: "spring" }}
+      transition={{ duration: 0.3, type: "spring" }}
     >
       <motion.div
         variants={STAGGER_CHILD_VARIANTS}
@@ -58,7 +55,14 @@ export default function Interim({
         className="grid w-full grid-cols-1 divide-y divide-gray-100 rounded-md border border-gray-200 bg-white md:grid-cols-2 md:divide-x"
       >
         <button
-          onClick={() => setState("project")}
+          onClick={() =>
+            router.push({
+              pathname: "/welcome",
+              query: {
+                type: "project",
+              },
+            })
+          }
           className="flex flex-col items-center justify-center overflow-hidden p-5 transition-colors hover:bg-gray-50 md:p-10"
         >
           <BlurImage
@@ -71,7 +75,14 @@ export default function Interim({
           <p>I have a domain</p>
         </button>
         <button
-          onClick={() => setState("link")}
+          onClick={() =>
+            router.push({
+              pathname: "/welcome",
+              query: {
+                type: "link",
+              },
+            })
+          }
           className="flex flex-col items-center justify-center overflow-hidden p-5 transition-colors hover:bg-gray-50 md:p-10"
         >
           <BlurImage

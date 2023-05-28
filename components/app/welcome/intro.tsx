@@ -1,14 +1,12 @@
+import { useRouter } from "next/router";
 import Spline from "@splinetool/react-spline";
-import { Dispatch, SetStateAction, useState } from "react";
+import { useState } from "react";
 import { useDebounce } from "use-debounce";
 import { motion } from "framer-motion";
 import { STAGGER_CHILD_VARIANTS } from "@/lib/constants";
 
-export default function Intro({
-  setState,
-}: {
-  setState: Dispatch<SetStateAction<string>>;
-}) {
+export default function Intro() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const onLoad = () => {
     setLoading(false);
@@ -22,7 +20,7 @@ export default function Intro({
     <motion.div
       className="z-10"
       exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ duration: 0.5, type: "spring" }}
+      transition={{ duration: 0.3, type: "spring" }}
     >
       <div
         className={`${
@@ -40,7 +38,7 @@ export default function Intro({
           variants={{
             show: {
               transition: {
-                staggerChildren: 0.3,
+                staggerChildren: 0.2,
               },
             },
           }}
@@ -63,7 +61,14 @@ export default function Intro({
           <motion.button
             variants={STAGGER_CHILD_VARIANTS}
             className="rounded-full bg-gray-800 px-10 py-2 font-medium text-white transition-colors hover:bg-black"
-            onClick={() => setState("interim")}
+            onClick={() =>
+              router.push({
+                pathname: "/welcome",
+                query: {
+                  type: "interim",
+                },
+              })
+            }
           >
             Get Started
           </motion.button>

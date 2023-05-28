@@ -24,6 +24,7 @@ import { ModalContext } from "#/ui/modal-provider";
 import useTags from "@/lib/swr/use-tags";
 import TagBadge from "@/components/app/links/tag-badge";
 import { TagProps } from "@/lib/types";
+import Badge from "#/ui/badge";
 
 export default function LinkFilters() {
   const { primaryDomain } = useDomains();
@@ -282,9 +283,7 @@ const TagsFilter = ({
             className={`${collapsed ? "" : "rotate-90"} h-5 w-5 transition-all`}
           />
           <h4 className="font-medium text-gray-900">Tags</h4>
-          <span className="-mt-3 rounded-full border border-blue-500 bg-blue-500 px-2 py-0.5 text-xs font-medium text-white">
-            New
-          </span>
+          <Badge text="New" variant="blue" className="-mt-3" />
         </button>
         <button
           onClick={addTag}
