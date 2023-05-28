@@ -8,7 +8,6 @@ export default withProjectAuth(async (req, res, project, session) => {
 
     const stripeSession = await stripe.checkout.sessions.create({
       customer_email: session.user.email,
-      payment_method_types: ["card"],
       billing_address_collection: "required",
       success_url: `${
         process.env.VERCEL === "1"

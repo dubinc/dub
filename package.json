@@ -77,7 +77,7 @@
     "remark-gfm": "^3.0.1",
     "shiki": "^0.14.1",
     "sonner": "^0.4.0",
-    "stripe": "^11.1.0",
+    "stripe": "^12.7.0",
     "swr": "^2.1.5",
     "tailwind-scrollbar-hide": "^1.1.7",
     "tailwindcss-radix": "^2.8.0",
