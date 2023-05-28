@@ -23,7 +23,7 @@ export default function Nav() {
       })}
     >
       <div className="mx-auto w-full max-w-screen-xl px-5 md:px-20">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-14 items-center justify-between">
           <Link
             href={
               domain === "dub.sh"
@@ -44,18 +44,6 @@ export default function Nav() {
             <Link
               href={
                 domain === "dub.sh"
-                  ? "/metatags"
-                  : `https://dub.sh/metatags?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`
-              }
-              className={`hidden rounded-md text-sm font-medium ${
-                segment === "metatags" ? "text-black" : "text-gray-500"
-              } transition-colors ease-out hover:text-black sm:block`}
-            >
-              Metatags API
-            </Link>
-            <Link
-              href={
-                domain === "dub.sh"
                   ? "/changelog"
                   : `https://dub.sh/changelog?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`
               }
@@ -71,9 +59,19 @@ export default function Nav() {
                   ? "https://app.dub.sh/login"
                   : "http://app.localhost:3000/login"
               }
-              className="rounded-full border border-black bg-black px-5 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
+              className="rounded-md text-sm font-medium text-gray-500 transition-colors ease-out hover:text-black"
             >
-              Sign in
+              Log in
+            </Link>
+            <Link
+              href={
+                process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
+                  ? "https://app.dub.sh/register"
+                  : "http://app.localhost:3000/register"
+              }
+              className="rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
+            >
+              Sign Up
             </Link>
           </div>
         </div>

@@ -32,7 +32,9 @@ export default function AppLayout({
   };
 
   useEffect(() => {
-    Crisp.configure("2c09b1ee-14c2-46d1-bf72-1dbb998a19e0");
+    Crisp.configure("2c09b1ee-14c2-46d1-bf72-1dbb998a19e0", {
+      autoload: false,
+    });
   }, []);
 
   const { data: session } = useSession();
@@ -43,8 +45,9 @@ export default function AppLayout({
     }
   }, [session]);
 
-  const { id, name, plan, stripeId } = useProject();
+  const { id, name, plan, stripeId, createdAt } = useProject();
   const [showProBanner, setShowProBanner] = useState(false);
+
   useEffect(() => {
     if (plan) {
       Crisp.session.setData({
@@ -54,15 +57,21 @@ export default function AppLayout({
         plan,
         ...(stripeId && { stripeId }),
       });
-      if (plan === "free" && Cookies.get("hideProBanner") !== slug) {
-        Crisp.chat.hide();
+      /* show pro banner if:
+          - free plan
+          - not hidden by user for this project
+          - project is created more than 24 hours ago
+      */
+      if (
+        plan === "free" &&
+        Cookies.get("hideProBanner") !== slug &&
+        createdAt &&
+        Date.now() - new Date(createdAt).getTime() > 24 * 60 * 60 * 1000
+      ) {
         setShowProBanner(true);
-      } else {
-        Crisp.chat.show();
-        setShowProBanner(false);
       }
     }
-  }, [plan, id, name, slug, stripeId]);
+  }, [plan, id, name, slug, stripeId, createdAt]);
 
   return (
     <div>
@@ -80,11 +89,13 @@ export default function AppLayout({
                 </Link>
                 <Divider className="h-8 w-8 text-gray-200 sm:ml-3" />
                 <ProjectSelect />
-                {key && slug && (
+                {key && (
                   <>
                     <Divider className="h-8 w-8 text-gray-200 sm:mr-3" />
                     <Link
-                      href={`/${slug}/links/${key}`}
+                      href={
+                        slug ? `/${slug}/${domain}/${key}` : `/links/${key}`
+                      }
                       className="text-sm font-medium"
                     >
                       {domain || "dub.sh"}/{key}

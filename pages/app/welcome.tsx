@@ -1,3 +1,4 @@
+import { useRouter } from "next/router";
 import Background from "@/components/shared/background";
 import Intro from "@/components/app/welcome/intro";
 import Interim from "@/components/app/welcome/interim";
@@ -6,10 +7,9 @@ import { useEffect, useState } from "react";
 import { useAddProjectModal } from "@/components/app/modals/add-project-modal";
 import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal";
 import Meta from "@/components/layout/meta";
+import va from "@vercel/analytics";
 
 export default function Welcome() {
-  const [state, setState] = useState("intro");
-
   const { setShowAddProjectModal, AddProjectModal } = useAddProjectModal({
     closeWithX: true,
   });
@@ -17,18 +17,28 @@ export default function Welcome() {
     hideXButton: true,
   });
 
+  const router = useRouter();
+
   useEffect(() => {
-    if (state === "project") {
+    va.track("Sign Up");
+  }, []);
+
+  useEffect(() => {
+    if (router.query.type === "project") {
       setTimeout(() => {
         setShowAddProjectModal(true);
       }, 200);
+    } else {
+      setShowAddProjectModal(false);
     }
-    if (state === "link") {
+    if (router.query.type === "link") {
       setTimeout(() => {
         setShowAddEditLinkModal(true);
       }, 200);
+    } else {
+      setShowAddEditLinkModal(false);
     }
-  }, [state]);
+  }, [router.query.type]);
 
   return (
     <div className="flex h-screen flex-col items-center">
@@ -37,8 +47,8 @@ export default function Welcome() {
       <AddProjectModal />
       <AddEditLinkModal />
       <AnimatePresence mode="wait">
-        {state === "intro" && <Intro key="intro" setState={setState} />}
-        {state === "interim" && <Interim key="interim" setState={setState} />}
+        {!router.query.type && <Intro key="intro" />}
+        {router.query.type === "interim" && <Interim key="interim" />}
       </AnimatePresence>
     </div>
   );

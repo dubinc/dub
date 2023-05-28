@@ -116,6 +116,7 @@ function AddProjectModalHelper({
                 mutate("/api/projects");
                 router.push(`/${slug}`);
                 toast.success("Successfully created project!");
+                setShowAddProjectModal(false);
               } else if (res.status === 422) {
                 const {
                   slugError: slugErrorResponse,

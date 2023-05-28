@@ -56,6 +56,7 @@ export interface ProjectProps {
   plan: PlanProps;
   stripeId?: string;
   billingCycleStart?: number;
+  createdAt?: Date;
 
   domains?: {
     slug: string;
@@ -74,10 +75,8 @@ export interface UserProps {
   id: string;
   name: string;
   email: string;
-
-  // TO DELETE
-  stripeId: string;
-  usageLimit: number;
+  image?: string;
+  createdAt: Date;
 
   joinedAt?: Date;
   projects?: { projectId: string }[];

@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import AppLayout from "components/layout/app";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import { ReactNode } from "react";
+import clsx from "clsx";
 
 export default function SettingsLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -13,16 +14,20 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
   const tabs = [
     {
       name: "General",
-      href: `/${slug}/settings`,
+      href: slug ? `/${slug}/settings` : "/settings",
     },
-    {
-      name: "Billing",
-      href: `/${slug}/settings/billing`,
-    },
-    {
-      name: "People",
-      href: `/${slug}/settings/people`,
-    },
+    ...(slug
+      ? [
+          {
+            name: "Billing",
+            href: `/${slug}/settings/billing`,
+          },
+          {
+            name: "People",
+            href: `/${slug}/settings/people`,
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -40,9 +45,12 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
             <Link
               href={href}
               key={href}
-              className={`${
-                router.asPath === href ? "font-semibold text-black" : ""
-              } rounded-md p-2.5 text-sm transition-all duration-75 hover:bg-gray-100 active:bg-gray-200`}
+              className={clsx(
+                "rounded-md p-2.5 text-sm transition-all duration-75 hover:bg-gray-100 active:bg-gray-200",
+                {
+                  "font-semibold text-black": router.asPath === href,
+                },
+              )}
             >
               {name}
             </Link>

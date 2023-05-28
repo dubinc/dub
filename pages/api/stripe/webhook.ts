@@ -50,21 +50,11 @@ export default async function webhookHandler(
         if (event.type === "checkout.session.completed") {
           const checkoutSession = event.data.object as Stripe.Checkout.Session;
 
-          if (checkoutSession.client_reference_id === null) {
-            await log(
-              "Missing client reference ID in Stripe webhook callback",
-              "cron",
-              true,
-            );
-            return;
-          }
-
-          if (checkoutSession.customer === null) {
-            await log(
-              "Missing customer ID in Stripe webhook callback",
-              "cron",
-              true,
-            );
+          if (
+            checkoutSession.client_reference_id === null ||
+            checkoutSession.customer === null
+          ) {
+            await log("Missing items in Stripe webhook callback", "cron", true);
             return;
           }
 
@@ -81,6 +71,9 @@ export default async function webhookHandler(
               billingCycleStart: new Date().getDate(),
             },
           });
+
+          // TODO - send thank you email to project owner
+          //
         } else if (event.type === "customer.subscription.updated") {
           const subscriptionUpdated = event.data.object as Stripe.Subscription;
           const newPriceId = subscriptionUpdated.items.data[0].price.id;
@@ -176,7 +169,7 @@ export default async function webhookHandler(
       return res.status(400).send(`🤷‍♀️ Unhandled event type: ${event.type}`);
     }
 
-    res.json({ received: true });
+    res.status(200).json({ received: true });
   } else {
     res.setHeader("Allow", ["POST"]);
     return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
