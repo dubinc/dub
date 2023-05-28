@@ -29,5 +29,6 @@ export default function useProject() {
     ...project,
     exceededUsage,
     error,
+    loading: !router.isReady || (slug && !project && !error),
   };
 }

@@ -36,25 +36,22 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
     useAddEditDomainModal({});
   const { setShowTagLinkModal, TagLinkModal } = useTagLinkModal({});
 
+  const { error, loading } = useProject();
   const { data: session } = useSession();
+
+  // handle invite and oauth modals
   useEffect(() => {
-    if (
+    if (error && (error.status === 409 || error.status === 410)) {
+      setShowAcceptInviteModal(true);
+    } else if (
+      !loading &&
       session?.user?.email &&
       !session.user?.name &&
       !Cookies.get("hideGoogleOauthModal")
     ) {
-      console.log(session);
       setShowGoogleOauthModal(true);
     }
-  }, [session]);
-
-  const { error } = useProject();
-  // handle errors
-  useEffect(() => {
-    if (error && (error.status === 409 || error.status === 410)) {
-      setShowAcceptInviteModal(true);
-    }
-  }, [error]);
+  }, [error, session]);
 
   if (error && error.status === 404) {
     return <ErrorPage statusCode={404} />;

@@ -63,6 +63,7 @@ const withProjectAuth =
         plan: true,
         stripeId: true,
         billingCycleStart: true,
+        createdAt: true,
         users: {
           where: {
             userId: session.user.id,

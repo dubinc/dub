@@ -57,11 +57,21 @@ export default function AppLayout({
         plan,
         ...(stripeId && { stripeId }),
       });
-      if (plan === "free" && Cookies.get("hideProBanner") !== slug) {
+      /* show pro banner if:
+          - free plan
+          - not hidden by user for this project
+          - project is created more than 24 hours ago
+      */
+      if (
+        plan === "free" &&
+        Cookies.get("hideProBanner") !== slug &&
+        createdAt &&
+        Date.now() - new Date(createdAt).getTime() > 24 * 60 * 60 * 1000
+      ) {
         setShowProBanner(true);
       }
     }
-  }, [plan, id, name, slug, stripeId]);
+  }, [plan, id, name, slug, stripeId, createdAt]);
 
   return (
     <div>

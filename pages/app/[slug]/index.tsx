@@ -8,22 +8,20 @@ import { useCompleteSetupModal } from "@/components/app/modals/complete-setup-mo
 import useDomains from "@/lib/swr/use-domains";
 
 export default function ProjectLinks() {
-  const { slug, error } = useProject();
+  const { slug, error, loading: loadingProject } = useProject();
 
   const { AddEditLinkModal, AddEditLinkButton } = useAddEditLinkModal();
 
   const { CompleteSetupModal, setShowCompleteSetupModal } =
     useCompleteSetupModal();
 
-  const { verified, loading } = useDomains();
+  const { verified, loading: loadingDomains } = useDomains();
 
   useEffect(() => {
-    if (!verified && !loading && !error) {
+    if (!verified && !loadingProject && !loadingDomains && !error) {
       setShowCompleteSetupModal(true);
-    } else {
-      setShowCompleteSetupModal(false);
     }
-  }, [verified, loading, error]);
+  }, [verified, loadingProject, loadingDomains, error]);
 
   return (
     <AppLayout>
