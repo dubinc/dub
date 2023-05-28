@@ -7,7 +7,7 @@ import {
   validateDomain,
 } from "@/lib/api/domains";
 import prisma from "@/lib/prisma";
-import { isReservedKey } from "@/lib/utils";
+import { isReservedKey, validSlugRegex } from "@/lib/utils";
 
 export default withUserAuth(
   async (req: NextApiRequest, res: NextApiResponse, session: Session) => {
@@ -36,16 +36,21 @@ export default withUserAuth(
           .json({ error: "Missing name or slug or domain" });
       }
       let slugError: string | null = null;
-      if (slug.includes(" ") || slug.includes(".")) {
-        slugError = "Slug cannot contain spaces or periods";
+
+      // check if slug is valid
+      if (!validSlugRegex.test(slug)) {
+        slugError = "Invalid slug";
+
+        // check if slug is reserved
       } else if ((await isReservedKey(slug)) || DEFAULT_REDIRECTS[slug]) {
         slugError = "Cannot use reserved slugs";
       }
+
       const validDomain = await validateDomain(domain);
       if (slugError || validDomain !== true) {
         return res.status(422).json({
           slugError,
-          domainError: validDomain || "Invalid domain",
+          domainError: validDomain ? null : "Invalid domain",
         });
       }
       const [slugExist, domainExist] = await Promise.all([

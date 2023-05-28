@@ -1,11 +1,11 @@
 import Link from "next/link";
 import BlurImage from "#/ui/blur-image";
+import { useContext } from "react";
+import { ModalContext } from "#/ui/modal-provider";
 
-export default function NoProjectsPlaceholder({
-  setShowAddProjectModal,
-}: {
-  setShowAddProjectModal: (show: boolean) => void;
-}) {
+export default function NoProjectsPlaceholder() {
+  const { setShowAddProjectModal } = useContext(ModalContext);
+
   return (
     <div className="flex flex-col items-center justify-center rounded-md border border-gray-200 bg-white py-12">
       <h2 className="z-10 text-xl font-semibold text-gray-700">

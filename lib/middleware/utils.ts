@@ -1,13 +1,16 @@
 import { NextRequest } from "next/server";
 import { HOME_HOSTNAMES } from "@/lib/constants";
+import { isHomeHostname } from "../utils";
 
 export const parse = (req: NextRequest) => {
   let domain = req.headers.get("host") as string;
   domain = domain.replace("www.", ""); // remove www. from domain
-  if (HOME_HOSTNAMES.has(domain)) domain = "dub.sh";
+  if (isHomeHostname(domain)) domain = "dub.sh"; // if domain is a home hostname, set it to dub.sh
   const path = req.nextUrl.pathname;
-  const key = decodeURIComponent(path.split("/")[1]); // to handle foreign languages like Hebrew
-  return { domain, path, key };
+  const key = decodeURIComponent(path.split("/")[1]); // decodeURIComponentto handle foreign languages like Hebrew
+  const fullKey = decodeURIComponent(path).slice(1);
+
+  return { domain, path, key, fullKey };
 };
 
 export const detectBot = (req: NextRequest) => {

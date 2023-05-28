@@ -6,10 +6,12 @@ import Tooltip, { TooltipContent } from "#/ui/tooltip";
 import { ProjectWithDomainProps } from "@/lib/types";
 import { fetcher, nFormatter } from "@/lib/utils";
 import { BarChart2, Globe, Link2 } from "lucide-react";
-import PlanBadge from "../settings/plan-badge";
+import PlanBadge from "./settings/plan-badge";
 import { GOOGLE_FAVICON_URL } from "@/lib/constants";
+import Badge from "#/ui/badge";
 
 export default function ProjectCard({
+  id,
   name,
   slug,
   logo,
@@ -19,7 +21,7 @@ export default function ProjectCard({
   primaryDomain,
 }: ProjectWithDomainProps) {
   const { data: count } = useSWR<number>(
-    `/api/projects/${slug}/links/count`,
+    `/api/links/_count?slug=${slug}`,
     fetcher,
   );
   return (
@@ -32,7 +34,7 @@ export default function ProjectCard({
         <div className="flex items-center space-x-3">
           <BlurImage
             src={logo || `${GOOGLE_FAVICON_URL}${primaryDomain?.slug}`}
-            alt={slug}
+            alt={id}
             className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full"
             width={48}
             height={48}
@@ -54,12 +56,30 @@ export default function ProjectCard({
                       title="This domain is not correctly configured. Please configure your domain to
                   start adding links."
                       cta="Configure Domain"
-                      ctaLink={`/${slug}/domains`}
+                      href={`/${slug}/domains`}
                     />
                   }
                 >
                   <div className="flex w-8 justify-center">
                     <XCircleFill className="h-5 w-5 text-gray-300" />
+                  </div>
+                </Tooltip>
+              )}
+              {domains.length > 1 && (
+                <Tooltip
+                  content={
+                    <TooltipContent
+                      title={domains
+                        .slice(1)
+                        .map(({ slug }) => slug)
+                        .join(", ")}
+                      cta="View all domains"
+                      href={`/${slug}/domains`}
+                    />
+                  }
+                >
+                  <div>
+                    <Badge text={`+${domains.length - 1}`} variant="gray" />
                   </div>
                 </Tooltip>
               )}

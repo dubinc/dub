@@ -1,60 +1,59 @@
 import { conn } from "./planetscale";
 
-export type IntervalProps = "1h" | "24h" | "7d" | "30d" | "90d";
+export type IntervalProps = "1h" | "24h" | "7d" | "30d" | "90d" | "all";
+
+export const INTERVALS = [
+  {
+    display: "Last hour",
+    slug: "1h",
+  },
+  {
+    display: "Last 24 hours",
+    slug: "24h",
+  },
+  {
+    display: "Last 7 days",
+    slug: "7d",
+  },
+  {
+    display: "Last 30 days",
+    slug: "30d",
+  },
+  {
+    display: "Last 3 months",
+    slug: "90d",
+  },
+  {
+    display: "All Time",
+    slug: "all",
+  },
+];
 
 export const intervalData = {
   "1h": {
-    milliseconds: 3600000,
-    interval: 60000,
+    startDate: new Date(Date.now() - 3600000),
     granularity: "minute",
-    format: (e: number) =>
-      new Date(e).toLocaleTimeString("en-us", {
-        hour: "numeric",
-        minute: "numeric",
-      }),
   },
   "24h": {
-    milliseconds: 86400000,
-    interval: 3600000,
+    startDate: new Date(Date.now() - 86400000),
     granularity: "hour",
-    format: (e: number) =>
-      new Date(e)
-        .toLocaleDateString("en-us", {
-          month: "short",
-          day: "numeric",
-          hour: "numeric",
-        })
-        .replace(",", " "),
   },
   "7d": {
-    milliseconds: 604800000,
-    interval: 86400000,
+    startDate: new Date(Date.now() - 604800000),
     granularity: "day",
-    format: (e: number) =>
-      new Date(e).toLocaleDateString("en-us", {
-        month: "short",
-        day: "numeric",
-      }),
   },
   "30d": {
-    milliseconds: 2592000000,
-    interval: 86400000,
+    startDate: new Date(Date.now() - 2592000000),
     granularity: "day",
-    format: (e: number) =>
-      new Date(e).toLocaleDateString("en-us", {
-        month: "short",
-        day: "numeric",
-      }),
   },
   "90d": {
-    milliseconds: 7776000000,
-    interval: 86400000,
+    startDate: new Date(Date.now() - 7776000000),
     granularity: "day",
-    format: (e: number) =>
-      new Date(e).toLocaleDateString("en-us", {
-        month: "short",
-        day: "numeric",
-      }),
+  },
+  all: {
+    // Dub.sh founding date
+    startDate: new Date("2022-09-22"),
+    granularity: "day",
   },
 };
 
@@ -149,10 +148,11 @@ export const getStats = async ({
   );
   url.searchParams.append("domain", domain);
   url.searchParams.append("key", key);
+
   if (interval) {
     url.searchParams.append(
       "start",
-      new Date(Date.now() - intervalData[interval].milliseconds)
+      intervalData[interval].startDate
         .toISOString()
         .replace("T", " ")
         .replace("Z", ""),
@@ -161,10 +161,11 @@ export const getStats = async ({
       "end",
       new Date(Date.now()).toISOString().replace("T", " ").replace("Z", ""),
     );
+
     url.searchParams.append("granularity", intervalData[interval].granularity);
   }
 
-  return await fetch(url, {
+  return await fetch(url.toString(), {
     headers: {
       Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
     },

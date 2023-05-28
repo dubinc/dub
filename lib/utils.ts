@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { NextRouter } from "next/router";
 import ms from "ms";
 import { customAlphabet } from "nanoid";
@@ -8,6 +9,39 @@ import {
   HOME_HOSTNAMES,
 } from "./constants";
 import { get } from "@vercel/edge-config";
+
+export function constructMetadata({
+  title = "Dub - Link Management for Modern Marketing Teams",
+  description = "Dub is an open-source link management tool for modern marketing teams to create, share, and track short links.",
+  image = "https://dub.sh/_static/thumbnail.png",
+}: {
+  title?: string;
+  description?: string;
+  image?: string;
+}): Metadata {
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: [
+        {
+          url: image,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [image],
+      creator: "@dubdotsh",
+    },
+    metadataBase: new URL("https://dub.sh"),
+    themeColor: "#FFF",
+  };
+}
 
 export const nanoid = customAlphabet(
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
@@ -25,14 +59,10 @@ export async function fetcher<JSON = any>(
   const res = await fetch(input, init);
 
   if (!res.ok) {
-    const json = await res.json();
-    if (json.error) {
-      const error = new Error(json.error) as SWRError;
-      error.status = res.status;
-      throw error;
-    } else {
-      throw new Error("An unexpected error occurred");
-    }
+    const error = await res.text();
+    const err = new Error(error) as SWRError;
+    err.status = res.status;
+    throw err;
   }
 
   return res.json();
@@ -178,6 +208,8 @@ export const validDomainRegex = new RegExp(
   /^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/,
 );
 
+export const validSlugRegex = new RegExp(/^[a-zA-Z0-9\-]+$/);
+
 export const getSubdomain = (name: string, apexName: string) => {
   if (name === apexName) return null;
   return name.slice(0, name.length - apexName.length - 1);
@@ -256,11 +288,8 @@ export const getQueryString = (
   router: NextRouter,
   opts?: Record<string, string>,
 ) => {
-  // here, we omit the slug from the query string because
-  // for some reason it breaks the router because of middleware rewrites
-  const { slug, ...queryWithoutSlug } = router.query as Record<string, string>;
   const queryString = new URLSearchParams({
-    ...queryWithoutSlug,
+    ...(router.query as Record<string, string>),
     ...opts,
   }).toString();
   return `${queryString ? "?" : ""}${queryString}`;
@@ -332,6 +361,7 @@ export const constructURLFromUTMParams = (
 };
 
 export const paramsMetadata = [
+  { display: "Referral (ref)", key: "ref", examples: "twitter, facebook" },
   { display: "UTM Source", key: "utm_source", examples: "twitter, facebook" },
   { display: "UTM Medium", key: "utm_medium", examples: "social, email" },
   { display: "UTM Campaign", key: "utm_campaign", examples: "summer_sale" },

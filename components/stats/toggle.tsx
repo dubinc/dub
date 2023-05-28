@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useMemo, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import {
   Calendar,
   ChevronDown,
@@ -8,7 +8,7 @@ import {
   Tick,
 } from "@/components/shared/icons";
 import { ExpandingArrow } from "#/ui/icons";
-import { INTERVALS } from "@/lib/constants";
+import { INTERVALS } from "@/lib/stats";
 import useScroll from "#/lib/hooks/use-scroll";
 import { linkConstructor } from "@/lib/utils";
 import IconMenu from "@/components/shared/icon-menu";
@@ -17,22 +17,18 @@ import useSWR, { mutate } from "swr";
 import { fetcher } from "@/lib/utils";
 import { toast } from "sonner";
 import Switch from "#/ui/switch";
-import useEndpoint from "@/lib/hooks/use-endpoint";
+import { StatsContext } from ".";
+import useProject from "@/lib/swr/use-project";
+import Tooltip, { TooltipContent } from "#/ui/tooltip";
+import { ModalContext } from "#/ui/modal-provider";
+import { Lock } from "lucide-react";
 
-export default function Toggle({
-  atModalTop,
-  staticDomain,
-}: {
-  atModalTop?: boolean;
-  staticDomain?: string;
-}) {
+export default function Toggle({ atModalTop }: { atModalTop?: boolean }) {
   const router = useRouter();
-  const { key, interval = "24h" } = router.query as {
-    key: string;
-    interval?: string;
-  };
+  const { slug: projectSlug } = router.query as { slug?: string };
 
-  const { basePath, domain } = useEndpoint(staticDomain);
+  const { basePath, domain, interval, key } = useContext(StatsContext);
+  const { setShowAddProjectModal } = useContext(ModalContext);
 
   const atTop = useScroll(80) || atModalTop;
   const [openDatePopover, setOpenDatePopover] = useState(false);
@@ -41,9 +37,11 @@ export default function Toggle({
     return INTERVALS.find((s) => s.slug === interval) || INTERVALS[1];
   }, [interval]);
 
+  const { plan } = useProject();
+
   return (
     <div
-      className={`z-20 mb-5 ${
+      className={`z-10 mb-5 ${
         basePath.startsWith("/stats") ? "top-0" : "top-[6.95rem]"
       } sticky bg-gray-50 py-3 sm:py-5 ${atTop ? "shadow-md" : ""}`}
     >
@@ -64,29 +62,61 @@ export default function Toggle({
           <Popover
             content={
               <div className="w-full p-2 md:w-48">
-                {INTERVALS.map(({ display, slug }) => (
-                  <button
-                    key={slug}
-                    onClick={() => {
-                      router.push(
-                        {
-                          query: {
-                            ...router.query,
-                            interval: slug,
+                {INTERVALS.map(({ display, slug }) =>
+                  (slug === "all" || slug === "90d") &&
+                  (!plan || plan === "free") ? (
+                    <Tooltip
+                      key={slug}
+                      content={
+                        <TooltipContent
+                          title={
+                            projectSlug
+                              ? `${display} stats can only be viewed on a Pro plan or higher. Upgrade now to view all-time stats.`
+                              : `${display} stats can only be viewed on a project with a Pro plan or higher. Create a project or navigate to an existing project to upgrade.`
+                          }
+                          cta={
+                            projectSlug ? "Upgrade to Pro" : "Create Project"
+                          }
+                          {...(projectSlug
+                            ? { href: `/${projectSlug}/settings/billing` }
+                            : {
+                                onClick: () => {
+                                  setShowAddProjectModal(true);
+                                  setOpenDatePopover(false);
+                                },
+                              })}
+                        />
+                      }
+                    >
+                      <div className="flex w-full cursor-not-allowed items-center justify-between space-x-2 rounded-md p-2 text-sm text-gray-400">
+                        <p>{display}</p>
+                        <Lock className="h-4 w-4" aria-hidden="true" />
+                      </div>
+                    </Tooltip>
+                  ) : (
+                    <button
+                      key={slug}
+                      onClick={() => {
+                        router.push(
+                          {
+                            query: {
+                              ...router.query,
+                              interval: slug,
+                            },
                           },
-                        },
-                        `${basePath}?interval=${slug}`,
-                        { shallow: true },
-                      );
-                    }}
-                    className="flex w-full items-center justify-between space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
-                  >
-                    <p className="text-sm">{display}</p>
-                    {selectedInterval.slug === slug && (
-                      <Tick className="h-4 w-4" aria-hidden="true" />
-                    )}
-                  </button>
-                ))}
+                          `${basePath}?interval=${slug}`,
+                          { shallow: true },
+                        );
+                      }}
+                      className="flex w-full items-center justify-between space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
+                    >
+                      <p className="text-sm">{display}</p>
+                      {selectedInterval.slug === slug && (
+                        <Tick className="h-4 w-4" aria-hidden="true" />
+                      )}
+                    </button>
+                  ),
+                )}
               </div>
             }
             openPopover={openDatePopover}
@@ -121,10 +151,10 @@ const SharePopover = () => {
 
   const [openSharePopover, setopenSharePopoverPopover] = useState(false);
 
-  const { endpoint, domain } = useEndpoint();
+  const { endpoint, domain, queryString } = useContext(StatsContext);
 
   const { data: { publicStats } = {} } = useSWR<{ publicStats: boolean }>(
-    `${endpoint}?domain=${domain}`,
+    `${endpoint}${queryString}`,
     fetcher,
   );
 
@@ -134,7 +164,7 @@ const SharePopover = () => {
     toast.promise(
       new Promise<void>(async (resolve) => {
         setUpdating(true);
-        const res = await fetch(`${endpoint}?domain=${domain}`, {
+        const res = await fetch(`${endpoint}${queryString}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -144,7 +174,9 @@ const SharePopover = () => {
           }),
         });
         if (res.status === 200) {
-          mutate(`${endpoint}?domain=${domain}`);
+          mutate(`${endpoint}${queryString}`);
+          !publicStats &&
+            navigator.clipboard.writeText(`https://${domain}/stats/${key}`);
           // artificial delay to sync toast with the switch change
           await new Promise((r) => setTimeout(r, 200));
         }
@@ -153,7 +185,9 @@ const SharePopover = () => {
       }),
       {
         loading: "Updating...",
-        success: `Stats page is now ${publicStats ? "private" : "public"}`,
+        success: `Stats page is now ${
+          publicStats ? "private." : "public. Link copied to clipboard."
+        }`,
         error: "Something went wrong",
       },
     );

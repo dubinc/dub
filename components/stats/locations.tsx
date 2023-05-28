@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { motion } from "framer-motion";
-import BadgeSelect from "@/components/shared/badge-select";
+import TabSelect from "@/components/shared/tab-select";
 import { COUNTRIES } from "@/lib/constants";
 import { LocationTabs } from "@/lib/stats";
 import { nFormatter } from "@/lib/utils";
@@ -8,13 +8,13 @@ import { LoadingCircle } from "#/ui/icons";
 import { useRouter } from "next/router";
 import useSWR from "swr";
 import { fetcher } from "@/lib/utils";
-import useEndpoint from "@/lib/hooks/use-endpoint";
+import { StatsContext } from ".";
 
 export default function Locations() {
   const [tab, setTab] = useState<LocationTabs>("country");
   const router = useRouter();
 
-  const { endpoint, queryString } = useEndpoint();
+  const { endpoint, queryString } = useContext(StatsContext);
 
   const { data } = useSWR<{ country: string; city: string; clicks: number }[]>(
     router.isReady && `${endpoint}/${tab}${queryString}`,
@@ -27,10 +27,10 @@ export default function Locations() {
   );
 
   return (
-    <div className="relative h-[420px] overflow-scroll border border-gray-200 bg-white px-7 py-5 scrollbar-hide  sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
+    <div className="relative z-0 h-[420px] overflow-scroll border border-gray-200 bg-white px-7 py-5 scrollbar-hide  sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
       <div className="mb-5 flex justify-between">
         <h1 className="text-xl font-semibold">Locations</h1>
-        <BadgeSelect
+        <TabSelect
           options={["country", "city"]}
           selected={tab}
           // @ts-ignore
@@ -51,6 +51,7 @@ export default function Locations() {
                 <div className="relative z-10 flex w-full max-w-[calc(100%-3rem)] items-center">
                   <span className="z-10 flex items-center space-x-2 px-2">
                     <img
+                      alt={country}
                       src={`https://flag.vercel.app/m/${country}.svg`}
                       className="h-3 w-5"
                     />

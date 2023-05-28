@@ -1,15 +1,12 @@
-import { headers } from "next/headers";
-import { getDomain } from "@/lib/utils";
 import prisma from "@/lib/prisma";
 import { allChangelogPosts } from "contentlayer/generated";
 
 export default async function Sitemap() {
-  const domain = getDomain(headers());
+  const domain = "dub.sh";
 
-  // Get top 100 links (sorted by clicks in descending order)
   const links = await prisma.link.findMany({
     where: {
-      domain: domain,
+      domain,
       publicStats: true,
     },
     select: {

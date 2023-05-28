@@ -7,7 +7,7 @@ import {
   Tick,
 } from "@/components/shared/icons";
 import { ExpandingArrow } from "#/ui/icons";
-import { INTERVALS } from "@/lib/constants";
+import { INTERVALS } from "@/lib/stats";
 import { linkConstructor } from "@/lib/utils";
 import IconMenu from "@/components/shared/icon-menu";
 import Popover from "#/ui/popover";
@@ -18,8 +18,13 @@ import Switch from "#/ui/switch";
 import Link from "next/link";
 import { StatsContext } from ".";
 import useScroll from "#/lib/hooks/use-scroll";
+import Tooltip, { TooltipContent } from "../tooltip";
+import useProject from "#/lib/hooks/use-project";
+import { useParams } from "next/navigation";
+import { Lock } from "lucide-react";
 
 export default function Toggle() {
+  const { slug: projectSlug } = useParams() as { slug?: string };
   const { basePath, domain, interval, key, modal } = useContext(StatsContext);
 
   const [openDatePopover, setOpenDatePopover] = useState(false);
@@ -29,10 +34,11 @@ export default function Toggle() {
   }, [interval]);
 
   const scrolled = useScroll(80);
+  const { plan } = useProject();
 
   return (
     <div
-      className={`z-20 mb-5 ${
+      className={`z-10 mb-5 ${
         basePath.startsWith("/stats")
           ? `top-0 ${!modal ? "md:top-16" : ""}`
           : "top-[6.95rem]"
@@ -57,18 +63,42 @@ export default function Toggle() {
           <Popover
             content={
               <div className="w-full p-2 md:w-48">
-                {INTERVALS.map(({ display, slug }) => (
-                  <Link
-                    key={slug}
-                    href={`${basePath}?interval=${slug}`}
-                    className="flex w-full items-center justify-between space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
-                  >
-                    <p className="text-sm">{display}</p>
-                    {selectedInterval.slug === slug && (
-                      <Tick className="h-4 w-4" aria-hidden="true" />
-                    )}
-                  </Link>
-                ))}
+                {INTERVALS.map(({ display, slug }) =>
+                  slug === "all" && (!plan || plan === "free") ? (
+                    <Tooltip
+                      key={slug}
+                      content={
+                        <TooltipContent
+                          title={
+                            projectSlug
+                              ? `${display} stats can only be viewed on a Pro plan or higher. Upgrade now to view all-time stats.`
+                              : `${display} stats can only be viewed on a project with a Pro plan or higher. Create a project or navigate to an existing project to upgrade.`
+                          }
+                          cta={
+                            projectSlug ? "Upgrade to Pro" : "Create Project"
+                          }
+                          href="https://app.dub.sh"
+                        />
+                      }
+                    >
+                      <div className="flex w-full cursor-not-allowed items-center justify-between space-x-2 rounded-md p-2 text-sm text-gray-400">
+                        <p>{display}</p>
+                        <Lock className="h-4 w-4" aria-hidden="true" />
+                      </div>
+                    </Tooltip>
+                  ) : (
+                    <Link
+                      key={slug}
+                      href={`${basePath}?interval=${slug}`}
+                      className="flex w-full items-center justify-between space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
+                    >
+                      <p className="text-sm">{display}</p>
+                      {selectedInterval.slug === slug && (
+                        <Tick className="h-4 w-4" aria-hidden="true" />
+                      )}
+                    </Link>
+                  ),
+                )}
               </div>
             }
             openPopover={openDatePopover}
@@ -98,10 +128,10 @@ export default function Toggle() {
 const SharePopover = () => {
   const [openSharePopover, setopenSharePopoverPopover] = useState(false);
 
-  const { endpoint, domain, key } = useContext(StatsContext);
+  const { endpoint, domain, key, queryString } = useContext(StatsContext);
 
   const { data: { publicStats } = {} } = useSWR<{ publicStats: boolean }>(
-    `${endpoint}?domain=${domain}`,
+    `${endpoint}${queryString}`,
     fetcher,
   );
 
@@ -111,7 +141,7 @@ const SharePopover = () => {
     toast.promise(
       new Promise<void>(async (resolve) => {
         setUpdating(true);
-        const res = await fetch(`${endpoint}?domain=${domain}`, {
+        const res = await fetch(`${endpoint}${queryString}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -121,7 +151,9 @@ const SharePopover = () => {
           }),
         });
         if (res.status === 200) {
-          mutate(`${endpoint}?domain=${domain}`);
+          mutate(`${endpoint}${queryString}`);
+          !publicStats &&
+            navigator.clipboard.writeText(`https://${domain}/stats/${key}`);
           // artificial delay to sync toast with the switch change
           await new Promise((r) => setTimeout(r, 200));
         }
@@ -130,7 +162,9 @@ const SharePopover = () => {
       }),
       {
         loading: "Updating...",
-        success: `Stats page is now ${publicStats ? "private" : "public"}`,
+        success: `Stats page is now ${
+          publicStats ? "private." : "public. Link copied to clipboard."
+        }`,
         error: "Something went wrong",
       },
     );

@@ -6,13 +6,14 @@ import { LoadingCircle } from "#/ui/icons";
 import { nFormatter } from "@/lib/utils";
 import useSWR from "swr";
 import { fetcher } from "@/lib/utils";
-import useEndpoint from "@/lib/hooks/use-endpoint";
 import { GOOGLE_FAVICON_URL } from "@/lib/constants";
+import { useContext } from "react";
+import { StatsContext } from ".";
 
 export default function Referer() {
   const router = useRouter();
 
-  const { endpoint, queryString } = useEndpoint();
+  const { endpoint, queryString } = useContext(StatsContext);
 
   const { data } = useSWR<{ referer: string; clicks: number }[]>(
     router.isReady && `${endpoint}/referer${queryString}`,
@@ -25,7 +26,7 @@ export default function Referer() {
   );
 
   return (
-    <div className="relative h-[420px] overflow-scroll border border-gray-200 bg-white px-7 py-5 scrollbar-hide sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
+    <div className="relative z-0 h-[420px] overflow-scroll border border-gray-200 bg-white px-7 py-5 scrollbar-hide sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
       <div className="mb-5 flex">
         <h1 className="text-xl font-semibold">Referrers</h1>
       </div>

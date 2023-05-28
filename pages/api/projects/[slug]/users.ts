@@ -2,13 +2,6 @@ import { withProjectAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
 export default withProjectAuth(async (req, res, project) => {
-  const { slug } = req.query;
-  if (!slug || typeof slug !== "string") {
-    return res
-      .status(400)
-      .json({ error: "Missing or misconfigured project slug" });
-  }
-
   // GET /api/projects/[slug]/users – get users for a specific project
   if (req.method === "GET") {
     const { id: projectId } = project;
@@ -22,6 +15,7 @@ export default withProjectAuth(async (req, res, project) => {
             id: true,
             name: true,
             email: true,
+            image: true,
           },
         },
         createdAt: true,

@@ -7,6 +7,7 @@ import {
   verifyDomain,
 } from "@/lib/api/domains";
 import prisma from "@/lib/prisma";
+import { log } from "@/lib/utils";
 
 /**
  * Cron to check if domains are verified.
@@ -108,6 +109,7 @@ async function handler(_req: NextApiRequest, res: NextApiResponse) {
     );
     res.status(200).json(results);
   } catch (error) {
+    await log("Domains cron failed. Error: " + error.message, "cron", true);
     res.status(500).json({ error: error.message });
   }
 }

@@ -56,8 +56,8 @@ function AddEditLinkModal({
   const router = useRouter();
   const { slug } = router.query as { slug: string };
 
-  const [keyExistsError, setKeyExistsError] = useState(false);
-  const [urlError, setUrlError] = useState(false);
+  const [keyError, setKeyError] = useState<string | null>(null);
+  const [urlError, setUrlError] = useState<string | null>(null);
   const [generatingKey, setGeneratingKey] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -86,27 +86,27 @@ function AddEditLinkModal({
     if (
       showAddEditLinkModal &&
       debouncedKey.length > 0 &&
-      debouncedKey !== props?.key
+      debouncedKey !== props?.key &&
+      !keyError
     ) {
       fetch(
-        slug
-          ? `/api/projects/${slug}/links/${debouncedKey}/exists?domain=${domain}`
-          : `/api/links/${debouncedKey}/exists`,
+        `/api/links/${encodeURIComponent(debouncedKey)}/exists${
+          slug ? `?slug=${slug}&domain=${domain}` : ""
+        }`,
       ).then(async (res) => {
         if (res.status === 200) {
           const exists = await res.json();
-          setKeyExistsError(exists);
+          setKeyError(exists ? "Key already exists" : null);
         }
       });
     }
   }, [debouncedKey, domain]);
 
   const generateRandomKey = useCallback(async () => {
+    setKeyError(null);
     setGeneratingKey(true);
     const res = await fetch(
-      slug
-        ? `/api/projects/${slug}/links/random?domain=${domain}`
-        : `/api/links/random`,
+      `/api/links/_random${slug ? `?slug=${slug}&domain=${domain}` : ""}`,
     );
     const key = await res.json();
     setData((prev) => ({ ...prev, key }));
@@ -133,8 +133,9 @@ function AddEditLinkModal({
      * Only generate metatags if:
      * - modal is open
      * - custom OG proxy is not enabled
+     * - url is not empty
      **/
-    if (showAddEditLinkModal && !proxy) {
+    if (showAddEditLinkModal && !proxy && debouncedUrl.length > 0) {
       setData((prev) => ({
         ...prev,
         title: null,
@@ -185,19 +186,17 @@ function AddEditLinkModal({
     if (props?.key) {
       return {
         method: "PUT",
-        url: slug
-          ? `/api/projects/${slug}/links/${props.key}?domain=${domain}`
-          : `/api/links/${props.key}`,
+        url: `/api/links/${encodeURIComponent(props.key)}${
+          slug ? `?slug=${slug}&domain=${props.domain}` : ""
+        }`,
       };
     } else {
       return {
         method: "POST",
-        url: slug
-          ? `/api/projects/${slug}/links?domain=${domain}`
-          : `/api/links`,
+        url: `/api/links${slug ? `?slug=${slug}&domain=${domain}` : ""}`,
       };
     }
-  }, [props]);
+  }, [props, slug, domain]);
 
   const [atBottom, setAtBottom] = useState(false);
   const handleScroll = useCallback((event: UIEvent<HTMLDivElement>) => {
@@ -222,7 +221,7 @@ function AddEditLinkModal({
     if (
       !showAddEditLinkModal ||
       saving ||
-      keyExistsError ||
+      keyError ||
       urlError ||
       (props &&
         Object.entries(props).every(([key, value]) => {
@@ -241,7 +240,7 @@ function AddEditLinkModal({
     } else {
       return false;
     }
-  }, [showAddEditLinkModal, saving, keyExistsError, urlError, props, data]);
+  }, [showAddEditLinkModal, saving, keyError, urlError, props, data]);
 
   const randomIdx = Math.floor(Math.random() * 100);
 
@@ -253,21 +252,21 @@ function AddEditLinkModal({
       setShowModal={setShowAddEditLinkModal}
       closeWithX={homepageDemo ? false : true}
     >
-      <div className="relative grid max-h-[min(906px,_90vh)] w-full divide-x divide-gray-100 overflow-scroll bg-white shadow-xl transition-all scrollbar-hide sm:max-w-screen-lg sm:grid-cols-2 sm:rounded-2xl sm:border sm:border-gray-200">
+      <div className="relative grid max-h-[min(906px,_90vh)] w-full divide-x divide-gray-100 overflow-auto bg-white shadow-xl transition-all scrollbar-hide md:max-w-screen-lg md:grid-cols-2 md:overflow-hidden md:rounded-2xl md:border md:border-gray-200">
         {!hideXButton && !homepageDemo && (
           <button
             onClick={() => setShowAddEditLinkModal(false)}
-            className="group absolute right-0 top-0 z-20 m-3 hidden rounded-full p-2 text-gray-500 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 sm:block"
+            className="group absolute right-0 top-0 z-20 m-3 hidden rounded-full p-2 text-gray-500 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 md:block"
           >
             <X className="h-5 w-5" />
           </button>
         )}
 
         <div
-          className="rounded-l-2xl sm:max-h-[min(906px,_90vh)] sm:overflow-scroll"
+          className="rounded-l-2xl scrollbar-hide md:max-h-[min(906px,_90vh)] md:overflow-auto"
           onScroll={handleScroll}
         >
-          <div className="z-10 flex flex-col items-center justify-center space-y-3 border-b border-gray-200 bg-white px-4 pb-8 pt-8 transition-all sm:sticky sm:top-0 sm:px-16">
+          <div className="z-10 flex flex-col items-center justify-center space-y-3 border-b border-gray-200 bg-white px-4 pb-8 pt-8 transition-all md:sticky md:top-0 md:px-16">
             <BlurImage
               src={logo}
               alt="Logo"
@@ -296,7 +295,7 @@ function AddEditLinkModal({
                   "Content-Type": "application/json",
                 },
                 body: JSON.stringify(data),
-              }).then((res) => {
+              }).then(async (res) => {
                 setSaving(false);
                 if (res.status === 200) {
                   // track link creation event
@@ -304,55 +303,55 @@ function AddEditLinkModal({
                     va.track("Created Link", {
                       type: slug ? "Custom Domain" : "Default Domain",
                     });
-                  mutate(
-                    slug
-                      ? `/api/projects/${slug}/links${getQueryString(router)}`
-                      : `/api/links${getQueryString(router)}`,
-                  );
+                  mutate(`/api/links${getQueryString(router)}`);
                   mutate(
                     (key) =>
                       typeof key === "string" &&
-                      key.startsWith(
-                        slug
-                          ? `/api/projects/${slug}/links/count`
-                          : `/api/links/count`,
-                      ),
+                      key.startsWith(`/api/links/_count`),
                     undefined,
                     { revalidate: true },
                   );
                   // for welcome page, redirect to links page after adding a link
-                  if (router.asPath === "/welcome") {
+                  if (router.pathname === "/app/welcome") {
                     router.push("/links").then(() => {
                       setShowAddEditLinkModal(false);
                     });
-                  } else {
-                    // copy shortlink to clipboard when adding a new link
-                    if (!props) {
-                      navigator.clipboard
-                        .writeText(
-                          linkConstructor({
-                            key: data.key,
-                            domain,
-                          }),
-                        )
-                        .then(() => {
-                          toast.success("Copied shortlink to clipboard!");
-                        });
-                    }
-                    setShowAddEditLinkModal(false);
                   }
-                } else if (res.status === 403) {
-                  setKeyExistsError(true);
-                } else if (res.status === 400) {
-                  setUrlError(true);
+                  // copy shortlink to clipboard when adding a new link
+                  if (!props) {
+                    navigator.clipboard
+                      .writeText(
+                        linkConstructor({
+                          // remove leading and trailing slashes
+                          key: data.key.replace(/^\/|\/$/g, ""),
+                          domain,
+                        }),
+                      )
+                      .then(() => {
+                        toast.success("Copied shortlink to clipboard!");
+                      });
+                  } else {
+                    toast.success("Successfully updated shortlink!");
+                  }
+                  setShowAddEditLinkModal(false);
                 } else {
-                  alert("Something went wrong");
+                  const error = await res.text();
+                  if (error) {
+                    toast.error(error);
+                    if (error.toLowerCase().includes("key")) {
+                      setKeyError(error);
+                    } else if (error.toLowerCase().includes("url")) {
+                      setUrlError(error);
+                    }
+                  } else {
+                    toast.error(res.statusText);
+                  }
                 }
               });
             }}
             className="grid gap-6 bg-gray-50 pt-8"
           >
-            <div className="grid gap-6 px-4 sm:px-16">
+            <div className="grid gap-6 px-4 md:px-16">
               <div>
                 <div className="flex items-center justify-between">
                   <label
@@ -376,7 +375,7 @@ function AddEditLinkModal({
                     placeholder="https://github.com/steven-tey/dub"
                     value={url}
                     onChange={(e) => {
-                      setUrlError(false);
+                      setUrlError(null);
                       setData({ ...data, url: e.target.value });
                     }}
                     className={`${
@@ -460,23 +459,24 @@ function AddEditLinkModal({
                       name="key"
                       id={`key-${randomIdx}`}
                       required
-                      pattern="[\p{Letter}\p{Mark}\d-]+" // Unicode regex to match characters from all languages and numbers (and omit all symbols except for dashes)
+                      // Unicode regex to match characters from all languages and numbers (and omit all symbols except for dashes and slashes)
+                      pattern="[\p{Letter}\p{Mark}\d/-]+"
                       className={`${
-                        keyExistsError
+                        keyError
                           ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                           : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
                       } block w-full rounded-r-md pr-10 text-sm focus:outline-none`}
                       placeholder="github"
                       value={key}
                       onChange={(e) => {
-                        setKeyExistsError(false);
+                        setKeyError(null);
                         setData({ ...data, key: e.target.value });
                       }}
                       aria-invalid="true"
                       aria-describedby="key-error"
                     />
                   )}
-                  {keyExistsError && (
+                  {keyError && (
                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                       <AlertCircleFill
                         className="h-5 w-5 text-red-500"
@@ -485,9 +485,9 @@ function AddEditLinkModal({
                     </div>
                   )}
                 </div>
-                {keyExistsError && (
+                {keyError && (
                   <p className="mt-2 text-sm text-red-600" id="key-error">
-                    Short link is already in use.
+                    {keyError}
                   </p>
                 )}
               </div>
@@ -496,7 +496,7 @@ function AddEditLinkModal({
             {/* Divider */}
             <div className="relative py-5">
               <div
-                className="absolute inset-0 flex items-center px-4 sm:px-16"
+                className="absolute inset-0 flex items-center px-4 md:px-16"
                 aria-hidden="true"
               >
                 <div className="w-full border-t border-gray-300" />
@@ -508,7 +508,7 @@ function AddEditLinkModal({
               </div>
             </div>
 
-            <div className="grid gap-5 px-4 sm:px-16">
+            <div className="grid gap-5 px-4 md:px-16">
               <OGSection
                 {...{ props, data, setData }}
                 generatingMetatags={generatingMetatags}
@@ -522,8 +522,8 @@ function AddEditLinkModal({
 
             <div
               className={`${
-                atBottom ? "" : "sm:shadow-[0_-20px_30px_-10px_rgba(0,0,0,0.1)]"
-              } z-10 bg-gray-50 px-4 py-8 transition-all sm:sticky  sm:bottom-0 sm:px-16`}
+                atBottom ? "" : "md:shadow-[0_-20px_30px_-10px_rgba(0,0,0,0.1)]"
+              } z-10 bg-gray-50 px-4 py-8 transition-all md:sticky  md:bottom-0 md:px-16`}
             >
               {homepageDemo ? (
                 <Button
@@ -540,7 +540,7 @@ function AddEditLinkModal({
             </div>
           </form>
         </div>
-        <div className="rounded-r-2xl sm:max-h-[min(906px,_90vh)] sm:overflow-scroll">
+        <div className="rounded-r-2xl scrollbar-hide md:max-h-[min(906px,_90vh)] md:overflow-auto">
           <Preview data={data} generatingMetatags={generatingMetatags} />
         </div>
       </div>
@@ -562,11 +562,13 @@ function AddEditLinkButton({
     const target = e.target as HTMLElement;
     const existingModalBackdrop = document.getElementById("modal-backdrop");
     // only open modal with keyboard shortcut if:
+    // - project has not exceeded usage limit
     // - c is pressed
     // - user is not pressing cmd/ctrl + c
     // - user is not typing in an input or textarea
     // - there is no existing modal backdrop (i.e. no other modal is open)
     if (
+      !exceededUsage &&
       e.key === "c" &&
       !e.metaKey &&
       !e.ctrlKey &&
@@ -588,14 +590,14 @@ function AddEditLinkButton({
       content={
         <TooltipContent
           title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
-          cta="Upgrade"
-          ctaLink={`/${slug}/settings/billing`}
+          cta="Upgrade to Pro"
+          href={`/${slug}/settings/billing`}
         />
       }
     >
       <div className="flex cursor-not-allowed items-center space-x-3 rounded-md border border-gray-200 px-3 py-2 text-sm font-medium text-gray-300">
         <p>Create link</p>
-        <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-300 sm:inline-block">
+        <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-300 md:inline-block">
           C
         </kbd>
       </div>
@@ -606,7 +608,7 @@ function AddEditLinkButton({
       className="group flex items-center space-x-3 rounded-md border border-black bg-black px-3 py-2 text-sm font-medium text-white transition-all duration-75 hover:bg-white hover:text-black active:scale-95"
     >
       <p>Create link</p>
-      <kbd className="hidden rounded bg-zinc-700 px-2 py-0.5 text-xs font-light text-gray-400 transition-all duration-75 group-hover:bg-gray-100 group-hover:text-gray-500 sm:inline-block">
+      <kbd className="hidden rounded bg-zinc-700 px-2 py-0.5 text-xs font-light text-gray-400 transition-all duration-75 group-hover:bg-gray-100 group-hover:text-gray-500 md:inline-block">
         C
       </kbd>
     </button>
@@ -637,14 +639,7 @@ export function useAddEditLinkModal({
         homepageDemo={homepageDemo}
       />
     );
-  }, [
-    showAddEditLinkModal,
-    setShowAddEditLinkModal,
-    props,
-    duplicateProps,
-    hideXButton,
-    homepageDemo,
-  ]);
+  }, [showAddEditLinkModal, setShowAddEditLinkModal]);
 
   const AddEditLinkButtonCallback = useCallback(() => {
     return (

@@ -1,4 +1,3 @@
-import ErrorPage from "next/error";
 import { useAddEditDomainModal } from "@/components/app/modals/add-edit-domain-modal";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import AppLayout from "components/layout/app";
@@ -9,13 +8,9 @@ import DomainCardPlaceholder from "@/components/app/domains/domain-card-placehol
 import NoDomainsPlaceholder from "@/components/app/domains/no-domains-placeholder";
 
 export default function ProjectDomains() {
-  const { id: projectId, error } = useProject();
+  const { id: projectId } = useProject();
 
   const { AddEditDomainModal, AddEditDomainButton } = useAddEditDomainModal();
-
-  if (error && error.status === 404) {
-    return <ErrorPage statusCode={404} />;
-  }
 
   const { domains } = useDomains();
 

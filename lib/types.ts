@@ -23,10 +23,26 @@ export interface LinkProps {
 
   clicks: number;
   userId?: string | null;
+  tagId?: string | null;
 
   createdAt?: Date;
   updatedAt?: Date;
 }
+
+export interface TagProps {
+  id: string;
+  name: string;
+  color: TagColorProps;
+}
+
+export type TagColorProps =
+  | "red"
+  | "yellow"
+  | "green"
+  | "blue"
+  | "purple"
+  | "pink"
+  | "brown";
 
 export type PlanProps = "free" | "pro" | "enterprise";
 
@@ -40,11 +56,11 @@ export interface ProjectProps {
   plan: PlanProps;
   stripeId?: string;
   billingCycleStart?: number;
+  createdAt?: Date;
 
-  // TO DELETE
-  ownerUsageLimit?: number;
-  ownerExceededUsage?: boolean;
-
+  domains?: {
+    slug: string;
+  }[];
   users?: {
     role: string;
   }[];
@@ -59,10 +75,8 @@ export interface UserProps {
   id: string;
   name: string;
   email: string;
-
-  // TO DELETE
-  stripeId: string;
-  usageLimit: number;
+  image?: string;
+  createdAt: Date;
 
   joinedAt?: Date;
   projects?: { projectId: string }[];

@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useSelectedLayoutSegment } from "next/navigation";
+import { useParams, useSelectedLayoutSegment } from "next/navigation";
 import useScroll from "#/lib/hooks/use-scroll";
 import clsx from "clsx";
 
 const transparentHeaderSegments = new Set(["metatags"]);
 
-export default function Nav({ domain }: { domain?: string }) {
+export default function Nav() {
+  const { domain = "dub.sh" } = useParams() as { domain: string };
+
   const scrolled = useScroll(80);
   const segment = useSelectedLayoutSegment();
 
@@ -21,8 +23,14 @@ export default function Nav({ domain }: { domain?: string }) {
       })}
     >
       <div className="mx-auto w-full max-w-screen-xl px-5 md:px-20">
-        <div className="flex h-16 items-center justify-between">
-          <Link href={domain === "dub.sh" ? "/" : `https://dub.sh`}>
+        <div className="flex h-14 items-center justify-between">
+          <Link
+            href={
+              domain === "dub.sh"
+                ? "/"
+                : `https://dub.sh?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`
+            }
+          >
             <Image
               src="/_static/logotype.svg"
               alt="Dub.sh logo"
@@ -35,17 +43,9 @@ export default function Nav({ domain }: { domain?: string }) {
           <div className="flex items-center space-x-6">
             <Link
               href={
-                domain === "dub.sh" ? "/metatags" : `https://dub.sh/metatags`
-              }
-              className={`hidden rounded-md text-sm font-medium ${
-                segment === "metatags" ? "text-black" : "text-gray-500"
-              } transition-colors ease-out hover:text-black sm:block`}
-            >
-              Metatags API
-            </Link>
-            <Link
-              href={
-                domain === "dub.sh" ? "/changelog" : `https://dub.sh/changelog`
+                domain === "dub.sh"
+                  ? "/changelog"
+                  : `https://dub.sh/changelog?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`
               }
               className={`rounded-md text-sm font-medium ${
                 segment === "changelog" ? "text-black" : "text-gray-500"
@@ -59,9 +59,19 @@ export default function Nav({ domain }: { domain?: string }) {
                   ? "https://app.dub.sh/login"
                   : "http://app.localhost:3000/login"
               }
-              className="rounded-full border border-black bg-black px-5 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
+              className="rounded-md text-sm font-medium text-gray-500 transition-colors ease-out hover:text-black"
             >
-              Sign in
+              Log in
+            </Link>
+            <Link
+              href={
+                process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
+                  ? "https://app.dub.sh/register"
+                  : "http://app.localhost:3000/register"
+              }
+              className="rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
+            >
+              Sign Up
             </Link>
           </div>
         </div>

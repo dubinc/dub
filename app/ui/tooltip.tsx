@@ -8,6 +8,8 @@ import { ReactNode, useRef, useState } from "react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { AnimatePresence, motion, useAnimation } from "framer-motion";
 import BlurImage from "#/ui/blur-image";
+import Button from "./button";
+import Script from "next/script";
 
 export default function Tooltip({
   children,
@@ -42,7 +44,11 @@ export default function Tooltip({
       <button
         type="button"
         className={`${fullWidth ? "w-full" : "inline-flex"} sm:hidden`}
-        onClick={() => setOpenTooltip(true)}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setOpenTooltip(true);
+        }}
       >
         <span className="sr-only">Open tooltip</span>
         {children}
@@ -106,7 +112,7 @@ export default function Tooltip({
           >
             <TooltipPrimitive.Arrow className="fill-current text-white" />
             {typeof content === "string" ? (
-              <div className="p-5">
+              <div className="p-4">
                 <span className="block max-w-xs text-center text-sm text-gray-700">
                   {content}
                 </span>
@@ -125,30 +131,40 @@ export default function Tooltip({
 export function TooltipContent({
   title,
   cta,
-  ctaLink,
+  href,
+  onClick,
 }: {
   title: string;
   cta?: string;
-  ctaLink?: string;
+  href?: string;
+  onClick?: () => void;
 }) {
   return (
-    <div className="flex max-w-xs flex-col items-center space-y-3 p-5 text-center">
+    <div className="flex max-w-xs flex-col items-center space-y-3 p-4 text-center">
       <p className="text-sm text-gray-700">{title}</p>
-      {cta && ctaLink && (
-        <Link
-          href={ctaLink}
-          className="mt-4 rounded-full border border-black bg-black px-3 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
-        >
-          {cta}
-        </Link>
-      )}
+      {cta &&
+        (href ? (
+          <Link
+            href={href}
+            className="mt-4 w-full rounded-md border border-black bg-black px-3 py-1.5 text-center text-sm text-white transition-all hover:bg-white hover:text-black"
+          >
+            {cta}
+          </Link>
+        ) : onClick ? (
+          <button
+            className="mt-4 w-full rounded-md border border-black bg-black px-3 py-1.5 text-center text-sm text-white transition-all hover:bg-white hover:text-black"
+            onClick={onClick}
+          >
+            {cta}
+          </button>
+        ) : null)}
     </div>
   );
 }
 
 export function OGImageProxy() {
   return (
-    <div className="flex max-w-md flex-col items-center space-y-5 p-5 text-center">
+    <div className="flex max-w-md flex-col items-center space-y-5 p-4 text-center">
       <BlurImage
         alt="Demo GIF for OG Image Proxy"
         src="https://res.cloudinary.com/dubdotsh/image/upload/v1664425639/og-image-proxy-demo.gif"
@@ -163,5 +179,35 @@ export function OGImageProxy() {
         be redirected to your target URL.
       </p>
     </div>
+  );
+}
+
+export function SSOWaitlist() {
+  const [opening, setOpening] = useState(false);
+  return (
+    <>
+      <Script src="https://tally.so/widgets/embed.js" strategy="lazyOnload" />
+
+      <div className="flex max-w-sm flex-col items-center space-y-3 p-4 text-center">
+        <h3 className="font-semibold text-gray-800">SAML/SSO</h3>
+        <p className="text-sm text-gray-600">
+          SAML/SSO is coming soon. Interested in early access? Join the
+          waitlist.
+        </p>
+
+        <Button
+          text="Join waitlist"
+          loading={opening}
+          onClick={() => {
+            setOpening(true);
+            // @ts-ignore
+            window.Tally?.openPopup("waexqB", {
+              width: 540,
+              onOpen: () => setOpening(false),
+            });
+          }}
+        />
+      </div>
+    </>
   );
 }

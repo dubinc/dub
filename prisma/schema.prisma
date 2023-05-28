@@ -157,7 +157,7 @@ model Link {
   domain    String // domain of the link (e.g. dub.sh) – also stored on Redis
   key       String // key of the link (e.g. /github) – also stored on Redis
   url       String    @db.LongText // target url (e.g. https://github.com/steven-tey/dub) – also stored on Redis
-  archived  Boolean   @default(false) // whether the link is archived or not (TODO: REMOVE AFTER ADDING TAGS)
+  archived  Boolean   @default(false) // whether the link is archived or not
   expiresAt DateTime? // when the link expires – stored on Redis via ttl
   password  String? // password to access the link – also stored on Redis
 
@@ -214,6 +214,7 @@ model Link {
 model Tag {
   id        String   @id @default(cuid())
   name      String
+  color     String   @default("blue")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   project   Project  @relation(fields: [projectId], references: [id], onUpdate: Cascade, onDelete: Cascade)

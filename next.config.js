@@ -12,6 +12,7 @@ const nextConfig = {
       "res.cloudinary.com",
       "pbs.twimg.com",
       "d2vwwcvoksz7ty.cloudfront.net",
+      "lh3.googleusercontent.com",
     ],
   },
   async headers() {

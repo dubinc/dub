@@ -3,33 +3,27 @@ import { removeDomainFromVercel, deleteDomainLinks } from "@/lib/api/domains";
 import prisma from "@/lib/prisma";
 
 export default withProjectAuth(async (req, res, project) => {
-  const { slug } = req.query;
-  if (!slug || typeof slug !== "string") {
-    return res
-      .status(400)
-      .json({ error: "Missing or misconfigured project slug" });
-  }
   // GET /api/projects/[slug] – get a specific project
   if (req.method === "GET") {
     return res.status(200).json(project);
 
     // PUT /api/projects/[slug] – edit a specific project
   } else if (req.method === "PUT") {
-    const { name, newSlug } = req.body;
+    const { name, slug } = req.body;
     try {
       const response = await prisma.project.update({
         where: {
-          slug,
+          slug: project.slug,
         },
         data: {
           ...(name && { name }),
-          ...(newSlug && { slug: newSlug }),
+          ...(slug && { slug }),
         },
       });
       return res.status(200).json(response);
     } catch (error) {
       if (error.code === "P2002") {
-        return res.status(422).json({ error: "Key already exists" });
+        return res.status(422).end("Project slug already exists.");
       }
     }
     // DELETE /api/projects/[slug] – delete a project
@@ -48,7 +42,7 @@ export default withProjectAuth(async (req, res, project) => {
     const response = await Promise.allSettled([
       prisma.project.delete({
         where: {
-          slug,
+          slug: project.slug,
         },
       }),
       ...domains.map((domain) => removeDomainFromVercel(domain)),

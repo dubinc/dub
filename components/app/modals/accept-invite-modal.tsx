@@ -13,6 +13,7 @@ import { LoadingDots } from "#/ui/icons";
 import Modal from "@/components/shared/modal";
 import useProject from "@/lib/swr/use-project";
 import { toast } from "sonner";
+import va from "@vercel/analytics";
 
 function AcceptInviteModal({
   showAcceptInviteModal,
@@ -31,7 +32,7 @@ function AcceptInviteModal({
       showModal={showAcceptInviteModal}
       setShowModal={setShowAcceptInviteModal}
     >
-      {error.status === 409 ? (
+      {error?.status === 409 ? (
         <div className="inline-block w-full transform overflow-hidden bg-white align-middle shadow-xl transition-all sm:max-w-md sm:rounded-2xl sm:border sm:border-gray-200">
           <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
             <BlurImage
@@ -59,9 +60,16 @@ function AcceptInviteModal({
                   headers: { "Content-Type": "application/json" },
                 }).then(() => {
                   toast.success("You now are a part of this project!");
-                  mutate("/api/projects");
-                  mutate(`/api/projects/${slug}`);
-                  mutate(`/api/projects/${slug}/users`);
+                  va.track("User accepted project invite", {
+                    project: slug,
+                  });
+                  mutate(
+                    (key) =>
+                      typeof key === "string" &&
+                      key.startsWith(`/api/projects`),
+                    undefined,
+                    { revalidate: true },
+                  );
                 });
               }}
               disabled={accepting}

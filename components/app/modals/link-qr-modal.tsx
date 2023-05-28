@@ -233,7 +233,7 @@ function AdvancedSettings({ qrData, setFgColor, showLogo, setShowLogo }) {
                   <TooltipContent
                     title="As a freemium product, we rely on word of mouth to spread the word about Dub. If you'd like to remove the Dub logo/upload your own, please consider upgrading to a Pro plan."
                     cta="Upgrade to Pro"
-                    ctaLink={isApp ? "/settings" : "/#pricing"}
+                    href={isApp ? "/settings" : "/#pricing"}
                   />
                 }
               >
