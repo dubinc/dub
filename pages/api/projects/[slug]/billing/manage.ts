@@ -19,6 +19,6 @@ export default withProjectAuth(async (req, res, project) => {
     return res.status(200).json(url);
   } else {
     res.setHeader("Allow", ["POST"]);
-    return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
+    return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 });
