@@ -13,6 +13,7 @@ const nextConfig = {
       "pbs.twimg.com",
       "d2vwwcvoksz7ty.cloudfront.net",
       "lh3.googleusercontent.com",
+      "media.cleanshot.cloud", // only for staging purposes
     ],
   },
   async headers() {

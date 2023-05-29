@@ -45,6 +45,24 @@ export default withProjectAuth(async (req, res, project) => {
       return res.status(400).end("User already exists in this project.");
     }
 
+    if (project.plan === "free") {
+      const users = await prisma.projectUsers.count({
+        where: {
+          projectId: project.id,
+        },
+      });
+      const invites = await prisma.projectInvite.count({
+        where: {
+          projectId: project.id,
+        },
+      });
+      if (users + invites >= 3) {
+        return res
+          .status(400)
+          .end("You've reached the maximum number of users for the free plan.");
+      }
+    }
+
     // same method of generating a token as next-auth
     const token = randomBytes(32).toString("hex");
     const TWO_WEEKS_IN_SECONDS = 60 * 60 * 24 * 14;
