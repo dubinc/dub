@@ -11,7 +11,7 @@ const hashToken = (token: string) => {
 };
 
 export default withProjectAuth(async (req, res, project) => {
-  // GET /api/projects/[slug]/invite - Get all pending invites for a project
+  // GET /api/projects/[slug]/invites - Get all pending invites for a project
   if (req.method === "GET") {
     const invites = await prisma.projectInvite.findMany({
       where: {
@@ -29,7 +29,7 @@ export default withProjectAuth(async (req, res, project) => {
       })),
     );
 
-    // POST /api/projects/[slug]/invite – invite a teammate
+    // POST /api/projects/[slug]/invites – invite a teammate
   } else if (req.method === "POST") {
     const { email } = req.body;
 
@@ -88,8 +88,24 @@ export default withProjectAuth(async (req, res, project) => {
     } catch (error) {
       return res.status(400).end("User already invited.");
     }
+
+    // DELETE /api/projects/[slug]/invites – delete a pending invite
+  } else if (req.method === "DELETE") {
+    const { email } = req.query as { email?: string };
+    if (!email) {
+      return res.status(400).end("Missing email");
+    }
+    const response = await prisma.projectInvite.delete({
+      where: {
+        email_projectId: {
+          email,
+          projectId: project.id,
+        },
+      },
+    });
+    return res.status(200).json(response);
   } else {
-    res.setHeader("Allow", ["GET", "POST"]);
-    return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
+    res.setHeader("Allow", ["GET", "POST", "DELETE"]);
+    return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 });

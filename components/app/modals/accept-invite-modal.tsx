@@ -55,7 +55,7 @@ function AcceptInviteModal({
             <button
               onClick={() => {
                 setAccepting(true);
-                fetch(`/api/projects/${slug}/invite/accept`, {
+                fetch(`/api/projects/${slug}/invites/accept`, {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                 }).then(() => {

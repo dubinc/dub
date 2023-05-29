@@ -52,7 +52,7 @@ function InviteTeammateModal({
           onSubmit={async (e) => {
             e.preventDefault();
             setInviting(true);
-            fetch(`/api/projects/${slug}/invite`, {
+            fetch(`/api/projects/${slug}/invites`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ email }),
@@ -63,7 +63,7 @@ function InviteTeammateModal({
                 va.track("User invited teammate", {
                   project: slug,
                 });
-                mutate(`/api/projects/${slug}/invite`);
+                mutate(`/api/projects/${slug}/invites`);
                 setShowInviteTeammateModal(false);
               } else {
                 const error = await res.text();
