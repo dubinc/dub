@@ -68,19 +68,9 @@ export async function recordClick(
   ]);
 }
 
-export async function getClicksUsage({
-  domain,
-  start,
-  end,
-}: {
-  domain: string;
-  start?: string;
-  end?: string;
-}) {
+export async function getClicksForDomain(domain: string) {
   const response = await fetch(
-    `https://api.us-east.tinybird.co/v0/pipes/usage.json?domain=${domain}${
-      start ? `&start=${start}` : ""
-    }${end ? `&end=${end}` : ""}`,
+    `https://api.us-east.tinybird.co/v0/pipes/usage.json?domain=${domain}`,
     {
       headers: {
         Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,

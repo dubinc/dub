@@ -21,8 +21,7 @@ async function handler(_req: NextApiRequest, res: NextApiResponse) {
 /**
  * verifySignature will try to load `QSTASH_CURRENT_SIGNING_KEY` and `QSTASH_NEXT_SIGNING_KEY` from the environment.
 
- * To test out the endpoint manually (wihtout using QStash), you can do `export default handler` instead and
- * hit this endpoint via http://localhost:3000/api/cron/domains
+ * This will only run in production. In development, it will return the handler without verifying the signature.
  */
 const Cron = () => {
   if (process.env.NODE_ENV === "development") {
