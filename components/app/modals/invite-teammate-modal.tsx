@@ -83,6 +83,7 @@ function InviteTeammateModal({
                 name="email"
                 id="email"
                 placeholder="panic@thedis.co"
+                autoComplete="off"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
