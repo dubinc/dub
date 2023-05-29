@@ -1,5 +1,5 @@
 import { withProjectAuth } from "@/lib/auth";
-import { removeDomainFromVercel, deleteDomainLinks } from "@/lib/api/domains";
+import { deleteDomainAndLinks } from "@/lib/api/domains";
 import prisma from "@/lib/prisma";
 
 export default withProjectAuth(async (req, res, project) => {
@@ -39,19 +39,22 @@ export default withProjectAuth(async (req, res, project) => {
       })
     ).map((domain) => domain.slug);
 
-    const response = await Promise.allSettled([
-      prisma.project.delete({
-        where: {
-          slug: project.slug,
-        },
-      }),
-      ...domains.map((domain) => removeDomainFromVercel(domain)),
-      ...domains.map((domain) => deleteDomainLinks(domain)),
-    ]);
+    const deleteDomainsResponse = await Promise.allSettled(
+      domains.map((domain) => deleteDomainAndLinks(domain)),
+    );
 
-    return res.status(200).json(response);
+    const deleteProjectResponse = await prisma.project.delete({
+      where: {
+        slug: project.slug,
+      },
+    });
+
+    return res.status(200).json({
+      deleteProjectResponse,
+      deleteDomainsResponse,
+    });
   } else {
     res.setHeader("Allow", ["GET", "PUT", "DELETE"]);
-    return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
+    return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 });

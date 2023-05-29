@@ -48,6 +48,6 @@ export default withUserAuth(async (req, res, session) => {
     }
   } else {
     res.setHeader("Allow", ["PUT", "DELETE"]);
-    return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
+    return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 });

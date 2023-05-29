@@ -8,7 +8,6 @@ import {
 } from "react";
 import { mutate } from "swr";
 import BlurImage from "#/ui/blur-image";
-import { LoadingDots } from "#/ui/icons";
 import Modal from "@/components/shared/modal";
 import { LinkProps } from "@/lib/types";
 import { getApexDomain, getQueryString, linkConstructor } from "@/lib/utils";

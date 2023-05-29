@@ -228,8 +228,8 @@ export async function changeDomainForImages(domain: string, newDomain: string) {
   }
 }
 
-/* Delete all links & images associated with a domain when it's deleted */
-export async function deleteDomainLinks(domain: string) {
+/* Delete a domain and all links & images associated with with */
+export async function deleteDomainAndLinks(domain: string) {
   const links = await prisma.link.findMany({
     where: {
       domain,
@@ -244,5 +244,13 @@ export async function deleteDomainLinks(domain: string) {
     pipeline.exec(), // delete all links from redis
     // remove all images from cloudinary
     cloudinary.v2.api.delete_resources_by_prefix(domain),
+    // remove the domain from Vercel
+    removeDomainFromVercel(domain),
+    // remove the domain from the database
+    prisma.domain.delete({
+      where: {
+        slug: domain,
+      },
+    }),
   ]);
 }

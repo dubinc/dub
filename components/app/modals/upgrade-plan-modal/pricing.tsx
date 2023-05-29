@@ -137,7 +137,7 @@ const Pricing = ({ homePage }: { homePage?: boolean }) => {
           <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
             affordable
           </span>{" "}
-          pricing.
+          pricing
         </h2>
         <p className="mt-5 text-gray-600 sm:text-lg">
           Shorten your links without breaking your bank. <br />

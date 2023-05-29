@@ -37,8 +37,12 @@ export default withUserAuth(
       }
       let slugError: string | null = null;
 
-      // check if slug is valid
-      if (!validSlugRegex.test(slug)) {
+      // check if slug is too long
+      if (slug.length > 48) {
+        slugError = "Slug must be less than 48 characters";
+
+        // check if slug is valid
+      } else if (!validSlugRegex.test(slug)) {
         slugError = "Invalid slug";
 
         // check if slug is reserved
@@ -96,9 +100,7 @@ export default withUserAuth(
       return res.status(200).json(response);
     } else {
       res.setHeader("Allow", ["GET", "POST"]);
-      return res
-        .status(405)
-        .json({ error: `Method ${req.method} Not Allowed` });
+      return res.status(405).end(`Method ${req.method} Not Allowed`);
     }
   },
 );

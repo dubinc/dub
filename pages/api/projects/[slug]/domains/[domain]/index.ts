@@ -8,7 +8,7 @@ import prisma from "@/lib/prisma";
 import {
   changeDomainForImages,
   changeDomainForLinks,
-  deleteDomainLinks,
+  deleteDomainAndLinks,
   setRootDomain,
 } from "@/lib/api/domains";
 
@@ -108,18 +108,10 @@ export default withProjectAuth(async (req, res, project) => {
 
     // DELETE /api/projects/[slug]/domains/[domain] delete a project's domain
   } else if (req.method === "DELETE") {
-    const response = await Promise.allSettled([
-      removeDomainFromVercel(domain),
-      deleteDomainLinks(domain),
-      prisma.domain.delete({
-        where: {
-          slug: domain,
-        },
-      }),
-    ]);
+    const response = await deleteDomainAndLinks(domain);
     return res.status(200).json(response);
   } else {
     res.setHeader("Allow", ["PUT", "DELETE"]);
-    return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
+    return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 });
