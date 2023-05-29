@@ -35,13 +35,10 @@ export const HOME_HOSTNAMES = new Set([
   // comment for better diffs
   "dub.sh",
   "localhost:3000",
-]);
-
-export const APP_HOSTNAMES = new Set([
-  "app.dub.sh",
-  "app.localhost:3000",
   "preview.dub.sh",
 ]);
+
+export const APP_HOSTNAMES = new Set(["app.dub.sh", "app.localhost:3000"]);
 
 export const DEFAULT_REDIRECTS = {
   home: "https://dub.sh",

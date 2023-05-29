@@ -5,10 +5,16 @@ import WelcomeEmail from "emails/WelcomeEmail";
 import NextAuth, { type NextAuthOptions } from "next-auth";
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { OAuth2Client } from "google-auth-library";
 import prisma from "@/lib/prisma";
 import { isBlacklistedEmail } from "@/lib/utils";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
+const googleAuthClient = new OAuth2Client(
+  process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+);
+const adapter = PrismaAdapter(prisma);
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -26,8 +32,83 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
       allowDangerousEmailAccountLinking: true,
     }),
+    CredentialsProvider({
+      // We will use this id later to specify for what Provider we want to trigger the signIn method
+      id: "googleonetap",
+      name: "google-one-tap",
+
+      // This means that the authentication will be done through a single credential called 'credential'
+      credentials: {
+        credential: { type: "text" },
+      },
+
+      // This function will be called upon signIn
+      async authorize(credentials, req) {
+        // These next few lines are simply the recommended way to use the Google Auth Javascript API as seen in the Google Auth docs
+        // What is going to happen is that t he Google One Tap UI will make an API call to Google and return a token associated with the user account
+        // This token is then passed to the authorize function and used to retrieve the customer information (payload).
+        // If this doesn't make sense yet, come back to it after having seen the custom hook.
+
+        const token = credentials!.credential;
+        const ticket = await googleAuthClient.verifyIdToken({
+          idToken: token,
+          audience: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+        });
+
+        const payload = ticket.getPayload();
+        if (!payload) {
+          throw new Error("Cannot extract payload from signin token");
+        }
+
+        const {
+          email,
+          sub,
+          given_name,
+          family_name,
+          email_verified,
+          picture: image,
+        } = payload;
+        if (!email) {
+          throw new Error("Email not available");
+        }
+
+        // At this point we have deconstructed the payload and we have all the user's info at our disposal.
+        // So first we're going to do a check to see if we already have this user in our DB using the email as identifier.
+        let user = await adapter.getUserByEmail(email);
+
+        // If no user is found, then we create one.
+        if (!user) {
+          user = await adapter.createUser({
+            name: [given_name, family_name].join(" "),
+            email,
+            image,
+            emailVerified: email_verified ? new Date() : null,
+          });
+        }
+
+        // The user may already exist, but maybe it signed up with a different provider. With the next few lines of code
+        // we check if the user already had a Google account associated, and if not we create one.
+        let account = await adapter.getUserByAccount({
+          provider: "google",
+          providerAccountId: sub,
+        });
+
+        if (!account && user) {
+          console.log("creating and linking account");
+          await adapter.linkAccount({
+            userId: user.id,
+            provider: "google",
+            providerAccountId: sub,
+            type: "credentials",
+          });
+        }
+
+        // The authorize function must return a user or null
+        return user;
+      },
+    }),
   ],
-  adapter: PrismaAdapter(prisma),
+  adapter,
   session: { strategy: "jwt" },
   cookies: {
     sessionToken: {
@@ -66,6 +147,10 @@ export const authOptions: NextAuthOptions = {
         }
       }
       return true;
+    },
+    redirect: async ({ url, baseUrl }) => {
+      console.log({ url, baseUrl });
+      return Promise.resolve("http://app.localhost:3000");
     },
     jwt: async ({ token, user, trigger, session }) => {
       if (!token.email || (await isBlacklistedEmail(token.email))) {
