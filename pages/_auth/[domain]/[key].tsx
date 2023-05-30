@@ -69,6 +69,11 @@ export default function PasswordProtectedLinkPage() {
                   setValidating(false);
                   setError(true);
                 }
+              }).catch((error) => {
+                // Handle the error here
+                console.error("An error occurred:", error);
+                setValidating(false);
+                setError(true);
               });
             }}
             className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 sm:px-16"
