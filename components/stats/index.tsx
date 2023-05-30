@@ -78,7 +78,7 @@ export default function Stats({
       domain: staticDomain,
       endpoint: `/api/edge/links/${encodeURIComponent(key)}/stats`,
     };
-  }, [slug, key, router.asPath]);
+  }, [slug, domainSlug, key, router.asPath]);
 
   return (
     <StatsContext.Provider

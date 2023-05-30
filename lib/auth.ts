@@ -301,28 +301,27 @@ const withLinksAuth =
       }
     }
 
-    // if key is defined, check if the  current user is the owner of the link
+    // if key is defined, check if the  current user is the owner of the link (only for dub.sh links)
     const { key } = req.query;
-    if (key && !skipKeyCheck) {
+    if (key && domain === "dub.sh" && !skipKeyCheck) {
       if (typeof key !== "string") {
         return res.status(400).end("Missing or misconfigured link key.");
-      } else {
-        link =
-          (await prisma.link.findUnique({
-            where: {
-              domain_key: {
-                domain: domain || "dub.sh",
-                key,
-              },
+      }
+      link =
+        (await prisma.link.findUnique({
+          where: {
+            domain_key: {
+              domain: domain || "dub.sh",
+              key,
             },
-          })) || undefined;
-        if (!link) {
-          return res.status(404).end("Link not found.");
+          },
+        })) || undefined;
+      if (!link) {
+        return res.status(404).end("Link not found.");
 
-          // for dub.sh links, check if the user is the owner of the link
-        } else if (!slug && link.userId !== session.user.id) {
-          return res.status(403).end("Unauthorized: Not link owner.");
-        }
+        // for dub.sh links, check if the user is the owner of the link
+      } else if (!slug && link.userId !== session.user.id) {
+        return res.status(403).end("Unauthorized: Not link owner.");
       }
     }
 

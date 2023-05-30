@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useParams, useSelectedLayoutSegment } from "next/navigation";
 import useScroll from "#/lib/hooks/use-scroll";
 import clsx from "clsx";
+import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 
 const transparentHeaderSegments = new Set(["metatags"]);
 
@@ -22,7 +23,7 @@ export default function Nav() {
           segment && !transparentHeaderSegments.has(segment),
       })}
     >
-      <div className="mx-auto w-full max-w-screen-xl px-5 md:px-20">
+      <MaxWidthWrapper>
         <div className="flex h-14 items-center justify-between">
           <Link
             href={
@@ -75,7 +76,7 @@ export default function Nav() {
             </Link>
           </div>
         </div>
-      </div>
+      </MaxWidthWrapper>
     </div>
   );
 }

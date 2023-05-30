@@ -3,7 +3,7 @@ import Footer from "#/ui/home/footer";
 
 export default function MarketingLayout(props) {
   return (
-    <div className="flex min-h-screen flex-col justify-between">
+    <div className="flex min-h-screen flex-col">
       {/* Only show stats modal if not on the /stats page */}
       {props.children.props.childProp.segment !== "stats" && props.modal}
       <Nav />

@@ -153,17 +153,7 @@ function TagLinkModal({
             height={20}
           />
           <h3 className="text-lg font-medium">{type.title}</h3>
-          <p className="text-sm text-gray-500">
-            {type.description} <br className="mt-1" />
-            <a
-              className="underline underline-offset-4 transition-colors hover:text-black"
-              href="https://dub.sh/tags"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Read the announcement.
-            </a>
-          </p>
+          <p className="text-sm text-gray-500">{type.description}</p>
         </div>
 
         <form

@@ -35,7 +35,25 @@ export const ChangelogPost = defineDocumentType(() => ({
   computedFields: computedFields("changelog"),
 }));
 
-const computedFields = (type: "changelog" | "blog") => ({
+export const LegalPost = defineDocumentType(() => ({
+  name: "LegalPost",
+  filePathPattern: `**/legal/*.mdx`,
+  contentType: "mdx",
+  fields: {
+    title: {
+      type: "string",
+      required: true,
+    },
+    updatedAt: {
+      type: "string",
+      required: true,
+    },
+  },
+  // @ts-ignore
+  computedFields: computedFields("legal"),
+}));
+
+const computedFields = (type: "changelog" | "legal") => ({
   slug: {
     type: "string",
     resolve: (doc) => doc._raw.flattenedPath.replace(`${type}/`, ""),
@@ -87,7 +105,7 @@ const computedFields = (type: "changelog" | "blog") => ({
 
 export default makeSource({
   contentDirPath: "posts",
-  documentTypes: [ChangelogPost],
+  documentTypes: [ChangelogPost, LegalPost],
   mdx: {
     remarkPlugins: [remarkGfm],
     rehypePlugins: [
