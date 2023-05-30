@@ -73,7 +73,7 @@ export default function Login() {
                     signIn("email", {
                       email,
                       redirect: false,
-                      ...(next ? { callbackUrl: next } : {}),
+                      ...(next && next.length > 0 ? { callbackUrl: next } : {}),
                     }).then((res) => {
                       setClickedEmail(false);
                       if (res?.ok && !res?.error) {

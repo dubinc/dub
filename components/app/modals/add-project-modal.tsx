@@ -152,6 +152,7 @@ function AddProjectModalHelper({
                 id="name"
                 type="text"
                 required
+                autoComplete="off"
                 className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
                 placeholder="Dub"
                 value={name}
@@ -179,6 +180,7 @@ function AddProjectModalHelper({
                 id="slug"
                 type="text"
                 required
+                autoComplete="off"
                 pattern="[a-zA-Z0-9\-]+"
                 className={`${
                   slugError
@@ -222,6 +224,7 @@ function AddProjectModalHelper({
                 id="domain"
                 type="text"
                 required
+                autoComplete="off"
                 pattern="[a-zA-Z0-9\-.]+"
                 className={`${
                   domainError
@@ -267,7 +270,7 @@ function AddProjectModalHelper({
           <Button
             disabled={slugError || domainError ? true : false}
             loading={saving}
-            text="Add project"
+            text="Create project"
           />
         </form>
       </div>
