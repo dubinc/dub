@@ -1,13 +1,18 @@
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
-import { APP_HOSTNAMES, DEFAULT_REDIRECTS } from "@/lib/constants";
+import { DEFAULT_REDIRECTS } from "@/lib/constants";
 import {
-  AppMiddleware,
   ApiMiddleware,
   LinkMiddleware,
   RootMiddleware,
 } from "@/lib/middleware";
 import { parse } from "@/lib/middleware/utils";
 import { isReservedKey } from "./lib/utils";
+
+import authConfig from "auth.config";
+import NextAuth from "@auth/nextjs";
+import { NextAuthRequest } from "@auth/nextjs/lib";
+
+const auth = NextAuth(authConfig).auth;
 
 export const config = {
   matcher: [
@@ -24,13 +29,12 @@ export const config = {
   ],
 };
 
-export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
+// @ts-expect-error
+export default auth(async function middleware(
+  req: NextAuthRequest,
+  ev: NextFetchEvent,
+) {
   const { domain, path, key } = parse(req);
-
-  // for App (e.g. app.dub.sh)
-  if (APP_HOSTNAMES.has(domain)) {
-    return AppMiddleware(req);
-  }
 
   // for API (api.dub.sh and api.localhost:3000)
   if (domain === "api.dub.sh" || domain === "api.localhost:3000") {
@@ -57,4 +61,4 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   }
 
   return LinkMiddleware(req, ev);
-}
+});

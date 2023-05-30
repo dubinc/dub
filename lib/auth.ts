@@ -1,21 +1,8 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { getServerSession } from "next-auth/next";
 import prisma from "@/lib/prisma";
 import { LinkProps, PlanProps, ProjectProps, UserProps } from "@/lib/types";
-import { authOptions } from "@/pages/api/auth/[...nextauth]";
-
-export interface Session {
-  user: {
-    email: string;
-    id: string;
-    name: string;
-  };
-}
-
-export async function getSession(req: NextApiRequest, res: NextApiResponse) {
-  // @ts-ignore
-  return (await getServerSession(req, res, authOptions)) as Session;
-}
+import { auth } from "auth";
+import type { Session } from "@auth/nextjs/types";
 
 interface WithProjectNextApiHandler {
   (
@@ -26,22 +13,21 @@ interface WithProjectNextApiHandler {
   ): any;
 }
 
-const withProjectAuth =
-  (
-    handler: WithProjectNextApiHandler,
-    {
-      excludeGet, // if the action doesn't need to be gated for GET requests
-      requiredPlan = ["free", "pro", "enterprise"], // if the action needs a specific plan
-      needNotExceededUsage, // if the action needs the user to not have exceeded their usage
-    }: {
-      excludeGet?: boolean;
-      requiredPlan?: Array<PlanProps>;
-      needNotExceededUsage?: boolean;
-    } = {},
-  ) =>
-  async (req: NextApiRequest, res: NextApiResponse) => {
-    const session = await getSession(req, res);
-    if (!session?.user.id)
+export function withProjectAuth(
+  handler: WithProjectNextApiHandler,
+  {
+    excludeGet, // if the action doesn't need to be gated for GET requests
+    requiredPlan = ["free", "pro", "enterprise"], // if the action needs a specific plan
+    needNotExceededUsage, // if the action needs the user to not have exceeded their usage
+  }: {
+    excludeGet?: boolean;
+    requiredPlan?: Array<PlanProps>;
+    needNotExceededUsage?: boolean;
+  } = {},
+) {
+  return async (req: NextApiRequest, res: NextApiResponse) => {
+    const session = await auth(req, res);
+    if (!session?.user?.id)
       return res.status(401).end("Unauthorized: Login required.");
 
     const { slug } = req.query;
@@ -64,14 +50,7 @@ const withProjectAuth =
         stripeId: true,
         billingCycleStart: true,
         createdAt: true,
-        users: {
-          where: {
-            userId: session.user.id,
-          },
-          select: {
-            role: true,
-          },
-        },
+        users: { where: { userId: session.user.id }, select: { role: true } },
       },
     })) as ProjectProps;
 
@@ -116,8 +95,7 @@ const withProjectAuth =
 
     return handler(req, res, project, session);
   };
-
-export { withProjectAuth };
+}
 
 interface WithUsertNextApiHandler {
   (
@@ -128,32 +106,25 @@ interface WithUsertNextApiHandler {
   ): any;
 }
 
-const withUserAuth =
-  (
-    handler: WithUsertNextApiHandler,
-    {
-      needUserDetails, // if the action needs the user's details
-    }: {
-      needUserDetails?: boolean;
-    } = {},
-  ) =>
-  async (req: NextApiRequest, res: NextApiResponse) => {
-    const session = await getSession(req, res);
-    if (!session?.user.id)
+export function withUserAuth(
+  handler: WithUsertNextApiHandler,
+  {
+    needUserDetails, // if the action needs the user's details
+  }: {
+    needUserDetails?: boolean;
+  } = {},
+) {
+  return async (req: NextApiRequest, res: NextApiResponse) => {
+    const session = await auth(req, res);
+    if (!session?.user?.id)
       return res.status(401).end("Unauthorized: Login required.");
 
     if (req.method === "GET") return handler(req, res, session);
 
     if (needUserDetails) {
       const user = (await prisma.user.findUnique({
-        where: {
-          id: session.user.id,
-        },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-        },
+        where: { id: session.user.id },
+        select: { id: true, name: true, email: true },
       })) as UserProps;
 
       return handler(req, res, session, user);
@@ -161,8 +132,7 @@ const withUserAuth =
 
     return handler(req, res, session);
   };
-
-export { withUserAuth };
+}
 
 interface WithLinksAuthNextApiHandler {
   (
@@ -194,26 +164,24 @@ interface WithLinksAuthNextApiHandler {
       v. Make sure the domain is part of the project (prevent query injection)
 */
 
-const withLinksAuth =
-  (
-    handler: WithLinksAuthNextApiHandler,
-    {
-      needNotExceededUsage, // if the action needs the user to not have exceeded their usage
-      excludeGet, // if the action doesn't need to be gated for GET requests
-      requiredPlan = ["free", "pro", "enterprise"], // if the action needs a specific plan
-      skipKeyCheck, // if the action doesn't need to check if the user is the owner of the link (/exists endpoint)
-    }: {
-      needNotExceededUsage?: boolean;
-      excludeGet?: boolean;
-      requiredPlan?: Array<PlanProps>;
-      skipKeyCheck?: boolean;
-    } = {},
-  ) =>
-  async (req: NextApiRequest, res: NextApiResponse) => {
+export function withLinksAuth(
+  handler: WithLinksAuthNextApiHandler,
+  {
+    needNotExceededUsage, // if the action needs the user to not have exceeded their usage
+    excludeGet, // if the action doesn't need to be gated for GET requests
+    requiredPlan = ["free", "pro", "enterprise"], // if the action needs a specific plan
+    skipKeyCheck, // if the action doesn't need to check if the user is the owner of the link (/exists endpoint)
+  }: {
+    needNotExceededUsage?: boolean;
+    excludeGet?: boolean;
+    requiredPlan?: Array<PlanProps>;
+    skipKeyCheck?: boolean;
+  } = {},
+) {
+  return async (req: NextApiRequest, res: NextApiResponse) => {
     // console.log("Running withLinksAuth helper for endpoint: ", req.url);
-
-    const session = await getSession(req, res);
-    if (!session?.user.id) {
+    const session = await auth(req, res);
+    if (!session?.user?.id) {
       return res.status(401).end("Unauthorized: Login required.");
     }
 
@@ -248,19 +216,8 @@ const withLinksAuth =
           slug,
         },
         include: {
-          domains: {
-            select: {
-              slug: true,
-            },
-          },
-          users: {
-            where: {
-              userId: session.user.id,
-            },
-            select: {
-              role: true,
-            },
-          },
+          domains: { select: { slug: true } },
+          users: { where: { userId: session.user.id }, select: { role: true } },
         },
       })) as ProjectProps;
 
@@ -309,12 +266,7 @@ const withLinksAuth =
       }
       link =
         (await prisma.link.findUnique({
-          where: {
-            domain_key: {
-              domain: domain || "dub.sh",
-              key,
-            },
-          },
+          where: { domain_key: { domain: domain || "dub.sh", key } },
         })) || undefined;
       if (!link) {
         return res.status(404).end("Link not found.");
@@ -327,5 +279,4 @@ const withLinksAuth =
 
     return handler(req, res, session, project, domain, link);
   };
-
-export { withLinksAuth };
+}
