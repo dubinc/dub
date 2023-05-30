@@ -7,7 +7,7 @@ export default function StatsPage() {
   const { loading, error } = useLink();
 
   // if not owner, show 404 page
-  if (error) {
+  if (error && error.status === 404) {
     return <ErrorPage statusCode={404} />;
   }
 

@@ -9,7 +9,6 @@ import {
 import { toast } from "sonner";
 import { mutate } from "swr";
 import BlurImage from "#/ui/blur-image";
-import { LoadingDots } from "#/ui/icons";
 import Modal from "@/components/shared/modal";
 import useProject from "@/lib/swr/use-project";
 import Button from "#/ui/button";
@@ -94,6 +93,7 @@ function DeleteProjectModal({
                 name="project-slug"
                 id="project-slug"
                 autoFocus={false}
+                autoComplete="off"
                 pattern={slug}
                 className="block w-full rounded-md border-gray-300 pr-10 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
               />
@@ -119,6 +119,7 @@ function DeleteProjectModal({
                 pattern="confirm delete project"
                 required
                 autoFocus={false}
+                autoComplete="off"
                 className="block w-full rounded-md border-gray-300 pr-10 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
               />
             </div>

@@ -303,7 +303,7 @@ const withLinksAuth =
 
     // if key is defined, check if the  current user is the owner of the link (only for dub.sh links)
     const { key } = req.query;
-    if (key && domain === "dub.sh" && !skipKeyCheck) {
+    if (key && !domain && !skipKeyCheck) {
       if (typeof key !== "string") {
         return res.status(400).end("Missing or misconfigured link key.");
       }
@@ -321,7 +321,7 @@ const withLinksAuth =
 
         // for dub.sh links, check if the user is the owner of the link
       } else if (!slug && link.userId !== session.user.id) {
-        return res.status(403).end("Unauthorized: Not link owner.");
+        return res.status(404).end("Link not found.");
       }
     }
 
