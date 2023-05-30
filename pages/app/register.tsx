@@ -7,8 +7,11 @@ import { Google } from "@/components/shared/icons";
 import Button from "#/ui/button";
 import { SSOWaitlist } from "#/ui/tooltip";
 import Link from "next/link";
+import { useRouter } from "next/router";
 
 export default function Register() {
+  const router = useRouter();
+  const { next } = router.query as { next?: string };
   const [clickedGoogle, setClickedGoogle] = useState(false);
 
   return (
@@ -43,7 +46,9 @@ export default function Register() {
             text="Continue with Google"
             onClick={() => {
               setClickedGoogle(true);
-              signIn("google");
+              signIn("google", {
+                ...(next && next.length > 0 ? { callbackUrl: next } : {}),
+              });
             }}
             loading={clickedGoogle}
             icon={<Google className="h-4 w-4" />}

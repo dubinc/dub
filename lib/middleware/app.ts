@@ -14,18 +14,26 @@ export default async function AppMiddleware(req: NextRequest) {
   };
   // if there's no session and the path isn't /login or /register, redirect to /login
   if (!session?.email && path !== "/login" && path !== "/register") {
-    return NextResponse.redirect(new URL("/login", req.url));
+    return NextResponse.redirect(
+      new URL(
+        `/login?next=${encodeURIComponent(new URL(req.url).pathname)}`,
+        req.url,
+      ),
+    );
 
-    // if there's a session and the path is /login or /register, redirect to /
-  } else if (session?.email && (path === "/login" || path === "/register")) {
-    // only redirect if the user was created in the last 10 seconds
+    // if there's a session
+  } else if (session?.email) {
+    // if the user was created in the last 10 seconds, redirect to "/welcome"
     // (this is a workaround because the `isNewUser` flag is triggered when a user does `dangerousEmailAccountLinking`)
     if (
       session?.user?.createdAt &&
-      new Date(session?.user?.createdAt).getTime() > Date.now() - 10000
+      new Date(session?.user?.createdAt).getTime() > Date.now() - 10000 &&
+      path !== "/welcome"
     ) {
       return NextResponse.redirect(new URL("/welcome", req.url));
-    } else {
+
+      // if the path is /login or /register, redirect to "/"
+    } else if (path === "/login" || path === "/register") {
       return NextResponse.redirect(new URL("/", req.url));
     }
   }

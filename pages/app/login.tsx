@@ -8,8 +8,11 @@ import { toast } from "sonner";
 import Button from "#/ui/button";
 import { Google } from "@/components/shared/icons";
 import { SSOWaitlist } from "#/ui/tooltip";
+import { useRouter } from "next/router";
 
 export default function Login() {
+  const router = useRouter();
+  const { next } = router.query as { next?: string };
   const [showEmailOption, setShowEmailOption] = useState(false);
   const [noSuchAccount, setNoSuchAccount] = useState(false);
   const [email, setEmail] = useState("");
@@ -47,7 +50,9 @@ export default function Login() {
             text="Continue with Google"
             onClick={() => {
               setClickedGoogle(true);
-              signIn("google");
+              signIn("google", {
+                ...(next && next.length > 0 ? { callbackUrl: next } : {}),
+              });
             }}
             loading={clickedGoogle}
             disabled={clickedEmail}
@@ -68,6 +73,7 @@ export default function Login() {
                     signIn("email", {
                       email,
                       redirect: false,
+                      ...(next ? { callbackUrl: next } : {}),
                     }).then((res) => {
                       setClickedEmail(false);
                       if (res?.ok && !res?.error) {

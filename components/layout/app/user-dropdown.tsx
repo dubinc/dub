@@ -70,7 +70,9 @@ export default function UserDropdown() {
             <button
               className="w-full rounded-md p-2 text-sm transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
               onClick={() => {
-                signOut();
+                signOut({
+                  callbackUrl: "/login",
+                });
                 // track logout event
                 va.track("Logout");
               }}
