@@ -67,24 +67,3 @@ export async function recordClick(
       : []),
   ]);
 }
-
-export async function getClicksForDomain(domain: string) {
-  const response = await fetch(
-    `https://api.us-east.tinybird.co/v0/pipes/usage.json?domain=${domain}`,
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
-      },
-    },
-  )
-    .then((res) => res.json())
-    .then((res) => res.data);
-
-  let clicks = 0;
-  try {
-    clicks = response[0]["count()"];
-  } catch (e) {
-    console.log(e);
-  }
-  return clicks;
-}
