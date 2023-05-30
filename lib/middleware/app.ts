@@ -16,7 +16,7 @@ export default async function AppMiddleware(req: NextRequest) {
   if (!session?.email && path !== "/login" && path !== "/register") {
     return NextResponse.redirect(
       new URL(
-        `/login?next=${encodeURIComponent(new URL(req.url).pathname)}`,
+        `/login${path !== "/" ? `?next=${encodeURIComponent(path)}` : ""}`,
         req.url,
       ),
     );
