@@ -15,6 +15,7 @@ export default function Modal({
   setShowModal,
   bgColor = "bg-white",
   closeWithX,
+  hideBackdrop,
   mobileOnly,
 }: {
   children: React.ReactNode;
@@ -22,6 +23,7 @@ export default function Modal({
   setShowModal: Dispatch<SetStateAction<boolean>>;
   bgColor?: string;
   closeWithX?: boolean;
+  hideBackdrop?: boolean;
   mobileOnly?: boolean;
 }) {
   const router = useRouter();
@@ -126,15 +128,17 @@ export default function Modal({
                 {children}
               </div>
             )}
-            <motion.div
-              id="modal-backdrop"
-              key="backdrop"
-              className="fixed inset-0 z-30 bg-gray-100 bg-opacity-10 backdrop-blur"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => closeModal(closeWithX)}
-            />
+            {!hideBackdrop && (
+              <motion.div
+                id="modal-backdrop"
+                key="backdrop"
+                className="fixed inset-0 z-30 bg-gray-100 bg-opacity-10 backdrop-blur"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => closeModal(closeWithX)}
+              />
+            )}
           </div>
         </FocusTrap>
       )}

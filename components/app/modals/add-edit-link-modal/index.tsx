@@ -43,15 +43,15 @@ function AddEditLinkModal({
   setShowAddEditLinkModal,
   props,
   duplicateProps,
-  hideXButton,
   homepageDemo,
+  welcomeFlow,
 }: {
   showAddEditLinkModal: boolean;
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
   props?: LinkProps;
   duplicateProps?: LinkProps;
-  hideXButton?: boolean;
   homepageDemo?: boolean;
+  welcomeFlow?: boolean;
 }) {
   const router = useRouter();
   const { slug } = router.query as { slug: string };
@@ -251,9 +251,10 @@ function AddEditLinkModal({
       showModal={showAddEditLinkModal}
       setShowModal={setShowAddEditLinkModal}
       closeWithX={homepageDemo ? false : true}
+      hideBackdrop={welcomeFlow}
     >
       <div className="relative grid max-h-[min(906px,_90vh)] w-full divide-x divide-gray-100 overflow-auto bg-white shadow-xl transition-all scrollbar-hide md:max-w-screen-lg md:grid-cols-2 md:overflow-hidden md:rounded-2xl md:border md:border-gray-200">
-        {!hideXButton && !homepageDemo && (
+        {!welcomeFlow && !homepageDemo && (
           <button
             onClick={() => setShowAddEditLinkModal(false)}
             className="group absolute right-0 top-0 z-20 m-3 hidden rounded-full p-2 text-gray-500 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 md:block"
@@ -618,13 +619,13 @@ function AddEditLinkButton({
 export function useAddEditLinkModal({
   props,
   duplicateProps,
-  hideXButton,
   homepageDemo,
+  welcomeFlow,
 }: {
   props?: LinkProps;
   duplicateProps?: LinkProps;
-  hideXButton?: boolean;
   homepageDemo?: boolean;
+  welcomeFlow?: boolean;
 } = {}) {
   const [showAddEditLinkModal, setShowAddEditLinkModal] = useState(false);
 
@@ -635,8 +636,8 @@ export function useAddEditLinkModal({
         setShowAddEditLinkModal={setShowAddEditLinkModal}
         props={props}
         duplicateProps={duplicateProps}
-        hideXButton={hideXButton}
         homepageDemo={homepageDemo}
+        welcomeFlow={welcomeFlow}
       />
     );
   }, [showAddEditLinkModal, setShowAddEditLinkModal]);

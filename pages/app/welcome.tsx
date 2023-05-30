@@ -8,13 +8,14 @@ import { useAddProjectModal } from "@/components/app/modals/add-project-modal";
 import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal";
 import Meta from "@/components/layout/meta";
 import va from "@vercel/analytics";
+import { ArrowLeft } from "lucide-react";
 
 export default function Welcome() {
   const { setShowAddProjectModal, AddProjectModal } = useAddProjectModal({
     closeWithX: true,
   });
   const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal({
-    hideXButton: true,
+    welcomeFlow: true,
   });
 
   const router = useRouter();
@@ -47,7 +48,19 @@ export default function Welcome() {
       <AddProjectModal />
       <AddEditLinkModal />
       <AnimatePresence mode="wait">
-        {!router.query.type && <Intro key="intro" />}
+        {router.query.type ? (
+          <button
+            className="group absolute left-10 top-10 z-40 rounded-full p-2 transition-all hover:bg-gray-100"
+            onClick={() => router.back()}
+          >
+            <ArrowLeft
+              size={20}
+              className="text-gray-500 group-hover:text-gray-700 group-active:scale-90"
+            />
+          </button>
+        ) : (
+          <Intro key="intro" />
+        )}
         {router.query.type === "interim" && <Interim key="interim" />}
       </AnimatePresence>
     </div>
