@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { signIn } from "@auth/nextjs/client";
 import Meta from "@/components/layout/meta";
 import BlurImage from "#/ui/blur-image";
 import Background from "@/components/shared/background";

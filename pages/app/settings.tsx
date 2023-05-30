@@ -2,7 +2,7 @@ import Button from "#/ui/button";
 import Form from "#/ui/form";
 import { useDeleteAccountModal } from "@/components/app/modals/delete-account-modal";
 import SettingsLayout from "@/components/layout/app/settings-layout";
-import { useSession } from "next-auth/react";
+import { useSession } from "@auth/nextjs/client";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { toast } from "sonner";

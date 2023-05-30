@@ -7,7 +7,7 @@ import {
   createContext,
   useEffect,
 } from "react";
-import { useSession } from "next-auth/react";
+import { useSession } from "@auth/nextjs/client";
 import ErrorPage from "next/error";
 import useProject from "@/lib/swr/use-project";
 import Cookies from "js-cookie";

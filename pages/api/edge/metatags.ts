@@ -2,15 +2,20 @@ import { NextFetchEvent, NextRequest } from "next/server";
 import { parse } from "node-html-parser";
 import { isValidUrl } from "@/lib/utils";
 import { ratelimit, recordMetatags } from "@/lib/upstash";
-import { getToken } from "next-auth/jwt";
 import { ipAddress } from "@vercel/edge";
 import { LOCALHOST_IP } from "@/lib/constants";
+import { auth } from "auth";
+import { NextAuthRequest } from "@auth/nextjs/lib";
 
 export const config = {
   runtime: "edge",
 };
 
-export default async function handler(req: NextRequest, ev: NextFetchEvent) {
+// @ts-expect-error
+export default auth(async function handler(
+  req: NextAuthRequest,
+  ev: NextFetchEvent,
+) {
   if (req.method === "GET") {
     let url = req.nextUrl.searchParams.get("url");
     if (!url || !isValidUrl(url)) {
@@ -18,10 +23,7 @@ export default async function handler(req: NextRequest, ev: NextFetchEvent) {
     }
 
     // Rate limit if user is not logged in
-    const session = await getToken({
-      req,
-      secret: process.env.NEXTAUTH_SECRET,
-    });
+    const session = req.auth.user;
     if (!session?.email) {
       const ip = ipAddress(req) || LOCALHOST_IP;
       const { success } = await ratelimit().limit(ip);
@@ -40,7 +42,7 @@ export default async function handler(req: NextRequest, ev: NextFetchEvent) {
   } else {
     return new Response(`Method ${req.method} Not Allowed`, { status: 405 });
   }
-}
+});
 
 const getHtml = async (url: string) => {
   try {

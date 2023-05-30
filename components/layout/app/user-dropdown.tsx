@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { signOut, useSession } from "next-auth/react";
+import { signOut, useSession } from "@auth/nextjs/client";
 import { Logout } from "@/components/shared/icons";
 import Popover from "@/components/shared/popover";
 import IconMenu from "../../shared/icon-menu";

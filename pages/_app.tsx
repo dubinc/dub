@@ -1,7 +1,7 @@
 import type { AppProps } from "next/app";
 import { Analytics } from "@vercel/analytics/react";
-import type { Session } from "next-auth";
-import { SessionProvider } from "next-auth/react";
+import type { Session } from "@auth/nextjs/types";
+import { SessionProvider } from "@auth/nextjs/client";
 import { Toaster } from "sonner";
 import "@/styles/globals.css";
 import clsx from "clsx";

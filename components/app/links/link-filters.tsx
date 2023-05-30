@@ -18,7 +18,7 @@ import { LoadingSpinner } from "#/ui/icons";
 import useLinksCount from "@/lib/swr/use-links-count";
 import punycode from "punycode/";
 import Switch from "#/ui/switch";
-import { useSession } from "next-auth/react";
+import { useSession } from "@auth/nextjs/client";
 import { toast } from "sonner";
 import { ModalContext } from "#/ui/modal-provider";
 import useTags from "@/lib/swr/use-tags";

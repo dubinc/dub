@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useSession } from "next-auth/react";
+import { useSession } from "@auth/nextjs/client";
 import { LoadingDots } from "#/ui/icons";
 import { useDebouncedCallback } from "use-debounce";
 import { CheckCircle } from "lucide-react";

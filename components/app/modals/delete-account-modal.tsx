@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import BlurImage from "#/ui/blur-image";
 import Modal from "@/components/shared/modal";
 import Button from "#/ui/button";
-import { useSession } from "next-auth/react";
+import { useSession } from "@auth/nextjs/client";
 
 function DeleteAccountModal({
   showDeleteAccountModal,

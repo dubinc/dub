@@ -1,4 +1,4 @@
-import { signIn } from "next-auth/react";
+import { signIn } from "@auth/nextjs/client";
 import {
   Dispatch,
   SetStateAction,

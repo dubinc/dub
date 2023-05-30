@@ -8,7 +8,7 @@ import ProjectSelect from "./project-select";
 import UserDropdown from "./user-dropdown";
 import useProject from "@/lib/swr/use-project";
 import { Crisp } from "crisp-sdk-web";
-import { useSession } from "next-auth/react";
+import { useSession } from "@auth/nextjs/client";
 import ProBanner from "./pro-banner";
 import Cookies from "js-cookie";
 
