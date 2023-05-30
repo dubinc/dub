@@ -19,29 +19,21 @@ model User {
   emailVerified DateTime?
   image         String?
 
-  accounts       Account[]
-  sessions       Session[]
-  projects       ProjectUsers[]
-  sentEmails     SentEmail[]
-  links          Link[]
-  createdAt      DateTime       @default(now())
+  accounts   Account[]
+  sessions   Session[]
+  projects   ProjectUsers[]
+  sentEmails SentEmail[]
+  links      Link[]
+  createdAt  DateTime       @default(now())
 }
 
 model Account {
-  id                String  @id @default(cuid())
+  id                String @id @default(cuid())
   userId            String
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.Text
-  session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@index([userId])
@@ -66,26 +58,26 @@ model VerificationToken {
 }
 
 model Project {
-  id                 String          @id @default(cuid())
-  name               String
-  slug               String          @unique
-  logo               String?
+  id   String  @id @default(cuid())
+  name String
+  slug String  @unique
+  logo String?
 
-  users              ProjectUsers[]
-  invites            ProjectInvite[]
-  usage              Int             @default(0)
-  usageLimit         Int             @default(1000)
-  plan               String          @default("free")
-  stripeId           String?         @unique // Stripe subscription ID
-  billingCycleStart  Int?            // day of the month when the billing cycle starts
-  
-  sentEmails         SentEmail[]
-  domains            Domain[]
-  links              Link[]
-  tags               Tag[]
+  users             ProjectUsers[]
+  invites           ProjectInvite[]
+  usage             Int             @default(0)
+  usageLimit        Int             @default(1000)
+  plan              String          @default("free")
+  stripeId          String?         @unique // Stripe subscription ID
+  billingCycleStart Int? // day of the month when the billing cycle starts
 
-  createdAt          DateTime        @default(now())
-  updatedAt          DateTime        @updatedAt
+  sentEmails SentEmail[]
+  domains    Domain[]
+  links      Link[]
+  tags       Tag[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model ProjectInvite {
