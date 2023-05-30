@@ -81,15 +81,24 @@ export const handleDomainUpdates = async ({
   // if domain is invalid for more than 30 days, check if we can delete it
   if (invalidDays >= 30) {
     // if there are still links associated with the domain,
-    // and if the parent project has link clicks
+    // and those links have clicks associated with them,
     // don't delete the domain (manual inspection required)
-    if (linksCount > 0 && project.usage > 0) {
-      await log(
-        `Domain *${domain}* has been invalid for > 30 days but has link clicks, not deleting.`,
-        "cron",
-        true,
-      );
-      return;
+    if (linksCount > 0) {
+      const linksClicks = await prisma.link.aggregate({
+        _sum: {
+          clicks: true,
+        },
+        where: {
+          domain,
+        },
+      });
+      if (linksClicks._sum?.clicks) {
+        return await log(
+          `Domain *${domain}* has been invalid for > 30 days and has links with clicks, skipping.`,
+          "cron",
+          true,
+        );
+      }
     }
     // else, delete the domain, but first,
     // check if the project needs to be deleted as well
