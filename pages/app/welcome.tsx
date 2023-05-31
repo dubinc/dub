@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import Background from "@/components/shared/background";
+import Background from "#/ui/home/background";
 import Intro from "@/components/app/welcome/intro";
 import Interim from "@/components/app/welcome/interim";
 import { AnimatePresence } from "framer-motion";

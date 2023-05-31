@@ -6,8 +6,9 @@ import { useParams } from "next/navigation";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 
 const navigation = {
-  tools: [{ name: "Metatags API", href: "/metatags" }],
+  product: [{ name: "Pricing", href: "/pricing" }],
   company: [{ name: "Changelog", href: "/changelog" }],
+  resources: [{ name: "Metatags API", href: "/metatags" }],
   legal: [
     { name: "Privacy", href: "/privacy" },
     { name: "Terms", href: "/terms" },
@@ -25,13 +26,13 @@ export default function Footer() {
   return (
     <footer className="z-10 border-t border-gray-200 bg-white/50 py-8 backdrop-blur-lg">
       <MaxWidthWrapper className="pt-10">
-        <div className="xl:grid xl:grid-cols-3 xl:gap-8">
-          <div className="space-y-8">
+        <div className="xl:grid xl:grid-cols-5 xl:gap-8">
+          <div className="space-y-8 xl:col-span-2">
             <Link href={createHref("/")}>
               <span className="sr-only">Dub.sh Logo</span>
               <Logo className="h-7 w-7 text-gray-600" />
             </Link>
-            <p className="text-sm leading-6 text-gray-500">
+            <p className="max-w-xs text-sm text-gray-500">
               Giving modern marketing teams superpowers with short links that
               stand out.
             </p>
@@ -67,15 +68,12 @@ export default function Footer() {
               </a>
             </div>
           </div>
-          <div className="mt-16 grid grid-cols-2 gap-8 xl:col-span-2 xl:mt-0">
+          <div className="mt-16 grid grid-cols-2 gap-8 xl:col-span-3 xl:mt-0">
             <div className="md:grid md:grid-cols-2 md:gap-8">
-              {/*
               <div>
-                <h3 className="text-sm font-semibold leading-6 text-gray-900">
-                  Features
-                </h3>
-                <ul role="list" className="mt-6 space-y-4">
-                  {navigation.features.map((item) => (
+                <h3 className="text-sm font-semibold text-gray-900">Product</h3>
+                <ul role="list" className="mt-4 space-y-4">
+                  {navigation.product.map((item) => (
                     <li key={item.name}>
                       <Link
                         href={createHref(item.href)}
@@ -86,12 +84,11 @@ export default function Footer() {
                     </li>
                   ))}
                 </ul>
-              </div> */}
-              <div className="hidden sm:block" />
-              <div>
+              </div>
+              <div className="mt-10 md:mt-0">
                 <h3 className="text-sm font-semibold text-gray-600">Tools</h3>
-                <ul role="list" className="mt-6 space-y-4">
-                  {navigation.tools.map((item) => (
+                <ul role="list" className="mt-4 space-y-4">
+                  {navigation.company.map((item) => (
                     <li key={item.name}>
                       <Link
                         href={createHref(item.href)}
@@ -107,8 +104,8 @@ export default function Footer() {
             <div className="md:grid md:grid-cols-2 md:gap-8">
               <div>
                 <h3 className="text-sm font-semibold text-gray-600">Company</h3>
-                <ul role="list" className="mt-6 space-y-4">
-                  {navigation.company.map((item) => (
+                <ul role="list" className="mt-4 space-y-4">
+                  {navigation.resources.map((item) => (
                     <li key={item.name}>
                       <Link
                         href={createHref(item.href)}
@@ -122,7 +119,7 @@ export default function Footer() {
               </div>
               <div className="mt-10 md:mt-0">
                 <h3 className="text-sm font-semibold text-gray-600">Legal</h3>
-                <ul role="list" className="mt-6 space-y-4">
+                <ul role="list" className="mt-4 space-y-4">
                   {navigation.legal.map((item) => (
                     <li key={item.name}>
                       <Link

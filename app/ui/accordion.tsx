@@ -1,63 +1,60 @@
-"use client";
-
-import React, { ReactNode } from "react";
-import { styled, keyframes } from "@stitches/react";
-import { ChevronDown } from "lucide-react";
+import * as React from "react";
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
+import { ChevronDown } from "lucide-react";
+import cn from "classnames";
 
-const slideDown = keyframes({
-  from: { height: 0 },
-  to: { height: "var(--radix-accordion-content-height)" },
-});
+const Accordion = AccordionPrimitive.Root;
 
-const slideUp = keyframes({
-  from: { height: "var(--radix-accordion-content-height)" },
-  to: { height: 0 },
-});
+const AccordionItem = React.forwardRef<
+  React.ElementRef<typeof AccordionPrimitive.Item>,
+  React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Item>
+>(({ className, ...props }, ref) => (
+  <AccordionPrimitive.Item
+    ref={ref}
+    className={cn(
+      "border-b border-b-slate-200 py-3 last:border-none",
+      className,
+    )}
+    {...props}
+  />
+));
+AccordionItem.displayName = "AccordionItem";
 
-const AccordionContent = styled(AccordionPrimitive.Content, {
-  '&[data-state="open"]': {
-    animation: `${slideDown} 300ms cubic-bezier(0.87, 0, 0.13, 1)`,
-  },
-  '&[data-state="closed"]': {
-    animation: `${slideUp} 300ms cubic-bezier(0.87, 0, 0.13, 1)`,
-  },
-});
-
-// Your app...
-export default function Accordion({
-  items,
-  activeTab,
-  setActiveTab,
-}: {
-  items: { trigger: ReactNode; content: ReactNode }[];
-  activeTab: number;
-  setActiveTab: (index: number) => void;
-}) {
-  return (
-    <AccordionPrimitive.Root
-      type="single"
-      defaultValue={activeTab.toString()}
-      onValueChange={(value) => setActiveTab(Number(value))}
+const AccordionTrigger = React.forwardRef<
+  React.ElementRef<typeof AccordionPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger>
+>(({ className, children, ...props }, ref) => (
+  <AccordionPrimitive.Header className="flex">
+    <AccordionPrimitive.Trigger
+      ref={ref}
+      className={cn(
+        "flex flex-1 items-center justify-between font-medium transition-all sm:text-lg [&[data-state=open]>svg]:rotate-180",
+        className,
+      )}
+      {...props}
     >
-      {items.map(({ trigger, content }, index) => (
-        <AccordionPrimitive.Item
-          key={index}
-          value={index.toString()}
-          className="overflow-hidden border-b border-gray-200 py-3 last:border-none"
-        >
-          <AccordionPrimitive.Header>
-            <AccordionPrimitive.Trigger className="group flex w-full items-center justify-between">
-              {trigger}
-              <ChevronDown
-                aria-hidden
-                className="h-5 w-5 text-gray-600 transition-transform duration-300 ease-[cubic-bezier(0.87,0,0.13,1)] group-radix-state-open:rotate-180"
-              />
-            </AccordionPrimitive.Trigger>
-          </AccordionPrimitive.Header>
-          <AccordionContent>{content}</AccordionContent>
-        </AccordionPrimitive.Item>
-      ))}
-    </AccordionPrimitive.Root>
-  );
-}
+      {children}
+      <ChevronDown className="h-5 w-5 transition-transform duration-300" />
+    </AccordionPrimitive.Trigger>
+  </AccordionPrimitive.Header>
+));
+AccordionTrigger.displayName = AccordionPrimitive.Trigger.displayName;
+
+const AccordionContent = React.forwardRef<
+  React.ElementRef<typeof AccordionPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Content>
+>(({ className, children, ...props }, ref) => (
+  <AccordionPrimitive.Content
+    ref={ref}
+    className={cn(
+      "overflow-hidden text-sm text-gray-500 transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down sm:text-base",
+      className,
+    )}
+    {...props}
+  >
+    {children}
+  </AccordionPrimitive.Content>
+));
+AccordionContent.displayName = AccordionPrimitive.Content.displayName;
+
+export { Accordion, AccordionItem, AccordionTrigger, AccordionContent };

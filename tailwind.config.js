@@ -37,6 +37,9 @@ module.exports = {
         "exit-to-left": "exit-to-left 0.25s ease",
         "scale-in-content": "scale-in-content 0.2s ease",
         "scale-out-content": "scale-out-content 0.2s ease",
+        // Accordion
+        "accordion-down": "accordion-down 300ms cubic-bezier(0.87, 0, 0.13, 1)",
+        "accordion-up": "accordion-up 300ms cubic-bezier(0.87, 0, 0.13, 1)",
         // Custom wiggle animation
         wiggle: "wiggle 0.75s infinite",
       },
@@ -96,6 +99,15 @@ module.exports = {
         "scale-out-content": {
           "0%": { transform: "rotateX(0deg) scale(1)", opacity: 1 },
           "100%": { transform: "rotateX(-10deg) scale(0.95)", opacity: 0 },
+        },
+        // Accordion
+        "accordion-down": {
+          from: { height: 0 },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: 0 },
         },
         // Custom wiggle animation
         wiggle: {

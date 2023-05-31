@@ -1,6 +1,6 @@
 "use client";
 
-import Background from "@/components/shared/background";
+import Background from "#/ui/home/background";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useDebounce } from "use-debounce";

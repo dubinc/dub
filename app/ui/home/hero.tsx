@@ -1,19 +1,19 @@
 import { Github, Twitter } from "@/components/shared/icons";
+import Link from "next/link";
+import { ExpandingArrow } from "../icons";
 
 const Hero = () => {
   return (
-    <div className="mx-auto mb-10 mt-20 max-w-md px-2.5 text-center sm:max-w-lg sm:px-0">
-      <a
-        href="https://dub.sh/launch"
-        target="_blank"
-        rel="noreferrer"
-        className="mx-auto flex max-w-fit items-center justify-center space-x-2 overflow-hidden rounded-full bg-blue-100 px-7 py-2 transition-all hover:bg-blue-200"
+    <div className="mx-auto mb-10 mt-12 max-w-md px-2.5 text-center sm:max-w-lg sm:px-0">
+      <Link
+        href="/changelog/team-invites"
+        className="group mx-auto flex max-w-fit items-center justify-center space-x-2 overflow-hidden rounded-full border border-gray-200 bg-white px-7 py-2 shadow-[inset_10px_-50px_94px_0_rgb(199,199,199,0.1)] backdrop-blur transition-all hover:border-gray-300 hover:bg-white/50"
       >
-        <Twitter className="h-5 w-5 text-[#1d9bf0]" />
-        <p className="text-sm font-semibold text-[#1d9bf0]">
-          Introducing Dub.sh
+        <p className="text-sm font-semibold text-gray-700">
+          Introducing Team Invites
         </p>
-      </a>
+        <ExpandingArrow className="-ml-1 h-3.5 w-3.5" />
+      </Link>
 
       <h1 className="mt-5 font-display text-4xl font-extrabold leading-[1.15] text-black sm:text-6xl sm:leading-[1.15]">
         Short Links With

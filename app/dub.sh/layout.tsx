@@ -1,5 +1,6 @@
 import Nav from "#/ui/home/nav";
 import Footer from "#/ui/home/footer";
+import Background from "#/ui/home/background";
 
 export default function MarketingLayout(props) {
   return (
@@ -9,6 +10,7 @@ export default function MarketingLayout(props) {
       <Nav />
       {props.children}
       <Footer />
+      <Background />
     </div>
   );
 }

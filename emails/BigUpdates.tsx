@@ -99,7 +99,7 @@ export default function BigUpdates({ slug }): JSX.Element {
               ) : (
                 <MjmlText cssClass="paragraph">
                   Check out our{" "}
-                  <a href="https://dub.sh#pricing" target="_blank">
+                  <a href="https://dub.sh/pricing" target="_blank">
                     new pricing structure
                   </a>
                   .

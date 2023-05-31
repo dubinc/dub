@@ -7,7 +7,9 @@ import useScroll from "#/lib/hooks/use-scroll";
 import clsx from "clsx";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 
-const transparentHeaderSegments = new Set(["metatags"]);
+const navItems = ["pricing", "changelog"];
+
+const transparentHeaderSegments = new Set(["metatags", "pricing"]);
 
 export default function Nav() {
   const { domain = "dub.sh" } = useParams() as { domain: string };
@@ -42,18 +44,21 @@ export default function Nav() {
           </Link>
 
           <div className="flex items-center space-x-6">
-            <Link
-              href={
-                domain === "dub.sh"
-                  ? "/changelog"
-                  : `https://dub.sh/changelog?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`
-              }
-              className={`rounded-md text-sm font-medium ${
-                segment === "changelog" ? "text-black" : "text-gray-500"
-              } transition-colors ease-out hover:text-black`}
-            >
-              Changelog
-            </Link>
+            {navItems.map((item) => (
+              <Link
+                key={item}
+                href={
+                  domain === "dub.sh"
+                    ? `/${item}`
+                    : `https://dub.sh/${item}?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`
+                }
+                className={`rounded-md text-sm font-medium capitalize ${
+                  segment === item ? "text-black" : "text-gray-500"
+                } transition-colors ease-out hover:text-black`}
+              >
+                {item}
+              </Link>
+            ))}
             <Link
               href={
                 process.env.NEXT_PUBLIC_VERCEL_ENV === "production"

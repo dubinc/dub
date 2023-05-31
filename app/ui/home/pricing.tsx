@@ -13,6 +13,7 @@ import Switch from "#/ui/switch";
 import Tooltip from "#/ui/tooltip";
 import { PLANS } from "@/lib/stripe/constants";
 import { nFormatter } from "@/lib/utils";
+import { MinusCircle } from "lucide-react";
 
 const pricingItems = [
   {
@@ -20,7 +21,6 @@ const pricingItems = [
     tagline: "For startups & side projects",
     quota: 1000,
     features: [
-      { text: "Unlimited users" },
       { text: "Unlimited branded links" },
       {
         text: "Unlimited custom domains",
@@ -33,6 +33,7 @@ const pricingItems = [
         footnote:
           "Password protection, link expiration, device targeting, custom social media cards, etc.",
       },
+      { text: "Up to 3 users", neutral: true },
       {
         text: "Root domain redirect",
         footnote:
@@ -53,7 +54,6 @@ const pricingItems = [
     tagline: "For larger teams with increased usage",
     quota: PLANS.find((p) => p.slug === "pro")!.quota,
     features: [
-      { text: "Unlimited users" },
       { text: "Unlimited branded links" },
       {
         text: "Unlimited custom domains",
@@ -66,6 +66,7 @@ const pricingItems = [
         footnote:
           "Password protection, link expiration, device targeting, custom social media cards, etc.",
       },
+      { text: "Unlimited users" },
       {
         text: "Root domain redirect",
         footnote:
@@ -84,7 +85,6 @@ const pricingItems = [
     tagline: "For businesses with custom needs",
     quota: PLANS.find((p) => p.slug === "enterprise")!.quota,
     features: [
-      { text: "Unlimited users" },
       { text: "Unlimited branded links" },
       {
         text: "Unlimited custom domains",
@@ -97,6 +97,7 @@ const pricingItems = [
         footnote:
           "Password protection, link expiration, device targeting, custom social media cards, etc.",
       },
+      { text: "Unlimited users" },
       {
         text: "Root domain redirect",
         footnote:
@@ -115,23 +116,23 @@ const pricingItems = [
   },
 ];
 
-const Pricing = ({ homePage }: { homePage?: boolean }) => {
-  const [annualBilling, setAnnualBilling] = useState(homePage ? false : true);
+const Pricing = () => {
+  const [annualBilling, setAnnualBilling] = useState(false);
   const period = useMemo(
     () => (annualBilling ? "yearly" : "monthly"),
     [annualBilling],
   );
 
   return (
-    <MaxWidthWrapper className="my-20 text-center">
-      <div id="pricing" className="mx-auto my-10 sm:max-w-lg">
-        <h2 className="font-display text-4xl font-extrabold text-black sm:text-5xl">
+    <MaxWidthWrapper className="mb-8 mt-16 text-center">
+      <div className="mx-auto mb-10 sm:max-w-lg">
+        <h1 className="font-display text-4xl font-extrabold text-black sm:text-5xl">
           Simple,{" "}
           <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
             affordable
           </span>{" "}
           pricing
-        </h2>
+        </h1>
         <p className="mt-5 text-gray-600 sm:text-lg">
           Shorten your links without breaking your bank. <br />
           Start for free, no credit card required.
@@ -194,7 +195,7 @@ const Pricing = ({ homePage }: { homePage?: boolean }) => {
                   <p className="text-gray-600">
                     Up to {nFormatter(quota)} link clicks/mo
                   </p>
-                  <Tooltip content="If you exceed your monthly usage, your existing links will still work, but you need to upgrade to view their stats/add more links. Link clicks are shared across all projects.">
+                  <Tooltip content="If you exceed your monthly usage, your existing links will still work, but you need to upgrade to view their stats/add more links.">
                     <div className="flex h-4 w-8 justify-center">
                       <QuestionCircle className="h-4 w-4 text-gray-600" />
                     </div>
@@ -202,10 +203,15 @@ const Pricing = ({ homePage }: { homePage?: boolean }) => {
                 </div>
               </div>
               <ul className="my-10 space-y-5 px-8">
-                {features.map(({ text, footnote, negative }) => (
+                {features.map(({ text, footnote, neutral, negative }) => (
                   <li key={text} className="flex space-x-5">
                     <div className="flex-shrink-0">
-                      {negative ? (
+                      {neutral ? (
+                        <MinusCircle
+                          fill="#D4D4D8"
+                          className="h-6 w-6 text-white"
+                        />
+                      ) : negative ? (
                         <XCircleFill className="h-6 w-6 text-gray-300" />
                       ) : (
                         <CheckCircleFill className="h-6 w-6 text-green-500" />
@@ -239,7 +245,11 @@ const Pricing = ({ homePage }: { homePage?: boolean }) => {
               <div className="border-t border-gray-200" />
               <div className="p-5">
                 <Link
-                  href="https://app.dub.sh/register"
+                  href={
+                    process.env.NODE_ENV === "production"
+                      ? "https://app.dub.sh/register"
+                      : "http://app.localhost:3000/register"
+                  }
                   className={`${
                     plan === "Pro"
                       ? "border border-transparent bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:border-blue-700 hover:bg-white hover:bg-clip-text hover:text-transparent"

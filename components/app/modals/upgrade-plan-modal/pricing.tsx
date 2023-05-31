@@ -16,6 +16,7 @@ import { getStripe } from "@/lib/stripe/client";
 import { PLANS } from "@/lib/stripe/constants";
 import { capitalize, nFormatter } from "@/lib/utils";
 import useProject from "@/lib/swr/use-project";
+import { MinusCircle } from "lucide-react";
 
 const pricingItems = [
   {
@@ -23,7 +24,6 @@ const pricingItems = [
     tagline: "For startups & side projects",
     quota: 1000,
     features: [
-      { text: "Unlimited users" },
       { text: "Unlimited branded links" },
       {
         text: "Unlimited custom domains",
@@ -36,6 +36,7 @@ const pricingItems = [
         footnote:
           "Password protection, link expiration, device targeting, custom social media cards, etc.",
       },
+      { text: "Up to 3 users", neutral: true },
       {
         text: "Root domain redirect",
         footnote:
@@ -56,7 +57,6 @@ const pricingItems = [
     tagline: "For larger teams with increased usage",
     quota: PLANS.find((p) => p.slug === "pro")!.quota,
     features: [
-      { text: "Unlimited users" },
       { text: "Unlimited branded links" },
       {
         text: "Unlimited custom domains",
@@ -69,6 +69,7 @@ const pricingItems = [
         footnote:
           "Password protection, link expiration, device targeting, custom social media cards, etc.",
       },
+      { text: "Unlimited users" },
       {
         text: "Root domain redirect",
         footnote:
@@ -87,7 +88,6 @@ const pricingItems = [
     tagline: "For businesses with custom needs",
     quota: PLANS.find((p) => p.slug === "enterprise")!.quota,
     features: [
-      { text: "Unlimited users" },
       { text: "Unlimited branded links" },
       {
         text: "Unlimited custom domains",
@@ -100,6 +100,7 @@ const pricingItems = [
         footnote:
           "Password protection, link expiration, device targeting, custom social media cards, etc.",
       },
+      { text: "Unlimited users" },
       {
         text: "Root domain redirect",
         footnote:
@@ -202,7 +203,7 @@ const Pricing = ({ homePage }: { homePage?: boolean }) => {
                   <p className="text-gray-600">
                     Up to {nFormatter(quota)} link clicks/mo
                   </p>
-                  <Tooltip content="If you exceed your monthly usage, your existing links will still work, but you need to upgrade to view their stats/add more links. Link clicks are shared across all projects.">
+                  <Tooltip content="If you exceed your monthly usage, your existing links will still work, but you need to upgrade to view their stats/add more links.">
                     <div className="flex h-4 w-8 justify-center">
                       <QuestionCircle className="h-4 w-4 text-gray-600" />
                     </div>
@@ -210,10 +211,15 @@ const Pricing = ({ homePage }: { homePage?: boolean }) => {
                 </div>
               </div>
               <ul className="my-10 space-y-5 px-8">
-                {features.map(({ text, footnote, negative }) => (
+                {features.map(({ text, footnote, neutral, negative }) => (
                   <li key={text} className="flex space-x-5">
                     <div className="flex-shrink-0">
-                      {negative ? (
+                      {neutral ? (
+                        <MinusCircle
+                          fill="#D4D4D8"
+                          className="h-6 w-6 text-white"
+                        />
+                      ) : negative ? (
                         <XCircleFill className="h-6 w-6 text-gray-300" />
                       ) : (
                         <CheckCircleFill className="h-6 w-6 text-green-500" />

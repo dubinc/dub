@@ -21,7 +21,7 @@ export default async function OSS() {
   ).then((res) => res.json());
 
   return (
-    <MaxWidthWrapper className="mb-20 py-20">
+    <div className="mt-28 border-t border-gray-200 bg-white/10 py-20 shadow-[inset_10px_-50px_94px_0_rgb(199,199,199,0.2)] backdrop-blur">
       <div className="mx-auto max-w-md text-center sm:max-w-xl">
         <h2 className="bg-gradient-to-r from-gray-800 via-gray-500 to-gray-800 bg-clip-text font-display text-4xl font-extrabold leading-tight text-transparent sm:text-5xl sm:leading-tight">
           Proudly open-source
@@ -51,6 +51,6 @@ export default async function OSS() {
           </div>
         </a>
       </div>
-    </MaxWidthWrapper>
+    </div>
   );
 }

@@ -4,7 +4,12 @@ import Link from "next/link";
 import { Airplay, Chart, QR, Users, Photo } from "@/components/shared/icons";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import { useState } from "react";
-import Accordion from "#/ui/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "#/ui/accordion";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLinkQRModal } from "#/ui/modals/link-qr-modal";
 import { DEFAULT_LINK_PROPS } from "@/lib/constants";
@@ -136,17 +141,23 @@ export default function Features() {
         <div className="my-10 h-[840px] w-full overflow-hidden rounded-xl border border-gray-200 bg-white/10 shadow-[inset_10px_-50px_94px_0_rgb(199,199,199,0.2)] backdrop-blur lg:h-[630px]">
           <div className="grid grid-cols-1 gap-10 p-5 lg:grid-cols-3">
             <Accordion
-              items={featureList.map(
-                ({ key, title, icon, description, cta }) => ({
-                  trigger: (
+              type="single"
+              defaultValue="analytics"
+              onValueChange={(e) => {
+                setActiveFeature(featureList.findIndex(({ key }) => key === e));
+              }}
+            >
+              {featureList.map(({ key, title, icon, description, cta }) => (
+                <AccordionItem key={key} value={key}>
+                  <AccordionTrigger>
                     <div className="flex items-center space-x-3 p-3">
                       {icon}
                       <h3 className="text-base font-semibold text-gray-600">
                         {title}
                       </h3>
                     </div>
-                  ),
-                  content: (
+                  </AccordionTrigger>
+                  <AccordionContent>
                     <div className="p-3">
                       <p className="mb-4 text-sm text-gray-500">
                         {description}
@@ -169,12 +180,10 @@ export default function Features() {
                         cta
                       )}
                     </div>
-                  ),
-                }),
-              )}
-              activeTab={activeFeature}
-              setActiveTab={setActiveFeature}
-            />
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
             <div className="lg:col-span-2">
               <AnimatePresence mode="wait">
                 {featureList.map((feature, index) => {

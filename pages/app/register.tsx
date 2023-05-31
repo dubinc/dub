@@ -2,7 +2,7 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import Meta from "@/components/layout/meta";
 import BlurImage from "#/ui/blur-image";
-import Background from "@/components/shared/background";
+import Background from "#/ui/home/background";
 import { Google } from "@/components/shared/icons";
 import Button from "#/ui/button";
 import { SSOWaitlist } from "#/ui/tooltip";
