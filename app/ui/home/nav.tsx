@@ -43,7 +43,7 @@ export default function Nav() {
             />
           </Link>
 
-          <div className="flex items-center space-x-6">
+          <div className="hidden items-center space-x-6 sm:flex">
             {navItems.map((item) => (
               <Link
                 key={item}
