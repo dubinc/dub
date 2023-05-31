@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import { allChangelogPosts } from "contentlayer/generated";
+import { allChangelogPosts, allLegalPosts } from "contentlayer/generated";
 
 export default async function Sitemap() {
   const domain = "dub.sh";
@@ -27,6 +27,10 @@ export default async function Sitemap() {
     ...(domain === "dub.sh"
       ? [
           {
+            url: `https://${domain}/pricing`,
+            lastModified: new Date(),
+          },
+          {
             url: `https://${domain}/changelog`,
             lastModified: new Date(),
           },
@@ -38,6 +42,10 @@ export default async function Sitemap() {
             url: `https://${domain}/metatags`,
             lastModified: new Date(),
           },
+          ...allLegalPosts.map((post) => ({
+            url: `https://${domain}/${post.slug}`,
+            lastModified: new Date(),
+          })),
         ]
       : []),
     ...links.map(({ key }) => ({
