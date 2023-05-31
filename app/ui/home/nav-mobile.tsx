@@ -53,8 +53,8 @@ export default function MobileNav() {
         className="absolute grid w-full gap-3 px-10 py-16"
       >
         {navItems.map((item) => (
-          <>
-            <MenuItem key={item}>
+          <div key={item}>
+            <MenuItem>
               <Link
                 href={
                   domain === "dub.sh"
@@ -68,7 +68,7 @@ export default function MobileNav() {
               </Link>
             </MenuItem>
             <MenuItem className="my-3 h-px w-full bg-gray-300" />
-          </>
+          </div>
         ))}
 
         <MenuItem key="Login">
