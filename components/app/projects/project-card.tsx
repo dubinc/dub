@@ -2,7 +2,7 @@ import Link from "next/link";
 import useSWR from "swr";
 import BlurImage from "#/ui/blur-image";
 import { CheckCircleFill, XCircleFill } from "@/components/shared/icons";
-import Tooltip, { TooltipContent } from "#/ui/tooltip";
+import Tooltip, { DomainsTooltip, TooltipContent } from "#/ui/tooltip";
 import { ProjectWithDomainProps } from "@/lib/types";
 import { fetcher, nFormatter } from "@/lib/utils";
 import { BarChart2, Globe, Link2 } from "lucide-react";
@@ -43,46 +43,38 @@ export default function ProjectCard({
             <h2 className="text-lg font-medium text-gray-700">{name}</h2>
             <div className="flex items-center">
               <p className="text-gray-500">{primaryDomain?.slug}</p>
-              {primaryDomain?.verified ? (
-                <Tooltip content="Verified domain">
-                  <div className="flex w-8 justify-center">
-                    <CheckCircleFill className="h-5 w-5 text-blue-500" />
-                  </div>
-                </Tooltip>
-              ) : (
-                <Tooltip
-                  content={
-                    <TooltipContent
-                      title="This domain is not correctly configured. Please configure your domain to
-                  start adding links."
-                      cta="Configure Domain"
-                      href={`/${slug}/domains`}
-                    />
-                  }
-                >
-                  <div className="flex w-8 justify-center">
-                    <XCircleFill className="h-5 w-5 text-gray-300" />
-                  </div>
-                </Tooltip>
-              )}
-              {domains.length > 1 && (
-                <Tooltip
-                  content={
-                    <TooltipContent
-                      title={domains
-                        .slice(1)
-                        .map(({ slug }) => slug)
-                        .join(", ")}
-                      cta="View all domains"
-                      href={`/${slug}/domains`}
-                    />
-                  }
-                >
-                  <div>
+              <Tooltip
+                content={
+                  <DomainsTooltip
+                    domains={domains}
+                    title={
+                      domains.length > 1
+                        ? "Here are all the domains for this project."
+                        : primaryDomain?.verified
+                        ? "Your domain is verified. You can start adding links."
+                        : "Please verify your domain to start adding links."
+                    }
+                    cta={
+                      domains.length > 1
+                        ? "Manage Domains"
+                        : primaryDomain?.verified
+                        ? "Manage Domain"
+                        : "Verify Domain"
+                    }
+                    href={`/${slug}/domains`}
+                  />
+                }
+              >
+                <div className="ml-1 flex items-center">
+                  {domains.length > 1 ? (
                     <Badge text={`+${domains.length - 1}`} variant="gray" />
-                  </div>
-                </Tooltip>
-              )}
+                  ) : primaryDomain?.verified ? (
+                    <CheckCircleFill className="h-5 w-5 text-blue-500" />
+                  ) : (
+                    <XCircleFill className="h-5 w-5 text-gray-300" />
+                  )}
+                </div>
+              </Tooltip>
             </div>
           </div>
         </div>

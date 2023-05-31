@@ -10,6 +10,9 @@ import { AnimatePresence, motion, useAnimation } from "framer-motion";
 import BlurImage from "#/ui/blur-image";
 import Button from "./button";
 import Script from "next/script";
+import { ExternalLink, Globe, GlobeIcon } from "lucide-react";
+import { DomainProps } from "@/lib/types";
+import { CheckCircleFill, XCircleFill } from "@/components/shared/icons";
 
 export default function Tooltip({
   children,
@@ -105,23 +108,25 @@ export default function Tooltip({
           <TooltipPrimitive.Trigger className="hidden sm:inline-flex" asChild>
             {children}
           </TooltipPrimitive.Trigger>
-          <TooltipPrimitive.Content
-            sideOffset={4}
-            side="top"
-            className="z-30 hidden animate-slide-up-fade items-center overflow-hidden rounded-md border border-gray-200 bg-white drop-shadow-lg sm:block"
-          >
-            <TooltipPrimitive.Arrow className="fill-current text-white" />
-            {typeof content === "string" ? (
-              <div className="p-4">
-                <span className="block max-w-xs text-center text-sm text-gray-700">
-                  {content}
-                </span>
-              </div>
-            ) : (
-              content
-            )}
-            <TooltipPrimitive.Arrow className="fill-current text-white" />
-          </TooltipPrimitive.Content>
+          <TooltipPrimitive.Portal>
+            <TooltipPrimitive.Content
+              sideOffset={4}
+              side="top"
+              className="z-30 hidden animate-slide-up-fade items-center overflow-hidden rounded-md border border-gray-200 bg-white drop-shadow-lg sm:block"
+            >
+              <TooltipPrimitive.Arrow className="fill-current text-white" />
+              {typeof content === "string" ? (
+                <div className="p-4">
+                  <span className="block max-w-xs text-center text-sm text-gray-700">
+                    {content}
+                  </span>
+                </div>
+              ) : (
+                content
+              )}
+              <TooltipPrimitive.Arrow className="fill-current text-white" />
+            </TooltipPrimitive.Content>
+          </TooltipPrimitive.Portal>
         </TooltipPrimitive.Root>
       </TooltipPrimitive.Provider>
     </>
@@ -209,5 +214,56 @@ export function SSOWaitlist() {
         />
       </div>
     </>
+  );
+}
+
+export function DomainsTooltip({
+  domains,
+  title,
+  cta,
+  href,
+}: {
+  domains: DomainProps[];
+  title: string;
+  cta?: string;
+  href: string;
+}) {
+  return (
+    <div
+      className="flex w-full flex-col items-center space-y-2 p-4 sm:w-60"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <p className="px-2 text-sm text-gray-500">{title}</p>
+      <div className="flex w-full flex-col">
+        {domains.map(({ slug, verified }) => (
+          <a
+            key={slug}
+            href={`https://${slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex items-center justify-between rounded-md p-2 transition-all hover:bg-gray-100"
+          >
+            <div className="flex items-center space-x-1">
+              {verified ? (
+                <CheckCircleFill className="h-5 w-5 text-blue-500" />
+              ) : (
+                <XCircleFill className="h-5 w-5 text-gray-300" />
+              )}
+              <p className="text-sm font-semibold text-gray-500">{slug}</p>
+            </div>
+            <ExternalLink className="h-4 w-4 text-gray-500 sm:invisible sm:group-hover:visible" />
+          </a>
+        ))}
+      </div>
+
+      <div className="mt-2 w-full px-2">
+        <Link
+          href={href}
+          className="block rounded-md border border-black bg-black px-3 py-1.5 text-center text-sm text-white transition-all hover:bg-white hover:text-black"
+        >
+          {cta}
+        </Link>
+      </div>
+    </div>
   );
 }
