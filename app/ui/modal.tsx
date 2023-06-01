@@ -97,7 +97,7 @@ export default function Modal({
             <motion.div
               ref={mobileModalRef}
               key="mobile-modal"
-              className="group fixed inset-x-0 bottom-0 z-40 max-h-[80vh] w-screen cursor-grab active:cursor-grabbing md:hidden"
+              className="group fixed inset-x-0 bottom-0 z-50 max-h-[80vh] w-screen cursor-grab active:cursor-grabbing md:hidden"
               initial={{ y: "100%" }}
               animate={controls}
               exit={{ y: "100%" }}
@@ -120,7 +120,7 @@ export default function Modal({
               <motion.div
                 ref={desktopModalRef}
                 key="desktop-modal"
-                className="fixed inset-0 z-40 hidden min-h-screen items-center justify-center md:flex"
+                className="fixed inset-0 z-50 hidden min-h-screen items-center justify-center md:flex"
                 initial={{ scale: 0.95 }}
                 animate={{ scale: 1 }}
                 exit={{ scale: 0.95 }}
@@ -136,7 +136,7 @@ export default function Modal({
             <motion.div
               id="modal-backdrop"
               key="backdrop"
-              className="fixed inset-0 z-30 bg-gray-100 bg-opacity-10 backdrop-blur"
+              className="fixed inset-0 z-40 bg-gray-100 bg-opacity-10 backdrop-blur"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}

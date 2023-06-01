@@ -40,7 +40,7 @@ export default function Toggle() {
     <div
       className={`z-10 mb-5 ${
         basePath.startsWith("/stats")
-          ? `top-0 ${!modal ? "md:top-16" : ""}`
+          ? `top-0 ${!modal ? "md:top-14" : ""}`
           : "top-[6.95rem]"
       } sticky bg-gray-50 py-3 md:py-5 ${
         scrolled && !modal ? "shadow-md" : ""
