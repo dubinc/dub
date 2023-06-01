@@ -89,7 +89,7 @@ export default async function StatsPage({
 
   return (
     <div className="bg-gray-50">
-      <Suspense fallback="w-full h-screen bg-gray-50">
+      <Suspense fallback={<div className="h-screen w-full bg-gray-50" />}>
         <Stats staticDomain={params.domain} />
       </Suspense>
     </div>
