@@ -193,13 +193,17 @@ const Pricing = () => {
               <div className="flex h-20 items-center justify-center border-b border-t border-gray-200 bg-gray-50">
                 <div className="flex items-center">
                   <p className="text-gray-600">
-                    Up to {nFormatter(quota)} link clicks/mo
+                    {plan === "Enterprise"
+                      ? "Unlimited link clicks"
+                      : `Up to ${nFormatter(quota)} link clicks/mo`}
                   </p>
-                  <Tooltip content="If you exceed your monthly usage, your existing links will still work, but you need to upgrade to view their stats/add more links.">
-                    <div className="flex h-4 w-8 justify-center">
-                      <QuestionCircle className="h-4 w-4 text-gray-600" />
-                    </div>
-                  </Tooltip>
+                  {plan !== "Enterprise" && (
+                    <Tooltip content="If you exceed your monthly usage, your existing links will still work, but you need to upgrade to view their stats/add more links.">
+                      <div className="flex h-4 w-8 justify-center">
+                        <QuestionCircle className="h-4 w-4 text-gray-600" />
+                      </div>
+                    </Tooltip>
+                  )}
                 </div>
               </div>
               <ul className="my-10 space-y-5 px-8">

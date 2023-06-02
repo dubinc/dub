@@ -26,10 +26,6 @@ const faqs = [
     question: "Do you offer refunds?",
     answer: `We currently do not offer refunds. However, you can cancel your subscription at any time, after which you won't be charged again. We are constantly working on improving Dub, so this might change in the future.`,
   },
-  {
-    question: "What if I need more than 500K clicks on the Enterprise plan?",
-    answer: `The 500K clicks is a soft limit on the Enterprise plan. If you anticipate needing more than 500K clicks, please reach out to support and we will work out a custom plan for you.`,
-  },
 ];
 
 export default function FAQ() {
@@ -42,7 +38,11 @@ export default function FAQ() {
               Pricing FAQs
             </h2>
           </div>
-          <Accordion type="single" className="col-span-2 px-3 sm:px-0">
+          <Accordion
+            type="single"
+            collapsible
+            className="col-span-2 px-3 sm:px-0"
+          >
             {faqs.map((faq, idx) => (
               <AccordionItem key={idx} value={idx.toString()}>
                 <AccordionTrigger className="py-2">
