@@ -17,7 +17,6 @@ const sidebar = {
   closed: {
     clipPath: "circle(0px at 100% 0)",
     transition: {
-      delay: 0.5,
       type: "spring",
       stiffness: 400,
       damping: 40,
@@ -53,7 +52,7 @@ export default function MobileNav() {
         className="absolute grid w-full gap-3 px-10 py-16"
       >
         {navItems.map((item) => (
-          <div key={item}>
+          <div key={item} className="grid gap-3">
             <MenuItem>
               <Link
                 href={
@@ -170,6 +169,7 @@ const MenuItemVariants = {
     opacity: 0,
     transition: {
       y: { stiffness: 1000 },
+      duration: 0.04,
     },
   },
 };
