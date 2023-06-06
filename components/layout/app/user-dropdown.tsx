@@ -45,6 +45,7 @@ export default function UserDropdown() {
               onClick={() => {
                 setOpeningSupport(true);
                 Crisp.chat.open();
+                va.track("Opened Support");
               }}
             >
               <IconMenu

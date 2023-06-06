@@ -15,7 +15,7 @@ export default async function OSS() {
         },
       }),
       next: {
-        revalidate: 60,
+        revalidate: 3600,
       },
     },
   ).then((res) => res.json());
