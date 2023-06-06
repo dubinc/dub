@@ -1,5 +1,5 @@
 import { withLinksAuth } from "@/lib/auth";
-import { deleteLink, editLink } from "@/lib/api/links";
+import { deleteLink, editLink, processKey } from "@/lib/api/links";
 import { isBlacklistedDomain, isBlacklistedKey, log } from "@/lib/utils";
 import { GOOGLE_FAVICON_URL } from "@/lib/constants";
 
@@ -41,14 +41,18 @@ export default withLinksAuth(
         if (domainBlacklisted) {
           return res.status(422).end("Invalid url.");
         }
-      } else if (key.split("").every((char) => char === "/")) {
-        return res.status(422).end("Key must contain characters other than '/'.");
+      }
+
+      key = processKey(key);
+      if (!key) {
+        return res.status(422).end("Invalid key.");
       }
 
       const [response, invalidFavicon] = await Promise.allSettled([
         editLink(
           {
             ...req.body,
+            key,
             domain: req.body.domain || "dub.sh",
             userId: session.user.id,
           },

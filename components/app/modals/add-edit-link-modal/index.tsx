@@ -324,7 +324,7 @@ function AddEditLinkModal({
                       .writeText(
                         linkConstructor({
                           // remove leading and trailing slashes
-                          key: data.key.replace(/^\/|\/$/g, ""),
+                          key: data.key.replace(/^\/+|\/+$/g, ""),
                           domain,
                         }),
                       )
@@ -460,8 +460,12 @@ function AddEditLinkModal({
                       name="key"
                       id={`key-${randomIdx}`}
                       required
-                      // Unicode regex to match characters from all languages and numbers (and omit all symbols except for dashes and slashes)
-                      pattern="[\p{Letter}\p{Mark}\d/-]+"
+                      pattern="[\p{L}\p{N}\p{Pd}\/]+"
+                      onInvalid={(e) => {
+                        e.currentTarget.setCustomValidity(
+                          "Only letters, numbers, '-', and '/' are allowed.",
+                        );
+                      }}
                       className={`${
                         keyError
                           ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
@@ -471,6 +475,7 @@ function AddEditLinkModal({
                       value={key}
                       onChange={(e) => {
                         setKeyError(null);
+                        e.currentTarget.setCustomValidity("");
                         setData({ ...data, key: e.target.value });
                       }}
                       aria-invalid="true"

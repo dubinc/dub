@@ -3,7 +3,13 @@ import { DEFAULT_REDIRECTS } from "@/lib/constants";
 import prisma from "@/lib/prisma";
 import { LinkProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
-import { getParamsFromURL, isReservedKey, nanoid, truncate } from "@/lib/utils";
+import {
+  getParamsFromURL,
+  isReservedKey,
+  nanoid,
+  truncate,
+  validKeyRegex,
+} from "@/lib/utils";
 import { NextApiRequest } from "next";
 
 export async function getLinksForProject({
@@ -148,8 +154,20 @@ export async function checkIfKeyExists(domain: string, key: string) {
   return !!link;
 }
 
+export function processKey(key: string) {
+  if (!validKeyRegex.test(key)) {
+    return null;
+  }
+  // remove all leading and trailing slashes from key
+  key = key.replace(/^\/+|\/+$/g, "");
+  if (key.length === 0) {
+    return null;
+  }
+  return key;
+}
+
 export async function addLink(link: LinkProps) {
-  let {
+  const {
     domain,
     key,
     url,
@@ -162,8 +180,6 @@ export async function addLink(link: LinkProps) {
     ios,
     android,
   } = link;
-  // remove leading and trailing slashes from key
-  key = key.replace(/^\/|\/$/g, "");
   const hasPassword = password && password.length > 0 ? true : false;
   const exat = expiresAt ? new Date(expiresAt).getTime() / 1000 : null;
   const uploadedImage = image && image.startsWith("data:image") ? true : false;
@@ -235,7 +251,7 @@ export async function editLink(
     oldKey: string;
   },
 ) {
-  let {
+  const {
     id,
     domain,
     key,
@@ -249,8 +265,6 @@ export async function editLink(
     ios,
     android,
   } = link;
-  // remove leading and trailing slashes from key
-  key = key.replace(/^\/|\/$/g, "");
   const hasPassword = password && password.length > 0 ? true : false;
   const exat = expiresAt ? new Date(expiresAt).getTime() : null;
   const changedKey = key !== oldKey;

@@ -1,4 +1,4 @@
-import { addLink, getLinksForProject } from "@/lib/api/links";
+import { addLink, getLinksForProject, processKey } from "@/lib/api/links";
 import { withLinksAuth } from "@/lib/auth";
 import { isBlacklistedDomain, isBlacklistedKey } from "@/lib/utils";
 import { log } from "@/lib/utils";
@@ -57,13 +57,17 @@ export default withLinksAuth(
         if (domainBlacklisted) {
           return res.status(422).end("Invalid url.");
         }
-      } else if (key.split("").every((char) => char === "/")) {
-        return res.status(422).end("Key must contain characters other than '/'.");
+      }
+
+      key = processKey(key);
+      if (!key) {
+        return res.status(422).end("Invalid key.");
       }
 
       const [response, invalidFavicon] = await Promise.allSettled([
         addLink({
           ...req.body,
+          key,
           projectId: project?.id || DUB_PROJECT_ID,
           userId: session.user.id,
         }),
