@@ -10,7 +10,6 @@ import PlanBadge from "@/components/app/projects/settings/plan-badge";
 import { GOOGLE_FAVICON_URL } from "@/lib/constants";
 import { ModalContext } from "#/ui/modal-provider";
 import Link from "next/link";
-import { truncate } from "@/lib/utils";
 
 export default function ProjectSelect() {
   const { projects } = useProjects();
@@ -133,12 +132,12 @@ function ProjectList({
           alt={
             session?.user?.name || session?.user?.email || "Personal Account"
           }
-          className="h-7 w-7 overflow-hidden rounded-full"
+          className="h-7 w-7 flex-none overflow-hidden rounded-full"
           width={48}
           height={48}
         />
         <span
-          className={`block truncate text-sm ${
+          className={`block truncate pr-8 text-sm ${
             selected.slug === "/" ? "font-medium" : "font-normal"
           }`}
         >
