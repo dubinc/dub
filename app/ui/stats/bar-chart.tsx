@@ -89,6 +89,12 @@ export default function BarChart() {
               hour: "numeric",
             })
             .replace(",", " ");
+        case "90d":
+        case "all":
+          return new Date(e).toLocaleDateString("en-us", {
+            month: "short",
+            year: "numeric",
+          });
         default:
           return new Date(e).toLocaleDateString("en-us", {
             month: "short",

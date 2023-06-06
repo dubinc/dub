@@ -48,12 +48,12 @@ export const intervalData = {
   },
   "90d": {
     startDate: new Date(Date.now() - 7776000000),
-    granularity: "day",
+    granularity: "month",
   },
   all: {
     // Dub.sh founding date
     startDate: new Date("2022-09-22"),
-    granularity: "day",
+    granularity: "month",
   },
 };
 
