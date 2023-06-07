@@ -27,6 +27,7 @@ export default withProjectAuth(async (req, res, project, session) => {
         enabled: true,
       },
       mode: "subscription",
+      allow_promotion_codes: true,
       client_reference_id: project.id,
     });
     return res.status(200).json(stripeSession);

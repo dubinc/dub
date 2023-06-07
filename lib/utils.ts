@@ -38,6 +38,7 @@ export function constructMetadata({
       images: [image],
       creator: "@dubdotsh",
     },
+    icons: "/favicon.ico",
     metadataBase: new URL("https://dub.sh"),
     themeColor: "#FFF",
   };
