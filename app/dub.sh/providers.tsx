@@ -14,8 +14,8 @@ export default function Providers({
   const segment = useSelectedLayoutSegment();
   return (
     <div>
-      {/* Only show stats modal if not on the /stats page */}
-      {segment !== "stats" && modal}
+      {/* Only show stats modal if it's on the home page */}
+      {!segment && modal}
       <Toaster />
       {children}
     </div>
