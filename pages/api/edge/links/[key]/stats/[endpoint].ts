@@ -16,13 +16,18 @@ export default async function handler(req: NextRequest) {
     if (isHomeHostname(domain)) domain = "dub.sh";
 
     let data;
-    // don't need to check if the link has public stats if the link is dub.sh/github (demo link)
-    if (!(domain === "dub.sh" || key === "github")) {
+    // if the link is NOT dub.sh/github (demo link)
+    if (!(domain === "dub.sh" && key === "github")) {
       data = await getLinkViaEdge(domain, key);
+      // check if the link is public
       if (!data?.publicStats) {
         return new Response(`Stats for this link are not public`, {
           status: 403,
         });
+      }
+      // return 403 if interval is 90d or all
+      if (interval === "all" || interval === "90d") {
+        return new Response(`Require higher plan`, { status: 403 });
       }
     }
 

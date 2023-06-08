@@ -34,6 +34,7 @@ const pricingItems = [
           "Password protection, link expiration, device targeting, custom social media cards, etc.",
       },
       { text: "Up to 3 users", neutral: true },
+      { text: "30-day link history", neutral: true },
       {
         text: "Root domain redirect",
         footnote:
@@ -67,6 +68,7 @@ const pricingItems = [
           "Password protection, link expiration, device targeting, custom social media cards, etc.",
       },
       { text: "Unlimited users" },
+      { text: "Unlimited link history" },
       {
         text: "Root domain redirect",
         footnote:
@@ -98,6 +100,7 @@ const pricingItems = [
           "Password protection, link expiration, device targeting, custom social media cards, etc.",
       },
       { text: "Unlimited users" },
+      { text: "Unlimited link history" },
       {
         text: "Root domain redirect",
         footnote:
