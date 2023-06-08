@@ -4,7 +4,7 @@ import {
   NextResponse,
   userAgent,
 } from "next/server";
-import { detectBot, parse } from "@/lib/middleware/utils";
+import { detectBot, getFinalUrl, parse } from "@/lib/middleware/utils";
 import { redis } from "@/lib/upstash";
 import { recordClick } from "@/lib/tinybird";
 import { REDIRECT_HEADERS } from "../constants";
@@ -13,7 +13,6 @@ export default async function LinkMiddleware(
   req: NextRequest,
   ev: NextFetchEvent,
 ) {
-  const url = req.nextUrl.clone();
   const { domain, fullKey: key } = parse(req);
 
   if (!domain || !key) {
@@ -46,15 +45,22 @@ export default async function LinkMiddleware(
       return NextResponse.rewrite(new URL(`/_proxy/${domain}/${key}`, req.url));
     } else if (ios && userAgent(req).os?.name === "iOS") {
       // redirect to iOS link if it is specified and the user is on an iOS device
-      return NextResponse.redirect(ios, REDIRECT_HEADERS);
+      return NextResponse.redirect(getFinalUrl(ios, { req }), REDIRECT_HEADERS);
     } else if (android && userAgent(req).os?.name === "Android") {
       // redirect to Android link if it is specified and the user is on an Android device
-      return NextResponse.redirect(android, REDIRECT_HEADERS);
+      return NextResponse.redirect(
+        getFinalUrl(android, { req }),
+        REDIRECT_HEADERS,
+      );
     } else {
-      return NextResponse.redirect(target, REDIRECT_HEADERS);
+      // regular redirect
+      return NextResponse.redirect(
+        getFinalUrl(target, { req }),
+        REDIRECT_HEADERS,
+      );
     }
   } else {
-    url.pathname = "/";
-    return NextResponse.redirect(url, REDIRECT_HEADERS);
+    // short link not found, redirect to root
+    return NextResponse.redirect(new URL("/", req.url), REDIRECT_HEADERS);
   }
 }

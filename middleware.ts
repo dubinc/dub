@@ -38,7 +38,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   }
 
   // for public stats pages (e.g. dub.sh/stats/github)
-  if (path.startsWith("/stats/")) {
+  if (key === "stats") {
     return NextResponse.rewrite(new URL(`/${domain}${path}`, req.url));
   }
 
