@@ -40,10 +40,7 @@ export default async function handler() {
         }}
       >
         <img
-          src={new URL(
-            "../../../public/_static/logotype.png",
-            import.meta.url,
-          ).toString()}
+          src="https://dub.sh/_static/logotype.png"
           style={{
             height: "40px",
             position: "absolute",

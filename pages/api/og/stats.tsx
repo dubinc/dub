@@ -50,17 +50,11 @@ export default async function handler(req: NextRequest) {
           flexDirection: "column",
           alignItems: "center",
           backgroundColor: "white",
-          backgroundImage: `url(${new URL(
-            "../../../public/_static/background.png",
-            import.meta.url,
-          ).toString()})`,
+          backgroundImage: `url(https://dub.sh/_static/background.png)`,
         }}
       >
         <img
-          src={new URL(
-            "../../../public/_static/logo.png",
-            import.meta.url,
-          ).toString()}
+          src="https://dub.sh/_static/logo.png"
           style={{
             width: "80px",
             height: "80px",
