@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { signIn } from "next-auth/react";
 import Meta from "@/components/layout/meta";
 import BlurImage from "#/ui/blur-image";
@@ -12,12 +12,16 @@ import { useRouter } from "next/router";
 
 export default function Login() {
   const router = useRouter();
-  const { next } = router.query as { next?: string };
+  const { next, error } = router.query as { next?: string; error?: string };
   const [showEmailOption, setShowEmailOption] = useState(false);
   const [noSuchAccount, setNoSuchAccount] = useState(false);
   const [email, setEmail] = useState("");
   const [clickedGoogle, setClickedGoogle] = useState(false);
   const [clickedEmail, setClickedEmail] = useState(false);
+
+  useEffect(() => {
+    error && toast.error(error);
+  }, [error]);
 
   return (
     <div className="flex h-screen w-screen justify-center">

@@ -23,8 +23,6 @@ export default function Head(): JSX.Element {
         />
         <MjmlStyle>{`
         .container {
-          border: solid 1px ${grayLight};
-          border-radius: 8px;
           background-position-y: 50%;
         }
         strong {
@@ -35,9 +33,10 @@ export default function Head(): JSX.Element {
         }
         .title > * {
           font-size: 24px !important;
+          font-weight: 600;
         }
         .subtitle > * {
-          font-size: 16px !important;
+          font-size: 18px !important;
           font-weight: 700;
         }
         .paragraph > * {
@@ -87,9 +86,6 @@ export default function Head(): JSX.Element {
         @media (prefers-color-scheme: dark) {
           body {
             background: ${black};
-          }
-          .container {
-            border: solid 1px ${grayDark};
           }
           .logo > * {
             filter: invert(1) !important;

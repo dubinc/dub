@@ -15,7 +15,7 @@ export default function Register() {
   const [clickedGoogle, setClickedGoogle] = useState(false);
 
   return (
-    <div className="flex h-screen w-screen justify-center bg-gray-50">
+    <div className="flex h-screen w-screen justify-center">
       <Meta title="Sign up for Dub" />
       <Background />
       <div className="z-10 mt-[calc(30vh)] h-fit w-full max-w-md overflow-hidden border border-gray-100 sm:rounded-2xl sm:shadow-xl">
