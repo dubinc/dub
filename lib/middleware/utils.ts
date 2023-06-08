@@ -13,10 +13,25 @@ export const parse = (req: NextRequest) => {
   const key = decodeURIComponent(path.split("/")[1]); // key is the first part of the path (e.g. dub.sh/stats/github -> stats)
   const fullKey = decodeURIComponent(path.slice(1)); // fullKey is the full path without the first slash (to account for multi-level subpaths, e.g. dub.sh/github/repo -> github/repo)
 
-  // query is the query string (e.g. dub.sh/github/repo?utm_source=twitter -> ?utm_source=twitter)
-  const query = req.nextUrl.search;
+  return { domain, path, key, fullKey };
+};
 
-  return { domain, path, key, fullKey, query };
+export const getFinalUrl = (target: string, { req }: { req: NextRequest }) => {
+  // query is the query string (e.g. dub.sh/github/repo?utm_source=twitter -> ?utm_source=twitter)
+  const searchParams = req.nextUrl.searchParams;
+
+  // get the query params of the target url
+  const targetUrl = new URL(target);
+
+  // if searchParams (type: `URLSearchParams`) has the same key as target url, then overwrite it
+  for (const [key, value] of searchParams) {
+    targetUrl.searchParams.set(key, value);
+  }
+
+  // construct final url
+  const finalUrl = targetUrl.toString();
+
+  return finalUrl;
 };
 
 export const detectBot = (req: NextRequest) => {
