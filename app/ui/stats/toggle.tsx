@@ -90,6 +90,7 @@ export default function Toggle() {
                     <Link
                       key={slug}
                       href={`${basePath}?interval=${slug}`}
+                      replace
                       className="flex w-full items-center justify-between space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
                     >
                       <p className="text-sm">{display}</p>
