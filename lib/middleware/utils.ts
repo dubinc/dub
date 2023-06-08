@@ -1,16 +1,22 @@
 import { NextRequest } from "next/server";
-import { HOME_HOSTNAMES } from "@/lib/constants";
 import { isHomeHostname } from "../utils";
 
 export const parse = (req: NextRequest) => {
   let domain = req.headers.get("host") as string;
   domain = domain.replace("www.", ""); // remove www. from domain
   if (isHomeHostname(domain)) domain = "dub.sh"; // if domain is a home hostname, set it to dub.sh
-  const path = req.nextUrl.pathname;
-  const key = decodeURIComponent(path.split("/")[1]); // decodeURIComponentto handle foreign languages like Hebrew
-  const fullKey = decodeURIComponent(path).slice(1);
 
-  return { domain, path, key, fullKey };
+  // path is the path of the URL (e.g. dub.sh/stats/github -> /stats/github)
+  const path = req.nextUrl.pathname;
+
+  // Here, we are using decodeURIComponent to handle foreign languages like Hebrew
+  const key = decodeURIComponent(path.split("/")[1]); // key is the first part of the path (e.g. dub.sh/stats/github -> stats)
+  const fullKey = decodeURIComponent(path.slice(1)); // fullKey is the full path without the first slash (to account for multi-level subpaths, e.g. dub.sh/github/repo -> github/repo)
+
+  // query is the query string (e.g. dub.sh/github/repo?utm_source=twitter -> ?utm_source=twitter)
+  const query = req.nextUrl.search;
+
+  return { domain, path, key, fullKey, query };
 };
 
 export const detectBot = (req: NextRequest) => {
