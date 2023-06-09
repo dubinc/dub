@@ -24,13 +24,13 @@ import { LoadingCircle } from "#/ui/icons";
 import Modal from "#/ui/modal";
 import Tooltip, { TooltipContent } from "#/ui/tooltip";
 import useProject from "#/lib/hooks/use-project";
-import { LinkProps } from "@/lib/types";
+import { LinkProps } from "#/lib/types";
 import {
   getApexDomain,
   getUrlWithoutUTMParams,
   linkConstructor,
   truncate,
-} from "@/lib/utils";
+} from "#/lib/utils";
 import ExpirationSection from "./expiration-section";
 import OGSection from "./og-section";
 import PasswordSection from "./password-section";
@@ -38,7 +38,7 @@ import UTMSection from "./utm-section";
 import IOSSection from "./ios-section";
 import Preview from "./preview";
 import AndroidSection from "./android-section";
-import { DEFAULT_LINK_PROPS, GOOGLE_FAVICON_URL } from "@/lib/constants";
+import { DEFAULT_LINK_PROPS, GOOGLE_FAVICON_URL } from "#/lib/constants";
 import useDomains from "#/lib/hooks/use-domains";
 import { toast } from "sonner";
 import va from "@vercel/analytics";

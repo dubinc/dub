@@ -8,7 +8,7 @@ import Logos from "#/ui/home/logos";
 import Pricing from "#/ui/home/pricing";
 import OSS from "#/ui/home/oss";
 import Testimonials from "#/ui/home/testimonials";
-import { constructMetadata } from "@/lib/utils";
+import { constructMetadata } from "#/lib/utils";
 
 export const metadata = constructMetadata({});
 

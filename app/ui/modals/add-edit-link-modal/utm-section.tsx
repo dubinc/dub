@@ -1,14 +1,14 @@
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
-import { LinkProps } from "@/lib/types";
+import { LinkProps } from "#/lib/types";
 import { motion } from "framer-motion";
 import {
   constructURLFromUTMParams,
   getParamsFromURL,
   paramsMetadata,
   getUrlWithoutUTMParams,
-} from "@/lib/utils";
+} from "#/lib/utils";
 import Switch from "#/ui/switch";
-import { FADE_IN_ANIMATION_SETTINGS } from "@/lib/constants";
+import { FADE_IN_ANIMATION_SETTINGS } from "#/lib/constants";
 
 export default function UTMSection({
   props,

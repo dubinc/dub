@@ -1,6 +1,6 @@
 import { randomBadgeColor } from "@/components/app/links/tag-badge";
-import { withLinksAuth } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { withLinksAuth } from "#/lib/auth";
+import prisma from "#/lib/prisma";
 
 export default withLinksAuth(async (req, res, _session, project, domain) => {
   const { key } = req.query as { key: string };

@@ -1,6 +1,6 @@
-import { deleteUserLinks } from "@/lib/api/links";
-import { withUserAuth } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { deleteUserLinks } from "#/lib/api/links";
+import { withUserAuth } from "#/lib/auth";
+import prisma from "#/lib/prisma";
 
 export default withUserAuth(async (req, res, session) => {
   // PUT /api/user – edit a specific user

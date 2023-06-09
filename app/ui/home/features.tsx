@@ -12,7 +12,7 @@ import {
 } from "#/ui/accordion";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLinkQRModal } from "#/ui/modals/link-qr-modal";
-import { DEFAULT_LINK_PROPS } from "@/lib/constants";
+import { DEFAULT_LINK_PROPS } from "#/lib/constants";
 import { useAddEditLinkModal } from "#/ui/modals/add-edit-link-modal";
 import { Link2 } from "lucide-react";
 

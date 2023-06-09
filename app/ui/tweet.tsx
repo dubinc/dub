@@ -1,7 +1,7 @@
 "use client";
 
 import BlurImage from "#/ui/blur-image";
-import { nFormatter, truncate } from "@/lib/utils";
+import { nFormatter, truncate } from "#/lib/utils";
 import { Heart, Message, Repeat, Twitter } from "@/components/shared/icons";
 import Tilt from "react-parallax-tilt";
 

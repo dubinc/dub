@@ -8,10 +8,9 @@
     "paths": {
       "@/components/*": ["components/*"],
       "@/pages/*": ["pages/*"],
-      "@/lib/*": ["lib/*"],
       "@/styles/*": ["styles/*"],
       "#/ui/*": ["app/ui/*"],
-      "#/lib/*": ["app/lib/*"],
+      "#/lib/*": ["lib/*"],
       "contentlayer/generated": ["./.contentlayer/generated"]
     },
     "downlevelIteration": true,
@@ -32,6 +31,12 @@
       }
     ]
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".contentlayer/generated"
+  ],
   "exclude": ["node_modules"]
 }

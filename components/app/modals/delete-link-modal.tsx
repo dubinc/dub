@@ -9,10 +9,10 @@ import {
 import { mutate } from "swr";
 import BlurImage from "#/ui/blur-image";
 import Modal from "@/components/shared/modal";
-import { LinkProps } from "@/lib/types";
-import { getApexDomain, getQueryString, linkConstructor } from "@/lib/utils";
+import { LinkProps } from "#/lib/types";
+import { getApexDomain, getQueryString, linkConstructor } from "#/lib/utils";
 import { toast } from "sonner";
-import { GOOGLE_FAVICON_URL } from "@/lib/constants";
+import { GOOGLE_FAVICON_URL } from "#/lib/constants";
 import Button from "#/ui/button";
 
 function DeleteLinkModal({

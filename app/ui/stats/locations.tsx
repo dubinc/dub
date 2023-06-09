@@ -1,12 +1,12 @@
 import { useContext, useState } from "react";
 import { motion } from "framer-motion";
 import TabSelect from "@/components/shared/tab-select";
-import { COUNTRIES } from "@/lib/constants";
-import { LocationTabs } from "@/lib/stats";
-import { nFormatter } from "@/lib/utils";
+import { COUNTRIES } from "#/lib/constants";
+import { LocationTabs } from "#/lib/stats";
+import { nFormatter } from "#/lib/utils";
 import { LoadingCircle } from "#/ui/icons";
 import useSWR from "swr";
-import { fetcher } from "@/lib/utils";
+import { fetcher } from "#/lib/utils";
 import { StatsContext } from ".";
 
 export default function Locations() {

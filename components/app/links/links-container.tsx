@@ -4,7 +4,7 @@ import LinkCardPlaceholder from "./link-card-placeholder";
 import LinkFilters from "./link-filters";
 import NoLinksPlaceholder from "./no-links-placeholder";
 import LinkSort from "./link-sort";
-import useLinks from "@/lib/swr/use-links";
+import useLinks from "#/lib/swr/use-links";
 import { useLinkFiltersModal } from "../modals/link-filters-modal";
 
 export default function LinksContainer({

@@ -8,17 +8,17 @@ import {
   Tick,
 } from "@/components/shared/icons";
 import { ExpandingArrow } from "#/ui/icons";
-import { INTERVALS } from "@/lib/stats";
+import { INTERVALS } from "#/lib/stats";
 import useScroll from "#/lib/hooks/use-scroll";
-import { linkConstructor } from "@/lib/utils";
+import { linkConstructor } from "#/lib/utils";
 import IconMenu from "@/components/shared/icon-menu";
 import Popover from "@/components/shared/popover";
 import useSWR, { mutate } from "swr";
-import { fetcher } from "@/lib/utils";
+import { fetcher } from "#/lib/utils";
 import { toast } from "sonner";
 import Switch from "#/ui/switch";
 import { StatsContext } from ".";
-import useProject from "@/lib/swr/use-project";
+import useProject from "#/lib/swr/use-project";
 import Tooltip, { TooltipContent } from "#/ui/tooltip";
 import { ModalContext } from "#/ui/modal-provider";
 import { Lock } from "lucide-react";

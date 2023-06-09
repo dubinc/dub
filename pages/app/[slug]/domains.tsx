@@ -1,9 +1,9 @@
 import { useAddEditDomainModal } from "@/components/app/modals/add-edit-domain-modal";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import AppLayout from "components/layout/app";
-import useProject from "@/lib/swr/use-project";
+import useProject from "#/lib/swr/use-project";
 import DomainCard from "@/components/app/domains/domain-card";
-import useDomains from "@/lib/swr/use-domains";
+import useDomains from "#/lib/swr/use-domains";
 import DomainCardPlaceholder from "@/components/app/domains/domain-card-placeholder";
 import NoDomainsPlaceholder from "@/components/app/domains/no-domains-placeholder";
 

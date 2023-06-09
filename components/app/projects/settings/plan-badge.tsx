@@ -1,5 +1,5 @@
 import Badge from "#/ui/badge";
-import { PlanProps } from "@/lib/types";
+import { PlanProps } from "#/lib/types";
 
 export default function PlanBadge({ plan }: { plan: PlanProps }) {
   return (

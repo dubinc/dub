@@ -1,5 +1,5 @@
-import { TagColorProps } from "@/lib/types";
-import { truncate } from "@/lib/utils";
+import { TagColorProps } from "#/lib/types";
+import { truncate } from "#/lib/utils";
 import clsx from "clsx";
 import { Tag } from "lucide-react";
 

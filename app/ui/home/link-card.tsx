@@ -13,14 +13,14 @@ import {
   DEFAULT_LINK_PROPS,
   FRAMER_MOTION_LIST_ITEM_VARIANTS,
   GOOGLE_FAVICON_URL,
-} from "@/lib/constants";
-import { SimpleLinkProps } from "@/lib/types";
+} from "#/lib/constants";
+import { SimpleLinkProps } from "#/lib/types";
 import {
   fetcher,
   getApexDomain,
   linkConstructor,
   nFormatter,
-} from "@/lib/utils";
+} from "#/lib/utils";
 
 export default function LinkCard({
   _key: key,

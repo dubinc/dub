@@ -3,7 +3,10 @@ import remarkGfm from "remark-gfm";
 import rehypePrettyCode from "rehype-pretty-code";
 import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
-import { capitalize } from "./lib/utils";
+
+const capitalize = (str: string) => {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+};
 
 export const ChangelogPost = defineDocumentType(() => ({
   name: "ChangelogPost",
