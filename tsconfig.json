@@ -11,7 +11,7 @@
       "@/styles/*": ["styles/*"],
       "#/ui/*": ["app/ui/*"],
       "#/lib/*": ["lib/*"],
-      "contentlayer/generated": ["./.contentlayer/generated"]
+      "contentlayer/generated": [".contentlayer/generated"]
     },
     "downlevelIteration": true,
     "forceConsistentCasingInFileNames": true,
