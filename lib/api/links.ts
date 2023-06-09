@@ -1,15 +1,15 @@
 import cloudinary from "cloudinary";
-import { DEFAULT_REDIRECTS } from "@/lib/constants";
-import prisma from "@/lib/prisma";
-import { LinkProps } from "@/lib/types";
-import { redis } from "@/lib/upstash";
+import { DEFAULT_REDIRECTS } from "#/lib/constants";
+import prisma from "#/lib/prisma";
+import { LinkProps } from "#/lib/types";
+import { redis } from "#/lib/upstash";
 import {
   getParamsFromURL,
   isReservedKey,
   nanoid,
   truncate,
   validKeyRegex,
-} from "@/lib/utils";
+} from "#/lib/utils";
 import { NextApiRequest } from "next";
 
 export async function getLinksForProject({

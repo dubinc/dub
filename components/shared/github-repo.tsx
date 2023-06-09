@@ -1,4 +1,4 @@
-import { nFormatter } from "@/lib/utils";
+import { nFormatter } from "#/lib/utils";
 import { GitFork, Star } from "lucide-react";
 import { Github } from "./icons";
 

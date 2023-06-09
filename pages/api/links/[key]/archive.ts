@@ -1,5 +1,5 @@
-import { archiveLink } from "@/lib/api/links";
-import { withLinksAuth } from "@/lib/auth";
+import { archiveLink } from "#/lib/api/links";
+import { withLinksAuth } from "#/lib/auth";
 
 export default withLinksAuth(async (req, res, _session, _project, domain) => {
   const { key } = req.query as { key: string };

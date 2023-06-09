@@ -1,5 +1,5 @@
-import { withProjectAuth } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { withProjectAuth } from "#/lib/auth";
+import prisma from "#/lib/prisma";
 import sendMail from "emails";
 import ProjectInvite from "emails/ProjectInvite";
 import { randomBytes, createHash } from "crypto";

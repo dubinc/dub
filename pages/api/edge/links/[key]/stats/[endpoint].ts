@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
-import { getStats } from "@/lib/stats";
-import { getLinkViaEdge } from "@/lib/planetscale";
-import { isHomeHostname } from "@/lib/utils";
+import { getStats } from "#/lib/stats";
+import { getLinkViaEdge } from "#/lib/planetscale";
+import { isHomeHostname } from "#/lib/utils";
 
 export const config = {
   runtime: "edge",

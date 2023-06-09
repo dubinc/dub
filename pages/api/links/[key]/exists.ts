@@ -1,5 +1,5 @@
-import { withLinksAuth } from "@/lib/auth";
-import { checkIfKeyExists } from "@/lib/api/links";
+import { withLinksAuth } from "#/lib/auth";
+import { checkIfKeyExists } from "#/lib/api/links";
 
 export default withLinksAuth(
   async (req, res, _session, _project, domain) => {

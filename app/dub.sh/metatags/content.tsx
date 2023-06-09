@@ -5,7 +5,7 @@ import { useDebounce } from "use-debounce";
 import useSWR from "swr";
 import { Copy, Photo, Tick } from "@/components/shared/icons";
 import { LoadingCircle } from "#/ui/icons";
-import { fetcher, getDomainWithoutWWW, getUrlFromString } from "@/lib/utils";
+import { fetcher, getDomainWithoutWWW, getUrlFromString } from "#/lib/utils";
 import { toast } from "sonner";
 
 export default function MetatagsContent() {

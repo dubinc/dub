@@ -9,9 +9,9 @@ import { motion } from "framer-motion";
 import TextareaAutosize from "react-textarea-autosize";
 import { UploadCloud } from "@/components/shared/icons";
 import { LoadingCircle } from "#/ui/icons";
-import { LinkProps } from "@/lib/types";
+import { LinkProps } from "#/lib/types";
 import Switch from "#/ui/switch";
-import { FADE_IN_ANIMATION_SETTINGS } from "@/lib/constants";
+import { FADE_IN_ANIMATION_SETTINGS } from "#/lib/constants";
 
 export default function OGSection({
   props,

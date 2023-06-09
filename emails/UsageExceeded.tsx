@@ -6,14 +6,14 @@ import {
   MjmlText,
   MjmlWrapper,
 } from "mjml-react";
-import { capitalize, nFormatter } from "@/lib/utils";
+import { capitalize, nFormatter } from "#/lib/utils";
 import ButtonPrimary from "./components/ButtonPrimary";
 import Divider from "./components/Divider";
 import Footer from "./components/Footer";
 import Head from "./components/Head";
 import Header from "./components/Header";
 import { grayDark } from "./components/theme";
-import { ProjectProps } from "@/lib/types";
+import { ProjectProps } from "#/lib/types";
 
 export default function UsageExceeded({
   project,

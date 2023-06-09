@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
-import { setRandomKey } from "@/lib/upstash";
-import { isBlacklistedDomain } from "@/lib/utils";
+import { setRandomKey } from "#/lib/upstash";
+import { isBlacklistedDomain } from "#/lib/utils";
 
 export const config = {
   runtime: "edge",

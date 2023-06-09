@@ -1,4 +1,4 @@
-import prisma from "@/lib/prisma";
+import prisma from "#/lib/prisma";
 import PlaceholderContent from "./placeholder";
 
 export async function generateMetadata({

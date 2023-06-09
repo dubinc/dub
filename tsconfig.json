@@ -10,7 +10,7 @@
       "@/pages/*": ["pages/*"],
       "@/styles/*": ["styles/*"],
       "#/ui/*": ["app/ui/*"],
-      "@/lib/*": ["lib/*"],
+      "#/lib/*": ["lib/*"],
       "contentlayer/generated": ["./.contentlayer/generated"]
     },
     "downlevelIteration": true,

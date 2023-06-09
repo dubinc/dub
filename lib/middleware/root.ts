@@ -1,6 +1,6 @@
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
-import { redis } from "@/lib/upstash";
-import { recordClick } from "@/lib/tinybird";
+import { redis } from "#/lib/upstash";
+import { recordClick } from "#/lib/tinybird";
 import { parse } from "./utils";
 import { RootDomainProps } from "../types";
 import { isHomeHostname } from "../utils";

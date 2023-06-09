@@ -1,5 +1,5 @@
-import { withProjectAuth } from "@/lib/auth";
-import { domainExists } from "@/lib/api/domains";
+import { withProjectAuth } from "#/lib/auth";
+import { domainExists } from "#/lib/api/domains";
 
 export default withProjectAuth(async (req, res, project) => {
   const { domain } = req.query as { domain: string };

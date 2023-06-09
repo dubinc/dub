@@ -7,9 +7,9 @@ import PlaceholderCard from "#/ui/home/placeholder-card";
 import { LoadingDots } from "#/ui/icons";
 import { Link2 } from "lucide-react";
 import Tooltip, { TooltipContent } from "#/ui/tooltip";
-import { FRAMER_MOTION_LIST_ITEM_VARIANTS } from "@/lib/constants";
-import useLocalStorage from "@/lib/hooks/use-local-storage";
-import { SimpleLinkProps } from "@/lib/types";
+import { FRAMER_MOTION_LIST_ITEM_VARIANTS } from "#/lib/constants";
+import useLocalStorage from "#/lib/hooks/use-local-storage";
+import { SimpleLinkProps } from "#/lib/types";
 import { toast } from "sonner";
 
 const Demo = () => {

@@ -5,14 +5,14 @@ import { GridRows } from "@visx/grid";
 import { scaleBand, scaleLinear } from "@visx/scale";
 import { useTooltip, useTooltipInPortal } from "@visx/tooltip";
 import { motion } from "framer-motion";
-import { intervalData } from "@/lib/stats";
-import { nFormatter } from "@/lib/utils";
+import { intervalData } from "#/lib/stats";
+import { nFormatter } from "#/lib/utils";
 import styles from "./bar-chart.module.css";
 import useSWR from "swr";
-import { fetcher } from "@/lib/utils";
+import { fetcher } from "#/lib/utils";
 import { LoadingCircle } from "#/ui/icons";
 import { StatsContext } from ".";
-import useWindowSize from "@/lib/hooks/use-window-size";
+import useWindowSize from "#/lib/hooks/use-window-size";
 
 const LEFT_AXIS_WIDTH = 30;
 const CHART_MAX_HEIGHT = 400;

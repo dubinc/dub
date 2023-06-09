@@ -1,13 +1,13 @@
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
-import { APP_HOSTNAMES, DEFAULT_REDIRECTS } from "@/lib/constants";
+import { APP_HOSTNAMES, DEFAULT_REDIRECTS } from "#/lib/constants";
 import {
   AppMiddleware,
   ApiMiddleware,
   LinkMiddleware,
   RootMiddleware,
-} from "@/lib/middleware";
-import { parse } from "@/lib/middleware/utils";
-import { isReservedKey } from "@/lib/utils";
+} from "#/lib/middleware";
+import { parse } from "#/lib/middleware/utils";
+import { isReservedKey } from "#/lib/utils";
 
 export const config = {
   matcher: [
