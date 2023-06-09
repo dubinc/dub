@@ -8,10 +8,9 @@
     "paths": {
       "@/components/*": ["components/*"],
       "@/pages/*": ["pages/*"],
-      "@/lib/*": ["lib/*"],
       "@/styles/*": ["styles/*"],
       "#/ui/*": ["app/ui/*"],
-      "#/lib/*": ["app/lib/*"],
+      "#/lib/*": ["lib/*"],
       "contentlayer/generated": ["./.contentlayer/generated"]
     },
     "downlevelIteration": true,

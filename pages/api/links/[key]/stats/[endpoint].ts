@@ -1,5 +1,5 @@
-import { withLinksAuth } from "@/lib/auth";
-import { getStats, IntervalProps } from "@/lib/stats";
+import { withLinksAuth } from "#/lib/auth";
+import { getStats, IntervalProps } from "#/lib/stats";
 
 export default withLinksAuth(
   async (req, res, _session, project, domain, link) => {

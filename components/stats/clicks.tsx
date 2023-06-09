@@ -1,9 +1,9 @@
 import { Chart } from "@/components/shared/icons";
 import BarChart from "@/components/stats/bar-chart";
-import { nFormatter } from "@/lib/utils";
+import { nFormatter } from "#/lib/utils";
 import { useRouter } from "next/router";
 import useSWR from "swr";
-import { fetcher } from "@/lib/utils";
+import { fetcher } from "#/lib/utils";
 import { useContext } from "react";
 import { StatsContext } from ".";
 

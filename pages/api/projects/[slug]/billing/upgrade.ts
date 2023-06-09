@@ -1,5 +1,5 @@
-import { withProjectAuth } from "@/lib/auth";
-import { stripe } from "@/lib/stripe";
+import { withProjectAuth } from "#/lib/auth";
+import { stripe } from "#/lib/stripe";
 
 export default withProjectAuth(async (req, res, project, session) => {
   // POST /api/projects/[slug]/billing/upgrade – upgrade a project from free to pro

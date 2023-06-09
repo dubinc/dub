@@ -1,7 +1,7 @@
 import sendMail from "emails";
 import UsageExceeded from "emails/UsageExceeded";
-import prisma from "@/lib/prisma";
-import { log } from "@/lib/utils";
+import prisma from "#/lib/prisma";
+import { log } from "#/lib/utils";
 import { ProjectProps } from "../types";
 
 export const updateUsage = async () => {

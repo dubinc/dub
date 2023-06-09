@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import useSWR from "swr";
-import { LinkProps } from "@/lib/types";
-import { fetcher, getQueryString } from "@/lib/utils";
+import { LinkProps } from "#/lib/types";
+import { fetcher, getQueryString } from "#/lib/utils";
 
 export default function useLinks() {
   const router = useRouter();

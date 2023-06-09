@@ -9,9 +9,9 @@ import {
 import { mutate } from "swr";
 import BlurImage from "#/ui/blur-image";
 import Modal from "@/components/shared/modal";
-import { LinkProps } from "@/lib/types";
-import { getApexDomain, getQueryString, linkConstructor } from "@/lib/utils";
-import { GOOGLE_FAVICON_URL } from "@/lib/constants";
+import { LinkProps } from "#/lib/types";
+import { getApexDomain, getQueryString, linkConstructor } from "#/lib/utils";
+import { GOOGLE_FAVICON_URL } from "#/lib/constants";
 import { toast } from "sonner";
 import Button from "#/ui/button";
 

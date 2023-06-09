@@ -10,7 +10,7 @@ module.exports = {
     "^(react/(.*)$)|^(react$)",
     "<THIRD_PARTY_MODULES>",
     "^@/components/(.*)$|^components/(.*)$",
-    "^@/lib/(.*)$",
+    "^#/lib/(.*)$",
     "^@/styles/(.*)$",
     "^[./]",
   ],

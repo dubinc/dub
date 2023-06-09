@@ -1,5 +1,5 @@
-import { withLinksAuth } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { withLinksAuth } from "#/lib/auth";
+import prisma from "#/lib/prisma";
 
 export default withLinksAuth(async (req, res, _session, _project, domain) => {
   const { key } = req.query as {

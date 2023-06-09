@@ -1,7 +1,7 @@
 import { unstable_cache } from "next/cache";
-import prisma from "@/lib/prisma";
+import prisma from "#/lib/prisma";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
-import { nFormatter } from "@/lib/utils";
+import { nFormatter } from "#/lib/utils";
 
 export default async function Stats() {
   const [domains, shortlinks] = await unstable_cache(

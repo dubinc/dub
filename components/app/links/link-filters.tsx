@@ -7,23 +7,23 @@ import {
   useRef,
   useState,
 } from "react";
-import { nFormatter, setQueryString } from "@/lib/utils";
+import { nFormatter, setQueryString } from "#/lib/utils";
 import { ChevronRight, XCircle, Search } from "lucide-react";
-import useDomains from "@/lib/swr/use-domains";
+import useDomains from "#/lib/swr/use-domains";
 import { AnimatePresence, motion } from "framer-motion";
-import { SWIPE_REVEAL_ANIMATION_SETTINGS } from "@/lib/constants";
+import { SWIPE_REVEAL_ANIMATION_SETTINGS } from "#/lib/constants";
 import { useDebouncedCallback } from "use-debounce";
-import useLinks from "@/lib/swr/use-links";
+import useLinks from "#/lib/swr/use-links";
 import { LoadingSpinner } from "#/ui/icons";
-import useLinksCount from "@/lib/swr/use-links-count";
+import useLinksCount from "#/lib/swr/use-links-count";
 import punycode from "punycode/";
 import Switch from "#/ui/switch";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { ModalContext } from "#/ui/modal-provider";
-import useTags from "@/lib/swr/use-tags";
+import useTags from "#/lib/swr/use-tags";
 import TagBadge from "@/components/app/links/tag-badge";
-import { TagProps } from "@/lib/types";
+import { TagProps } from "#/lib/types";
 import Badge from "#/ui/badge";
 
 export default function LinkFilters() {

@@ -4,9 +4,9 @@ import {
   NextResponse,
   userAgent,
 } from "next/server";
-import { detectBot, getFinalUrl, parse } from "@/lib/middleware/utils";
-import { redis } from "@/lib/upstash";
-import { recordClick } from "@/lib/tinybird";
+import { detectBot, getFinalUrl, parse } from "#/lib/middleware/utils";
+import { redis } from "#/lib/upstash";
+import { recordClick } from "#/lib/tinybird";
 import { REDIRECT_HEADERS } from "../constants";
 
 export default async function LinkMiddleware(

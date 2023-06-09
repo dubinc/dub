@@ -3,11 +3,11 @@ import { useRouter } from "next/router";
 import { motion } from "framer-motion";
 import TabSelect from "@/components/shared/tab-select";
 import { LoadingCircle } from "#/ui/icons";
-import { DeviceTabs, uaToBot } from "@/lib/stats";
-import { nFormatter } from "@/lib/utils";
+import { DeviceTabs, uaToBot } from "#/lib/stats";
+import { nFormatter } from "#/lib/utils";
 import DeviceIcon from "./device-icon";
 import useSWR from "swr";
-import { fetcher } from "@/lib/utils";
+import { fetcher } from "#/lib/utils";
 import { StatsContext } from ".";
 
 export default function Devices() {

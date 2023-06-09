@@ -8,8 +8,8 @@ import {
   XCircleFill,
 } from "@/components/shared/icons";
 import { LoadingCircle, LoadingDots } from "#/ui/icons";
-import { DomainProps, DomainVerificationStatusProps } from "@/lib/types";
-import { capitalize, fetcher, nFormatter, truncate } from "@/lib/utils";
+import { DomainProps, DomainVerificationStatusProps } from "#/lib/types";
+import { capitalize, fetcher, nFormatter, truncate } from "#/lib/utils";
 import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
 import DomainConfiguration from "./domain-configuration";
 import Link from "next/link";

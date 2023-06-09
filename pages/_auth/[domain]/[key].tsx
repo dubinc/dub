@@ -4,7 +4,7 @@ import { useState } from "react";
 import BlurImage from "#/ui/blur-image";
 import { AlertCircleFill } from "@/components/shared/icons";
 import { LoadingDots } from "#/ui/icons";
-import { FAVICON_FOLDER } from "@/lib/constants";
+import { FAVICON_FOLDER } from "#/lib/constants";
 
 const title = "Password Required";
 const description =

@@ -2,10 +2,10 @@ import { motion } from "framer-motion";
 import BlurImage from "#/ui/blur-image";
 import { Link2 } from "lucide-react";
 import { LoadingCircle } from "#/ui/icons";
-import { nFormatter } from "@/lib/utils";
+import { nFormatter } from "#/lib/utils";
 import useSWR from "swr";
-import { fetcher } from "@/lib/utils";
-import { GOOGLE_FAVICON_URL } from "@/lib/constants";
+import { fetcher } from "#/lib/utils";
+import { GOOGLE_FAVICON_URL } from "#/lib/constants";
 import { StatsContext } from ".";
 import { useContext } from "react";
 
