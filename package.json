@@ -2,7 +2,7 @@
   "private": true,
   "license": "AGPL-3.0-or-later",
   "scripts": {
-    "dev": "concurrently \"next dev\" \"prisma studio --browser none\" \"mailing\"",
+    "dev": "concurrently \"next dev\" \"prisma studio --browser none\" \"mailing\" \"inngest-cli dev\"",
     "build": "next build",
     "format:write": "prettier --write \"**/*.{css,js,json,jsx,ts,tsx}\"",
     "format": "prettier \"**/*.{css,js,json,jsx,ts,tsx}\"",
@@ -51,6 +51,7 @@
     "framer-motion": "^10.12.12",
     "html-escaper": "^3.0.3",
     "i": "^0.3.7",
+    "inngest": "^2.0.0",
     "js-cookie": "^3.0.5",
     "lucide-react": "^0.192.0",
     "mailing-core": "^0.9.1",
@@ -85,7 +86,6 @@
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^4.0.0",
-    "@types/he": "^1.1.2",
     "@types/html-escaper": "^3.0.0",
     "@types/ms": "^0.7.31",
     "@types/node": "18.11.9",
@@ -94,6 +94,7 @@
     "@types/topojson-client": "^3.1.1",
     "array-to-ndjson": "^1.0.1",
     "autoprefixer": "^10.4.13",
+    "inngest-cli": "^0.13.8",
     "mailing": "^0.9.1",
     "postcss": "^8.4.19",
     "prettier": "^2.8.0",
