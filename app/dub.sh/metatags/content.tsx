@@ -7,9 +7,12 @@ import { Copy, Photo, Tick } from "@/components/shared/icons";
 import { LoadingCircle } from "#/ui/icons";
 import { fetcher, getDomainWithoutWWW, getUrlFromString } from "#/lib/utils";
 import { toast } from "sonner";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function MetatagsContent() {
-  const [url, setUrl] = useState("https://github.com/steven-tey/dub");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const url = searchParams?.get("url") || "https://github.com/steven-tey/dub";
   const [debouncedUrl] = useDebounce(getUrlFromString(url), 500);
   const hostname = useMemo(() => {
     return getDomainWithoutWWW(debouncedUrl || "");
@@ -35,8 +38,14 @@ export default function MetatagsContent() {
           type="url"
           className="block w-full rounded-md border-gray-300 text-sm text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500"
           placeholder="Enter your URL"
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
+          defaultValue={url}
+          onChange={(e) =>
+            router.replace(
+              `/metatags${
+                e.target.value.length > 0 ? `?url=${e.target.value}` : ""
+              }`,
+            )
+          }
           aria-invalid="true"
         />
       </div>
