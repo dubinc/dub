@@ -4,10 +4,10 @@ import { useSession } from "next-auth/react";
 import BlurImage from "#/ui/blur-image";
 import { ChevronUpDown, PlusCircle, Tick } from "@/components/shared/icons";
 import Popover from "@/components/shared/popover";
-import { PlanProps, ProjectWithDomainProps } from "#/lib/types";
-import useProjects from "#/lib/swr/use-projects";
+import { PlanProps, ProjectWithDomainProps } from "@/lib/types";
+import useProjects from "@/lib/swr/use-projects";
 import PlanBadge from "@/components/app/projects/settings/plan-badge";
-import { GOOGLE_FAVICON_URL } from "#/lib/constants";
+import { GOOGLE_FAVICON_URL } from "@/lib/constants";
 import { ModalContext } from "#/ui/modal-provider";
 import Link from "next/link";
 

@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 import BlurImage from "#/ui/blur-image";
 import Modal from "@/components/shared/modal";
-import useProject from "#/lib/swr/use-project";
+import useProject from "@/lib/swr/use-project";
 import Button from "#/ui/button";
 
 function DeleteProjectModal({

@@ -1,6 +1,6 @@
 import { LegalPost } from "contentlayer/generated";
 import { MDX } from "#/ui/blog/mdx";
-import { formatDate } from "#/lib/utils";
+import { formatDate } from "@/lib/utils";
 
 export default function LegalPage({ post }: { post: LegalPost }) {
   return (

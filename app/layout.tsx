@@ -2,7 +2,7 @@ import "@/styles/globals.css";
 import { satoshi, inter } from "@/styles/fonts";
 import { Analytics } from "@vercel/analytics/react";
 import clsx from "clsx";
-import { constructMetadata } from "#/lib/utils";
+import { constructMetadata } from "@/lib/utils";
 
 export const metadata = constructMetadata({});
 

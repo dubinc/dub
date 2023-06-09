@@ -11,7 +11,7 @@ import BlurImage from "#/ui/blur-image";
 import Button from "./button";
 import Script from "next/script";
 import { ExternalLink, Globe, GlobeIcon } from "lucide-react";
-import { DomainProps } from "#/lib/types";
+import { DomainProps } from "@/lib/types";
 import { CheckCircleFill, XCircleFill } from "@/components/shared/icons";
 
 export default function Tooltip({

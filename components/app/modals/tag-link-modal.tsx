@@ -12,14 +12,14 @@ import {
 import { mutate } from "swr";
 import BlurImage from "#/ui/blur-image";
 import Modal from "@/components/shared/modal";
-import { LinkProps, TagProps } from "#/lib/types";
-import { getApexDomain, getQueryString, linkConstructor } from "#/lib/utils";
-import { GOOGLE_FAVICON_URL } from "#/lib/constants";
+import { LinkProps, TagProps } from "@/lib/types";
+import { getApexDomain, getQueryString, linkConstructor } from "@/lib/utils";
+import { GOOGLE_FAVICON_URL } from "@/lib/constants";
 import { toast } from "sonner";
 import { Check, ChevronDown, Search, Trash, X } from "lucide-react";
 import { Command } from "cmdk";
 import Button from "#/ui/button";
-import useTags from "#/lib/swr/use-tags";
+import useTags from "@/lib/swr/use-tags";
 import TagBadge, { COLORS_LIST } from "@/components/app/links/tag-badge";
 import va from "@vercel/analytics";
 import { ThreeDots } from "@/components/shared/icons";

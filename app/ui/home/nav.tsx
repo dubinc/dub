@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useParams, useSelectedLayoutSegment } from "next/navigation";
-import useScroll from "#/lib/hooks/use-scroll";
+import useScroll from "@/lib/hooks/use-scroll";
 import clsx from "clsx";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 

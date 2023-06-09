@@ -1,8 +1,8 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { withUserAuth } from "#/lib/auth";
-import { DEFAULT_REDIRECTS } from "#/lib/constants";
-import prisma from "#/lib/prisma";
-import { isReservedKey } from "#/lib/utils";
+import { withUserAuth } from "@/lib/auth";
+import { DEFAULT_REDIRECTS } from "@/lib/constants";
+import prisma from "@/lib/prisma";
+import { isReservedKey } from "@/lib/utils";
 
 export default withUserAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {

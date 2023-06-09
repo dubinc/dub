@@ -7,19 +7,19 @@ import {
   Tick,
 } from "@/components/shared/icons";
 import { ExpandingArrow } from "#/ui/icons";
-import { INTERVALS } from "#/lib/stats";
-import { linkConstructor } from "#/lib/utils";
+import { INTERVALS } from "@/lib/stats";
+import { linkConstructor } from "@/lib/utils";
 import IconMenu from "@/components/shared/icon-menu";
 import Popover from "#/ui/popover";
 import useSWR, { mutate } from "swr";
-import { fetcher } from "#/lib/utils";
+import { fetcher } from "@/lib/utils";
 import { toast } from "sonner";
 import Switch from "#/ui/switch";
 import Link from "next/link";
 import { StatsContext } from ".";
-import useScroll from "#/lib/hooks/use-scroll";
+import useScroll from "@/lib/hooks/use-scroll";
 import Tooltip, { TooltipContent } from "../tooltip";
-import useProject from "#/lib/hooks/use-project";
+import useProject from "@/lib/hooks/use-project";
 import { useParams } from "next/navigation";
 import { Lock } from "lucide-react";
 

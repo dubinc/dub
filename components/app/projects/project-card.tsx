@@ -3,11 +3,11 @@ import useSWR from "swr";
 import BlurImage from "#/ui/blur-image";
 import { CheckCircleFill, XCircleFill } from "@/components/shared/icons";
 import Tooltip, { DomainsTooltip, TooltipContent } from "#/ui/tooltip";
-import { ProjectWithDomainProps } from "#/lib/types";
-import { fetcher, nFormatter } from "#/lib/utils";
+import { ProjectWithDomainProps } from "@/lib/types";
+import { fetcher, nFormatter } from "@/lib/utils";
 import { BarChart2, Globe, Link2 } from "lucide-react";
 import PlanBadge from "./settings/plan-badge";
-import { GOOGLE_FAVICON_URL } from "#/lib/constants";
+import { GOOGLE_FAVICON_URL } from "@/lib/constants";
 import Badge from "#/ui/badge";
 
 export default function ProjectCard({

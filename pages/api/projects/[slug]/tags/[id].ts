@@ -1,5 +1,5 @@
-import { withProjectAuth } from "#/lib/auth";
-import prisma from "#/lib/prisma";
+import { withProjectAuth } from "@/lib/auth";
+import prisma from "@/lib/prisma";
 
 export default withProjectAuth(async (req, res) => {
   const { id } = req.query as { id: string };

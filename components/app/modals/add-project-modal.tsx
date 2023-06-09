@@ -13,7 +13,7 @@ import { useDebounce } from "use-debounce";
 import BlurImage from "#/ui/blur-image";
 import { AlertCircleFill } from "@/components/shared/icons";
 import Modal from "@/components/shared/modal";
-import { generateDomainFromName } from "#/lib/utils";
+import { generateDomainFromName } from "@/lib/utils";
 import va from "@vercel/analytics";
 import Button from "#/ui/button";
 import { toast } from "sonner";

@@ -1,6 +1,6 @@
 import { ImageResponse, NextRequest } from "next/server";
 import { allChangelogPosts } from "contentlayer/generated";
-import { formatDate } from "#/lib/utils";
+import { formatDate } from "@/lib/utils";
 
 export const runtime = "edge";
 export const contentType = "image/png";

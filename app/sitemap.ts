@@ -1,4 +1,4 @@
-import prisma from "#/lib/prisma";
+import prisma from "@/lib/prisma";
 import { allChangelogPosts, allLegalPosts } from "contentlayer/generated";
 
 export default async function Sitemap() {

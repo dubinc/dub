@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation";
-import { getLinkViaEdge } from "#/lib/planetscale";
+import { getLinkViaEdge } from "@/lib/planetscale";
 import Stats from "#/ui/stats";
 import { Suspense } from "react";
 import { Metadata } from "next";
-import { constructMetadata } from "#/lib/utils";
+import { constructMetadata } from "@/lib/utils";
 
 export const runtime = "edge";
 

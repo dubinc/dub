@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { constructMetadata } from "#/lib/utils";
+import { constructMetadata } from "@/lib/utils";
 import LegalPage from "#/ui/blog/legal";
 import { allLegalPosts } from "contentlayer/generated";
 

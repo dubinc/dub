@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import sendMail from "emails";
 import FeedbackEmail from "emails/FeedbackEmail";
-import { ratelimit } from "#/lib/upstash";
+import { ratelimit } from "@/lib/upstash";
 
 export default async function handler(
   req: NextApiRequest,

@@ -4,7 +4,7 @@ import { useParams } from "next/navigation";
 import { ReactNode, useEffect, useRef } from "react";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { AnimatePresence, motion, useAnimation } from "framer-motion";
-import useWindowSize from "#/lib/hooks/use-window-size";
+import useWindowSize from "@/lib/hooks/use-window-size";
 
 export default function Popover({
   children,

@@ -1,7 +1,7 @@
 import { ImageResponse, NextRequest } from "next/server";
-import { getLinkViaEdge } from "#/lib/planetscale";
-import { getStats } from "#/lib/stats";
-import { nFormatter, truncate } from "#/lib/utils";
+import { getLinkViaEdge } from "@/lib/planetscale";
+import { getStats } from "@/lib/stats";
+import { nFormatter, truncate } from "@/lib/utils";
 
 export const runtime = "edge";
 export const contentType = "image/png";
