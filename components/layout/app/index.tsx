@@ -6,7 +6,7 @@ import { Divider, Logo } from "@/components/shared/icons";
 import Meta from "../meta";
 import ProjectSelect from "./project-select";
 import UserDropdown from "./user-dropdown";
-import useProject from "@/lib/swr/use-project";
+import useProject from "#/lib/swr/use-project";
 import { Crisp } from "crisp-sdk-web";
 import { useSession } from "next-auth/react";
 import ProBanner from "./pro-banner";

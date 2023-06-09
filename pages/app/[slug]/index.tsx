@@ -2,10 +2,10 @@ import LinksContainer from "@/components/app/links/links-container";
 import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import AppLayout from "components/layout/app";
-import useProject from "@/lib/swr/use-project";
+import useProject from "#/lib/swr/use-project";
 import { useEffect } from "react";
 import { useCompleteSetupModal } from "@/components/app/modals/complete-setup-modal";
-import useDomains from "@/lib/swr/use-domains";
+import useDomains from "#/lib/swr/use-domains";
 
 export default function ProjectLinks() {
   const { slug, error, loading: loadingProject } = useProject();

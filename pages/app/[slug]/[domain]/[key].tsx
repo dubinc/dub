@@ -4,7 +4,7 @@ import BlurImage from "#/ui/blur-image";
 import { Lock } from "@/components/shared/icons";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import Stats from "@/components/stats";
-import useProject from "@/lib/swr/use-project";
+import useProject from "#/lib/swr/use-project";
 
 export default function StatsPage() {
   const { slug, exceededUsage } = useProject();

@@ -1,7 +1,7 @@
 import BlurImage from "#/ui/blur-image";
-import { getBlurDataURL } from "@/lib/images";
+import { getBlurDataURL } from "#/lib/images";
 import { allChangelogPosts } from "contentlayer/generated";
-import { constructMetadata, formatDate } from "@/lib/utils";
+import { constructMetadata, formatDate } from "#/lib/utils";
 import Link from "next/link";
 import { MDX } from "#/ui/blog/mdx";
 import { Twitter } from "@/components/shared/icons";

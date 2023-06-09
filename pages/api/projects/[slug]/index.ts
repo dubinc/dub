@@ -1,7 +1,7 @@
-import { withProjectAuth } from "@/lib/auth";
-import { deleteDomainAndLinks } from "@/lib/api/domains";
-import prisma from "@/lib/prisma";
-import { cancelSubscription } from "@/lib/stripe";
+import { withProjectAuth } from "#/lib/auth";
+import { deleteDomainAndLinks } from "#/lib/api/domains";
+import prisma from "#/lib/prisma";
+import { cancelSubscription } from "#/lib/stripe";
 
 export default withProjectAuth(async (req, res, project) => {
   // GET /api/projects/[slug] – get a specific project

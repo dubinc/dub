@@ -13,21 +13,21 @@ import CopyButton from "@/components/shared/copy-button";
 import { Chart, Delete, QR, ThreeDots } from "@/components/shared/icons";
 import Popover from "@/components/shared/popover";
 import Tooltip, { TooltipContent } from "#/ui/tooltip";
-import useProject from "@/lib/swr/use-project";
-import { LinkProps } from "@/lib/types";
+import useProject from "#/lib/swr/use-project";
+import { LinkProps } from "#/lib/types";
 import {
   fetcher,
   getApexDomain,
   linkConstructor,
   nFormatter,
   timeAgo,
-} from "@/lib/utils";
-import useIntersectionObserver from "@/lib/hooks/use-intersection-observer";
-import useDomains from "@/lib/swr/use-domains";
+} from "#/lib/utils";
+import useIntersectionObserver from "#/lib/hooks/use-intersection-observer";
+import useDomains from "#/lib/swr/use-domains";
 import { Archive, CopyPlus, Edit3, Tag } from "lucide-react";
 import punycode from "punycode/";
-import { GOOGLE_FAVICON_URL } from "@/lib/constants";
-import useTags from "@/lib/swr/use-tags";
+import { GOOGLE_FAVICON_URL } from "#/lib/constants";
+import useTags from "#/lib/swr/use-tags";
 import TagBadge from "@/components/app/links/tag-badge";
 
 export default function LinkCard({ props }: { props: LinkProps }) {

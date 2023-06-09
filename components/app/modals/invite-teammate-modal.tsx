@@ -10,7 +10,7 @@ import { mutate } from "swr";
 import BlurImage from "#/ui/blur-image";
 import va from "@vercel/analytics";
 import Modal from "@/components/shared/modal";
-import useProject from "@/lib/swr/use-project";
+import useProject from "#/lib/swr/use-project";
 import { toast } from "sonner";
 import Button from "#/ui/button";
 

@@ -1,7 +1,7 @@
-import { withLinksAuth } from "@/lib/auth";
-import { deleteLink, editLink, processKey } from "@/lib/api/links";
-import { isBlacklistedDomain, isBlacklistedKey, log } from "@/lib/utils";
-import { GOOGLE_FAVICON_URL } from "@/lib/constants";
+import { withLinksAuth } from "#/lib/auth";
+import { deleteLink, editLink, processKey } from "#/lib/api/links";
+import { isBlacklistedDomain, isBlacklistedKey, log } from "#/lib/utils";
+import { GOOGLE_FAVICON_URL } from "#/lib/constants";
 
 export const config = {
   api: {

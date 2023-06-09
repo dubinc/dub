@@ -1,8 +1,8 @@
 import Head from "next/head";
 import { unescape } from "html-escaper";
-import prisma from "@/lib/prisma";
-import { getApexDomain } from "@/lib/utils";
-import { GOOGLE_FAVICON_URL } from "@/lib/constants";
+import prisma from "#/lib/prisma";
+import { getApexDomain } from "#/lib/utils";
+import { GOOGLE_FAVICON_URL } from "#/lib/constants";
 
 export default function LinkPage({
   shortLink,

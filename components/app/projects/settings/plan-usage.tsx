@@ -5,9 +5,9 @@ import { useUpgradePlanModal } from "@/components/app/modals/upgrade-plan-modal"
 import { Infinity, Divider, QuestionCircle } from "@/components/shared/icons";
 import { LoadingDots } from "#/ui/icons";
 import Tooltip from "#/ui/tooltip";
-import { getFirstAndLastDay, nFormatter } from "@/lib/utils";
-import useProject from "@/lib/swr/use-project";
-import useDomains from "@/lib/swr/use-domains";
+import { getFirstAndLastDay, nFormatter } from "#/lib/utils";
+import useProject from "#/lib/swr/use-project";
+import useDomains from "#/lib/swr/use-domains";
 import PlanBadge from "./plan-badge";
 import { toast } from "sonner";
 import { mutate } from "swr";

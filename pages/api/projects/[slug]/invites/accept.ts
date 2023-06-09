@@ -1,5 +1,5 @@
-import { Session, withUserAuth } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { Session, withUserAuth } from "#/lib/auth";
+import prisma from "#/lib/prisma";
 
 export default withUserAuth(async (req, res, session) => {
   const { slug } = req.query as { slug: string };

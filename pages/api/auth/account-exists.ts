@@ -1,8 +1,8 @@
 import { NextRequest } from "next/server";
-import { ratelimit } from "@/lib/upstash";
+import { ratelimit } from "#/lib/upstash";
 import { ipAddress } from "@vercel/edge";
-import { LOCALHOST_IP } from "@/lib/constants";
-import { conn } from "@/lib/planetscale";
+import { LOCALHOST_IP } from "#/lib/constants";
+import { conn } from "#/lib/planetscale";
 
 export const config = {
   runtime: "edge",

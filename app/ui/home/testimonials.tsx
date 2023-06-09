@@ -1,6 +1,6 @@
 import { unstable_cache } from "next/cache";
-import prisma from "@/lib/prisma";
-import { nFormatter } from "@/lib/utils";
+import prisma from "#/lib/prisma";
+import { nFormatter } from "#/lib/utils";
 import getTweets, { homepageTweets } from "#/lib/twitter";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import Tweet from "#/ui/tweet";

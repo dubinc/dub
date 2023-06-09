@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import Background from "#/ui/home/background";
 import LaunchTweet from "./launch";
 import MetatagsContent from "./content";
-import { constructMetadata } from "@/lib/utils";
+import { constructMetadata } from "#/lib/utils";
 
 export const metadata = constructMetadata({
   title: "Metatags API - The Free API to Get Meta Tags from a URL",

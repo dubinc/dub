@@ -9,7 +9,7 @@ import {
 } from "react";
 import { useSession } from "next-auth/react";
 import ErrorPage from "next/error";
-import useProject from "@/lib/swr/use-project";
+import useProject from "#/lib/swr/use-project";
 import Cookies from "js-cookie";
 import { useAddProjectModal } from "@/components/app/modals/add-project-modal";
 import { useAcceptInviteModal } from "@/components/app/modals/accept-invite-modal";

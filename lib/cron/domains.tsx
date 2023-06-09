@@ -1,9 +1,9 @@
 import sendMail from "emails";
 import InvalidDomain from "emails/InvalidDomain";
 import DomainDeleted from "emails/DomainDeleted";
-import { log } from "@/lib/utils";
-import { deleteDomainAndLinks } from "@/lib/api/domains";
-import prisma from "@/lib/prisma";
+import { log } from "#/lib/utils";
+import { deleteDomainAndLinks } from "#/lib/api/domains";
+import prisma from "#/lib/prisma";
 
 export const handleDomainUpdates = async ({
   domain,
