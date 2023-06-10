@@ -1,4 +1,4 @@
 import { serve } from "inngest/next";
-import { helloWorld, inngest } from "#/lib/inngest";
+import { inngest, importLinks } from "#/lib/inngest";
 
-export default serve(inngest, [helloWorld]);
+export default serve(inngest, [importLinks]);

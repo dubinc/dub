@@ -2,7 +2,7 @@
   "private": true,
   "license": "AGPL-3.0-or-later",
   "scripts": {
-    "dev": "concurrently --kill-others \"next dev\" \"prisma studio --browser none\" \"mailing\" \"inngest-cli dev\"",
+    "dev": "concurrently --kill-others \"next dev\" \"prisma studio --browser none\" \"mailing\"",
     "build": "prisma generate & next build",
     "format:write": "prettier --write \"**/*.{css,js,json,jsx,ts,tsx}\"",
     "format": "prettier \"**/*.{css,js,json,jsx,ts,tsx}\"",
