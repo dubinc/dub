@@ -214,8 +214,8 @@ export async function addLink(link: LinkProps) {
         ios,
         android,
       },
+      // @ts-ignore
       {
-        // @ts-ignore
         nx: true,
         // if the key has an expiry, set exat
         ...(exat && { exat }),

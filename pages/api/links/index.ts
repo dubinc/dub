@@ -39,9 +39,9 @@ export default withLinksAuth(
 
       // POST /api/links – create a new link
     } else if (req.method === "POST") {
-      let { key, url } = req.body;
-      if (!key || !url) {
-        return res.status(400).end("Missing key or url.");
+      let { domain, key, url } = req.body;
+      if (!domain || !key || !url) {
+        return res.status(400).end("Missing domain or key or url.");
       }
 
       // if it's not a custom project, do some filtering
