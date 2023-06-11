@@ -67,7 +67,7 @@ function AddEditLinkModal({
     props ||
       duplicateProps || {
         ...DEFAULT_LINK_PROPS,
-        domain: primaryDomain || "",
+        domain: primaryDomain || (domains && domains[0].slug) || "",
         key: "",
         url: "",
       },

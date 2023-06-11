@@ -215,10 +215,9 @@ export async function addLink(link: LinkProps) {
         android,
       },
       {
-        // @ts-ignore
         nx: true,
-        // if the key has an expiry, set exat
-        ...(exat && { exat }),
+        // if the key has an expiry, set exat (type any cause there's a type error in the @types)
+        ...(exat && { exat: exat as any }),
       },
     ),
   ]);

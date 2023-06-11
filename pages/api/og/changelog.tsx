@@ -64,7 +64,7 @@ export default async function handler() {
         <div tw="flex w-full pt-10 pl-28">
           <p tw="text-gray-500">{formatDate(post.publishedAt)}</p>
           <div tw="flex flex-col ml-24">
-            <img src={post.image} tw="rounded-lg h-96 object-cover" />
+            <img src={post.image} tw="rounded-lg h-96" />
           </div>
         </div>
       </div>

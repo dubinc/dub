@@ -24,9 +24,9 @@ export default withLinksAuth(
 
       // PUT /api/links/:key – edit a link
     } else if (req.method === "PUT") {
-      let { key, url } = req.body;
-      if (!key || !url) {
-        return res.status(400).end("Missing key or url.");
+      let { domain, key, url } = req.body;
+      if (!domain || !key || !url) {
+        return res.status(400).end("Missing domain or key or url.");
       }
 
       if (!project) {
