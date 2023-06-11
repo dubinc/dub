@@ -70,15 +70,15 @@ You can deploy your own hosted version of Dub for greater privacy & control. Jus
 
 ## Tech Stack
 
-- [Next.js](https://nextjs.org/) – framework
-- [Typescript](https://www.typescriptlang.org/) – language
+- [Next.js](https://nextjs.org/) – Framework
+- [Typescript](https://www.typescriptlang.org/) – Language
 - [Tailwind](https://tailwindcss.com/) – CSS
-- [Upstash](https://upstash.com/) – redis
-- [Tinybird](https://tinybird.com/) – analytics
-- [PlanetScale](https://planetscale.com/) – database
-- [NextAuth.js](https://next-auth.js.org/) – auth
-- [Vercel](https://vercel.com/) – hosting
-- [Stripe](https://stripe.com/) – payments
+- [Upstash](https://upstash.com/) – Redis
+- [Tinybird](https://tinybird.com/) – Analytics
+- [PlanetScale](https://planetscale.com/) – Database
+- [NextAuth.js](https://next-auth.js.org/) – Auth
+- [Vercel](https://vercel.com/) – Hosting
+- [Stripe](https://stripe.com/) – Payments
 
 ## Implementation
 
