@@ -103,7 +103,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
     if (existingModalBackdrop && selected) {
       setSelected(false);
     }
-  });
+  }, [selected]);
 
   const handlClickOnLinkCard = (e: any) => {
     // if clicked on linkRef, setSelected to true

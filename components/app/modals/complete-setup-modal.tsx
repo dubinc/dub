@@ -3,6 +3,7 @@ import {
   Dispatch,
   SetStateAction,
   useCallback,
+  useContext,
   useMemo,
   useState,
 } from "react";
@@ -10,6 +11,9 @@ import BlurImage from "#/ui/blur-image";
 import Modal from "@/components/shared/modal";
 import { CheckCircleFill } from "@/components/shared/icons";
 import { ExpandingArrow } from "#/ui/icons";
+import useDomains from "#/lib/swr/use-domains";
+import useLinksCount from "#/lib/swr/use-links-count";
+import { ModalContext } from "#/ui/modal-provider";
 
 function CompleteSetupModal({
   showCompleteSetupModal,
@@ -21,11 +25,29 @@ function CompleteSetupModal({
   const router = useRouter();
   const { slug } = router.query as { slug: string };
 
-  const tasks = [
-    { display: "Set up your custom domain", cta: `/${slug}/domains` },
-    { display: "Invite your teammates", cta: `/${slug}/settings/people` },
-    { display: "Create or import your links", cta: "closeModal" },
-  ];
+  const { verified } = useDomains();
+  const { data: count } = useLinksCount() as unknown as { data: number };
+  const { setShowAddEditLinkModal } = useContext(ModalContext);
+
+  const tasks = useMemo(() => {
+    return [
+      {
+        display: "Configure your custom domain",
+        cta: `/${slug}/domains`,
+        checked: verified,
+      },
+      {
+        display: "Invite your teammates",
+        cta: `/${slug}/settings/people`,
+        checked: false,
+      },
+      {
+        display: "Create or import your links",
+        cta: "create-link",
+        checked: count > 0,
+      },
+    ];
+  }, [slug, verified, count]);
 
   return (
     <Modal
@@ -49,11 +71,15 @@ function CompleteSetupModal({
         </div>
         <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-12">
           <div className="grid divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white">
-            {tasks.map(({ display, cta }) => {
+            {tasks.map(({ display, cta, checked }) => {
               const contents = (
                 <div className="group flex items-center justify-between p-3">
                   <div className="flex items-center space-x-3">
-                    <CheckCircleFill className="h-5 w-5 text-gray-400" />
+                    <CheckCircleFill
+                      className={`h-5 w-5 ${
+                        checked ? "text-green-500" : "text-gray-400"
+                      }`}
+                    />
                     <p className="text-sm">{display}</p>
                   </div>
                   <div className="mr-5">
@@ -61,11 +87,14 @@ function CompleteSetupModal({
                   </div>
                 </div>
               );
-              if (cta === "closeModal") {
+              if (cta === "create-link") {
                 return (
                   <button
                     key={display}
-                    onClick={() => setShowCompleteSetupModal(false)}
+                    onClick={() => {
+                      setShowCompleteSetupModal(false);
+                      setShowAddEditLinkModal(true);
+                    }}
                   >
                     {contents}
                   </button>

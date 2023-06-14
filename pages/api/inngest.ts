@@ -1,4 +1,5 @@
 import { serve } from "inngest/next";
-import { inngest, importLinks } from "#/lib/inngest";
+import inngest from "#/lib/inngest";
+import { importBitlyLinks } from "#/lib/api/import";
 
-export default serve(inngest, [importLinks]);
+export default serve(inngest, [importBitlyLinks]);

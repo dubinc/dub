@@ -564,27 +564,30 @@ function AddEditLinkButton({
 
   const { exceededUsage } = useProject();
 
-  const onKeyDown = useCallback((e: KeyboardEvent) => {
-    const target = e.target as HTMLElement;
-    const existingModalBackdrop = document.getElementById("modal-backdrop");
-    // only open modal with keyboard shortcut if:
-    // - project has not exceeded usage limit
-    // - c is pressed
-    // - user is not pressing cmd/ctrl + c
-    // - user is not typing in an input or textarea
-    // - there is no existing modal backdrop (i.e. no other modal is open)
-    if (
-      !exceededUsage &&
-      e.key === "c" &&
-      !e.metaKey &&
-      !e.ctrlKey &&
-      target.tagName !== "INPUT" &&
-      target.tagName !== "TEXTAREA" &&
-      !existingModalBackdrop
-    ) {
-      setShowAddEditLinkModal(true);
-    }
-  }, []);
+  const onKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      const existingModalBackdrop = document.getElementById("modal-backdrop");
+      // only open modal with keyboard shortcut if:
+      // - project has not exceeded usage limit
+      // - c is pressed
+      // - user is not pressing cmd/ctrl + c
+      // - user is not typing in an input or textarea
+      // - there is no existing modal backdrop (i.e. no other modal is open)
+      if (
+        !exceededUsage &&
+        e.key === "c" &&
+        !e.metaKey &&
+        !e.ctrlKey &&
+        target.tagName !== "INPUT" &&
+        target.tagName !== "TEXTAREA" &&
+        !existingModalBackdrop
+      ) {
+        setShowAddEditLinkModal(true);
+      }
+    },
+    [exceededUsage],
+  );
 
   useEffect(() => {
     document.addEventListener("keydown", onKeyDown);

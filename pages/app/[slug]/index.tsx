@@ -3,9 +3,13 @@ import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import AppLayout from "components/layout/app";
 import useProject from "#/lib/swr/use-project";
-import { useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useCompleteSetupModal } from "@/components/app/modals/complete-setup-modal";
 import useDomains from "#/lib/swr/use-domains";
+import Popover from "@/components/shared/popover";
+import IconMenu from "@/components/shared/icon-menu";
+import { ChevronDown, FilePlus2, Import } from "lucide-react";
+import { ModalContext } from "#/ui/modal-provider";
 
 export default function ProjectLinks() {
   const { slug, error, loading: loadingProject } = useProject();
@@ -23,6 +27,9 @@ export default function ProjectLinks() {
     }
   }, [verified, loadingProject, loadingDomains, error]);
 
+  const [openPopover, setOpenPopover] = useState(false);
+  const { setShowImportLinksModal } = useContext(ModalContext);
+
   return (
     <AppLayout>
       {slug && <AddEditLinkModal />}
@@ -31,7 +38,50 @@ export default function ProjectLinks() {
         <MaxWidthWrapper>
           <div className="flex items-center justify-between">
             <h1 className="text-2xl text-gray-600">Links</h1>
-            <AddEditLinkButton />
+            <div className="flex space-x-2">
+              <AddEditLinkButton />
+              <Popover
+                content={
+                  <div className="w-full p-2 md:w-52">
+                    <button
+                      onClick={() => {}}
+                      className="flex w-full items-center justify-between space-x-2 rounded-md px-1 py-2 hover:bg-gray-100 active:bg-gray-200"
+                    >
+                      <IconMenu
+                        text="Bulk create links"
+                        icon={<FilePlus2 className="h-4 w-4" />}
+                      />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setOpenPopover(false);
+                        setShowImportLinksModal(true);
+                      }}
+                      className="flex w-full items-center justify-between space-x-2 rounded-md px-1 py-2 hover:bg-gray-100 active:bg-gray-200"
+                    >
+                      <IconMenu
+                        text="Import from Bitly"
+                        icon={<Import className="h-4 w-4" />}
+                      />
+                    </button>
+                  </div>
+                }
+                openPopover={openPopover}
+                setOpenPopover={setOpenPopover}
+                align="end"
+              >
+                <button
+                  onClick={() => setOpenPopover(!openPopover)}
+                  className="group flex items-center justify-between space-x-2 rounded-md border border-gray-200 bg-white p-2.5 shadow transition-all duration-75 active:scale-95"
+                >
+                  <ChevronDown
+                    className={`h-4 w-4 shrink-0 ${
+                      openPopover ? "rotate-180 text-gray-700" : "text-gray-400"
+                    } transition-all group-hover:text-gray-700`}
+                  />
+                </button>
+              </Popover>
+            </div>
           </div>
         </MaxWidthWrapper>
       </div>

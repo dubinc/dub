@@ -2,7 +2,7 @@ import { withLinksAuth } from "#/lib/auth";
 import { getStats, IntervalProps } from "#/lib/stats";
 
 export default withLinksAuth(
-  async (req, res, _session, project, domain, link) => {
+  async (req, res, _session, project, domain) => {
     // GET /api/links/[key]/stats/[endpoint] - get link stats from Tinybird
     if (req.method === "GET") {
       const { key, endpoint, interval } = req.query as {

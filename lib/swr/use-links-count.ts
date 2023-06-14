@@ -5,8 +5,8 @@ import { fetcher, getQueryString } from "#/lib/utils";
 export default function useLinksCount({
   groupBy,
 }: {
-  groupBy: "domain" | "tagId";
-}) {
+  groupBy?: "domain" | "tagId";
+} = {}) {
   const router = useRouter();
 
   const { data, error } = useSWR<any[]>(
