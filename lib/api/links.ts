@@ -35,7 +35,7 @@ export async function getLinksForProject({
   return await prisma.link.findMany({
     where: {
       projectId,
-      archived: showArchived ? undefined : false,
+      archived: showArchived || search ? undefined : false,
       ...(domain && { domain }),
       ...(search && {
         key: { search },

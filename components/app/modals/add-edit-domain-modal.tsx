@@ -207,9 +207,9 @@ function AddEditDomainModal({
                   pattern="[[\p{Letter}\p{Mark}\d-.]+"
                   className={`${
                     domainError
-                      ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                      ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500 pr-10"
                       : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
-                  } block w-full rounded-md pr-10 text-sm focus:outline-none`}
+                  } block w-full rounded-md text-sm focus:outline-none`}
                   placeholder="dub.sh"
                   value={domain}
                   onChange={(e) => {
@@ -261,7 +261,7 @@ function AddEditDomainModal({
                   type="url"
                   name="target"
                   id="target"
-                  className="block w-full rounded-md border-gray-300 pr-10 text-sm text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500"
+                  className="block w-full rounded-md border-gray-300 text-sm text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500"
                   placeholder="https://example.com"
                   value={target}
                   onChange={(e) => setData({ ...data, target: e.target.value })}

@@ -20,7 +20,7 @@ export const getTweet = async (id: string) => {
           Authorization: `Bearer ${process.env.TWITTER_AUTH_TOKEN}`,
         },
         next: {
-          revalidate: 3600, // revalidate every 1 hour
+          revalidate: 86400, // revalidate every 1 day
         },
       },
     );
