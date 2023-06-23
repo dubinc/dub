@@ -8560,10 +8560,10 @@ socks@^2.3.3, socks@^2.6.2:
     ip "^2.0.0"
     smart-buffer "^4.2.0"
 
-sonner@^0.4.0:
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/sonner/-/sonner-0.4.0.tgz#65c4930a31f5fc3a98fe1ace1971050726bc155d"
-  integrity sha512-zEU/Mzur39xYPpyQOOCmN6YQftl5v+TSmdsmWEbWf6ovnOvnHyRwR7+/6BIBbzwRa8+3v06FJlpF7J3KS4Ll9Q==
+sonner@^0.5.0:
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/sonner/-/sonner-0.5.0.tgz#48e4c1c8894c974fdb944ce4cd88ceb04ca7b8f8"
+  integrity sha512-V5L4918wScYxpe3x1H92MV0vSkUqRREu8dwFf7dDTQmRMQ58r1vzSKCsULZ5HCTqxNkfCdhQXHf7rRMaj/MukQ==
 
 sort-keys@^5.0.0:
   version "5.0.0"
