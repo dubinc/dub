@@ -2,9 +2,10 @@
 
 import BlurImage from "#/ui/blur-image";
 import { nFormatter, truncate } from "#/lib/utils";
-import { Heart, Message, Repeat, Twitter } from "@/components/shared/icons";
+import { Heart, Message, Twitter } from "@/components/shared/icons";
 import Tilt from "react-parallax-tilt";
 import { Tweet } from "react-tweet/api";
+import clsx from "clsx";
 
 export default function Tweet({
   data,
@@ -35,7 +36,8 @@ export default function Tweet({
     id_str: id,
     text,
     user: author,
-    photos: media,
+    photos,
+    video,
     favorite_count,
     conversation_count,
     created_at,
@@ -43,7 +45,6 @@ export default function Tweet({
 
   const authorUrl = `https://twitter.com/${author.screen_name}`;
   const likeUrl = `https://twitter.com/intent/like?tweet_id=${id}`;
-  const retweetUrl = `https://twitter.com/intent/retweet?tweet_id=${id}`;
   const replyUrl = `https://twitter.com/intent/tweet?in_reply_to=${id}`;
   const tweetUrl = `https://twitter.com/${author.screen_name}/status/${id}`;
   const createdAt = new Date(created_at);
@@ -154,15 +155,25 @@ export default function Tweet({
 
       {/* Images, Preview images, videos, polls, etc. */}
       <div className="my-3">
-        {media && media.length ? (
-          <div
-            className={
-              media.length === 1
-                ? ""
-                : "inline-grid grid-cols-2 gap-x-2 gap-y-2"
-            }
+        {video && (
+          <video
+            className="rounded-lg border border-gray-200 drop-shadow-sm"
+            loop
+            autoPlay
+            muted
+            playsInline
           >
-            {media.map((m) => (
+            <source src={video.variants[0].src} type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+        )}
+        {photos && (
+          <div
+            className={clsx({
+              "inline-grid grid-cols-2 gap-x-2 gap-y-2": photos.length > 1,
+            })}
+          >
+            {photos.map((m) => (
               <a key={m.url} href={tweetUrl} target="_blank">
                 <BlurImage
                   key={m.url}
@@ -175,7 +186,7 @@ export default function Tweet({
               </a>
             ))}
           </div>
-        ) : null}
+        )}
       </div>
 
       <div className="flex justify-center space-x-8 text-sm text-gray-500">
@@ -188,16 +199,6 @@ export default function Tweet({
           <Heart className="h-4 w-4 group-hover:fill-red-600" />
           <p>{nFormatter(favorite_count)}</p>
         </a>
-        <a
-          className="flex items-center space-x-3 hover:text-green-600"
-          href={retweetUrl}
-          target="_blank"
-          rel="noreferrer"
-        >
-          <Repeat className="h-4 w-4" />
-          <p>{nFormatter(favorite_count)}</p>
-        </a>
-
         <a
           className="group flex items-center space-x-3 hover:text-blue-600"
           href={replyUrl}

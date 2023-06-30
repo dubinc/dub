@@ -7,10 +7,11 @@ import Tweet from "#/ui/tweet";
 import { getTweet } from "react-tweet/api";
 
 const tweets = [
-  "1574639172605816832",
   "1631671657617059842",
+  "1574639172605816832",
   "1573744854655533069",
   "1644155001034657792",
+  "1663567242616004610",
 
   "1586745532386578433",
   "1582956754425421825",
@@ -55,14 +56,11 @@ export default async function Testimonials() {
           <Tweet
             key={idx}
             data={tweet || null}
-            // className={
-            //   // this is a bit hacky but it allows us to have a 3-column mosaic layout on desktop
-            //   // it basically says "if the card is NOT in the middle column, push it down by 4rem
-            //   idx < Math.floor(tweets.length / 3) ||
-            //   idx >= Math.floor(tweets.length / 3) * 2
-            //     ? "relative lg:top-16"
-            //     : ""
-            // }
+            className={
+              // this is a bit hacky but it allows us to have a 3-column mosaic layout on desktop
+              // it basically says "if the card is NOT in the middle column, push it down by 4rem
+              idx < 5 || idx >= 9 ? "relative lg:top-16" : ""
+            }
           />
         ))}
       </div>
