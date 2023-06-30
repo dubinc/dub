@@ -36,21 +36,19 @@ export default function Tweet({
   const enrichedData = enrichTweet(data);
 
   const {
-    id_str: id,
+    url,
     text,
-    user: author,
+    user,
     photos,
     video,
     entities,
     favorite_count,
     conversation_count,
+    like_url,
+    reply_url,
     created_at,
   } = enrichedData;
 
-  const authorUrl = `https://twitter.com/${author.screen_name}`;
-  const likeUrl = `https://twitter.com/intent/like?tweet_id=${id}`;
-  const replyUrl = `https://twitter.com/intent/tweet?in_reply_to=${id}`;
-  const tweetUrl = `https://twitter.com/${author.screen_name}/status/${id}`;
   const createdAt = new Date(created_at);
 
   const TweetBody = (
@@ -63,27 +61,40 @@ export default function Tweet({
       <div>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <a href={authorUrl} target="_blank" rel="noreferrer">
+            <a href={user.follow_url} target="_blank" rel="noreferrer">
               <BlurImage
-                alt={author.screen_name}
+                alt={user.screen_name}
                 height={48}
                 width={48}
-                src={author.profile_image_url_https}
-                className="h-10 w-10 overflow-hidden rounded-full border border-transparent transition-all ease-in-out hover:scale-105 hover:border-gray-200 hover:shadow-md"
+                src={user.profile_image_url_https}
+                className={clsx(
+                  "h-10 w-10 overflow-hidden rounded-full border border-gray-200 transition-all ease-in-out hover:scale-105",
+                  {
+                    // @ts-expect-error
+                    "rounded-full": user.profile_image_shape === "Circle",
+                    // @ts-expect-error
+                    "rounded-md": user.profile_image_shape === "Square",
+                  },
+                )}
               />
             </a>
             <div>
               <a
-                href={authorUrl}
+                href={user.follow_url}
                 target="_blank"
                 rel="noreferrer"
                 className="flex items-center font-semibold text-gray-900"
               >
-                {truncate(author.name, 20)}
-                {author.verified ? (
+                {truncate(user.name, 20)}
+                {user.verified ||
+                user.is_blue_verified ||
+                user.verified_type ? (
                   <svg
                     aria-label="Verified Account"
-                    className="ml-1 inline h-4 w-4 text-blue-500"
+                    className={clsx("ml-1 inline h-4 w-4", {
+                      "text-blue-500": user.is_blue_verified,
+                      "text-yellow-500": user.verified_type === "Business",
+                    })}
                     viewBox="0 0 24 24"
                   >
                     <g fill="currentColor">
@@ -94,16 +105,16 @@ export default function Tweet({
               </a>
               <div className="flex items-center space-x-1">
                 <a
-                  href={authorUrl}
+                  href={user.follow_url}
                   target="_blank"
                   rel="noreferrer"
                   className="text-sm text-gray-500 transition-all duration-75 hover:text-gray-900"
                 >
-                  @{truncate(author.screen_name, 16)}
+                  @{truncate(user.screen_name, 16)}
                 </a>
                 <p>·</p>
                 <a
-                  href={tweetUrl}
+                  href={url}
                   target="_blank"
                   rel="noreferrer"
                   className="text-sm text-gray-500 transition-all duration-75 hover:text-gray-900"
@@ -116,7 +127,7 @@ export default function Tweet({
               </div>
             </div>
           </div>
-          <a href={tweetUrl} target="_blank" rel="noreferrer">
+          <a href={url} target="_blank" rel="noreferrer">
             <span className="sr-only">Link to tweet</span>
             <Twitter className="h-5 w-5 text-[#3BA9EE] transition-all ease-in-out hover:scale-105" />
           </a>
@@ -176,7 +187,7 @@ export default function Tweet({
             })}
           >
             {photos.map((m) => (
-              <a key={m.url} href={tweetUrl} target="_blank">
+              <a key={m.url} href={url} target="_blank">
                 <BlurImage
                   key={m.url}
                   alt={text}
@@ -194,7 +205,7 @@ export default function Tweet({
       <div className="flex justify-center space-x-8 text-sm text-gray-500">
         <a
           className="group flex items-center space-x-3 hover:text-red-600"
-          href={likeUrl}
+          href={like_url}
           target="_blank"
           rel="noreferrer"
         >
@@ -203,7 +214,7 @@ export default function Tweet({
         </a>
         <a
           className="group flex items-center space-x-3 hover:text-blue-600"
-          href={replyUrl}
+          href={reply_url}
           target="_blank"
           rel="noreferrer"
         >
