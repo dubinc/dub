@@ -4,7 +4,7 @@ import { nFormatter } from "#/lib/utils";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import TestimonialsMobile from "./testimonials-mobile";
 import Tweet from "#/ui/tweet";
-import { getTweet } from "react-tweet/api";
+import { getTweet, Tweet as TweetProps } from "react-tweet/api";
 
 const tweets = [
   "1631671657617059842",
@@ -35,7 +35,9 @@ export default async function Testimonials() {
     },
   )();
 
-  const tweetsData = await Promise.all(tweets.map((id) => getTweet(id)));
+  const tweetsData = (
+    await Promise.all(tweets.map((id) => getTweet(id)))
+  ).filter((t) => t) as TweetProps[];
 
   return (
     <MaxWidthWrapper className="pt-20">
@@ -50,7 +52,7 @@ export default async function Testimonials() {
           Don't take it from us - here's what our users have to say about Dub.
         </p>
       </div>
-      <TestimonialsMobile tweets={tweets} />
+      <TestimonialsMobile tweetsData={tweetsData} />
       <div className="hidden space-y-6 py-8 sm:block sm:columns-2 sm:gap-6 xl:columns-3">
         {tweetsData.filter(Boolean).map((tweet, idx) => (
           <Tweet
