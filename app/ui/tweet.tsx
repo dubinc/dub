@@ -4,8 +4,9 @@ import BlurImage from "#/ui/blur-image";
 import { nFormatter, truncate } from "#/lib/utils";
 import { Heart, Message, Twitter } from "@/components/shared/icons";
 import Tilt from "react-parallax-tilt";
-import { Tweet } from "react-tweet/api";
+import { enrichTweet } from "react-tweet";
 import clsx from "clsx";
+import { Tweet } from "react-tweet/api";
 
 export default function Tweet({
   data,
@@ -32,52 +33,25 @@ export default function Tweet({
     );
   }
 
+  const enrichedData = enrichTweet(data);
+
   const {
     id_str: id,
     text,
     user: author,
     photos,
     video,
+    entities,
     favorite_count,
     conversation_count,
     created_at,
-  } = data;
+  } = enrichedData;
 
   const authorUrl = `https://twitter.com/${author.screen_name}`;
   const likeUrl = `https://twitter.com/intent/like?tweet_id=${id}`;
   const replyUrl = `https://twitter.com/intent/tweet?in_reply_to=${id}`;
   const tweetUrl = `https://twitter.com/${author.screen_name}/status/${id}`;
   const createdAt = new Date(created_at);
-
-  const formattedText = text
-    // remove hyperlink if it's present at the end of the tweet (similar to how Twitter does it)
-    .replace(/https?:\/\/\S+$/, () => {
-      return "";
-    })
-    // format all hyperlinks
-    .replace(/https?:\/\/\S+(?=\s)/g, (match) => {
-      return `<a style="color: rgb(29,161,242); font-weight:normal; text-decoration: none" href="${match}" target="_blank">${match
-        .replace(/^https?:\/\//i, "")
-        .replace(/\/+$/, "")}</a>`;
-    })
-    // if @ mention is at the front of the tweet, remove it completely,
-    .replace(/^(@\w+\s+)+/, () => {
-      return "";
-    })
-    .replace(/\B\@([\w\-]+)/gim, (match) => {
-      // format all @ mentions
-      return `<a style="color: rgb(29,161,242); font-weight:normal; text-decoration: none" href="https://twitter.com/${match.replace(
-        "@",
-        "",
-      )}" target="_blank">${match}</a>`;
-    })
-    .replace(/(#+[a-zA-Z0-9(_)]{1,})/g, (match) => {
-      // format all # hashtags
-      return `<a style="color: rgb(29,161,242); font-weight:normal; text-decoration: none" href="https://twitter.com/hashtag/${match.replace(
-        "#",
-        "",
-      )}" target="_blank">${match}</a>`;
-    });
 
   const TweetBody = (
     <div
@@ -147,10 +121,38 @@ export default function Tweet({
             <Twitter className="h-5 w-5 text-[#3BA9EE] transition-all ease-in-out hover:scale-105" />
           </a>
         </div>
-        <div
-          className="mb-2 mt-4 truncate whitespace-pre-wrap text-[15px] text-gray-700"
-          dangerouslySetInnerHTML={{ __html: formattedText }}
-        />
+        <div className="mb-2 mt-4 truncate whitespace-pre-wrap text-[15px] text-gray-700">
+          {entities.map((item, i) => {
+            switch (item.type) {
+              case "hashtag":
+              case "mention":
+              case "url":
+              case "symbol":
+                return (
+                  <a
+                    key={i}
+                    className="font-normal text-[rgb(29,161,242)] no-underline"
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {item.text}
+                  </a>
+                );
+              case "media":
+                return;
+              default:
+                // We use `dangerouslySetInnerHTML` to preserve the text encoding.
+                // https://github.com/vercel-labs/react-tweet/issues/29
+                return (
+                  <span
+                    key={i}
+                    dangerouslySetInnerHTML={{ __html: item.text }}
+                  />
+                );
+            }
+          })}
+        </div>
       </div>
 
       {/* Images, Preview images, videos, polls, etc. */}
