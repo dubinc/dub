@@ -1,6 +1,6 @@
 "use client";
 
-import Tweet from "#/ui/tweet";
+import { Tweet } from "react-tweet";
 import { useRef, useState } from "react";
 
 export default function TestimonialsMobile({ tweets }: { tweets: any[] }) {
@@ -11,7 +11,7 @@ export default function TestimonialsMobile({ tweets }: { tweets: any[] }) {
     <div className="flex flex-col justify-center space-y-4 pt-8 sm:hidden">
       <div ref={ref} className="space-y-6">
         {tweets.slice(0, expanded ? undefined : 4).map((tweet, idx) => (
-          <Tweet key={idx} metadata={JSON.stringify(tweet)} noTilt />
+          <Tweet key={idx} id={tweet} />
         ))}
       </div>
       {!expanded && (

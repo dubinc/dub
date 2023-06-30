@@ -4,34 +4,18 @@ import BlurImage from "#/ui/blur-image";
 import { nFormatter, truncate } from "#/lib/utils";
 import { Heart, Message, Repeat, Twitter } from "@/components/shared/icons";
 import Tilt from "react-parallax-tilt";
-
-function getRemainingTime(ISOString: Date) {
-  const currentTime = new Date();
-  const endTime = new Date(ISOString);
-  const diff = endTime.getTime() - currentTime.getTime();
-  if (diff > 36e5 * 24) {
-    const days = Math.floor(diff / (36e5 * 24));
-    const hours = Math.floor((diff - days * 36e5 * 24) / 36e5);
-    return `${days} day${days > 1 ? "s" : ""} ${hours} hours`;
-  } else if (diff > 36e5) {
-    return `${Math.floor(diff / 36e5)} hours`;
-  } else if (diff > 60e3) {
-    return `${Math.floor(diff / 60e3)} minutes`;
-  } else {
-    return "Less than a minute";
-  }
-}
+import { Tweet } from "react-tweet/api";
 
 export default function Tweet({
-  metadata,
+  data,
   className,
   noTilt,
 }: {
-  metadata: any;
+  data: Tweet | null;
   className?: string;
   noTilt?: boolean;
 }) {
-  if (!metadata || metadata === "null") {
+  if (!data) {
     return (
       <div
         className={`${className} prose flex h-[20rem] break-inside-avoid items-center rounded-lg border border-gray-300 bg-white/20 bg-clip-padding p-6 pb-4 text-center text-sm backdrop-blur-lg backdrop-filter`}
@@ -47,24 +31,21 @@ export default function Tweet({
     );
   }
 
-  const parsedMetadata = JSON.parse(metadata.replace(/\n/g, "\\n"));
+  const {
+    id_str: id,
+    text,
+    user: author,
+    photos: media,
+    favorite_count,
+    conversation_count,
+    created_at,
+  } = data;
 
-  const id = parsedMetadata.id;
-  const text = parsedMetadata.text;
-  const author = parsedMetadata.author;
-  const media = parsedMetadata.media;
-  const video = parsedMetadata.video;
-  const polls = parsedMetadata.polls;
-  const url_meta = parsedMetadata.url_meta;
-  const created_at = parsedMetadata.created_at;
-  const public_metrics = parsedMetadata.public_metrics;
-  const referenced_tweets = parsedMetadata.referenced_tweets;
-
-  const authorUrl = `https://twitter.com/${author.username}`;
+  const authorUrl = `https://twitter.com/${author.screen_name}`;
   const likeUrl = `https://twitter.com/intent/like?tweet_id=${id}`;
   const retweetUrl = `https://twitter.com/intent/retweet?tweet_id=${id}`;
   const replyUrl = `https://twitter.com/intent/tweet?in_reply_to=${id}`;
-  const tweetUrl = `https://twitter.com/${author.username}/status/${id}`;
+  const tweetUrl = `https://twitter.com/${author.screen_name}/status/${id}`;
   const createdAt = new Date(created_at);
 
   const formattedText = text
@@ -97,12 +78,6 @@ export default function Tweet({
       )}" target="_blank">${match}</a>`;
     });
 
-  const quoteTweet =
-    referenced_tweets && referenced_tweets.find((t) => t.type === "quoted");
-
-  const repliedTo =
-    referenced_tweets && referenced_tweets.find((t) => t.type === "replied_to");
-
   const TweetBody = (
     <div
       className={`${
@@ -115,10 +90,10 @@ export default function Tweet({
           <div className="flex items-center space-x-2">
             <a href={authorUrl} target="_blank" rel="noreferrer">
               <BlurImage
-                alt={author.username}
+                alt={author.screen_name}
                 height={48}
                 width={48}
-                src={author.profile_image_url}
+                src={author.profile_image_url_https}
                 className="h-10 w-10 overflow-hidden rounded-full border border-transparent transition-all ease-in-out hover:scale-105 hover:border-gray-200 hover:shadow-md"
               />
             </a>
@@ -149,7 +124,7 @@ export default function Tweet({
                   rel="noreferrer"
                   className="text-sm text-gray-500 transition-all duration-75 hover:text-gray-900"
                 >
-                  @{truncate(author.username, 16)}
+                  @{truncate(author.screen_name, 16)}
                 </a>
                 <p>·</p>
                 <a
@@ -171,18 +146,6 @@ export default function Tweet({
             <Twitter className="h-5 w-5 text-[#3BA9EE] transition-all ease-in-out hover:scale-105" />
           </a>
         </div>
-        {repliedTo && repliedTo.username && (
-          <div className="mt-5 text-base text-gray-500">
-            Replying to{" "}
-            <a
-              className="text-[#1da1f2] no-underline"
-              href={`https://twitter.com/${repliedTo.author.username}`}
-              target="_blank"
-            >
-              @{repliedTo.author.username}
-            </a>
-          </div>
-        )}
         <div
           className="mb-2 mt-4 truncate whitespace-pre-wrap text-[15px] text-gray-700"
           dangerouslySetInnerHTML={{ __html: formattedText }}
@@ -190,7 +153,7 @@ export default function Tweet({
       </div>
 
       {/* Images, Preview images, videos, polls, etc. */}
-      <div className="-mb-2 mt-3">
+      <div className="my-3">
         {media && media.length ? (
           <div
             className={
@@ -200,139 +163,19 @@ export default function Tweet({
             }
           >
             {media.map((m) => (
-              <a key={m.media_key} href={tweetUrl} target="_blank">
-                {m.type == "video" || m.type == "animated_gif" ? (
-                  video ? (
-                    <video
-                      className="rounded-lg border border-gray-200 drop-shadow-sm"
-                      loop
-                      width="2048px"
-                      height="2048px"
-                      autoPlay
-                      muted
-                      playsInline
-                    >
-                      <source src={video.url} type="video/mp4" />
-                      Your browser does not support the video tag.
-                    </video>
-                  ) : (
-                    <BlurImage
-                      key={m.media_key}
-                      alt={text}
-                      width={2048}
-                      height={m.height * (2048 / m.width)}
-                      src={m.preview_image_url}
-                      className="rounded-lg border border-gray-200 drop-shadow-sm"
-                    />
-                  )
-                ) : (
-                  <BlurImage
-                    key={m.media_key}
-                    alt={text}
-                    width={2048}
-                    height={m.height * (2048 / m.width)}
-                    src={m.url}
-                    className="rounded-lg border border-gray-200 drop-shadow-sm"
-                  />
-                )}
+              <a key={m.url} href={tweetUrl} target="_blank">
+                <BlurImage
+                  key={m.url}
+                  alt={text}
+                  width={2048}
+                  height={m.height * (2048 / m.width)}
+                  src={m.url}
+                  className="rounded-lg border border-gray-200 drop-shadow-sm"
+                />
               </a>
             ))}
           </div>
         ) : null}
-        {url_meta?.images ? (
-          <a href={url_meta.unwound_url} target="_blank" rel="noreferrer">
-            <div className="overflow-hidden rounded-lg border border-gray-200 drop-shadow-sm">
-              <BlurImage
-                key={url_meta.unwound_url}
-                alt={url_meta.title}
-                width={2048}
-                height={1000}
-                src={url_meta.images[0].url}
-                className="h-40 object-cover"
-              />
-              <div className="w-full bg-white p-3">
-                <p className="line-clamp-1 text-sm font-semibold">
-                  {url_meta.title}
-                </p>
-                <p className="line-clamp-2 text-sm text-gray-500">
-                  {url_meta.description}
-                </p>
-              </div>
-            </div>
-          </a>
-        ) : null}
-        {polls && (
-          <div className="mt-5">
-            {polls.map((poll) => {
-              poll.total_votes = poll.options.reduce(
-                (sum, option) => sum + option.votes,
-                0,
-              );
-              return poll.voting_status == "open" ? (
-                <div key={poll.end_datetime}>
-                  {poll.options.map((option) => (
-                    <a
-                      key={option.label}
-                      href={tweetUrl}
-                      target="_blank"
-                      className="no-underline"
-                    >
-                      <div className="my-2 rounded-3xl border border-[#1da1f2] text-center font-bold text-[#1da1f2] transition-all duration-150 ease-in-out hover:bg-[#1da1f2] hover:bg-opacity-10">
-                        {option.label}
-                      </div>
-                    </a>
-                  ))}
-                  <div className="mt-4 text-base text-gray-500">
-                    {poll.total_votes} votes ·{" "}
-                    {getRemainingTime(poll.end_datetime)} left
-                  </div>
-                </div>
-              ) : (
-                <div key={poll.end_datetime}>
-                  {poll.options.map((option) => (
-                    <div
-                      key={option.label}
-                      className={`
-                ${
-                  option.position == 1 ? "font-bold" : ""
-                } relative my-2 flex cursor-pointer justify-between whitespace-nowrap px-3 text-black
-              `}
-                    >
-                      <p className="z-10 my-0">{option.label}</p>
-                      <p className="z-10 my-0">{`${(
-                        (option.votes / poll.total_votes) *
-                        100
-                      )
-                        .toFixed(1)
-                        .replace(".0", "")}%`}</p>
-                      <div
-                        className={`
-                  ${
-                    option.position == 1
-                      ? "bg-[#1da1f2] font-bold"
-                      : "bg-gray-300"
-                  }
-                    absolute left-0 top-0 h-full w-full rounded-md                          
-                  `}
-                        style={{
-                          width: `${Math.round(
-                            (option.votes / poll.total_votes) * 100,
-                          )}%`,
-                        }}
-                      />
-                    </div>
-                  ))}
-                  <div className="mt-4 text-base text-gray-500">
-                    {poll.total_votes} votes · Final results
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-        {quoteTweet && quoteTweet.author && (
-          <Tweet metadata={JSON.stringify(quoteTweet)} />
-        )}
       </div>
 
       <div className="flex justify-center space-x-8 text-sm text-gray-500">
@@ -343,7 +186,7 @@ export default function Tweet({
           rel="noreferrer"
         >
           <Heart className="h-4 w-4 group-hover:fill-red-600" />
-          <p>{nFormatter(public_metrics.like_count)}</p>
+          <p>{nFormatter(favorite_count)}</p>
         </a>
         <a
           className="flex items-center space-x-3 hover:text-green-600"
@@ -352,7 +195,7 @@ export default function Tweet({
           rel="noreferrer"
         >
           <Repeat className="h-4 w-4" />
-          <p>{nFormatter(public_metrics.retweet_count)}</p>
+          <p>{nFormatter(favorite_count)}</p>
         </a>
 
         <a
@@ -362,7 +205,7 @@ export default function Tweet({
           rel="noreferrer"
         >
           <Message className="h-4 w-4 group-hover:fill-blue-600" />
-          <p>{nFormatter(public_metrics.reply_count)}</p>
+          <p>{nFormatter(conversation_count)}</p>
         </a>
       </div>
     </div>
