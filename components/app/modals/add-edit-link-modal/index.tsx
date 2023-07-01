@@ -113,6 +113,15 @@ function AddEditLinkModal({
     setGeneratingKey(false);
   }, []);
 
+  useEffect(() => {
+    // generate random key when someone pastes a URL and there's no key
+    if (showAddEditLinkModal && !key && url.length > 0) {
+      generateRandomKey();
+    }
+    // here, we're intentionally leaving out `key` from the dependency array
+    // because we don't want to generate a new key if the user is editing the key
+  }, [showAddEditLinkModal, url, generateRandomKey]);
+
   const [generatingMetatags, setGeneratingMetatags] = useState(
     props ? true : false,
   );
@@ -375,6 +384,8 @@ function AddEditLinkModal({
                     required
                     placeholder="https://github.com/steven-tey/dub"
                     value={url}
+                    autoFocus
+                    autoComplete="off"
                     onChange={(e) => {
                       setUrlError(null);
                       setData({ ...data, url: e.target.value });
@@ -466,6 +477,7 @@ function AddEditLinkModal({
                           "Only letters, numbers, '-', and '/' are allowed.",
                         );
                       }}
+                      autoComplete="off"
                       className={`${
                         keyError
                           ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
@@ -582,6 +594,7 @@ function AddEditLinkButton({
       target.tagName !== "TEXTAREA" &&
       !existingModalBackdrop
     ) {
+      e.preventDefault(); // or else it'll show up in the input field since that's getting auto-selected
       setShowAddEditLinkModal(true);
     }
   }, []);
