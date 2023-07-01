@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useDebounce } from "use-debounce";
 import useSWR from "swr";
 import { Copy, Photo, Tick } from "@/components/shared/icons";
@@ -29,13 +29,21 @@ export default function MetatagsContent() {
   const { title, description, image } = data || {};
 
   const [copied, setCopied] = useState(false);
+
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    inputRef.current?.select();
+  }, []);
+
   return (
     <>
       <div className="w-full rounded-md shadow-sm">
         <input
+          ref={inputRef}
           name="url"
           id="url"
           type="url"
+          autoFocus
           className="block w-full rounded-md border-gray-300 text-sm text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500"
           placeholder="Enter your URL"
           defaultValue={url}
