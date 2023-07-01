@@ -384,7 +384,7 @@ function AddEditLinkModal({
                     required
                     placeholder="https://github.com/steven-tey/dub"
                     value={url}
-                    autoFocus
+                    autoFocus={!key}
                     autoComplete="off"
                     onChange={(e) => {
                       setUrlError(null);

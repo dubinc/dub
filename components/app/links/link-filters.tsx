@@ -283,7 +283,6 @@ const TagsFilter = ({
             className={`${collapsed ? "" : "rotate-90"} h-5 w-5 transition-all`}
           />
           <h4 className="font-medium text-gray-900">Tags</h4>
-          <Badge text="New" variant="blue" className="-mt-3" />
         </button>
         <button
           onClick={addTag}
