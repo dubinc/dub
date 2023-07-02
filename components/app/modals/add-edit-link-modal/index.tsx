@@ -21,6 +21,7 @@ import {
   getApexDomain,
   getQueryString,
   getUrlWithoutUTMParams,
+  isValidUrl,
   linkConstructor,
   truncate,
 } from "#/lib/utils";
@@ -599,9 +600,21 @@ function AddEditLinkButton({
     }
   }, []);
 
+  // listen to paste event, and if it's a URL, open the modal and input the URL
+  const handlePaste = (e: ClipboardEvent) => {
+    const pastedContent = e.clipboardData?.getData("text");
+    if (pastedContent && isValidUrl(pastedContent)) {
+      setShowAddEditLinkModal(true);
+    }
+  };
+
   useEffect(() => {
     document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
+    document.addEventListener("paste", handlePaste);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown),
+        document.removeEventListener("paste", handlePaste);
+    };
   }, [onKeyDown]);
 
   return slug && exceededUsage ? ( // only show exceeded usage tooltip if user is on a project page
