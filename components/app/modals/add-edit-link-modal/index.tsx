@@ -21,6 +21,7 @@ import {
   getApexDomain,
   getQueryString,
   getUrlWithoutUTMParams,
+  isValidUrl,
   linkConstructor,
   truncate,
 } from "#/lib/utils";
@@ -528,7 +529,7 @@ function AddEditLinkModal({
             </div>
 
             <div className="grid gap-5 px-4 md:px-16">
-              <TagsSection {...{ props, data, setData }} />
+              {slug && <TagsSection {...{ props, data, setData }} />}
               <OGSection
                 {...{ props, data, setData }}
                 generatingMetatags={generatingMetatags}
@@ -601,9 +602,21 @@ function AddEditLinkButton({
     }
   }, []);
 
+  // listen to paste event, and if it's a URL, open the modal and input the URL
+  const handlePaste = (e: ClipboardEvent) => {
+    const pastedContent = e.clipboardData?.getData("text");
+    if (pastedContent && isValidUrl(pastedContent)) {
+      setShowAddEditLinkModal(true);
+    }
+  };
+
   useEffect(() => {
     document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
+    document.addEventListener("paste", handlePaste);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown),
+        document.removeEventListener("paste", handlePaste);
+    };
   }, [onKeyDown]);
 
   return slug && exceededUsage ? ( // only show exceeded usage tooltip if user is on a project page

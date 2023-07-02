@@ -1,3 +1,5 @@
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
 import { Metadata } from "next";
 import { NextRouter } from "next/router";
 import ms from "ms";
@@ -9,6 +11,10 @@ import {
   HOME_HOSTNAMES,
 } from "./constants";
 import { get } from "@vercel/edge-config";
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 export function constructMetadata({
   title = "Dub - Link Management for Modern Marketing Teams",

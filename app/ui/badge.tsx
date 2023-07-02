@@ -1,4 +1,4 @@
-import clsx from "clsx";
+import { cn } from "#/lib/utils";
 
 export default function Badge({
   text,
@@ -11,7 +11,7 @@ export default function Badge({
 }) {
   return (
     <span
-      className={clsx(
+      className={cn(
         "rounded-full border px-2 py-px text-xs font-medium capitalize",
         {
           "border-violet-600 bg-violet-600 text-white": variant === "purple",

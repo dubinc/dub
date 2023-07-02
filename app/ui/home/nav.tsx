@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useParams, useSelectedLayoutSegment } from "next/navigation";
 import useScroll from "#/lib/hooks/use-scroll";
-import clsx from "clsx";
+import { cn } from "#/lib/utils";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 
 const navItems = ["pricing", "changelog"];
@@ -19,7 +19,7 @@ export default function Nav() {
 
   return (
     <div
-      className={clsx(`sticky inset-x-0 top-0 z-30 w-full transition-all`, {
+      className={cn(`sticky inset-x-0 top-0 z-30 w-full transition-all`, {
         "border-b border-gray-200 bg-white/75 backdrop-blur-lg": scrolled,
         "border-b border-gray-200 bg-white":
           segment && !transparentHeaderSegments.has(segment),

@@ -77,6 +77,7 @@
     "sonner": "^0.5.0",
     "stripe": "^12.7.0",
     "swr": "^2.1.5",
+    "tailwind-merge": "^1.13.2",
     "tailwind-scrollbar-hide": "^1.1.7",
     "tailwindcss-radix": "^2.8.0",
     "topojson-client": "^3.1.0",

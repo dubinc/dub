@@ -4,7 +4,7 @@ import type { Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
 import { Toaster } from "sonner";
 import "@/styles/globals.css";
-import clsx from "clsx";
+import { cn } from "#/lib/utils";
 import { satoshi, inter } from "@/styles/fonts";
 import ModalProvider from "#/ui/modal-provider";
 
@@ -16,7 +16,7 @@ function MyApp({
     <SessionProvider session={session}>
       <Toaster />
       <ModalProvider>
-        <main className={clsx(satoshi.variable, inter.variable)}>
+        <main className={cn(satoshi.variable, inter.variable)}>
           <Component {...pageProps} />
         </main>
       </ModalProvider>

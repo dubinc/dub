@@ -8815,6 +8815,11 @@ tabbable@^6.0.1:
   resolved "https://registry.yarnpkg.com/tabbable/-/tabbable-6.0.1.tgz#427a09b13c83ae41eed3e88abb76a4af28bde1a6"
   integrity sha512-SYJSIgeyXW7EuX1ytdneO5e8jip42oHWg9xl/o3oTYhmXusZVgiA+VlPvjIN+kHii9v90AmzTZEBcsEvuAY+TA==
 
+tailwind-merge@^1.13.2:
+  version "1.13.2"
+  resolved "https://registry.yarnpkg.com/tailwind-merge/-/tailwind-merge-1.13.2.tgz#1d06c9e95ffda2320efc50ed33c65be0cda23091"
+  integrity sha512-R2/nULkdg1VR/EL4RXg4dEohdoxNUJGLMnWIQnPKL+O9Twu7Cn3Rxi4dlXkDzZrEGtR+G+psSXFouWlpTyLhCQ==
+
 tailwind-scrollbar-hide@^1.1.7:
   version "1.1.7"
   resolved "https://registry.yarnpkg.com/tailwind-scrollbar-hide/-/tailwind-scrollbar-hide-1.1.7.tgz#90b481fb2e204030e3919427416650c54f56f847"

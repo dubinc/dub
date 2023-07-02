@@ -1,11 +1,10 @@
 "use client";
 
 import BlurImage from "#/ui/blur-image";
-import { nFormatter, truncate } from "#/lib/utils";
+import { cn, nFormatter, truncate } from "#/lib/utils";
 import { Heart, Message, Twitter } from "@/components/shared/icons";
 import Tilt from "react-parallax-tilt";
 import { enrichTweet } from "react-tweet";
-import clsx from "clsx";
 import { Tweet } from "react-tweet/api";
 
 export default function Tweet({
@@ -67,7 +66,7 @@ export default function Tweet({
                 height={48}
                 width={48}
                 src={user.profile_image_url_https}
-                className={clsx(
+                className={cn(
                   "h-10 w-10 overflow-hidden rounded-full border border-gray-200 transition-all ease-in-out hover:scale-105",
                   {
                     // @ts-expect-error
@@ -91,7 +90,7 @@ export default function Tweet({
                 user.verified_type ? (
                   <svg
                     aria-label="Verified Account"
-                    className={clsx("ml-1 inline h-4 w-4", {
+                    className={cn("ml-1 inline h-4 w-4", {
                       "text-blue-500": user.is_blue_verified,
                       "text-yellow-500": user.verified_type === "Business",
                     })}
@@ -182,7 +181,7 @@ export default function Tweet({
         )}
         {photos && (
           <div
-            className={clsx({
+            className={cn({
               "inline-grid grid-cols-2 gap-x-2 gap-y-2": photos.length > 1,
             })}
           >

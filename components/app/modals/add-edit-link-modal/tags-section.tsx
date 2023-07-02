@@ -1,18 +1,15 @@
 import {
   Dispatch,
-  KeyboardEvent,
   SetStateAction,
-  useCallback,
+  useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
-import { Check, Trash, X } from "lucide-react";
+import { Check, Search, Trash, X } from "lucide-react";
 import { Command } from "cmdk";
 import TagBadge, { COLORS_LIST } from "../../links/tag-badge";
 import { LinkProps, TagProps } from "#/lib/types";
-import Switch from "#/ui/switch";
-import { motion } from "framer-motion";
-import { FADE_IN_ANIMATION_SETTINGS } from "#/lib/constants";
 import useTags from "#/lib/swr/use-tags";
 import { useRouter } from "next/router";
 import { toast } from "sonner";
@@ -20,129 +17,140 @@ import { mutate } from "swr";
 import { LoadingCircle } from "#/ui/icons";
 import Popover from "@/components/shared/popover";
 import IconMenu from "@/components/shared/icon-menu";
-import { ThreeDots } from "@/components/shared/icons";
+import { ChevronDown, ThreeDots } from "@/components/shared/icons";
 
 export default function TagsSection({
-  props,
   data,
   setData,
 }: {
-  props?: LinkProps;
   data: LinkProps;
   setData: Dispatch<SetStateAction<LinkProps>>;
 }) {
   const { tagId } = data;
   const { tags } = useTags();
 
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState<TagProps[]>(
-    tags?.filter((tag) => tag.id === tagId) || [],
-  );
+  const selectedTag = useMemo(() => {
+    if (tagId) {
+      return tags?.find((tag) => tag.id === tagId);
+    }
+  }, [tagId, tags]);
+
   const [inputValue, setInputValue] = useState("");
 
-  const handleUnselect = useCallback((tag: TagProps) => {
-    setSelected((prev) => prev.filter((s) => s.id !== tag.id));
-  }, []);
+  const [creatingTag, setCreatingTag] = useState(false);
 
-  const handleKeyDown = useCallback((e: KeyboardEvent<HTMLDivElement>) => {
-    const input = inputRef.current;
-    if (input) {
-      if (e.key === "Delete" || e.key === "Backspace") {
-        if (input.value === "") {
-          setSelected((prev) => {
-            const newSelected = [...prev];
-            newSelected.pop();
-            return newSelected;
-          });
-        }
+  const commandRef = useRef<HTMLDivElement | null>(null);
+  const [openCommandList, setOpenCommandList] = useState(false);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (commandRef.current && !commandRef.current.contains(e.target)) {
+        setOpenCommandList(false);
       }
-      // This is not a default behaviour of the <input /> field
-      if (e.key === "Escape") {
-        input.blur();
-      }
+    };
+    if (openCommandList) {
+      document.addEventListener("click", handleClickOutside);
+      return () => document.removeEventListener("click", handleClickOutside);
     }
-  }, []);
+  }, [commandRef, openCommandList]);
 
   return (
     <div className="border-b border-gray-200 pb-5">
-      <h2 className="text-sm font-medium text-gray-900">Tags</h2>
-      <Command
-        className="mt-3 overflow-visible bg-white"
-        loop
-        shouldFilter={
-          inputValue.length > 0 && !tags?.find((t) => t.name === inputValue)
-        }
-      >
-        <div className="group rounded-md border border-gray-300 px-1 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500">
-          <div className="flex flex-wrap gap-1">
-            {selected.map((tag) => {
-              return (
-                //   <Badge key={framework.value} variant="secondary">
-                //     {framework.label}
-                //     <button
-                //       className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                //       onKeyDown={(e) => {
-                //         if (e.key === "Enter") {
-                //           handleUnselect(framework);
-                //         }
-                //       }}
-                //       onMouseDown={(e) => {
-                //         e.preventDefault();
-                //         e.stopPropagation();
-                //       }}
-                //       onClick={() => handleUnselect(framework)}
-                //     >
-                //       <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
-                //     </button>
-                //   </Badge>
-                <TagBadge key={tag.id} {...tag} />
-              );
-            })}
-            <Command.Input
-              ref={inputRef}
-              value={inputValue}
-              onValueChange={setInputValue}
-              onKeyDown={handleKeyDown}
-              onBlur={() => setOpen(false)}
-              onFocus={() => setOpen(true)}
-              placeholder="Choose tag"
-              className="flex-1 rounded-r-md border-none text-sm text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-0"
-            />
+      <Command ref={commandRef} className="relative" loop>
+        <div className="group mt-1 rounded-md border border-gray-300 bg-white px-1 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500">
+          <div className="absolute inset-y-0 left-0 flex items-center justify-center pl-3 text-gray-400">
+            {creatingTag ? <LoadingCircle /> : <Search className="h-4 w-4" />}
+          </div>
+          <div className="flex h-9 px-8">
+            {selectedTag ? (
+              <TagBadge key={selectedTag.id} {...selectedTag} />
+            ) : (
+              <Command.Input
+                placeholder="Choose a tag"
+                value={inputValue}
+                onValueChange={setInputValue}
+                // only show the dropdown if there are tags and the tagValue is not empty
+                onFocus={() =>
+                  tags && tags.length > 0 && setOpenCommandList(true)
+                }
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") {
+                    e.stopPropagation();
+                    setOpenCommandList(false);
+                  } else if (e.key === "Enter") {
+                    if (openCommandList) {
+                      // if dropdown is openCommandList, close it
+                      setOpenCommandList(false);
+                    } else {
+                      // if dropdown is already closed, submit form
+                    }
+                    // if it's a letter or a number and there's no meta key pressed, openCommandList dropdown
+                  } else if (e.key.match(/^[a-z0-9]$/i) && !e.metaKey) {
+                    setOpenCommandList(true);
+                  }
+                }}
+                className="block w-full rounded-md border-none px-0 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0"
+              />
+            )}
+            {selectedTag ? (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setData({ ...data, tagId: null });
+                  setOpenCommandList(true);
+                }}
+                className="absolute inset-y-0 right-0 my-auto"
+              >
+                <X className="h-7 w-7 pr-3 text-gray-400" />
+              </button>
+            ) : (
+              <ChevronDown className="absolute inset-y-0 right-0 my-auto h-7 w-7 pr-3 text-gray-400 transition-all" />
+            )}
           </div>
         </div>
-        <div className="relative">
-          {open && tags && tags.length > 0 ? (
-            <div
-              style={{
-                animationFillMode: "forwards", // to keep the last frame of the animation
-              }}
-              className="absolute z-10 h-[300px] w-full animate-input-select-slide-up overflow-auto rounded-md border border-gray-200 bg-white p-2 shadow-md transition-all sm:h-auto sm:max-h-[300px] sm:animate-input-select-slide-down"
-            >
-              <Command className="h-full overflow-auto">
-                {tags.map((tag) => {
-                  return (
-                    <Command.Item
-                      key={tag.id}
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                      }}
-                      onSelect={() => {
-                        setInputValue("");
-                        setSelected((prev) => [...prev, tag]);
-                      }}
-                      className="group flex cursor-pointer items-center justify-between rounded-md px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 aria-selected:bg-gray-100 aria-selected:text-gray-900"
-                    >
-                      <TagBadge key={tag.id} {...tag} />
-                      <TagPopover key={tag.id} tag={tag} />
-                    </Command.Item>
-                  );
-                })}
-              </Command>
-            </div>
-          ) : null}
-        </div>
+        {openCommandList && (
+          <Command.List
+            style={{
+              animationFillMode: "forwards", // to keep the last frame of the animation
+            }}
+            className="absolute z-20 h-[300px] w-full animate-input-select-slide-up overflow-auto rounded-md border border-gray-200 bg-white p-2 shadow-md transition-all sm:h-auto sm:max-h-[300px] sm:animate-input-select-slide-down"
+          >
+            <Command.Empty>
+              <button
+                type="button"
+                onClick={() => setOpenCommandList(false)}
+                className="flex w-full cursor-pointer items-center rounded-md bg-gray-100 px-4 py-2 text-sm text-gray-900 hover:text-gray-900 aria-selected:bg-gray-100 aria-selected:text-gray-900"
+              >
+                {inputValue.length > 0 ? (
+                  <>
+                    Create tag{" "}
+                    <span className="ml-1.5 rounded-md bg-blue-100 px-2 py-0.5 text-blue-600">
+                      {inputValue}
+                    </span>
+                  </>
+                ) : (
+                  <p className="py-0.5">Start typing to create tag...</p>
+                )}
+              </button>
+            </Command.Empty>
+            {tags?.map((tag) => (
+              <Command.Item
+                key={tag.id}
+                value={tag.name}
+                onSelect={() => {
+                  setData({ ...data, tagId: tag.id });
+                  setOpenCommandList(false);
+                }}
+                className="group flex cursor-pointer items-center justify-between rounded-md px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 aria-selected:bg-gray-100 aria-selected:text-gray-900"
+              >
+                <TagBadge {...tag} />
+                {selectedTag?.id === tag.id && (
+                  <Check className="h-5 w-5 text-gray-500" />
+                )}
+              </Command.Item>
+            ))}
+          </Command.List>
+        )}
       </Command>
     </div>
   );
@@ -196,10 +204,7 @@ const TagPopover = ({ tag }: { tag: TagProps }) => {
   ) : (
     <Popover
       content={
-        <div
-          data-exclude-click
-          className="flex w-48 flex-col divide-y divide-gray-200"
-        >
+        <div className="flex w-48 flex-col divide-y divide-gray-200">
           <div className="p-2">
             <form
               onClick={(e) => e.stopPropagation()} // prevent triggering <Command.Item> onClick

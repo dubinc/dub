@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import AppLayout from "components/layout/app";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import { ReactNode } from "react";
-import clsx from "clsx";
+import { cn } from "#/lib/utils";
 
 export default function SettingsLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -45,7 +45,7 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
             <Link
               href={href}
               key={href}
-              className={clsx(
+              className={cn(
                 "rounded-md p-2.5 text-sm transition-all duration-75 hover:bg-gray-100 active:bg-gray-200",
                 {
                   "font-semibold text-black": router.asPath === href,
