@@ -24,7 +24,6 @@ import { ModalContext } from "#/ui/modal-provider";
 import useTags from "#/lib/swr/use-tags";
 import TagBadge from "@/components/app/links/tag-badge";
 import { TagProps } from "#/lib/types";
-import Badge from "#/ui/badge";
 
 export default function LinkFilters() {
   const { primaryDomain } = useDomains();
@@ -34,22 +33,30 @@ export default function LinkFilters() {
   const { data: tagsCount } = useLinksCount({ groupBy: "tagId" });
 
   const router = useRouter();
-  const { slug, sort, search, domain, userId, tagId } = router.query as {
-    slug: string;
-    sort?: string;
-    search?: string;
-    domain?: string;
-    userId?: string;
-    tagId?: string;
-  };
+  const { slug, sort, search, domain, userId, tagId, showArchived } =
+    router.query as {
+      slug: string;
+      sort?: string;
+      search?: string;
+      domain?: string;
+      userId?: string;
+      tagId?: string;
+      showArchived?: string;
+    };
   const searchInputRef = useRef(); // this is a hack to clear the search input when the clear button is clicked
+
+  useEffect(() => {
+    if (search) {
+      setQueryString(router, "showArchived", "true");
+    }
+  }, [search]);
 
   return domains && tags && tagsCount ? (
     <div className="grid w-full rounded-md bg-white px-5 lg:divide-y lg:divide-gray-300">
       <div className="grid gap-3 py-6">
         <div className="flex items-center justify-between">
           <h3 className="ml-1 mt-2 font-semibold">Filter Links</h3>
-          {(sort || search || domain || userId || tagId) && (
+          {(sort || search || domain || userId || tagId || showArchived) && (
             <ClearButton searchInputRef={searchInputRef} />
           )}
         </div>
@@ -186,7 +193,7 @@ const DomainsFilter = ({ domains, primaryDomain }) => {
               );
             }
           }}
-          className="mr-2 rounded-md border border-gray-200 px-3 py-1 transition-all hover:border-gray-600 active:bg-gray-100"
+          className="rounded-md border border-gray-200 px-3 py-1 transition-all hover:border-gray-600 active:bg-gray-100"
         >
           <p className="text-sm text-gray-500">Add</p>
         </button>
@@ -237,7 +244,7 @@ const TagsFilter = ({
 }) => {
   const router = useRouter();
   const { slug } = router.query as { slug?: string };
-  const [collapsed, setCollapsed] = useState(tags.length === 0 ? true : false);
+  const [collapsed, setCollapsed] = useState(true);
   const [search, setSearch] = useState("");
   const [showMore, setShowMore] = useState(false);
 
@@ -256,20 +263,6 @@ const TagsFilter = ({
       : initialOptions;
   }, [tagsCount, tags, search]);
 
-  const { setShowTagLinkModal, setShowAddProjectModal } =
-    useContext(ModalContext);
-
-  const addTag = useCallback(() => {
-    if (slug) {
-      setShowTagLinkModal(true);
-    } else {
-      setShowAddProjectModal(true);
-      toast.error(
-        "You can only add a tag to a custom project. Please create a new project or navigate to an existing one.",
-      );
-    }
-  }, [setShowTagLinkModal, setShowAddProjectModal, slug]);
-
   return (
     <fieldset className="overflow-hidden py-6">
       <div className="flex h-8 items-center justify-between">
@@ -284,12 +277,6 @@ const TagsFilter = ({
           />
           <h4 className="font-medium text-gray-900">Tags</h4>
         </button>
-        <button
-          onClick={addTag}
-          className="mr-2 rounded-md border border-gray-200 px-3 py-1 transition-all hover:border-gray-600 active:bg-gray-100"
-        >
-          <p className="text-sm text-gray-500">Add</p>
-        </button>
       </div>
       <AnimatePresence initial={false}>
         {!collapsed && (
@@ -298,15 +285,7 @@ const TagsFilter = ({
             {...SWIPE_REVEAL_ANIMATION_SETTINGS}
           >
             {tags?.length === 0 ? ( // if the project has no tags
-              <p className="text-center text-sm text-gray-500">
-                No tags yet.{" "}
-                <button
-                  className="font-medium underline underline-offset-4 transition-colors hover:text-black"
-                  onClick={addTag}
-                >
-                  Add one.
-                </button>
-              </p>
+              <p className="text-center text-sm text-gray-500">No tags yet. </p>
             ) : (
               <>
                 <div className="relative mb-1">

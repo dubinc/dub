@@ -15,7 +15,7 @@ export default function TagBadge({
   return (
     <span
       className={clsx(
-        "whitespace-nowrap rounded-md px-2 py-0.5 text-sm",
+        "my-auto whitespace-nowrap rounded-md px-2 py-0.5 text-sm",
         withIcon && "flex items-center space-x-1.5",
         color === "red" && "bg-red-100 text-red-600",
         color === "yellow" && "bg-yellow-100 text-yellow-600",

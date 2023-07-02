@@ -24,13 +24,14 @@ import {
   linkConstructor,
   truncate,
 } from "#/lib/utils";
-import ExpirationSection from "./expiration-section";
+import TagsSection from "./tags-section";
 import OGSection from "./og-section";
-import PasswordSection from "./password-section";
 import UTMSection from "./utm-section";
+import PasswordSection from "./password-section";
+import ExpirationSection from "./expiration-section";
 import IOSSection from "./ios-section";
-import Preview from "./preview";
 import AndroidSection from "./android-section";
+import Preview from "./preview";
 import { DEFAULT_LINK_PROPS, GOOGLE_FAVICON_URL } from "#/lib/constants";
 import useDomains from "#/lib/swr/use-domains";
 import { toast } from "sonner";
@@ -527,6 +528,7 @@ function AddEditLinkModal({
             </div>
 
             <div className="grid gap-5 px-4 md:px-16">
+              <TagsSection {...{ props, data, setData }} />
               <OGSection
                 {...{ props, data, setData }}
                 generatingMetatags={generatingMetatags}

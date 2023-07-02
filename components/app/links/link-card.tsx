@@ -3,7 +3,6 @@ import { useRouter } from "next/router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import useSWR from "swr";
 import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal";
-import { useTagLinkModal } from "@/components/app/modals/tag-link-modal";
 import { useArchiveLinkModal } from "@/components/app/modals/archive-link-modal";
 import { useDeleteLinkModal } from "@/components/app/modals/delete-link-modal";
 import { useLinkQRModal } from "@/components/app/modals/link-qr-modal";
@@ -20,6 +19,7 @@ import {
   getApexDomain,
   linkConstructor,
   nFormatter,
+  setQueryString,
   timeAgo,
 } from "#/lib/utils";
 import useIntersectionObserver from "#/lib/hooks/use-intersection-observer";
@@ -84,9 +84,6 @@ export default function LinkCard({ props }: { props: LinkProps }) {
     },
   });
 
-  const { setShowTagLinkModal, TagLinkModal } = useTagLinkModal({
-    props,
-  });
   const { setShowArchiveLinkModal, ArchiveLinkModal } = useArchiveLinkModal({
     props,
     archived: !archived,
@@ -143,9 +140,6 @@ export default function LinkCard({ props }: { props: LinkProps }) {
         case "d":
           setShowDuplicateLinkModal(true);
           break;
-        case "t":
-          setShowTagLinkModal(true);
-          break;
         case "a":
           setShowArchiveLinkModal(true);
           break;
@@ -173,7 +167,6 @@ export default function LinkCard({ props }: { props: LinkProps }) {
       <LinkQRModal />
       <AddEditLinkModal />
       <DuplicateLinkModal />
-      {slug && <TagLinkModal />}
       <ArchiveLinkModal />
       <DeleteLinkModal />
       <li className="relative flex items-center justify-between">
@@ -265,7 +258,10 @@ export default function LinkCard({ props }: { props: LinkProps }) {
               </Link>
               {tag?.color && (
                 <button
-                  onClick={() => setShowTagLinkModal(true)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setQueryString(router, "tagId", tag.id);
+                  }}
                   className="hidden transition-all duration-75 hover:scale-105 active:scale-100 sm:block"
                 >
                   <TagBadge {...tag} withIcon />
@@ -359,20 +355,6 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                     />
                     <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 transition-all duration-75 group-hover:bg-gray-200 sm:inline-block">
                       D
-                    </kbd>
-                  </button>
-                )}
-                {slug && (
-                  <button
-                    onClick={() => {
-                      setOpenPopover(false);
-                      setShowTagLinkModal(true);
-                    }}
-                    className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
-                  >
-                    <IconMenu text="Tag" icon={<Tag className="h-4 w-4" />} />
-                    <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 transition-all duration-75 group-hover:bg-gray-200 sm:inline-block">
-                      T
                     </kbd>
                   </button>
                 )}
