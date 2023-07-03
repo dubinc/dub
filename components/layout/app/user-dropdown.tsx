@@ -22,7 +22,7 @@ export default function UserDropdown() {
       va.track("Open support chat");
       setOpeningSupport(false);
     });
-    Crisp.chat.onChatClose(() => {
+    Crisp.chat.onChatClosed(() => {
       Crisp.chat.hide();
     });
   }, []);
