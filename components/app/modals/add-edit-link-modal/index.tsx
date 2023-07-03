@@ -606,12 +606,18 @@ function AddEditLinkButton({
   const handlePaste = (e: ClipboardEvent) => {
     const pastedContent = e.clipboardData?.getData("text");
     const target = e.target as HTMLElement;
+    const existingModalBackdrop = document.getElementById("modal-backdrop");
 
-    // make sure it's a valid URL and is not being pasted in an input or textarea
+    // make sure:
+    // - pasted content is a valid URL
+    // - user is not typing in an input or textarea
+    // - there is no existing modal backdrop (i.e. no other modal is open)
     if (
       pastedContent &&
       isValidUrl(pastedContent) &&
-      !(target.tagName === "INPUT" || target.tagName === "TEXTAREA")
+      target.tagName !== "INPUT" &&
+      target.tagName !== "TEXTAREA" &&
+      !existingModalBackdrop
     ) {
       setShowAddEditLinkModal(true);
     }
