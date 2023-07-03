@@ -10,6 +10,7 @@ export default async function RootMiddleware(
   ev: NextFetchEvent,
 ) {
   const { domain } = parse(req);
+  console.log({ domain });
 
   if (!domain) {
     return NextResponse.next();
