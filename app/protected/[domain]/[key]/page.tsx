@@ -2,8 +2,6 @@ import { constructMetadata } from "#/lib/utils";
 import BlurImage from "#/ui/blur-image";
 import PasswordForm from "./form";
 
-export const runtime = "edge";
-
 const title = "Password Required";
 const description =
   "This link is password protected. Please enter the password to view it.";
