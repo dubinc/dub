@@ -514,7 +514,7 @@ function AddEditLinkModal({
             </div>
 
             {/* Divider */}
-            <div className="relative py-5">
+            <div className="relative pb-3 pt-5">
               <div
                 className="absolute inset-0 flex items-center px-4 md:px-16"
                 aria-hidden="true"

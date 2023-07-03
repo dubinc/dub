@@ -67,8 +67,12 @@ export default function LinkFilters() {
         <SearchBox searchInputRef={searchInputRef} />
       </div>
       <DomainsFilter domains={domains} primaryDomain={primaryDomain} />
-      <TagsFilter tags={tags} tagsCount={tagsCount} />
-      {slug && <MyLinksFilter />}
+      {slug && (
+        <>
+          <TagsFilter tags={tags} tagsCount={tagsCount} />
+          <MyLinksFilter />
+        </>
+      )}
       <ArchiveFilter />
     </div>
   ) : (
@@ -288,7 +292,7 @@ const TagsFilter = ({
             {...SWIPE_REVEAL_ANIMATION_SETTINGS}
           >
             {tags?.length === 0 ? ( // if the project has no tags
-              <p className="text-center text-sm text-gray-500">No tags yet. </p>
+              <p className="text-center text-sm text-gray-500">No tags yet.</p>
             ) : (
               <>
                 <div className="relative mb-1">

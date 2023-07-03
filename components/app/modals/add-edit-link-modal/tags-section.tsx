@@ -6,7 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { Check, Search, X } from "lucide-react";
+import { Check, Tag, X } from "lucide-react";
 import { Command, useCommandState } from "cmdk";
 import TagBadge from "../../links/tag-badge";
 import { LinkProps } from "#/lib/types";
@@ -108,7 +108,7 @@ export default function TagsSection({
       <Command ref={commandRef} className="relative" loop>
         <div className="group mt-1 rounded-md border border-gray-300 bg-white px-1 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500">
           <div className="absolute inset-y-0 left-0 flex items-center justify-center pl-3 text-gray-400">
-            {creatingTag ? <LoadingCircle /> : <Search className="h-4 w-4" />}
+            {creatingTag ? <LoadingCircle /> : <Tag className="h-4 w-4" />}
           </div>
           <div className="flex h-9 px-8">
             {selectedTag ? (
