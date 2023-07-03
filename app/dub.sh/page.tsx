@@ -18,14 +18,10 @@ export default function Home() {
       <Hero />
       <Demo />
       <Logos />
-      {/* @ts-expect-error Async Server Component */}
       <Globe />
-      {/* @ts-expect-error Async Server Component */}
       <Stats />
       <Features />
-      {/* @ts-expect-error Async Server Component */}
       <Testimonials />
-      {/* @ts-expect-error Async Server Component */}
       <OSS />
     </>
   );

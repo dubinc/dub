@@ -44,7 +44,7 @@
     "cobe": "^0.6.3",
     "concurrently": "^8.0.1",
     "contentlayer": "^0.3.3",
-    "crisp-sdk-web": "^1.0.18",
+    "crisp-sdk-web": "^1.0.19",
     "focus-trap-react": "^10.0.1",
     "framer-motion": "^10.12.12",
     "html-escaper": "^3.0.3",
