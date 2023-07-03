@@ -1,8 +1,11 @@
 import prisma from "#/lib/prisma";
+import { headers } from "next/headers";
+import { getDomain } from "#/lib/utils";
 import { allChangelogPosts, allLegalPosts } from "contentlayer/generated";
 
 export default async function Sitemap() {
-  const domain = "dub.sh";
+  const headersList = headers();
+  const domain = getDomain(headersList);
 
   const links = await prisma.link.findMany({
     where: {
