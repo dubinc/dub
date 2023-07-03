@@ -6,18 +6,16 @@ import {
   useRef,
   useState,
 } from "react";
-import { Check, Search, Trash, X } from "lucide-react";
-import { Command } from "cmdk";
-import TagBadge, { COLORS_LIST } from "../../links/tag-badge";
-import { LinkProps, TagProps } from "#/lib/types";
+import { Check, Search, X } from "lucide-react";
+import { Command, useCommandState } from "cmdk";
+import TagBadge from "../../links/tag-badge";
+import { LinkProps } from "#/lib/types";
 import useTags from "#/lib/swr/use-tags";
 import { useRouter } from "next/router";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { LoadingCircle } from "#/ui/icons";
-import Popover from "@/components/shared/popover";
-import IconMenu from "@/components/shared/icon-menu";
-import { ChevronDown, ThreeDots } from "@/components/shared/icons";
+import { ChevronDown } from "@/components/shared/icons";
 
 export default function TagsSection({
   data,
@@ -26,6 +24,8 @@ export default function TagsSection({
   data: LinkProps;
   setData: Dispatch<SetStateAction<LinkProps>>;
 }) {
+  const router = useRouter();
+  const { slug } = router.query;
   const { tagId } = data;
   const { tags } = useTags();
 
@@ -36,8 +36,28 @@ export default function TagsSection({
   }, [tagId, tags]);
 
   const [inputValue, setInputValue] = useState("");
-
   const [creatingTag, setCreatingTag] = useState(false);
+
+  const createTag = async (tag: string) => {
+    setCreatingTag(true);
+    fetch(`/api/projects/${slug}/tags`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ tag }),
+    }).then(async (res) => {
+      if (res.ok) {
+        mutate(`/api/projects/${slug}/tags`);
+        const newTag = await res.json();
+        setData({ ...data, tagId: newTag.id });
+        toast.success(`Successfully created tag!`);
+        setCreatingTag(false);
+      } else {
+        toast.error(`Error creating tag!`);
+      }
+    });
+  };
 
   const commandRef = useRef<HTMLDivElement | null>(null);
   const [openCommandList, setOpenCommandList] = useState(false);
@@ -54,6 +74,35 @@ export default function TagsSection({
     }
   }, [commandRef, openCommandList]);
 
+  const CommandInput = () => {
+    const isEmpty = useCommandState((state) => state.filtered.count === 0);
+    return (
+      <Command.Input
+        placeholder="Choose a tag"
+        // hack to focus on the input when the dropdown opens
+        autoFocus={openCommandList}
+        // when focus on the input. only show the dropdown if there are tags and the tagValue is not empty
+        onFocus={() => tags && tags.length > 0 && setOpenCommandList(true)}
+        value={inputValue}
+        onValueChange={setInputValue}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") {
+            setOpenCommandList(false);
+
+            // listen for cases where empty results and enter is pressed
+          } else if (e.key === "Enter" && isEmpty) {
+            setOpenCommandList(false);
+            createTag(inputValue);
+            // if it's a letter or a number and there's no meta key pressed, openCommandList dropdown
+          } else if (e.key.match(/^[a-z0-9]$/i) && !e.metaKey) {
+            setOpenCommandList(true);
+          }
+        }}
+        className="block w-full rounded-md border-none px-0 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0"
+      />
+    );
+  };
+
   return (
     <div className="border-b border-gray-200 pb-5">
       <Command ref={commandRef} className="relative" loop>
@@ -65,39 +114,13 @@ export default function TagsSection({
             {selectedTag ? (
               <TagBadge key={selectedTag.id} {...selectedTag} />
             ) : (
-              <Command.Input
-                placeholder="Choose a tag"
-                value={inputValue}
-                onValueChange={setInputValue}
-                // only show the dropdown if there are tags and the tagValue is not empty
-                onFocus={() =>
-                  tags && tags.length > 0 && setOpenCommandList(true)
-                }
-                onKeyDown={(e) => {
-                  if (e.key === "Escape") {
-                    e.stopPropagation();
-                    setOpenCommandList(false);
-                  } else if (e.key === "Enter") {
-                    if (openCommandList) {
-                      // if dropdown is openCommandList, close it
-                      setOpenCommandList(false);
-                    } else {
-                      // if dropdown is already closed, submit form
-                    }
-                    // if it's a letter or a number and there's no meta key pressed, openCommandList dropdown
-                  } else if (e.key.match(/^[a-z0-9]$/i) && !e.metaKey) {
-                    setOpenCommandList(true);
-                  }
-                }}
-                className="block w-full rounded-md border-none px-0 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0"
-              />
+              <CommandInput />
             )}
             {selectedTag ? (
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
+                onClick={() => {
                   setData({ ...data, tagId: null });
-                  setOpenCommandList(true);
+                  setInputValue("");
                 }}
                 className="absolute inset-y-0 right-0 my-auto"
               >
@@ -113,25 +136,22 @@ export default function TagsSection({
             style={{
               animationFillMode: "forwards", // to keep the last frame of the animation
             }}
-            className="absolute z-20 h-[300px] w-full animate-input-select-slide-up overflow-auto rounded-md border border-gray-200 bg-white p-2 shadow-md transition-all sm:h-auto sm:max-h-[300px] sm:animate-input-select-slide-down"
+            className="absolute z-20 h-[300px] w-full animate-input-select-slide-up overflow-auto rounded-md border border-gray-200 bg-white p-2 shadow-md transition-all sm:h-[calc(var(--cmdk-list-height)+17px)] sm:max-h-[300px] sm:animate-input-select-slide-down"
           >
             <Command.Empty>
-              <button
-                type="button"
-                onClick={() => setOpenCommandList(false)}
-                className="flex w-full cursor-pointer items-center rounded-md bg-gray-100 px-4 py-2 text-sm text-gray-900 hover:text-gray-900 aria-selected:bg-gray-100 aria-selected:text-gray-900"
-              >
-                {inputValue.length > 0 ? (
-                  <>
-                    Create tag{" "}
-                    <span className="ml-1.5 rounded-md bg-blue-100 px-2 py-0.5 text-blue-600">
-                      {inputValue}
-                    </span>
-                  </>
-                ) : (
-                  <p className="py-0.5">Start typing to create tag...</p>
-                )}
-              </button>
+              {inputValue.length > 0 ? (
+                <button
+                  onClick={() => createTag(inputValue)}
+                  className="flex w-full cursor-pointer items-center rounded-md bg-gray-100 px-4 py-2 text-sm text-gray-900 hover:text-gray-900 aria-selected:bg-gray-100 aria-selected:text-gray-900"
+                >
+                  Create tag{" "}
+                  <span className="ml-1.5 rounded-md bg-blue-100 px-2 py-0.5 text-blue-600">
+                    {inputValue}
+                  </span>
+                </button>
+              ) : (
+                <p className="py-0.5">Start typing to create tag...</p>
+              )}
             </Command.Empty>
             {tags?.map((tag) => (
               <Command.Item
@@ -155,131 +175,3 @@ export default function TagsSection({
     </div>
   );
 }
-
-const TagPopover = ({ tag }: { tag: TagProps }) => {
-  const router = useRouter();
-  const { slug } = router.query as { slug: string };
-  const [data, setData] = useState(tag);
-  const [openPopover, setOpenPopover] = useState(false);
-  const [processing, setProcessing] = useState(false);
-
-  const handleEdit = async (e) => {
-    e.stopPropagation();
-    e.preventDefault();
-    setProcessing(true);
-    fetch(`/api/projects/${slug}/tags/${tag.id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    }).then((res) => {
-      setProcessing(false);
-      if (res.ok) {
-        toast.success("Tag updated");
-        mutate(`/api/projects/${slug}/tags`);
-      } else {
-        toast.error("Something went wrong");
-      }
-    });
-  };
-
-  const handleDelete = async () => {
-    setProcessing(true);
-    fetch(`/api/projects/${slug}/tags/${tag.id}`, {
-      method: "DELETE",
-    }).then((res) => {
-      setProcessing(false);
-      if (res.ok) {
-        toast.success("Tag deleted");
-        mutate(`/api/projects/${slug}/tags`);
-      } else {
-        toast.error("Something went wrong");
-      }
-    });
-  };
-
-  return processing ? (
-    <LoadingCircle />
-  ) : (
-    <Popover
-      content={
-        <div className="flex w-48 flex-col divide-y divide-gray-200">
-          <div className="p-2">
-            <form
-              onClick={(e) => e.stopPropagation()} // prevent triggering <Command.Item> onClick
-              onKeyDown={(e) => e.stopPropagation()} // prevent triggering <Command.Item> onKeyDown
-              onSubmit={handleEdit}
-              className="relative py-1"
-            >
-              <div className="my-2 flex items-center justify-between px-3">
-                <p className="text-xs text-gray-500">Edit Tag</p>
-                {data !== tag && (
-                  <button className="text-xs text-gray-500">Save</button>
-                )}
-              </div>
-              <input
-                type="text"
-                autoFocus
-                required
-                value={data.name}
-                onChange={(e) => setData({ ...data, name: e.target.value })}
-                className="block w-full rounded-md border-gray-300 py-1 pr-7 text-sm text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500"
-              />
-              <div className="grid grid-cols-3 gap-3 p-3 pb-0">
-                {COLORS_LIST.map(({ color, css }) => (
-                  <button
-                    key={color}
-                    type="button"
-                    className={`mx-auto flex h-6 w-6 items-center justify-center rounded-full transition-all duration-75 hover:scale-110 active:scale-90 ${css}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setData({ ...data, color });
-                    }}
-                  >
-                    {data.color === color && <Check className="h-4 w-4" />}
-                  </button>
-                ))}
-              </div>
-            </form>
-          </div>
-          <div className="p-2">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                confirm(
-                  "Are you sure you want to delete this tag? All tagged links will be untagged, but they won't be deleted.",
-                ) && handleDelete();
-              }}
-              className="flex w-full items-center space-x-2 rounded-md p-2 text-red-600 transition-colors hover:bg-red-100 active:bg-red-200"
-            >
-              <IconMenu
-                text="Delete Tag"
-                icon={<Trash className="h-4 w-4 text-red-600" />}
-              />
-            </button>
-          </div>
-        </div>
-      }
-      align="end"
-      desktopOnly
-      openPopover={openPopover}
-      setOpenPopover={setOpenPopover}
-    >
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          setOpenPopover(!openPopover);
-        }}
-        className={`${
-          openPopover
-            ? "bg-gray-200"
-            : "hidden hover:bg-gray-200 group-hover:block"
-        } rounded-md p-1 transition-colors`}
-      >
-        <ThreeDots className="h-4 w-4 text-gray-500" />
-      </button>
-    </Popover>
-  );
-};
