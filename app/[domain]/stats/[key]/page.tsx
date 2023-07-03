@@ -24,6 +24,15 @@ export async function generateMetadata({
   });
 }
 
+export async function generateStaticParams() {
+  return [
+    {
+      domain: "dub.sh",
+      key: "github",
+    },
+  ];
+}
+
 export default async function StatsPage({
   params,
 }: {

@@ -13,7 +13,6 @@ export const parse = (req: NextRequest) => {
   const key = decodeURIComponent(path.split("/")[1]); // key is the first part of the path (e.g. dub.sh/stats/github -> stats)
   const fullKey = decodeURIComponent(path.slice(1)); // fullKey is the full path without the first slash (to account for multi-level subpaths, e.g. dub.sh/github/repo -> github/repo)
 
-  console.log({ domain, path, key, fullKey });
   return { domain, path, key, fullKey };
 };
 

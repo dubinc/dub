@@ -32,6 +32,9 @@ export async function generateStaticParams() {
           where: {
             verified: true,
             target: null,
+            NOT: {
+              slug: "dub.sh",
+            },
           },
           select: {
             slug: true,
