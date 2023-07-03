@@ -108,7 +108,6 @@ export default async function ChangelogPost({
           className="border border-gray-100 md:rounded-2xl"
         />
         <div className="mx-5 mb-10 flex items-center justify-between md:mx-0">
-          {/* @ts-expect-error Async Server Component */}
           <Author username={post.author} />
           <div className="flex items-center space-x-6">
             <Link

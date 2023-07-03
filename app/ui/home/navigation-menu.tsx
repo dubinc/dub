@@ -1,7 +1,7 @@
 "use client";
 
 import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu";
-import clsx from "clsx";
+import { cn } from "#/lib/utils";
 import Link from "next/link";
 import React from "react";
 
@@ -30,7 +30,7 @@ export default function NavigationMenu() {
       <NavigationMenuPrimitive.List className="flex flex-row space-x-2 p-2">
         {/* <NavigationMenuPrimitive.Item>
           <NavigationMenuPrimitive.Trigger
-            className={clsx(
+            className={cn(
               "group flex items-center space-x-2 rounded-md px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-900",
               "text-sm font-medium",
               "text-gray-700 dark:text-gray-100",
@@ -42,7 +42,7 @@ export default function NavigationMenu() {
           </NavigationMenuPrimitive.Trigger>
 
           <NavigationMenuPrimitive.Content
-            className={clsx(
+            className={cn(
               "absolute top-0 left-0 w-auto rounded-lg",
               "radix-motion-from-start:animate-enter-from-left",
               "radix-motion-from-end:animate-enter-from-right",
@@ -67,7 +67,7 @@ export default function NavigationMenu() {
 
         <NavigationMenuPrimitive.Item>
           <NavigationMenuPrimitive.Trigger
-            className={clsx(
+            className={cn(
               "group flex items-center space-x-2 rounded-md px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-900",
               "text-sm font-medium text-gray-700 dark:text-gray-100",
               "focus:outline-none focus-visible:ring focus-visible:ring-purple-500 focus-visible:ring-opacity-75",
@@ -78,7 +78,7 @@ export default function NavigationMenu() {
           </NavigationMenuPrimitive.Trigger>
 
           <NavigationMenuPrimitive.Content
-            className={clsx(
+            className={cn(
               "absolute top-0 left-0 w-auto rounded-lg",
               "radix-motion-from-start:animate-enter-from-left",
               "radix-motion-from-end:animate-enter-from-right",
@@ -91,7 +91,7 @@ export default function NavigationMenu() {
                 {comparisons.map(({ title, slug }) => (
                   <Link
                     key={slug}
-                    className={clsx(
+                    className={cn(
                       "w-full rounded-md px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-900",
                       "focus:outline-none focus-visible:ring focus-visible:ring-purple-500 focus-visible:ring-opacity-75",
                     )}
@@ -139,7 +139,7 @@ export default function NavigationMenu() {
         </NavigationMenuPrimitive.Item>
 
         <NavigationMenuPrimitive.Indicator
-          className={clsx(
+          className={cn(
             "z-10",
             "top-[100%] flex h-2 items-end justify-center overflow-hidden",
             "radix-state-visible:animate-fade-in",
@@ -152,7 +152,7 @@ export default function NavigationMenu() {
       </NavigationMenuPrimitive.List>
 
       <div
-        className={clsx(
+        className={cn(
           "absolute flex justify-center",
           "left-[-30%] top-[100%] w-[140%]",
         )}
@@ -161,7 +161,7 @@ export default function NavigationMenu() {
         }}
       >
         <NavigationMenuPrimitive.Viewport
-          className={clsx(
+          className={cn(
             "relative mt-2 overflow-hidden rounded-md bg-white shadow-lg dark:bg-gray-800",
             "w-radix-navigation-menu-viewport",
             "h-radix-navigation-menu-viewport",

@@ -29,14 +29,15 @@ export default async function LinkMiddleware(
   const { url: target, password, proxy, ios, android } = response || {};
 
   if (target) {
+    if (password) {
+      // rewrite to auth page (/_auth/[domain]/[key]) if the link is password protected
+      console.log("password protected link", `/+auth/${domain}/${key}`);
+      return NextResponse.rewrite(new URL(`/+auth/${domain}/${key}`, req.url));
+    }
+
     // special case for link health monitoring with planetfall.io :)
     if (!req.headers.get("dub-no-track")) {
       ev.waitUntil(recordClick(domain, req, key)); // track the click only if there is no `dub-no-track` header
-    }
-
-    if (password) {
-      // rewrite to auth page (/_auth/[domain]/[key]) if the link is password protected
-      return NextResponse.rewrite(new URL(`/_auth/${domain}/${key}`, req.url));
     }
 
     const isBot = detectBot(req);

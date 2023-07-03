@@ -2,9 +2,8 @@
 
 import { useSelectedLayoutSegment } from "next/navigation";
 import { ReactNode } from "react";
-import { Toaster } from "sonner";
 
-export default function Providers({
+export default function MarketingProviders({
   modal,
   children,
 }: {
@@ -13,11 +12,10 @@ export default function Providers({
 }) {
   const segment = useSelectedLayoutSegment();
   return (
-    <div>
+    <>
       {/* Only show stats modal if it's on the home page */}
       {!segment && modal}
-      <Toaster />
       {children}
-    </div>
+    </>
   );
 }

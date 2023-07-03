@@ -8,13 +8,13 @@ import {
   useState,
 } from "react";
 import { nFormatter, setQueryString } from "#/lib/utils";
-import { ChevronRight, XCircle, Search } from "lucide-react";
+import { ChevronRight, XCircle, Search, Check, Trash } from "lucide-react";
 import useDomains from "#/lib/swr/use-domains";
 import { AnimatePresence, motion } from "framer-motion";
 import { SWIPE_REVEAL_ANIMATION_SETTINGS } from "#/lib/constants";
 import { useDebouncedCallback } from "use-debounce";
 import useLinks from "#/lib/swr/use-links";
-import { LoadingSpinner } from "#/ui/icons";
+import { LoadingCircle, LoadingSpinner } from "#/ui/icons";
 import useLinksCount from "#/lib/swr/use-links-count";
 import punycode from "punycode/";
 import Switch from "#/ui/switch";
@@ -22,9 +22,12 @@ import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { ModalContext } from "#/ui/modal-provider";
 import useTags from "#/lib/swr/use-tags";
-import TagBadge from "@/components/app/links/tag-badge";
+import TagBadge, { COLORS_LIST } from "@/components/app/links/tag-badge";
 import { TagProps } from "#/lib/types";
-import Badge from "#/ui/badge";
+import { ThreeDots } from "@/components/shared/icons";
+import Popover from "@/components/shared/popover";
+import IconMenu from "@/components/shared/icon-menu";
+import { mutate } from "swr";
 
 export default function LinkFilters() {
   const { primaryDomain } = useDomains();
@@ -34,30 +37,42 @@ export default function LinkFilters() {
   const { data: tagsCount } = useLinksCount({ groupBy: "tagId" });
 
   const router = useRouter();
-  const { slug, sort, search, domain, userId, tagId } = router.query as {
-    slug: string;
-    sort?: string;
-    search?: string;
-    domain?: string;
-    userId?: string;
-    tagId?: string;
-  };
+  const { slug, sort, search, domain, userId, tagId, showArchived } =
+    router.query as {
+      slug: string;
+      sort?: string;
+      search?: string;
+      domain?: string;
+      userId?: string;
+      tagId?: string;
+      showArchived?: string;
+    };
   const searchInputRef = useRef(); // this is a hack to clear the search input when the clear button is clicked
+
+  useEffect(() => {
+    if (search) {
+      setQueryString(router, "showArchived", "true");
+    }
+  }, [search]);
 
   return domains && tags && tagsCount ? (
     <div className="grid w-full rounded-md bg-white px-5 lg:divide-y lg:divide-gray-300">
       <div className="grid gap-3 py-6">
         <div className="flex items-center justify-between">
           <h3 className="ml-1 mt-2 font-semibold">Filter Links</h3>
-          {(sort || search || domain || userId || tagId) && (
+          {(sort || search || domain || userId || tagId || showArchived) && (
             <ClearButton searchInputRef={searchInputRef} />
           )}
         </div>
         <SearchBox searchInputRef={searchInputRef} />
       </div>
       <DomainsFilter domains={domains} primaryDomain={primaryDomain} />
-      <TagsFilter tags={tags} tagsCount={tagsCount} />
-      {slug && <MyLinksFilter />}
+      {slug && (
+        <>
+          <TagsFilter tags={tags} tagsCount={tagsCount} />
+          <MyLinksFilter />
+        </>
+      )}
       <ArchiveFilter />
     </div>
   ) : (
@@ -186,7 +201,7 @@ const DomainsFilter = ({ domains, primaryDomain }) => {
               );
             }
           }}
-          className="mr-2 rounded-md border border-gray-200 px-3 py-1 transition-all hover:border-gray-600 active:bg-gray-100"
+          className="rounded-md border border-gray-200 px-3 py-1 transition-all hover:border-gray-600 active:bg-gray-100"
         >
           <p className="text-sm text-gray-500">Add</p>
         </button>
@@ -236,7 +251,6 @@ const TagsFilter = ({
   tagsCount: { tagId: string; _count: number }[];
 }) => {
   const router = useRouter();
-  const { slug } = router.query as { slug?: string };
   const [collapsed, setCollapsed] = useState(tags.length === 0 ? true : false);
   const [search, setSearch] = useState("");
   const [showMore, setShowMore] = useState(false);
@@ -256,20 +270,6 @@ const TagsFilter = ({
       : initialOptions;
   }, [tagsCount, tags, search]);
 
-  const { setShowTagLinkModal, setShowAddProjectModal } =
-    useContext(ModalContext);
-
-  const addTag = useCallback(() => {
-    if (slug) {
-      setShowTagLinkModal(true);
-    } else {
-      setShowAddProjectModal(true);
-      toast.error(
-        "You can only add a tag to a custom project. Please create a new project or navigate to an existing one.",
-      );
-    }
-  }, [setShowTagLinkModal, setShowAddProjectModal, slug]);
-
   return (
     <fieldset className="overflow-hidden py-6">
       <div className="flex h-8 items-center justify-between">
@@ -284,12 +284,6 @@ const TagsFilter = ({
           />
           <h4 className="font-medium text-gray-900">Tags</h4>
         </button>
-        <button
-          onClick={addTag}
-          className="mr-2 rounded-md border border-gray-200 px-3 py-1 transition-all hover:border-gray-600 active:bg-gray-100"
-        >
-          <p className="text-sm text-gray-500">Add</p>
-        </button>
       </div>
       <AnimatePresence initial={false}>
         {!collapsed && (
@@ -298,15 +292,7 @@ const TagsFilter = ({
             {...SWIPE_REVEAL_ANIMATION_SETTINGS}
           >
             {tags?.length === 0 ? ( // if the project has no tags
-              <p className="text-center text-sm text-gray-500">
-                No tags yet.{" "}
-                <button
-                  className="font-medium underline underline-offset-4 transition-colors hover:text-black"
-                  onClick={addTag}
-                >
-                  Add one.
-                </button>
-              </p>
+              <p className="text-center text-sm text-gray-500">No tags yet.</p>
             ) : (
               <>
                 <div className="relative mb-1">
@@ -333,7 +319,7 @@ const TagsFilter = ({
               .map(({ id, name, color, count }) => (
                 <div
                   key={id}
-                  className="relative flex cursor-pointer items-center space-x-3 rounded-md bg-gray-50 transition-all hover:bg-gray-100"
+                  className="group relative flex cursor-pointer items-center space-x-3 rounded-md bg-gray-50 transition-all hover:bg-gray-100"
                 >
                   <input
                     id={id}
@@ -350,7 +336,7 @@ const TagsFilter = ({
                     className="flex w-full cursor-pointer justify-between px-3 py-1.5 pl-0 text-sm font-medium text-gray-700"
                   >
                     <TagBadge name={name} color={color} />
-                    <p className="text-gray-500">{nFormatter(count)}</p>
+                    <TagPopover tag={{ id, name, color }} count={count} />
                   </label>
                 </div>
               ))}
@@ -366,6 +352,149 @@ const TagsFilter = ({
         )}
       </AnimatePresence>
     </fieldset>
+  );
+};
+
+const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
+  const router = useRouter();
+  const { slug } = router.query as { slug: string };
+  const [data, setData] = useState(tag);
+  const [openPopover, setOpenPopover] = useState(false);
+  const [processing, setProcessing] = useState(false);
+
+  const handleEdit = async (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setProcessing(true);
+    fetch(`/api/projects/${slug}/tags/${tag.id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    }).then((res) => {
+      setProcessing(false);
+      if (res.ok) {
+        toast.success("Tag updated");
+        mutate(`/api/projects/${slug}/tags`);
+      } else {
+        toast.error("Something went wrong");
+      }
+    });
+  };
+
+  const handleDelete = async () => {
+    setProcessing(true);
+    fetch(`/api/projects/${slug}/tags/${tag.id}`, {
+      method: "DELETE",
+    }).then((res) => {
+      setProcessing(false);
+      if (res.ok) {
+        toast.success("Tag deleted");
+        mutate(`/api/projects/${slug}/tags`);
+      } else {
+        toast.error("Something went wrong");
+      }
+    });
+  };
+
+  return processing ? (
+    <LoadingCircle />
+  ) : (
+    <Popover
+      content={
+        <div
+          data-exclude-click
+          className="flex w-48 flex-col divide-y divide-gray-200"
+        >
+          <div className="p-2">
+            <form
+              onClick={(e) => e.stopPropagation()} // prevent triggering <Command.Item> onClick
+              onKeyDown={(e) => e.stopPropagation()} // prevent triggering <Command.Item> onKeyDown
+              onSubmit={handleEdit}
+              className="relative py-1"
+            >
+              <div className="my-2 flex items-center justify-between px-3">
+                <p className="text-xs text-gray-500">Edit Tag</p>
+                {data !== tag && (
+                  <button className="text-xs text-gray-500">Save</button>
+                )}
+              </div>
+              <input
+                type="text"
+                autoFocus
+                required
+                onKeyDown={(e) => {
+                  // if ESC key pressed, close popover
+                  if (e.key === "Escape") {
+                    setOpenPopover(false);
+                  }
+                }}
+                value={data.name}
+                onChange={(e) => setData({ ...data, name: e.target.value })}
+                className="block w-full rounded-md border-gray-300 py-1 pr-7 text-sm text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500"
+              />
+              <div className="grid grid-cols-3 gap-3 p-3 pb-0">
+                {COLORS_LIST.map(({ color, css }) => (
+                  <button
+                    key={color}
+                    type="button"
+                    className={`mx-auto flex h-6 w-6 items-center justify-center rounded-full transition-all duration-75 hover:scale-110 active:scale-90 ${css}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setData({ ...data, color });
+                    }}
+                  >
+                    {data.color === color && <Check className="h-4 w-4" />}
+                  </button>
+                ))}
+              </div>
+            </form>
+          </div>
+          <div className="p-2">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                confirm(
+                  "Are you sure you want to delete this tag? All tagged links will be untagged, but they won't be deleted.",
+                ) && handleDelete();
+              }}
+              className="flex w-full items-center space-x-2 rounded-md p-2 text-red-600 transition-colors hover:bg-red-100 active:bg-red-200"
+            >
+              <IconMenu
+                text="Delete Tag"
+                icon={<Trash className="h-4 w-4 text-red-600" />}
+              />
+            </button>
+          </div>
+        </div>
+      }
+      align="end"
+      desktopOnly
+      openPopover={openPopover}
+      setOpenPopover={setOpenPopover}
+    >
+      <button
+        type="button"
+        onClick={() => setOpenPopover(!openPopover)}
+        className={`${
+          openPopover ? "bg-gray-200" : "hover:bg-gray-200"
+        } -mr-1 flex h-6 w-5 items-center justify-center rounded-md transition-colors`}
+      >
+        <ThreeDots
+          className={`h-4 w-4 text-gray-500 ${
+            openPopover ? "" : "hidden group-hover:block"
+          }`}
+        />
+        <p
+          className={`text-gray-500 ${
+            openPopover ? "hidden" : "group-hover:hidden"
+          }`}
+        >
+          {nFormatter(count)}
+        </p>
+      </button>
+    </Popover>
   );
 };
 

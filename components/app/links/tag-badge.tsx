@@ -1,6 +1,5 @@
 import { TagColorProps } from "#/lib/types";
-import { truncate } from "#/lib/utils";
-import clsx from "clsx";
+import { cn, truncate } from "#/lib/utils";
 import { Tag } from "lucide-react";
 
 export default function TagBadge({
@@ -14,8 +13,8 @@ export default function TagBadge({
 }) {
   return (
     <span
-      className={clsx(
-        "whitespace-nowrap rounded-md px-2 py-0.5 text-sm",
+      className={cn(
+        "my-auto whitespace-nowrap rounded-md px-2 py-0.5 text-sm",
         withIcon && "flex items-center space-x-1.5",
         color === "red" && "bg-red-100 text-red-600",
         color === "yellow" && "bg-yellow-100 text-yellow-600",

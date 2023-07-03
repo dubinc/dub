@@ -36,7 +36,7 @@ export default function ExpirationSection({
         <Switch fn={() => setEnabled(!enabled)} checked={enabled} />
       </div>
       {enabled && (
-        <motion.div className="mt-3">
+        <motion.div className="mt-3" {...FADE_IN_ANIMATION_SETTINGS}>
           <input
             type="datetime-local"
             id="expiresAt"

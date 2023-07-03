@@ -47,7 +47,6 @@ export default async function Changelog() {
       </div>
 
       <div className="divide-y divide-gray-200">
-        {/* @ts-expect-error Async Server Component */}
         {allChangelogPosts
           .sort((a, b) => {
             if (new Date(a.publishedAt) > new Date(b.publishedAt)) {
