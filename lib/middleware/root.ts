@@ -3,7 +3,6 @@ import { redis } from "#/lib/upstash";
 import { recordClick } from "#/lib/tinybird";
 import { parse } from "./utils";
 import { RootDomainProps } from "../types";
-import { isHomeHostname } from "../utils";
 import { REDIRECT_HEADERS } from "../constants";
 
 export default async function RootMiddleware(
@@ -16,7 +15,7 @@ export default async function RootMiddleware(
     return NextResponse.next();
   }
 
-  if (isHomeHostname(domain)) {
+  if (domain === "dub.sh") {
     return NextResponse.rewrite(new URL(`/dub.sh`, req.url));
   } else {
     ev.waitUntil(recordClick(domain, req)); // record clicks on root page (if domain is not dub.sh)
