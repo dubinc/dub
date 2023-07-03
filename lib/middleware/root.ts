@@ -12,6 +12,8 @@ export default async function RootMiddleware(
 ) {
   const { domain } = parse(req);
 
+  console.log("domain", domain, "isHomeHostname", isHomeHostname(domain));
+
   if (!domain) {
     return NextResponse.next();
   }

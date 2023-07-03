@@ -13,6 +13,7 @@ export const parse = (req: NextRequest) => {
   const key = decodeURIComponent(path.split("/")[1]); // key is the first part of the path (e.g. dub.sh/stats/github -> stats)
   const fullKey = decodeURIComponent(path.slice(1)); // fullKey is the full path without the first slash (to account for multi-level subpaths, e.g. dub.sh/github/repo -> github/repo)
 
+  console.log({ domain, path, key, fullKey });
   return { domain, path, key, fullKey };
 };
 
@@ -21,7 +22,7 @@ export const getFinalUrl = (target: string, { req }: { req: NextRequest }) => {
   const searchParams = req.nextUrl.searchParams;
 
   // get the query params of the target url
-  const targetUrl = new URL(target);
+  const targetUrl = new URL(decodeURIComponent(target));
 
   // if searchParams (type: `URLSearchParams`) has the same key as target url, then overwrite it
   for (const [key, value] of searchParams) {
