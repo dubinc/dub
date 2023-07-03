@@ -8,6 +8,8 @@ import { AlertCircleFill } from "@/components/shared/icons";
 import Button from "#/ui/button";
 import { toast } from "sonner";
 
+export const runtime = "edge";
+
 export default function PasswordForm() {
   const { domain, key } = useParams() as {
     domain: string;
