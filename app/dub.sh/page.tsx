@@ -1,4 +1,3 @@
-import Background from "#/ui/home/background";
 import Demo from "#/ui/home/demo";
 import Globe from "#/ui/home/globe";
 import Stats from "#/ui/home/stats";

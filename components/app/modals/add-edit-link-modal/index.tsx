@@ -605,7 +605,14 @@ function AddEditLinkButton({
   // listen to paste event, and if it's a URL, open the modal and input the URL
   const handlePaste = (e: ClipboardEvent) => {
     const pastedContent = e.clipboardData?.getData("text");
-    if (pastedContent && isValidUrl(pastedContent)) {
+    const target = e.target as HTMLElement;
+
+    // make sure it's a valid URL and is not being pasted in an input or textarea
+    if (
+      pastedContent &&
+      isValidUrl(pastedContent) &&
+      !(target.tagName === "INPUT" || target.tagName === "TEXTAREA")
+    ) {
       setShowAddEditLinkModal(true);
     }
   };
