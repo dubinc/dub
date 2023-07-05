@@ -111,6 +111,7 @@ function DeleteLinkModal({
                 pattern={shortlink}
                 required
                 autoFocus
+                autoComplete="off"
                 className="block w-full rounded-md border-gray-300 pr-10 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
               />
             </div>

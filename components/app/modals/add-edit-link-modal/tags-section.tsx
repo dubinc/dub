@@ -82,7 +82,7 @@ export default function TagsSection({
         // hack to focus on the input when the dropdown opens
         autoFocus={openCommandList}
         // when focus on the input. only show the dropdown if there are tags and the tagValue is not empty
-        onFocus={() => tags && tags.length > 0 && setOpenCommandList(true)}
+        onFocus={() => setOpenCommandList(true)}
         value={inputValue}
         onValueChange={setInputValue}
         onKeyDown={(e) => {
@@ -138,8 +138,13 @@ export default function TagsSection({
             }}
             className="absolute z-20 h-[300px] w-full animate-input-select-slide-up overflow-auto rounded-md border border-gray-200 bg-white p-2 shadow-md transition-all sm:h-[calc(var(--cmdk-list-height)+17px)] sm:max-h-[300px] sm:animate-input-select-slide-down"
           >
+            {tags?.length === 0 && inputValue.length === 0 && (
+              <p className="px-4 py-2.5 text-sm text-gray-900">
+                Start typing to create tag...
+              </p>
+            )}
             <Command.Empty>
-              {inputValue.length > 0 ? (
+              {inputValue.length > 0 && (
                 <button
                   onClick={() => createTag(inputValue)}
                   className="flex w-full cursor-pointer items-center rounded-md bg-gray-100 px-4 py-2 text-sm text-gray-900 hover:text-gray-900 aria-selected:bg-gray-100 aria-selected:text-gray-900"
@@ -149,8 +154,6 @@ export default function TagsSection({
                     {inputValue}
                   </span>
                 </button>
-              ) : (
-                <p className="py-0.5">Start typing to create tag...</p>
               )}
             </Command.Empty>
             {tags?.map((tag) => (

@@ -133,6 +133,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
       shortcuts.includes(e.key)
     ) {
       setSelected(false);
+      e.preventDefault();
       switch (e.key) {
         case "e":
           setShowAddEditLinkModal(true);
