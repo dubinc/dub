@@ -197,8 +197,7 @@ function AdvancedSettings({ qrData, setFgColor, showLogo, setShowLogo }) {
         <button
           type="button"
           className="flex items-center"
-          onClick={() => setExpanded(!expanded)}
-        >
+          onClick={() => setExpanded(!expanded)}>
           <ChevronRight
             className={`h-5 w-5 text-gray-600 ${
               expanded ? "rotate-90" : ""
@@ -212,8 +211,7 @@ function AdvancedSettings({ qrData, setFgColor, showLogo, setShowLogo }) {
           <div>
             <label
               htmlFor="logo-toggle"
-              className="block text-sm font-medium text-gray-700"
-            >
+              className="block text-sm font-medium text-gray-700">
               Logo
             </label>
             {plan && plan !== "free" ? (
@@ -235,8 +233,7 @@ function AdvancedSettings({ qrData, setFgColor, showLogo, setShowLogo }) {
                     cta="Upgrade to Pro"
                     href={isApp ? "/settings" : "/pricing"}
                   />
-                }
-              >
+                }>
                 <div className="pointer-events-none mt-1 flex cursor-not-allowed items-center space-x-2 sm:pointer-events-auto">
                   <Switch
                     fn={setShowLogo}
@@ -254,8 +251,7 @@ function AdvancedSettings({ qrData, setFgColor, showLogo, setShowLogo }) {
           <div>
             <label
               htmlFor="color"
-              className="block text-sm font-medium text-gray-700"
-            >
+              className="block text-sm font-medium text-gray-700">
               Foreground Color
             </label>
             <div className="relative mt-1 flex h-9 w-48 rounded-md shadow-sm">
@@ -267,8 +263,7 @@ function AdvancedSettings({ qrData, setFgColor, showLogo, setShowLogo }) {
                       onChange={(color) => setFgColor(color)}
                     />
                   </div>
-                }
-              >
+                }>
                 <div
                   className="h-full w-12 rounded-l-md border"
                   style={{
@@ -284,7 +279,7 @@ function AdvancedSettings({ qrData, setFgColor, showLogo, setShowLogo }) {
                 onChange={(color) => setFgColor(color)}
                 prefixed
                 style={{ borderColor: qrData.fgColor }}
-                className={`block w-full rounded-r-md border-2 border-l-0 pl-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-black sm:text-sm`}
+                className={`block z-10 w-full rounded-r-md border-2 border-l-0 pl-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-black sm:text-sm`}
               />
             </div>
           </div>
