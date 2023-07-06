@@ -198,7 +198,7 @@ function AdvancedSettings({ qrData, setFgColor, showLogo, setShowLogo }) {
           type="button"
           className="flex items-center"
           onClick={() => setExpanded(!expanded)}
-          >
+        >
           <ChevronRight
             className={`h-5 w-5 text-gray-600 ${
               expanded ? "rotate-90" : ""
@@ -213,7 +213,7 @@ function AdvancedSettings({ qrData, setFgColor, showLogo, setShowLogo }) {
             <label
               htmlFor="logo-toggle"
               className="block text-sm font-medium text-gray-700"
-              >
+            >
               Logo
             </label>
             {plan && plan !== "free" ? (
@@ -255,7 +255,7 @@ function AdvancedSettings({ qrData, setFgColor, showLogo, setShowLogo }) {
             <label
               htmlFor="color"
               className="block text-sm font-medium text-gray-700"
-              >
+            >
               Foreground Color
             </label>
             <div className="relative mt-1 flex h-9 w-48 rounded-md shadow-sm">
