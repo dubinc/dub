@@ -100,12 +100,8 @@ export const updateUsage = async () => {
               id: project.id,
             },
             createdAt: {
-              // larger than billingCycleStart (but a month ago)
-              gte: new Date(
-                new Date().setDate(
-                  project.billingCycleStart || new Date().getDate() - 30,
-                ),
-              ),
+              // in the last 30 days
+              gte: new Date(new Date().setDate(new Date().getDate() - 30)),
             },
           },
         }),
