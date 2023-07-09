@@ -13,7 +13,11 @@ async function handler(_req: NextApiRequest, res: NextApiResponse) {
     const results = await updateUsage();
     res.status(200).json(results);
   } catch (error) {
-    await log("Usage cron failed. Error: " + error.message, "cron", true);
+    await log({
+      message: "Usage cron failed. Error: " + error.message,
+      type: "cron",
+      mention: true,
+    });
     res.status(500).json({ error: error.message });
   }
 }

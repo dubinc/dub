@@ -54,7 +54,11 @@ export default async function webhookHandler(
             checkoutSession.client_reference_id === null ||
             checkoutSession.customer === null
           ) {
-            await log("Missing items in Stripe webhook callback", "cron", true);
+            await log({
+              message: "Missing items in Stripe webhook callback",
+              type: "cron",
+              mention: true,
+            });
             return;
           }
 
@@ -117,11 +121,12 @@ export default async function webhookHandler(
           });
 
           if (!project) {
-            await log(
-              "Project not found in Stripe webhook `customer.subscription.deleted` callback",
-              "cron",
-              true,
-            );
+            await log({
+              message:
+                "Project not found in Stripe webhook `customer.subscription.deleted` callback",
+              type: "cron",
+              mention: true,
+            });
             return;
           }
 
@@ -144,23 +149,24 @@ export default async function webhookHandler(
               },
             }),
             pipeline.exec(),
-            log(
-              ":cry: Project *`" +
+            log({
+              message:
+                ":cry: Project *`" +
                 project.name +
                 "`* deleted their subscription",
-              "cron",
-              true,
-            ),
+              type: "cron",
+              mention: true,
+            }),
           ]);
         } else {
           throw new Error("Unhandled relevant event!");
         }
       } catch (error) {
-        await log(
-          `Stripe wekbook failed. Error: ${error.message}`,
-          "cron",
-          true,
-        );
+        await log({
+          message: `Stripe wekbook failed. Error: ${error.message}`,
+          type: "cron",
+          mention: true,
+        });
         return res
           .status(400)
           .send('Webhook error: "Webhook handler failed. View logs."');

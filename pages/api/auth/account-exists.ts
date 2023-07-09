@@ -3,6 +3,7 @@ import { ratelimit } from "#/lib/upstash";
 import { ipAddress } from "@vercel/edge";
 import { LOCALHOST_IP } from "#/lib/constants";
 import { conn } from "#/lib/planetscale";
+import { isWhitelistedEmail } from "#/lib/utils";
 
 export const config = {
   runtime: "edge",
@@ -31,6 +32,12 @@ export default async function handler(req: NextRequest) {
     if (user) {
       return new Response(JSON.stringify({ exists: true }));
     }
+
+    const whitelisted = await isWhitelistedEmail(email);
+    if (whitelisted) {
+      return new Response(JSON.stringify({ exists: true }));
+    }
+
     return new Response(JSON.stringify({ exists: false }));
   } else {
     return new Response("Method not allowed", {

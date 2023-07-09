@@ -1,5 +1,5 @@
-import sendMail from "emails";
-import UsageExceeded from "emails/UsageExceeded";
+import { sendEmail } from "emails";
+import UsageExceeded from "emails/usage-exceeded";
 import prisma from "#/lib/prisma";
 import { log } from "#/lib/utils";
 import { ProjectProps } from "../types";
@@ -50,11 +50,11 @@ export const updateUsage = async () => {
       const { name, usage, usageLimit, users, sentEmails } = project;
       const email = users[0].user.email;
 
-      await log(
-        `${name} is over usage limit. Usage: ${usage}, Limit: ${usageLimit}, Email: ${email}`,
-        "cron",
-        true,
-      );
+      await log({
+        message: `${name} is over usage limit. Usage: ${usage}, Limit: ${usageLimit}, Email: ${email}`,
+        type: "cron",
+        mention: true,
+      });
       const sentFirstUsageLimitEmail = sentEmails.some(
         (email) => email.type === "firstUsageLimitEmail",
       );
@@ -117,10 +117,14 @@ const sendUsageLimitEmail = async (
   type: "first" | "second",
 ) => {
   return await Promise.all([
-    sendMail({
+    sendEmail({
       subject: `You have exceeded your Dub usage limit`,
-      to: email,
-      component: <UsageExceeded project={project} type={type} />,
+      email,
+      react: UsageExceeded({
+        email,
+        project,
+        type,
+      }),
     }),
     prisma.sentEmail.create({
       data: {

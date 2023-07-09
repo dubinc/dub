@@ -411,11 +411,15 @@ const logTypeToEnv = {
   error: process.env.DUB_SLACK_HOOK_ERROR,
 };
 
-export const log = async (
-  message: string,
-  type: "cron" | "links" | "error",
-  mention?: boolean,
-) => {
+export const log = async ({
+  message,
+  type,
+  mention = false,
+}: {
+  message: string;
+  type: "cron" | "links" | "error";
+  mention?: boolean;
+}) => {
   /* Log a message to the console */
   const HOOK = logTypeToEnv[type];
   if (!HOOK) return;
@@ -462,6 +466,16 @@ export const isBlacklistedKey = async (key: string) => {
     blacklistedKeys = [];
   }
   return new RegExp(blacklistedKeys.join("|"), "i").test(key);
+};
+
+export const isWhitelistedEmail = async (email: string) => {
+  let whitelistedEmails;
+  try {
+    whitelistedEmails = await get("whitelist");
+  } catch (e) {
+    whitelistedEmails = [];
+  }
+  return new Set(whitelistedEmails).has(email);
 };
 
 export const isBlacklistedEmail = async (email: string) => {

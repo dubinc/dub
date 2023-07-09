@@ -7,11 +7,11 @@ import {
   MjmlText,
   MjmlWrapper,
 } from "mjml-react";
-import Divider from "./components/Divider";
-import Footer from "./components/Footer";
-import Head from "./components/Head";
-import Header from "./components/Header";
-import { grayLight } from "./components/theme";
+import Divider from ".././components/Divider";
+import Footer from ".././components/Footer";
+import Head from ".././components/Head";
+import Header from ".././components/Header";
+import { grayLight } from ".././components/theme";
 
 export default function MayRecap({
   slug,
