@@ -2,7 +2,9 @@ import { sendEmail } from "emails";
 import UsageExceeded from "emails/usage-exceeded";
 import prisma from "#/lib/prisma";
 import { log } from "#/lib/utils";
-import { ProjectProps } from "../types";
+import { ProjectProps } from "#/lib/types";
+import { getTopLinks } from "#/lib/tinybird";
+import ClicksSummary from "emails/clicks-summary";
 
 export const updateUsage = async () => {
   const projects = await prisma.project.findMany({
@@ -27,6 +29,11 @@ export const updateUsage = async () => {
         },
         select: {
           user: true,
+        },
+      },
+      domains: {
+        where: {
+          verified: true,
         },
       },
       sentEmails: true,
@@ -85,6 +92,41 @@ export const updateUsage = async () => {
   // TODO: Monthly summary emails (total clicks, best performing links, etc.)
   const resetBillingResponse = await Promise.allSettled(
     billingReset.map(async (project) => {
+      const [createdLinks, topLinks] = await Promise.allSettled([
+        prisma.link.count({
+          where: {
+            project: {
+              id: project.id,
+            },
+            createdAt: {
+              // larger than billingCycleStart (but a month ago)
+              gte: new Date(
+                new Date().setDate(
+                  project.billingCycleStart || new Date().getDate() - 30,
+                ),
+              ),
+            },
+          },
+        }),
+        getTopLinks(project.domains.map((domain) => domain.slug)),
+      ]);
+
+      const email = project.users[0].user.email as string;
+
+      await sendEmail({
+        subject: `Your 30-day Dub summary`,
+        email,
+        react: ClicksSummary({
+          email,
+          projectName: project.name,
+          projectSlug: project.slug,
+          totalClicks: project.usage,
+          createdLinks:
+            createdLinks.status === "fulfilled" ? createdLinks.value : 0,
+          topLinks: topLinks.status === "fulfilled" ? topLinks.value : [],
+        }),
+      });
+
       return await prisma.project.update({
         where: {
           id: project.id,

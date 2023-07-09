@@ -24,7 +24,7 @@ export default function ClicksSummary({
   projectSlug = "acme",
   totalClicks = 63689,
   createdLinks = 25,
-  bestPerformingLinks = [
+  topLinks = [
     {
       link: "acme.com/sales",
       clicks: 2187,
@@ -52,7 +52,7 @@ export default function ClicksSummary({
   projectSlug: string;
   totalClicks: number;
   createdLinks: number;
-  bestPerformingLinks: {
+  topLinks: {
     link: string;
     clicks: number;
   }[];
@@ -103,34 +103,38 @@ export default function ClicksSummary({
                 </Column>
               </Row>
             </Section>
-            <Text className="text-sm leading-6 text-black">
-              Here are your top 5 best performing links:
-            </Text>
-            <Section>
-              <Row className="pb-2">
-                <Column align="left" className="text-sm text-gray-500">
-                  Link
-                </Column>
-                <Column align="right" className="text-sm text-gray-500">
-                  Clicks
-                </Column>
-              </Row>
-              {bestPerformingLinks.map(({ link, clicks }, index) => (
-                <div key={index}>
-                  <Row>
-                    <Column align="left" className="text-sm font-medium">
-                      {truncate(link, 30)}
+            {topLinks.length > 0 && (
+              <>
+                <Text className="text-sm leading-6 text-black">
+                  Here are your top {topLinks.length} best performing links:
+                </Text>
+                <Section>
+                  <Row className="pb-2">
+                    <Column align="left" className="text-sm text-gray-500">
+                      Link
                     </Column>
-                    <Column align="right" className="text-sm text-gray-600">
-                      {nFormatter(clicks)}
+                    <Column align="right" className="text-sm text-gray-500">
+                      Clicks
                     </Column>
                   </Row>
-                  {index !== bestPerformingLinks.length - 1 && (
-                    <Hr className="my-2 w-full border border-gray-200" />
-                  )}
-                </div>
-              ))}
-            </Section>
+                  {topLinks.map(({ link, clicks }, index) => (
+                    <div key={index}>
+                      <Row>
+                        <Column align="left" className="text-sm font-medium">
+                          {truncate(link, 30)}
+                        </Column>
+                        <Column align="right" className="text-sm text-gray-600">
+                          {nFormatter(clicks)}
+                        </Column>
+                      </Row>
+                      {index !== topLinks.length - 1 && (
+                        <Hr className="my-2 w-full border border-gray-200" />
+                      )}
+                    </div>
+                  ))}
+                </Section>
+              </>
+            )}
             <Text className="mt-10 text-sm leading-6 text-black">
               You can view your full stats by clicking the button below.
             </Text>
