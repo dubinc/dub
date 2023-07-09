@@ -17,7 +17,6 @@ import { ProjectProps } from "../lib/types";
 import { capitalize, nFormatter } from "../lib/utils";
 
 export default function UsageExceeded({
-  email = "panic@thedis.co",
   project = {
     id: "ckqf1q3xw0000gk5u2q1q2q1q",
     name: "Acme",
@@ -28,7 +27,6 @@ export default function UsageExceeded({
   },
   type = "first",
 }: {
-  email: string;
   project: ProjectProps;
   type: "first" | "second";
 }) {
@@ -82,11 +80,11 @@ export default function UsageExceeded({
             </Text>
             <Hr className="mx-0 my-6 w-full border border-gray-200" />
             <Text className="text-[12px] leading-6 text-gray-500">
-              This invitation was intended for{" "}
-              <span className="text-black">{email}</span>. If you were not
-              expecting this invitation, you can ignore this email. If you are
-              concerned about your account's safety, please reply to this email
-              to get in touch with us.
+              This email was intended for members of the{" "}
+              <span className="text-black">{project.name}</span> project on Dub.
+              If you were not expecting this email, you can ignore this email.
+              If you are concerned about your account's safety, please reply to
+              this email to get in touch with us.
             </Text>
           </Container>
         </Body>

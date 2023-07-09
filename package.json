@@ -39,6 +39,7 @@
     "@visx/responsive": "^2.10.0",
     "@visx/shape": "^2.12.2",
     "@visx/tooltip": "^2.16.0",
+    "bottleneck": "^2.19.5",
     "cloudinary": "^1.36.4",
     "clsx": "^1.2.1",
     "cmdk": "^0.2.0",

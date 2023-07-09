@@ -5,6 +5,7 @@ import { log } from "#/lib/utils";
 import { ProjectProps } from "#/lib/types";
 import { getTopLinks } from "#/lib/tinybird";
 import ClicksSummary from "emails/clicks-summary";
+import { limiter } from "./utils";
 
 export const updateUsage = async () => {
   const projects = await prisma.project.findMany({
@@ -24,12 +25,10 @@ export const updateUsage = async () => {
       plan: true,
       billingCycleStart: true,
       users: {
-        where: {
-          role: "owner",
-        },
         select: {
           user: true,
         },
+        take: 50,
       },
       domains: {
         where: {
@@ -55,10 +54,12 @@ export const updateUsage = async () => {
   const notifyOveragesResponse = await Promise.allSettled(
     exceedingUsage.map(async (project) => {
       const { name, usage, usageLimit, users, sentEmails } = project;
-      const email = users[0].user.email;
+      const emails = users.map((user) => user.user.email) as string[];
 
       await log({
-        message: `${name} is over usage limit. Usage: ${usage}, Limit: ${usageLimit}, Email: ${email}`,
+        message: `${name} is over usage limit. Usage: ${usage}, Limit: ${usageLimit}, Email: ${emails.join(
+          ", ",
+        )}`,
         type: "cron",
         mention: true,
       });
@@ -67,7 +68,7 @@ export const updateUsage = async () => {
       );
       if (!sentFirstUsageLimitEmail) {
         // @ts-ignore
-        sendUsageLimitEmail(email, project, "first");
+        sendUsageLimitEmail(emails, project, "first");
       } else {
         const sentSecondUsageLimitEmail = sentEmails.some(
           (email) => email.type === "secondUsageLimitEmail",
@@ -80,7 +81,7 @@ export const updateUsage = async () => {
           );
           if (daysSinceFirstEmail >= 3) {
             // @ts-ignore
-            sendUsageLimitEmail(email, project, "second");
+            sendUsageLimitEmail(emails, project, "second");
           }
         }
       }
@@ -111,21 +112,22 @@ export const updateUsage = async () => {
         getTopLinks(project.domains.map((domain) => domain.slug)),
       ]);
 
-      const email = project.users[0].user.email as string;
+      const emails = project.users.map((user) => user.user.email) as string[];
 
-      await sendEmail({
-        subject: `Your 30-day Dub summary`,
-        email,
-        react: ClicksSummary({
-          email,
-          projectName: project.name,
-          projectSlug: project.slug,
-          totalClicks: project.usage,
-          createdLinks:
-            createdLinks.status === "fulfilled" ? createdLinks.value : 0,
-          topLinks: topLinks.status === "fulfilled" ? topLinks.value : [],
+      limiter.schedule(() =>
+        sendEmail({
+          subject: `Your 30-day Dub summary for ${project.name}`,
+          email: emails,
+          react: ClicksSummary({
+            projectName: project.name,
+            projectSlug: project.slug,
+            totalClicks: project.usage,
+            createdLinks:
+              createdLinks.status === "fulfilled" ? createdLinks.value : 0,
+            topLinks: topLinks.status === "fulfilled" ? topLinks.value : [],
+          }),
         }),
-      });
+      );
 
       return await prisma.project.update({
         where: {
@@ -154,25 +156,26 @@ export const updateUsage = async () => {
 };
 
 const sendUsageLimitEmail = async (
-  email: string,
+  emails: string[],
   project: ProjectProps,
   type: "first" | "second",
 ) => {
-  return await Promise.all([
-    sendEmail({
-      subject: `You have exceeded your Dub usage limit`,
-      email,
-      react: UsageExceeded({
-        email,
-        project,
-        type,
+  return await Promise.allSettled([
+    limiter.schedule(() =>
+      sendEmail({
+        subject: `You have exceeded your Dub usage limit`,
+        email: emails,
+        react: UsageExceeded({
+          project,
+          type,
+        }),
       }),
-    }),
+    ),
     prisma.sentEmail.create({
       data: {
-        user: {
+        project: {
           connect: {
-            email,
+            slug: project.slug,
           },
         },
         type: `${type}UsageLimitEmail`,

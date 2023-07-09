@@ -8,20 +8,22 @@ export const sendEmail = async ({
   subject,
   react,
   marketing,
+  test,
 }: {
-  email: string;
+  email: string | string[];
   subject: string;
   react:
     | ReactElement<any, string | JSXElementConstructor<any>>
     | null
     | undefined;
   marketing?: boolean;
+  test?: boolean;
 }) => {
   return resend.emails.send({
     from: marketing
       ? "Steven from Dub <steven@ship.dub.sh>"
       : "Dub <system@dub.sh>",
-    to: [email],
+    to: test ? "delivered@resend.dev" : email,
     subject,
     react,
   });

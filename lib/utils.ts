@@ -402,7 +402,6 @@ export async function generateMD5Hash(message) {
 const logTypeToEnv = {
   cron: process.env.DUB_SLACK_HOOK_CRON,
   links: process.env.DUB_SLACK_HOOK_LINKS,
-  error: process.env.DUB_SLACK_HOOK_ERROR,
 };
 
 export const log = async ({
@@ -411,7 +410,7 @@ export const log = async ({
   mention = false,
 }: {
   message: string;
-  type: "cron" | "links" | "error";
+  type: "cron" | "links";
   mention?: boolean;
 }) => {
   /* Log a message to the console */

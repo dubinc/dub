@@ -85,9 +85,9 @@ export default function InvalidDomain({
             </Text>
             <Hr className="mx-0 my-6 w-full border border-gray-200" />
             <Text className="text-[12px] leading-6 text-gray-500">
-              This invitation was intended for{" "}
+              This email was intended for{" "}
               <span className="text-black">{email}</span>. If you were not
-              expecting this invitation, you can ignore this email. If you are
+              expecting this email, you can ignore this email. If you are
               concerned about your account's safety, please reply to this email
               to get in touch with us.
             </Text>

@@ -19,7 +19,6 @@ import { DUB_LOGO } from "../lib/constants";
 import { nFormatter, truncate } from "../lib/utils";
 
 export default function ClicksSummary({
-  email = "panic@thedis.co",
   projectName = "Acme",
   projectSlug = "acme",
   totalClicks = 63689,
@@ -47,7 +46,6 @@ export default function ClicksSummary({
     },
   ],
 }: {
-  email: string;
   projectName: string;
   projectSlug: string;
   totalClicks: number;
@@ -60,7 +58,7 @@ export default function ClicksSummary({
   return (
     <Html>
       <Head />
-      <Preview>Your 30-day Dub summary</Preview>
+      <Preview>Your 30-day Dub summary for {projectName}</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
@@ -74,7 +72,7 @@ export default function ClicksSummary({
               />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-center text-xl font-semibold text-black">
-              Your 30-day Dub summary
+              Your 30-day Dub summary for {projectName}
             </Heading>
             <Text className="text-sm leading-6 text-black">
               In the last 30 days, your Dub project,{" "}
@@ -141,18 +139,18 @@ export default function ClicksSummary({
             <Section className="my-8 text-center">
               <Link
                 className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                href={`https://app.dub.sh/${projectSlug}/settings/billing`}
+                href={`https://app.dub.sh/${projectSlug}`}
               >
                 View my stats
               </Link>
             </Section>
             <Hr className="mx-0 my-6 w-full border border-gray-200" />
             <Text className="text-[12px] leading-6 text-gray-500">
-              This invitation was intended for{" "}
-              <span className="text-black">{email}</span>. If you were not
-              expecting this invitation, you can ignore this email. If you are
-              concerned about your account's safety, please reply to this email
-              to get in touch with us.
+              This email was intended for members of the{" "}
+              <span className="text-black">{projectName}</span> project on Dub.
+              If you were not expecting this email, you can ignore this email.
+              If you are concerned about your account's safety, please reply to
+              this email to get in touch with us.
             </Text>
           </Container>
         </Body>
