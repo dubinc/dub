@@ -63,6 +63,6 @@ export default async function LinkMiddleware(
     }
   } else {
     // short link not found, redirect to root
-    return NextResponse.redirect(new URL("/", req.url), REDIRECT_HEADERS);
+    return new NextResponse(null, { status: 404 });
   }
 }
