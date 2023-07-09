@@ -263,12 +263,6 @@ export const isHomeHostname = (domain: string) => {
   return HOME_HOSTNAMES.has(domain) || domain.endsWith(".vercel.app");
 };
 
-export const getDomain = (headers: Headers) => {
-  let domain = headers.get("host") as string;
-  if (isHomeHostname(domain)) domain = "dub.sh";
-  return domain;
-};
-
 export const getUrlFromString = (str: string) => {
   if (isValidUrl(str)) return str;
   try {
