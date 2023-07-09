@@ -12,7 +12,7 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import * as React from "react";
+import { DUB_LOGO } from "../lib/constants";
 
 export default function ProjectInvite({
   email = "panicking@thedis.co",
@@ -36,7 +36,7 @@ export default function ProjectInvite({
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
             <Section className="mt-8">
               <Img
-                src="https://dub.sh/_static/logo.png"
+                src={DUB_LOGO}
                 width="40"
                 height="40"
                 alt="Dub"
@@ -48,12 +48,12 @@ export default function ProjectInvite({
             </Heading>
             <Text className="text-sm leading-6 text-black">
               <strong>{projectUser}</strong> (
-              <a
+              <Link
                 className="text-blue-600 no-underline"
                 href={`mailto:${projectUserEmail}`}
               >
                 {projectUserEmail}
-              </a>
+              </Link>
               ) has invited you to join the <strong>{projectName}</strong>{" "}
               project on Dub!
             </Text>

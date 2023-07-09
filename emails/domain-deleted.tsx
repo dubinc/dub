@@ -12,7 +12,7 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import * as React from "react";
+import { DUB_LOGO } from "../lib/constants";
 
 export default function DomainDeleted({
   email = "panic@thedis.co",
@@ -32,7 +32,7 @@ export default function DomainDeleted({
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
             <Section className="mt-8">
               <Img
-                src="https://dub.sh/_static/logo.png"
+                src={DUB_LOGO}
                 width="40"
                 height="40"
                 alt="Dub"
@@ -45,13 +45,12 @@ export default function DomainDeleted({
             <Text className="text-sm leading-6 text-black">
               Your domain <code className="text-purple-600">{domain}</code> for
               your Dub project{" "}
-              <a
+              <Link
                 href={`https://app.dub.sh/${projectSlug}`}
-                target="_blank"
                 className="font-medium text-blue-600 no-underline"
               >
                 {projectSlug}↗
-              </a>{" "}
+              </Link>{" "}
               has been invalid for 30 days. As a result, it has been deleted
               from Dub.
             </Text>

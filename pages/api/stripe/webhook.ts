@@ -6,6 +6,8 @@ import { stripe } from "#/lib/stripe";
 import { PLANS } from "#/lib/stripe/constants";
 import { redis } from "#/lib/upstash";
 import { log } from "#/lib/utils";
+import { sendEmail } from "emails";
+import UpgradeEmail from "emails/upgrade-email";
 
 // Stripe requires the raw body to construct the event.
 export const config = {
@@ -75,9 +77,6 @@ export default async function webhookHandler(
               billingCycleStart: new Date().getDate(),
             },
           });
-
-          // TODO - send thank you email to project owner
-          //
         } else if (event.type === "customer.subscription.updated") {
           const subscriptionUpdated = event.data.object as Stripe.Subscription;
           const newPriceId = subscriptionUpdated.items.data[0].price.id;
@@ -94,7 +93,7 @@ export default async function webhookHandler(
           const stripeId = subscriptionUpdated.customer.toString();
 
           // If a project upgrades/downgrades their subscription, update their usage limit in the database.
-          await prisma.project.update({
+          const data = await prisma.project.update({
             where: {
               stripeId,
             },
@@ -102,7 +101,38 @@ export default async function webhookHandler(
               usageLimit,
               plan: plan.slug,
             },
+            select: {
+              users: {
+                where: {
+                  role: "owner",
+                },
+                select: {
+                  user: {
+                    select: {
+                      name: true,
+                      email: true,
+                    },
+                  },
+                },
+              },
+            },
           });
+
+          const owner = data.users[0].user;
+
+          // send thank you email to project owner
+          await sendEmail({
+            email: owner.email as string,
+            subject: `Thank you for upgrading to Dub ${plan.name}!`,
+            react: UpgradeEmail({
+              name: owner.name,
+              email: owner.email as string,
+              plan: plan.name,
+            }),
+            marketing: true,
+          });
+
+          // If project cancels their subscription
         } else if (event.type === "customer.subscription.deleted") {
           const subscriptionDeleted = event.data.object as Stripe.Subscription;
 

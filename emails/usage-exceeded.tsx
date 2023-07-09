@@ -1,5 +1,3 @@
-import { ProjectProps } from "../lib/types";
-import { capitalize, nFormatter } from "../lib/utils";
 import {
   Body,
   Link,
@@ -14,10 +12,12 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import * as React from "react";
+import { DUB_LOGO } from "../lib/constants";
+import { ProjectProps } from "../lib/types";
+import { capitalize, nFormatter } from "../lib/utils";
 
 export default function UsageExceeded({
-  email = "panic@thedisco",
+  email = "panic@thedis.co",
   project = {
     id: "ckqf1q3xw0000gk5u2q1q2q1q",
     name: "Acme",
@@ -42,7 +42,7 @@ export default function UsageExceeded({
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
             <Section className="mt-8">
               <Img
-                src="https://dub.sh/_static/logo.png"
+                src={DUB_LOGO}
                 width="40"
                 height="40"
                 alt="Dub"

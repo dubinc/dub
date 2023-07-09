@@ -12,11 +12,11 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import * as React from "react";
+import { DUB_LOGO, DUB_THUMBNAIL } from "../lib/constants";
 
 export default function WelcomeEmail({
   name = "Brendon Urie",
-  email = "panic@thedisco",
+  email = "panic@thedis.co",
 }: {
   name: string | null;
   email: string;
@@ -30,7 +30,7 @@ export default function WelcomeEmail({
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
             <Section className="mt-8">
               <Img
-                src="https://dub.sh/_static/logo.png"
+                src={DUB_LOGO}
                 width="40"
                 height="40"
                 alt="Dub"
@@ -41,17 +41,13 @@ export default function WelcomeEmail({
               Welcome to Dub
             </Heading>
             <Section className="my-8">
-              <Img
-                src="https://dub.sh/_static/thumbnail.png"
-                alt="Dub"
-                className="max-w-[500px]"
-              />
+              <Img src={DUB_THUMBNAIL} alt="Dub" className="max-w-[500px]" />
             </Section>
             <Text className="text-sm leading-6 text-black">
               Thanks for signing up{name && `, ${name}`}!
             </Text>
             <Text className="text-sm leading-6 text-black">
-              My name is Steven, and I'm the creator of Dub - the link
+              My name is Steven, and I'm the founder of Dub - the link
               management tool for modern marketing teams. I'm excited to have
               you on board!
             </Text>
@@ -60,31 +56,31 @@ export default function WelcomeEmail({
             </Text>
             <Text className="ml-1 text-sm leading-4 text-black">
               ◆ Create a{" "}
-              <a
+              <Link
                 href="https://app.dub.sh/links"
                 className="font-medium text-blue-600 no-underline"
               >
                 Dub.sh short link
-              </a>
+              </Link>
             </Text>
             <Text className="ml-1 text-sm leading-4 text-black">
               ◆ Create a{" "}
-              <a
+              <Link
                 href="https://app.dub.sh"
                 className="font-medium text-blue-600 no-underline"
               >
                 new project
-              </a>{" "}
+              </Link>{" "}
               and add your custom domain
             </Text>
             <Text className="ml-1 text-sm leading-4 text-black">
               ◆ Follow us on{" "}
-              <a
+              <Link
                 href="https://twitter.com/dubdotsh"
                 className="font-medium text-blue-600 no-underline"
               >
                 Twitter
-              </a>
+              </Link>
             </Text>
             <Text className="text-sm leading-6 text-black">
               Let me know if you have any questions or feedback. I'm always

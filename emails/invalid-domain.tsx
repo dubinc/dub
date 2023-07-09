@@ -1,4 +1,3 @@
-import { capitalize, nFormatter } from "../lib/utils";
 import {
   Body,
   Link,
@@ -13,7 +12,7 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import * as React from "react";
+import { DUB_LOGO } from "../lib/constants";
 
 export default function InvalidDomain({
   email = "panic@thedis.co",
@@ -35,7 +34,7 @@ export default function InvalidDomain({
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
             <Section className="mt-8">
               <Img
-                src="https://dub.sh/_static/logo.png"
+                src={DUB_LOGO}
                 width="40"
                 height="40"
                 alt="Dub"
@@ -48,13 +47,12 @@ export default function InvalidDomain({
             <Text className="text-sm leading-6 text-black">
               Your domain <code className="text-purple-600">{domain}</code> for
               your Dub project{" "}
-              <a
+              <Link
                 href={`https://app.dub.sh/${projectSlug}`}
-                target="_blank"
                 className="font-medium text-blue-600 no-underline"
               >
                 {projectSlug}↗
-              </a>{" "}
+              </Link>{" "}
               has been invalid for {invalidDays} days.
             </Text>
             <Text className="text-sm leading-6 text-black">
@@ -72,13 +70,12 @@ export default function InvalidDomain({
             </Section>
             <Text className="text-sm leading-6 text-black">
               If you do not want to keep this domain on Dub, you can{" "}
-              <a
+              <Link
                 href={`https://app.dub.sh/${projectSlug}/domains`}
-                target="_blank"
                 className="font-medium text-blue-600 no-underline"
               >
                 delete it
-              </a>{" "}
+              </Link>{" "}
               or simply ignore this email. To respect your inbox,{" "}
               {invalidDays < 28
                 ? `we will only send you one more email about this in ${
