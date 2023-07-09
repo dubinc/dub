@@ -1,7 +1,9 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import sendMail from "emails";
-import FeedbackEmail from "emails/FeedbackEmail";
 import { ratelimit } from "#/lib/upstash";
+import { Resend } from "resend";
+import FeedbackEmail from "emails/feedback-email";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export default async function handler(
   req: NextApiRequest,
@@ -21,12 +23,15 @@ export default async function handler(
       return res.status(400).json({ error: "Missing feedback" });
     }
 
-    const response = await sendMail({
-      to: "steven@dub.sh",
+    const response = await resend.emails.send({
       from: "feedback@dub.sh",
-      ...(email && { replyTo: email }),
+      to: ["steven@dub.sh"],
+      ...(email && { reply_to: email }),
       subject: "🎉 New Feedback Received!",
-      component: <FeedbackEmail email={email} feedback={feedback} />,
+      react: FeedbackEmail({
+        email,
+        feedback,
+      }),
     });
     res.status(200).json({ response });
   } else {

@@ -1,8 +1,8 @@
 import { withProjectAuth } from "#/lib/auth";
 import prisma from "#/lib/prisma";
-import sendMail from "emails";
-import ProjectInvite from "emails/ProjectInvite";
+import { sendEmail } from "emails";
 import { randomBytes, createHash } from "crypto";
+import ProjectInvite from "emails/project-invite";
 
 const hashToken = (token: string) => {
   return createHash("sha256")
@@ -10,7 +10,7 @@ const hashToken = (token: string) => {
     .digest("hex");
 };
 
-export default withProjectAuth(async (req, res, project) => {
+export default withProjectAuth(async (req, res, project, session) => {
   // GET /api/projects/[slug]/invites - Get all pending invites for a project
   if (req.method === "GET") {
     const invites = await prisma.projectInvite.findMany({
@@ -96,10 +96,16 @@ export default withProjectAuth(async (req, res, project) => {
 
       const url = `${process.env.NEXTAUTH_URL}/api/auth/callback/email?${params}`;
 
-      sendMail({
+      sendEmail({
         subject: "You've been invited to join a project on Dub",
-        to: email,
-        component: <ProjectInvite url={url} projectName={project.name} />,
+        email,
+        react: ProjectInvite({
+          email,
+          url,
+          projectName: project.name,
+          projectUser: session.user.name,
+          projectUserEmail: session.user.email,
+        }),
       });
 
       return res.status(200).json({ message: "Invite sent" });

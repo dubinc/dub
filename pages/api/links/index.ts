@@ -82,17 +82,17 @@ export default withLinksAuth(
       }
 
       if (!project && invalidFavicon) {
-        await log(
-          `*${
+        await log({
+          message: `*${
             session.user.email
           }* created a new link (dub.sh/${key}) for ${url} ${
             invalidFavicon
               ? " but it has an invalid favicon :thinking_face:"
               : ""
           }`,
-          "links",
-          invalidFavicon ? true : false,
-        );
+          type: "links",
+          mention: true,
+        });
       }
 
       return res.status(200).json(response);

@@ -19,7 +19,7 @@ export function cn(...inputs: ClassValue[]) {
 export function constructMetadata({
   title = "Dub - Link Management for Modern Marketing Teams",
   description = "Dub is an open-source link management tool for modern marketing teams to create, share, and track short links.",
-  image = "https://dub.sh/_static/thumbnail.png",
+  image = "https://public.blob.vercel-storage.com/kmKY9FhOzDRAX28c/4aNzmdW-S93Bh3Z3AJMLU90iSwq7SCLuuwIrcB.png",
 }: {
   title?: string;
   description?: string;
@@ -263,12 +263,6 @@ export const isHomeHostname = (domain: string) => {
   return HOME_HOSTNAMES.has(domain) || domain.endsWith(".vercel.app");
 };
 
-export const getDomain = (headers: Headers) => {
-  let domain = headers.get("host") as string;
-  if (isHomeHostname(domain)) domain = "dub.sh";
-  return domain;
-};
-
 export const getUrlFromString = (str: string) => {
   if (isValidUrl(str)) return str;
   try {
@@ -408,14 +402,17 @@ export async function generateMD5Hash(message) {
 const logTypeToEnv = {
   cron: process.env.DUB_SLACK_HOOK_CRON,
   links: process.env.DUB_SLACK_HOOK_LINKS,
-  error: process.env.DUB_SLACK_HOOK_ERROR,
 };
 
-export const log = async (
-  message: string,
-  type: "cron" | "links" | "error",
-  mention?: boolean,
-) => {
+export const log = async ({
+  message,
+  type,
+  mention = false,
+}: {
+  message: string;
+  type: "cron" | "links";
+  mention?: boolean;
+}) => {
   /* Log a message to the console */
   const HOOK = logTypeToEnv[type];
   if (!HOOK) return;
@@ -462,6 +459,16 @@ export const isBlacklistedKey = async (key: string) => {
     blacklistedKeys = [];
   }
   return new RegExp(blacklistedKeys.join("|"), "i").test(key);
+};
+
+export const isWhitelistedEmail = async (email: string) => {
+  let whitelistedEmails;
+  try {
+    whitelistedEmails = await get("whitelist");
+  } catch (e) {
+    whitelistedEmails = [];
+  }
+  return new Set(whitelistedEmails).has(email);
 };
 
 export const isBlacklistedEmail = async (email: string) => {

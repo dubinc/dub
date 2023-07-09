@@ -1,9 +1,10 @@
-import sendMail from "emails";
-import InvalidDomain from "emails/InvalidDomain";
-import DomainDeleted from "emails/DomainDeleted";
+import { sendEmail } from "emails";
 import { log } from "#/lib/utils";
 import { deleteDomainAndLinks } from "#/lib/api/domains";
 import prisma from "#/lib/prisma";
+import InvalidDomain from "emails/invalid-domain";
+import DomainDeleted from "emails/domain-deleted";
+import { limiter } from "./utils";
 
 export const handleDomainUpdates = async ({
   domain,
@@ -19,11 +20,11 @@ export const handleDomainUpdates = async ({
   linksCount: number;
 }) => {
   if (changed) {
-    await log(
-      `Domain *${domain}* changed status to *${verified}*`,
-      "cron",
-      verified,
-    );
+    await log({
+      message: `Domain *${domain}* changed status to *${verified}*`,
+      type: "cron",
+      mention: verified,
+    });
   }
 
   if (verified) return;
@@ -67,11 +68,11 @@ export const handleDomainUpdates = async ({
     },
   });
   if (!project) {
-    await log(
-      `Domain *${domain}* is invalid but not associated with any project, skipping.`,
-      "cron",
-      true,
-    );
+    await log({
+      message: `Domain *${domain}* is invalid but not associated with any project, skipping.`,
+      type: "cron",
+      mention: true,
+    });
     return;
   }
   const projectSlug = project.slug;
@@ -93,11 +94,10 @@ export const handleDomainUpdates = async ({
         },
       });
       if (linksClicks._sum?.clicks) {
-        return await log(
-          `Domain *${domain}* has been invalid for > 30 days and has links with clicks, skipping.`,
-          "cron",
-          true,
-        );
+        return await log({
+          message: `Domain *${domain}* has been invalid for > 30 days and has links with clicks, skipping.`,
+          type: "cron",
+        });
       }
     }
     // else, delete the domain, but first,
@@ -113,21 +113,27 @@ export const handleDomainUpdates = async ({
             },
           });
       }),
-      log(
-        `Domain *${domain}* has been invalid for > 30 days and ${
+      log({
+        message: `Domain *${domain}* has been invalid for > 30 days and ${
           linksCount > 0 ? "has links but no link clicks" : "has no links"
         }, deleting. ${
           deleteProjectAsWell
             ? "Since this is the only domain for the project, the project will be deleted as well."
             : ""
         }`,
-        "cron",
-      ),
-      sendMail({
-        subject: `Your domain ${domain} has been deleted`,
-        to: ownerEmail,
-        component: <DomainDeleted domain={domain} projectSlug={projectSlug} />,
+        type: "cron",
       }),
+      limiter.schedule(() =>
+        sendEmail({
+          subject: `Your domain ${domain} has been deleted`,
+          email: ownerEmail,
+          react: DomainDeleted({
+            email: ownerEmail,
+            projectSlug,
+            domain,
+          }),
+        }),
+      ),
     ]);
   }
 
@@ -179,21 +185,22 @@ const sendDomainInvalidEmail = async ({
   type: "first" | "second";
 }) => {
   return await Promise.allSettled([
-    log(
-      `Domain *${domain}* is invalid for ${invalidDays} days, email sent.`,
-      "cron",
-    ),
-    sendMail({
-      subject: `Your domain ${domain} needs to be configured`,
-      to: ownerEmail,
-      component: (
-        <InvalidDomain
-          domain={domain}
-          projectSlug={projectSlug}
-          invalidDays={invalidDays}
-        />
-      ),
+    log({
+      message: `Domain *${domain}* is invalid for ${invalidDays} days, email sent.`,
+      type: "cron",
     }),
+    limiter.schedule(() =>
+      sendEmail({
+        subject: `Your domain ${domain} needs to be configured`,
+        email: ownerEmail,
+        react: InvalidDomain({
+          email: ownerEmail,
+          domain,
+          projectSlug,
+          invalidDays,
+        }),
+      }),
+    ),
     prisma.sentEmail.create({
       data: {
         project: {
