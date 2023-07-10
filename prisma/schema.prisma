@@ -22,7 +22,6 @@ model User {
   accounts       Account[]
   sessions       Session[]
   projects       ProjectUsers[]
-  sentEmails     SentEmail[]
   links          Link[]
   createdAt      DateTime       @default(now())
 }
@@ -124,12 +123,9 @@ model SentEmail {
   id        String    @id @default(cuid())
   type      EmailType
   createdAt DateTime  @default(now())
-  user      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String?
   project   Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId String?
 
-  @@index([userId])
   @@index([projectId])
 }
 
