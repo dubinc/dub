@@ -3,7 +3,7 @@ import { Readable } from "node:stream";
 import Stripe from "stripe";
 import prisma from "#/lib/prisma";
 import { stripe } from "#/lib/stripe";
-import { PLANS } from "#/lib/stripe/constants";
+import { getPlanFromPriceId, isNewCustomer } from "#/lib/stripe/utils";
 import { redis } from "#/lib/upstash";
 import { log } from "#/lib/utils";
 import { sendEmail } from "emails";
@@ -77,18 +77,14 @@ export default async function webhookHandler(
               billingCycleStart: new Date().getDate(),
             },
           });
+
+          // for subscription updates
         } else if (event.type === "customer.subscription.updated") {
           const subscriptionUpdated = event.data.object as Stripe.Subscription;
-          const newPriceId = subscriptionUpdated.items.data[0].price.id;
-          const env =
-            process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-              ? "production"
-              : "test";
-          const plan = PLANS.find(
-            (plan) =>
-              plan.price.monthly.priceIds[env] === newPriceId ||
-              plan.price.yearly.priceIds[env] === newPriceId,
-          )!;
+          const priceId = subscriptionUpdated.items.data[0].price.id;
+          const newCustomer = isNewCustomer(event.data.previous_attributes);
+
+          const plan = getPlanFromPriceId(priceId);
           const usageLimit = plan.quota;
           const stripeId = subscriptionUpdated.customer.toString();
 
@@ -117,20 +113,31 @@ export default async function webhookHandler(
               },
             },
           });
+          if (!data) {
+            await log({
+              message:
+                "Project not found in Stripe webhook `customer.subscription.created` callback",
+              type: "cron",
+              mention: true,
+            });
+            return;
+          }
 
-          const owner = data.users[0].user;
+          // Send thank you email to project owner if they are a new customer
+          if (newCustomer) {
+            const owner = data.users[0].user;
 
-          // send thank you email to project owner
-          await sendEmail({
-            email: owner.email as string,
-            subject: `Thank you for upgrading to Dub ${plan.name}!`,
-            react: UpgradeEmail({
-              name: owner.name,
+            await sendEmail({
               email: owner.email as string,
-              plan: plan.name,
-            }),
-            marketing: true,
-          });
+              subject: `Thank you for upgrading to Dub ${plan.name}!`,
+              react: UpgradeEmail({
+                name: owner.name,
+                email: owner.email as string,
+                plan: plan.name,
+              }),
+              marketing: true,
+            });
+          }
 
           // If project cancels their subscription
         } else if (event.type === "customer.subscription.deleted") {
@@ -193,7 +200,7 @@ export default async function webhookHandler(
         }
       } catch (error) {
         await log({
-          message: `Stripe wekbook failed. Error: ${error.message}`,
+          message: `Stripe webook failed. Error: ${error.message}`,
           type: "cron",
           mention: true,
         });
