@@ -109,7 +109,11 @@ async function handler(_req: NextApiRequest, res: NextApiResponse) {
     );
     res.status(200).json(results);
   } catch (error) {
-    await log("Domains cron failed. Error: " + error.message, "cron", true);
+    await log({
+      message: "Domains cron failed. Error: " + error.message,
+      type: "cron",
+      mention: true,
+    });
     res.status(500).json({ error: error.message });
   }
 }

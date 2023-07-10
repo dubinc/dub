@@ -1,55 +1,14 @@
+"use client";
+
 import { useState } from "react";
+import { experimental_useFormStatus as useFormStatus } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { LoadingDots } from "#/ui/icons";
+import Button from "#/ui/button";
+import { submitFeedback } from "./action";
 import { CheckCircle } from "lucide-react";
-import { useDebouncedCallback } from "use-debounce";
-import { toast } from "sonner";
 
 export default function Feedback() {
-  const [data, setData] = useState({
-    email: "",
-    feedback: "",
-  });
-  const [state, setState] = useState("idle");
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setState("submitting");
-    await fetch("/api/site/feedback", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    })
-      .then((res) => res.json())
-      .then(() => {
-        setState("submitted");
-        toast.success("Successfully submitted feedback!");
-      });
-  };
-
-  const handleKeyDown = async (e) => {
-    if (e.key === "Enter" && e.metaKey) {
-      await handleSubmit(e);
-    }
-  };
-
-  // Pre-warm the API endpoint to avoid cold start
-  // Ideally we'd use an edge function for this but
-  // node-mailer is not edge compatible
-  const prewarm = useDebouncedCallback(
-    () => {
-      fetch("/api/site/feedback", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: "prewarm",
-          feedback: null,
-        }),
-      });
-    },
-    30000,
-    { leading: true },
-  );
+  const [submitted, setSubmitted] = useState(false);
 
   return (
     <div className="relative z-0 h-[420px] overflow-scroll border border-gray-200 bg-white px-7 py-5 scrollbar-hide sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
@@ -57,7 +16,7 @@ export default function Feedback() {
         <h1 className="text-xl font-semibold">Feedback</h1>
       </div>
       <AnimatePresence>
-        {state === "submitted" ? (
+        {submitted ? (
           <motion.div
             className="flex h-[280px] flex-col items-center justify-center space-y-3"
             initial={{ opacity: 0, y: 10 }}
@@ -68,8 +27,12 @@ export default function Feedback() {
           </motion.div>
         ) : (
           <motion.form
+            action={(data) =>
+              submitFeedback(data).then(() => {
+                setSubmitted(true);
+              })
+            }
             className="grid gap-5"
-            onSubmit={handleSubmit}
             initial={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
           >
@@ -85,8 +48,6 @@ export default function Feedback() {
                 type="email"
                 placeholder="panic@thedis.co"
                 autoComplete="email"
-                onFocus={prewarm}
-                onChange={(e) => setData({ ...data, email: e.target.value })}
                 className="block w-full rounded-md border-gray-300 pr-10 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
               />
             </div>
@@ -102,32 +63,20 @@ export default function Feedback() {
                 id="feedback"
                 required={true}
                 rows={6}
-                onKeyDown={handleKeyDown}
                 className="block w-full rounded-md border-gray-300 pr-10 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
                 placeholder="What other data would you like to see?"
-                value={data.feedback}
-                onFocus={prewarm}
-                onChange={(e) => setData({ ...data, feedback: e.target.value })}
                 aria-invalid="true"
               />
             </div>
-            <button
-              disabled={state === "submitting"}
-              className={`${
-                state === "submitting"
-                  ? "cursor-not-allowed border-gray-200 bg-gray-100"
-                  : "border-black bg-black text-white hover:bg-white hover:text-black"
-              } flex h-10 w-full items-center justify-center rounded-md border text-sm transition-all focus:outline-none`}
-            >
-              {state === "submitting" ? (
-                <LoadingDots color="#808080" />
-              ) : (
-                <p>Submit feedback</p>
-              )}
-            </button>
+            <FormButton />
           </motion.form>
         )}
       </AnimatePresence>
     </div>
   );
 }
+
+const FormButton = () => {
+  const { pending } = useFormStatus();
+  return <Button text="Submit feedback" loading={pending} />;
+};

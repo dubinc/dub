@@ -1,30 +1,30 @@
-import { buildSendMail } from "mailing-core";
-import nodemailer from "nodemailer";
+import { ReactElement, JSXElementConstructor } from "react";
+import { Resend } from "resend";
 
-const sendMail = buildSendMail({
-  transport: nodemailer.createTransport({
-    host: "smtp.postmarkapp.com",
-    port: 587,
-    auth: {
-      user: process.env.POSTMARK_API_KEY,
-      pass: process.env.POSTMARK_API_KEY,
-    },
-  }),
-  defaultFrom: "Steven from Dub <steven@dub.sh>",
-  configPath: "./mailing.config.json",
-});
+export const resend = new Resend(process.env.RESEND_API_KEY);
 
-export default sendMail;
-
-export const sendMarketingMail = buildSendMail({
-  transport: nodemailer.createTransport({
-    host: "smtp-broadcasts.postmarkapp.com",
-    port: 587,
-    auth: {
-      user: process.env.POSTMARK_MARKETING_API_KEY,
-      pass: process.env.POSTMARK_MARKETING_API_SECRET,
-    },
-  }),
-  defaultFrom: "Steven from Dub <steven@ship.dub.sh>",
-  configPath: "./mailing.config.json",
-});
+export const sendEmail = async ({
+  email,
+  subject,
+  react,
+  marketing,
+  test,
+}: {
+  email: string | string[];
+  subject: string;
+  react:
+    | ReactElement<any, string | JSXElementConstructor<any>>
+    | null
+    | undefined;
+  marketing?: boolean;
+  test?: boolean;
+}) => {
+  return resend.emails.send({
+    from: marketing
+      ? "Steven from Dub <steven@ship.dub.sh>"
+      : "Dub <system@dub.sh>",
+    to: test ? "delivered@resend.dev" : email,
+    subject,
+    react,
+  });
+};

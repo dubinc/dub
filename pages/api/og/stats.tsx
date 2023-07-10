@@ -54,7 +54,7 @@ export default async function handler(req: NextRequest) {
         }}
       >
         <img
-          src="https://dub.sh/_static/logo.png"
+          src="https://public.blob.vercel-storage.com/kmKY9FhOzDRAX28c/diIX27B-vli9jFicKhqvO4Dzb2IrgHbaOdRLcT.png"
           style={{
             width: "80px",
             height: "80px",
