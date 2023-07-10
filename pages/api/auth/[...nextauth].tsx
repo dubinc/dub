@@ -75,7 +75,7 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
-    jwt: async ({ token, user, trigger, session }) => {
+    jwt: async ({ token, user, trigger }) => {
       if (!token.email || (await isBlacklistedEmail(token.email))) {
         return {};
       }
@@ -113,11 +113,11 @@ export const authOptions: NextAuthOptions = {
             createdAt: true,
           },
         });
-        // only send the welcome email if the user was created in the last 5 minutes
+        // only send the welcome email if the user was created in the last 10s
         // (this is a workaround because the `isNewUser` flag is triggered when a user does `dangerousEmailAccountLinking`)
         if (
           user?.createdAt &&
-          new Date(user.createdAt).getTime() > Date.now() - 300000
+          new Date(user.createdAt).getTime() > Date.now() - 10000
         ) {
           sendEmail({
             subject: "Welcome to Dub.sh!",

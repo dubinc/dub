@@ -23,11 +23,11 @@ export default async function AppMiddleware(req: NextRequest) {
 
     // if there's a session
   } else if (session?.email) {
-    // if the user was created in the last 5 minutes and the path isn't /welcome, redirect to /welcome
+    // if the user was created in the last 10s and the path isn't /welcome, redirect to /welcome
     // (this is a workaround because the `isNewUser` flag is triggered when a user does `dangerousEmailAccountLinking`)
     if (
       session?.user?.createdAt &&
-      new Date(session?.user?.createdAt).getTime() > Date.now() - 300000 &&
+      new Date(session?.user?.createdAt).getTime() > Date.now() - 10000 &&
       path !== "/welcome"
     ) {
       return NextResponse.redirect(new URL("/welcome", req.url));
