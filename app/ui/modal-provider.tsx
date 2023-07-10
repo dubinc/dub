@@ -15,7 +15,6 @@ import { useAddProjectModal } from "@/components/app/modals/add-project-modal";
 import { useAcceptInviteModal } from "@/components/app/modals/accept-invite-modal";
 import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal";
 import { useImportLinksModal } from "@/components/app/modals/import-links-modal";
-import { useTagLinkModal } from "@/components/app/modals/tag-link-modal";
 import { useAddEditDomainModal } from "@/components/app/modals/add-edit-domain-modal";
 import { useGoogleOauthModal } from "@/components/app/modals/google-oauth-modal";
 
@@ -24,13 +23,11 @@ export const ModalContext = createContext<{
   setShowAddEditDomainModal: Dispatch<SetStateAction<boolean>>;
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
   setShowImportLinksModal: Dispatch<SetStateAction<boolean>>;
-  setShowTagLinkModal: Dispatch<SetStateAction<boolean>>;
 }>({
   setShowAddProjectModal: () => {},
   setShowAddEditDomainModal: () => {},
   setShowAddEditLinkModal: () => {},
   setShowImportLinksModal: () => {},
-  setShowTagLinkModal: () => {},
 });
 
 export default function ModalProvider({ children }: { children: ReactNode }) {
@@ -43,7 +40,6 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
 
   const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal();
   const { setShowImportLinksModal, ImportLinksModal } = useImportLinksModal();
-  const { setShowTagLinkModal, TagLinkModal } = useTagLinkModal({});
 
   const { error, loading } = useProject();
   const { data: session } = useSession();
@@ -72,7 +68,6 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
         setShowAddEditDomainModal,
         setShowAddEditLinkModal,
         setShowImportLinksModal,
-        setShowTagLinkModal,
       }}
     >
       <GoogleOauthModal />
@@ -83,7 +78,6 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
       <AddEditDomainModal />
       <AddEditLinkModal />
       <ImportLinksModal />
-      <TagLinkModal />
       {children}
     </ModalContext.Provider>
   );

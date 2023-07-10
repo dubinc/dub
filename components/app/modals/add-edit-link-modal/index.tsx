@@ -21,16 +21,18 @@ import {
   getApexDomain,
   getQueryString,
   getUrlWithoutUTMParams,
+  isValidUrl,
   linkConstructor,
   truncate,
 } from "#/lib/utils";
-import ExpirationSection from "./expiration-section";
+import TagsSection from "./tags-section";
 import OGSection from "./og-section";
-import PasswordSection from "./password-section";
 import UTMSection from "./utm-section";
+import PasswordSection from "./password-section";
+import ExpirationSection from "./expiration-section";
 import IOSSection from "./ios-section";
-import Preview from "./preview";
 import AndroidSection from "./android-section";
+import Preview from "./preview";
 import { DEFAULT_LINK_PROPS, GOOGLE_FAVICON_URL } from "#/lib/constants";
 import useDomains from "#/lib/swr/use-domains";
 import { toast } from "sonner";
@@ -112,6 +114,15 @@ function AddEditLinkModal({
     setData((prev) => ({ ...prev, key }));
     setGeneratingKey(false);
   }, []);
+
+  useEffect(() => {
+    // generate random key when someone pastes a URL and there's no key
+    if (showAddEditLinkModal && !key && url.length > 0) {
+      generateRandomKey();
+    }
+    // here, we're intentionally leaving out `key` from the dependency array
+    // because we don't want to generate a new key if the user is editing the key
+  }, [showAddEditLinkModal, url, generateRandomKey]);
 
   const [generatingMetatags, setGeneratingMetatags] = useState(
     props ? true : false,
@@ -375,6 +386,8 @@ function AddEditLinkModal({
                     required
                     placeholder="https://github.com/steven-tey/dub"
                     value={url}
+                    autoFocus={!key}
+                    autoComplete="off"
                     onChange={(e) => {
                       setUrlError(null);
                       setData({ ...data, url: e.target.value });
@@ -466,6 +479,7 @@ function AddEditLinkModal({
                           "Only letters, numbers, '-', and '/' are allowed.",
                         );
                       }}
+                      autoComplete="off"
                       className={`${
                         keyError
                           ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
@@ -500,7 +514,7 @@ function AddEditLinkModal({
             </div>
 
             {/* Divider */}
-            <div className="relative py-5">
+            <div className="relative pb-3 pt-5">
               <div
                 className="absolute inset-0 flex items-center px-4 md:px-16"
                 aria-hidden="true"
@@ -515,6 +529,7 @@ function AddEditLinkModal({
             </div>
 
             <div className="grid gap-5 px-4 md:px-16">
+              {slug && <TagsSection {...{ props, data, setData }} />}
               <OGSection
                 {...{ props, data, setData }}
                 generatingMetatags={generatingMetatags}
@@ -564,34 +579,57 @@ function AddEditLinkButton({
 
   const { exceededUsage } = useProject();
 
-  const onKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement;
-      const existingModalBackdrop = document.getElementById("modal-backdrop");
-      // only open modal with keyboard shortcut if:
-      // - project has not exceeded usage limit
-      // - c is pressed
-      // - user is not pressing cmd/ctrl + c
-      // - user is not typing in an input or textarea
-      // - there is no existing modal backdrop (i.e. no other modal is open)
-      if (
-        !exceededUsage &&
-        e.key === "c" &&
-        !e.metaKey &&
-        !e.ctrlKey &&
-        target.tagName !== "INPUT" &&
-        target.tagName !== "TEXTAREA" &&
-        !existingModalBackdrop
-      ) {
-        setShowAddEditLinkModal(true);
-      }
-    },
-    [exceededUsage],
-  );
+  const onKeyDown = useCallback((e: KeyboardEvent) => {
+    const target = e.target as HTMLElement;
+    const existingModalBackdrop = document.getElementById("modal-backdrop");
+    // only open modal with keyboard shortcut if:
+    // - project has not exceeded usage limit
+    // - c is pressed
+    // - user is not pressing cmd/ctrl + c
+    // - user is not typing in an input or textarea
+    // - there is no existing modal backdrop (i.e. no other modal is open)
+    if (
+      !exceededUsage &&
+      e.key === "c" &&
+      !e.metaKey &&
+      !e.ctrlKey &&
+      target.tagName !== "INPUT" &&
+      target.tagName !== "TEXTAREA" &&
+      !existingModalBackdrop
+    ) {
+      e.preventDefault(); // or else it'll show up in the input field since that's getting auto-selected
+      setShowAddEditLinkModal(true);
+    }
+  }, []);
+
+  // listen to paste event, and if it's a URL, open the modal and input the URL
+  const handlePaste = (e: ClipboardEvent) => {
+    const pastedContent = e.clipboardData?.getData("text");
+    const target = e.target as HTMLElement;
+    const existingModalBackdrop = document.getElementById("modal-backdrop");
+
+    // make sure:
+    // - pasted content is a valid URL
+    // - user is not typing in an input or textarea
+    // - there is no existing modal backdrop (i.e. no other modal is open)
+    if (
+      pastedContent &&
+      isValidUrl(pastedContent) &&
+      target.tagName !== "INPUT" &&
+      target.tagName !== "TEXTAREA" &&
+      !existingModalBackdrop
+    ) {
+      setShowAddEditLinkModal(true);
+    }
+  };
 
   useEffect(() => {
     document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
+    document.addEventListener("paste", handlePaste);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown),
+        document.removeEventListener("paste", handlePaste);
+    };
   }, [onKeyDown]);
 
   return slug && exceededUsage ? ( // only show exceeded usage tooltip if user is on a project page

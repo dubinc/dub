@@ -37,7 +37,6 @@ yarn-error.log*
 next-env.d.ts
 
 /pages/api/scripts*
-.mailing
 .react-email
 .contentlayer
 .vscode

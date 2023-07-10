@@ -13,7 +13,7 @@ import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import Switch from "#/ui/switch";
 import Tooltip from "#/ui/tooltip";
 import { getStripe } from "#/lib/stripe/client";
-import { PLANS } from "#/lib/stripe/constants";
+import { PLANS } from "#/lib/stripe/utils";
 import { capitalize, nFormatter } from "#/lib/utils";
 import useProject from "#/lib/swr/use-project";
 import { MinusCircle } from "lucide-react";
@@ -201,7 +201,9 @@ const Pricing = ({ homePage }: { homePage?: boolean }) => {
               <div className="flex h-20 items-center justify-center border-b border-t border-gray-200 bg-gray-50">
                 <div className="flex items-center">
                   <p className="text-gray-600">
-                    Up to {nFormatter(quota)} link clicks/mo
+                    {plan === "Enterprise"
+                      ? "Unlimited link clicks"
+                      : `Up to ${nFormatter(quota)} link clicks/mo`}
                   </p>
                   <Tooltip content="If you exceed your monthly usage, your existing links will still work, but you need to upgrade to view their stats/add more links.">
                     <div className="flex h-4 w-8 justify-center">

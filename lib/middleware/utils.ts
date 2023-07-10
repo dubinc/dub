@@ -21,7 +21,7 @@ export const getFinalUrl = (target: string, { req }: { req: NextRequest }) => {
   const searchParams = req.nextUrl.searchParams;
 
   // get the query params of the target url
-  const targetUrl = new URL(target);
+  const targetUrl = new URL(decodeURIComponent(target));
 
   // if searchParams (type: `URLSearchParams`) has the same key as target url, then overwrite it
   for (const [key, value] of searchParams) {

@@ -2,7 +2,7 @@ import { useRouter } from "next/router";
 import { ReactNode, useEffect, useRef } from "react";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { AnimatePresence, motion, useAnimation } from "framer-motion";
-import clsx from "clsx";
+import { cn } from "#/lib/utils";
 
 export default function Popover({
   children,
@@ -104,7 +104,7 @@ export default function Popover({
           <PopoverPrimitive.Content
             sideOffset={4}
             align={align}
-            className={clsx(
+            className={cn(
               "z-40 animate-slide-up-fade items-center rounded-md border border-gray-200 bg-white drop-shadow-lg",
               {
                 "hidden md:block": !desktopOnly,

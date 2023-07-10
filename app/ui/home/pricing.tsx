@@ -11,7 +11,7 @@ import {
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import Switch from "#/ui/switch";
 import Tooltip from "#/ui/tooltip";
-import { PLANS } from "#/lib/stripe/constants";
+import { PLANS } from "#/lib/stripe/utils";
 import { nFormatter } from "#/lib/utils";
 import { MinusCircle } from "lucide-react";
 

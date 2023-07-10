@@ -14,6 +14,11 @@ const logos = [
     dimensions: "h-7 sm:h-10",
   },
   {
+    slug: "hashnode",
+    link: "hshno.de",
+    dimensions: "h-6 sm:h-8",
+  },
+  {
     slug: "checkly",
     link: "chkly.co",
     dimensions: "h-6 sm:h-8",
@@ -22,11 +27,6 @@ const logos = [
     slug: "cal",
     link: "go.cal.com",
     dimensions: "h-4 sm:h-6",
-  },
-  {
-    slug: "crowdin",
-    link: "l.crowdin.com",
-    dimensions: "h-6 sm:h-8",
   },
   {
     slug: "lugg",

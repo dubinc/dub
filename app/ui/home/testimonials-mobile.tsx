@@ -2,16 +2,21 @@
 
 import Tweet from "#/ui/tweet";
 import { useRef, useState } from "react";
+import { Tweet as TweetProps } from "react-tweet/api";
 
-export default function TestimonialsMobile({ tweets }: { tweets: any[] }) {
+export default function TestimonialsMobile({
+  tweetsData,
+}: {
+  tweetsData: TweetProps[];
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const [expanded, setExpanded] = useState(false);
 
   return (
     <div className="flex flex-col justify-center space-y-4 pt-8 sm:hidden">
       <div ref={ref} className="space-y-6">
-        {tweets.slice(0, expanded ? undefined : 4).map((tweet, idx) => (
-          <Tweet key={idx} metadata={JSON.stringify(tweet)} noTilt />
+        {tweetsData.slice(0, expanded ? undefined : 4).map((tweet, idx) => (
+          <Tweet key={idx} data={tweet} />
         ))}
       </div>
       {!expanded && (

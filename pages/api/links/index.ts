@@ -24,7 +24,7 @@ export default withLinksAuth(
           search?: string;
           sort?: "createdAt" | "clicks";
           userId?: string;
-          showArchived?: boolean;
+          showArchived?: string;
         };
       const response = await getLinksForProject({
         projectId: project?.id || DUB_PROJECT_ID,
@@ -33,7 +33,7 @@ export default withLinksAuth(
         search,
         sort,
         userId: project?.id ? userId : session.user.id,
-        showArchived,
+        showArchived: showArchived === "true" ? true : false,
       });
       return res.status(200).json(response);
 
@@ -82,17 +82,17 @@ export default withLinksAuth(
       }
 
       if (!project && invalidFavicon) {
-        await log(
-          `*${
+        await log({
+          message: `*${
             session.user.email
           }* created a new link (dub.sh/${key}) for ${url} ${
             invalidFavicon
               ? " but it has an invalid favicon :thinking_face:"
               : ""
           }`,
-          "links",
-          invalidFavicon ? true : false,
-        );
+          type: "links",
+          mention: true,
+        });
       }
 
       return res.status(200).json(response);

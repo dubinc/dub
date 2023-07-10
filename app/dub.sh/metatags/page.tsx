@@ -51,7 +51,6 @@ export default function Metatags() {
         </a>
 
         <Suspense fallback="">
-          {/* @ts-expect-error Async Server Component */}
           <LaunchTweet />
         </Suspense>
       </div>

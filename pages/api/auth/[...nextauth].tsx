@@ -1,7 +1,7 @@
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import sendMail, { sendMarketingMail } from "emails";
-import LoginLink from "emails/LoginLink";
-import WelcomeEmail from "emails/WelcomeEmail";
+import { sendEmail } from "emails";
+import LoginLink from "emails/login-link";
+import WelcomeEmail from "emails/welcome-email";
 import NextAuth, { type NextAuthOptions } from "next-auth";
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
@@ -14,11 +14,16 @@ export const authOptions: NextAuthOptions = {
   providers: [
     EmailProvider({
       sendVerificationRequest({ identifier, url }) {
-        sendMail({
-          subject: "Your Dub.sh Login Link",
-          to: identifier,
-          component: <LoginLink url={url} />,
-        });
+        if (process.env.NODE_ENV === "development") {
+          console.log(`Login link: ${url}`);
+          return;
+        } else {
+          sendEmail({
+            email: identifier,
+            subject: "Your Dub Login Link",
+            react: LoginLink({ url, email: identifier }),
+          });
+        }
       },
     }),
     GoogleProvider({
@@ -104,19 +109,24 @@ export const authOptions: NextAuthOptions = {
         const user = await prisma.user.findUnique({
           where: { email },
           select: {
+            name: true,
             createdAt: true,
           },
         });
-        // only send the welcome email if the user was created in the last 10 seconds
+        // only send the welcome email if the user was created in the last 10s
         // (this is a workaround because the `isNewUser` flag is triggered when a user does `dangerousEmailAccountLinking`)
         if (
           user?.createdAt &&
           new Date(user.createdAt).getTime() > Date.now() - 10000
         ) {
-          sendMarketingMail({
+          sendEmail({
             subject: "Welcome to Dub.sh!",
-            to: email,
-            component: <WelcomeEmail />,
+            email,
+            react: WelcomeEmail({
+              email,
+              name: user.name || null,
+            }),
+            marketing: true,
           });
         }
       }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 import { Logout } from "@/components/shared/icons";
 import Popover from "@/components/shared/popover";
@@ -6,9 +6,11 @@ import IconMenu from "../../shared/icon-menu";
 import Image from "next/image";
 import va from "@vercel/analytics";
 import Link from "next/link";
-import { MessageCircle, Settings } from "lucide-react";
+import { Edit3, MessageCircle, Settings } from "lucide-react";
 import { Crisp } from "crisp-sdk-web";
 import { LoadingCircle } from "#/ui/icons";
+import Badge from "#/ui/badge";
+import Cookies from "js-cookie";
 
 export default function UserDropdown() {
   const { data: session } = useSession();
@@ -20,9 +22,18 @@ export default function UserDropdown() {
       va.track("Open support chat");
       setOpeningSupport(false);
     });
-    Crisp.chat.onChatClose(() => {
+    Crisp.chat.onChatClosed(() => {
       Crisp.chat.hide();
     });
+  }, []);
+
+  const [unread, setUnread] = useState(false);
+  useEffect(() => {
+    if (Cookies.get("read-changelog-0725")) {
+      setUnread(false);
+    } else {
+      setUnread(true);
+    }
   }, []);
 
   return (
@@ -68,6 +79,16 @@ export default function UserDropdown() {
                 icon={<Settings className="h-4 w-4" />}
               />
             </Link>
+            <Link
+              href="https://dub.sh/changelog"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => Cookies.set("read-changelog-0725", true)}
+              className="flex w-full justify-between rounded-md p-2 text-sm transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
+            >
+              <IconMenu text="Changelog" icon={<Edit3 className="h-4 w-4" />} />
+              {unread && <Badge text="1" variant="blue" />}
+            </Link>
             <button
               className="w-full rounded-md p-2 text-sm transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
               onClick={() => {
@@ -88,7 +109,7 @@ export default function UserDropdown() {
       >
         <button
           onClick={() => setOpenPopover(!openPopover)}
-          className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-gray-300 transition-all duration-75 focus:outline-none active:scale-95 sm:h-10 sm:w-10"
+          className="group relative"
         >
           {session && (
             <Image
@@ -99,7 +120,11 @@ export default function UserDropdown() {
               }
               width={40}
               height={40}
+              className="h-9 w-9 rounded-full border border-gray-300 transition-all duration-75 group-focus:outline-none group-active:scale-95 sm:h-10 sm:w-10"
             />
+          )}
+          {unread && (
+            <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full border-2 border-white bg-blue-500" />
           )}
         </button>
       </Popover>

@@ -3,6 +3,9 @@ const { withContentlayer } = require("next-contentlayer");
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
+  experimental: {
+    serverActions: true,
+  },
   images: {
     domains: [
       "www.google.com",
@@ -19,24 +22,6 @@ const nextConfig = {
   async headers() {
     return [
       {
-        source: "/login",
-        headers: [
-          {
-            key: "X-Frame-Options",
-            value: "DENY",
-          },
-        ],
-      },
-      {
-        source: "/register",
-        headers: [
-          {
-            key: "X-Frame-Options",
-            value: "DENY",
-          },
-        ],
-      },
-      {
         source: "/:path*",
         headers: [
           {
@@ -46,6 +31,10 @@ const nextConfig = {
           {
             key: "X-DNS-Prefetch-Control",
             value: "on",
+          },
+          {
+            key: "X-Frame-Options",
+            value: "DENY",
           },
         ],
       },

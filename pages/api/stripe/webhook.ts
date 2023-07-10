@@ -3,9 +3,11 @@ import { Readable } from "node:stream";
 import Stripe from "stripe";
 import prisma from "#/lib/prisma";
 import { stripe } from "#/lib/stripe";
-import { PLANS } from "#/lib/stripe/constants";
+import { getPlanFromPriceId, isNewCustomer } from "#/lib/stripe/utils";
 import { redis } from "#/lib/upstash";
 import { log } from "#/lib/utils";
+import { sendEmail } from "emails";
+import UpgradeEmail from "emails/upgrade-email";
 
 // Stripe requires the raw body to construct the event.
 export const config = {
@@ -54,7 +56,11 @@ export default async function webhookHandler(
             checkoutSession.client_reference_id === null ||
             checkoutSession.customer === null
           ) {
-            await log("Missing items in Stripe webhook callback", "cron", true);
+            await log({
+              message: "Missing items in Stripe webhook callback",
+              type: "cron",
+              mention: true,
+            });
             return;
           }
 
@@ -72,25 +78,18 @@ export default async function webhookHandler(
             },
           });
 
-          // TODO - send thank you email to project owner
-          //
+          // for subscription updates
         } else if (event.type === "customer.subscription.updated") {
           const subscriptionUpdated = event.data.object as Stripe.Subscription;
-          const newPriceId = subscriptionUpdated.items.data[0].price.id;
-          const env =
-            process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-              ? "production"
-              : "test";
-          const plan = PLANS.find(
-            (plan) =>
-              plan.price.monthly.priceIds[env] === newPriceId ||
-              plan.price.yearly.priceIds[env] === newPriceId,
-          )!;
+          const priceId = subscriptionUpdated.items.data[0].price.id;
+          const newCustomer = isNewCustomer(event.data.previous_attributes);
+
+          const plan = getPlanFromPriceId(priceId);
           const usageLimit = plan.quota;
           const stripeId = subscriptionUpdated.customer.toString();
 
           // If a project upgrades/downgrades their subscription, update their usage limit in the database.
-          await prisma.project.update({
+          const data = await prisma.project.update({
             where: {
               stripeId,
             },
@@ -98,7 +97,49 @@ export default async function webhookHandler(
               usageLimit,
               plan: plan.slug,
             },
+            select: {
+              users: {
+                where: {
+                  role: "owner",
+                },
+                select: {
+                  user: {
+                    select: {
+                      name: true,
+                      email: true,
+                    },
+                  },
+                },
+              },
+            },
           });
+          if (!data) {
+            await log({
+              message:
+                "Project not found in Stripe webhook `customer.subscription.created` callback",
+              type: "cron",
+              mention: true,
+            });
+            return;
+          }
+
+          // Send thank you email to project owner if they are a new customer
+          if (newCustomer) {
+            const owner = data.users[0].user;
+
+            await sendEmail({
+              email: owner.email as string,
+              subject: `Thank you for upgrading to Dub ${plan.name}!`,
+              react: UpgradeEmail({
+                name: owner.name,
+                email: owner.email as string,
+                plan: plan.name,
+              }),
+              marketing: true,
+            });
+          }
+
+          // If project cancels their subscription
         } else if (event.type === "customer.subscription.deleted") {
           const subscriptionDeleted = event.data.object as Stripe.Subscription;
 
@@ -117,11 +158,12 @@ export default async function webhookHandler(
           });
 
           if (!project) {
-            await log(
-              "Project not found in Stripe webhook `customer.subscription.deleted` callback",
-              "cron",
-              true,
-            );
+            await log({
+              message:
+                "Project not found in Stripe webhook `customer.subscription.deleted` callback",
+              type: "cron",
+              mention: true,
+            });
             return;
           }
 
@@ -144,23 +186,24 @@ export default async function webhookHandler(
               },
             }),
             pipeline.exec(),
-            log(
-              ":cry: Project *`" +
+            log({
+              message:
+                ":cry: Project *`" +
                 project.name +
                 "`* deleted their subscription",
-              "cron",
-              true,
-            ),
+              type: "cron",
+              mention: true,
+            }),
           ]);
         } else {
           throw new Error("Unhandled relevant event!");
         }
       } catch (error) {
-        await log(
-          `Stripe wekbook failed. Error: ${error.message}`,
-          "cron",
-          true,
-        );
+        await log({
+          message: `Stripe webook failed. Error: ${error.message}`,
+          type: "cron",
+          mention: true,
+        });
         return res
           .status(400)
           .send('Webhook error: "Webhook handler failed. View logs."');

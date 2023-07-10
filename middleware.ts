@@ -15,12 +15,12 @@ export const config = {
      * Match all paths except for:
      * 1. /api/ routes
      * 2. /_next/ (Next.js internals)
-     * 3. /_proxy/, /_auth/ (special pages for OG tags proxying and password protection)
+     * 3. /_proxy/ (special page for OG tags proxying)
      * 4. /_static (inside /public)
      * 5. /_vercel (Vercel internals)
      * 6. /favicon.ico, /sitemap.xml (static files)
      */
-    "/((?!api/|_next/|_proxy/|_auth/|_static|_vercel|favicon.ico|sitemap.xml).*)",
+    "/((?!api/|_next/|_proxy/|_static|_vercel|favicon.ico|sitemap.xml).*)",
   ],
 };
 

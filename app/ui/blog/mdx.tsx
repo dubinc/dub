@@ -5,6 +5,7 @@ import { useMDXComponent } from "next-contentlayer/hooks";
 import Tweet from "#/ui/tweet";
 import GithubRepo, { GithubRepoProps } from "@/components/shared/github-repo";
 import BlurImage from "#/ui/blur-image";
+import { Tweet as TweetProps } from "react-tweet/api";
 
 const CustomLink = (props: any) => {
   const href = props.href;
@@ -59,8 +60,8 @@ export function MDX({ code, images, tweets, repos }: MDXProps) {
 
   const MDXTweet = ({ id }: { id: string }) => {
     if (!tweets) return null;
-    const tweet = tweets.find((tweet: any) => tweet.id === id);
-    return <Tweet metadata={tweet} />;
+    const tweet = tweets.find((tweet: TweetProps) => tweet.id_str === id);
+    return <Tweet data={tweet} />;
   };
 
   const MDXRepo = ({ url }: { url: string }) => {

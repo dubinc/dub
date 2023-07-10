@@ -111,7 +111,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                 <XCircleFill className="h-6 w-6 text-red-500" />
               )
             ) : (
-              <LoadingCircle dimensions="w-5 h-5 mr-1" />
+              <LoadingCircle className="mr-1 h-5 w-5" />
             )}
             <p className="text-sm text-gray-500">
               {data ? data.status : "Checking Domain Status"}
