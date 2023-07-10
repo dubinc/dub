@@ -45,13 +45,11 @@ export const handleDomainUpdates = async ({
       },
     },
     select: {
+      name: true,
       slug: true,
       sentEmails: true,
       usage: true,
       users: {
-        where: {
-          role: "owner",
-        },
         select: {
           user: {
             select: {
@@ -59,6 +57,7 @@ export const handleDomainUpdates = async ({
             },
           },
         },
+        take: 50,
       },
       _count: {
         select: {
@@ -75,9 +74,10 @@ export const handleDomainUpdates = async ({
     });
     return;
   }
+  const projectName = project.name;
   const projectSlug = project.slug;
   const sentEmails = project.sentEmails.map((email) => email.type);
-  const ownerEmail = project.users[0].user.email as string;
+  const emails = project.users.map((user) => user.user.email) as string[];
 
   // if domain is invalid for more than 30 days, check if we can delete it
   if (invalidDays >= 30) {
@@ -126,11 +126,11 @@ export const handleDomainUpdates = async ({
       limiter.schedule(() =>
         sendEmail({
           subject: `Your domain ${domain} has been deleted`,
-          email: ownerEmail,
+          email: emails,
           react: DomainDeleted({
-            email: ownerEmail,
-            projectSlug,
             domain,
+            projectName,
+            projectSlug,
           }),
         }),
       ),
@@ -142,15 +142,15 @@ export const handleDomainUpdates = async ({
       "secondDomainInvalidEmail",
     );
     if (!sentSecondDomainInvalidEmail) {
-      sendDomainInvalidEmail({
+      return sendDomainInvalidEmail({
+        projectName,
         projectSlug,
         domain,
         invalidDays,
-        ownerEmail,
+        emails,
         type: "second",
       });
     }
-    return;
   }
 
   if (invalidDays >= 14) {
@@ -158,30 +158,32 @@ export const handleDomainUpdates = async ({
       "firstDomainInvalidEmail",
     );
     if (!sentFirstDomainInvalidEmail) {
-      sendDomainInvalidEmail({
+      return sendDomainInvalidEmail({
+        projectName,
         projectSlug,
         domain,
         invalidDays,
-        ownerEmail,
+        emails,
         type: "first",
       });
     }
-    return;
   }
   return;
 };
 
 const sendDomainInvalidEmail = async ({
+  projectName,
   projectSlug,
   domain,
   invalidDays,
-  ownerEmail,
+  emails,
   type,
 }: {
+  projectName: string;
   projectSlug: string;
   domain: string;
   invalidDays: number;
-  ownerEmail: string;
+  emails: string[];
   type: "first" | "second";
 }) => {
   return await Promise.allSettled([
@@ -192,10 +194,10 @@ const sendDomainInvalidEmail = async ({
     limiter.schedule(() =>
       sendEmail({
         subject: `Your domain ${domain} needs to be configured`,
-        email: ownerEmail,
+        email: emails,
         react: InvalidDomain({
-          email: ownerEmail,
           domain,
+          projectName,
           projectSlug,
           invalidDays,
         }),
