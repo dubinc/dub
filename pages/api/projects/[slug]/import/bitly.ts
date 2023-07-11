@@ -1,6 +1,6 @@
 import { withProjectAuth } from "#/lib/auth";
 import prisma from "#/lib/prisma";
-import inngest from "#/lib/inngest";
+import { qstash } from "#/lib/upstash";
 
 export default withProjectAuth(async (req, res, project, session) => {
   const { bitlyGroup, bitlyApiKey, preserveTags } = req.body;
@@ -48,19 +48,20 @@ export default withProjectAuth(async (req, res, project, session) => {
       );
   }
 
-  const response = await inngest.send({
-    name: "import-bitly-links",
-    data: {
-      projectId: project.id,
-      projectDomains,
-      bitlyGroup,
-      bitlyApiKey,
-      preserveTags,
-      emailToNotify: session.user.email,
-    },
-  });
+  // const response = await qstash.publishJSON({
+  //   url: "https://dub.sh/api/cron/import",
+  //   body: {
+  //     provider: "bitly",
+  //     providerOpts: {
+  //       bitlyGroup,
+  //       bitlyApiKey,
+  //       preserveTags,
+  //     },
+  //     projectId: project.id,
+  //     projectDomains,
+  //     emailToNotify: session.user.email,
+  //   },
+  // });
 
-  console.log(response);
-
-  return res.status(200).json(response);
+  return res.status(200).json({ response: "ok" });
 });

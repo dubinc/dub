@@ -9,11 +9,12 @@ import {
 } from "react";
 import BlurImage from "#/ui/blur-image";
 import Modal from "@/components/shared/modal";
-import Tooltip, { TooltipContent } from "#/ui/tooltip";
 import useProject from "#/lib/swr/use-project";
 import Switch from "#/ui/switch";
 import Button from "#/ui/button";
 import { toast } from "sonner";
+import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 function ImportLinksModal({
   showImportLinksModal,
@@ -25,14 +26,6 @@ function ImportLinksModal({
   const router = useRouter();
   const { slug } = router.query;
   const { logo, exceededUsage } = useProject();
-
-  const [data, setData] = useState({
-    bitlyGroup: "",
-    bitlyApiKey: "",
-    preserveTags: false,
-  });
-
-  const { bitlyGroup, bitlyApiKey, preserveTags } = data;
 
   const [importing, setImporting] = useState(false);
 
@@ -72,18 +65,41 @@ function ImportLinksModal({
       setShowModal={setShowImportLinksModal}
     >
       <div className="inline-block w-full transform overflow-hidden bg-white align-middle shadow-xl transition-all sm:max-w-md sm:rounded-2xl sm:border sm:border-gray-200">
-        <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
-          <BlurImage
-            src={logo || "/_static/logo.png"}
-            alt={`Logo for ${slug}`}
-            className="h-10 w-10 rounded-full border border-gray-200"
-            width={20}
-            height={20}
-          />
-          <h3 className="text-lg font-medium">Import Links</h3>
+        <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-8 sm:px-16">
+          <div className="flex items-center space-x-3 py-4">
+            <img
+              src="/_static/icons/bitly.svg"
+              alt="Bitly logo"
+              className="h-10 w-10 rounded-full border border-gray-200"
+            />
+            <ArrowRight className="h-5 w-5 text-gray-600" />
+            <BlurImage
+              src="/_static/logo.png"
+              alt="Dub logo"
+              className="h-10 w-10 rounded-full border border-gray-200"
+              width={20}
+              height={20}
+            />
+          </div>
+          <h3 className="text-lg font-medium">Import Your Bitly Links</h3>
         </div>
 
-        <form
+        <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16">
+          <Link
+            href={`https://bitly.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_BITLY_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_BITLY_REDIRECT_URI}`}
+            className="flex h-10 w-full items-center justify-center space-x-2 rounded-md border border-gray-200 bg-white transition-all hover:border-black focus:outline-none"
+          >
+            <img
+              src="/_static/icons/bitly.svg"
+              alt="Bitly logo"
+              className="h-5 w-5 rounded-full border border-gray-200"
+            />
+            <p className="text-sm text-gray-500 hover:text-black">
+              Sign in with Bitly
+            </p>
+          </Link>
+        </div>
+        {/* <form
           onSubmit={async (e) => {
             e.preventDefault();
             setImporting(true);
@@ -106,54 +122,6 @@ function ImportLinksModal({
           }}
           className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16"
         >
-          <div>
-            <label
-              htmlFor="bitlyGroup"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Bitly Group
-            </label>
-            <div className="relative mt-1 rounded-md shadow-sm">
-              <input
-                type="text"
-                name="bitlyGroup"
-                id="bitlyGroup"
-                className="block w-full rounded-md border-gray-300 text-sm text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500"
-                placeholder="o_1c2v1q2j1"
-                autoComplete="off"
-                required
-                value={bitlyGroup}
-                onChange={(e) =>
-                  setData({ ...data, bitlyGroup: e.target.value })
-                }
-              />
-            </div>
-          </div>
-
-          <div>
-            <label
-              htmlFor="bitlyApiKey"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Bitly API Key
-            </label>
-            <div className="relative mt-1 rounded-md shadow-sm">
-              <input
-                type="text"
-                name="bitlyApiKey"
-                id="bitlyApiKey"
-                className="block w-full rounded-md border-gray-300 text-sm text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500"
-                placeholder="c4b6405fb15b0ad693a7a869025524cf"
-                autoComplete="off"
-                required
-                value={bitlyApiKey}
-                onChange={(e) =>
-                  setData({ ...data, bitlyApiKey: e.target.value })
-                }
-              />
-            </div>
-          </div>
-
           <div className="flex items-center justify-between bg-gray-50">
             <p className="text-sm font-medium text-gray-900">Preserve Tags</p>
             <Switch
@@ -167,7 +135,7 @@ function ImportLinksModal({
           <div className="grid gap-2">
             <Button text="Confirm import" loading={importing} />
           </div>
-        </form>
+        </form> */}
       </div>
     </Modal>
   );

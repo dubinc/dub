@@ -1,48 +1,10 @@
-import inngest from "#/lib/inngest";
 import prisma from "#/lib/prisma";
 import { redis } from "#/lib/upstash";
 import { randomBadgeColor } from "@/components/app/links/tag-badge";
-import sendMail from "emails";
 
-export const importBitlyLinks = inngest.createFunction(
-  { name: "Import Bitly Links" },
-  { event: "import-bitly-links" },
-  async ({ event, step }) => {
-    const {
-      projectId,
-      projectDomains,
-      bitlyGroup,
-      bitlyApiKey,
-      preserveTags,
-      emailToNotify,
-    } = event.data;
-
-    await step.run(`Importing Bitly links for project ${projectId}`, () =>
-      importLinksFromBitly({
-        projectId,
-        projectDomains,
-        bitlyGroup,
-        bitlyApiKey,
-        preserveTags,
-      }),
-    );
-
-    // await sendMail({
-    //   to: emailToNotify,
-    // })
-
-    return {
-      event,
-      body: {
-        message: `Done importing Bitly links for project ${projectId}.`,
-      },
-    };
-  },
-);
-
-// while loop, check if pagination.searchAfter is not an empty string, else break
+// recursive function to check if pagination.searchAfter is not an empty string, else break
 // rate limit for /groups/{group_guid}/bitlinks is 1500 per hour or 150 per minute
-const importLinksFromBitly = async ({
+export const importLinksFromBitly = async ({
   projectId,
   projectDomains,
   bitlyGroup,
@@ -132,7 +94,7 @@ const importLinksFromBitly = async ({
     nextSearchAfter,
   });
 
-  // wait 5 seconds before making another request
+  // wait 500 ms before making another request
   await new Promise((resolve) => setTimeout(resolve, 500));
 
   if (nextSearchAfter === "") {

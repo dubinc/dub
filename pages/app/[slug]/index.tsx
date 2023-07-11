@@ -45,7 +45,7 @@ export default function ProjectLinks() {
                   <div className="w-full p-2 md:w-52">
                     <button
                       onClick={() => {}}
-                      className="flex w-full items-center justify-between space-x-2 rounded-md px-1 py-2 hover:bg-gray-100 active:bg-gray-200"
+                      className="flex w-full items-center justify-between space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
                     >
                       <IconMenu
                         text="Bulk create links"
@@ -57,7 +57,7 @@ export default function ProjectLinks() {
                         setOpenPopover(false);
                         setShowImportLinksModal(true);
                       }}
-                      className="flex w-full items-center justify-between space-x-2 rounded-md px-1 py-2 hover:bg-gray-100 active:bg-gray-200"
+                      className="flex w-full items-center justify-between space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
                     >
                       <IconMenu
                         text="Import from Bitly"
