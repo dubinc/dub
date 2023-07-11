@@ -55,6 +55,7 @@ export default function ClicksSummary({
     clicks: number;
   }[];
 }) {
+  const inactiveUser = createdLinks === 0;
   return (
     <Html>
       <Head />
@@ -133,17 +134,38 @@ export default function ClicksSummary({
                 </Section>
               </>
             )}
-            <Text className="mt-10 text-sm leading-6 text-black">
-              You can view your full stats by clicking the button below.
-            </Text>
-            <Section className="my-8 text-center">
-              <Link
-                className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                href={`https://app.dub.sh/${projectSlug}?sort=clicks`}
-              >
-                View my stats
-              </Link>
-            </Section>
+            {inactiveUser ? (
+              <>
+                <Text className="text-sm leading-6 text-black">
+                  It looks like you haven't created any links in the last 30
+                  days. If there's anything that we can do to help, please reply
+                  to this email to get in touch with us.
+                </Text>
+
+                <Section className="my-8 text-center">
+                  <Link
+                    className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
+                    href={`https://app.dub.sh/${projectSlug}`}
+                  >
+                    Start creating links
+                  </Link>
+                </Section>
+              </>
+            ) : (
+              <>
+                <Text className="mt-10 text-sm leading-6 text-black">
+                  You can view your full stats by clicking the button below.
+                </Text>
+                <Section className="my-8 text-center">
+                  <Link
+                    className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
+                    href={`https://app.dub.sh/${projectSlug}?sort=clicks`}
+                  >
+                    View my stats
+                  </Link>
+                </Section>
+              </>
+            )}
             <Hr className="mx-0 my-6 w-full border border-gray-200" />
             <Text className="text-[12px] leading-6 text-gray-500">
               This email was intended for members of the{" "}
