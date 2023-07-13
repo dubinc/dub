@@ -28,7 +28,6 @@ export const updateUsage = async () => {
         select: {
           user: true,
         },
-        take: 50,
       },
       domains: {
         where: {
@@ -115,18 +114,26 @@ export const updateUsage = async () => {
 
         const emails = project.users.map((user) => user.user.email) as string[];
 
-        limiter.schedule(() =>
-          sendEmail({
-            subject: `Your 30-day Dub summary for ${project.name}`,
-            email: emails,
-            react: ClicksSummary({
-              projectName: project.name,
-              projectSlug: project.slug,
-              totalClicks: project.usage,
-              createdLinks:
-                createdLinks.status === "fulfilled" ? createdLinks.value : 0,
-              topLinks: topLinks.status === "fulfilled" ? topLinks.value : [],
-            }),
+        await Promise.allSettled(
+          emails.map((email) => {
+            limiter.schedule(() =>
+              sendEmail({
+                subject: `Your 30-day Dub summary for ${project.name}`,
+                email,
+                react: ClicksSummary({
+                  email,
+                  projectName: project.name,
+                  projectSlug: project.slug,
+                  totalClicks: project.usage,
+                  createdLinks:
+                    createdLinks.status === "fulfilled"
+                      ? createdLinks.value
+                      : 0,
+                  topLinks:
+                    topLinks.status === "fulfilled" ? topLinks.value : [],
+                }),
+              }),
+            );
           }),
         );
       }
@@ -163,16 +170,18 @@ const sendUsageLimitEmail = async (
   type: "first" | "second",
 ) => {
   return await Promise.allSettled([
-    limiter.schedule(() =>
-      sendEmail({
-        subject: `You have exceeded your Dub usage limit`,
-        email: emails,
-        react: UsageExceeded({
-          project,
-          type,
+    emails.map((email) => {
+      limiter.schedule(() =>
+        sendEmail({
+          subject: `You have exceeded your Dub usage limit`,
+          email,
+          react: UsageExceeded({
+            project,
+            type,
+          }),
         }),
-      }),
-    ),
+      );
+    }),
     prisma.sentEmail.create({
       data: {
         project: {

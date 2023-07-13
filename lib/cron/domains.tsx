@@ -57,7 +57,6 @@ export const handleDomainUpdates = async ({
             },
           },
         },
-        take: 50,
       },
       _count: {
         select: {
@@ -123,16 +122,18 @@ export const handleDomainUpdates = async ({
         }`,
         type: "cron",
       }),
-      limiter.schedule(() =>
-        sendEmail({
-          subject: `Your domain ${domain} has been deleted`,
-          email: emails,
-          react: DomainDeleted({
-            domain,
-            projectName,
-            projectSlug,
+      emails.map((email) =>
+        limiter.schedule(() =>
+          sendEmail({
+            subject: `Your domain ${domain} has been deleted`,
+            email,
+            react: DomainDeleted({
+              email,
+              domain,
+              projectSlug,
+            }),
           }),
-        }),
+        ),
       ),
     ]);
   }
@@ -191,17 +192,19 @@ const sendDomainInvalidEmail = async ({
       message: `Domain *${domain}* is invalid for ${invalidDays} days, email sent.`,
       type: "cron",
     }),
-    limiter.schedule(() =>
-      sendEmail({
-        subject: `Your domain ${domain} needs to be configured`,
-        email: emails,
-        react: InvalidDomain({
-          domain,
-          projectName,
-          projectSlug,
-          invalidDays,
+    emails.map((email) =>
+      limiter.schedule(() =>
+        sendEmail({
+          subject: `Your domain ${domain} needs to be configured`,
+          email,
+          react: InvalidDomain({
+            email,
+            domain,
+            projectSlug,
+            invalidDays,
+          }),
         }),
-      }),
+      ),
     ),
     prisma.sentEmail.create({
       data: {

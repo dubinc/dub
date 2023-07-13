@@ -19,6 +19,7 @@ import { DUB_LOGO } from "../lib/constants";
 import { nFormatter, truncate } from "../lib/utils";
 
 export default function ClicksSummary({
+  email = "panic@thedis.co",
   projectName = "Acme",
   projectSlug = "acme",
   totalClicks = 63689,
@@ -46,6 +47,7 @@ export default function ClicksSummary({
     },
   ],
 }: {
+  email: string;
   projectName: string;
   projectSlug: string;
   totalClicks: number;
@@ -55,7 +57,6 @@ export default function ClicksSummary({
     clicks: number;
   }[];
 }) {
-  const inactiveUser = createdLinks === 0;
   return (
     <Html>
       <Head />
@@ -134,7 +135,7 @@ export default function ClicksSummary({
                 </Section>
               </>
             )}
-            {inactiveUser ? (
+            {createdLinks === 0 ? (
               <>
                 <Text className="text-sm leading-6 text-black">
                   It looks like you haven't created any links in the last 30
@@ -168,11 +169,11 @@ export default function ClicksSummary({
             )}
             <Hr className="mx-0 my-6 w-full border border-gray-200" />
             <Text className="text-[12px] leading-6 text-gray-500">
-              This email was intended for members of the{" "}
-              <span className="text-black">{projectName}</span> project on Dub.
-              If you were not expecting this email, you can ignore this email.
-              If you are concerned about your account's safety, please reply to
-              this email to get in touch with us.
+              This email was intended for{" "}
+              <span className="text-black">{email}</span>. If you were not
+              expecting this email, you can ignore this email. If you are
+              concerned about your account's safety, please reply to this email
+              to get in touch with us.
             </Text>
           </Container>
         </Body>
