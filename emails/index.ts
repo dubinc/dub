@@ -10,7 +10,7 @@ export const sendEmail = async ({
   marketing,
   test,
 }: {
-  email: string | string[];
+  email: string;
   subject: string;
   react:
     | ReactElement<any, string | JSXElementConstructor<any>>
