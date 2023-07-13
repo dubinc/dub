@@ -105,12 +105,13 @@ export const handleDomainUpdates = async ({
 
     return await Promise.allSettled([
       deleteDomainAndLinks(domain).then(() => {
-        deleteProjectAsWell &&
-          prisma.project.delete({
+        if (deleteProjectAsWell) {
+          return prisma.project.delete({
             where: {
               slug: projectSlug,
             },
           });
+        }
       }),
       log({
         message: `Domain *${domain}* has been invalid for > 30 days and ${
