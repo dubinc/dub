@@ -65,7 +65,13 @@ export default function ProjectSelect() {
   return (
     <div>
       <Popover
-        content={<ProjectList selected={selected} projects={projects} />}
+        content={
+          <ProjectList
+            selected={selected}
+            projects={projects}
+            setOpenPopover={setOpenPopover}
+          />
+        }
         openPopover={openPopover}
         setOpenPopover={setOpenPopover}
       >
@@ -102,6 +108,7 @@ export default function ProjectSelect() {
 function ProjectList({
   selected,
   projects,
+  setOpenPopover,
 }: {
   selected: {
     name: string;
@@ -110,6 +117,7 @@ function ProjectList({
     plan: PlanProps;
   };
   projects: ProjectWithDomainProps[];
+  setOpenPopover: (open: boolean) => void;
 }) {
   const { data: session } = useSession();
   const { setShowAddProjectModal } = useContext(ModalContext);
@@ -181,7 +189,10 @@ function ProjectList({
       ))}
       <button
         key="add"
-        onClick={() => setShowAddProjectModal(true)}
+        onClick={() => {
+          setOpenPopover(false);
+          setShowAddProjectModal(true);
+        }}
         className="flex w-full cursor-pointer items-center space-x-2 rounded-md p-2 transition-all duration-75 hover:bg-gray-100"
       >
         <PlusCircle className="h-7 w-7 text-gray-600" />

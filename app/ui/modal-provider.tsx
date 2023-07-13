@@ -6,6 +6,7 @@ import {
   SetStateAction,
   createContext,
   useEffect,
+  useState,
 } from "react";
 import { useSession } from "next-auth/react";
 import ErrorPage from "next/error";
@@ -17,17 +18,22 @@ import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal
 import { useImportLinksModal } from "@/components/app/modals/import-links-modal";
 import { useAddEditDomainModal } from "@/components/app/modals/add-edit-domain-modal";
 import { useGoogleOauthModal } from "@/components/app/modals/google-oauth-modal";
+import { mutate } from "swr";
+import { useRouter } from "next/router";
+import { getQueryString } from "#/lib/utils";
 
 export const ModalContext = createContext<{
   setShowAddProjectModal: Dispatch<SetStateAction<boolean>>;
   setShowAddEditDomainModal: Dispatch<SetStateAction<boolean>>;
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
   setShowImportLinksModal: Dispatch<SetStateAction<boolean>>;
+  setPollLinks: Dispatch<SetStateAction<boolean>>;
 }>({
   setShowAddProjectModal: () => {},
   setShowAddEditDomainModal: () => {},
   setShowAddEditLinkModal: () => {},
   setShowImportLinksModal: () => {},
+  setPollLinks: () => {},
 });
 
 export default function ModalProvider({ children }: { children: ReactNode }) {
@@ -43,6 +49,28 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
 
   const { error, loading } = useProject();
   const { data: session } = useSession();
+
+  const router = useRouter();
+
+  const [pollLinks, setPollLinks] = useState(false);
+  useEffect(() => {
+    if (pollLinks) {
+      // if pollLinks is true, start polling links endpoint every 500 ms (stop after 30 seconds)
+      const pollingInterval = setInterval(() => {
+        mutate(`/api/links${getQueryString(router)}`);
+        mutate(
+          (key) =>
+            typeof key === "string" && key.startsWith(`/api/links/_count`),
+          undefined,
+          { revalidate: true },
+        );
+      }, 500);
+      setTimeout(() => {
+        setPollLinks(false);
+        clearInterval(pollingInterval);
+      }, 30000);
+    }
+  }, [pollLinks]);
 
   // handle invite and oauth modals
   useEffect(() => {
@@ -68,6 +96,7 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
         setShowAddEditDomainModal,
         setShowAddEditLinkModal,
         setShowImportLinksModal,
+        setPollLinks,
       }}
     >
       <GoogleOauthModal />

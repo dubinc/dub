@@ -1,6 +1,6 @@
 "use client";
 
-import { LoadingDots } from "#/ui/icons";
+import { LoadingSpinner } from "#/ui/icons";
 import Tooltip from "#/ui/tooltip";
 import { cn } from "#/lib/utils";
 import { ReactNode } from "react";
@@ -36,7 +36,7 @@ export default function Button({
       // if onClick is passed, it's a "button" type, otherwise it's being used in a form, hence "submit"
       type={onClick ? "button" : "submit"}
       className={cn(
-        "flex h-10 w-full items-center justify-center space-x-2 rounded-md border text-sm transition-all focus:outline-none",
+        "flex h-10 w-full items-center justify-center space-x-2 rounded-md border px-4 text-sm transition-all focus:outline-none",
         disabled || loading
           ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
           : {
@@ -51,14 +51,8 @@ export default function Button({
       {...(onClick ? { onClick } : {})}
       disabled={disabled || loading}
     >
-      {loading ? (
-        <LoadingDots color="#808080" />
-      ) : (
-        <>
-          {icon}
-          <p>{text}</p>
-        </>
-      )}
+      {loading ? <LoadingSpinner /> : icon ? icon : null}
+      <p>{text}</p>
     </button>
   );
 }

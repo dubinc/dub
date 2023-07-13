@@ -53,7 +53,7 @@ export default function Form({
 
       <div className="flex items-center justify-between rounded-b-lg border-t border-gray-200 bg-gray-50 p-3 sm:px-10">
         <p className="text-sm text-gray-500">{helpText}</p>
-        <div className="w-32">
+        <div>
           <Button
             text="Save Changes"
             loading={saving}

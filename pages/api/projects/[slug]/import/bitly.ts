@@ -1,67 +1,112 @@
+import { addDomainToVercel } from "#/lib/api/domains";
 import { withProjectAuth } from "#/lib/auth";
 import prisma from "#/lib/prisma";
-import { qstash } from "#/lib/upstash";
+import { BitlyGroupProps } from "#/lib/types";
+import { qstash, redis } from "#/lib/upstash";
 
 export default withProjectAuth(async (req, res, project, session) => {
-  const { bitlyGroup, bitlyApiKey, preserveTags } = req.body;
+  // get bitly groups and their respective domains
+  if (req.method === "GET") {
+    const accessToken = await redis.get(`import:bitly:${project.id}`);
+    if (!accessToken) {
+      return res.status(200).end("No Bitly access token found");
+    }
 
-  const [bitlyGroupDomains, projectDomains] = await Promise.all([
-    fetch(`https://api-ssl.bitly.com/v4/groups/${bitlyGroup}`, {
+    const response = await fetch(`https://api-ssl.bitly.com/v4/groups`, {
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${bitlyApiKey}`,
+        Authorization: `Bearer ${accessToken}`,
       },
-    }).then(async (r) => {
-      const data = await r.json();
-      if (data.message === "FORBIDDEN") {
-        return null;
-      }
-      return data.bsds as string[];
-    }),
-    prisma.domain
-      .findMany({
-        where: {
-          projectId: project.id,
-        },
-        select: {
-          slug: true,
-        },
-      })
-      .then((domains) => domains.map((domain) => domain.slug)),
-  ]);
+    });
+    const data = await response.json();
+    if (data.message === "FORBIDDEN") {
+      return res.status(403).end("Invalid Bitly access token");
+    }
 
-  if (!bitlyGroupDomains) {
-    return res.status(400).end("Invalid Bitly API key for given Bitly group");
-  }
+    const groups = data.groups
+      // filter for active groups only
+      .filter(({ is_active }) => is_active) as BitlyGroupProps[];
 
-  const missingDomains = bitlyGroupDomains.filter(
-    (domain) => !projectDomains.includes(domain),
-  );
+    const groupsWithTags = await Promise.all(
+      groups.map(async (group) => ({
+        ...group,
+        tags: await fetch(
+          `https://api-ssl.bitly.com/v4/groups/${group.guid}/tags`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${accessToken}`,
+            },
+          },
+        )
+          .then((r) => r.json())
+          .then((r) => r.tags),
+      })),
+    );
 
-  if (missingDomains.length > 0) {
-    return res
-      .status(400)
-      .end(
-        `All domains in your Bitly group must be added to your project before importing. The following domains are missing from your project: "${missingDomains.join(
-          ", ",
-        )}"`,
+    return res.status(200).json(groupsWithTags);
+
+    // create job to import links from bitly
+  } else if (req.method === "POST") {
+    const { selectedDomains, selectedGroupTags } = req.body;
+
+    // check if there are domains that are not in the project
+    // if yes, add them to the project
+    const domainsNotInProject = selectedDomains.filter(
+      ({ domain }) => !project.domains?.find((d) => d.slug === domain),
+    );
+    if (domainsNotInProject.length > 0) {
+      await Promise.allSettled([
+        prisma.domain.createMany({
+          data: domainsNotInProject.map(({ domain }) => ({
+            slug: domain,
+            target: null,
+            type: "redirect",
+            projectId: project.id,
+            primary: false,
+          })),
+          skipDuplicates: true,
+        }),
+        domainsNotInProject.map(({ slug }) => addDomainToVercel(slug)),
+      ]);
+    }
+
+    // convert data to array of groups with their respective domains
+    const groups = selectedDomains.reduce((result, { domain, bitlyGroup }) => {
+      const existingGroup = result.find(
+        (item) => item.bitlyGroup === bitlyGroup,
       );
+      if (existingGroup) {
+        existingGroup.domains.push(domain);
+      } else {
+        result.push({
+          bitlyGroup,
+          domains: [domain],
+          keepTags: selectedGroupTags.includes(bitlyGroup),
+        });
+      }
+      return result;
+    }, []);
+
+    // const response = await Promise.all(
+    //   groups
+    //     // only add groups that have at least 1 domain selected for import
+    //     .filter(({ domains }) => domains.length > 0)
+    //     .map(({ bitlyGroup, domains }) =>
+    //       qstash.publishJSON({
+    //         url: "https://067b-2600-1700-b5e4-b50-8197-b987-5375-e928.ngrok-free.app/api/cron/import",
+    //         body: {
+    //           provider: "bitly",
+    //           projectId: project.id,
+    //           bitlyGroup,
+    //           domains,
+    //         },
+    //       }),
+    //     ),
+    // );
+
+    console.log(groups);
+
+    return res.status(200).json(groups);
   }
-
-  // const response = await qstash.publishJSON({
-  //   url: "https://dub.sh/api/cron/import",
-  //   body: {
-  //     provider: "bitly",
-  //     providerOpts: {
-  //       bitlyGroup,
-  //       bitlyApiKey,
-  //       preserveTags,
-  //     },
-  //     projectId: project.id,
-  //     projectDomains,
-  //     emailToNotify: session.user.email,
-  //   },
-  // });
-
-  return res.status(200).json({ response: "ok" });
 });

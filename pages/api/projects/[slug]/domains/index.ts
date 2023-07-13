@@ -23,7 +23,6 @@ export default withProjectAuth(async (req, res, project) => {
     // POST /api/projects/[slug]/domains - add a domain
   } else if (req.method === "POST") {
     const { slug: domain, primary, target, type } = req.body;
-
     const validDomain = await validateDomain(domain, project.id);
     if (validDomain !== true) {
       return res.status(422).json({

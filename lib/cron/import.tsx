@@ -1,15 +1,15 @@
 import prisma from "#/lib/prisma";
 import { redis } from "#/lib/upstash";
 import { randomBadgeColor } from "@/components/app/links/tag-badge";
+import { sendEmail } from "emails";
 
 // recursive function to check if pagination.searchAfter is not an empty string, else break
 // rate limit for /groups/{group_guid}/bitlinks is 1500 per hour or 150 per minute
 export const importLinksFromBitly = async ({
   projectId,
-  projectDomains,
   bitlyGroup,
+  domains,
   bitlyApiKey,
-  preserveTags,
   searchAfter = null,
   count = 0,
 }) => {
@@ -27,27 +27,24 @@ export const importLinksFromBitly = async ({
   const { links, pagination } = data;
   const nextSearchAfter = pagination.search_after;
 
-  const pipeline = redis.pipeline();
+  //   const pipeline = redis.pipeline();
 
   // convert links to format that can be imported into database
   const importedLinks = links
     .map((link) => {
-      const { id, long_url: url, title, archived, tags } = link;
+      const { id, long_url: url, title, archived, created_at } = link;
       const [domain, key] = id.split("/");
       // if domain is not in project domains, skip (could be a bit.ly link or old short domain)
-      if (!projectDomains.includes(domain)) {
+      if (!domains.includes(domain)) {
         return null;
       }
-      pipeline.set(
-        `${domain}:${key}`,
-        {
-          url: encodeURIComponent(url),
-        },
-        {
-          nx: true,
-        },
-      );
-      const tag = tags[0];
+      //   pipeline.set(
+      //     `${domain}:${key}`,
+      //     {
+      //       url: encodeURIComponent(url),
+      //     },
+      //   );
+      const createdAt = new Date(created_at).toISOString();
       return {
         projectId,
         domain,
@@ -55,36 +52,19 @@ export const importLinksFromBitly = async ({
         url,
         title,
         archived,
-        // if we're preserving tags, connect or create the first tag
-        ...(preserveTags && {
-          tag: {
-            connectOrCreate: {
-              where: {
-                name_projectId: {
-                  name: tag,
-                  projectId,
-                },
-              },
-              create: {
-                name: tag,
-                color: randomBadgeColor(),
-                projectId,
-              },
-            },
-          },
-        }),
+        createdAt,
       };
     })
     .filter((link) => link !== null);
 
   // import links into database
-  // await Promise.all([
-  //   prisma.link.createMany({
-  //     data: importedLinks,
-  //     skipDuplicates: true,
-  //   }),
-  //   pipeline.exec(),
-  // ]);
+  await Promise.all([
+    prisma.link.createMany({
+      data: importedLinks,
+      skipDuplicates: true,
+    }),
+    // pipeline.exec(),
+  ]);
 
   count += importedLinks.length;
 
@@ -98,14 +78,22 @@ export const importLinksFromBitly = async ({
   await new Promise((resolve) => setTimeout(resolve, 500));
 
   if (nextSearchAfter === "") {
+    await Promise.all([
+      // delete key from redis
+      redis.del(`import:bitly:${projectId}`),
+      // send email to user
+      // sendEmail({
+      //     subject: `Your Bitly links have been imported!`,
+      //     email: user
+      // })
+    ]);
     return count;
   } else {
     return await importLinksFromBitly({
       projectId,
-      projectDomains,
+      domains,
       bitlyGroup,
       bitlyApiKey,
-      preserveTags,
       searchAfter: nextSearchAfter,
       count,
     });

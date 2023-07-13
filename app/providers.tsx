@@ -7,7 +7,7 @@ import { Analytics } from "@vercel/analytics/react";
 export default function Providers({ children }: { children: ReactNode }) {
   return (
     <>
-      <Toaster />
+      <Toaster closeButton />
       {children}
       <Analytics />
     </>

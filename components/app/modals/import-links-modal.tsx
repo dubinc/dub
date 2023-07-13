@@ -1,8 +1,9 @@
-import { useRouter } from "next/router";
+import { NextRouter, useRouter } from "next/router";
 import {
   Dispatch,
   SetStateAction,
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useState,
@@ -14,7 +15,12 @@ import Switch from "#/ui/switch";
 import Button from "#/ui/button";
 import { toast } from "sonner";
 import { ArrowRight } from "lucide-react";
-import Link from "next/link";
+import { LoadingSpinner } from "#/ui/icons";
+import { ModalContext } from "#/ui/modal-provider";
+import useSWR, { mutate } from "swr";
+import { BitlyGroupProps } from "#/lib/types";
+import Tooltip from "#/ui/tooltip";
+import { fetcher } from "#/lib/utils";
 
 function ImportLinksModal({
   showImportLinksModal,
@@ -23,46 +29,62 @@ function ImportLinksModal({
   showImportLinksModal: boolean;
   setShowImportLinksModal: Dispatch<SetStateAction<boolean>>;
 }) {
+  const { id: projectId } = useProject();
   const router = useRouter();
-  const { slug } = router.query;
-  const { logo, exceededUsage } = useProject();
+  const { slug, import: importSource } = router.query;
 
-  const [importing, setImporting] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
 
-  const onKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement;
-      const existingModalBackdrop = document.getElementById("modal-backdrop");
-      // only open modal with keyboard shortcut if:
-      // - project has not exceeded usage limit
-      // - c is pressed
-      // - user is not pressing cmd/ctrl + c
-      // - user is not typing in an input or textarea
-      // - there is no existing modal backdrop (i.e. no other modal is open)
-      if (
-        !exceededUsage &&
-        e.key === "i" &&
-        !e.metaKey &&
-        !e.ctrlKey &&
-        target.tagName !== "INPUT" &&
-        target.tagName !== "TEXTAREA" &&
-        !existingModalBackdrop
-      ) {
-        setShowImportLinksModal(true);
-      }
+  const { data: groups, isLoading } = useSWR<BitlyGroupProps[]>(
+    slug && `/api/projects/${slug}/import/bitly`,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      refreshInterval: 0,
     },
-    [exceededUsage],
   );
 
+  const [selectedDomains, setSelectedDomains] = useState<
+    {
+      domain: string;
+      bitlyGroup: string;
+    }[]
+  >([]);
+  const [selectedGroupTags, setSelectedGroupTags] = useState<string[]>([]);
+
+  const [importing, setImporting] = useState(false);
+  const { setPollLinks } = useContext(ModalContext);
+
   useEffect(() => {
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [onKeyDown]);
+    if (importSource) {
+      setShowImportLinksModal(true);
+    } else {
+      setShowImportLinksModal(false);
+    }
+  }, [importSource]);
+
+  const closeModal = (router: NextRouter) => {
+    delete router.query.import;
+    // here, we omit the slug from the query string as well
+    const { slug, ...finalQuery } = router.query;
+    router.push({
+      pathname: `/${router.query.slug}`,
+      query: finalQuery,
+    });
+  };
+
+  const bitlyOAuthURL = `https://bitly.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_BITLY_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_BITLY_REDIRECT_URI}&state=${projectId}`;
+
+  const isSelected = (domain: string) => {
+    return selectedDomains.find((d) => d.domain === domain) ? true : false;
+  };
 
   return (
     <Modal
       showModal={showImportLinksModal}
       setShowModal={setShowImportLinksModal}
+      onClose={() => closeModal(router)}
     >
       <div className="inline-block w-full transform overflow-hidden bg-white align-middle shadow-xl transition-all sm:max-w-md sm:rounded-2xl sm:border sm:border-gray-200">
         <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-8 sm:px-16">
@@ -85,74 +107,132 @@ function ImportLinksModal({
         </div>
 
         <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16">
-          <Link
-            href={`https://bitly.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_BITLY_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_BITLY_REDIRECT_URI}`}
-            className="flex h-10 w-full items-center justify-center space-x-2 rounded-md border border-gray-200 bg-white transition-all hover:border-black focus:outline-none"
-          >
-            <img
-              src="/_static/icons/bitly.svg"
-              alt="Bitly logo"
-              className="h-5 w-5 rounded-full border border-gray-200"
+          {isLoading ? (
+            <button className="flex flex-col items-center justify-center space-y-4 bg-none">
+              <LoadingSpinner />
+              <p className="text-sm text-gray-500">Connecting to Bitly</p>
+            </button>
+          ) : groups ? (
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setImporting(true);
+                toast.promise(
+                  fetch(`/api/projects/${slug}/import/bitly`, {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      selectedDomains,
+                      selectedGroupTags,
+                    }),
+                  }).then(() => {
+                    setImporting(false);
+                    closeModal(router);
+                    mutate(`/api/projects/${slug}/domains`);
+                    setPollLinks(true);
+                  }),
+                  {
+                    loading: "Adding links to import queue...",
+                    success:
+                      "Successfully added links to import queue! You can now safely navigate from this tab – we will send you an email when your links have been fully imported.",
+                    error: "Error adding links to import queue",
+                  },
+                );
+              }}
+              className="flex flex-col space-y-4"
+            >
+              <div className="divide-y divide-gray-200">
+                {groups.map(({ guid, bsds, tags }) => (
+                  <div key={guid} className="flex flex-col space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium text-gray-700">
+                        Domains
+                      </p>
+                      <Tooltip content="Your Bitly group ID">
+                        <p className="cursor-default text-xs uppercase text-gray-400 transition-colors hover:text-gray-700">
+                          {guid}
+                        </p>
+                      </Tooltip>
+                    </div>
+                    {bsds.map((bsd) => (
+                      <div className="flex items-center justify-between space-x-2 rounded-md border border-gray-200 bg-white px-4 py-2">
+                        <p className="font-medium text-gray-800">{bsd}</p>
+                        <Switch
+                          fn={() => {
+                            const selected = isSelected(bsd);
+                            if (selected) {
+                              setSelectedDomains((prev) =>
+                                prev.filter((d) => d.domain !== bsd),
+                              );
+                            } else {
+                              setSelectedDomains((prev) => [
+                                ...prev,
+                                {
+                                  domain: bsd,
+                                  bitlyGroup: guid,
+                                },
+                              ]);
+                            }
+                          }}
+                          checked={isSelected(bsd)}
+                        />
+                      </div>
+                    ))}
+                    <div className="flex items-center justify-between space-x-2 rounded-md py-1 pl-2 pr-4">
+                      <p className="text-xs text-gray-500">
+                        {tags.length} tags found. Import all?
+                      </p>
+                      <Switch
+                        fn={() => {
+                          if (selectedGroupTags.includes(guid)) {
+                            setSelectedGroupTags((prev) =>
+                              prev.filter((g) => g !== guid),
+                            );
+                          } else {
+                            setSelectedGroupTags((prev) => [...prev, guid]);
+                          }
+                        }}
+                        checked={selectedGroupTags.includes(guid)}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <Button
+                text="Confirm import"
+                loading={importing}
+                disabled={selectedDomains.length === 0}
+              />
+              <a
+                href={bitlyOAuthURL}
+                className="text-center text-xs text-gray-500 underline underline-offset-4 transition-colors hover:text-gray-800"
+              >
+                Sign in to a different Bitly account?
+              </a>
+            </form>
+          ) : (
+            <Button
+              text="Sign in with Bitly"
+              variant="secondary"
+              loading={redirecting}
+              icon={
+                <img
+                  src="/_static/icons/bitly.svg"
+                  alt="Bitly logo"
+                  className="h-5 w-5 rounded-full border border-gray-200"
+                />
+              }
+              onClick={() => {
+                setRedirecting(true);
+                router.push(bitlyOAuthURL);
+              }}
             />
-            <p className="text-sm text-gray-500 hover:text-black">
-              Sign in with Bitly
-            </p>
-          </Link>
+          )}
         </div>
-        {/* <form
-          onSubmit={async (e) => {
-            e.preventDefault();
-            setImporting(true);
-            fetch(`/api/projects/${slug}/import/bitly`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(data),
-            }).then(async (res) => {
-              setImporting(false);
-
-              if (res.status === 200) {
-                toast.success("Links imported successfully");
-              } else {
-                const error = await res.text();
-                toast.error(error);
-              }
-            });
-          }}
-          className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16"
-        >
-          <div className="flex items-center justify-between bg-gray-50">
-            <p className="text-sm font-medium text-gray-900">Preserve Tags</p>
-            <Switch
-              fn={() =>
-                setData((prev) => ({ ...prev, preserveTags: !preserveTags }))
-              }
-              checked={preserveTags}
-            />
-          </div>
-
-          <div className="grid gap-2">
-            <Button text="Confirm import" loading={importing} />
-          </div>
-        </form> */}
       </div>
     </Modal>
-  );
-}
-
-function ImportLinksButton({
-  setShowImportLinksModal,
-}: {
-  setShowImportLinksModal: Dispatch<SetStateAction<boolean>>;
-}) {
-  return (
-    <button
-      onClick={() => setShowImportLinksModal(true)}
-      className="rounded-md border border-black bg-black px-5 py-2 text-sm font-medium text-white transition-all duration-75 hover:bg-white hover:text-black active:scale-95"
-    >
-      Add Domain
-    </button>
   );
 }
 
@@ -168,22 +248,11 @@ export function useImportLinksModal() {
     );
   }, [showImportLinksModal, setShowImportLinksModal]);
 
-  const ImportLinksButtonCallback = useCallback(() => {
-    return (
-      <ImportLinksButton setShowImportLinksModal={setShowImportLinksModal} />
-    );
-  }, [setShowImportLinksModal]);
-
   return useMemo(
     () => ({
       setShowImportLinksModal,
       ImportLinksModal: ImportLinksModalCallback,
-      ImportLinksButton: ImportLinksButtonCallback,
     }),
-    [
-      setShowImportLinksModal,
-      ImportLinksModalCallback,
-      ImportLinksButtonCallback,
-    ],
+    [setShowImportLinksModal, ImportLinksModalCallback],
   );
 }

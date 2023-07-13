@@ -9,9 +9,10 @@ import useDomains from "#/lib/swr/use-domains";
 import Popover from "@/components/shared/popover";
 import IconMenu from "@/components/shared/icon-menu";
 import { ChevronDown, FilePlus2, Import } from "lucide-react";
-import { ModalContext } from "#/ui/modal-provider";
+import { useRouter } from "next/router";
 
 export default function ProjectLinks() {
+  const router = useRouter();
   const { slug, error, loading: loadingProject } = useProject();
 
   const { AddEditLinkModal, AddEditLinkButton } = useAddEditLinkModal();
@@ -21,14 +22,19 @@ export default function ProjectLinks() {
 
   const { verified, loading: loadingDomains } = useDomains();
 
-  useEffect(() => {
-    if (!verified && !loadingProject && !loadingDomains && !error) {
-      setShowCompleteSetupModal(true);
-    }
-  }, [verified, loadingProject, loadingDomains, error]);
+  // useEffect(() => {
+  //   if (
+  //     !verified &&
+  //     !loadingProject &&
+  //     !loadingDomains &&
+  //     !error &&
+  //     !document.getElementById("modal-backdrop")
+  //   ) {
+  //     setShowCompleteSetupModal(true);
+  //   }
+  // }, [verified, loadingProject, loadingDomains, error]);
 
   const [openPopover, setOpenPopover] = useState(false);
-  const { setShowImportLinksModal } = useContext(ModalContext);
 
   return (
     <AppLayout>
@@ -55,7 +61,12 @@ export default function ProjectLinks() {
                     <button
                       onClick={() => {
                         setOpenPopover(false);
-                        setShowImportLinksModal(true);
+                        router.push({
+                          pathname: `/${slug}`,
+                          query: {
+                            import: "bitly",
+                          },
+                        });
                       }}
                       className="flex w-full items-center justify-between space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
                     >
