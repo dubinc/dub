@@ -13,13 +13,18 @@ export async function generateMetadata({
 }) {
   const data = await getLinkViaEdge(params.domain, params.key);
 
-  if (!data || !data.publicStats) {
+  // if the link is explicitly private (publicStats === false)
+  // or if the link doesn't exist in database (data === undefined) and is not a dub.sh link
+  // (we need to exclude dub.sh public demo links here)
+  if (data?.publicStats === 0 || (params.domain !== "dub.sh" && !data)) {
     return;
   }
 
   return constructMetadata({
     title: `Stats for ${params.domain}/${params.key} - Dub`,
-    description: `Stats page for ${params.domain}/${params.key}, which redirects to ${data.url}.`,
+    description: `Stats page for ${params.domain}/${params.key}${
+      data?.url ? `, which redirects to ${data.url}` : ""
+    }.`,
     image: `https://${params.domain}/api/og/stats?domain=${params.domain}&key=${params.key}`,
   });
 }
@@ -40,7 +45,7 @@ export default async function StatsPage({
 }) {
   const data = await getLinkViaEdge(params.domain, params.key);
 
-  if (!data || !data.publicStats) {
+  if (data?.publicStats === 0 || (params.domain !== "dub.sh" && !data)) {
     notFound();
   }
 
