@@ -3,6 +3,8 @@ import { importLinksFromBitly } from "#/lib/cron/import";
 import { redis } from "#/lib/upstash";
 import { NextResponse } from "next/server";
 import { Receiver } from "@upstash/qstash";
+import prisma from "#/lib/prisma";
+import { randomBadgeColor } from "@/components/app/links/tag-badge";
 
 export const receiver = new Receiver({
   currentSigningKey: process.env.QSTASH_CURRENT_SIGNING_KEY || "",
@@ -22,11 +24,51 @@ export async function POST(req: Request) {
 
   try {
     const data = await req.json();
-    const { provider, projectId } = data;
+    const { provider, projectId, bitlyGroup, keepTags } = data;
     if (provider === "bitly") {
       const bitlyApiKey = await redis.get(`import:bitly:${projectId}`);
+      let tagsToId;
+      if (keepTags === true) {
+        const tags = await fetch(
+          `https://api-ssl.bitly.com/v4/groups/${bitlyGroup}/tags`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${bitlyApiKey}`,
+            },
+          },
+        )
+          .then((r) => r.json())
+          .then((r) => r.tags);
+
+        await prisma.tag.createMany({
+          data: tags.map((tag) => ({
+            name: tag,
+            color: randomBadgeColor(),
+            projectId,
+          })),
+          skipDuplicates: true,
+        });
+        tagsToId = await prisma.tag
+          .findMany({
+            where: {
+              projectId,
+            },
+            select: {
+              id: true,
+              name: true,
+            },
+          })
+          .then((tags) =>
+            tags.reduce((acc, tag) => {
+              acc[tag.name] = tag.id;
+              return acc;
+            }, {}),
+          );
+      }
       await importLinksFromBitly({
         ...data,
+        tagsToId,
         bitlyApiKey,
       });
     }

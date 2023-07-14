@@ -88,22 +88,23 @@ export default withProjectAuth(async (req, res, project, session) => {
       return result;
     }, []);
 
-    // const response = await Promise.all(
-    //   groups
-    //     // only add groups that have at least 1 domain selected for import
-    //     .filter(({ domains }) => domains.length > 0)
-    //     .map(({ bitlyGroup, domains }) =>
-    //       qstash.publishJSON({
-    //         url: "https://067b-2600-1700-b5e4-b50-8197-b987-5375-e928.ngrok-free.app/api/cron/import",
-    //         body: {
-    //           provider: "bitly",
-    //           projectId: project.id,
-    //           bitlyGroup,
-    //           domains,
-    //         },
-    //       }),
-    //     ),
-    // );
+    const response = await Promise.all(
+      groups
+        // only add groups that have at least 1 domain selected for import
+        .filter(({ domains }) => domains.length > 0)
+        .map(({ bitlyGroup, domains, keepTags }) =>
+          qstash.publishJSON({
+            url: "https://067b-2600-1700-b5e4-b50-8197-b987-5375-e928.ngrok-free.app/api/cron/import",
+            body: {
+              provider: "bitly",
+              projectId: project.id,
+              bitlyGroup,
+              domains,
+              keepTags,
+            },
+          }),
+        ),
+    );
 
     console.log(groups);
 

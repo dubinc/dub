@@ -21,17 +21,20 @@ import { useGoogleOauthModal } from "@/components/app/modals/google-oauth-modal"
 import { mutate } from "swr";
 import { useRouter } from "next/router";
 import { getQueryString } from "#/lib/utils";
+import { useUpgradePlanModal } from "@/components/app/modals/upgrade-plan-modal";
 
 export const ModalContext = createContext<{
   setShowAddProjectModal: Dispatch<SetStateAction<boolean>>;
   setShowAddEditDomainModal: Dispatch<SetStateAction<boolean>>;
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
+  setShowUpgradePlanModal: Dispatch<SetStateAction<boolean>>;
   setShowImportLinksModal: Dispatch<SetStateAction<boolean>>;
   setPollLinks: Dispatch<SetStateAction<boolean>>;
 }>({
   setShowAddProjectModal: () => {},
   setShowAddEditDomainModal: () => {},
   setShowAddEditLinkModal: () => {},
+  setShowUpgradePlanModal: () => {},
   setShowImportLinksModal: () => {},
   setPollLinks: () => {},
 });
@@ -45,19 +48,23 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
     useAddEditDomainModal({});
 
   const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal();
+  const { setShowUpgradePlanModal, UpgradePlanModal } = useUpgradePlanModal();
   const { setShowImportLinksModal, ImportLinksModal } = useImportLinksModal();
 
   const { error, loading } = useProject();
   const { data: session } = useSession();
 
   const router = useRouter();
+  const { slug } = router.query;
 
+  // special link polling setup to poll links as they're being created (for bitly import)
   const [pollLinks, setPollLinks] = useState(false);
   useEffect(() => {
     if (pollLinks) {
-      // if pollLinks is true, start polling links endpoint every 500 ms (stop after 30 seconds)
+      // if pollLinks is true, start polling links endpoint every 500 ms (stop after 20 seconds)
       const pollingInterval = setInterval(() => {
         mutate(`/api/links${getQueryString(router)}`);
+        mutate(`/api/projects/${slug}/tags`);
         mutate(
           (key) =>
             typeof key === "string" && key.startsWith(`/api/links/_count`),
@@ -68,7 +75,7 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
       setTimeout(() => {
         setPollLinks(false);
         clearInterval(pollingInterval);
-      }, 30000);
+      }, 20000);
     }
   }, [pollLinks]);
 
@@ -95,6 +102,7 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
         setShowAddProjectModal,
         setShowAddEditDomainModal,
         setShowAddEditLinkModal,
+        setShowUpgradePlanModal,
         setShowImportLinksModal,
         setPollLinks,
       }}
@@ -106,6 +114,7 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
       )}
       <AddEditDomainModal />
       <AddEditLinkModal />
+      <UpgradePlanModal />
       <ImportLinksModal />
       {children}
     </ModalContext.Provider>

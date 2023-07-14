@@ -1,6 +1,5 @@
 import prisma from "#/lib/prisma";
 import { redis } from "#/lib/upstash";
-import { randomBadgeColor } from "@/components/app/links/tag-badge";
 import { sendEmail } from "emails";
 
 // recursive function to check if pagination.searchAfter is not an empty string, else break
@@ -9,9 +8,18 @@ export const importLinksFromBitly = async ({
   projectId,
   bitlyGroup,
   domains,
+  tagsToId,
   bitlyApiKey,
   searchAfter = null,
   count = 0,
+}: {
+  projectId: string;
+  bitlyGroup: string;
+  domains: string[];
+  tagsToId?: Record<string, string>;
+  bitlyApiKey: string;
+  searchAfter?: string | null;
+  count?: number;
 }) => {
   const data = await fetch(
     `https://api-ssl.bitly.com/v4/groups/${bitlyGroup}/bitlinks?size=100${
@@ -32,7 +40,7 @@ export const importLinksFromBitly = async ({
   // convert links to format that can be imported into database
   const importedLinks = links
     .map((link) => {
-      const { id, long_url: url, title, archived, created_at } = link;
+      const { id, long_url: url, title, archived, created_at, tags } = link;
       const [domain, key] = id.split("/");
       // if domain is not in project domains, skip (could be a bit.ly link or old short domain)
       if (!domains.includes(domain)) {
@@ -45,6 +53,7 @@ export const importLinksFromBitly = async ({
       //     },
       //   );
       const createdAt = new Date(created_at).toISOString();
+      const tagId = tagsToId ? tagsToId[tags[0]] : null;
       return {
         projectId,
         domain,
@@ -53,6 +62,7 @@ export const importLinksFromBitly = async ({
         title,
         archived,
         createdAt,
+        ...(tagId ? { tagId } : {}),
       };
     })
     .filter((link) => link !== null);
@@ -81,6 +91,17 @@ export const importLinksFromBitly = async ({
     await Promise.all([
       // delete key from redis
       redis.del(`import:bitly:${projectId}`),
+
+      // delete tags that have no links
+      prisma.tag.deleteMany({
+        where: {
+          projectId,
+          links: {
+            none: {},
+          },
+        },
+      }),
+
       // send email to user
       // sendEmail({
       //     subject: `Your Bitly links have been imported!`,

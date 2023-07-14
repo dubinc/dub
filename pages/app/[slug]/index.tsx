@@ -22,17 +22,17 @@ export default function ProjectLinks() {
 
   const { verified, loading: loadingDomains } = useDomains();
 
-  // useEffect(() => {
-  //   if (
-  //     !verified &&
-  //     !loadingProject &&
-  //     !loadingDomains &&
-  //     !error &&
-  //     !document.getElementById("modal-backdrop")
-  //   ) {
-  //     setShowCompleteSetupModal(true);
-  //   }
-  // }, [verified, loadingProject, loadingDomains, error]);
+  useEffect(() => {
+    if (
+      !verified &&
+      !loadingProject &&
+      !loadingDomains &&
+      !error &&
+      !document.getElementById("modal-backdrop")
+    ) {
+      setShowCompleteSetupModal(true);
+    }
+  }, [verified, loadingProject, loadingDomains, error]);
 
   const [openPopover, setOpenPopover] = useState(false);
 

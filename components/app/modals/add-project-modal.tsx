@@ -21,11 +21,11 @@ import { toast } from "sonner";
 function AddProjectModalHelper({
   showAddProjectModal,
   setShowAddProjectModal,
-  closeWithX,
+  welcomeFlow,
 }: {
   showAddProjectModal: boolean;
   setShowAddProjectModal: Dispatch<SetStateAction<boolean>>;
-  closeWithX?: boolean;
+  welcomeFlow?: boolean;
 }) {
   const router = useRouter();
 
@@ -85,7 +85,7 @@ function AddProjectModalHelper({
     <Modal
       showModal={showAddProjectModal}
       setShowModal={setShowAddProjectModal}
-      closeWithX={closeWithX}
+      closeWithX={welcomeFlow}
     >
       <div className="inline-block w-full transform overflow-hidden bg-white align-middle shadow-xl transition-all sm:max-w-md sm:rounded-2xl sm:border sm:border-gray-200">
         <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
@@ -114,9 +114,19 @@ function AddProjectModalHelper({
                 // track project creation event
                 va.track("Created Project");
                 mutate("/api/projects");
-                router.push(`/${slug}`);
-                toast.success("Successfully created project!");
-                setShowAddProjectModal(false);
+                if (welcomeFlow) {
+                  router.push({
+                    pathname: "/welcome",
+                    query: {
+                      type: "upgrade",
+                      slug,
+                    },
+                  });
+                } else {
+                  router.push(`/${slug}`);
+                  toast.success("Successfully created project!");
+                  setShowAddProjectModal(false);
+                }
               } else if (res.status === 422) {
                 const {
                   slugError: slugErrorResponse,
@@ -280,8 +290,8 @@ function AddProjectModalHelper({
 }
 
 export function useAddProjectModal({
-  closeWithX,
-}: { closeWithX?: boolean } = {}) {
+  welcomeFlow,
+}: { welcomeFlow?: boolean } = {}) {
   const [showAddProjectModal, setShowAddProjectModal] = useState(false);
 
   const AddProjectModal = useCallback(() => {
@@ -289,10 +299,10 @@ export function useAddProjectModal({
       <AddProjectModalHelper
         showAddProjectModal={showAddProjectModal}
         setShowAddProjectModal={setShowAddProjectModal}
-        closeWithX={closeWithX}
+        welcomeFlow={welcomeFlow}
       />
     );
-  }, [showAddProjectModal, setShowAddProjectModal, closeWithX]);
+  }, [showAddProjectModal, setShowAddProjectModal, welcomeFlow]);
 
   return useMemo(
     () => ({ setShowAddProjectModal, AddProjectModal }),

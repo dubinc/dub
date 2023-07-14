@@ -1,23 +1,26 @@
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { useUpgradePlanModal } from "@/components/app/modals/upgrade-plan-modal";
 import { Infinity, Divider, QuestionCircle } from "@/components/shared/icons";
 import { LoadingDots } from "#/ui/icons";
 import Tooltip from "#/ui/tooltip";
-import { getFirstAndLastDay, nFormatter } from "#/lib/utils";
+import { fetcher, getFirstAndLastDay, nFormatter } from "#/lib/utils";
 import useProject from "#/lib/swr/use-project";
-import useDomains from "#/lib/swr/use-domains";
 import PlanBadge from "./plan-badge";
 import { toast } from "sonner";
-import { mutate } from "swr";
+import useSWR, { mutate } from "swr";
 import va from "@vercel/analytics";
+import { ModalContext } from "#/ui/modal-provider";
 
 export default function PlanUsage() {
   const router = useRouter();
 
   const { slug, plan, usage, usageLimit, billingCycleStart } = useProject();
-  const { domains } = useDomains();
+
+  const { data: links } = useSWR<number>(
+    `/api/links/_count?slug=${slug}`,
+    fetcher,
+  );
 
   const [clicked, setClicked] = useState(false);
 
@@ -37,7 +40,7 @@ export default function PlanUsage() {
     return [];
   }, [billingCycleStart]);
 
-  const { UpgradePlanModal, setShowUpgradePlanModal } = useUpgradePlanModal();
+  const { setShowUpgradePlanModal } = useContext(ModalContext);
 
   useEffect(() => {
     if (router.query.success) {
@@ -54,7 +57,6 @@ export default function PlanUsage() {
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white">
-      <UpgradePlanModal />
       <div className="flex flex-col space-y-3 p-10">
         <h2 className="text-xl font-medium">Plan &amp; Usage</h2>
         <p className="text-sm text-gray-500">
@@ -84,7 +86,7 @@ export default function PlanUsage() {
         <div className="flex flex-col space-y-2 p-10">
           <div className="flex items-center">
             <h3 className="font-medium">Total Link Clicks</h3>
-            <Tooltip content="Number of billable link clicks across all your projects.">
+            <Tooltip content="Number of billable link clicks across all your projects this billing cycle.">
               <div className="flex h-4 w-8 justify-center">
                 <QuestionCircle className="h-4 w-4 text-gray-600" />
               </div>
@@ -117,11 +119,18 @@ export default function PlanUsage() {
           </div>
         </div>
         <div className="p-10">
-          <h3 className="font-medium">Number of Domains</h3>
+          <div className="flex items-center">
+            <h3 className="font-medium">Number of Links</h3>
+            <Tooltip content="Total number of short links in your project.">
+              <div className="flex h-4 w-8 justify-center">
+                <QuestionCircle className="h-4 w-4 text-gray-600" />
+              </div>
+            </Tooltip>
+          </div>
           <div className="mt-4 flex items-center">
-            {domains ? (
+            {links ? (
               <p className="text-2xl font-semibold text-black">
-                {nFormatter(domains.length)}
+                {nFormatter(links)}
               </p>
             ) : (
               <div className="h-8 w-8 animate-pulse rounded-md bg-gray-200" />

@@ -25,7 +25,7 @@ export default function TagBadge({
       )}
     >
       {withIcon && <Tag className="h-3 w-3" />}
-      <p>{truncate(name || "", 15)}</p>
+      <p>{truncate(name || "", 24)}</p>
     </span>
   );
 }
