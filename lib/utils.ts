@@ -144,8 +144,8 @@ export const timeAgo = (timestamp?: Date): string => {
   if (diff < 60000) {
     // less than 1 second
     return "Just now";
-  } else if (diff > 604800000) {
-    // more than 7 days
+  } else if (diff > 82800000) {
+    // more than 23 hours – similar to how Twitter displays timestamps
     return new Date(timestamp).toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
