@@ -9,7 +9,7 @@ import { useLinkQRModal } from "@/components/app/modals/link-qr-modal";
 import IconMenu from "@/components/shared/icon-menu";
 import BlurImage from "#/ui/blur-image";
 import CopyButton from "@/components/shared/copy-button";
-import { Chart, Delete, QR, ThreeDots } from "@/components/shared/icons";
+import { Chart, Delete, ThreeDots } from "@/components/shared/icons";
 import Popover from "@/components/shared/popover";
 import Tooltip, { TooltipContent } from "#/ui/tooltip";
 import useProject from "#/lib/swr/use-project";
@@ -24,7 +24,7 @@ import {
 } from "#/lib/utils";
 import useIntersectionObserver from "#/lib/hooks/use-intersection-observer";
 import useDomains from "#/lib/swr/use-domains";
-import { Archive, CopyPlus, Edit3, Tag } from "lucide-react";
+import { Archive, CopyPlus, Edit3, QrCode, Tag } from "lucide-react";
 import punycode from "punycode/";
 import { GOOGLE_FAVICON_URL } from "#/lib/constants";
 import useTags from "#/lib/swr/use-tags";
@@ -120,7 +120,6 @@ export default function LinkCard({ props }: { props: LinkProps }) {
     };
   }, [handlClickOnLinkCard]);
 
-  const shortcuts = slug ? ["e", "d", "t", "a", "x"] : ["e", "d", "a", "x"];
   const onKeyDown = (e: any) => {
     // only run shortcut logic if:
     // - usage is not exceeded
@@ -130,7 +129,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
     if (
       !exceededUsage &&
       (selected || openPopover) &&
-      shortcuts.includes(e.key)
+      ["e", "d", "q", "a", "x"].includes(e.key)
     ) {
       setSelected(false);
       e.preventDefault();
@@ -140,6 +139,9 @@ export default function LinkCard({ props }: { props: LinkProps }) {
           break;
         case "d":
           setShowDuplicateLinkModal(true);
+          break;
+        case "q":
+          setShowLinkQRModal(true);
           break;
         case "a":
           setShowArchiveLinkModal(true);
@@ -217,9 +219,9 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                   onClick={(e) => {
                     e.stopPropagation();
                   }}
-                  className={`w-24 truncate text-sm font-semibold ${
+                  className={`truncate text-sm font-semibold ${
                     archived ? "text-gray-500" : "text-blue-800"
-                  } sm:w-full sm:text-base`}
+                  } w-full max-w-[200px] sm:text-base`}
                   href={linkConstructor({ key, domain })}
                   target="_blank"
                   rel="noreferrer"
@@ -232,59 +234,49 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                 </a>
               )}
               <CopyButton url={linkConstructor({ key, domain })} />
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowLinkQRModal(true);
-                }}
-                className="group rounded-full bg-gray-100 p-1.5 transition-all duration-75 hover:scale-105 hover:bg-blue-100 active:scale-95"
-              >
-                <span className="sr-only">Download QR</span>
-                <QR className="text-gray-700 transition-all group-hover:text-blue-800" />
-              </button>
-              <Link
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
-                href={`/${
-                  slug ? `${slug}/${domain}` : "links"
-                }/${encodeURIComponent(key)}`}
-                className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 transition-all duration-75 hover:scale-105 active:scale-100"
-              >
-                <Chart className="h-4 w-4" />
-                <p className="whitespace-nowrap text-sm text-gray-500">
-                  {nFormatter(clicks)}
-                  <span className="ml-1 hidden sm:inline-block">clicks</span>
-                </p>
-              </Link>
               {tag?.color && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setQueryString(router, "tagId", tag.id);
                   }}
-                  className="hidden transition-all duration-75 hover:scale-105 active:scale-100 sm:block"
+                  className="transition-all duration-75 hover:scale-105 active:scale-100"
                 >
                   <TagBadge {...tag} withIcon />
                 </button>
               )}
             </div>
-            <h3 className="max-w-[200px] truncate text-sm font-medium text-gray-700 md:max-w-md xl:max-w-lg">
-              {url}
-            </h3>
+            <div className="flex max-w-fit items-center space-x-1">
+              <p className="whitespace-nowrap text-sm text-gray-500">
+                {timeAgo(createdAt)}
+              </p>
+              <p>•</p>
+              <p className="max-w-[200px] truncate text-sm font-medium text-gray-700 md:max-w-md xl:max-w-[30rem]">
+                {url}
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center">
-          <p className="mr-3 hidden whitespace-nowrap text-sm text-gray-500 sm:block">
-            Added {timeAgo(createdAt)}
-          </p>
-          <p className="mr-1 whitespace-nowrap text-sm text-gray-500 sm:hidden">
-            {timeAgo(createdAt, true)}
-          </p>
+        <div className="flex items-center space-x-2">
+          <Link
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+            href={`/${
+              slug ? `${slug}/${domain}` : "links"
+            }/${encodeURIComponent(key)}`}
+            className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 transition-all duration-75 hover:scale-105 active:scale-100"
+          >
+            <Chart className="h-4 w-4" />
+            <p className="whitespace-nowrap text-sm text-gray-500">
+              {nFormatter(clicks)}
+              <span className="ml-1 hidden sm:inline-block">clicks</span>
+            </p>
+          </Link>
           <Popover
             content={
-              <div className="grid w-full gap-1 p-2 sm:w-48">
+              <div className="grid w-full gap-px p-2 sm:w-48">
                 {slug && exceededUsage ? (
                   <Tooltip
                     content={
@@ -359,6 +351,21 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                     </kbd>
                   </button>
                 )}
+                <button
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setShowLinkQRModal(true);
+                  }}
+                  className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
+                >
+                  <IconMenu
+                    text="QR Code"
+                    icon={<QrCode className="h-4 w-4" />}
+                  />
+                  <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 transition-all duration-75 group-hover:bg-gray-200 sm:inline-block">
+                    Q
+                  </kbd>
+                </button>
                 <button
                   onClick={() => {
                     setOpenPopover(false);

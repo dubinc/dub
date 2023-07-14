@@ -7,7 +7,8 @@ import { useAddEditLinkModal } from "#/ui/modals/add-edit-link-modal";
 import { useLinkQRModal } from "#/ui/modals/link-qr-modal";
 import BlurImage from "#/ui/blur-image";
 import CopyButton from "@/components/shared/copy-button";
-import { Chart, QR, ThreeDots } from "@/components/shared/icons";
+import { QrCode } from "lucide-react";
+import { Chart, ThreeDots } from "@/components/shared/icons";
 import { LoadingDots } from "#/ui/icons";
 import {
   DEFAULT_LINK_PROPS,
@@ -167,7 +168,7 @@ export default function LinkCard({
                 className="group rounded-full bg-gray-100 p-1.5 transition-all duration-75 hover:scale-105 hover:bg-blue-100 active:scale-95"
               >
                 <span className="sr-only">Copy</span>
-                <QR className="text-gray-700 transition-all group-hover:text-blue-800" />
+                <QrCode className="text-gray-700 transition-all group-hover:text-blue-800" />
               </button>
               <Link
                 href={`/stats/${encodeURI(key)}`}
