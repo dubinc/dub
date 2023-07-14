@@ -9,6 +9,8 @@ import {
 } from "#/lib/utils";
 import Switch from "#/ui/switch";
 import { FADE_IN_ANIMATION_SETTINGS } from "#/lib/constants";
+import Tooltip from "#/ui/tooltip";
+import { HelpCircle } from "lucide-react";
 
 export default function UTMSection({
   props,
@@ -57,7 +59,12 @@ export default function UTMSection({
   return (
     <div className="border-b border-gray-200 pb-5">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-medium text-gray-900">UTM Builder</h2>
+        <div className="flex items-center justify-between space-x-2">
+          <h2 className="text-sm font-medium text-gray-900">UTM Builder</h2>
+          <Tooltip content="UTM parameters are tags that will be added to the end of the destination URL. When your link is clicked, the tags are detected and tracked by your analytics software.">
+            <HelpCircle className="h-4 w-4 text-gray-600" />
+          </Tooltip>
+        </div>
         <Switch fn={() => setEnabled(!enabled)} checked={enabled} />
       </div>
       {enabled && (

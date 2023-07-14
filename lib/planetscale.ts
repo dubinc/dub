@@ -21,7 +21,7 @@ export const getLinkViaEdge = async (domain: string, key: string) => {
         url: string;
         clicks: number;
         userId: number;
-        publicStats: boolean;
+        publicStats: number;
       })
     : null;
 };

@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Infinity, Divider, QuestionCircle } from "@/components/shared/icons";
+import { Infinity, Divider } from "@/components/shared/icons";
 import { LoadingDots } from "#/ui/icons";
 import Tooltip from "#/ui/tooltip";
 import { fetcher, getFirstAndLastDay, nFormatter } from "#/lib/utils";
@@ -10,6 +10,7 @@ import PlanBadge from "./plan-badge";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
 import va from "@vercel/analytics";
+import { HelpCircle } from "lucide-react";
 import { ModalContext } from "#/ui/modal-provider";
 
 export default function PlanUsage() {
@@ -21,7 +22,6 @@ export default function PlanUsage() {
     `/api/links/_count?slug=${slug}`,
     fetcher,
   );
-
   const [clicked, setClicked] = useState(false);
 
   const [billingStart, billingEnd] = useMemo(() => {
@@ -84,12 +84,10 @@ export default function PlanUsage() {
       <div className="border-b border-gray-200" />
       <div className="grid grid-cols-1 divide-y divide-gray-200 sm:grid-cols-2 sm:divide-x sm:divide-y-0">
         <div className="flex flex-col space-y-2 p-10">
-          <div className="flex items-center">
+          <div className="flex items-center space-x-2">
             <h3 className="font-medium">Total Link Clicks</h3>
-            <Tooltip content="Number of billable link clicks across all your projects this billing cycle.">
-              <div className="flex h-4 w-8 justify-center">
-                <QuestionCircle className="h-4 w-4 text-gray-600" />
-              </div>
+            <Tooltip content="Number of billable link clicks across all your projects.">
+              <HelpCircle className="h-4 w-4 text-gray-600" />
             </Tooltip>
           </div>
           {usage !== undefined && usageLimit ? (
@@ -119,16 +117,14 @@ export default function PlanUsage() {
           </div>
         </div>
         <div className="p-10">
-          <div className="flex items-center">
+          <div className="flex items-center space-x-2">
             <h3 className="font-medium">Number of Links</h3>
             <Tooltip content="Total number of short links in your project.">
-              <div className="flex h-4 w-8 justify-center">
-                <QuestionCircle className="h-4 w-4 text-gray-600" />
-              </div>
+              <HelpCircle className="h-4 w-4 text-gray-600" />
             </Tooltip>
           </div>
           <div className="mt-4 flex items-center">
-            {links ? (
+            {links || links === 0 ? (
               <p className="text-2xl font-semibold text-black">
                 {nFormatter(links)}
               </p>

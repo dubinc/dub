@@ -3,6 +3,8 @@ import { LinkProps } from "#/lib/types";
 import Switch from "#/ui/switch";
 import { motion } from "framer-motion";
 import { FADE_IN_ANIMATION_SETTINGS } from "#/lib/constants";
+import Tooltip from "#/ui/tooltip";
+import { HelpCircle } from "lucide-react";
 
 export default function AndroidSection({
   props,
@@ -31,7 +33,14 @@ export default function AndroidSection({
   return (
     <div className="border-b border-gray-200 pb-5">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-medium text-gray-900">Android Targeting</h2>
+        <div className="flex items-center justify-between space-x-2">
+          <h2 className="text-sm font-medium text-gray-900">
+            Android Targeting
+          </h2>
+          <Tooltip content="Redirect your Android users to a different link (e.g. Google Play Store link for your app).">
+            <HelpCircle className="h-4 w-4 text-gray-600" />
+          </Tooltip>
+        </div>
         <Switch fn={() => setEnabled(!enabled)} checked={enabled} />
       </div>
       {enabled && (
