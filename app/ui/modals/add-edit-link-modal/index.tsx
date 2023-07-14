@@ -379,6 +379,7 @@ function AddEditLinkModal({
                     id={`url-${randomIdx}`}
                     type="url"
                     required
+                    autoComplete="off"
                     placeholder="https://github.com/steven-tey/dub"
                     value={url}
                     onChange={(e) => {
