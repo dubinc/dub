@@ -3,17 +3,13 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import Confetti from "react-dom-confetti";
-import {
-  CheckCircleFill,
-  QuestionCircle,
-  XCircleFill,
-} from "@/components/shared/icons";
+import { CheckCircleFill, XCircleFill } from "@/components/shared/icons";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import Switch from "#/ui/switch";
 import Tooltip from "#/ui/tooltip";
 import { PLANS } from "#/lib/stripe/utils";
 import { nFormatter } from "#/lib/utils";
-import { MinusCircle } from "lucide-react";
+import { HelpCircle, MinusCircle } from "lucide-react";
 
 const pricingItems = [
   {
@@ -194,7 +190,7 @@ const Pricing = () => {
                 </p>
               </div>
               <div className="flex h-20 items-center justify-center border-b border-t border-gray-200 bg-gray-50">
-                <div className="flex items-center">
+                <div className="flex items-center space-x-1">
                   <p className="text-gray-600">
                     {plan === "Enterprise"
                       ? "Unlimited link clicks"
@@ -202,9 +198,7 @@ const Pricing = () => {
                   </p>
                   {plan !== "Enterprise" && (
                     <Tooltip content="If you exceed your monthly usage, your existing links will still work, but you need to upgrade to view their stats/add more links.">
-                      <div className="flex h-4 w-8 justify-center">
-                        <QuestionCircle className="h-4 w-4 text-gray-600" />
-                      </div>
+                      <HelpCircle className="h-4 w-4 text-gray-600" />
                     </Tooltip>
                   )}
                 </div>
@@ -225,7 +219,7 @@ const Pricing = () => {
                       )}
                     </div>
                     {footnote ? (
-                      <div className="flex items-center">
+                      <div className="flex items-center space-x-1">
                         <p
                           className={
                             negative ? "text-gray-400" : "text-gray-600"
@@ -234,9 +228,7 @@ const Pricing = () => {
                           {text}
                         </p>
                         <Tooltip content={footnote}>
-                          <div className="flex h-4 w-8 justify-center">
-                            <QuestionCircle className="h-4 w-4 text-gray-600" />
-                          </div>
+                          <HelpCircle className="h-4 w-4 text-gray-600" />
                         </Tooltip>
                       </div>
                     ) : (

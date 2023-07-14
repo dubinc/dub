@@ -12,6 +12,8 @@ import { LoadingCircle } from "#/ui/icons";
 import { LinkProps } from "#/lib/types";
 import Switch from "#/ui/switch";
 import { FADE_IN_ANIMATION_SETTINGS } from "#/lib/constants";
+import Tooltip from "#/ui/tooltip";
+import { HelpCircle } from "lucide-react";
 
 export default function OGSection({
   props,
@@ -65,9 +67,14 @@ export default function OGSection({
   return (
     <div className="grid gap-5 border-b border-gray-200 pb-5">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-medium text-gray-900">
-          Custom Social Media Cards
-        </h2>
+        <div className="flex items-center justify-between space-x-2">
+          <h2 className="text-sm font-medium text-gray-900">
+            Custom Social Media Cards
+          </h2>
+          <Tooltip content="Customize the title, description, and thumbnail image that will be shown when you share this link on social media.">
+            <HelpCircle className="h-4 w-4 text-gray-600" />
+          </Tooltip>
+        </div>
         <Switch
           fn={() => setData((prev) => ({ ...prev, proxy: !proxy }))}
           checked={proxy}
