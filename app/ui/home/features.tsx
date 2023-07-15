@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Airplay, Chart, QR, Users, Photo } from "@/components/shared/icons";
+import { Airplay, Chart, Users, Photo } from "@/components/shared/icons";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import { useState } from "react";
 import {
@@ -14,7 +14,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useLinkQRModal } from "#/ui/modals/link-qr-modal";
 import { DEFAULT_LINK_PROPS } from "#/lib/constants";
 import { useAddEditLinkModal } from "#/ui/modals/add-edit-link-modal";
-import { Link2 } from "lucide-react";
+import { Link2, QrCode } from "lucide-react";
 
 const featureList = [
   {
@@ -73,7 +73,7 @@ const featureList = [
   {
     key: "qr",
     title: "Free QR code generator",
-    icon: <QR className="h-5 w-5 text-gray-600" />,
+    icon: <QrCode className="h-5 w-5 text-gray-600" />,
     description:
       "QR codes and short links are like peas in a pod. That's why we've built a QR code generator right into Dub.",
     cta: "View demo", //custom cta
