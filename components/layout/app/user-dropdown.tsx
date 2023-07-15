@@ -12,7 +12,7 @@ import { LoadingCircle } from "#/ui/icons";
 import Badge from "#/ui/badge";
 import Cookies from "js-cookie";
 
-const latestChangelogId = "read-changelog-0714";
+const latestChangelogId = "read-changelog-0715";
 
 export default function UserDropdown() {
   const { data: session } = useSession();
