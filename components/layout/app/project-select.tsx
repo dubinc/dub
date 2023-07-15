@@ -2,7 +2,8 @@ import { useRouter } from "next/router";
 import { useContext, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import BlurImage from "#/ui/blur-image";
-import { ChevronUpDown, PlusCircle, Tick } from "@/components/shared/icons";
+import { Tick } from "@/components/shared/icons";
+import { ChevronsUpDown, PlusCircle } from "lucide-react";
 import Popover from "@/components/shared/popover";
 import { PlanProps, ProjectWithDomainProps } from "#/lib/types";
 import useProjects from "#/lib/swr/use-projects";
@@ -58,7 +59,7 @@ export default function ProjectSelect() {
       <div className="flex animate-pulse items-center justify-end space-x-1.5 rounded-lg px-1.5 py-2 sm:w-60">
         <div className="h-8 w-8 animate-pulse rounded-full bg-gray-200" />
         <div className="hidden h-8 w-28 animate-pulse rounded-md bg-gray-200 sm:block sm:w-40" />
-        <ChevronUpDown className="h-4 w-4 text-gray-400" aria-hidden="true" />
+        <ChevronsUpDown className="h-4 w-4 text-gray-400" aria-hidden="true" />
       </div>
     );
 
@@ -92,7 +93,10 @@ export default function ProjectSelect() {
               {selected.slug !== "/" && <PlanBadge plan={selected.plan} />}
             </div>
           </div>
-          <ChevronUpDown className="h-4 w-4 text-gray-400" aria-hidden="true" />
+          <ChevronsUpDown
+            className="h-4 w-4 text-gray-400"
+            aria-hidden="true"
+          />
         </button>
       </Popover>
     </div>
@@ -184,7 +188,7 @@ function ProjectList({
         onClick={() => setShowAddProjectModal(true)}
         className="flex w-full cursor-pointer items-center space-x-2 rounded-md p-2 transition-all duration-75 hover:bg-gray-100"
       >
-        <PlusCircle className="h-7 w-7 text-gray-600" />
+        <PlusCircle className="h-6 w-6 text-gray-500" />
         <span className="block truncate">Add a new project</span>
       </button>
     </div>

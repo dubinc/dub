@@ -165,10 +165,10 @@ export default function LinkCard({
               <CopyButton url={linkConstructor({ key })} />
               <button
                 onClick={() => setShowLinkQRModal(true)}
-                className="group rounded-full bg-gray-100 p-1.5 transition-all duration-75 hover:scale-105 hover:bg-blue-100 active:scale-95"
+                className="group rounded-full bg-gray-100 p-1.5 transition-all duration-75 hover:scale-105 hover:bg-blue-100 focus:outline-none active:scale-95"
               >
                 <span className="sr-only">Copy</span>
-                <QrCode className="text-gray-700 transition-all group-hover:text-blue-800" />
+                <QrCode className="h-4 w-4 text-gray-700 transition-all group-hover:text-blue-800" />
               </button>
               <Link
                 href={`/stats/${encodeURI(key)}`}
@@ -191,7 +191,7 @@ export default function LinkCard({
         <button
           type="button"
           onClick={() => setShowAddEditLinkModal(true)}
-          className="rounded-md px-1 py-2 transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
+          className="rounded-md px-1 py-2 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200"
         >
           <span className="sr-only">Edit</span>
           <ThreeDots className="h-5 w-5 text-gray-500" />

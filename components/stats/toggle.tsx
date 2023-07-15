@@ -1,12 +1,7 @@
 import { useRouter } from "next/router";
 import { useContext, useMemo, useState } from "react";
-import {
-  Calendar,
-  ChevronDown,
-  Copy,
-  Share,
-  Tick,
-} from "@/components/shared/icons";
+import { Copy, Tick } from "@/components/shared/icons";
+import { Calendar, Share2, ChevronDown, Lock } from "lucide-react";
 import { ExpandingArrow } from "#/ui/icons";
 import { INTERVALS } from "#/lib/stats";
 import useScroll from "#/lib/hooks/use-scroll";
@@ -21,7 +16,6 @@ import { StatsContext } from ".";
 import useProject from "#/lib/swr/use-project";
 import Tooltip, { TooltipContent } from "#/ui/tooltip";
 import { ModalContext } from "#/ui/modal-provider";
-import { Lock } from "lucide-react";
 
 export default function Toggle({ atModalTop }: { atModalTop?: boolean }) {
   const router = useRouter();
@@ -255,7 +249,7 @@ const SharePopover = () => {
         onClick={() => setopenSharePopoverPopover(!openSharePopover)}
         className="mr-2 flex w-24 items-center justify-center space-x-2 rounded-md bg-white px-3 py-2.5 shadow transition-all duration-75 hover:shadow-md active:scale-95"
       >
-        <IconMenu text="Share" icon={<Share className="h-4 w-4" />} />
+        <IconMenu text="Share" icon={<Share2 className="h-4 w-4" />} />
       </button>
     </Popover>
   );
