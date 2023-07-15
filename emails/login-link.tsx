@@ -13,6 +13,7 @@ import {
   Text,
 } from "@react-email/components";
 import { DUB_LOGO } from "../lib/constants";
+import Footer from "./components/footer";
 
 export default function LoginLink({
   email = "panic@thedis.co",
@@ -60,14 +61,7 @@ export default function LoginLink({
             <Text className="max-w-sm flex-wrap break-words font-medium text-purple-600 no-underline">
               {url.replace(/^https?:\/\//, "")}
             </Text>
-            <Hr className="mx-0 my-6 w-full border border-gray-200" />
-            <Text className="text-[12px] leading-6 text-gray-500">
-              This email was intended for{" "}
-              <span className="text-black">{email}</span>. If you were not
-              expecting this email, you can ignore this email. If you are
-              concerned about your account's safety, please reply to this email
-              to get in touch with us.
-            </Text>
+            <Footer email={email} />
           </Container>
         </Body>
       </Tailwind>

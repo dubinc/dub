@@ -17,6 +17,7 @@ import {
 import { Link2, MousePointerClick } from "lucide-react";
 import { DUB_LOGO } from "../lib/constants";
 import { nFormatter, truncate } from "../lib/utils";
+import Footer from "./components/footer";
 
 export default function ClicksSummary({
   email = "panic@thedis.co",
@@ -167,14 +168,7 @@ export default function ClicksSummary({
                 </Section>
               </>
             )}
-            <Hr className="mx-0 my-6 w-full border border-gray-200" />
-            <Text className="text-[12px] leading-6 text-gray-500">
-              This email was intended for{" "}
-              <span className="text-black">{email}</span>. If you were not
-              expecting this email, you can ignore this email. If you are
-              concerned about your account's safety, please reply to this email
-              to get in touch with us.
-            </Text>
+            <Footer email={email} />
           </Container>
         </Body>
       </Tailwind>

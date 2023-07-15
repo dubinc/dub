@@ -176,6 +176,7 @@ const sendUsageLimitEmail = async (
           subject: `You have exceeded your Dub usage limit`,
           email,
           react: UsageExceeded({
+            email,
             project,
             type,
           }),
