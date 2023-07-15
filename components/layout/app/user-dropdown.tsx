@@ -12,6 +12,8 @@ import { LoadingCircle } from "#/ui/icons";
 import Badge from "#/ui/badge";
 import Cookies from "js-cookie";
 
+const latestChangelogId = "read-changelog-0714";
+
 export default function UserDropdown() {
   const { data: session } = useSession();
   const [openPopover, setOpenPopover] = useState(false);
@@ -29,7 +31,7 @@ export default function UserDropdown() {
 
   const [unread, setUnread] = useState(false);
   useEffect(() => {
-    if (Cookies.get("read-changelog-0725")) {
+    if (Cookies.get(latestChangelogId)) {
       setUnread(false);
     } else {
       setUnread(true);
@@ -83,7 +85,7 @@ export default function UserDropdown() {
               href="https://dub.sh/changelog"
               target="_blank"
               rel="noopener noreferrer"
-              onClick={() => Cookies.set("read-changelog-0725", true)}
+              onClick={() => Cookies.set(latestChangelogId, true)}
               className="flex w-full justify-between rounded-md p-2 text-sm transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
             >
               <IconMenu text="Changelog" icon={<Edit3 className="h-4 w-4" />} />

@@ -6,7 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { Check, Tag, X } from "lucide-react";
+import { Check, ChevronDown, Tag, X } from "lucide-react";
 import { Command, useCommandState } from "cmdk";
 import TagBadge from "../../links/tag-badge";
 import { LinkProps } from "#/lib/types";
@@ -15,7 +15,6 @@ import { useRouter } from "next/router";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { LoadingCircle } from "#/ui/icons";
-import { ChevronDown } from "@/components/shared/icons";
 import Tooltip from "#/ui/tooltip";
 
 export default function TagsSection({

@@ -8,7 +8,8 @@ import {
 } from "react";
 import { HexColorInput, HexColorPicker } from "react-colorful";
 import BlurImage from "#/ui/blur-image";
-import { ChevronRight, Clipboard, Logo } from "@/components/shared/icons";
+import { Clipboard } from "@/components/shared/icons";
+import { ChevronRight } from "lucide-react";
 import Modal from "@/components/shared/modal";
 import Switch from "#/ui/switch";
 import Tooltip, { TooltipContent } from "#/ui/tooltip";
@@ -104,17 +105,13 @@ function LinkQRModalHelper({
     <Modal showModal={showLinkQRModal} setShowModal={setShowLinkQRModal}>
       <div className="inline-block w-full transform bg-white align-middle shadow-xl transition-all sm:max-w-md sm:rounded-2xl sm:border sm:border-gray-200">
         <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
-          {avatarUrl ? (
-            <BlurImage
-              src={avatarUrl}
-              alt={apexDomain}
-              className="h-10 w-10 rounded-full"
-              width={40}
-              height={40}
-            />
-          ) : (
-            <Logo className="h-10 w-10" />
-          )}
+          <BlurImage
+            src={avatarUrl || "/_static/logo.png"}
+            alt={apexDomain}
+            className="h-10 w-10 rounded-full"
+            width={40}
+            height={40}
+          />
           <h3 className="text-lg font-medium">Download QR Code</h3>
         </div>
 
