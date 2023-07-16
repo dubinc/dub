@@ -1,6 +1,7 @@
 import prisma from "#/lib/prisma";
 import { redis } from "#/lib/upstash";
 import { sendEmail } from "emails";
+import LinksImported from "emails/links-imported";
 
 // recursive function to check if pagination.searchAfter is not an empty string, else break
 // rate limit for /groups/{group_guid}/bitlinks is 1500 per hour or 150 per minute
@@ -88,6 +89,38 @@ export const importLinksFromBitly = async ({
   await new Promise((resolve) => setTimeout(resolve, 500));
 
   if (nextSearchAfter === "") {
+    const project = await prisma.project.findUnique({
+      where: {
+        id: projectId,
+      },
+      select: {
+        name: true,
+        slug: true,
+        users: {
+          where: {
+            role: "owner",
+          },
+          select: {
+            user: {
+              select: {
+                email: true,
+              },
+            },
+          },
+        },
+        links: {
+          select: {
+            domain: true,
+            key: true,
+            createdAt: true,
+          },
+          take: 5,
+        },
+      },
+    });
+    const ownerEmail = project?.users[0].user.email ?? "";
+    const links = project?.links ?? [];
+
     await Promise.all([
       // delete key from redis
       redis.del(`import:bitly:${projectId}`),
@@ -103,10 +136,19 @@ export const importLinksFromBitly = async ({
       }),
 
       // send email to user
-      // sendEmail({
-      //     subject: `Your Bitly links have been imported!`,
-      //     email: user
-      // })
+      sendEmail({
+        subject: `Your Bitly links have been imported!`,
+        email: ownerEmail,
+        react: LinksImported({
+          email: ownerEmail,
+          provider: "Bitly",
+          count,
+          links,
+          domains,
+          projectName: project?.name ?? "",
+          projectSlug: project?.slug ?? "",
+        }),
+      }),
     ]);
     return count;
   } else {
