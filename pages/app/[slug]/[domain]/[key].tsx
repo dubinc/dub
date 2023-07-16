@@ -1,13 +1,15 @@
-import Link from "next/link";
+import { useContext } from "react";
 import AppLayout from "@/components/layout/app";
 import BlurImage from "#/ui/blur-image";
 import { Lock } from "@/components/shared/icons";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import Stats from "@/components/stats";
 import useProject from "#/lib/swr/use-project";
+import { ModalContext } from "#/ui/modal-provider";
 
 export default function StatsPage() {
   const { slug, exceededUsage } = useProject();
+  const { setShowUpgradePlanModal } = useContext(ModalContext);
 
   return (
     <AppLayout>
@@ -32,12 +34,12 @@ export default function StatsPage() {
               height={400}
               className="-my-8"
             />
-            <Link
-              href={`/${slug}/settings/billing`}
+            <button
+              onClick={() => setShowUpgradePlanModal(true)}
               className="z-10 rounded-md border border-black bg-black px-10 py-2 text-sm font-medium text-white transition-all duration-75 hover:bg-white hover:text-black"
             >
               Upgrade now
-            </Link>
+            </button>
           </div>
         </MaxWidthWrapper>
       )}

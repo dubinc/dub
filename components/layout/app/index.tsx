@@ -1,7 +1,7 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useContext, useEffect, useState } from "react";
 import { Divider, Logo } from "@/components/shared/icons";
 import Meta from "../meta";
 import ProjectSelect from "./project-select";
@@ -11,6 +11,8 @@ import { Crisp } from "crisp-sdk-web";
 import { useSession } from "next-auth/react";
 import ProBanner from "./pro-banner";
 import Cookies from "js-cookie";
+import { ModalContext } from "#/ui/modal-provider";
+import Badge from "#/ui/badge";
 
 const NavTabs = dynamic(() => import("./nav-tabs"), {
   ssr: false,
@@ -46,7 +48,7 @@ export default function AppLayout({
   }, [session]);
 
   const { id, name, plan, stripeId, createdAt } = useProject();
-  const [showProBanner, setShowProBanner] = useState(false);
+  const [showProBanner, setShowProBanner] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (plan) {
@@ -59,7 +61,7 @@ export default function AppLayout({
       });
       /* show pro banner if:
           - free plan
-          - not hidden by user for this project
+          - not hidden by user for this project 
           - project is created more than 24 hours ago
       */
       if (
@@ -69,9 +71,13 @@ export default function AppLayout({
         Date.now() - new Date(createdAt).getTime() > 24 * 60 * 60 * 1000
       ) {
         setShowProBanner(true);
+      } else {
+        setShowProBanner(false);
       }
     }
   }, [plan, id, name, slug, stripeId, createdAt]);
+
+  const { setShowUpgradePlanModal } = useContext(ModalContext);
 
   return (
     <div>
@@ -101,6 +107,18 @@ export default function AppLayout({
                       {domain || "dub.sh"}/{key}
                     </Link>
                   </>
+                )}
+                {plan === "free" && showProBanner === false && (
+                  <button
+                    onClick={() => setShowUpgradePlanModal(true)}
+                    className="ml-3"
+                  >
+                    <Badge
+                      text="Upgrade to Pro"
+                      variant="blue"
+                      className="px-3 py-1"
+                    />
+                  </button>
                 )}
               </div>
               <UserDropdown />

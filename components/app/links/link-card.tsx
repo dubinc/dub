@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import useSWR from "swr";
 import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal";
 import { useArchiveLinkModal } from "@/components/app/modals/archive-link-modal";
@@ -29,6 +29,7 @@ import punycode from "punycode/";
 import { GOOGLE_FAVICON_URL } from "#/lib/constants";
 import useTags from "#/lib/swr/use-tags";
 import TagBadge from "@/components/app/links/tag-badge";
+import { ModalContext } from "#/ui/modal-provider";
 
 export default function LinkCard({ props }: { props: LinkProps }) {
   const { key, domain, url, createdAt, archived, tagId } = props;
@@ -64,6 +65,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
   const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal({
     props,
   });
+  const { setShowUpgradePlanModal } = useContext(ModalContext);
 
   // Duplicate link Modal
   const {
@@ -283,7 +285,10 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                       <TooltipContent
                         title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to edit them."
                         cta="Upgrade to Pro"
-                        href={`/${slug}/settings/billing`}
+                        onClick={() => {
+                          setOpenPopover(false);
+                          setShowUpgradePlanModal(true);
+                        }}
                       />
                     }
                   >
@@ -320,7 +325,10 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                       <TooltipContent
                         title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to create a new link."
                         cta="Upgrade to Pro"
-                        href={`/${slug}/settings/billing`}
+                        onClick={() => {
+                          setOpenPopover(false);
+                          setShowUpgradePlanModal(true);
+                        }}
                       />
                     }
                   >

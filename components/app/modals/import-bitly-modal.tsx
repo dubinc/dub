@@ -22,12 +22,12 @@ import { BitlyGroupProps } from "#/lib/types";
 import Tooltip from "#/ui/tooltip";
 import { fetcher } from "#/lib/utils";
 
-function ImportLinksModal({
-  showImportLinksModal,
-  setShowImportLinksModal,
+function ImportBitlyModal({
+  showImportBitlyModal,
+  setShowImportBitlyModal,
 }: {
-  showImportLinksModal: boolean;
-  setShowImportLinksModal: Dispatch<SetStateAction<boolean>>;
+  showImportBitlyModal: boolean;
+  setShowImportBitlyModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const { id: projectId } = useProject();
   const router = useRouter();
@@ -58,9 +58,9 @@ function ImportLinksModal({
 
   useEffect(() => {
     if (importSource) {
-      setShowImportLinksModal(true);
+      setShowImportBitlyModal(true);
     } else {
-      setShowImportLinksModal(false);
+      setShowImportBitlyModal(false);
     }
   }, [importSource]);
 
@@ -82,8 +82,8 @@ function ImportLinksModal({
 
   return (
     <Modal
-      showModal={showImportLinksModal}
-      setShowModal={setShowImportLinksModal}
+      showModal={showImportBitlyModal}
+      setShowModal={setShowImportBitlyModal}
       onClose={() => closeModal(router)}
     >
       <div className="inline-block w-full transform overflow-hidden bg-white align-middle shadow-xl transition-all sm:max-w-md sm:rounded-2xl sm:border sm:border-gray-200">
@@ -104,6 +104,10 @@ function ImportLinksModal({
             />
           </div>
           <h3 className="text-lg font-medium">Import Your Bitly Links</h3>
+          <p className="text-center text-sm text-gray-500">
+            Easily import all your existing Bitly links into Dub with just a few
+            clicks.
+          </p>
         </div>
 
         <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16">
@@ -157,7 +161,10 @@ function ImportLinksModal({
                       </Tooltip>
                     </div>
                     {bsds.map((bsd) => (
-                      <div className="flex items-center justify-between space-x-2 rounded-md border border-gray-200 bg-white px-4 py-2">
+                      <div
+                        key={bsd}
+                        className="flex items-center justify-between space-x-2 rounded-md border border-gray-200 bg-white px-4 py-2"
+                      >
                         <p className="font-medium text-gray-800">{bsd}</p>
                         <Switch
                           fn={() => {
@@ -236,23 +243,23 @@ function ImportLinksModal({
   );
 }
 
-export function useImportLinksModal() {
-  const [showImportLinksModal, setShowImportLinksModal] = useState(false);
+export function useImportBitlyModal() {
+  const [showImportBitlyModal, setShowImportBitlyModal] = useState(false);
 
-  const ImportLinksModalCallback = useCallback(() => {
+  const ImportBitlyModalCallback = useCallback(() => {
     return (
-      <ImportLinksModal
-        showImportLinksModal={showImportLinksModal}
-        setShowImportLinksModal={setShowImportLinksModal}
+      <ImportBitlyModal
+        showImportBitlyModal={showImportBitlyModal}
+        setShowImportBitlyModal={setShowImportBitlyModal}
       />
     );
-  }, [showImportLinksModal, setShowImportLinksModal]);
+  }, [showImportBitlyModal, setShowImportBitlyModal]);
 
   return useMemo(
     () => ({
-      setShowImportLinksModal,
-      ImportLinksModal: ImportLinksModalCallback,
+      setShowImportBitlyModal,
+      ImportBitlyModal: ImportBitlyModalCallback,
     }),
-    [setShowImportLinksModal, ImportLinksModalCallback],
+    [setShowImportBitlyModal, ImportBitlyModalCallback],
   );
 }
