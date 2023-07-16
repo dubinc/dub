@@ -53,7 +53,7 @@ export default function PlanUsage() {
         });
       }, 1000);
     }
-  }, [router.query.success, plan]);
+  }, [router.query.success]);
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white">
