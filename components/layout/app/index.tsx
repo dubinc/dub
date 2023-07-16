@@ -11,6 +11,7 @@ import { Crisp } from "crisp-sdk-web";
 import { useSession } from "next-auth/react";
 import ProBanner from "./pro-banner";
 import Cookies from "js-cookie";
+import { linkConstructor } from "#/lib/utils";
 
 const NavTabs = dynamic(() => import("./nav-tabs"), {
   ssr: false,
@@ -98,7 +99,11 @@ export default function AppLayout({
                       }
                       className="text-sm font-medium"
                     >
-                      {domain || "dub.sh"}/{key}
+                      {linkConstructor({
+                        domain: domain || "dub.sh",
+                        key,
+                        pretty: true,
+                      })}
                     </Link>
                   </>
                 )}

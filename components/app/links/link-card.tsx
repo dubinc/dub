@@ -15,6 +15,7 @@ import Tooltip, { TooltipContent } from "#/ui/tooltip";
 import useProject from "#/lib/swr/use-project";
 import { LinkProps } from "#/lib/types";
 import {
+  cn,
   fetcher,
   getApexDomain,
   linkConstructor,
@@ -217,11 +218,14 @@ export default function LinkCard({ props }: { props: LinkProps }) {
               ) : (
                 <a
                   onClick={(e) => {
-                    e.stopPropagation();
+                    e.stopPropagation(); // to avoid selecting the link card
                   }}
-                  className={`truncate text-sm font-semibold ${
-                    archived ? "text-gray-500" : "text-blue-800"
-                  } w-full max-w-[200px] sm:text-base`}
+                  className={cn(
+                    "w-full max-w-[170px] truncate text-sm font-semibold text-blue-800 sm:max-w-[300px] sm:text-base md:max-w-[360px] xl:max-w-[500px]",
+                    {
+                      "text-gray-500": archived,
+                    },
+                  )}
                   href={linkConstructor({ key, domain })}
                   target="_blank"
                   rel="noreferrer"
@@ -242,7 +246,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                   }}
                   className="transition-all duration-75 hover:scale-105 active:scale-100"
                 >
-                  <TagBadge {...tag} withIcon />
+                  <TagBadge {...tag} withIcon hideTextOnMobile />
                 </button>
               )}
             </div>
@@ -251,7 +255,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                 {timeAgo(createdAt)}
               </p>
               <p>•</p>
-              <p className="max-w-[200px] truncate text-sm font-medium text-gray-700 md:max-w-md xl:max-w-[30rem]">
+              <p className="max-w-[180px] truncate text-sm font-medium text-gray-700 sm:max-w-[300px] md:max-w-[360px] xl:max-w-[500px]">
                 {url}
               </p>
             </div>

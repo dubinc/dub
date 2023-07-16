@@ -72,7 +72,7 @@ export default function ProjectSelect() {
       >
         <button
           onClick={() => setOpenPopover(!openPopover)}
-          className="flex items-center justify-between rounded-lg bg-white p-1.5 text-left text-sm transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 sm:w-60"
+          className="flex items-center justify-between rounded-lg bg-white p-1.5 text-left text-sm transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200"
         >
           <div className="flex items-center space-x-3 pr-2">
             <BlurImage
@@ -85,9 +85,9 @@ export default function ProjectSelect() {
             <div
               className={`${
                 key ? "hidden" : "flex"
-              } w-28 items-center space-x-3 sm:flex sm:w-40`}
+              } items-center space-x-3 sm:flex`}
             >
-              <span className="truncate whitespace-nowrap text-sm font-medium">
+              <span className="inline-block max-w-[100px] truncate text-sm font-medium sm:max-w-[200px]">
                 {selected.name}
               </span>
               {selected.slug !== "/" && <PlanBadge plan={selected.plan} />}

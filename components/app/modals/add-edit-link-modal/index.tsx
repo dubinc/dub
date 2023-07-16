@@ -18,6 +18,7 @@ import Tooltip, { TooltipContent } from "#/ui/tooltip";
 import useProject from "#/lib/swr/use-project";
 import { LinkProps } from "#/lib/types";
 import {
+  cn,
   getApexDomain,
   getQueryString,
   getUrlWithoutUTMParams,
@@ -286,7 +287,7 @@ function AddEditLinkModal({
               width={20}
               height={20}
             />
-            <h3 className="text-lg font-medium">
+            <h3 className="max-w-sm truncate text-lg font-medium">
               {props
                 ? `Edit ${linkConstructor({
                     key: props.key,
@@ -463,39 +464,40 @@ function AddEditLinkModal({
                       </option>
                     ))}
                   </select>
-                  {props && lockKey ? (
-                    <div className="block w-full cursor-not-allowed select-none rounded-r-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-500">
-                      {props.key}
-                    </div>
-                  ) : (
-                    <input
-                      type="text"
-                      name="key"
-                      id={`key-${randomIdx}`}
-                      required
-                      pattern="[\p{L}\p{N}\p{Pd}\/]+"
-                      onInvalid={(e) => {
-                        e.currentTarget.setCustomValidity(
-                          "Only letters, numbers, '-', and '/' are allowed.",
-                        );
-                      }}
-                      autoComplete="off"
-                      className={`${
-                        keyError
-                          ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                          : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
-                      } block w-full rounded-r-md pr-10 text-sm focus:outline-none`}
-                      placeholder="github"
-                      value={key}
-                      onChange={(e) => {
-                        setKeyError(null);
-                        e.currentTarget.setCustomValidity("");
-                        setData({ ...data, key: e.target.value });
-                      }}
-                      aria-invalid="true"
-                      aria-describedby="key-error"
-                    />
-                  )}
+                  <input
+                    type="text"
+                    name="key"
+                    id={`key-${randomIdx}`}
+                    required
+                    pattern="[\p{L}\p{N}\p{Pd}\/]+"
+                    onInvalid={(e) => {
+                      e.currentTarget.setCustomValidity(
+                        "Only letters, numbers, '-', and '/' are allowed.",
+                      );
+                    }}
+                    disabled={props && lockKey}
+                    autoComplete="off"
+                    className={cn(
+                      "block w-full rounded-r-md text-sm focus:outline-none",
+                      {
+                        "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500":
+                          keyError,
+                        "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500":
+                          !keyError,
+                        "cursor-not-allowed border border-gray-300 bg-gray-100 text-gray-500":
+                          props && lockKey,
+                      },
+                    )}
+                    placeholder="github"
+                    value={key}
+                    onChange={(e) => {
+                      setKeyError(null);
+                      e.currentTarget.setCustomValidity("");
+                      setData({ ...data, key: e.target.value });
+                    }}
+                    aria-invalid="true"
+                    aria-describedby="key-error"
+                  />
                   {keyError && (
                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                       <AlertCircleFill
