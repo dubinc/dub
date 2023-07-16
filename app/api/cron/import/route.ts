@@ -12,10 +12,11 @@ const receiver = new Receiver({
 });
 
 export async function POST(req: Request) {
+  const body = await req.json();
   if (process.env.NODE_ENV === "production") {
     const isValid = await receiver.verify({
       signature: req.headers.get("Upstash-Signature") || "",
-      body: "",
+      body: JSON.stringify(body),
     });
     if (!isValid) {
       return new Response("Unauthorized", { status: 401 });
@@ -23,8 +24,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const data = await req.json();
-    const { provider, projectId, bitlyGroup, keepTags } = data;
+    const { provider, projectId, bitlyGroup, keepTags } = body;
     if (provider === "bitly") {
       const bitlyApiKey = await redis.get(`import:bitly:${projectId}`);
       let tagsToId;
@@ -67,7 +67,7 @@ export async function POST(req: Request) {
           );
       }
       await importLinksFromBitly({
-        ...data,
+        ...body,
         tagsToId,
         bitlyApiKey,
       });
