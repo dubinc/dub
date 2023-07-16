@@ -49,6 +49,10 @@ export default withProjectAuth(async (req, res, project) => {
     // create job to import links from bitly
   } else if (req.method === "POST") {
     const { selectedDomains, selectedGroupTags } = req.body;
+    console.log({
+      selectedDomains,
+      selectedGroupTags,
+    });
 
     // check if there are domains that are not in the project
     // if yes, add them to the project

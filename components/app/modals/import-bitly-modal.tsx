@@ -131,11 +131,15 @@ function ImportBitlyModal({
                       selectedDomains,
                       selectedGroupTags,
                     }),
-                  }).then(() => {
+                  }).then((res) => {
                     setImporting(false);
-                    closeModal(router);
-                    mutate(`/api/projects/${slug}/domains`);
-                    setPollLinks(true);
+                    if (res.ok) {
+                      closeModal(router);
+                      mutate(`/api/projects/${slug}/domains`);
+                      setPollLinks(true);
+                    } else {
+                      throw new Error();
+                    }
                   }),
                   {
                     loading: "Adding links to import queue...",
