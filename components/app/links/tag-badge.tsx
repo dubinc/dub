@@ -6,19 +6,17 @@ export default function TagBadge({
   name,
   color,
   withIcon,
-  hideTextOnMobile,
 }: {
   name: string;
   color: TagColorProps;
   withIcon?: boolean;
-  hideTextOnMobile?: boolean;
 }) {
   return (
     <span
       className={cn(
         "my-auto whitespace-nowrap rounded-md px-2 py-0.5 text-sm",
-        withIcon && "flex items-center space-x-1.5",
-        hideTextOnMobile && "rounded-full p-1.5",
+        withIcon &&
+          "flex items-center space-x-1.5 rounded-full p-1.5 sm:rounded-md sm:px-2 sm:py-0.5",
         color === "red" && "bg-red-100 text-red-600",
         color === "yellow" && "bg-yellow-100 text-yellow-600",
         color === "green" && "bg-green-100 text-green-600",
@@ -28,7 +26,7 @@ export default function TagBadge({
       )}
     >
       {withIcon && <Tag className="h-3 w-3" />}
-      <p {...(hideTextOnMobile && { className: "hidden sm:inline-block" })}>
+      <p {...(withIcon && { className: "hidden sm:inline-block" })}>
         {truncate(name || "", 15)}
       </p>
     </span>

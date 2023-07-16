@@ -246,7 +246,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                   }}
                   className="transition-all duration-75 hover:scale-105 active:scale-100"
                 >
-                  <TagBadge {...tag} withIcon hideTextOnMobile />
+                  <TagBadge {...tag} withIcon />
                 </button>
               )}
             </div>
