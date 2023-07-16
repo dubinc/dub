@@ -4,7 +4,7 @@ import { FAVICON_FOLDER } from "#/lib/constants";
 export default function Meta({
   title = "Dub - Link Management for Modern Marketing Teams",
   description = "Dub is an open-source link management tool for modern marketing teams to create, share, and track short links.",
-  image = "https://public.blob.vercel-storage.com/kmKY9FhOzDRAX28c/4aNzmdW-S93Bh3Z3AJMLU90iSwq7SCLuuwIrcB.png",
+  image = "https://dub.sh/_static/thumbnail.png",
 }: {
   title?: string;
   description?: string;
