@@ -1,17 +1,16 @@
 import SettingsLayout from "@/components/layout/app/settings-layout";
 import { useInviteTeammateModal } from "components/app/modals/invite-teammate-modal";
 import { useState } from "react";
-import { useRouter } from "next/router";
-import useSWR from "swr";
 import BlurImage from "#/ui/blur-image";
 import { UserProps } from "#/lib/types";
-import { fetcher, timeAgo } from "#/lib/utils";
+import { timeAgo } from "#/lib/utils";
 import Popover from "@/components/shared/popover";
 import IconMenu from "@/components/shared/icon-menu";
 import { UserMinus } from "lucide-react";
 import { ThreeDots } from "@/components/shared/icons";
 import { useRemoveTeammateModal } from "@/components/app/modals/remove-teammate-modal";
 import Badge from "#/ui/badge";
+import useUsers from "#/lib/swr/use-users";
 
 const tabs: Array<"Members" | "Invitations"> = ["Members", "Invitations"];
 
@@ -19,19 +18,11 @@ export default function ProjectSettingsPeople() {
   const { setShowInviteTeammateModal, InviteTeammateModal } =
     useInviteTeammateModal();
 
-  const router = useRouter();
-  const { slug } = router.query as { slug?: string };
   const [currentTab, setCurrentTab] = useState<"Members" | "Invitations">(
     "Members",
   );
 
-  const { data: users } = useSWR<UserProps[]>(
-    slug &&
-      (currentTab === "Members"
-        ? `/api/projects/${slug}/users`
-        : `/api/projects/${slug}/invites`),
-    fetcher,
-  );
+  const { users } = useUsers({ invites: currentTab === "Invitations" });
 
   return (
     <SettingsLayout>

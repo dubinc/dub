@@ -2,7 +2,7 @@ import Link from "next/link";
 import useSWR from "swr";
 import BlurImage from "#/ui/blur-image";
 import { CheckCircleFill, XCircleFill } from "@/components/shared/icons";
-import Tooltip, { DomainsTooltip, TooltipContent } from "#/ui/tooltip";
+import Tooltip, { DomainsTooltip } from "#/ui/tooltip";
 import { ProjectWithDomainProps } from "#/lib/types";
 import { fetcher, nFormatter } from "#/lib/utils";
 import { BarChart2, Globe, Link2 } from "lucide-react";

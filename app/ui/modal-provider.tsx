@@ -22,9 +22,11 @@ import { mutate } from "swr";
 import { useRouter } from "next/router";
 import { getQueryString } from "#/lib/utils";
 import { useUpgradePlanModal } from "@/components/app/modals/upgrade-plan-modal";
+import { useCompleteSetupModal } from "@/components/app/modals/complete-setup-modal";
 
 export const ModalContext = createContext<{
   setShowAddProjectModal: Dispatch<SetStateAction<boolean>>;
+  setShowCompleteSetupModal: Dispatch<SetStateAction<boolean>>;
   setShowAddEditDomainModal: Dispatch<SetStateAction<boolean>>;
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
   setShowUpgradePlanModal: Dispatch<SetStateAction<boolean>>;
@@ -32,6 +34,7 @@ export const ModalContext = createContext<{
   setPollLinks: Dispatch<SetStateAction<boolean>>;
 }>({
   setShowAddProjectModal: () => {},
+  setShowCompleteSetupModal: () => {},
   setShowAddEditDomainModal: () => {},
   setShowAddEditLinkModal: () => {},
   setShowUpgradePlanModal: () => {},
@@ -42,6 +45,8 @@ export const ModalContext = createContext<{
 export default function ModalProvider({ children }: { children: ReactNode }) {
   const { GoogleOauthModal, setShowGoogleOauthModal } = useGoogleOauthModal();
   const { AddProjectModal, setShowAddProjectModal } = useAddProjectModal();
+  const { CompleteSetupModal, setShowCompleteSetupModal } =
+    useCompleteSetupModal();
   const { AcceptInviteModal, setShowAcceptInviteModal } =
     useAcceptInviteModal();
   const { setShowAddEditDomainModal, AddEditDomainModal } =
@@ -100,6 +105,7 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
     <ModalContext.Provider
       value={{
         setShowAddProjectModal,
+        setShowCompleteSetupModal,
         setShowAddEditDomainModal,
         setShowAddEditLinkModal,
         setShowUpgradePlanModal,
@@ -109,6 +115,7 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
     >
       <GoogleOauthModal />
       <AddProjectModal />
+      <CompleteSetupModal />
       {error && (error.status === 409 || error.status === 410) && (
         <AcceptInviteModal />
       )}

@@ -15,6 +15,8 @@ import { CheckCircleFill } from "@/components/shared/icons";
 import { capitalize } from "#/lib/utils";
 import { PLANS } from "#/lib/stripe/utils";
 import { getStripe } from "#/lib/stripe/client";
+import Badge from "#/ui/badge";
+import Confetti from "react-dom-confetti";
 
 function UpgradePlanModal({
   showUpgradePlanModal,
@@ -27,15 +29,21 @@ function UpgradePlanModal({
 }) {
   const router = useRouter();
   const { slug } = router.query;
-  const features = [
-    "Unlimited custom domains",
-    "Unlimited team members",
-    "Unlimited link history",
-    "Track 50x more link clicks per month",
-    "Redirect your root domain",
-    "Custom QR Code logo",
-  ];
+  const [plan, setPlan] = useState<"Pro" | "Enterprise">("Pro");
   const [period, setPeriod] = useState<"monthly" | "yearly">("yearly");
+  const features = useMemo(() => {
+    return [
+      `Track ${
+        plan === "Enterprise" ? "unlimited" : "50x more"
+      } link clicks per month`,
+      "Unlimited custom domains",
+      "Unlimited team members",
+      "Unlimited link history",
+      "Redirect your root domain",
+      "Custom QR Code logo",
+      ...(plan === "Enterprise" ? ["SSO/SAML", "Priority support"] : []),
+    ];
+  }, [plan]);
   const [clicked, setClicked] = useState(false);
   return (
     <Modal
@@ -43,7 +51,7 @@ function UpgradePlanModal({
       setShowModal={setShowUpgradePlanModal}
       closeWithX={welcomeFlow}
     >
-      <div className="inline-block w-full transform overflow-hidden bg-white align-middle shadow-xl transition-all sm:max-w-md sm:rounded-2xl sm:border sm:border-gray-200">
+      <div className="inline-block w-full transform overflow-hidden bg-white align-middle shadow-xl transition-all sm:max-w-lg sm:rounded-2xl sm:border sm:border-gray-200">
         <motion.div
           variants={{
             show: {
@@ -68,13 +76,13 @@ function UpgradePlanModal({
             className="text-lg font-medium"
             variants={STAGGER_CHILD_VARIANTS}
           >
-            Upgrade to Pro
+            Upgrade to {plan}
           </motion.h3>
           <motion.p
             className="text-center text-sm text-gray-500"
             variants={STAGGER_CHILD_VARIANTS}
           >
-            Enjoy higher limits and more powerful features with our Pro plan.
+            Enjoy higher limits and extra features with our {plan} plan.
           </motion.p>
         </motion.div>
         <div className="bg-gray-50 px-4 py-8 text-left sm:px-16">
@@ -85,29 +93,39 @@ function UpgradePlanModal({
             animate="show"
           >
             <div className="mb-4">
-              <div className="mb-2 flex items-center justify-between">
+              <div className="mb-4 flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <h4 className="font-medium text-gray-900">
-                    Pro {capitalize(period)}
+                    {plan} {capitalize(period)}
                   </h4>
-                  <span className="rounded-full border border-gray-400 px-2 py-px text-sm text-gray-500">
-                    {period === "monthly" ? "$9/month" : "$90/year"}
-                  </span>
+                  <Badge
+                    text={`$${
+                      PLANS.find((p) => p.name === plan)!.price[period].amount
+                    }/${period.replace("ly", "")}`}
+                    variant="neutral"
+                    className="text-sm font-normal normal-case"
+                  />
                 </div>
+                <Confetti
+                  active={period === "yearly"}
+                  config={{ elementCount: 200, spread: 90 }}
+                />
                 <button
                   onClick={() => {
                     setPeriod(period === "monthly" ? "yearly" : "monthly");
                   }}
-                  className="text-xs text-gray-500 underline"
+                  className="text-xs text-gray-500 underline underline-offset-4 transition-colors hover:text-gray-800"
                 >
-                  Switch to {period === "monthly" ? "yearly" : "monthly"}
+                  {period === "monthly"
+                    ? "Get 2 months free 🎁"
+                    : "Switch to monthly"}
                 </button>
               </div>
               <motion.div
                 variants={{
                   show: {
                     transition: {
-                      staggerChildren: 0.05,
+                      staggerChildren: 0.08,
                     },
                   },
                 }}
@@ -128,13 +146,13 @@ function UpgradePlanModal({
               </motion.div>
             </div>
             <Button
-              text={`Upgrade to Pro ${capitalize(period)}`}
+              text={`Upgrade to ${plan} ${capitalize(period)}`}
               loading={clicked}
               onClick={() => {
                 setClicked(true);
                 fetch(
                   `/api/projects/${slug}/billing/upgrade?priceId=${
-                    PLANS.find((p) => p.slug === "pro")!.price[period].priceIds[
+                    PLANS.find((p) => p.name === plan)!.price[period].priceIds[
                       process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
                         ? "production"
                         : "test"
@@ -156,13 +174,33 @@ function UpgradePlanModal({
                   });
               }}
             />
-            {welcomeFlow && (
+            {welcomeFlow ? (
               <Link
                 href={`/${slug}`}
                 className="text-center text-xs text-gray-500 underline underline-offset-4 transition-colors hover:text-gray-800"
               >
                 Skip for now
               </Link>
+            ) : (
+              <div className="flex items-center justify-center space-x-2">
+                <button
+                  onClick={() => {
+                    setPlan(plan === "Pro" ? "Enterprise" : "Pro");
+                  }}
+                  className="text-center text-xs text-gray-500 underline-offset-4 transition-all hover:text-gray-800 hover:underline"
+                >
+                  Dub {plan === "Pro" ? "Enterprise" : "Pro"}
+                </button>
+                <p className="text-gray-500">•</p>
+                <a
+                  href="https://dub.sh/pricing"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-center text-xs text-gray-500 underline-offset-4 transition-all hover:text-gray-800 hover:underline"
+                >
+                  Compare plans
+                </a>
+              </div>
             )}
           </motion.div>
         </div>

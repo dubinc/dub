@@ -9,7 +9,7 @@ export default function useLinksCount({
 } = {}) {
   const router = useRouter();
 
-  const { data, error } = useSWR<any[]>(
+  const { data, error } = useSWR<any>(
     router.isReady &&
       `/api/links/_count${getQueryString(
         router,

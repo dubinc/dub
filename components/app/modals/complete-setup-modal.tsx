@@ -14,6 +14,8 @@ import { ExpandingArrow } from "#/ui/icons";
 import useDomains from "#/lib/swr/use-domains";
 import useLinksCount from "#/lib/swr/use-links-count";
 import { ModalContext } from "#/ui/modal-provider";
+import Link from "next/link";
+import useUsers from "#/lib/swr/use-users";
 
 function CompleteSetupModal({
   showCompleteSetupModal,
@@ -26,7 +28,9 @@ function CompleteSetupModal({
   const { slug } = router.query as { slug: string };
 
   const { verified } = useDomains();
-  const { data: count } = useLinksCount() as unknown as { data: number };
+  const { data: count } = useLinksCount();
+  const { users } = useUsers();
+  const { users: invites } = useUsers({ invites: true });
   const { setShowAddEditLinkModal } = useContext(ModalContext);
 
   const tasks = useMemo(() => {
@@ -37,14 +41,14 @@ function CompleteSetupModal({
         checked: verified,
       },
       {
-        display: "Invite your teammates",
-        cta: `/${slug}/settings/people`,
-        checked: false,
+        display: "Create or import your links",
+        cta: `/${slug}`,
+        checked: count > 0,
       },
       {
-        display: "Create or import your links",
-        cta: "create-link",
-        checked: count > 0,
+        display: "Invite your teammates",
+        cta: `/${slug}/settings/people`,
+        checked: (users && users.length > 1) || (invites && invites.length > 0),
       },
     ];
   }, [slug, verified, count]);
@@ -87,23 +91,18 @@ function CompleteSetupModal({
                   </div>
                 </div>
               );
-              if (cta === "create-link") {
-                return (
-                  <button
-                    key={display}
-                    onClick={() => {
-                      setShowCompleteSetupModal(false);
-                      setShowAddEditLinkModal(true);
-                    }}
-                  >
-                    {contents}
-                  </button>
-                );
-              }
               return (
-                <a key={display} target="_blank" rel="noreferrer" href={cta}>
+                <Link
+                  key={display}
+                  href={cta}
+                  onClick={() => {
+                    setShowCompleteSetupModal(false);
+                    display === "Create or import your links" &&
+                      setShowAddEditLinkModal(true);
+                  }}
+                >
                   {contents}
-                </a>
+                </Link>
               );
             })}
           </div>

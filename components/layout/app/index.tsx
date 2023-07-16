@@ -116,7 +116,7 @@ export default function AppLayout({
                 {plan === "free" && showProBanner === false && (
                   <button
                     onClick={() => setShowUpgradePlanModal(true)}
-                    className="ml-3"
+                    className="mb-1 ml-3 hidden sm:block"
                   >
                     <Badge
                       text="Upgrade to Pro"

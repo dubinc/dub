@@ -1,6 +1,11 @@
+import { ModalContext } from "#/ui/modal-provider";
 import Link from "next/link";
 import { NextRouter, useRouter } from "next/router";
-import { useMemo } from "react";
+import { useContext, useMemo } from "react";
+import useDomains from "#/lib/swr/use-domains";
+import useLinksCount from "#/lib/swr/use-links-count";
+import useUsers from "#/lib/swr/use-users";
+import Badge from "#/ui/badge";
 
 const TabsHelper = (router: NextRouter): { name: string; href: string }[] => {
   const { slug, key } = router.query as {
@@ -29,6 +34,7 @@ const TabsHelper = (router: NextRouter): { name: string; href: string }[] => {
 
 export default function NavTabs() {
   const router = useRouter();
+  const { slug } = router.query as { slug?: string };
   const tabs = useMemo(() => {
     if (!router.isReady) {
       return [];
@@ -37,8 +43,11 @@ export default function NavTabs() {
     }
   }, [router.query]);
 
+  const { verified, loading } = useDomains();
+  const { data: count } = useLinksCount();
+
   return (
-    <div className="-mb-0.5 flex h-12 items-center justify-start space-x-2">
+    <div className="-mb-0.5 flex h-12 items-center justify-start space-x-2 overflow-x-scroll">
       {tabs.map(({ name, href }) => (
         <Link
           key={href}
@@ -56,6 +65,37 @@ export default function NavTabs() {
           </div>
         </Link>
       ))}
+      {slug && !loading && (!verified || count === 0) && (
+        <OnboardingChecklist />
+      )}
     </div>
   );
 }
+
+const OnboardingChecklist = () => {
+  const { setShowCompleteSetupModal } = useContext(ModalContext);
+  const { verified } = useDomains();
+  const { data: count } = useLinksCount();
+  const { users } = useUsers();
+  const { users: invites } = useUsers({ invites: true });
+
+  const remainder = useMemo(() => {
+    return (
+      (verified ? 0 : 1) +
+      (count > 0 ? 0 : 1) +
+      ((users && users.length > 1) || (invites && invites.length > 0) ? 0 : 1)
+    );
+  }, [count, invites, users, verified]);
+
+  return (
+    <button
+      onClick={() => setShowCompleteSetupModal(true)}
+      className="flex items-center space-x-2 rounded-md border-b-2 border-transparent p-1 px-3 py-2 transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
+    >
+      <p className="whitespace-nowrap text-sm text-gray-600">
+        Onboarding Checklist
+      </p>
+      <Badge text={remainder.toString()} variant="blue" />
+    </button>
+  );
+};

@@ -3,9 +3,7 @@ import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import AppLayout from "components/layout/app";
 import useProject from "#/lib/swr/use-project";
-import { useContext, useEffect, useState } from "react";
-import { useCompleteSetupModal } from "@/components/app/modals/complete-setup-modal";
-import useDomains from "#/lib/swr/use-domains";
+import { useState } from "react";
 import Popover from "@/components/shared/popover";
 import IconMenu from "@/components/shared/icon-menu";
 import { ChevronDown, FilePlus2, Import } from "lucide-react";
@@ -13,33 +11,15 @@ import { useRouter } from "next/router";
 
 export default function ProjectLinks() {
   const router = useRouter();
-  const { slug, error, loading: loadingProject } = useProject();
+  const { slug } = useProject();
 
   const { AddEditLinkModal, AddEditLinkButton } = useAddEditLinkModal();
-
-  const { CompleteSetupModal, setShowCompleteSetupModal } =
-    useCompleteSetupModal();
-
-  const { verified, loading: loadingDomains } = useDomains();
-
-  useEffect(() => {
-    if (
-      !verified &&
-      !loadingProject &&
-      !loadingDomains &&
-      !error &&
-      !document.getElementById("modal-backdrop")
-    ) {
-      setShowCompleteSetupModal(true);
-    }
-  }, [verified, loadingProject, loadingDomains, error]);
 
   const [openPopover, setOpenPopover] = useState(false);
 
   return (
     <AppLayout>
       {slug && <AddEditLinkModal />}
-      {!verified && <CompleteSetupModal />}
       <div className="flex h-36 items-center border-b border-gray-200 bg-white">
         <MaxWidthWrapper>
           <div className="flex items-center justify-between">
