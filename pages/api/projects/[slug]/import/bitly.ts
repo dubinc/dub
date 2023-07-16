@@ -4,7 +4,7 @@ import prisma from "#/lib/prisma";
 import { BitlyGroupProps } from "#/lib/types";
 import { qstash, redis } from "#/lib/upstash";
 
-export default withProjectAuth(async (req, res, project, session) => {
+export default withProjectAuth(async (req, res, project) => {
   // get bitly groups and their respective domains
   if (req.method === "GET") {
     const accessToken = await redis.get(`import:bitly:${project.id}`);
@@ -105,9 +105,6 @@ export default withProjectAuth(async (req, res, project, session) => {
           }),
         ),
     );
-
-    console.log(groups);
-
-    return res.status(200).json(groups);
+    return res.status(200).json(response);
   }
 });
