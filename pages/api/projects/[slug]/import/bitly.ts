@@ -92,13 +92,20 @@ export default withProjectAuth(async (req, res, project) => {
       return result;
     }, []);
 
+    const hostname =
+      process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
+        ? "https://app.dub.sh"
+        : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
+        ? "https://preview.dub.sh"
+        : "https://067b-2600-1700-b5e4-b50-8197-b987-5375-e928.ngrok-free.app";
+
     const response = await Promise.all(
       groups
         // only add groups that have at least 1 domain selected for import
         .filter(({ domains }) => domains.length > 0)
         .map(({ bitlyGroup, domains, keepTags }) =>
           qstash.publishJSON({
-            url: "https://preview.dub.sh/api/cron/import",
+            url: `${hostname}/api/cron/import`,
             body: {
               provider: "bitly",
               projectId: project.id,

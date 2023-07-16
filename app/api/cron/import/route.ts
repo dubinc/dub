@@ -13,7 +13,7 @@ const receiver = new Receiver({
 
 export async function POST(req: Request) {
   const body = await req.json();
-  if (process.env.NODE_ENV === "production") {
+  if (process.env.VERCEL === "1") {
     const isValid = await receiver.verify({
       signature: req.headers.get("Upstash-Signature") || "",
       body: JSON.stringify(body),

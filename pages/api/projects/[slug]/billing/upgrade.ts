@@ -1,4 +1,5 @@
 import { withProjectAuth } from "#/lib/auth";
+import { APP_DOMAIN } from "#/lib/constants";
 import { stripe } from "#/lib/stripe";
 
 export default withProjectAuth(async (req, res, project, session) => {
@@ -9,16 +10,8 @@ export default withProjectAuth(async (req, res, project, session) => {
     const stripeSession = await stripe.checkout.sessions.create({
       customer_email: session.user.email,
       billing_address_collection: "required",
-      success_url: `${
-        process.env.VERCEL === "1"
-          ? "https://app.dub.sh"
-          : "http://app.localhost:3000"
-      }/${slug}/settings/billing?success=true`,
-      cancel_url: `${
-        process.env.VERCEL === "1"
-          ? "https://app.dub.sh"
-          : "http://app.localhost:3000"
-      }/${slug}/settings/billing`,
+      success_url: `${APP_DOMAIN}/${slug}/settings/billing?success=true`,
+      cancel_url: `${APP_DOMAIN}/${slug}/settings/billing`,
       line_items: [{ price: priceId, quantity: 1 }],
       automatic_tax: {
         enabled: true,

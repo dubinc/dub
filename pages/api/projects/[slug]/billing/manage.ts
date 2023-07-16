@@ -1,4 +1,5 @@
 import { withProjectAuth } from "#/lib/auth";
+import { APP_DOMAIN } from "#/lib/constants";
 import { stripe } from "#/lib/stripe";
 
 export default withProjectAuth(async (req, res, project) => {
@@ -10,11 +11,7 @@ export default withProjectAuth(async (req, res, project) => {
     }
     const { url } = await stripe.billingPortal.sessions.create({
       customer: project.stripeId,
-      return_url: `${
-        process.env.VERCEL === "1"
-          ? "https://app.dub.sh"
-          : "http://app.localhost:3000"
-      }/${slug}/settings/billing`,
+      return_url: `${APP_DOMAIN}/${slug}/settings/billing`,
     });
     return res.status(200).json(url);
   } else {
