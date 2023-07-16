@@ -1,5 +1,5 @@
 import { log } from "#/lib/utils";
-import { importLinksFromBitly } from "#/lib/cron/import";
+import { importLinksFromBitly } from "./utils";
 import { redis } from "#/lib/upstash";
 import { NextResponse } from "next/server";
 import { Receiver } from "@upstash/qstash";
