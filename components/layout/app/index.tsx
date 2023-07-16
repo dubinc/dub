@@ -13,6 +13,7 @@ import ProBanner from "./pro-banner";
 import Cookies from "js-cookie";
 import { ModalContext } from "#/ui/modal-provider";
 import Badge from "#/ui/badge";
+import { linkConstructor } from "#/lib/utils";
 
 const NavTabs = dynamic(() => import("./nav-tabs"), {
   ssr: false,
@@ -104,7 +105,11 @@ export default function AppLayout({
                       }
                       className="text-sm font-medium"
                     >
-                      {domain || "dub.sh"}/{key}
+                      {linkConstructor({
+                        domain: domain || "dub.sh",
+                        key,
+                        pretty: true,
+                      })}
                     </Link>
                   </>
                 )}
