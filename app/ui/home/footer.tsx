@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Github, LinkedIn, Logo, Twitter } from "@/components/shared/icons";
 import { useParams } from "next/navigation";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
+import va from "@vercel/analytics";
 
 const navigation = {
   product: [{ name: "Pricing", href: "/pricing" }],
@@ -19,16 +20,24 @@ export default function Footer() {
   const { domain = "dub.sh" } = useParams() as { domain: string };
 
   const createHref = (href: string) =>
-    domain === "dub.sh"
-      ? href
-      : `https://dub.sh${href}?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`;
+    domain === "dub.sh" ? href : `https://dub.sh${href}`;
 
   return (
     <footer className="z-10 border-t border-gray-200 bg-white/50 py-8 backdrop-blur-lg">
       <MaxWidthWrapper className="pt-10">
         <div className="xl:grid xl:grid-cols-5 xl:gap-8">
           <div className="space-y-8 xl:col-span-2">
-            <Link href={createHref("/")}>
+            <Link
+              href={createHref("/")}
+              {...(domain !== "dub.sh" && {
+                onClick: () => {
+                  va.track("Referred from custom domain", {
+                    domain,
+                    medium: `footer item (logo)`,
+                  });
+                },
+              })}
+            >
               <span className="sr-only">Dub.sh Logo</span>
               <Logo className="h-7 w-7 text-gray-600" />
             </Link>
@@ -77,6 +86,14 @@ export default function Footer() {
                     <li key={item.name}>
                       <Link
                         href={createHref(item.href)}
+                        {...(domain !== "dub.sh" && {
+                          onClick: () => {
+                            va.track("Referred from custom domain", {
+                              domain,
+                              medium: `footer item (${item.name})`,
+                            });
+                          },
+                        })}
                         className="text-sm text-gray-500 hover:text-gray-900"
                       >
                         {item.name}
@@ -92,6 +109,14 @@ export default function Footer() {
                     <li key={item.name}>
                       <Link
                         href={createHref(item.href)}
+                        {...(domain !== "dub.sh" && {
+                          onClick: () => {
+                            va.track("Referred from custom domain", {
+                              domain,
+                              medium: `footer item (${item.name})`,
+                            });
+                          },
+                        })}
                         className="text-sm text-gray-500 hover:text-gray-900"
                       >
                         {item.name}
@@ -109,6 +134,14 @@ export default function Footer() {
                     <li key={item.name}>
                       <Link
                         href={createHref(item.href)}
+                        {...(domain !== "dub.sh" && {
+                          onClick: () => {
+                            va.track("Referred from custom domain", {
+                              domain,
+                              medium: `footer item (${item.name})`,
+                            });
+                          },
+                        })}
                         className="text-sm text-gray-500 hover:text-gray-900"
                       >
                         {item.name}
@@ -124,6 +157,14 @@ export default function Footer() {
                     <li key={item.name}>
                       <Link
                         href={createHref(item.href)}
+                        {...(domain !== "dub.sh" && {
+                          onClick: () => {
+                            va.track("Referred from custom domain", {
+                              domain,
+                              medium: `footer item (${item.name})`,
+                            });
+                          },
+                        })}
                         className="text-sm text-gray-500 hover:text-gray-900"
                       >
                         {item.name}

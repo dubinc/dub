@@ -6,6 +6,8 @@ import { useParams, useSelectedLayoutSegment } from "next/navigation";
 import useScroll from "#/lib/hooks/use-scroll";
 import { cn } from "#/lib/utils";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
+import { APP_DOMAIN } from "#/lib/constants";
+import va from "@vercel/analytics";
 
 const navItems = ["pricing", "changelog"];
 
@@ -28,11 +30,15 @@ export default function Nav() {
       <MaxWidthWrapper>
         <div className="flex h-14 items-center justify-between">
           <Link
-            href={
-              domain === "dub.sh"
-                ? "/"
-                : `https://dub.sh?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`
-            }
+            href={domain === "dub.sh" ? "/" : `https://dub.sh`}
+            {...(domain !== "dub.sh" && {
+              onClick: () => {
+                va.track("Referred from custom domain", {
+                  domain,
+                  medium: "logo",
+                });
+              },
+            })}
           >
             <Image
               src="/_static/logotype.svg"
@@ -48,10 +54,16 @@ export default function Nav() {
               <Link
                 key={item}
                 href={
-                  domain === "dub.sh"
-                    ? `/${item}`
-                    : `https://dub.sh/${item}?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`
+                  domain === "dub.sh" ? `/${item}` : `https://dub.sh/${item}`
                 }
+                {...(domain !== "dub.sh" && {
+                  onClick: () => {
+                    va.track("Referred from custom domain", {
+                      domain,
+                      medium: `navbar item (${item})`,
+                    });
+                  },
+                })}
                 className={`rounded-md text-sm font-medium capitalize ${
                   segment === item ? "text-black" : "text-gray-500"
                 } transition-colors ease-out hover:text-black`}
@@ -60,21 +72,29 @@ export default function Nav() {
               </Link>
             ))}
             <Link
-              href={
-                process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-                  ? "https://app.dub.sh/login"
-                  : "http://app.localhost:3000/login"
-              }
+              href={`${APP_DOMAIN}/login`}
+              {...(domain !== "dub.sh" && {
+                onClick: () => {
+                  va.track("Referred from custom domain", {
+                    domain,
+                    medium: `navbar item (login)`,
+                  });
+                },
+              })}
               className="rounded-md text-sm font-medium text-gray-500 transition-colors ease-out hover:text-black"
             >
               Log in
             </Link>
             <Link
-              href={
-                process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-                  ? "https://app.dub.sh/register"
-                  : "http://app.localhost:3000/register"
-              }
+              href={`${APP_DOMAIN}/register`}
+              {...(domain !== "dub.sh" && {
+                onClick: () => {
+                  va.track("Referred from custom domain", {
+                    domain,
+                    medium: `navbar item (signup)`,
+                  });
+                },
+              })}
               className="rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
             >
               Sign Up
