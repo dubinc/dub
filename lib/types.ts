@@ -101,3 +101,9 @@ export interface DomainProps {
   target?: string;
   type: "redirect" | "rewrite";
 }
+
+export interface BitlyGroupProps {
+  guid: string;
+  bsds: string[]; // custom domains
+  tags: string[];
+}

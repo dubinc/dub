@@ -27,7 +27,7 @@ export default function TagBadge({
     >
       {withIcon && <Tag className="h-3 w-3" />}
       <p {...(withIcon && { className: "hidden sm:inline-block" })}>
-        {truncate(name || "", 15)}
+        {truncate(name || "", 24)}
       </p>
     </span>
   );

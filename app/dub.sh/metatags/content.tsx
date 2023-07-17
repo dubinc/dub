@@ -130,7 +130,7 @@ export default function MetatagsContent() {
         </span>
       </button>
 
-      <pre className="overflow-auto rounded-md border border-gray-400 bg-stone-800 p-5 text-left">
+      <pre className="overflow-auto rounded-md border border-gray-400 bg-gray-800 p-5 text-left">
         <code className="text-xs text-white">
           {JSON.stringify(
             {

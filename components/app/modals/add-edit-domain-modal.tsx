@@ -3,6 +3,7 @@ import {
   Dispatch,
   SetStateAction,
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useState,
@@ -20,6 +21,7 @@ import { SWIPE_REVEAL_ANIMATION_SETTINGS } from "#/lib/constants";
 import Switch from "#/ui/switch";
 import Button from "#/ui/button";
 import { toast } from "sonner";
+import { ModalContext } from "#/ui/modal-provider";
 
 function AddEditDomainModal({
   showAddEditDomainModal,
@@ -33,6 +35,7 @@ function AddEditDomainModal({
   const router = useRouter();
   const { slug } = router.query;
   const { logo, plan } = useProject();
+  const { setShowUpgradePlanModal } = useContext(ModalContext);
 
   const [data, setData] = useState<DomainProps>(
     props || {
@@ -207,7 +210,7 @@ function AddEditDomainModal({
                   pattern="[[\p{Letter}\p{Mark}\d-.]+"
                   className={`${
                     domainError
-                      ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500 pr-10"
+                      ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                       : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
                   } block w-full rounded-md text-sm focus:outline-none`}
                   placeholder="dub.sh"
@@ -273,7 +276,10 @@ function AddEditDomainModal({
                   <TooltipContent
                     title="You can't configure a custom landing page on a free plan. Upgrade to a Pro plan to proceed."
                     cta="Upgrade to Pro"
-                    href={`/${slug}/settings/billing`}
+                    onClick={() => {
+                      setShowAddEditDomainModal(false);
+                      setShowUpgradePlanModal(true);
+                    }}
                   />
                 }
                 fullWidth

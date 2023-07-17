@@ -22,7 +22,8 @@ export default function Toggle({ atModalTop }: { atModalTop?: boolean }) {
   const { slug: projectSlug } = router.query as { slug?: string };
 
   const { basePath, domain, interval, key } = useContext(StatsContext);
-  const { setShowAddProjectModal } = useContext(ModalContext);
+  const { setShowAddProjectModal, setShowUpgradePlanModal } =
+    useContext(ModalContext);
 
   const atTop = useScroll(80) || atModalTop;
   const [openDatePopover, setOpenDatePopover] = useState(false);
@@ -71,14 +72,14 @@ export default function Toggle({ atModalTop }: { atModalTop?: boolean }) {
                           cta={
                             projectSlug ? "Upgrade to Pro" : "Create Project"
                           }
-                          {...(projectSlug
-                            ? { href: `/${projectSlug}/settings/billing` }
-                            : {
-                                onClick: () => {
-                                  setShowAddProjectModal(true);
-                                  setOpenDatePopover(false);
-                                },
-                              })}
+                          onClick={() => {
+                            setOpenDatePopover(false);
+                            if (projectSlug) {
+                              setShowUpgradePlanModal(true);
+                            } else {
+                              setShowAddProjectModal(true);
+                            }
+                          }}
                         />
                       }
                     >

@@ -110,13 +110,12 @@ export default function Tooltip({
           </TooltipPrimitive.Trigger>
           <TooltipPrimitive.Portal>
             <TooltipPrimitive.Content
-              sideOffset={4}
+              sideOffset={8}
               side="top"
-              className="z-50 hidden animate-slide-up-fade items-center overflow-hidden rounded-md border border-gray-200 bg-white drop-shadow-lg sm:block"
+              className="z-50 hidden animate-slide-up-fade items-center overflow-hidden rounded-md border border-gray-100 bg-white shadow-md sm:block"
             >
-              <TooltipPrimitive.Arrow className="fill-current text-white" />
               {typeof content === "string" ? (
-                <div className="p-4">
+                <div className="px-4 py-2">
                   <span className="block max-w-xs text-center text-sm text-gray-700">
                     {content}
                   </span>
@@ -124,7 +123,6 @@ export default function Tooltip({
               ) : (
                 content
               )}
-              <TooltipPrimitive.Arrow className="fill-current text-white" />
             </TooltipPrimitive.Content>
           </TooltipPrimitive.Portal>
         </TooltipPrimitive.Root>

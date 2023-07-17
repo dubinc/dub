@@ -14,7 +14,7 @@ function MyApp({
 }: AppProps<{ session: Session }>) {
   return (
     <SessionProvider session={session}>
-      <Toaster />
+      <Toaster closeButton />
       <ModalProvider>
         <main className={cn(satoshi.variable, inter.variable)}>
           <Component {...pageProps} />

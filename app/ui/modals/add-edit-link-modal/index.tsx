@@ -12,6 +12,7 @@ import {
   Suspense,
   UIEvent,
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useState,
@@ -44,6 +45,7 @@ import { toast } from "sonner";
 import va from "@vercel/analytics";
 import punycode from "punycode/";
 import Button from "#/ui/button";
+import { ModalContext } from "#/ui/modal-provider";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
@@ -563,6 +565,7 @@ function AddEditLinkButton({
   const { slug } = useParams() as { slug?: string };
 
   const { exceededUsage } = useProject();
+  const { setShowUpgradePlanModal } = useContext(ModalContext);
 
   const onKeyDown = useCallback((e: KeyboardEvent) => {
     const target = e.target as HTMLElement;
@@ -595,7 +598,7 @@ function AddEditLinkButton({
         <TooltipContent
           title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
           cta="Upgrade to Pro"
-          href={`/${slug}/settings/billing`}
+          onClick={() => setShowUpgradePlanModal(true)}
         />
       }
     >

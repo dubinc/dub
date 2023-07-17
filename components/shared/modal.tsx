@@ -15,6 +15,7 @@ export default function Modal({
   setShowModal,
   bgColor = "bg-white",
   closeWithX,
+  onClose,
   hideBackdrop,
   mobileOnly,
 }: {
@@ -23,6 +24,7 @@ export default function Modal({
   setShowModal: Dispatch<SetStateAction<boolean>>;
   bgColor?: string;
   closeWithX?: boolean;
+  onClose?: () => void;
   hideBackdrop?: boolean;
   mobileOnly?: boolean;
 }) {
@@ -35,9 +37,10 @@ export default function Modal({
     (closeWithX?: boolean) => {
       if (closeWithX) {
         return;
-      } else {
-        setShowModal(false);
+      } else if (onClose) {
+        onClose();
       }
+      setShowModal(false);
     },
     [key, router, setShowModal],
   );
