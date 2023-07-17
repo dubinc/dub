@@ -4,6 +4,7 @@ import { Metadata } from "next";
 import { NextRouter } from "next/router";
 import ms from "ms";
 import { customAlphabet } from "nanoid";
+import slugify from "@sindresorhus/slugify";
 import {
   SPECIAL_APEX_DOMAINS,
   ccTLDs,
@@ -202,10 +203,7 @@ export const getFirstAndLastDay = (day: number) => {
 };
 
 export const generateDomainFromName = (name: string) => {
-  const normalizedName = name
-    .toLowerCase()
-    .trim()
-    .replace(/[\W_]+/g, "");
+  const normalizedName = slugify(name, { separator: "" });
   if (normalizedName.length < 3) {
     return "";
   }

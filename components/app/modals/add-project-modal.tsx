@@ -14,6 +14,7 @@ import BlurImage from "#/ui/blur-image";
 import { AlertCircleFill } from "@/components/shared/icons";
 import Modal from "@/components/shared/modal";
 import { generateDomainFromName } from "#/lib/utils";
+import slugify from "@sindresorhus/slugify";
 import va from "@vercel/analytics";
 import Button from "#/ui/button";
 import { toast } from "sonner";
@@ -73,10 +74,7 @@ function AddProjectModalHelper({
     setDomainError(null);
     setData((prev) => ({
       ...prev,
-      slug: name
-        .toLowerCase()
-        .trim()
-        .replace(/[\W_]+/g, "-"),
+      slug: slugify(name),
       domain: generateDomainFromName(name),
     }));
   }, [name]);
