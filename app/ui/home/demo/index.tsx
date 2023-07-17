@@ -1,43 +1,43 @@
 "use client";
 
 import { useState } from "react";
+import { experimental_useFormStatus as useFormStatus } from "react-dom";
 import { motion } from "framer-motion";
 import LinkCard from "#/ui/home/link-card";
 import PlaceholderCard from "#/ui/home/placeholder-card";
-import { LoadingDots } from "#/ui/icons";
+import { LoadingSpinner } from "#/ui/icons";
 import { Link2 } from "lucide-react";
 import Tooltip, { TooltipContent } from "#/ui/tooltip";
 import { FRAMER_MOTION_LIST_ITEM_VARIANTS } from "#/lib/constants";
 import useLocalStorage from "#/lib/hooks/use-local-storage";
 import { SimpleLinkProps } from "#/lib/types";
 import { toast } from "sonner";
+import { createLink } from "./action";
 
-const Demo = () => {
-  const [saving, setSaving] = useState(false);
-  const [url, setUrl] = useState("");
+export default function Demo() {
   const [hashes, setHashes] = useLocalStorage<SimpleLinkProps[]>("hashes", []);
   const [showDefaultLink, setShowDefaultLink] = useState(true);
 
   return (
     <div className="mx-auto w-full max-w-md px-2.5 sm:px-0">
       <form
-        onSubmit={async (e) => {
-          e.preventDefault();
-          setSaving(true);
-          fetch(`/api/edge/links?url=${encodeURIComponent(url)}`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }).then(async (response) => {
-            setSaving(false);
-            if (response.ok) {
-              const json = await response.json();
-              setHashes([...hashes, json]);
-              setUrl("");
+        action={(data) => {
+          createLink(data).then((res) => {
+            if (res.error) {
+              toast.error(res.error);
+            } else if (!res.key || !res.url) {
+              toast.error("Something went wrong. Please try again.");
+            } else {
+              setHashes([
+                ...hashes,
+                {
+                  key: res.key,
+                  url: res.url,
+                },
+              ]);
               // auto copy to clipboard
               navigator.clipboard
-                .writeText(`https://dub.sh/${json.key}`)
+                .writeText(`https://dub.sh/${res.key}`)
                 .then(() => {
                   toast.success("Copied shortlink to clipboard!");
                 });
@@ -69,26 +69,14 @@ const Demo = () => {
           <div className="relative flex items-center">
             <Link2 className="absolute inset-y-0 left-0 my-2 ml-3 w-5 text-gray-400" />
             <input
+              name="url"
               type="url"
               placeholder="Shorten your link"
-              value={url}
-              onInput={(e) => {
-                setUrl((e.target as HTMLInputElement).value);
-              }}
+              autoComplete="off"
               required
               className="peer block w-full rounded-md border border-gray-200 bg-white p-2 pl-10 pr-12 text-sm shadow-lg focus:border-black focus:outline-none focus:ring-0"
             />
-            <button
-              type="submit"
-              disabled={saving}
-              className={`${
-                saving
-                  ? "cursor-not-allowed"
-                  : "hover:border-gray-700 hover:text-gray-700 peer-focus:border-gray-700 peer-focus:text-gray-700"
-              } absolute inset-y-0 right-0 my-1.5 mr-1.5 flex w-10 items-center justify-center rounded border border-gray-200 font-sans text-sm font-medium text-gray-400`}
-            >
-              {saving ? <LoadingDots color="#e5e7eb" /> : <p>↵</p>}
-            </button>
+            <FormButton />
           </div>
         )}
       </form>
@@ -149,6 +137,21 @@ const Demo = () => {
       </motion.ul>
     </div>
   );
-};
+}
 
-export default Demo;
+const FormButton = () => {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className={`${
+        pending
+          ? "cursor-not-allowed bg-gray-100"
+          : "hover:border-gray-700 hover:text-gray-700 peer-focus:text-gray-700"
+      } absolute inset-y-0 right-0 my-1.5 mr-1.5 flex w-10 items-center justify-center rounded border border-gray-200 font-sans text-sm font-medium text-gray-400`}
+    >
+      {pending ? <LoadingSpinner className="h-4 w-4" /> : <p>↵</p>}
+    </button>
+  );
+};
