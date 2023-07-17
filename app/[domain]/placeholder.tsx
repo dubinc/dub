@@ -8,6 +8,7 @@ import { STAGGER_CHILD_VARIANTS } from "#/lib/constants";
 import Spline from "@splinetool/react-spline";
 import { InlineSnippet } from "@/components/app/domains/domain-configuration";
 import { useParams } from "next/navigation";
+import va from "@vercel/analytics";
 
 export default function PlaceholderContent() {
   const { domain } = useParams() as { domain: string };
@@ -65,7 +66,13 @@ export default function PlaceholderContent() {
               <InlineSnippet>{domain}</InlineSnippet> is a custom domain on{" "}
               <a
                 className="bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text font-semibold text-transparent decoration-rose-600 hover:underline"
-                href={`https://dub.sh?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`}
+                href="https://dub.sh"
+                onClick={() =>
+                  va.track("Referred from custom domain", {
+                    domain,
+                    medium: "text",
+                  })
+                }
               >
                 Dub
               </a>{" "}
@@ -74,7 +81,13 @@ export default function PlaceholderContent() {
             </motion.p>
             <motion.a
               variants={STAGGER_CHILD_VARIANTS}
-              href={`https://dub.sh?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`}
+              href="https://dub.sh"
+              onClick={() =>
+                va.track("Referred from custom domain", {
+                  domain,
+                  medium: "button",
+                })
+              }
               className="rounded-full bg-gray-800 px-10 py-2 font-medium text-white transition-colors hover:bg-black"
             >
               Create Your Free Branded Link
