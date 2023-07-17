@@ -11,7 +11,7 @@ export const getLinkViaEdge = async (domain: string, key: string) => {
 
   const { rows } =
     (await conn.execute(
-      "SELECT `key`, url, clicks, userId, publicStats FROM Link WHERE domain = ? AND `key` = ?",
+      "SELECT `key`, url, proxy, title, description, image, clicks, userId, publicStats FROM Link WHERE domain = ? AND `key` = ?",
       [domain, key],
     )) || {};
 
@@ -19,6 +19,10 @@ export const getLinkViaEdge = async (domain: string, key: string) => {
     ? (rows[0] as {
         key: string;
         url: string;
+        proxy: number;
+        title: string;
+        description: string;
+        image: string;
         clicks: number;
         userId: number;
         publicStats: number;

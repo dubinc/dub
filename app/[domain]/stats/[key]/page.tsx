@@ -14,7 +14,7 @@ export async function generateMetadata({
   const data = await getLinkViaEdge(params.domain, params.key);
 
   // if the link doesn't exist or is explicitly private (publicStats === false)
-  if (!data || data?.publicStats === 0) {
+  if (!data || data.publicStats === 0) {
     return;
   }
 
@@ -34,7 +34,7 @@ export default async function StatsPage({
 }) {
   const data = await getLinkViaEdge(params.domain, params.key);
 
-  if (!data || data?.publicStats === 0) {
+  if (!data || data.publicStats === 0) {
     notFound();
   }
 

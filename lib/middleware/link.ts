@@ -44,7 +44,7 @@ export default async function LinkMiddleware(
     const isBot = detectBot(req);
     if (isBot && proxy) {
       // rewrite to proxy page (/_proxy/[domain]/[key]) if it's a bot
-      return NextResponse.rewrite(new URL(`/_proxy/${domain}/${key}`, req.url));
+      return NextResponse.rewrite(new URL(`/proxy/${domain}/${key}`, req.url));
     } else if (ios && userAgent(req).os?.name === "iOS") {
       // redirect to iOS link if it is specified and the user is on an iOS device
       return NextResponse.redirect(getFinalUrl(ios, { req }), REDIRECT_HEADERS);
