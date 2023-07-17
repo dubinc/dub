@@ -149,6 +149,10 @@ export const timeAgo = (timestamp?: Date): string => {
     return new Date(timestamp).toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
+      year:
+        new Date(timestamp).getFullYear() !== new Date().getFullYear()
+          ? "numeric"
+          : undefined,
     });
   }
   return ms(diff);
