@@ -3,28 +3,35 @@ import Stats from "#/ui/stats";
 import { Suspense } from "react";
 import { getLinkViaEdge } from "#/lib/planetscale";
 import { constructMetadata } from "#/lib/utils";
+import { redis } from "#/lib/upstash";
 
 export const runtime = "edge";
 
 export async function generateMetadata({
   params,
 }: {
-  params: { domain: string; key: string };
+  params: { key: string };
 }) {
-  const data = await getLinkViaEdge(params.domain, params.key);
+  if (params.key !== "github") {
+    const data = await getLinkViaEdge("dub.sh", params.key);
 
-  // if the link is explicitly private (publicStats === false)
-  // (we allow !data because that means it's an ephemeral dub.sh demo link that doesn't exist in the db)
-  if (data?.publicStats === 0) {
-    return;
+    // if the link doesn't exist in MySQL DB
+    if (!data) {
+      // check if it's an ephemeral demo link in Redis
+      const ephemeralLink = await redis.get(`dub.sh:${params.key}`);
+      if (!ephemeralLink) {
+        return;
+      }
+      // if the link is explicitly private (publicStats === false)
+    } else if (data?.publicStats === 0) {
+      return;
+    }
   }
 
   return constructMetadata({
-    title: `Stats for ${params.domain}/${params.key} - Dub`,
-    description: `Stats page for ${params.domain}/${params.key}${
-      data?.url ? `, which redirects to ${data.url}` : ""
-    }.`,
-    image: `https://${params.domain}/api/og/stats?domain=${params.domain}&key=${params.key}`,
+    title: `Stats for dub.sh/${params.key} - Dub`,
+    description: `Dub is an open-source link management tool for modern marketing teams to create, share, and track short links.`,
+    image: `https://dub.sh/api/og/stats?domain=dub.sh&key=${params.key}`,
   });
 }
 
@@ -40,18 +47,24 @@ export async function generateStaticParams() {
 export default async function StatsPage({
   params,
 }: {
-  params: { domain: string; key: string };
+  params: { key: string };
 }) {
-  const data = await getLinkViaEdge(params.domain, params.key);
-
-  if (data?.publicStats === 0) {
-    notFound();
+  if (params.key !== "github") {
+    const data = await getLinkViaEdge("dub.sh", params.key);
+    if (!data) {
+      const ephemeralLink = await redis.get(`dub.sh:${params.key}`);
+      if (!ephemeralLink) {
+        notFound();
+      }
+    } else if (data?.publicStats === 0) {
+      notFound();
+    }
   }
 
   return (
     <div className="bg-gray-50">
       <Suspense fallback={<div className="h-screen w-full bg-gray-50" />}>
-        <Stats staticDomain={params.domain} />
+        <Stats staticDomain="dub.sh" />
       </Suspense>
     </div>
   );
