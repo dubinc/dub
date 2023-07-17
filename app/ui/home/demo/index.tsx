@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { experimental_useFormStatus as useFormStatus } from "react-dom";
 import { motion } from "framer-motion";
 import LinkCard from "#/ui/home/link-card";
@@ -15,12 +15,14 @@ import { toast } from "sonner";
 import { createLink } from "./action";
 
 export default function Demo() {
+  const formRef = useRef<HTMLFormElement>(null);
   const [hashes, setHashes] = useLocalStorage<SimpleLinkProps[]>("hashes", []);
   const [showDefaultLink, setShowDefaultLink] = useState(true);
 
   return (
     <div className="mx-auto w-full max-w-md px-2.5 sm:px-0">
       <form
+        ref={formRef}
         action={(data) => {
           createLink(data).then((res) => {
             if (res.error) {
@@ -35,12 +37,8 @@ export default function Demo() {
                   url: res.url,
                 },
               ]);
-              // auto copy to clipboard
-              navigator.clipboard
-                .writeText(`https://dub.sh/${res.key}`)
-                .then(() => {
-                  toast.success("Copied shortlink to clipboard!");
-                });
+              toast.success("Successfully shortened link!");
+              formRef.current?.reset();
             }
           });
         }}
