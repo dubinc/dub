@@ -2,7 +2,12 @@ import { addDomainToVercel } from "#/lib/api/domains";
 import { withProjectAuth } from "#/lib/auth";
 import prisma from "#/lib/prisma";
 import { BitlyGroupProps } from "#/lib/types";
-import { qstash, redis } from "#/lib/upstash";
+import { redis } from "#/lib/upstash";
+import { Client } from "@upstash/qstash";
+
+const qstash = new Client({
+  token: process.env.QSTASH_TOKEN || "",
+});
 
 export default withProjectAuth(async (req, res, project) => {
   // get bitly groups and their respective domains

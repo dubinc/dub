@@ -1,7 +1,6 @@
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { nanoid } from "#/lib/utils";
-import { Client } from "@upstash/qstash";
 
 // Initiate Redis instance by connecting to REST URL
 export const redis = new Redis({
@@ -32,10 +31,6 @@ export const ratelimit = (
         limit: () => ({ success: true }),
       };
 };
-
-export const qstash = new Client({
-  token: process.env.QSTASH_TOKEN || "",
-});
 
 // only for dub.sh public demo
 export async function setRandomKey(
