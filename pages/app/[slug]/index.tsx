@@ -26,10 +26,10 @@ export default function ProjectLinks() {
             <h1 className="text-2xl text-gray-600">Links</h1>
             <div className="flex space-x-2">
               <AddEditLinkButton />
-              <Popover
+              {/* <Popover
                 content={
                   <div className="w-full p-2 md:w-52">
-                    {/* <button
+                    <button
                       onClick={() => {}}
                       className="flex w-full items-center justify-between space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
                     >
@@ -37,7 +37,7 @@ export default function ProjectLinks() {
                         text="Bulk create links"
                         icon={<FilePlus2 className="h-4 w-4" />}
                       />
-                    </button> */}
+                    </button>
                     <button
                       onClick={() => {
                         setOpenPopover(false);
@@ -71,7 +71,7 @@ export default function ProjectLinks() {
                     } transition-all group-hover:text-gray-700`}
                   />
                 </button>
-              </Popover>
+              </Popover> */}
             </div>
           </div>
         </MaxWidthWrapper>
