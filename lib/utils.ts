@@ -20,11 +20,13 @@ export function constructMetadata({
   title = "Dub - Link Management for Modern Marketing Teams",
   description = "Dub is an open-source link management tool for modern marketing teams to create, share, and track short links.",
   image = "https://dub.sh/_static/thumbnail.png",
+  icons = "/favicon.ico",
 }: {
   title?: string;
   description?: string;
   image?: string;
-}): Metadata {
+  icons?: string;
+} = {}): Metadata {
   return {
     title,
     description,
@@ -44,7 +46,7 @@ export function constructMetadata({
       images: [image],
       creator: "@dubdotsh",
     },
-    icons: "/favicon.ico",
+    icons,
     metadataBase: new URL("https://dub.sh"),
     themeColor: "#FFF",
   };
