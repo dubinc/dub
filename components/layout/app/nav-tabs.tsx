@@ -47,7 +47,7 @@ export default function NavTabs() {
   const { data: count } = useLinksCount();
 
   return (
-    <div className="-mb-0.5 flex h-12 items-center justify-start space-x-2 overflow-x-scroll">
+    <div className="-mb-0.5 flex h-12 items-center justify-start space-x-2 overflow-x-auto scrollbar-hide">
       {tabs.map(({ name, href }) => (
         <Link
           key={href}
