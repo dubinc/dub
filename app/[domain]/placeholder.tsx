@@ -22,10 +22,10 @@ export default function PlaceholderContent() {
   const [showText] = useDebounce(loading ? false : true, 800);
 
   return (
-    <div className="flex h-screen flex-col items-center">
+    <>
       <Background />
       <motion.div
-        className="z-10"
+        className="z-10 mb-20"
         exit={{ opacity: 0, scale: 0.95 }}
         transition={{ duration: 0.5, type: "spring" }}
       >
@@ -40,61 +40,59 @@ export default function PlaceholderContent() {
             scene="https://prod.spline.design/cJkq6hsiUPNRHeMf/scene.splinecode"
           />
         </div>
-        {showText && (
-          <motion.div
-            variants={{
-              show: {
-                transition: {
-                  staggerChildren: 0.3,
-                },
+        <motion.div
+          variants={{
+            show: {
+              transition: {
+                staggerChildren: 0.3,
               },
-            }}
-            initial="hidden"
-            animate="show"
-            className="mx-5 flex flex-col items-center space-y-10 text-center sm:mx-auto"
+            },
+          }}
+          initial="hidden"
+          animate={showText ? "show" : "hidden"}
+          className="mx-5 flex flex-col items-center space-y-10 text-center sm:mx-auto"
+        >
+          <motion.h1
+            className="font-display text-4xl font-bold text-gray-800 transition-colors sm:text-5xl"
+            variants={STAGGER_CHILD_VARIANTS}
           >
-            <motion.h1
-              className="font-display text-4xl font-bold text-gray-800 transition-colors sm:text-5xl"
-              variants={STAGGER_CHILD_VARIANTS}
-            >
-              Welcome to Dub
-            </motion.h1>
-            <motion.p
-              className="max-w-xl text-gray-600 transition-colors sm:text-lg"
-              variants={STAGGER_CHILD_VARIANTS}
-            >
-              <InlineSnippet>{domain}</InlineSnippet> is a custom domain on{" "}
-              <a
-                className="bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text font-semibold text-transparent decoration-rose-600 hover:underline"
-                href="https://dub.sh"
-                onClick={() =>
-                  va.track("Referred from custom domain", {
-                    domain,
-                    medium: "text",
-                  })
-                }
-              >
-                Dub
-              </a>{" "}
-              - a link management tool for modern marketing teams to create,
-              share, and track short links.
-            </motion.p>
-            <motion.a
-              variants={STAGGER_CHILD_VARIANTS}
+            Welcome to Dub
+          </motion.h1>
+          <motion.p
+            className="max-w-xl text-gray-600 transition-colors sm:text-lg"
+            variants={STAGGER_CHILD_VARIANTS}
+          >
+            <InlineSnippet>{domain}</InlineSnippet> is a custom domain on{" "}
+            <a
+              className="bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text font-semibold text-transparent decoration-rose-600 hover:underline"
               href="https://dub.sh"
               onClick={() =>
                 va.track("Referred from custom domain", {
                   domain,
-                  medium: "button",
+                  medium: "text",
                 })
               }
-              className="rounded-full bg-gray-800 px-10 py-2 font-medium text-white transition-colors hover:bg-black"
             >
-              Create Your Free Branded Link
-            </motion.a>
-          </motion.div>
-        )}
+              Dub
+            </a>{" "}
+            - a link management tool for modern marketing teams to create,
+            share, and track short links.
+          </motion.p>
+          <motion.a
+            variants={STAGGER_CHILD_VARIANTS}
+            href="https://dub.sh"
+            onClick={() =>
+              va.track("Referred from custom domain", {
+                domain,
+                medium: "button",
+              })
+            }
+            className="rounded-full bg-gray-800 px-10 py-2 font-medium text-white transition-colors hover:bg-black"
+          >
+            Create Your Free Branded Link
+          </motion.a>
+        </motion.div>
       </motion.div>
-    </div>
+    </>
   );
 }
