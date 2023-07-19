@@ -55,7 +55,7 @@ export default function IOSSection({
             onChange={(e) => {
               setData({ ...data, ios: e.target.value });
             }}
-            className="block w-full rounded-md border-gray-300 text-sm text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500"
+            className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
             aria-invalid="true"
           />
         </motion.div>

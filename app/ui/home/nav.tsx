@@ -8,6 +8,7 @@ import { cn } from "#/lib/utils";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import { APP_DOMAIN } from "#/lib/constants";
 import va from "@vercel/analytics";
+import { LogoType } from "#/ui/icons";
 
 const navItems = ["pricing", "changelog"];
 
@@ -40,13 +41,7 @@ export default function Nav() {
               },
             })}
           >
-            <Image
-              src="/_static/logotype.svg"
-              alt="Dub.sh logo"
-              width={834}
-              height={236}
-              className="w-24"
-            />
+            <LogoType />
           </Link>
 
           <div className="hidden items-center space-x-6 sm:flex">

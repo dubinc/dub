@@ -98,7 +98,7 @@ export default function TagsSection({
             setOpenCommandList(true);
           }
         }}
-        className="block w-full rounded-md border-none px-0 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0"
+        className="block w-full rounded-md border-none px-0 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 sm:text-sm"
       />
     );
   };

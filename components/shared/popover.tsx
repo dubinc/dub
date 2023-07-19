@@ -47,14 +47,14 @@ export default function Popover({
     <>
       {!desktopOnly && (
         <>
-          <div className="md:hidden">{children}</div>
+          <div className="sm:hidden">{children}</div>
           <AnimatePresence>
             {openPopover && (
               <>
                 <motion.div
                   ref={mobileTooltipRef}
                   key="mobile-tooltip"
-                  className="group fixed inset-x-0 bottom-0 z-40 w-screen cursor-grab active:cursor-grabbing md:hidden"
+                  className="group fixed inset-x-0 bottom-0 left-0 z-40 w-screen cursor-grab active:cursor-grabbing sm:hidden"
                   initial={{ y: "100%" }}
                   animate={{
                     y: openPopover ? 0 : "100%",
@@ -74,13 +74,13 @@ export default function Popover({
                     <div className="-mr-1 h-1 w-6 rounded-full bg-gray-300 transition-all group-active:rotate-12" />
                     <div className="h-1 w-6 rounded-full bg-gray-300 transition-all group-active:-rotate-12" />
                   </div>
-                  <div className="flex min-h-[150px] w-full items-center justify-center overflow-hidden bg-white align-middle shadow-xl">
+                  <div className="flex min-h-[150px] w-full items-center justify-center overflow-hidden bg-white pb-8 align-middle shadow-xl">
                     {content}
                   </div>
                 </motion.div>
                 <motion.div
                   key="mobile-tooltip-backdrop"
-                  className="fixed inset-0 z-30 bg-gray-100 bg-opacity-10 backdrop-blur md:hidden"
+                  className="fixed inset-0 z-30 bg-gray-100 bg-opacity-10 backdrop-blur sm:hidden"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
@@ -94,7 +94,7 @@ export default function Popover({
       <PopoverPrimitive.Root open={openPopover} onOpenChange={setOpenPopover}>
         <PopoverPrimitive.Trigger
           {...(!desktopOnly && {
-            className: "hidden md:inline-flex",
+            className: "hidden sm:inline-flex",
           })}
           asChild
         >
@@ -107,7 +107,7 @@ export default function Popover({
             className={cn(
               "z-40 animate-slide-up-fade items-center rounded-md border border-gray-200 bg-white drop-shadow-lg",
               {
-                "hidden md:block": !desktopOnly,
+                "hidden sm:block": !desktopOnly,
               },
             )}
           >

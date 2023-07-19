@@ -72,7 +72,7 @@ export default function Demo() {
               placeholder="Shorten your link"
               autoComplete="off"
               required
-              className="peer block w-full rounded-md border border-gray-200 bg-white p-2 pl-10 pr-12 text-sm shadow-lg focus:border-black focus:outline-none focus:ring-0"
+              className="peer block w-full rounded-md border border-gray-200 bg-white p-2 pl-10 pr-12 shadow-lg focus:border-black focus:outline-none focus:ring-0 sm:text-sm"
             />
             <FormButton />
           </div>
