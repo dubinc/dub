@@ -3,13 +3,8 @@ import { DEFAULT_REDIRECTS } from "#/lib/constants";
 import prisma from "#/lib/prisma";
 import { LinkProps } from "#/lib/types";
 import { redis } from "#/lib/upstash";
-import {
-  getParamsFromURL,
-  isReservedKey,
-  nanoid,
-  truncate,
-  validKeyRegex,
-} from "#/lib/utils";
+import { getParamsFromURL, nanoid, truncate, validKeyRegex } from "#/lib/utils";
+import { isReservedKey } from "#/lib/edge-config";
 import { NextApiRequest } from "next";
 
 export async function getLinksForProject({

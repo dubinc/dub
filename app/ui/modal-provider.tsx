@@ -92,11 +92,12 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
       !loading &&
       session?.user?.email &&
       !session.user?.name &&
+      !router.asPath.startsWith("/welcome") &&
       !Cookies.get("hideGoogleOauthModal")
     ) {
       setShowGoogleOauthModal(true);
     }
-  }, [error, session]);
+  }, [error, session, router.asPath]);
 
   if (error && error.status === 404) {
     return <ErrorPage statusCode={404} />;

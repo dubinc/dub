@@ -1,14 +1,8 @@
-import { withProjectAuth } from "#/lib/auth";
+import { hashToken, withProjectAuth } from "#/lib/auth";
 import prisma from "#/lib/prisma";
 import { sendEmail } from "emails";
-import { randomBytes, createHash } from "crypto";
+import { randomBytes } from "crypto";
 import ProjectInvite from "emails/project-invite";
-
-const hashToken = (token: string) => {
-  return createHash("sha256")
-    .update(`${token}${process.env.NEXTAUTH_SECRET}`)
-    .digest("hex");
-};
 
 export default withProjectAuth(async (req, res, project, session) => {
   // GET /api/projects/[slug]/invites - Get all pending invites for a project

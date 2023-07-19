@@ -3,7 +3,7 @@ import { ratelimit } from "#/lib/upstash";
 import { ipAddress } from "@vercel/edge";
 import { LOCALHOST_IP } from "#/lib/constants";
 import { conn } from "#/lib/planetscale";
-import { isWhitelistedEmail } from "#/lib/utils";
+import { isWhitelistedEmail } from "#/lib/edge-config";
 
 export const config = {
   runtime: "edge",

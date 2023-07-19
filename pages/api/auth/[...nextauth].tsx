@@ -6,7 +6,7 @@ import NextAuth, { type NextAuthOptions } from "next-auth";
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
 import prisma from "#/lib/prisma";
-import { isBlacklistedEmail } from "#/lib/utils";
+import { isBlacklistedEmail } from "#/lib/edge-config";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 

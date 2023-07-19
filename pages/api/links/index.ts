@@ -1,6 +1,6 @@
 import { addLink, getLinksForProject, processKey } from "#/lib/api/links";
 import { withLinksAuth } from "#/lib/auth";
-import { isBlacklistedDomain, isBlacklistedKey } from "#/lib/utils";
+import { isBlacklistedDomain, isBlacklistedKey } from "#/lib/edge-config";
 import { log } from "#/lib/utils";
 import { DUB_PROJECT_ID, GOOGLE_FAVICON_URL } from "#/lib/constants";
 
