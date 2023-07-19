@@ -8,7 +8,7 @@ import { cn } from "#/lib/utils";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import { APP_DOMAIN, SHOW_BACKGROUND_SEGMENTS } from "#/lib/constants";
 import va from "@vercel/analytics";
-import { LogoType } from "../icons";
+import { LogoType } from "#/ui/icons";
 
 const navItems = [
   {

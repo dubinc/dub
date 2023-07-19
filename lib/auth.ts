@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import prisma from "#/lib/prisma";
 import { LinkProps, PlanProps, ProjectProps, UserProps } from "#/lib/types";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
+import { createHash } from "crypto";
 
 export interface Session {
   user: {
@@ -17,6 +18,11 @@ export async function getSession(req: NextApiRequest, res: NextApiResponse) {
   return (await getServerSession(req, res, authOptions)) as Session;
 }
 
+export const hashToken = (token: string) => {
+  return createHash("sha256")
+    .update(`${token}${process.env.NEXTAUTH_SECRET}`)
+    .digest("hex");
+};
 interface WithProjectNextApiHandler {
   (
     req: NextApiRequest,

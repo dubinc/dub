@@ -53,7 +53,7 @@ export default function ExpirationSection({
             onChange={(e) => {
               setData({ ...data, expiresAt: new Date(e.target.value) });
             }}
-            className="flex w-full items-center justify-center space-x-2 rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-500 shadow-sm transition-all hover:border-gray-800 focus:border-gray-800 focus:outline-none focus:ring-gray-500"
+            className="flex w-full items-center justify-center space-x-2 rounded-md border border-gray-300 px-3 py-2 text-gray-500 shadow-sm transition-all hover:border-gray-800 focus:border-gray-800 focus:outline-none focus:ring-gray-500 sm:text-sm"
           />
         </motion.div>
       )}

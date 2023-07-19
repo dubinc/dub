@@ -7,7 +7,8 @@ import {
   RootMiddleware,
 } from "#/lib/middleware";
 import { parse } from "#/lib/middleware/utils";
-import { isReservedKey } from "#/lib/utils";
+import { isReservedKey } from "#/lib/edge-config";
+import AdminMiddleware from "./lib/middleware/admin";
 
 export const config = {
   matcher: [
@@ -18,9 +19,9 @@ export const config = {
      * 3. /_proxy/ (special page for OG tags proxying)
      * 4. /_static (inside /public)
      * 5. /_vercel (Vercel internals)
-     * 6. /favicon.ico, /sitemap.xml (static files)
+     * 6. /favicon.ico, /sitemap.xml, /robots.txt (static files)
      */
-    "/((?!api/|_next/|_proxy/|_static|_vercel|favicon.ico|sitemap.xml).*)",
+    "/((?!api/|_next/|_proxy/|_static|_vercel|favicon.ico|sitemap.xml|robots.txt).*)",
   ],
 };
 
@@ -35,6 +36,11 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   // for API (api.dub.sh and api.localhost:3000)
   if (domain === "api.dub.sh" || domain === "api.localhost:3000") {
     return ApiMiddleware(req);
+  }
+
+  // for Admin (admin.dub.sh and admin.localhost:3000)
+  if (domain === "admin.dub.sh" || domain === "admin.localhost:3000") {
+    return AdminMiddleware(req);
   }
 
   // for public stats pages (e.g. dub.sh/stats/github)

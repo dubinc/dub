@@ -9,7 +9,7 @@ export default function Background() {
   try {
     segment = useSelectedLayoutSegment();
   } catch (e) {
-    // this is for /login and /signup which are still on /pages router
+    // this is for /welcome which is still on /pages router
   }
 
   return !segment || SHOW_BACKGROUND_SEGMENTS.has(segment) ? (

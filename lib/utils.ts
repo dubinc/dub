@@ -11,7 +11,6 @@ import {
   SECOND_LEVEL_DOMAINS,
   HOME_HOSTNAMES,
 } from "./constants";
-import { get } from "@vercel/edge-config";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -244,15 +243,16 @@ export const getApexDomain = (url: string) => {
   } catch (e) {
     return "";
   }
-  // special apex domains (e.g. youtu.be)
-  if (SPECIAL_APEX_DOMAINS[domain]) return SPECIAL_APEX_DOMAINS[domain];
+  if (domain === "youtu.be") return "youtube.com";
 
   const parts = domain.split(".");
   if (parts.length > 2) {
-    // if this is a second-level TLD (e.g. co.uk, .com.ua, .org.tt), we need to return the last 3 parts
     if (
-      SECOND_LEVEL_DOMAINS.has(parts[parts.length - 2]) &&
-      ccTLDs.has(parts[parts.length - 1])
+      // if this is a second-level TLD (e.g. co.uk, .com.ua, .org.tt), we need to return the last 3 parts
+      (SECOND_LEVEL_DOMAINS.has(parts[parts.length - 2]) &&
+        ccTLDs.has(parts[parts.length - 1])) ||
+      // if it's a special subdomain for website builders (e.g. weathergpt.vercel.app/)
+      SPECIAL_APEX_DOMAINS.has(parts.slice(-2).join("."))
     ) {
       return parts.slice(-3).join(".");
     }
@@ -451,56 +451,4 @@ export const log = async ({
   } catch (e) {
     console.log(`Failed to log to Dub Slack. Error: ${e}`);
   }
-};
-
-export const isBlacklistedDomain = async (domain: string) => {
-  let blacklistedDomains;
-  try {
-    blacklistedDomains = await get("domains");
-  } catch (e) {
-    blacklistedDomains = [];
-  }
-  return new RegExp(blacklistedDomains.join("|")).test(
-    getDomainWithoutWWW(domain) || domain,
-  );
-};
-
-export const isBlacklistedKey = async (key: string) => {
-  let blacklistedKeys;
-  try {
-    blacklistedKeys = await get("keys");
-  } catch (e) {
-    blacklistedKeys = [];
-  }
-  return new RegExp(blacklistedKeys.join("|"), "i").test(key);
-};
-
-export const isWhitelistedEmail = async (email: string) => {
-  let whitelistedEmails;
-  try {
-    whitelistedEmails = await get("whitelist");
-  } catch (e) {
-    whitelistedEmails = [];
-  }
-  return new Set(whitelistedEmails).has(email);
-};
-
-export const isBlacklistedEmail = async (email: string) => {
-  let blacklistedEmails;
-  try {
-    blacklistedEmails = await get("emails");
-  } catch (e) {
-    blacklistedEmails = [];
-  }
-  return new RegExp(blacklistedEmails.join("|"), "i").test(email);
-};
-
-export const isReservedKey = async (key: string) => {
-  let reservedKey;
-  try {
-    reservedKey = await get("reserved");
-  } catch (e) {
-    reservedKey = [];
-  }
-  return new Set(reservedKey).has(key);
 };
