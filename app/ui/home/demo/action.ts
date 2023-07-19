@@ -1,7 +1,7 @@
 "use server";
 
 import { setRandomKey } from "#/lib/upstash";
-import { isBlacklistedDomain } from "#/lib/utils";
+import { isBlacklistedDomain } from "#/lib/edge-config";
 
 export async function createLink(data: FormData) {
   const url = data.get("url") as string | undefined;

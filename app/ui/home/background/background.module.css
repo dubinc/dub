@@ -60,9 +60,3 @@
   top: 80px;
   opacity: 0.15;
 }
-
-@media screen and (max-width: 640px) {
-  .content {
-    display: none;
-  }
-}

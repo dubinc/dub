@@ -1,6 +1,7 @@
 import { withLinksAuth } from "#/lib/auth";
 import { deleteLink, editLink, processKey } from "#/lib/api/links";
-import { isBlacklistedDomain, isBlacklistedKey, log } from "#/lib/utils";
+import { isBlacklistedDomain, isBlacklistedKey } from "#/lib/edge-config";
+import { getApexDomain, log } from "#/lib/utils";
 import { GOOGLE_FAVICON_URL } from "#/lib/constants";
 
 export const config = {
@@ -62,7 +63,11 @@ export default withLinksAuth(
           },
         ),
         ...(!project
-          ? [fetch(`${GOOGLE_FAVICON_URL}${url}`).then((res) => !res.ok)]
+          ? [
+              fetch(`${GOOGLE_FAVICON_URL}${getApexDomain(url)}`).then(
+                (res) => !res.ok,
+              ),
+            ]
           : []),
         // @ts-ignore
       ]).then((results) => results.map((result) => result.value));
