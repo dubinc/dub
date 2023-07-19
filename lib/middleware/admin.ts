@@ -34,5 +34,7 @@ export default async function AdminMiddleware(req: NextRequest) {
     return NextResponse.redirect(new URL(`/login`, req.url));
   }
 
-  return NextResponse.rewrite(new URL(`/admin${path}`, req.url));
+  return NextResponse.rewrite(
+    new URL(`/admin${path === "/" ? "" : path}`, req.url),
+  );
 }
