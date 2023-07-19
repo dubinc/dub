@@ -1,11 +1,13 @@
-export default function Logo({ className }: { className: string }) {
+import { cn } from "#/lib/utils";
+
+export default function Logo({ className }: { className?: string }) {
   return (
     <svg
       width="191"
       height="191"
       fill="currentColor"
       viewBox="0 0 191 191"
-      className={className}
+      className={cn("h-5 w-5", className)}
     >
       <g clipPath="url(#clip0_928_108)">
         <path

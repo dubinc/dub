@@ -3,6 +3,7 @@ import remarkGfm from "remark-gfm";
 import rehypePrettyCode from "rehype-pretty-code";
 import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
+import { allHelpPosts } from "contentlayer/generated";
 
 const capitalize = (str: string) => {
   return str.charAt(0).toUpperCase() + str.slice(1);
@@ -38,6 +39,39 @@ export const ChangelogPost = defineDocumentType(() => ({
   computedFields: computedFields("changelog"),
 }));
 
+export const HelpPost = defineDocumentType(() => ({
+  name: "HelpPost",
+  filePathPattern: `**/help/*.mdx`,
+  contentType: "mdx",
+  fields: {
+    title: {
+      type: "string",
+      required: true,
+    },
+    updatedAt: {
+      type: "string",
+      required: true,
+    },
+    summary: {
+      type: "string",
+      required: true,
+    },
+    author: {
+      type: "string",
+      required: true,
+    },
+    categories: {
+      type: "list",
+      of: {
+        type: "string",
+      },
+      required: true,
+    },
+  },
+  // @ts-ignore
+  computedFields: computedFields("help"),
+}));
+
 export const LegalPost = defineDocumentType(() => ({
   name: "LegalPost",
   filePathPattern: `**/legal/*.mdx`,
@@ -56,7 +90,7 @@ export const LegalPost = defineDocumentType(() => ({
   computedFields: computedFields("legal"),
 }));
 
-const computedFields = (type: "changelog" | "legal") => ({
+const computedFields = (type: "changelog" | "help" | "legal") => ({
   slug: {
     type: "string",
     resolve: (doc) => doc._raw.flattenedPath.replace(`${type}/`, ""),
@@ -108,7 +142,7 @@ const computedFields = (type: "changelog" | "legal") => ({
 
 export default makeSource({
   contentDirPath: "posts",
-  documentTypes: [ChangelogPost, LegalPost],
+  documentTypes: [ChangelogPost, LegalPost, HelpPost],
   mdx: {
     remarkPlugins: [remarkGfm],
     rehypePlugins: [

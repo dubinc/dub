@@ -83,6 +83,12 @@ export const DUB_LOGO =
 export const DUB_THUMBNAIL =
   "https://public.blob.vercel-storage.com/kmKY9FhOzDRAX28c/thumbnail-wU82A4LTeJMXrygW1ZR6O36k3edeJf.png";
 
+export const SHOW_BACKGROUND_SEGMENTS = new Set([
+  "metatags",
+  "pricing",
+  "help",
+]);
+
 export { default as COUNTRIES } from "./countries";
 export { default as ccTLDs } from "./cctlds";
 
