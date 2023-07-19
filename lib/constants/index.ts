@@ -87,6 +87,8 @@ export const SHOW_BACKGROUND_SEGMENTS = new Set([
   "metatags",
   "pricing",
   "help",
+  "login",
+  "register",
 ]);
 
 export { default as COUNTRIES } from "./countries";
