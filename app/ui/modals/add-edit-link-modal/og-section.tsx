@@ -28,16 +28,18 @@ export default function OGSection({
 }) {
   const { title, description, image, proxy } = data;
 
-  const [fileSizeTooBig, setFileSizeTooBig] = useState(false);
+  const [fileError, setFileError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
 
   const onChangePicture = useCallback(
     (e) => {
-      setFileSizeTooBig(false);
+      setFileError(null);
       const file = e.target.files[0];
       if (file) {
-        if (file.size / 1024 / 1024 > 1) {
-          setFileSizeTooBig(true);
+        if (file.size / 1024 / 1024 > 5) {
+          setFileError("File size too big (max 5MB)");
+        } else if (file.type !== "image/png" && file.type !== "image/jpeg") {
+          setFileError("File type not supported (.png or .jpg only)");
         } else {
           const reader = new FileReader();
           reader.onload = (e) => {
@@ -90,11 +92,7 @@ export default function OGSection({
           <div>
             <div className="flex items-center justify-between">
               <p className="block text-sm font-medium text-gray-700">Image</p>
-              {fileSizeTooBig && (
-                <p className="text-sm text-red-500">
-                  File size too big (max 1MB)
-                </p>
-              )}
+              {fileError && <p className="text-sm text-red-500">{fileError}</p>}
             </div>
             <label
               htmlFor={`image-${randomIdx}`}
@@ -126,11 +124,18 @@ export default function OGSection({
                   e.preventDefault();
                   e.stopPropagation();
                   setDragActive(false);
-                  setFileSizeTooBig(false);
+                  setFileError(null);
                   const file = e.dataTransfer.files && e.dataTransfer.files[0];
                   if (file) {
                     if (file.size / 1024 / 1024 > 5) {
-                      setFileSizeTooBig(true);
+                      setFileError("File size too big (max 5MB)");
+                    } else if (
+                      file.type !== "image/png" &&
+                      file.type !== "image/jpeg"
+                    ) {
+                      setFileError(
+                        "File type not supported (.png or .jpg only)",
+                      );
                     } else {
                       const reader = new FileReader();
                       reader.onload = (e) => {
