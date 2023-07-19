@@ -243,15 +243,16 @@ export const getApexDomain = (url: string) => {
   } catch (e) {
     return "";
   }
-  // special apex domains (e.g. youtu.be)
-  if (SPECIAL_APEX_DOMAINS[domain]) return SPECIAL_APEX_DOMAINS[domain];
+  if (domain === "youtu.be") return "youtube.com";
 
   const parts = domain.split(".");
   if (parts.length > 2) {
-    // if this is a second-level TLD (e.g. co.uk, .com.ua, .org.tt), we need to return the last 3 parts
     if (
-      SECOND_LEVEL_DOMAINS.has(parts[parts.length - 2]) &&
-      ccTLDs.has(parts[parts.length - 1])
+      // if this is a second-level TLD (e.g. co.uk, .com.ua, .org.tt), we need to return the last 3 parts
+      (SECOND_LEVEL_DOMAINS.has(parts[parts.length - 2]) &&
+        ccTLDs.has(parts[parts.length - 1])) ||
+      // if it's a special subdomain for website builders (e.g. weathergpt.vercel.app/)
+      SPECIAL_APEX_DOMAINS.has(parts.slice(-2).join("."))
     ) {
       return parts.slice(-3).join(".");
     }
