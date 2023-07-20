@@ -2,10 +2,10 @@ import { constructMetadata } from "#/lib/utils";
 import { ExpandingArrow } from "#/ui/icons";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import { allHelpPosts } from "contentlayer/generated";
-import { Search } from "lucide-react";
 import Link from "next/link";
 import { CATEGORIES, POPULAR_ARTICLES } from "./constants";
 import CategoryCard from "#/ui/help/category-card";
+import SearchButton from "#/ui/help/search-button";
 
 export const metadata = constructMetadata({
   title: "Help Center – Dub",
@@ -30,12 +30,7 @@ export default function HelpCenter() {
           <h1 className="font-display text-xl font-bold text-gray-700 sm:text-3xl">
             👋 How can we help today?
           </h1>
-          <button className="group relative flex">
-            <Search className="absolute inset-y-0 left-4 z-10 my-auto h-4 w-4 text-gray-500" />
-            <div className="w-full rounded-xl border border-gray-200 bg-white p-3 pl-12 text-left text-gray-500 shadow-md transition ease-out group-active:border-gray-200 group-active:shadow-none">
-              Search for articles...
-            </div>
-          </button>
+          <SearchButton />
         </div>
       </MaxWidthWrapper>
 
@@ -49,7 +44,7 @@ export default function HelpCenter() {
             <div className="mt-4 grid gap-2 md:grid-cols-2">
               {popularArticles.map((article) => (
                 <Link
-                  href={`/help/${article.slug}`}
+                  href={`/help/article/${article.slug}`}
                   key={article.slug}
                   className="group flex items-center justify-between rounded-lg px-4 py-2.5 transition-colors hover:bg-purple-100 active:bg-purple-200"
                 >
@@ -65,7 +60,7 @@ export default function HelpCenter() {
             {categories.map((category) => (
               <CategoryCard
                 key={category.slug}
-                href={`/help/${category.slug}`}
+                href={`/help/category/${category.slug}`}
                 name={category.title}
                 description={category.description}
                 icon={category.icon}

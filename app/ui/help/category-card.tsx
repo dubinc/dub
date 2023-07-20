@@ -76,7 +76,7 @@ function CardPattern({ mouseX, mouseY, ...gridProps }) {
         />
       </div>
       <motion.div
-        className="absolute inset-0 rounded-2xl bg-gradient-to-r from-[#e4dffb] via-[#edd7d7] to-[#d7ede4] opacity-0 transition duration-300 group-hover:opacity-100"
+        className="absolute inset-0 rounded-2xl bg-gradient-to-r from-[#e4dffb] to-[#d7ede4] opacity-0 transition duration-300 group-hover:opacity-100"
         style={style}
       />
       <motion.div
@@ -128,7 +128,7 @@ export default function CategoryCard({
     >
       <CardPattern {...pattern} mouseX={mouseX} mouseY={mouseY} />
       <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-zinc-200 group-hover:ring-zinc-900/10" />
-      <div className="relative rounded-2xl px-4 pb-4 pt-16">
+      <div className="relative rounded-2xl p-6 pt-16">
         {icon}
         <h3 className="mt-4 font-semibold leading-7 text-zinc-900">
           <Link href={href}>
