@@ -8,6 +8,7 @@ import Link from "next/link";
 import Author from "#/ui/content/author";
 import { MDX } from "#/ui/content/mdx";
 import TableOfContents from "#/ui/content/table-of-contents";
+import Feedback from "#/ui/content/feedback";
 
 export default function HelpArticle({
   params,
@@ -67,6 +68,7 @@ export default function HelpArticle({
               <Author username={data.author} updatedAt={data.updatedAt} />
             </div>
             <MDX code={data.body.code} />
+            <Feedback />
           </div>
           <TableOfContents items={data.tableOfContents} />
         </MaxWidthWrapper>
