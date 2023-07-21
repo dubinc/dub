@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { parse } from "#/lib/middleware/utils";
 import { UserProps } from "../types";
+import { conn } from "../planetscale";
 
 export default async function AppMiddleware(req: NextRequest) {
   const { path } = parse(req);
@@ -30,7 +31,16 @@ export default async function AppMiddleware(req: NextRequest) {
       new Date(session?.user?.createdAt).getTime() > Date.now() - 10000 &&
       path !== "/welcome"
     ) {
-      return NextResponse.redirect(new URL("/welcome", req.url));
+      // check if the user has an existing project invite, if yes, we skip the onboarding flow
+      const existingInvite = await conn
+        ?.execute("SELECT projectId FROM ProjectInvite WHERE email = ?", [
+          session.email,
+        ])
+        .then((res) => res.rows[0] as { projectId: string } | undefined);
+
+      if (!existingInvite) {
+        return NextResponse.redirect(new URL("/welcome", req.url));
+      }
 
       // if the path is /login or /register, redirect to "/"
     } else if (path === "/login" || path === "/register") {

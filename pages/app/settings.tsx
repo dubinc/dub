@@ -94,7 +94,7 @@ export default function PersonalSettings() {
         <div className="border-b border-red-600" />
 
         <div className="flex items-center justify-end p-3 sm:px-10">
-          <div className="w-32">
+          <div>
             <Button
               text="Delete Account"
               variant="danger"
