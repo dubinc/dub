@@ -126,7 +126,7 @@ export default function DomainConfiguration({
         <p className="mt-5 text-sm">
           Note: for TTL, if <InlineSnippet>86400</InlineSnippet> is not
           available, set the highest value possible. Also, domain propagation
-          can take up to an hour.
+          can take anywhere between 1 hour to 12 hours.
         </p>
       </div>
     </div>

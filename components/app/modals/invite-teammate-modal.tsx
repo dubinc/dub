@@ -83,6 +83,7 @@ function InviteTeammateModal({
                 name="email"
                 id="email"
                 placeholder="panic@thedis.co"
+                autoFocus
                 autoComplete="off"
                 required
                 value={email}
