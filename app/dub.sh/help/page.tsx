@@ -3,9 +3,10 @@ import { ExpandingArrow } from "#/ui/icons";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import { allHelpPosts } from "contentlayer/generated";
 import Link from "next/link";
-import { CATEGORIES, POPULAR_ARTICLES } from "./constants";
-import CategoryCard from "#/ui/help/category-card";
-import SearchButton from "#/ui/help/search-button";
+import { CATEGORIES, POPULAR_ARTICLES } from "#/lib/constants/content";
+import SearchButton from "#/ui/content/search-button";
+import CategoryCard from "#/ui/content/category-card";
+import ArticleLink from "#/ui/content/article-link";
 
 export const metadata = constructMetadata({
   title: "Help Center – Dub",
@@ -18,9 +19,8 @@ export default function HelpCenter() {
 
   const categories = CATEGORIES.map((category) => ({
     ...category,
-    postCount: allHelpPosts.filter((post) =>
-      post.categories.includes(category.slug),
-    ).length,
+    postCount: allHelpPosts.filter((post) => post.category === category.slug)
+      .length,
   }));
 
   return (
@@ -35,7 +35,7 @@ export default function HelpCenter() {
       </MaxWidthWrapper>
 
       <div className="relative">
-        <div className="absolute top-28 h-full w-full border border-gray-200 bg-white/10 shadow-[inset_10px_-50px_94px_0_rgb(199,199,199,0.2)] backdrop-blur" />
+        <div className="absolute top-28 h-full w-full border border-gray-200 bg-white/50 shadow-[inset_10px_-50px_94px_0_rgb(199,199,199,0.2)] backdrop-blur-lg" />
         <MaxWidthWrapper className="max-w-screen-lg pb-20">
           <div className="relative mb-10 rounded-xl border border-gray-200 bg-white px-4 py-6">
             <h2 className="px-4 font-display text-2xl font-bold text-gray-700">
@@ -43,16 +43,7 @@ export default function HelpCenter() {
             </h2>
             <div className="mt-4 grid gap-2 md:grid-cols-2">
               {popularArticles.map((article) => (
-                <Link
-                  href={`/help/article/${article.slug}`}
-                  key={article.slug}
-                  className="group flex items-center justify-between rounded-lg px-4 py-2.5 transition-colors hover:bg-purple-100 active:bg-purple-200"
-                >
-                  <h3 className="font-medium text-gray-600 group-hover:text-purple-600">
-                    {article.title}
-                  </h3>
-                  <ExpandingArrow className="-ml-4 h-4 w-4 text-gray-400 group-hover:text-purple-600" />
-                </Link>
+                <ArticleLink key={article.slug} article={article} />
               ))}
             </div>
           </div>

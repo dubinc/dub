@@ -3,7 +3,7 @@ import { getBlurDataURL } from "#/lib/images";
 import { allChangelogPosts } from "contentlayer/generated";
 import { constructMetadata, formatDate } from "#/lib/utils";
 import Link from "next/link";
-import { MDX } from "#/ui/blog/mdx";
+import { MDX } from "#/ui/content/mdx";
 import { Twitter } from "@/components/shared/icons";
 import { Rss } from "lucide-react";
 

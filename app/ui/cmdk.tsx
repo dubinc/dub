@@ -11,11 +11,11 @@ import {
 } from "react";
 import Modal from "./modal";
 import { ExpandingArrow, Magic } from "./icons";
-import { POPULAR_ARTICLES } from "app/dub.sh/help/constants";
+import { POPULAR_ARTICLES } from "#/lib/constants/content";
 import { allHelpPosts } from "contentlayer/generated";
 import { useRouter } from "next/navigation";
-import { useRouter as usePagesRouter } from "next/router";
 import Highlighter from "react-highlight-words";
+import { HOME_DOMAIN } from "#/lib/constants";
 
 function CMDKHelper({
   showCMDK,
@@ -59,13 +59,7 @@ const CommandResults = ({
 }: {
   setShowCMDK: Dispatch<SetStateAction<boolean>>;
 }) => {
-  let router;
-  try {
-    router = useRouter();
-  } catch (e) {
-    router = usePagesRouter();
-  }
-
+  const router = useRouter();
   const popularArticles = POPULAR_ARTICLES.map(
     (slug) => allHelpPosts.find((post) => post.slug === slug)!,
   );
@@ -78,7 +72,13 @@ const CommandResults = ({
         key={article.slug}
         value={article.title}
         onSelect={() => {
-          router.push(`/help/article/${article.slug}`);
+          console.log(window.location.hostname);
+          if (window.location.hostname.startsWith("app.")) {
+            // this is from the app, open in new tab
+            window.open(`${HOME_DOMAIN}/help/article/${article.slug}`);
+          } else {
+            router.push(`/help/article/${article.slug}`);
+          }
           setShowCMDK(false);
         }}
         className="group flex cursor-pointer items-center justify-between space-x-2 rounded-md px-4 py-2 hover:bg-gray-100 active:bg-gray-200 aria-selected:bg-gray-100"
@@ -96,7 +96,7 @@ const CommandResults = ({
             searchWords={[search]}
             autoEscape={true}
             textToHighlight={article.summary}
-            className="text-xs text-gray-400"
+            className="line-clamp-1 text-xs text-gray-400"
           />
         </div>
         <ExpandingArrow className="invisible -ml-4 h-4 w-4 text-purple-600 group-aria-selected:visible sm:group-hover:visible" />

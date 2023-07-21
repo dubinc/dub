@@ -1,5 +1,6 @@
 "use client";
 
+import { APP_DOMAIN } from "#/lib/constants";
 import { motion, useCycle } from "framer-motion";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -72,11 +73,7 @@ export default function MobileNav() {
 
         <MenuItem key="Login">
           <Link
-            href={
-              process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-                ? "https://app.dub.sh/login"
-                : "http://app.localhost:3000/login"
-            }
+            href={`${APP_DOMAIN}/login`}
             className="flex w-full font-semibold capitalize"
           >
             Log in
@@ -86,11 +83,7 @@ export default function MobileNav() {
 
         <MenuItem key="Signup">
           <Link
-            href={
-              process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-                ? "https://app.dub.sh/register"
-                : "http://app.localhost:3000/register"
-            }
+            href={`${APP_DOMAIN}/register`}
             className="flex w-full font-semibold capitalize"
           >
             Sign Up

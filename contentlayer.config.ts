@@ -3,11 +3,8 @@ import remarkGfm from "remark-gfm";
 import rehypePrettyCode from "rehype-pretty-code";
 import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
-import { allHelpPosts } from "contentlayer/generated";
-
-const capitalize = (str: string) => {
-  return str.charAt(0).toUpperCase() + str.slice(1);
-};
+import slugify from "@sindresorhus/slugify";
+import { capitalize } from "./lib/utils";
 
 export const ChangelogPost = defineDocumentType(() => ({
   name: "ChangelogPost",
@@ -49,7 +46,7 @@ export const HelpPost = defineDocumentType(() => ({
       required: true,
     },
     updatedAt: {
-      type: "string",
+      type: "date",
       required: true,
     },
     summary: {
@@ -60,12 +57,16 @@ export const HelpPost = defineDocumentType(() => ({
       type: "string",
       required: true,
     },
-    categories: {
-      type: "list",
-      of: {
-        type: "string",
-      },
-      required: true,
+    category: {
+      type: "enum",
+      options: [
+        "overview",
+        "getting-started",
+        "link-management",
+        "custom-domains",
+        "api",
+      ],
+      default: "overview",
     },
   },
   // @ts-ignore
@@ -94,6 +95,19 @@ const computedFields = (type: "changelog" | "help" | "legal") => ({
   slug: {
     type: "string",
     resolve: (doc) => doc._raw.flattenedPath.replace(`${type}/`, ""),
+  },
+  tableOfContents: {
+    type: "array",
+    resolve: (doc) => {
+      // get all markdown heading 2 nodes (##)
+      const headings = doc.body.raw.match(/^##\s.+/gm);
+      return (
+        headings?.map((heading) => ({
+          title: heading.replace(/^##\s/, ""),
+          slug: slugify(heading),
+        })) || []
+      );
+    },
   },
   images: {
     type: "array",
@@ -171,6 +185,7 @@ export default makeSource({
         {
           properties: {
             className: ["anchor"],
+            "data-mdx-heading": "",
           },
         },
       ],

@@ -1,3 +1,17 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+[data-mdx-container] {
+  .anchor {
+    @apply invisible absolute -ml-8 w-full cursor-pointer !no-underline;
+  }
+
+  .anchor:after {
+    content: "🔗";
+  }
+
+  :hover > .anchor {
+    @apply visible;
+  }
+}

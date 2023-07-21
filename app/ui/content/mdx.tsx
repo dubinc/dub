@@ -72,13 +72,13 @@ export function MDX({ code, images, tweets, repos }: MDXProps) {
 
   return (
     <article
+      data-mdx-container
       className={`
-                  prose prose-gray mx-5 transition-all md:prose-lg prose-headings:font-display prose-h2:text-3xl
-                  prose-a:font-medium prose-a:text-gray-500 
-                  prose-a:underline-offset-4 hover:prose-a:text-black prose-code:rounded-md prose-code:bg-gray-200 
-                  prose-code:px-2 prose-code:py-1 prose-code:font-medium prose-code:text-rose-500 prose-code:before:hidden prose-code:after:hidden prose-thead:text-lg
-                  md:mx-0 md:w-full
-                `}
+    prose prose-gray w-full transition-all prose-headings:relative prose-headings:scroll-mt-20 prose-headings:font-display prose-headings:font-bold
+    prose-h2:text-2xl prose-a:font-medium
+    prose-a:text-gray-500 prose-a:underline-offset-4 hover:prose-a:text-black prose-code:rounded-md 
+    prose-code:bg-gray-200 prose-code:px-2 prose-code:py-1 prose-code:font-medium prose-code:text-rose-500 prose-code:before:hidden prose-code:after:hidden prose-thead:text-lg 
+    `}
     >
       <Component components={{ ...components, MDXImage, MDXTweet, MDXRepo }} />
     </article>
