@@ -12,7 +12,7 @@ import {
 } from "#/ui/accordion";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLinkQRModal } from "#/ui/modals/link-qr-modal";
-import { DEFAULT_LINK_PROPS } from "#/lib/constants";
+import { APP_DOMAIN, DEFAULT_LINK_PROPS } from "#/lib/constants";
 import { useAddEditLinkModal } from "#/ui/modals/add-edit-link-modal";
 import { Link2, QrCode } from "lucide-react";
 
@@ -42,7 +42,7 @@ const featureList = [
       "Dub offers free custom domains on all plans - start personalizing your links today.",
     cta: (
       <a
-        href="https://app.dub.sh"
+        href={APP_DOMAIN}
         target="_blank"
         rel="noreferrer"
         className="block max-w-fit rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
@@ -87,7 +87,7 @@ const featureList = [
       "With Dub, you can invite unlimited team members to collaborate on your project for free - no more sharing logins via Google groups.",
     cta: (
       <a
-        href="https://app.dub.sh"
+        href={APP_DOMAIN}
         target="_blank"
         rel="noreferrer"
         className="block max-w-fit rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"

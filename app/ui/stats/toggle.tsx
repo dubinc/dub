@@ -16,6 +16,7 @@ import useScroll from "#/lib/hooks/use-scroll";
 import Tooltip, { TooltipContent } from "../tooltip";
 import useProject from "#/lib/hooks/use-project";
 import { useParams } from "next/navigation";
+import { APP_DOMAIN } from "#/lib/constants";
 
 export default function Toggle() {
   const { slug: projectSlug } = useParams() as { slug?: string };
@@ -72,7 +73,7 @@ export default function Toggle() {
                           cta={
                             projectSlug ? "Upgrade to Pro" : "Create Project"
                           }
-                          href="https://app.dub.sh"
+                          href={APP_DOMAIN}
                         />
                       }
                     >

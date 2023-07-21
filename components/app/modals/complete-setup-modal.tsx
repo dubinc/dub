@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 import BlurImage from "#/ui/blur-image";
-import Modal from "@/components/shared/modal";
+import Modal from "#/ui/modal";
 import { CheckCircleFill } from "@/components/shared/icons";
 import { ExpandingArrow } from "#/ui/icons";
 import useDomains from "#/lib/swr/use-domains";

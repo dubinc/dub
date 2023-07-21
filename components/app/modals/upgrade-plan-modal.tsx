@@ -5,7 +5,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import Modal from "@/components/shared/modal";
+import Modal from "#/ui/modal";
 import Button from "#/ui/button";
 import { useRouter } from "next/router";
 import Link from "next/link";

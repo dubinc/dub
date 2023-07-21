@@ -10,7 +10,7 @@ import { HexColorInput, HexColorPicker } from "react-colorful";
 import BlurImage from "#/ui/blur-image";
 import { Clipboard } from "@/components/shared/icons";
 import { ChevronRight } from "lucide-react";
-import Modal from "@/components/shared/modal";
+import Modal from "#/ui/modal";
 import Switch from "#/ui/switch";
 import Tooltip, { TooltipContent } from "#/ui/tooltip";
 import { QRCodeSVG, getQRAsCanvas, getQRAsSVGDataUri } from "#/lib/qr";

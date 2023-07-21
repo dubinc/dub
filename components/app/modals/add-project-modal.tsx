@@ -12,7 +12,7 @@ import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
 import BlurImage from "#/ui/blur-image";
 import { AlertCircleFill } from "@/components/shared/icons";
-import Modal from "@/components/shared/modal";
+import Modal from "#/ui/modal";
 import { generateDomainFromName } from "#/lib/utils";
 import slugify from "@sindresorhus/slugify";
 import va from "@vercel/analytics";

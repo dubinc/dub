@@ -5,7 +5,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import Modal from "@/components/shared/modal";
+import Modal from "#/ui/modal";
 import LinkFilters from "../links/link-filters";
 import IconMenu from "@/components/shared/icon-menu";
 import { ChevronDown, Filter } from "lucide-react";
