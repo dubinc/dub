@@ -49,7 +49,7 @@ function UpgradePlanModal({
     <Modal
       showModal={showUpgradePlanModal}
       setShowModal={setShowUpgradePlanModal}
-      closeWithX={welcomeFlow}
+      disableDefaultHide={welcomeFlow}
     >
       <div className="inline-block w-full transform overflow-hidden bg-white align-middle shadow-xl transition-all sm:max-w-lg sm:rounded-2xl sm:border sm:border-gray-200">
         <motion.div
