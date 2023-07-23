@@ -5,7 +5,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import Modal from "@/components/shared/modal";
+import Modal from "#/ui/modal";
 import LinkFilters from "../links/link-filters";
 import IconMenu from "@/components/shared/icon-menu";
 import { ChevronDown, Filter } from "lucide-react";
@@ -21,7 +21,6 @@ function LinkFiltersModal({
     <Modal
       showModal={showLinkFiltersModal}
       setShowModal={setShowLinkFiltersModal}
-      mobileOnly
     >
       <div className="inline-block w-full transform overflow-hidden bg-white pb-20 align-middle shadow-xl transition-all sm:max-w-md sm:rounded-2xl sm:border sm:border-gray-200">
         <LinkFilters />

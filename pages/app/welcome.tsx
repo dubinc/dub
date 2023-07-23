@@ -12,15 +12,9 @@ import { ArrowLeft } from "lucide-react";
 import { useUpgradePlanModal } from "@/components/app/modals/upgrade-plan-modal";
 
 export default function Welcome() {
-  const { setShowAddProjectModal, AddProjectModal } = useAddProjectModal({
-    welcomeFlow: true,
-  });
-  const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal({
-    welcomeFlow: true,
-  });
-  const { setShowUpgradePlanModal, UpgradePlanModal } = useUpgradePlanModal({
-    welcomeFlow: true,
-  });
+  const { setShowAddProjectModal, AddProjectModal } = useAddProjectModal();
+  const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal();
+  const { setShowUpgradePlanModal, UpgradePlanModal } = useUpgradePlanModal();
 
   const router = useRouter();
 

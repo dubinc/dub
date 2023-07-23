@@ -52,7 +52,7 @@ export default function Interim() {
       </motion.p>
       <motion.div
         variants={STAGGER_CHILD_VARIANTS}
-        className="grid w-full grid-cols-1 divide-y divide-gray-100 rounded-md border border-gray-200 bg-white md:grid-cols-2 md:divide-x"
+        className="grid w-full grid-cols-1 divide-y divide-gray-100 overflow-hidden rounded-md border border-gray-200 bg-white md:grid-cols-2 md:divide-x"
       >
         <button
           onClick={() =>

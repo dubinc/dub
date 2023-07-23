@@ -7,7 +7,7 @@ import {
   useState,
 } from "react";
 import BlurImage from "#/ui/blur-image";
-import Modal from "@/components/shared/modal";
+import Modal from "#/ui/modal";
 import Button from "#/ui/button";
 import { Google } from "@/components/shared/icons";
 import Cookies from "js-cookie";

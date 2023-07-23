@@ -14,7 +14,7 @@ import { useDebounce } from "use-debounce";
 import BlurImage from "#/ui/blur-image";
 import { AlertCircleFill, Lock, Random, X } from "@/components/shared/icons";
 import { LoadingCircle } from "#/ui/icons";
-import Modal from "@/components/shared/modal";
+import Modal from "#/ui/modal";
 import Tooltip, { TooltipContent } from "#/ui/tooltip";
 import useProject from "#/lib/swr/use-project";
 import { LinkProps } from "#/lib/types";
@@ -49,14 +49,12 @@ function AddEditLinkModal({
   props,
   duplicateProps,
   homepageDemo,
-  welcomeFlow,
 }: {
   showAddEditLinkModal: boolean;
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
   props?: LinkProps;
   duplicateProps?: LinkProps;
   homepageDemo?: boolean;
-  welcomeFlow?: boolean;
 }) {
   const router = useRouter();
   const { slug } = router.query as { slug: string };
@@ -260,12 +258,15 @@ function AddEditLinkModal({
 
   const [lockKey, setLockKey] = useState(true);
 
+  const welcomeFlow = useMemo(() => {
+    return router.asPath.split("?")[0] === "/welcome";
+  }, [router.asPath]);
+
   return (
     <Modal
       showModal={showAddEditLinkModal}
       setShowModal={setShowAddEditLinkModal}
-      closeWithX={homepageDemo ? false : true}
-      hideBackdrop={welcomeFlow}
+      disableDefaultHide={homepageDemo ? false : true}
     >
       <div className="relative grid max-h-[min(906px,_90vh)] w-full divide-x divide-gray-100 overflow-auto bg-white shadow-xl transition-all scrollbar-hide md:max-w-screen-lg md:grid-cols-2 md:overflow-hidden md:rounded-2xl md:border md:border-gray-200">
         {!welcomeFlow && !homepageDemo && (
@@ -671,12 +672,10 @@ export function useAddEditLinkModal({
   props,
   duplicateProps,
   homepageDemo,
-  welcomeFlow,
 }: {
   props?: LinkProps;
   duplicateProps?: LinkProps;
   homepageDemo?: boolean;
-  welcomeFlow?: boolean;
 } = {}) {
   const [showAddEditLinkModal, setShowAddEditLinkModal] = useState(false);
 
@@ -688,7 +687,6 @@ export function useAddEditLinkModal({
         props={props}
         duplicateProps={duplicateProps}
         homepageDemo={homepageDemo}
-        welcomeFlow={welcomeFlow}
       />
     );
   }, [showAddEditLinkModal, setShowAddEditLinkModal]);

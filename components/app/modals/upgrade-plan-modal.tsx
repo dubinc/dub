@@ -5,7 +5,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import Modal from "@/components/shared/modal";
+import Modal from "#/ui/modal";
 import Button from "#/ui/button";
 import { useRouter } from "next/router";
 import Link from "next/link";
@@ -21,11 +21,9 @@ import Confetti from "react-dom-confetti";
 function UpgradePlanModal({
   showUpgradePlanModal,
   setShowUpgradePlanModal,
-  welcomeFlow,
 }: {
   showUpgradePlanModal: boolean;
   setShowUpgradePlanModal: Dispatch<SetStateAction<boolean>>;
-  welcomeFlow?: boolean;
 }) {
   const router = useRouter();
   const { slug } = router.query;
@@ -45,11 +43,16 @@ function UpgradePlanModal({
     ];
   }, [plan]);
   const [clicked, setClicked] = useState(false);
+
+  const welcomeFlow = useMemo(() => {
+    return router.asPath.split("?")[0] === "/welcome";
+  }, [router.asPath]);
+
   return (
     <Modal
       showModal={showUpgradePlanModal}
       setShowModal={setShowUpgradePlanModal}
-      closeWithX={welcomeFlow}
+      disableDefaultHide={welcomeFlow}
     >
       <div className="inline-block w-full transform overflow-hidden bg-white align-middle shadow-xl transition-all sm:max-w-lg sm:rounded-2xl sm:border sm:border-gray-200">
         <motion.div
@@ -209,9 +212,7 @@ function UpgradePlanModal({
   );
 }
 
-export function useUpgradePlanModal({
-  welcomeFlow,
-}: { welcomeFlow?: boolean } = {}) {
+export function useUpgradePlanModal() {
   const [showUpgradePlanModal, setShowUpgradePlanModal] = useState(false);
 
   const UpgradePlanModalCallback = useCallback(() => {
@@ -219,10 +220,9 @@ export function useUpgradePlanModal({
       <UpgradePlanModal
         showUpgradePlanModal={showUpgradePlanModal}
         setShowUpgradePlanModal={setShowUpgradePlanModal}
-        welcomeFlow={welcomeFlow}
       />
     );
-  }, [showUpgradePlanModal, setShowUpgradePlanModal, welcomeFlow]);
+  }, [showUpgradePlanModal, setShowUpgradePlanModal]);
 
   return useMemo(
     () => ({

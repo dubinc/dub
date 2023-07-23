@@ -12,7 +12,7 @@ import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
 import BlurImage from "#/ui/blur-image";
 import { AlertCircleFill, Lock } from "@/components/shared/icons";
-import Modal from "@/components/shared/modal";
+import Modal from "#/ui/modal";
 import { DomainProps } from "#/lib/types";
 import Tooltip, { TooltipContent } from "#/ui/tooltip";
 import useProject from "#/lib/swr/use-project";

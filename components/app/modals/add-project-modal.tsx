@@ -12,7 +12,7 @@ import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
 import BlurImage from "#/ui/blur-image";
 import { AlertCircleFill } from "@/components/shared/icons";
-import Modal from "@/components/shared/modal";
+import Modal from "#/ui/modal";
 import { generateDomainFromName } from "#/lib/utils";
 import slugify from "@sindresorhus/slugify";
 import va from "@vercel/analytics";
@@ -22,11 +22,9 @@ import { toast } from "sonner";
 function AddProjectModalHelper({
   showAddProjectModal,
   setShowAddProjectModal,
-  welcomeFlow,
 }: {
   showAddProjectModal: boolean;
   setShowAddProjectModal: Dispatch<SetStateAction<boolean>>;
-  welcomeFlow?: boolean;
 }) {
   const router = useRouter();
 
@@ -79,11 +77,15 @@ function AddProjectModalHelper({
     }));
   }, [name]);
 
+  const welcomeFlow = useMemo(() => {
+    return router.asPath.split("?")[0] === "/welcome";
+  }, [router.asPath]);
+
   return (
     <Modal
       showModal={showAddProjectModal}
       setShowModal={setShowAddProjectModal}
-      closeWithX={welcomeFlow}
+      disableDefaultHide={welcomeFlow}
     >
       <div className="inline-block w-full transform overflow-hidden bg-white align-middle shadow-xl transition-all sm:max-w-md sm:rounded-2xl sm:border sm:border-gray-200">
         <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
@@ -287,9 +289,7 @@ function AddProjectModalHelper({
   );
 }
 
-export function useAddProjectModal({
-  welcomeFlow,
-}: { welcomeFlow?: boolean } = {}) {
+export function useAddProjectModal() {
   const [showAddProjectModal, setShowAddProjectModal] = useState(false);
 
   const AddProjectModal = useCallback(() => {
@@ -297,10 +297,9 @@ export function useAddProjectModal({
       <AddProjectModalHelper
         showAddProjectModal={showAddProjectModal}
         setShowAddProjectModal={setShowAddProjectModal}
-        welcomeFlow={welcomeFlow}
       />
     );
-  }, [showAddProjectModal, setShowAddProjectModal, welcomeFlow]);
+  }, [showAddProjectModal, setShowAddProjectModal]);
 
   return useMemo(
     () => ({ setShowAddProjectModal, AddProjectModal }),
