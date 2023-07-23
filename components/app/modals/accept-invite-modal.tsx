@@ -8,8 +8,7 @@ import {
   useState,
 } from "react";
 import { mutate } from "swr";
-import BlurImage from "#/ui/blur-image";
-import { LoadingDots } from "#/ui/icons";
+import { Logo, LoadingDots } from "#/ui/icons";
 import Modal from "#/ui/modal";
 import useProject from "#/lib/swr/use-project";
 import { toast } from "sonner";
@@ -33,15 +32,9 @@ function AcceptInviteModal({
       setShowModal={setShowAcceptInviteModal}
     >
       {error?.status === 409 ? (
-        <div className="inline-block w-full transform overflow-hidden bg-white align-middle shadow-xl transition-all sm:max-w-md sm:rounded-2xl sm:border sm:border-gray-200">
+        <>
           <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
-            <BlurImage
-              src={`/_static/logo.png`}
-              alt={"Invite Teammate"}
-              className="h-10 w-10 rounded-full"
-              width={20}
-              height={20}
-            />
+            <Logo />
             <h3 className="text-lg font-medium">Project Invitation</h3>
             <p className="text-center text-sm text-gray-500">
               You've been invited to join and collaborate on the{" "}
@@ -86,17 +79,11 @@ function AcceptInviteModal({
               )}
             </button>
           </div>
-        </div>
+        </>
       ) : (
-        <div className="inline-block w-full transform overflow-hidden bg-white align-middle shadow-xl transition-all sm:max-w-md sm:rounded-2xl sm:border sm:border-gray-200">
+        <>
           <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
-            <BlurImage
-              src={`/_static/logo.png`}
-              alt={"Invite Teammate"}
-              className="h-10 w-10 rounded-full"
-              width={20}
-              height={20}
-            />
+            <Logo />
             <h3 className="text-lg font-medium">Project Invitation Expired</h3>
             <p className="text-center text-sm text-gray-500">
               This invite has expired or is no longer valid.
@@ -110,7 +97,7 @@ function AcceptInviteModal({
               Back to dashboard
             </Link>
           </div>
-        </div>
+        </>
       )}
     </Modal>
   );

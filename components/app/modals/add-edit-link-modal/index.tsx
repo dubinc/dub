@@ -266,9 +266,10 @@ function AddEditLinkModal({
     <Modal
       showModal={showAddEditLinkModal}
       setShowModal={setShowAddEditLinkModal}
+      className="max-w-screen-lg"
       disableDefaultHide={homepageDemo ? false : true}
     >
-      <div className="relative grid max-h-[min(906px,_90vh)] w-full divide-x divide-gray-100 overflow-auto bg-white shadow-xl transition-all scrollbar-hide md:max-w-screen-lg md:grid-cols-2 md:overflow-hidden md:rounded-2xl md:border md:border-gray-200">
+      <div className="relative grid max-h-[min(906px,_90vh)] w-full divide-x divide-gray-100 overflow-auto scrollbar-hide md:grid-cols-2">
         {!welcomeFlow && !homepageDemo && (
           <button
             onClick={() => setShowAddEditLinkModal(false)}

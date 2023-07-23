@@ -56,7 +56,7 @@ export default function Toggle({ atModalTop }: { atModalTop?: boolean }) {
           )}
           <Popover
             content={
-              <div className="w-full p-2 md:w-48">
+              <div className="grid w-full p-2 md:w-48">
                 {INTERVALS.map(({ display, slug }) =>
                   (slug === "all" || slug === "90d") &&
                   (!plan || plan === "free") ? (

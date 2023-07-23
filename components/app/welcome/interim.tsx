@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { motion } from "framer-motion";
 import BlurImage from "#/ui/blur-image";
-import { Logo } from "@/components/shared/icons";
+import { Logo } from "#/ui/icons";
 import { STAGGER_CHILD_VARIANTS } from "#/lib/constants";
 
 export default function Interim() {

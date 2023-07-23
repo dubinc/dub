@@ -44,82 +44,77 @@ function DeleteLinkModal({
       showModal={showDeleteLinkModal}
       setShowModal={setShowDeleteLinkModal}
     >
-      <div className="inline-block w-full transform overflow-hidden bg-white align-middle shadow-xl transition-all sm:max-w-md sm:rounded-2xl sm:border sm:border-gray-200">
-        <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 text-center sm:px-16">
-          <BlurImage
-            src={`${GOOGLE_FAVICON_URL}${apexDomain}`}
-            alt={apexDomain}
-            className="h-10 w-10 rounded-full"
-            width={20}
-            height={20}
-          />
-          <h3 className="text-lg font-medium">Delete {shortlink}</h3>
-          <p className="text-sm text-gray-500">
-            Warning: Deleting this link will remove all of its stats. This
-            action cannot be undone.
-          </p>
+      <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 text-center sm:px-16">
+        <BlurImage
+          src={`${GOOGLE_FAVICON_URL}${apexDomain}`}
+          alt={apexDomain}
+          className="h-10 w-10 rounded-full"
+          width={20}
+          height={20}
+        />
+        <h3 className="text-lg font-medium">Delete {shortlink}</h3>
+        <p className="text-sm text-gray-500">
+          Warning: Deleting this link will remove all of its stats. This action
+          cannot be undone.
+        </p>
+      </div>
+
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault();
+          setDeleting(true);
+          fetch(
+            `/api/links/${encodeURIComponent(props.key)}${
+              slug ? `?slug=${slug}&domain=${domain}` : ""
+            }`,
+            {
+              method: "DELETE",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            },
+          ).then(async (res) => {
+            setDeleting(false);
+            if (res.status === 200) {
+              mutate(`/api/links${getQueryString(router)}`);
+              mutate(
+                (key) =>
+                  typeof key === "string" &&
+                  key.startsWith(`/api/links/_count`),
+                undefined,
+                { revalidate: true },
+              );
+              setShowDeleteLinkModal(false);
+              toast.success("Successfully deleted shortlink!");
+            } else {
+              const { error } = await res.json();
+              toast.error(error);
+            }
+          });
+        }}
+        className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16"
+      >
+        <div>
+          <label htmlFor="verification" className="block text-sm text-gray-700">
+            To verify, type <span className="font-semibold">{shortlink}</span>{" "}
+            below
+          </label>
+          <div className="relative mt-1 rounded-md shadow-sm">
+            <input
+              type="text"
+              name="verification"
+              id="verification"
+              pattern={shortlink}
+              required
+              autoFocus
+              autoComplete="off"
+              className="block w-full rounded-md border-gray-300 pr-10 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+            />
+          </div>
         </div>
 
-        <form
-          onSubmit={async (e) => {
-            e.preventDefault();
-            setDeleting(true);
-            fetch(
-              `/api/links/${encodeURIComponent(props.key)}${
-                slug ? `?slug=${slug}&domain=${domain}` : ""
-              }`,
-              {
-                method: "DELETE",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-              },
-            ).then(async (res) => {
-              setDeleting(false);
-              if (res.status === 200) {
-                mutate(`/api/links${getQueryString(router)}`);
-                mutate(
-                  (key) =>
-                    typeof key === "string" &&
-                    key.startsWith(`/api/links/_count`),
-                  undefined,
-                  { revalidate: true },
-                );
-                setShowDeleteLinkModal(false);
-                toast.success("Successfully deleted shortlink!");
-              } else {
-                const { error } = await res.json();
-                toast.error(error);
-              }
-            });
-          }}
-          className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16"
-        >
-          <div>
-            <label
-              htmlFor="verification"
-              className="block text-sm text-gray-700"
-            >
-              To verify, type <span className="font-semibold">{shortlink}</span>{" "}
-              below
-            </label>
-            <div className="relative mt-1 rounded-md shadow-sm">
-              <input
-                type="text"
-                name="verification"
-                id="verification"
-                pattern={shortlink}
-                required
-                autoFocus
-                autoComplete="off"
-                className="block w-full rounded-md border-gray-300 pr-10 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-              />
-            </div>
-          </div>
-
-          <Button variant="danger" text="Confirm delete" loading={deleting} />
-        </form>
-      </div>
+        <Button variant="danger" text="Confirm delete" loading={deleting} />
+      </form>
     </Modal>
   );
 }

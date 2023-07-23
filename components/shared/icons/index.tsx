@@ -5,7 +5,6 @@ export { default as Copy } from "./copy";
 export { default as X } from "./x";
 export { default as Chart } from "./chart";
 export { default as Divider } from "./divider";
-export { default as Logo } from "./logo";
 export { default as Github } from "./github";
 export { default as Twitter } from "./twitter";
 export { default as Facebook } from "./facebook";

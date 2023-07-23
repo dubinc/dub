@@ -23,7 +23,6 @@ export default function Modal({
 }) {
   const router = useRouter();
   const mobileModalRef = useRef<HTMLDivElement | null>(null);
-  const desktopModalRef = useRef<HTMLDivElement | null>(null);
 
   const closeModal = ({ dragged }: { dragged?: boolean } = {}) => {
     if (disableDefaultHide && !dragged) {
@@ -94,7 +93,7 @@ export default function Modal({
             <motion.div
               ref={mobileModalRef}
               key="mobile-modal"
-              className="group fixed inset-x-0 bottom-0 z-40 max-h-[80vh] w-screen cursor-grab active:cursor-grabbing md:hidden"
+              className="rounded-t-4xl group fixed inset-x-0 bottom-0 z-40 max-h-[80vh] w-screen cursor-grab overflow-scroll bg-white active:cursor-grabbing md:hidden"
               initial={{ y: "100%" }}
               animate={controls}
               exit={{ y: "100%" }}
@@ -105,24 +104,21 @@ export default function Modal({
               dragElastic={{ top: 0, bottom: 1 }}
               dragConstraints={{ top: 0, bottom: 0 }}
             >
-              <div
-                className={cn(
-                  "rounded-t-4xl -mb-1 flex h-7 w-full items-center justify-center border-t border-gray-200 bg-white",
-                  className,
-                )}
-              >
+              <div className="rounded-t-4xl sticky top-0 z-20 flex h-7 w-full items-center justify-center border-t border-gray-200">
                 <div className="-mr-1 h-1 w-6 rounded-full bg-gray-300 transition-all group-active:rotate-12" />
                 <div className="h-1 w-6 rounded-full bg-gray-300 transition-all group-active:-rotate-12" />
               </div>
               {children}
             </motion.div>
-            <motion.div
-              ref={desktopModalRef}
+            <motion.dialog
               key="desktop-modal"
-              className="fixed inset-0 z-40 m-auto hidden max-h-fit max-w-fit animate-scale-in md:block"
+              className={cn(
+                "fixed inset-0 z-40 m-auto hidden max-h-fit w-full max-w-md animate-scale-in overflow-hidden rounded-2xl border border-gray-200 bg-white p-0 shadow-xl md:block",
+                className,
+              )}
             >
               {children}
-            </motion.div>
+            </motion.dialog>
             <motion.div
               id="modal-backdrop"
               key="backdrop"

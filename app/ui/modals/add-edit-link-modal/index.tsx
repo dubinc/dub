@@ -258,9 +258,10 @@ function AddEditLinkModal({
     <Modal
       showModal={showAddEditLinkModal}
       setShowModal={setShowAddEditLinkModal}
+      className="max-w-screen-lg"
       disableDefaultHide={homepageDemo ? false : true}
     >
-      <div className="relative grid max-h-[80vh] w-full divide-x divide-gray-100 overflow-scroll bg-white shadow-xl transition-all scrollbar-hide md:max-h-[min(906px,_90vh)] md:max-w-screen-lg md:grid-cols-2 md:rounded-2xl md:border md:border-gray-200">
+      <div className="relative grid max-h-[80vh] divide-x divide-gray-100 overflow-scroll scrollbar-hide md:max-h-[min(906px,_90vh)] md:grid-cols-2">
         {!hideXButton && !homepageDemo && (
           <button
             onClick={() => setShowAddEditLinkModal(false)}

@@ -8,7 +8,8 @@ import {
 } from "react";
 import { HexColorInput, HexColorPicker } from "react-colorful";
 import BlurImage from "#/ui/blur-image";
-import { Clipboard } from "@/components/shared/icons";
+import { Logo } from "#/ui/icons";
+import { Clipboard, Download, Photo } from "@/components/shared/icons";
 import { ChevronRight } from "lucide-react";
 import Modal from "#/ui/modal";
 import Switch from "#/ui/switch";
@@ -18,7 +19,6 @@ import useProject from "#/lib/swr/use-project";
 import { SimpleLinkProps } from "#/lib/types";
 import { getApexDomain, linkConstructor } from "#/lib/utils";
 import IconMenu from "@/components/shared/icon-menu";
-import { Download, Photo } from "@/components/shared/icons";
 import Popover from "@/components/shared/popover";
 import { toast } from "sonner";
 import { GOOGLE_FAVICON_URL } from "#/lib/constants";
@@ -103,15 +103,19 @@ function LinkQRModalHelper({
 
   return (
     <Modal showModal={showLinkQRModal} setShowModal={setShowLinkQRModal}>
-      <div className="inline-block w-full transform bg-white align-middle shadow-xl transition-all sm:max-w-md sm:rounded-2xl sm:border sm:border-gray-200">
+      <div className="inline-block w-full transform bg-white align-middle shadow-xl transition-all sm:rounded-2xl sm:border sm:border-gray-200">
         <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
-          <BlurImage
-            src={avatarUrl || "/_static/logo.png"}
-            alt={apexDomain}
-            className="h-10 w-10 rounded-full"
-            width={40}
-            height={40}
-          />
+          {avatarUrl ? (
+            <BlurImage
+              src={avatarUrl}
+              alt={apexDomain}
+              className="h-10 w-10 rounded-full"
+              width={40}
+              height={40}
+            />
+          ) : (
+            <Logo />
+          )}
           <h3 className="text-lg font-medium">Download QR Code</h3>
         </div>
 

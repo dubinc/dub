@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useContext, useMemo, useState } from "react";
+import { useCallback, useContext, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import BlurImage from "#/ui/blur-image";
 import { Tick } from "@/components/shared/icons";
@@ -125,6 +125,20 @@ function ProjectList({
 }) {
   const { data: session } = useSession();
   const { setShowAddProjectModal } = useContext(ModalContext);
+  const router = useRouter();
+  const { domain, key } = router.query as { domain?: string; key?: string };
+  const href = useCallback(
+    (slug: string) => {
+      if (domain || key || selected.slug === "/") {
+        // if we're on a link page, navigate back to the project root
+        return `/${slug}`;
+      } else {
+        // else, we keep the path but remove all query params
+        return router.asPath.replace(selected.slug, slug).split("?")[0];
+      }
+    },
+    [domain, key, router, selected.slug],
+  );
 
   return (
     <div className="relative mt-1 max-h-72 w-full space-y-0.5 overflow-auto rounded-md bg-white p-2 text-base sm:w-60 sm:text-sm sm:shadow-lg">
@@ -168,7 +182,8 @@ function ProjectList({
           className={`relative flex w-full items-center space-x-2 rounded-md px-2 py-1.5 hover:bg-gray-100 active:bg-gray-200 ${
             selected.slug === slug ? "font-medium" : ""
           } transition-all duration-75`}
-          href={`/${slug}`}
+          href={href(slug)}
+          shallow={false}
         >
           <BlurImage
             src={logo || `${GOOGLE_FAVICON_URL}${primaryDomain?.slug}`}

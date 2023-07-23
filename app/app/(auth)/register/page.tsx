@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import RegisterForm from "./form";
 import Button from "#/ui/button";
-import { Logo } from "@/components/shared/icons";
+import { Logo } from "#/ui/icons";
 import { constructMetadata } from "#/lib/utils";
 
 export const metadata = constructMetadata({

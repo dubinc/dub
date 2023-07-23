@@ -51,7 +51,7 @@ function DeleteProjectModal({
       showModal={showDeleteProjectModal}
       setShowModal={setShowDeleteProjectModal}
     >
-      <div className="inline-block w-full transform overflow-hidden bg-white align-middle shadow-xl transition-all sm:max-w-md sm:rounded-2xl sm:border sm:border-gray-200">
+      <div className="inline-block w-full transform overflow-hidden bg-white align-middle transition-all">
         <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
           <BlurImage
             src={logo || `https://avatar.vercel.sh/${id}`}
