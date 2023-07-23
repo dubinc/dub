@@ -25,7 +25,7 @@ export default function Modal({
   const mobileModalRef = useRef<HTMLDivElement | null>(null);
   const desktopModalRef = useRef<HTMLDivElement | null>(null);
 
-  const closeModal = (dragged?: boolean) => {
+  const closeModal = ({ dragged }: { dragged?: boolean } = {}) => {
     if (disableDefaultHide && !dragged) {
       return;
     }
@@ -67,7 +67,7 @@ export default function Modal({
     const height = mobileModalRef.current?.getBoundingClientRect().height || 0;
     if (offset > height / 2 || velocity > 800) {
       await controls.start({ y: "100%", transition: transitionProps });
-      closeModal(true);
+      closeModal({ dragged: true });
     } else {
       controls.start({ y: 0, transition: transitionProps });
     }
@@ -130,7 +130,7 @@ export default function Modal({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={closeModal}
+              onClick={() => closeModal()}
             />
           </div>
         </FocusTrap>
