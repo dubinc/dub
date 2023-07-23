@@ -46,66 +46,62 @@ function ArchiveLinkModal({
       showModal={showArchiveLinkModal}
       setShowModal={setShowArchiveLinkModal}
     >
-      <div className="inline-block w-full transform overflow-hidden bg-white align-middle shadow-xl transition-all sm:max-w-md sm:rounded-2xl sm:border sm:border-gray-200">
-        <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 text-center sm:px-16">
-          <BlurImage
-            src={`${GOOGLE_FAVICON_URL}${apexDomain}`}
-            alt={apexDomain}
-            className="h-10 w-10 rounded-full"
-            width={20}
-            height={20}
-          />
-          <h3 className="text-lg font-medium">
-            {archived ? "Archive" : "Unarchive"} {shortlink}
-          </h3>
-          <p className="text-sm text-gray-500">
-            {archived
-              ? "Archived links will still work - they just won't show up on your main dashboard."
-              : "By unarchiving this link, it will show up on your main dashboard again."}
-          </p>
-        </div>
+      <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 text-center sm:px-16">
+        <BlurImage
+          src={`${GOOGLE_FAVICON_URL}${apexDomain}`}
+          alt={apexDomain}
+          className="h-10 w-10 rounded-full"
+          width={20}
+          height={20}
+        />
+        <h3 className="text-lg font-medium">
+          {archived ? "Archive" : "Unarchive"} {shortlink}
+        </h3>
+        <p className="text-sm text-gray-500">
+          {archived
+            ? "Archived links will still work - they just won't show up on your main dashboard."
+            : "By unarchiving this link, it will show up on your main dashboard again."}
+        </p>
+      </div>
 
-        <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16">
-          <Button
-            onClick={async (e) => {
-              e.preventDefault();
-              setArchiving(true);
-              fetch(
-                `/api/links/${encodeURIComponent(props.key)}/archive${
-                  slug ? `?slug=${slug}&domain=${domain}` : ""
-                }`,
-                {
-                  method: archived ? "POST" : "DELETE",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
+      <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16">
+        <Button
+          onClick={async (e) => {
+            e.preventDefault();
+            setArchiving(true);
+            fetch(
+              `/api/links/${encodeURIComponent(props.key)}/archive${
+                slug ? `?slug=${slug}&domain=${domain}` : ""
+              }`,
+              {
+                method: archived ? "POST" : "DELETE",
+                headers: {
+                  "Content-Type": "application/json",
                 },
-              ).then(async (res) => {
-                setArchiving(false);
-                if (res.status === 200) {
-                  mutate(`/api/links${getQueryString(router)}`);
-                  mutate(
-                    (key) =>
-                      typeof key === "string" &&
-                      key.startsWith(`/api/links/_count`),
-                    undefined,
-                    { revalidate: true },
-                  );
-                  setShowArchiveLinkModal(false);
-                  toast.success(
-                    `Successfully ${
-                      archived ? "archived" : "unarchived"
-                    } link!`,
-                  );
-                } else {
-                  toast.error(res.statusText);
-                }
-              });
-            }}
-            loading={archiving}
-            text={`Confirm ${archived ? "archive" : "unarchive"}`}
-          />
-        </div>
+              },
+            ).then(async (res) => {
+              setArchiving(false);
+              if (res.status === 200) {
+                mutate(`/api/links${getQueryString(router)}`);
+                mutate(
+                  (key) =>
+                    typeof key === "string" &&
+                    key.startsWith(`/api/links/_count`),
+                  undefined,
+                  { revalidate: true },
+                );
+                setShowArchiveLinkModal(false);
+                toast.success(
+                  `Successfully ${archived ? "archived" : "unarchived"} link!`,
+                );
+              } else {
+                toast.error(res.statusText);
+              }
+            });
+          }}
+          loading={archiving}
+          text={`Confirm ${archived ? "archive" : "unarchive"}`}
+        />
       </div>
     </Modal>
   );

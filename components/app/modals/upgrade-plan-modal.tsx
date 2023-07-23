@@ -17,6 +17,7 @@ import { PLANS } from "#/lib/stripe/utils";
 import { getStripe } from "#/lib/stripe/client";
 import Badge from "#/ui/badge";
 import Confetti from "react-dom-confetti";
+import { Logo } from "#/ui/icons";
 
 function UpgradePlanModal({
   showUpgradePlanModal,
@@ -67,14 +68,9 @@ function UpgradePlanModal({
           animate="show"
           className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-8 sm:px-16"
         >
-          <motion.img
-            src="/_static/logo.png"
-            alt="Dub logo"
-            className="h-10 w-10 rounded-full border border-gray-200"
-            width={20}
-            height={20}
-            variants={STAGGER_CHILD_VARIANTS}
-          />
+          <motion.div variants={STAGGER_CHILD_VARIANTS}>
+            <Logo />
+          </motion.div>
           <motion.h3
             className="text-lg font-medium"
             variants={STAGGER_CHILD_VARIANTS}

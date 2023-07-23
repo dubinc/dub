@@ -10,7 +10,8 @@ import {
 } from "react";
 import { HexColorInput, HexColorPicker } from "react-colorful";
 import BlurImage from "#/ui/blur-image";
-import { Clipboard } from "@/components/shared/icons";
+import { Clipboard, Download, Photo } from "@/components/shared/icons";
+import { Logo } from "#/ui/icons";
 import { ChevronRight } from "lucide-react";
 import Modal from "#/ui/modal";
 import Switch from "#/ui/switch";
@@ -20,7 +21,6 @@ import useProject from "#/lib/hooks/use-project";
 import { SimpleLinkProps } from "#/lib/types";
 import { getApexDomain, linkConstructor } from "#/lib/utils";
 import IconMenu from "@/components/shared/icon-menu";
-import { Download, Photo } from "@/components/shared/icons";
 import Popover from "#/ui/popover";
 import { toast } from "sonner";
 import { GOOGLE_FAVICON_URL } from "#/lib/constants";
@@ -105,77 +105,79 @@ function LinkQRModalHelper({
 
   return (
     <Modal showModal={showLinkQRModal} setShowModal={setShowLinkQRModal}>
-      <div className="inline-block w-full transform bg-white align-middle shadow-xl transition-all sm:max-w-md sm:rounded-2xl sm:border sm:border-gray-200">
-        <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
+      <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
+        {avatarUrl ? (
           <BlurImage
-            src={avatarUrl || "/_static/logo.png"}
+            src={avatarUrl}
             alt={apexDomain}
             className="h-10 w-10 rounded-full"
             width={40}
             height={40}
           />
-          <h3 className="text-lg font-medium">Download QR Code</h3>
-        </div>
+        ) : (
+          <Logo />
+        )}
+        <h3 className="text-lg font-medium">Download QR Code</h3>
+      </div>
 
-        <div className="flex flex-col space-y-6 bg-gray-50 py-6 text-left sm:rounded-b-2xl">
-          <div className="mx-auto rounded-lg border-2 border-gray-200 bg-white p-4">
-            <QRCodeSVG
-              value={qrData.value}
-              size={qrData.size / 8}
-              bgColor={qrData.bgColor}
-              fgColor={qrData.fgColor}
-              level={qrData.level}
-              includeMargin={false}
-              // @ts-ignore
-              imageSettings={
-                showLogo && {
-                  ...qrData.imageSettings,
-                  height: qrData.imageSettings
-                    ? qrData.imageSettings.height / 8
-                    : 0,
-                  width: qrData.imageSettings
-                    ? qrData.imageSettings.width / 8
-                    : 0,
-                }
+      <div className="flex flex-col space-y-6 bg-gray-50 py-6 text-left sm:rounded-b-2xl">
+        <div className="mx-auto rounded-lg border-2 border-gray-200 bg-white p-4">
+          <QRCodeSVG
+            value={qrData.value}
+            size={qrData.size / 8}
+            bgColor={qrData.bgColor}
+            fgColor={qrData.fgColor}
+            level={qrData.level}
+            includeMargin={false}
+            // @ts-ignore
+            imageSettings={
+              showLogo && {
+                ...qrData.imageSettings,
+                height: qrData.imageSettings
+                  ? qrData.imageSettings.height / 8
+                  : 0,
+                width: qrData.imageSettings
+                  ? qrData.imageSettings.width / 8
+                  : 0,
               }
-            />
-          </div>
-
-          <AdvancedSettings
-            qrData={qrData}
-            setFgColor={setFgColor}
-            showLogo={showLogo}
-            setShowLogo={setShowLogo}
-          />
-
-          <div className="grid grid-cols-2 gap-2 px-4 sm:px-16">
-            <button
-              onClick={async () => {
-                toast.promise(copyToClipboard, {
-                  loading: "Copying QR code to clipboard...",
-                  success: "Copied QR code to clipboard!",
-                  error: "Failed to copy",
-                });
-              }}
-              className="flex items-center justify-center gap-2 rounded-md border border-black bg-black px-5 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
-            >
-              <Clipboard className="h-4 w-4" /> Copy
-            </button>
-            <QrDropdown
-              download={download}
-              qrData={qrData}
-              showLogo={showLogo}
-              logo={qrLogoUrl}
-            />
-          </div>
-
-          {/* This will be used to prompt downloads. */}
-          <a
-            className="hidden"
-            download={`${props.key}-qrcode.svg`}
-            ref={anchorRef}
+            }
           />
         </div>
+
+        <AdvancedSettings
+          qrData={qrData}
+          setFgColor={setFgColor}
+          showLogo={showLogo}
+          setShowLogo={setShowLogo}
+        />
+
+        <div className="grid grid-cols-2 gap-2 px-4 sm:px-16">
+          <button
+            onClick={async () => {
+              toast.promise(copyToClipboard, {
+                loading: "Copying QR code to clipboard...",
+                success: "Copied QR code to clipboard!",
+                error: "Failed to copy",
+              });
+            }}
+            className="flex items-center justify-center gap-2 rounded-md border border-black bg-black px-5 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
+          >
+            <Clipboard className="h-4 w-4" /> Copy
+          </button>
+          <QrDropdown
+            download={download}
+            qrData={qrData}
+            showLogo={showLogo}
+            logo={qrLogoUrl}
+          />
+        </div>
+
+        {/* This will be used to prompt downloads. */}
+        <a
+          className="hidden"
+          download={`${props.key}-qrcode.svg`}
+          ref={anchorRef}
+        />
       </div>
     </Modal>
   );

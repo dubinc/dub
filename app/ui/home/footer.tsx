@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Github, LinkedIn, Logo, Twitter } from "@/components/shared/icons";
+import { Logo } from "#/ui/icons";
+import { Github, LinkedIn, Twitter } from "@/components/shared/icons";
 import { useParams } from "next/navigation";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import va from "@vercel/analytics";

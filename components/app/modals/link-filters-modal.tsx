@@ -22,9 +22,7 @@ function LinkFiltersModal({
       showModal={showLinkFiltersModal}
       setShowModal={setShowLinkFiltersModal}
     >
-      <div className="inline-block w-full transform overflow-hidden bg-white pb-20 align-middle shadow-xl transition-all sm:max-w-md sm:rounded-2xl sm:border sm:border-gray-200">
-        <LinkFilters />
-      </div>
+      <LinkFilters />
     </Modal>
   );
 }
