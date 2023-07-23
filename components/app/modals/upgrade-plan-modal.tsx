@@ -21,11 +21,9 @@ import Confetti from "react-dom-confetti";
 function UpgradePlanModal({
   showUpgradePlanModal,
   setShowUpgradePlanModal,
-  welcomeFlow,
 }: {
   showUpgradePlanModal: boolean;
   setShowUpgradePlanModal: Dispatch<SetStateAction<boolean>>;
-  welcomeFlow?: boolean;
 }) {
   const router = useRouter();
   const { slug } = router.query;
@@ -45,6 +43,11 @@ function UpgradePlanModal({
     ];
   }, [plan]);
   const [clicked, setClicked] = useState(false);
+
+  const welcomeFlow = useMemo(() => {
+    return router.asPath.split("?")[0] === "/welcome";
+  }, [router.asPath]);
+
   return (
     <Modal
       showModal={showUpgradePlanModal}
@@ -209,9 +212,7 @@ function UpgradePlanModal({
   );
 }
 
-export function useUpgradePlanModal({
-  welcomeFlow,
-}: { welcomeFlow?: boolean } = {}) {
+export function useUpgradePlanModal() {
   const [showUpgradePlanModal, setShowUpgradePlanModal] = useState(false);
 
   const UpgradePlanModalCallback = useCallback(() => {
@@ -219,10 +220,9 @@ export function useUpgradePlanModal({
       <UpgradePlanModal
         showUpgradePlanModal={showUpgradePlanModal}
         setShowUpgradePlanModal={setShowUpgradePlanModal}
-        welcomeFlow={welcomeFlow}
       />
     );
-  }, [showUpgradePlanModal, setShowUpgradePlanModal, welcomeFlow]);
+  }, [showUpgradePlanModal, setShowUpgradePlanModal]);
 
   return useMemo(
     () => ({

@@ -49,14 +49,12 @@ function AddEditLinkModal({
   props,
   duplicateProps,
   homepageDemo,
-  welcomeFlow,
 }: {
   showAddEditLinkModal: boolean;
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
   props?: LinkProps;
   duplicateProps?: LinkProps;
   homepageDemo?: boolean;
-  welcomeFlow?: boolean;
 }) {
   const router = useRouter();
   const { slug } = router.query as { slug: string };
@@ -259,6 +257,10 @@ function AddEditLinkModal({
   const randomIdx = Math.floor(Math.random() * 100);
 
   const [lockKey, setLockKey] = useState(true);
+
+  const welcomeFlow = useMemo(() => {
+    return router.asPath.split("?")[0] === "/welcome";
+  }, [router.asPath]);
 
   return (
     <Modal
@@ -670,12 +672,10 @@ export function useAddEditLinkModal({
   props,
   duplicateProps,
   homepageDemo,
-  welcomeFlow,
 }: {
   props?: LinkProps;
   duplicateProps?: LinkProps;
   homepageDemo?: boolean;
-  welcomeFlow?: boolean;
 } = {}) {
   const [showAddEditLinkModal, setShowAddEditLinkModal] = useState(false);
 
@@ -687,7 +687,6 @@ export function useAddEditLinkModal({
         props={props}
         duplicateProps={duplicateProps}
         homepageDemo={homepageDemo}
-        welcomeFlow={welcomeFlow}
       />
     );
   }, [showAddEditLinkModal, setShowAddEditLinkModal]);
