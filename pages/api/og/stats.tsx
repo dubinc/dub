@@ -2,6 +2,7 @@ import { ImageResponse, NextRequest } from "next/server";
 import { getLinkViaEdge } from "#/lib/planetscale";
 import { getStats } from "#/lib/stats";
 import { nFormatter, truncate } from "#/lib/utils";
+import { DUB_LOGO } from "#/lib/constants";
 
 export const runtime = "edge";
 export const contentType = "image/png";
@@ -54,7 +55,7 @@ export default async function handler(req: NextRequest) {
         }}
       >
         <img
-          src="https://public.blob.vercel-storage.com/kmKY9FhOzDRAX28c/diIX27B-vli9jFicKhqvO4Dzb2IrgHbaOdRLcT.png"
+          src={DUB_LOGO}
           style={{
             width: "80px",
             height: "80px",
