@@ -114,7 +114,7 @@ export default async function ChangelogPost({
             </Link>
           </div>
         </div>
-        <MDX code={post.body.code} />
+        <MDX code={post.body.code} className="mx-5 sm:prose-lg md:mx-0" />
         <div className="mt-10 flex justify-end border-t border-gray-200 pt-5">
           <Link
             href={`https://github.com/steven-tey/dub/blob/main/posts/changelog/${params.slug}.mdx`}

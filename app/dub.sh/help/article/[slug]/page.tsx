@@ -107,7 +107,7 @@ export default async function HelpArticle({
             </div>
             <div className="flex flex-col space-y-4">
               <Link href={`/help/article/${data.slug}`}>
-                <h1 className="font-display text-2xl font-bold sm:text-4xl">
+                <h1 className="font-display text-3xl font-bold !leading-snug sm:text-4xl">
                   {data.title}
                 </h1>
               </Link>

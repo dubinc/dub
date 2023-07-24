@@ -6,6 +6,9 @@ import Tweet from "#/ui/tweet";
 import GithubRepo, { GithubRepoProps } from "@/components/shared/github-repo";
 import BlurImage from "#/ui/blur-image";
 import { Tweet as TweetProps } from "react-tweet/api";
+import { cn } from "#/lib/utils";
+import Zoom from "react-medium-image-zoom";
+import "react-medium-image-zoom/dist/styles.css";
 
 const CustomLink = (props: any) => {
   const href = props.href;
@@ -47,9 +50,10 @@ interface MDXProps {
   images?: { alt: string; src: string; blurDataURL: string }[];
   tweets?: any[];
   repos?: GithubRepoProps[];
+  className?: string;
 }
 
-export function MDX({ code, images, tweets, repos }: MDXProps) {
+export function MDX({ code, images, tweets, repos, className }: MDXProps) {
   const Component = useMDXComponent(code);
 
   const MDXImage = (props: any) => {
@@ -60,16 +64,17 @@ export function MDX({ code, images, tweets, repos }: MDXProps) {
 
     return (
       <div className="not-prose flex flex-col items-center justify-center space-y-3">
-        <BlurImage
-          {...props}
-          onClick={() => window.open(props.src, "_blank")}
-          className="cursor-zoom-in rounded-lg border border-gray-200"
-          placeholder="blur"
-          blurDataURL={
-            blurDataURL ||
-            "data:image/webp;base64,AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
-          }
-        />
+        <Zoom>
+          <BlurImage
+            {...props}
+            className="rounded-lg border border-gray-200"
+            placeholder="blur"
+            blurDataURL={
+              blurDataURL ||
+              "data:image/webp;base64,AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+            }
+          />
+        </Zoom>
         <p className="text-sm italic text-gray-500">{props.alt}</p>
       </div>
     );
@@ -90,7 +95,10 @@ export function MDX({ code, images, tweets, repos }: MDXProps) {
   return (
     <article
       data-mdx-container
-      className="prose prose-gray w-full transition-all prose-headings:relative prose-headings:scroll-mt-20 prose-headings:font-display prose-headings:font-bold"
+      className={cn(
+        "prose prose-gray max-w-none transition-all prose-headings:relative prose-headings:scroll-mt-20 prose-headings:font-display prose-headings:font-bold",
+        className,
+      )}
     >
       <Component
         components={{ ...components, Image: MDXImage, MDXTweet, MDXRepo }}
