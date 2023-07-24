@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { allChangelogPosts } from "contentlayer/generated";
 import { MDX } from "#/ui/content/mdx";
 import Link from "next/link";
-import { formatDate } from "#/lib/utils";
+import { constructMetadata, formatDate } from "#/lib/utils";
 import { getBlurDataURL } from "#/lib/images";
 import BlurImage from "#/ui/blur-image";
 import Author from "#/ui/content/author";
@@ -25,36 +25,13 @@ export async function generateMetadata({
     return;
   }
 
-  const {
-    title,
-    publishedAt: publishedTime,
-    summary: description,
-    image,
-    slug,
-  } = post;
+  const { title, summary: description, image } = post;
 
-  return {
-    title: `${title} - Dub Changelog`,
+  return constructMetadata({
+    title,
     description,
-    openGraph: {
-      title: `${title} - Dub Changelog`,
-      description,
-      type: "article",
-      publishedTime,
-      url: `https://dub.sh/changelog/${slug}`,
-      images: [
-        {
-          url: image,
-        },
-      ],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images: [image],
-    },
-  };
+    image,
+  });
 }
 
 export default async function ChangelogPost({
@@ -101,7 +78,7 @@ export default async function ChangelogPost({
           src={post.image}
           alt={post.title}
           width={1200}
-          height={900}
+          height={630}
           priority // since it's above the fold
           placeholder="blur"
           blurDataURL={await getBlurDataURL(post.image)}
