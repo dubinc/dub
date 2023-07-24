@@ -11,7 +11,7 @@ export const metadata = constructMetadata({
   title: "Changelog - Dub",
   description:
     "All the latest updates, improvements, and fixes to Dub - the link management tool for modern marketing teams.",
-  image: "https://dub.sh/api/og/changelog",
+  image: "/api/og/changelog",
 });
 
 export default async function Changelog() {
@@ -76,7 +76,7 @@ export default async function Changelog() {
                       src={post.image}
                       alt={post.title}
                       width={1200}
-                      height={900}
+                      height={630}
                       priority={idx === 0} // since it's above the fold
                       placeholder="blur"
                       blurDataURL={await getBlurDataURL(post.image!)}

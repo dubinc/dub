@@ -10,6 +10,7 @@ import {
   ccTLDs,
   SECOND_LEVEL_DOMAINS,
   HOME_HOSTNAMES,
+  HOME_DOMAIN,
 } from "./constants";
 
 export function cn(...inputs: ClassValue[]) {
@@ -47,7 +48,7 @@ export function constructMetadata({
       creator: "@dubdotsh",
     },
     icons,
-    metadataBase: new URL("https://dub.sh"),
+    metadataBase: new URL(HOME_DOMAIN),
     themeColor: "#FFF",
   };
 }
