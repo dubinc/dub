@@ -11,6 +11,35 @@ import TableOfContents from "#/ui/content/table-of-contents";
 import Feedback from "#/ui/content/feedback";
 import ArticleLink from "#/ui/content/article-link";
 import { getBlurDataURL } from "#/lib/images";
+import { Metadata } from "next";
+import { constructMetadata } from "#/lib/utils";
+
+export async function generateStaticParams() {
+  return allHelpPosts.map((post) => ({
+    slug: post.slug,
+  }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string };
+}): Promise<Metadata | undefined> {
+  const post = allHelpPosts.find((post) => post.slug === params.slug);
+  if (!post) {
+    return;
+  }
+
+  const { title, summary } = post;
+
+  return constructMetadata({
+    title,
+    description: summary,
+    image: `/api/og/help?title=${encodeURIComponent(
+      title,
+    )}&summary=${encodeURIComponent(summary)}`,
+  });
+}
 
 export default async function HelpArticle({
   params,

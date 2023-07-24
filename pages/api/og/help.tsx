@@ -1,4 +1,5 @@
 /* eslint-env node */
+import { truncate } from "#/lib/utils";
 import { ImageResponse } from "@vercel/og";
 import { NextRequest } from "next/server";
 
@@ -22,10 +23,8 @@ export default async function (req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
 
-  const hasTitle = searchParams.has("title");
-  const title = hasTitle
-    ? searchParams.get("title")?.slice(0, 100)
-    : "Nextra Documentation";
+  const title = searchParams.get("title") || "Help Center";
+  const summary = searchParams.get("summary") || "Learn how to use Dub";
 
   return new ImageResponse(
     (
@@ -91,6 +90,22 @@ export default async function (req: NextRequest) {
             fill="currentColor"
           />
         </svg>
+        <h1
+          style={{
+            fontSize: 82,
+            fontFamily: "Satoshi Bold",
+            margin: "0 0 40px -2px",
+            lineHeight: 1.1,
+            textShadow: "0 2px 30px #000",
+            letterSpacing: -4,
+            backgroundImage: "linear-gradient(90deg, #fff 40%, #aaa)",
+            backgroundClip: "text",
+            WebkitBackgroundClip: "text",
+            color: "transparent",
+          }}
+        >
+          {truncate(title, 100)}
+        </h1>
         <p
           style={{
             position: "absolute",
@@ -102,24 +117,8 @@ export default async function (req: NextRequest) {
             letterSpacing: -1,
           }}
         >
-          Create beautiful websites with Next.js & MDX.
+          {truncate(summary, 140)}
         </p>
-        <h1
-          style={{
-            fontSize: 82,
-            fontFamily: "Satoshi Bold",
-            margin: "0 0 40px -2px",
-            lineHeight: 1.1,
-            textShadow: "0 2px 30px #000",
-            letterSpacing: -4,
-            backgroundImage: "linear-gradient(90deg, #fff 40%, #aaa)",
-            backgroundClip: "text",
-            "-webkit-background-clip": "text",
-            color: "transparent",
-          }}
-        >
-          {title}
-        </h1>
       </div>
     ),
     {
