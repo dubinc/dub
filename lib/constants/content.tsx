@@ -7,7 +7,7 @@ export const POPULAR_ARTICLES = [
   "how-to-add-custom-domain",
   "how-to-use-tags",
   "how-to-invite-teammates",
-  "how-to-upgrade",
+  "pro-plan",
 ];
 
 export const CATEGORIES: {

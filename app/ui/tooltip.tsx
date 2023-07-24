@@ -165,7 +165,7 @@ export function TooltipContent({
   );
 }
 
-export function InfoTooltip({ content }: { content: string }) {
+export function InfoTooltip({ content }: { content: ReactNode | string }) {
   return (
     <Tooltip content={content}>
       <HelpCircle className="h-4 w-4 text-gray-500" />

@@ -1,13 +1,9 @@
-import {
-  defineDocumentType,
-  defineNestedType,
-  makeSource,
-} from "contentlayer/source-files";
+import { defineDocumentType, makeSource } from "contentlayer/source-files";
 import remarkGfm from "remark-gfm";
 import rehypePrettyCode from "rehype-pretty-code";
 import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
-import slugify from "@sindresorhus/slugify";
+import GithubSlugger from "github-slugger";
 import { capitalize } from "./lib/utils";
 
 export const ChangelogPost = defineDocumentType(() => ({
@@ -115,11 +111,15 @@ const computedFields = (type: "changelog" | "help" | "legal") => ({
     resolve: (doc) => {
       // get all markdown heading 2 nodes (##)
       const headings = doc.body.raw.match(/^##\s.+/gm);
+      const slugger = new GithubSlugger();
       return (
-        headings?.map((heading) => ({
-          title: heading.replace(/^##\s/, ""),
-          slug: slugify(heading),
-        })) || []
+        headings?.map((heading) => {
+          const title = heading.replace(/^##\s/, "");
+          return {
+            title,
+            slug: slugger.slug(title),
+          };
+        }) || []
       );
     },
   },
@@ -169,7 +169,7 @@ const computedFields = (type: "changelog" | "help" | "legal") => ({
 });
 
 export default makeSource({
-  contentDirPath: "posts",
+  contentDirPath: "content",
   documentTypes: [ChangelogPost, LegalPost, HelpPost],
   mdx: {
     remarkPlugins: [remarkGfm],

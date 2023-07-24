@@ -15,7 +15,7 @@ export default function TableOfContents({
   const currentAnchor = useCurrentAnchor();
 
   return (
-    <div className="sticky top-20 col-span-1 hidden gap-4 self-start border-l-2 border-gray-200 sm:grid">
+    <div className="grid gap-4 border-l-2 border-gray-200">
       {items.map((item, idx) => (
         <Link
           key={item.slug}

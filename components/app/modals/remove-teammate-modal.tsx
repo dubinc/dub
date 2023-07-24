@@ -41,7 +41,7 @@ function RemoveTeammateModal({
         {logo ? (
           <BlurImage
             src={logo}
-            alt={"Invite Teammate"}
+            alt="Project logo"
             className="h-10 w-10 rounded-full"
             width={20}
             height={20}
@@ -49,7 +49,9 @@ function RemoveTeammateModal({
         ) : (
           <Logo />
         )}
-        <h3 className="text-lg font-medium">Remove Teammate</h3>
+        <h3 className="text-lg font-medium">
+          Remove {invite ? "Invitation" : "Teammate"}
+        </h3>
         <p className="text-center text-sm text-gray-500">
           This will remove{" "}
           <span className="font-semibold text-black">{name || email}</span>

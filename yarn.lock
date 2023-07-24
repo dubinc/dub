@@ -4366,7 +4366,7 @@ get-stream@^6.0.0:
 
 github-slugger@^2.0.0:
   version "2.0.0"
-  resolved "https://registry.npmjs.org/github-slugger/-/github-slugger-2.0.0.tgz"
+  resolved "https://registry.yarnpkg.com/github-slugger/-/github-slugger-2.0.0.tgz#52cf2f9279a21eb6c59dd385b410f0c0adda8f1a"
   integrity sha512-IaOQ9puYtjrkq7Y0Ygl9KDZnrf/aiUJYUpVf89y8kyaxbRG7Y1SrX/jaumrv81vc61+kiMempujsM3Yw7w5qcw==
 
 glob-parent@^5.1.2, glob-parent@~5.1.2:

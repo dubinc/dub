@@ -74,33 +74,31 @@ export default async function HelpArticle({
 
   return (
     <>
-      <MaxWidthWrapper className="max-w-screen-lg">
-        <div className="flex flex-col py-10">
-          <SearchButton />
-        </div>
+      <MaxWidthWrapper className="flex max-w-screen-lg flex-col py-10">
+        <SearchButton />
       </MaxWidthWrapper>
 
       <div className="border border-gray-200 bg-white/50 shadow-[inset_10px_-50px_94px_0_rgb(199,199,199,0.2)] backdrop-blur-lg">
         <MaxWidthWrapper className="grid max-w-screen-lg grid-cols-4 gap-10 py-10">
           <div className="col-span-4 flex flex-col space-y-8 sm:col-span-3 sm:pr-10">
-            <div className="flex flex-wrap items-center space-x-2">
+            <div className="flex items-center space-x-2">
               <Link
                 href="/help"
-                className="text-sm font-medium text-gray-500 hover:text-gray-800"
+                className="whitespace-nowrap text-sm font-medium text-gray-500 hover:text-gray-800"
               >
                 All Categories
               </Link>
               <ChevronRight className="h-4 w-4 text-gray-400" />
               <Link
                 href={`/help/category/${category.slug}`}
-                className="text-sm font-medium text-gray-500 hover:text-gray-800"
+                className="whitespace-nowrap text-sm font-medium text-gray-500 hover:text-gray-800"
               >
                 {category.title}
               </Link>
               <ChevronRight className="h-4 w-4 text-gray-400" />
               <Link
                 href={`/help/article/${data.slug}`}
-                className="text-sm font-medium text-gray-500 hover:text-gray-800"
+                className="truncate text-sm font-medium text-gray-500 hover:text-gray-800"
               >
                 {data.title}
               </Link>
@@ -129,7 +127,19 @@ export default async function HelpArticle({
             )}
             <Feedback />
           </div>
-          <TableOfContents items={data.tableOfContents} />
+          <div className="sticky top-20 col-span-1 hidden self-start sm:block">
+            <TableOfContents items={data.tableOfContents} />
+            <div className="mt-10 flex justify-center border-t border-gray-200 pt-5">
+              <Link
+                href={`https://github.com/steven-tey/dub/blob/main/content/help/${params.slug}.mdx`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-gray-500 transition-colors hover:text-gray-800"
+              >
+                Found a typo? Edit this page ↗
+              </Link>
+            </div>
+          </div>
         </MaxWidthWrapper>
       </div>
     </>

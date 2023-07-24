@@ -32,13 +32,11 @@ export default function HelpCategory({
 
   return (
     <>
-      <MaxWidthWrapper className="max-w-screen-lg">
-        <div className="flex flex-col py-10">
-          <SearchButton />
-        </div>
+      <MaxWidthWrapper className="flex max-w-screen-lg flex-col py-10">
+        <SearchButton />
       </MaxWidthWrapper>
 
-      <div className="border border-gray-200 bg-white/50 shadow-[inset_10px_-50px_94px_0_rgb(199,199,199,0.2)] backdrop-blur-lg">
+      <div className="min-h-[50vh] border border-gray-200 bg-white/50 shadow-[inset_10px_-50px_94px_0_rgb(199,199,199,0.2)] backdrop-blur-lg">
         <MaxWidthWrapper className="flex max-w-screen-lg flex-col py-10">
           <div className="flex items-center space-x-2">
             <Link

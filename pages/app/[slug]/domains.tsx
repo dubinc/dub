@@ -6,6 +6,8 @@ import DomainCard from "@/components/app/domains/domain-card";
 import useDomains from "#/lib/swr/use-domains";
 import DomainCardPlaceholder from "@/components/app/domains/domain-card-placeholder";
 import NoDomainsPlaceholder from "@/components/app/domains/no-domains-placeholder";
+import { InfoTooltip, TooltipContent } from "#/ui/tooltip";
+import { HOME_DOMAIN } from "#/lib/constants";
 
 export default function ProjectDomains() {
   const { id: projectId } = useProject();
@@ -20,7 +22,18 @@ export default function ProjectDomains() {
       <div className="flex h-36 items-center border-b border-gray-200 bg-white">
         <MaxWidthWrapper>
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl text-gray-600">Domains</h1>
+            <div className="flex items-center space-x-2">
+              <h1 className="text-2xl text-gray-600">Domains</h1>
+              <InfoTooltip
+                content={
+                  <TooltipContent
+                    title="Learn more about how to add, configure, and verify custom domains on Dub."
+                    href={`${HOME_DOMAIN}/help/article/how-to-add-custom-domain`}
+                    cta="Learn more"
+                  />
+                }
+              />
+            </div>
             <AddEditDomainButton />
           </div>
         </MaxWidthWrapper>

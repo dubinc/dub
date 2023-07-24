@@ -64,20 +64,32 @@ const CommandResults = ({
     (slug) => allHelpPosts.find((post) => post.slug === slug)!,
   );
 
+  const allItems = [
+    ...allHelpPosts,
+    // get all table of contents headings too
+    ...allHelpPosts.flatMap((post) =>
+      post.tableOfContents.map((toc: { title: string; slug: string }) => ({
+        slug: `${post.slug}#${toc.slug}`,
+        title: toc.title,
+        summary: `In: "${post.title}"`,
+      })),
+    ),
+  ];
+
   const search = useCommandState((state) => state.search);
 
-  return (search.length === 0 ? popularArticles : allHelpPosts).map(
-    (article) => (
+  return (search.length === 0 ? popularArticles : allItems).map(
+    ({ slug, title, summary }) => (
       <Command.Item
-        key={article.slug}
-        value={article.title}
+        key={slug}
+        value={title}
         onSelect={() => {
           console.log(window.location.hostname);
           if (window.location.hostname.startsWith("app.")) {
             // this is from the app, open in new tab
-            window.open(`${HOME_DOMAIN}/help/article/${article.slug}`);
+            window.open(`${HOME_DOMAIN}/help/article/${slug}`);
           } else {
-            router.push(`/help/article/${article.slug}`);
+            router.push(`/help/article/${slug}`);
           }
           setShowCMDK(false);
         }}
@@ -88,14 +100,14 @@ const CommandResults = ({
             highlightClassName="underline bg-transparent text-purple-500"
             searchWords={[search]}
             autoEscape={true}
-            textToHighlight={article.title}
+            textToHighlight={title}
             className="text-sm font-medium text-gray-600 group-aria-selected:text-purple-600 sm:group-hover:text-purple-600"
           />
           <Highlighter
             highlightClassName="underline bg-transparent text-purple-500"
             searchWords={[search]}
             autoEscape={true}
-            textToHighlight={article.summary}
+            textToHighlight={summary}
             className="line-clamp-1 text-xs text-gray-400"
           />
         </div>

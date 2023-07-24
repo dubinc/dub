@@ -6,6 +6,7 @@ import Tweet from "#/ui/tweet";
 import GithubRepo, { GithubRepoProps } from "@/components/shared/github-repo";
 import BlurImage from "#/ui/blur-image";
 import { Tweet as TweetProps } from "react-tweet/api";
+import useWindowSize from "#/lib/hooks/use-window-size";
 import { cn } from "#/lib/utils";
 import Zoom from "react-medium-image-zoom";
 import "react-medium-image-zoom/dist/styles.css";
@@ -43,6 +44,19 @@ const components = {
     />
   ),
   thead: (props: any) => <thead className="text-lg" {...props} />,
+  Note: (props: any) => (
+    <div
+      className={cn(
+        "mt-4 rounded-md border-l-4 border-gray-500 bg-gray-100 px-4 py-1 text-[0.95rem] leading-[1.4rem]",
+        {
+          "border-yellow-500 bg-yellow-100": props.variant === "warning",
+          "border-blue-500 bg-blue-100": props.variant === "info",
+          "border-green-500 bg-green-100": props.variant === "success",
+        },
+      )}
+      {...props}
+    />
+  ),
 };
 
 interface MDXProps {
@@ -55,6 +69,7 @@ interface MDXProps {
 
 export function MDX({ code, images, tweets, repos, className }: MDXProps) {
   const Component = useMDXComponent(code);
+  const { width } = useWindowSize();
 
   const MDXImage = (props: any) => {
     if (!images) return null;
@@ -64,7 +79,7 @@ export function MDX({ code, images, tweets, repos, className }: MDXProps) {
 
     return (
       <div className="not-prose flex flex-col items-center justify-center space-y-3">
-        <Zoom>
+        <Zoom zoomMargin={width > 640 ? 45 : undefined}>
           <BlurImage
             {...props}
             className="rounded-lg border border-gray-200"
