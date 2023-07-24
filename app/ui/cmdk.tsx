@@ -25,12 +25,12 @@ function CMDKHelper({
   setShowCMDK: Dispatch<SetStateAction<boolean>>;
 }) {
   return (
-    <Modal showModal={showCMDK} setShowModal={setShowCMDK}>
-      <Command
-        label="CMDK"
-        className="w-full overflow-hidden bg-white shadow-xl sm:max-w-xl sm:rounded-xl sm:border sm:border-gray-200"
-        loop
-      >
+    <Modal
+      showModal={showCMDK}
+      setShowModal={setShowCMDK}
+      className="sm:max-w-xl"
+    >
+      <Command label="CMDK" loop>
         <Command.Input
           autoFocus
           placeholder="Search articles, guides, and more..."

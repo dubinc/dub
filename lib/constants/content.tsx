@@ -1,16 +1,26 @@
-import { Logo } from "@/components/shared/icons";
+import { Logo } from "#/ui/icons";
 import { Globe, Link2, Settings, Webhook } from "lucide-react";
 
 export const POPULAR_ARTICLES = [
   "what-is-dub",
+  "what-is-a-project",
   "how-to-add-custom-domain",
   "how-to-use-tags",
   "how-to-invite-teammates",
-  "dub-api",
   "how-to-upgrade",
 ];
 
-export const CATEGORIES = [
+export const CATEGORIES: {
+  title: string;
+  slug:
+    | "overview"
+    | "getting-started"
+    | "link-management"
+    | "custom-domains"
+    | "api";
+  description: string;
+  icon: JSX.Element;
+}[] = [
   {
     title: "Dub Overview",
     slug: "overview",

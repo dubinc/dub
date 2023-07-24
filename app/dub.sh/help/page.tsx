@@ -1,8 +1,6 @@
 import { constructMetadata } from "#/lib/utils";
-import { ExpandingArrow } from "#/ui/icons";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import { allHelpPosts } from "contentlayer/generated";
-import Link from "next/link";
 import { CATEGORIES, POPULAR_ARTICLES } from "#/lib/constants/content";
 import SearchButton from "#/ui/content/search-button";
 import CategoryCard from "#/ui/content/category-card";
@@ -19,8 +17,9 @@ export default function HelpCenter() {
 
   const categories = CATEGORIES.map((category) => ({
     ...category,
-    postCount: allHelpPosts.filter((post) => post.category === category.slug)
-      .length,
+    postCount: allHelpPosts.filter((post) =>
+      post.categories.includes(category.slug),
+    ).length,
   }));
 
   return (

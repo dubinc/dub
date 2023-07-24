@@ -1,13 +1,13 @@
 import { notFound } from "next/navigation";
 import { allHelpPosts } from "contentlayer/generated";
-import { CATEGORIES } from "#/lib/constants/content";
+import { POPULAR_ARTICLES, CATEGORIES } from "#/lib/constants/content";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import SearchButton from "#/ui/content/search-button";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import ArticleLink from "#/ui/content/article-link";
 
-export default function HelpArticle({
+export default function HelpCategory({
   params,
 }: {
   params: {
@@ -18,7 +18,17 @@ export default function HelpArticle({
   if (!data) {
     notFound();
   }
-  const articles = allHelpPosts.filter((post) => post.category === data.slug);
+  const articles = allHelpPosts
+    .filter((post) => post.categories.includes(data.slug))
+    // order by POPULAR_ARTICLES
+    .reduce((acc, curr) => {
+      if (POPULAR_ARTICLES.includes(curr.slug)) {
+        acc.unshift(curr);
+      } else {
+        acc.push(curr);
+      }
+      return acc;
+    }, [] as typeof allHelpPosts);
 
   return (
     <>
@@ -53,7 +63,7 @@ export default function HelpArticle({
             </Link>
             <p className="text-gray-500">{data.description}</p>
           </div>
-          <div className="rounded-xl border border-gray-200 bg-white px-4 py-6">
+          <div className="grid gap-2 rounded-xl border border-gray-200 bg-white p-4">
             {articles.map((article) => (
               <ArticleLink key={article.slug} article={article} />
             ))}

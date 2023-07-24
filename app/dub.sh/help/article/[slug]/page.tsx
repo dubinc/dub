@@ -9,8 +9,10 @@ import Author from "#/ui/content/author";
 import { MDX } from "#/ui/content/mdx";
 import TableOfContents from "#/ui/content/table-of-contents";
 import Feedback from "#/ui/content/feedback";
+import ArticleLink from "#/ui/content/article-link";
+import { getBlurDataURL } from "#/lib/images";
 
-export default function HelpArticle({
+export default async function HelpArticle({
   params,
 }: {
   params: {
@@ -22,8 +24,24 @@ export default function HelpArticle({
     notFound();
   }
   const category = CATEGORIES.find(
-    (category) => category.slug === data.category,
+    (category) => data.categories[0] === category.slug,
   )!;
+
+  const [images] = await Promise.all([
+    await Promise.all(
+      data.images.map(async (src: string) => ({
+        src,
+        blurDataURL: await getBlurDataURL(src),
+      })),
+    ),
+  ]);
+
+  const relatedArticles =
+    (data.related &&
+      data.related.map(
+        (slug) => allHelpPosts.find((post) => post.slug === slug)!,
+      )) ||
+    [];
 
   return (
     <>
@@ -35,7 +53,7 @@ export default function HelpArticle({
 
       <div className="border border-gray-200 bg-white/50 shadow-[inset_10px_-50px_94px_0_rgb(199,199,199,0.2)] backdrop-blur-lg">
         <MaxWidthWrapper className="grid max-w-screen-lg grid-cols-4 gap-10 py-10">
-          <div className="col-span-4 sm:col-span-3 sm:pr-10">
+          <div className="col-span-4 flex flex-col space-y-8 sm:col-span-3 sm:pr-10">
             <div className="flex flex-wrap items-center space-x-2">
               <Link
                 href="/help"
@@ -58,7 +76,7 @@ export default function HelpArticle({
                 {data.title}
               </Link>
             </div>
-            <div className="my-8 flex flex-col space-y-4">
+            <div className="flex flex-col space-y-4">
               <Link href={`/help/article/${data.slug}`}>
                 <h1 className="font-display text-2xl font-bold sm:text-4xl">
                   {data.title}
@@ -67,7 +85,19 @@ export default function HelpArticle({
               <p className="text-gray-500">{data.summary}</p>
               <Author username={data.author} updatedAt={data.updatedAt} />
             </div>
-            <MDX code={data.body.code} />
+            <MDX code={data.body.code} images={images} />
+            {relatedArticles.length > 0 && (
+              <div className="flex flex-col space-y-4 border-t border-gray-200 pt-8">
+                <h2 className="font-display text-xl font-bold sm:text-2xl">
+                  Related Articles
+                </h2>
+                <div className="grid gap-2 rounded-xl border border-gray-200 bg-white p-4">
+                  {relatedArticles.map((article) => (
+                    <ArticleLink key={article.slug} article={article} />
+                  ))}
+                </div>
+              </div>
+            )}
             <Feedback />
           </div>
           <TableOfContents items={data.tableOfContents} />

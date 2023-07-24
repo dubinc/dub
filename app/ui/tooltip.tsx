@@ -10,7 +10,7 @@ import { AnimatePresence, motion, useAnimation } from "framer-motion";
 import BlurImage from "#/ui/blur-image";
 import Button from "./button";
 import Script from "next/script";
-import { ExternalLink, Globe, GlobeIcon } from "lucide-react";
+import { ExternalLink, Globe, GlobeIcon, HelpCircle } from "lucide-react";
 import { DomainProps } from "#/lib/types";
 import { CheckCircleFill, XCircleFill } from "@/components/shared/icons";
 
@@ -162,6 +162,14 @@ export function TooltipContent({
           </button>
         ) : null)}
     </div>
+  );
+}
+
+export function InfoTooltip({ content }: { content: string }) {
+  return (
+    <Tooltip content={content}>
+      <HelpCircle className="h-4 w-4 text-gray-500" />
+    </Tooltip>
   );
 }
 

@@ -26,12 +26,25 @@ const CustomLink = (props: any) => {
 };
 
 const components = {
-  a: CustomLink,
+  h2: (props: any) => <h2 className="text-2xl" {...props} />,
+  a: (props: any) => (
+    <CustomLink
+      className="font-medium text-gray-500 underline-offset-4 hover:text-black"
+      {...props}
+    />
+  ),
+  code: (props: any) => (
+    <code
+      className="rounded-md bg-gray-200 px-2 py-1 font-medium text-rose-500 before:hidden after:hidden"
+      {...props}
+    />
+  ),
+  thead: (props: any) => <thead className="text-lg" {...props} />,
 };
 
 interface MDXProps {
   code: string;
-  images?: { url: string; blurDataURL: string }[];
+  images?: { alt: string; src: string; blurDataURL: string }[];
   tweets?: any[];
   repos?: GithubRepoProps[];
 }
@@ -42,19 +55,23 @@ export function MDX({ code, images, tweets, repos }: MDXProps) {
   const MDXImage = (props: any) => {
     if (!images) return null;
     const blurDataURL = images.find(
-      (image) => image.url === props.src,
+      (image) => image.src === props.src,
     )?.blurDataURL;
 
     return (
-      <BlurImage
-        {...props}
-        alt={props.alt || "Image"}
-        placeholder="blur"
-        blurDataURL={
-          blurDataURL ||
-          "data:image/webp;base64,AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
-        }
-      />
+      <div className="not-prose flex flex-col items-center justify-center space-y-3">
+        <BlurImage
+          {...props}
+          onClick={() => window.open(props.src, "_blank")}
+          className="cursor-zoom-in rounded-lg border border-gray-200"
+          placeholder="blur"
+          blurDataURL={
+            blurDataURL ||
+            "data:image/webp;base64,AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+          }
+        />
+        <p className="text-sm italic text-gray-500">{props.alt}</p>
+      </div>
     );
   };
 
@@ -73,14 +90,11 @@ export function MDX({ code, images, tweets, repos }: MDXProps) {
   return (
     <article
       data-mdx-container
-      className={`
-    prose prose-gray w-full transition-all prose-headings:relative prose-headings:scroll-mt-20 prose-headings:font-display prose-headings:font-bold
-    prose-h2:text-2xl prose-a:font-medium
-    prose-a:text-gray-500 prose-a:underline-offset-4 hover:prose-a:text-black prose-code:rounded-md 
-    prose-code:bg-gray-200 prose-code:px-2 prose-code:py-1 prose-code:font-medium prose-code:text-rose-500 prose-code:before:hidden prose-code:after:hidden prose-thead:text-lg 
-    `}
+      className="prose prose-gray w-full transition-all prose-headings:relative prose-headings:scroll-mt-20 prose-headings:font-display prose-headings:font-bold"
     >
-      <Component components={{ ...components, MDXImage, MDXTweet, MDXRepo }} />
+      <Component
+        components={{ ...components, Image: MDXImage, MDXTweet, MDXRepo }}
+      />
     </article>
   );
 }

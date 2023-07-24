@@ -32,7 +32,7 @@ export default function Feedback() {
   }, [slug, reaction]);
 
   return (
-    <div className="my-10 flex flex-col items-center justify-center space-y-2 rounded-lg border border-y-gray-200 bg-white py-10">
+    <div className="mb-10 flex flex-col items-center justify-center space-y-2 border-t border-gray-200 py-10">
       <p className="text-gray-500 sm:text-lg">Did this answer your question?</p>
       <div className="flex space-x-4">
         {reactions.map(({ emoji, label }) => (

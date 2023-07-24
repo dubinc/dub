@@ -104,7 +104,7 @@ export default async function ChangelogPost({
           height={900}
           priority // since it's above the fold
           placeholder="blur"
-          blurDataURL={await getBlurDataURL(post.image!)}
+          blurDataURL={await getBlurDataURL(post.image)}
           className="border border-gray-100 md:rounded-2xl"
         />
         <div className="mx-5 mb-10 flex items-center justify-between md:mx-0">

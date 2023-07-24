@@ -1,4 +1,8 @@
-import { defineDocumentType, makeSource } from "contentlayer/source-files";
+import {
+  defineDocumentType,
+  defineNestedType,
+  makeSource,
+} from "contentlayer/source-files";
 import remarkGfm from "remark-gfm";
 import rehypePrettyCode from "rehype-pretty-code";
 import rehypeSlug from "rehype-slug";
@@ -57,16 +61,26 @@ export const HelpPost = defineDocumentType(() => ({
       type: "string",
       required: true,
     },
-    category: {
-      type: "enum",
-      options: [
-        "overview",
-        "getting-started",
-        "link-management",
-        "custom-domains",
-        "api",
-      ],
-      default: "overview",
+    categories: {
+      type: "list",
+      of: {
+        type: "enum",
+        options: [
+          "overview",
+          "getting-started",
+          "link-management",
+          "custom-domains",
+          "api",
+        ],
+        default: "overview",
+      },
+      required: true,
+    },
+    related: {
+      type: "list",
+      of: {
+        type: "string",
+      },
     },
   },
   // @ts-ignore
@@ -112,8 +126,8 @@ const computedFields = (type: "changelog" | "help" | "legal") => ({
   images: {
     type: "array",
     resolve: (doc) => {
-      return doc.body.raw.match(
-        /(?<=<BlurImage[^>]*\bsrc=")[^"]+(?="[^>]*\/>)/g,
+      return (
+        doc.body.raw.match(/(?<=<Image[^>]*\bsrc=")[^"]+(?="[^>]*\/>)/g) || []
       );
     },
   },
