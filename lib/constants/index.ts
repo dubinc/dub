@@ -38,6 +38,13 @@ export const HOME_HOSTNAMES = new Set([
   "localhost:3000",
 ]);
 
+export const HOME_DOMAIN =
+  process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
+    ? "https://dub.sh"
+    : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
+    ? (process.env.NEXT_PUBLIC_VERCEL_URL as string)
+    : "http://localhost:3000";
+
 export const APP_HOSTNAMES = new Set([
   "app.dub.sh",
   "app.localhost:3000",
