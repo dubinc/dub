@@ -78,20 +78,25 @@ export function MDX({ code, images, tweets, repos, className }: MDXProps) {
     )?.blurDataURL;
 
     return (
-      <div className="not-prose flex flex-col items-center justify-center space-y-3">
-        <Zoom zoomMargin={width > 640 ? 45 : undefined}>
-          <BlurImage
-            {...props}
-            className="rounded-lg border border-gray-200"
-            placeholder="blur"
-            blurDataURL={
-              blurDataURL ||
-              "data:image/webp;base64,AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
-            }
-          />
-        </Zoom>
-        <p className="text-sm italic text-gray-500">{props.alt}</p>
-      </div>
+      // we need to wrap the image in a HTML element or showModal will throw errors
+      <>
+        <figure className="not-prose flex flex-col items-center justify-center space-y-3">
+          <Zoom zoomMargin={width > 640 ? 45 : undefined}>
+            <BlurImage
+              {...props}
+              className="rounded-lg border border-gray-200"
+              placeholder="blur"
+              blurDataURL={
+                blurDataURL ||
+                "data:image/webp;base64,AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+              }
+            />
+          </Zoom>
+          <figcaption className="text-center text-sm italic text-gray-500">
+            {props.alt}
+          </figcaption>
+        </figure>
+      </>
     );
   };
 
