@@ -54,7 +54,7 @@ export default function Modal({
 
   const { isMobile } = useWindowSize();
 
-  if (isMobile)
+  if (isMobile) {
     return (
       <Drawer.Root
         open={showModal}
@@ -75,6 +75,7 @@ export default function Modal({
         </Drawer.Portal>
       </Drawer.Root>
     );
+  }
 
   return (
     <AnimatePresence>

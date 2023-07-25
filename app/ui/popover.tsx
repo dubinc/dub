@@ -1,7 +1,6 @@
 "use client";
 
-import { useParams } from "next/navigation";
-import { ReactNode, useEffect } from "react";
+import { ReactNode } from "react";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { Drawer } from "vaul";
 import useWindowSize from "#/lib/hooks/use-window-size";
@@ -19,33 +18,31 @@ export default function Popover({
   openPopover;
   setOpenPopover;
 }) {
-  const { slug } = useParams() as { slug?: string };
   const { isMobile } = useWindowSize();
 
-  // workaround to make popover close when route changes on desktop
-  useEffect(() => {
-    setOpenPopover(false);
-  }, [slug]);
+  if (isMobile) {
+    return (
+      <Drawer.Root
+        open={openPopover}
+        onOpenChange={setOpenPopover}
+        shouldScaleBackground
+      >
+        <div className="sm:hidden">{children}</div>
+        <Drawer.Overlay className="fixed inset-0 z-30 bg-gray-100 bg-opacity-10 backdrop-blur" />
+        <Drawer.Portal>
+          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-40 mt-24 rounded-t-[10px] border-t border-gray-200 bg-white">
+            <div className="mx-auto my-3 h-1 w-12 rounded-full bg-gray-300" />
+            <div className="flex min-h-[150px] w-full items-center justify-center overflow-hidden bg-white pb-8 align-middle shadow-xl">
+              {content}
+            </div>
+          </Drawer.Content>
+          <Drawer.Overlay />
+        </Drawer.Portal>
+      </Drawer.Root>
+    );
+  }
 
-  return isMobile ? (
-    <Drawer.Root
-      open={openPopover}
-      onOpenChange={setOpenPopover}
-      shouldScaleBackground
-    >
-      <div className="sm:hidden">{children}</div>
-      <Drawer.Overlay className="fixed inset-0 z-30 bg-gray-100 bg-opacity-10 backdrop-blur" />
-      <Drawer.Portal>
-        <Drawer.Content className="fixed bottom-0 left-0 right-0 z-40 mt-24 rounded-t-[10px] border-t border-gray-200 bg-white">
-          <div className="mx-auto my-3 h-1 w-12 rounded-full bg-gray-300" />
-          <div className="flex min-h-[150px] w-full items-center justify-center overflow-hidden bg-white pb-8 align-middle shadow-xl">
-            {content}
-          </div>
-        </Drawer.Content>
-        <Drawer.Overlay />
-      </Drawer.Portal>
-    </Drawer.Root>
-  ) : (
+  return (
     <PopoverPrimitive.Root open={openPopover} onOpenChange={setOpenPopover}>
       <PopoverPrimitive.Trigger className="hidden sm:inline-flex" asChild>
         {children}

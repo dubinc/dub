@@ -1,7 +1,7 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 import { Logout } from "@/components/shared/icons";
-import Popover from "@/components/shared/popover";
+import Popover from "#/ui/popover";
 import IconMenu from "../../shared/icon-menu";
 import Image from "next/image";
 import va from "@vercel/analytics";
