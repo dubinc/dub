@@ -84,7 +84,7 @@ const featureList = [
     title: "Collaborate with your team",
     icon: <Users className="h-5 w-5 text-gray-600" />,
     description:
-      "With Dub, you can invite unlimited team members to collaborate on your project for free - no more sharing logins via Google groups.",
+      "With Dub, you can invite your teammates to collaborate on your project for free - no more sharing logins via Google groups.",
     cta: (
       <a
         href={APP_DOMAIN}

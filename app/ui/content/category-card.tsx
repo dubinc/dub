@@ -124,19 +124,19 @@ export default function CategoryCard({
     <div
       key={href}
       onMouseMove={onMouseMove}
-      className="group relative flex rounded-2xl bg-zinc-50 transition-shadow hover:shadow-md hover:shadow-zinc-900/5"
+      className="group relative flex rounded-2xl bg-gray-50 transition-shadow hover:shadow-md hover:shadow-gray-900/5"
     >
       <CardPattern {...pattern} mouseX={mouseX} mouseY={mouseY} />
-      <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-zinc-200 group-hover:ring-zinc-900/10" />
+      <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-gray-200 group-hover:ring-gray-900/10" />
       <div className="relative rounded-2xl p-6 pt-16">
         {icon}
-        <h3 className="mt-4 font-semibold leading-7 text-zinc-900">
+        <h3 className="mt-4 font-semibold leading-7 text-gray-900">
           <Link href={href}>
             <span className="absolute inset-0 rounded-2xl" />
             {name}
           </Link>
         </h3>
-        <p className="mt-1 text-sm text-zinc-600">{description}</p>
+        <p className="mt-1 text-sm text-gray-600">{description}</p>
       </div>
     </div>
   );
