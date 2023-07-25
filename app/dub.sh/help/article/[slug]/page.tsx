@@ -13,6 +13,7 @@ import ArticleLink from "#/ui/content/article-link";
 import { getBlurDataURL } from "#/lib/images";
 import { Metadata } from "next";
 import { constructMetadata } from "#/lib/utils";
+import { getTweet } from "react-tweet/api";
 
 export async function generateStaticParams() {
   return allHelpPosts.map((post) => ({
@@ -56,13 +57,14 @@ export default async function HelpArticle({
     (category) => data.categories[0] === category.slug,
   )!;
 
-  const [images] = await Promise.all([
+  const [images, tweets] = await Promise.all([
     await Promise.all(
       data.images.map(async (src: string) => ({
         src,
         blurDataURL: await getBlurDataURL(src),
       })),
     ),
+    await Promise.all(data.tweetIds.map(async (id: string) => getTweet(id))),
   ]);
 
   const relatedArticles =
@@ -112,7 +114,7 @@ export default async function HelpArticle({
               <p className="text-gray-500">{data.summary}</p>
               <Author username={data.author} updatedAt={data.updatedAt} />
             </div>
-            <MDX code={data.body.code} images={images} />
+            <MDX code={data.body.code} images={images} tweets={tweets} />
             {relatedArticles.length > 0 && (
               <div className="flex flex-col space-y-4 border-t border-gray-200 pt-8">
                 <h2 className="font-display text-xl font-bold sm:text-2xl">

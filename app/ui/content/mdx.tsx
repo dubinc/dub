@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useMDXComponent } from "next-contentlayer/hooks";
-import Tweet from "#/ui/tweet";
 import GithubRepo, { GithubRepoProps } from "@/components/shared/github-repo";
 import BlurImage from "#/ui/blur-image";
+import MDXTweet from "#/ui/tweet";
 import { Tweet as TweetProps } from "react-tweet/api";
 import useWindowSize from "#/lib/hooks/use-window-size";
 import { cn } from "#/lib/utils";
@@ -100,10 +100,10 @@ export function MDX({ code, images, tweets, repos, className }: MDXProps) {
     );
   };
 
-  const MDXTweet = ({ id }: { id: string }) => {
+  const Tweet = ({ id }: { id: string }) => {
     if (!tweets) return null;
     const tweet = tweets.find((tweet: TweetProps) => tweet.id_str === id);
-    return <Tweet data={tweet} />;
+    return <MDXTweet data={tweet} className="mx-auto max-w-lg" noTilt />;
   };
 
   const MDXRepo = ({ url }: { url: string }) => {
@@ -121,7 +121,12 @@ export function MDX({ code, images, tweets, repos, className }: MDXProps) {
       )}
     >
       <Component
-        components={{ ...components, Image: MDXImage, MDXTweet, MDXRepo }}
+        components={{
+          ...components,
+          Image: MDXImage,
+          Tweet,
+          MDXRepo,
+        }}
       />
     </article>
   );

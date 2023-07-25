@@ -54,7 +54,7 @@ export default function Tweet({
     <div
       className={`${
         noTilt ? className : ""
-      } break-inside-avoid rounded-lg border border-gray-300 bg-white/20 bg-clip-padding p-6 pb-4 backdrop-blur-lg backdrop-filter`}
+      } not-prose break-inside-avoid rounded-lg border border-gray-300 bg-white/20 bg-clip-padding p-6 pb-4 backdrop-blur-lg backdrop-filter`}
     >
       {/* User info, verified badge, twitter logo, text, etc. */}
       <div>

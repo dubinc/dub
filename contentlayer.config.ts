@@ -134,9 +134,7 @@ const computedFields = (type: "changelog" | "help" | "legal") => ({
   tweetIds: {
     type: "array",
     resolve: (doc) => {
-      const tweetMatches = doc.body.raw.match(
-        /<StaticTweet\sid="[0-9]+"\s\/>/g,
-      );
+      const tweetMatches = doc.body.raw.match(/<Tweet\sid="[0-9]+"\s\/>/g);
       return tweetMatches?.map((tweet) => tweet.match(/[0-9]+/g)[0]) || [];
     },
   },

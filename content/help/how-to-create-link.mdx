@@ -6,7 +6,10 @@ author: steventey
 categories:
   - link-management
   - getting-started
+related:
   - how-to-use-tags
+  - what-is-a-project
+  - how-to-add-custom-domain
 ---
 
 Our link builder comes with features like UTM builder, device targeting, password protection, expiration dates, and more.
@@ -58,11 +61,11 @@ Inside the link builder are the following fields:
 3. **Choose a tag** (custom domain links only): Choose a tag to organize your links. You can learn more about tags [here](how-to-use-tags).
 4. **Custom Social Media Cards**: Customize how your links look when shared on social media. [Learn more](#custom-social-media-cards).
 5. **UTM Builder**: Add UTM parameters to your links. [Learn more](#utm-builder).
-6. **Password Protection**: Protect your links with a password. [Learn more](#password-protection).
-7. **Expiration Date**: Set an expiration date for your links. [Learn more](#expiration-date).
-8. **iOS Targeting**: Set a custom destination URL for iOS devices. [Learn more](#ios-targeting).
-9. **Android Targeting**: Set a custom destination URL for Android devices. [Learn more](#android-targeting).
-10. **Social Previews**: See how your links will look when shared on social media. [Learn more](#social-previews).
+6. **Password Protection**: Protect your links with a password.
+7. **Expiration Date**: Set an expiration date for your links.
+8. **iOS Targeting**: Set a custom destination URL for iOS devices.
+9. **Android Targeting**: Set a custom destination URL for Android devices.
+10. **Social Previews**: See how your links will look when shared on social media.
 
 ## Custom social media cards
 
@@ -75,8 +78,30 @@ To leverage this feature, toggle the "Custom Social Media Cards" switch in the l
 3. **Description**: The description that will be used for the social media card (max 240 characters).
 
 <Image
-  alt="The custom social media cards feature on Dub"
+  alt="Create custom social media cards for your links"
   src="https://d2vwwcvoksz7ty.cloudfront.net/help/custom-social-media-cards.png"
   width={1149}
   height={779}
+/>
+
+Here's a demo of how this feature works:
+
+<Tweet id="1575526002570182661" />
+
+## UTM builder
+
+You can use the UTM builder to populate UTM parameters for your links.
+
+- **Referral** (`ref`): The website that is sending traffic to your link.
+- **UTM Source** (`utm_source`): The source of your traffic (e.g. Facebook, Twitter, etc.).
+- **UTM Medium** (`utm_medium`): The medium of your traffic (e.g. social, email, etc.).
+- **UTM Campaign** (`utm_campaign`): The name of your campaign (e.g. summer2023)
+- **UTM Term** (`utm_term`): The term of your campaign (e.g. running+shoes)
+- **UTM Content** (`utm_content`): The content of your campaign (e.g. logo+link)
+
+<Image
+  alt="Use the UTM builder to populate UTM parameters for your links"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/utm-builder.png"
+  width={836}
+  height={583}
 />
