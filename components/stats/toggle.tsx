@@ -7,7 +7,7 @@ import { INTERVALS } from "#/lib/stats";
 import useScroll from "#/lib/hooks/use-scroll";
 import { linkConstructor } from "#/lib/utils";
 import IconMenu from "@/components/shared/icon-menu";
-import Popover from "@/components/shared/popover";
+import Popover from "#/ui/popover";
 import useSWR, { mutate } from "swr";
 import { fetcher } from "#/lib/utils";
 import { toast } from "sonner";

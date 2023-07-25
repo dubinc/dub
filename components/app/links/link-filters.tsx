@@ -25,7 +25,7 @@ import useTags from "#/lib/swr/use-tags";
 import TagBadge, { COLORS_LIST } from "@/components/app/links/tag-badge";
 import { TagProps } from "#/lib/types";
 import { ThreeDots } from "@/components/shared/icons";
-import Popover from "@/components/shared/popover";
+import Popover from "#/ui/popover";
 import IconMenu from "@/components/shared/icon-menu";
 import { mutate } from "swr";
 
@@ -470,7 +470,6 @@ const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
         </div>
       }
       align="end"
-      desktopOnly
       openPopover={openPopover}
       setOpenPopover={setOpenPopover}
     >

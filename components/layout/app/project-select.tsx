@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import BlurImage from "#/ui/blur-image";
 import { Tick } from "@/components/shared/icons";
 import { ChevronsUpDown, PlusCircle } from "lucide-react";
-import Popover from "@/components/shared/popover";
+import Popover from "#/ui/popover";
 import { PlanProps, ProjectWithDomainProps } from "#/lib/types";
 import useProjects from "#/lib/swr/use-projects";
 import PlanBadge from "@/components/app/projects/settings/plan-badge";

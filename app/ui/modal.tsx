@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import FocusTrap from "focus-trap-react";
 import { AnimatePresence, motion, useAnimation } from "framer-motion";
 import { cn } from "#/lib/utils";
+import { Drawer } from "vaul";
+import useWindowSize from "#/lib/hooks/use-window-size";
 
 export default function Modal({
   children,
@@ -22,7 +24,6 @@ export default function Modal({
   disableDefaultHide?: boolean;
 }) {
   const router = useRouter();
-  const mobileModalRef = useRef<HTMLDivElement | null>(null);
 
   const closeModal = ({ dragged }: { dragged?: boolean } = {}) => {
     if (disableDefaultHide && !dragged) {
@@ -51,25 +52,29 @@ export default function Modal({
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [showModal, closeModal]);
 
-  const controls = useAnimation();
-  const transitionProps = { type: "spring", stiffness: 500, damping: 30 };
-  useEffect(() => {
-    controls.start({
-      y: 0,
-      transition: transitionProps,
-    });
-  }, []);
+  const { isMobile } = useWindowSize();
 
-  async function handleDragEnd(_, info) {
-    const offset = info.offset.y;
-    const velocity = info.velocity.y;
-    const height = mobileModalRef.current?.getBoundingClientRect().height || 0;
-    if (offset > height / 2 || velocity > 800) {
-      await controls.start({ y: "100%", transition: transitionProps });
-      closeModal({ dragged: true });
-    } else {
-      controls.start({ y: 0, transition: transitionProps });
-    }
+  if (isMobile) {
+    return (
+      <Drawer.Root
+        open={showModal}
+        onOpenChange={(open) => {
+          if (!open) {
+            closeModal({ dragged: true });
+          }
+        }}
+        shouldScaleBackground
+      >
+        <Drawer.Overlay className="fixed inset-0 z-30 bg-gray-100 bg-opacity-10 backdrop-blur" />
+        <Drawer.Portal>
+          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-40 mt-24 rounded-t-[10px] border-t border-gray-200 bg-white">
+            <div className="mx-auto my-3 h-1 w-12 rounded-full bg-gray-300" />
+            {children}
+          </Drawer.Content>
+          <Drawer.Overlay />
+        </Drawer.Portal>
+      </Drawer.Root>
+    );
   }
 
   return (
@@ -90,26 +95,6 @@ export default function Modal({
           }}
         >
           <div className="absolute">
-            <motion.div
-              ref={mobileModalRef}
-              key="mobile-modal"
-              className="rounded-t-4xl group fixed inset-x-0 bottom-0 z-40 max-h-[80vh] w-screen cursor-grab overflow-scroll bg-white active:cursor-grabbing md:hidden"
-              initial={{ y: "100%" }}
-              animate={controls}
-              exit={{ y: "100%" }}
-              transition={transitionProps}
-              drag="y"
-              dragDirectionLock
-              onDragEnd={handleDragEnd}
-              dragElastic={{ top: 0, bottom: 1 }}
-              dragConstraints={{ top: 0, bottom: 0 }}
-            >
-              <div className="rounded-t-4xl sticky top-0 z-20 flex h-7 w-full items-center justify-center border-t border-gray-200">
-                <div className="-mr-1 h-1 w-6 rounded-full bg-gray-300 transition-all group-active:rotate-12" />
-                <div className="h-1 w-6 rounded-full bg-gray-300 transition-all group-active:-rotate-12" />
-              </div>
-              {children}
-            </motion.div>
             <motion.dialog
               key="desktop-modal"
               className={cn(

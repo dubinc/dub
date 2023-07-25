@@ -88,7 +88,8 @@
     "tailwind-scrollbar-hide": "^1.1.7",
     "tailwindcss-radix": "^2.8.0",
     "topojson-client": "^3.1.0",
-    "use-debounce": "^8.0.4"
+    "use-debounce": "^8.0.4",
+    "vaul": "^0.0.6"
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^4.0.0",
