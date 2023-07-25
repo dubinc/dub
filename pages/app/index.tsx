@@ -29,7 +29,7 @@ export default function App() {
       <MaxWidthWrapper>
         <div
           className={`my-10 grid grid-cols-1 ${
-            projects?.length === 0 ? "" : "lg:grid-cols-3"
+            projects?.length === 0 ? "" : "lg:grid-cols-2 xl:grid-cols-3"
           } gap-5`}
         >
           {projects ? (
