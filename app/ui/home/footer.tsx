@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Logo } from "#/ui/icons";
+import { Logo, LogoType } from "#/ui/icons";
 import { Github, LinkedIn, Twitter } from "@/components/shared/icons";
 import { useParams } from "next/navigation";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
@@ -43,7 +43,7 @@ export default function Footer() {
               })}
             >
               <span className="sr-only">Dub.sh Logo</span>
-              <Logo className="h-7 w-7 text-gray-600" />
+              <LogoType className="h-7 text-gray-600" />
             </Link>
             <p className="max-w-xs text-sm text-gray-500">
               Giving modern marketing teams superpowers with short links that
@@ -54,7 +54,7 @@ export default function Footer() {
                 href="https://twitter.com/dubdotsh"
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-md p-2 transition-colors hover:bg-gray-100 active:bg-gray-200"
+                className="group rounded-md p-2 transition-colors hover:bg-gray-100 active:bg-gray-200"
               >
                 <span className="sr-only">Twitter</span>
                 <Twitter className="h-5 w-5 text-gray-600" />
