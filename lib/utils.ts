@@ -12,7 +12,6 @@ import {
   HOME_HOSTNAMES,
   HOME_DOMAIN,
 } from "./constants";
-import punycode from "punycode/";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -134,11 +133,9 @@ export function linkConstructor({
   pretty?: boolean;
   noDomain?: boolean;
 }) {
-  const link = `${
-    localhost
-      ? "http://localhost:3000"
-      : `https://${punycode.toUnicode(domain)}`
-  }${key !== "_root" ? `/${key}` : ""}`;
+  const link = `${localhost ? "http://localhost:3000" : `https://${domain}`}${
+    key !== "_root" ? `/${key}` : ""
+  }`;
 
   if (noDomain) return `/${key}`;
   return pretty ? link.replace(/^https?:\/\//, "") : link;

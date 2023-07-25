@@ -16,6 +16,7 @@ import { StatsContext } from ".";
 import useProject from "#/lib/swr/use-project";
 import Tooltip, { TooltipContent } from "#/ui/tooltip";
 import { ModalContext } from "#/ui/modal-provider";
+import punycode from "punycode/";
 
 export default function Toggle({ atModalTop }: { atModalTop?: boolean }) {
   const router = useRouter();
@@ -47,7 +48,11 @@ export default function Toggle({ atModalTop }: { atModalTop?: boolean }) {
           target="_blank"
           rel="noreferrer"
         >
-          {linkConstructor({ key, domain, pretty: true })}
+          {linkConstructor({
+            key,
+            domain: punycode.toUnicode(domain),
+            pretty: true,
+          })}
           <ExpandingArrow className="h-5 w-5" />
         </a>
         <div className="flex items-center">

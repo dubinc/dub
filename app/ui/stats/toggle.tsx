@@ -17,6 +17,7 @@ import Tooltip, { TooltipContent } from "../tooltip";
 import useProject from "#/lib/hooks/use-project";
 import { useParams } from "next/navigation";
 import { APP_DOMAIN } from "#/lib/constants";
+import punycode from "punycode/";
 
 export default function Toggle() {
   const { slug: projectSlug } = useParams() as { slug?: string };
@@ -48,7 +49,11 @@ export default function Toggle() {
           target="_blank"
           rel="noreferrer"
         >
-          {linkConstructor({ key, domain, pretty: true })}
+          {linkConstructor({
+            key,
+            domain: punycode.toUnicode(domain),
+            pretty: true,
+          })}
           <ExpandingArrow className="h-5 w-5" />
         </a>
         <div className="flex items-center">
