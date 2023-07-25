@@ -153,7 +153,7 @@ export default function LinkCard({
             height={20}
           />
           <div>
-            <div className="mb-1 flex items-center space-x-2">
+            <div className="mb-1 flex items-center space-x-1">
               <a
                 className="font-semibold text-blue-800"
                 href={linkConstructor({ key })}
