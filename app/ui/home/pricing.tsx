@@ -42,6 +42,10 @@ const pricingItems = [
         text: "Custom QR Code Logo",
         negative: true,
       },
+      {
+        text: "API Access",
+        negative: true,
+      },
       { text: "SSO/SAML", negative: true },
       { text: "Priority support", negative: true },
     ],
@@ -74,6 +78,10 @@ const pricingItems = [
       {
         text: "Custom QR Code Logo",
       },
+      {
+        text: "API Access",
+        footnote: "Under development. ETA: September 2023",
+      },
       { text: "SSO/SAML", negative: true },
       { text: "Priority support", negative: true },
     ],
@@ -105,6 +113,10 @@ const pricingItems = [
       },
       {
         text: "Custom QR Code Logo",
+      },
+      {
+        text: "API Access",
+        footnote: "Under development. ETA: September 2023",
       },
       { text: "SSO/SAML", footnote: "Under development. ETA: Q4 2023" },
       {

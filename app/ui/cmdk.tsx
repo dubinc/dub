@@ -30,23 +30,31 @@ function CMDKHelper({
       setShowModal={setShowCMDK}
       className="sm:max-w-xl"
     >
-      <Command label="CMDK" loop>
+      <Command
+        label="CMDK"
+        loop
+        filter={(value, search) => {
+          if (value.includes(search.toLowerCase())) return 1;
+          return 0;
+        }}
+      >
         <Command.Input
           autoFocus
           placeholder="Search articles, guides, and more..."
           className="w-full border-none p-4 font-normal placeholder-gray-400 focus:outline-none focus:ring-0"
         />
         <Command.List className="h-[50vh] max-h-[360px] min-h-[250px] overflow-scroll border-t border-gray-200 p-2 transition-all scrollbar-hide sm:h-[calc(var(--cmdk-list-height)+10rem)]">
-          <Command.Empty className="flex items-center space-x-2 rounded-md bg-gray-100 px-4 py-2 text-sm text-gray-600">
+          <Command.Empty className="flex cursor-not-allowed items-center space-x-2 rounded-md bg-gray-100 px-4 py-2 text-sm text-gray-600">
             <Magic className="h-4 w-4 text-gray-400" />
             <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium text-purple-600">Ask AI</p>
+              <p className="text-sm font-medium text-purple-600">
+                Ask AI (Coming soon)
+              </p>
               <p className="text-xs text-gray-400">
                 Use our AI to find answers to your questions
               </p>
             </div>
           </Command.Empty>
-
           <CommandResults setShowCMDK={setShowCMDK} />
         </Command.List>
       </Command>

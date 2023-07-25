@@ -40,6 +40,7 @@ function UpgradePlanModal({
       "Unlimited link history",
       "Redirect your root domain",
       "Custom QR Code logo",
+      "API Access (ETA Sep 2023)",
       ...(plan === "Enterprise" ? ["SSO/SAML", "Priority support"] : []),
     ];
   }, [plan]);
