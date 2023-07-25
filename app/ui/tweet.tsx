@@ -19,15 +19,9 @@ export default function Tweet({
   if (!data) {
     return (
       <div
-        className={`${className} prose flex h-[20rem] break-inside-avoid items-center rounded-lg border border-gray-300 bg-white/20 bg-clip-padding p-6 pb-4 text-center text-sm backdrop-blur-lg backdrop-filter`}
+        className={`${className} prose flex h-[20rem] break-inside-avoid items-center justify-center rounded-lg border border-gray-300 bg-white/20 bg-clip-padding p-6 pb-4 text-center text-sm backdrop-blur-lg backdrop-filter`}
       >
-        <p>
-          There was an error loading this tweet. Did you specify the{" "}
-          <code className="rounded-md bg-red-50 p-1 text-red-600">
-            TWITTER_AUTH_TOKEN
-          </code>{" "}
-          environment variable?
-        </p>
+        There was an error loading this tweet.
       </div>
     );
   }
