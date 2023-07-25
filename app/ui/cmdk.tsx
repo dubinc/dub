@@ -15,7 +15,7 @@ import { POPULAR_ARTICLES } from "#/lib/constants/content";
 import { allHelpPosts } from "contentlayer/generated";
 import { useRouter } from "next/navigation";
 import Highlighter from "react-highlight-words";
-import { HOME_DOMAIN } from "#/lib/constants";
+import { APP_HOSTNAMES, HOME_DOMAIN } from "#/lib/constants";
 
 function CMDKHelper({
   showCMDK,
@@ -92,8 +92,7 @@ const CommandResults = ({
         key={slug}
         value={title}
         onSelect={() => {
-          console.log(window.location.hostname);
-          if (window.location.hostname.startsWith("app.")) {
+          if (APP_HOSTNAMES.has(window.location.hostname)) {
             // this is from the app, open in new tab
             window.open(`${HOME_DOMAIN}/help/article/${slug}`);
           } else {
