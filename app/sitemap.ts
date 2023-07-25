@@ -12,7 +12,6 @@ export default async function Sitemap() {
   const headersList = headers();
   let domain = headersList.get("host") as string;
   if (isHomeHostname(domain)) domain = "dub.sh";
-  console.log(CATEGORIES);
 
   const links = await prisma.link.findMany({
     where: {

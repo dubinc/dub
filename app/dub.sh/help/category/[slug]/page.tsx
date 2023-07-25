@@ -6,6 +6,35 @@ import SearchButton from "#/ui/content/search-button";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import ArticleLink from "#/ui/content/article-link";
+import { Metadata } from "next";
+import { constructMetadata } from "#/lib/utils";
+
+export async function generateStaticParams() {
+  return CATEGORIES.map((category) => ({
+    slug: category.slug,
+  }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string };
+}): Promise<Metadata | undefined> {
+  const category = CATEGORIES.find((category) => category.slug === params.slug);
+  if (!category) {
+    return;
+  }
+
+  const { title, description } = category;
+
+  return constructMetadata({
+    title: `${title} | Dub Help Center`,
+    description,
+    image: `/api/og/help?title=${encodeURIComponent(
+      title,
+    )}&summary=${encodeURIComponent(description)}`,
+  });
+}
 
 export default function HelpCategory({
   params,
