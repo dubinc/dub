@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode } from "react";
+import { Dispatch, ReactNode, SetStateAction } from "react";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { Drawer } from "vaul";
 import useWindowSize from "#/lib/hooks/use-window-size";
@@ -15,8 +15,8 @@ export default function Popover({
   children: ReactNode;
   content: ReactNode | string;
   align?: "center" | "start" | "end";
-  openPopover;
-  setOpenPopover;
+  openPopover: boolean;
+  setOpenPopover: Dispatch<SetStateAction<boolean>>;
 }) {
   const { isMobile } = useWindowSize();
 
