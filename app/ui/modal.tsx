@@ -65,9 +65,9 @@ export default function Modal({
         }}
         shouldScaleBackground
       >
-        <Drawer.Overlay className="fixed inset-0 z-30 bg-gray-100 bg-opacity-10 backdrop-blur" />
+        <Drawer.Overlay className="fixed inset-0 z-40 bg-gray-100 bg-opacity-10 backdrop-blur" />
         <Drawer.Portal>
-          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-40 mt-24 rounded-t-[10px] border-t border-gray-200 bg-white">
+          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 mt-24 rounded-t-[10px] border-t border-gray-200 bg-white">
             <div className="mx-auto my-3 h-1 w-12 rounded-full bg-gray-300" />
             {children}
           </Drawer.Content>
@@ -98,7 +98,7 @@ export default function Modal({
             <motion.dialog
               key="desktop-modal"
               className={cn(
-                "fixed inset-0 z-40 m-auto hidden max-h-fit w-full max-w-md animate-scale-in overflow-hidden rounded-2xl border border-gray-200 bg-white p-0 shadow-xl md:block",
+                "fixed inset-0 z-50 m-auto hidden max-h-fit w-full max-w-md animate-scale-in overflow-hidden rounded-2xl border border-gray-200 bg-white p-0 shadow-xl md:block",
                 className,
               )}
             >
@@ -107,7 +107,7 @@ export default function Modal({
             <motion.div
               id="modal-backdrop"
               key="backdrop"
-              className="fixed inset-0 z-30 bg-gray-100 bg-opacity-50 backdrop-blur-md"
+              className="fixed inset-0 z-40 bg-gray-100 bg-opacity-50 backdrop-blur-md"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
