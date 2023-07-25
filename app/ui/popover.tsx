@@ -27,7 +27,7 @@ export default function Popover({
         onOpenChange={setOpenPopover}
         shouldScaleBackground
       >
-        <div className="sm:hidden">{children}</div>
+        <div className="md:hidden">{children}</div>
         <Drawer.Overlay className="fixed inset-0 z-30 bg-gray-100 bg-opacity-10 backdrop-blur" />
         <Drawer.Portal>
           <Drawer.Content className="fixed bottom-0 left-0 right-0 z-40 mt-24 rounded-t-[10px] border-t border-gray-200 bg-white">
@@ -44,13 +44,13 @@ export default function Popover({
 
   return (
     <PopoverPrimitive.Root open={openPopover} onOpenChange={setOpenPopover}>
-      <PopoverPrimitive.Trigger className="hidden sm:inline-flex" asChild>
+      <PopoverPrimitive.Trigger className="hidden md:inline-flex" asChild>
         {children}
       </PopoverPrimitive.Trigger>
       <PopoverPrimitive.Content
         sideOffset={4}
         align={align}
-        className="z-20 hidden animate-slide-up-fade items-center rounded-md border border-gray-200 bg-white drop-shadow-lg sm:block"
+        className="z-20 hidden animate-slide-up-fade items-center rounded-md border border-gray-200 bg-white drop-shadow-lg md:block"
       >
         {content}
       </PopoverPrimitive.Content>
