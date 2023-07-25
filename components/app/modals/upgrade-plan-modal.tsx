@@ -55,6 +55,7 @@ function UpgradePlanModal({
       setShowModal={setShowUpgradePlanModal}
       className="max-w-lg"
       disableDefaultHide={welcomeFlow}
+      {...(welcomeFlow && { onClose: () => router.back() })}
     >
       <motion.div
         variants={{

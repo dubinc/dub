@@ -470,7 +470,6 @@ const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
         </div>
       }
       align="end"
-      desktopOnly
       openPopover={openPopover}
       setOpenPopover={setOpenPopover}
     >
