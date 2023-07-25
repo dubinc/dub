@@ -38,8 +38,10 @@ function UpgradePlanModal({
       "Unlimited custom domains",
       "Unlimited team members",
       "Unlimited link history",
+      "Unlimited tags",
       "Redirect your root domain",
       "Custom QR Code logo",
+      "API Access (ETA Sep 2023)",
       ...(plan === "Enterprise" ? ["SSO/SAML", "Priority support"] : []),
     ];
   }, [plan]);

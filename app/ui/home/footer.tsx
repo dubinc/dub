@@ -10,7 +10,10 @@ import va from "@vercel/analytics";
 const navigation = {
   product: [{ name: "Pricing", href: "/pricing" }],
   company: [{ name: "Changelog", href: "/changelog" }],
-  resources: [{ name: "Metatags API", href: "/metatags" }],
+  resources: [
+    { name: "Help Center", href: "/help" },
+    { name: "Metatags API", href: "/metatags" },
+  ],
   legal: [
     { name: "Privacy", href: "/privacy" },
     { name: "Terms", href: "/terms" },
@@ -104,7 +107,7 @@ export default function Footer() {
                 </ul>
               </div>
               <div className="mt-10 md:mt-0">
-                <h3 className="text-sm font-semibold text-gray-600">Tools</h3>
+                <h3 className="text-sm font-semibold text-gray-600">Company</h3>
                 <ul role="list" className="mt-4 space-y-4">
                   {navigation.company.map((item) => (
                     <li key={item.name}>
@@ -129,7 +132,9 @@ export default function Footer() {
             </div>
             <div className="md:grid md:grid-cols-2 md:gap-8">
               <div>
-                <h3 className="text-sm font-semibold text-gray-600">Company</h3>
+                <h3 className="text-sm font-semibold text-gray-600">
+                  Resources
+                </h3>
                 <ul role="list" className="mt-4 space-y-4">
                   {navigation.resources.map((item) => (
                     <li key={item.name}>

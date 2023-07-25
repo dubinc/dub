@@ -72,7 +72,7 @@ export const DEFAULT_REDIRECTS = {
   welcome: "https://app.dub.sh/welcome",
   slack: "https://dub.slack.com",
   discord: "https://twitter.com/dubdotsh", // placeholder for now
-  tags: "https://dub.sh/changelog/introducing-tags",
+  tags: "https://dub.sh/help/how-to-use-tags",
 };
 
 export const REDIRECT_HEADERS = {
@@ -89,6 +89,14 @@ export const DUB_LOGO =
   "https://public.blob.vercel-storage.com/kmKY9FhOzDRAX28c/logo-1Y8NV0x4Wsy7LzPAYjBmkytJYTMJi0.png";
 export const DUB_THUMBNAIL =
   "https://public.blob.vercel-storage.com/kmKY9FhOzDRAX28c/thumbnail-wU82A4LTeJMXrygW1ZR6O36k3edeJf.png";
+
+export const SHOW_BACKGROUND_SEGMENTS = new Set([
+  "metatags",
+  "pricing",
+  "help",
+  "login",
+  "register",
+]);
 
 export { default as COUNTRIES } from "./countries";
 export { default as ccTLDs } from "./cctlds";

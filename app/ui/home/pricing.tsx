@@ -10,6 +10,7 @@ import Tooltip from "#/ui/tooltip";
 import { PLANS } from "#/lib/stripe/utils";
 import { nFormatter } from "#/lib/utils";
 import { HelpCircle, MinusCircle } from "lucide-react";
+import { APP_DOMAIN } from "#/lib/constants";
 
 const pricingItems = [
   {
@@ -39,6 +40,10 @@ const pricingItems = [
       },
       {
         text: "Custom QR Code Logo",
+        negative: true,
+      },
+      {
+        text: "API Access",
         negative: true,
       },
       { text: "SSO/SAML", negative: true },
@@ -73,6 +78,10 @@ const pricingItems = [
       {
         text: "Custom QR Code Logo",
       },
+      {
+        text: "API Access",
+        footnote: "Under development. ETA: September 2023",
+      },
       { text: "SSO/SAML", negative: true },
       { text: "Priority support", negative: true },
     ],
@@ -104,6 +113,10 @@ const pricingItems = [
       },
       {
         text: "Custom QR Code Logo",
+      },
+      {
+        text: "API Access",
+        footnote: "Under development. ETA: September 2023",
       },
       { text: "SSO/SAML", footnote: "Under development. ETA: Q4 2023" },
       {
@@ -244,11 +257,7 @@ const Pricing = () => {
               <div className="border-t border-gray-200" />
               <div className="p-5">
                 <Link
-                  href={
-                    process.env.NODE_ENV === "production"
-                      ? "https://app.dub.sh/register"
-                      : "http://app.localhost:3000/register"
-                  }
+                  href={`${APP_DOMAIN}/register`}
                   className={`${
                     plan === "Pro"
                       ? "border border-transparent bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:border-blue-700 hover:bg-white hover:bg-clip-text hover:text-transparent"

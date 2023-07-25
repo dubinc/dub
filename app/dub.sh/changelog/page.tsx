@@ -3,7 +3,7 @@ import { getBlurDataURL } from "#/lib/images";
 import { allChangelogPosts } from "contentlayer/generated";
 import { constructMetadata, formatDate } from "#/lib/utils";
 import Link from "next/link";
-import { MDX } from "#/ui/blog/mdx";
+import { MDX } from "#/ui/content/mdx";
 import { Twitter } from "@/components/shared/icons";
 import { Rss } from "lucide-react";
 
@@ -69,41 +69,39 @@ export default async function Changelog() {
                   </time>
                 </Link>
               </div>
-              <div className="md:col-span-3">
-                <div className="flex flex-col gap-6">
-                  <Link href={`/changelog/${post.slug}`}>
-                    <BlurImage
-                      src={post.image}
-                      alt={post.title}
-                      width={1200}
-                      height={630}
-                      priority={idx === 0} // since it's above the fold
-                      placeholder="blur"
-                      blurDataURL={await getBlurDataURL(post.image!)}
-                      className="border border-gray-100 md:rounded-2xl"
-                    />
-                  </Link>
-                  <Link
-                    href={`/changelog/${post.slug}`}
-                    className="group mx-5 flex items-center space-x-3 md:mx-0"
+              <div className="flex flex-col gap-6 md:col-span-3">
+                <Link href={`/changelog/${post.slug}`}>
+                  <BlurImage
+                    src={post.image}
+                    alt={post.title}
+                    width={1200}
+                    height={630}
+                    priority={idx === 0} // since it's above the fold
+                    placeholder="blur"
+                    blurDataURL={await getBlurDataURL(post.image!)}
+                    className="border border-gray-100 md:rounded-2xl"
+                  />
+                </Link>
+                <Link
+                  href={`/changelog/${post.slug}`}
+                  className="group mx-5 flex items-center space-x-3 md:mx-0"
+                >
+                  <time
+                    dateTime={post.publishedAt}
+                    className="text-sm text-gray-500 transition-all group-hover:text-gray-800 md:hidden"
                   >
-                    <time
-                      dateTime={post.publishedAt}
-                      className="text-sm text-gray-500 transition-all group-hover:text-gray-800 md:hidden"
-                    >
-                      {formatDate(post.publishedAt)}
-                    </time>
-                  </Link>
-                  <Link
-                    href={`/changelog/${post.slug}`}
-                    className="mx-5 md:mx-0"
-                  >
-                    <h2 className="font-display text-3xl font-bold tracking-tight text-gray-800 hover:underline hover:decoration-1 hover:underline-offset-4 md:text-4xl">
-                      {post.title}
-                    </h2>
-                  </Link>
-                  <MDX code={post.body.code} />
-                </div>
+                    {formatDate(post.publishedAt)}
+                  </time>
+                </Link>
+                <Link href={`/changelog/${post.slug}`} className="mx-5 md:mx-0">
+                  <h2 className="font-display text-3xl font-bold tracking-tight text-gray-800 hover:underline hover:decoration-1 hover:underline-offset-4 md:text-4xl">
+                    {post.title}
+                  </h2>
+                </Link>
+                <MDX
+                  code={post.body.code}
+                  className="mx-5 sm:prose-lg md:mx-0"
+                />
               </div>
             </div>
           ))}
