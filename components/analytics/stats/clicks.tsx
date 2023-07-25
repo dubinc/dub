@@ -1,5 +1,5 @@
 import { Chart } from "@/components/shared/icons";
-import BarChart from "@/components/stats/bar-chart";
+import BarChart from "@/components/analytics/stats/bar-chart";
 import { nFormatter } from "#/lib/utils";
 import { useRouter } from "next/router";
 import useSWR from "swr";

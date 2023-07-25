@@ -1,7 +1,7 @@
 import ErrorPage from "next/error";
 import AppLayout from "@/components/layout/app";
-import Stats from "@/components/stats";
 import useLink from "#/lib/swr/use-link";
+import Analytics from "@/components/analytics";
 
 export default function StatsPage() {
   const { loading, error } = useLink();
@@ -11,5 +11,9 @@ export default function StatsPage() {
     return <ErrorPage statusCode={404} />;
   }
 
-  return <AppLayout>{!loading && !error && <Stats />}</AppLayout>;
+  return <AppLayout>
+    {!loading && !error &&
+      <Analytics />
+    }
+  </AppLayout>;
 }

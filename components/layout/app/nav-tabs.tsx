@@ -22,12 +22,14 @@ const TabsHelper = (router: NextRouter): { name: string; href: string }[] => {
     return [
       { name: "Links", href: `/${slug}` },
       { name: "Domains", href: `/${slug}/domains` },
+      { name: "Analytics", href: `/${slug}/analytics` },
       { name: "Settings", href: `/${slug}/settings` },
     ];
   }
   return [
     { name: "Projects", href: `/` },
     { name: "Dub.sh Links", href: `/links` },
+    { name: "Analytics", href: `/analytics` },
     { name: "Settings", href: `/settings` },
   ];
 };
