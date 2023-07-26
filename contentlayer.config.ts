@@ -16,7 +16,7 @@ export const BlogPost = defineDocumentType(() => ({
       required: true,
     },
     publishedAt: {
-      type: "date",
+      type: "string",
       required: true,
     },
     summary: {
@@ -91,7 +91,7 @@ export const HelpPost = defineDocumentType(() => ({
       required: true,
     },
     updatedAt: {
-      type: "date",
+      type: "string",
       required: true,
     },
     summary: {

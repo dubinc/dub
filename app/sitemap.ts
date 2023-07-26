@@ -6,7 +6,7 @@ import {
   allLegalPosts,
 } from "contentlayer/generated";
 import { isHomeHostname } from "#/lib/utils";
-import { CATEGORIES } from "#/lib/constants/content";
+import { HELP_CATEGORIES } from "#/lib/constants/content";
 
 export default async function Sitemap() {
   const headersList = headers();
@@ -47,7 +47,7 @@ export default async function Sitemap() {
             url: `https://${domain}/help/article/${post.slug}`,
             lastModified: new Date(post.updatedAt),
           })),
-          ...CATEGORIES.map((category) => ({
+          ...HELP_CATEGORIES.map((category) => ({
             url: `https://${domain}/help/category/${category.slug}`,
             lastModified: new Date(),
           })),
