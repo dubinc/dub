@@ -49,14 +49,13 @@ const CategoryLink = ({
   return (
     <Link
       href={href}
-      className={cn(
-        "border-b-2 border-transparent px-3 py-2 text-sm text-gray-600 hover:bg-gray-200 active:bg-gray-300",
-        {
-          "border-black text-black": active,
-        },
-      )}
+      className={cn("border-b-2 border-transparent py-1", {
+        "border-black text-black": active,
+      })}
     >
-      {title}
+      <div className="rounded-md px-3 py-2 text-sm text-gray-600 hover:bg-gray-200 active:bg-gray-300">
+        {title}
+      </div>
     </Link>
   );
 };
