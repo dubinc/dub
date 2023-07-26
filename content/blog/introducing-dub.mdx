@@ -1,0 +1,39 @@
+---
+title: Introducing Dub
+publishedAt: 2022-09-22
+summary: Meet Dub – an open-source link-shortener SaaS with built-in analytics + free custom domains.
+image: https://d2vwwcvoksz7ty.cloudfront.net/blog/thumbnail.png
+author: steventey
+categories:
+  - company
+---
+
+Introducing Dub – an open-source link-shortener SaaS with built-in analytics + free custom domains.
+
+Some context: Since joining [Vercel](https://vercel.com/), I've had the chance to work with some of the coolest tech on the web.
+
+E.g.: with [Edge Functions](https://vercel.com/features/edge-functions), you can now run server-side logic like redirects at close proximity to users – which is perfect for a tool like Dub.
+
+To visualize how Edge Functions work, I created a 3D globe on our homepage that shows the locations of the last 30 clicks on [dub.sh/github](http://dub.sh/github) in real-time 👇
+
+## Analytics that matter
+
+On top of fast redirects, a link shortener SaaS also needs data visualization to help marketing teams understand the performance of their links.
+
+With [Airbnb's Visx library](http://airbnb.io/visx), I built a dashboard to visualize the time-series data for each link's clicks (incl. location, device/os).
+
+## Use your own custom domain for free
+
+Another cool feature of Dub: free custom domains on all plans.
+
+You can use your own domain for your links (e.g. [stey.me](http://stey.me/)) – even on the free plan.
+
+## Fully open-source and self-hostable
+
+I'm excited to announce that this project is fully open-source, released under the AGPLv3 license 🥳
+
+This means you can clone, modify, and even deploy your own instance of Dub, as long as you open-source it.
+
+Here's a link to the GitHub repository: [dub.sh/github](https://dub.sh/github)
+
+<Tweet id="1572958186667233282" />

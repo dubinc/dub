@@ -6,6 +6,51 @@ import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import GithubSlugger from "github-slugger";
 import { capitalize } from "./lib/utils";
 
+export const BlogPost = defineDocumentType(() => ({
+  name: "BlogPost",
+  filePathPattern: `**/blog/*.mdx`,
+  contentType: "mdx",
+  fields: {
+    title: {
+      type: "string",
+      required: true,
+    },
+    publishedAt: {
+      type: "date",
+      required: true,
+    },
+    summary: {
+      type: "string",
+      required: true,
+    },
+    image: {
+      type: "string",
+      required: true,
+    },
+    author: {
+      type: "string",
+      required: true,
+    },
+    categories: {
+      type: "list",
+      of: {
+        type: "enum",
+        options: ["company", "education", "customer-stories"],
+        default: "company",
+      },
+      required: true,
+    },
+    related: {
+      type: "list",
+      of: {
+        type: "string",
+      },
+    },
+  },
+  // @ts-ignore
+  computedFields: computedFields("blog"),
+}));
+
 export const ChangelogPost = defineDocumentType(() => ({
   name: "ChangelogPost",
   filePathPattern: `**/changelog/*.mdx`,
@@ -101,7 +146,7 @@ export const LegalPost = defineDocumentType(() => ({
   computedFields: computedFields("legal"),
 }));
 
-const computedFields = (type: "changelog" | "help" | "legal") => ({
+const computedFields = (type: "blog" | "changelog" | "help" | "legal") => ({
   slug: {
     type: "string",
     resolve: (doc) => doc._raw.flattenedPath.replace(`${type}/`, ""),
@@ -168,7 +213,7 @@ const computedFields = (type: "changelog" | "help" | "legal") => ({
 
 export default makeSource({
   contentDirPath: "content",
-  documentTypes: [ChangelogPost, LegalPost, HelpPost],
+  documentTypes: [BlogPost, ChangelogPost, LegalPost, HelpPost],
   mdx: {
     remarkPlugins: [remarkGfm],
     rehypePlugins: [

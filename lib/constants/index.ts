@@ -94,6 +94,7 @@ export const SHOW_BACKGROUND_SEGMENTS = new Set([
   "metatags",
   "pricing",
   "help",
+  "blog",
   "login",
   "register",
 ]);
