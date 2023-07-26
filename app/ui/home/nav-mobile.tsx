@@ -5,6 +5,7 @@ import { motion, useCycle } from "framer-motion";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { navItems } from "./nav";
 
 const sidebar = {
   open: (height = 1000) => ({
@@ -25,8 +26,6 @@ const sidebar = {
   },
 };
 
-const navItems = ["pricing", "changelog"];
-
 export default function MobileNav() {
   const { domain = "dub.sh" } = useParams() as { domain: string };
 
@@ -39,7 +38,7 @@ export default function MobileNav() {
       initial={false}
       animate={isOpen ? "open" : "closed"}
       custom={height}
-      className={`fixed inset-0 z-50 w-full sm:hidden ${
+      className={`fixed inset-0 z-50 w-full lg:hidden ${
         isOpen ? "" : "pointer-events-none"
       }`}
       ref={containerRef}
@@ -52,19 +51,19 @@ export default function MobileNav() {
         variants={variants}
         className="absolute grid w-full gap-3 px-10 py-16"
       >
-        {navItems.map((item) => (
-          <div key={item} className="grid gap-3">
+        {navItems.map(({ name, slug }) => (
+          <div key={slug} className="grid gap-3">
             <MenuItem>
               <Link
                 href={
                   domain === "dub.sh"
-                    ? `/${item}`
-                    : `https://dub.sh/${item}?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`
+                    ? `/${slug}`
+                    : `https://dub.sh/${slug}?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`
                 }
                 onClick={() => toggleOpen()}
                 className="flex w-full font-semibold capitalize"
               >
-                {item}
+                {name}
               </Link>
             </MenuItem>
             <MenuItem className="my-3 h-px w-full bg-gray-300" />
@@ -162,17 +161,17 @@ const MenuItemVariants = {
     opacity: 0,
     transition: {
       y: { stiffness: 1000 },
-      duration: 0.04,
+      duration: 0.02,
     },
   },
 };
 
 const variants = {
   open: {
-    transition: { staggerChildren: 0.04, delayChildren: 0.2 },
+    transition: { staggerChildren: 0.02, delayChildren: 0.15 },
   },
   closed: {
-    transition: { staggerChildren: 0.02, staggerDirection: -1 },
+    transition: { staggerChildren: 0.01, staggerDirection: -1 },
   },
 };
 

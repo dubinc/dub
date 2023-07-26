@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useParams, useSelectedLayoutSegment } from "next/navigation";
 import useScroll from "#/lib/hooks/use-scroll";
 import { cn } from "#/lib/utils";
@@ -10,18 +9,22 @@ import { APP_DOMAIN, SHOW_BACKGROUND_SEGMENTS } from "#/lib/constants";
 import va from "@vercel/analytics";
 import { LogoType } from "#/ui/icons";
 
-const navItems = [
+export const navItems = [
   {
     name: "Pricing",
-    segment: "pricing",
+    slug: "pricing",
   },
   {
     name: "Changelog",
-    segment: "changelog",
+    slug: "changelog",
   },
   {
     name: "Help Center",
-    segment: "help",
+    slug: "help",
+  },
+  {
+    name: "Blog",
+    slug: "blog",
   },
 ];
 
@@ -73,35 +76,37 @@ export default function Nav() {
             )}
           </div>
 
-          <div className="hidden items-center space-x-2 sm:flex">
-            {!helpCenter &&
-              navItems.map(({ name, segment }) => (
+          {!helpCenter && (
+            <div className="hidden items-center space-x-4 lg:flex">
+              {navItems.map(({ name, slug }) => (
                 <Link
-                  id={`nav-${segment}`}
-                  key={segment}
+                  id={`nav-${slug}`}
+                  key={slug}
                   href={
-                    domain === "dub.sh"
-                      ? `/${segment}`
-                      : `https://dub.sh/${segment}`
+                    domain === "dub.sh" ? `/${slug}` : `https://dub.sh/${slug}`
                   }
                   {...(domain !== "dub.sh" && {
                     onClick: () => {
                       va.track("Referred from custom domain", {
                         domain,
-                        medium: `navbar item (${segment})`,
+                        medium: `navbar item (${slug})`,
                       });
                     },
                   })}
                   className={cn(
                     "z-10 rounded-full px-4 py-1.5 text-sm font-medium capitalize text-gray-500 transition-colors ease-out hover:text-black",
                     {
-                      "text-black": selectedLayout === segment,
+                      "text-black": selectedLayout === slug,
                     },
                   )}
                 >
                   {name}
                 </Link>
               ))}
+            </div>
+          )}
+
+          <div className="hidden items-center space-x-2 lg:flex">
             <Link
               href={`${APP_DOMAIN}/login`}
               {...(domain !== "dub.sh" && {

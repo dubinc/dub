@@ -8,6 +8,7 @@ import { getBlurDataURL } from "#/lib/images";
 import BlurImage from "#/ui/blur-image";
 import Author from "#/ui/content/author";
 import { Facebook, LinkedIn, Twitter } from "@/components/shared/icons";
+import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 
 export async function generateStaticParams() {
   return allChangelogPosts.map((post) => ({
@@ -45,7 +46,7 @@ export default async function ChangelogPost({
   }
 
   return (
-    <div className="mx-auto my-20 grid max-w-screen-xl md:grid-cols-4 md:px-20">
+    <MaxWidthWrapper className="my-20 grid px-0 md:grid-cols-4">
       <div className="sticky top-10 hidden self-start md:col-span-1 md:block">
         <Link
           href="/changelog"
@@ -126,6 +127,6 @@ export default async function ChangelogPost({
           </Link>
         </div>
       </div>
-    </div>
+    </MaxWidthWrapper>
   );
 }

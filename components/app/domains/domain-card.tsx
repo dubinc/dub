@@ -13,6 +13,7 @@ import { capitalize, fetcher, nFormatter, truncate } from "#/lib/utils";
 import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
 import DomainConfiguration from "./domain-configuration";
 import Link from "next/link";
+import punycode from "punycode/";
 
 export default function DomainCard({ props }: { props: DomainProps }) {
   const router = useRouter();
@@ -54,7 +55,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
               className="flex items-center space-x-2"
             >
               <p className="flex items-center text-xl font-semibold">
-                {domain}
+                {punycode.toUnicode(domain)}
               </p>
               <ExternalLink className="h-5 w-5" />
             </a>

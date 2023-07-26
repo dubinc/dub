@@ -11,16 +11,16 @@ export const BLOG_CATEGORIES: {
     slug: "company",
     description: "Updates and announcements from Dub.",
   },
-  {
-    title: "Education",
-    slug: "education",
-    description: "Educational content about link management.",
-  },
-  {
-    title: "Customer Stories",
-    slug: "customer-stories",
-    description: "Learn how Dub customers use Dub.",
-  },
+  // {
+  //   title: "Education",
+  //   slug: "education",
+  //   description: "Educational content about link management.",
+  // },
+  // {
+  //   title: "Customer Stories",
+  //   slug: "customer-stories",
+  //   description: "Learn how Dub customers use Dub.",
+  // },
 ];
 
 export const POPULAR_ARTICLES = [
