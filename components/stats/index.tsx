@@ -25,13 +25,7 @@ export const StatsContext = createContext<{
   modal: false,
 });
 
-export default function Stats({
-  atModalTop,
-  staticDomain,
-}: {
-  atModalTop?: boolean;
-  staticDomain?: string;
-}) {
+export default function Stats({ staticDomain }: { staticDomain?: string }) {
   const router = useRouter();
   const {
     slug,
@@ -92,10 +86,10 @@ export default function Stats({
       }}
     >
       <div className="bg-gray-50 py-10">
-        <Toggle atModalTop={atModalTop} />
+        <Toggle />
         <div className="mx-auto grid max-w-4xl gap-5">
           <Clicks />
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <div className="z-10 grid grid-cols-1 gap-5 sm:grid-cols-2">
             <Locations />
             <Devices />
             <Referer />
