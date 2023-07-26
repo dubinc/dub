@@ -3,7 +3,7 @@ import { Copy, Tick } from "@/components/shared/icons";
 import { Calendar, ChevronDown, Share2, Lock } from "lucide-react";
 import { ExpandingArrow } from "#/ui/icons";
 import { INTERVALS } from "#/lib/stats";
-import { linkConstructor } from "#/lib/utils";
+import { cn, linkConstructor } from "#/lib/utils";
 import IconMenu from "@/components/shared/icon-menu";
 import Popover from "#/ui/popover";
 import useSWR, { mutate } from "swr";
@@ -34,13 +34,11 @@ export default function Toggle() {
 
   return (
     <div
-      className={`z-10 mb-5 ${
-        basePath.startsWith("/stats")
-          ? `top-0 ${!modal ? "md:top-14" : ""}`
-          : "top-[6.95rem]"
-      } sticky bg-gray-50 py-3 md:py-5 ${
-        scrolled && !modal ? "shadow-md" : ""
-      }`}
+      className={cn("sticky top-[6.95rem] z-20 mb-5 bg-gray-50 py-3 md:py-5", {
+        "top-14": basePath.startsWith("/stats"),
+        "top-6": modal,
+        "shadow-md": scrolled && !modal,
+      })}
     >
       <div className="mx-auto flex max-w-4xl flex-col items-center justify-between space-y-3 px-2.5 md:flex-row md:space-y-0 lg:px-0">
         <a
