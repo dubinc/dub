@@ -7,6 +7,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import Modal from "./modal";
@@ -16,6 +17,7 @@ import { allHelpPosts } from "contentlayer/generated";
 import { useRouter } from "next/navigation";
 import Highlighter from "react-highlight-words";
 import { APP_HOSTNAMES, HOME_DOMAIN } from "#/lib/constants";
+import Fuse from "fuse.js";
 
 function CMDKHelper({
   showCMDK,
@@ -24,26 +26,29 @@ function CMDKHelper({
   showCMDK: boolean;
   setShowCMDK: Dispatch<SetStateAction<boolean>>;
 }) {
+  const commandListRef = useRef<HTMLDivElement>(null);
   return (
     <Modal
       showModal={showCMDK}
       setShowModal={setShowCMDK}
       className="sm:max-w-xl"
     >
-      <Command
-        label="CMDK"
-        loop
-        filter={(value, search) => {
-          if (value.includes(search.toLowerCase())) return 1;
-          return 0;
-        }}
-      >
+      <Command label="CMDK" loop shouldFilter={false}>
         <Command.Input
           autoFocus
+          onInput={() => {
+            // hack to scroll to top of list when input changes (for some reason beyond my comprehension, setTimeout is needed)
+            setTimeout(() => {
+              commandListRef.current?.scrollTo(0, 0);
+            }, 0);
+          }}
           placeholder="Search articles, guides, and more..."
           className="w-full border-none p-4 font-normal placeholder-gray-400 focus:outline-none focus:ring-0"
         />
-        <Command.List className="h-[50vh] max-h-[360px] min-h-[250px] overflow-scroll border-t border-gray-200 p-2 transition-all scrollbar-hide sm:h-[calc(var(--cmdk-list-height)+10rem)]">
+        <Command.List
+          ref={commandListRef}
+          className="h-[50vh] max-h-[360px] min-h-[250px] overflow-scroll border-t border-gray-200 p-2 transition-all scrollbar-hide sm:h-[calc(var(--cmdk-list-height)+10rem)]"
+        >
           <Command.Empty className="flex cursor-not-allowed items-center space-x-2 rounded-md bg-gray-100 px-4 py-2 text-sm text-gray-600">
             <Magic className="h-4 w-4 text-gray-400" />
             <div className="flex flex-col space-y-1">
@@ -73,55 +78,68 @@ const CommandResults = ({
   );
 
   const allItems = [
-    ...allHelpPosts,
+    ...allHelpPosts.map((post) => ({
+      ...post,
+      description: post.summary,
+    })),
     // get all table of contents headings too
     ...allHelpPosts.flatMap((post) =>
       post.tableOfContents.map((toc: { title: string; slug: string }) => ({
         slug: `${post.slug}#${toc.slug}`,
         title: toc.title,
+        description: null, // omit description since we don't want to search it
         summary: `In: "${post.title}"`,
       })),
     ),
   ];
 
+  const fuse = new Fuse(allItems, {
+    keys: ["title", "description"],
+  });
+
   const search = useCommandState((state) => state.search);
 
-  return (search.length === 0 ? popularArticles : allItems).map(
-    ({ slug, title, summary }) => (
-      <Command.Item
-        key={slug}
-        value={title}
-        onSelect={() => {
-          if (APP_HOSTNAMES.has(window.location.hostname)) {
-            // this is from the app, open in new tab
-            window.open(`${HOME_DOMAIN}/help/article/${slug}`);
-          } else {
-            router.push(`/help/article/${slug}`);
-          }
-          setShowCMDK(false);
-        }}
-        className="group flex cursor-pointer items-center justify-between space-x-2 rounded-md px-4 py-2 hover:bg-gray-100 active:bg-gray-200 aria-selected:bg-gray-100"
-      >
-        <div className="flex flex-col space-y-1">
-          <Highlighter
-            highlightClassName="underline bg-transparent text-purple-500"
-            searchWords={[search]}
-            autoEscape={true}
-            textToHighlight={title}
-            className="text-sm font-medium text-gray-600 group-aria-selected:text-purple-600 sm:group-hover:text-purple-600"
-          />
-          <Highlighter
-            highlightClassName="underline bg-transparent text-purple-500"
-            searchWords={[search]}
-            autoEscape={true}
-            textToHighlight={summary}
-            className="line-clamp-1 text-xs text-gray-400"
-          />
-        </div>
-        <ExpandingArrow className="invisible -ml-4 h-4 w-4 text-purple-600 group-aria-selected:visible sm:group-hover:visible" />
-      </Command.Item>
-    ),
-  );
+  const results = useMemo(() => {
+    if (search.length === 0) {
+      return popularArticles;
+    }
+    return fuse.search(search).map((r) => r.item);
+  }, [search, popularArticles]);
+
+  return results.map(({ slug, title, summary }) => (
+    <Command.Item
+      key={slug}
+      value={title}
+      onSelect={() => {
+        if (APP_HOSTNAMES.has(window.location.hostname)) {
+          // this is from the app, open in new tab
+          window.open(`${HOME_DOMAIN}/help/article/${slug}`);
+        } else {
+          router.push(`/help/article/${slug}`);
+        }
+        setShowCMDK(false);
+      }}
+      className="group flex cursor-pointer items-center justify-between space-x-2 rounded-md px-4 py-2 hover:bg-gray-100 active:bg-gray-200 aria-selected:bg-gray-100"
+    >
+      <div className="flex flex-col space-y-1">
+        <Highlighter
+          highlightClassName="underline bg-transparent text-purple-500"
+          searchWords={search.split(" ")}
+          autoEscape={true}
+          textToHighlight={title}
+          className="text-sm font-medium text-gray-600 group-aria-selected:text-purple-600 sm:group-hover:text-purple-600"
+        />
+        <Highlighter
+          highlightClassName="underline bg-transparent text-purple-500"
+          searchWords={search.split(" ")}
+          autoEscape={true}
+          textToHighlight={summary}
+          className="line-clamp-1 text-xs text-gray-400"
+        />
+      </div>
+      <ExpandingArrow className="invisible -ml-4 h-4 w-4 text-purple-600 group-aria-selected:visible sm:group-hover:visible" />
+    </Command.Item>
+  ));
 };
 
 export default function useCMDK() {
