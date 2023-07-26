@@ -14,13 +14,11 @@ export default async function Author({
   const authors = {
     steventey: {
       name: "Steven Tey",
-      image:
-        "https://pbs.twimg.com/profile_images/1506792347840888834/dS-r50Je_400x400.jpg",
+      image: "https://d2vwwcvoksz7ty.cloudfront.net/author/steventey.jpg",
     },
     fmerian: {
       name: "Flo Merian",
-      image:
-        "https://pbs.twimg.com/profile_images/846637761792790528/WtCc8Xy7_400x400.jpg",
+      image: "https://d2vwwcvoksz7ty.cloudfront.net/author/fmerian.jpg",
     },
   };
 

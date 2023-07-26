@@ -10,6 +10,7 @@ import { constructMetadata, formatDate } from "#/lib/utils";
 import { getTweet } from "react-tweet/api";
 import BlurImage from "#/ui/blur-image";
 import { BLOG_CATEGORIES } from "#/lib/constants/content";
+import BlogCard from "#/ui/content/blog-card";
 
 export async function generateStaticParams() {
   return allBlogPosts.map((post) => ({
@@ -100,7 +101,7 @@ export default async function BlogArticle({
         <MaxWidthWrapper className="grid grid-cols-4 gap-10 px-0 py-10">
           <div className="relative col-span-4 mb-10 flex flex-col space-y-8 bg-white sm:rounded-xl sm:border sm:border-gray-200 md:col-span-3">
             <BlurImage
-              className="rounded-t-xl"
+              className="aspect-[1200/630] rounded-t-xl object-cover"
               src={data.image}
               blurDataURL={thumbnailBlurhash}
               width={1200}
@@ -115,22 +116,27 @@ export default async function BlogArticle({
               className="px-5 pb-20 pt-4 sm:px-10"
             />
           </div>
-          <div className="sticky top-20 col-span-1 mt-52 hidden flex-col space-y-10 divide-y divide-gray-200 self-start sm:flex">
-            <div className="flex flex-col space-y-4">
+          <div className="sticky top-20 col-span-1 mt-48 hidden flex-col divide-y divide-gray-200 self-start sm:flex">
+            <div className="flex flex-col space-y-4 py-5">
               <p className="text-sm text-gray-500">Written by</p>
               <Author username={data.author} />
             </div>
             {relatedArticles.length > 0 && (
-              <div className="flex flex-col space-y-4">
+              <div className="flex flex-col space-y-4 py-5">
                 <p className="text-sm text-gray-500">Related articles</p>
-                <ul className="space-y-2">
+                <ul className="flex flex-col space-y-4 py-4">
                   {relatedArticles.map((post) => (
                     <li key={post.slug}>
                       <Link
                         href={`/blog/${post.slug}`}
-                        className="text-gray-700 hover:text-gray-800"
+                        className="group flex flex-col space-y-2"
                       >
-                        {post.title}
+                        <p className="font-semibold text-gray-700 underline-offset-4 group-hover:underline">
+                          {post.title}
+                        </p>
+                        <p className="line-clamp-2 text-sm text-gray-500 underline-offset-2 group-hover:underline">
+                          {post.summary}
+                        </p>
                       </Link>
                     </li>
                   ))}

@@ -8,6 +8,7 @@ import ArticleLink from "#/ui/content/article-link";
 
 export const metadata = constructMetadata({
   title: "Help Center – Dub",
+  description: "A one-stop shop for all your Dub-related questions.",
 });
 
 export default function HelpCenter() {

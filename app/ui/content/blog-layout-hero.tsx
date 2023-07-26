@@ -53,7 +53,7 @@ const CategoryLink = ({
         "border-black text-black": active,
       })}
     >
-      <div className="rounded-md px-3 py-2 text-sm text-gray-600 hover:bg-gray-200 active:bg-gray-300">
+      <div className="rounded-md px-3 py-2 text-sm text-gray-600 transition-all hover:bg-gray-100 active:bg-gray-200">
         {title}
       </div>
     </Link>
