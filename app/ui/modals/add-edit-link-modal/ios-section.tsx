@@ -3,8 +3,7 @@ import { LinkProps } from "#/lib/types";
 import Switch from "#/ui/switch";
 import { motion } from "framer-motion";
 import { FADE_IN_ANIMATION_SETTINGS } from "#/lib/constants";
-import Tooltip from "#/ui/tooltip";
-import { HelpCircle } from "lucide-react";
+import { InfoTooltip } from "#/ui/tooltip";
 
 export default function IOSSection({
   props,
@@ -35,9 +34,7 @@ export default function IOSSection({
       <div className="flex items-center justify-between">
         <div className="flex items-center justify-between space-x-2">
           <h2 className="text-sm font-medium text-gray-900">iOS Targeting</h2>
-          <Tooltip content="Redirect your iOS users to a different link (e.g. App Store link for your app).">
-            <HelpCircle className="h-4 w-4 text-gray-600" />
-          </Tooltip>
+          <InfoTooltip content="Redirect your iOS users to a different link (e.g. App Store link for your app)." />
         </div>
         <Switch fn={() => setEnabled(!enabled)} checked={enabled} />
       </div>

@@ -45,7 +45,7 @@ export default function ProjectSettingsGeneral() {
       />
       <Form
         title="Project Slug"
-        description="This is your project's URL slug on Dub."
+        description="This is your project's unique slug on Dub."
         inputData={{
           name: "slug",
           defaultValue: slug,

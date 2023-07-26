@@ -18,6 +18,7 @@ import slugify from "@sindresorhus/slugify";
 import va from "@vercel/analytics";
 import Button from "#/ui/button";
 import { toast } from "sonner";
+import { InfoTooltip } from "#/ui/tooltip";
 
 function AddProjectModalHelper({
   showAddProjectModal,
@@ -86,6 +87,7 @@ function AddProjectModalHelper({
       showModal={showAddProjectModal}
       setShowModal={setShowAddProjectModal}
       disableDefaultHide={welcomeFlow}
+      {...(welcomeFlow && { onClose: () => router.back() })}
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
         <Logo />
@@ -143,11 +145,11 @@ function AddProjectModalHelper({
         className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16"
       >
         <div>
-          <label
-            htmlFor="name"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Project Name
+          <label htmlFor="name" className="flex items-center space-x-2">
+            <p className="block text-sm font-medium text-gray-700">
+              Project Name
+            </p>
+            <InfoTooltip content="This is the name of your project on Dub." />
           </label>
           <div className="mt-1 flex rounded-md shadow-sm">
             <input
@@ -169,11 +171,11 @@ function AddProjectModalHelper({
         </div>
 
         <div>
-          <label
-            htmlFor="slug"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Project Slug
+          <label htmlFor="slug" className="flex items-center space-x-2">
+            <p className="block text-sm font-medium text-gray-700">
+              Project Slug
+            </p>
+            <InfoTooltip content="This is your project's unique slug on Dub." />
           </label>
           <div className="relative mt-1 flex rounded-md shadow-sm">
             <span className="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-5 text-gray-500 sm:text-sm">
@@ -216,11 +218,11 @@ function AddProjectModalHelper({
         </div>
 
         <div>
-          <label
-            htmlFor="domain"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Shortlink Domain
+          <label htmlFor="domain" className="flex items-center space-x-2">
+            <p className="block text-sm font-medium text-gray-700">
+              Shortlink Domain
+            </p>
+            <InfoTooltip content="This is the domain that your short links will be hosted on. E.g. yourbrand.com/link" />
           </label>
           <div className="relative mt-1 flex rounded-md shadow-sm">
             <input

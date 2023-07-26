@@ -15,6 +15,8 @@ import Cookies from "js-cookie";
 import { ModalContext } from "#/ui/modal-provider";
 import Badge from "#/ui/badge";
 import { linkConstructor } from "#/lib/utils";
+import { HelpCircle } from "lucide-react";
+import { HOME_DOMAIN } from "#/lib/constants";
 
 const NavTabs = dynamic(() => import("./nav-tabs"), {
   ssr: false,
@@ -79,7 +81,7 @@ export default function AppLayout({
     }
   }, [plan, id, name, slug, stripeId, createdAt]);
 
-  const { setShowUpgradePlanModal } = useContext(ModalContext);
+  const { setShowUpgradePlanModal, setShowCMDK } = useContext(ModalContext);
 
   return (
     <div>
@@ -127,7 +129,22 @@ export default function AppLayout({
                   </button>
                 )}
               </div>
-              <UserDropdown />
+              <div className="flex items-center space-x-6">
+                <a
+                  href={`${HOME_DOMAIN}/changelog`}
+                  className="hidden text-sm text-gray-500 transition-colors hover:text-gray-700 md:block"
+                  target="_blank"
+                >
+                  Changelog
+                </a>
+                <button
+                  onClick={() => setShowCMDK(true)}
+                  className="hidden text-sm text-gray-500 transition-colors hover:text-gray-700 md:block"
+                >
+                  Help
+                </button>
+                <UserDropdown />
+              </div>
             </div>
             <NavTabs />
           </div>

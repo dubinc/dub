@@ -2,6 +2,7 @@ import { allChangelogPosts } from "contentlayer/generated";
 import { Github } from "@/components/shared/icons";
 import Link from "next/link";
 import { ExpandingArrow } from "../icons";
+import { APP_DOMAIN } from "#/lib/constants";
 
 const Hero = () => {
   const latestChangelog = allChangelogPosts.sort(
@@ -34,7 +35,7 @@ const Hero = () => {
 
       <div className="mx-auto mt-10 flex max-w-fit space-x-4">
         <a
-          href="https://app.dub.sh/register"
+          href={`${APP_DOMAIN}/register`}
           className="rounded-full border border-black bg-black px-5 py-2 text-sm text-white shadow-lg transition-all hover:bg-white hover:text-black"
         >
           Start For Free

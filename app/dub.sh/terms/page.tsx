@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { constructMetadata } from "#/lib/utils";
-import LegalPage from "#/ui/blog/legal";
+import LegalPage from "#/ui/content/legal";
 import { allLegalPosts } from "contentlayer/generated";
 
 export const metadata: Metadata = constructMetadata({

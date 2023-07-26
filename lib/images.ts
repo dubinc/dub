@@ -14,12 +14,3 @@ export async function getBlurDataURL(url: string | null) {
     return "data:image/webp;base64,AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
   }
 }
-
-export function getImages(urls: string[]) {
-  return Promise.all(
-    urls.map(async (url) => ({
-      url,
-      blurDataURL: await getBlurDataURL(url),
-    })),
-  );
-}

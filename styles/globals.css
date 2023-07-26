@@ -1,3 +1,31 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+[data-mdx-container] {
+  .anchor {
+    @apply invisible absolute -ml-8 w-full cursor-pointer !no-underline;
+  }
+
+  .anchor:after {
+    content: "🔗";
+  }
+
+  :hover > .anchor {
+    @apply visible;
+  }
+}
+
+/* Hide the react-medium-image-zoom unzoom button */
+[data-rmiz-btn-unzoom] {
+  visibility: hidden;
+}
+
+/* Style the react-medium-image-zoom image */
+[data-rmiz-modal-img] {
+  @apply border border-gray-200;
+
+  @media screen and (min-width: 768px) {
+    @apply rounded-lg;
+  }
+}

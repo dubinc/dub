@@ -23,6 +23,7 @@ import { useRouter } from "next/router";
 import { getQueryString } from "#/lib/utils";
 import { useUpgradePlanModal } from "@/components/app/modals/upgrade-plan-modal";
 import { useCompleteSetupModal } from "@/components/app/modals/complete-setup-modal";
+import useCMDK from "./cmdk";
 
 export const ModalContext = createContext<{
   setShowAddProjectModal: Dispatch<SetStateAction<boolean>>;
@@ -32,6 +33,7 @@ export const ModalContext = createContext<{
   setShowUpgradePlanModal: Dispatch<SetStateAction<boolean>>;
   setShowImportBitlyModal: Dispatch<SetStateAction<boolean>>;
   setPollLinks: Dispatch<SetStateAction<boolean>>;
+  setShowCMDK: Dispatch<SetStateAction<boolean>>;
 }>({
   setShowAddProjectModal: () => {},
   setShowCompleteSetupModal: () => {},
@@ -40,6 +42,7 @@ export const ModalContext = createContext<{
   setShowUpgradePlanModal: () => {},
   setShowImportBitlyModal: () => {},
   setPollLinks: () => {},
+  setShowCMDK: () => {},
 });
 
 export default function ModalProvider({ children }: { children: ReactNode }) {
@@ -51,6 +54,7 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
     useAcceptInviteModal();
   const { setShowAddEditDomainModal, AddEditDomainModal } =
     useAddEditDomainModal({});
+  const { CMDK, setShowCMDK } = useCMDK();
 
   const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal();
   const { setShowUpgradePlanModal, UpgradePlanModal } = useUpgradePlanModal();
@@ -112,8 +116,10 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
         setShowUpgradePlanModal,
         setShowImportBitlyModal,
         setPollLinks,
+        setShowCMDK,
       }}
     >
+      <CMDK />
       <GoogleOauthModal />
       <AddProjectModal />
       <CompleteSetupModal />

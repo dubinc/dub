@@ -8,7 +8,7 @@ import PlaceholderCard from "#/ui/home/placeholder-card";
 import { LoadingSpinner } from "#/ui/icons";
 import { Link2 } from "lucide-react";
 import Tooltip, { TooltipContent } from "#/ui/tooltip";
-import { FRAMER_MOTION_LIST_ITEM_VARIANTS } from "#/lib/constants";
+import { APP_DOMAIN, FRAMER_MOTION_LIST_ITEM_VARIANTS } from "#/lib/constants";
 import useLocalStorage from "#/lib/hooks/use-local-storage";
 import { SimpleLinkProps } from "#/lib/types";
 import { toast } from "sonner";
@@ -51,7 +51,7 @@ export default function Demo() {
                 title="Maximum number of links reached. Swipe to delete existing links or
               create a free account."
                 cta="Start For Free"
-                href="https://app.dub.sh/register"
+                href={`${APP_DOMAIN}/register`}
               />
             }
           >
@@ -124,7 +124,7 @@ export default function Demo() {
         >
           Note: Public links will be automatically-deleted after 30 minutes.{" "}
           <a
-            href="https://app.dub.sh/register"
+            href={`${APP_DOMAIN}/register`}
             target="_blank"
             rel="noreferrer"
             className="font-medium text-gray-700 underline transition-all hover:text-black"

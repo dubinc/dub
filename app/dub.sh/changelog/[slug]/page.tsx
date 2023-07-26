@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { allChangelogPosts } from "contentlayer/generated";
-import { MDX } from "#/ui/blog/mdx";
+import { MDX } from "#/ui/content/mdx";
 import Link from "next/link";
 import { constructMetadata, formatDate } from "#/lib/utils";
 import { getBlurDataURL } from "#/lib/images";
 import BlurImage from "#/ui/blur-image";
-import Author from "#/ui/blog/author";
+import Author from "#/ui/content/author";
 import { Facebook, LinkedIn, Twitter } from "@/components/shared/icons";
 
 export async function generateStaticParams() {
@@ -81,7 +81,7 @@ export default async function ChangelogPost({
           height={630}
           priority // since it's above the fold
           placeholder="blur"
-          blurDataURL={await getBlurDataURL(post.image!)}
+          blurDataURL={await getBlurDataURL(post.image)}
           className="border border-gray-100 md:rounded-2xl"
         />
         <div className="mx-5 mb-10 flex items-center justify-between md:mx-0">
@@ -114,10 +114,10 @@ export default async function ChangelogPost({
             </Link>
           </div>
         </div>
-        <MDX code={post.body.code} />
+        <MDX code={post.body.code} className="mx-5 sm:prose-lg md:mx-0" />
         <div className="mt-10 flex justify-end border-t border-gray-200 pt-5">
           <Link
-            href={`https://github.com/steven-tey/dub/blob/main/posts/changelog/${params.slug}.mdx`}
+            href={`https://github.com/steven-tey/dub/blob/main/content/changelog/${params.slug}.mdx`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm text-gray-500 transition-colors hover:text-gray-800"

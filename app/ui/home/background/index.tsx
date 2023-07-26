@@ -2,13 +2,7 @@
 
 import { useSelectedLayoutSegment } from "next/navigation";
 import styles from "./background.module.css";
-
-const showBackgroundSegments = new Set([
-  "metatags",
-  "pricing",
-  "login",
-  "register",
-]);
+import { SHOW_BACKGROUND_SEGMENTS } from "#/lib/constants";
 
 export default function Background() {
   let segment;
@@ -18,7 +12,7 @@ export default function Background() {
     // this is for /welcome which is still on /pages router
   }
 
-  return !segment || showBackgroundSegments.has(segment) ? (
+  return !segment || SHOW_BACKGROUND_SEGMENTS.has(segment) ? (
     <div className={styles.main}>
       <div className={styles.content} />
     </div>

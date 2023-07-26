@@ -4,7 +4,7 @@ import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import AppLayout from "components/layout/app";
 import useProject from "#/lib/swr/use-project";
 import { useState } from "react";
-import Popover from "@/components/shared/popover";
+import Popover from "#/ui/popover";
 import IconMenu from "@/components/shared/icon-menu";
 import { ChevronDown, FilePlus2, Import } from "lucide-react";
 import { useRouter } from "next/router";
