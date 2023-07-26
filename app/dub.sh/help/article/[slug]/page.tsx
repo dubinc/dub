@@ -129,9 +129,11 @@ export default async function HelpArticle({
             )}
             <Feedback />
           </div>
-          <div className="sticky top-20 col-span-1 hidden self-start sm:block">
-            <TableOfContents items={data.tableOfContents} />
-            <div className="mt-10 flex justify-center border-t border-gray-200 pt-5">
+          <div className="sticky top-20 col-span-1 hidden flex-col space-y-10 divide-y divide-gray-200 self-start sm:flex">
+            {data.tableOfContents.length > 0 && (
+              <TableOfContents items={data.tableOfContents} />
+            )}
+            <div className="flex justify-center pt-5">
               <Link
                 href={`https://github.com/steven-tey/dub/blob/main/content/help/${params.slug}.mdx`}
                 target="_blank"
