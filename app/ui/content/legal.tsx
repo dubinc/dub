@@ -1,6 +1,7 @@
 import { LegalPost } from "contentlayer/generated";
 import { MDX } from "#/ui/content/mdx";
 import { formatDate } from "#/lib/utils";
+import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 
 export default function LegalPage({ post }: { post: LegalPost }) {
   return (
@@ -10,14 +11,14 @@ export default function LegalPage({ post }: { post: LegalPost }) {
           {post.title}
         </h1>
       </div>
-      <div className="flex flex-col items-center pb-10 pt-20">
+      <MaxWidthWrapper className="flex max-w-screen-md flex-col items-center p-10 sm:pt-20">
         <MDX code={post.body.code} />
-        <div className="mt-10 w-full max-w-screen-md border-t border-gray-200 pt-10 text-center">
+        <div className="mt-10 w-full border-t border-gray-200 pt-10 text-center">
           <p className="text-gray-500">
             Last updated: {formatDate(post.updatedAt)}
           </p>
         </div>
-      </div>
+      </MaxWidthWrapper>
     </div>
   );
 }
