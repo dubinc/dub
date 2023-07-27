@@ -48,6 +48,7 @@ export const HOME_DOMAIN =
 export const APP_HOSTNAMES = new Set([
   "app.dub.sh",
   "app.localhost:3000",
+  "app.localhost",
   "preview.dub.sh",
 ]);
 

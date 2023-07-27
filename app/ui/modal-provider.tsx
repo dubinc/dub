@@ -53,7 +53,7 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
   const { AcceptInviteModal, setShowAcceptInviteModal } =
     useAcceptInviteModal();
   const { setShowAddEditDomainModal, AddEditDomainModal } =
-    useAddEditDomainModal({});
+    useAddEditDomainModal();
   const { CMDK, setShowCMDK } = useCMDK();
 
   const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal();

@@ -93,9 +93,13 @@ const CommandResults = ({
     ),
   ];
 
-  const fuse = new Fuse(allItems, {
-    keys: ["title", "description"],
-  });
+  const fuse = useMemo(
+    () =>
+      new Fuse(allItems, {
+        keys: ["title", "description"],
+      }),
+    [allItems],
+  );
 
   const search = useCommandState((state) => state.search);
 

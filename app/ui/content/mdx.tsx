@@ -6,7 +6,7 @@ import GithubRepo, { GithubRepoProps } from "@/components/shared/github-repo";
 import BlurImage from "#/ui/blur-image";
 import MDXTweet from "#/ui/tweet";
 import { Tweet as TweetProps } from "react-tweet/api";
-import useWindowSize from "#/lib/hooks/use-window-size";
+import useMediaQuery from "#/lib/hooks/use-media-query";
 import { cn } from "#/lib/utils";
 import Zoom from "react-medium-image-zoom";
 import "react-medium-image-zoom/dist/styles.css";
@@ -69,7 +69,7 @@ interface MDXProps {
 
 export function MDX({ code, images, tweets, repos, className }: MDXProps) {
   const Component = useMDXComponent(code);
-  const { width } = useWindowSize();
+  const { isDesktop } = useMediaQuery();
 
   const MDXImage = (props: any) => {
     if (!images) return null;
@@ -81,7 +81,7 @@ export function MDX({ code, images, tweets, repos, className }: MDXProps) {
       // we need to wrap the image in a HTML element or showModal will throw errors
       <>
         <figure className="not-prose flex flex-col items-center justify-center space-y-3">
-          <Zoom zoomMargin={width > 640 ? 45 : undefined}>
+          <Zoom zoomMargin={isDesktop ? 45 : undefined}>
             <BlurImage
               {...props}
               className="rounded-lg border border-gray-200"

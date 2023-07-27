@@ -1,16 +1,17 @@
-import { motion } from "framer-motion";
 import BlurImage from "#/ui/blur-image";
 import { Link2 } from "lucide-react";
 import { LoadingCircle } from "#/ui/icons";
-import { nFormatter } from "#/lib/utils";
 import useSWR from "swr";
 import { fetcher } from "#/lib/utils";
 import { GOOGLE_FAVICON_URL } from "#/lib/constants";
 import { StatsContext } from ".";
-import { useContext } from "react";
+import { useContext, useState } from "react";
+import BarList from "./bar-list";
+import { Maximize } from "lucide-react";
+import Modal from "#/ui/modal";
 
 export default function Referer() {
-  const { endpoint, queryString } = useContext(StatsContext);
+  const { endpoint, queryString, modal } = useContext(StatsContext);
 
   const { data } = useSWR<{ referer: string; clicks: number }[]>(
     `${endpoint}/referer${queryString}`,
@@ -22,59 +23,74 @@ export default function Referer() {
     fetcher,
   );
 
+  const [showModal, setShowModal] = useState(false);
+
+  const barList = (limit?: number) => (
+    <BarList
+      tab="Referrer"
+      data={
+        data?.map((d) => ({
+          icon:
+            d.referer === "(direct)" ? (
+              <Link2 className="h-4 w-4" />
+            ) : (
+              <BlurImage
+                src={`${GOOGLE_FAVICON_URL}${d.referer}`}
+                alt={d.referer}
+                width={20}
+                height={20}
+                className="h-4 w-4 rounded-full"
+              />
+            ),
+          title: d.referer,
+          clicks: d.clicks,
+        })) || []
+      }
+      totalClicks={totalClicks || 0}
+      barBackground="bg-red-100"
+      {...(limit && { limit })}
+    />
+  );
+
   return (
-    <div className="relative z-0 h-[420px] overflow-scroll border border-gray-200 bg-white px-7 py-5 scrollbar-hide sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
-      <div className="mb-5 flex">
-        <h1 className="text-xl font-semibold">Referrers</h1>
-      </div>
-      <div
-        className={
-          data && data.length > 0
-            ? "grid gap-4"
-            : "flex h-[300px] items-center justify-center"
-        }
+    <>
+      <Modal
+        showModal={showModal}
+        setShowModal={setShowModal}
+        className="max-w-lg"
       >
+        <div className="border-b border-gray-200 px-6 py-4">
+          <h1 className="text-xl font-semibold">Referrers</h1>
+        </div>
+        {barList()}
+      </Modal>
+      <div className="relative z-0 h-[400px] overflow-scroll border border-gray-200 bg-white px-7 py-5 scrollbar-hide sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
+        <div className="mb-5 flex">
+          <h1 className="text-xl font-semibold">Referrers</h1>
+        </div>
         {data ? (
           data.length > 0 ? (
-            data.map(({ referer, clicks }, idx) => (
-              <div key={idx} className="flex items-center justify-between">
-                <div className="relative z-10 flex w-full max-w-[calc(100%-3rem)] items-center">
-                  <span className="z-10 flex items-center space-x-2 px-2">
-                    {referer === "(direct)" ? (
-                      <Link2 className="h-4 w-4" />
-                    ) : (
-                      <BlurImage
-                        src={`${GOOGLE_FAVICON_URL}${referer}`}
-                        alt={referer}
-                        width={20}
-                        height={20}
-                        className="h-4 w-4 rounded-full"
-                      />
-                    )}
-                    <p className="text-sm text-gray-800">{referer}</p>
-                  </span>
-                  <motion.div
-                    style={{
-                      width: `${(clicks / (totalClicks || 0)) * 100}%`,
-                    }}
-                    className="absolute h-8 origin-left rounded bg-red-100"
-                    transition={{ ease: "easeOut", duration: 0.3 }}
-                    initial={{ transform: "scaleX(0)" }}
-                    animate={{ transform: "scaleX(1)" }}
-                  />
-                </div>
-                <p className="z-10 text-sm text-gray-600">
-                  {nFormatter(clicks)}
-                </p>
-              </div>
-            ))
+            barList(9)
           ) : (
-            <p className="text-sm text-gray-600">No data available</p>
+            <div className="flex h-[300px] items-center justify-center">
+              <p className="text-sm text-gray-600">No data available</p>
+            </div>
           )
         ) : (
-          <LoadingCircle />
+          <div className="flex h-[300px] items-center justify-center">
+            <LoadingCircle />
+          </div>
+        )}
+        {!modal && data && data.length > 9 && (
+          <button
+            onClick={() => setShowModal(true)}
+            className="absolute inset-x-0 bottom-4 z-10 mx-auto flex max-w-fit items-center space-x-2 rounded-md bg-white px-4 py-1.5 text-gray-500 transition-all hover:text-gray-800 active:scale-95"
+          >
+            <Maximize className="h-4 w-4" />
+            <p className="text-xs font-semibold uppercase">View all</p>
+          </button>
         )}
       </div>
-    </div>
+    </>
   );
 }
