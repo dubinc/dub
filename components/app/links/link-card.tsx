@@ -170,11 +170,15 @@ export default function LinkCard({ props }: { props: LinkProps }) {
         selected ? "border-black" : "border-gray-50"
       } relative rounded-lg border-2 bg-white p-3 pr-1 shadow transition-all hover:shadow-md sm:p-4`}
     >
-      <LinkQRModal />
-      <AddEditLinkModal />
-      <DuplicateLinkModal />
-      <ArchiveLinkModal />
-      <DeleteLinkModal />
+      {isVisible && (
+        <>
+          <LinkQRModal />
+          <AddEditLinkModal />
+          <DuplicateLinkModal />
+          <ArchiveLinkModal />
+          <DeleteLinkModal />
+        </>
+      )}
       <li className="relative flex items-center justify-between">
         <div className="relative flex shrink items-center">
           {archived ? (

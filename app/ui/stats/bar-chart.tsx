@@ -12,7 +12,7 @@ import useSWR from "swr";
 import { fetcher } from "#/lib/utils";
 import { LoadingCircle } from "#/ui/icons";
 import { StatsContext } from ".";
-import useWindowSize from "#/lib/hooks/use-window-size";
+import useMediaQuery from "#/lib/hooks/use-media-query";
 
 const LEFT_AXIS_WIDTH = 30;
 const CHART_MAX_HEIGHT = 400;
@@ -41,7 +41,7 @@ export default function BarChart() {
     fetcher,
   );
 
-  const { width: screenWidth } = useWindowSize();
+  const { width: screenWidth } = useMediaQuery();
 
   const [CHART_WIDTH, CHART_HEIGHT] = useMemo(() => {
     const width = screenWidth

@@ -272,7 +272,7 @@ function AddEditLinkModal({
       showModal={showAddEditLinkModal}
       setShowModal={setShowAddEditLinkModal}
       className="max-w-screen-lg"
-      disableDefaultHide={homepageDemo ? false : true}
+      preventDefaultClose={homepageDemo ? false : true}
       {...(welcomeFlow && { onClose: () => router.back() })}
     >
       <div className="relative grid max-h-[min(906px,_90vh)] w-full divide-x divide-gray-100 overflow-auto scrollbar-hide md:grid-cols-2">

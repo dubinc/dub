@@ -36,11 +36,11 @@ export default function Toggle() {
     <div
       className={cn("sticky top-[6.95rem] z-20 mb-5 bg-gray-50 py-3 md:py-5", {
         "top-14": basePath.startsWith("/stats"),
-        "top-6": modal,
+        "top-6 md:top-0": modal,
         "shadow-md": scrolled && !modal,
       })}
     >
-      <div className="mx-auto flex max-w-4xl flex-col items-center justify-between space-y-3 px-2.5 md:flex-row md:space-y-0 lg:px-0">
+      <div className="mx-auto flex h-20 max-w-4xl flex-col items-center justify-between space-y-3 px-2.5 md:h-10 md:flex-row md:space-y-0 lg:px-0">
         <a
           className="group flex text-lg font-semibold text-gray-800 md:text-xl"
           href={linkConstructor({ key, domain })}

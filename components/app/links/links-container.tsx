@@ -19,7 +19,7 @@ export default function LinksContainer({
     <>
       <LinkFiltersModal />
       <MaxWidthWrapper className="pb-10">
-        <div className="my-5 flex w-full justify-center lg:justify-end">
+        <div className="my-5 flex h-10 w-full justify-center lg:justify-end">
           <LinkFiltersButton />
           <LinkSort />
         </div>

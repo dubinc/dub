@@ -12,7 +12,7 @@ import { ExternalLink, Globe, GlobeIcon, HelpCircle } from "lucide-react";
 import { DomainProps } from "#/lib/types";
 import { CheckCircleFill, XCircleFill } from "@/components/shared/icons";
 import { Drawer } from "vaul";
-import useWindowSize from "#/lib/hooks/use-window-size";
+import useMediaQuery from "#/lib/hooks/use-media-query";
 
 export default function Tooltip({
   children,
@@ -23,11 +23,11 @@ export default function Tooltip({
   content: ReactNode | string;
   fullWidth?: boolean;
 }) {
-  const { isMobile } = useWindowSize();
+  const { isMobile } = useMediaQuery();
 
   if (isMobile) {
     return (
-      <Drawer.Root shouldScaleBackground>
+      <Drawer.Root>
         <Drawer.Trigger
           className={`${fullWidth ? "w-full" : "inline-flex"} sm:hidden`}
           onClick={(e) => {
