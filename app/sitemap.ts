@@ -1,12 +1,13 @@
 import prisma from "#/lib/prisma";
 import { headers } from "next/headers";
 import {
+  allBlogPosts,
   allChangelogPosts,
   allHelpPosts,
   allLegalPosts,
 } from "contentlayer/generated";
 import { isHomeHostname } from "#/lib/utils";
-import { HELP_CATEGORIES } from "#/lib/constants/content";
+import { BLOG_CATEGORIES, HELP_CATEGORIES } from "#/lib/constants/content";
 
 export default async function Sitemap() {
   const headersList = headers();
@@ -39,6 +40,18 @@ export default async function Sitemap() {
             url: `https://${domain}/pricing`,
             lastModified: new Date(),
           },
+          {
+            url: `https://${domain}/blog`,
+            lastModified: new Date(),
+          },
+          ...allBlogPosts.map((post) => ({
+            url: `https://${domain}/blog/${post.slug}`,
+            lastModified: new Date(post.publishedAt),
+          })),
+          ...BLOG_CATEGORIES.map((category) => ({
+            url: `https://${domain}/blog/category/${category.slug}`,
+            lastModified: new Date(),
+          })),
           {
             url: `https://${domain}/help`,
             lastModified: new Date(),
