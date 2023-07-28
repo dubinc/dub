@@ -4,7 +4,7 @@ import { APP_DOMAIN } from "#/lib/constants";
 import { motion, useCycle } from "framer-motion";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { ReactNode, useEffect, useRef } from "react";
 import { navItems } from "./nav";
 import { useSession } from "next-auth/react";
 
@@ -33,7 +33,9 @@ export default function MobileNav() {
   const [isOpen, toggleOpen] = useCycle(false, true);
   const containerRef = useRef(null);
   const { height } = useDimensions(containerRef);
-  const { data: session, status } = useSession();
+  const { data: session, status } = useSession() || {
+    status: "unauthenticated", // if `useSession` is undefined, we're on a non dub.sh domain
+  };
 
   return (
     <motion.nav
