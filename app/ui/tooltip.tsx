@@ -70,10 +70,8 @@ export default function Tooltip({
             className="z-50 hidden animate-slide-up-fade items-center overflow-hidden rounded-md border border-gray-100 bg-white shadow-md sm:block"
           >
             {typeof content === "string" ? (
-              <div className="px-4 py-2">
-                <span className="block max-w-xs text-center text-sm text-gray-700">
-                  {content}
-                </span>
+              <div className="block max-w-xs px-4 py-2 text-center text-sm text-gray-700">
+                {content}
               </div>
             ) : (
               content

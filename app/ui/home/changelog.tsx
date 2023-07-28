@@ -1,6 +1,6 @@
 import { formatDate } from "#/lib/utils";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
-import { allChangelogPosts } from "contentlayer/generated";
+import { allBlogPosts, allChangelogPosts } from "contentlayer/generated";
 import Link from "next/link";
 
 export default function Changelog() {
@@ -18,11 +18,8 @@ export default function Changelog() {
         </p>
       </div>
       <ul className="mx-5 max-w-2xl md:mx-auto md:translate-x-28">
-        {allChangelogPosts
-          .sort(
-            (a, b) =>
-              Number(new Date(b.publishedAt)) - Number(new Date(a.publishedAt)),
-          )
+        {[...allBlogPosts, ...allChangelogPosts]
+          .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
           .slice(0, 6)
           .map((post) => (
             <li key={post.slug}>
@@ -43,7 +40,7 @@ export default function Changelog() {
 
 const DesktopChangelogEntry = ({ post }) => (
   <Link
-    href={`/changelog/${post.slug}`}
+    href={`/${post.type === "BlogPost" ? "blog" : "changelog"}/${post.slug}`}
     className="group hidden grid-cols-5 items-center md:grid"
   >
     <dl>
@@ -66,7 +63,7 @@ const DesktopChangelogEntry = ({ post }) => (
 
 const MobileChangelogEntry = ({ post }) => (
   <Link
-    href={`/changelog/${post.slug}`}
+    href={`/${post.type === "BlogPost" ? "blog" : "changelog"}/${post.slug}`}
     className="flex items-center space-x-4 rounded-lg active:bg-gray-100 md:hidden"
   >
     <div className="relative">

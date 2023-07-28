@@ -20,7 +20,7 @@ export const navItems = [
     slug: "changelog",
   },
   {
-    name: "Help Center",
+    name: "Help",
     slug: "help",
   },
   {

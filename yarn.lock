@@ -7900,7 +7900,7 @@ socks@^2.6.2:
 
 sonner@^0.5.0:
   version "0.5.0"
-  resolved "https://registry.npmjs.org/sonner/-/sonner-0.5.0.tgz"
+  resolved "https://registry.yarnpkg.com/sonner/-/sonner-0.5.0.tgz#48e4c1c8894c974fdb944ce4cd88ceb04ca7b8f8"
   integrity sha512-V5L4918wScYxpe3x1H92MV0vSkUqRREu8dwFf7dDTQmRMQ58r1vzSKCsULZ5HCTqxNkfCdhQXHf7rRMaj/MukQ==
 
 sort-keys@^5.0.0:

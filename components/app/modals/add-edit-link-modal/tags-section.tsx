@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 import { LoadingCircle } from "#/ui/icons";
 import Tooltip from "#/ui/tooltip";
+import { HOME_DOMAIN } from "#/lib/constants";
 
 export default function TagsSection({
   data,
@@ -111,7 +112,24 @@ export default function TagsSection({
             {creatingTag ? (
               <LoadingCircle />
             ) : (
-              <Tooltip content="Tags are used to organize your links in your Dub dashboard. You can edit and customize your tags under the Tags filter section on the left sidebar.">
+              <Tooltip
+                content={
+                  <div className="block max-w-xs px-4 py-2 text-center text-sm text-gray-700">
+                    <p>
+                      Tags are used to organize your links in your Dub
+                      dashboard.{" "}
+                      <a
+                        href={`${HOME_DOMAIN}/help/article/how-to-use-tags`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-500 underline underline-offset-4 hover:text-gray-800"
+                      >
+                        Learn more about tags.
+                      </a>
+                    </p>
+                  </div>
+                }
+              >
                 <Tag className="h-4 w-4" />
               </Tooltip>
             )}

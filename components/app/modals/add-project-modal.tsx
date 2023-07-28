@@ -19,6 +19,7 @@ import va from "@vercel/analytics";
 import Button from "#/ui/button";
 import { toast } from "sonner";
 import { InfoTooltip } from "#/ui/tooltip";
+import { HOME_DOMAIN } from "#/lib/constants";
 
 function AddProjectModalHelper({
   showAddProjectModal,
@@ -92,6 +93,14 @@ function AddProjectModalHelper({
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
         <Logo />
         <h3 className="text-lg font-medium">Create a new project</h3>
+        <a
+          href={`${HOME_DOMAIN}/help/article/what-is-a-project`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="-translate-y-2 text-center text-xs text-gray-500 underline underline-offset-4 hover:text-gray-800"
+        >
+          What is a project?
+        </a>
       </div>
 
       <form
@@ -260,7 +269,7 @@ function AddProjectModalHelper({
                 Domain is already in use.{" "}
                 <a
                   className="underline"
-                  href="mailto:steven@dub.sh?subject=My Domain Is Already In Use"
+                  href="mailto:support@dub.sh?subject=My Domain Is Already In Use"
                 >
                   Contact us
                 </a>{" "}
