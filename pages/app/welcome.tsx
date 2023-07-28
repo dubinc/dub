@@ -54,20 +54,21 @@ export default function Welcome() {
       <AddEditLinkModal />
       <UpgradePlanModal />
       <AnimatePresence mode="wait">
-        {router.query.type ? (
-          <button
-            className="group absolute left-10 top-10 z-40 rounded-full p-2 transition-all hover:bg-gray-100"
-            onClick={() => router.back()}
-          >
-            <ArrowLeft
-              size={20}
-              className="text-gray-500 group-hover:text-gray-700 group-active:scale-90"
-            />
-          </button>
-        ) : (
-          <Intro key="intro" />
+        {!router.query.type && <Intro key="intro" />}
+        {router.query.type === "interim" && (
+          <>
+            <button
+              className="group fixed left-10 top-10 z-[99] rounded-full p-2 transition-all hover:bg-gray-100"
+              onClick={() => router.back()}
+            >
+              <ArrowLeft
+                size={20}
+                className="text-gray-500 group-hover:text-gray-700 group-active:scale-90"
+              />
+            </button>
+            <Interim key="interim" />
+          </>
         )}
-        {router.query.type === "interim" && <Interim key="interim" />}
       </AnimatePresence>
     </div>
   );

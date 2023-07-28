@@ -3,7 +3,8 @@ import { LinkProps } from "#/lib/types";
 import { getDateTimeLocal } from "#/lib/utils";
 import Switch from "#/ui/switch";
 import { motion } from "framer-motion";
-import { InfoTooltip } from "#/ui/tooltip";
+import { InfoTooltip, SimpleTooltipContent } from "#/ui/tooltip";
+import { HOME_DOMAIN } from "#/lib/constants";
 
 export default function ExpirationSection({
   props,
@@ -34,7 +35,15 @@ export default function ExpirationSection({
       <div className="flex items-center justify-between">
         <div className="flex items-center justify-between space-x-2">
           <h2 className="text-sm font-medium text-gray-900">Expiration Date</h2>
-          <InfoTooltip content="By setting an expiration date, your link will only be accessible until the specified date." />
+          <InfoTooltip
+            content={
+              <SimpleTooltipContent
+                title="Set an expiration date for your links – after which it won't be accessible."
+                cta="Learn more."
+                href={`${HOME_DOMAIN}/help/article/how-to-create-link#expiration-date`}
+              />
+            }
+          />
         </div>
         <Switch fn={() => setEnabled(!enabled)} checked={enabled} />
       </div>

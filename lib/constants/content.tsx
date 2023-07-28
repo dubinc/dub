@@ -1,5 +1,28 @@
 import { Logo } from "#/ui/icons";
+import { allHelpPosts } from "contentlayer/generated";
 import { Globe, Link2, Settings, Webhook } from "lucide-react";
+
+export const BLOG_CATEGORIES: {
+  title: string;
+  slug: "company" | "education" | "customer-stories";
+  description: string;
+}[] = [
+  {
+    title: "Company News",
+    slug: "company",
+    description: "Updates and announcements from Dub.",
+  },
+  // {
+  //   title: "Education",
+  //   slug: "education",
+  //   description: "Educational content about link management.",
+  // },
+  // {
+  //   title: "Customer Stories",
+  //   slug: "customer-stories",
+  //   description: "Learn how Dub customers use Dub.",
+  // },
+];
 
 export const POPULAR_ARTICLES = [
   "what-is-dub",
@@ -10,7 +33,7 @@ export const POPULAR_ARTICLES = [
   "pro-plan",
 ];
 
-export const CATEGORIES: {
+export const HELP_CATEGORIES: {
   title: string;
   slug:
     | "overview"
@@ -52,3 +75,9 @@ export const CATEGORIES: {
     icon: <Webhook className="h-6 w-6 text-gray-500" />,
   },
 ];
+
+export const getPopularArticles = () => {
+  return POPULAR_ARTICLES.map(
+    (slug) => allHelpPosts.find((post) => post.slug === slug)!,
+  );
+};

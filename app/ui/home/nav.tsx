@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useParams, useSelectedLayoutSegment } from "next/navigation";
 import useScroll from "#/lib/hooks/use-scroll";
 import { cn } from "#/lib/utils";
@@ -9,28 +8,33 @@ import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import { APP_DOMAIN, SHOW_BACKGROUND_SEGMENTS } from "#/lib/constants";
 import va from "@vercel/analytics";
 import { LogoType } from "#/ui/icons";
+import { useSession } from "next-auth/react";
 
-const navItems = [
+export const navItems = [
   {
     name: "Pricing",
-    segment: "pricing",
+    slug: "pricing",
   },
   {
     name: "Changelog",
-    segment: "changelog",
+    slug: "changelog",
   },
   {
-    name: "Help Center",
-    segment: "help",
+    name: "Help",
+    slug: "help",
+  },
+  {
+    name: "Blog",
+    slug: "blog",
   },
 ];
 
 export default function Nav() {
   const { domain = "dub.sh" } = useParams() as { domain: string };
-
   const scrolled = useScroll(80);
   const selectedLayout = useSelectedLayoutSegment();
   const helpCenter = selectedLayout === "help";
+  const { data: session, status } = useSession();
 
   return (
     <div
@@ -60,7 +64,7 @@ export default function Nav() {
             >
               <LogoType />
             </Link>
-            {helpCenter && (
+            {helpCenter ? (
               <div className="flex items-center">
                 <div className="mr-3 h-5 border-l-2 border-gray-400" />
                 <Link
@@ -70,66 +74,79 @@ export default function Nav() {
                   Help Center
                 </Link>
               </div>
+            ) : (
+              <div className="hidden items-center space-x-3 lg:flex">
+                {navItems.map(({ name, slug }) => (
+                  <Link
+                    id={`nav-${slug}`}
+                    key={slug}
+                    href={
+                      domain === "dub.sh"
+                        ? `/${slug}`
+                        : `https://dub.sh/${slug}`
+                    }
+                    {...(domain !== "dub.sh" && {
+                      onClick: () => {
+                        va.track("Referred from custom domain", {
+                          domain,
+                          medium: `navbar item (${slug})`,
+                        });
+                      },
+                    })}
+                    className={cn(
+                      "z-10 rounded-full px-4 py-1.5 text-sm font-medium capitalize text-gray-500 transition-colors ease-out hover:text-black",
+                      {
+                        "text-black": selectedLayout === slug,
+                      },
+                    )}
+                  >
+                    {name}
+                  </Link>
+                ))}
+              </div>
             )}
           </div>
 
-          <div className="hidden items-center space-x-2 sm:flex">
-            {!helpCenter &&
-              navItems.map(({ name, segment }) => (
+          <div className="hidden lg:block">
+            {session ? (
+              <Link
+                href={APP_DOMAIN}
+                className="animate-fade-in rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
+              >
+                Dashboard
+              </Link>
+            ) : status === "unauthenticated" ? (
+              <>
                 <Link
-                  id={`nav-${segment}`}
-                  key={segment}
-                  href={
-                    domain === "dub.sh"
-                      ? `/${segment}`
-                      : `https://dub.sh/${segment}`
-                  }
+                  href={`${APP_DOMAIN}/login`}
                   {...(domain !== "dub.sh" && {
                     onClick: () => {
                       va.track("Referred from custom domain", {
                         domain,
-                        medium: `navbar item (${segment})`,
+                        medium: `navbar item (login)`,
                       });
                     },
                   })}
-                  className={cn(
-                    "z-10 rounded-full px-4 py-1.5 text-sm font-medium capitalize text-gray-500 transition-colors ease-out hover:text-black",
-                    {
-                      "text-black": selectedLayout === segment,
-                    },
-                  )}
+                  className="animate-fade-in rounded-full px-4 py-1.5 text-sm font-medium text-gray-500 transition-colors ease-out hover:text-black"
                 >
-                  {name}
+                  Log in
                 </Link>
-              ))}
-            <Link
-              href={`${APP_DOMAIN}/login`}
-              {...(domain !== "dub.sh" && {
-                onClick: () => {
-                  va.track("Referred from custom domain", {
-                    domain,
-                    medium: `navbar item (login)`,
-                  });
-                },
-              })}
-              className="rounded-full px-4 py-1.5 text-sm font-medium text-gray-500 transition-colors ease-out hover:text-black"
-            >
-              Log in
-            </Link>
-            <Link
-              href={`${APP_DOMAIN}/register`}
-              {...(domain !== "dub.sh" && {
-                onClick: () => {
-                  va.track("Referred from custom domain", {
-                    domain,
-                    medium: `navbar item (signup)`,
-                  });
-                },
-              })}
-              className="rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
-            >
-              Sign Up
-            </Link>
+                <Link
+                  href={`${APP_DOMAIN}/register`}
+                  {...(domain !== "dub.sh" && {
+                    onClick: () => {
+                      va.track("Referred from custom domain", {
+                        domain,
+                        medium: `navbar item (signup)`,
+                      });
+                    },
+                  })}
+                  className="animate-fade-in rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
+                >
+                  Sign Up
+                </Link>
+              </>
+            ) : null}
           </div>
         </div>
       </MaxWidthWrapper>

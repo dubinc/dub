@@ -6,6 +6,7 @@ import Link from "next/link";
 import { MDX } from "#/ui/content/mdx";
 import { Twitter } from "@/components/shared/icons";
 import { Rss } from "lucide-react";
+import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 
 export const metadata = constructMetadata({
   title: "Changelog - Dub",
@@ -16,7 +17,7 @@ export const metadata = constructMetadata({
 
 export default async function Changelog() {
   return (
-    <div className="mx-auto max-w-screen-xl md:px-20">
+    <MaxWidthWrapper className="px-0">
       <div className="relative grid border-b border-gray-200 py-20 md:grid-cols-4">
         <div className="md:col-span-1" />
         <div className="mx-5 flex flex-col space-y-6 md:col-span-3 md:mx-0">
@@ -48,12 +49,7 @@ export default async function Changelog() {
 
       <div className="divide-y divide-gray-200">
         {allChangelogPosts
-          .sort((a, b) => {
-            if (new Date(a.publishedAt) > new Date(b.publishedAt)) {
-              return -1;
-            }
-            return 1;
-          })
+          .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
           .map(async (post, idx) => (
             <div
               key={idx}
@@ -106,6 +102,6 @@ export default async function Changelog() {
             </div>
           ))}
       </div>
-    </div>
+    </MaxWidthWrapper>
   );
 }

@@ -41,32 +41,35 @@ export default function Modal({
   };
   const { isMobile } = useMediaQuery();
 
-  return isMobile ? (
-    <Drawer.Root
-      open={setShowModal ? showModal : true}
-      onOpenChange={(open) => {
-        if (!open) {
-          closeModal({ dragged: true });
-        }
-      }}
-    >
-      <Drawer.Overlay className="fixed inset-0 z-40 bg-gray-100 bg-opacity-10 backdrop-blur" />
-      <Drawer.Portal>
-        <Drawer.Content
-          className={cn(
-            "fixed bottom-0 left-0 right-0 z-50 mt-24 rounded-t-[10px] border-t border-gray-200 bg-white",
-            className,
-          )}
-        >
-          <div className="sticky top-0 z-20 flex w-full items-center justify-center rounded-t-[10px] bg-inherit">
-            <div className="my-3 h-1 w-12 rounded-full bg-gray-300" />
-          </div>
-          {children}
-        </Drawer.Content>
-        <Drawer.Overlay />
-      </Drawer.Portal>
-    </Drawer.Root>
-  ) : (
+  if (isMobile) {
+    return (
+      <Drawer.Root
+        open={setShowModal ? showModal : true}
+        onOpenChange={(open) => {
+          if (!open) {
+            closeModal({ dragged: true });
+          }
+        }}
+      >
+        <Drawer.Overlay className="fixed inset-0 z-40 bg-gray-100 bg-opacity-10 backdrop-blur" />
+        <Drawer.Portal>
+          <Drawer.Content
+            className={cn(
+              "fixed bottom-0 left-0 right-0 z-50 mt-24 rounded-t-[10px] border-t border-gray-200 bg-white",
+              className,
+            )}
+          >
+            <div className="sticky top-0 z-20 flex w-full items-center justify-center rounded-t-[10px] bg-inherit">
+              <div className="my-3 h-1 w-12 rounded-full bg-gray-300" />
+            </div>
+            {children}
+          </Drawer.Content>
+          <Drawer.Overlay />
+        </Drawer.Portal>
+      </Drawer.Root>
+    );
+  }
+  return (
     <Dialog.Root
       open={setShowModal ? showModal : true}
       onOpenChange={(open) => {
@@ -78,13 +81,13 @@ export default function Modal({
       <Dialog.Portal>
         <Dialog.Overlay
           id="modal-backdrop"
-          className="fixed inset-0 z-40 animate-fade-in bg-gray-100 bg-opacity-50 backdrop-blur-md"
+          className="fixed inset-0 z-40 hidden animate-fade-in bg-gray-100 bg-opacity-50 backdrop-blur-md md:block"
         />
         <Dialog.Content
           onOpenAutoFocus={(e) => e.preventDefault()}
           onCloseAutoFocus={(e) => e.preventDefault()}
           className={cn(
-            "fixed inset-0 z-50 m-auto max-h-fit w-full max-w-md animate-scale-in overflow-hidden rounded-2xl border border-gray-200 bg-white p-0 shadow-xl",
+            "fixed inset-0 z-50 m-auto hidden max-h-fit w-full max-w-md animate-scale-in overflow-hidden rounded-2xl border border-gray-200 bg-white p-0 shadow-xl md:block",
             className,
           )}
         >

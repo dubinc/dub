@@ -3,7 +3,7 @@ import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import { allHelpPosts } from "contentlayer/generated";
 import { ChevronRight } from "lucide-react";
 import { notFound } from "next/navigation";
-import { CATEGORIES } from "#/lib/constants/content";
+import { HELP_CATEGORIES } from "#/lib/constants/content";
 import Link from "next/link";
 import Author from "#/ui/content/author";
 import { MDX } from "#/ui/content/mdx";
@@ -53,7 +53,7 @@ export default async function HelpArticle({
   if (!data) {
     notFound();
   }
-  const category = CATEGORIES.find(
+  const category = HELP_CATEGORIES.find(
     (category) => data.categories[0] === category.slug,
   )!;
 

@@ -8,8 +8,11 @@ import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import va from "@vercel/analytics";
 
 const navigation = {
-  product: [{ name: "Pricing", href: "/pricing" }],
-  company: [{ name: "Changelog", href: "/changelog" }],
+  product: [
+    { name: "Pricing", href: "/pricing" },
+    { name: "Changelog", href: "/changelog" },
+  ],
+  company: [{ name: "Blog", href: "/blog" }],
   resources: [
     { name: "Help Center", href: "/help" },
     { name: "Metatags API", href: "/metatags" },
