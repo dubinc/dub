@@ -30,7 +30,7 @@ export async function generateMetadata({
   const { title, description } = category;
 
   return constructMetadata({
-    title: `${title} | Dub Help Center`,
+    title: `${title} – Dub Help Center`,
     description,
     image: `/api/og/help?title=${encodeURIComponent(
       title,

@@ -4,7 +4,7 @@ import Pricing from "#/ui/home/pricing";
 import { constructMetadata } from "#/lib/utils";
 
 export const metadata = constructMetadata({
-  title: "Pricing - Dub",
+  title: "Pricing – Dub",
 });
 
 export default function PricingPage() {

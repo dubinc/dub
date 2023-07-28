@@ -9,7 +9,7 @@ import { Rss } from "lucide-react";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 
 export const metadata = constructMetadata({
-  title: "Changelog - Dub",
+  title: "Changelog – Dub",
   description:
     "All the latest updates, improvements, and fixes to Dub - the link management tool for modern marketing teams.",
   image: "/api/og/changelog",

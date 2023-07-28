@@ -29,7 +29,7 @@ export async function generateMetadata({
   }
 
   return constructMetadata({
-    title: `Stats for dub.sh/${params.key} - Dub`,
+    title: `Stats for dub.sh/${params.key} – Dub`,
     description: `Dub is an open-source link management tool for modern marketing teams to create, share, and track short links.`,
     image: `https://dub.sh/api/og/stats?domain=dub.sh&key=${params.key}`,
   });

@@ -10,7 +10,6 @@ import { constructMetadata, formatDate } from "#/lib/utils";
 import { getTweet } from "react-tweet/api";
 import BlurImage from "#/ui/blur-image";
 import { BLOG_CATEGORIES } from "#/lib/constants/content";
-import BlogCard from "#/ui/content/blog-card";
 
 export async function generateStaticParams() {
   return allBlogPosts.map((post) => ({
@@ -31,7 +30,7 @@ export async function generateMetadata({
   const { title, summary, image } = post;
 
   return constructMetadata({
-    title: `${title} | Dub blog`,
+    title: `${title} – Dub Blog`,
     description: summary,
     image,
   });
