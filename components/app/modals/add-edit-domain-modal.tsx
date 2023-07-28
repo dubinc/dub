@@ -209,6 +209,7 @@ function AddEditDomainModal({
                 name="domain"
                 id="domain"
                 required
+                autoComplete="off"
                 pattern="[[\p{Letter}\p{Mark}\d-.]+"
                 className={`${
                   domainError
