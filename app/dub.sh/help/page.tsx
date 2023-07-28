@@ -1,7 +1,6 @@
 import { constructMetadata } from "#/lib/utils";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
-import { allHelpPosts } from "contentlayer/generated";
-import { HELP_CATEGORIES, POPULAR_ARTICLES } from "#/lib/constants/content";
+import { HELP_CATEGORIES, getPopularArticles } from "#/lib/constants/content";
 import SearchButton from "#/ui/content/search-button";
 import CategoryCard from "#/ui/content/category-card";
 import ArticleLink from "#/ui/content/article-link";
@@ -12,16 +11,7 @@ export const metadata = constructMetadata({
 });
 
 export default function HelpCenter() {
-  const popularArticles = POPULAR_ARTICLES.map(
-    (slug) => allHelpPosts.find((post) => post.slug === slug)!,
-  );
-
-  const categories = HELP_CATEGORIES.map((category) => ({
-    ...category,
-    postCount: allHelpPosts.filter((post) =>
-      post.categories.includes(category.slug),
-    ).length,
-  }));
+  const popularArticles = getPopularArticles();
 
   return (
     <>
@@ -48,7 +38,7 @@ export default function HelpCenter() {
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-            {categories.map((category) => (
+            {HELP_CATEGORIES.map((category) => (
               <CategoryCard
                 key={category.slug}
                 href={`/help/category/${category.slug}`}

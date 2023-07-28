@@ -1,4 +1,5 @@
 import { Logo } from "#/ui/icons";
+import { allHelpPosts } from "contentlayer/generated";
 import { Globe, Link2, Settings, Webhook } from "lucide-react";
 
 export const BLOG_CATEGORIES: {
@@ -74,3 +75,9 @@ export const HELP_CATEGORIES: {
     icon: <Webhook className="h-6 w-6 text-gray-500" />,
   },
 ];
+
+export const getPopularArticles = () => {
+  return POPULAR_ARTICLES.map(
+    (slug) => allHelpPosts.find((post) => post.slug === slug)!,
+  );
+};

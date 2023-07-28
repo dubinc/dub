@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { navItems } from "./nav";
+import { useSession } from "next-auth/react";
 
 const sidebar = {
   open: (height = 1000) => ({
@@ -32,6 +33,7 @@ export default function MobileNav() {
   const [isOpen, toggleOpen] = useCycle(false, true);
   const containerRef = useRef(null);
   const { height } = useDimensions(containerRef);
+  const { data: session, status } = useSession();
 
   return (
     <motion.nav
@@ -70,24 +72,37 @@ export default function MobileNav() {
           </div>
         ))}
 
-        <MenuItem key="Login">
-          <Link
-            href={`${APP_DOMAIN}/login`}
-            className="flex w-full font-semibold capitalize"
-          >
-            Log in
-          </Link>
-        </MenuItem>
-        <MenuItem className="my-3 h-px w-full bg-gray-300" />
+        {session ? (
+          <MenuItem key="Dashboard">
+            <Link
+              href={APP_DOMAIN}
+              className="flex w-full font-semibold capitalize"
+            >
+              Dashboard
+            </Link>
+          </MenuItem>
+        ) : status === "unauthenticated" ? (
+          <>
+            <MenuItem key="Login">
+              <Link
+                href={`${APP_DOMAIN}/login`}
+                className="flex w-full font-semibold capitalize"
+              >
+                Log in
+              </Link>
+            </MenuItem>
+            <MenuItem className="my-3 h-px w-full bg-gray-300" />
 
-        <MenuItem key="Signup">
-          <Link
-            href={`${APP_DOMAIN}/register`}
-            className="flex w-full font-semibold capitalize"
-          >
-            Sign Up
-          </Link>
-        </MenuItem>
+            <MenuItem key="Signup">
+              <Link
+                href={`${APP_DOMAIN}/register`}
+                className="flex w-full font-semibold capitalize"
+              >
+                Sign Up
+              </Link>
+            </MenuItem>
+          </>
+        ) : null}
       </motion.ul>
       <MenuToggle toggle={toggleOpen} />
     </motion.nav>

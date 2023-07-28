@@ -10,10 +10,13 @@ export const metadata = constructMetadata({
 
 export default async function Blog() {
   const articles = await Promise.all(
-    allBlogPosts.map(async (post) => ({
-      ...post,
-      blurDataURL: await getBlurDataURL(post.image),
-    })),
+    // order by publishedAt (desc)
+    allBlogPosts
+      .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+      .map(async (post) => ({
+        ...post,
+        blurDataURL: await getBlurDataURL(post.image),
+      })),
   );
 
   return articles.map((article, idx) => (

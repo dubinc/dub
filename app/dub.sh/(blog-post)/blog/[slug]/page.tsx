@@ -123,8 +123,8 @@ export default async function BlogArticle({
             </div>
             {relatedArticles.length > 0 && (
               <div className="flex flex-col space-y-4 py-5">
-                <p className="text-sm text-gray-500">Related articles</p>
-                <ul className="flex flex-col space-y-4 py-4">
+                <p className="text-sm text-gray-500">Read more</p>
+                <ul className="flex flex-col space-y-4">
                   {relatedArticles.map((post) => (
                     <li key={post.slug}>
                       <Link
@@ -136,6 +136,9 @@ export default async function BlogArticle({
                         </p>
                         <p className="line-clamp-2 text-sm text-gray-500 underline-offset-2 group-hover:underline">
                           {post.summary}
+                        </p>
+                        <p className="text-xs text-gray-400 underline-offset-2 group-hover:underline">
+                          {formatDate(post.publishedAt)}
                         </p>
                       </Link>
                     </li>

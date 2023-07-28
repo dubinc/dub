@@ -49,12 +49,7 @@ export default async function Changelog() {
 
       <div className="divide-y divide-gray-200">
         {allChangelogPosts
-          .sort((a, b) => {
-            if (new Date(a.publishedAt) > new Date(b.publishedAt)) {
-              return -1;
-            }
-            return 1;
-          })
+          .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
           .map(async (post, idx) => (
             <div
               key={idx}
