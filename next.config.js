@@ -17,6 +17,7 @@ const nextConfig = {
       "res.cloudinary.com",
       "pbs.twimg.com",
       "d2vwwcvoksz7ty.cloudfront.net",
+      "kmky9fhozdrax28c.public.blob.vercel-storage.com", // Vercel Blob
       "lh3.googleusercontent.com",
       "media.cleanshot.cloud", // only for staging purposes
     ],
