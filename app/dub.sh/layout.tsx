@@ -5,6 +5,8 @@ import Footer from "#/ui/home/footer";
 import Background from "#/ui/home/background";
 import MobileNav from "#/ui/home/nav-mobile";
 
+export const runtime = "edge";
+
 export default function MarketingLayout({
   children,
   modal,
