@@ -15,7 +15,7 @@ export const metadata = constructMetadata({
   image: "/api/og/changelog",
 });
 
-export default async function Changelog() {
+export default function Changelog() {
   return (
     <MaxWidthWrapper className="px-0">
       <div className="relative grid border-b border-gray-200 py-20 md:grid-cols-4">

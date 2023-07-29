@@ -50,7 +50,7 @@ export default function Metatags() {
           <p>View the source code</p>
         </a>
 
-        <Suspense fallback="">
+        <Suspense>
           <LaunchTweet />
         </Suspense>
       </div>
