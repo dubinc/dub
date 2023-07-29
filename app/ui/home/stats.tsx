@@ -1,4 +1,3 @@
-import { unstable_cache } from "next/cache";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import { nFormatter } from "#/lib/utils";
 import { getTotalVerifiedDomains, getTotalLinks } from "#/lib/planetscale";
@@ -23,6 +22,20 @@ export default async function Stats() {
     .then((res) => res.json())
     .then((res) => res.data[0]["count(timestamp)"]);
 
+  return (
+    <StatsSection domains={domains} shortlinks={shortlinks} clicks={clicks} />
+  );
+}
+
+export function StatsSection({
+  domains,
+  shortlinks,
+  clicks,
+}: {
+  domains: number;
+  shortlinks: number;
+  clicks: number;
+}) {
   return (
     <div className="border-y border-gray-200 bg-white/10 py-8 shadow-[inset_10px_-50px_94px_0_rgb(199,199,199,0.2)] backdrop-blur">
       <MaxWidthWrapper className="grid gap-y-4 divide-x divide-gray-200 md:grid-cols-3 md:gap-y-0">

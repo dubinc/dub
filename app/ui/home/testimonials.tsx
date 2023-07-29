@@ -1,4 +1,3 @@
-import { unstable_cache } from "next/cache";
 import { nFormatter } from "#/lib/utils";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import TestimonialsMobile from "./testimonials-mobile";
