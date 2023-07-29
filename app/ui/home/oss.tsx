@@ -20,6 +20,10 @@ export default async function OSS() {
     },
   ).then((res) => res.json());
 
+  return <OSSSection stars={stars} />;
+}
+
+export function OSSSection({ stars }: { stars: number }) {
   return (
     <div className="mt-20 border-t border-gray-200 bg-white/10 py-20 shadow-[inset_10px_-50px_94px_0_rgb(199,199,199,0.2)] backdrop-blur">
       <MaxWidthWrapper>
