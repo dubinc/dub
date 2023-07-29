@@ -29,3 +29,32 @@ export const getLinkViaEdge = async (domain: string, key: string) => {
       })
     : null;
 };
+
+export const getTotalVerifiedDomains = async () => {
+  if (!conn) return 1000;
+
+  const { rows } = await conn.execute(
+    "SELECT COUNT(*) FROM Domain WHERE verified = 1",
+  );
+  return rows && Array.isArray(rows) && rows.length > 0
+    ? rows[0]["count(*)"]
+    : 1000;
+};
+
+export const getTotalLinks = async () => {
+  if (!conn) return 20000;
+
+  const { rows } = await conn.execute("SELECT COUNT(*) FROM Link");
+  return rows && Array.isArray(rows) && rows.length > 0
+    ? rows[0]["count(*)"]
+    : 20000;
+};
+
+export const getTotalUsers = async () => {
+  if (!conn) return 10000;
+
+  const { rows } = await conn.execute("SELECT COUNT(*) FROM User");
+  return rows && Array.isArray(rows) && rows.length > 0
+    ? rows[0]["count(*)"]
+    : 10000;
+};

@@ -1,25 +1,13 @@
 import { unstable_cache } from "next/cache";
-import prisma from "#/lib/prisma";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import { nFormatter } from "#/lib/utils";
+import { getTotalVerifiedDomains, getTotalLinks } from "#/lib/planetscale";
 
 export default async function Stats() {
-  const [domains, shortlinks] = await unstable_cache(
-    async () => {
-      return Promise.all([
-        prisma.domain.count({
-          where: {
-            verified: true,
-          },
-        }),
-        prisma.link.count(),
-      ]);
-    },
-    [],
-    {
-      revalidate: 900,
-    },
-  )();
+  const [domains, shortlinks] = await Promise.all([
+    getTotalVerifiedDomains(),
+    getTotalLinks(),
+  ]);
 
   const clicks = await fetch(
     `https://api.us-east.tinybird.co/v0/pipes/all_clicks.json`,

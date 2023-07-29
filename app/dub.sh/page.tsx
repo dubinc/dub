@@ -8,6 +8,8 @@ import OSS from "#/ui/home/oss";
 import Testimonials from "#/ui/home/testimonials";
 import Changelog from "#/ui/home/changelog";
 
+export const runtime = "edge";
+
 export default function Home() {
   return (
     <>
