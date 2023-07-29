@@ -1,26 +1,22 @@
+import { getTotalLinks, getTotalVerifiedDomains } from "#/lib/planetscale";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import { nFormatter } from "#/lib/utils";
-import { getTotalVerifiedDomains, getTotalLinks } from "#/lib/planetscale";
 
 export default async function Stats() {
-  const [domains, shortlinks] = await Promise.all([
+  const [domains, shortlinks, clicks] = await Promise.all([
     getTotalVerifiedDomains(),
     getTotalLinks(),
-  ]);
-
-  const clicks = await fetch(
-    `https://api.us-east.tinybird.co/v0/pipes/all_clicks.json`,
-    {
+    fetch(`https://api.us-east.tinybird.co/v0/pipes/all_clicks.json`, {
       headers: {
         Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
       },
       next: {
         revalidate: 300,
       },
-    },
-  )
-    .then((res) => res.json())
-    .then((res) => res.data[0]["count(timestamp)"]);
+    })
+      .then((res) => res.json())
+      .then((res) => res.data[0]["count(timestamp)"]),
+  ]);
 
   return (
     <StatsSection domains={domains} shortlinks={shortlinks} clicks={clicks} />

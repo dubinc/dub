@@ -24,11 +24,12 @@ const tweets = [
 ];
 
 export default async function Testimonials() {
-  const userCount = await getTotalUsers();
-
-  const tweetsData = (
-    await Promise.all(tweets.map((id) => getTweet(id)))
-  ).filter((t) => t) as TweetProps[];
+  const [userCount, tweetsData] = await Promise.all([
+    getTotalUsers(),
+    (
+      await Promise.all(tweets.map((id) => getTweet(id)))
+    ).filter((t) => t) as TweetProps[],
+  ]);
 
   return (
     <MaxWidthWrapper className="pt-20">
