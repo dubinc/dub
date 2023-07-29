@@ -55,7 +55,7 @@ export default function Changelog() {
               key={idx}
               className="grid py-20 md:grid-cols-4 md:px-5 xl:px-0"
             >
-              <div className="sticky top-10 hidden self-start md:col-span-1 md:block">
+              <div className="sticky top-20 hidden self-start md:col-span-1 md:block">
                 <Link href={`/changelog/${post.slug}`}>
                   <time
                     dateTime={post.publishedAt}
