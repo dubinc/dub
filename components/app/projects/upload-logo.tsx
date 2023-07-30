@@ -152,7 +152,8 @@ export default function UploadLogo() {
 
       <div className="flex items-center justify-between rounded-b-lg border-t border-gray-200 bg-gray-50 p-3 sm:px-10">
         <p className="text-sm text-gray-500">
-          Accepted file types: .png, .jpg, .jpeg. Max file size: 5MB
+          Square image recommended. Accepted file types: .png, .jpg. Max file
+          size: 5MB.
         </p>
         <div>
           <Button

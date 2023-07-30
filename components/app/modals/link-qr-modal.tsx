@@ -2,6 +2,7 @@ import {
   Dispatch,
   SetStateAction,
   useCallback,
+  useContext,
   useMemo,
   useRef,
   useState,
@@ -25,8 +26,15 @@ import { getApexDomain, linkConstructor } from "#/lib/utils";
 import IconMenu from "@/components/shared/icon-menu";
 import Popover from "#/ui/popover";
 import { toast } from "sonner";
-import { GOOGLE_FAVICON_URL, HOME_DOMAIN } from "#/lib/constants";
+import {
+  APP_HOSTNAMES,
+  FADE_IN_ANIMATION_SETTINGS,
+  GOOGLE_FAVICON_URL,
+  HOME_DOMAIN,
+} from "#/lib/constants";
 import { useRouter } from "next/router";
+import { ModalContext } from "#/ui/modal-provider";
+import { motion } from "framer-motion";
 
 function LinkQRModalHelper({
   showLinkQRModal,
@@ -38,7 +46,7 @@ function LinkQRModalHelper({
   props: SimpleLinkProps;
 }) {
   const anchorRef = useRef<HTMLAnchorElement>(null);
-  const { logo } = useProject();
+  const { logo, plan } = useProject();
   const { avatarUrl, apexDomain } = useMemo(() => {
     try {
       const apexDomain = getApexDomain(props.url);
@@ -55,11 +63,11 @@ function LinkQRModalHelper({
   }, [props]);
 
   const qrLogoUrl = useMemo(() => {
-    if (logo) return logo;
+    if (logo && plan !== "free") return logo;
     return typeof window !== "undefined" && window.location.origin
       ? new URL("/_static/logo.svg", window.location.origin).href
       : "";
-  }, [logo]);
+  }, [logo, plan]);
 
   function download(url: string, extension: string) {
     if (!anchorRef.current) return;
@@ -152,6 +160,7 @@ function LinkQRModalHelper({
           setFgColor={setFgColor}
           showLogo={showLogo}
           setShowLogo={setShowLogo}
+          setShowLinkQRModal={setShowLinkQRModal}
         />
 
         <div className="grid grid-cols-2 gap-2 px-4 sm:px-16">
@@ -186,16 +195,20 @@ function LinkQRModalHelper({
   );
 }
 
-function AdvancedSettings({ qrData, setFgColor, showLogo, setShowLogo }) {
+function AdvancedSettings({
+  qrData,
+  setFgColor,
+  showLogo,
+  setShowLogo,
+  setShowLinkQRModal,
+}) {
   const router = useRouter();
   const { slug } = router.query;
   const { plan, logo } = useProject();
   const [expanded, setExpanded] = useState(false);
 
-  const isApp = useMemo(() => {
-    if (typeof window === "undefined") return false;
-    return window.location.host.startsWith("app.");
-  }, []);
+  const { setShowAddProjectModal, setShowUpgradePlanModal } =
+    useContext(ModalContext);
 
   return (
     <div>
@@ -214,7 +227,11 @@ function AdvancedSettings({ qrData, setFgColor, showLogo, setShowLogo }) {
         </button>
       </div>
       {expanded && (
-        <div className="mt-4 grid gap-5 border-b border-t border-gray-200 bg-white px-4 py-8 sm:px-16">
+        <motion.div
+          key="advanced-options"
+          {...FADE_IN_ANIMATION_SETTINGS}
+          className="mt-4 grid gap-5 border-b border-t border-gray-200 bg-white px-4 py-8 sm:px-16"
+        >
           <div>
             <label
               htmlFor="logo-toggle"
@@ -227,7 +244,7 @@ function AdvancedSettings({ qrData, setFgColor, showLogo, setShowLogo }) {
                     <SimpleTooltipContent
                       title=""
                       cta="How to update my QR Code logo?"
-                      href={`${HOME_DOMAIN}/help/article/how-to-set-custom-qrcode`}
+                      href={`${HOME_DOMAIN}/help/article/custom-qrcodes`}
                     />
                   }
                 />
@@ -250,9 +267,20 @@ function AdvancedSettings({ qrData, setFgColor, showLogo, setShowLogo }) {
               <Tooltip
                 content={
                   <TooltipContent
-                    title="As a freemium product, we rely on word of mouth to spread the word about Dub. If you'd like to remove the Dub logo/upload your own, please consider upgrading to a Pro plan."
-                    cta="Upgrade to Pro"
-                    href={isApp ? "/settings" : "/pricing"}
+                    title="You need to be on the Pro plan to customize your QR Code logo."
+                    cta={slug ? "Upgrade to Pro" : "Create a project"}
+                    {...(APP_HOSTNAMES.has(window.location.hostname)
+                      ? {
+                          onClick: () => {
+                            setShowLinkQRModal(false);
+                            if (slug) {
+                              setShowUpgradePlanModal(true);
+                            } else {
+                              setShowAddProjectModal(true);
+                            }
+                          },
+                        }
+                      : { href: `${HOME_DOMAIN}/pricing` })}
                   />
                 }
               >
@@ -307,7 +335,7 @@ function AdvancedSettings({ qrData, setFgColor, showLogo, setShowLogo }) {
               />
             </div>
           </div>
-        </div>
+        </motion.div>
       )}
     </div>
   );

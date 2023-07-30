@@ -232,9 +232,9 @@ function AdvancedSettings({ qrData, setFgColor, showLogo, setShowLogo }) {
               <Tooltip
                 content={
                   <TooltipContent
-                    title="As a freemium product, we rely on word of mouth to spread the word about Dub. If you'd like to remove the Dub logo/upload your own, please consider upgrading to a Pro plan."
+                    title="You need to be on the Pro plan to customize your QR Code logo."
                     cta="Upgrade to Pro"
-                    href={isApp ? "/settings" : "/pricing"}
+                    href="/pricing"
                   />
                 }
               >
