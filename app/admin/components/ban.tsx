@@ -3,14 +3,14 @@
 import { cn } from "#/lib/utils";
 import { experimental_useFormStatus as useFormStatus } from "react-dom";
 import { LoadingSpinner } from "#/ui/icons";
-import { banUser, getData } from "./action";
+import { getUserByKey, banUser } from "../actions";
 import { useState } from "react";
 import Button from "#/ui/button";
 import { toast } from "sonner";
 import { Copy, Tick } from "@/components/shared/icons";
 import { useRouter } from "next/navigation";
 
-export default function AdminStuff() {
+export default function BanUser() {
   const [data, setData] = useState<{
     email: string;
     hostnames: string[];
@@ -24,7 +24,7 @@ export default function AdminStuff() {
     <div className="flex flex-col space-y-5">
       <form
         action={(data) =>
-          getData(data).then((res) => {
+          getUserByKey(data).then((res) => {
             if (res.error) {
               toast.error(res.error);
             } else {

@@ -1,15 +1,18 @@
 import useProject from "#/lib/swr/use-project";
 import Button from "#/ui/button";
 import { UploadCloud } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
 export default function UploadLogo() {
   const { slug, logo } = useProject();
 
-  const [image, setImage] = useState<string | null>(logo || null);
-  const [file, setFile] = useState<File | null>(null);
+  const [image, setImage] = useState<string | null>();
+
+  useEffect(() => {
+    setImage(logo || null);
+  }, [logo]);
 
   const [dragActive, setDragActive] = useState(false);
 
@@ -22,7 +25,6 @@ export default function UploadLogo() {
         } else if (file.type !== "image/png" && file.type !== "image/jpeg") {
           toast.error("File type not supported (.png or .jpg only)");
         } else {
-          setFile(file);
           const reader = new FileReader();
           reader.onload = (e) => {
             setImage(e.target?.result as string);
@@ -41,22 +43,22 @@ export default function UploadLogo() {
       onSubmit={async (e) => {
         setUploading(true);
         e.preventDefault();
-        if (file) {
-          try {
-            await fetch(`/api/projects/${slug}/logo`, {
-              method: "POST",
-              headers: {
-                "content-type": file?.type || "application/octet-stream",
-              },
-              body: file,
-            });
-            toast.success("Logo updated");
+        fetch(`/api/projects/${slug}/logo`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ image }),
+        }).then(async (res) => {
+          setUploading(false);
+          if (res.status === 200) {
+            mutate(`/api/projects`);
             mutate(`/api/projects/${slug}`);
-          } catch (e) {
+            toast.success("Succesfully uploaded project logo!");
+          } else {
             toast.error("Something went wrong");
           }
-          setUploading(false);
-        }
+        });
       }}
       className="rounded-lg border border-gray-200 bg-white"
     >
@@ -101,7 +103,6 @@ export default function UploadLogo() {
                   ) {
                     toast.error("File type not supported (.png or .jpg only)");
                   } else {
-                    setFile(file);
                     const reader = new FileReader();
                     reader.onload = (e) => {
                       setImage(e.target?.result as string);

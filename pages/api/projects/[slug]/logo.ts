@@ -1,26 +1,22 @@
 import { withProjectAuth } from "#/lib/auth";
+import cloudinary from "cloudinary";
 import prisma from "#/lib/prisma";
-import { nanoid } from "#/lib/utils";
-import { put } from "@vercel/blob";
 
 export default withProjectAuth(async (req, res, project) => {
   // POST /api/projects/[slug]/logo – upload a new logo
   if (req.method === "POST") {
-    const file = req.body as File;
-    if (!file) {
-      return res.status(400).end("Missing file");
-    }
-    const contentType = req.headers["content-type"] || "text/plain";
-    const filename = `${nanoid()}.${contentType.split("/")[1]}`;
-    console.log({ filename, contentType });
+    const { image } = req.body;
 
-    const { url } = await put(filename, file, {
-      access: "public",
+    const { secure_url } = await cloudinary.v2.uploader.upload(image, {
+      public_id: project.id,
+      folder: "logos",
+      overwrite: true,
+      invalidate: true,
     });
 
     const response = await prisma.project.update({
       where: { id: project.id },
-      data: { logo: url },
+      data: { logo: secure_url },
     });
 
     return res.status(200).json(response);
