@@ -6,7 +6,7 @@ import { LoadingDots } from "#/ui/icons";
 import { InfoTooltip } from "#/ui/tooltip";
 import { fetcher, getFirstAndLastDay, nFormatter } from "#/lib/utils";
 import useProject from "#/lib/swr/use-project";
-import PlanBadge from "../plan-badge";
+import PlanBadge from "./plan-badge";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
 import va from "@vercel/analytics";
