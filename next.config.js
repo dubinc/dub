@@ -25,6 +25,16 @@ const nextConfig = {
   async headers() {
     return [
       {
+        source: "/",
+        has: [{ type: "host", value: "dub.sh" }],
+        headers: [
+          {
+            key: "cdn-cache-control",
+            value: "max-age=300",
+          },
+        ],
+      },
+      {
         source: "/:path*",
         headers: [
           {
