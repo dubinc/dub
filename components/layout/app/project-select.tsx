@@ -7,7 +7,7 @@ import { ChevronsUpDown, PlusCircle } from "lucide-react";
 import Popover from "#/ui/popover";
 import { PlanProps, ProjectWithDomainProps } from "#/lib/types";
 import useProjects from "#/lib/swr/use-projects";
-import PlanBadge from "@/components/app/projects/settings/plan-badge";
+import PlanBadge from "@/components/app/projects/plan-badge";
 import { GOOGLE_FAVICON_URL } from "#/lib/constants";
 import { ModalContext } from "#/ui/modal-provider";
 import Link from "next/link";

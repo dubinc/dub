@@ -63,8 +63,6 @@ export default function OGSection({
     }
   }, [proxy]);
 
-  const randomIdx = Math.floor(Math.random() * 100);
-
   return (
     <div className="grid gap-5 border-b border-gray-200 pb-5">
       <div className="flex items-center justify-between">
@@ -100,7 +98,7 @@ export default function OGSection({
               {fileError && <p className="text-sm text-red-500">{fileError}</p>}
             </div>
             <label
-              htmlFor={`image-${randomIdx}`}
+              htmlFor="image"
               className="group relative mt-1 flex h-[14rem] cursor-pointer flex-col items-center justify-center rounded-md border border-gray-300 bg-white shadow-sm transition-all hover:bg-gray-50"
             >
               {generatingMetatags && (
@@ -188,7 +186,7 @@ export default function OGSection({
             </label>
             <div className="mt-1 flex rounded-md shadow-sm">
               <input
-                id={`image-${randomIdx}`}
+                id="image"
                 name="image"
                 type="file"
                 accept="image/*"
@@ -211,7 +209,7 @@ export default function OGSection({
               )}
               <TextareaAutosize
                 name="title"
-                id={`title-${randomIdx}`}
+                id="title"
                 minRows={3}
                 maxLength={120}
                 className="block w-full rounded-md border-gray-300 pr-10 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
@@ -242,7 +240,7 @@ export default function OGSection({
               )}
               <TextareaAutosize
                 name="description"
-                id={`description-${randomIdx}`}
+                id="description"
                 minRows={3}
                 maxLength={240}
                 className="block w-full rounded-md border-gray-300 pr-10 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"

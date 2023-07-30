@@ -18,7 +18,7 @@ import Tooltip, { TooltipContent } from "#/ui/tooltip";
 import { ModalContext } from "#/ui/modal-provider";
 import punycode from "punycode/";
 
-export default function Toggle({ atModalTop }: { atModalTop?: boolean }) {
+export default function Toggle() {
   const router = useRouter();
   const { slug: projectSlug } = router.query as { slug?: string };
 

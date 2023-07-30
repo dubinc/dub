@@ -1,3 +1,4 @@
+import Button from "#/ui/button";
 import { useDeleteProjectModal } from "components/app/modals/delete-project-modal";
 
 export default function DeleteProject() {
@@ -17,12 +18,13 @@ export default function DeleteProject() {
       <div className="border-b border-red-600" />
 
       <div className="flex items-center justify-end px-5 py-4 sm:px-10">
-        <button
-          onClick={() => setShowDeleteProjectModal(true)}
-          className="h-9 w-full rounded-md border border-red-600 bg-red-600 text-sm text-white transition-all duration-150 ease-in-out hover:bg-white hover:text-red-600 focus:outline-none sm:w-32"
-        >
-          Delete Project
-        </button>
+        <div>
+          <Button
+            text="Delete Project"
+            variant="danger"
+            onClick={() => setShowDeleteProjectModal(true)}
+          />
+        </div>
       </div>
     </div>
   );
