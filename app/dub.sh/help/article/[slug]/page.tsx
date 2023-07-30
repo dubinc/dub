@@ -1,6 +1,6 @@
 import SearchButton from "#/ui/content/search-button";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
-import { allHelpPosts } from "contentlayer/generated";
+import { HelpPost, allHelpPosts } from "contentlayer/generated";
 import { ChevronRight } from "lucide-react";
 import { notFound } from "next/navigation";
 import { HELP_CATEGORIES } from "#/lib/constants/content";
@@ -68,11 +68,10 @@ export default async function HelpArticle({
   ]);
 
   const relatedArticles =
-    (data.related &&
-      data.related.map(
-        (slug) => allHelpPosts.find((post) => post.slug === slug)!,
-      )) ||
-    [];
+    ((data.related &&
+      data.related
+        .map((slug) => allHelpPosts.find((post) => post.slug === slug))
+        .filter(Boolean)) as HelpPost[]) || [];
 
   return (
     <>
