@@ -244,7 +244,7 @@ function AdvancedSettings({
                     <SimpleTooltipContent
                       title=""
                       cta="How to update my QR Code logo?"
-                      href={`${HOME_DOMAIN}/help/article/custom-qrcodes`}
+                      href={`${HOME_DOMAIN}/help/article/custom-qr-codes`}
                     />
                   }
                 />
