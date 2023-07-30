@@ -13,7 +13,11 @@ import { Clipboard, Download, Photo } from "@/components/shared/icons";
 import { ChevronRight } from "lucide-react";
 import Modal from "#/ui/modal";
 import Switch from "#/ui/switch";
-import Tooltip, { TooltipContent } from "#/ui/tooltip";
+import Tooltip, {
+  InfoTooltip,
+  SimpleTooltipContent,
+  TooltipContent,
+} from "#/ui/tooltip";
 import { QRCodeSVG, getQRAsCanvas, getQRAsSVGDataUri } from "#/lib/qr";
 import useProject from "#/lib/swr/use-project";
 import { SimpleLinkProps } from "#/lib/types";
@@ -21,7 +25,8 @@ import { getApexDomain, linkConstructor } from "#/lib/utils";
 import IconMenu from "@/components/shared/icon-menu";
 import Popover from "#/ui/popover";
 import { toast } from "sonner";
-import { GOOGLE_FAVICON_URL } from "#/lib/constants";
+import { GOOGLE_FAVICON_URL, HOME_DOMAIN } from "#/lib/constants";
+import { useRouter } from "next/router";
 
 function LinkQRModalHelper({
   showLinkQRModal,
@@ -182,7 +187,9 @@ function LinkQRModalHelper({
 }
 
 function AdvancedSettings({ qrData, setFgColor, showLogo, setShowLogo }) {
-  const { plan } = useProject();
+  const router = useRouter();
+  const { slug } = router.query;
+  const { plan, logo } = useProject();
   const [expanded, setExpanded] = useState(false);
 
   const isApp = useMemo(() => {
@@ -211,9 +218,20 @@ function AdvancedSettings({ qrData, setFgColor, showLogo, setShowLogo }) {
           <div>
             <label
               htmlFor="logo-toggle"
-              className="block text-sm font-medium text-gray-700"
+              className="flex items-center space-x-1"
             >
-              Logo
+              <p className="text-sm font-medium text-gray-700">Logo</p>
+              {plan && plan !== "free" && (
+                <InfoTooltip
+                  content={
+                    <SimpleTooltipContent
+                      title=""
+                      cta="How to update my QR Code logo?"
+                      href={`${HOME_DOMAIN}/help/article/how-to-set-custom-qrcode`}
+                    />
+                  }
+                />
+              )}
             </label>
             {plan && plan !== "free" ? (
               <div className="mt-1 flex items-center space-x-2">
@@ -224,7 +242,9 @@ function AdvancedSettings({ qrData, setFgColor, showLogo, setShowLogo }) {
                   thumbDimensions="w-5 h-5"
                   thumbTranslate="translate-x-6"
                 />
-                <p className="text-sm text-gray-600">Show Dub.sh Logo</p>
+                <p className="text-sm text-gray-600">
+                  Show {!slug || (!logo && "Dub.sh")} Logo
+                </p>
               </div>
             ) : (
               <Tooltip
