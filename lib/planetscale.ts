@@ -14,6 +14,7 @@ export const cachedConn = process.env.DATABASE_URL
         // set next.revalidate
         return fetch(url, {
           ...init,
+          cache: undefined,
           next: {
             revalidate: 900,
           },

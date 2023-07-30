@@ -52,7 +52,7 @@ export default function Nav() {
         })}
       >
         <div className="flex h-14 items-center justify-between">
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-4">
             <Link
               href={domain === "dub.sh" ? "/" : `https://dub.sh`}
               {...(domain !== "dub.sh" && {

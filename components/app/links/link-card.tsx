@@ -261,9 +261,17 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                 {timeAgo(createdAt)}
               </p>
               <p>•</p>
-              <p className="max-w-[180px] truncate text-sm font-medium text-gray-700 sm:max-w-[300px] md:max-w-[360px] xl:max-w-[500px]">
+              <a
+                onClick={(e) => {
+                  e.stopPropagation(); // to avoid selecting the link card
+                }}
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="max-w-[180px] truncate text-sm font-medium text-gray-700 underline-offset-2 hover:underline sm:max-w-[300px] md:max-w-[360px] xl:max-w-[500px]"
+              >
                 {url}
-              </p>
+              </a>
             </div>
           </div>
         </div>
