@@ -2,6 +2,14 @@ import { withProjectAuth } from "#/lib/auth";
 import cloudinary from "cloudinary";
 import prisma from "#/lib/prisma";
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: "2mb",
+    },
+  },
+};
+
 export default withProjectAuth(async (req, res, project) => {
   // POST /api/projects/[slug]/logo – upload a new logo
   if (req.method === "POST") {

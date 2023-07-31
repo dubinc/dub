@@ -14,6 +14,7 @@ import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
 import DomainConfiguration from "./domain-configuration";
 import Link from "next/link";
 import punycode from "punycode/";
+import Button from "#/ui/button";
 
 export default function DomainCard({ props }: { props: DomainProps }) {
   const router = useRouter();
@@ -80,28 +81,22 @@ export default function DomainCard({ props }: { props: DomainProps }) {
             )}
           </div>
           <div className="flex space-x-3">
-            <button
+            <Button
+              text="Refresh"
+              variant="secondary"
+              loading={isValidating}
               onClick={() => {
                 mutate(`/api/projects/${slug}/domains/${domain}/verify`);
               }}
-              disabled={isValidating}
-              className={`${
-                isValidating
-                  ? "cursor-not-allowed bg-gray-100"
-                  : "bg-white hover:border-black hover:text-black"
-              } h-9 w-24 rounded-md border border-gray-200 text-sm font-medium text-gray-500 transition-all duration-150 ease-in-out focus:outline-none`}
-            >
-              {isValidating ? <LoadingDots /> : "Refresh"}
-            </button>
-            <button
+            />
+            <Button
+              text="Edit"
+              variant="secondary"
               onClick={() => setShowAddEditDomainModal(true)}
-              className="h-9 w-24 rounded-md border border-gray-200 bg-white text-sm font-medium text-gray-500 transition-all duration-150 ease-in-out hover:border-black hover:text-black focus:outline-none"
-            >
-              Edit
-            </button>
+            />
           </div>
         </div>
-        <div className="flex h-10 items-center space-x-5">
+        <div className="flex h-10 flex-col space-y-2 sm:flex-row sm:items-center sm:space-x-5 sm:space-y-0">
           <div className="flex items-center space-x-2">
             {data ? (
               data.status === "Valid Configuration" ? (
