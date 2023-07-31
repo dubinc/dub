@@ -7,7 +7,8 @@ import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import Button from "#/ui/button";
 import { Google } from "@/components/shared/icons";
-import { SSOWaitlist } from "#/ui/tooltip";
+import { InfoTooltip, SSOWaitlist, SimpleTooltipContent } from "#/ui/tooltip";
+import { HOME_DOMAIN } from "#/lib/constants";
 
 export default function LoginForm() {
   const searchParams = useSearchParams();
@@ -116,9 +117,20 @@ export default function LoginForm() {
         onSubmit={async (e) => {
           e.preventDefault();
           setClickedSSO(true);
-          signIn("saml-jackson", undefined, {
-            tenant: "vercel",
-            product: "dub",
+          fetch("/api/auth/sso/verify", {
+            method: "POST",
+            body: JSON.stringify({ slug: e.currentTarget.slug.value }),
+          }).then(async (res) => {
+            const { data, error } = await res.json();
+            if (error) {
+              toast.error(error);
+              setClickedSSO(false);
+              return;
+            }
+            await signIn("boxyhq-saml", undefined, {
+              tenant: data.projectId,
+              product: "dub",
+            });
           });
         }}
         className="flex flex-col space-y-3"
@@ -126,13 +138,27 @@ export default function LoginForm() {
         {showSSOOption && (
           <div>
             <div className="mb-4 mt-1 border-t border-gray-300" />
+            <div className="flex items-center space-x-2">
+              <h2 className="text-sm font-medium text-gray-900">
+                Project Slug
+              </h2>
+              <InfoTooltip
+                content={
+                  <SimpleTooltipContent
+                    title={`This is your project's unique identifier on Dub. E.g. app.dub.sh/acme is "acme".`}
+                    cta="Learn more."
+                    href={`${HOME_DOMAIN}/help/article/sso`}
+                  />
+                }
+              />
+            </div>
             <input
-              id="email"
-              name="email"
+              id="slug"
+              name="slug"
               autoFocus
-              type="email"
-              placeholder="name@company.com"
-              autoComplete="email"
+              type="text"
+              placeholder="my-team"
+              autoComplete="off"
               required
               value={email}
               onChange={(e) => {

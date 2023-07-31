@@ -1,6 +1,6 @@
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
-import CredentialsProvider from "next-auth/providers/credentials";
+import BoxyHQSAMLProvider from "next-auth/providers/boxyhq-saml";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { sendEmail } from "emails";
 import LoginLink from "emails/login-link";
@@ -32,87 +32,14 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
       allowDangerousEmailAccountLinking: true,
     }),
-    {
-      id: "saml",
-      name: "BoxyHQ",
-      type: "oauth",
-      checks: ["pkce", "state"],
-      authorization: {
-        url: `${process.env.NEXTAUTH_URL}/api/auth/saml/authorize`,
-        params: {
-          scope: "",
-          response_type: "code",
-          provider: "saml",
-        },
-      },
-      token: {
-        url: `${process.env.NEXTAUTH_URL}/api/auth/saml/token`,
-        params: { grant_type: "authorization_code" },
-      },
-      userinfo: `${process.env.NEXTAUTH_URL}/api/auth/saml/userinfo`,
-      profile: (profile) => {
-        return {
-          id: profile.id || "",
-          email: profile.email || "",
-          name: `${profile.firstName || ""} ${profile.lastName || ""}`.trim(),
-          email_verified: true,
-        };
-      },
-      options: {
-        clientId: "dummy",
-        clientSecret: process.env.NEXTAUTH_SECRET as string,
-      },
+    BoxyHQSAMLProvider({
+      authorization: { params: { scope: "" } },
+      issuer: process.env.NEXTAUTH_URL,
+      clientId: "dummy",
+      clientSecret: "dummy",
       allowDangerousEmailAccountLinking: true,
-    },
-    CredentialsProvider({
-      id: "saml-idp",
-      name: "IdP Login",
-      credentials: {
-        code: {},
-      },
-      async authorize(credentials) {
-        if (!credentials) {
-          return null;
-        }
-
-        const { code } = credentials;
-
-        if (!code) {
-          return null;
-        }
-
-        const { oauthController } = await (
-          await import("#/lib/jackson")
-        ).default();
-
-        // Fetch access token
-        const { access_token } = await oauthController.token({
-          code,
-          grant_type: "authorization_code",
-          redirect_uri: process.env.NEXTAUTH_URL as string,
-          client_id: "dummy",
-          client_secret: process.env.NEXTAUTH_SECRET as string,
-        });
-
-        if (!access_token) {
-          return null;
-        }
-
-        // Fetch user info
-        const userInfo = await oauthController.userInfo(access_token);
-
-        if (!userInfo) {
-          return null;
-        }
-
-        const { id, firstName, lastName, email } = userInfo;
-
-        return {
-          id,
-          email,
-          name: `${firstName} ${lastName}`.trim(),
-          email_verified: true,
-        };
+      httpOptions: {
+        timeout: 30000,
       },
     }),
   ],
