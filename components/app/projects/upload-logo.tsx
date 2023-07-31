@@ -20,8 +20,8 @@ export default function UploadLogo() {
     (e) => {
       const file = e.target.files[0];
       if (file) {
-        if (file.size / 1024 / 1024 > 5) {
-          toast.error("File size too big (max 5MB)");
+        if (file.size / 1024 / 1024 > 2) {
+          toast.error("File size too big (max 2MB)");
         } else if (file.type !== "image/png" && file.type !== "image/jpeg") {
           toast.error("File type not supported (.png or .jpg only)");
         } else {
@@ -55,6 +55,8 @@ export default function UploadLogo() {
             mutate(`/api/projects`);
             mutate(`/api/projects/${slug}`);
             toast.success("Succesfully uploaded project logo!");
+          } else if (res.status === 413) {
+            toast.error("File size too big (max 2MB)");
           } else {
             toast.error("Something went wrong");
           }
@@ -95,8 +97,8 @@ export default function UploadLogo() {
                 setDragActive(false);
                 const file = e.dataTransfer.files && e.dataTransfer.files[0];
                 if (file) {
-                  if (file.size / 1024 / 1024 > 5) {
-                    toast.error("File size too big (max 5MB)");
+                  if (file.size / 1024 / 1024 > 2) {
+                    toast.error("File size too big (max 2MB)");
                   } else if (
                     file.type !== "image/png" &&
                     file.type !== "image/jpeg"
@@ -153,7 +155,7 @@ export default function UploadLogo() {
       <div className="flex items-center justify-between rounded-b-lg border-t border-gray-200 bg-gray-50 p-3 sm:px-10">
         <p className="text-sm text-gray-500">
           Square image recommended. Accepted file types: .png, .jpg. Max file
-          size: 5MB.
+          size: 2MB.
         </p>
         <div>
           <Button
