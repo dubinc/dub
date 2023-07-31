@@ -21,12 +21,12 @@ import { BitlyGroupProps } from "#/lib/types";
 import Tooltip from "#/ui/tooltip";
 import { fetcher } from "#/lib/utils";
 
-function ImportBitlyModal({
-  showImportBitlyModal,
-  setShowImportBitlyModal,
+function ImportShortModal({
+  showImportShortModal,
+  setShowImportShortModal,
 }: {
-  showImportBitlyModal: boolean;
-  setShowImportBitlyModal: Dispatch<SetStateAction<boolean>>;
+  showImportShortModal: boolean;
+  setShowImportShortModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const { id: projectId } = useProject();
   const router = useRouter();
@@ -35,7 +35,7 @@ function ImportBitlyModal({
   const [redirecting, setRedirecting] = useState(false);
 
   const { data: groups, isLoading } = useSWR<BitlyGroupProps[]>(
-    slug && `/api/projects/${slug}/import/bitly`,
+    slug && `/api/projects/${slug}/import/short`,
     fetcher,
     {
       revalidateOnFocus: false,
@@ -56,10 +56,10 @@ function ImportBitlyModal({
   const { setPollLinks } = useContext(ModalContext);
 
   useEffect(() => {
-    if (importSource === "bitly") {
-      setShowImportBitlyModal(true);
+    if (importSource === "short") {
+      setShowImportShortModal(true);
     } else {
-      setShowImportBitlyModal(false);
+      setShowImportShortModal(false);
     }
   }, [importSource]);
 
@@ -73,32 +73,30 @@ function ImportBitlyModal({
     });
   };
 
-  const bitlyOAuthURL = `https://bitly.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_BITLY_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_BITLY_REDIRECT_URI}&state=${projectId}`;
-
   const isSelected = (domain: string) => {
     return selectedDomains.find((d) => d.domain === domain) ? true : false;
   };
 
   return (
     <Modal
-      showModal={showImportBitlyModal}
-      setShowModal={setShowImportBitlyModal}
+      showModal={showImportShortModal}
+      setShowModal={setShowImportShortModal}
       onClose={() => closeModal(router)}
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-8 sm:px-16">
         <div className="flex items-center space-x-3 py-4">
           <img
-            src="/_static/icons/bitly.svg"
+            src="/_static/icons/short.svg"
             alt="Bitly logo"
-            className="h-10 w-10 rounded-full"
+            className="h-10 w-10"
           />
           <ArrowRight className="h-5 w-5 text-gray-600" />
           <Logo />
         </div>
-        <h3 className="text-lg font-medium">Import Your Bitly Links</h3>
+        <h3 className="text-lg font-medium">Import Your Short.io Links</h3>
         <p className="text-center text-sm text-gray-500">
-          Easily import all your existing Bitly links into Dub with just a few
-          clicks.
+          Easily import all your existing Short.io links into Dub with just a
+          few clicks.
         </p>
       </div>
 
@@ -206,53 +204,33 @@ function ImportBitlyModal({
               loading={importing}
               disabled={selectedDomains.length === 0}
             />
-            <a
-              href={bitlyOAuthURL}
-              className="text-center text-xs text-gray-500 underline underline-offset-4 transition-colors hover:text-gray-800"
-            >
-              Sign in to a different Bitly account?
-            </a>
           </form>
         ) : (
-          <Button
-            text="Sign in with Bitly"
-            variant="secondary"
-            loading={redirecting}
-            icon={
-              <img
-                src="/_static/icons/bitly.svg"
-                alt="Bitly logo"
-                className="h-5 w-5 rounded-full border border-gray-200"
-              />
-            }
-            onClick={() => {
-              setRedirecting(true);
-              router.push(bitlyOAuthURL);
-            }}
-          />
+          // form to add API key to redis manually
+          <form />
         )}
       </div>
     </Modal>
   );
 }
 
-export function useImportBitlyModal() {
-  const [showImportBitlyModal, setShowImportBitlyModal] = useState(false);
+export function useImportShortModal() {
+  const [showImportShortModal, setShowImportShortModal] = useState(false);
 
-  const ImportBitlyModalCallback = useCallback(() => {
+  const ImportShortModalCallback = useCallback(() => {
     return (
-      <ImportBitlyModal
-        showImportBitlyModal={showImportBitlyModal}
-        setShowImportBitlyModal={setShowImportBitlyModal}
+      <ImportShortModal
+        showImportShortModal={showImportShortModal}
+        setShowImportShortModal={setShowImportShortModal}
       />
     );
-  }, [showImportBitlyModal, setShowImportBitlyModal]);
+  }, [showImportShortModal, setShowImportShortModal]);
 
   return useMemo(
     () => ({
-      setShowImportBitlyModal,
-      ImportBitlyModal: ImportBitlyModalCallback,
+      setShowImportShortModal,
+      ImportShortModal: ImportShortModalCallback,
     }),
-    [setShowImportBitlyModal, ImportBitlyModalCallback],
+    [setShowImportShortModal, ImportShortModalCallback],
   );
 }
