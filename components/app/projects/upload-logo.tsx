@@ -55,6 +55,8 @@ export default function UploadLogo() {
             mutate(`/api/projects`);
             mutate(`/api/projects/${slug}`);
             toast.success("Succesfully uploaded project logo!");
+          } else if (res.status === 413) {
+            toast.error("File size too big (max 2MB)");
           } else {
             toast.error("Something went wrong");
           }
