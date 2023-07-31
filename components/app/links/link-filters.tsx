@@ -455,6 +455,7 @@ const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
             <button
               onClick={(e) => {
                 e.stopPropagation();
+                e.preventDefault();
                 confirm(
                   "Are you sure you want to delete this tag? All tagged links will be untagged, but they won't be deleted.",
                 ) && handleDelete();
