@@ -42,12 +42,11 @@ const featureList = [
       "Dub offers free custom domains on all plans - start personalizing your links today.",
     cta: (
       <a
-        href={APP_DOMAIN}
+        href="/help/article/how-to-add-custom-domain"
         target="_blank"
-        rel="noreferrer"
         className="block max-w-fit rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
       >
-        Create your project
+        Learn more
       </a>
     ),
     demo: "https://d2vwwcvoksz7ty.cloudfront.net/custom-domain.mp4",
@@ -67,7 +66,15 @@ const featureList = [
     icon: <Photo className="h-5 w-5 text-gray-600" />,
     description:
       "Overlay custom OG images on your links to make them stand out on social media.",
-    cta: "View demo", //custom cta
+    cta: (
+      <a
+        href="/help/article/how-to-create-link#custom-social-media-cards"
+        target="_blank"
+        className="block max-w-fit rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
+      >
+        Learn more
+      </a>
+    ),
     demo: "https://d2vwwcvoksz7ty.cloudfront.net/og.mp4",
   },
   {
@@ -87,12 +94,11 @@ const featureList = [
       "With Dub, you can invite your teammates to collaborate on your project for free - no more sharing logins via Google groups.",
     cta: (
       <a
-        href={APP_DOMAIN}
+        href="/help/article/how-to-invite-teammates"
         target="_blank"
-        rel="noreferrer"
         className="block max-w-fit rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
       >
-        Invite your teammates
+        Learn more
       </a>
     ),
     demo: "https://d2vwwcvoksz7ty.cloudfront.net/team.mp4",
@@ -162,7 +168,7 @@ export default function Features() {
                       <p className="mb-4 text-sm text-gray-500">
                         {description}
                       </p>
-                      {key === "link" || key === "social" ? (
+                      {key === "link" ? (
                         <button
                           onClick={() => setShowAddEditLinkModal(true)}
                           className="block max-w-fit rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
