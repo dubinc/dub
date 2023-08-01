@@ -32,6 +32,17 @@ export default withProjectAuth(async (req, res, project) => {
     if (!userId) {
       return res.status(400).end("Missing userId");
     }
+
+    const usersCount = await prisma.projectUsers.count({
+      where: {
+        projectId: project.id,
+      },
+    });
+
+    if (count === 1) {
+      return res.status(400).end("Cannot remove only user");
+    }
+
     const response = await prisma.projectUsers.delete({
       where: {
         userId_projectId: {
