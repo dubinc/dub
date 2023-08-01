@@ -126,14 +126,16 @@ export default function LinksImported({
                 ))}
               </Section>
             )}
-            <Section className="my-8 text-center">
-              <Link
-                className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                href={`https://app.dub.sh/${projectSlug}`}
-              >
-                View {Intl.NumberFormat("en-us").format(count - 5)} more links
-              </Link>
-            </Section>
+            {links.length > 5 && (
+              <Section className="my-8 text-center">
+                <Link
+                  className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
+                  href={`https://app.dub.sh/${projectSlug}`}
+                >
+                  View {Intl.NumberFormat("en-us").format(count - 5)} more links
+                </Link>
+              </Section>
+            )}
             <Text className="text-sm leading-6 text-black">
               If you haven't already{" "}
               <Link

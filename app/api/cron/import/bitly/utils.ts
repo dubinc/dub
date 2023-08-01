@@ -66,7 +66,7 @@ export const importLinksFromBitly = async ({
         ...(tagId ? { tagId } : {}),
       };
     })
-    .filter((link) => link !== null);
+    .filter(Boolean);
 
   // import links into database
   await Promise.all([

@@ -5,7 +5,6 @@ import AppLayout from "components/layout/app";
 import useProject from "#/lib/swr/use-project";
 import { useState } from "react";
 import Popover from "#/ui/popover";
-import IconMenu from "@/components/shared/icon-menu";
 import { ChevronDown, FilePlus2, Import } from "lucide-react";
 import { useRouter } from "next/router";
 
@@ -24,12 +23,12 @@ export default function ProjectLinks() {
         <MaxWidthWrapper>
           <div className="flex items-center justify-between">
             <h1 className="text-2xl text-gray-600">Links</h1>
-            <div className="flex space-x-2">
+            <div className="flex">
               <AddEditLinkButton />
               <Popover
                 content={
-                  <div className="w-full p-2 md:w-52">
-                    <button
+                  <div className="w-full p-2 md:w-44">
+                    {/* <button
                       onClick={() => {}}
                       className="flex w-full items-center justify-between space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
                     >
@@ -37,24 +36,53 @@ export default function ProjectLinks() {
                         text="Bulk create links"
                         icon={<FilePlus2 className="h-4 w-4" />}
                       />
-                    </button>
-                    <button
-                      onClick={() => {
-                        setOpenPopover(false);
-                        router.push({
-                          pathname: `/${slug}`,
-                          query: {
-                            import: "bitly",
-                          },
-                        });
-                      }}
-                      className="flex w-full items-center justify-between space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
-                    >
-                      <IconMenu
-                        text="Import from Bitly"
-                        icon={<Import className="h-4 w-4" />}
-                      />
-                    </button>
+                    </button> */}
+                    <div>
+                      <div className="flex items-center space-x-2 p-2">
+                        <Import className="h-4 w-4" />
+                        <p className="text-xs font-medium uppercase text-gray-500">
+                          Import Links
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setOpenPopover(false);
+                          router.push({
+                            pathname: `/${slug}`,
+                            query: {
+                              import: "bitly",
+                            },
+                          });
+                        }}
+                        className="flex w-full items-center space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
+                      >
+                        <img
+                          src="/_static/icons/bitly.svg"
+                          alt="Bitly logo"
+                          className="h-4 w-4 rounded-full"
+                        />
+                        <p className="text-sm text-gray-600">Bitly</p>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setOpenPopover(false);
+                          router.push({
+                            pathname: `/${slug}`,
+                            query: {
+                              import: "short",
+                            },
+                          });
+                        }}
+                        className="flex w-full items-center space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
+                      >
+                        <img
+                          src="/_static/icons/short.svg"
+                          alt="Short.io logo"
+                          className="h-4 w-4"
+                        />
+                        <p className="text-sm text-gray-600">Short.io</p>
+                      </button>
+                    </div>
                   </div>
                 }
                 openPopover={openPopover}
@@ -63,7 +91,7 @@ export default function ProjectLinks() {
               >
                 <button
                   onClick={() => setOpenPopover(!openPopover)}
-                  className="group flex items-center justify-between space-x-2 rounded-md border border-gray-200 bg-white p-2.5 shadow transition-all duration-75 active:scale-95"
+                  className="group ml-2 flex items-center justify-between space-x-2 rounded-md border border-gray-200 bg-white p-2.5 shadow transition-all duration-75 active:scale-95"
                 >
                   <ChevronDown
                     className={`h-4 w-4 shrink-0 ${

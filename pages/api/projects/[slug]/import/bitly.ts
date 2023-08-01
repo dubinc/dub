@@ -1,13 +1,9 @@
 import { addDomainToVercel } from "#/lib/api/domains";
 import { withProjectAuth } from "#/lib/auth";
+import { qstash } from "#/lib/cron/utils";
 import prisma from "#/lib/prisma";
 import { BitlyGroupProps } from "#/lib/types";
 import { redis } from "#/lib/upstash";
-import { Client } from "@upstash/qstash";
-
-const qstash = new Client({
-  token: process.env.QSTASH_TOKEN || "",
-});
 
 export default withProjectAuth(async (req, res, project) => {
   // get bitly groups and their respective domains
@@ -102,7 +98,7 @@ export default withProjectAuth(async (req, res, project) => {
         ? "https://app.dub.sh"
         : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
         ? "https://preview.dub.sh"
-        : "https://067b-2600-1700-b5e4-b50-8197-b987-5375-e928.ngrok-free.app";
+        : process.env.NGROK_URL;
 
     const response = await Promise.all(
       groups
@@ -110,9 +106,8 @@ export default withProjectAuth(async (req, res, project) => {
         .filter(({ domains }) => domains.length > 0)
         .map(({ bitlyGroup, domains, keepTags }) =>
           qstash.publishJSON({
-            url: `${hostname}/api/cron/import`,
+            url: `${hostname}/api/cron/import/bitly`,
             body: {
-              provider: "bitly",
               projectId: project.id,
               bitlyGroup,
               domains,

@@ -9,7 +9,6 @@ import {
   useState,
 } from "react";
 import Modal from "#/ui/modal";
-import useProject from "#/lib/swr/use-project";
 import Switch from "#/ui/switch";
 import Button from "#/ui/button";
 import { toast } from "sonner";
@@ -17,9 +16,10 @@ import { ArrowRight } from "lucide-react";
 import { Logo, LoadingSpinner } from "#/ui/icons";
 import { ModalContext } from "#/ui/modal-provider";
 import useSWR, { mutate } from "swr";
-import { BitlyGroupProps } from "#/lib/types";
-import Tooltip from "#/ui/tooltip";
-import { fetcher } from "#/lib/utils";
+import { ShortioDomainProps } from "#/lib/types";
+import Tooltip, { InfoTooltip, SimpleTooltipContent } from "#/ui/tooltip";
+import { fetcher, nFormatter } from "#/lib/utils";
+import { HOME_DOMAIN } from "#/lib/constants";
 
 function ImportShortModal({
   showImportShortModal,
@@ -28,13 +28,10 @@ function ImportShortModal({
   showImportShortModal: boolean;
   setShowImportShortModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { id: projectId } = useProject();
   const router = useRouter();
   const { slug, import: importSource } = router.query;
 
-  const [redirecting, setRedirecting] = useState(false);
-
-  const { data: groups, isLoading } = useSWR<BitlyGroupProps[]>(
+  const { data: domains, isLoading } = useSWR<ShortioDomainProps[]>(
     slug && `/api/projects/${slug}/import/short`,
     fetcher,
     {
@@ -44,13 +41,11 @@ function ImportShortModal({
     },
   );
 
-  const [selectedDomains, setSelectedDomains] = useState<
-    {
-      domain: string;
-      bitlyGroup: string;
-    }[]
-  >([]);
-  const [selectedGroupTags, setSelectedGroupTags] = useState<string[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+
+  const [selectedDomains, setSelectedDomains] = useState<ShortioDomainProps[]>(
+    [],
+  );
 
   const [importing, setImporting] = useState(false);
   const { setPollLinks } = useContext(ModalContext);
@@ -87,7 +82,7 @@ function ImportShortModal({
         <div className="flex items-center space-x-3 py-4">
           <img
             src="/_static/icons/short.svg"
-            alt="Bitly logo"
+            alt="Short.io logo"
             className="h-10 w-10"
           />
           <ArrowRight className="h-5 w-5 text-gray-600" />
@@ -104,22 +99,21 @@ function ImportShortModal({
         {isLoading ? (
           <button className="flex flex-col items-center justify-center space-y-4 bg-none">
             <LoadingSpinner />
-            <p className="text-sm text-gray-500">Connecting to Bitly</p>
+            <p className="text-sm text-gray-500">Connecting to Short.io</p>
           </button>
-        ) : groups ? (
+        ) : domains ? (
           <form
             onSubmit={async (e) => {
               e.preventDefault();
               setImporting(true);
               toast.promise(
-                fetch(`/api/projects/${slug}/import/bitly`, {
+                fetch(`/api/projects/${slug}/import/short`, {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",
                   },
                   body: JSON.stringify({
                     selectedDomains,
-                    selectedGroupTags,
                   }),
                 }).then((res) => {
                   setImporting(false);
@@ -142,44 +136,45 @@ function ImportShortModal({
             className="flex flex-col space-y-4"
           >
             <div className="divide-y divide-gray-200">
-              {groups.map(({ guid, bsds, tags }) => (
-                <div key={guid} className="flex flex-col space-y-2">
+              {domains.map(({ id, domain, links }) => (
+                <div key={id} className="flex flex-col space-y-2">
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-medium text-gray-700">Domains</p>
-                    <Tooltip content="Your Bitly group ID">
+                    <Tooltip content="Your Short.io domain ID">
                       <p className="cursor-default text-xs uppercase text-gray-400 transition-colors hover:text-gray-700">
-                        {guid}
+                        #{id}
                       </p>
                     </Tooltip>
                   </div>
-                  {bsds.map((bsd) => (
-                    <div
-                      key={bsd}
-                      className="flex items-center justify-between space-x-2 rounded-md border border-gray-200 bg-white px-4 py-2"
-                    >
-                      <p className="font-medium text-gray-800">{bsd}</p>
-                      <Switch
-                        fn={() => {
-                          const selected = isSelected(bsd);
-                          if (selected) {
-                            setSelectedDomains((prev) =>
-                              prev.filter((d) => d.domain !== bsd),
-                            );
-                          } else {
-                            setSelectedDomains((prev) => [
-                              ...prev,
-                              {
-                                domain: bsd,
-                                bitlyGroup: guid,
-                              },
-                            ]);
-                          }
-                        }}
-                        checked={isSelected(bsd)}
-                      />
+                  <div className="flex items-center justify-between space-x-2 rounded-md border border-gray-200 bg-white px-4 py-2">
+                    <div>
+                      <p className="font-medium text-gray-800">{domain}</p>
+                      <p className="text-xs text-gray-500">
+                        {nFormatter(links)} links found
+                      </p>
                     </div>
-                  ))}
-                  <div className="flex items-center justify-between space-x-2 rounded-md py-1 pl-2 pr-4">
+                    <Switch
+                      fn={() => {
+                        const selected = isSelected(domain);
+                        if (selected) {
+                          setSelectedDomains((prev) =>
+                            prev.filter((d) => d.domain !== domain),
+                          );
+                        } else {
+                          setSelectedDomains((prev) => [
+                            ...prev,
+                            {
+                              id,
+                              domain,
+                              links,
+                            },
+                          ]);
+                        }
+                      }}
+                      checked={isSelected(domain)}
+                    />
+                  </div>
+                  {/* <div className="flex items-center justify-between space-x-2 rounded-md py-1 pl-2 pr-4">
                     <p className="text-xs text-gray-500">
                       {tags.length} tags found. Import all?
                     </p>
@@ -195,7 +190,7 @@ function ImportShortModal({
                       }}
                       checked={selectedGroupTags.includes(guid)}
                     />
-                  </div>
+                  </div> */}
                 </div>
               ))}
             </div>
@@ -207,7 +202,58 @@ function ImportShortModal({
           </form>
         ) : (
           // form to add API key to redis manually
-          <form />
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              setSubmitting(true);
+              fetch(`/api/projects/${slug}/import/short`, {
+                method: "PUT",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  apiKey: e.currentTarget.apiKey.value,
+                }),
+              }).then((res) => {
+                if (res.ok) {
+                  mutate(`/api/projects/${slug}/import/short`);
+                  toast.success("Successfully added API key");
+                } else {
+                  toast.error("Error adding API key");
+                }
+                setSubmitting(false);
+              });
+            }}
+            className="flex flex-col space-y-4"
+          >
+            <div>
+              <div className="flex items-center space-x-2">
+                <h2 className="text-sm font-medium text-gray-900">
+                  Short.io API Key
+                </h2>
+                <InfoTooltip
+                  content={
+                    <SimpleTooltipContent
+                      title="Your Short.io API Key can be found in your Short.io account settings."
+                      cta="Learn more."
+                      href={`${HOME_DOMAIN}/help/article/import-from-short-io`}
+                    />
+                  }
+                />
+              </div>
+              <input
+                id="apiKey"
+                name="apiKey"
+                autoFocus
+                type="text"
+                placeholder="sk_xxxxxxxxxxxxxxxx"
+                autoComplete="off"
+                required
+                className="mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
+              />
+            </div>
+            <Button text="Submit API Key" loading={submitting} />
+          </form>
         )}
       </div>
     </Modal>
