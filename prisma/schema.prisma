@@ -98,9 +98,14 @@ model ProjectInvite {
   @@index([projectId])
 }
 
+enum Role {
+  owner
+  member
+}
+
 model ProjectUsers {
   id        String   @id @default(cuid())
-  role      String   @default("member")
+  role      Role   @default(member)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)

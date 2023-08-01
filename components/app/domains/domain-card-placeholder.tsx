@@ -11,7 +11,7 @@ export default function DomainCardPlaceholder() {
           <div className="h-9 w-24 animate-pulse rounded-md bg-gray-200" />
         </div>
       </div>
-      <div className="flex h-10 items-center space-x-5">
+      <div className="flex h-10 flex-col space-y-2 sm:flex-row sm:items-center sm:space-x-5 sm:space-y-0">
         <div className="flex items-center space-x-2">
           <div className="h-6 w-6 animate-pulse rounded-full bg-gray-200" />
           <div className="h-5 w-36 animate-pulse rounded-md bg-gray-200" />
