@@ -33,14 +33,24 @@ export default withProjectAuth(async (req, res, project) => {
       return res.status(400).end("Missing userId");
     }
 
-    const usersCount = await prisma.projectUsers.count({
+    const projectUser = await prisma.projectUsers.findUnique({
       where: {
-        projectId: project.id,
+        userId_projectId: {
+          projectId: project.id,
+          userId,
+        },
+      },
+      select: {
+        role: true,
       },
     });
 
-    if (count === 1) {
-      return res.status(400).end("Cannot remove only user");
+    if (projectUser?.role === "owner") {
+      return res
+        .status(400)
+        .end(
+          "Cannot remove owner from project. Please transfer ownership to another user first.",
+        );
     }
 
     const response = await prisma.projectUsers.delete({
