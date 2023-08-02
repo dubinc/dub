@@ -20,6 +20,7 @@ import useSWR, { mutate } from "swr";
 import { BitlyGroupProps } from "#/lib/types";
 import Tooltip from "#/ui/tooltip";
 import { fetcher } from "#/lib/utils";
+import { HOME_DOMAIN } from "#/lib/constants";
 
 function ImportBitlyModal({
   showImportBitlyModal,
@@ -214,22 +215,30 @@ function ImportBitlyModal({
             </a>
           </form>
         ) : (
-          <Button
-            text="Sign in with Bitly"
-            variant="secondary"
-            loading={redirecting}
-            icon={
-              <img
-                src="/_static/icons/bitly.svg"
-                alt="Bitly logo"
-                className="h-5 w-5 rounded-full border border-gray-200"
-              />
-            }
-            onClick={() => {
-              setRedirecting(true);
-              router.push(bitlyOAuthURL);
-            }}
-          />
+          <div className="flex flex-col space-y-2">
+            <Button
+              text="Sign in with Bitly"
+              variant="secondary"
+              loading={redirecting}
+              icon={
+                <img
+                  src="/_static/icons/bitly.svg"
+                  alt="Bitly logo"
+                  className="h-5 w-5 rounded-full border border-gray-200"
+                />
+              }
+              onClick={() => {
+                setRedirecting(true);
+                router.push(bitlyOAuthURL);
+              }}
+            />
+            <a
+              href={`${HOME_DOMAIN}/help/article/migrating-from-bitly`}
+              className="text-center text-xs text-gray-500 underline underline-offset-4 transition-colors hover:text-gray-800"
+            >
+              Read the guide
+            </a>
+          </div>
         )}
       </div>
     </Modal>
