@@ -32,12 +32,15 @@ function ImportShortModal({
   const { slug, import: importSource } = router.query;
 
   const { data: domains, isLoading } = useSWR<ShortioDomainProps[]>(
-    slug && `/api/projects/${slug}/import/short`,
+    slug && showImportShortModal && `/api/projects/${slug}/import/short`,
     fetcher,
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
       refreshInterval: 0,
+      onError: (err) => {
+        toast.error(err.message);
+      },
     },
   );
 
@@ -252,7 +255,7 @@ function ImportShortModal({
                 className="mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
               />
             </div>
-            <Button text="Submit API Key" loading={submitting} />
+            <Button text="Confirm API Key" loading={submitting} />
           </form>
         )}
       </div>

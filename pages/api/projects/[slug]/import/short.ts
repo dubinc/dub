@@ -20,7 +20,7 @@ export default withProjectAuth(async (req, res, project) => {
       },
     });
     const data = await response.json();
-    if (data.message === "FORBIDDEN") {
+    if (data.error === "Unauthorized") {
       return res.status(403).end("Invalid Short.io access token");
     }
 

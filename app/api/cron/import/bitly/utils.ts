@@ -36,7 +36,7 @@ export const importLinksFromBitly = async ({
   const { links, pagination } = data;
   const nextSearchAfter = pagination.search_after;
 
-  //   const pipeline = redis.pipeline();
+  const pipeline = redis.pipeline();
 
   // convert links to format that can be imported into database
   const importedLinks = links
@@ -47,12 +47,9 @@ export const importLinksFromBitly = async ({
       if (!domains.includes(domain)) {
         return null;
       }
-      //   pipeline.set(
-      //     `${domain}:${key}`,
-      //     {
-      //       url: encodeURIComponent(url),
-      //     },
-      //   );
+      pipeline.set(`${domain}:${key}`, {
+        url: encodeURIComponent(url),
+      });
       const createdAt = new Date(created_at).toISOString();
       const tagId = tagsToId ? tagsToId[tags[0]] : null;
       return {
@@ -74,7 +71,7 @@ export const importLinksFromBitly = async ({
       data: importedLinks,
       skipDuplicates: true,
     }),
-    // pipeline.exec(),
+    pipeline.exec(),
   ]);
 
   count += importedLinks.length;

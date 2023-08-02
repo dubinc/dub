@@ -32,7 +32,7 @@ export const importLinksFromShort = async ({
   ).then((res) => res.json());
   const { links, nextPageToken } = data;
 
-  //   const pipeline = redis.pipeline();
+  const pipeline = redis.pipeline();
 
   // convert links to format that can be imported into database
   const importedLinks = links
@@ -51,14 +51,11 @@ export const importLinksFromShort = async ({
       if (path.length === 0) {
         return null;
       }
-      // pipeline.set(
-      //   `${domain}:${path}`,
-      //   {
-      //     url: encodeURIComponent(originalURL),
-      //     ...(iphoneURL && { ios: encodeURIComponent(iphoneURL) }),
-      //     ...(androidURL && { android: encodeURIComponent(androidURL) }),
-      //   },
-      // );
+      pipeline.set(`${domain}:${path}`, {
+        url: encodeURIComponent(originalURL),
+        ...(iphoneURL && { ios: encodeURIComponent(iphoneURL) }),
+        ...(androidURL && { android: encodeURIComponent(androidURL) }),
+      });
       return {
         projectId,
         domain,
@@ -81,7 +78,7 @@ export const importLinksFromShort = async ({
       data: importedLinks,
       skipDuplicates: true,
     }),
-    // pipeline.exec(),
+    pipeline.exec(),
   ]);
 
   count += importedLinks.length;

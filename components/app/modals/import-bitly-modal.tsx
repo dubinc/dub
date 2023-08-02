@@ -35,7 +35,7 @@ function ImportBitlyModal({
   const [redirecting, setRedirecting] = useState(false);
 
   const { data: groups, isLoading } = useSWR<BitlyGroupProps[]>(
-    slug && `/api/projects/${slug}/import/bitly`,
+    slug && showImportBitlyModal && `/api/projects/${slug}/import/bitly`,
     fetcher,
     {
       revalidateOnFocus: false,

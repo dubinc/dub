@@ -46,7 +46,7 @@ export default function Popover({
         {children}
       </PopoverPrimitive.Trigger>
       <PopoverPrimitive.Content
-        sideOffset={4}
+        sideOffset={8}
         align={align}
         className="z-50 hidden animate-slide-up-fade items-center rounded-md border border-gray-200 bg-white drop-shadow-lg md:block"
       >
