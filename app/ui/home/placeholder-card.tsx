@@ -14,7 +14,7 @@ export default function PlaceholderCard() {
           <div className="h-6 w-6 rounded-full bg-gray-200" />
           <div className="h-6 w-20 rounded-md bg-gray-200" />
         </div>
-        <div className="h-4 w-72 rounded-md bg-gray-200" />
+        <div className="h-4 w-60 rounded-md bg-gray-200 sm:w-80" />
       </div>
     </motion.li>
   );
