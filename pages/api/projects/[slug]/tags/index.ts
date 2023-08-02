@@ -15,7 +15,7 @@ export default withProjectAuth(async (req, res, project) => {
         color: true,
       },
       orderBy: {
-        createdAt: "desc",
+        name: "asc",
       },
     });
     return res.status(200).json(tags);

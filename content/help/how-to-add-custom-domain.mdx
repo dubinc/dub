@@ -7,15 +7,16 @@ categories:
   - custom-domains
   - getting-started
 related:
-  - what-is-a-project
   - how-to-redirect-root-domain
+  - using-cloudflare-domains
+  - what-is-a-project
 ---
 
 Dub is the only link management tool that allows you to add a custom domain for free. On Dub, you can add as many domains as you want on all plans – including the free plan.
 
 This guide will show you how to add a custom domain to Dub.
 
-## Prerequisites
+<Prerequisites>
 
 Before you begin, you'll need the following:
 
@@ -25,6 +26,8 @@ Before you begin, you'll need the following:
   - [GoDaddy](https://www.godaddy.com/)
   - [Google Domains](https://domains.google/)
   - [Porkbun](https://porkbun.com/)
+
+</Prerequisites>
 
 ## Step 1: Add a custom domain
 
@@ -83,6 +86,12 @@ If you're adding a subdomain (e.g. `go.example.com`), you'll need to add a `CNAM
 - **Name**: `go` (or whatever subdomain you want to use)
 - **Value**: `cname.dub.sh`
 - **TTL**: `86400` (or the highest value possible)
+
+<Note variant="warning">
+  If you're using Cloudflare as your DNS provider, you might need to configure
+  some extra steps for it to work properly. Please refer to our guide on [using
+  Cloudflare domains with Dub](using-cloudflare-domains) for more information.
+</Note>
 
 ## Step 3 (optional): Verify domain ownership
 

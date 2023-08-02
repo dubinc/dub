@@ -138,38 +138,36 @@ function ImportShortModal({
             }}
             className="flex flex-col space-y-4"
           >
-            <div className="divide-y divide-gray-200">
+            <div className="flex flex-col space-y-2">
+              <p className="text-sm font-medium text-gray-700">Domains</p>
               {domains.map(({ id, domain, links }) => (
-                <div key={id} className="flex flex-col space-y-2">
-                  <p className="text-sm font-medium text-gray-700">Domains</p>
-                  <div className="flex items-center justify-between space-x-2 rounded-md border border-gray-200 bg-white px-4 py-2">
-                    <div>
-                      <p className="font-medium text-gray-800">{domain}</p>
-                      <p className="text-xs text-gray-500">
-                        {nFormatter(links)} links found
-                      </p>
-                    </div>
-                    <Switch
-                      fn={() => {
-                        const selected = isSelected(domain);
-                        if (selected) {
-                          setSelectedDomains((prev) =>
-                            prev.filter((d) => d.domain !== domain),
-                          );
-                        } else {
-                          setSelectedDomains((prev) => [
-                            ...prev,
-                            {
-                              id,
-                              domain,
-                              links,
-                            },
-                          ]);
-                        }
-                      }}
-                      checked={isSelected(domain)}
-                    />
+                <div className="flex items-center justify-between space-x-2 rounded-md border border-gray-200 bg-white px-4 py-2">
+                  <div>
+                    <p className="font-medium text-gray-800">{domain}</p>
+                    <p className="text-xs text-gray-500">
+                      {nFormatter(links)} links found
+                    </p>
                   </div>
+                  <Switch
+                    fn={() => {
+                      const selected = isSelected(domain);
+                      if (selected) {
+                        setSelectedDomains((prev) =>
+                          prev.filter((d) => d.domain !== domain),
+                        );
+                      } else {
+                        setSelectedDomains((prev) => [
+                          ...prev,
+                          {
+                            id,
+                            domain,
+                            links,
+                          },
+                        ]);
+                      }
+                    }}
+                    checked={isSelected(domain)}
+                  />
                 </div>
               ))}
             </div>

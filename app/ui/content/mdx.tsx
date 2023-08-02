@@ -13,6 +13,7 @@ import "react-medium-image-zoom/dist/styles.css";
 import { HELP_CATEGORIES, getPopularArticles } from "#/lib/constants/content";
 import ArticleLink from "./article-link";
 import CategoryCard from "./category-card";
+import { ListChecks } from "lucide-react";
 
 const CustomLink = (props: any) => {
   const href = props.href;
@@ -59,6 +60,15 @@ const components = {
       )}
       {...props}
     />
+  ),
+  Prerequisites: (props: any) => (
+    <div className="mt-4 rounded-md border border-gray-200 bg-white px-6 py-1 text-[0.95rem] leading-[1.4rem] shadow-md">
+      <div className="-mb-6 flex items-center space-x-2 text-gray-600">
+        <ListChecks size={20} />
+        <p className="text-sm font-medium uppercase">Prerequisites</p>
+      </div>
+      {props.children}
+    </div>
   ),
   PopularArticles: () => (
     <div className="not-prose grid gap-2 rounded-xl border border-gray-200 bg-white p-4">
