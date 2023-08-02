@@ -6,14 +6,13 @@ import { motion } from "framer-motion";
 import LinkCard from "#/ui/home/link-card";
 import PlaceholderCard from "#/ui/home/placeholder-card";
 import { LoadingSpinner } from "#/ui/icons";
-import { Link2 } from "lucide-react";
+import { CornerDownLeft, Link2 } from "lucide-react";
 import Tooltip, { TooltipContent } from "#/ui/tooltip";
 import { APP_DOMAIN, FRAMER_MOTION_LIST_ITEM_VARIANTS } from "#/lib/constants";
 import useLocalStorage from "#/lib/hooks/use-local-storage";
 import { SimpleLinkProps } from "#/lib/types";
 import { toast } from "sonner";
 import { createLink } from "./action";
-import EnterOutlinedIcon from "#/ui/icons/enter-outlined";
 
 export default function Demo() {
   const formRef = useRef<HTMLFormElement>(null);
@@ -60,7 +59,7 @@ export default function Demo() {
                 Shorten your link
               </div>
               <div className="absolute inset-y-0 right-0 my-1.5 mr-1.5 flex w-10 cursor-not-allowed items-center justify-center rounded border border-gray-200 font-sans text-sm font-medium text-gray-400">
-              <EnterOutlinedIcon/>
+                <CornerDownLeft className="h-4 w-4" />
               </div>
             </div>
           </Tooltip>
@@ -144,12 +143,17 @@ const FormButton = () => {
     <button
       type="submit"
       disabled={pending}
-      className={`${pending
+      className={`${
+        pending
           ? "cursor-not-allowed bg-gray-100"
           : "hover:border-gray-700 hover:text-gray-700 peer-focus:text-gray-700"
-        } absolute inset-y-0 right-0 my-1.5 mr-1.5 flex w-10 items-center justify-center rounded border border-gray-200 font-sans text-sm font-medium text-gray-400`}
+      } absolute inset-y-0 right-0 my-1.5 mr-1.5 flex w-10 items-center justify-center rounded border border-gray-200 font-sans text-sm font-medium text-gray-400`}
     >
-      {pending ? <LoadingSpinner className="h-4 w-4" /> : <EnterOutlinedIcon/>}
+      {pending ? (
+        <LoadingSpinner className="h-4 w-4" />
+      ) : (
+        <CornerDownLeft className="h-4 w-4" />
+      )}
     </button>
   );
 };
