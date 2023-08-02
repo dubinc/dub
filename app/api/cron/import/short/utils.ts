@@ -127,7 +127,13 @@ export const importLinksFromShort = async ({
             key: true,
             createdAt: true,
           },
+          where: {
+            domain,
+          },
           take: 5,
+          orderBy: {
+            createdAt: "desc",
+          },
         },
       },
     });
