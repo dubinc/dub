@@ -19,7 +19,6 @@ import useSWR, { mutate } from "swr";
 import { ShortioDomainProps } from "#/lib/types";
 import Tooltip, { InfoTooltip, SimpleTooltipContent } from "#/ui/tooltip";
 import { fetcher, nFormatter } from "#/lib/utils";
-import { HOME_DOMAIN } from "#/lib/constants";
 
 function ImportShortModal({
   showImportShortModal,
@@ -237,9 +236,9 @@ function ImportShortModal({
                 <InfoTooltip
                   content={
                     <SimpleTooltipContent
-                      title="Your Short.io API Key can be found in your Short.io account settings."
+                      title={`Your Short.io API Key can be found in your Short.io account under "Integrations & API".`}
                       cta="Learn more."
-                      href={`${HOME_DOMAIN}/help/article/import-from-short-io`}
+                      href="https://short.io/features/api"
                     />
                   }
                 />
