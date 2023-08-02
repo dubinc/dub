@@ -111,7 +111,15 @@ export const importLinksFromBitly = async ({
             key: true,
             createdAt: true,
           },
+          where: {
+            domain: {
+              in: domains,
+            },
+          },
           take: 5,
+          orderBy: {
+            createdAt: "desc",
+          },
         },
       },
     });
