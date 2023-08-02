@@ -34,7 +34,7 @@ export default function Toggle() {
 
   return (
     <div
-      className={cn("sticky top-[6.95rem] z-20 mb-5 bg-gray-50 py-3 md:py-5", {
+      className={cn("sticky top-[6.95rem] z-10 mb-5 bg-gray-50 py-3 md:py-5", {
         "top-14": basePath.startsWith("/stats"),
         "top-6 md:top-0": modal,
         "shadow-md": scrolled && !modal,

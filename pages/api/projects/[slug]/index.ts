@@ -2,6 +2,7 @@ import { withProjectAuth } from "#/lib/auth";
 import { deleteDomainAndLinks } from "#/lib/api/domains";
 import prisma from "#/lib/prisma";
 import { cancelSubscription } from "#/lib/stripe";
+import cloudinary from "cloudinary";
 
 export default withProjectAuth(async (req, res, project) => {
   // GET /api/projects/[slug] – get a specific project
@@ -45,21 +46,24 @@ export default withProjectAuth(async (req, res, project) => {
       domains.map((domain) => deleteDomainAndLinks(domain)),
     );
 
-    // if they have a Stripe subscription, cancel it
-    const cancelSubscriptionResponse = await cancelSubscription(
-      project.stripeId,
-    );
-
-    // delete the project
-    const deleteProjectResponse = await prisma.project.delete({
-      where: {
-        slug: project.slug,
-      },
-    });
+    const deleteProjectResponse = await Promise.all([
+      // delete project logo from Cloudinary
+      project.logo &&
+        cloudinary.v2.uploader.destroy(`logos/${project.id}`, {
+          invalidate: true,
+        }),
+      // if they have a Stripe subscription, cancel it
+      project.stripeId && cancelSubscription(project.stripeId),
+      // delete the project
+      prisma.project.delete({
+        where: {
+          slug: project.slug,
+        },
+      }),
+    ]);
 
     return res.status(200).json({
       deleteProjectResponse,
-      cancelSubscriptionResponse,
       deleteDomainsResponse,
     });
   } else {
