@@ -153,7 +153,7 @@ export default function LinkCard({
             height={20}
           />
           <div>
-            <div className="mb-1 flex items-center space-x-1">
+            <div className="flex items-center space-x-1 sm:space-x-2">
               <a
                 className="font-semibold text-blue-800"
                 href={linkConstructor({ key })}
@@ -185,7 +185,14 @@ export default function LinkCard({
                 </p>
               </Link>
             </div>
-            <p className="w-72 truncate text-sm text-gray-500">{url}</p>
+            <a
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-72 truncate text-sm text-gray-500 underline-offset-2 transition-all hover:text-gray-800 hover:underline"
+            >
+              {url}
+            </a>
           </div>
         </div>
         <button
