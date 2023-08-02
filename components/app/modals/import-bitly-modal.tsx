@@ -35,7 +35,7 @@ function ImportBitlyModal({
   const [redirecting, setRedirecting] = useState(false);
 
   const { data: groups, isLoading } = useSWR<BitlyGroupProps[]>(
-    slug && `/api/projects/${slug}/import/bitly`,
+    slug && showImportBitlyModal && `/api/projects/${slug}/import/bitly`,
     fetcher,
     {
       revalidateOnFocus: false,
@@ -56,7 +56,7 @@ function ImportBitlyModal({
   const { setPollLinks } = useContext(ModalContext);
 
   useEffect(() => {
-    if (importSource) {
+    if (importSource === "bitly") {
       setShowImportBitlyModal(true);
     } else {
       setShowImportBitlyModal(false);
@@ -90,7 +90,7 @@ function ImportBitlyModal({
           <img
             src="/_static/icons/bitly.svg"
             alt="Bitly logo"
-            className="h-10 w-10 rounded-full border border-gray-200"
+            className="h-10 w-10 rounded-full"
           />
           <ArrowRight className="h-5 w-5 text-gray-600" />
           <Logo />

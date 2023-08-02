@@ -16,6 +16,7 @@ import { useAddProjectModal } from "@/components/app/modals/add-project-modal";
 import { useAcceptInviteModal } from "@/components/app/modals/accept-invite-modal";
 import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal";
 import { useImportBitlyModal } from "@/components/app/modals/import-bitly-modal";
+import { useImportShortModal } from "@/components/app/modals/import-short-modal";
 import { useAddEditDomainModal } from "@/components/app/modals/add-edit-domain-modal";
 import { useGoogleOauthModal } from "@/components/app/modals/google-oauth-modal";
 import { mutate } from "swr";
@@ -32,6 +33,7 @@ export const ModalContext = createContext<{
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
   setShowUpgradePlanModal: Dispatch<SetStateAction<boolean>>;
   setShowImportBitlyModal: Dispatch<SetStateAction<boolean>>;
+  setShowImportShortModal: Dispatch<SetStateAction<boolean>>;
   setPollLinks: Dispatch<SetStateAction<boolean>>;
   setShowCMDK: Dispatch<SetStateAction<boolean>>;
 }>({
@@ -41,6 +43,7 @@ export const ModalContext = createContext<{
   setShowAddEditLinkModal: () => {},
   setShowUpgradePlanModal: () => {},
   setShowImportBitlyModal: () => {},
+  setShowImportShortModal: () => {},
   setPollLinks: () => {},
   setShowCMDK: () => {},
 });
@@ -59,6 +62,7 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
   const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal();
   const { setShowUpgradePlanModal, UpgradePlanModal } = useUpgradePlanModal();
   const { setShowImportBitlyModal, ImportBitlyModal } = useImportBitlyModal();
+  const { setShowImportShortModal, ImportShortModal } = useImportShortModal();
 
   const { error, loading } = useProject();
   const { data: session } = useSession();
@@ -115,6 +119,7 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
         setShowAddEditLinkModal,
         setShowUpgradePlanModal,
         setShowImportBitlyModal,
+        setShowImportShortModal,
         setPollLinks,
         setShowCMDK,
       }}
@@ -130,6 +135,7 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
       <AddEditLinkModal />
       <UpgradePlanModal />
       <ImportBitlyModal />
+      <ImportShortModal />
       {children}
     </ModalContext.Provider>
   );

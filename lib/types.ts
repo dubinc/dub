@@ -107,3 +107,9 @@ export interface BitlyGroupProps {
   bsds: string[]; // custom domains
   tags: string[];
 }
+
+export interface ShortioDomainProps {
+  id: number;
+  domain: string;
+  links: number;
+}
