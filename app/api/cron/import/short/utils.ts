@@ -51,11 +51,20 @@ export const importLinksFromShort = async ({
       if (path.length === 0) {
         return null;
       }
-      pipeline.set(`${domain}:${path}`, {
-        url: encodeURIComponent(originalURL),
-        ...(iphoneURL && { ios: encodeURIComponent(iphoneURL) }),
-        ...(androidURL && { android: encodeURIComponent(androidURL) }),
-      });
+      const exat = expiresAt ? new Date(expiresAt).getTime() / 1000 : null;
+      pipeline.set(
+        `${domain}:${path}`,
+        {
+          url: encodeURIComponent(originalURL),
+          ...(iphoneURL && { ios: encodeURIComponent(iphoneURL) }),
+          ...(androidURL && { android: encodeURIComponent(androidURL) }),
+        },
+        {
+          nx: true,
+          // if the key has an expiry, set exat (type any cause there's a type error in the @types)
+          ...(exat && { exat: exat as any }),
+        },
+      );
       return {
         projectId,
         domain,
