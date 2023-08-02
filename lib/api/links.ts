@@ -33,8 +33,9 @@ export async function getLinksForProject({
       archived: showArchived ? undefined : false,
       ...(domain && { domain }),
       ...(search && {
-        key: { search },
-        url: { search },
+        // if search query is 4 characters or shorter, only search for exact matches, else use MySQL fullTextSearch
+        key: search.length <= 4 ? { contains: search } : { search },
+        url: search.length <= 4 ? { contains: search } : { search },
       }),
       ...(tagId && { tagId }),
       ...(userId && { userId }),
@@ -71,8 +72,9 @@ export async function getLinksCount({
         archived: showArchived ? undefined : false,
         ...(userId && { userId }),
         ...(search && {
-          key: { search },
-          url: { search },
+          // if search query is 4 characters or shorter, only search for exact matches, else use MySQL fullTextSearch
+          key: search.length <= 4 ? { contains: search } : { search },
+          url: search.length <= 4 ? { contains: search } : { search },
         }),
         // when filtering by domain, only filter by domain if the filter group is not "Domains"
         ...(domain &&
