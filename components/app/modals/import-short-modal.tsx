@@ -19,6 +19,7 @@ import useSWR, { mutate } from "swr";
 import { ShortioDomainProps } from "#/lib/types";
 import Tooltip, { InfoTooltip, SimpleTooltipContent } from "#/ui/tooltip";
 import { fetcher, nFormatter } from "#/lib/utils";
+import { HOME_DOMAIN } from "#/lib/constants";
 
 function ImportShortModal({
   showImportShortModal,
@@ -140,14 +141,7 @@ function ImportShortModal({
             <div className="divide-y divide-gray-200">
               {domains.map(({ id, domain, links }) => (
                 <div key={id} className="flex flex-col space-y-2">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-gray-700">Domains</p>
-                    <Tooltip content="Your Short.io domain ID">
-                      <p className="cursor-default text-xs uppercase text-gray-400 transition-colors hover:text-gray-700">
-                        #{id}
-                      </p>
-                    </Tooltip>
-                  </div>
+                  <p className="text-sm font-medium text-gray-700">Domains</p>
                   <div className="flex items-center justify-between space-x-2 rounded-md border border-gray-200 bg-white px-4 py-2">
                     <div>
                       <p className="font-medium text-gray-800">{domain}</p>
@@ -176,23 +170,6 @@ function ImportShortModal({
                       checked={isSelected(domain)}
                     />
                   </div>
-                  {/* <div className="flex items-center justify-between space-x-2 rounded-md py-1 pl-2 pr-4">
-                    <p className="text-xs text-gray-500">
-                      {tags.length} tags found. Import all?
-                    </p>
-                    <Switch
-                      fn={() => {
-                        if (selectedGroupTags.includes(guid)) {
-                          setSelectedGroupTags((prev) =>
-                            prev.filter((g) => g !== guid),
-                          );
-                        } else {
-                          setSelectedGroupTags((prev) => [...prev, guid]);
-                        }
-                      }}
-                      checked={selectedGroupTags.includes(guid)}
-                    />
-                  </div> */}
                 </div>
               ))}
             </div>
@@ -237,8 +214,8 @@ function ImportShortModal({
                   content={
                     <SimpleTooltipContent
                       title={`Your Short.io API Key can be found in your Short.io account under "Integrations & API".`}
-                      cta="Learn more."
-                      href="https://short.io/features/api"
+                      cta="Read the guide."
+                      href={`${HOME_DOMAIN}/help/article/migrating-from-short`}
                     />
                   }
                 />

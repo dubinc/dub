@@ -1,6 +1,6 @@
 import { Logo } from "#/ui/icons";
 import { allHelpPosts } from "contentlayer/generated";
-import { Globe, Link2, Settings, Webhook } from "lucide-react";
+import { Globe, Import, Link2, Settings, Webhook } from "lucide-react";
 
 export const BLOG_CATEGORIES: {
   title: string;
@@ -40,6 +40,7 @@ export const HELP_CATEGORIES: {
     | "getting-started"
     | "link-management"
     | "custom-domains"
+    | "migrating"
     | "api";
   description: string;
   icon: JSX.Element;
@@ -67,6 +68,12 @@ export const HELP_CATEGORIES: {
     slug: "custom-domains",
     description: "Learn how to use custom domains with Dub.",
     icon: <Globe className="h-6 w-6 text-gray-500" />,
+  },
+  {
+    title: "Migrating to Dub",
+    slug: "migrating",
+    description: "Easily migrate to Dub from other services.",
+    icon: <Import className="h-6 w-6 text-gray-500" />,
   },
   {
     title: "API",

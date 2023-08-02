@@ -139,10 +139,10 @@ export default function LinksImported({
             <Text className="text-sm leading-6 text-black">
               If you haven't already{" "}
               <Link
-                href={`https://app.dub.sh/${projectSlug}/domains`}
+                href="https://dub.sh/help/article/how-to-add-custom-domain#step-2-configure-your-domain"
                 className="font-medium text-blue-600 no-underline"
               >
-                verified your domain{domains.length > 1 ? "s" : ""}
+                configured your domain{domains.length > 1 ? "s" : ""}
               </Link>
               , you will need to do it before you can start using your links.
             </Text>
