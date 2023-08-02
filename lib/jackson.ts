@@ -14,7 +14,7 @@ const opts: JacksonOption = {
   samlPath,
   samlAudience,
   db: {
-    engine: "sql",
+    engine: "planetscale",
     type: "mysql",
     url: process.env.DATABASE_URL as string,
     ssl: {
