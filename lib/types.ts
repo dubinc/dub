@@ -62,7 +62,7 @@ export interface ProjectProps {
     slug: string;
   }[];
   users?: {
-    role: string;
+    role: "owner" | "member";
   }[];
 }
 

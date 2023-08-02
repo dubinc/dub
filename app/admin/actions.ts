@@ -25,7 +25,94 @@ async function isAdmin() {
   return true;
 }
 
-export async function getData(data: FormData) {
+async function getImpersonateUrl(email: string) {
+  const token = randomBytes(32).toString("hex");
+
+  await prisma.verificationToken.create({
+    data: {
+      identifier: email,
+      token: hashToken(token),
+      expires: new Date(Date.now() + 60000),
+    },
+  });
+
+  const params = new URLSearchParams({
+    callbackUrl: process.env.NEXTAUTH_URL as string,
+    email,
+    token,
+  });
+
+  return `${process.env.NEXTAUTH_URL}/api/auth/callback/email?${params}`;
+}
+
+export async function getUser(data: FormData) {
+  const email = data.get("email") as string;
+
+  if (!(await isAdmin())) {
+    return {
+      error: "Unauthorized",
+    };
+  }
+
+  const response = await prisma.user.findUnique({
+    where: {
+      email,
+    },
+    select: {
+      email: true,
+    },
+  });
+
+  if (!response?.email) {
+    return {
+      error: "No user found",
+    };
+  }
+
+  return {
+    email: response.email,
+    impersonateUrl: await getImpersonateUrl(response.email),
+  };
+}
+
+export async function getProjectOwner(data: FormData) {
+  const slug = data.get("slug") as string;
+
+  if (!(await isAdmin())) {
+    return {
+      error: "Unauthorized",
+    };
+  }
+
+  const response = await prisma.user.findFirst({
+    where: {
+      projects: {
+        some: {
+          project: {
+            slug,
+          },
+          role: "owner",
+        },
+      },
+    },
+    select: {
+      email: true,
+    },
+  });
+
+  if (!response?.email) {
+    return {
+      error: "No user found",
+    };
+  }
+
+  return {
+    email: response.email,
+    impersonateUrl: await getImpersonateUrl(response.email),
+  };
+}
+
+export async function getUserByKey(data: FormData) {
   const key = data.get("key") as string;
 
   if (!(await isAdmin())) {
@@ -96,29 +183,11 @@ export async function getData(data: FormData) {
     })
     .flatMap(({ project }) => project.domains.map(({ slug }) => slug));
 
-  const token = randomBytes(32).toString("hex");
-
-  await prisma.verificationToken.create({
-    data: {
-      identifier: email,
-      token: hashToken(token),
-      expires: new Date(Date.now() + 60000),
-    },
-  });
-
-  const params = new URLSearchParams({
-    callbackUrl: process.env.NEXTAUTH_URL as string,
-    email,
-    token,
-  });
-
-  const url = `${process.env.NEXTAUTH_URL}/api/auth/callback/email?${params}`;
-
   return {
     email: response?.email as string,
     hostnames: Array.from(hostnames),
     verifiedDomains: verifiedDomains || [],
-    impersonateUrl: url,
+    impersonateUrl: await getImpersonateUrl(email),
   };
 }
 

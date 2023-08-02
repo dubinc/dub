@@ -170,11 +170,15 @@ export default function LinkCard({ props }: { props: LinkProps }) {
         selected ? "border-black" : "border-gray-50"
       } relative rounded-lg border-2 bg-white p-3 pr-1 shadow transition-all hover:shadow-md sm:p-4`}
     >
-      <LinkQRModal />
-      <AddEditLinkModal />
-      <DuplicateLinkModal />
-      <ArchiveLinkModal />
-      <DeleteLinkModal />
+      {isVisible && (
+        <>
+          <LinkQRModal />
+          <AddEditLinkModal />
+          <DuplicateLinkModal />
+          <ArchiveLinkModal />
+          <DeleteLinkModal />
+        </>
+      )}
       <li className="relative flex items-center justify-between">
         <div className="relative flex shrink items-center">
           {archived ? (
@@ -257,9 +261,17 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                 {timeAgo(createdAt)}
               </p>
               <p>•</p>
-              <p className="max-w-[180px] truncate text-sm font-medium text-gray-700 sm:max-w-[300px] md:max-w-[360px] xl:max-w-[500px]">
+              <a
+                onClick={(e) => {
+                  e.stopPropagation(); // to avoid selecting the link card
+                }}
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="max-w-[180px] truncate text-sm font-medium text-gray-700 underline-offset-2 hover:underline sm:max-w-[300px] md:max-w-[360px] xl:max-w-[500px]"
+              >
                 {url}
-              </p>
+              </a>
             </div>
           </div>
         </div>

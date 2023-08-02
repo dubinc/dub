@@ -2,8 +2,8 @@ import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { LinkProps } from "#/lib/types";
 import Switch from "#/ui/switch";
 import { motion } from "framer-motion";
-import { FADE_IN_ANIMATION_SETTINGS } from "#/lib/constants";
-import { InfoTooltip } from "#/ui/tooltip";
+import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "#/lib/constants";
+import { InfoTooltip, SimpleTooltipContent } from "#/ui/tooltip";
 
 export default function AndroidSection({
   props,
@@ -36,7 +36,15 @@ export default function AndroidSection({
           <h2 className="text-sm font-medium text-gray-900">
             Android Targeting
           </h2>
-          <InfoTooltip content="Redirect your Android users to a different link (e.g. Google Play Store link for your app)." />
+          <InfoTooltip
+            content={
+              <SimpleTooltipContent
+                title="Redirect your Android users to a different link."
+                cta="Learn more about device targeting."
+                href={`${HOME_DOMAIN}/help/article/how-to-create-link#device-targeting-ios--android`}
+              />
+            }
+          />
         </div>
         <Switch fn={() => setEnabled(!enabled)} checked={enabled} />
       </div>

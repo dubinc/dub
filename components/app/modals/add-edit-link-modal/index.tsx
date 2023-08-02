@@ -35,7 +35,11 @@ import ExpirationSection from "./expiration-section";
 import IOSSection from "./ios-section";
 import AndroidSection from "./android-section";
 import Preview from "./preview";
-import { DEFAULT_LINK_PROPS, GOOGLE_FAVICON_URL } from "#/lib/constants";
+import {
+  DEFAULT_LINK_PROPS,
+  GOOGLE_FAVICON_URL,
+  HOME_DOMAIN,
+} from "#/lib/constants";
 import useDomains from "#/lib/swr/use-domains";
 import { toast } from "sonner";
 import va from "@vercel/analytics";
@@ -272,7 +276,7 @@ function AddEditLinkModal({
       showModal={showAddEditLinkModal}
       setShowModal={setShowAddEditLinkModal}
       className="max-w-screen-lg"
-      disableDefaultHide={homepageDemo ? false : true}
+      preventDefaultClose={homepageDemo ? false : true}
       {...(welcomeFlow && { onClose: () => router.back() })}
     >
       <div className="relative grid max-h-[min(906px,_90vh)] w-full divide-x divide-gray-100 overflow-auto scrollbar-hide md:grid-cols-2">

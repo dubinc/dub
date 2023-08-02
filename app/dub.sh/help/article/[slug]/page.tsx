@@ -1,9 +1,9 @@
 import SearchButton from "#/ui/content/search-button";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
-import { allHelpPosts } from "contentlayer/generated";
+import { HelpPost, allHelpPosts } from "contentlayer/generated";
 import { ChevronRight } from "lucide-react";
 import { notFound } from "next/navigation";
-import { CATEGORIES } from "#/lib/constants/content";
+import { HELP_CATEGORIES } from "#/lib/constants/content";
 import Link from "next/link";
 import Author from "#/ui/content/author";
 import { MDX } from "#/ui/content/mdx";
@@ -34,7 +34,7 @@ export async function generateMetadata({
   const { title, summary } = post;
 
   return constructMetadata({
-    title: `${title} | Dub Help Center`,
+    title: `${title} – Dub Help Center`,
     description: summary,
     image: `/api/og/help?title=${encodeURIComponent(
       title,
@@ -53,7 +53,7 @@ export default async function HelpArticle({
   if (!data) {
     notFound();
   }
-  const category = CATEGORIES.find(
+  const category = HELP_CATEGORIES.find(
     (category) => data.categories[0] === category.slug,
   )!;
 
@@ -68,11 +68,10 @@ export default async function HelpArticle({
   ]);
 
   const relatedArticles =
-    (data.related &&
-      data.related.map(
-        (slug) => allHelpPosts.find((post) => post.slug === slug)!,
-      )) ||
-    [];
+    ((data.related &&
+      data.related
+        .map((slug) => allHelpPosts.find((post) => post.slug === slug))
+        .filter(Boolean)) as HelpPost[]) || [];
 
   return (
     <>
@@ -129,9 +128,11 @@ export default async function HelpArticle({
             )}
             <Feedback />
           </div>
-          <div className="sticky top-20 col-span-1 hidden self-start sm:block">
-            <TableOfContents items={data.tableOfContents} />
-            <div className="mt-10 flex justify-center border-t border-gray-200 pt-5">
+          <div className="sticky top-20 col-span-1 hidden flex-col space-y-10 divide-y divide-gray-200 self-start sm:flex">
+            {data.tableOfContents.length > 0 && (
+              <TableOfContents items={data.tableOfContents} />
+            )}
+            <div className="flex justify-center pt-5">
               <Link
                 href={`https://github.com/steven-tey/dub/blob/main/content/help/${params.slug}.mdx`}
                 target="_blank"

@@ -15,7 +15,8 @@ import { useRouter } from "next/router";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { LoadingCircle } from "#/ui/icons";
-import Tooltip from "#/ui/tooltip";
+import Tooltip, { SimpleTooltipContent } from "#/ui/tooltip";
+import { HOME_DOMAIN } from "#/lib/constants";
 
 export default function TagsSection({
   data,
@@ -111,7 +112,15 @@ export default function TagsSection({
             {creatingTag ? (
               <LoadingCircle />
             ) : (
-              <Tooltip content="Tags are used to organize your links in your Dub dashboard. You can edit and customize your tags under the Tags filter section on the left sidebar.">
+              <Tooltip
+                content={
+                  <SimpleTooltipContent
+                    title="Tags are used to organize your links in your Dub dashboard."
+                    cta="Learn more about tags."
+                    href={`${HOME_DOMAIN}/help/article/how-to-use-tags`}
+                  />
+                }
+              >
                 <Tag className="h-4 w-4" />
               </Tooltip>
             )}

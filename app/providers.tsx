@@ -3,7 +3,7 @@
 import { Dispatch, ReactNode, SetStateAction, createContext } from "react";
 import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/react";
-import useCMDK from "./ui/cmdk";
+import useCMDK from "#/ui/cmdk";
 
 export const AppContext = createContext<{
   setShowCMDK: Dispatch<SetStateAction<boolean>>;
@@ -13,6 +13,7 @@ export const AppContext = createContext<{
 
 export default function Providers({ children }: { children: ReactNode }) {
   const { CMDK, setShowCMDK } = useCMDK();
+
   return (
     <AppContext.Provider
       value={{

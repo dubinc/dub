@@ -17,6 +17,7 @@ import Badge from "#/ui/badge";
 import { linkConstructor } from "#/lib/utils";
 import { HelpCircle } from "lucide-react";
 import { HOME_DOMAIN } from "#/lib/constants";
+import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 
 const NavTabs = dynamic(() => import("./nav-tabs"), {
   ssr: false,
@@ -91,7 +92,7 @@ export default function AppLayout({
         className={`min-h-screen w-full ${bgWhite ? "bg-white" : "bg-gray-50"}`}
       >
         <div className="sticky left-0 right-0 top-0 z-20 border-b border-gray-200 bg-white">
-          <div className="mx-auto max-w-screen-xl px-2.5 md:px-20">
+          <MaxWidthWrapper>
             <div className="flex h-16 items-center justify-between">
               <div className="flex items-center">
                 <Link href="/">
@@ -147,7 +148,7 @@ export default function AppLayout({
               </div>
             </div>
             <NavTabs />
-          </div>
+          </MaxWidthWrapper>
         </div>
         <div>{children}</div>
       </div>

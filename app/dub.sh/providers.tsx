@@ -9,7 +9,7 @@ export default function MarketingProviders({
   children,
 }: {
   modal: ReactNode;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   const segment = useSelectedLayoutSegment();
   return (

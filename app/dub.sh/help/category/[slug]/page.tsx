@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { allHelpPosts } from "contentlayer/generated";
-import { POPULAR_ARTICLES, CATEGORIES } from "#/lib/constants/content";
+import { POPULAR_ARTICLES, HELP_CATEGORIES } from "#/lib/constants/content";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import SearchButton from "#/ui/content/search-button";
 import Link from "next/link";
@@ -10,7 +10,7 @@ import { Metadata } from "next";
 import { constructMetadata } from "#/lib/utils";
 
 export async function generateStaticParams() {
-  return CATEGORIES.map((category) => ({
+  return HELP_CATEGORIES.map((category) => ({
     slug: category.slug,
   }));
 }
@@ -20,7 +20,9 @@ export async function generateMetadata({
 }: {
   params: { slug: string };
 }): Promise<Metadata | undefined> {
-  const category = CATEGORIES.find((category) => category.slug === params.slug);
+  const category = HELP_CATEGORIES.find(
+    (category) => category.slug === params.slug,
+  );
   if (!category) {
     return;
   }
@@ -28,7 +30,7 @@ export async function generateMetadata({
   const { title, description } = category;
 
   return constructMetadata({
-    title: `${title} | Dub Help Center`,
+    title: `${title} – Dub Help Center`,
     description,
     image: `/api/og/help?title=${encodeURIComponent(
       title,
@@ -43,7 +45,9 @@ export default function HelpCategory({
     slug: string;
   };
 }) {
-  const data = CATEGORIES.find((category) => category.slug === params.slug);
+  const data = HELP_CATEGORIES.find(
+    (category) => category.slug === params.slug,
+  );
   if (!data) {
     notFound();
   }

@@ -209,6 +209,7 @@ function AddEditDomainModal({
                 name="domain"
                 id="domain"
                 required
+                autoComplete="off"
                 pattern="[[\p{Letter}\p{Mark}\d-.]+"
                 className={`${
                   domainError
@@ -240,7 +241,7 @@ function AddEditDomainModal({
                 Domain is already in use.{" "}
                 <a
                   className="underline"
-                  href="mailto:steven@dub.sh?subject=My Domain Is Already In Use"
+                  href="mailto:support@dub.sh?subject=My Domain Is Already In Use"
                 >
                   Contact us
                 </a>{" "}

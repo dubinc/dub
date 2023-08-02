@@ -6,7 +6,7 @@ import Confetti from "react-dom-confetti";
 import { CheckCircleFill, XCircleFill } from "@/components/shared/icons";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import Switch from "#/ui/switch";
-import Tooltip from "#/ui/tooltip";
+import Tooltip, { SimpleTooltipContent } from "#/ui/tooltip";
 import { PLANS } from "#/lib/stripe/utils";
 import { nFormatter } from "#/lib/utils";
 import { HelpCircle, MinusCircle } from "lucide-react";
@@ -27,19 +27,36 @@ const pricingItems = [
       },
       {
         text: "Advanced link features",
-        footnote:
-          "Password protection, link expiration, device targeting, custom social media cards, etc.",
+        footnote: (
+          <SimpleTooltipContent
+            title="Password protection, link expiration, device targeting, custom social media cards, etc."
+            cta="Learn more."
+            href="/help/article/how-to-create-link#the-dub-link-builder"
+          />
+        ),
       },
       { text: "Up to 3 users", neutral: true },
       { text: "30-day link history", neutral: true },
       {
         text: "Root domain redirect",
-        footnote:
-          "Redirect vistors that land on the root of your domain (e.g. yourdomain.com) to a page of your choice.",
+        footnote: (
+          <SimpleTooltipContent
+            title="Redirect vistors that land on the root of your domain (e.g. yourdomain.com) to a page of your choice."
+            cta="Learn more."
+            href="/help/article/how-to-redirect-root-domain"
+          />
+        ),
         negative: true,
       },
       {
         text: "Custom QR Code Logo",
+        footnote: (
+          <SimpleTooltipContent
+            title="Set a custom logo for your links' QR codes."
+            cta="Learn more."
+            href="/help/article/custom-qr-codes"
+          />
+        ),
         negative: true,
       },
       {
@@ -65,18 +82,35 @@ const pricingItems = [
       },
       {
         text: "Advanced link features",
-        footnote:
-          "Password protection, link expiration, device targeting, custom social media cards, etc.",
+        footnote: (
+          <SimpleTooltipContent
+            title="Password protection, link expiration, device targeting, custom social media cards, etc."
+            cta="Learn more."
+            href="/help/article/how-to-create-link#the-dub-link-builder"
+          />
+        ),
       },
       { text: "Unlimited users" },
       { text: "Unlimited link history" },
       {
         text: "Root domain redirect",
-        footnote:
-          "Redirect visitors that land on the root of your domain (e.g. yourdomain.com) to a page of your choice.",
+        footnote: (
+          <SimpleTooltipContent
+            title="Redirect vistors that land on the root of your domain (e.g. yourdomain.com) to a page of your choice."
+            cta="Learn more."
+            href="/help/article/how-to-redirect-root-domain"
+          />
+        ),
       },
       {
         text: "Custom QR Code Logo",
+        footnote: (
+          <SimpleTooltipContent
+            title="Set a custom logo for your links' QR codes."
+            cta="Learn more."
+            href="/help/article/custom-qr-codes"
+          />
+        ),
       },
       {
         text: "API Access",
@@ -101,18 +135,35 @@ const pricingItems = [
       },
       {
         text: "Advanced link features",
-        footnote:
-          "Password protection, link expiration, device targeting, custom social media cards, etc.",
+        footnote: (
+          <SimpleTooltipContent
+            title="Password protection, link expiration, device targeting, custom social media cards, etc."
+            cta="Learn more."
+            href="/help/article/how-to-create-link#the-dub-link-builder"
+          />
+        ),
       },
       { text: "Unlimited users" },
       { text: "Unlimited link history" },
       {
         text: "Root domain redirect",
-        footnote:
-          "Redirect visitors that land on the root of your domain (e.g. yourdomain.com) to a page of your choice.",
+        footnote: (
+          <SimpleTooltipContent
+            title="Redirect vistors that land on the root of your domain (e.g. yourdomain.com) to a page of your choice."
+            cta="Learn more."
+            href="/help/article/how-to-redirect-root-domain"
+          />
+        ),
       },
       {
         text: "Custom QR Code Logo",
+        footnote: (
+          <SimpleTooltipContent
+            title="Set a custom logo for your links' QR codes."
+            cta="Learn more."
+            href="/help/article/custom-qr-codes"
+          />
+        ),
       },
       {
         text: "API Access",

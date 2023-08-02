@@ -14,13 +14,11 @@ export default async function Author({
   const authors = {
     steventey: {
       name: "Steven Tey",
-      image:
-        "https://pbs.twimg.com/profile_images/1506792347840888834/dS-r50Je_400x400.jpg",
+      image: "https://d2vwwcvoksz7ty.cloudfront.net/author/steventey.jpg",
     },
     fmerian: {
       name: "Flo Merian",
-      image:
-        "https://pbs.twimg.com/profile_images/846637761792790528/WtCc8Xy7_400x400.jpg",
+      image: "https://d2vwwcvoksz7ty.cloudfront.net/author/fmerian.jpg",
     },
   };
 
@@ -45,9 +43,9 @@ export default async function Author({
         <p className="text-sm text-gray-500">
           Written by {authors[username].name}
         </p>
-        <p className="text-sm font-light text-gray-400">
+        <time dateTime={updatedAt} className="text-sm font-light text-gray-400">
           Last updated {timeAgo(new Date(updatedAt))}
-        </p>
+        </time>
       </div>
     </div>
   ) : (
@@ -60,12 +58,12 @@ export default async function Author({
       <BlurImage
         src={authors[username].image}
         alt={authors[username].name}
-        width={48}
-        height={48}
+        width={40}
+        height={40}
         className="rounded-full transition-all group-hover:brightness-90"
       />
       <div className="flex flex-col">
-        <p className="font-bold text-gray-700">{authors[username].name}</p>
+        <p className="font-semibold text-gray-700">{authors[username].name}</p>
         <p className="text-sm text-gray-500">@{username}</p>
       </div>
     </Link>

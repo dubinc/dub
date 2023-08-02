@@ -4,7 +4,9 @@ import { APP_DOMAIN } from "#/lib/constants";
 import { motion, useCycle } from "framer-motion";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { ReactNode, useEffect, useRef } from "react";
+import { navItems } from "./nav";
+import { useSession } from "next-auth/react";
 
 const sidebar = {
   open: (height = 1000) => ({
@@ -25,21 +27,22 @@ const sidebar = {
   },
 };
 
-const navItems = ["pricing", "changelog"];
-
 export default function MobileNav() {
   const { domain = "dub.sh" } = useParams() as { domain: string };
 
   const [isOpen, toggleOpen] = useCycle(false, true);
   const containerRef = useRef(null);
   const { height } = useDimensions(containerRef);
+  const { data: session, status } = useSession() || {
+    status: "unauthenticated", // if `useSession` is undefined, we're on a non dub.sh domain
+  };
 
   return (
     <motion.nav
       initial={false}
       animate={isOpen ? "open" : "closed"}
       custom={height}
-      className={`fixed inset-0 z-50 w-full sm:hidden ${
+      className={`fixed inset-0 z-50 w-full lg:hidden ${
         isOpen ? "" : "pointer-events-none"
       }`}
       ref={containerRef}
@@ -52,43 +55,56 @@ export default function MobileNav() {
         variants={variants}
         className="absolute grid w-full gap-3 px-10 py-16"
       >
-        {navItems.map((item) => (
-          <div key={item} className="grid gap-3">
+        {navItems.map(({ name, slug }) => (
+          <div key={slug} className="grid gap-3">
             <MenuItem>
               <Link
                 href={
                   domain === "dub.sh"
-                    ? `/${item}`
-                    : `https://dub.sh/${item}?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`
+                    ? `/${slug}`
+                    : `https://dub.sh/${slug}?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`
                 }
                 onClick={() => toggleOpen()}
                 className="flex w-full font-semibold capitalize"
               >
-                {item}
+                {name}
               </Link>
             </MenuItem>
             <MenuItem className="my-3 h-px w-full bg-gray-300" />
           </div>
         ))}
 
-        <MenuItem key="Login">
-          <Link
-            href={`${APP_DOMAIN}/login`}
-            className="flex w-full font-semibold capitalize"
-          >
-            Log in
-          </Link>
-        </MenuItem>
-        <MenuItem className="my-3 h-px w-full bg-gray-300" />
+        {session ? (
+          <MenuItem key="Dashboard">
+            <Link
+              href={APP_DOMAIN}
+              className="flex w-full font-semibold capitalize"
+            >
+              Dashboard
+            </Link>
+          </MenuItem>
+        ) : status === "unauthenticated" ? (
+          <>
+            <MenuItem key="Login">
+              <Link
+                href={`${APP_DOMAIN}/login`}
+                className="flex w-full font-semibold capitalize"
+              >
+                Log in
+              </Link>
+            </MenuItem>
+            <MenuItem className="my-3 h-px w-full bg-gray-300" />
 
-        <MenuItem key="Signup">
-          <Link
-            href={`${APP_DOMAIN}/register`}
-            className="flex w-full font-semibold capitalize"
-          >
-            Sign Up
-          </Link>
-        </MenuItem>
+            <MenuItem key="Signup">
+              <Link
+                href={`${APP_DOMAIN}/register`}
+                className="flex w-full font-semibold capitalize"
+              >
+                Sign Up
+              </Link>
+            </MenuItem>
+          </>
+        ) : null}
       </motion.ul>
       <MenuToggle toggle={toggleOpen} />
     </motion.nav>
@@ -162,17 +178,17 @@ const MenuItemVariants = {
     opacity: 0,
     transition: {
       y: { stiffness: 1000 },
-      duration: 0.04,
+      duration: 0.02,
     },
   },
 };
 
 const variants = {
   open: {
-    transition: { staggerChildren: 0.04, delayChildren: 0.2 },
+    transition: { staggerChildren: 0.02, delayChildren: 0.15 },
   },
   closed: {
-    transition: { staggerChildren: 0.02, staggerDirection: -1 },
+    transition: { staggerChildren: 0.01, staggerDirection: -1 },
   },
 };
 

@@ -11,8 +11,8 @@ import { UploadCloud } from "@/components/shared/icons";
 import { LoadingCircle } from "#/ui/icons";
 import { LinkProps } from "#/lib/types";
 import Switch from "#/ui/switch";
-import { FADE_IN_ANIMATION_SETTINGS } from "#/lib/constants";
-import { InfoTooltip } from "#/ui/tooltip";
+import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "#/lib/constants";
+import { InfoTooltip, SimpleTooltipContent } from "#/ui/tooltip";
 
 export default function OGSection({
   props,
@@ -63,8 +63,6 @@ export default function OGSection({
     }
   }, [proxy]);
 
-  const randomIdx = Math.floor(Math.random() * 100);
-
   return (
     <div className="grid gap-5 border-b border-gray-200 pb-5">
       <div className="flex items-center justify-between">
@@ -72,7 +70,15 @@ export default function OGSection({
           <h2 className="text-sm font-medium text-gray-900">
             Custom Social Media Cards
           </h2>
-          <InfoTooltip content="Customize the title, description, and thumbnail image that will be shown when you share this link on social media." />
+          <InfoTooltip
+            content={
+              <SimpleTooltipContent
+                title="Customize how your links look when shared on social media."
+                cta="Learn more."
+                href={`${HOME_DOMAIN}/help/article/how-to-create-link#custom-social-media-cards`}
+              />
+            }
+          />
         </div>
         <Switch
           fn={() => setData((prev) => ({ ...prev, proxy: !proxy }))}
@@ -92,7 +98,7 @@ export default function OGSection({
               {fileError && <p className="text-sm text-red-500">{fileError}</p>}
             </div>
             <label
-              htmlFor={`image-${randomIdx}`}
+              htmlFor="image"
               className="group relative mt-1 flex h-[14rem] cursor-pointer flex-col items-center justify-center rounded-md border border-gray-300 bg-white shadow-sm transition-all hover:bg-gray-50"
             >
               {generatingMetatags && (
@@ -180,7 +186,7 @@ export default function OGSection({
             </label>
             <div className="mt-1 flex rounded-md shadow-sm">
               <input
-                id={`image-${randomIdx}`}
+                id="image"
                 name="image"
                 type="file"
                 accept="image/*"
@@ -203,7 +209,7 @@ export default function OGSection({
               )}
               <TextareaAutosize
                 name="title"
-                id={`title-${randomIdx}`}
+                id="title"
                 minRows={3}
                 maxLength={120}
                 className="block w-full rounded-md border-gray-300 pr-10 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
@@ -234,7 +240,7 @@ export default function OGSection({
               )}
               <TextareaAutosize
                 name="description"
-                id={`description-${randomIdx}`}
+                id="description"
                 minRows={3}
                 maxLength={240}
                 className="block w-full rounded-md border-gray-300 pr-10 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"

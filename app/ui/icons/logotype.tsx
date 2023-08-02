@@ -8,7 +8,7 @@ export default function LogoType({ className }: { className?: string }) {
       viewBox="0 0 834 236"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className={cn("h-6 w-fit", className)}
+      className={cn("h-6 w-24", className)}
     >
       <path
         d="M266 119.5C266 181.632 215.632 232 153.5 232C91.368 232 41 181.632 41 119.5C41 57.368 91.368 7 153.5 7C215.632 7 266 57.368 266 119.5Z"

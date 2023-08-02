@@ -1,10 +1,9 @@
-import { unstable_cache } from "next/cache";
-import prisma from "#/lib/prisma";
 import { nFormatter } from "#/lib/utils";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import TestimonialsMobile from "./testimonials-mobile";
 import Tweet from "#/ui/tweet";
 import { getTweet, Tweet as TweetProps } from "react-tweet/api";
+import { getTotalUsers } from "#/lib/planetscale";
 
 const tweets = [
   "1631671657617059842",
@@ -25,19 +24,12 @@ const tweets = [
 ];
 
 export default async function Testimonials() {
-  const userCount = await unstable_cache(
-    async () => {
-      return prisma.user.count();
-    },
-    [],
-    {
-      revalidate: 300,
-    },
-  )();
-
-  const tweetsData = (
-    await Promise.all(tweets.map((id) => getTweet(id)))
-  ).filter((t) => t) as TweetProps[];
+  const [userCount, tweetsData] = await Promise.all([
+    getTotalUsers(),
+    (
+      await Promise.all(tweets.map((id) => getTweet(id)))
+    ).filter((t) => t) as TweetProps[],
+  ]);
 
   return (
     <MaxWidthWrapper className="pt-20">

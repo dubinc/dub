@@ -48,6 +48,7 @@ export const HOME_DOMAIN =
 export const APP_HOSTNAMES = new Set([
   "app.dub.sh",
   "app.localhost:3000",
+  "app.localhost",
   "preview.dub.sh",
 ]);
 
@@ -94,6 +95,8 @@ export const SHOW_BACKGROUND_SEGMENTS = new Set([
   "metatags",
   "pricing",
   "help",
+  "blog",
+  "(blog-post)",
   "login",
   "register",
 ]);

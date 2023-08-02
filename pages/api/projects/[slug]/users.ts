@@ -32,6 +32,27 @@ export default withProjectAuth(async (req, res, project) => {
     if (!userId) {
       return res.status(400).end("Missing userId");
     }
+
+    const projectUser = await prisma.projectUsers.findUnique({
+      where: {
+        userId_projectId: {
+          projectId: project.id,
+          userId,
+        },
+      },
+      select: {
+        role: true,
+      },
+    });
+
+    if (projectUser?.role === "owner") {
+      return res
+        .status(400)
+        .end(
+          "Cannot remove owner from project. Please transfer ownership to another user first.",
+        );
+    }
+
     const response = await prisma.projectUsers.delete({
       where: {
         userId_projectId: {

@@ -5,7 +5,7 @@ import { Calendar, Share2, ChevronDown, Lock } from "lucide-react";
 import { ExpandingArrow } from "#/ui/icons";
 import { INTERVALS } from "#/lib/stats";
 import useScroll from "#/lib/hooks/use-scroll";
-import { linkConstructor } from "#/lib/utils";
+import { cn, linkConstructor } from "#/lib/utils";
 import IconMenu from "@/components/shared/icon-menu";
 import Popover from "#/ui/popover";
 import useSWR, { mutate } from "swr";
@@ -18,15 +18,14 @@ import Tooltip, { TooltipContent } from "#/ui/tooltip";
 import { ModalContext } from "#/ui/modal-provider";
 import punycode from "punycode/";
 
-export default function Toggle({ atModalTop }: { atModalTop?: boolean }) {
+export default function Toggle() {
   const router = useRouter();
   const { slug: projectSlug } = router.query as { slug?: string };
 
-  const { basePath, domain, interval, key } = useContext(StatsContext);
+  const { basePath, domain, interval, key, modal } = useContext(StatsContext);
   const { setShowAddProjectModal, setShowUpgradePlanModal } =
     useContext(ModalContext);
 
-  const atTop = useScroll(80) || atModalTop;
   const [openDatePopover, setOpenDatePopover] = useState(false);
 
   const selectedInterval = useMemo(() => {
@@ -34,12 +33,15 @@ export default function Toggle({ atModalTop }: { atModalTop?: boolean }) {
   }, [interval]);
 
   const { plan } = useProject();
+  const scrolled = useScroll(80);
 
   return (
     <div
-      className={`z-10 mb-5 ${
-        basePath.startsWith("/stats") ? "top-0" : "top-[6.95rem]"
-      } sticky bg-gray-50 py-3 sm:py-5 ${atTop ? "shadow-md" : ""}`}
+      className={cn("sticky top-[6.95rem] z-10 mb-5 bg-gray-50 py-3 md:py-5", {
+        "top-14": basePath.startsWith("/stats"),
+        "top-6": modal,
+        "shadow-md": scrolled && !modal,
+      })}
     >
       <div className="mx-auto flex max-w-4xl flex-col items-center justify-between space-y-3 px-2.5 sm:flex-row sm:space-y-0 lg:px-0">
         <a

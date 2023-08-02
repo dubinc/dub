@@ -17,6 +17,7 @@ module.exports = {
       animation: {
         // Modal
         "scale-in": "scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+        "fade-in": "fade-in 0.3s ease-out forwards",
         // Input Select
         "input-select-slide-up":
           "input-select-slide-up 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
@@ -46,6 +47,10 @@ module.exports = {
         "scale-in": {
           "0%": { transform: "scale(0.95)" },
           "100%": { transform: "scale(1)" },
+        },
+        "fade-in": {
+          "0%": { opacity: 0 },
+          "100%": { opacity: 1 },
         },
         // Input Select
         "input-select-slide-up": {

@@ -29,6 +29,7 @@ export default function ProjectDomains() {
                   <TooltipContent
                     title="Learn more about how to add, configure, and verify custom domains on Dub."
                     href={`${HOME_DOMAIN}/help/article/how-to-add-custom-domain`}
+                    target="_blank"
                     cta="Learn more"
                   />
                 }

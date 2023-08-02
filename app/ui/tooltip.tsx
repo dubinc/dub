@@ -12,7 +12,7 @@ import { ExternalLink, Globe, GlobeIcon, HelpCircle } from "lucide-react";
 import { DomainProps } from "#/lib/types";
 import { CheckCircleFill, XCircleFill } from "@/components/shared/icons";
 import { Drawer } from "vaul";
-import useWindowSize from "#/lib/hooks/use-window-size";
+import useMediaQuery from "#/lib/hooks/use-media-query";
 
 export default function Tooltip({
   children,
@@ -23,13 +23,13 @@ export default function Tooltip({
   content: ReactNode | string;
   fullWidth?: boolean;
 }) {
-  const { isMobile } = useWindowSize();
+  const { isMobile } = useMediaQuery();
 
   if (isMobile) {
     return (
-      <Drawer.Root shouldScaleBackground>
+      <Drawer.Root>
         <Drawer.Trigger
-          className={`${fullWidth ? "w-full" : "inline-flex"} sm:hidden`}
+          className={`${fullWidth ? "w-full" : "inline-flex"} md:hidden`}
           onClick={(e) => {
             e.stopPropagation();
           }}
@@ -39,7 +39,9 @@ export default function Tooltip({
         <Drawer.Overlay className="fixed inset-0 z-40 bg-gray-100 bg-opacity-10 backdrop-blur" />
         <Drawer.Portal>
           <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 mt-24 rounded-t-[10px] border-t border-gray-200 bg-white">
-            <div className="mx-auto my-3 h-1 w-12 rounded-full bg-gray-300" />
+            <div className="sticky top-0 z-20 flex w-full items-center justify-center rounded-t-[10px] bg-inherit">
+              <div className="my-3 h-1 w-12 rounded-full bg-gray-300" />
+            </div>
             <div className="flex min-h-[150px] w-full items-center justify-center overflow-hidden bg-white align-middle shadow-xl">
               {typeof content === "string" ? (
                 <span className="block text-center text-sm text-gray-700">
@@ -58,26 +60,26 @@ export default function Tooltip({
   return (
     <TooltipPrimitive.Provider delayDuration={100}>
       <TooltipPrimitive.Root>
-        <TooltipPrimitive.Trigger className="hidden sm:inline-flex" asChild>
+        <TooltipPrimitive.Trigger className="hidden md:inline-flex" asChild>
           {children}
         </TooltipPrimitive.Trigger>
-        <TooltipPrimitive.Portal>
-          <TooltipPrimitive.Content
-            sideOffset={8}
-            side="top"
-            className="z-50 hidden animate-slide-up-fade items-center overflow-hidden rounded-md border border-gray-100 bg-white shadow-md sm:block"
-          >
-            {typeof content === "string" ? (
-              <div className="px-4 py-2">
-                <span className="block max-w-xs text-center text-sm text-gray-700">
-                  {content}
-                </span>
-              </div>
-            ) : (
-              content
-            )}
-          </TooltipPrimitive.Content>
-        </TooltipPrimitive.Portal>
+        {/* 
+            We don't use TooltipPrimitive.Portal here because for some reason it 
+            prevents you from selecting the contents of a tooltip when used inside a modal 
+        */}
+        <TooltipPrimitive.Content
+          sideOffset={8}
+          side="top"
+          className="z-[99] hidden animate-slide-up-fade items-center overflow-hidden rounded-md border border-gray-200 bg-white shadow-md md:block"
+        >
+          {typeof content === "string" ? (
+            <div className="block max-w-xs px-4 py-2 text-center text-sm text-gray-700">
+              {content}
+            </div>
+          ) : (
+            content
+          )}
+        </TooltipPrimitive.Content>
       </TooltipPrimitive.Root>
     </TooltipPrimitive.Provider>
   );
@@ -87,20 +89,23 @@ export function TooltipContent({
   title,
   cta,
   href,
+  target,
   onClick,
 }: {
   title: string;
   cta?: string;
   href?: string;
+  target?: string;
   onClick?: () => void;
 }) {
   return (
-    <div className="flex flex-col items-center space-y-3 p-4 text-center sm:max-w-xs">
+    <div className="flex flex-col items-center space-y-3 p-4 text-center md:max-w-xs">
       <p className="text-sm text-gray-700">{title}</p>
       {cta &&
         (href ? (
           <Link
             href={href}
+            {...(target ? { target } : {})}
             className="mt-4 w-full rounded-md border border-black bg-black px-3 py-1.5 text-center text-sm text-white transition-all hover:bg-white hover:text-black"
           >
             {cta}
@@ -113,6 +118,30 @@ export function TooltipContent({
             {cta}
           </button>
         ) : null)}
+    </div>
+  );
+}
+
+export function SimpleTooltipContent({
+  title,
+  cta,
+  href,
+}: {
+  title: string;
+  cta: string;
+  href: string;
+}) {
+  return (
+    <div className="max-w-xs px-4 py-2 text-center text-sm text-gray-700">
+      {title}{" "}
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex text-gray-500 underline underline-offset-4 hover:text-gray-800"
+      >
+        {cta}
+      </a>
     </div>
   );
 }
@@ -168,7 +197,7 @@ export function DomainsTooltip({
 }) {
   return (
     <div
-      className="flex w-full flex-col items-center space-y-2 p-4 sm:w-60"
+      className="flex w-full flex-col items-center space-y-2 p-4 md:w-60"
       onClick={(e) => e.stopPropagation()}
     >
       <p className="px-2 text-sm text-gray-500">{title}</p>
@@ -189,7 +218,7 @@ export function DomainsTooltip({
               )}
               <p className="text-sm font-semibold text-gray-500">{slug}</p>
             </div>
-            <ExternalLink className="h-4 w-4 text-gray-500 sm:invisible sm:group-hover:visible" />
+            <ExternalLink className="h-4 w-4 text-gray-500 md:invisible md:group-hover:visible" />
           </a>
         ))}
       </div>
