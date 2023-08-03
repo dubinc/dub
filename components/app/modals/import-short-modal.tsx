@@ -36,10 +36,15 @@ function ImportShortModal({
     fetcher,
     {
       revalidateOnFocus: false,
+      revalidateOnMount: false,
       revalidateOnReconnect: false,
+      refreshWhenOffline: false,
+      refreshWhenHidden: false,
       refreshInterval: 0,
       onError: (err) => {
-        toast.error(err.message);
+        if (err.message !== "No Short.io access token found") {
+          toast.error(err.message);
+        }
       },
     },
   );
@@ -55,6 +60,7 @@ function ImportShortModal({
 
   useEffect(() => {
     if (importSource === "short") {
+      mutate(`/api/projects/${slug}/import/short`);
       setShowImportShortModal(true);
     } else {
       setShowImportShortModal(false);

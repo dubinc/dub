@@ -40,8 +40,16 @@ function ImportBitlyModal({
     fetcher,
     {
       revalidateOnFocus: false,
+      revalidateOnMount: false,
       revalidateOnReconnect: false,
+      refreshWhenOffline: false,
+      refreshWhenHidden: false,
       refreshInterval: 0,
+      onError: (err) => {
+        if (err.message !== "No Bitly access token found") {
+          toast.error(err.message);
+        }
+      },
     },
   );
 
@@ -58,6 +66,7 @@ function ImportBitlyModal({
 
   useEffect(() => {
     if (importSource === "bitly") {
+      mutate(`/api/projects/${slug}/import/bitly`);
       setShowImportBitlyModal(true);
     } else {
       setShowImportBitlyModal(false);

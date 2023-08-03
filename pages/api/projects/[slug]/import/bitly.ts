@@ -10,7 +10,7 @@ export default withProjectAuth(async (req, res, project) => {
   if (req.method === "GET") {
     const accessToken = await redis.get(`import:bitly:${project.id}`);
     if (!accessToken) {
-      return res.status(200).end("No Bitly access token found");
+      return res.status(400).end("No Bitly access token found");
     }
 
     const response = await fetch(`https://api-ssl.bitly.com/v4/groups`, {
