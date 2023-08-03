@@ -30,7 +30,7 @@ export default function Stats({ staticDomain }: { staticDomain?: string }) {
   const {
     slug,
     domain: domainSlug,
-    key,
+    key = "_root", // if key is undefined, it's the root domain stats page (e.g. app.dub.sh/steven/stey.me)
     interval = "24h",
   } = router.query as {
     slug?: string;
@@ -52,7 +52,10 @@ export default function Stats({ staticDomain }: { staticDomain?: string }) {
     // Project link page, e.g. app.dub.sh/dub/dub.sh/github
     if (slug && domainSlug && key) {
       return {
-        basePath: `/${slug}/${domainSlug}/${encodeURIComponent(key)}`,
+        // for _root domain stats page (e.g. app.dub.sh/steven/stey.me), we don't want to show the key in the URL
+        basePath: `/${slug}/${domainSlug}${
+          key === "_root" ? "" : `/${encodeURIComponent(key)}`
+        }`,
         domain: domainSlug,
         endpoint: `/api/links/${encodeURIComponent(key)}/stats`,
       };

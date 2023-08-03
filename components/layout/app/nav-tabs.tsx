@@ -8,16 +8,18 @@ import useUsers from "#/lib/swr/use-users";
 import Badge from "#/ui/badge";
 
 const TabsHelper = (router: NextRouter): { name: string; href: string }[] => {
-  const { slug, key } = router.query as {
+  const { slug, domain, key } = router.query as {
     slug?: string;
+    domain?: string;
     key?: string;
   };
   if (key) {
-    if (key === "_root") {
-      return [{ name: "← All Domains", href: `/${slug}/domains` }];
-    } else {
-      return [{ name: "← All Links", href: `/${slug || "links"}` }];
-    }
+    // link stats page (e.g. app.dub.sh/steven/stey.me/devrel, app.dub.sh/links/github)
+    return [{ name: "← All Links", href: `/${slug || "links"}` }];
+  } else if (domain) {
+    // root domain stats page (e.g. app.dub.sh/steven/stey.me)
+    return [{ name: "← All Domains", href: `/${slug}/domains` }];
+    // project pages (e.g. app.dub.sh/steven, app.dub.sh/steven/settings)
   } else if (slug) {
     return [
       { name: "Links", href: `/${slug}` },
@@ -25,6 +27,7 @@ const TabsHelper = (router: NextRouter): { name: string; href: string }[] => {
       { name: "Settings", href: `/${slug}/settings` },
     ];
   }
+  // home page (e.g. app.dub.sh, app.dub.sh/settings)
   return [
     { name: "Projects", href: `/` },
     { name: "Dub.sh Links", href: `/links` },
