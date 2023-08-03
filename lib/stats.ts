@@ -121,6 +121,8 @@ export const getStats = async ({
     return null;
   }
 
+  // Note: we're doing decodeURIComponent here because that's how we store it in MySQL and Tinybird
+
   if (!VALID_TINYBIRD_ENDPOINTS.has(endpoint)) {
     return null;
   }
@@ -133,7 +135,7 @@ export const getStats = async ({
   if (endpoint === "clicks" && key !== "_root" && !interval && conn) {
     const response = await conn.execute(
       "SELECT clicks FROM Link WHERE domain = ? AND `key` = ?",
-      [domain, key],
+      [domain, decodeURIComponent(key)],
     );
     try {
       const clicks = response.rows[0]["clicks"];
@@ -147,7 +149,7 @@ export const getStats = async ({
     `https://api.us-east.tinybird.co/v0/pipes/${endpoint}.json`,
   );
   url.searchParams.append("domain", domain);
-  url.searchParams.append("key", key);
+  url.searchParams.append("key", decodeURIComponent(key));
 
   if (interval) {
     url.searchParams.append(

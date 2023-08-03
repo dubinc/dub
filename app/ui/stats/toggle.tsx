@@ -153,7 +153,9 @@ const SharePopover = () => {
         if (res.status === 200) {
           mutate(`${endpoint}${queryString}`);
           !publicStats &&
-            navigator.clipboard.writeText(`https://${domain}/stats/${key}`);
+            navigator.clipboard.writeText(
+              `https://${domain}/stats/${encodeURIComponent(key)}`,
+            );
           // artificial delay to sync toast with the switch change
           await new Promise((r) => setTimeout(r, 200));
         }
@@ -200,14 +202,14 @@ const SharePopover = () => {
             <div className="divide-x-200 mt-2 flex items-center justify-between divide-x overflow-hidden rounded-md border border-gray-200 bg-gray-100">
               <div className="overflow-scroll pl-2 scrollbar-hide">
                 <p className="whitespace-nowrap text-gray-600">
-                  https://{domain}/stats/{key}
+                  https://{domain}/stats/{encodeURIComponent(key)}
                 </p>
               </div>
               <button
                 className="h-8 flex-none border-l bg-white px-2 hover:bg-gray-50 active:bg-gray-100"
                 onClick={() => {
                   navigator.clipboard.writeText(
-                    `https://${domain}/stats/${key}`,
+                    `https://${domain}/stats/${encodeURIComponent(key)}`,
                   );
                   setCopied(true);
                   toast.success("Copied to clipboard");
