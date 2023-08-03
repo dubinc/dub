@@ -21,10 +21,17 @@ If you're using a domain on Cloudflare for your Dub project, you might need to c
 
 If you're using Cloudflare's proxy for your custom domain, you'll need to make sure that your SSL/TLS encryption mode is set to "Full" on Cloudflare.
 
+<Image
+  alt="Using Cloudflare's proxy for your custom domain"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/cloudflare-with-proxy.png"
+  width={1304}
+  height={372}
+/>
+
 You can do that by following these steps:
 
 1. Go to your Cloudflare dashboard and select your domain.
-2. Click on the **SSL/TLS** tab.
+2. Click on the **SSL/TLS** tab on the sidebar menu.
 3. Under **Overview**, select the **Full** option.
 
 <Image
@@ -42,9 +49,9 @@ If you're only using Cloudflare's DNS for your custom domain, all you need to do
 
 <Image
   alt={`Set your domain's Proxy status to "DNS only" on Cloudflare (greyed out cloud icon)`}
-  src="https://d2vwwcvoksz7ty.cloudfront.net/help/cloudflare-dns-only.png"
-  width={3634}
-  height={1052}
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/cloudflare-without-proxy.png"
+  width={1304}
+  height={372}
 />
 
 This will make sure that the traffic to your domain is _not proxied through Cloudflare_ and is sent directly to Dub. You can learn more about Cloudflare's proxy options [here](https://support.cloudflare.com/hc/en-us/articles/200169626-Identifying-network-ports-compatible-with-Cloudflare-s-proxy).

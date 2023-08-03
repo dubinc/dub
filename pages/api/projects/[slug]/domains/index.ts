@@ -29,6 +29,12 @@ export default withProjectAuth(async (req, res, project) => {
         domainError: validDomain,
       });
     }
+    const vercelResponse = await addDomainToVercel(domain);
+    if (vercelResponse.error) {
+      return res.status(422).json({
+        domainError: vercelResponse.error.message,
+      });
+    }
     /* 
         If the domain is being added, we need to:
           1. Add the domain to Vercel
@@ -37,7 +43,6 @@ export default withProjectAuth(async (req, res, project) => {
           4. Add the domain to the database along with its primary status
       */
     const response = await Promise.allSettled([
-      addDomainToVercel(domain),
       target &&
         redis.set(`root:${domain}`, {
           target,

@@ -167,9 +167,11 @@ function AddEditDomainModal({
               const { domainError: domainErrorResponse } = await res.json();
               if (domainErrorResponse) {
                 setDomainError(domainErrorResponse);
+                toast.error(domainErrorResponse);
               }
             } else {
               setDomainError("Something went wrong. Please try again.");
+              toast.error("Something went wrong. Please try again.");
             }
           });
         }}

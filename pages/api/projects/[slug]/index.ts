@@ -43,7 +43,12 @@ export default withProjectAuth(async (req, res, project) => {
 
     // delete all domains, links, and uploaded images associated with the project
     const deleteDomainsResponse = await Promise.allSettled(
-      domains.map((domain) => deleteDomainAndLinks(domain)),
+      domains.map((domain) =>
+        deleteDomainAndLinks(domain, {
+          // here, we don't need to delete in prisma because we're deleting the project later and have onDelete: CASCADE set
+          skipPrismaDelete: true,
+        }),
+      ),
     );
 
     const deleteProjectResponse = await Promise.all([
