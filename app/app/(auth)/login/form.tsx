@@ -7,7 +7,7 @@ import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import Button from "#/ui/button";
 import { Google } from "@/components/shared/icons";
-import { InfoTooltip, SSOWaitlist, SimpleTooltipContent } from "#/ui/tooltip";
+import { InfoTooltip, SimpleTooltipContent } from "#/ui/tooltip";
 import { HOME_DOMAIN } from "#/lib/constants";
 
 export default function LoginForm() {
