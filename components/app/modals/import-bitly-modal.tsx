@@ -20,6 +20,7 @@ import useSWR, { mutate } from "swr";
 import { BitlyGroupProps } from "#/lib/types";
 import Tooltip from "#/ui/tooltip";
 import { fetcher } from "#/lib/utils";
+import { HOME_DOMAIN } from "#/lib/constants";
 
 function ImportBitlyModal({
   showImportBitlyModal,
@@ -35,12 +36,20 @@ function ImportBitlyModal({
   const [redirecting, setRedirecting] = useState(false);
 
   const { data: groups, isLoading } = useSWR<BitlyGroupProps[]>(
-    slug && `/api/projects/${slug}/import/bitly`,
+    slug && showImportBitlyModal && `/api/projects/${slug}/import/bitly`,
     fetcher,
     {
       revalidateOnFocus: false,
+      revalidateOnMount: false,
       revalidateOnReconnect: false,
+      refreshWhenOffline: false,
+      refreshWhenHidden: false,
       refreshInterval: 0,
+      onError: (err) => {
+        if (err.message !== "No Bitly access token found") {
+          toast.error(err.message);
+        }
+      },
     },
   );
 
@@ -56,7 +65,8 @@ function ImportBitlyModal({
   const { setPollLinks } = useContext(ModalContext);
 
   useEffect(() => {
-    if (importSource) {
+    if (importSource === "bitly") {
+      mutate(`/api/projects/${slug}/import/bitly`);
       setShowImportBitlyModal(true);
     } else {
       setShowImportBitlyModal(false);
@@ -90,7 +100,7 @@ function ImportBitlyModal({
           <img
             src="/_static/icons/bitly.svg"
             alt="Bitly logo"
-            className="h-10 w-10 rounded-full border border-gray-200"
+            className="h-10 w-10 rounded-full"
           />
           <ArrowRight className="h-5 w-5 text-gray-600" />
           <Logo />
@@ -214,22 +224,31 @@ function ImportBitlyModal({
             </a>
           </form>
         ) : (
-          <Button
-            text="Sign in with Bitly"
-            variant="secondary"
-            loading={redirecting}
-            icon={
-              <img
-                src="/_static/icons/bitly.svg"
-                alt="Bitly logo"
-                className="h-5 w-5 rounded-full border border-gray-200"
-              />
-            }
-            onClick={() => {
-              setRedirecting(true);
-              router.push(bitlyOAuthURL);
-            }}
-          />
+          <div className="flex flex-col space-y-2">
+            <Button
+              text="Sign in with Bitly"
+              variant="secondary"
+              loading={redirecting}
+              icon={
+                <img
+                  src="/_static/icons/bitly.svg"
+                  alt="Bitly logo"
+                  className="h-5 w-5 rounded-full border border-gray-200"
+                />
+              }
+              onClick={() => {
+                setRedirecting(true);
+                router.push(bitlyOAuthURL);
+              }}
+            />
+            <a
+              href={`${HOME_DOMAIN}/help/article/migrating-from-bitly`}
+              target="_blank"
+              className="text-center text-xs text-gray-500 underline underline-offset-4 transition-colors hover:text-gray-800"
+            >
+              Read the guide
+            </a>
+          </div>
         )}
       </div>
     </Modal>

@@ -29,7 +29,7 @@ export const getLinkViaEdge = async (domain: string, key: string) => {
   const { rows } =
     (await conn.execute(
       "SELECT `key`, url, proxy, title, description, image, clicks, userId, publicStats FROM Link WHERE domain = ? AND `key` = ?",
-      [domain, key],
+      [domain, decodeURIComponent(key)], // we need to make sure that the key is always decoded (cause that's how we store it in MySQL)
     )) || {};
 
   return rows && Array.isArray(rows) && rows.length > 0

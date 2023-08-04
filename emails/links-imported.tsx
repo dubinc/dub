@@ -126,21 +126,23 @@ export default function LinksImported({
                 ))}
               </Section>
             )}
-            <Section className="my-8 text-center">
-              <Link
-                className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                href={`https://app.dub.sh/${projectSlug}`}
-              >
-                View {Intl.NumberFormat("en-us").format(count - 5)} more links
-              </Link>
-            </Section>
+            {links.length > 5 && (
+              <Section className="my-8 text-center">
+                <Link
+                  className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
+                  href={`https://app.dub.sh/${projectSlug}`}
+                >
+                  View {Intl.NumberFormat("en-us").format(count - 5)} more links
+                </Link>
+              </Section>
+            )}
             <Text className="text-sm leading-6 text-black">
               If you haven't already{" "}
               <Link
-                href={`https://app.dub.sh/${projectSlug}/domains`}
+                href="https://dub.sh/help/article/how-to-add-custom-domain#step-2-configure-your-domain"
                 className="font-medium text-blue-600 no-underline"
               >
-                verified your domain{domains.length > 1 ? "s" : ""}
+                configured your domain{domains.length > 1 ? "s" : ""}
               </Link>
               , you will need to do it before you can start using your links.
             </Text>

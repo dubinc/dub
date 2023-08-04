@@ -229,7 +229,13 @@ export async function changeDomainForImages(domain: string, newDomain: string) {
 }
 
 /* Delete a domain and all links & images associated with with */
-export async function deleteDomainAndLinks(domain: string) {
+export async function deleteDomainAndLinks(
+  domain: string,
+  {
+    // Note: in certain cases, we don't need to remove the domain from the Prisma
+    skipPrismaDelete = false,
+  } = {},
+) {
   const links = await prisma.link.findMany({
     where: {
       domain,
@@ -246,11 +252,11 @@ export async function deleteDomainAndLinks(domain: string) {
     cloudinary.v2.api.delete_resources_by_prefix(domain),
     // remove the domain from Vercel
     removeDomainFromVercel(domain),
-    // remove the domain from the database
-    prisma.domain.delete({
-      where: {
-        slug: domain,
-      },
-    }),
+    !skipPrismaDelete &&
+      prisma.domain.delete({
+        where: {
+          slug: domain,
+        },
+      }),
   ]);
 }

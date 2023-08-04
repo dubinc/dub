@@ -55,6 +55,8 @@ export default function Stats({
   const pathname = usePathname();
   const router = useRouter();
 
+  // Note: interestingly, useParams() returns `key` as encoded, unlike useRouter().query
+  // so we don't need to do encodeURIComponent() here
   let {
     slug,
     domain: domainSlug,
@@ -81,25 +83,25 @@ export default function Stats({
     // Project link page, e.g. app.dub.sh/dub/dub.sh/github
     if (slug && domainSlug && key) {
       return {
-        basePath: `/${slug}/${domainSlug}/${encodeURIComponent(key)}`,
+        basePath: `/${slug}/${domainSlug}/${key}`,
         domain: domainSlug,
-        endpoint: `/api/links/${encodeURIComponent(key)}/stats`,
+        endpoint: `/api/links/${key}/stats`,
       };
 
       // Generic Dub.sh link page, e.g. app.dub.sh/links/steven
     } else if (key && pathname?.startsWith("/links")) {
       return {
-        basePath: `/links/${encodeURIComponent(key)}`,
+        basePath: `/links/${key}`,
         domain: "dub.sh",
-        endpoint: `/api/links/${encodeURIComponent(key)}/stats`,
+        endpoint: `/api/links/${key}/stats`,
       };
     }
 
     // Public stats page, e.g. dub.sh/stats/github, stey.me/stats/weathergpt
     return {
-      basePath: `/stats/${encodeURIComponent(key)}`,
+      basePath: `/stats/${key}`,
       domain: staticDomain,
-      endpoint: `/api/edge/links/${encodeURIComponent(key)}/stats`,
+      endpoint: `/api/edge/links/${key}/stats`,
     };
   }, [slug, key, pathname]);
 
@@ -111,7 +113,7 @@ export default function Stats({
         endpoint, // endpoint for the API (e.g. /api/edge/links/[key]/stats)
         queryString, // query string for the API (e.g. ?interval=24h&domain=dub.sh, ?interval=24h, etc.)
         interval, // time interval (e.g. 24h, 7d, 30d, etc.)
-        key, // link key (e.g. github, weathergpt, etc.)
+        key: decodeURIComponent(key), // link key (e.g. github, weathergpt, etc.)
         modal, // whether or not this is a modal
       }}
     >
@@ -128,7 +130,7 @@ export default function Stats({
         <Toggle />
         <div className="mx-auto grid max-w-4xl gap-5">
           <Clicks />
-          <div className="z-10 grid grid-cols-1 gap-5 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <Locations />
             <Devices />
             <Referer />

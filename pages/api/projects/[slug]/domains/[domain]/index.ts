@@ -48,6 +48,15 @@ export default withProjectAuth(async (req, res, project) => {
       });
     }
 
+    if (newDomain !== domain) {
+      const vercelResponse = await addDomainToVercel(newDomain);
+      if (vercelResponse.error) {
+        return res.status(422).json({
+          domainError: vercelResponse.error.message,
+        });
+      }
+    }
+
     const response = await Promise.allSettled([
       // if the domain is being changed, we need to:
       //  1. Remove the old domain from Vercel
@@ -56,9 +65,7 @@ export default withProjectAuth(async (req, res, project) => {
       //  4. Update all images in the project to point to the new domain
       ...(newDomain !== domain
         ? [
-            removeDomainFromVercel(domain).then(() =>
-              addDomainToVercel(newDomain),
-            ),
+            removeDomainFromVercel(domain),
             changeDomainForLinks(domain, newDomain),
             changeDomainForImages(domain, newDomain),
           ]

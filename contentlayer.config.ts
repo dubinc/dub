@@ -111,6 +111,7 @@ export const HelpPost = defineDocumentType(() => ({
           "getting-started",
           "link-management",
           "custom-domains",
+          "migrating",
           "api",
         ],
         default: "overview",

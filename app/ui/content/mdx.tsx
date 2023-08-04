@@ -1,18 +1,20 @@
-"use client";
-
 import Link from "next/link";
 import { useMDXComponent } from "next-contentlayer/hooks";
 import GithubRepo, { GithubRepoProps } from "@/components/shared/github-repo";
-import BlurImage from "#/ui/blur-image";
 import MDXTweet from "#/ui/tweet";
 import { Tweet as TweetProps } from "react-tweet/api";
-import useMediaQuery from "#/lib/hooks/use-media-query";
 import { cn } from "#/lib/utils";
-import Zoom from "react-medium-image-zoom";
 import "react-medium-image-zoom/dist/styles.css";
-import { HELP_CATEGORIES, getPopularArticles } from "#/lib/constants/content";
+import {
+  HELP_CATEGORIES,
+  POPULAR_ARTICLES,
+  getPopularArticles,
+} from "#/lib/constants/content";
 import ArticleLink from "./article-link";
 import CategoryCard from "./category-card";
+import { ListChecks } from "lucide-react";
+import ZoomImage from "./zoom-image";
+import { allHelpPosts } from "contentlayer/generated";
 
 const CustomLink = (props: any) => {
   const href = props.href;
@@ -60,10 +62,22 @@ const components = {
       {...props}
     />
   ),
-  PopularArticles: () => (
+  Prerequisites: (props: any) => (
+    <div className="mt-4 rounded-md border border-gray-200 bg-white px-6 py-1 text-[0.95rem] leading-[1.4rem] shadow-md">
+      <div className="-mb-6 flex items-center space-x-2 text-gray-600">
+        <ListChecks size={20} />
+        <p className="text-sm font-medium uppercase">Prerequisites</p>
+      </div>
+      {props.children}
+    </div>
+  ),
+  HelpArticles: (props: { articles: string[] }) => (
     <div className="not-prose grid gap-2 rounded-xl border border-gray-200 bg-white p-4">
-      {getPopularArticles().map((article) => (
-        <ArticleLink key={article.slug} article={article} />
+      {(props.articles || POPULAR_ARTICLES).map((slug) => (
+        <ArticleLink
+          key={slug}
+          article={allHelpPosts.find((post) => post.slug === slug)!}
+        />
       ))}
     </div>
   ),
@@ -99,7 +113,6 @@ interface MDXProps {
 
 export function MDX({ code, images, tweets, repos, className }: MDXProps) {
   const Component = useMDXComponent(code);
-  const { isDesktop } = useMediaQuery();
 
   const MDXImage = (props: any) => {
     if (!images) return null;
@@ -107,27 +120,7 @@ export function MDX({ code, images, tweets, repos, className }: MDXProps) {
       (image) => image.src === props.src,
     )?.blurDataURL;
 
-    return (
-      // we need to wrap the image in a HTML element or showModal will throw errors
-      <>
-        <figure className="not-prose flex flex-col items-center justify-center space-y-3">
-          <Zoom zoomMargin={isDesktop ? 45 : undefined}>
-            <BlurImage
-              {...props}
-              className="rounded-lg border border-gray-200"
-              placeholder="blur"
-              blurDataURL={
-                blurDataURL ||
-                "data:image/webp;base64,AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
-              }
-            />
-          </Zoom>
-          <figcaption className="text-center text-sm italic text-gray-500">
-            {props.alt}
-          </figcaption>
-        </figure>
-      </>
-    );
+    return <ZoomImage {...props} blurDataURL={blurDataURL} />;
   };
 
   const Tweet = ({ id }: { id: string }) => {

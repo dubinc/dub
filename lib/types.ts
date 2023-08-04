@@ -62,7 +62,7 @@ export interface ProjectProps {
     slug: string;
   }[];
   users?: {
-    role: string;
+    role: "owner" | "member";
   }[];
 }
 
@@ -106,4 +106,10 @@ export interface BitlyGroupProps {
   guid: string;
   bsds: string[]; // custom domains
   tags: string[];
+}
+
+export interface ShortioDomainProps {
+  id: number;
+  domain: string;
+  links: number;
 }

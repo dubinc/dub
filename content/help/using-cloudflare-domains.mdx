@@ -1,0 +1,57 @@
+---
+title: Using Cloudflare domains with Dub
+updatedAt: 2023-08-03
+summary: Learn how to use Cloudflare domains for your Dub project
+author: steventey
+categories:
+  - custom-domains
+related:
+  - how-to-add-custom-domain
+  - how-to-redirect-root-domain
+---
+
+If you're using a domain on Cloudflare for your Dub project, you might need to configure a few extra steps to make sure that your domain works properly.
+
+<Prerequisites>
+  If you haven't already, you'll need to add your domain to your Dub project.
+  You can learn how to do that [here](how-to-add-custom-domain).
+</Prerequisites>
+
+## Using Cloudflare's Proxy
+
+If you're using Cloudflare's proxy for your custom domain, you'll need to make sure that your SSL/TLS encryption mode is set to "Full" on Cloudflare.
+
+<Image
+  alt="Using Cloudflare's proxy for your custom domain"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/cloudflare-with-proxy.png"
+  width={1304}
+  height={372}
+/>
+
+You can do that by following these steps:
+
+1. Go to your Cloudflare dashboard and select your domain.
+2. Click on the **SSL/TLS** tab on the sidebar menu.
+3. Under **Overview**, select the **Full** option.
+
+<Image
+  alt={`SSL/TLS encryption mode needs to be set to "Full" on Cloudflare`}
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/cloudflare-domain-full.png"
+  width={1822}
+  height={1088}
+/>
+
+This will make sure that the traffic to your domain is always encrypted between Cloudflare and Dub. You can learn more about Cloudflare's SSL/TLS encryption modes [here](https://developers.cloudflare.com/ssl/origin-configuration/ssl-modes/).
+
+## Using Cloudflare's DNS only (without proxy)
+
+If you're only using Cloudflare's DNS for your custom domain, all you need to do is [set your domain's DNS records](how-to-add-custom-domain#step-2-configure-your-domain) to point to Dub's servers and make sure that you're using the **DNS only** option on Cloudflare.
+
+<Image
+  alt={`Set your domain's Proxy status to "DNS only" on Cloudflare (greyed out cloud icon)`}
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/cloudflare-without-proxy.png"
+  width={1304}
+  height={372}
+/>
+
+This will make sure that the traffic to your domain is _not proxied through Cloudflare_ and is sent directly to Dub. You can learn more about Cloudflare's proxy options [here](https://support.cloudflare.com/hc/en-us/articles/200169626-Identifying-network-ports-compatible-with-Cloudflare-s-proxy).

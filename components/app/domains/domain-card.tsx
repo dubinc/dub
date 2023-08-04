@@ -61,7 +61,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
               <ExternalLink className="h-5 w-5" />
             </a>
             <Link
-              href={`/${slug}/${domain}/_root`}
+              href={`/${slug}/${domain}`}
               className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 transition-all duration-75 hover:scale-105 active:scale-100"
             >
               <Chart className="h-4 w-4" />

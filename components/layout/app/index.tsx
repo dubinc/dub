@@ -105,7 +105,9 @@ export default function AppLayout({
                     <Divider className="h-8 w-8 text-gray-200 sm:mr-3" />
                     <Link
                       href={
-                        slug ? `/${slug}/${domain}/${key}` : `/links/${key}`
+                        slug
+                          ? `/${slug}/${domain}/${encodeURIComponent(key)}`
+                          : `/links/${encodeURIComponent(key)}`
                       }
                       className="text-sm font-medium"
                     >

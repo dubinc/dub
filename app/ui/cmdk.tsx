@@ -18,6 +18,8 @@ import { useRouter } from "next/navigation";
 import Highlighter from "react-highlight-words";
 import { APP_HOSTNAMES, HOME_DOMAIN } from "#/lib/constants";
 import Fuse from "fuse.js";
+import { useDebouncedCallback } from "use-debounce";
+import va from "@vercel/analytics";
 
 function CMDKHelper({
   showCMDK,
@@ -27,6 +29,12 @@ function CMDKHelper({
   setShowCMDK: Dispatch<SetStateAction<boolean>>;
 }) {
   const commandListRef = useRef<HTMLDivElement>(null);
+  const debouncedTrackSearch = useDebouncedCallback((query: string) => {
+    va.track("CMDK Search", {
+      query,
+    });
+  }, 1000);
+
   return (
     <Modal
       showModal={showCMDK}
@@ -36,11 +44,12 @@ function CMDKHelper({
       <Command label="CMDK" loop shouldFilter={false}>
         <Command.Input
           autoFocus
-          onInput={() => {
+          onInput={(e) => {
             // hack to scroll to top of list when input changes (for some reason beyond my comprehension, setTimeout is needed)
             setTimeout(() => {
               commandListRef.current?.scrollTo(0, 0);
             }, 0);
+            debouncedTrackSearch(e.currentTarget.value);
           }}
           placeholder="Search articles, guides, and more..."
           className="w-full border-none p-4 font-normal placeholder-gray-400 focus:outline-none focus:ring-0"
@@ -115,6 +124,10 @@ const CommandResults = ({
       key={slug}
       value={title}
       onSelect={() => {
+        va.track("CMDK Search Selected", {
+          query: search,
+          slug,
+        });
         if (APP_HOSTNAMES.has(window.location.hostname)) {
           // this is from the app, open in new tab
           window.open(`${HOME_DOMAIN}/help/article/${slug}`);
@@ -152,7 +165,8 @@ export default function useCMDK() {
   // Toggle the menu when ⌘K is pressed
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+      const existingModalBackdrop = document.getElementById("modal-backdrop");
+      if (e.key === "k" && (e.metaKey || e.ctrlKey) && !existingModalBackdrop) {
         e.preventDefault();
         setShowCMDK((showCMDK) => !showCMDK);
       }

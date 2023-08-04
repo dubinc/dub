@@ -11,6 +11,8 @@ import { getTweet } from "react-tweet/api";
 import BlurImage from "#/ui/blur-image";
 import { BLOG_CATEGORIES } from "#/lib/constants/content";
 
+export const runtime = "nodejs";
+
 export async function generateStaticParams() {
   return allBlogPosts.map((post) => ({
     slug: post.slug,
