@@ -26,6 +26,10 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
             name: "People",
             href: `/${slug}/settings/people`,
           },
+          {
+            name: "Security",
+            href: `/${slug}/settings/security`,
+          },
         ]
       : []),
   ];

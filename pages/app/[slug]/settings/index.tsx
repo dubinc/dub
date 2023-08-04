@@ -22,7 +22,7 @@ export default function ProjectSettingsGeneral() {
           placeholder: "My Project",
           maxLength: 32,
         }}
-        helpText="Max 32 characters,"
+        helpText="Max 32 characters."
         handleSubmit={(updateData) =>
           fetch(`/api/projects/${slug}`, {
             method: "PUT",
