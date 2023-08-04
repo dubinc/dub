@@ -15,8 +15,6 @@ import { Metadata } from "next";
 import { constructMetadata } from "#/lib/utils";
 import { getTweet } from "react-tweet/api";
 
-export const runtime = "nodejs";
-
 export async function generateStaticParams() {
   return allHelpPosts.map((post) => ({
     slug: post.slug,
