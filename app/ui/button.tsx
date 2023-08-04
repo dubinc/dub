@@ -15,7 +15,7 @@ export default function Button({
   disabledTooltip,
 }: {
   text: string;
-  variant?: "primary" | "secondary" | "danger";
+  variant?: "primary" | "secondary" | "success" | "danger";
   onClick?: any;
   disabled?: boolean;
   loading?: boolean;
@@ -44,6 +44,8 @@ export default function Button({
                 variant === "primary",
               "border-gray-200 bg-white text-gray-500 hover:border-black hover:text-black":
                 variant === "secondary",
+              "border-blue-500 bg-blue-500 text-white hover:bg-white hover:text-blue-500":
+                variant === "success",
               "border-red-500 bg-red-500 text-white hover:bg-white hover:text-red-500":
                 variant === "danger",
             },
