@@ -1,8 +1,6 @@
 import { log } from "#/lib/utils";
 import { redis } from "#/lib/upstash";
 import { NextResponse } from "next/server";
-import prisma from "#/lib/prisma";
-import { randomBadgeColor } from "@/components/app/links/tag-badge";
 import { receiver } from "#/lib/cron/utils";
 import { importLinksFromShort } from "./utils";
 

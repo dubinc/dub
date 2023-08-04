@@ -124,6 +124,10 @@ const CommandResults = ({
       key={slug}
       value={title}
       onSelect={() => {
+        va.track("CMDK Search Selected", {
+          query: search,
+          slug,
+        });
         if (APP_HOSTNAMES.has(window.location.hostname)) {
           // this is from the app, open in new tab
           window.open(`${HOME_DOMAIN}/help/article/${slug}`);
