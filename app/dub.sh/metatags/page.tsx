@@ -11,6 +11,8 @@ export const metadata = constructMetadata({
     "Dub's Metatags API is a free & simple API to retrieve meta & OG tags from a URL, powered by Vercel Edge Functions.",
 });
 
+export const runtime = "edge";
+
 export default function Metatags() {
   return (
     <>

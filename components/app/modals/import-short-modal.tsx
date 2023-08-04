@@ -17,7 +17,7 @@ import { Logo, LoadingSpinner } from "#/ui/icons";
 import { ModalContext } from "#/ui/modal-provider";
 import useSWR, { mutate } from "swr";
 import { ShortioDomainProps } from "#/lib/types";
-import Tooltip, { InfoTooltip, SimpleTooltipContent } from "#/ui/tooltip";
+import { InfoTooltip, SimpleTooltipContent } from "#/ui/tooltip";
 import { fetcher, nFormatter } from "#/lib/utils";
 import { HOME_DOMAIN } from "#/lib/constants";
 
