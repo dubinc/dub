@@ -129,7 +129,7 @@ export default function UserDropdown() {
           onClick={() => setOpenPopover(!openPopover)}
           className="group relative"
         >
-          {session && (
+          {session ? (
             <Image
               alt={session?.user?.email || "Avatar for logged in user"}
               src={
@@ -140,6 +140,8 @@ export default function UserDropdown() {
               height={40}
               className="h-9 w-9 rounded-full border border-gray-300 transition-all duration-75 group-focus:outline-none group-active:scale-95 sm:h-10 sm:w-10"
             />
+          ) : (
+            <div className="h-9 w-9 animate-pulse rounded-full border border-gray-300 bg-gray-100 sm:h-10 sm:w-10" />
           )}
           {unread && (
             <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full border-2 border-white bg-blue-500" />
