@@ -1,42 +1,45 @@
 import Button from "#/ui/button";
 import { useSAMLModal } from "@/components/app/modals/saml-modal";
+import { useRemoveSAMLModal } from "@/components/app/modals/remove-saml-modal";
 import SettingsLayout from "@/components/layout/app/settings-layout";
-import { Lock } from "lucide-react";
+import { Lock, ShieldOff } from "lucide-react";
 import useProject from "#/lib/swr/use-project";
-import useSWR from "swr";
-import type { SAMLSSORecord } from "@boxyhq/saml-jackson";
-import { fetcher } from "#/lib/utils";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { ThreeDots } from "@/components/shared/icons";
+import Popover from "#/ui/popover";
+import IconMenu from "@/components/shared/icon-menu";
+import useSAML from "#/lib/swr/use-saml";
 
 export default function ProjectSecurity() {
   const { SAMLModal, setShowSAMLModal } = useSAMLModal();
+  const { RemoveSAMLModal, setShowRemoveSAMLModal } = useRemoveSAMLModal();
   const { slug } = useProject();
-  const { data: sso, isLoading } = useSWR<{ connections: SAMLSSORecord[] }>(
-    slug && `/api/projects/${slug}/saml`,
-    fetcher,
-  );
+  const { saml, isLoading } = useSAML();
 
   const data = useMemo(() => {
     if (!slug || isLoading) {
       return {
+        status: "loading",
         logo: null,
         title: null,
         description: null,
       };
-    } else if (sso && sso.connections.length > 0) {
+    } else if (saml && saml.connections.length > 0) {
       return {
+        status: "configured",
         logo: (
           <img
             src="/_static/icons/okta.svg"
-            alt={sso.connections[0].idpMetadata.friendlyProviderName + " logo"}
+            alt={saml.connections[0].idpMetadata.friendlyProviderName + " logo"}
             className="h-8 w-8"
           />
         ),
-        title: sso.connections[0].idpMetadata.friendlyProviderName,
+        title: `${saml.connections[0].idpMetadata.friendlyProviderName} SAML`,
         description: "SAML SSO is configured for your project.",
       };
     } else
       return {
+        status: "unconfigured",
         logo: (
           <div className="rounded-full border border-gray-200 p-2">
             <Lock className="h-4 w-4 text-gray-600" />
@@ -45,11 +48,14 @@ export default function ProjectSecurity() {
         title: "SAML",
         description: "Choose an identity provider to get started.",
       };
-  }, [isLoading, sso]);
+  }, [isLoading, saml]);
+
+  const [openPopover, setOpenPopover] = useState(false);
 
   return (
     <SettingsLayout>
-      <SAMLModal />
+      {data.status === "unconfigured" && <SAMLModal />}
+      {data.status === "configured" && <RemoveSAMLModal />}
       <div className="rounded-lg border border-gray-200 bg-white">
         <div className="relative flex flex-col space-y-6 p-5 sm:p-10">
           <div className="flex flex-col space-y-3">
@@ -81,7 +87,48 @@ export default function ProjectSecurity() {
               </div>
             </div>
             <div>
-              <Button text="Configure" onClick={() => setShowSAMLModal(true)} />
+              {data.status === "loading" ? (
+                <div className="h-9 w-24 animate-pulse rounded-md bg-gray-100" />
+              ) : data.status === "configured" ? (
+                <Popover
+                  content={
+                    <div className="grid w-full gap-1 p-2 sm:w-48">
+                      <button
+                        onClick={() => {
+                          setShowRemoveSAMLModal(true);
+                          setOpenPopover(false);
+                        }}
+                        className="rounded-md p-2 text-left text-sm font-medium text-red-600 transition-all duration-75 hover:bg-red-600 hover:text-white"
+                      >
+                        <IconMenu
+                          text="Remove"
+                          icon={<ShieldOff className="h-4 w-4" />}
+                        />
+                      </button>
+                    </div>
+                  }
+                  align="end"
+                  openPopover={openPopover}
+                  setOpenPopover={setOpenPopover}
+                >
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenPopover(!openPopover);
+                    }}
+                    className="rounded-md px-1 py-2 transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
+                  >
+                    <span className="sr-only">Edit</span>
+                    <ThreeDots className="h-5 w-5 text-gray-500" />
+                  </button>
+                </Popover>
+              ) : (
+                <Button
+                  text="Configure"
+                  onClick={() => setShowSAMLModal(true)}
+                />
+              )}
             </div>
           </div>
         </div>

@@ -1,12 +1,14 @@
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
 import BoxyHQSAMLProvider from "next-auth/providers/boxyhq-saml";
+import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { sendEmail } from "emails";
 import LoginLink from "emails/login-link";
 import WelcomeEmail from "emails/welcome-email";
 import NextAuth, { type NextAuthOptions } from "next-auth";
 import prisma from "#/lib/prisma";
+import jackson from "#/lib/jackson";
 import { isBlacklistedEmail } from "#/lib/edge-config";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
@@ -36,10 +38,59 @@ export const authOptions: NextAuthOptions = {
       authorization: { params: { scope: "" } },
       issuer: process.env.NEXTAUTH_URL,
       clientId: "dummy",
-      clientSecret: "dummy",
+      clientSecret: process.env.NEXTAUTH_SECRET as string,
       allowDangerousEmailAccountLinking: true,
       httpOptions: {
         timeout: 30000,
+      },
+    }),
+    CredentialsProvider({
+      id: "idp-saml",
+      name: "IdP Login",
+      credentials: {
+        code: {},
+      },
+      async authorize(credentials) {
+        if (!credentials) {
+          return null;
+        }
+
+        const { code } = credentials;
+
+        if (!code) {
+          return null;
+        }
+
+        const { oauthController } = await jackson();
+
+        // Fetch access token
+        const { access_token } = await oauthController.token({
+          code,
+          grant_type: "authorization_code",
+          redirect_uri: process.env.NEXTAUTH_URL as string,
+          client_id: "dummy",
+          client_secret: process.env.NEXTAUTH_SECRET as string,
+        });
+
+        if (!access_token) {
+          return null;
+        }
+
+        // Fetch user info
+        const userInfo = await oauthController.userInfo(access_token);
+
+        if (!userInfo) {
+          return null;
+        }
+
+        const { id, firstName, lastName, email } = userInfo;
+
+        return {
+          id,
+          email,
+          name: `${firstName} ${lastName}`.trim(),
+          email_verified: true,
+        };
       },
     }),
   ],

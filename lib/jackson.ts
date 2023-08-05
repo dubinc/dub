@@ -6,8 +6,8 @@ import type {
   ISPSAMLConfig,
 } from "@boxyhq/saml-jackson";
 
+const samlPath = "/api/oauth/saml";
 const samlAudience = "https://saml.dub.sh";
-const samlPath = "/api/auth/saml/acs";
 
 const opts: JacksonOption = {
   externalUrl: process.env.NEXTAUTH_URL as string,

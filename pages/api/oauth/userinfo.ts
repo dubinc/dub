@@ -17,7 +17,6 @@ export default async function handler(
   const token = authHeader.split(" ")[1];
 
   const user = await oauthController.userInfo(token);
-  console.log(user);
 
   return res.json(user);
 }

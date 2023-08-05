@@ -13,6 +13,7 @@ import { Logo } from "#/ui/icons";
 import useProject from "#/lib/swr/use-project";
 import { InfoTooltip, SimpleTooltipContent } from "#/ui/tooltip";
 import { HOME_DOMAIN } from "#/lib/constants";
+import useSAML from "#/lib/swr/use-saml";
 
 function SAMLModal({
   showSAMLModal,
@@ -23,6 +24,7 @@ function SAMLModal({
 }) {
   const { slug } = useProject();
   const [submitting, setSubmitting] = useState(false);
+  const { mutate } = useSAML();
 
   return (
     <Modal showModal={showSAMLModal} setShowModal={setShowSAMLModal}>
@@ -57,6 +59,7 @@ function SAMLModal({
               }),
             }).then((res) => {
               if (res.ok) {
+                mutate();
                 toast.success("Successfully configured SAML");
                 setShowSAMLModal(false);
               } else {

@@ -26,7 +26,7 @@ export default async function handler(
 
     const connections = await apiController.getConnections({
       tenant: project.id,
-      product: "dub",
+      product: "Dub",
     });
 
     if (!connections || connections.length === 0) {
@@ -34,8 +34,6 @@ export default async function handler(
         .status(404)
         .json({ error: "No SSO connections found for this project." });
     }
-
-    console.log({ connections });
 
     const data = {
       projectId: project.id,

@@ -14,7 +14,12 @@ export default async function AppMiddleware(req: NextRequest) {
     user?: UserProps;
   };
   // if there's no session and the path isn't /login or /register, redirect to /login
-  if (!session?.email && path !== "/login" && path !== "/register") {
+  if (
+    !session?.email &&
+    path !== "/login" &&
+    path !== "/register" &&
+    path !== "/auth/saml"
+  ) {
     return NextResponse.redirect(
       new URL(
         `/login${path !== "/" ? `?next=${encodeURIComponent(path)}` : ""}`,

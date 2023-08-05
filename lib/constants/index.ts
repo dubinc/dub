@@ -49,6 +49,7 @@ export const APP_HOSTNAMES = new Set([
   "app.dub.sh",
   "app.localhost:3000",
   "app.localhost",
+  "localhost:8888",
   "preview.dub.sh",
 ]);
 
@@ -57,7 +58,7 @@ export const APP_DOMAIN =
     ? "https://app.dub.sh"
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
     ? "https://preview.dub.sh"
-    : "http://app.localhost:3000";
+    : "http://localhost:8888";
 
 export const DEFAULT_REDIRECTS = {
   home: "https://dub.sh",
@@ -99,6 +100,7 @@ export const SHOW_BACKGROUND_SEGMENTS = new Set([
   "(blog-post)",
   "login",
   "register",
+  "auth",
 ]);
 
 export { default as COUNTRIES } from "./countries";

@@ -129,7 +129,7 @@ export default function LoginForm() {
             }
             await signIn("boxyhq-saml", undefined, {
               tenant: data.projectId,
-              product: "dub",
+              product: "Dub",
             });
           });
         }}

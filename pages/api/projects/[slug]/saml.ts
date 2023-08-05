@@ -8,13 +8,13 @@ export default withProjectAuth(async (req, res, project) => {
 
     const connections = await apiController.getConnections({
       tenant: project.id,
-      product: "dub",
+      product: "Dub",
     });
 
     const response = {
       connections,
       issuer: "https://saml.dub.sh",
-      acs: `${process.env.NEXTAUTH_URL}/api/auth/saml/callback`,
+      acs: `${process.env.NEXTAUTH_URL}/api/oauth/saml`,
     };
 
     return res.status(200).json(response);
@@ -28,15 +28,31 @@ export default withProjectAuth(async (req, res, project) => {
     const data = await apiController.createSAMLConnection({
       encodedRawMetadata: "",
       metadataUrl,
-      defaultRedirectUrl: process.env.NEXTAUTH_URL as string,
+      defaultRedirectUrl: `${process.env.NEXTAUTH_URL}/auth/saml`,
       redirectUrl: process.env.NEXTAUTH_URL as string,
       tenant: project.id,
-      product: "dub",
+      product: "Dub",
     });
 
     return res.status(200).json(data);
+
+    // DELETE /api/projects/[slug]/saml – delete all SAML connections
+  } else if (req.method === "DELETE") {
+    const { clientID, clientSecret } = req.query as {
+      clientID: string;
+      clientSecret: string;
+    };
+
+    const { apiController } = await jackson();
+
+    const response = await apiController.deleteConnections({
+      clientID,
+      clientSecret,
+    });
+
+    return res.status(200).json(response);
   } else {
-    res.setHeader("Allow", ["GET", "POST"]);
+    res.setHeader("Allow", ["GET", "POST", "DELETE"]);
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 });
