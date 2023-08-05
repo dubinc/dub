@@ -14,7 +14,7 @@ export default withProjectAuth(async (req, res, project) => {
     const response = {
       connections,
       issuer: "https://saml.dub.sh",
-      acs: `${process.env.NEXTAUTH_URL}/api/oauth/saml`,
+      acs: `${process.env.NEXTAUTH_URL}/api/auth/saml/callback`,
     };
 
     return res.status(200).json(response);

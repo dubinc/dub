@@ -6,7 +6,7 @@ import type {
   ISPSAMLConfig,
 } from "@boxyhq/saml-jackson";
 
-const samlPath = "/api/oauth/saml";
+const samlPath = "/api/auth/saml/callback";
 const samlAudience = "https://saml.dub.sh";
 
 const opts: JacksonOption = {

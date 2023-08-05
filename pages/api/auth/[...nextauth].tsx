@@ -1,6 +1,5 @@
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
-import BoxyHQSAMLProvider from "next-auth/providers/boxyhq-saml";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { sendEmail } from "emails";
@@ -34,18 +33,41 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
       allowDangerousEmailAccountLinking: true,
     }),
-    BoxyHQSAMLProvider({
-      authorization: { params: { scope: "" } },
-      issuer: process.env.NEXTAUTH_URL,
-      clientId: "dummy",
-      clientSecret: process.env.NEXTAUTH_SECRET as string,
-      allowDangerousEmailAccountLinking: true,
-      httpOptions: {
-        timeout: 30000,
+    {
+      id: "saml",
+      name: "BoxyHQ",
+      type: "oauth",
+      version: "2.0",
+      checks: ["pkce", "state"],
+      authorization: {
+        url: `${process.env.NEXTAUTH_URL}/api/auth/saml/authorize`,
+        params: {
+          scope: "",
+          response_type: "code",
+          provider: "saml",
+        },
       },
-    }),
+      token: {
+        url: `${process.env.NEXTAUTH_URL}/api/auth/saml/token`,
+        params: { grant_type: "authorization_code" },
+      },
+      userinfo: `${process.env.NEXTAUTH_URL}/api/auth/saml/userinfo`,
+      profile: (profile) => {
+        return {
+          id: profile.id || "",
+          email: profile.email || "",
+          name: `${profile.firstName || ""} ${profile.lastName || ""}`.trim(),
+          email_verified: true,
+        };
+      },
+      options: {
+        clientId: "dummy",
+        clientSecret: process.env.NEXTAUTH_SECRET as string,
+      },
+      allowDangerousEmailAccountLinking: true,
+    },
     CredentialsProvider({
-      id: "idp-saml",
+      id: "saml-idp",
       name: "IdP Login",
       credentials: {
         code: {},
@@ -83,13 +105,23 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const { id, firstName, lastName, email } = userInfo;
+        const actualUser = await prisma.user.findUnique({
+          where: { email: userInfo.email },
+        });
+
+        // user is authorized but doesn't have a Dub account, prompt them to create one
+        if (!actualUser) {
+          return null;
+        }
+
+        const { id, name, email, image } = actualUser;
 
         return {
           id,
           email,
-          name: `${firstName} ${lastName}`.trim(),
+          name,
           email_verified: true,
+          image,
         };
       },
     }),

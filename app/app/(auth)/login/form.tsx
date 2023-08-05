@@ -117,7 +117,7 @@ export default function LoginForm() {
         onSubmit={async (e) => {
           e.preventDefault();
           setClickedSSO(true);
-          fetch("/api/auth/sso/verify", {
+          fetch("/api/auth/saml/verify", {
             method: "POST",
             body: JSON.stringify({ slug: e.currentTarget.slug.value }),
           }).then(async (res) => {
@@ -127,7 +127,7 @@ export default function LoginForm() {
               setClickedSSO(false);
               return;
             }
-            await signIn("boxyhq-saml", undefined, {
+            await signIn("saml", undefined, {
               tenant: data.projectId,
               product: "Dub",
             });

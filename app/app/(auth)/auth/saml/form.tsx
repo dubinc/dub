@@ -11,7 +11,7 @@ export default function SAMLForm() {
   useEffect(() => {
     const code = searchParams?.get("code");
 
-    signIn("idp-saml", {
+    signIn("saml-idp", {
       callbackUrl: "/",
       code,
     });
