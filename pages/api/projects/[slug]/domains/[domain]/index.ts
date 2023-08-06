@@ -11,6 +11,7 @@ import {
   deleteDomainAndLinks,
   setRootDomain,
 } from "#/lib/api/domains";
+import { redis } from "#/lib/upstash";
 
 export default withProjectAuth(async (req, res, project) => {
   const { slug, domain } = req.query as { slug: string; domain: string };
@@ -70,17 +71,23 @@ export default withProjectAuth(async (req, res, project) => {
             changeDomainForImages(domain, newDomain),
           ]
         : []),
-      // if there's a landing page set, and if the project is not a free plan, we can then:
-      // - Set the root domain to the target in Redis
-      // - if the domain is being changed, also change the root domain key in Redis
-      target &&
-        project.plan !== "free" &&
-        setRootDomain(
-          domain,
-          target,
-          type === "rewrite",
-          newDomain !== domain && newDomain,
-        ),
+      /* 
+        if the project is not a free plan:
+          - if the domain is being set: 
+            - Set the root domain to the target in Redis
+            - if the domain is being changed, also change the root domain key in Redis
+          - if the domain is being unset:
+            - delete the root domain key in Redis
+      */
+      project.plan !== "free" &&
+        (target
+          ? setRootDomain(
+              domain,
+              target,
+              type === "rewrite",
+              newDomain !== domain && newDomain,
+            )
+          : redis.del(`root:${domain}`)),
       // if the domain is being set as the primary domain, set the current primary domain to false
       primary &&
         prisma.domain.updateMany({
@@ -101,10 +108,15 @@ export default withProjectAuth(async (req, res, project) => {
           ...(newDomain !== domain && {
             slug: newDomain,
           }),
-          ...(target &&
-            project.plan !== "free" && {
-              target,
-            }),
+          // same logic as the redis part above
+          ...(project.plan !== "free" &&
+            (target
+              ? {
+                  target,
+                }
+              : {
+                  target: null,
+                })),
           type,
           primary,
         },
