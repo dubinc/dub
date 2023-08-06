@@ -105,16 +105,17 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const actualUser = await prisma.user.findUnique({
+        const existingUser = await prisma.user.findUnique({
           where: { email: userInfo.email },
         });
 
         // user is authorized but doesn't have a Dub account, prompt them to create one
-        if (!actualUser) {
+        if (!existingUser) {
+          console.log("NO SUCH USER, PROMPT TO CREATE");
           return null;
         }
 
-        const { id, name, email, image } = actualUser;
+        const { id, name, email, image } = existingUser;
 
         return {
           id,
@@ -170,12 +171,16 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
     jwt: async ({ token, user, trigger }) => {
+      // force log out banned users
       if (!token.email || (await isBlacklistedEmail(token.email))) {
         return {};
       }
+
       if (user) {
         token.user = user;
       }
+
+      // refresh the user's data if they update their name / email
       if (trigger === "update") {
         const refreshedUser = await prisma.user.findUnique({
           where: { id: token.sub },
