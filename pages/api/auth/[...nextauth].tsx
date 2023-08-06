@@ -5,7 +5,7 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { sendEmail } from "emails";
 import LoginLink from "emails/login-link";
 import WelcomeEmail from "emails/welcome-email";
-import NextAuth, { type NextAuthOptions } from "next-auth";
+import NextAuth, { Profile, type NextAuthOptions } from "next-auth";
 import prisma from "#/lib/prisma";
 import jackson from "#/lib/jackson";
 import { isBlacklistedEmail } from "#/lib/edge-config";
@@ -164,6 +164,37 @@ export const authOptions: NextAuthOptions = {
               name: profile?.name,
               // @ts-ignore - this is a bug in the types, `picture` is a valid on the `Profile` type
               image: profile?.picture,
+            },
+          });
+        }
+      } else if (
+        account?.provider === "saml" ||
+        account?.provider === "saml-idp"
+      ) {
+        const samlProfile = profile as Profile & {
+          requested?: { tenant?: string };
+        };
+        console.log("SAML SIGN IN", samlProfile);
+        if (!samlProfile?.requested?.tenant) {
+          return false;
+        }
+        const project = await prisma.project.findUnique({
+          where: {
+            id: samlProfile.requested.tenant,
+          },
+        });
+        if (project) {
+          await prisma.projectUsers.upsert({
+            where: {
+              userId_projectId: {
+                projectId: project.id,
+                userId: user.id,
+              },
+            },
+            update: {},
+            create: {
+              projectId: project.id,
+              userId: user.id,
             },
           });
         }
