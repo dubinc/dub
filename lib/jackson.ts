@@ -37,13 +37,15 @@ export default async function init() {
     !globalThis.connectionController ||
     !globalThis.apiController ||
     !globalThis.oauthController ||
-    !globalThis.samlSPConfig
+    !globalThis.samlSPConfig ||
+    !globalThis.directorySync
   ) {
     const ret = await jackson(opts);
     globalThis.connectionController = ret.connectionAPIController;
     globalThis.apiController = ret.connectionAPIController;
     globalThis.oauthController = ret.oauthController;
     globalThis.samlSPConfig = ret.spConfig;
+    globalThis.directorySync = ret.directorySyncController;
   }
 
   return {
@@ -51,5 +53,6 @@ export default async function init() {
     apiController: globalThis.apiController,
     oauthController: globalThis.oauthController,
     samlSPConfig: globalThis.samlSPConfig,
+    directorySync: global.directorySyncController,
   };
 }

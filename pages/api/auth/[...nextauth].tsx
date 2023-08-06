@@ -167,10 +167,7 @@ export const authOptions: NextAuthOptions = {
             },
           });
         }
-      } else if (
-        account?.provider === "saml" ||
-        account?.provider === "saml-idp"
-      ) {
+      } else if (account?.provider === "saml") {
         const samlProfile = profile as Profile & {
           requested?: { tenant?: string };
         };
@@ -198,6 +195,8 @@ export const authOptions: NextAuthOptions = {
             },
           });
         }
+      } else if (account?.provider === "saml-idp") {
+        console.log({ user, account, profile });
       }
       return true;
     },
