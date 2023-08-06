@@ -33,7 +33,7 @@ export default function ProjectSettingsPeople() {
           <div className="flex flex-col space-y-3">
             <h2 className="text-xl font-medium">People</h2>
             <p className="text-sm text-gray-500">
-              Teammates or friends that have access to this project.
+              Teammates that have access to this project.
             </p>
           </div>
           <button
@@ -159,7 +159,7 @@ const UserCard = ({
                       session?.user?.email === email
                         ? "Leave project"
                         : currentTab === "Members"
-                        ? "Remove member"
+                        ? "Remove teammate"
                         : "Revoke invite"
                     }
                     icon={<UserMinus className="h-4 w-4" />}
