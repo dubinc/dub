@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import Button from "#/ui/button";
 import { UserProps } from "#/lib/types";
 import { Logo } from "#/ui/icons";
+import { useSession } from "next-auth/react";
 
 function RemoveTeammateModal({
   showRemoveTeammateModal,
@@ -29,8 +30,30 @@ function RemoveTeammateModal({
   const router = useRouter();
   const { slug } = router.query as { slug: string };
   const [removing, setRemoving] = useState(false);
-  const { logo } = useProject();
+  const { name: projectName, logo } = useProject();
+  const { data: session } = useSession();
   const { id, name, email, image } = user;
+
+  const { title, description } = useMemo(() => {
+    if (invite) {
+      return {
+        title: "Remove Invitation",
+        description: `This will remove <strong>${
+          name || email
+        }</stromg>'s invitation to join your project.`,
+      };
+    } else if (session?.user?.email === email) {
+      return {
+        title: "Leave Project",
+        description: `You are about to leave ${projectName}. To regain access, the Project Owner will need to re-invite you.`,
+      };
+    } else {
+      return {
+        title: "Remove Teammate",
+        description: `This will remove ${name || email} from your project.`,
+      };
+    }
+  }, [invite, session, name, email]);
 
   return (
     <Modal
@@ -50,14 +73,27 @@ function RemoveTeammateModal({
           <Logo />
         )}
         <h3 className="text-lg font-medium">
-          Remove {invite ? "Invitation" : "Teammate"}
+          {invite
+            ? "Revoke Invitation"
+            : session?.user?.email === email
+            ? "Leave Project"
+            : "Remove Teammate"}
         </h3>
         <p className="text-center text-sm text-gray-500">
-          This will remove{" "}
-          <span className="font-semibold text-black">{name || email}</span>
           {invite
-            ? "'s invitation to join your project."
-            : " from your project. Are you sure you want to continue?"}
+            ? "This will revoke "
+            : session?.user?.email === email
+            ? "You're about to leave "
+            : "This will remove "}
+          <span className="font-semibold text-black">
+            {session?.user?.email === email ? projectName : name || email}
+          </span>
+          {invite
+            ? "'s invitation to join your project. "
+            : session?.user?.email === email
+            ? ". You will lose all access to this project. "
+            : " from your project. "}
+          Are you sure you want to continue?
         </p>
       </div>
 
@@ -76,7 +112,7 @@ function RemoveTeammateModal({
           </div>
         </div>
         <Button
-          text="Confirm remove"
+          text="Confirm"
           variant="danger"
           loading={removing}
           onClick={() => {
@@ -93,10 +129,18 @@ function RemoveTeammateModal({
               setRemoving(false);
               if (res.status === 200) {
                 toast.success(
-                  `${invite ? "Invite" : "User"} removed from project!`,
+                  session?.user?.email === email
+                    ? "You have left the project!"
+                    : invite
+                    ? "Successfully revoked invitation!"
+                    : "Successfully removed teammate!",
                 );
                 mutate(`/api/projects/${slug}/${invite ? "invites" : "users"}`);
                 setShowRemoveTeammateModal(false);
+                if (session?.user?.email === email) {
+                  mutate("/api/projects");
+                  router.push("/");
+                }
               } else {
                 const error = await res.text();
                 toast.error(error);
