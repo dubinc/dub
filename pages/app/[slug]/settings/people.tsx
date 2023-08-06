@@ -11,6 +11,7 @@ import { ThreeDots } from "@/components/shared/icons";
 import { useRemoveTeammateModal } from "@/components/app/modals/remove-teammate-modal";
 import Badge from "#/ui/badge";
 import useUsers from "#/lib/swr/use-users";
+import { useSession } from "next-auth/react";
 
 const tabs: Array<"Members" | "Invitations"> = ["Members", "Invitations"];
 
@@ -103,6 +104,8 @@ const UserCard = ({
 
   const { name, email, image, joinedAt } = user;
 
+  const { data: session } = useSession();
+
   // invites expire after 14 days of being sent
   const expiredInvite =
     currentTab === "Invitations" &&
@@ -152,7 +155,13 @@ const UserCard = ({
                   className="rounded-md p-2 text-left text-sm font-medium text-red-600 transition-all duration-75 hover:bg-red-600 hover:text-white"
                 >
                   <IconMenu
-                    text="Remove"
+                    text={
+                      session?.user?.email === email
+                        ? "Leave project"
+                        : currentTab === "Members"
+                        ? "Remove member"
+                        : "Revoke invite"
+                    }
                     icon={<UserMinus className="h-4 w-4" />}
                   />
                 </button>
