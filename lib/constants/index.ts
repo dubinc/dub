@@ -60,6 +60,13 @@ export const APP_DOMAIN =
     ? "https://preview.dub.sh"
     : "http://localhost:8888";
 
+export const APP_DOMAIN_WITH_NGROK =
+  process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
+    ? "https://app.dub.sh"
+    : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
+    ? "https://preview.dub.sh"
+    : process.env.NGROK_URL;
+
 export const DEFAULT_REDIRECTS = {
   home: "https://dub.sh",
   dub: "https://dub.sh",
@@ -149,3 +156,21 @@ export const DEFAULT_LINK_PROPS = {
 };
 
 export const DUB_PROJECT_ID = "cl7pj5kq4006835rbjlt2ofka";
+
+export const SAML_PROVIDERS = [
+  {
+    name: "Okta",
+    logo: "/_static/icons/okta.svg",
+    scim: "okta-scim-v2",
+  },
+  {
+    name: "Azure AD",
+    logo: "/_static/icons/azure.svg",
+    scim: "azure-scim-v2",
+  },
+  {
+    name: "Google Workspace",
+    logo: "/_static/icons/google.svg",
+    scim: "google",
+  },
+];

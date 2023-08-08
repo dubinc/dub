@@ -1,5 +1,6 @@
 import { addDomainToVercel } from "#/lib/api/domains";
 import { withProjectAuth } from "#/lib/auth";
+import { APP_DOMAIN_WITH_NGROK } from "#/lib/constants";
 import { qstash } from "#/lib/cron/utils";
 import prisma from "#/lib/prisma";
 import { BitlyGroupProps } from "#/lib/types";
@@ -93,20 +94,13 @@ export default withProjectAuth(async (req, res, project) => {
       return result;
     }, []);
 
-    const hostname =
-      process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-        ? "https://app.dub.sh"
-        : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
-        ? "https://preview.dub.sh"
-        : process.env.NGROK_URL;
-
     const response = await Promise.all(
       groups
         // only add groups that have at least 1 domain selected for import
         .filter(({ domains }) => domains.length > 0)
         .map(({ bitlyGroup, domains, keepTags }) =>
           qstash.publishJSON({
-            url: `${hostname}/api/cron/import/bitly`,
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/bitly`,
             body: {
               projectId: project.id,
               bitlyGroup,

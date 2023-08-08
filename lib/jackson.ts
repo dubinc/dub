@@ -4,6 +4,7 @@ import type {
   IOAuthController,
   JacksonOption,
   ISPSAMLConfig,
+  IDirectorySyncController,
 } from "@boxyhq/saml-jackson";
 
 const samlPath = "/api/auth/saml/callback";
@@ -21,7 +22,8 @@ const opts: JacksonOption = {
       rejectUnauthorized: false,
     },
   },
-  idpEnabled: true,
+  idpEnabled: true, // to allow folks to SSO directly from their IDP
+  scimPath: "/api/scim/v2.0", // custom SCIM endpoint
   clientSecretVerifier: process.env.NEXTAUTH_SECRET as string,
 };
 
@@ -30,6 +32,7 @@ declare global {
   var apiController: IConnectionAPIController | undefined;
   var oauthController: IOAuthController | undefined;
   var samlSPConfig: ISPSAMLConfig | undefined;
+  var directorySyncController: IDirectorySyncController | undefined;
 }
 
 export default async function init() {
@@ -38,14 +41,14 @@ export default async function init() {
     !globalThis.apiController ||
     !globalThis.oauthController ||
     !globalThis.samlSPConfig ||
-    !globalThis.directorySync
+    !globalThis.directorySyncController
   ) {
     const ret = await jackson(opts);
     globalThis.connectionController = ret.connectionAPIController;
     globalThis.apiController = ret.connectionAPIController;
     globalThis.oauthController = ret.oauthController;
     globalThis.samlSPConfig = ret.spConfig;
-    globalThis.directorySync = ret.directorySyncController;
+    globalThis.directorySyncController = ret.directorySyncController;
   }
 
   return {
@@ -53,6 +56,6 @@ export default async function init() {
     apiController: globalThis.apiController,
     oauthController: globalThis.oauthController,
     samlSPConfig: globalThis.samlSPConfig,
-    directorySync: global.directorySyncController,
+    directorySyncController: globalThis.directorySyncController,
   };
 }

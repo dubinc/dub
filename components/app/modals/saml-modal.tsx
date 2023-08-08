@@ -8,7 +8,7 @@ import {
 import Modal from "#/ui/modal";
 import Button from "#/ui/button";
 import { toast } from "sonner";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Lock } from "lucide-react";
 import { Logo } from "#/ui/icons";
 import useProject from "#/lib/swr/use-project";
 import { InfoTooltip, SimpleTooltipContent } from "#/ui/tooltip";
@@ -29,18 +29,12 @@ function SAMLModal({
   return (
     <Modal showModal={showSAMLModal} setShowModal={setShowSAMLModal}>
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-8 sm:px-16">
-        <div className="flex items-center space-x-3 py-4">
-          <img
-            src="/_static/icons/okta.svg"
-            alt="Okta logo"
-            className="h-10 w-10"
-          />
-          <ArrowRight className="h-5 w-5 text-gray-600" />
-          <Logo />
+        <div className="rounded-full border border-gray-200 p-2">
+          <Lock className="h-4 w-4 text-gray-600" />
         </div>
-        <h3 className="text-lg font-medium">Okta SAML</h3>
+        <h3 className="text-lg font-medium">Configure SAML</h3>
         <p className="text-center text-sm text-gray-500">
-          Configure Okta SAML for your Dub account.
+          Configure SAML for your Dub account.
         </p>
       </div>
 
@@ -57,13 +51,14 @@ function SAMLModal({
               body: JSON.stringify({
                 metadataUrl: e.currentTarget.metadataUrl.value,
               }),
-            }).then((res) => {
+            }).then(async (res) => {
               if (res.ok) {
                 mutate();
                 toast.success("Successfully configured SAML");
                 setShowSAMLModal(false);
               } else {
-                toast.error("Failed to configure SAML");
+                const err = await res.text();
+                toast.error(err);
               }
               setSubmitting(false);
             });
@@ -71,7 +66,7 @@ function SAMLModal({
           className="flex flex-col space-y-4"
         >
           <div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1">
               <h2 className="text-sm font-medium text-gray-900">
                 Metadata URL
               </h2>
@@ -96,7 +91,7 @@ function SAMLModal({
               className="mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
             />
           </div>
-          <Button text="Submit" loading={submitting} />
+          <Button text="Save changes" loading={submitting} />
         </form>
       </div>
     </Modal>

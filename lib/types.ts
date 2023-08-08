@@ -1,3 +1,5 @@
+import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
+
 export interface SimpleLinkProps {
   domain?: string;
   key: string;
@@ -112,4 +114,10 @@ export interface ShortioDomainProps {
   id: number;
   domain: string;
   links: number;
+}
+
+export interface SAMLProviderProps {
+  name: string;
+  logo: string;
+  scim: keyof typeof DirectorySyncProviders;
 }

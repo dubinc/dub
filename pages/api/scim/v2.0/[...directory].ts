@@ -17,7 +17,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
-  const { directorySync } = await jackson();
+  const { directorySyncController } = await jackson();
 
   const { method, query, body } = req;
 
@@ -41,7 +41,7 @@ export default async function handler(
     },
   };
 
-  const { status, data } = await directorySync.requests.handle(
+  const { status, data } = await directorySyncController.requests.handle(
     request,
     handleEvents,
   );

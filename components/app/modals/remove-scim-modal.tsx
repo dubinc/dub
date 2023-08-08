@@ -11,24 +11,23 @@ import useProject from "#/lib/swr/use-project";
 import { toast } from "sonner";
 import Button from "#/ui/button";
 import { Logo } from "#/ui/icons";
-import useSAML from "#/lib/swr/use-saml";
-import { SAML_PROVIDERS } from "#/lib/constants";
+import useSCIM from "#/lib/swr/use-scim";
 
-function RemoveSAMLModal({
-  showRemoveSAMLModal,
-  setShowRemoveSAMLModal,
+function RemoveSCIMModal({
+  showRemoveSCIMModal,
+  setShowRemoveSCIMModal,
 }: {
-  showRemoveSAMLModal: boolean;
-  setShowRemoveSAMLModal: Dispatch<SetStateAction<boolean>>;
+  showRemoveSCIMModal: boolean;
+  setShowRemoveSCIMModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const [removing, setRemoving] = useState(false);
   const { slug, logo } = useProject();
-  const { saml, provider, mutate } = useSAML();
+  const { scim, mutate } = useSCIM();
 
   return (
     <Modal
-      showModal={showRemoveSAMLModal}
-      setShowModal={setShowRemoveSAMLModal}
+      showModal={showRemoveSCIMModal}
+      setShowModal={setShowRemoveSCIMModal}
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
         {logo ? (
@@ -42,25 +41,25 @@ function RemoveSAMLModal({
         ) : (
           <Logo />
         )}
-        <h3 className="text-lg font-medium">Remove SAML</h3>
+        <h3 className="text-lg font-medium">Remove SCIM Directory</h3>
         <p className="text-center text-sm text-gray-500">
-          This will remove SAML from your project. Are you sure you want to
-          continue?
+          This will remove the currently configured SCIM directory from your
+          project. Are you sure you want to continue?
         </p>
       </div>
 
       <div className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 text-left sm:px-16">
         <div className="flex items-center space-x-3 rounded-md border border-gray-300 bg-white p-3">
-          <img
-            src={SAML_PROVIDERS.find((p) => p.name === provider)!.logo}
-            alt={provider + " logo"}
-            className="h-8 w-8"
+          <BlurImage
+            src="/_static/icons/okta.svg"
+            alt="Okta logo"
+            width={40}
+            height={40}
+            className="overflow-hidden rounded-full border border-gray-200"
           />
           <div className="flex flex-col">
-            <h3 className="text-sm font-medium">{provider} SAML</h3>
-            <p className="text-xs text-gray-500">
-              {provider} SAML is configured
-            </p>
+            <h3 className="text-sm font-medium">Okta SCIM</h3>
+            <p className="text-xs text-gray-500">Okta SCIM is configured</p>
           </div>
         </div>
         <Button
@@ -69,26 +68,25 @@ function RemoveSAMLModal({
           loading={removing}
           onClick={() => {
             setRemoving(true);
-            if (!provider) {
-              toast.error("No SAML connection found");
+            if (!scim?.directories[0]) {
+              toast.error("No SCIM directories found");
               return;
             }
-            const { clientID, clientSecret } = saml.connections[0];
+            const { id } = scim.directories[0];
             const params = new URLSearchParams({
-              clientID,
-              clientSecret,
+              directoryId: id,
             });
 
-            fetch(`/api/projects/${slug}/saml?${params}`, {
+            fetch(`/api/projects/${slug}/scim?${params}`, {
               method: "DELETE",
             }).then(async (res) => {
               if (res.ok) {
-                toast.success("SAML removed successfully");
+                toast.success("SCIM directory removed successfully");
                 mutate();
                 setRemoving(false);
-                setShowRemoveSAMLModal(false);
+                setShowRemoveSCIMModal(false);
               } else {
-                toast.error("Error removing SAML");
+                toast.error("Error removing SCIM directory");
                 setRemoving(false);
               }
             });
@@ -99,23 +97,23 @@ function RemoveSAMLModal({
   );
 }
 
-export function useRemoveSAMLModal() {
-  const [showRemoveSAMLModal, setShowRemoveSAMLModal] = useState(false);
+export function useRemoveSCIMModal() {
+  const [showRemoveSCIMModal, setShowRemoveSCIMModal] = useState(false);
 
-  const RemoveSAMLModalCallback = useCallback(() => {
+  const RemoveSCIMModalCallback = useCallback(() => {
     return (
-      <RemoveSAMLModal
-        showRemoveSAMLModal={showRemoveSAMLModal}
-        setShowRemoveSAMLModal={setShowRemoveSAMLModal}
+      <RemoveSCIMModal
+        showRemoveSCIMModal={showRemoveSCIMModal}
+        setShowRemoveSCIMModal={setShowRemoveSCIMModal}
       />
     );
-  }, [showRemoveSAMLModal, setShowRemoveSAMLModal]);
+  }, [showRemoveSCIMModal, setShowRemoveSCIMModal]);
 
   return useMemo(
     () => ({
-      setShowRemoveSAMLModal,
-      RemoveSAMLModal: RemoveSAMLModalCallback,
+      setShowRemoveSCIMModal,
+      RemoveSCIMModal: RemoveSCIMModalCallback,
     }),
-    [setShowRemoveSAMLModal, RemoveSAMLModalCallback],
+    [setShowRemoveSCIMModal, RemoveSCIMModalCallback],
   );
 }
