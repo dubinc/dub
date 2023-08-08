@@ -127,7 +127,7 @@ function SCIMModal({
             </select>
           </div>
 
-          {configured && (
+          {configured && selectedProvider === provider && (
             <>
               <div className="w-full border-t border-gray-200" />
               <div>
