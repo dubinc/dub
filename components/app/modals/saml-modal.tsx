@@ -12,8 +12,10 @@ import { ArrowRight, Lock } from "lucide-react";
 import { Logo } from "#/ui/icons";
 import useProject from "#/lib/swr/use-project";
 import { InfoTooltip, SimpleTooltipContent } from "#/ui/tooltip";
-import { HOME_DOMAIN } from "#/lib/constants";
+import { HOME_DOMAIN, SAML_PROVIDERS } from "#/lib/constants";
 import useSAML from "#/lib/swr/use-saml";
+import { SAMLProviderProps } from "#/lib/types";
+import { cn } from "#/lib/utils";
 
 function SAMLModal({
   showSAMLModal,
@@ -23,18 +25,21 @@ function SAMLModal({
   setShowSAMLModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const { slug } = useProject();
+  const [selectedProvider, setSelectedProvider] = useState<
+    SAMLProviderProps["saml"] | undefined
+  >("okta");
   const [submitting, setSubmitting] = useState(false);
-  const { mutate } = useSAML();
+  const { provider, configured, mutate } = useSAML();
 
   return (
     <Modal showModal={showSAMLModal} setShowModal={setShowSAMLModal}>
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-8 sm:px-16">
-        <div className="rounded-full border border-gray-200 p-2">
-          <Lock className="h-4 w-4 text-gray-600" />
+        <div className="rounded-full border border-gray-200 p-3">
+          <Lock className="h-5 w-5 text-gray-600" />
         </div>
         <h3 className="text-lg font-medium">Configure SAML</h3>
         <p className="text-center text-sm text-gray-500">
-          Configure SAML for your Dub account.
+          Select a provider to configure SAML for your Dub project.
         </p>
       </div>
 
@@ -68,30 +73,70 @@ function SAMLModal({
           <div>
             <div className="flex items-center space-x-1">
               <h2 className="text-sm font-medium text-gray-900">
-                Metadata URL
+                SAML Provider
               </h2>
               <InfoTooltip
                 content={
                   <SimpleTooltipContent
-                    title={`Your Short.io API Key can be found in your Short.io account under "Integrations & API".`}
+                    title="Your directory provider is the IDP you use to manage your users."
                     cta="Read the guide."
-                    href={`${HOME_DOMAIN}/help/article/migrating-from-short`}
+                    href={`${HOME_DOMAIN}/help/article/configuring-scim`}
                   />
                 }
               />
             </div>
-            <input
-              id="metadataUrl"
-              name="metadataUrl"
-              autoFocus
-              type="url"
-              placeholder="https://"
-              autoComplete="off"
+            <select
+              id="provider"
+              name="provider"
               required
-              className="mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
-            />
+              value={selectedProvider}
+              onChange={(e) =>
+                setSelectedProvider(e.target.value as SAMLProviderProps["saml"])
+              }
+              className="mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
+            >
+              <option disabled>Select a provider</option>
+              {SAML_PROVIDERS.map((provider) => (
+                <option key={provider.saml} value={provider.saml}>
+                  {provider.name}
+                </option>
+              ))}
+            </select>
           </div>
-          <Button text="Save changes" loading={submitting} />
+
+          {selectedProvider === "okta" && (
+            <div>
+              <div className="flex items-center space-x-1">
+                <h2 className="text-sm font-medium text-gray-900">
+                  Metadata URL
+                </h2>
+                <InfoTooltip
+                  content={
+                    <SimpleTooltipContent
+                      title={`Your Short.io API Key can be found in your Short.io account under "Integrations & API".`}
+                      cta="Read the guide."
+                      href={`${HOME_DOMAIN}/help/article/migrating-from-short`}
+                    />
+                  }
+                />
+              </div>
+              <input
+                id="metadataUrl"
+                name="metadataUrl"
+                autoFocus
+                type="url"
+                placeholder="https://"
+                autoComplete="off"
+                required
+                className="mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
+              />
+            </div>
+          )}
+          <Button
+            text="Save changes"
+            disabled={!selectedProvider}
+            loading={submitting}
+          />
         </form>
       </div>
     </Modal>

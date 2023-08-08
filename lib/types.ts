@@ -119,5 +119,6 @@ export interface ShortioDomainProps {
 export interface SAMLProviderProps {
   name: string;
   logo: string;
+  saml: "okta" | "azure" | "google";
   scim: keyof typeof DirectorySyncProviders;
 }

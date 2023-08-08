@@ -3,7 +3,6 @@ import {
   SetStateAction,
   useCallback,
   useMemo,
-  useRef,
   useState,
 } from "react";
 import Modal from "#/ui/modal";

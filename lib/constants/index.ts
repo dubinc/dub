@@ -161,16 +161,19 @@ export const SAML_PROVIDERS = [
   {
     name: "Okta",
     logo: "/_static/icons/okta.svg",
+    saml: "okta",
     scim: "okta-scim-v2",
   },
   {
     name: "Azure AD",
     logo: "/_static/icons/azure.svg",
+    saml: "azure",
     scim: "azure-scim-v2",
   },
   {
     name: "Google Workspace",
     logo: "/_static/icons/google.svg",
+    saml: "google",
     scim: "google",
   },
 ];
