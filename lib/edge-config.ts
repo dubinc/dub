@@ -30,7 +30,7 @@ export const isWhitelistedEmail = async (email: string) => {
   } catch (e) {
     whitelistedEmails = [];
   }
-  return new Set(whitelistedEmails).has(email);
+  return whitelistedEmails.includes(email);
 };
 
 export const isBlacklistedEmail = async (email: string) => {
@@ -50,5 +50,5 @@ export const isReservedKey = async (key: string) => {
   } catch (e) {
     reservedKey = [];
   }
-  return new Set(reservedKey).has(key);
+  return reservedKey.includes(key);
 };
