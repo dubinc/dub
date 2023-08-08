@@ -84,7 +84,7 @@ export default function ProjectBilling() {
         </div>
         <div className="border-b border-gray-200" />
         <div className="grid grid-cols-1 divide-y divide-gray-200 sm:grid-cols-2 sm:divide-x sm:divide-y-0">
-          <div className="flex flex-col space-y-2 p-10">
+          <div className="p-10">
             <div className="flex items-center space-x-2">
               <h3 className="font-medium">Total Link Clicks</h3>
               <InfoTooltip content="Number of billable link clicks across all your projects." />
@@ -102,7 +102,7 @@ export default function ProjectBilling() {
                 <Infinity className="h-8 w-8 text-gray-500" />
               </div>
             ) : (
-              <>
+              <div className="mt-2 flex flex-col space-y-2">
                 {usage !== undefined && usageLimit ? (
                   <p className="text-sm text-gray-600">
                     {nFormatter(usage)} / {nFormatter(usageLimit)} clicks (
@@ -128,7 +128,7 @@ export default function ProjectBilling() {
                     } h-3 rounded-full`}
                   />
                 </div>
-              </>
+              </div>
             )}
           </div>
           <div className="p-10">
