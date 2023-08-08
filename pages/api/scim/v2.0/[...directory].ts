@@ -4,6 +4,7 @@ import prisma from "#/lib/prisma";
 import type {
   DirectorySyncEvent,
   DirectorySyncRequest,
+  User,
 } from "@boxyhq/saml-jackson";
 
 // Fetch the auth token from the request headers
@@ -49,6 +50,45 @@ export default async function handler(
   res.status(status).json(data);
 }
 
+const addUser = async ({
+  data,
+  projectId,
+}: {
+  data: User;
+  projectId: string;
+}) => {
+  const user = await prisma.user.upsert({
+    where: {
+      email: data.email,
+    },
+    update: {
+      name: `${data.first_name} ${data.last_name}`,
+    },
+    create: {
+      name: `${data.first_name} ${data.last_name}`,
+      email: data.email,
+    },
+  });
+
+  await Promise.all([
+    // add to project
+    prisma.projectUsers.upsert({
+      where: {
+        userId_projectId: {
+          userId: user.id,
+          projectId,
+        },
+      },
+      update: {},
+      create: {
+        userId: user.id,
+        projectId,
+      },
+    }),
+    // send email invite
+  ]);
+};
+
 // Handle the SCIM events
 const handleEvents = async (event: DirectorySyncEvent) => {
   const { event: action, tenant: projectId, data } = event;
@@ -56,51 +96,36 @@ const handleEvents = async (event: DirectorySyncEvent) => {
 
   // User has been created
   if (action === "user.created" && "email" in data) {
-    // const user = await prisma.user.upsert({
-    //   where: {
-    //     email: data.email,
-    //   },
-    //   update: {
-    //     name: `${data.first_name} ${data.last_name}`,
-    //   },
-    //   create: {
-    //     name: `${data.first_name} ${data.last_name}`,
-    //     email: data.email,
-    //   },
-    // });
-    // add to team
+    await addUser({ data, projectId });
   }
 
   // User has been updated
   if (action === "user.updated" && "email" in data) {
     if (data.active === true) {
-      const user = await prisma.user.upsert({
-        where: {
-          email: data.email,
-        },
-        update: {
-          name: `${data.first_name} ${data.last_name}`,
-        },
-        create: {
-          name: `${data.first_name} ${data.last_name}`,
-          email: data.email,
-        },
-      });
-
-      // add to team
-
+      await addUser({ data, projectId });
       return;
     }
 
-    // const user = await getUser({ email: data.email });
+    const user = await prisma.user.findUnique({
+      where: {
+        email: data.email,
+      },
+    });
 
-    // if (!user) {
-    //   return;
-    // }
+    if (!user) {
+      return;
+    }
 
-    // if (data.active === false) {
-    //   await deleteUser({ id: user.id });
-    // }
+    if (data.active === false) {
+      await prisma.projectUsers.delete({
+        where: {
+          userId_projectId: {
+            userId: user.id,
+            projectId,
+          },
+        },
+      });
+    }
   }
 
   // User has been removed
