@@ -89,31 +89,47 @@ export default function ProjectBilling() {
               <h3 className="font-medium">Total Link Clicks</h3>
               <InfoTooltip content="Number of billable link clicks across all your projects." />
             </div>
-            {usage !== undefined && usageLimit ? (
-              <p className="text-sm text-gray-600">
-                {nFormatter(usage)} / {nFormatter(usageLimit)} clicks (
-                {((usage / usageLimit) * 100).toFixed(1)}%)
-              </p>
+            {plan === "enterprise" ? (
+              <div className="mt-4 flex items-center">
+                {usage || usage === 0 ? (
+                  <p className="text-2xl font-semibold text-black">
+                    {nFormatter(usage)}
+                  </p>
+                ) : (
+                  <div className="h-8 w-8 animate-pulse rounded-md bg-gray-200" />
+                )}
+                <Divider className="h-8 w-8 text-gray-500" />
+                <Infinity className="h-8 w-8 text-gray-500" />
+              </div>
             ) : (
-              <div className="h-5 w-32 animate-pulse rounded-md bg-gray-200" />
+              <>
+                {usage !== undefined && usageLimit ? (
+                  <p className="text-sm text-gray-600">
+                    {nFormatter(usage)} / {nFormatter(usageLimit)} clicks (
+                    {((usage / usageLimit) * 100).toFixed(1)}%)
+                  </p>
+                ) : (
+                  <div className="h-5 w-32 animate-pulse rounded-md bg-gray-200" />
+                )}
+                <div className="h-3 w-full overflow-hidden rounded-full bg-gray-200">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{
+                      width:
+                        usage !== undefined && usageLimit
+                          ? (usage / usageLimit) * 100 + "%"
+                          : "0%",
+                    }}
+                    transition={{ duration: 0.5, type: "spring" }}
+                    className={`${
+                      usage && usageLimit && usage > usageLimit
+                        ? "bg-red-500"
+                        : "bg-blue-500"
+                    } h-3 rounded-full`}
+                  />
+                </div>
+              </>
             )}
-            <div className="h-3 w-full overflow-hidden rounded-full bg-gray-200">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{
-                  width:
-                    usage !== undefined && usageLimit
-                      ? (usage / usageLimit) * 100 + "%"
-                      : "0%",
-                }}
-                transition={{ duration: 0.5, type: "spring" }}
-                className={`${
-                  usage && usageLimit && usage > usageLimit
-                    ? "bg-red-500"
-                    : "bg-blue-500"
-                } h-3 rounded-full`}
-              />
-            </div>
           </div>
           <div className="p-10">
             <div className="flex items-center space-x-2">
@@ -137,8 +153,11 @@ export default function ProjectBilling() {
         <div className="flex flex-col items-center justify-between space-y-3 px-10 py-4 text-center sm:flex-row sm:space-y-0 sm:text-left">
           {plan ? (
             <p className="text-sm text-gray-500">
-              For higher limits, upgrade to the{" "}
-              {plan === "free" ? "Pro" : "Enterprise"} plan.
+              {plan === "enterprise"
+                ? "On the Enterprise plan, the sky's the limit! Thank you for your support."
+                : `For higher limits, upgrade to the ${
+                    plan === "free" ? "Pro" : "Enterprise"
+                  } plan.`}
             </p>
           ) : (
             <div className="h-3 w-28 animate-pulse rounded-full bg-gray-200" />
