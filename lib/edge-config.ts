@@ -44,6 +44,18 @@ export const isBlacklistedEmail = async (email: string) => {
 };
 
 export const isReservedKey = async (key: string) => {
+  if (!process.env.EDGE_CONFIG) {
+    // If EDGE_CONFIG is not set, these are the default reserved keys
+    return [
+      "blog",
+      "help",
+      "pricing",
+      "changelog",
+      "metatags",
+      "terms",
+      "privacy",
+    ];
+  }
   let reservedKey;
   try {
     reservedKey = await get("reserved");

@@ -1,19 +1,18 @@
 import GlobeClient from "./globe-client";
 
 export default async function Globe() {
-  const response = await fetch(
-    `https://api.us-east.tinybird.co/v0/pipes/coordinates.json`,
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
-      },
-      next: {
-        revalidate: 43200, // every 12 hours
-      },
-    },
-  )
-    .then((res) => res.json())
-    .then((res) => res.data);
+  const response = process.env.TINYBIRD_API_KEY
+    ? await fetch(`https://api.us-east.tinybird.co/v0/pipes/coordinates.json`, {
+        headers: {
+          Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
+        },
+        next: {
+          revalidate: 43200, // every 12 hours
+        },
+      })
+        .then((res) => res.json())
+        .then((res) => res.data)
+    : [];
 
   const markers = response.map(({ latitude, longitude }, idx) => {
     return {
