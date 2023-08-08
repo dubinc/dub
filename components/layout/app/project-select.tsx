@@ -149,6 +149,7 @@ function ProjectList({
           selected.slug === "/" ? "font-medium" : ""
         } transition-all duration-75`}
         href="/links"
+        onClick={() => setOpenPopover(false)}
       >
         <BlurImage
           src={
@@ -184,6 +185,7 @@ function ProjectList({
           } transition-all duration-75`}
           href={href(slug)}
           shallow={false}
+          onClick={() => setOpenPopover(false)}
         >
           <BlurImage
             src={logo || `${GOOGLE_FAVICON_URL}${primaryDomain?.slug}`}
