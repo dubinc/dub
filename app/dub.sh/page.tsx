@@ -10,8 +10,6 @@ import Changelog from "#/ui/home/changelog";
 import { Suspense } from "react";
 import GlobeClient from "#/ui/home/globe-client";
 
-export const runtime = "edge";
-
 export default function Home() {
   return (
     <>

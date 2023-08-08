@@ -11,8 +11,6 @@ export const metadata = constructMetadata({
     "Dub's Metatags API is a free & simple API to retrieve meta & OG tags from a URL, powered by Dub – the link management tool for modern marketing teams.",
 });
 
-export const runtime = "edge";
-
 export default function Metatags() {
   return (
     <>
