@@ -70,7 +70,7 @@ export const PLANS = [
   {
     name: "Enterprise",
     slug: "enterprise",
-    quota: 500000,
+    quota: 1000000000, // arbitrary large number to represent unlimited – might need to change this in the future
     price: {
       monthly: {
         amount: 49,
