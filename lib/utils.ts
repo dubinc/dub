@@ -241,7 +241,9 @@ export const getSubdomain = (name: string, apexName: string) => {
 export const getApexDomain = (url: string) => {
   let domain;
   try {
-    domain = new URL(url).hostname;
+    // replace any custom scheme (e.g. notion://) with https://
+    // use the URL constructor to get the hostname
+    domain = new URL(url.replace(/^[a-zA-Z]+:\/\//, "https://")).hostname;
   } catch (e) {
     return "";
   }
