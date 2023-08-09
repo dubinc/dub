@@ -89,7 +89,7 @@ export default function Feedback() {
                 autoComplete="email"
                 onFocus={prewarm}
                 onChange={(e) => setData({ ...data, email: e.target.value })}
-                className="block w-full rounded-md border-gray-300 pr-10 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
               />
             </div>
             <div>
@@ -105,7 +105,7 @@ export default function Feedback() {
                 required={true}
                 rows={6}
                 onKeyDown={handleKeyDown}
-                className="block w-full rounded-md border-gray-300 pr-10 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
                 placeholder="What other data would you like to see?"
                 value={data.feedback}
                 onFocus={prewarm}

@@ -12,7 +12,7 @@ export const config = {
 
 export default async function handler(req: NextRequest, ev: NextFetchEvent) {
   if (req.method === "GET") {
-    let url = req.nextUrl.searchParams.get("url");
+    const url = req.nextUrl.searchParams.get("url");
     if (!url || !isValidUrl(url)) {
       return new Response("Invalid URL", { status: 400 });
     }
