@@ -2,7 +2,10 @@ import NoProjectsPlaceholder from "@/components/app/projects/no-projects-placeho
 import ProjectCard from "@/components/app/projects/project-card";
 import ProjectCardPlaceholder from "@/components/app/projects/project-card-placeholder";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
-import AppLayout from "components/layout/app";
+import dynamic from "next/dynamic";
+const AppLayout = dynamic(() => import("@/components/layout/app"), {
+  ssr: false,
+});
 import useProjects from "#/lib/swr/use-projects";
 import { useContext } from "react";
 import { ModalContext } from "#/ui/modal-provider";

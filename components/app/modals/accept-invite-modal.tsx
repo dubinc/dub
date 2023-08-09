@@ -30,6 +30,7 @@ function AcceptInviteModal({
     <Modal
       showModal={showAcceptInviteModal}
       setShowModal={setShowAcceptInviteModal}
+      preventDefaultClose
     >
       {error?.status === 409 ? (
         <>
