@@ -75,6 +75,7 @@ model Project {
   usage              Int             @default(0)
   usageLimit         Int             @default(1000)
   plan               String          @default("free")
+  samlConfigured     Boolean         @default(false)
   stripeId           String?         @unique // Stripe subscription ID
   billingCycleStart  Int?            // day of the month when the billing cycle starts
   

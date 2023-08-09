@@ -171,7 +171,6 @@ export const authOptions: NextAuthOptions = {
         const samlProfile = profile as Profile & {
           requested?: { tenant?: string };
         };
-        console.log("SAML SIGN IN", samlProfile);
         if (!samlProfile?.requested?.tenant) {
           return false;
         }
@@ -196,11 +195,13 @@ export const authOptions: NextAuthOptions = {
           });
         }
       } else if (account?.provider === "saml-idp") {
+        // you don't get SAML tenant for some reason
+
         console.log({ user, account, profile });
       }
       return true;
     },
-    jwt: async ({ token, user, trigger }) => {
+    jwt: async ({ token, account, user, trigger }) => {
       // force log out banned users
       if (!token.email || (await isBlacklistedEmail(token.email))) {
         return {};
@@ -220,6 +221,7 @@ export const authOptions: NextAuthOptions = {
         token.email = refreshedUser?.email;
         token.image = refreshedUser?.image;
       }
+
       return token;
     },
     session: async ({ session, token }) => {

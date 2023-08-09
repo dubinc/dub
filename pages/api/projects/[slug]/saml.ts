@@ -1,5 +1,6 @@
 import { withProjectAuth } from "#/lib/auth";
 import jackson from "#/lib/jackson";
+import prisma from "#/lib/prisma";
 
 export default withProjectAuth(
   async (req, res, project) => {
@@ -35,6 +36,15 @@ export default withProjectAuth(
         product: "Dub",
       });
 
+      await prisma.project.update({
+        where: {
+          id: project.id,
+        },
+        data: {
+          samlConfigured: true,
+        },
+      });
+
       return res.status(200).json(data);
 
       // DELETE /api/projects/[slug]/saml – delete all SAML connections
@@ -49,6 +59,15 @@ export default withProjectAuth(
       const response = await apiController.deleteConnections({
         clientID,
         clientSecret,
+      });
+
+      await prisma.project.update({
+        where: {
+          id: project.id,
+        },
+        data: {
+          samlConfigured: false,
+        },
       });
 
       return res.status(200).json(response);

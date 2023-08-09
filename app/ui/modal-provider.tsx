@@ -64,7 +64,7 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
   const { setShowImportBitlyModal, ImportBitlyModal } = useImportBitlyModal();
   const { setShowImportShortModal, ImportShortModal } = useImportShortModal();
 
-  const { error, loading } = useProject();
+  const { samlConfigured, error, loading } = useProject();
   const { data: session } = useSession();
 
   const router = useRouter();

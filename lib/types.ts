@@ -56,6 +56,7 @@ export interface ProjectProps {
   usage: number;
   usageLimit: number;
   plan: PlanProps;
+  samlConfigured: boolean;
   stripeId?: string;
   billingCycleStart?: number;
   createdAt?: Date;
