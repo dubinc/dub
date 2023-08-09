@@ -4,7 +4,6 @@ import {
   Container,
   Head,
   Heading,
-  Hr,
   Html,
   Img,
   Preview,
@@ -25,8 +24,8 @@ export default function ProjectInvite({
   email: string;
   url: string;
   projectName: string;
-  projectUser: string;
-  projectUserEmail: string;
+  projectUser: string | null;
+  projectUserEmail: string | null;
 }) {
   return (
     <Html>
@@ -47,17 +46,24 @@ export default function ProjectInvite({
             <Heading className="mx-0 my-7 p-0 text-center text-xl font-semibold text-black">
               Join {projectName} on Dub
             </Heading>
-            <Text className="text-sm leading-6 text-black">
-              <strong>{projectUser}</strong> (
-              <Link
-                className="text-blue-600 no-underline"
-                href={`mailto:${projectUserEmail}`}
-              >
-                {projectUserEmail}
-              </Link>
-              ) has invited you to join the <strong>{projectName}</strong>{" "}
-              project on Dub!
-            </Text>
+            {projectUser && projectUserEmail ? (
+              <Text className="text-sm leading-6 text-black">
+                <strong>{projectUser}</strong> (
+                <Link
+                  className="text-blue-600 no-underline"
+                  href={`mailto:${projectUserEmail}`}
+                >
+                  {projectUserEmail}
+                </Link>
+                ) has invited you to join the <strong>{projectName}</strong>{" "}
+                project on Dub!
+              </Text>
+            ) : (
+              <Text className="text-sm leading-6 text-black">
+                You have been invited to join the <strong>{projectName}</strong>{" "}
+                project on Dub!
+              </Text>
+            )}
             <Section className="mb-8 text-center">
               <Link
                 className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"

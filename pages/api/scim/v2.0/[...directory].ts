@@ -4,8 +4,9 @@ import prisma from "#/lib/prisma";
 import type {
   DirectorySyncEvent,
   DirectorySyncRequest,
-  User,
 } from "@boxyhq/saml-jackson";
+import { inviteUser } from "#/lib/api/users";
+import { ProjectProps } from "#/lib/types";
 
 // Fetch the auth token from the request headers
 export const extractAuthToken = (req: NextApiRequest): string | null => {
@@ -50,86 +51,84 @@ export default async function handler(
   res.status(status).json(data);
 }
 
-const addUser = async ({
-  data,
-  projectId,
-}: {
-  data: User;
-  projectId: string;
-}) => {
-  const user = await prisma.user.upsert({
-    where: {
-      email: data.email,
-    },
-    update: {
-      name: `${data.first_name} ${data.last_name}`,
-    },
-    create: {
-      name: `${data.first_name} ${data.last_name}`,
-      email: data.email,
-    },
-  });
-
-  await Promise.all([
-    // add to project
-    prisma.projectUsers.upsert({
-      where: {
-        userId_projectId: {
-          userId: user.id,
-          projectId,
-        },
-      },
-      update: {},
-      create: {
-        userId: user.id,
-        projectId,
-      },
-    }),
-    // send email invite
-  ]);
-};
-
 // Handle the SCIM events
 const handleEvents = async (event: DirectorySyncEvent) => {
   const { event: action, tenant: projectId, data } = event;
-  console.log({ action, projectId, data });
 
-  // User has been created
-  if (action === "user.created" && "email" in data) {
-    await addUser({ data, projectId });
+  const project = (await prisma.project.findUnique({
+    where: {
+      id: projectId,
+    },
+  })) as ProjectProps;
+
+  if (!project || project.plan !== "enterprise" || !("email" in data)) {
+    return;
   }
 
-  // User has been updated
-  if (action === "user.updated" && "email" in data) {
-    if (data.active === true) {
-      await addUser({ data, projectId });
-      return;
-    }
-
-    const user = await prisma.user.findUnique({
+  const [userInProject, userInvited] = await Promise.all([
+    prisma.user.findFirst({
       where: {
         email: data.email,
+        projects: {
+          some: {
+            projectId,
+          },
+        },
       },
+    }),
+    await prisma.projectInvite.findUnique({
+      where: {
+        email_projectId: {
+          email: data.email,
+          projectId,
+        },
+      },
+    }),
+  ]);
+
+  // User has been activated for the first time
+  if (action === "user.created" && !userInProject && !userInvited) {
+    await inviteUser({
+      email: data.email,
+      project,
     });
+  }
 
-    if (!user) {
-      return;
+  // User has been activated
+  if (action === "user.updated" && data.active === true) {
+    if (!userInProject && !userInvited) {
+      await inviteUser({
+        email: data.email,
+        project,
+      });
     }
+  }
 
-    if (data.active === false) {
+  // User has been deactivated or deleted
+  if (
+    (action === "user.updated" && data.active === false) ||
+    action === "user.deleted"
+  ) {
+    if (userInProject) {
       await prisma.projectUsers.delete({
         where: {
           userId_projectId: {
-            userId: user.id,
+            userId: userInProject.id,
+            projectId,
+          },
+        },
+      });
+    }
+    if (userInvited) {
+      await prisma.projectInvite.delete({
+        where: {
+          email_projectId: {
+            email: data.email,
             projectId,
           },
         },
       });
     }
   }
-
-  // User has been removed
-  if (action === "user.deleted" && "email" in data) {
-    // await deleteUser({ email: data.email });
-  }
+  return;
 };
