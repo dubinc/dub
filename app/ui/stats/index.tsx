@@ -15,13 +15,14 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
+import { X } from "lucide-react";
+import Toggle from "./toggle";
 import Clicks from "./clicks";
 import Devices from "./devices";
-import Feedback from "./feedback";
 import Locations from "./locations";
 import Referer from "./referer";
-import Toggle from "./toggle";
-import { X } from "lucide-react";
+// using the regular feedback component until Server Actions play nice with ISR
+import Feedback from "@/components/stats/feedback";
 
 export const StatsContext = createContext<{
   basePath: string;

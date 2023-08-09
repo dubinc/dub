@@ -2,7 +2,9 @@ import { nanoid } from "#/lib/utils";
 import { ReactElement, JSXElementConstructor } from "react";
 import { Resend } from "resend";
 
-export const resend = new Resend(process.env.RESEND_API_KEY);
+export const resend = process.env.RESEND_API_KEY
+  ? new Resend(process.env.RESEND_API_KEY)
+  : null;
 
 export const sendEmail = async ({
   email,
@@ -17,6 +19,12 @@ export const sendEmail = async ({
   marketing?: boolean;
   test?: boolean;
 }) => {
+  if (!resend) {
+    console.log(
+      "Resend is not configured. You need to add a RESEND_API_KEY in your .env file for emails to work.",
+    );
+    return Promise.resolve();
+  }
   return resend.emails.send({
     from: marketing
       ? "Steven from Dub <steven@ship.dub.sh>"

@@ -6,16 +6,18 @@ export default async function Stats() {
   const [domains, shortlinks, clicks] = await Promise.all([
     getTotalVerifiedDomains(),
     getTotalLinks(),
-    fetch(`https://api.us-east.tinybird.co/v0/pipes/all_clicks.json`, {
-      headers: {
-        Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
-      },
-      next: {
-        revalidate: 300,
-      },
-    })
-      .then((res) => res.json())
-      .then((res) => res.data[0]["count(timestamp)"]),
+    process.env.TINYBIRD_API_KEY
+      ? fetch(`https://api.us-east.tinybird.co/v0/pipes/all_clicks.json`, {
+          headers: {
+            Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
+          },
+          next: {
+            revalidate: 300,
+          },
+        })
+          .then((res) => res.json())
+          .then((res) => res.data[0]["count(timestamp)"])
+      : 5000000,
   ]);
 
   return (

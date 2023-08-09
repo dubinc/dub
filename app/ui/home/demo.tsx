@@ -12,33 +12,44 @@ import { APP_DOMAIN, FRAMER_MOTION_LIST_ITEM_VARIANTS } from "#/lib/constants";
 import useLocalStorage from "#/lib/hooks/use-local-storage";
 import { SimpleLinkProps } from "#/lib/types";
 import { toast } from "sonner";
-import { createLink } from "./action";
 
 export default function Demo() {
   const formRef = useRef<HTMLFormElement>(null);
   const [hashes, setHashes] = useLocalStorage<SimpleLinkProps[]>("hashes", []);
+  const [submitting, setSubmitting] = useState(false);
   const [showDefaultLink, setShowDefaultLink] = useState(true);
 
   return (
     <div className="mx-auto w-full max-w-md px-2.5 sm:px-0">
       <form
         ref={formRef}
-        action={(data) => {
-          createLink(data).then((res) => {
-            if (res.error) {
-              toast.error(res.error);
-            } else if (!res.key || !res.url) {
-              toast.error("Something went wrong. Please try again.");
-            } else {
+        onSubmit={(e) => {
+          e.preventDefault();
+          setSubmitting(true);
+          fetch("/api/edge/links", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              url: e.currentTarget.url.value,
+            }),
+          }).then(async (res) => {
+            setSubmitting(false);
+            if (res.ok) {
+              const data = await res.json();
               setHashes([
                 ...hashes,
                 {
-                  key: res.key,
-                  url: res.url,
+                  key: data.key,
+                  url: data.url,
                 },
               ]);
               toast.success("Successfully shortened link!");
               formRef.current?.reset();
+            } else {
+              const error = await res.text();
+              toast.error(error);
             }
           });
         }}
@@ -74,7 +85,21 @@ export default function Demo() {
               required
               className="peer block w-full rounded-md border border-gray-200 bg-white p-2 pl-10 pr-12 shadow-lg focus:border-black focus:outline-none focus:ring-0 sm:text-sm"
             />
-            <FormButton />
+            <button
+              type="submit"
+              disabled={submitting}
+              className={`${
+                submitting
+                  ? "cursor-not-allowed bg-gray-100"
+                  : "hover:border-gray-700 hover:text-gray-700 peer-focus:text-gray-700"
+              } absolute inset-y-0 right-0 my-1.5 mr-1.5 flex w-10 items-center justify-center rounded border border-gray-200 font-sans text-sm font-medium text-gray-400`}
+            >
+              {submitting ? (
+                <LoadingSpinner className="h-4 w-4" />
+              ) : (
+                <CornerDownLeft className="h-4 w-4" />
+              )}
+            </button>
           </div>
         )}
       </form>
@@ -136,24 +161,3 @@ export default function Demo() {
     </div>
   );
 }
-
-const FormButton = () => {
-  const { pending } = useFormStatus();
-  return (
-    <button
-      type="submit"
-      disabled={pending}
-      className={`${
-        pending
-          ? "cursor-not-allowed bg-gray-100"
-          : "hover:border-gray-700 hover:text-gray-700 peer-focus:text-gray-700"
-      } absolute inset-y-0 right-0 my-1.5 mr-1.5 flex w-10 items-center justify-center rounded border border-gray-200 font-sans text-sm font-medium text-gray-400`}
-    >
-      {pending ? (
-        <LoadingSpinner className="h-4 w-4" />
-      ) : (
-        <CornerDownLeft className="h-4 w-4" />
-      )}
-    </button>
-  );
-};

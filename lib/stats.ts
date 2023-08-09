@@ -117,14 +117,14 @@ export const getStats = async ({
   endpoint: string;
   interval?: string | null;
 }) => {
-  if (!process.env.TINYBIRD_API_KEY) {
-    return null;
-  }
+  // Note: we're using decodeURIComponent in this function because that's how we store it in MySQL and Tinybird
 
-  // Note: we're doing decodeURIComponent here because that's how we store it in MySQL and Tinybird
-
-  if (!VALID_TINYBIRD_ENDPOINTS.has(endpoint)) {
-    return null;
+  if (
+    !conn ||
+    !process.env.TINYBIRD_API_KEY ||
+    !VALID_TINYBIRD_ENDPOINTS.has(endpoint)
+  ) {
+    return [];
   }
 
   // get all-time clicks count if:
