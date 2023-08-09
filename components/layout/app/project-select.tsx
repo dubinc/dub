@@ -11,9 +11,11 @@ import PlanBadge from "@/components/app/projects/plan-badge";
 import { GOOGLE_FAVICON_URL } from "#/lib/constants";
 import { ModalContext } from "#/ui/modal-provider";
 import Link from "next/link";
+import useProject from "#/lib/swr/use-project";
 
 export default function ProjectSelect() {
   const { projects } = useProjects();
+  const { error, loading } = useProject();
 
   const router = useRouter();
   const { slug, key } = router.query as {
@@ -24,7 +26,7 @@ export default function ProjectSelect() {
   const { data: session } = useSession();
 
   const selected = useMemo(() => {
-    if (slug && projects) {
+    if (slug && projects && !error) {
       const selectedProject = projects?.find(
         (project) => project.slug === slug,
       );
@@ -34,6 +36,8 @@ export default function ProjectSelect() {
           selectedProject?.logo ||
           `${GOOGLE_FAVICON_URL}${selectedProject?.primaryDomain?.slug}`,
       };
+
+      // return personal account selector if there's no project or error (user doesn't have access to project)
     } else {
       return {
         name: session?.user?.name || session?.user?.email,
@@ -44,7 +48,7 @@ export default function ProjectSelect() {
         plan: "free",
       };
     }
-  }, [slug, projects, session]) as {
+  }, [slug, projects, session, error]) as {
     id?: string;
     name: string;
     slug: string;
@@ -54,14 +58,15 @@ export default function ProjectSelect() {
 
   const [openPopover, setOpenPopover] = useState(false);
 
-  if (!projects || !router.isReady)
+  if (!router.isReady || !projects || loading) {
     return (
-      <div className="flex animate-pulse items-center justify-end space-x-1.5 rounded-lg px-1.5 py-2 sm:w-60">
+      <div className="flex animate-pulse items-center space-x-1.5 rounded-lg px-1.5 py-2 sm:w-60">
         <div className="h-8 w-8 animate-pulse rounded-full bg-gray-200" />
         <div className="hidden h-8 w-28 animate-pulse rounded-md bg-gray-200 sm:block sm:w-40" />
         <ChevronsUpDown className="h-4 w-4 text-gray-400" aria-hidden="true" />
       </div>
     );
+  }
 
   return (
     <div>
