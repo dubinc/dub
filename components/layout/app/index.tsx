@@ -22,11 +22,7 @@ import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import { LoadingSpinner } from "#/ui/icons";
 import { FileX2 } from "lucide-react";
 import BlurImage from "#/ui/blur-image";
-
-const NavTabs = dynamic(() => import("./nav-tabs"), {
-  ssr: false,
-  loading: () => <div className="-mb-0.5 h-12 w-full" />,
-}); // dynamic import to avoid react hydration mismatch error
+import NavTabs from "./nav-tabs";
 
 export default function AppLayout({
   children,
@@ -124,42 +120,38 @@ export default function AppLayout({
                 <Link href="/">
                   <Logo className="h-8 w-8 transition-all duration-75 active:scale-95" />
                 </Link>
-                {!loading && !error && (
+                <Divider className="h-8 w-8 text-gray-200 sm:ml-3" />
+                <ProjectSelect />
+                {!error && key && (
                   <>
-                    <Divider className="h-8 w-8 text-gray-200 sm:ml-3" />
-                    <ProjectSelect />
-                    {key && (
-                      <>
-                        <Divider className="h-8 w-8 text-gray-200 sm:mr-3" />
-                        <Link
-                          href={
-                            slug
-                              ? `/${slug}/${domain}/${encodeURIComponent(key)}`
-                              : `/links/${encodeURIComponent(key)}`
-                          }
-                          className="text-sm font-medium"
-                        >
-                          {linkConstructor({
-                            domain: domain || "dub.sh",
-                            key,
-                            pretty: true,
-                          })}
-                        </Link>
-                      </>
-                    )}
-                    {plan === "free" && showProBanner === false && (
-                      <button
-                        onClick={() => setShowUpgradePlanModal(true)}
-                        className="mb-1 ml-3 hidden sm:block"
-                      >
-                        <Badge
-                          text="Upgrade to Pro"
-                          variant="blue"
-                          className="px-3 py-1"
-                        />
-                      </button>
-                    )}
+                    <Divider className="h-8 w-8 text-gray-200 sm:mr-3" />
+                    <Link
+                      href={
+                        slug
+                          ? `/${slug}/${domain}/${encodeURIComponent(key)}`
+                          : `/links/${encodeURIComponent(key)}`
+                      }
+                      className="text-sm font-medium"
+                    >
+                      {linkConstructor({
+                        domain: domain || "dub.sh",
+                        key,
+                        pretty: true,
+                      })}
+                    </Link>
                   </>
+                )}
+                {plan === "free" && showProBanner === false && (
+                  <button
+                    onClick={() => setShowUpgradePlanModal(true)}
+                    className="mb-1 ml-3 hidden sm:block"
+                  >
+                    <Badge
+                      text="Upgrade to Pro"
+                      variant="blue"
+                      className="px-3 py-1"
+                    />
+                  </button>
                 )}
               </div>
               <div className="flex items-center space-x-6">
@@ -179,7 +171,7 @@ export default function AppLayout({
                 <UserDropdown />
               </div>
             </div>
-            {!loading && !error && <NavTabs />}
+            <NavTabs />
           </MaxWidthWrapper>
         </div>
         {loading || error?.status === 409 || error?.status === 410 ? (
@@ -196,8 +188,9 @@ export default function AppLayout({
                 Project Not Found
               </h1>
               <p className="z-10 max-w-sm text-center text-sm text-gray-600">
-                The project you are looking for does not exist. Are you sure you
-                have the right link?
+                Bummer! The project you are looking for does not exist. You
+                either typed in the wrong URL or don't have access to this
+                project.
               </p>
               <BlurImage
                 src="/_static/illustrations/coffee-call.svg"
@@ -214,7 +207,7 @@ export default function AppLayout({
             </div>
           </MaxWidthWrapper>
         ) : (
-          <div>{children}</div>
+          children
         )}
       </div>
     </div>
