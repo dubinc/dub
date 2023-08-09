@@ -189,7 +189,7 @@ export default function LinkCard({
               href={url}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-72 truncate text-sm text-gray-500 underline-offset-2 transition-all hover:text-gray-800 hover:underline"
+              className="line-clamp-1 w-72 text-sm text-gray-500 underline-offset-2 transition-all hover:text-gray-800 hover:underline"
             >
               {url}
             </a>
