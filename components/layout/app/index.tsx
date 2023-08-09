@@ -15,9 +15,13 @@ import Cookies from "js-cookie";
 import { ModalContext } from "#/ui/modal-provider";
 import Badge from "#/ui/badge";
 import { linkConstructor } from "#/lib/utils";
-import { HelpCircle } from "lucide-react";
 import { HOME_DOMAIN } from "#/lib/constants";
+import { useGoogleOauthModal } from "@/components/app/modals/google-oauth-modal";
+import { useAcceptInviteModal } from "@/components/app/modals/accept-invite-modal";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
+import { LoadingSpinner } from "#/ui/icons";
+import { FileX2 } from "lucide-react";
+import BlurImage from "#/ui/blur-image";
 
 const NavTabs = dynamic(() => import("./nav-tabs"), {
   ssr: false,
@@ -52,7 +56,7 @@ export default function AppLayout({
     }
   }, [session]);
 
-  const { id, name, plan, stripeId, createdAt } = useProject();
+  const { id, name, plan, stripeId, createdAt, error, loading } = useProject();
   const [showProBanner, setShowProBanner] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -82,11 +86,33 @@ export default function AppLayout({
     }
   }, [plan, id, name, slug, stripeId, createdAt]);
 
+  const { GoogleOauthModal, setShowGoogleOauthModal } = useGoogleOauthModal();
   const { setShowUpgradePlanModal, setShowCMDK } = useContext(ModalContext);
+  const { AcceptInviteModal, setShowAcceptInviteModal } =
+    useAcceptInviteModal();
+
+  // handle invite and oauth modals
+  useEffect(() => {
+    if (error && (error.status === 409 || error.status === 410)) {
+      setShowAcceptInviteModal(true);
+    } else if (
+      !loading &&
+      session?.user?.email &&
+      !session.user?.name &&
+      !router.asPath.startsWith("/welcome") &&
+      !Cookies.get("hideGoogleOauthModal")
+    ) {
+      setShowGoogleOauthModal(true);
+    }
+  }, [error, session, router.asPath]);
 
   return (
     <div>
       <Meta />
+      {error && (error.status === 409 || error.status === 410) && (
+        <AcceptInviteModal />
+      )}
+      <GoogleOauthModal />
       {showProBanner && <ProBanner setShowProBanner={setShowProBanner} />}
       <div
         className={`min-h-screen w-full ${bgWhite ? "bg-white" : "bg-gray-50"}`}
@@ -98,38 +124,42 @@ export default function AppLayout({
                 <Link href="/">
                   <Logo className="h-8 w-8 transition-all duration-75 active:scale-95" />
                 </Link>
-                <Divider className="h-8 w-8 text-gray-200 sm:ml-3" />
-                <ProjectSelect />
-                {key && (
+                {!loading && !error && (
                   <>
-                    <Divider className="h-8 w-8 text-gray-200 sm:mr-3" />
-                    <Link
-                      href={
-                        slug
-                          ? `/${slug}/${domain}/${encodeURIComponent(key)}`
-                          : `/links/${encodeURIComponent(key)}`
-                      }
-                      className="text-sm font-medium"
-                    >
-                      {linkConstructor({
-                        domain: domain || "dub.sh",
-                        key,
-                        pretty: true,
-                      })}
-                    </Link>
+                    <Divider className="h-8 w-8 text-gray-200 sm:ml-3" />
+                    <ProjectSelect />
+                    {key && (
+                      <>
+                        <Divider className="h-8 w-8 text-gray-200 sm:mr-3" />
+                        <Link
+                          href={
+                            slug
+                              ? `/${slug}/${domain}/${encodeURIComponent(key)}`
+                              : `/links/${encodeURIComponent(key)}`
+                          }
+                          className="text-sm font-medium"
+                        >
+                          {linkConstructor({
+                            domain: domain || "dub.sh",
+                            key,
+                            pretty: true,
+                          })}
+                        </Link>
+                      </>
+                    )}
+                    {plan === "free" && showProBanner === false && (
+                      <button
+                        onClick={() => setShowUpgradePlanModal(true)}
+                        className="mb-1 ml-3 hidden sm:block"
+                      >
+                        <Badge
+                          text="Upgrade to Pro"
+                          variant="blue"
+                          className="px-3 py-1"
+                        />
+                      </button>
+                    )}
                   </>
-                )}
-                {plan === "free" && showProBanner === false && (
-                  <button
-                    onClick={() => setShowUpgradePlanModal(true)}
-                    className="mb-1 ml-3 hidden sm:block"
-                  >
-                    <Badge
-                      text="Upgrade to Pro"
-                      variant="blue"
-                      className="px-3 py-1"
-                    />
-                  </button>
                 )}
               </div>
               <div className="flex items-center space-x-6">
@@ -149,10 +179,43 @@ export default function AppLayout({
                 <UserDropdown />
               </div>
             </div>
-            <NavTabs />
+            {!loading && !error && <NavTabs />}
           </MaxWidthWrapper>
         </div>
-        <div>{children}</div>
+        {loading || error?.status === 409 || error?.status === 410 ? (
+          <div className="flex h-[calc(100vh-16px)] items-center justify-center">
+            <LoadingSpinner />
+          </div>
+        ) : error?.status === 404 ? (
+          <MaxWidthWrapper>
+            <div className="my-10 flex flex-col items-center justify-center rounded-md border border-gray-200 bg-white py-12">
+              <div className="rounded-full bg-gray-100 p-3">
+                <FileX2 className="h-6 w-6 text-gray-600" />
+              </div>
+              <h1 className="my-3 text-xl font-semibold text-gray-700">
+                Project Not Found
+              </h1>
+              <p className="z-10 max-w-sm text-center text-sm text-gray-600">
+                The project you are looking for does not exist. Are you sure you
+                have the right link?
+              </p>
+              <BlurImage
+                src="/_static/illustrations/coffee-call.svg"
+                alt="No links yet"
+                width={400}
+                height={400}
+              />
+              <Link
+                href="/"
+                className="z-10 rounded-md border border-black bg-black px-10 py-2 text-sm font-medium text-white transition-all duration-75 hover:bg-white hover:text-black"
+              >
+                Back to my projects
+              </Link>
+            </div>
+          </MaxWidthWrapper>
+        ) : (
+          <div>{children}</div>
+        )}
       </div>
     </div>
   );

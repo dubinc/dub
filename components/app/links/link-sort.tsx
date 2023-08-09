@@ -46,6 +46,7 @@ export default function LinkSort() {
                   pathname: `/${router.query.slug || "links"}`,
                   query: finalQuery,
                 });
+                setOpenPopover(false);
               }}
               className="flex w-full items-center justify-between space-x-2 rounded-md px-1 py-2 hover:bg-gray-100 active:bg-gray-200"
             >

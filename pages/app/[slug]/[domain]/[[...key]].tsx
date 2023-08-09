@@ -1,11 +1,11 @@
 import { useContext } from "react";
 import AppLayout from "@/components/layout/app";
 import BlurImage from "#/ui/blur-image";
-import { Lock } from "@/components/shared/icons";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import Stats from "@/components/stats";
 import useProject from "#/lib/swr/use-project";
 import { ModalContext } from "#/ui/modal-provider";
+import { Lock } from "lucide-react";
 
 export default function StatsPage() {
   const { slug, exceededUsage } = useProject();
