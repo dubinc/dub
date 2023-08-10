@@ -4,7 +4,7 @@ import { useSAMLModal } from "@/components/app/modals/saml-modal";
 import { useRemoveSAMLModal } from "@/components/app/modals/remove-saml-modal";
 import SettingsLayout from "@/components/layout/app/settings-layout";
 import { FolderSync, Lock, ShieldOff } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Dispatch, SetStateAction, useContext, useMemo, useState } from "react";
 import { ThreeDots } from "@/components/shared/icons";
 import Popover from "#/ui/popover";
 import IconMenu from "@/components/shared/icon-menu";
@@ -12,18 +12,31 @@ import useSAML from "#/lib/swr/use-saml";
 import useSCIM from "#/lib/swr/use-scim";
 import { useRemoveSCIMModal } from "@/components/app/modals/remove-scim-modal";
 import { useSCIMModal } from "@/components/app/modals/scim-modal";
-import { SAML_PROVIDERS } from "#/lib/constants";
+import { HOME_DOMAIN, SAML_PROVIDERS } from "#/lib/constants";
+import useProject from "#/lib/swr/use-project";
+import { TooltipContent } from "#/ui/tooltip";
+import { ModalContext } from "#/ui/modal-provider";
+import { useUpgradePlanModal } from "@/components/app/modals/upgrade-plan-modal";
 
 export default function ProjectSecurity() {
+  const { setShowUpgradePlanModal, UpgradePlanModal } = useUpgradePlanModal({
+    defaultPlan: "Enterprise",
+  });
   return (
     <SettingsLayout>
-      <SAMLSection />
-      <SCIMSection />
+      <UpgradePlanModal />
+      <SAMLSection setShowUpgradePlanModal={setShowUpgradePlanModal} />
+      <SCIMSection setShowUpgradePlanModal={setShowUpgradePlanModal} />
     </SettingsLayout>
   );
 }
 
-const SAMLSection = () => {
+const SAMLSection = ({
+  setShowUpgradePlanModal,
+}: {
+  setShowUpgradePlanModal: Dispatch<SetStateAction<boolean>>;
+}) => {
+  const { plan } = useProject();
   const { SAMLModal, setShowSAMLModal } = useSAMLModal();
   const { RemoveSAMLModal, setShowRemoveSAMLModal } = useRemoveSAMLModal();
   const { provider, configured, loading } = useSAML();
@@ -133,6 +146,17 @@ const SAMLSection = () => {
               ) : (
                 <Button
                   text="Configure"
+                  disabled={plan !== "enterprise"}
+                  {...(plan !== "enterprise" && {
+                    disabledTooltip: (
+                      // "SAML SSO is only available on Enterprise plans.",
+                      <TooltipContent
+                        title="SAML SSO is only available on Enterprise plans. Upgrade to get started."
+                        cta="Upgrade to Enterprise"
+                        onClick={() => setShowUpgradePlanModal(true)}
+                      />
+                    ),
+                  })}
                   onClick={() => setShowSAMLModal(true)}
                 />
               )}
@@ -141,14 +165,25 @@ const SAMLSection = () => {
         </div>
 
         <div className="flex items-center justify-between rounded-b-lg border-t border-gray-200 bg-gray-50 px-3 py-5 sm:px-10">
-          <p className="text-sm text-gray-500">Learn more about SAML SSO</p>
+          <a
+            href={`${HOME_DOMAIN}/help/article/saml-sso`}
+            target="_blank"
+            className="text-sm text-gray-400 underline underline-offset-4 transition-colors hover:text-gray-700"
+          >
+            Learn more about SAML SSO.
+          </a>
         </div>
       </div>
     </>
   );
 };
 
-const SCIMSection = () => {
+const SCIMSection = ({
+  setShowUpgradePlanModal,
+}: {
+  setShowUpgradePlanModal: Dispatch<SetStateAction<boolean>>;
+}) => {
+  const { plan } = useProject();
   const { SCIMModal, setShowSCIMModal } = useSCIMModal();
   const { RemoveSCIMModal, setShowRemoveSCIMModal } = useRemoveSCIMModal();
 
@@ -271,6 +306,16 @@ const SCIMSection = () => {
               ) : (
                 <Button
                   text="Configure"
+                  disabled={plan !== "enterprise"}
+                  {...(plan !== "enterprise" && {
+                    disabledTooltip: (
+                      <TooltipContent
+                        title="SCIM Directory Sync is only available on Enterprise plans. Upgrade to get started."
+                        cta="Upgrade to Enterprise"
+                        onClick={() => setShowUpgradePlanModal(true)}
+                      />
+                    ),
+                  })}
                   onClick={() => setShowSCIMModal(true)}
                 />
               )}
@@ -279,7 +324,13 @@ const SCIMSection = () => {
         </div>
 
         <div className="flex items-center justify-between rounded-b-lg border-t border-gray-200 bg-gray-50 px-3 py-5 sm:px-10">
-          <p className="text-sm text-gray-500">Learn more about SAML SSO</p>
+          <a
+            href={`${HOME_DOMAIN}/help/article/directory-sync`}
+            target="_blank"
+            className="text-sm text-gray-400 underline underline-offset-4 transition-colors hover:text-gray-700"
+          >
+            Learn more about SCIM Directory Sync.
+          </a>
         </div>
       </div>
     </>

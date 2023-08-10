@@ -22,13 +22,15 @@ import { Logo } from "#/ui/icons";
 function UpgradePlanModal({
   showUpgradePlanModal,
   setShowUpgradePlanModal,
+  defaultPlan,
 }: {
   showUpgradePlanModal: boolean;
   setShowUpgradePlanModal: Dispatch<SetStateAction<boolean>>;
+  defaultPlan: "Pro" | "Enterprise";
 }) {
   const router = useRouter();
   const { slug } = router.query;
-  const [plan, setPlan] = useState<"Pro" | "Enterprise">("Pro");
+  const [plan, setPlan] = useState<"Pro" | "Enterprise">(defaultPlan);
   const [period, setPeriod] = useState<"monthly" | "yearly">("yearly");
   const features = useMemo(() => {
     return [
@@ -210,7 +212,11 @@ function UpgradePlanModal({
   );
 }
 
-export function useUpgradePlanModal() {
+export function useUpgradePlanModal(
+  { defaultPlan } = { defaultPlan: "Pro" } as {
+    defaultPlan: "Pro" | "Enterprise";
+  },
+) {
   const [showUpgradePlanModal, setShowUpgradePlanModal] = useState(false);
 
   const UpgradePlanModalCallback = useCallback(() => {
@@ -218,9 +224,10 @@ export function useUpgradePlanModal() {
       <UpgradePlanModal
         showUpgradePlanModal={showUpgradePlanModal}
         setShowUpgradePlanModal={setShowUpgradePlanModal}
+        defaultPlan={defaultPlan}
       />
     );
-  }, [showUpgradePlanModal, setShowUpgradePlanModal]);
+  }, [showUpgradePlanModal, setShowUpgradePlanModal, defaultPlan]);
 
   return useMemo(
     () => ({

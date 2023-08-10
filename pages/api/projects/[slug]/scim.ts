@@ -66,5 +66,6 @@ export default withProjectAuth(
   },
   {
     requiredPlan: ["enterprise"],
+    excludeGet: true,
   },
 );
