@@ -122,6 +122,21 @@ const Form = () => {
         required
         disabled={pending}
         autoComplete="off"
+        onPaste={(e) => {
+          const pastedText = e.clipboardData.getData("text");
+
+          // Check if the pasted text is a URL that matches the pattern
+          if (pastedText.startsWith("https://dub.sh/")) {
+            // Extract the part of the URL after 'https://dub.sh/'
+            const extractedText = pastedText.replace("https://dub.sh/", "");
+
+            // Set the extracted text as the value of the input
+            e.currentTarget.value = extractedText;
+
+            // Prevent the default paste behavior
+            e.preventDefault();
+          }
+        }}
         className={cn(
           "block w-full rounded-r-md border-gray-300 text-sm text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500",
           pending && "bg-gray-100",
