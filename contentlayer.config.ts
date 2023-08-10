@@ -124,6 +124,9 @@ export const HelpPost = defineDocumentType(() => ({
         type: "string",
       },
     },
+    excludeHeadingsFromSearch: {
+      type: "boolean",
+    },
   },
   // @ts-ignore
   computedFields: computedFields("help"),

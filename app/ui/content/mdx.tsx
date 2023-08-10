@@ -5,16 +5,13 @@ import MDXTweet from "#/ui/tweet";
 import { Tweet as TweetProps } from "react-tweet/api";
 import { cn } from "#/lib/utils";
 import "react-medium-image-zoom/dist/styles.css";
-import {
-  HELP_CATEGORIES,
-  POPULAR_ARTICLES,
-  getPopularArticles,
-} from "#/lib/constants/content";
+import { HELP_CATEGORIES, POPULAR_ARTICLES } from "#/lib/constants/content";
 import ArticleLink from "./article-link";
 import CategoryCard from "./category-card";
 import { ListChecks } from "lucide-react";
 import ZoomImage from "./zoom-image";
 import { allHelpPosts } from "contentlayer/generated";
+import CopyBox from "./copy-box";
 
 const CustomLink = (props: any) => {
   const href = props.href;
@@ -71,6 +68,7 @@ const components = {
       {props.children}
     </div>
   ),
+  CopyBox,
   HelpArticles: (props: { articles: string[] }) => (
     <div className="not-prose grid gap-2 rounded-xl border border-gray-200 bg-white p-4">
       {(props.articles || POPULAR_ARTICLES).map((slug) => (

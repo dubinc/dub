@@ -1,6 +1,6 @@
 import { Logo } from "#/ui/icons";
 import { allHelpPosts } from "contentlayer/generated";
-import { Globe, Import, Link2, Settings, Webhook } from "lucide-react";
+import { Globe, Import, Link2, Lock, Settings, Webhook } from "lucide-react";
 
 export const BLOG_CATEGORIES: {
   title: string;
@@ -41,7 +41,8 @@ export const HELP_CATEGORIES: {
     | "link-management"
     | "custom-domains"
     | "migrating"
-    | "api";
+    | "api"
+    | "saml-sso";
   description: string;
   icon: JSX.Element;
 }[] = [
@@ -80,6 +81,12 @@ export const HELP_CATEGORIES: {
     slug: "api",
     description: "Learn how to use the Dub API.",
     icon: <Webhook className="h-6 w-6 text-gray-500" />,
+  },
+  {
+    title: "SAML SSO",
+    slug: "saml-sso",
+    description: "Secure your Dub project with SAML SSO.",
+    icon: <Lock className="h-6 w-6 text-gray-500" />,
   },
 ];
 

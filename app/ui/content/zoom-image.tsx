@@ -7,7 +7,7 @@ import Zoom from "react-medium-image-zoom";
 import "react-medium-image-zoom/dist/styles.css";
 
 export default function ZoomImage(
-  props: ImageProps & { blurDataURL?: string },
+  props: ImageProps & { blurDataURL?: string; hideCaption?: boolean },
 ) {
   const { isDesktop } = useMediaQuery();
   return (
@@ -23,9 +23,11 @@ export default function ZoomImage(
           }
         />
       </Zoom>
-      <figcaption className="text-center text-sm italic text-gray-500">
-        {props.alt}
-      </figcaption>
+      {!props?.hideCaption && (
+        <figcaption className="text-center text-sm italic text-gray-500">
+          {props.alt}
+        </figcaption>
+      )}
     </figure>
   );
 }

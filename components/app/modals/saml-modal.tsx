@@ -8,14 +8,12 @@ import {
 import Modal from "#/ui/modal";
 import Button from "#/ui/button";
 import { toast } from "sonner";
-import { ArrowRight, Lock } from "lucide-react";
-import { Logo } from "#/ui/icons";
+import { Lock } from "lucide-react";
 import useProject from "#/lib/swr/use-project";
 import { InfoTooltip, SimpleTooltipContent } from "#/ui/tooltip";
 import { HOME_DOMAIN, SAML_PROVIDERS } from "#/lib/constants";
 import useSAML from "#/lib/swr/use-saml";
 import { SAMLProviderProps } from "#/lib/types";
-import { cn } from "#/lib/utils";
 
 function SAMLModal({
   showSAMLModal,
@@ -29,7 +27,7 @@ function SAMLModal({
     SAMLProviderProps["saml"] | undefined
   >("okta");
   const [submitting, setSubmitting] = useState(false);
-  const { provider, configured, mutate } = useSAML();
+  const { mutate } = useSAML();
 
   return (
     <Modal showModal={showSAMLModal} setShowModal={setShowSAMLModal}>
@@ -78,9 +76,9 @@ function SAMLModal({
               <InfoTooltip
                 content={
                   <SimpleTooltipContent
-                    title="Your directory provider is the IDP you use to manage your users."
+                    title="Your SAML provider is the service you use to manage your users."
                     cta="Read the guide."
-                    href={`${HOME_DOMAIN}/help/article/configuring-scim`}
+                    href={`${HOME_DOMAIN}/help/article/saml-sso`}
                   />
                 }
               />
@@ -105,7 +103,7 @@ function SAMLModal({
           </div>
 
           {selectedProvider === "okta" && (
-            <div>
+            <div className="border-t border-gray-200 pt-4">
               <div className="flex items-center space-x-1">
                 <h2 className="text-sm font-medium text-gray-900">
                   Metadata URL
@@ -113,9 +111,9 @@ function SAMLModal({
                 <InfoTooltip
                   content={
                     <SimpleTooltipContent
-                      title={`Your Short.io API Key can be found in your Short.io account under "Integrations & API".`}
-                      cta="Read the guide."
-                      href={`${HOME_DOMAIN}/help/article/migrating-from-short`}
+                      title="Your metadata URL is the URL to your SAML provider's metadata."
+                      cta="Learn more."
+                      href={`${HOME_DOMAIN}/help/article/saml-sso`}
                     />
                   }
                 />

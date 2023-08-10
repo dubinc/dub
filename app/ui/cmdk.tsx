@@ -92,14 +92,19 @@ const CommandResults = ({
       description: post.summary,
     })),
     // get all table of contents headings too
-    ...allHelpPosts.flatMap((post) =>
-      post.tableOfContents.map((toc: { title: string; slug: string }) => ({
-        slug: `${post.slug}#${toc.slug}`,
-        title: toc.title,
-        description: null, // omit description since we don't want to search it
-        summary: `In: "${post.title}"`,
-      })),
-    ),
+    ...allHelpPosts.flatMap((post) => {
+      if (post.excludeHeadingsFromSearch) {
+        return [];
+      }
+      return post.tableOfContents.map(
+        (toc: { title: string; slug: string }) => ({
+          slug: `${post.slug}#${toc.slug}`,
+          title: toc.title,
+          description: null, // omit description since we don't want to search it
+          summary: `In: "${post.title}"`,
+        }),
+      );
+    }),
   ];
 
   const fuse = useMemo(
