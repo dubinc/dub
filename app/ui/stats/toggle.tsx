@@ -14,7 +14,7 @@ import Link from "next/link";
 import { StatsContext } from ".";
 import useScroll from "#/lib/hooks/use-scroll";
 import Tooltip, { TooltipContent } from "../tooltip";
-import useProject from "#/lib/hooks/use-project";
+import useProject from "#/lib/swr-app/use-project";
 import { useParams } from "next/navigation";
 import { APP_DOMAIN } from "#/lib/constants";
 import punycode from "punycode/";

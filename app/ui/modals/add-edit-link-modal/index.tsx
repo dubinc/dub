@@ -24,7 +24,7 @@ import { AlertCircleFill, Lock, Random, X } from "@/components/shared/icons";
 import { LoadingCircle, Logo } from "#/ui/icons";
 import Modal from "#/ui/modal";
 import Tooltip, { TooltipContent } from "#/ui/tooltip";
-import useProject from "#/lib/hooks/use-project";
+import useProject from "#/lib/swr-app/use-project";
 import { LinkProps } from "#/lib/types";
 import {
   getApexDomain,
@@ -40,7 +40,7 @@ import IOSSection from "./ios-section";
 import Preview from "./preview";
 import AndroidSection from "./android-section";
 import { DEFAULT_LINK_PROPS, GOOGLE_FAVICON_URL } from "#/lib/constants";
-import useDomains from "#/lib/hooks/use-domains";
+import useDomains from "#/lib/swr-app/use-domains";
 import { toast } from "sonner";
 import va from "@vercel/analytics";
 import punycode from "punycode/";
