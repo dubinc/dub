@@ -23,10 +23,18 @@ export default async function LinkMiddleware(
     url: string;
     password?: boolean;
     proxy?: boolean;
+    rewrite?: boolean;
     ios?: string;
     android?: string;
   }>(`${domain}:${key}`);
-  const { url: target, password, proxy, ios, android } = response || {};
+  const {
+    url: target,
+    password,
+    proxy,
+    rewrite,
+    ios,
+    android,
+  } = response || {};
 
   if (target) {
     // special case for link health monitoring with planetfall.io :)
@@ -56,10 +64,9 @@ export default async function LinkMiddleware(
       );
     } else {
       // regular redirect
-      return NextResponse.redirect(
-        getFinalUrl(target, { req }),
-        REDIRECT_HEADERS,
-      );
+      return rewrite
+        ? NextResponse.rewrite(getFinalUrl(target, { req }))
+        : NextResponse.redirect(getFinalUrl(target, { req }), REDIRECT_HEADERS);
     }
   } else {
     // short link not found, redirect to root

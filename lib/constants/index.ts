@@ -137,6 +137,7 @@ export const DEFAULT_LINK_PROPS = {
   title: null,
   description: null,
   image: null,
+  rewrite: false,
   ios: null,
   android: null,
 

@@ -25,7 +25,7 @@ export default withLinksAuth(
 
       // PUT /api/links/:key – edit a link
     } else if (req.method === "PUT") {
-      let { domain, key, url } = req.body;
+      let { domain, key, url, rewrite } = req.body;
       if (!domain || !key || !url) {
         return res.status(400).end("Missing domain or key or url.");
       }
@@ -41,6 +41,15 @@ export default withLinksAuth(
         const domainBlacklisted = await isBlacklistedDomain(url);
         if (domainBlacklisted) {
           return res.status(422).end("Invalid url.");
+        }
+      }
+
+      // free plan limitations
+      if (!project || project.plan === "free") {
+        if (rewrite) {
+          return res
+            .status(403)
+            .end("Link cloaking is only available for Pro users.");
         }
       }
 
