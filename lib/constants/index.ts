@@ -31,24 +31,24 @@ export const FADE_IN_ANIMATION_SETTINGS = {
   transition: { duration: 0.2 },
 };
 
-export const HOME_HOSTNAMES = new Set([
-  // comment for better diffs
-  "dub.sh",
-  "localhost",
-  "localhost:3000",
-]);
+/*
+  NOTE: We're using home.localhost:8888 for HOME_DOMAIN and localhost:8888 for APP_DOMAIN
+  in local development because Google OAuth doesn't allow subdomain localhost (e.g. app.localhost:8888)
+  as the callback URL. 
+*/
+
+export const HOME_HOSTNAMES = new Set(["home.localhost:8888", "dub.sh"]);
 
 export const HOME_DOMAIN =
   process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
     ? "https://dub.sh"
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
     ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-    : "http://localhost:3000";
+    : "http://home.localhost:8888";
 
 export const APP_HOSTNAMES = new Set([
+  "localhost:8888",
   "app.dub.sh",
-  "app.localhost:3000",
-  "app.localhost",
   "preview.dub.sh",
 ]);
 
@@ -57,7 +57,7 @@ export const APP_DOMAIN =
     ? "https://app.dub.sh"
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
     ? "https://preview.dub.sh"
-    : "http://app.localhost:3000";
+    : "http://localhost:8888";
 
 export const DEFAULT_REDIRECTS = {
   home: "https://dub.sh",

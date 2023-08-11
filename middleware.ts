@@ -33,13 +33,13 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
     return AppMiddleware(req);
   }
 
-  // for API (api.dub.sh and api.localhost:3000)
-  if (domain === "api.dub.sh" || domain === "api.localhost:3000") {
+  // for API (api.dub.sh and api.localhost:8888)
+  if (domain === "api.dub.sh" || domain === "api.localhost:8888") {
     return ApiMiddleware(req);
   }
 
-  // for Admin (admin.dub.sh and admin.localhost:3000)
-  if (domain === "admin.dub.sh" || domain === "admin.localhost:3000") {
+  // for Admin (admin.dub.sh and admin.localhost:8888)
+  if (domain === "admin.dub.sh" || domain === "admin.localhost:8888") {
     return AdminMiddleware(req);
   }
 
