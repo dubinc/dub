@@ -34,9 +34,13 @@ export default function Nav() {
   const scrolled = useScroll(80);
   const selectedLayout = useSelectedLayoutSegment();
   const helpCenter = selectedLayout === "help";
-  const { data: session, status } = useSession() || {
-    status: "unauthenticated", // if `useSession` is undefined, we're on a non dub.sh domain
-  };
+  const { data: session, status } =
+    domain === "dub.sh"
+      ? useSession()
+      : {
+          data: null,
+          status: "unauthenticated", // if `useSession` is undefined, we're on a non dub.sh domain
+        };
 
   return (
     <div
