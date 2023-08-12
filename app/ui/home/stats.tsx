@@ -21,6 +21,7 @@ export default async function Stats() {
         })
           .then((res) => res.json())
           .then((res) => res.data[0]["count(timestamp)"])
+          .catch(() => 5000000)
       : 5000000,
   ]);
 

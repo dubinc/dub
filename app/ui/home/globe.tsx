@@ -12,6 +12,7 @@ export default async function Globe() {
       })
         .then((res) => res.json())
         .then((res) => res.data)
+        .catch(() => [])
     : [];
 
   const markers = response.map(({ latitude, longitude }, idx) => {
