@@ -134,7 +134,7 @@ export default function UserDropdown() {
               alt={session?.user?.email || "Avatar for logged in user"}
               src={
                 session?.user?.image ||
-                `https://avatars.dicebear.com/api/micah/${session?.user?.email}.svg`
+                `https://api.dicebear.com/6.x/identicon/svg?backgroundType=solid&seed=${session?.user?.email}&scale=50`
               }
               width={40}
               height={40}
