@@ -1,6 +1,6 @@
 "use client";
 
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, ReactNode, SetStateAction } from "react";
 import * as SwitchPrimitive from "@radix-ui/react-switch";
 import { cn } from "#/lib/utils";
 import Tooltip from "./tooltip";
@@ -20,7 +20,7 @@ const Switch = ({
   thumbTranslate?: string;
   checked?: boolean;
   disabled?: boolean;
-  disabledTooltip?: string;
+  disabledTooltip?: string | ReactNode;
 }) => {
   if (disabledTooltip) {
     return (

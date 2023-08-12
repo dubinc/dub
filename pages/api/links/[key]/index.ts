@@ -42,14 +42,10 @@ export default withLinksAuth(
         if (domainBlacklisted) {
           return res.status(422).end("Invalid url.");
         }
-      }
-
-      // free plan limitations
-      if (!project || project.plan === "free") {
         if (rewrite) {
           return res
             .status(403)
-            .end("Link cloaking is only available for Pro users.");
+            .end("You can only use link cloaking on a custom domain.");
         }
       }
 

@@ -3,7 +3,7 @@ import { LinkProps } from "#/lib/types";
 import Switch from "#/ui/switch";
 import { HOME_DOMAIN } from "#/lib/constants";
 import { InfoTooltip, SimpleTooltipContent } from "#/ui/tooltip";
-import { useRouter } from "next/router";
+import { useParams } from "next/navigation";
 
 export default function RewriteSection({
   data,
@@ -12,8 +12,7 @@ export default function RewriteSection({
   data: LinkProps;
   setData: Dispatch<SetStateAction<LinkProps>>;
 }) {
-  const router = useRouter();
-  const { slug } = router.query;
+  const { slug } = useParams() as { slug: string };
 
   const { rewrite } = data;
   const [enabled, setEnabled] = useState(rewrite);

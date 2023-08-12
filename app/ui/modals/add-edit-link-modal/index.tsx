@@ -46,6 +46,7 @@ import va from "@vercel/analytics";
 import punycode from "punycode/";
 import Button from "#/ui/button";
 import { ModalContext } from "#/ui/modal-provider";
+import RewriteSection from "./rewrite-section";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
@@ -523,6 +524,7 @@ function AddEditLinkModal({
                 generatingMetatags={generatingMetatags}
               />
               <UTMSection {...{ props, data, setData }} />
+              <RewriteSection {...{ data, setData }} />
               <PasswordSection {...{ props, data, setData }} />
               <ExpirationSection {...{ props, data, setData }} />
               <IOSSection {...{ props, data, setData }} />
