@@ -13,7 +13,7 @@ import ArticleLink from "#/ui/content/article-link";
 import { getBlurDataURL } from "#/lib/images";
 import { Metadata } from "next";
 import { constructMetadata } from "#/lib/utils";
-import { getTweet } from "react-tweet/api";
+import { getAndCacheTweet } from "#/lib/twitter";
 
 export async function generateStaticParams() {
   return allHelpPosts.map((post) => ({
@@ -64,7 +64,9 @@ export default async function HelpArticle({
         blurDataURL: await getBlurDataURL(src),
       })),
     ),
-    await Promise.all(data.tweetIds.map(async (id: string) => getTweet(id))),
+    await Promise.all(
+      data.tweetIds.map(async (id: string) => getAndCacheTweet(id)),
+    ),
   ]);
 
   const relatedArticles =

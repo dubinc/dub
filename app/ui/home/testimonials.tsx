@@ -3,7 +3,8 @@ import { nFormatter } from "#/lib/utils";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import TestimonialsMobile from "./testimonials-mobile";
 import Tweet from "#/ui/tweet";
-import { getTweet, Tweet as TweetProps } from "react-tweet/api";
+import { Tweet as TweetProps } from "react-tweet/api";
+import { getAndCacheTweet } from "#/lib/twitter";
 
 const tweets = [
   "1631671657617059842",
@@ -27,7 +28,7 @@ export default async function Testimonials() {
   const [userCount, tweetsData] = await Promise.all([
     prisma.user.count(),
     (
-      await Promise.all(tweets.map((id) => getTweet(id)))
+      await Promise.all(tweets.map((id) => getAndCacheTweet(id)))
     ).filter((t) => t) as TweetProps[],
   ]);
 
