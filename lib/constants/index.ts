@@ -80,7 +80,7 @@ export const DEFAULT_REDIRECTS = {
   tags: "https://dub.sh/help/how-to-use-tags",
 };
 
-export const REDIRECT_HEADERS = {
+export const DUB_HEADERS = {
   headers: {
     "x-powered-by": "Dub.sh - Link management for modern marketing teams",
   },
