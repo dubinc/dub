@@ -5,7 +5,7 @@ import { LinkProps } from "#/lib/types";
 import { redis } from "#/lib/upstash";
 import { getParamsFromURL, nanoid, truncate, validKeyRegex } from "#/lib/utils";
 import { isReservedKey } from "#/lib/edge-config";
-import { NextApiRequest } from "next";
+import { NextApiRequest, NextApiResponse } from "next";
 
 export async function getLinksForProject({
   projectId,
@@ -190,6 +190,7 @@ export async function addLink(link: LinkProps) {
     description,
     image,
     proxy,
+    rewrite,
     ios,
     android,
   } = link;
@@ -224,6 +225,7 @@ export async function addLink(link: LinkProps) {
         url: encodeURIComponent(url),
         password: hasPassword,
         proxy,
+        ...(rewrite && { rewrite: true }),
         ios,
         android,
       },
@@ -274,6 +276,7 @@ export async function editLink(
     description,
     image,
     proxy,
+    rewrite,
     ios,
     android,
   } = link;
@@ -325,6 +328,7 @@ export async function editLink(
         url: encodeURIComponent(url),
         password: hasPassword,
         proxy,
+        ...(rewrite && { rewrite: true }),
         ios,
         android,
       },

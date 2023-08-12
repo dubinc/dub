@@ -39,7 +39,7 @@ export default withLinksAuth(
 
       // POST /api/links – create a new link
     } else if (req.method === "POST") {
-      let { domain, key, url } = req.body;
+      let { domain, key, url, rewrite } = req.body;
       if (!domain || !key || !url) {
         return res.status(400).end("Missing domain or key or url.");
       }
@@ -56,6 +56,11 @@ export default withLinksAuth(
         const domainBlacklisted = await isBlacklistedDomain(url);
         if (domainBlacklisted) {
           return res.status(422).end("Invalid url.");
+        }
+        if (rewrite) {
+          return res
+            .status(403)
+            .end("You can only use link cloaking on a custom domain.");
         }
       }
 

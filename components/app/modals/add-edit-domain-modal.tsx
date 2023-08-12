@@ -170,8 +170,8 @@ function AddEditDomainModal({
                 toast.error(domainErrorResponse);
               }
             } else {
-              setDomainError("Something went wrong. Please try again.");
-              toast.error("Something went wrong. Please try again.");
+              const error = await res.text();
+              toast.error(error);
             }
           });
         }}

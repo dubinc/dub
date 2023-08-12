@@ -112,6 +112,7 @@ export function TooltipContent({
           </Link>
         ) : onClick ? (
           <button
+            type="button"
             className="mt-4 w-full rounded-md border border-black bg-black px-3 py-1.5 text-center text-sm text-white transition-all hover:bg-white hover:text-black"
             onClick={onClick}
           >

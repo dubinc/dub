@@ -1,11 +1,15 @@
-import { getTotalLinks, getTotalVerifiedDomains } from "#/lib/planetscale";
+import prisma from "#/lib/prisma";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import { nFormatter } from "#/lib/utils";
 
 export default async function Stats() {
   const [domains, shortlinks, clicks] = await Promise.all([
-    getTotalVerifiedDomains(),
-    getTotalLinks(),
+    prisma.domain.count({
+      where: {
+        verified: true,
+      },
+    }),
+    prisma.link.count(),
     process.env.TINYBIRD_API_KEY
       ? fetch(`https://api.us-east.tinybird.co/v0/pipes/all_clicks.json`, {
           headers: {

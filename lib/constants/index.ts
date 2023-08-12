@@ -37,7 +37,11 @@ export const FADE_IN_ANIMATION_SETTINGS = {
   as the callback URL. 
 */
 
-export const HOME_HOSTNAMES = new Set(["home.localhost:8888", "dub.sh"]);
+export const HOME_HOSTNAMES = new Set([
+  "home.localhost:8888",
+  "localhost",
+  "dub.sh",
+]);
 
 export const HOME_DOMAIN =
   process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
@@ -137,6 +141,7 @@ export const DEFAULT_LINK_PROPS = {
   title: null,
   description: null,
   image: null,
+  rewrite: false,
   ios: null,
   android: null,
 

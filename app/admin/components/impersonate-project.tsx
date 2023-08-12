@@ -77,7 +77,6 @@ const Form = () => {
         name="slug"
         id="slug"
         type="text"
-        autoFocus
         required
         disabled={pending}
         autoComplete="off"
