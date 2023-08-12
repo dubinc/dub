@@ -38,6 +38,7 @@ Here are the difference between the two options:
 | **Dashboard location** | [app.dub.sh/links](https://app.dub.sh/links)                      | Can be found in the project select menu at the top menu bar                                                                                                                               |
 | **Link history**       | 30 days                                                           | 30 days - Unlimited ([Pro plan](pro-plan))                                                                                                                                                |
 | **Tags**               | Unavailable                                                       | Can be used to organize links                                                                                                                                                             |
+| **Link cloaking**      | Unavailable                                                       | Can be used to mask destination URL with your short link                                                                                                                                  |
 
 ## The Dub link builder
 
@@ -61,10 +62,11 @@ Inside the link builder are the following fields:
 3. **Choose a tag** (custom domain links only): Choose a tag to organize your links. You can learn more about tags [here](how-to-use-tags).
 4. **Custom Social Media Cards**: Customize how your links look when shared on social media. [Learn more](#custom-social-media-cards).
 5. **UTM Builder**: Add UTM parameters to your links. [Learn more](#utm-builder).
-6. **Password Protection**: Protect your links with a password. [Learn more](#password-protection).
-7. **Expiration Date**: Set an expiration date for your links. [Learn more](#expiration-date).
-8. **Device Targeting**: Set a custom destination URL for iOS and Android devices. [Learn more](#device-targeting-ios--android).
-9. **Social Previews**: See how your links will look when shared on social media.
+6. **Link Cloaking**: Mask your destination URL with your short link. [Learn more](#link-cloaking).
+7. **Password Protection**: Protect your links with a password. [Learn more](#password-protection).
+8. **Expiration Date**: Set an expiration date for your links. [Learn more](#expiration-date).
+9. **Device Targeting**: Set a custom destination URL for iOS and Android devices. [Learn more](#device-targeting-ios--android).
+10. **Social Previews**: See how your links will look when shared on social media.
 
 ## Custom social media cards
 
@@ -104,6 +106,39 @@ You can use the UTM builder to populate UTM parameters for your links.
   width={836}
   height={583}
 />
+
+## Link cloaking
+
+You can mask your destination URL with your short link by toggling the "Link Cloaking" switch in the link builder.
+
+<Image
+  alt="Toggling the 'Link Cloaking' switch in the link builder"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/link-cloaking.png"
+  width={1126}
+  height={478}
+/>
+
+When this is enabled, your short link will be shown in your users' browser address bar when they visit your link instead of the destination URL.
+
+<Image
+  alt="Masking 'slack.com' with 'dub.sh/slack'"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/changelog/link-cloaking.png"
+  width={811}
+  height={525}
+/>
+
+<Note variant="success">
+  This feature is only available for short links created with a [custom
+  domain](how-to-add-custom-domain).
+</Note>
+
+A few caveats for the URL masking feature:
+
+1. This feature is only available for [Pro plans and above](pro-plan).
+2. URL masking might not work for certain websites that have security measures in place to prevent this (e.g. `twitter.com`). Potential errors include:
+   - The domain redirects instead of rewriting
+   - Domain keeps redirecting (`ERR_TOO_MANY_REDIRECTS`)
+3. For certain [Next.js](https://nextjs.org/) websites, URL masking might cause broken CSS styles (e.g. `ray.so`)
 
 ## Password protection
 

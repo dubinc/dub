@@ -7,7 +7,13 @@ import { CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 
 export default function Feedback() {
-  const { data: session } = useSession();
+  let session;
+  try {
+    const { data } = useSession();
+    session = data;
+  } catch (e) {
+    session = null;
+  }
   const [data, setData] = useState({
     email: session?.user?.email || "",
     feedback: "",

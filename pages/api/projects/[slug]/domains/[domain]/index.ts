@@ -24,7 +24,7 @@ export default withProjectAuth(async (req, res, project) => {
   ) {
     return res
       .status(400)
-      .json({ error: "Missing or misconfigured project slug or domain" });
+      .end("Missing or misconfigured project slug or domain");
   }
 
   // prevent unauthorized access to domains that don't belong to the project
@@ -35,7 +35,7 @@ export default withProjectAuth(async (req, res, project) => {
     },
   });
   if (!domainBelongsToProject) {
-    return res.status(404).json({ error: "Domain not found" });
+    return res.status(404).end("Domain not found");
   }
 
   // PUT /api/projects/[slug]/domains/[domain] edit a project's domain

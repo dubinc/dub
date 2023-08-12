@@ -18,7 +18,9 @@ export default async function OSS() {
         revalidate: 3600,
       },
     },
-  ).then((res) => res.json());
+  )
+    .then((res) => res.json())
+    .catch(() => ({ stargazers_count: 10000 }));
 
   return <OSSSection stars={stars} />;
 }

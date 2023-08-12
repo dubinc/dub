@@ -1,8 +1,9 @@
 "use client";
 
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, ReactNode, SetStateAction } from "react";
 import * as SwitchPrimitive from "@radix-ui/react-switch";
 import { cn } from "#/lib/utils";
+import Tooltip from "./tooltip";
 
 const Switch = ({
   fn,
@@ -11,6 +12,7 @@ const Switch = ({
   thumbTranslate,
   checked = true,
   disabled = false,
+  disabledTooltip,
 }: {
   fn: Dispatch<SetStateAction<boolean>> | (() => void);
   trackDimensions?: string;
@@ -18,7 +20,23 @@ const Switch = ({
   thumbTranslate?: string;
   checked?: boolean;
   disabled?: boolean;
+  disabledTooltip?: string | ReactNode;
 }) => {
+  if (disabledTooltip) {
+    return (
+      <Tooltip content={disabledTooltip}>
+        <SwitchPrimitive.Root
+          checked={checked}
+          name="switch"
+          disabled={true}
+          className="relative inline-flex h-4 w-8 flex-shrink-0 cursor-not-allowed rounded-full border-2 border-transparent bg-gray-200 radix-state-checked:bg-gray-300"
+        >
+          <SwitchPrimitive.Thumb className="h-3 w-3 transform rounded-full bg-white shadow-lg" />
+        </SwitchPrimitive.Root>
+      </Tooltip>
+    );
+  }
+
   return (
     <SwitchPrimitive.Root
       checked={checked}
@@ -27,7 +45,7 @@ const Switch = ({
       disabled={disabled}
       className={cn(
         disabled
-          ? "cursor-not-allowed bg-gray-300"
+          ? "cursor-not-allowed radix-state-checked:bg-gray-300"
           : "cursor-pointer focus:outline-none focus-visible:ring focus-visible:ring-blue-500 focus-visible:ring-opacity-75 radix-state-checked:bg-blue-500 radix-state-unchecked:bg-gray-200",
         `relative inline-flex h-4 w-8 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out`,
         trackDimensions,

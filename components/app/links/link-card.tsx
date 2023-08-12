@@ -11,7 +11,7 @@ import BlurImage from "#/ui/blur-image";
 import CopyButton from "@/components/shared/copy-button";
 import { Chart, Delete, ThreeDots } from "@/components/shared/icons";
 import Popover from "#/ui/popover";
-import Tooltip, { TooltipContent } from "#/ui/tooltip";
+import Tooltip, { SimpleTooltipContent, TooltipContent } from "#/ui/tooltip";
 import useProject from "#/lib/swr/use-project";
 import { LinkProps } from "#/lib/types";
 import {
@@ -25,15 +25,15 @@ import {
 } from "#/lib/utils";
 import useIntersectionObserver from "#/lib/hooks/use-intersection-observer";
 import useDomains from "#/lib/swr/use-domains";
-import { Archive, CopyPlus, Edit3, QrCode, Tag } from "lucide-react";
+import { Archive, CopyPlus, Edit3, EyeOff, QrCode } from "lucide-react";
 import punycode from "punycode/";
-import { GOOGLE_FAVICON_URL } from "#/lib/constants";
+import { GOOGLE_FAVICON_URL, HOME_DOMAIN } from "#/lib/constants";
 import useTags from "#/lib/swr/use-tags";
 import TagBadge from "@/components/app/links/tag-badge";
 import { ModalContext } from "#/ui/modal-provider";
 
 export default function LinkCard({ props }: { props: LinkProps }) {
-  const { key, domain, url, createdAt, archived, tagId } = props;
+  const { key, domain, url, rewrite, createdAt, archived, tagId } = props;
   const { tags } = useTags();
   const tag = useMemo(() => tags?.find((t) => t.id === tagId), [tags, tagId]);
 
@@ -261,6 +261,19 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                 {timeAgo(createdAt)}
               </p>
               <p>•</p>
+              {rewrite && (
+                <Tooltip
+                  content={
+                    <SimpleTooltipContent
+                      title="This link is cloaked. Your users will only see the short link in the browser address bar."
+                      cta="Learn more."
+                      href={`${HOME_DOMAIN}/help/article/how-to-create-link#link-cloaking`}
+                    />
+                  }
+                >
+                  <EyeOff className="h-4 w-4 text-gray-500" />
+                </Tooltip>
+              )}
               <a
                 onClick={(e) => {
                   e.stopPropagation(); // to avoid selecting the link card

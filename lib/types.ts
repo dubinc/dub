@@ -20,6 +20,8 @@ export interface LinkProps {
   description: string | null;
   image: string | null;
 
+  rewrite: boolean;
+
   ios: string | null;
   android: string | null;
 

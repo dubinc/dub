@@ -7,9 +7,9 @@ import { MDX } from "#/ui/content/mdx";
 import { getBlurDataURL } from "#/lib/images";
 import { Metadata } from "next";
 import { constructMetadata, formatDate } from "#/lib/utils";
-import { getTweet } from "react-tweet/api";
 import BlurImage from "#/ui/blur-image";
 import { BLOG_CATEGORIES } from "#/lib/constants/content";
+import { getAndCacheTweet } from "#/lib/twitter";
 
 export async function generateStaticParams() {
   return allBlogPosts.map((post) => ({
@@ -56,7 +56,9 @@ export default async function BlogArticle({
         blurDataURL: await getBlurDataURL(src),
       })),
     ),
-    await Promise.all(data.tweetIds.map(async (id: string) => getTweet(id))),
+    await Promise.all(
+      data.tweetIds.map(async (id: string) => getAndCacheTweet(id)),
+    ),
   ]);
 
   const category = BLOG_CATEGORIES.find(

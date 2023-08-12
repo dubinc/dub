@@ -123,7 +123,8 @@ export function MDX({ code, images, tweets, repos, className }: MDXProps) {
 
   const Tweet = ({ id }: { id: string }) => {
     if (!tweets) return null;
-    const tweet = tweets.find((tweet: TweetProps) => tweet.id_str === id);
+    const tweet = tweets.find((tweet: TweetProps) => tweet?.id_str === id);
+    if (!tweet) return null;
     return <MDXTweet data={tweet} className="mx-auto max-w-lg" noTilt />;
   };
 

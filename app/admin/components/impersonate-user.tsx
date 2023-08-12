@@ -74,7 +74,6 @@ const Form = () => {
         name="email"
         id="email"
         type="email"
-        autoFocus
         required
         disabled={pending}
         autoComplete="off"

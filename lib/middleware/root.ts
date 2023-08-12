@@ -4,7 +4,7 @@ import { recordClick } from "#/lib/tinybird";
 import { parse } from "./utils";
 import { RootDomainProps } from "../types";
 import { isHomeHostname } from "../utils";
-import { REDIRECT_HEADERS } from "../constants";
+import { DUB_HEADERS } from "../constants";
 
 export default async function RootMiddleware(
   req: NextRequest,
@@ -27,7 +27,7 @@ export default async function RootMiddleware(
       if (rewrite) {
         return NextResponse.rewrite(target);
       } else {
-        return NextResponse.redirect(target, REDIRECT_HEADERS);
+        return NextResponse.redirect(target, DUB_HEADERS);
       }
     } else {
       // rewrite to root page unless the user defines a site to redirect to

@@ -7,7 +7,7 @@ import {
 import { detectBot, getFinalUrl, parse } from "#/lib/middleware/utils";
 import { redis } from "#/lib/upstash";
 import { recordClick } from "#/lib/tinybird";
-import { REDIRECT_HEADERS } from "../constants";
+import { DUB_HEADERS } from "../constants";
 
 export default async function LinkMiddleware(
   req: NextRequest,
@@ -23,10 +23,18 @@ export default async function LinkMiddleware(
     url: string;
     password?: boolean;
     proxy?: boolean;
+    rewrite?: boolean;
     ios?: string;
     android?: string;
   }>(`${domain}:${key}`);
-  const { url: target, password, proxy, ios, android } = response || {};
+  const {
+    url: target,
+    password,
+    proxy,
+    rewrite,
+    ios,
+    android,
+  } = response || {};
 
   if (target) {
     // special case for link health monitoring with planetfall.io :)
@@ -47,22 +55,18 @@ export default async function LinkMiddleware(
       return NextResponse.rewrite(new URL(`/proxy/${domain}/${key}`, req.url));
     } else if (ios && userAgent(req).os?.name === "iOS") {
       // redirect to iOS link if it is specified and the user is on an iOS device
-      return NextResponse.redirect(getFinalUrl(ios, { req }), REDIRECT_HEADERS);
+      return NextResponse.redirect(getFinalUrl(ios, { req }), DUB_HEADERS);
     } else if (android && userAgent(req).os?.name === "Android") {
       // redirect to Android link if it is specified and the user is on an Android device
-      return NextResponse.redirect(
-        getFinalUrl(android, { req }),
-        REDIRECT_HEADERS,
-      );
+      return NextResponse.redirect(getFinalUrl(android, { req }), DUB_HEADERS);
     } else {
       // regular redirect
-      return NextResponse.redirect(
-        getFinalUrl(target, { req }),
-        REDIRECT_HEADERS,
-      );
+      return rewrite
+        ? NextResponse.rewrite(getFinalUrl(target, { req }), DUB_HEADERS)
+        : NextResponse.redirect(getFinalUrl(target, { req }), DUB_HEADERS);
     }
   } else {
     // short link not found, redirect to root
-    return NextResponse.redirect(new URL("/", req.url), REDIRECT_HEADERS);
+    return NextResponse.redirect(new URL("/", req.url), DUB_HEADERS);
   }
 }
