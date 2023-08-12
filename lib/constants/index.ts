@@ -75,7 +75,6 @@ export const DEFAULT_REDIRECTS = {
   links: "https://app.dub.sh/links",
   settings: "https://app.dub.sh/settings",
   welcome: "https://app.dub.sh/welcome",
-  slack: "https://dub.slack.com",
   discord: "https://twitter.com/dubdotsh", // placeholder for now
   tags: "https://dub.sh/help/how-to-use-tags",
 };
