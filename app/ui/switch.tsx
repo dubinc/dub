@@ -25,14 +25,9 @@ const Switch = ({
   if (disabledTooltip) {
     return (
       <Tooltip content={disabledTooltip}>
-        <SwitchPrimitive.Root
-          checked={checked}
-          name="switch"
-          disabled={true}
-          className="relative inline-flex h-4 w-8 flex-shrink-0 cursor-not-allowed rounded-full border-2 border-transparent bg-gray-200 radix-state-checked:bg-gray-300"
-        >
-          <SwitchPrimitive.Thumb className="h-3 w-3 transform rounded-full bg-white shadow-lg" />
-        </SwitchPrimitive.Root>
+        <div className="relative inline-flex h-4 w-8 flex-shrink-0 cursor-not-allowed rounded-full border-2 border-transparent bg-gray-200 radix-state-checked:bg-gray-300">
+          <div className="h-3 w-3 transform rounded-full bg-white shadow-lg" />
+        </div>
       </Tooltip>
     );
   }
