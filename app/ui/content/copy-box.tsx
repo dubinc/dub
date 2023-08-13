@@ -9,7 +9,7 @@ export default function CopyBox(props) {
   return (
     <div className="not-prose rounded-xl border border-gray-200 bg-white p-4">
       <p>{props.title}</p>
-      <div className="mt-1 flex w-full items-center justify-between rounded-md bg-gray-100 px-3 py-2">
+      <div className="mt-1 flex w-full items-center justify-between rounded-md bg-gray-100 p-1.5 pl-3">
         <div className="overflow-auto scrollbar-hide">
           <p className="whitespace-nowrap text-gray-600 sm:text-sm">
             {props.copy}
@@ -17,7 +17,7 @@ export default function CopyBox(props) {
         </div>
         <button
           type="button"
-          className="pl-2"
+          className="rounded-md p-1 transition-colors hover:bg-gray-200 active:bg-gray-300"
           onClick={() => {
             navigator.clipboard.writeText(props.copy);
             setCopied(true);
