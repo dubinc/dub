@@ -9,10 +9,17 @@ import "react-medium-image-zoom/dist/styles.css";
 export default function ZoomImage(
   props: ImageProps & { blurDataURL?: string },
 ) {
-  const { isDesktop } = useMediaQuery();
+  const { width, height, isDesktop } = useMediaQuery();
   return (
     <figure className="not-prose flex flex-col items-center justify-center space-y-3">
-      <Zoom zoomMargin={isDesktop ? 45 : undefined}>
+      <Zoom
+        zoomMargin={isDesktop ? 45 : undefined}
+        zoomImg={{
+          src: props.src as string,
+          alt: props.alt,
+          ...(width && height ? { width, height } : {}),
+        }}
+      >
         <BlurImage
           {...props}
           className="rounded-lg border border-gray-200"
