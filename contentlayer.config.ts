@@ -112,6 +112,7 @@ export const HelpPost = defineDocumentType(() => ({
           "link-management",
           "custom-domains",
           "migrating",
+          "saml-sso",
           "api",
         ],
         default: "overview",

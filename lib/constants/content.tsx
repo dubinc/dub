@@ -77,16 +77,16 @@ export const HELP_CATEGORIES: {
     icon: <Import className="h-6 w-6 text-gray-500" />,
   },
   {
-    title: "API",
-    slug: "api",
-    description: "Learn how to use the Dub API.",
-    icon: <Webhook className="h-6 w-6 text-gray-500" />,
-  },
-  {
     title: "SAML SSO",
     slug: "saml-sso",
     description: "Secure your Dub project with SAML SSO.",
     icon: <Lock className="h-6 w-6 text-gray-500" />,
+  },
+  {
+    title: "API",
+    slug: "api",
+    description: "Learn how to use the Dub API.",
+    icon: <Webhook className="h-6 w-6 text-gray-500" />,
   },
 ];
 
