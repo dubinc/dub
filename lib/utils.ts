@@ -315,11 +315,15 @@ export const getQueryString = (
   return `${queryString ? "?" : ""}${queryString}`;
 };
 
-export const setQueryString = (
-  router: NextRouter,
-  param: string,
-  value: string,
-) => {
+export const setQueryString = ({
+  router,
+  param,
+  value,
+}: {
+  router: NextRouter;
+  param: string;
+  value: string;
+}) => {
   if (param !== "page") delete router.query.page;
   let newQuery;
   if (value.length > 0) {

@@ -31,6 +31,8 @@ export const FADE_IN_ANIMATION_SETTINGS = {
   transition: { duration: 0.2 },
 };
 
+export const PAGINATION_LIMIT = 100;
+
 /*
   NOTE: We're using home.localhost:8888 for HOME_DOMAIN and localhost:8888 for APP_DOMAIN
   in local development because Google OAuth doesn't allow subdomain localhost (e.g. app.localhost:8888)

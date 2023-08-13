@@ -17,12 +17,13 @@ export default withLinksAuth(
     // GET /api/links – get all links for a project
     // if no project, get all dub.sh links for user
     if (req.method === "GET") {
-      const { domain, tagId, search, sort, userId, showArchived } =
+      const { domain, tagId, search, sort, page, userId, showArchived } =
         req.query as {
           domain?: string;
           tagId?: string;
           search?: string;
           sort?: "createdAt" | "clicks";
+          page?: string;
           userId?: string;
           showArchived?: string;
         };
@@ -32,6 +33,7 @@ export default withLinksAuth(
         tagId,
         search,
         sort,
+        page,
         userId: project?.id ? userId : session.user.id,
         showArchived: showArchived === "true" ? true : false,
       });
