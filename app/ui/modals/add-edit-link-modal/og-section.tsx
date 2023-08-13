@@ -97,7 +97,23 @@ export default function OGSection({
           <div>
             <div className="flex items-center justify-between">
               <p className="block text-sm font-medium text-gray-700">Image</p>
-              {fileError && <p className="text-sm text-red-500">{fileError}</p>}
+              {fileError ? (
+                <p className="text-sm text-red-500">{fileError}</p>
+              ) : (
+                <button
+                  className="text-sm text-gray-500"
+                  type="button"
+                  onClick={() => {
+                    const image = window.prompt(
+                      "Paste a URL to an image (max 5MB)",
+                      "https://",
+                    );
+                    setData((prev) => ({ ...prev, image }));
+                  }}
+                >
+                  Paste a URL instead
+                </button>
+              )}
             </div>
             <label
               htmlFor={`image-${randomIdx}`}
@@ -174,7 +190,7 @@ export default function OGSection({
                   Drag and drop or click to upload.
                 </p>
                 <p className="mt-2 text-center text-sm text-gray-500">
-                  Recommended: 1200 x 627 pixels
+                  Recommended: 1200 x 630 pixels (max 5MB)
                 </p>
                 <span className="sr-only">OG image upload</span>
               </div>

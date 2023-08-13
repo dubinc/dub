@@ -38,9 +38,7 @@ export default function Metatags() {
           and open-source.
         </h2>
 
-        <Suspense>
-          <MetatagsContent />
-        </Suspense>
+        <MetatagsContent />
 
         <a
           href="https://dub.sh/metatags-code"
