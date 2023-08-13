@@ -5,7 +5,7 @@ import { LinkProps } from "#/lib/types";
 import { redis } from "#/lib/upstash";
 import { getParamsFromURL, nanoid, truncate, validKeyRegex } from "#/lib/utils";
 import { isReservedKey } from "#/lib/edge-config";
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiRequest } from "next";
 
 export async function getLinksForProject({
   projectId,
@@ -13,6 +13,7 @@ export async function getLinksForProject({
   tagId,
   search,
   sort = "createdAt",
+  page,
   userId,
   showArchived,
 }: {
@@ -21,6 +22,7 @@ export async function getLinksForProject({
   tagId?: string;
   search?: string;
   sort?: "createdAt" | "clicks"; // always descending for both
+  page?: string;
   userId?: string | null;
   showArchived?: boolean;
 }): Promise<LinkProps[]> {
@@ -52,6 +54,9 @@ export async function getLinksForProject({
       [sort]: "desc",
     },
     take: 100,
+    ...(page && {
+      skip: (parseInt(page) - 1) * 100,
+    }),
   });
 }
 
@@ -120,11 +125,14 @@ export async function getLinksCount({
     return await prisma.link.count({
       where: {
         projectId,
+        archived: showArchived ? undefined : false,
         ...(userId && { userId }),
         ...(search && {
           key: { search },
           url: { search },
         }),
+        ...(domain && { domain }),
+        ...(tagId && { tagId }),
       },
     });
   }

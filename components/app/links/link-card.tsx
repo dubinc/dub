@@ -248,7 +248,11 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    setQueryString(router, "tagId", tag.id);
+                    setQueryString({
+                      router,
+                      param: "tagId",
+                      value: tag.id,
+                    });
                   }}
                   className="transition-all duration-75 hover:scale-105 active:scale-100"
                 >

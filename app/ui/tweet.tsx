@@ -63,9 +63,7 @@ export default function Tweet({
                 className={cn(
                   "h-10 w-10 overflow-hidden rounded-full border border-gray-200 transition-all ease-in-out hover:scale-105",
                   {
-                    // @ts-expect-error
                     "rounded-full": user.profile_image_shape === "Circle",
-                    // @ts-expect-error
                     "rounded-md": user.profile_image_shape === "Square",
                   },
                 )}

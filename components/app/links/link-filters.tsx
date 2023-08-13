@@ -37,7 +37,7 @@ export default function LinkFilters() {
   const { data: tagsCount } = useLinksCount({ groupBy: "tagId" });
 
   const router = useRouter();
-  const { slug, sort, search, domain, userId, tagId, showArchived } =
+  const { slug, sort, search, domain, userId, tagId, showArchived, page } =
     router.query as {
       slug: string;
       sort?: string;
@@ -46,12 +46,17 @@ export default function LinkFilters() {
       userId?: string;
       tagId?: string;
       showArchived?: string;
+      page?: string;
     };
   const searchInputRef = useRef(); // this is a hack to clear the search input when the clear button is clicked
 
   useEffect(() => {
     if (search) {
-      setQueryString(router, "showArchived", "true");
+      setQueryString({
+        router,
+        param: "showArchived",
+        value: "true",
+      });
     }
   }, [search]);
 
@@ -60,9 +65,13 @@ export default function LinkFilters() {
       <div className="grid gap-3 py-6">
         <div className="flex items-center justify-between">
           <h3 className="ml-1 mt-2 font-semibold">Filter Links</h3>
-          {(sort || search || domain || userId || tagId || showArchived) && (
-            <ClearButton searchInputRef={searchInputRef} />
-          )}
+          {(sort ||
+            search ||
+            domain ||
+            userId ||
+            tagId ||
+            showArchived ||
+            page) && <ClearButton searchInputRef={searchInputRef} />}
         </div>
         <SearchBox searchInputRef={searchInputRef} />
       </div>
@@ -105,7 +114,11 @@ const ClearButton = ({ searchInputRef }) => {
 const SearchBox = ({ searchInputRef }) => {
   const router = useRouter();
   const debounced = useDebouncedCallback((value) => {
-    setQueryString(router, "search", value);
+    setQueryString({
+      router,
+      param: "search",
+      value,
+    });
   }, 500);
   const { isValidating } = useLinks();
 
@@ -222,7 +235,11 @@ const DomainsFilter = ({ domains, primaryDomain }) => {
                   name={value}
                   checked={router.query.domain === value || domains.length <= 1}
                   onChange={() => {
-                    setQueryString(router, "domain", value);
+                    setQueryString({
+                      router,
+                      param: "domain",
+                      value,
+                    });
                   }}
                   type="radio"
                   className="ml-3 h-4 w-4 cursor-pointer rounded-full border-gray-300 text-black focus:outline-none focus:ring-0"
@@ -326,7 +343,11 @@ const TagsFilter = ({
                     name={id}
                     checked={router.query.tagId === id}
                     onChange={() => {
-                      setQueryString(router, "tagId", id);
+                      setQueryString({
+                        router,
+                        param: "tagId",
+                        value: id,
+                      });
                     }}
                     type="radio"
                     className="ml-3 h-4 w-4 cursor-pointer rounded-full border-gray-300 text-black focus:outline-none focus:ring-0"
@@ -510,8 +531,12 @@ const MyLinksFilter = () => {
       </label>
       <Switch
         fn={() =>
-          // @ts-ignore
-          setQueryString(router, "userId", userId ? "" : session?.user.id)
+          setQueryString({
+            router,
+            param: "userId",
+            // @ts-ignore
+            value: userId ? "" : session?.user?.id,
+          })
         }
         checked={userId ? true : false}
       />
@@ -530,8 +555,11 @@ const ArchiveFilter = () => {
       </label>
       <Switch
         fn={() =>
-          // @ts-ignore
-          setQueryString(router, "showArchived", showArchived ? "" : "true")
+          setQueryString({
+            router,
+            param: "showArchived",
+            value: showArchived ? "" : "true",
+          })
         }
         checked={showArchived ? true : false}
       />
