@@ -73,15 +73,7 @@ function SAMLModal({
               <h2 className="text-sm font-medium text-gray-900">
                 SAML Provider
               </h2>
-              <InfoTooltip
-                content={
-                  <SimpleTooltipContent
-                    title="Your SAML provider is the service you use to manage your users."
-                    cta="Read the guide."
-                    href={`${HOME_DOMAIN}/help/article/saml-sso`}
-                  />
-                }
-              />
+              <InfoTooltip content="Your SAML provider is the service you use to manage your users." />
             </div>
             <select
               id="provider"
@@ -100,6 +92,15 @@ function SAMLModal({
                 </option>
               ))}
             </select>
+            <a
+              href={`${HOME_DOMAIN}/help/article/${selectedProvider}-saml`}
+              target="_blank"
+              className="ml-2 mt-2 block text-sm text-gray-500 underline"
+            >
+              Read the guide on{" "}
+              {SAML_PROVIDERS.find((p) => p.saml === selectedProvider)?.name}{" "}
+              SSO
+            </a>
           </div>
 
           {selectedProvider === "okta" && (
@@ -113,7 +114,7 @@ function SAMLModal({
                     <SimpleTooltipContent
                       title="Your metadata URL is the URL to your SAML provider's metadata."
                       cta="Learn more."
-                      href={`${HOME_DOMAIN}/help/article/saml-sso`}
+                      href={`${HOME_DOMAIN}/help/article/okta-saml#step-4-copy-the-metadata-url`}
                     />
                   }
                 />

@@ -41,7 +41,7 @@ export const PAGINATION_LIMIT = 100;
 
 export const HOME_HOSTNAMES = new Set([
   "home.localhost:8888",
-  "localhost",
+  "home.localhost",
   "dub.sh",
 ]);
 
@@ -54,6 +54,7 @@ export const HOME_DOMAIN =
 
 export const APP_HOSTNAMES = new Set([
   "localhost:8888",
+  "localhost",
   "app.dub.sh",
   "preview.dub.sh",
 ]);

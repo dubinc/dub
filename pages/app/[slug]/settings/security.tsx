@@ -1,4 +1,3 @@
-import { useRouter } from "next/router";
 import Button from "#/ui/button";
 import { useSAMLModal } from "@/components/app/modals/saml-modal";
 import { useRemoveSAMLModal } from "@/components/app/modals/remove-saml-modal";
@@ -15,7 +14,6 @@ import { useSCIMModal } from "@/components/app/modals/scim-modal";
 import { HOME_DOMAIN, SAML_PROVIDERS } from "#/lib/constants";
 import useProject from "#/lib/swr/use-project";
 import { TooltipContent } from "#/ui/tooltip";
-import { ModalContext } from "#/ui/modal-provider";
 import { useUpgradePlanModal } from "@/components/app/modals/upgrade-plan-modal";
 
 export default function ProjectSecurity() {
@@ -166,7 +164,7 @@ const SAMLSection = ({
 
         <div className="flex items-center justify-between rounded-b-lg border-t border-gray-200 bg-gray-50 px-3 py-5 sm:px-10">
           <a
-            href={`${HOME_DOMAIN}/help/article/saml-sso`}
+            href={`${HOME_DOMAIN}/help/category/saml-sso`}
             target="_blank"
             className="text-sm text-gray-400 underline underline-offset-4 transition-colors hover:text-gray-700"
           >
