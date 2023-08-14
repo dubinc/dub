@@ -21,7 +21,7 @@ export default async function handler(req: NextRequest) {
     if (domain === "dub.sh") {
       const ip = ipAddress(req) || LOCALHOST_IP;
       const { success } = await ratelimit(
-        5,
+        10,
         key === "github" ? "120 s" : "10 s",
       ).limit(ip);
       if (!success) {
