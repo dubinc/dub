@@ -23,9 +23,10 @@ export default async function LinkMiddleware(
   if (domain === "dub.sh") {
     const ip = ipAddress(req) || LOCALHOST_IP;
     const { success } = await ratelimit(
-      10,
-      key === "github" ? "30 s" : "10 s",
-    ).limit(ip);
+      // 25 redirects / day for dub.sh/github demo link, 10 redirects / 10s for other dub.sh links
+      key === "github" ? 25 : 10,
+      key === "github" ? "1 d" : "10 s",
+    ).limit(`${ip}:${domain}:${key}`);
 
     if (!success) {
       return new Response("Don't DDoS me pls 🥺", { status: 429 });
