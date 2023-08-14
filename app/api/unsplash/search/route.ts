@@ -13,7 +13,7 @@ export async function GET(req: Request) {
   if (!query) return new Response("Missing query", { status: 400 });
 
   const ip = ipAddress(req) || LOCALHOST_IP;
-  const { success } = await ratelimit(5, "10 s").limit(ip);
+  const { success } = await ratelimit(10, "10 s").limit(ip);
   if (!success) {
     return new Response("Don't DDoS me pls 🥺", { status: 429 });
   }
