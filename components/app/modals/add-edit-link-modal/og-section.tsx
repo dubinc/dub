@@ -13,6 +13,10 @@ import { LinkProps } from "#/lib/types";
 import Switch from "#/ui/switch";
 import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "#/lib/constants";
 import { InfoTooltip, SimpleTooltipContent } from "#/ui/tooltip";
+import { Link2 } from "lucide-react";
+import Popover from "#/ui/popover";
+import Unsplash from "@/components/shared/icons/unsplash";
+import UnsplashSearch from "./unsplash-search";
 
 export default function OGSection({
   props,
@@ -63,6 +67,8 @@ export default function OGSection({
     }
   }, [proxy]);
 
+  const [openPopover, setOpenPopover] = useState(false);
+
   return (
     <div className="grid gap-5 border-b border-gray-200 pb-5">
       <div className="flex items-center justify-between">
@@ -98,19 +104,35 @@ export default function OGSection({
               {fileError ? (
                 <p className="text-sm text-red-500">{fileError}</p>
               ) : (
-                <button
-                  className="text-sm text-gray-500"
-                  type="button"
-                  onClick={() => {
-                    const image = window.prompt(
-                      "Paste a URL to an image (max 5MB)",
-                      "https://",
-                    );
-                    setData((prev) => ({ ...prev, image }));
-                  }}
-                >
-                  Paste a URL instead
-                </button>
+                <div className="flex items-center justify-between">
+                  <button
+                    className="mr-1 flex h-6 w-6 items-center justify-center rounded-md transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200"
+                    type="button"
+                    onClick={() => {
+                      const image = window.prompt(
+                        "Paste a URL to an image (max 5MB)",
+                        "https://",
+                      );
+                      setData((prev) => ({ ...prev, image }));
+                    }}
+                  >
+                    <Link2 className="h-4 w-4 text-gray-500" />
+                  </button>
+                  <Popover
+                    content={
+                      <UnsplashSearch
+                        setData={setData}
+                        setOpenPopover={setOpenPopover}
+                      />
+                    }
+                    openPopover={openPopover}
+                    setOpenPopover={setOpenPopover}
+                  >
+                    <div className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-md transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200">
+                      <Unsplash className="h-3 w-3 text-gray-500" />
+                    </div>
+                  </Popover>
+                </div>
               )}
             </div>
             <label
