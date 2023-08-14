@@ -15,8 +15,8 @@ export default function Popover({
   children: ReactNode;
   content: ReactNode | string;
   align?: "center" | "start" | "end";
-  openPopover: boolean;
-  setOpenPopover: Dispatch<SetStateAction<boolean>>;
+  openPopover?: boolean;
+  setOpenPopover?: Dispatch<SetStateAction<boolean>>;
 }) {
   const { isMobile } = useMediaQuery();
 

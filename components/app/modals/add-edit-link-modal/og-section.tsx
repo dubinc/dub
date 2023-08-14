@@ -128,7 +128,10 @@ export default function OGSection({
                     openPopover={openPopover}
                     setOpenPopover={setOpenPopover}
                   >
-                    <div className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-md transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200">
+                    <div
+                      onClick={() => setOpenPopover(true)}
+                      className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-md transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200"
+                    >
                       <Unsplash className="h-3 w-3 text-gray-500" />
                     </div>
                   </Popover>
