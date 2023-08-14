@@ -2,6 +2,9 @@ import type { NextRequest } from "next/server";
 import { getStats } from "#/lib/stats";
 import { getLinkViaEdge } from "#/lib/planetscale";
 import { isHomeHostname } from "#/lib/utils";
+import { ipAddress } from "@vercel/edge";
+import { LOCALHOST_IP } from "#/lib/constants";
+import { ratelimit } from "#/lib/upstash";
 
 export const config = {
   runtime: "edge",
@@ -14,6 +17,12 @@ export default async function handler(req: NextRequest) {
     const endpoint = req.nextUrl.searchParams.get("endpoint") as string;
     let domain = req.nextUrl.hostname;
     if (isHomeHostname(domain)) domain = "dub.sh";
+
+    const ip = ipAddress(req) || LOCALHOST_IP;
+    const { success } = await ratelimit(5, "10 s").limit(ip);
+    if (!success) {
+      return new Response("Don't DDoS me pls 🥺", { status: 429 });
+    }
 
     let data;
     // if the link is NOT dub.sh/github (demo link)

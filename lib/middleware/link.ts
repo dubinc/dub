@@ -5,9 +5,10 @@ import {
   userAgent,
 } from "next/server";
 import { detectBot, getFinalUrl, parse } from "#/lib/middleware/utils";
-import { redis } from "#/lib/upstash";
+import { ratelimit, redis } from "#/lib/upstash";
 import { recordClick } from "#/lib/tinybird";
-import { DUB_HEADERS } from "../constants";
+import { DUB_HEADERS, LOCALHOST_IP } from "../constants";
+import { ipAddress } from "@vercel/edge";
 
 export default async function LinkMiddleware(
   req: NextRequest,
@@ -17,6 +18,12 @@ export default async function LinkMiddleware(
 
   if (!domain || !key) {
     return NextResponse.next();
+  }
+
+  const ip = ipAddress(req) || LOCALHOST_IP;
+  const { success } = await ratelimit(5, "10 s").limit(ip);
+  if (!success) {
+    return new Response("Don't DDoS me pls 🥺", { status: 429 });
   }
 
   const response = await redis.get<{
