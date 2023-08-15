@@ -16,6 +16,7 @@ export default function Tweet({
   className?: string;
   noTilt?: boolean;
 }) {
+  // if data is null
   if (!data) {
     return (
       <div

@@ -1,5 +1,6 @@
 import Button from "#/ui/button";
 import Form from "#/ui/form";
+import UploadAvatar from "@/components/app/account/upload-avatar";
 import { useDeleteAccountModal } from "@/components/app/modals/delete-account-modal";
 import SettingsLayout from "@/components/layout/app/settings-layout";
 import { useSession } from "next-auth/react";
@@ -80,6 +81,8 @@ export default function PersonalSettings() {
           })
         }
       />
+
+      <UploadAvatar />
 
       <div className="rounded-lg border border-red-600 bg-white">
         <DeleteAccountModal />

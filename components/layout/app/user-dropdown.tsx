@@ -130,14 +130,12 @@ export default function UserDropdown() {
           className="group relative"
         >
           {session ? (
-            <Image
+            <img
               alt={session?.user?.email || "Avatar for logged in user"}
               src={
                 session?.user?.image ||
                 `https://avatars.dicebear.com/api/micah/${session?.user?.email}.svg`
               }
-              width={40}
-              height={40}
               className="h-9 w-9 rounded-full border border-gray-300 transition-all duration-75 group-focus:outline-none group-active:scale-95 sm:h-10 sm:w-10"
             />
           ) : (
