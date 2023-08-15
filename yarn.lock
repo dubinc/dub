@@ -7404,10 +7404,10 @@ react-textarea-autosize@^8.4.0:
     use-composed-ref "^1.3.0"
     use-latest "^1.2.1"
 
-react-tweet@^3.0.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/react-tweet/-/react-tweet-3.1.0.tgz#1fe1d89bebbdf17b1863f532170c0463b87eff65"
-  integrity sha512-TZrCzqJIM3mUPZZQgChenrPxEEnswbPkyqMjXgLy3fJSOgcSEaslQqWMeNdcuCjSgLkYfITRBFjX4jQ1EGBPAw==
+react-tweet@^3.1.1:
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/react-tweet/-/react-tweet-3.1.1.tgz#dc9a3a5dfef5e6290698df23c459e805ffebe5b3"
+  integrity sha512-8GQLa5y0G56kvGQkN7OiaKkjFAhWYVdyFq62ioY2qVtpMrjchVU+3KnqneCyp0+BemOQZkg6WWp/qoCNeEMH6A==
   dependencies:
     "@swc/helpers" "^0.5.1"
     clsx "^1.2.1"
