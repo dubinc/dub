@@ -13,6 +13,16 @@ export const isBlacklistedDomain = async (domain: string) => {
   );
 };
 
+export const isBlacklistedReferrer = async (referrer: string) => {
+  let blacklistedReferrers;
+  try {
+    blacklistedReferrers = await get("referrers");
+  } catch (e) {
+    blacklistedReferrers = [];
+  }
+  return new RegExp(blacklistedReferrers.join("|"), "i").test(referrer);
+};
+
 export const isBlacklistedKey = async (key: string) => {
   let blacklistedKeys;
   try {

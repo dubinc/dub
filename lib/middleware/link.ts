@@ -9,6 +9,7 @@ import { ratelimit, redis } from "#/lib/upstash";
 import { recordClick } from "#/lib/tinybird";
 import { DUB_HEADERS, LOCALHOST_IP } from "../constants";
 import { ipAddress } from "@vercel/edge";
+import { isBlacklistedReferrer } from "../edge-config";
 
 export default async function LinkMiddleware(
   req: NextRequest,
@@ -20,7 +21,10 @@ export default async function LinkMiddleware(
     return NextResponse.next();
   }
 
-  if (domain === "dub.sh") {
+  if (process.env.NODE_ENV !== "development" && domain === "dub.sh") {
+    if (await isBlacklistedReferrer(req.headers.get("referer") || "")) {
+      return new Response("Don't DDoS me pls 🥺", { status: 429 });
+    }
     const ip = ipAddress(req) || LOCALHOST_IP;
     const { success } = await ratelimit(
       // 25 redirects / day for dub.sh/github demo link, 10 redirects / 10s for other dub.sh links
