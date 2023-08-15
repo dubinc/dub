@@ -5,6 +5,7 @@ import { isHomeHostname } from "#/lib/utils";
 import { ipAddress } from "@vercel/edge";
 import { LOCALHOST_IP } from "#/lib/constants";
 import { ratelimit } from "#/lib/upstash";
+import { isBlacklistedReferrer } from "#/lib/edge-config";
 
 export const config = {
   runtime: "edge",
@@ -18,10 +19,13 @@ export default async function handler(req: NextRequest) {
     let domain = req.nextUrl.hostname;
     if (isHomeHostname(domain)) domain = "dub.sh";
 
-    if (domain === "dub.sh") {
+    if (process.env.NODE_ENV !== "development" && domain === "dub.sh") {
+      if (await isBlacklistedReferrer(req.headers.get("referer") || "")) {
+        return new Response("Don't DDoS me pls 🥺", { status: 429 });
+      }
       const ip = ipAddress(req) || LOCALHOST_IP;
       const { success } = await ratelimit(
-        key === "github" ? 20 : 10,
+        10,
         key === "github" ? "1 d" : "10 s",
       ).limit(`${ip}:${domain}:${key}:${endpoint}`);
 
