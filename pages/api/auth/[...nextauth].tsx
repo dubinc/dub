@@ -87,17 +87,14 @@ export const authOptions: NextAuthOptions = {
           where: { id: token.sub },
         });
         token.user = refreshedUser;
-        token.name = refreshedUser?.name;
-        token.email = refreshedUser?.email;
-        token.image = refreshedUser?.image;
       }
       return token;
     },
     session: async ({ session, token }) => {
       session.user = {
-        // @ts-ignore
         id: token.sub,
-        ...session.user,
+        // @ts-ignore
+        ...(token || session).user,
       };
       return session;
     },

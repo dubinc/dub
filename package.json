@@ -41,7 +41,7 @@
     "@visx/shape": "^2.12.2",
     "@visx/tooltip": "^2.16.0",
     "bottleneck": "^2.19.5",
-    "cloudinary": "^1.37.3",
+    "cloudinary": "^1.40.0",
     "clsx": "^1.2.1",
     "cmdk": "^0.2.0",
     "cobe": "^0.6.3",

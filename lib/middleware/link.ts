@@ -74,7 +74,7 @@ export default async function LinkMiddleware(
       // redirect to Android link if it is specified and the user is on an Android device
       return NextResponse.redirect(getFinalUrl(android, { req }), DUB_HEADERS);
     } else {
-      // regular redirect
+      // regular redirect / rewrite
       return rewrite
         ? NextResponse.rewrite(getFinalUrl(target, { req }), DUB_HEADERS)
         : NextResponse.redirect(getFinalUrl(target, { req }), DUB_HEADERS);

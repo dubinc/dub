@@ -1,7 +1,6 @@
 import { useRouter } from "next/router";
 import { useCallback, useContext, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
-import BlurImage from "#/ui/blur-image";
 import { Tick } from "@/components/shared/icons";
 import { ChevronsUpDown, PlusCircle } from "lucide-react";
 import Popover from "#/ui/popover";
@@ -86,12 +85,10 @@ export default function ProjectSelect() {
           className="flex items-center justify-between rounded-lg bg-white p-1.5 text-left text-sm transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200"
         >
           <div className="flex items-center space-x-3 pr-2">
-            <BlurImage
+            <img
               src={selected.image}
               alt={selected.id || selected.name}
               className="h-8 w-8 flex-none overflow-hidden rounded-full"
-              width={48}
-              height={48}
             />
             <div
               className={`${
@@ -156,7 +153,7 @@ function ProjectList({
         href="/links"
         onClick={() => setOpenPopover(false)}
       >
-        <BlurImage
+        <img
           src={
             session?.user?.image ||
             `https://avatars.dicebear.com/api/micah/${session?.user?.email}.svg`
@@ -165,8 +162,6 @@ function ProjectList({
             session?.user?.name || session?.user?.email || "Personal Account"
           }
           className="h-7 w-7 flex-none overflow-hidden rounded-full"
-          width={48}
-          height={48}
         />
         <span
           className={`block truncate pr-8 text-sm ${
@@ -192,12 +187,10 @@ function ProjectList({
           shallow={false}
           onClick={() => setOpenPopover(false)}
         >
-          <BlurImage
+          <img
             src={logo || `${GOOGLE_FAVICON_URL}${primaryDomain?.slug}`}
             alt={id}
             className="h-7 w-7 overflow-hidden rounded-full"
-            width={48}
-            height={48}
           />
           <span
             className={`block truncate text-sm ${

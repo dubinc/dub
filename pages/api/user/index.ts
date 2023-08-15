@@ -1,12 +1,30 @@
-import { deleteUserLinks } from "#/lib/api/links";
 import { withUserAuth } from "#/lib/auth";
 import prisma from "#/lib/prisma";
+import cloudinary from "cloudinary";
+import { deleteUserLinks } from "#/lib/api/links";
+
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: "3mb",
+    },
+  },
+};
 
 export default withUserAuth(async (req, res, session) => {
   // PUT /api/user – edit a specific user
   if (req.method === "PUT") {
-    const { name, email, image } = req.body;
+    let { name, email, image } = req.body;
     try {
+      if (image) {
+        const { secure_url } = await cloudinary.v2.uploader.upload(image, {
+          public_id: session.user.id,
+          folder: "avatars",
+          overwrite: true,
+          invalidate: true,
+        });
+        image = secure_url;
+      }
       const response = await prisma.user.update({
         where: {
           id: session.user.id,
@@ -38,7 +56,12 @@ export default withUserAuth(async (req, res, session) => {
           "You must transfer ownership of your projects or delete them before you can delete your account.",
         );
     } else {
-      const deleteLinks = await deleteUserLinks(session.user.id);
+      const [deleteLinks, _] = await Promise.allSettled([
+        deleteUserLinks(session.user.id),
+        cloudinary.v2.uploader.destroy(`avatars/${session?.user?.id}`, {
+          invalidate: true,
+        }),
+      ]);
       const response = await prisma.user.delete({
         where: {
           id: session.user.id,
