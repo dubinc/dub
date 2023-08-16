@@ -14,7 +14,8 @@ export const isBlacklistedDomain = async (domain: string) => {
 };
 
 export const isBlacklistedReferrer = async (referrer: string) => {
-  if (/^(\d{1,3}\.){3}\d{1,3}$/.test(referrer)) {
+  const hostname = getDomainWithoutWWW(referrer) || "";
+  if (/^(\d{1,3}\.){3}\d{1,3}$/.test(hostname)) {
     return true;
   }
   let blacklistedReferrers;
@@ -23,7 +24,7 @@ export const isBlacklistedReferrer = async (referrer: string) => {
   } catch (e) {
     blacklistedReferrers = [];
   }
-  return new RegExp(blacklistedReferrers.join("|"), "i").test(referrer);
+  return new RegExp(blacklistedReferrers.join("|"), "i").test(hostname);
 };
 
 export const isBlacklistedKey = async (key: string) => {
