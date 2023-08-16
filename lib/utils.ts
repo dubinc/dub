@@ -12,7 +12,6 @@ import {
   HOME_HOSTNAMES,
   HOME_DOMAIN,
 } from "./constants";
-import { toast } from "sonner";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

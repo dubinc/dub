@@ -323,7 +323,7 @@ const SCIMSection = ({
 
         <div className="flex items-center justify-between rounded-b-lg border-t border-gray-200 bg-gray-50 px-3 py-5 sm:px-10">
           <a
-            href={`${HOME_DOMAIN}/help/article/directory-sync`}
+            href={`${HOME_DOMAIN}/help/category/saml-sso`}
             target="_blank"
             className="text-sm text-gray-400 underline underline-offset-4 transition-colors hover:text-gray-700"
           >

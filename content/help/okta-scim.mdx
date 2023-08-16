@@ -24,7 +24,7 @@ Before you can configure SCIM Directory Sync, you need to create a SAML applicat
 
 ## Step 1: Configure Directory Sync on Dub
 
-In your project dashboard on Dub, click on the "Settings" tab in the menu bar at the top. Then, click on the "Security" tab in the sidebar.
+In your project dashboard on Dub, click on the **Settings** tab in the menu bar at the top. Then, click on the **Security** tab in the sidebar.
 
 <Image
   alt="Directory Sync section on the Dub Dashboard"
@@ -34,10 +34,10 @@ In your project dashboard on Dub, click on the "Settings" tab in the menu bar at
   hideCaption={true}
 />
 
-Under the "Directory Sync" section, click on "Configure". This will open up the Directory Sync modal:
+Under the **Directory Sync** section, click on **Configure**. This will open up the Directory Sync modal:
 
-1. Select "Okta" as the Directory Provider.
-2. Click "Save changes".
+1. Select **Okta** as the Directory Provider.
+2. Click **Save changes**.
 
 <Image
   alt="SCIM Modal"
@@ -62,7 +62,7 @@ This will generate a Directory Sync connection for your Dub project, and return 
 
 ## Step 2: Add Provisioning to SAML Application
 
-Go to the "General" tab of your existing Dub Okta SAML application that you want to enable SCIM provisioning for. Under "App Settings" click "Edit".
+Go to the **General** tab of your existing Dub Okta SAML application that you want to enable SCIM provisioning for. Under **App Settings** click **Edit**.
 
 <Image
   alt="General tab of Okta SAML application"
@@ -72,7 +72,7 @@ Go to the "General" tab of your existing Dub Okta SAML application that you want
   hideCaption={true}
 />
 
-Select the "Enable SCIM provisioning" option and click "Save".
+Select the "Enable SCIM provisioning" option and click **Save**.
 
 <Image
   alt="Enable SCIM provisioning"
@@ -82,7 +82,7 @@ Select the "Enable SCIM provisioning" option and click "Save".
   hideCaption={true}
 />
 
-You should now see a "Provisioning" tab. Select it and click "Edit".
+You should now see a **Provisioning** tab. Select it and click **Edit**.
 
 <Image
   alt="Provisioning tab of Okta SAML application"
@@ -92,21 +92,21 @@ You should now see a "Provisioning" tab. Select it and click "Edit".
   hideCaption={true}
 />
 
-1. Under the "SCIM connector base URL" field, enter the **SCIM 2.0 Base URL** value from Step 1.
+1. Under the **SCIM connector base URL** field, enter the **SCIM 2.0 Base URL** value from Step 1.
 
-2. Under "Unique identifier field for users", enter `userName`.
+2. Under **Unique identifier field for users**, enter `userName`.
 
 <CopyBox title="Copy this unique identifier" copy="userName" />
 
-3. Under "Supported provisioning actions", select the following options:
+3. Under **Supported provisioning actions**, select the following options:
 
 - Push New Users
 - Push Profile Updates
 - Push groups
 
-4. Under "Authentication Mode", select "HTTP Header".
+4. Under **Authentication Mode**, select **HTTP Header**.
 
-5. Copy & paste the **OAuth Bearer Token** value from Step 1 into the "Authorization" field.
+5. Copy & paste the **OAuth Bearer Token** value from Step 1 into the **Authorization** field.
 
 <Image
   alt="Configure SCIM provisioning"
@@ -120,9 +120,9 @@ Click "Test Connector Configuration" to verify that the connection is working, a
 
 ## Step 3: Configure Provisioning Actions
 
-Under the "To App" section, click "Edit".
+Under the **To App** section, click **Edit**.
 
-Check the following options, and click "Save":
+Check the following options, and click **Save**:
 
 - Create Users
 - Update User Attributes
@@ -140,7 +140,7 @@ Check the following options, and click "Save":
 
 Once you've configured Directory sync, you can assign users to Dub directly within Okta.
 
-Click on the "Assignments" tab, and click "Assign". You can choose to assign users individually, or assign them in bulk by group.
+Click on the **Assignments** tab, and click **Assign**. You can choose to assign users individually, or assign them in bulk by group.
 
 <Image
   alt="Assigning users in Okta"
@@ -150,7 +150,7 @@ Click on the "Assignments" tab, and click "Assign". You can choose to assign use
   hideCaption={true}
 />
 
-Select the users or groups you want to assign and click "Assign".
+Select the users or groups you want to assign and click **Assign**.
 
 <Image
   alt="Assigning users in Okta choose users"
@@ -160,7 +160,7 @@ Select the users or groups you want to assign and click "Assign".
   hideCaption={true}
 />
 
-In the next screen, scroll to the bottom and click "Save and Go Back".
+In the next screen, scroll to the bottom and click **Save and Go Back**.
 
 <Image
   alt="Saving Okta assignment"
