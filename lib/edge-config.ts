@@ -13,14 +13,15 @@ export const isBlacklistedDomain = async (domain: string) => {
   );
 };
 
-export const isBlacklistedReferrer = async (referrer: string) => {
-  let blacklistedReferrers;
+export const isBlacklistedReferrer = async (referrer: string | null) => {
+  const hostname = referrer ? getDomainWithoutWWW(referrer) : "(direct)";
+  let referrers;
   try {
-    blacklistedReferrers = await get("referrers");
+    referrers = await get("referrers");
   } catch (e) {
-    blacklistedReferrers = [];
+    referrers = [];
   }
-  return new RegExp(blacklistedReferrers.join("|"), "i").test(referrer);
+  return !referrers.includes(hostname);
 };
 
 export const isBlacklistedKey = async (key: string) => {
