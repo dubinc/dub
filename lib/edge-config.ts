@@ -14,6 +14,9 @@ export const isBlacklistedDomain = async (domain: string) => {
 };
 
 export const isBlacklistedReferrer = async (referrer: string) => {
+  if (/^(\d{1,3}\.){3}\d{1,3}$/.test(referrer)) {
+    return true;
+  }
   let blacklistedReferrers;
   try {
     blacklistedReferrers = await get("referrers");
