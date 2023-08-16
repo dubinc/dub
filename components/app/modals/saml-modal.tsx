@@ -103,7 +103,7 @@ function SAMLModal({
             </a>
           </div>
 
-          {selectedProvider === "okta" && (
+          {(selectedProvider === "okta" || selectedProvider === "azure") && (
             <div className="border-t border-gray-200 pt-4">
               <div className="flex items-center space-x-1">
                 <h2 className="text-sm font-medium text-gray-900">

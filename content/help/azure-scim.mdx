@@ -1,12 +1,12 @@
 ---
-title: Configuring SCIM Directory Sync with Okta
+title: Configuring SCIM Directory Sync with Azure AD
 updatedAt: 2023-08-15
-summary: For Dub Enterprise users, you can automatically provision and deprovision users from your Okta directory to Dub using SCIM Directory Sync.
+summary: For Dub Enterprise users, you can automatically provision and deprovision users from Azure AD to Dub using SCIM Directory Sync.
 author: steventey
 categories:
   - saml-sso
 related:
-  - okta-saml
+  - azure-saml
 excludeHeadingsFromSearch: true
 ---
 
@@ -14,11 +14,11 @@ excludeHeadingsFromSearch: true
   This feature is only available on [Dub Enterprise](/pricing).
 </Note>
 
-For Dub Enterprise users, you can automatically provision and deprovision users from your Okta directory to Dub using [SCIM Directory Sync](https://developer.okta.com/docs/concepts/scim/).
+For Dub Enterprise users, you can automatically provision and deprovision users from your Azure Active Directory (AD) to Dub using [SCIM Directory Sync](https://learn.microsoft.com/en-us/azure/active-directory/architecture/sync-scim).
 
 <Prerequisites>
 
-Before you can configure SCIM Directory Sync, you need to create a SAML application in Okta. See [Configuring SAML SSO with Okta](okta-saml) for more information.
+Before you can configure SCIM Directory Sync, you need to create a SAML application in Azure. See [Configuring SAML SSO with Azure Active Directory](azure-saml) for more information.
 
 </Prerequisites>
 
@@ -36,25 +36,25 @@ In your project dashboard on Dub, click on the **Settings** tab in the menu bar 
 
 Under the **Directory Sync** section, click on **Configure**. This will open up the Directory Sync modal:
 
-1. Select **Okta** as the Directory Provider.
+1. Select **Azure AD** as the Directory Provider.
 2. Click **Save changes**.
 
 <Image
   alt="SCIM Modal"
-  src="https://d2vwwcvoksz7ty.cloudfront.net/help/okta-scim-modal.png"
-  width={1778}
-  height={1182}
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/azure-scim-modal.png"
+  width={1652}
+  height={1008}
   hideCaption={true}
 />
 
 This will generate a Directory Sync connection for your Dub project, and return 2 values, which will be needed in Step 2:
 
-1. **SCIM 2.0 Base URL**
-2. **OAuth Bearer Token**
+1. **Tenant URL**
+2. **Secret Token**
 
 <Image
   alt="SCIM Modal Configured"
-  src="https://d2vwwcvoksz7ty.cloudfront.net/help/okta-scim-modal-configured.png"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/azure-scim-modal-configured.png"
   width={1964}
   height={1356}
   hideCaption={true}
@@ -62,33 +62,48 @@ This will generate a Directory Sync connection for your Dub project, and return 
 
 ## Step 2: Add Provisioning to SAML Application
 
-Go to the **General** tab of your existing Dub Okta SAML application that you want to enable SCIM provisioning for. Under **App Settings** click **Edit**.
-
-<Image
-  alt="General tab of Okta SAML application"
-  src="https://d2vwwcvoksz7ty.cloudfront.net/help/okta-scim-general.png"
-  width={2978}
-  height={1600}
-  hideCaption={true}
-/>
-
-Select the "Enable SCIM provisioning" option and click **Save**.
-
-<Image
-  alt="Enable SCIM provisioning"
-  src="https://d2vwwcvoksz7ty.cloudfront.net/help/okta-scim-enable.png"
-  width={1670}
-  height={1506}
-  hideCaption={true}
-/>
-
-You should now see a **Provisioning** tab. Select it and click **Edit**.
+Click on the **Provisioning** tab of your existing Dub Okta SAML application that you want to enable SCIM provisioning for.
 
 <Image
   alt="Provisioning tab of Okta SAML application"
-  src="https://d2vwwcvoksz7ty.cloudfront.net/help/okta-scim-provisioning.png"
-  width={2976}
-  height={1640}
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/azure-scim-tab.png"
+  width={2982}
+  height={1536}
+  hideCaption={true}
+/>
+
+In the Provisioning tab, click on **Get started**.
+
+<Image
+  alt="Get started with provisioning"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/azure-scim-get-started.png"
+  width={2666}
+  height={1546}
+  hideCaption={true}
+/>
+
+Select **Automatic** from the **Provisioning Mode** dropdown. Under the **Admin Credentials** section, enter the values that you obtained from Step 1:
+
+1. **Tenant URL**
+2. **Secret Token**
+
+<Image
+  alt="Provisioning tab of Azure SAML application"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/azure-scim-provisioning.png"
+  width={2020}
+  height={1176}
+  hideCaption={true}
+/>
+
+Click on **Test Connection** to test the connection to see if the credentials are correct, then click **Save** to save the credentials.
+
+Expand the **Mappings** section and ensure group and user attribute mappings are enabled for your app. The default mapping should work.
+
+<Image
+  alt="Mappings section of Azure SAML application"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/azure-scim-mappings.png"
+  width={1982}
+  height={1154}
   hideCaption={true}
 />
 

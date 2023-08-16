@@ -169,17 +169,29 @@ export const SAML_PROVIDERS = [
     logo: "/_static/icons/okta.svg",
     saml: "okta",
     scim: "okta-scim-v2",
+    scimModalCopy: {
+      url: "SCIM 2.0 Base URL",
+      token: "OAuth Bearer Token",
+    },
   },
   {
     name: "Azure AD",
     logo: "/_static/icons/azure.svg",
     saml: "azure",
     scim: "azure-scim-v2",
+    scimModalCopy: {
+      url: "Tenant URL",
+      token: "Secret Token",
+    },
   },
   {
     name: "Google Workspace",
     logo: "/_static/icons/google.svg",
     saml: "google",
     scim: "google",
+    scimModalCopy: {
+      url: "SCIM 2.0 Base URL",
+      token: "OAuth Bearer Token",
+    },
   },
 ];

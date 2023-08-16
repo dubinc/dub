@@ -34,13 +34,18 @@ function SCIMModal({
   const [showBearerToken, setShowBearerToken] = useState(false);
   const [copiedBearerToken, setCopiedBearerToken] = useState(false);
 
+  const currentProvider = useMemo(
+    () => SAML_PROVIDERS.find((p) => p.scim === provider),
+    [provider],
+  ) as SAMLProviderProps;
+
   return (
     <Modal showModal={showSCIMModal} setShowModal={setShowSCIMModal}>
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-8 sm:px-16">
         {configured ? (
           <div className="flex items-center space-x-3 py-4">
             <img
-              src={SAML_PROVIDERS.find((p) => p.scim === provider)!.logo}
+              src={currentProvider.logo}
               alt={`${provider} logo`}
               className="h-10 w-10"
             />
@@ -55,7 +60,7 @@ function SCIMModal({
 
         <h3 className="text-lg font-medium">
           {configured
-            ? `${SAML_PROVIDERS.find((p) => p.scim === provider)!.name} SCIM`
+            ? `${currentProvider.name} SCIM`
             : "Configure Directory Sync"}
         </h3>
         <p className="text-center text-sm text-gray-500">
@@ -133,7 +138,7 @@ function SCIMModal({
               <div>
                 <div className="flex items-center space-x-1">
                   <h2 className="text-sm font-medium text-gray-900">
-                    SCIM 2.0 Base URL
+                    {currentProvider.scimModalCopy.url}
                   </h2>
                   <InfoTooltip
                     content={
@@ -173,7 +178,7 @@ function SCIMModal({
               <div>
                 <div className="flex items-center space-x-1">
                   <h2 className="text-sm font-medium text-gray-900">
-                    OAuth Bearer Token
+                    {currentProvider.scimModalCopy.token}
                   </h2>
                   <InfoTooltip
                     content={
