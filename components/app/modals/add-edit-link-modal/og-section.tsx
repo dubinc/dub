@@ -113,7 +113,9 @@ export default function OGSection({
                         "Paste a URL to an image (max 5MB)",
                         "https://",
                       );
-                      setData((prev) => ({ ...prev, image }));
+                      if (image) {
+                        setData((prev) => ({ ...prev, image }));
+                      }
                     }}
                   >
                     <Link2 className="h-4 w-4 text-gray-500" />
