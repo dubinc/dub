@@ -52,7 +52,9 @@ export function StatsSection({
             className="flex flex-col items-center justify-center space-y-2"
           >
             <p className="text-4xl font-bold md:text-6xl">
-              {nFormatter(value)}
+              {name === "Custom Domains"
+                ? Intl.NumberFormat().format(value)
+                : nFormatter(value)}
             </p>
             <p className="font-semibold uppercase text-gray-500 md:text-lg">
               {name}
