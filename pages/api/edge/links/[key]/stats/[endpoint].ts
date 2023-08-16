@@ -20,7 +20,10 @@ export default async function handler(req: NextRequest) {
     if (isHomeHostname(domain)) domain = "dub.sh";
 
     if (process.env.NODE_ENV !== "development" && domain === "dub.sh") {
-      if (await isBlacklistedReferrer(req.headers.get("referer"))) {
+      if (
+        key === "github" &&
+        (await isBlacklistedReferrer(req.headers.get("referer")))
+      ) {
         return new Response("Don't DDoS me pls 🥺", { status: 429 });
       }
       const ip = ipAddress(req) || LOCALHOST_IP;
