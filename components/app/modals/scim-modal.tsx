@@ -194,7 +194,7 @@ function SCIMModal({
                   <input
                     type={showBearerToken ? "text" : "password"}
                     contentEditable={false}
-                    className="border-none p-0 focus:outline-none focus:ring-0 sm:text-sm"
+                    className="w-full border-none p-0 focus:outline-none focus:ring-0 sm:text-sm"
                     value={`${scim.directories[0].scim.secret}`}
                   />
                   <div className="flex space-x-2 pl-2">

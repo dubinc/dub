@@ -189,3 +189,44 @@ Under the **SAML Single Sign-On** section, click on **Configure**. This will ope
 </Note>
 
 Once you've configured SAML SSO, you can start assigning users & groups to your project.
+
+From your application, click the **Users and groups** from the left navigation menu and click **Add user/group**.
+
+<Image
+  alt="Adding users in Azure AD"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/azure-scim-add-users.png"
+  width={2918}
+  height={1570}
+  hideCaption={true}
+/>
+
+Click on **None Selected** under **Users**.
+
+From the right side of the screen, select the users you want to assign to the app and click the **Select** button. Thenm click **Assign** to those users to your app.
+
+<Image
+  alt="Assigning users in Azure AD"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/azure-scim-assign-user.png"
+  width={1564}
+  height={1356}
+  hideCaption={true}
+/>
+
+Your assigned users should now receive an invitation email to join your Dub project.
+
+<Image
+  alt="SAML invite email"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/saml-invite.png"
+  width={2918}
+  height={1578}
+  hideCaption={true}
+/>
+
+<Note variant="warning">
+  Azure AD SCIM provisioning can take [anywhere between 20-40 minutes to
+  sync](https://learn.microsoft.com/en-us/azure/databricks/administration-guide/users-groups/scim/aad#provisioning-tips).
+  This means that it may take up to 40 minutes for your users to receive the
+  invitation email and be able to join your Dub project.
+</Note>
+
+They will also be able to sign in to Dub using Azure AD SSO.
