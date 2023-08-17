@@ -14,7 +14,8 @@ export default function useProjects() {
   return {
     projects: projects?.map((project) => ({
       ...project,
-      primaryDomain: project.domains.find((domain) => domain.primary),
+      primaryDomain:
+        project.domains.find((domain) => domain.primary) || project.domains[0],
     })),
   };
 }

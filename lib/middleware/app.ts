@@ -29,12 +29,12 @@ export default async function AppMiddleware(req: NextRequest) {
 
     // if there's a session
   } else if (session?.email) {
-    // if the user was created in the last 10s and the path isn't /welcome, redirect to /welcome
+    // if the user was created in the last 10s
     // (this is a workaround because the `isNewUser` flag is triggered when a user does `dangerousEmailAccountLinking`)
     if (
       session?.user?.createdAt &&
       new Date(session?.user?.createdAt).getTime() > Date.now() - 10000 &&
-      path !== "/welcome"
+      path === "/"
     ) {
       // check if the user has an existing project invite, if yes, we skip the onboarding flow
       const existingInvite = await conn
@@ -43,7 +43,23 @@ export default async function AppMiddleware(req: NextRequest) {
         ])
         .then((res) => res.rows[0] as { projectId: string } | undefined);
 
-      if (!existingInvite) {
+      // if there's an existing invite
+      if (existingInvite) {
+        // get the project slug
+        const project = await conn
+          ?.execute("SELECT slug from Project WHERE id = ?", [
+            existingInvite.projectId,
+          ])
+          .then((res) => res.rows[0] as { slug: string } | undefined);
+
+        // redirect them to the project slug
+        if (project?.slug) {
+          return NextResponse.redirect(new URL(project.slug, req.url));
+        } else {
+          return NextResponse.redirect(new URL("/", req.url));
+        }
+      } else {
+        // if there's no existing invite, redirect to /welcome flow
         return NextResponse.redirect(new URL("/welcome", req.url));
       }
 

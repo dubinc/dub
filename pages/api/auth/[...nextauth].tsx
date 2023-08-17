@@ -5,7 +5,7 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { sendEmail } from "emails";
 import LoginLink from "emails/login-link";
 import WelcomeEmail from "emails/welcome-email";
-import NextAuth, { Profile, type NextAuthOptions, User } from "next-auth";
+import NextAuth, { type NextAuthOptions, User } from "next-auth";
 import prisma from "#/lib/prisma";
 import jackson from "#/lib/jackson";
 import { isBlacklistedEmail } from "#/lib/edge-config";
@@ -52,12 +52,30 @@ export const authOptions: NextAuthOptions = {
         params: { grant_type: "authorization_code" },
       },
       userinfo: `${process.env.NEXTAUTH_URL}/api/auth/saml/userinfo`,
-      profile: (profile) => {
+      profile: async (profile) => {
+        let existingUser = await prisma.user.findUnique({
+          where: { email: profile.email },
+        });
+
+        // user is authorized but doesn't have a Dub account, create one for them
+        if (!existingUser) {
+          existingUser = await prisma.user.create({
+            data: {
+              email: profile.email,
+              name: `${profile.firstName || ""} ${
+                profile.lastName || ""
+              }`.trim(),
+            },
+          });
+        }
+
+        const { id, name, email, image } = existingUser;
+
         return {
-          id: profile.id || "",
-          email: profile.email || "",
-          name: `${profile.firstName || ""} ${profile.lastName || ""}`.trim(),
-          email_verified: true,
+          id,
+          name,
+          email,
+          image,
         };
       },
       options: {
@@ -105,14 +123,20 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const existingUser = await prisma.user.findUnique({
+        let existingUser = await prisma.user.findUnique({
           where: { email: userInfo.email },
         });
 
-        // user is authorized but doesn't have a Dub account, prompt them to create one
+        // user is authorized but doesn't have a Dub account, create one for them
         if (!existingUser) {
-          console.log("NO SUCH USER, PROMPT TO CREATE");
-          return null;
+          existingUser = await prisma.user.create({
+            data: {
+              email: userInfo.email,
+              name: `${userInfo.firstName || ""} ${
+                userInfo.lastName || ""
+              }`.trim(),
+            },
+          });
         }
 
         const { id, name, email, image } = existingUser;
@@ -173,6 +197,7 @@ export const authOptions: NextAuthOptions = {
         account?.provider === "saml" ||
         account?.provider === "saml-idp"
       ) {
+        console.log({ user, account, profile });
         let samlProfile;
 
         if (account?.provider === "saml-idp") {
@@ -224,7 +249,11 @@ export const authOptions: NextAuthOptions = {
         const refreshedUser = await prisma.user.findUnique({
           where: { id: token.sub },
         });
-        token.user = refreshedUser;
+        if (refreshedUser) {
+          token.user = refreshedUser;
+        } else {
+          return {};
+        }
       }
 
       return token;

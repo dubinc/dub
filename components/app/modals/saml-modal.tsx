@@ -25,7 +25,7 @@ function SAMLModal({
   const { slug } = useProject();
   const [selectedProvider, setSelectedProvider] = useState<
     SAMLProviderProps["saml"] | undefined
-  >("okta");
+  >();
   const [submitting, setSubmitting] = useState(false);
   const { mutate } = useSAML();
 
@@ -85,7 +85,9 @@ function SAMLModal({
               }
               className="mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
             >
-              <option disabled>Select a provider</option>
+              <option disabled selected>
+                Select a provider
+              </option>
               {SAML_PROVIDERS.map((provider) => (
                 <option
                   key={provider.saml}
@@ -96,15 +98,25 @@ function SAMLModal({
                 </option>
               ))}
             </select>
-            <a
-              href={`${HOME_DOMAIN}/help/article/${selectedProvider}-saml`}
-              target="_blank"
-              className="ml-2 mt-2 block text-sm text-gray-500 underline"
-            >
-              Read the guide on{" "}
-              {SAML_PROVIDERS.find((p) => p.saml === selectedProvider)?.name}{" "}
-              SSO
-            </a>
+            {selectedProvider ? (
+              <a
+                href={`${HOME_DOMAIN}/help/article/${selectedProvider}-saml`}
+                target="_blank"
+                className="ml-2 mt-2 block text-sm text-gray-500 underline"
+              >
+                Read the guide on{" "}
+                {SAML_PROVIDERS.find((p) => p.saml === selectedProvider)?.name}{" "}
+                SSO
+              </a>
+            ) : (
+              <a
+                href={`${HOME_DOMAIN}/help/category/saml-sso`}
+                target="_blank"
+                className="ml-2 mt-2 block text-sm text-gray-500 underline"
+              >
+                Learn more about SAML SSO
+              </a>
+            )}
           </div>
 
           {(selectedProvider === "okta" || selectedProvider === "azure") && (

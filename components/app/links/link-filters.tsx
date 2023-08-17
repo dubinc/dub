@@ -171,20 +171,19 @@ const DomainsFilter = ({ domains, primaryDomain }) => {
 
   const [collapsed, setCollapsed] = useState(false);
 
-  const options =
-    domains.length === 0
+  const options = useMemo(() => {
+    return domains.length === 0
       ? [
           {
-            name: primaryDomain || "",
-            value: primaryDomain || "",
+            value: primaryDomain.slug || "",
             count: 0,
           },
         ]
       : domains.map(({ domain, _count }) => ({
-          name: domain,
           value: domain,
           count: _count,
         }));
+  }, [domains, primaryDomain]);
 
   const { setShowAddEditDomainModal, setShowAddProjectModal } =
     useContext(ModalContext);
@@ -225,7 +224,7 @@ const DomainsFilter = ({ domains, primaryDomain }) => {
             className="mt-4 grid gap-2"
             {...SWIPE_REVEAL_ANIMATION_SETTINGS}
           >
-            {options?.map(({ name, value, count }) => (
+            {options?.map(({ value, count }) => (
               <div
                 key={value}
                 className="relative flex cursor-pointer items-center space-x-3 rounded-md bg-gray-50 transition-all hover:bg-gray-100"
@@ -248,7 +247,7 @@ const DomainsFilter = ({ domains, primaryDomain }) => {
                   htmlFor={value}
                   className="flex w-full cursor-pointer justify-between px-3 py-2 pl-0 text-sm font-medium text-gray-700"
                 >
-                  <p>{punycode.toUnicode(name || "")}</p>
+                  <p>{punycode.toUnicode(value || "")}</p>
                   <p className="text-gray-500">{nFormatter(count)}</p>
                 </label>
               </div>

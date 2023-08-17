@@ -27,9 +27,9 @@ function SCIMModal({
   const { slug } = useProject();
   const [submitting, setSubmitting] = useState(false);
   const { scim, provider, configured, mutate } = useSCIM();
-  const [selectedProvider, setSelectedProvider] = useState(
-    provider || "okta-scim-v2",
-  );
+  const [selectedProvider, setSelectedProvider] = useState<
+    SAMLProviderProps["scim"] | undefined
+  >(provider || undefined);
   const [copiedBaseUrl, setCopiedBaseUrl] = useState(false);
   const [showBearerToken, setShowBearerToken] = useState(false);
   const [copiedBearerToken, setCopiedBearerToken] = useState(false);
@@ -108,8 +108,12 @@ function SCIMModal({
                 content={
                   <SimpleTooltipContent
                     title="Your directory provider is the IDP you use to manage your users."
-                    cta="Read the guide."
-                    href={`${HOME_DOMAIN}/help/article/configuring-scim`}
+                    cta={selectedProvider ? "Read the guide." : "Learn more."}
+                    href={`${HOME_DOMAIN}/help/${
+                      selectedProvider
+                        ? `article/${currentProvider.saml}-scim`
+                        : "category/saml-sso"
+                    }`}
                   />
                 }
               />
@@ -124,6 +128,9 @@ function SCIMModal({
               }
               className="mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
             >
+              <option disabled selected>
+                Select a provider
+              </option>
               {SAML_PROVIDERS.map((provider) => (
                 <option
                   key={provider.scim}
@@ -238,7 +245,7 @@ function SCIMModal({
           <Button
             text="Save changes"
             loading={submitting}
-            disabled={selectedProvider === provider}
+            disabled={selectedProvider && selectedProvider === provider}
           />
         </form>
       </div>
