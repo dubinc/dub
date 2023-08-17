@@ -7,12 +7,17 @@ import type {
   IDirectorySyncController,
 } from "@boxyhq/saml-jackson";
 
-export const samlPath = "/api/auth/saml/callback";
 export const samlAudience = "https://saml.dub.co";
 
 const opts: JacksonOption = {
-  externalUrl: process.env.NEXTAUTH_URL as string,
-  samlPath,
+  externalUrl:
+    process.env.NODE_ENV === "production"
+      ? "https://api.dub.co"
+      : `${process.env.NEXTAUTH_URL}`,
+  samlPath:
+    process.env.NODE_ENV === "production"
+      ? "/auth/saml/callback"
+      : "/api/auth/saml/callback",
   samlAudience,
   db: {
     engine: "planetscale",
@@ -23,7 +28,8 @@ const opts: JacksonOption = {
     },
   },
   idpEnabled: true, // to allow folks to SSO directly from their IDP
-  scimPath: "/api/scim/v2.0", // custom SCIM endpoint
+  scimPath:
+    process.env.NODE_ENV === "production" ? "/scim/v2.0" : "/api/scim/v2.0", // custom SCIM endpoint
   clientSecretVerifier: process.env.NEXTAUTH_SECRET as string,
 };
 

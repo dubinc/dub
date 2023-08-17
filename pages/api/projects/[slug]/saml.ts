@@ -1,5 +1,6 @@
 import { withProjectAuth } from "#/lib/auth";
-import jackson, { samlAudience, samlPath } from "#/lib/jackson";
+import { APP_DOMAIN_WITH_NGROK } from "#/lib/constants";
+import jackson, { samlAudience } from "#/lib/jackson";
 
 export default withProjectAuth(
   async (req, res, project) => {
@@ -15,7 +16,10 @@ export default withProjectAuth(
       const response = {
         connections,
         issuer: samlAudience,
-        acs: `${process.env.NEXTAUTH_URL}${samlPath}`,
+        acs:
+          process.env.NODE_ENV === "production"
+            ? "https://api.dub.co/auth/saml/callback"
+            : `${APP_DOMAIN_WITH_NGROK}/api/auth/saml/callback`,
       };
 
       return res.status(200).json(response);
@@ -30,7 +34,10 @@ export default withProjectAuth(
         encodedRawMetadata: "",
         metadataUrl,
         defaultRedirectUrl: `${process.env.NEXTAUTH_URL}/auth/saml`,
-        redirectUrl: process.env.NEXTAUTH_URL as string,
+        redirectUrl:
+          process.env.NODE_ENV === "production"
+            ? "https://api.dub.co"
+            : `${process.env.NEXTAUTH_URL}`,
         tenant: project.id,
         product: "Dub",
       });

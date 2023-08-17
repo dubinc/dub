@@ -197,7 +197,6 @@ export const authOptions: NextAuthOptions = {
         account?.provider === "saml" ||
         account?.provider === "saml-idp"
       ) {
-        console.log({ user, account, profile });
         let samlProfile;
 
         if (account?.provider === "saml-idp") {
