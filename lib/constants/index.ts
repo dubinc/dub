@@ -168,6 +168,9 @@ export const SAML_PROVIDERS = [
     name: "Okta",
     logo: "/_static/icons/okta.svg",
     saml: "okta",
+    samlModalCopy: {
+      url: "Metadata URL",
+    },
     scim: "okta-scim-v2",
     scimModalCopy: {
       url: "SCIM 2.0 Base URL",
@@ -178,6 +181,9 @@ export const SAML_PROVIDERS = [
     name: "Azure AD",
     logo: "/_static/icons/azure.svg",
     saml: "azure",
+    samlModalCopy: {
+      url: "App Federation Metadata URL",
+    },
     scim: "azure-scim-v2",
     scimModalCopy: {
       url: "Tenant URL",
@@ -188,6 +194,9 @@ export const SAML_PROVIDERS = [
     name: "Google Workspace",
     logo: "/_static/icons/google.svg",
     saml: "google",
+    samlModalCopy: {
+      url: "Metadata URL",
+    },
     scim: "google",
     scimModalCopy: {
       url: "SCIM 2.0 Base URL",

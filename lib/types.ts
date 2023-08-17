@@ -122,6 +122,9 @@ export interface SAMLProviderProps {
   name: string;
   logo: string;
   saml: "okta" | "azure" | "google";
+  samlModalCopy: {
+    url: string;
+  };
   scim: keyof typeof DirectorySyncProviders;
   scimModalCopy: {
     url: string;

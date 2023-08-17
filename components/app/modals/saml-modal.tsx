@@ -29,6 +29,11 @@ function SAMLModal({
   const [submitting, setSubmitting] = useState(false);
   const { mutate } = useSAML();
 
+  const currentProvider = useMemo(
+    () => SAML_PROVIDERS.find((p) => p.saml === selectedProvider),
+    [selectedProvider],
+  );
+
   return (
     <Modal showModal={showSAMLModal} setShowModal={setShowSAMLModal}>
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-8 sm:px-16">
@@ -98,15 +103,13 @@ function SAMLModal({
                 </option>
               ))}
             </select>
-            {selectedProvider ? (
+            {currentProvider ? (
               <a
                 href={`${HOME_DOMAIN}/help/article/${selectedProvider}-saml`}
                 target="_blank"
                 className="ml-2 mt-2 block text-sm text-gray-500 underline"
               >
-                Read the guide on{" "}
-                {SAML_PROVIDERS.find((p) => p.saml === selectedProvider)?.name}{" "}
-                SSO
+                Read the guide on {currentProvider.name} SSO
               </a>
             ) : (
               <a
@@ -119,34 +122,35 @@ function SAMLModal({
             )}
           </div>
 
-          {(selectedProvider === "okta" || selectedProvider === "azure") && (
-            <div className="border-t border-gray-200 pt-4">
-              <div className="flex items-center space-x-1">
-                <h2 className="text-sm font-medium text-gray-900">
-                  Metadata URL
-                </h2>
-                <InfoTooltip
-                  content={
-                    <SimpleTooltipContent
-                      title="Your metadata URL is the URL to your SAML provider's metadata."
-                      cta="Learn more."
-                      href={`${HOME_DOMAIN}/help/article/${selectedProvider}-saml#step-4-copy-the-metadata-url`}
-                    />
-                  }
+          {currentProvider &&
+            (selectedProvider === "okta" || selectedProvider === "azure") && (
+              <div className="border-t border-gray-200 pt-4">
+                <div className="flex items-center space-x-1">
+                  <h2 className="text-sm font-medium text-gray-900">
+                    {currentProvider.samlModalCopy.url}
+                  </h2>
+                  <InfoTooltip
+                    content={
+                      <SimpleTooltipContent
+                        title={`Your ${currentProvider.samlModalCopy.url} is the URL to your SAML provider's metadata.`}
+                        cta="Learn more."
+                        href={`${HOME_DOMAIN}/help/article/${selectedProvider}-saml#step-4-copy-the-metadata-url`}
+                      />
+                    }
+                  />
+                </div>
+                <input
+                  id="metadataUrl"
+                  name="metadataUrl"
+                  autoFocus
+                  type="url"
+                  placeholder="https://"
+                  autoComplete="off"
+                  required
+                  className="mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
                 />
               </div>
-              <input
-                id="metadataUrl"
-                name="metadataUrl"
-                autoFocus
-                type="url"
-                placeholder="https://"
-                autoComplete="off"
-                required
-                className="mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
-              />
-            </div>
-          )}
+            )}
           <Button
             text="Save changes"
             disabled={!selectedProvider}

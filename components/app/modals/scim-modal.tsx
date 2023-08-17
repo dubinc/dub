@@ -37,7 +37,7 @@ function SCIMModal({
   const currentProvider = useMemo(
     () => SAML_PROVIDERS.find((p) => p.scim === selectedProvider),
     [selectedProvider],
-  ) as SAMLProviderProps;
+  );
 
   return (
     <Modal showModal={showSCIMModal} setShowModal={setShowSCIMModal}>
@@ -97,7 +97,6 @@ function SCIMModal({
               setSubmitting(false);
             });
           }}
-          className="flex flex-col space-y-4"
         >
           <div>
             <div className="flex items-center space-x-1">
@@ -110,7 +109,7 @@ function SCIMModal({
                     title="Your directory provider is the IDP you use to manage your users."
                     cta={selectedProvider ? "Read the guide." : "Learn more."}
                     href={`${HOME_DOMAIN}/help/${
-                      selectedProvider
+                      currentProvider
                         ? `article/${currentProvider.saml}-scim`
                         : "category/saml-sso"
                     }`}
@@ -143,8 +142,18 @@ function SCIMModal({
             </select>
           </div>
 
-          {configured && selectedProvider === provider && (
-            <>
+          {currentProvider && (
+            <a
+              href={`${HOME_DOMAIN}/help/article/${currentProvider.saml}-scim`}
+              target="_blank"
+              className="ml-2 mt-2 block text-sm text-gray-500 underline"
+            >
+              Read the guide on {currentProvider.name} SCIM
+            </a>
+          )}
+
+          {currentProvider && selectedProvider === provider && (
+            <div className="mt-4 flex flex-col space-y-4">
               <div className="w-full border-t border-gray-200" />
               <div>
                 <div className="flex items-center space-x-1">
@@ -156,7 +165,7 @@ function SCIMModal({
                       <SimpleTooltipContent
                         title="Your directory provider is the IDP you use to manage your users."
                         cta="Read the guide."
-                        href={`${HOME_DOMAIN}/help/article/configuring-scim`}
+                        href={`${HOME_DOMAIN}/help/article/${currentProvider.saml}-scim`}
                       />
                     }
                   />
@@ -196,7 +205,7 @@ function SCIMModal({
                       <SimpleTooltipContent
                         title="Your directory provider is the IDP you use to manage your users."
                         cta="Read the guide."
-                        href={`${HOME_DOMAIN}/help/article/configuring-scim`}
+                        href={`${HOME_DOMAIN}/help/article/${currentProvider.saml}-scim`}
                       />
                     }
                   />
@@ -240,9 +249,10 @@ function SCIMModal({
                   </div>
                 </div>
               </div>
-            </>
+            </div>
           )}
           <Button
+            className="mt-4"
             text="Save changes"
             loading={submitting}
             disabled={selectedProvider && selectedProvider === provider}

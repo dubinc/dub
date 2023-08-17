@@ -8,6 +8,7 @@ import { ReactNode } from "react";
 export default function Button({
   text,
   variant = "primary",
+  className,
   onClick,
   disabled,
   loading,
@@ -16,6 +17,7 @@ export default function Button({
 }: {
   text: string;
   variant?: "primary" | "secondary" | "success" | "danger";
+  className?: string;
   onClick?: any;
   disabled?: boolean;
   loading?: boolean;
@@ -49,6 +51,7 @@ export default function Button({
               "border-red-500 bg-red-500 text-white hover:bg-white hover:text-red-500":
                 variant === "danger",
             },
+        className,
       )}
       {...(onClick ? { onClick } : {})}
       disabled={disabled || loading}
