@@ -12,6 +12,8 @@ import { toast } from "sonner";
 import Button from "#/ui/button";
 import { Logo } from "#/ui/icons";
 import useSCIM from "#/lib/swr/use-scim";
+import { SAML_PROVIDERS } from "#/lib/constants";
+import { SAMLProviderProps } from "#/lib/types";
 
 function RemoveSCIMModal({
   showRemoveSCIMModal,
@@ -22,7 +24,12 @@ function RemoveSCIMModal({
 }) {
   const [removing, setRemoving] = useState(false);
   const { slug, logo } = useProject();
-  const { scim, mutate } = useSCIM();
+  const { scim, provider, mutate } = useSCIM();
+
+  const currentProvider = useMemo(
+    () => SAML_PROVIDERS.find((p) => p.scim === provider),
+    [provider],
+  ) as SAMLProviderProps;
 
   return (
     <Modal
@@ -50,16 +57,16 @@ function RemoveSCIMModal({
 
       <div className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 text-left sm:px-16">
         <div className="flex items-center space-x-3 rounded-md border border-gray-300 bg-white p-3">
-          <BlurImage
-            src="/_static/icons/okta.svg"
-            alt="Okta logo"
-            width={40}
-            height={40}
-            className="overflow-hidden rounded-full border border-gray-200"
+          <img
+            src={currentProvider.logo}
+            alt={currentProvider.name + " logo"}
+            className="h-8 w-8"
           />
           <div className="flex flex-col">
-            <h3 className="text-sm font-medium">Okta SCIM</h3>
-            <p className="text-xs text-gray-500">Okta SCIM is configured</p>
+            <h3 className="text-sm font-medium">{currentProvider.name} SCIM</h3>
+            <p className="text-xs text-gray-500">
+              {currentProvider.name} SCIM is configured
+            </p>
           </div>
         </div>
         <Button
