@@ -17,7 +17,7 @@ import Modal from "#/ui/modal";
 import Switch from "#/ui/switch";
 import Tooltip, { TooltipContent } from "#/ui/tooltip";
 import { QRCodeSVG, getQRAsCanvas, getQRAsSVGDataUri } from "#/lib/qr";
-import useProject from "#/lib/hooks/use-project";
+import useProject from "#/lib/swr-app/use-project";
 import { SimpleLinkProps } from "#/lib/types";
 import { getApexDomain, linkConstructor } from "#/lib/utils";
 import IconMenu from "@/components/shared/icon-menu";

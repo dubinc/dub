@@ -1,11 +1,13 @@
+import EmailProvider from "next-auth/providers/email";
+import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { sendEmail } from "emails";
 import LoginLink from "emails/login-link";
 import WelcomeEmail from "emails/welcome-email";
-import NextAuth, { type NextAuthOptions } from "next-auth";
-import EmailProvider from "next-auth/providers/email";
-import GoogleProvider from "next-auth/providers/google";
+import NextAuth, { type NextAuthOptions, User } from "next-auth";
 import prisma from "#/lib/prisma";
+import jackson from "#/lib/jackson";
 import { isBlacklistedEmail } from "#/lib/edge-config";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
@@ -30,6 +32,125 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
       allowDangerousEmailAccountLinking: true,
+    }),
+    {
+      id: "saml",
+      name: "BoxyHQ",
+      type: "oauth",
+      version: "2.0",
+      checks: ["pkce", "state"],
+      authorization: {
+        url: `${process.env.NEXTAUTH_URL}/api/auth/saml/authorize`,
+        params: {
+          scope: "",
+          response_type: "code",
+          provider: "saml",
+        },
+      },
+      token: {
+        url: `${process.env.NEXTAUTH_URL}/api/auth/saml/token`,
+        params: { grant_type: "authorization_code" },
+      },
+      userinfo: `${process.env.NEXTAUTH_URL}/api/auth/saml/userinfo`,
+      profile: async (profile) => {
+        let existingUser = await prisma.user.findUnique({
+          where: { email: profile.email },
+        });
+
+        // user is authorized but doesn't have a Dub account, create one for them
+        if (!existingUser) {
+          existingUser = await prisma.user.create({
+            data: {
+              email: profile.email,
+              name: `${profile.firstName || ""} ${
+                profile.lastName || ""
+              }`.trim(),
+            },
+          });
+        }
+
+        const { id, name, email, image } = existingUser;
+
+        return {
+          id,
+          name,
+          email,
+          image,
+        };
+      },
+      options: {
+        clientId: "dummy",
+        clientSecret: process.env.NEXTAUTH_SECRET as string,
+      },
+      allowDangerousEmailAccountLinking: true,
+    },
+    CredentialsProvider({
+      id: "saml-idp",
+      name: "IdP Login",
+      credentials: {
+        code: {},
+      },
+      async authorize(credentials) {
+        if (!credentials) {
+          return null;
+        }
+
+        const { code } = credentials;
+
+        if (!code) {
+          return null;
+        }
+
+        const { oauthController } = await jackson();
+
+        // Fetch access token
+        const { access_token } = await oauthController.token({
+          code,
+          grant_type: "authorization_code",
+          redirect_uri: process.env.NEXTAUTH_URL as string,
+          client_id: "dummy",
+          client_secret: process.env.NEXTAUTH_SECRET as string,
+        });
+
+        if (!access_token) {
+          return null;
+        }
+
+        // Fetch user info
+        const userInfo = await oauthController.userInfo(access_token);
+
+        if (!userInfo) {
+          return null;
+        }
+
+        let existingUser = await prisma.user.findUnique({
+          where: { email: userInfo.email },
+        });
+
+        // user is authorized but doesn't have a Dub account, create one for them
+        if (!existingUser) {
+          existingUser = await prisma.user.create({
+            data: {
+              email: userInfo.email,
+              name: `${userInfo.firstName || ""} ${
+                userInfo.lastName || ""
+              }`.trim(),
+            },
+          });
+        }
+
+        const { id, name, email, image } = existingUser;
+
+        return {
+          id,
+          email,
+          name,
+          email_verified: true,
+          image,
+          // adding profile here so we can access it in signIn callback
+          profile: userInfo,
+        };
+      },
     }),
   ],
   adapter: PrismaAdapter(prisma),
@@ -72,22 +193,69 @@ export const authOptions: NextAuthOptions = {
             },
           });
         }
+      } else if (
+        account?.provider === "saml" ||
+        account?.provider === "saml-idp"
+      ) {
+        console.log({ user, account, profile });
+        let samlProfile;
+
+        if (account?.provider === "saml-idp") {
+          // @ts-ignore
+          // samlProfile = user?.profile;
+          return true;
+        } else {
+          samlProfile = profile;
+        }
+
+        if (!samlProfile?.requested?.tenant) {
+          return false;
+        }
+        const project = await prisma.project.findUnique({
+          where: {
+            id: samlProfile.requested.tenant,
+          },
+        });
+        if (project) {
+          await prisma.projectUsers.upsert({
+            where: {
+              userId_projectId: {
+                projectId: project.id,
+                userId: user.id,
+              },
+            },
+            update: {},
+            create: {
+              projectId: project.id,
+              userId: user.id,
+            },
+          });
+        }
       }
       return true;
     },
-    jwt: async ({ token, user, trigger }) => {
+    jwt: async ({ token, account, user, trigger }) => {
+      // force log out banned users
       if (!token.email || (await isBlacklistedEmail(token.email))) {
         return {};
       }
+
       if (user) {
         token.user = user;
       }
+
+      // refresh the user's data if they update their name / email
       if (trigger === "update") {
         const refreshedUser = await prisma.user.findUnique({
           where: { id: token.sub },
         });
-        token.user = refreshedUser;
+        if (refreshedUser) {
+          token.user = refreshedUser;
+        } else {
+          return {};
+        }
       }
+
       return token;
     },
     session: async ({ session, token }) => {

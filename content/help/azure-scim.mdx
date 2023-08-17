@@ -1,0 +1,172 @@
+---
+title: Configuring SCIM Directory Sync with Azure AD
+updatedAt: 2023-08-17
+summary: For Dub Enterprise users, you can automatically provision and deprovision users from Azure AD to Dub using SCIM Directory Sync.
+author: steventey
+categories:
+  - saml-sso
+related:
+  - azure-saml
+  - okta-saml
+  - okta-scim
+excludeHeadingsFromSearch: true
+---
+
+<Note variant="success">
+  This feature is only available on [Dub Enterprise](/pricing).
+</Note>
+
+For Dub Enterprise users, you can automatically provision and deprovision users from your Azure Active Directory (AD) to Dub using [SCIM Directory Sync](https://learn.microsoft.com/en-us/azure/active-directory/architecture/sync-scim).
+
+<Prerequisites>
+
+Before you can configure SCIM Directory Sync, you need to create a SAML application in Azure. See [Configuring SAML SSO with Azure Active Directory](azure-saml) for more information.
+
+</Prerequisites>
+
+## Step 1: Configure Directory Sync on Dub
+
+In your project dashboard on Dub, click on the **Settings** tab in the menu bar at the top. Then, click on the **Security** tab in the sidebar.
+
+<Image
+  alt="Directory Sync section on the Dub Dashboard"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/scim-directory-sync.png"
+  width={2576}
+  height={1608}
+  hideCaption={true}
+/>
+
+Under the **Directory Sync** section, click on **Configure**. This will open up the Directory Sync modal:
+
+1. Select **Azure AD** as the Directory Provider.
+2. Click **Save changes**.
+
+<Image
+  alt="SCIM Modal"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/azure-scim-modal.png"
+  width={1652}
+  height={1008}
+  hideCaption={true}
+/>
+
+This will generate a Directory Sync connection for your Dub project, and return 2 values, which will be needed in Step 2:
+
+1. **Tenant URL**
+2. **Secret Token**
+
+<Image
+  alt="SCIM Modal Configured"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/azure-scim-modal-configured.png"
+  width={1964}
+  height={1356}
+  hideCaption={true}
+/>
+
+## Step 2: Add Provisioning to SAML Application
+
+Click on the **Provisioning** tab of your existing Dub Okta SAML application that you want to enable SCIM provisioning for.
+
+<Image
+  alt="Provisioning tab of Okta SAML application"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/azure-scim-tab.png"
+  width={2982}
+  height={1536}
+  hideCaption={true}
+/>
+
+In the Provisioning tab, click on **Get started**.
+
+<Image
+  alt="Get started with provisioning"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/azure-scim-get-started.png"
+  width={2666}
+  height={1546}
+  hideCaption={true}
+/>
+
+Select **Automatic** from the **Provisioning Mode** dropdown. Under the **Admin Credentials** section, enter the values that you obtained from Step 1:
+
+1. **Tenant URL**
+2. **Secret Token**
+
+<Image
+  alt="Provisioning tab of Azure SAML application"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/azure-scim-provisioning.png"
+  width={2020}
+  height={1176}
+  hideCaption={true}
+/>
+
+Click on **Test Connection** to test the connection to see if the credentials are correct, then click **Save** to save the credentials.
+
+Expand the **Mappings** section and ensure group and user attribute mappings are enabled for your app. The default mapping should work.
+
+<Image
+  alt="Mappings section of Azure SAML application"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/azure-scim-mappings.png"
+  width={1982}
+  height={1154}
+  hideCaption={true}
+/>
+
+Expand the **Settings** section and make the following changes:
+
+- Select **Sync only assigned users and groups** from the **Scope** dropdown.
+- Confirm the **Provisioning Status** is set to **On**.
+
+Click **Save** to save the changes.
+
+<Image
+  alt="Settings section of Azure SAML application"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/azure-scim-settings.png"
+  width={2086}
+  height={1488}
+  hideCaption={true}
+/>
+
+Congratulations! You've successfully configured SCIM provisioning for your Dub project.
+
+## Step 3: Assign Users
+
+Once you've configured Directory sync, you can assign users to Dub directly within Azure AD.
+
+From your application, click the **Users and groups** from the left navigation menu and click **Add user/group**.
+
+<Image
+  alt="Adding users in Azure AD"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/azure-scim-add-users.png"
+  width={2918}
+  height={1570}
+  hideCaption={true}
+/>
+
+Click on **None Selected** under **Users**.
+
+From the right side of the screen, select the users you want to assign to the app and click the **Select** button. Thenm click **Assign** to those users to your app.
+
+<Image
+  alt="Assigning users in Azure AD"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/azure-scim-assign-user.png"
+  width={1564}
+  height={1356}
+  hideCaption={true}
+/>
+
+Your assigned users should now receive an invitation email to join your Dub project.
+
+<Image
+  alt="SAML invite email"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/saml-invite.png"
+  width={2918}
+  height={1578}
+  hideCaption={true}
+/>
+
+<Note variant="warning">
+  Azure AD SCIM provisioning can take [anywhere between 20-40 minutes to
+  sync](https://learn.microsoft.com/en-us/azure/databricks/administration-guide/users-groups/scim/aad#provisioning-tips).
+  This means that it may take up to 40 minutes for your users to receive the
+  invitation email and be able to join your Dub project.
+</Note>
+
+They will also be able to sign in to Dub using Azure AD SSO.

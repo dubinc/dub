@@ -33,8 +33,12 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
     return AppMiddleware(req);
   }
 
-  // for API (api.dub.sh and api.localhost:8888)
-  if (domain === "api.dub.sh" || domain === "api.localhost:8888") {
+  // for API (api.dub.co, api.dub.sh, and api.localhost:8888)
+  if (
+    domain === "api.dub.co" ||
+    domain === "api.dub.sh" ||
+    domain === "api.localhost:8888"
+  ) {
     return ApiMiddleware(req);
   }
 

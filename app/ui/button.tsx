@@ -25,7 +25,7 @@ export default function Button({
   if (disabledTooltip) {
     return (
       <Tooltip content={disabledTooltip} fullWidth>
-        <div className="flex h-10 w-full cursor-not-allowed items-center justify-center rounded-md border border-gray-200 bg-gray-100 text-sm text-gray-400 transition-all focus:outline-none">
+        <div className="flex h-10 w-full cursor-not-allowed items-center justify-center rounded-md border border-gray-200 bg-gray-100 px-4 text-sm text-gray-400 transition-all focus:outline-none">
           <p>{text}</p>
         </div>
       </Tooltip>

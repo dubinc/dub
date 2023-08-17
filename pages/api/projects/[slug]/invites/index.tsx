@@ -1,8 +1,6 @@
-import { hashToken, withProjectAuth } from "#/lib/auth";
+import { inviteUser } from "#/lib/api/users";
+import { withProjectAuth } from "#/lib/auth";
 import prisma from "#/lib/prisma";
-import { sendEmail } from "emails";
-import { randomBytes } from "crypto";
-import ProjectInvite from "emails/project-invite";
 
 export default withProjectAuth(async (req, res, project, session) => {
   // GET /api/projects/[slug]/invites - Get all pending invites for a project
@@ -57,54 +55,15 @@ export default withProjectAuth(async (req, res, project, session) => {
       }
     }
 
-    // same method of generating a token as next-auth
-    const token = randomBytes(32).toString("hex");
-    const TWO_WEEKS_IN_SECONDS = 60 * 60 * 24 * 14;
-    const expires = new Date(Date.now() + TWO_WEEKS_IN_SECONDS * 1000);
-
-    // create a project invite record and a verification request token that lasts for a week
-    // here we use a try catch to account for the case where the user has already been invited
-    // for which `prisma.projectInvite.create()` will throw a unique constraint error
     try {
-      await prisma.projectInvite.create({
-        data: {
-          email,
-          expires,
-          projectId: project.id,
-        },
-      });
-
-      await prisma.verificationToken.create({
-        data: {
-          identifier: email,
-          token: hashToken(token),
-          expires,
-        },
-      });
-
-      const params = new URLSearchParams({
-        callbackUrl: `${process.env.NEXTAUTH_URL}/${project.slug}`,
+      await inviteUser({
         email,
-        token,
+        project,
+        session,
       });
-
-      const url = `${process.env.NEXTAUTH_URL}/api/auth/callback/email?${params}`;
-
-      sendEmail({
-        subject: "You've been invited to join a project on Dub",
-        email,
-        react: ProjectInvite({
-          email,
-          url,
-          projectName: project.name,
-          projectUser: session.user.name,
-          projectUserEmail: session.user.email,
-        }),
-      });
-
       return res.status(200).json({ message: "Invite sent" });
     } catch (error) {
-      return res.status(400).end("User already invited.");
+      return res.status(400).end(error);
     }
 
     // DELETE /api/projects/[slug]/invites – delete a pending invite

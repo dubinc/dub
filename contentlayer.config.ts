@@ -112,6 +112,7 @@ export const HelpPost = defineDocumentType(() => ({
           "link-management",
           "custom-domains",
           "migrating",
+          "saml-sso",
           "api",
         ],
         default: "overview",
@@ -123,6 +124,9 @@ export const HelpPost = defineDocumentType(() => ({
       of: {
         type: "string",
       },
+    },
+    excludeHeadingsFromSearch: {
+      type: "boolean",
     },
   },
   // @ts-ignore

@@ -1,0 +1,206 @@
+---
+title: Configuring SAML SSO with Okta
+updatedAt: 2023-08-16
+summary: For Dub Enterprise users, you can securely manage your team's access to Dub using Okta SAML SSO.
+author: steventey
+categories:
+  - saml-sso
+related:
+  - okta-scim
+  - azure-saml
+  - azure-scim
+excludeHeadingsFromSearch: true
+---
+
+<Note variant="success">
+  This feature is only available on [Dub Enterprise](/pricing).
+</Note>
+
+For Dub Enterprise users, you can securely manage your team's access to Dub using [Okta SAML SSO](https://support.okta.com/help/s/article/okta-saml).
+
+## Step 1: Create SAML Integration
+
+In your Okta Dashboard, click on **Applications** in the sidebar.
+
+<Image
+  alt="Applications tab on the Okta Dashboard"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/okta-saml-apps.png"
+  width={1491}
+  height={870}
+  hideCaption={true}
+/>
+
+Then, click on **Create App Integration**.
+
+<Image
+  alt="Create App Integration button on the Okta Dashboard"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/okta-saml-create-app.png"
+  width={1212}
+  height={746}
+  hideCaption={true}
+/>
+
+Select **SAML 2.0** as the sign on method, and click **Next**.
+
+<Image
+  alt="Saml 2.0 option on the Okta Dashboard"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/okta-saml-saml-2.png"
+  width={1009}
+  height={609}
+  hideCaption={true}
+/>
+
+In the **General Settings** page, enter "Dub" as the app name, and click **Next**.
+
+<Image
+  alt="General Settings page on the Okta Dashboard"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/okta-saml-app-name.png"
+  width={1103}
+  height={645}
+  hideCaption={true}
+/>
+
+Copy the following values and paste them into the **SAML Settings** > **General** section:
+
+<CopyBox
+  title="Single sign-on URL"
+  copy="https://api.dub.co/auth/saml/callback"
+/>
+
+<CopyBox title="Audience URI (SP Entity ID)" copy="https://saml.dub.co" />
+
+<Image
+  alt="SAML Settings page on the Okta Dashboard"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/okta-saml-urls.png"
+  width={3014}
+  height={1720}
+  hideCaption={true}
+/>
+
+## Step 2: Configure Attribute Statements
+
+Right below the **General** section, you'll see the **Attribute Statements** section.
+
+<Image
+  alt="Attribute Statements section on the Okta Dashboard"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/okta-saml-attributes.png"
+  width={1578}
+  height={1024}
+  hideCaption={true}
+/>
+
+Click on **Add Row** and add the following attribute statements:
+
+| Name        | Value            |
+| ----------- | ---------------- |
+| `id`        | `user.id`        |
+| `email`     | `user.email`     |
+| `firstName` | `user.firstName` |
+| `lastName`  | `user.lastName`  |
+
+Once that's done, click "Next".
+
+## Step 3: Submit Feedback
+
+Under the **Feedback** section, select **I'm an Okta customer adding an internal app** and click **Finish**.
+
+<Image
+  alt="Feedback section on the Okta Dashboard"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/okta-saml-feedback.png"
+  width={2244}
+  height={1430}
+  hideCaption={true}
+/>
+
+## Step 4: Copy the Metadata URL
+
+After you've submitted the feedback, you'll be redirected to the **Sign On** tab, which contains the metadata URL.
+
+<Image
+  alt="Sign On tab on the Okta Dashboard"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/okta-saml-metadata-url.png"
+  width={3024}
+  height={1720}
+  hideCaption={true}
+/>
+
+Copy the metadata URL and return to the Dub dashboard.
+
+## Step 5: Configure SAML SSO on Dub
+
+In your project dashboard on Dub, click on the **Settings** tab in the menu bar at the top. Then, click on the **Security** tab in the sidebar.
+
+<Image
+  alt="SAML SSO section on the Dub Dashboard"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/saml-sso-section.png"
+  width={2480}
+  height={1486}
+  hideCaption={true}
+/>
+
+Under the **SAML Single Sign-On** section, click on **Configure**. This will open up the SAML SSO modal:
+
+1. Select **Okta** as the SAML provider.
+2. Enter the Metadata URL value that you copied from Step 4.
+3. Click **Save changes**.
+
+<Image
+  alt="SAML SSO Modal"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/okta-saml-modal.png"
+  width={2068}
+  height={1720}
+  hideCaption={true}
+/>
+
+## Step 6: Assign Users
+
+<Note variant="warning">
+  We highly recommend configuring [SCIM Directory Sync](okta-scim) before
+  assigning users & groups to your project. This will ensure that your users are
+  automatically added to your project when they sign in for the first time, as
+  well as automatically removed when they are deactivated in Okta.
+</Note>
+
+Once you've configured SAML SSO, you can start assigning users & groups to your project.
+
+Click on the **Assignments** tab, and click **Assign**. You can choose to assign users individually, or assign them in bulk by group.
+
+<Image
+  alt="Assigning users in Okta"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/okta-saml-assign.png"
+  width={2346}
+  height={1562}
+  hideCaption={true}
+/>
+
+Select the users or groups you want to assign and click **Assign**.
+
+<Image
+  alt="Assigning users in Okta choose users"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/okta-saml-choose.png"
+  width={1564}
+  height={1356}
+  hideCaption={true}
+/>
+
+In the next screen, scroll to the bottom and click **Save and Go Back**.
+
+<Image
+  alt="Saving Okta assignment"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/okta-saml-save.png"
+  width={3132}
+  height={2008}
+  hideCaption={true}
+/>
+
+Your assigned users should now receive an invitation email to join your Dub project.
+
+<Image
+  alt="SAML invite email"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/saml-invite.png"
+  width={2226}
+  height={1564}
+  hideCaption={true}
+/>
+
+They will also be able to sign in to Dub using Okta SSO.

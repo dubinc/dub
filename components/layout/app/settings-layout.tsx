@@ -29,6 +29,10 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
             name: "People",
             href: `/${slug}/settings/people`,
           },
+          {
+            name: "Security",
+            href: `/${slug}/settings/security`,
+          },
         ]
       : []),
   ];
@@ -43,7 +47,7 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
         </MaxWidthWrapper>
       </div>
       <MaxWidthWrapper className="grid items-start gap-5 py-10 md:grid-cols-5">
-        <div className="flex gap-1 md:grid">
+        <div className="sticky top-36 flex gap-1 md:grid">
           {tabs.map(({ name, href }) => (
             <Link
               href={href}
