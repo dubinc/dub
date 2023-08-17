@@ -34,10 +34,7 @@ export default withProjectAuth(
         encodedRawMetadata: "",
         metadataUrl,
         defaultRedirectUrl: `${process.env.NEXTAUTH_URL}/auth/saml`,
-        redirectUrl:
-          process.env.NODE_ENV === "production"
-            ? "https://api.dub.co"
-            : `${process.env.NEXTAUTH_URL}`,
+        redirectUrl: process.env.NEXTAUTH_URL as string,
         tenant: project.id,
         product: "Dub",
       });
