@@ -87,8 +87,12 @@ function SAMLModal({
             >
               <option disabled>Select a provider</option>
               {SAML_PROVIDERS.map((provider) => (
-                <option key={provider.saml} value={provider.saml}>
-                  {provider.name}
+                <option
+                  key={provider.saml}
+                  value={provider.saml}
+                  disabled={provider.wip}
+                >
+                  {provider.name} {provider.wip && "(Coming Soon)"}
                 </option>
               ))}
             </select>
@@ -114,7 +118,7 @@ function SAMLModal({
                     <SimpleTooltipContent
                       title="Your metadata URL is the URL to your SAML provider's metadata."
                       cta="Learn more."
-                      href={`${HOME_DOMAIN}/help/article/okta-saml#step-4-copy-the-metadata-url`}
+                      href={`${HOME_DOMAIN}/help/article/${selectedProvider}-saml#step-4-copy-the-metadata-url`}
                     />
                   }
                 />

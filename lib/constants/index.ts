@@ -193,5 +193,6 @@ export const SAML_PROVIDERS = [
       url: "SCIM 2.0 Base URL",
       token: "OAuth Bearer Token",
     },
+    wip: true,
   },
 ];

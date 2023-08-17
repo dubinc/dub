@@ -125,8 +125,12 @@ function SCIMModal({
               className="mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
             >
               {SAML_PROVIDERS.map((provider) => (
-                <option key={provider.scim} value={provider.scim}>
-                  {provider.name}
+                <option
+                  key={provider.scim}
+                  value={provider.scim}
+                  disabled={provider.wip}
+                >
+                  {provider.name} {provider.wip && "(Coming Soon)"}
                 </option>
               ))}
             </select>
