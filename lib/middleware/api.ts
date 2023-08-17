@@ -3,8 +3,8 @@ import { parse } from "#/lib/middleware/utils";
 import { HOME_DOMAIN } from "../constants";
 
 export default async function ApiMiddleware(req: NextRequest) {
-  const { path } = parse(req);
-  if (path.startsWith("/metatags")) {
+  const { fullPath } = parse(req);
+  if (fullPath.startsWith("/metatags")) {
     const url = req.nextUrl.searchParams.get("url");
     if (!url) {
       return NextResponse.redirect(`${HOME_DOMAIN}/metatags`, {
@@ -15,5 +15,5 @@ export default async function ApiMiddleware(req: NextRequest) {
       new URL(`/api/edge/metatags?url=${url}`, req.url),
     );
   }
-  return NextResponse.rewrite(new URL(`/api${path}`, req.url));
+  return NextResponse.rewrite(new URL(`/api${fullPath}`, req.url));
 }
