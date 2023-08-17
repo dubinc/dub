@@ -35,8 +35,8 @@ function SCIMModal({
   const [copiedBearerToken, setCopiedBearerToken] = useState(false);
 
   const currentProvider = useMemo(
-    () => SAML_PROVIDERS.find((p) => p.scim === provider),
-    [provider],
+    () => SAML_PROVIDERS.find((p) => p.scim === selectedProvider),
+    [selectedProvider],
   ) as SAMLProviderProps;
 
   return (
