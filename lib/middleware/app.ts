@@ -37,18 +37,27 @@ export default async function AppMiddleware(req: NextRequest) {
       path === "/"
     ) {
       // check if the user has an existing project invite, if yes, we skip the onboarding flow
-      const existingInvite = await conn
-        ?.execute("SELECT projectId FROM ProjectInvite WHERE email = ?", [
-          session.email,
-        ])
-        .then((res) => res.rows[0] as { projectId: string } | undefined);
+      const [existingInvite, existingProject] = [
+        await conn
+          ?.execute("SELECT projectId FROM ProjectInvite WHERE email = ?", [
+            session.email,
+          ])
+          .then((res) => res.rows[0] as { projectId: string } | undefined),
+        await conn
+          ?.execute("SELECT projectId FROM ProjectUsers WHERE userId = ?", [
+            session.user.id,
+          ])
+          .then((res) => res.rows[0] as { projectId: string } | undefined),
+      ];
 
-      // if there's an existing invite
-      if (existingInvite) {
+      // if there's an existing invite or there's an existing project
+      if (existingInvite || existingProject) {
         // get the project slug
         const project = await conn
           ?.execute("SELECT slug from Project WHERE id = ?", [
-            existingInvite.projectId,
+            existingInvite
+              ? existingInvite.projectId
+              : existingProject?.projectId,
           ])
           .then((res) => res.rows[0] as { slug: string } | undefined);
 

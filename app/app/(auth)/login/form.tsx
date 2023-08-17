@@ -7,8 +7,7 @@ import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import Button from "#/ui/button";
 import { Google } from "@/components/shared/icons";
-import { InfoTooltip, SimpleTooltipContent } from "#/ui/tooltip";
-import { HOME_DOMAIN } from "#/lib/constants";
+import { InfoTooltip } from "#/ui/tooltip";
 
 export default function LoginForm() {
   const searchParams = useSearchParams();
@@ -143,13 +142,7 @@ export default function LoginForm() {
                 Project Slug
               </h2>
               <InfoTooltip
-                content={
-                  <SimpleTooltipContent
-                    title={`This is your project's unique identifier on Dub. E.g. app.dub.sh/acme is "acme".`}
-                    cta="Learn more."
-                    href={`${HOME_DOMAIN}/help/article/sso`}
-                  />
-                }
+                content={`This is your project's unique identifier on Dub. E.g. app.dub.sh/acme is "acme".`}
               />
             </div>
             <input
