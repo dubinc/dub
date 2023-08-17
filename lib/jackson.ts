@@ -7,8 +7,8 @@ import type {
   IDirectorySyncController,
 } from "@boxyhq/saml-jackson";
 
-const samlPath = "/api/auth/saml/callback";
-const samlAudience = "https://saml.dub.sh";
+export const samlPath = "/api/auth/saml/callback";
+export const samlAudience = "https://saml.dub.co";
 
 const opts: JacksonOption = {
   externalUrl: process.env.NEXTAUTH_URL as string,

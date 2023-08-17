@@ -1,5 +1,5 @@
 import { withProjectAuth } from "#/lib/auth";
-import jackson from "#/lib/jackson";
+import jackson, { samlAudience, samlPath } from "#/lib/jackson";
 import prisma from "#/lib/prisma";
 
 export default withProjectAuth(
@@ -15,9 +15,11 @@ export default withProjectAuth(
 
       const response = {
         connections,
-        issuer: "https://saml.dub.sh",
-        acs: `${process.env.NEXTAUTH_URL}/api/auth/saml/callback`,
+        issuer: samlAudience,
+        acs: `${process.env.NEXTAUTH_URL}${samlPath}`,
       };
+
+      console.log(JSON.stringify(response, null, 2));
 
       return res.status(200).json(response);
 
