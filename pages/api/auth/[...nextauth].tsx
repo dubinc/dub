@@ -200,8 +200,7 @@ export const authOptions: NextAuthOptions = {
         let samlProfile;
 
         if (account?.provider === "saml-idp") {
-          // @ts-ignore
-          // samlProfile = user?.profile;
+          // can't get project id from saml-idp so we return it for now
           return true;
         } else {
           samlProfile = profile;
@@ -216,19 +215,31 @@ export const authOptions: NextAuthOptions = {
           },
         });
         if (project) {
-          await prisma.projectUsers.upsert({
-            where: {
-              userId_projectId: {
+          await Promise.allSettled([
+            // add user to project
+            prisma.projectUsers.upsert({
+              where: {
+                userId_projectId: {
+                  projectId: project.id,
+                  userId: user.id,
+                },
+              },
+              update: {},
+              create: {
                 projectId: project.id,
                 userId: user.id,
               },
-            },
-            update: {},
-            create: {
-              projectId: project.id,
-              userId: user.id,
-            },
-          });
+            }),
+            // delete any pending invites for this user
+            prisma.projectInvite.delete({
+              where: {
+                email_projectId: {
+                  email: user.email,
+                  projectId: project.id,
+                },
+              },
+            }),
+          ]);
         }
       }
       return true;

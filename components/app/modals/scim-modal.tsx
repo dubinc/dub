@@ -255,7 +255,7 @@ function SCIMModal({
             className="mt-4"
             text="Save changes"
             loading={submitting}
-            disabled={selectedProvider && selectedProvider === provider}
+            disabled={!currentProvider || currentProvider.scim === provider}
           />
         </form>
       </div>
