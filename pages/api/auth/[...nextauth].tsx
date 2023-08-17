@@ -5,7 +5,7 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { sendEmail } from "emails";
 import LoginLink from "emails/login-link";
 import WelcomeEmail from "emails/welcome-email";
-import NextAuth, { Profile, type NextAuthOptions } from "next-auth";
+import NextAuth, { Profile, type NextAuthOptions, User } from "next-auth";
 import prisma from "#/lib/prisma";
 import jackson from "#/lib/jackson";
 import { isBlacklistedEmail } from "#/lib/edge-config";
@@ -123,6 +123,8 @@ export const authOptions: NextAuthOptions = {
           name,
           email_verified: true,
           image,
+          // adding profile here so we can access it in signIn callback
+          profile: userInfo,
         };
       },
     }),
@@ -167,10 +169,20 @@ export const authOptions: NextAuthOptions = {
             },
           });
         }
-      } else if (account?.provider === "saml") {
-        const samlProfile = profile as Profile & {
-          requested?: { tenant?: string };
-        };
+      } else if (
+        account?.provider === "saml" ||
+        account?.provider === "saml-idp"
+      ) {
+        let samlProfile;
+
+        if (account?.provider === "saml-idp") {
+          // @ts-ignore
+          // samlProfile = user?.profile;
+          return true;
+        } else {
+          samlProfile = profile;
+        }
+
         if (!samlProfile?.requested?.tenant) {
           return false;
         }
@@ -194,10 +206,6 @@ export const authOptions: NextAuthOptions = {
             },
           });
         }
-      } else if (account?.provider === "saml-idp") {
-        // you don't get SAML tenant for some reason
-
-        console.log({ user, account, profile });
       }
       return true;
     },
