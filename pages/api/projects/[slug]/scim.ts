@@ -35,7 +35,10 @@ export default withProjectAuth(
           tenant: project.id,
           product: "Dub",
           type: provider,
-          webhook_url: `${APP_DOMAIN_WITH_NGROK}/api/scim/v2.0`,
+          webhook_url:
+            process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
+              ? `https://api.dub.co/scim/v2.0`
+              : `${APP_DOMAIN_WITH_NGROK}/api/scim/v2.0`,
           webhook_secret: process.env.NEXTAUTH_SECRET as string,
         }),
         currentDirectoryId &&
