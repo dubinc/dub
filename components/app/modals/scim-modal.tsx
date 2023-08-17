@@ -42,7 +42,7 @@ function SCIMModal({
   return (
     <Modal showModal={showSCIMModal} setShowModal={setShowSCIMModal}>
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-8 sm:px-16">
-        {configured ? (
+        {currentProvider ? (
           <div className="flex items-center space-x-3 py-4">
             <img
               src={currentProvider.logo}
@@ -59,12 +59,12 @@ function SCIMModal({
         )}
 
         <h3 className="text-lg font-medium">
-          {configured
+          {currentProvider
             ? `${currentProvider.name} SCIM`
             : "Configure Directory Sync"}
         </h3>
         <p className="text-center text-sm text-gray-500">
-          {configured
+          {currentProvider
             ? "Your project is currently syncing with your SCIM directory."
             : "Select a provider to configure directory sync for your Dub project."}
         </p>
