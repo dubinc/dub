@@ -95,7 +95,11 @@ const handleEvents = async (event: DirectorySyncEvent) => {
   }
 
   // User has been activated
-  if (action === "user.updated" && data.active === true) {
+  if (
+    action === "user.updated" &&
+    // @ts-ignore – data.active can be a string (from Azure AD)
+    (data.active === true || data.active === "True")
+  ) {
     if (!userInProject && !userInvited) {
       await inviteUser({
         email: data.email,
@@ -106,7 +110,9 @@ const handleEvents = async (event: DirectorySyncEvent) => {
 
   // User has been deactivated or deleted
   if (
-    (action === "user.updated" && data.active === false) ||
+    (action === "user.updated" &&
+      // @ts-ignore – data.active can be a string (from Azure AD)
+      (data.active === false || data.active === "False")) ||
     action === "user.deleted"
   ) {
     if (userInProject) {
