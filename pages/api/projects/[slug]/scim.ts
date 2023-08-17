@@ -68,6 +68,7 @@ export default withProjectAuth(
     }
   },
   {
+    requiredRole: ["owner"],
     requiredPlan: ["enterprise"],
     excludeGet: true,
   },

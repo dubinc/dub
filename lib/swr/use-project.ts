@@ -27,6 +27,7 @@ export default function useProject() {
 
   return {
     ...project,
+    isOwner: project?.users && project.users[0].role === "owner",
     exceededUsage,
     error,
     loading: !router.isReady || (slug && !project && !error),

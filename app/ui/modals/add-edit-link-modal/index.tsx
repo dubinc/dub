@@ -473,9 +473,9 @@ function AddEditLinkModal({
                       pattern="[\p{Letter}\p{Mark}\d-]+" // Unicode regex to match characters from all languages and numbers (and omit all symbols except for dashes)
                       className={`${
                         keyError
-                          ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                          ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                           : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
-                      } block w-full rounded-r-md pr-10 focus:outline-none sm:text-sm`}
+                      } block w-full rounded-r-md focus:outline-none sm:text-sm`}
                       placeholder="github"
                       value={key}
                       onChange={(e) => {

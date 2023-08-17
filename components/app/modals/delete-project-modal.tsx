@@ -12,6 +12,7 @@ import BlurImage from "#/ui/blur-image";
 import Modal from "#/ui/modal";
 import useProject from "#/lib/swr/use-project";
 import Button from "#/ui/button";
+import { cn } from "#/lib/utils";
 
 function DeleteProjectModal({
   showDeleteProjectModal,
@@ -22,28 +23,36 @@ function DeleteProjectModal({
 }) {
   const router = useRouter();
   const { slug } = router.query as { slug: string };
-  const { id, logo } = useProject();
+  const { id, logo, isOwner } = useProject();
+
+  console.log({ isOwner });
   const [deleting, setDeleting] = useState(false);
 
   async function deleteProject() {
-    setDeleting(true);
-    await fetch(`/api/projects/${slug}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }).catch((err) => {
-      setDeleting(false);
-      throw new Error(err);
+    return new Promise((resolve, reject) => {
+      setDeleting(true);
+      fetch(`/api/projects/${slug}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }).then(async (res) => {
+        setDeleting(false);
+        if (res.ok) {
+          router.push("/");
+          mutate("/api/projects");
+          // delay to allow for the route change to complete
+          await new Promise(() =>
+            setTimeout(() => {
+              resolve(null);
+            }, 200),
+          );
+        } else {
+          const error = await res.text();
+          reject(error);
+        }
+      });
     });
-    router.push("/");
-    mutate("/api/projects");
-    // delay to allow for the route change to complete
-    await new Promise((resolve) =>
-      setTimeout(() => {
-        resolve(null);
-      }, 200),
-    );
   }
 
   return (
@@ -94,7 +103,13 @@ function DeleteProjectModal({
               autoFocus={false}
               autoComplete="off"
               pattern={slug}
-              className="block w-full rounded-md border-gray-300 pr-10 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+              disabled={!isOwner}
+              className={cn(
+                "block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
+                {
+                  "cursor-not-allowed bg-gray-100": !isOwner,
+                },
+              )}
             />
           </div>
         </div>
@@ -116,7 +131,13 @@ function DeleteProjectModal({
               required
               autoFocus={false}
               autoComplete="off"
-              className="block w-full rounded-md border-gray-300 pr-10 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+              disabled={!isOwner}
+              className={cn(
+                "block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
+                {
+                  "cursor-not-allowed bg-gray-100": !isOwner,
+                },
+              )}
             />
           </div>
         </div>
@@ -125,6 +146,9 @@ function DeleteProjectModal({
           text="Confirm delete project"
           variant="danger"
           loading={deleting}
+          {...(!isOwner && {
+            disabledTooltip: "Only project owners can delete a project.",
+          })}
         />
       </form>
     </Modal>

@@ -49,9 +49,9 @@ export default function PasswordForm() {
             }}
             className={`${
               error
-                ? "border-red-300 text-red-500 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                ? "border-red-300 pr-10 text-red-500 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                 : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
-            } block w-full rounded-md pr-10 focus:outline-none sm:text-sm`}
+            } block w-full rounded-md focus:outline-none sm:text-sm`}
           />
           {error && (
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">

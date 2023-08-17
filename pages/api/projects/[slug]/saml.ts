@@ -1,6 +1,5 @@
 import { withProjectAuth } from "#/lib/auth";
 import jackson, { samlAudience, samlPath } from "#/lib/jackson";
-import prisma from "#/lib/prisma";
 
 export default withProjectAuth(
   async (req, res, project) => {
@@ -18,8 +17,6 @@ export default withProjectAuth(
         issuer: samlAudience,
         acs: `${process.env.NEXTAUTH_URL}${samlPath}`,
       };
-
-      console.log(JSON.stringify(response, null, 2));
 
       return res.status(200).json(response);
 
@@ -61,6 +58,7 @@ export default withProjectAuth(
     }
   },
   {
+    requiredRole: ["owner"],
     requiredPlan: ["enterprise"],
     excludeGet: true,
   },

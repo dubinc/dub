@@ -10,26 +10,32 @@ export const config = {
   },
 };
 
-export default withProjectAuth(async (req, res, project) => {
-  // POST /api/projects/[slug]/logo – upload a new logo
-  if (req.method === "POST") {
-    const { image } = req.body;
+export default withProjectAuth(
+  async (req, res, project) => {
+    // POST /api/projects/[slug]/logo – upload a new logo
+    if (req.method === "POST") {
+      const { image } = req.body;
 
-    const { secure_url } = await cloudinary.v2.uploader.upload(image, {
-      public_id: project.id,
-      folder: "logos",
-      overwrite: true,
-      invalidate: true,
-    });
+      const { secure_url } = await cloudinary.v2.uploader.upload(image, {
+        public_id: project.id,
+        folder: "logos",
+        overwrite: true,
+        invalidate: true,
+      });
 
-    const response = await prisma.project.update({
-      where: { id: project.id },
-      data: { logo: secure_url },
-    });
+      const response = await prisma.project.update({
+        where: { id: project.id },
+        data: { logo: secure_url },
+      });
 
-    return res.status(200).json(response);
-  } else {
-    res.setHeader("Allow", ["POST"]);
-    return res.status(405).end(`Method ${req.method} Not Allowed`);
-  }
-});
+      return res.status(200).json(response);
+    } else {
+      res.setHeader("Allow", ["POST"]);
+      return res.status(405).end(`Method ${req.method} Not Allowed`);
+    }
+  },
+  {
+    requiredRole: ["owner"],
+    excludeGet: true,
+  },
+);
