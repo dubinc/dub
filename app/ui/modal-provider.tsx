@@ -8,7 +8,6 @@ import {
   useEffect,
   useState,
 } from "react";
-import { useSession } from "next-auth/react";
 import { useAddProjectModal } from "@/components/app/modals/add-project-modal";
 import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal";
 import { useImportBitlyModal } from "@/components/app/modals/import-bitly-modal";
@@ -55,8 +54,6 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
   const { setShowUpgradePlanModal, UpgradePlanModal } = useUpgradePlanModal();
   const { setShowImportBitlyModal, ImportBitlyModal } = useImportBitlyModal();
   const { setShowImportShortModal, ImportShortModal } = useImportShortModal();
-
-  const { data: session } = useSession();
 
   const router = useRouter();
   const { slug } = router.query;
