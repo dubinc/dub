@@ -178,7 +178,7 @@ const UserCard = ({
             )
           ) : (
             <p className="text-xs text-gray-500">
-              `Invited ${timeAgo(createdAt)}`
+              Invited {timeAgo(createdAt)}
             </p>
           )}
 
