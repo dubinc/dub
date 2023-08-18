@@ -9,7 +9,7 @@ import UploadLogo from "@/components/app/projects/upload-logo";
 
 export default function ProjectSettingsGeneral() {
   const router = useRouter();
-  const { name, slug } = useProject();
+  const { name, slug, plan, isOwner } = useProject();
 
   return (
     <SettingsLayout>
@@ -23,6 +23,10 @@ export default function ProjectSettingsGeneral() {
           maxLength: 32,
         }}
         helpText="Max 32 characters."
+        {...(plan === "enterprise" &&
+          !isOwner && {
+            disabledTooltip: "Only project owners can change the project name.",
+          })}
         handleSubmit={(updateData) =>
           fetch(`/api/projects/${slug}`, {
             method: "PUT",
@@ -55,6 +59,10 @@ export default function ProjectSettingsGeneral() {
           maxLength: 48,
         }}
         helpText="Only lowercase letters, numbers, and dashes. Max 48 characters."
+        {...(plan === "enterprise" &&
+          !isOwner && {
+            disabledTooltip: "Only project owners can change the project slug.",
+          })}
         handleSubmit={(data) =>
           fetch(`/api/projects/${slug}`, {
             method: "PUT",

@@ -23,9 +23,8 @@ function DeleteProjectModal({
 }) {
   const router = useRouter();
   const { slug } = router.query as { slug: string };
-  const { id, logo, isOwner } = useProject();
+  const { id, logo, plan, isOwner } = useProject();
 
-  console.log({ isOwner });
   const [deleting, setDeleting] = useState(false);
 
   async function deleteProject() {
@@ -103,11 +102,12 @@ function DeleteProjectModal({
               autoFocus={false}
               autoComplete="off"
               pattern={slug}
-              disabled={!isOwner}
+              disabled={plan === "enterprise" && !isOwner}
               className={cn(
                 "block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
                 {
-                  "cursor-not-allowed bg-gray-100": !isOwner,
+                  "cursor-not-allowed bg-gray-100":
+                    plan === "enterprise" && !isOwner,
                 },
               )}
             />
@@ -131,11 +131,12 @@ function DeleteProjectModal({
               required
               autoFocus={false}
               autoComplete="off"
-              disabled={!isOwner}
+              disabled={plan === "enterprise" && !isOwner}
               className={cn(
                 "block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
                 {
-                  "cursor-not-allowed bg-gray-100": !isOwner,
+                  "cursor-not-allowed bg-gray-100":
+                    plan === "enterprise" && !isOwner,
                 },
               )}
             />
@@ -146,9 +147,10 @@ function DeleteProjectModal({
           text="Confirm delete project"
           variant="danger"
           loading={deleting}
-          {...(!isOwner && {
-            disabledTooltip: "Only project owners can delete a project.",
-          })}
+          {...(plan === "enterprise" &&
+            !isOwner && {
+              disabledTooltip: "Only project owners can delete a project.",
+            })}
         />
       </form>
     </Modal>

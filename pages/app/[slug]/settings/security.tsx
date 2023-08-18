@@ -34,7 +34,7 @@ const SAMLSection = ({
 }: {
   setShowUpgradePlanModal: Dispatch<SetStateAction<boolean>>;
 }) => {
-  const { plan } = useProject();
+  const { plan, isOwner } = useProject();
   const { SAMLModal, setShowSAMLModal } = useSAMLModal();
   const { RemoveSAMLModal, setShowRemoveSAMLModal } = useRemoveSAMLModal();
   const { provider, configured, loading } = useSAML();

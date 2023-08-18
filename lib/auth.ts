@@ -115,7 +115,10 @@ const withProjectAuth =
       return handler(req, res, project, session);
     }
 
-    if (!requiredRole.includes(project.users[0].role)) {
+    if (
+      project.plan === "enterprise" &&
+      !requiredRole.includes(project.users[0].role)
+    ) {
       return res.status(403).end("Unauthorized: Insufficient permissions.");
     }
 

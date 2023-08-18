@@ -7,11 +7,11 @@ export default function DeleteProject() {
   const { setShowDeleteProjectModal, DeleteProjectModal } =
     useDeleteProjectModal();
 
-  const { isOwner } = useProject();
+  const { plan, isOwner } = useProject();
   return (
     <div
       className={cn("rounded-lg border border-red-600 bg-white", {
-        "border-gray-200": !isOwner,
+        "border-gray-200": plan === "enterprise" && !isOwner,
       })}
     >
       <DeleteProjectModal />
@@ -25,7 +25,7 @@ export default function DeleteProject() {
       </div>
       <div
         className={cn("border-b border-red-600", {
-          "border-gray-200": !isOwner,
+          "border-gray-200": plan === "enterprise" && !isOwner,
         })}
       />
 
@@ -35,9 +35,10 @@ export default function DeleteProject() {
             text="Delete Project"
             variant="danger"
             onClick={() => setShowDeleteProjectModal(true)}
-            {...(!isOwner && {
-              disabledTooltip: "Only project owners can delete a project.",
-            })}
+            {...(plan === "enterprise" &&
+              !isOwner && {
+                disabledTooltip: "Only project owners can delete a project.",
+              })}
           />
         </div>
       </div>

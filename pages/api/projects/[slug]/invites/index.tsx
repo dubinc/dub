@@ -14,12 +14,7 @@ export default withProjectAuth(async (req, res, project, session) => {
         createdAt: true,
       },
     });
-    return res.status(200).json(
-      invites.map((invite) => ({
-        email: invite.email,
-        joinedAt: invite.createdAt,
-      })),
-    );
+    return res.status(200).json(invites);
 
     // POST /api/projects/[slug]/invites – invite a teammate
   } else if (req.method === "POST") {

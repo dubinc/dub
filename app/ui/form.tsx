@@ -1,17 +1,20 @@
-import { useState, useMemo, InputHTMLAttributes } from "react";
+import { useState, useMemo, InputHTMLAttributes, ReactNode } from "react";
 import Button from "#/ui/button";
+import { cn } from "#/lib/utils";
 
 export default function Form({
   title,
   description,
   inputData,
   helpText,
+  disabledTooltip,
   handleSubmit,
 }: {
   title: string;
   description: string;
   inputData: InputHTMLAttributes<HTMLInputElement>;
   helpText?: string;
+  disabledTooltip?: string | ReactNode;
   handleSubmit: (data) => Promise<any>;
 }) {
   const [value, setValue] = useState(inputData.defaultValue);
@@ -42,8 +45,14 @@ export default function Form({
             {...inputData}
             type="text"
             required
+            disabled={disabledTooltip ? true : false}
             onChange={(e) => setValue(e.target.value)}
-            className="w-full max-w-md rounded-md border border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+            className={cn(
+              "w-full max-w-md rounded-md border border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
+              {
+                "cursor-not-allowed bg-gray-100 text-gray-400": disabledTooltip,
+              },
+            )}
           />
         ) : (
           <div className="h-[2.35rem] w-full max-w-md animate-pulse rounded-md bg-gray-200" />
@@ -57,6 +66,7 @@ export default function Form({
             text="Save Changes"
             loading={saving}
             disabled={saveDisabled}
+            disabledTooltip={disabledTooltip}
           />
         </div>
       </div>

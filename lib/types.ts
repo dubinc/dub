@@ -81,8 +81,7 @@ export interface UserProps {
   email: string;
   image?: string;
   createdAt: Date;
-
-  joinedAt?: Date;
+  role: "owner" | "member";
   projects?: { projectId: string }[];
 }
 

@@ -88,7 +88,8 @@ function RemoveSAMLModal({
                 setRemoving(false);
                 setShowRemoveSAMLModal(false);
               } else {
-                toast.error("Error removing SAML");
+                const error = await res.text();
+                toast.error(error);
                 setRemoving(false);
               }
             });
