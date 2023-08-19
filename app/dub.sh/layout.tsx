@@ -4,13 +4,7 @@ import Footer from "#/ui/home/footer";
 import Background from "#/ui/home/background";
 import MobileNav from "#/ui/home/nav-mobile";
 
-export default function MarketingLayout({
-  children,
-  modal,
-}: {
-  children: ReactNode;
-  modal: ReactNode;
-}) {
+export default function MarketingLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col justify-between">
       <MobileNav />
