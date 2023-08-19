@@ -56,6 +56,7 @@ export const APP_HOSTNAMES = new Set([
   "localhost:8888",
   "localhost",
   "app.dub.sh",
+  "app.dub.co",
   "preview.dub.sh",
 ]);
 
@@ -72,6 +73,12 @@ export const APP_DOMAIN_WITH_NGROK =
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
     ? "https://preview.dub.sh"
     : process.env.NGROK_URL;
+
+export const API_HOSTNAMES = new Set([
+  "api.dub.co",
+  "api.dub.sh",
+  "api.localhost:8888",
+]);
 
 export const DEFAULT_REDIRECTS = {
   home: "https://dub.sh",

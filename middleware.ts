@@ -1,5 +1,9 @@
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
-import { APP_HOSTNAMES, DEFAULT_REDIRECTS } from "#/lib/constants";
+import {
+  API_HOSTNAMES,
+  APP_HOSTNAMES,
+  DEFAULT_REDIRECTS,
+} from "#/lib/constants";
 import {
   AppMiddleware,
   ApiMiddleware,
@@ -28,21 +32,17 @@ export const config = {
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   const { domain, path, key } = parse(req);
 
-  // for App (e.g. app.dub.sh)
+  // for App
   if (APP_HOSTNAMES.has(domain)) {
     return AppMiddleware(req);
   }
 
-  // for API (api.dub.co, api.dub.sh, and api.localhost:8888)
-  if (
-    domain === "api.dub.co" ||
-    domain === "api.dub.sh" ||
-    domain === "api.localhost:8888"
-  ) {
+  // for API
+  if (API_HOSTNAMES.has(domain)) {
     return ApiMiddleware(req);
   }
 
-  // for Admin (admin.dub.sh and admin.localhost:8888)
+  // for Admin
   if (domain === "admin.dub.sh" || domain === "admin.localhost:8888") {
     return AdminMiddleware(req);
   }

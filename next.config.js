@@ -42,6 +42,32 @@ const nextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      {
+        source: "/",
+        has: [
+          {
+            type: "host",
+            value: "app.dub.sh",
+          },
+        ],
+        destination: "https://app.dub.co",
+        permanent: true,
+      },
+      {
+        source: "/:path*",
+        has: [
+          {
+            type: "host",
+            value: "app.dub.sh",
+          },
+        ],
+        destination: "https://app.dub.co/:path*",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 module.exports = withContentlayer(nextConfig);
