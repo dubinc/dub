@@ -3,7 +3,6 @@ import { useRouter } from "next/router";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Infinity, Divider } from "@/components/shared/icons";
-import { LoadingDots } from "#/ui/icons";
 import { InfoTooltip } from "#/ui/tooltip";
 import { fetcher, getFirstAndLastDay, nFormatter } from "#/lib/utils";
 import useProject from "#/lib/swr/use-project";
@@ -13,6 +12,7 @@ import useSWR, { mutate } from "swr";
 import va from "@vercel/analytics";
 import { ModalContext } from "#/ui/modal-provider";
 import Button from "#/ui/button";
+import Number from "#/ui/number";
 
 export default function ProjectBilling() {
   const router = useRouter();
@@ -92,9 +92,11 @@ export default function ProjectBilling() {
             {plan === "enterprise" ? (
               <div className="mt-4 flex items-center">
                 {usage || usage === 0 ? (
-                  <p className="text-2xl font-semibold text-black">
-                    {nFormatter(usage)}
-                  </p>
+                  <Number value={usage}>
+                    <p className="text-2xl font-semibold text-black">
+                      {nFormatter(usage)}
+                    </p>
+                  </Number>
                 ) : (
                   <div className="h-8 w-8 animate-pulse rounded-md bg-gray-200" />
                 )}
@@ -105,7 +107,10 @@ export default function ProjectBilling() {
               <div className="mt-2 flex flex-col space-y-2">
                 {usage !== undefined && usageLimit ? (
                   <p className="text-sm text-gray-600">
-                    {nFormatter(usage)} / {nFormatter(usageLimit)} clicks (
+                    <Number value={usage}>
+                      <span>{nFormatter(usage)} </span>
+                    </Number>
+                    / {nFormatter(usageLimit)} clicks (
                     {((usage / usageLimit) * 100).toFixed(1)}%)
                   </p>
                 ) : (
@@ -138,9 +143,11 @@ export default function ProjectBilling() {
             </div>
             <div className="mt-4 flex items-center">
               {links || links === 0 ? (
-                <p className="text-2xl font-semibold text-black">
-                  {nFormatter(links)}
-                </p>
+                <Number value={links} unit="links">
+                  <p className="text-2xl font-semibold text-black">
+                    {nFormatter(links)}
+                  </p>
+                </Number>
               ) : (
                 <div className="h-8 w-8 animate-pulse rounded-md bg-gray-200" />
               )}

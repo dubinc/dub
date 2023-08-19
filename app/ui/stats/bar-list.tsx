@@ -5,6 +5,7 @@ import { ReactNode, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
 import Fuse from "fuse.js";
+import Number from "#/ui/number";
 
 export default function BarList({
   tab,
@@ -61,7 +62,9 @@ export default function BarList({
               animate={{ transform: "scaleX(1)" }}
             />
           </div>
-          <p className="z-10 text-sm text-gray-600">{nFormatter(clicks)}</p>
+          <Number value={clicks}>
+            <p className="z-10 text-sm text-gray-600">{nFormatter(clicks)}</p>
+          </Number>
         </div>
       ))}
     </div>

@@ -22,6 +22,7 @@ import {
   linkConstructor,
   nFormatter,
 } from "#/lib/utils";
+import Number from "#/ui/number";
 
 export default function LinkCard({
   _key: key,
@@ -170,20 +171,22 @@ export default function LinkCard({
                 <span className="sr-only">Copy</span>
                 <QrCode className="h-4 w-4 text-gray-700 transition-all group-hover:text-blue-800" />
               </button>
-              <Link
-                href={`/stats/${encodeURI(key)}`}
-                className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 text-gray-700 transition-all duration-75 hover:scale-105 active:scale-95"
-              >
-                <Chart className="h-4 w-4" />
-                <p className="text-sm">
-                  {!clicks && clicks !== 0 ? (
-                    <LoadingDots color="#71717A" />
-                  ) : (
-                    nFormatter(clicks)
-                  )}
-                  <span className="ml-1 hidden sm:inline-block">clicks</span>
-                </p>
-              </Link>
+              <Number value={clicks}>
+                <Link
+                  href={`/stats/${encodeURI(key)}`}
+                  className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 text-gray-700 transition-all duration-75 hover:scale-105 active:scale-95"
+                >
+                  <Chart className="h-4 w-4" />
+                  <p className="text-sm">
+                    {!clicks && clicks !== 0 ? (
+                      <LoadingDots color="#71717A" />
+                    ) : (
+                      nFormatter(clicks)
+                    )}
+                    <span className="ml-1 hidden sm:inline-block">clicks</span>
+                  </p>
+                </Link>
+              </Number>
             </div>
             <a
               href={url}

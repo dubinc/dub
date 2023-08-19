@@ -15,6 +15,7 @@ import DomainConfiguration from "./domain-configuration";
 import Link from "next/link";
 import punycode from "punycode/";
 import Button from "#/ui/button";
+import Number from "#/ui/number";
 
 export default function DomainCard({ props }: { props: DomainProps }) {
   const router = useRouter();
@@ -60,20 +61,22 @@ export default function DomainCard({ props }: { props: DomainProps }) {
               </p>
               <ExternalLink className="h-5 w-5" />
             </a>
-            <Link
-              href={`/${slug}/${domain}`}
-              className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 transition-all duration-75 hover:scale-105 active:scale-100"
-            >
-              <Chart className="h-4 w-4" />
-              <p className="text-sm">
-                {!clicks && clicks !== 0 ? (
-                  <LoadingDots color="#71717A" />
-                ) : (
-                  nFormatter(clicks)
-                )}
-                <span className="ml-1 hidden sm:inline-block">clicks</span>
-              </p>
-            </Link>
+            <Number value={clicks}>
+              <Link
+                href={`/${slug}/${domain}`}
+                className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 transition-all duration-75 hover:scale-105 active:scale-100"
+              >
+                <Chart className="h-4 w-4" />
+                <p className="text-sm">
+                  {!clicks && clicks !== 0 ? (
+                    <LoadingDots color="#71717A" />
+                  ) : (
+                    nFormatter(clicks)
+                  )}
+                  <span className="ml-1 hidden sm:inline-block">clicks</span>
+                </p>
+              </Link>
+            </Number>
             {primary && (
               <span className="rounded-full bg-blue-500 px-3 py-0.5 text-xs text-white">
                 Primary Domain

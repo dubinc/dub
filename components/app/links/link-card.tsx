@@ -31,6 +31,7 @@ import { GOOGLE_FAVICON_URL, HOME_DOMAIN } from "#/lib/constants";
 import useTags from "#/lib/swr/use-tags";
 import TagBadge from "@/components/app/links/tag-badge";
 import { ModalContext } from "#/ui/modal-provider";
+import Number from "#/ui/number";
 
 export default function LinkCard({ props }: { props: LinkProps }) {
   const { key, domain, url, rewrite, createdAt, archived, tagId } = props;
@@ -285,7 +286,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                 href={url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="max-w-[180px] truncate text-sm font-medium text-gray-700 underline-offset-2 hover:underline sm:max-w-[300px] md:max-w-[360px] xl:max-w-[500px]"
+                className="max-w-[180px] truncate text-sm font-medium text-gray-700 underline-offset-2 hover:underline sm:max-w-[300px] md:max-w-[360px] xl:max-w-[440px]"
               >
                 {url}
               </a>
@@ -294,21 +295,23 @@ export default function LinkCard({ props }: { props: LinkProps }) {
         </div>
 
         <div className="flex items-center space-x-2">
-          <Link
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
-            href={`/${
-              slug ? `${slug}/${domain}` : "links"
-            }/${encodeURIComponent(key)}`}
-            className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 transition-all duration-75 hover:scale-105 active:scale-100"
-          >
-            <Chart className="h-4 w-4" />
-            <p className="whitespace-nowrap text-sm text-gray-500">
-              {nFormatter(clicks)}
-              <span className="ml-1 hidden sm:inline-block">clicks</span>
-            </p>
-          </Link>
+          <Number value={clicks}>
+            <Link
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+              href={`/${
+                slug ? `${slug}/${domain}` : "links"
+              }/${encodeURIComponent(key)}`}
+              className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 transition-all duration-75 hover:scale-105 active:scale-100"
+            >
+              <Chart className="h-4 w-4" />
+              <p className="whitespace-nowrap text-sm text-gray-500">
+                {nFormatter(clicks)}
+                <span className="ml-1 hidden sm:inline-block">clicks</span>
+              </p>
+            </Link>
+          </Number>
           <Popover
             content={
               <div className="grid w-full gap-px p-2 sm:w-48">

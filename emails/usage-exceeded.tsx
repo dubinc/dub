@@ -57,7 +57,8 @@ export default function UsageExceeded({
               Your Dub project, <strong> {name} </strong> has exceeded the
               <strong> {capitalize(plan)} Plan </strong>
               limit of <strong>{nFormatter(usageLimit)} link clicks</strong>.
-              You have used <strong>{nFormatter(usage, 2)} link clicks</strong>{" "}
+              You have used{" "}
+              <strong>{nFormatter(usage, { digits: 2 })} link clicks</strong>{" "}
               across all your projects in your current billing cycle.
             </Text>
             <Text className="text-sm leading-6 text-black">

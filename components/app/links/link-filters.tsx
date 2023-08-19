@@ -28,6 +28,7 @@ import { ThreeDots } from "@/components/shared/icons";
 import Popover from "#/ui/popover";
 import IconMenu from "@/components/shared/icon-menu";
 import { mutate } from "swr";
+import Number from "#/ui/number";
 
 export default function LinkFilters() {
   const { primaryDomain } = useDomains();
@@ -248,7 +249,9 @@ const DomainsFilter = ({ domains, primaryDomain }) => {
                   className="flex w-full cursor-pointer justify-between px-3 py-2 pl-0 text-sm font-medium text-gray-700"
                 >
                   <p>{punycode.toUnicode(value || "")}</p>
-                  <p className="text-gray-500">{nFormatter(count)}</p>
+                  <Number value={count} unit="links">
+                    <p className="text-gray-500">{nFormatter(count)}</p>
+                  </Number>
                 </label>
               </div>
             ))}

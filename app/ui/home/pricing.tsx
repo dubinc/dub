@@ -247,7 +247,7 @@ const Pricing = () => {
                 </h3>
                 <p className="text-gray-500">{tagline}</p>
                 <p className="my-5 font-display text-6xl font-semibold">
-                  ${period === "yearly" ? nFormatter(price / 12, 1) : price}
+                  ${period === "yearly" ? nFormatter(price / 12) : price}
                 </p>
                 <p className="text-gray-500">
                   per {period === "yearly" ? "month, billed annually" : "month"}

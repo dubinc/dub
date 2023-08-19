@@ -9,6 +9,7 @@ import { BarChart2, Globe, Link2 } from "lucide-react";
 import PlanBadge from "./plan-badge";
 import { GOOGLE_FAVICON_URL } from "#/lib/constants";
 import Badge from "#/ui/badge";
+import Number from "#/ui/number";
 
 export default function ProjectCard({
   id,
@@ -90,18 +91,22 @@ export default function ProjectCard({
         <div className="flex items-center space-x-2 text-gray-500">
           <Link2 className="h-4 w-4" />
           {count || count === 0 ? (
-            <h2 className="whitespace-nowrap text-sm">
-              {nFormatter(count)} link{count != 1 && "s"}
-            </h2>
+            <Number value={count} unit="links">
+              <h2 className="whitespace-nowrap text-sm">
+                {nFormatter(count)} link{count != 1 && "s"}
+              </h2>
+            </Number>
           ) : (
             <div className="h-4 w-8 animate-pulse rounded-md bg-gray-200" />
           )}
         </div>
         <div className="flex items-center space-x-2 text-gray-500">
           <BarChart2 className="h-4 w-4" />
-          <h2 className="whitespace-nowrap text-sm">
-            {nFormatter(usage)} click{usage != 1 && "s"}
-          </h2>
+          <Number value={usage}>
+            <h2 className="whitespace-nowrap text-sm">
+              {nFormatter(usage)} click{usage != 1 && "s"}
+            </h2>
+          </Number>
         </div>
       </div>
     </Link>

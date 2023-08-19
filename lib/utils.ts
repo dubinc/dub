@@ -78,8 +78,16 @@ export async function fetcher<JSON = any>(
   return res.json();
 }
 
-export function nFormatter(num?: number, digits?: number) {
+export function nFormatter(
+  num?: number,
+  opts: { digits?: number; full?: boolean } = {
+    digits: 1,
+  },
+) {
   if (!num) return "0";
+  if (opts.full) {
+    return Intl.NumberFormat("en-US").format(num);
+  }
   const lookup = [
     { value: 1, symbol: "" },
     { value: 1e3, symbol: "K" },
@@ -97,7 +105,7 @@ export function nFormatter(num?: number, digits?: number) {
       return num >= item.value;
     });
   return item
-    ? (num / item.value).toFixed(digits || 1).replace(rx, "$1") + item.symbol
+    ? (num / item.value).toFixed(opts.digits).replace(rx, "$1") + item.symbol
     : "0";
 }
 

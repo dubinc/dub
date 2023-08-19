@@ -6,6 +6,7 @@ import useSWR from "swr";
 import { fetcher } from "#/lib/utils";
 import { useContext } from "react";
 import { StatsContext } from ".";
+import Number from "#/ui/number";
 
 export default function Clicks() {
   const router = useRouter();
@@ -21,9 +22,11 @@ export default function Clicks() {
       <div className="mb-5 text-left">
         <div className="flex items-end space-x-1">
           {totalClicks || totalClicks === 0 ? (
-            <h1 className="text-3xl font-bold sm:text-4xl">
-              {nFormatter(totalClicks)}
-            </h1>
+            <Number value={totalClicks}>
+              <h1 className="text-3xl font-bold sm:text-4xl">
+                {nFormatter(totalClicks)}
+              </h1>
+            </Number>
           ) : (
             <div className="h-10 w-12 animate-pulse rounded-md bg-gray-200" />
           )}
