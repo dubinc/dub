@@ -21,6 +21,7 @@ import useProject from "#/lib/swr/use-project";
 import { type Link as LinkProps } from "@prisma/client";
 import {
   cn,
+  deepEqual,
   getApexDomain,
   getQueryString,
   getUrlWithoutUTMParams,
@@ -28,14 +29,6 @@ import {
   linkConstructor,
   truncate,
 } from "#/lib/utils";
-import TagsSection from "./tags-section";
-import OGSection from "./og-section";
-import UTMSection from "./utm-section";
-import PasswordSection from "./password-section";
-import ExpirationSection from "./expiration-section";
-import IOSSection from "./ios-section";
-import AndroidSection from "./android-section";
-import Preview from "./preview";
 import { DEFAULT_LINK_PROPS, GOOGLE_FAVICON_URL } from "#/lib/constants";
 import useDomains from "#/lib/swr/use-domains";
 import { toast } from "sonner";
@@ -43,8 +36,16 @@ import va from "@vercel/analytics";
 import punycode from "punycode/";
 import Button from "#/ui/button";
 import { ModalContext } from "#/ui/modal-provider";
+import TagsSection from "#/ui/modals/add-edit-link-modal/tags-section";
+import OGSection from "#/ui/modals/add-edit-link-modal/og-section";
+import UTMSection from "#/ui/modals/add-edit-link-modal/utm-section";
+import PasswordSection from "#/ui/modals/add-edit-link-modal/password-section";
+import ExpirationSection from "#/ui/modals/add-edit-link-modal/expiration-section";
+import IOSSection from "#/ui/modals/add-edit-link-modal/ios-section";
+import AndroidSection from "#/ui/modals/add-edit-link-modal/android-section";
+import Preview from "#/ui/modals/add-edit-link-modal/preview";
+import CommentsSection from "#/ui/modals/add-edit-link-modal/comments-section";
 import RewriteSection from "./rewrite-section";
-import CommentsSection from "./comments-section";
 import GeoSection from "./geo-section";
 
 function AddEditLinkModal({
@@ -252,6 +253,9 @@ function AddEditLinkModal({
             !proxy
           ) {
             return true;
+          } else if (key === "geo") {
+            const equalGeo = deepEqual(props.geo as object, data.geo as object);
+            return equalGeo;
           }
           // Otherwise, check for discrepancy in the current key-value pair
           return data[key] === value;

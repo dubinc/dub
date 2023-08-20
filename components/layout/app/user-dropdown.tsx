@@ -1,9 +1,8 @@
-import { Suspense, useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 import { Logout } from "@/components/shared/icons";
 import Popover from "#/ui/popover";
 import IconMenu from "../../shared/icon-menu";
-import Image from "next/image";
 import va from "@vercel/analytics";
 import Link from "next/link";
 import { Edit3, HelpCircle, MessageCircle, Settings } from "lucide-react";
@@ -12,8 +11,8 @@ import { LoadingCircle } from "#/ui/icons";
 import Badge from "#/ui/badge";
 import Cookies from "js-cookie";
 import { ModalContext } from "#/ui/modal-provider";
-
-const latestChangelogId = "read-changelog-0715";
+import { allChangelogPosts } from "contentlayer/generated";
+import { HOME_DOMAIN } from "#/lib/constants";
 
 export default function UserDropdown() {
   const { data: session } = useSession();
@@ -31,13 +30,14 @@ export default function UserDropdown() {
     });
   }, []);
 
-  const [unread, setUnread] = useState(false);
+  const [unreadChangelogs, setUnreadChangelogs] = useState(0);
   useEffect(() => {
-    if (Cookies.get(latestChangelogId)) {
-      setUnread(false);
-    } else {
-      setUnread(true);
-    }
+    const lastReadChangelog =
+      Cookies.get("lastReadChangelog") || new Date("2023-08-13").toISOString();
+    const unreadChangelogs = allChangelogPosts.filter(
+      (post) => post.publishedAt > lastReadChangelog,
+    ).length;
+    setUnreadChangelogs(unreadChangelogs);
   }, []);
 
   const { setShowCMDK } = useContext(ModalContext);
@@ -98,14 +98,18 @@ export default function UserDropdown() {
               />
             </Link>
             <Link
-              href="https://dub.sh/changelog"
+              href={`${HOME_DOMAIN}/changelog`}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={() => Cookies.set(latestChangelogId, true)}
+              onClick={() =>
+                Cookies.set("lastReadChangelog", new Date().toISOString())
+              }
               className="flex w-full justify-between rounded-md p-2 text-sm transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
             >
               <IconMenu text="Changelog" icon={<Edit3 className="h-4 w-4" />} />
-              {unread && <Badge text="1" variant="blue" />}
+              {unreadChangelogs > 0 && (
+                <Badge text={`${unreadChangelogs}`} variant="blue" />
+              )}
             </Link>
             <button
               className="w-full rounded-md p-2 text-sm transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
@@ -141,7 +145,7 @@ export default function UserDropdown() {
           ) : (
             <div className="h-9 w-9 animate-pulse rounded-full border border-gray-300 bg-gray-100 sm:h-10 sm:w-10" />
           )}
-          {unread && (
+          {unreadChangelogs > 0 && (
             <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full border-2 border-white bg-blue-500" />
           )}
         </button>

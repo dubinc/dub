@@ -76,7 +76,7 @@ export default function UTMSection({
         <motion.div className="mt-3 grid gap-2" {...FADE_IN_ANIMATION_SETTINGS}>
           {paramsMetadata.map(({ display, key, examples }) => (
             <div key={key} className="relative mt-1 flex rounded-md shadow-sm">
-              <span className="flex w-60 items-center justify-center whitespace-nowrap rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-sm text-gray-500">
+              <span className="flex w-60 items-center justify-center whitespace-nowrap rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
                 {display}
               </span>
               <input

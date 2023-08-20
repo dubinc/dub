@@ -8,7 +8,7 @@ import {
 } from "react";
 import { Check, ChevronDown, Tag, X } from "lucide-react";
 import { Command, useCommandState } from "cmdk";
-import TagBadge from "../../links/tag-badge";
+import TagBadge from "@/components/app/links/tag-badge";
 import { type Link as LinkProps } from "@prisma/client";
 import useTags from "#/lib/swr/use-tags";
 import { useRouter } from "next/router";
