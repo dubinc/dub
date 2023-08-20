@@ -150,9 +150,11 @@ function ImportShortModal({
                 <div className="flex items-center justify-between space-x-2 rounded-md border border-gray-200 bg-white px-4 py-2">
                   <div>
                     <p className="font-medium text-gray-800">{domain}</p>
-                    <p className="text-xs text-gray-500">
-                      {nFormatter(links)} links found
-                    </p>
+                    {links > 0 && (
+                      <p className="text-xs text-gray-500">
+                        {nFormatter(links)} links found
+                      </p>
+                    )}
                   </div>
                   <Switch
                     fn={() => {
