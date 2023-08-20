@@ -1,7 +1,7 @@
 import cloudinary from "cloudinary";
 import { DEFAULT_REDIRECTS } from "#/lib/constants";
 import prisma from "#/lib/prisma";
-import { LinkProps } from "#/lib/types";
+import { type Link as LinkProps } from "@prisma/client";
 import { redis } from "#/lib/upstash";
 import { getParamsFromURL, nanoid, truncate, validKeyRegex } from "#/lib/utils";
 import { isReservedKey } from "#/lib/edge-config";
@@ -201,6 +201,7 @@ export async function addLink(link: LinkProps) {
     rewrite,
     ios,
     android,
+    geo,
   } = link;
   const hasPassword = password && password.length > 0 ? true : false;
   const exat = expiresAt ? new Date(expiresAt).getTime() / 1000 : null;
@@ -225,6 +226,7 @@ export async function addLink(link: LinkProps) {
         utm_campaign,
         utm_term,
         utm_content,
+        geo: geo || undefined,
       },
     }),
     redis.set(
@@ -234,8 +236,9 @@ export async function addLink(link: LinkProps) {
         password: hasPassword,
         proxy,
         ...(rewrite && { rewrite: true }),
-        ios,
-        android,
+        ...(ios && { ios }),
+        ...(android && { android }),
+        ...(geo && { geo }),
       },
       {
         nx: true,
@@ -287,6 +290,7 @@ export async function editLink(
     rewrite,
     ios,
     android,
+    geo,
   } = link;
   const hasPassword = password && password.length > 0 ? true : false;
   const exat = expiresAt ? new Date(expiresAt).getTime() : null;
@@ -317,6 +321,7 @@ export async function editLink(
         utm_campaign,
         utm_term,
         utm_content,
+        geo: geo || undefined,
       },
     }),
     // only upload image to cloudinary if proxy is true and there's an image
@@ -337,8 +342,9 @@ export async function editLink(
         password: hasPassword,
         proxy,
         ...(rewrite && { rewrite: true }),
-        ios,
-        android,
+        ...(ios && { ios }),
+        ...(android && { android }),
+        ...(geo && { geo }),
       },
       exat ? { exat } : {},
     ),

@@ -41,7 +41,7 @@ export default withLinksAuth(
 
       // POST /api/links – create a new link
     } else if (req.method === "POST") {
-      let { domain, key, url, rewrite } = req.body;
+      let { domain, key, url, rewrite, geo } = req.body;
       if (!domain || !key || !url) {
         return res.status(400).end("Missing domain or key or url.");
       }
@@ -63,6 +63,15 @@ export default withLinksAuth(
           return res
             .status(403)
             .end("You can only use link cloaking on a custom domain.");
+        }
+      }
+
+      // free plan restrictions
+      if (!project || project.plan === "free") {
+        if (geo) {
+          return res
+            .status(403)
+            .end("You can only use geo targeting on a Pro plan.");
         }
       }
 

@@ -9,7 +9,7 @@ import { motion } from "framer-motion";
 import TextareaAutosize from "react-textarea-autosize";
 import { UploadCloud } from "@/components/shared/icons";
 import { LoadingCircle } from "#/ui/icons";
-import { LinkProps } from "#/lib/types";
+import { type Link as LinkProps } from "@prisma/client";
 import Switch from "#/ui/switch";
 import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "#/lib/constants";
 import { InfoTooltip, SimpleTooltipContent } from "#/ui/tooltip";

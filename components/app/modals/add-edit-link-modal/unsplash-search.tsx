@@ -1,4 +1,4 @@
-import { LinkProps } from "#/lib/types";
+import { type Link as LinkProps } from "@prisma/client";
 import { LoadingSpinner } from "#/ui/icons";
 import { Dispatch, SetStateAction, useState } from "react";
 import useSWR from "swr";

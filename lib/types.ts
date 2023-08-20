@@ -1,38 +1,9 @@
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
-
 export interface SimpleLinkProps {
   domain?: string;
   key: string;
   url: string;
 }
-
-export interface LinkProps {
-  id?: string;
-  domain: string;
-  key: string;
-  url: string;
-  archived: boolean;
-  expiresAt: Date | null;
-  password: string | null;
-
-  proxy: boolean;
-  title: string | null;
-  description: string | null;
-  image: string | null;
-
-  rewrite: boolean;
-
-  ios: string | null;
-  android: string | null;
-
-  clicks: number;
-  userId?: string | null;
-  tagId?: string | null;
-
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
 export interface TagProps {
   id: string;
   name: string;

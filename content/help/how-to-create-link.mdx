@@ -39,6 +39,7 @@ Here are the difference between the two options:
 | **Link history**       | 30 days                                                           | 30 days - Unlimited ([Pro plan](pro-plan))                                                                                                                                                |
 | **Tags**               | Unavailable                                                       | Can be used to organize links                                                                                                                                                             |
 | **Link cloaking**      | Unavailable                                                       | Can be used to mask destination URL with your short link                                                                                                                                  |
+| **Geo Targeting**      | Unavailable                                                       | Available on the [Pro plan](pro-plan)                                                                                                                                                     |
 
 ## The Dub link builder
 
@@ -66,7 +67,8 @@ Inside the link builder are the following fields:
 7. **Password Protection**: Protect your links with a password. [Learn more](#password-protection).
 8. **Expiration Date**: Set an expiration date for your links. [Learn more](#expiration-date).
 9. **Device Targeting**: Set a custom destination URL for iOS and Android devices. [Learn more](#device-targeting-ios--android).
-10. **Social Previews**: See how your links will look when shared on social media.
+10. **Geo Targeting** (Pro plan only): Redirect your users to different links based on their location. [Learn more](#geo-targeting).
+11. **Social Previews**: See how your links will look when shared on social media.
 
 ## Custom social media cards
 
@@ -191,3 +193,27 @@ For example, you can set a custom destination URL for iOS devices by toggling th
 This is particularly useful if you want to send iOS users to the App Store to download your iOS app, and Android users to the Google Play Store to download your Android app.
 
 In both cases, the main **Destination URL** will be used as the fallback URL that will be used if the user's device type does not match the targeting rules.
+
+## Geo Targeting
+
+<Note variant="success">
+  This feature is only available for [Pro plans and above](pro-plan).
+</Note>
+
+Geo Targeting is a powerful feature that lets you redirect your users to different links based on their location.
+
+This is useful if you want to do location-based personalization. For example, you can redirect your UK users to a UK-specific landing page, with the rest of the world going to your global landing page.
+
+To use this feature, toggle the "Geo Targeting" switch in the link builder. This will reveal the following fields:
+
+1. **Country**: The country that you want to target.
+2. **URL**: The URL that you want to redirect your users to if they are from the country that you have selected.
+
+<Image
+  alt="Use Geo Targeting to redirect your users to different links based on their location"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/changelog/geo-targeting.png"
+  width={1404}
+  height={902}
+/>
+
+You can also add multiple geo-targeting rules by clicking on the "Add location" button.

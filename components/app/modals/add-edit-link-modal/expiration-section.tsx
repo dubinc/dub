@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { LinkProps } from "#/lib/types";
+import { type Link as LinkProps } from "@prisma/client";
 import { getDateTimeLocal } from "#/lib/utils";
 import Switch from "#/ui/switch";
 import { motion } from "framer-motion";

@@ -75,7 +75,7 @@ export default function Changelog() {
                     priority={idx === 0} // since it's above the fold
                     placeholder="blur"
                     blurDataURL={await getBlurDataURL(post.image!)}
-                    className="border border-gray-100 md:rounded-2xl"
+                    className="aspect-video border border-gray-100 object-cover md:rounded-2xl"
                   />
                 </Link>
                 <Link

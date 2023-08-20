@@ -180,6 +180,7 @@ model Link {
   // Custom device targeting
   ios     String? @db.LongText // custom link for iOS devices
   android String? @db.LongText // custom link for Android devices
+  geo     Json?   @db.Json  // custom link for specific countries
 
   // User who created the link
   user   User?   @relation(fields: [userId], references: [id])
@@ -200,6 +201,9 @@ model Link {
   // Link tags
   tag   Tag?    @relation(fields: [tagId], references: [id])
   tagId String?
+
+  // Comments on the particular shortlink
+  comments String? @db.LongText 
 
   // TODO: might wanna add indices for utm_source, utm_medium, utm_campaign
 
