@@ -7,7 +7,7 @@ import {
 import { detectBot, getFinalUrl, parse } from "#/lib/middleware/utils";
 import { ratelimit, redis } from "#/lib/upstash";
 import { recordClick } from "#/lib/tinybird";
-import { DUB_HEADERS, LOCALHOST_IP } from "../constants";
+import { DUB_HEADERS, LOCALHOST_GEO_DATA, LOCALHOST_IP } from "../constants";
 import { ipAddress } from "@vercel/edge";
 import { isBlacklistedReferrer } from "../edge-config";
 
@@ -39,6 +39,9 @@ export default async function LinkMiddleware(
     }
   }
 
+  const { country } =
+    process.env.VERCEL === "1" && req.geo ? req.geo : LOCALHOST_GEO_DATA;
+
   const response = await redis.get<{
     url: string;
     password?: boolean;
@@ -46,7 +49,9 @@ export default async function LinkMiddleware(
     rewrite?: boolean;
     ios?: string;
     android?: string;
+    geo?: object;
   }>(`${domain}:${key}`);
+
   const {
     url: target,
     password,
@@ -54,6 +59,7 @@ export default async function LinkMiddleware(
     rewrite,
     ios,
     android,
+    geo,
   } = response || {};
 
   if (target) {
@@ -79,6 +85,12 @@ export default async function LinkMiddleware(
     } else if (android && userAgent(req).os?.name === "Android") {
       // redirect to Android link if it is specified and the user is on an Android device
       return NextResponse.redirect(getFinalUrl(android, { req }), DUB_HEADERS);
+    } else if (geo && country && country in geo) {
+      // redirect to geo-specific link if it is specified and the user is in the specified country
+      return NextResponse.redirect(
+        getFinalUrl(geo[country], { req }),
+        DUB_HEADERS,
+      );
     } else {
       // regular redirect / rewrite
       return rewrite

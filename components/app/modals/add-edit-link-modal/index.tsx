@@ -7,6 +7,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { mutate } from "swr";
@@ -17,9 +18,10 @@ import { LoadingCircle, Logo } from "#/ui/icons";
 import Modal from "#/ui/modal";
 import Tooltip, { TooltipContent } from "#/ui/tooltip";
 import useProject from "#/lib/swr/use-project";
-import { LinkProps } from "#/lib/types";
+import { type Link as LinkProps } from "@prisma/client";
 import {
   cn,
+  deepEqual,
   getApexDomain,
   getQueryString,
   getUrlWithoutUTMParams,
@@ -27,26 +29,24 @@ import {
   linkConstructor,
   truncate,
 } from "#/lib/utils";
-import TagsSection from "./tags-section";
-import OGSection from "./og-section";
-import UTMSection from "./utm-section";
-import PasswordSection from "./password-section";
-import ExpirationSection from "./expiration-section";
-import IOSSection from "./ios-section";
-import AndroidSection from "./android-section";
-import Preview from "./preview";
-import {
-  DEFAULT_LINK_PROPS,
-  GOOGLE_FAVICON_URL,
-  HOME_DOMAIN,
-} from "#/lib/constants";
+import { DEFAULT_LINK_PROPS, GOOGLE_FAVICON_URL } from "#/lib/constants";
 import useDomains from "#/lib/swr/use-domains";
 import { toast } from "sonner";
 import va from "@vercel/analytics";
 import punycode from "punycode/";
 import Button from "#/ui/button";
 import { ModalContext } from "#/ui/modal-provider";
+import TagsSection from "#/ui/modals/add-edit-link-modal/tags-section";
+import OGSection from "#/ui/modals/add-edit-link-modal/og-section";
+import UTMSection from "#/ui/modals/add-edit-link-modal/utm-section";
+import PasswordSection from "#/ui/modals/add-edit-link-modal/password-section";
+import ExpirationSection from "#/ui/modals/add-edit-link-modal/expiration-section";
+import IOSSection from "#/ui/modals/add-edit-link-modal/ios-section";
+import AndroidSection from "#/ui/modals/add-edit-link-modal/android-section";
+import Preview from "#/ui/modals/add-edit-link-modal/preview";
+import CommentsSection from "#/ui/modals/add-edit-link-modal/comments-section";
 import RewriteSection from "./rewrite-section";
+import GeoSection from "./geo-section";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
@@ -253,6 +253,9 @@ function AddEditLinkModal({
             !proxy
           ) {
             return true;
+          } else if (key === "geo") {
+            const equalGeo = deepEqual(props.geo as object, data.geo as object);
+            return equalGeo;
           }
           // Otherwise, check for discrepancy in the current key-value pair
           return data[key] === value;
@@ -271,6 +274,13 @@ function AddEditLinkModal({
   const welcomeFlow = useMemo(() => {
     return router.asPath.split("?")[0] === "/welcome";
   }, [router.asPath]);
+
+  const keyRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (key && key.endsWith("-copy")) {
+      keyRef.current?.select();
+    }
+  }, [key]);
 
   return (
     <Modal
@@ -474,6 +484,7 @@ function AddEditLinkModal({
                     ))}
                   </select>
                   <input
+                    ref={keyRef}
                     type="text"
                     name="key"
                     id={`key-${randomIdx}`}
@@ -487,12 +498,10 @@ function AddEditLinkModal({
                     disabled={props && lockKey}
                     autoComplete="off"
                     className={cn(
-                      "block w-full rounded-r-md focus:outline-none sm:text-sm",
+                      "block w-full rounded-r-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
                       {
                         "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500":
                           keyError,
-                        "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500":
-                          !keyError,
                         "cursor-not-allowed border border-gray-300 bg-gray-100 text-gray-500":
                           props && lockKey,
                       },
@@ -541,6 +550,7 @@ function AddEditLinkModal({
 
             <div className="grid gap-5 px-4 md:px-16">
               {slug && <TagsSection {...{ props, data, setData }} />}
+              <CommentsSection {...{ props, data, setData }} />
               <OGSection
                 {...{ props, data, setData }}
                 generatingMetatags={generatingMetatags}
@@ -551,6 +561,7 @@ function AddEditLinkModal({
               <ExpirationSection {...{ props, data, setData }} />
               <IOSSection {...{ props, data, setData }} />
               <AndroidSection {...{ props, data, setData }} />
+              <GeoSection {...{ props, data, setData }} />
             </div>
 
             <div

@@ -1,3 +1,5 @@
+import { type Link as LinkProps } from "@prisma/client";
+
 export const LOCALHOST_GEO_DATA = {
   city: "San Francisco",
   region: "CA",
@@ -147,10 +149,11 @@ export const SPECIAL_APEX_DOMAINS = new Set([
   "web.app",
 ]);
 
-export const DEFAULT_LINK_PROPS = {
-  key: "github",
-  url: "https://github.com/steven-tey/dub",
-  domain: "dub.sh",
+// @ts-expect-error because we're coercing the type here
+export const DEFAULT_LINK_PROPS: LinkProps = {
+  key: "",
+  url: "",
+  domain: "",
   archived: false,
   expiresAt: null,
   password: null,

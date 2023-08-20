@@ -9,14 +9,14 @@ import { motion } from "framer-motion";
 import TextareaAutosize from "react-textarea-autosize";
 import { UploadCloud } from "@/components/shared/icons";
 import { LoadingCircle } from "#/ui/icons";
-import { LinkProps } from "#/lib/types";
+import { type Link as LinkProps } from "@prisma/client";
 import Switch from "#/ui/switch";
 import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "#/lib/constants";
 import { InfoTooltip, SimpleTooltipContent } from "#/ui/tooltip";
-import Popover from "#/ui/popover";
-import UnsplashSearch from "@/components/app/modals/add-edit-link-modal/unsplash-search";
 import { Link2 } from "lucide-react";
+import Popover from "#/ui/popover";
 import Unsplash from "@/components/shared/icons/unsplash";
+import UnsplashSearch from "./unsplash-search";
 
 export default function OGSection({
   props,
@@ -66,8 +66,6 @@ export default function OGSection({
       }));
     }
   }, [proxy]);
-
-  const randomIdx = Math.floor(Math.random() * 100);
 
   const [openPopover, setOpenPopover] = useState(false);
 
@@ -143,7 +141,7 @@ export default function OGSection({
               )}
             </div>
             <label
-              htmlFor={`image-${randomIdx}`}
+              htmlFor="image"
               className="group relative mt-1 flex h-[14rem] cursor-pointer flex-col items-center justify-center rounded-md border border-gray-300 bg-white shadow-sm transition-all hover:bg-gray-50"
             >
               {generatingMetatags && (
@@ -231,7 +229,7 @@ export default function OGSection({
             </label>
             <div className="mt-1 flex rounded-md shadow-sm">
               <input
-                id={`image-${randomIdx}`}
+                id="image"
                 name="image"
                 type="file"
                 accept="image/*"
@@ -254,7 +252,7 @@ export default function OGSection({
               )}
               <TextareaAutosize
                 name="title"
-                id={`title-${randomIdx}`}
+                id="title"
                 minRows={3}
                 maxLength={120}
                 className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
@@ -285,7 +283,7 @@ export default function OGSection({
               )}
               <TextareaAutosize
                 name="description"
-                id={`description-${randomIdx}`}
+                id="description"
                 minRows={3}
                 maxLength={240}
                 className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"

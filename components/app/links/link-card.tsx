@@ -13,7 +13,7 @@ import { Chart, Delete, ThreeDots } from "@/components/shared/icons";
 import Popover from "#/ui/popover";
 import Tooltip, { SimpleTooltipContent, TooltipContent } from "#/ui/tooltip";
 import useProject from "#/lib/swr/use-project";
-import { LinkProps } from "#/lib/types";
+import { type Link as LinkProps } from "@prisma/client";
 import {
   cn,
   fetcher,
@@ -25,7 +25,14 @@ import {
 } from "#/lib/utils";
 import useIntersectionObserver from "#/lib/hooks/use-intersection-observer";
 import useDomains from "#/lib/swr/use-domains";
-import { Archive, CopyPlus, Edit3, EyeOff, QrCode } from "lucide-react";
+import {
+  Archive,
+  CopyPlus,
+  Edit3,
+  EyeOff,
+  MessageCircle,
+  QrCode,
+} from "lucide-react";
 import punycode from "punycode/";
 import { GOOGLE_FAVICON_URL, HOME_DOMAIN } from "#/lib/constants";
 import useTags from "#/lib/swr/use-tags";
@@ -34,7 +41,8 @@ import { ModalContext } from "#/ui/modal-provider";
 import Number from "#/ui/number";
 
 export default function LinkCard({ props }: { props: LinkProps }) {
-  const { key, domain, url, rewrite, createdAt, archived, tagId } = props;
+  const { key, domain, url, rewrite, createdAt, archived, tagId, comments } =
+    props;
   const { tags } = useTags();
   const tag = useMemo(() => tags?.find((t) => t.id === tagId), [tags, tagId]);
 
@@ -81,6 +89,7 @@ export default function LinkCard({ props }: { props: LinkProps }) {
     setShowAddEditLinkModal: setShowDuplicateLinkModal,
     AddEditLinkModal: DuplicateLinkModal,
   } = useAddEditLinkModal({
+    // @ts-expect-error
     duplicateProps: {
       ...propsToDuplicate,
       key: `${key}-copy`,
@@ -245,6 +254,25 @@ export default function LinkCard({ props }: { props: LinkProps }) {
                 </a>
               )}
               <CopyButton url={linkConstructor({ key, domain })} />
+              {comments && (
+                <Tooltip
+                  content={
+                    <div className="block max-w-sm px-4 py-2 text-center text-sm text-gray-700">
+                      {comments}
+                    </div>
+                  }
+                >
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowAddEditLinkModal(true);
+                    }}
+                    className="group rounded-full bg-gray-100 p-1.5 transition-all duration-75 hover:scale-105 active:scale-95"
+                  >
+                    <MessageCircle className="h-3.5 w-3.5 text-gray-700" />
+                  </button>
+                </Tooltip>
+              )}
               {tag?.color && (
                 <button
                   onClick={(e) => {

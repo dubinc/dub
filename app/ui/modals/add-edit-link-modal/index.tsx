@@ -25,8 +25,9 @@ import { LoadingCircle, Logo } from "#/ui/icons";
 import Modal from "#/ui/modal";
 import Tooltip, { TooltipContent } from "#/ui/tooltip";
 import useProject from "#/lib/swr-app/use-project";
-import { LinkProps } from "#/lib/types";
+import { type Link as LinkProps } from "@prisma/client";
 import {
+  deepEqual,
   getApexDomain,
   getUrlWithoutUTMParams,
   linkConstructor,
@@ -47,20 +48,20 @@ import punycode from "punycode/";
 import Button from "#/ui/button";
 import { ModalContext } from "#/ui/modal-provider";
 import RewriteSection from "./rewrite-section";
+import CommentsSection from "./comments-section";
+import GeoSection from "./geo-section";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
   setShowAddEditLinkModal,
   props,
   duplicateProps,
-  hideXButton,
   homepageDemo,
 }: {
   showAddEditLinkModal: boolean;
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
   props?: LinkProps;
   duplicateProps?: LinkProps;
-  hideXButton?: boolean;
   homepageDemo?: boolean;
 }) {
   const { slug } = useParams() as { slug?: string };
@@ -245,6 +246,9 @@ function AddEditLinkModal({
             !proxy
           ) {
             return true;
+          } else if (key === "geo") {
+            const equalGeo = deepEqual(props.geo as object, data.geo as object);
+            return equalGeo;
           }
           // Otherwise, check for discrepancy in the current key-value pair
           return data[key] === value;
@@ -268,7 +272,7 @@ function AddEditLinkModal({
       preventDefaultClose={homepageDemo ? false : true}
     >
       <div className="relative grid max-h-[80vh] divide-x divide-gray-100 overflow-scroll scrollbar-hide md:max-h-[min(906px,_90vh)] md:grid-cols-2">
-        {!hideXButton && !homepageDemo && (
+        {!homepageDemo && (
           <button
             onClick={() => setShowAddEditLinkModal(false)}
             className="group absolute right-0 top-0 z-20 m-3 hidden rounded-full p-2 text-gray-500 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 md:block"
@@ -519,6 +523,7 @@ function AddEditLinkModal({
             </div>
 
             <div className="grid gap-5 px-4 md:px-16">
+              <CommentsSection {...{ props, data, setData }} />
               <OGSection
                 {...{ props, data, setData }}
                 generatingMetatags={generatingMetatags}
@@ -529,6 +534,7 @@ function AddEditLinkModal({
               <ExpirationSection {...{ props, data, setData }} />
               <IOSSection {...{ props, data, setData }} />
               <AndroidSection {...{ props, data, setData }} />
+              <GeoSection {...{ props, data, setData }} />
             </div>
 
             <div
@@ -627,12 +633,10 @@ function AddEditLinkButton({
 export function useAddEditLinkModal({
   props,
   duplicateProps,
-  hideXButton,
   homepageDemo,
 }: {
   props?: LinkProps;
   duplicateProps?: LinkProps;
-  hideXButton?: boolean;
   homepageDemo?: boolean;
 } = {}) {
   const [showAddEditLinkModal, setShowAddEditLinkModal] = useState(false);
@@ -645,19 +649,11 @@ export function useAddEditLinkModal({
           setShowAddEditLinkModal={setShowAddEditLinkModal}
           props={props}
           duplicateProps={duplicateProps}
-          hideXButton={hideXButton}
           homepageDemo={homepageDemo}
         />
       </Suspense>
     );
-  }, [
-    showAddEditLinkModal,
-    setShowAddEditLinkModal,
-    props,
-    duplicateProps,
-    hideXButton,
-    homepageDemo,
-  ]);
+  }, [showAddEditLinkModal, setShowAddEditLinkModal]);
 
   const AddEditLinkButtonCallback = useCallback(() => {
     return (

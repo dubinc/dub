@@ -200,8 +200,11 @@ export const authOptions: NextAuthOptions = {
         let samlProfile;
 
         if (account?.provider === "saml-idp") {
-          // can't get project id from saml-idp so we return it for now
-          return true;
+          // @ts-ignore
+          samlProfile = user.profile;
+          if (!samlProfile) {
+            return true;
+          }
         } else {
           samlProfile = profile;
         }

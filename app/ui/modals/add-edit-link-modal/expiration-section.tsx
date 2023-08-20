@@ -1,10 +1,10 @@
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { LinkProps } from "#/lib/types";
+import { type Link as LinkProps } from "@prisma/client";
 import { getDateTimeLocal } from "#/lib/utils";
 import Switch from "#/ui/switch";
 import { motion } from "framer-motion";
+import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "#/lib/constants";
 import { InfoTooltip, SimpleTooltipContent } from "#/ui/tooltip";
-import { HOME_DOMAIN } from "#/lib/constants";
 
 export default function ExpirationSection({
   props,
@@ -48,7 +48,7 @@ export default function ExpirationSection({
         <Switch fn={() => setEnabled(!enabled)} checked={enabled} />
       </div>
       {enabled && (
-        <motion.div className="mt-3">
+        <motion.div className="mt-3" {...FADE_IN_ANIMATION_SETTINGS}>
           <input
             type="datetime-local"
             id="expiresAt"

@@ -5,7 +5,7 @@ import { log } from "#/lib/utils";
 import { ProjectProps } from "#/lib/types";
 import { getTopLinks } from "#/lib/tinybird";
 import ClicksSummary from "emails/clicks-summary";
-import { limiter } from "./utils";
+import { limiter } from "#/lib/cron";
 
 export const updateUsage = async () => {
   const projects = await prisma.project.findMany({
@@ -39,10 +39,14 @@ export const updateUsage = async () => {
     },
   });
 
-  // Get all paid projects that have billingCycleStart today
+  // Reset billing cycles for projects that:
+  // - Are not on the free plan
+  // - Are on the free plan but have not exceeded usage
+  // - Have billingCycleStart today
   const billingReset = projects.filter(
-    ({ plan, billingCycleStart }) =>
-      plan !== "free" && billingCycleStart === new Date().getDate(),
+    ({ usage, usageLimit, plan, billingCycleStart }) =>
+      !(plan === "free" && usage > usageLimit) &&
+      billingCycleStart === new Date().getDate(),
   );
 
   // Get all projects that have exceeded usage

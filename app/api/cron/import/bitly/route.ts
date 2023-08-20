@@ -4,7 +4,7 @@ import { redis } from "#/lib/upstash";
 import { NextResponse } from "next/server";
 import prisma from "#/lib/prisma";
 import { randomBadgeColor } from "@/components/app/links/tag-badge";
-import { receiver } from "#/lib/cron/utils";
+import { receiver } from "#/lib/cron";
 
 export async function POST(req: Request) {
   const body = await req.json();

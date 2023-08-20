@@ -83,7 +83,7 @@ export default async function ChangelogPost({
           priority // since it's above the fold
           placeholder="blur"
           blurDataURL={await getBlurDataURL(post.image)}
-          className="border border-gray-100 md:rounded-2xl"
+          className="aspect-video border border-gray-100 object-cover md:rounded-2xl"
         />
         <div className="mx-5 mb-10 flex items-center justify-between md:mx-0">
           <Author username={post.author} />

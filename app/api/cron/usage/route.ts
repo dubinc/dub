@@ -1,12 +1,16 @@
 import { log } from "#/lib/utils";
-import { redis } from "#/lib/upstash";
+import { updateUsage } from "./utils";
 import { NextResponse } from "next/server";
 import { receiver } from "#/lib/cron";
-import { importLinksFromShort } from "./utils";
+
+/**
+ * Cron to update the usage stats of each project.
+ * Runs once every day at 7AM PST.
+ **/
 
 export async function POST(req: Request) {
-  const body = await req.json();
   if (process.env.VERCEL === "1") {
+    const body = await req.json();
     const isValid = await receiver.verify({
       signature: req.headers.get("Upstash-Signature") || "",
       body: JSON.stringify(body),
@@ -17,22 +21,11 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { projectId, domainId, domain } = body;
-    const shortApiKey = (await redis.get(
-      `import:short:${projectId}`,
-    )) as string;
-    await importLinksFromShort({
-      projectId,
-      domainId,
-      domain,
-      shortApiKey,
-    });
-    return NextResponse.json({
-      response: "success",
-    });
+    const results = await updateUsage();
+    return NextResponse.json(results);
   } catch (error) {
     await log({
-      message: "Import Short.io cron failed. Error: " + error.message,
+      message: "Usage cron failed. Error: " + error.message,
       type: "cron",
       mention: true,
     });

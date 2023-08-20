@@ -176,7 +176,7 @@ const DomainsFilter = ({ domains, primaryDomain }) => {
     return domains.length === 0
       ? [
           {
-            value: primaryDomain.slug || "",
+            value: primaryDomain || "",
             count: 0,
           },
         ]
