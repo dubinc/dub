@@ -4,7 +4,7 @@ import { deleteDomainAndLinks } from "#/lib/api/domains";
 import prisma from "#/lib/prisma";
 import InvalidDomain from "emails/invalid-domain";
 import DomainDeleted from "emails/domain-deleted";
-import { limiter } from "./utils";
+import { limiter } from "#/lib/cron";
 
 export const handleDomainUpdates = async ({
   domain,
@@ -145,7 +145,6 @@ export const handleDomainUpdates = async ({
     );
     if (!sentSecondDomainInvalidEmail) {
       return sendDomainInvalidEmail({
-        projectName,
         projectSlug,
         domain,
         invalidDays,
@@ -161,7 +160,6 @@ export const handleDomainUpdates = async ({
     );
     if (!sentFirstDomainInvalidEmail) {
       return sendDomainInvalidEmail({
-        projectName,
         projectSlug,
         domain,
         invalidDays,
@@ -174,14 +172,12 @@ export const handleDomainUpdates = async ({
 };
 
 const sendDomainInvalidEmail = async ({
-  projectName,
   projectSlug,
   domain,
   invalidDays,
   emails,
   type,
 }: {
-  projectName: string;
   projectSlug: string;
   domain: string;
   invalidDays: number;

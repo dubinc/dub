@@ -1,6 +1,6 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import { verifySignature } from "@upstash/qstash/nextjs";
-import { handleDomainUpdates } from "#/lib/cron/domains";
+import { NextResponse } from "next/server";
+import { receiver } from "#/lib/cron";
+import { handleDomainUpdates } from "./utils";
 import {
   getConfigResponse,
   getDomainResponse,
@@ -17,7 +17,18 @@ import { log } from "#/lib/utils";
  * If a domain is invalid for more than 30 days, we delete it from the database.
  **/
 
-async function handler(_req: NextApiRequest, res: NextApiResponse) {
+export async function POST(req: Request) {
+  if (process.env.VERCEL === "1") {
+    const body = await req.json();
+    const isValid = await receiver.verify({
+      signature: req.headers.get("Upstash-Signature") || "",
+      body: JSON.stringify(body),
+    });
+    if (!isValid) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+  }
+
   try {
     const domains = await prisma.domain.findMany({
       where: {
@@ -107,34 +118,13 @@ async function handler(_req: NextApiRequest, res: NextApiResponse) {
         };
       }),
     );
-    res.status(200).json(results);
+    return NextResponse.json(results);
   } catch (error) {
     await log({
       message: "Domains cron failed. Error: " + error.message,
       type: "cron",
       mention: true,
     });
-    res.status(500).json({ error: error.message });
+    return NextResponse.json({ error: error.message });
   }
 }
-
-/**
- * verifySignature will try to load `QSTASH_CURRENT_SIGNING_KEY` and `QSTASH_NEXT_SIGNING_KEY` from the environment.
-
- * This will only run in production. In development, it will return the handler without verifying the signature.
- */
-const Cron = () => {
-  if (process.env.NODE_ENV === "development") {
-    return handler;
-  } else {
-    return verifySignature(handler);
-  }
-};
-
-export default Cron();
-
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
