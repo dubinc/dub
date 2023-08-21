@@ -5,7 +5,7 @@ import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import SearchButton from "#/ui/content/search-button";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import ArticleLink from "#/ui/content/article-link";
+import HelpArticleLink from "#/ui/content/help-article-link";
 import { Metadata } from "next";
 import { constructMetadata } from "#/lib/utils";
 
@@ -96,7 +96,7 @@ export default function HelpCategory({
           </div>
           <div className="grid gap-2 rounded-xl border border-gray-200 bg-white p-4">
             {articles.map((article) => (
-              <ArticleLink key={article.slug} article={article} />
+              <HelpArticleLink key={article.slug} article={article} />
             ))}
           </div>
         </MaxWidthWrapper>

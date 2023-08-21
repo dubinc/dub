@@ -9,7 +9,7 @@ import Author from "#/ui/content/author";
 import { MDX } from "#/ui/content/mdx";
 import TableOfContents from "#/ui/content/table-of-contents";
 import Feedback from "#/ui/content/feedback";
-import ArticleLink from "#/ui/content/article-link";
+import HelpArticleLink from "#/ui/content/help-article-link";
 import { getBlurDataURL } from "#/lib/images";
 import { Metadata } from "next";
 import { constructMetadata } from "#/lib/utils";
@@ -123,7 +123,7 @@ export default async function HelpArticle({
                 </h2>
                 <div className="grid gap-2 rounded-xl border border-gray-200 bg-white p-4">
                   {relatedArticles.map((article) => (
-                    <ArticleLink key={article.slug} article={article} />
+                    <HelpArticleLink key={article.slug} article={article} />
                   ))}
                 </div>
               </div>

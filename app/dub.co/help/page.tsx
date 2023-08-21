@@ -3,7 +3,7 @@ import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import { HELP_CATEGORIES, getPopularArticles } from "#/lib/constants/content";
 import SearchButton from "#/ui/content/search-button";
 import CategoryCard from "#/ui/content/category-card";
-import ArticleLink from "#/ui/content/article-link";
+import HelpArticleLink from "#/ui/content/help-article-link";
 
 export const metadata = constructMetadata({
   title: "Help Center – Dub",
@@ -33,7 +33,7 @@ export default function HelpCenter() {
             </h2>
             <div className="mt-4 grid gap-2 md:grid-cols-2">
               {popularArticles.map((article) => (
-                <ArticleLink key={article.slug} article={article} />
+                <HelpArticleLink key={article.slug} article={article} />
               ))}
             </div>
           </div>

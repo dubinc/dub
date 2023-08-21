@@ -3,15 +3,20 @@ import { useMDXComponent } from "next-contentlayer/hooks";
 import GithubRepo, { GithubRepoProps } from "@/components/shared/github-repo";
 import MDXTweet from "#/ui/tweet";
 import { Tweet as TweetProps } from "react-tweet/api";
-import { cn } from "#/lib/utils";
+import { cn, formatDate } from "#/lib/utils";
 import "react-medium-image-zoom/dist/styles.css";
 import { HELP_CATEGORIES, POPULAR_ARTICLES } from "#/lib/constants/content";
-import ArticleLink from "./article-link";
+import HelpArticleLink from "./help-article-link";
 import CategoryCard from "./category-card";
 import { ListChecks } from "lucide-react";
 import ZoomImage from "./zoom-image";
-import { allHelpPosts } from "contentlayer/generated";
+import {
+  allBlogPosts,
+  allChangelogPosts,
+  allHelpPosts,
+} from "contentlayer/generated";
 import CopyBox from "./copy-box";
+import { ExpandingArrow } from "../icons";
 
 const CustomLink = (props: any) => {
   const href = props.href;
@@ -32,7 +37,9 @@ const CustomLink = (props: any) => {
 };
 
 const components = {
-  h2: (props: any) => <h2 className="text-2xl" {...props} />,
+  h2: (props: any) => (
+    <h2 className="text-2xl underline-offset-4 hover:underline" {...props} />
+  ),
   a: (props: any) => (
     <CustomLink
       className="font-medium text-gray-500 underline-offset-4 hover:text-black"
@@ -72,7 +79,7 @@ const components = {
   HelpArticles: (props: { articles: string[] }) => (
     <div className="not-prose grid gap-2 rounded-xl border border-gray-200 bg-white p-4">
       {(props.articles || POPULAR_ARTICLES).map((slug) => (
-        <ArticleLink
+        <HelpArticleLink
           key={slug}
           article={allHelpPosts.find((post) => post.slug === slug)!}
         />
@@ -98,6 +105,37 @@ const components = {
         />
       ))}
     </div>
+  ),
+  Changelog: (props: any) => (
+    <ul className="not-prose grid list-none rounded-xl border border-gray-200 bg-white p-4">
+      {[...allBlogPosts, ...allChangelogPosts]
+        .filter((post) => post.publishedAt <= props.before)
+        .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+        .slice(0, props.count)
+        .map((post) => (
+          <li key={post.slug}>
+            <Link
+              href={`/${post.type === "BlogPost" ? "blog" : "changelog"}/${
+                post.slug
+              }`}
+              className="group flex items-center justify-between rounded-lg px-2 py-3 transition-colors hover:bg-purple-100 active:bg-purple-200 sm:px-4"
+            >
+              <div>
+                <p className="text-xs font-medium text-gray-400 group-hover:text-purple-600">
+                  {formatDate(post.publishedAt)}
+                </p>
+                <h3 className="my-px text-base font-medium text-gray-600 group-hover:text-purple-600">
+                  {post.title}
+                </h3>
+                <p className="line-clamp-1 text-sm text-gray-500 group-hover:text-purple-600">
+                  {post.summary}
+                </p>
+              </div>
+              <ExpandingArrow className="-ml-4 h-4 w-4 text-gray-400 group-hover:text-purple-600" />
+            </Link>
+          </li>
+        ))}
+    </ul>
   ),
 };
 
