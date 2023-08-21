@@ -91,7 +91,7 @@ export default function LinksImported({
               </strong>{" "}
               from {provider} into your Dub project,{" "}
               <Link
-                href={`https://app.dub.sh/${projectSlug}`}
+                href={`https://app.dub.co/${projectSlug}`}
                 className="font-medium text-blue-600 no-underline"
               >
                 {projectName}↗
@@ -130,7 +130,7 @@ export default function LinksImported({
               <Section className="my-8 text-center">
                 <Link
                   className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                  href={`https://app.dub.sh/${projectSlug}`}
+                  href={`https://app.dub.co/${projectSlug}`}
                 >
                   View {Intl.NumberFormat("en-us").format(count - 5)} more links
                 </Link>
@@ -139,7 +139,7 @@ export default function LinksImported({
             <Text className="text-sm leading-6 text-black">
               If you haven't already{" "}
               <Link
-                href="https://dub.sh/help/article/how-to-add-custom-domain#step-2-configure-your-domain"
+                href="https://dub.co/help/article/how-to-add-custom-domain#step-2-configure-your-domain"
                 className="font-medium text-blue-600 no-underline"
               >
                 configured your domain{domains.length > 1 ? "s" : ""}

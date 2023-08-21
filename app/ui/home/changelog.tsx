@@ -50,7 +50,7 @@ const DesktopChangelogEntry = ({ post }) => (
       </dd>
     </dl>
     <div className="col-span-4 flex items-center">
-      <div className="relative">
+      <div className="relative ml-4">
         <div className="h-16 border-l border-gray-400 pr-8" />
         <div className="absolute -left-1 top-[1.6875rem] h-2.5 w-2.5 rounded-full bg-gray-400 transition-colors group-hover:bg-gray-700" />
       </div>

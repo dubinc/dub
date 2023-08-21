@@ -51,7 +51,7 @@ export const intervalData = {
     granularity: "month",
   },
   all: {
-    // Dub.sh founding date
+    // Dub.co founding date
     startDate: new Date("2022-09-22"),
     granularity: "month",
   },

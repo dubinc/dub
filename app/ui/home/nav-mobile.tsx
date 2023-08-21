@@ -28,13 +28,13 @@ const sidebar = {
 };
 
 export default function MobileNav() {
-  const { domain = "dub.sh" } = useParams() as { domain: string };
+  const { domain = "dub.co" } = useParams() as { domain: string };
 
   const [isOpen, toggleOpen] = useCycle(false, true);
   const containerRef = useRef(null);
   const { height } = useDimensions(containerRef);
   const { data: session, status } = useSession() || {
-    status: "unauthenticated", // if `useSession` is undefined, we're on a non dub.sh domain
+    status: "unauthenticated", // if `useSession` is undefined, we're on a non dub.co domain
   };
 
   return (
@@ -60,9 +60,9 @@ export default function MobileNav() {
             <MenuItem>
               <Link
                 href={
-                  domain === "dub.sh"
+                  domain === "dub.co"
                     ? `/${slug}`
-                    : `https://dub.sh/${slug}?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`
+                    : `https://dub.co/${slug}?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`
                 }
                 onClick={() => toggleOpen()}
                 className="flex w-full font-semibold capitalize"

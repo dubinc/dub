@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ExpandingArrow } from "../icons";
 import { HelpPost } from "contentlayer/generated";
 
-export default function ArticleLink({ article }: { article: HelpPost }) {
+export default function HelpArticleLink({ article }: { article: HelpPost }) {
   return (
     <Link
       href={`/help/article/${article.slug}`}

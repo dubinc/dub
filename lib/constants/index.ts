@@ -42,58 +42,71 @@ export const PAGINATION_LIMIT = 100;
 */
 
 export const HOME_HOSTNAMES = new Set([
+  "dub.co",
   "home.localhost:8888",
   "localhost",
-  "dub.sh",
 ]);
+
+export const isHomeHostname = (domain: string) => {
+  return HOME_HOSTNAMES.has(domain) || domain.endsWith(".vercel.app");
+};
 
 export const HOME_DOMAIN =
   process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-    ? "https://dub.sh"
+    ? "https://dub.co"
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
-    ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+    ? // ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+      "https://dub.co"
     : "http://home.localhost:8888";
 
 export const APP_HOSTNAMES = new Set([
+  "app.dub.co",
+  "preview.dub.co",
   "localhost:8888",
   "localhost",
-  "app.dub.sh",
-  "preview.dub.sh",
 ]);
 
 export const APP_DOMAIN =
   process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-    ? "https://app.dub.sh"
+    ? "https://app.dub.co"
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
-    ? "https://preview.dub.sh"
+    ? // ? "https://preview.dub.co"
+      "https://app.dub.co"
     : "http://localhost:8888";
 
 export const APP_DOMAIN_WITH_NGROK =
   process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-    ? "https://app.dub.sh"
+    ? "https://app.dub.co"
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
-    ? "https://preview.dub.sh"
+    ? "https://preview.dub.co"
     : process.env.NGROK_URL;
 
+export const API_HOSTNAMES = new Set(["api.dub.co", "api.localhost:8888"]);
+
+export const ADMIN_HOSTNAMES = new Set([
+  "admin.dub.co",
+  "admin.localhost:8888",
+]);
+
 export const DEFAULT_REDIRECTS = {
-  home: "https://dub.sh",
-  dub: "https://dub.sh",
-  signin: "https://app.dub.sh/login",
-  login: "https://app.dub.sh/login",
-  register: "https://app.dub.sh/register",
-  signup: "https://app.dub.sh/register",
-  app: "https://app.dub.sh",
-  dashboard: "https://app.dub.sh",
-  links: "https://app.dub.sh/links",
-  settings: "https://app.dub.sh/settings",
-  welcome: "https://app.dub.sh/welcome",
+  home: "https://dub.co",
+  dub: "https://dub.co",
+  signin: "https://app.dub.co/login",
+  login: "https://app.dub.co/login",
+  register: "https://app.dub.co/register",
+  signup: "https://app.dub.co/register",
+  app: "https://app.dub.co",
+  dashboard: "https://app.dub.co",
+  links: "https://app.dub.co/links",
+  settings: "https://app.dub.co/settings",
+  welcome: "https://app.dub.co/welcome",
   discord: "https://twitter.com/dubdotsh", // placeholder for now
-  tags: "https://dub.sh/help/how-to-use-tags",
+  tags: "https://dub.co/help/how-to-use-tags",
 };
 
 export const DUB_HEADERS = {
   headers: {
-    "x-powered-by": "Dub.sh - Link management for modern marketing teams",
+    "x-powered-by": "dub.co - Link management for modern marketing teams",
   },
 };
 

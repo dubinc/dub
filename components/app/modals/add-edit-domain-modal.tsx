@@ -243,7 +243,7 @@ function AddEditDomainModal({
                 Domain is already in use.{" "}
                 <a
                   className="underline"
-                  href="mailto:support@dub.sh?subject=My Domain Is Already In Use"
+                  href="mailto:support@dub.co?subject=My Domain Is Already In Use"
                 >
                   Contact us
                 </a>{" "}

@@ -207,7 +207,7 @@ const computedFields = (type: "blog" | "changelog" | "help" | "legal") => ({
       dateModified: doc.publishedAt,
       description: doc.summary,
       image: doc.image,
-      url: `https://dub.sh/${doc._raw.flattenedPath}`,
+      url: `https://dub.co/${doc._raw.flattenedPath}`,
       author: {
         "@type": "Person",
         name: doc.author,

@@ -142,7 +142,7 @@ export default function LoginForm() {
                 Project Slug
               </h2>
               <InfoTooltip
-                content={`This is your project's unique identifier on Dub. E.g. app.dub.sh/acme is "acme".`}
+                content={`This is your project's unique identifier on Dub. E.g. app.dub.co/acme is "acme".`}
               />
             </div>
             <input

@@ -16,7 +16,7 @@ export default function Preview({
   const { title, description, image, url, password } = data;
   const [debouncedUrl] = useDebounce(url, 500);
   const hostname = useMemo(() => {
-    if (password) return "dub.sh";
+    if (password) return "dub.co";
     return getDomainWithoutWWW(debouncedUrl);
   }, [password, debouncedUrl]);
 

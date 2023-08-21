@@ -6,19 +6,21 @@ export async function GET() {
     <feed xmlns="http://www.w3.org/2005/Atom">
         <title>Dub</title>
         <subtitle>Changelog</subtitle>
-        <link href="https://dub.sh/atom" rel="self"/>
-        <link href="https://dub.sh/"/>
+        <link href="https://dub.co/atom" rel="self"/>
+        <link href="https://dub.co/"/>
         <updated>${allChangelogPosts[0].publishedAt}</updated>
-        <id>https://dub.sh/</id>${allChangelogPosts.map((post) => {
-          return `
+        <id>https://dub.co/</id>${allChangelogPosts
+          .map((post) => {
+            return `
         <entry>
-            <id>https://dub.sh/changelog/${post.slug}</id>
+            <id>https://dub.co/changelog/${post.slug}</id>
             <title>${post.title}</title>
-            <link href="https://dub.sh/changelog/${post.slug}"/>
+            <link href="https://dub.co/changelog/${post.slug}"/>
             <updated>${post.publishedAt}</updated>
             <author><name>${post.author}</name></author>
         </entry>`;
-        }).join("")}
+          })
+          .join("")}
     </feed>`,
     {
       headers: {

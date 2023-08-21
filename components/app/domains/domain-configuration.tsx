@@ -115,7 +115,7 @@ export default function DomainConfiguration({
           <div>
             <p className="text-sm font-bold">Value</p>
             <p className="mt-2 font-mono text-sm">
-              {recordType === "A" ? `76.76.21.21` : `cname.dub.sh`}
+              {recordType === "A" ? `76.76.21.21` : `cname.dub.co`}
             </p>
           </div>
           <div>

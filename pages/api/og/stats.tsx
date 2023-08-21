@@ -51,7 +51,7 @@ export default async function handler(req: NextRequest) {
           flexDirection: "column",
           alignItems: "center",
           backgroundColor: "white",
-          backgroundImage: `url(https://dub.sh/_static/background.png)`,
+          backgroundImage: `url(https://dub.co/_static/background.png)`,
         }}
       >
         <img

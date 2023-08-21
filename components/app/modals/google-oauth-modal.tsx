@@ -11,6 +11,7 @@ import Button from "#/ui/button";
 import { Logo } from "#/ui/icons";
 import { Google } from "@/components/shared/icons";
 import Cookies from "js-cookie";
+import { HOME_DOMAIN } from "#/lib/constants";
 
 function GoogleOauthModal({
   showGoogleOauthModal,
@@ -33,7 +34,7 @@ function GoogleOauthModal({
           This allows you to sign in to your Dub account with Google.{" "}
           <a
             className="underline underline-offset-4 transition-colors hover:text-black"
-            href="https://dub.sh/changelog/sign-in-with-google"
+            href={`${HOME_DOMAIN}/changelog/sign-in-with-google`}
             target="_blank"
             rel="noopener noreferrer"
           >

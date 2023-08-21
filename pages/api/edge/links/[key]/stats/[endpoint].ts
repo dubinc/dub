@@ -1,9 +1,8 @@
 import type { NextRequest } from "next/server";
 import { getStats } from "#/lib/stats";
 import { getLinkViaEdge } from "#/lib/planetscale";
-import { isHomeHostname } from "#/lib/utils";
 import { ipAddress } from "@vercel/edge";
-import { LOCALHOST_IP } from "#/lib/constants";
+import { LOCALHOST_IP, isHomeHostname } from "#/lib/constants";
 import { ratelimit } from "#/lib/upstash";
 import { isBlacklistedReferrer } from "#/lib/edge-config";
 
