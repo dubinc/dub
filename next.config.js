@@ -124,6 +124,17 @@ const nextConfig = {
         destination: "https://preview.dub.co",
         permanent: true,
       },
+      {
+        source: "/",
+        has: [
+          {
+            type: "host",
+            value: "admin.dub.sh",
+          },
+        ],
+        destination: "https://admin.dub.co",
+        permanent: true,
+      },
     ];
   },
 };
