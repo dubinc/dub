@@ -6,13 +6,13 @@ import {
   allHelpPosts,
   allLegalPosts,
 } from "contentlayer/generated";
-import { isHomeHostname } from "#/lib/utils";
+import { isHomeHostname } from "#/lib/constants";
 import { BLOG_CATEGORIES, HELP_CATEGORIES } from "#/lib/constants/content";
 
 export default async function Sitemap() {
   const headersList = headers();
   let domain = headersList.get("host") as string;
-  if (isHomeHostname(domain)) domain = "dub.sh";
+  if (isHomeHostname(domain)) domain = "dub.co";
 
   const links = await prisma.link.findMany({
     where: {
@@ -34,7 +34,7 @@ export default async function Sitemap() {
       url: `https://${domain}`,
       lastModified: new Date(),
     },
-    ...(domain === "dub.sh"
+    ...(domain === "dub.co"
       ? [
           {
             url: `https://${domain}/pricing`,

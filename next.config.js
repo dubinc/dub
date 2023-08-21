@@ -1,5 +1,15 @@
 const { withContentlayer } = require("next-contentlayer");
 
+const REDIRECT_SEGMENTS = [
+  "pricing",
+  "blog",
+  "help",
+  "changelog",
+  "metatags",
+  "stats",
+  "_static",
+];
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
@@ -64,6 +74,54 @@ const nextConfig = {
           },
         ],
         destination: "https://app.dub.co/:path*",
+        permanent: true,
+      },
+      {
+        source: "/",
+        has: [
+          {
+            type: "host",
+            value: "dub.sh",
+          },
+        ],
+        destination: "https://dub.co",
+        permanent: true,
+      },
+      ...REDIRECT_SEGMENTS.map(
+        (segment) => (
+          {
+            source: `/${segment}`,
+            has: [
+              {
+                type: "host",
+                value: "dub.sh",
+              },
+            ],
+            destination: `https://dub.co/${segment}`,
+            permanent: true,
+          },
+          {
+            source: `/${segment}/:path*`,
+            has: [
+              {
+                type: "host",
+                value: "dub.sh",
+              },
+            ],
+            destination: `https://dub.co/${segment}/:path*`,
+            permanent: true,
+          }
+        ),
+      ),
+      {
+        source: "/",
+        has: [
+          {
+            type: "host",
+            value: "preview.dub.sh",
+          },
+        ],
+        destination: "https://preview.dub.co",
         permanent: true,
       },
     ];

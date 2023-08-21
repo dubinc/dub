@@ -134,7 +134,7 @@ export default function AppLayout({
                       className="text-sm font-medium"
                     >
                       {linkConstructor({
-                        domain: domain || "dub.sh",
+                        domain,
                         key,
                         pretty: true,
                       })}

@@ -1,4 +1,4 @@
-<a href="https://dub.sh">
+<a href="https://dub.co">
   <img alt="Dub – an open-source link management tool for modern marketing teams to create, share, and track short links." src="https://user-images.githubusercontent.com/28986134/200727801-6355c62e-60b5-45d7-a83d-44b11545e471.png">
   <h1 align="center">Dub</h1>
 </a>
@@ -31,6 +31,7 @@
 Dub is an open-source link management tool for modern marketing teams to create, share, and track short links. Built with [Vercel Edge Functions](http://vercel.com/edge), [Upstash Redis](https://docs.upstash.com/redis), and [PlanetScale MySQL](https://planetscale.com/).
 
 Here are some of the features that Dub provides out-of-the-box:
+
 - [Built-in Analytics](#built-in-analytics)
 - [Custom Domains](#custom-domains)
 - [QR Code Generator](#qr-code-generator)

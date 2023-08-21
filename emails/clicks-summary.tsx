@@ -147,7 +147,7 @@ export default function ClicksSummary({
                 <Section className="my-8 text-center">
                   <Link
                     className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                    href={`https://app.dub.sh/${projectSlug}`}
+                    href={`https://app.dub.co/${projectSlug}`}
                   >
                     Start creating links
                   </Link>
@@ -161,7 +161,7 @@ export default function ClicksSummary({
                 <Section className="my-8 text-center">
                   <Link
                     className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                    href={`https://app.dub.sh/${projectSlug}?sort=clicks`}
+                    href={`https://app.dub.co/${projectSlug}?sort=clicks`}
                   >
                     View my stats
                   </Link>

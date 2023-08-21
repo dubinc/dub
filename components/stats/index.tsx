@@ -30,7 +30,7 @@ export default function Stats({ staticDomain }: { staticDomain?: string }) {
   const {
     slug,
     domain: domainSlug,
-    key = "_root", // if key is undefined, it's the root domain stats page (e.g. app.dub.sh/steven/stey.me)
+    key = "_root", // if key is undefined, it's the root domain stats page (e.g. app.dub.co/steven/stey.me)
     interval = "24h",
   } = router.query as {
     slug?: string;
@@ -49,10 +49,10 @@ export default function Stats({ staticDomain }: { staticDomain?: string }) {
       : "";
 
   const { basePath, domain, endpoint } = useMemo(() => {
-    // Project link page, e.g. app.dub.sh/dub/dub.sh/github
+    // Project link page, e.g. app.dub.co/dub/dub.sh/github
     if (slug && domainSlug && key) {
       return {
-        // for _root domain stats page (e.g. app.dub.sh/steven/stey.me), we don't want to show the key in the URL
+        // for _root domain stats page (e.g. app.dub.co/steven/stey.me), we don't want to show the key in the URL
         basePath: `/${slug}/${domainSlug}${
           key === "_root" ? "" : `/${encodeURIComponent(key)}`
         }`,
@@ -60,7 +60,7 @@ export default function Stats({ staticDomain }: { staticDomain?: string }) {
         endpoint: `/api/links/${encodeURIComponent(key)}/stats`,
       };
 
-      // Generic Dub.sh link page, e.g. app.dub.sh/links/steven
+      // Generic Dub.sh link page, e.g. app.dub.co/links/steven
     } else if (key && router.asPath.startsWith("/links")) {
       return {
         basePath: `/links/${encodeURIComponent(key)}`,
@@ -69,7 +69,7 @@ export default function Stats({ staticDomain }: { staticDomain?: string }) {
       };
     }
 
-    // Public stats page, e.g. dub.sh/stats/github, stey.me/stats/weathergpt
+    // Public stats page, e.g. dub.co/stats/github, stey.me/stats/weathergpt
     return {
       basePath: `/stats/${encodeURIComponent(key)}`,
       domain: staticDomain,

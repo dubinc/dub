@@ -10,7 +10,7 @@ import Button from "#/ui/button";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { STAGGER_CHILD_VARIANTS } from "#/lib/constants";
+import { HOME_DOMAIN, STAGGER_CHILD_VARIANTS } from "#/lib/constants";
 import { CheckCircleFill } from "@/components/shared/icons";
 import { capitalize } from "#/lib/utils";
 import { PLANS } from "#/lib/stripe/utils";
@@ -197,7 +197,7 @@ function UpgradePlanModal({
               </button>
               <p className="text-gray-500">•</p>
               <a
-                href="https://dub.sh/pricing"
+                href={`${HOME_DOMAIN}/pricing`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-center text-xs text-gray-500 underline-offset-4 transition-all hover:text-gray-800 hover:underline"

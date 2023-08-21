@@ -1,8 +1,10 @@
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 import {
+  ADMIN_HOSTNAMES,
   API_HOSTNAMES,
   APP_HOSTNAMES,
   DEFAULT_REDIRECTS,
+  isHomeHostname,
 } from "#/lib/constants";
 import {
   AppMiddleware,
@@ -11,7 +13,6 @@ import {
   RootMiddleware,
 } from "#/lib/middleware";
 import { parse } from "#/lib/middleware/utils";
-import { isReservedKey } from "#/lib/edge-config";
 import AdminMiddleware from "./lib/middleware/admin";
 
 export const config = {
@@ -32,6 +33,15 @@ export const config = {
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   const { domain, path, key } = parse(req);
 
+  if (isHomeHostname(domain)) {
+    return NextResponse.rewrite(new URL(`/dub.co${path}`, req.url));
+  }
+
+  // for public stats pages (e.g. dub.co/stats/github, vercel.fyi/stats/roomGPT)
+  if (key === "stats") {
+    return NextResponse.rewrite(new URL(`/${domain}${path}`, req.url));
+  }
+
   // for App
   if (APP_HOSTNAMES.has(domain)) {
     return AppMiddleware(req);
@@ -43,27 +53,17 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   }
 
   // for Admin
-  if (domain === "admin.dub.sh" || domain === "admin.localhost:8888") {
+  if (ADMIN_HOSTNAMES.has(domain)) {
     return AdminMiddleware(req);
   }
 
-  // for public stats pages (e.g. dub.sh/stats/github)
-  if (key === "stats") {
-    return NextResponse.rewrite(new URL(`/${domain}${path}`, req.url));
-  }
-
-  // for root pages (e.g. dub.sh, vercel.fyi, etc.)
+  // for root pages (e.g. dub.co, vercel.fyi, etc.)
   if (key.length === 0) {
     return RootMiddleware(req, ev);
   }
 
-  if (domain === "dub.sh") {
-    if (DEFAULT_REDIRECTS[key]) {
-      return NextResponse.redirect(DEFAULT_REDIRECTS[key]);
-    }
-    if (await isReservedKey(key)) {
-      return NextResponse.rewrite(new URL(`/dub.sh${path}`, req.url));
-    }
+  if (domain === "dub.sh" && DEFAULT_REDIRECTS[key]) {
+    return NextResponse.redirect(DEFAULT_REDIRECTS[key]);
   }
 
   return LinkMiddleware(req, ev);

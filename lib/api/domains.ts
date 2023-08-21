@@ -11,7 +11,9 @@ export const validateDomain = async (
     return "Missing domain";
   }
   const validDomain =
-    validDomainRegex.test(domain) && !domain.endsWith(".dub.sh");
+    validDomainRegex.test(domain) &&
+    !domain.endsWith(".dub.co") &&
+    !domain.endsWith(".dub.sh");
 
   if (!validDomain) {
     return "Invalid domain";

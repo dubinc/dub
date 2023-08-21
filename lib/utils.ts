@@ -20,7 +20,7 @@ export function cn(...inputs: ClassValue[]) {
 export function constructMetadata({
   title = "Dub - Link Management for Modern Marketing Teams",
   description = "Dub is an open-source link management tool for modern marketing teams to create, share, and track short links.",
-  image = "https://dub.sh/_static/thumbnail.png",
+  image = "https://dub.co/_static/thumbnail.png",
   icons = "/favicon.ico",
 }: {
   title?: string;
@@ -270,7 +270,7 @@ export const getApexDomain = (url: string) => {
     // otherwise, it's a subdomain (e.g. dub.vercel.app), so we return the last 2 parts
     return parts.slice(-2).join(".");
   }
-  // if it's a normal domain (e.g. dub.sh), we return the domain
+  // if it's a normal domain (e.g. dub.co), we return the domain
   return domain;
 };
 
@@ -281,10 +281,6 @@ export const isValidUrl = (url: string) => {
   } catch (e) {
     return false;
   }
-};
-
-export const isHomeHostname = (domain: string) => {
-  return HOME_HOSTNAMES.has(domain) || domain.endsWith(".vercel.app");
 };
 
 export const getUrlFromString = (str: string) => {
