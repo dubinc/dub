@@ -114,10 +114,9 @@ export const FAVICON_FOLDER = "/_static/favicons";
 export const GOOGLE_FAVICON_URL =
   "https://www.google.com/s2/favicons?sz=64&domain_url=";
 
-export const DUB_LOGO =
-  "https://public.blob.vercel-storage.com/kmKY9FhOzDRAX28c/logo-1Y8NV0x4Wsy7LzPAYjBmkytJYTMJi0.png";
+export const DUB_LOGO = "https://d2vwwcvoksz7ty.cloudfront.net/logo.png";
 export const DUB_THUMBNAIL =
-  "https://public.blob.vercel-storage.com/kmKY9FhOzDRAX28c/thumbnail-wU82A4LTeJMXrygW1ZR6O36k3edeJf.png";
+  "https://d2vwwcvoksz7ty.cloudfront.net/thumbnail.png";
 
 export const SHOW_BACKGROUND_SEGMENTS = new Set([
   "metatags",

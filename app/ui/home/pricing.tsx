@@ -169,7 +169,7 @@ const pricingItems = [
         text: "API Access",
         footnote: "Under development. ETA: September 2023",
       },
-      { text: "SSO/SAML", footnote: "Under development. ETA: Q4 2023" },
+      { text: "SSO/SAML" },
       {
         text: "Priority support",
         footnote: "Email & chat support within 24 hours.",
