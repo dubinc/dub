@@ -30,7 +30,7 @@ export default async function LinkMiddleware(
     }
     const ip = ipAddress(req) || LOCALHOST_IP;
     const { success } = await ratelimit(
-      5,
+      10,
       key === "github" ? "1 d" : "10 s",
     ).limit(`${ip}:${domain}:${key}`);
 

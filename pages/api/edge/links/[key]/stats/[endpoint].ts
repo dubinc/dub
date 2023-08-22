@@ -27,8 +27,8 @@ export default async function handler(req: NextRequest) {
       }
       const ip = ipAddress(req) || LOCALHOST_IP;
       const { success } = await ratelimit(
-        10,
-        key === "github" && endpoint !== "clicks" ? "1 d" : "10 s",
+        15,
+        key === "github" && endpoint !== "clicks" ? "1 h" : "10 s",
       ).limit(`${ip}:${domain}:${key}:${endpoint}`);
 
       if (!success) {
