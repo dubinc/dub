@@ -16,7 +16,7 @@ export default async function Sitemap() {
 
   const links = await prisma.link.findMany({
     where: {
-      domain,
+      domain: domain === "dub.co" ? "dub.sh" : domain,
       publicStats: true,
     },
     select: {
