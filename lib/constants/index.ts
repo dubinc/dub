@@ -119,7 +119,7 @@ export const DUB_THUMBNAIL =
   "https://d2vwwcvoksz7ty.cloudfront.net/thumbnail.png";
 
 export const SHOW_BACKGROUND_SEGMENTS = new Set([
-  "metatags",
+  "tools",
   "pricing",
   "help",
   "blog",
@@ -128,6 +128,8 @@ export const SHOW_BACKGROUND_SEGMENTS = new Set([
   "register",
   "auth",
 ]);
+
+export const allTools = ["metatags"];
 
 export { default as COUNTRIES } from "./countries";
 export { default as ccTLDs } from "./cctlds";

@@ -6,7 +6,7 @@ import {
   allHelpPosts,
   allLegalPosts,
 } from "contentlayer/generated";
-import { isHomeHostname } from "#/lib/constants";
+import { isHomeHostname, allTools } from "#/lib/constants";
 import { BLOG_CATEGORIES, HELP_CATEGORIES } from "#/lib/constants/content";
 
 export default async function Sitemap() {
@@ -72,10 +72,10 @@ export default async function Sitemap() {
             url: `https://${domain}/changelog/${post.slug}`,
             lastModified: new Date(post.publishedAt),
           })),
-          {
-            url: `https://${domain}/metatags`,
+          ...allTools.map((tool) => ({
+            url: `https://${domain}/${tool}`,
             lastModified: new Date(),
-          },
+          })),
           ...allLegalPosts.map((post) => ({
             url: `https://${domain}/${post.slug}`,
             lastModified: new Date(post.updatedAt),

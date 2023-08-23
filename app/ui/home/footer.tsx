@@ -11,12 +11,13 @@ const navigation = {
   product: [
     { name: "Pricing", href: "/pricing" },
     { name: "Changelog", href: "/changelog" },
-  ],
-  company: [{ name: "Blog", href: "/blog" }],
-  resources: [
     { name: "Help Center", href: "/help" },
-    { name: "Metatags API", href: "/metatags" },
   ],
+  company: [
+    { name: "Blog", href: "/blog" },
+    // { name: "About", href: "/about" },
+  ],
+  tools: [{ name: "Metatags API", href: "/tools/metatags" }],
   legal: [
     { name: "Privacy", href: "/privacy" },
     { name: "Terms", href: "/terms" },
@@ -135,11 +136,9 @@ export default function Footer() {
             </div>
             <div className="md:grid md:grid-cols-2 md:gap-8">
               <div>
-                <h3 className="text-sm font-semibold text-gray-600">
-                  Resources
-                </h3>
+                <h3 className="text-sm font-semibold text-gray-600">Tools</h3>
                 <ul role="list" className="mt-4 space-y-4">
-                  {navigation.resources.map((item) => (
+                  {navigation.tools.map((item) => (
                     <li key={item.name}>
                       <Link
                         href={createHref(item.href)}

@@ -5,7 +5,7 @@ const REDIRECT_SEGMENTS = [
   "blog",
   "help",
   "changelog",
-  "metatags",
+  "tools",
   "stats",
   "_static",
 ];
@@ -113,6 +113,28 @@ const nextConfig = {
           }
         ),
       ),
+      {
+        source: "/metatags",
+        has: [
+          {
+            type: "host",
+            value: "dub.sh",
+          },
+        ],
+        destination: "https://dub.co/tools/metatags",
+        permanent: true,
+      },
+      {
+        source: "/metatags",
+        has: [
+          {
+            type: "host",
+            value: "dub.co",
+          },
+        ],
+        destination: "/tools/metatags",
+        permanent: true,
+      },
       {
         source: "/",
         has: [
