@@ -21,5 +21,7 @@ export default async function ApiMiddleware(req: NextRequest) {
       new URL(`/api/edge/metatags?url=${url}`, req.url),
     );
   }
+  // Note: we don't have to account for paths starting with `/api`
+  // since they're automatically excluded via our middleware matcher
   return NextResponse.rewrite(new URL(`/api${fullPath}`, req.url));
 }
