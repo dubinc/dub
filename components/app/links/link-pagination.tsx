@@ -90,7 +90,7 @@ export default function LinkPagination() {
       </div>
       <p className="text-sm text-gray-500">
         Showing {(currentPage - 1) * PAGINATION_LIMIT + 1} -{" "}
-        {currentPage * PAGINATION_LIMIT} of{" "}
+        {Math.min(currentPage * PAGINATION_LIMIT, count)} of{" "}
         <Number value={count} unit="links">
           <span>{nFormatter(count)}</span>
         </Number>{" "}
