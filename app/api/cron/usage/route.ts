@@ -3,10 +3,8 @@ import { updateUsage } from "./utils";
 import { NextResponse } from "next/server";
 import { receiver } from "#/lib/cron";
 
-/**
- * Cron to update the usage stats of each project.
- * Runs once every day at 7AM PST.
- **/
+// Cron to update the usage stats of each project.
+// Runs once every day at 7AM PST (0 14 * * *)
 
 export async function POST(req: Request) {
   const body = await req.json();
