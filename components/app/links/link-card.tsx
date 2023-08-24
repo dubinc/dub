@@ -325,7 +325,10 @@ export default function LinkCard({
                   </div>
                 }
               >
-                <Avatar user={user} className="h-4 w-4" />
+                {/* Without the wrapping div, the Tooltip won't be triggered for some reason */}
+                <div>
+                  <Avatar user={user} className="h-4 w-4" />
+                </div>
               </Tooltip>
               <p>•</p>
               <p className="whitespace-nowrap text-sm text-gray-500">
