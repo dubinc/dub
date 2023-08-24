@@ -39,10 +39,27 @@ import useTags from "#/lib/swr/use-tags";
 import TagBadge from "@/components/app/links/tag-badge";
 import { ModalContext } from "#/ui/modal-provider";
 import Number from "#/ui/number";
+import Avatar from "#/ui/avatar";
+import { UserProps } from "#/lib/types";
 
-export default function LinkCard({ props }: { props: LinkProps }) {
-  const { key, domain, url, rewrite, createdAt, archived, tagId, comments } =
-    props;
+export default function LinkCard({
+  props,
+}: {
+  props: LinkProps & {
+    user: UserProps;
+  };
+}) {
+  const {
+    key,
+    domain,
+    url,
+    rewrite,
+    createdAt,
+    archived,
+    tagId,
+    comments,
+    user,
+  } = props;
   const { tags } = useTags();
   const tag = useMemo(() => tags?.find((t) => t.id === tagId), [tags, tagId]);
 
@@ -290,6 +307,27 @@ export default function LinkCard({ props }: { props: LinkProps }) {
               )}
             </div>
             <div className="flex max-w-fit items-center space-x-1">
+              <Tooltip
+                content={
+                  <div className="w-full p-4">
+                    <Avatar user={user} className="h-10 w-10" />
+                    <p className="mt-2 text-sm font-semibold text-gray-700">
+                      {user?.name || user?.email}
+                    </p>
+                    <p className="mt-1 text-xs text-gray-500">
+                      Created{" "}
+                      {new Date(createdAt).toLocaleDateString("en-us", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </p>
+                  </div>
+                }
+              >
+                <Avatar user={user} className="h-4 w-4" />
+              </Tooltip>
+              <p>•</p>
               <p className="whitespace-nowrap text-sm text-gray-500">
                 {timeAgo(createdAt)}
               </p>

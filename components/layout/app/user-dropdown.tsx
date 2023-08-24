@@ -13,6 +13,7 @@ import Cookies from "js-cookie";
 import { ModalContext } from "#/ui/modal-provider";
 import { allChangelogPosts } from "contentlayer/generated";
 import { HOME_DOMAIN } from "#/lib/constants";
+import Avatar from "#/ui/avatar";
 
 export default function UserDropdown() {
   const { data: session } = useSession();
@@ -133,14 +134,10 @@ export default function UserDropdown() {
           onClick={() => setOpenPopover(!openPopover)}
           className="group relative"
         >
-          {session ? (
-            <img
-              alt={session?.user?.email || "Avatar for logged in user"}
-              src={
-                session?.user?.image ||
-                `https://avatars.dicebear.com/api/micah/${session?.user?.email}.svg`
-              }
-              className="h-9 w-9 rounded-full border border-gray-300 transition-all duration-75 group-focus:outline-none group-active:scale-95 sm:h-10 sm:w-10"
+          {session?.user ? (
+            <Avatar
+              user={session.user}
+              className="h-9 w-9 transition-all duration-75 group-focus:outline-none group-active:scale-95 sm:h-10 sm:w-10"
             />
           ) : (
             <div className="h-9 w-9 animate-pulse rounded-full border border-gray-300 bg-gray-100 sm:h-10 sm:w-10" />

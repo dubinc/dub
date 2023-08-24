@@ -11,6 +11,7 @@ import BlurImage from "#/ui/blur-image";
 import Modal from "#/ui/modal";
 import Button from "#/ui/button";
 import { useSession } from "next-auth/react";
+import Avatar from "#/ui/avatar";
 
 function DeleteAccountModal({
   showDeleteAccountModal,
@@ -54,16 +55,7 @@ function DeleteAccountModal({
       setShowModal={setShowDeleteAccountModal}
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
-        <BlurImage
-          src={
-            session?.user?.image ||
-            `https://avatars.dicebear.com/api/micah/${session?.user?.email}.svg`
-          }
-          alt={session?.user?.name || session?.user?.email || "Delete Account"}
-          className="h-10 w-10 rounded-full border border-gray-200"
-          width={20}
-          height={20}
-        />
+        <Avatar user={session?.user} />
         <h3 className="text-lg font-medium">Delete Account</h3>
         <p className="text-center text-sm text-gray-500">
           Warning: This will permanently delete your account and all your Dub.sh

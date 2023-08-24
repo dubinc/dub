@@ -15,6 +15,7 @@ import Button from "#/ui/button";
 import { UserProps } from "#/lib/types";
 import { Logo } from "#/ui/icons";
 import { useSession } from "next-auth/react";
+import Avatar from "#/ui/avatar";
 
 function EditRoleModal({
   showEditRoleModal,
@@ -58,13 +59,7 @@ function EditRoleModal({
 
       <div className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 text-left sm:px-16">
         <div className="flex items-center space-x-3 rounded-md border border-gray-300 bg-white p-3">
-          <BlurImage
-            src={image || `https://avatars.dicebear.com/api/micah/${email}.svg`}
-            alt={email}
-            width={40}
-            height={40}
-            className="overflow-hidden rounded-full border border-gray-200"
-          />
+          <Avatar user={user} />
           <div className="flex flex-col">
             <h3 className="text-sm font-medium">{name || email}</h3>
             <p className="text-xs text-gray-500">{email}</p>

@@ -11,6 +11,7 @@ import { GOOGLE_FAVICON_URL } from "#/lib/constants";
 import { ModalContext } from "#/ui/modal-provider";
 import Link from "next/link";
 import useProject from "#/lib/swr/use-project";
+import Avatar from "#/ui/avatar";
 
 export default function ProjectSelect() {
   const { projects } = useProjects();
@@ -153,16 +154,7 @@ function ProjectList({
         href="/links"
         onClick={() => setOpenPopover(false)}
       >
-        <img
-          src={
-            session?.user?.image ||
-            `https://avatars.dicebear.com/api/micah/${session?.user?.email}.svg`
-          }
-          alt={
-            session?.user?.name || session?.user?.email || "Personal Account"
-          }
-          className="h-7 w-7 flex-none overflow-hidden rounded-full"
-        />
+        <Avatar user={session?.user} className="h-7 w-7" />
         <span
           className={`block truncate pr-8 text-sm ${
             selected.slug === "/" ? "font-medium" : "font-normal"

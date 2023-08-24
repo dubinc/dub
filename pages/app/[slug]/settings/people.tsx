@@ -14,6 +14,7 @@ import useUsers from "#/lib/swr/use-users";
 import { useSession } from "next-auth/react";
 import { useEditRoleModal } from "@/components/app/modals/edit-role-modal";
 import useProject from "#/lib/swr/use-project";
+import Avatar from "#/ui/avatar";
 
 const tabs: Array<"Members" | "Invitations"> = ["Members", "Invitations"];
 
@@ -104,7 +105,7 @@ const UserCard = ({
 
   const { plan, isOwner } = useProject();
 
-  const { name, email, image, createdAt, role: currentRole } = user;
+  const { name, email, createdAt, role: currentRole } = user;
 
   const [role, setRole] = useState<"owner" | "member">(currentRole);
 
@@ -134,15 +135,7 @@ const UserCard = ({
       >
         <div className="flex items-start space-x-3">
           <div className="flex items-center space-x-3">
-            <BlurImage
-              src={
-                image || `https://avatars.dicebear.com/api/micah/${email}.svg`
-              }
-              alt={email}
-              width={40}
-              height={40}
-              className="overflow-hidden rounded-full border border-gray-200"
-            />
+            <Avatar user={user} />
             <div className="flex flex-col">
               <h3 className="text-sm font-medium">{name || email}</h3>
               <p className="text-xs text-gray-500">{email}</p>

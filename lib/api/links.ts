@@ -50,6 +50,9 @@ export async function getLinksForProject({
       ...(tagId && { tagId }),
       ...(userId && { userId }),
     },
+    include: {
+      user: true,
+    },
     orderBy: {
       [sort]: "desc",
     },
