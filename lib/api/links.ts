@@ -26,9 +26,6 @@ export async function getLinksForProject({
   userId?: string | null;
   showArchived?: boolean;
 }): Promise<LinkProps[]> {
-  /*
-  TODO: add pagination
-  */
   return await prisma.link.findMany({
     where: {
       projectId,

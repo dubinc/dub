@@ -321,12 +321,14 @@ function AddEditLinkModal({
             onSubmit={async (e) => {
               e.preventDefault();
               setSaving(true);
+              // @ts-ignore – exclude the extra `user` attribute from `data` object before sending to API
+              const { user, ...rest } = data;
               fetch(endpoint.url, {
                 method: endpoint.method,
                 headers: {
                   "Content-Type": "application/json",
                 },
-                body: JSON.stringify(data),
+                body: JSON.stringify(rest),
               }).then(async (res) => {
                 setSaving(false);
                 if (res.status === 200) {
