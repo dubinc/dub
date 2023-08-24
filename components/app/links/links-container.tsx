@@ -7,7 +7,6 @@ import LinkSort from "./link-sort";
 import useLinks from "#/lib/swr/use-links";
 import { useLinkFiltersModal } from "../modals/link-filters-modal";
 import LinkPagination from "./link-pagination";
-import { useEffect, useRef } from "react";
 
 export default function LinksContainer({
   AddEditLinkButton,
