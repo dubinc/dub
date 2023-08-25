@@ -1,0 +1,19 @@
+TOKEN "country_endpoint_read_3116" READ
+
+NODE country_node
+SQL >
+
+    %
+    SELECT country, COUNT(country) as clicks
+    FROM click_events_mv
+    WHERE
+        domain ={{ String(domain, "dub.sh", required=True) }}
+        AND key ={{ String(key, "github", required=True) }}
+        {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
+        {% if defined(end) %}
+            AND timestamp <= {{ DateTime64(end) }}
+        {% end %}
+    GROUP BY country
+    ORDER BY clicks DESC
+
+

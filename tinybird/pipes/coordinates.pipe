@@ -1,0 +1,15 @@
+TOKEN "coordinates_endpoint_read_1564" READ
+
+NODE coordinates_node
+SQL >
+
+    %
+    SELECT longitude, latitude
+    FROM click_events
+    WHERE
+        domain = 'dub.sh' AND
+        key='github'
+    ORDER BY timestamp DESC
+    LIMIT 50
+
+

@@ -32,10 +32,15 @@ yarn-error.log*
 # vercel
 .vercel
 
+# tinybird
+venv
+.tinyb
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
 
+# miscellaneous
 /pages/api/scripts*
 .react-email
 .contentlayer

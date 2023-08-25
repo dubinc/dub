@@ -1,0 +1,29 @@
+# Data Source created from Pipe 'pipe_for_click_events_mv'
+
+SCHEMA >
+    `timestamp` DateTime64(3),
+    `domain` String,
+    `key` String,
+    `country` LowCardinality(String),
+    `city` String,
+    `device` LowCardinality(String),
+    `browser` LowCardinality(String),
+    `os` LowCardinality(String),
+    `bot` UInt8,
+    `referer` String,
+    `browser_version` String,
+    `engine` LowCardinality(String),
+    `engine_version` String,
+    `latitude` String,
+    `longitude` String,
+    `os_version` String,
+    `region` String,
+    `ua` String,
+    `device_model` LowCardinality(String),
+    `device_vendor` LowCardinality(String),
+    `cpu_architecture` LowCardinality(String),
+    `referer_url` String
+
+ENGINE "MergeTree"
+ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
+ENGINE_SORTING_KEY "domain, key, timestamp"

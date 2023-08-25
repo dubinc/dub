@@ -1,0 +1,20 @@
+TOKEN "city_endpoint_read_5276" READ
+
+NODE city_node
+SQL >
+
+    %
+    SELECT city, country, COUNT(city) as clicks
+    FROM click_events_mv
+    WHERE
+        domain ={{ String(domain, "dub.sh", required=True) }}
+        AND key ={{ String(key, "github", required=True) }}
+        AND city != 'Unknown'
+        {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
+        {% if defined(end) %}
+            AND timestamp <= {{ DateTime64(end) }}
+        {% end %}
+    GROUP BY city, country
+    ORDER BY clicks DESC
+
+

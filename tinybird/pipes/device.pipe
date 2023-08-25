@@ -1,0 +1,20 @@
+TOKEN "device_endpoint_read_8888" READ
+
+NODE device_node
+SQL >
+
+    %
+    SELECT device, COUNT(device) as clicks
+    FROM click_events_mv
+    WHERE
+        domain ={{ String(domain, "dub.sh", required=True) }}
+        AND key ={{ String(key, "github", required=True) }}
+        AND bot = 0
+        {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
+        {% if defined(end) %}
+            AND timestamp <= {{ DateTime64(end) }}
+        {% end %}
+    GROUP BY device
+    ORDER BY clicks DESC
+
+

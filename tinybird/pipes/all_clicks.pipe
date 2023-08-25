@@ -1,0 +1,8 @@
+TOKEN "all_clicks_endpoint_read_2715" READ
+
+NODE all_clicks_node
+SQL >
+
+    SELECT COUNT(timestamp) FROM click_events_mv
+
+

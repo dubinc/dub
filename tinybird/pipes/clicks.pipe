@@ -1,0 +1,15 @@
+TOKEN "clicks_endpoint_read_1555" READ
+
+NODE clicks_node
+SQL >
+
+    %
+    SELECT COUNT(*)
+    FROM click_events_mv
+    WHERE
+        domain ={{ String(domain, "dub.sh", required=True) }}
+        AND key ={{ String(key, "github", required=True) }}
+        {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
+        {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
+
+

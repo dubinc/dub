@@ -1,0 +1,20 @@
+TOKEN "bot_endpoint_read_0109" READ
+
+NODE bot_node
+SQL >
+
+    %
+    SELECT ua, COUNT(bot) as clicks
+    FROM click_events_mv
+    WHERE
+        domain ={{ String(domain, "dub.sh", required=True) }}
+        AND key ={{ String(key, "github", required=True) }}
+        AND bot = 1
+        {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
+        {% if defined(end) %}
+            AND timestamp <= {{ DateTime64(end) }}
+        {% end %}
+    GROUP BY ua
+    ORDER BY clicks DESC
+
+

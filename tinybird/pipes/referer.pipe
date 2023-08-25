@@ -1,0 +1,19 @@
+TOKEN "referer_endpoint_read_8276" READ
+
+NODE referer_node
+SQL >
+
+    %
+    SELECT referer, COUNT(referer) as clicks
+    FROM click_events_mv
+    WHERE
+        domain ={{ String(domain, "dub.sh", required=True) }}
+        AND key ={{ String(key, "github", required=True) }}
+        {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
+        {% if defined(end) %}
+            AND timestamp <= {{ DateTime64(end) }}
+        {% end %}
+    GROUP BY referer
+    ORDER BY clicks DESC
+
+

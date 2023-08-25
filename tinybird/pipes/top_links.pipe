@@ -1,0 +1,16 @@
+TOKEN "usage_endpoint_read_8241" READ
+
+NODE top_links_node
+SQL >
+
+    %
+    SELECT domain, key, COUNT(*) AS clicks
+    FROM click_events
+    WHERE domain IN {{Array(domains, 'String', default='stey.me,steven.yt')}}
+      AND timestamp >= now() - INTERVAL 30 DAY
+      AND key != '_root'
+    GROUP BY domain, key
+    ORDER BY clicks DESC
+    LIMIT 5
+
+
