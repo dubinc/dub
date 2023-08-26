@@ -1,53 +1,54 @@
+import { cn } from "#/lib/utils";
 import BlurImage from "#/ui/blur-image";
 
 const logos = [
   {
     slug: "vercel",
-    dimensions: "h-5 sm:h-7",
+    className: "h-5 sm:h-7",
   },
   {
     slug: "tinybird",
-    dimensions: "h-7 sm:h-10",
+    className: "h-7 sm:h-10",
   },
   {
     slug: "hashnode",
-    dimensions: "h-6 sm:h-8",
+    className: "h-6 sm:h-8",
   },
   {
     slug: "checkly",
-    dimensions: "h-6 sm:h-8",
+    className: "h-6 sm:h-8 mt-2",
   },
   {
     slug: "cal",
-    dimensions: "h-4 sm:h-6",
+    className: "h-4 sm:h-6",
   },
   {
     slug: "perplexity",
-    dimensions: "h-6 sm:h-8",
+    className: "h-6 sm:h-8",
   },
   {
     slug: "replicate",
-    dimensions: "h-6 sm:h-8",
+    className: "h-6 sm:h-8",
   },
   {
     slug: "super",
-    dimensions: "h-4 sm:h-6",
+    className: "h-4 sm:h-6",
   },
   {
     slug: "chronicle",
-    dimensions: "h-6 sm:h-8",
+    className: "h-6 sm:h-8",
   },
   {
     slug: "attio",
-    dimensions: "h-7 sm:h-10",
+    className: "h-7 sm:h-10",
   },
   {
     slug: "crowd",
-    dimensions: "h-4 sm:h-6 -mt-2",
+    className: "h-4 sm:h-6 -mt-1.5",
   },
   {
     slug: "chatwoot",
-    dimensions: "h-5 sm:h-7 -mt-2",
+    className: "h-5 sm:h-7 -mt-1",
   },
 ];
 
@@ -62,24 +63,30 @@ export default function Logos({
         {copy}
       </p>
       <div className="mx-auto mt-8 grid w-full max-w-screen-lg grid-cols-2 items-center gap-5 px-5 sm:grid-cols-6 sm:px-0">
-        {logos.slice(0, 6).map(({ slug, dimensions }) => (
+        {logos.slice(0, 6).map(({ slug, className }) => (
           <BlurImage
             src={`/_static/clients/${slug}.svg`}
             alt={slug.toUpperCase()}
             width={2418}
             height={512}
-            className={`col-span-1 transition-all group-hover:opacity-20 group-hover:blur-sm ${dimensions}`}
+            className={cn(
+              "grayscale transition-all hover:grayscale-0",
+              className,
+            )}
           />
         ))}
       </div>
       <div className="mx-auto mt-8 grid w-full max-w-screen-lg grid-cols-2 items-center gap-5 px-5 sm:grid-cols-6 sm:px-0">
-        {logos.slice(6, 12).map(({ slug, dimensions }) => (
+        {logos.slice(6, 12).map(({ slug, className }) => (
           <BlurImage
             src={`/_static/clients/${slug}.svg`}
             alt={slug.toUpperCase()}
             width={2418}
             height={512}
-            className={`col-span-1 transition-all group-hover:opacity-20 group-hover:blur-sm ${dimensions}`}
+            className={cn(
+              "grayscale transition-all hover:grayscale-0",
+              className,
+            )}
           />
         ))}
       </div>
