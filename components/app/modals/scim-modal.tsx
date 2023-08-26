@@ -172,14 +172,14 @@ function SCIMModal({
                 </div>
                 <div className="mt-1 flex w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm">
                   <div className="overflow-auto scrollbar-hide">
-                    <p className="whitespace-nowrap text-gray-600 sm:text-sm">{`${scim.directories[0].webhook.endpoint}/${scim.directories[0].id}`}</p>
+                    <p className="whitespace-nowrap text-gray-600 sm:text-sm">{`${scim.directories[0].scim.endpoint}/${scim.directories[0].id}`}</p>
                   </div>
                   <button
                     type="button"
                     className="pl-2"
                     onClick={() => {
                       navigator.clipboard.writeText(
-                        `${scim.directories[0].webhook.endpoint}/${scim.directories[0].id}`,
+                        `${scim.directories[0].scim.endpoint}/${scim.directories[0].id}`,
                       );
                       setCopiedBaseUrl(true);
                       toast.success("Copied to clipboard");
