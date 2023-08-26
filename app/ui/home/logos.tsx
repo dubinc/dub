@@ -76,7 +76,7 @@ export default function Logos({
           />
         ))}
       </div>
-      <div className="mx-auto mt-8 grid w-full max-w-screen-lg grid-cols-2 items-center gap-5 px-5 sm:grid-cols-6 sm:px-0">
+      <div className="mx-auto mt-5 grid w-full max-w-screen-lg grid-cols-2 items-center gap-5 px-5 sm:mt-8 sm:grid-cols-6 sm:px-0">
         {logos.slice(6, 12).map(({ slug, className }) => (
           <BlurImage
             src={`/_static/clients/${slug}.svg`}
