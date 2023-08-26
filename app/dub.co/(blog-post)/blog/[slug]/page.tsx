@@ -27,11 +27,11 @@ export async function generateMetadata({
     return;
   }
 
-  const { title, summary, image } = post;
+  const { title, seoTitle, summary, seoDescription, image } = post;
 
   return constructMetadata({
-    title: `${title} – Dub Blog`,
-    description: summary,
+    title: `${seoTitle || title} – Dub`,
+    description: seoDescription || summary,
     image,
   });
 }
