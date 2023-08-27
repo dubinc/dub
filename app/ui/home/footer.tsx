@@ -21,6 +21,7 @@ const navigation = {
   legal: [
     { name: "Privacy", href: "/privacy" },
     { name: "Terms", href: "/terms" },
+    { name: "Abuse", href: "/abuse" },
   ],
 };
 
