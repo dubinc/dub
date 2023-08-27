@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 export const parse = (req: NextRequest) => {
   let domain = req.headers.get("host") as string;
   domain = domain.replace("www.", ""); // remove www. from domain
+  if (domain === "dub.localhost:8888") domain = "dub.sh"; // for local development
 
   // path is the path of the URL (e.g. dub.co/stats/github -> /stats/github)
   const path = req.nextUrl.pathname;

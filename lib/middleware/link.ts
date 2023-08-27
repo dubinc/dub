@@ -39,8 +39,7 @@ export default async function LinkMiddleware(
     }
   }
 
-  const { country } =
-    process.env.VERCEL === "1" && req.geo ? req.geo : LOCALHOST_GEO_DATA;
+  const inspectMode = key.endsWith("+");
 
   const response = await redis.get<{
     url: string;
@@ -50,7 +49,7 @@ export default async function LinkMiddleware(
     ios?: string;
     android?: string;
     geo?: object;
-  }>(`${domain}:${key}`);
+  }>(`${domain}:${inspectMode ? key.slice(0, -1) : key}`);
 
   const {
     url: target,
@@ -63,6 +62,12 @@ export default async function LinkMiddleware(
   } = response || {};
 
   if (target) {
+    if (inspectMode) {
+      return NextResponse.rewrite(
+        new URL(`/inspect/${domain}/${key}`, req.url),
+      );
+    }
+
     // special case for link health monitoring with planetfall.io :)
     if (!req.headers.get("dub-no-track")) {
       ev.waitUntil(recordClick(domain, req, key)); // track the click only if there is no `dub-no-track` header
@@ -74,6 +79,9 @@ export default async function LinkMiddleware(
         new URL(`/protected/${domain}/${key}`, req.url),
       );
     }
+
+    const { country } =
+      process.env.VERCEL === "1" && req.geo ? req.geo : LOCALHOST_GEO_DATA;
 
     const isBot = detectBot(req);
     if (isBot && proxy) {

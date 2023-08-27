@@ -5,6 +5,7 @@ import BanUser from "./components/ban";
 
 export const metadata = constructMetadata({
   title: "Dub Admin",
+  noIndex: true,
 });
 
 export default function AdminPage() {

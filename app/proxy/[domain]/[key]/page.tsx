@@ -24,6 +24,7 @@ export async function generateMetadata({
     description: unescape(data.description),
     image: unescape(data.image),
     icons: `${GOOGLE_FAVICON_URL}${unescape(apexDomain)}`,
+    noIndex: true,
   });
 }
 
