@@ -122,6 +122,7 @@ export const SHOW_BACKGROUND_SEGMENTS = new Set([
   "tools",
   "pricing",
   "help",
+  "features",
   "blog",
   "(blog-post)",
   "login",

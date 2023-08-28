@@ -9,6 +9,7 @@ import Testimonials from "#/ui/home/testimonials";
 import Changelog from "#/ui/home/changelog";
 import { Suspense } from "react";
 import GlobeClient from "#/ui/home/globe-client";
+import CTA from "#/ui/home/cta";
 
 export default function Home() {
   return (
@@ -34,6 +35,7 @@ export default function Home() {
       <Suspense fallback={<OSSSection stars={10000} />}>
         <OSS />
       </Suspense>
+      <CTA />
     </>
   );
 }

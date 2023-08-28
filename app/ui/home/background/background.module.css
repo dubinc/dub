@@ -37,7 +37,6 @@
 }
 
 .content {
-  height: fit-content;
   z-index: 3;
   width: 100%;
   max-width: 640px;

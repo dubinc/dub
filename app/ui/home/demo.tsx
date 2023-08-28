@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { experimental_useFormStatus as useFormStatus } from "react-dom";
 import { motion } from "framer-motion";
 import LinkCard from "#/ui/home/link-card";
 import PlaceholderCard from "#/ui/home/placeholder-card";

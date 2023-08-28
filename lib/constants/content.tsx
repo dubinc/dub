@@ -95,3 +95,29 @@ export const getPopularArticles = () => {
     (slug) => allHelpPosts.find((post) => post.slug === slug)!,
   );
 };
+
+export const features = [
+  {
+    title: "Powerful Analytics for the Modern Marketer",
+    shortTitle: "Advanced Analytics",
+    slug: "analytics",
+  },
+  {
+    title: "Branded Links that Stand Out",
+    shortTitle: "Branded Links",
+    slug: "branded-links",
+  },
+  { title: "Custom QR Codes", shortTitle: "QR Codes", slug: "qr-codes" },
+  {
+    title: "Personalize Your Link's Behavior",
+    seoTitle: "Personalize Your Link's Behavior with Device and Geo Targeting",
+    shortTitle: "Personalization",
+    slug: "personalization",
+  },
+  { title: "Programmatic Link Creation", shortTitle: "API", slug: "api" },
+  {
+    title: "Collaborate With Your Team",
+    shortTitle: "Team collaboration",
+    slug: "collaboration",
+  },
+];
