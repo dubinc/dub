@@ -211,6 +211,7 @@ function AddEditDomainModal({
                 name="domain"
                 id="domain"
                 required
+                autoFocus
                 autoComplete="off"
                 pattern="[[\p{Letter}\p{Mark}\d-.]+"
                 className={`${
