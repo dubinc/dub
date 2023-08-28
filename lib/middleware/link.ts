@@ -81,12 +81,16 @@ export default async function LinkMiddleware(
       );
     }
 
+    const isBot = detectBot(req);
+
     const { country } =
       process.env.VERCEL === "1" && req.geo ? req.geo : LOCALHOST_GEO_DATA;
 
-    const isBot = detectBot(req);
-    if (isBot && proxy) {
-      // rewrite to proxy page (/_proxy/[domain]/[key]) if it's a bot
+    // rewrite to target URL if link cloaking is enabled
+    if (rewrite) {
+      return NextResponse.rewrite(new URL(target, req.url), DUB_HEADERS);
+    } else if (isBot && proxy) {
+      // rewrite to proxy page (/_proxy/[domain]/[key]) if it's a bot and proxy is enabled
       return NextResponse.rewrite(
         new URL(`/proxy/${domain}/${encodeURIComponent(key)}`, req.url),
       );
@@ -103,10 +107,8 @@ export default async function LinkMiddleware(
         DUB_HEADERS,
       );
     } else {
-      // regular redirect / rewrite
-      return rewrite
-        ? NextResponse.rewrite(getFinalUrl(target, { req }), DUB_HEADERS)
-        : NextResponse.redirect(getFinalUrl(target, { req }), DUB_HEADERS);
+      // regular redirect
+      return NextResponse.redirect(getFinalUrl(target, { req }), DUB_HEADERS);
     }
   } else {
     // short link not found, redirect to root
