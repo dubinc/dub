@@ -35,6 +35,7 @@ export default async function handler(req: NextRequest, ev: NextFetchEvent) {
       status: 200,
       headers: {
         "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
       },
     });
   } else {
