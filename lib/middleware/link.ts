@@ -88,7 +88,7 @@ export default async function LinkMiddleware(
 
     // rewrite to target URL if link cloaking is enabled
     if (rewrite) {
-      return NextResponse.rewrite(target, DUB_HEADERS);
+      return NextResponse.rewrite(decodeURIComponent(target), DUB_HEADERS);
 
       // rewrite to proxy page (/_proxy/[domain]/[key]) if it's a bot and proxy is enabled
     } else if (isBot && proxy) {
