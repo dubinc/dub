@@ -49,7 +49,10 @@ export default async function LinkMiddleware(
     ios?: string;
     android?: string;
     geo?: object;
-  }>(`${domain}:${inspectMode ? key.slice(0, -1) : key}`);
+  }>(
+    // if inspect mode is enabled, remove the trailing `+` from the key
+    `${domain}:${inspectMode ? key.slice(0, -1) : key}`,
+  );
 
   const {
     url: target,
