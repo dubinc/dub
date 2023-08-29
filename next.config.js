@@ -147,6 +147,18 @@ const nextConfig = {
         has: [
           {
             type: "host",
+            value: "staging.dub.sh",
+          },
+        ],
+        destination: "https://dub.co",
+        permanent: true,
+        statusCode: 301,
+      },
+      {
+        source: "/",
+        has: [
+          {
+            type: "host",
             value: "preview.dub.sh",
           },
         ],
