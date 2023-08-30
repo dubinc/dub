@@ -4,7 +4,12 @@ import {
   NextResponse,
   userAgent,
 } from "next/server";
-import { detectBot, getFinalUrl, parse } from "#/lib/middleware/utils";
+import {
+  detectBot,
+  getFinalUrl,
+  hasXFrameOptions,
+  parse,
+} from "#/lib/middleware/utils";
 import { ratelimit, redis } from "#/lib/upstash";
 import { recordClick } from "#/lib/tinybird";
 import { DUB_HEADERS, LOCALHOST_GEO_DATA, LOCALHOST_IP } from "../constants";
@@ -92,12 +97,7 @@ export default async function LinkMiddleware(
     // rewrite to target URL if link cloaking is enabled
     if (rewrite) {
       // check if there's a `X-Frame-Options` header
-      const res = await fetch(decodeURIComponent(target), {
-        headers: {
-          "User-Agent": "dub-bot/1.0",
-        },
-      });
-      const xFrameOptions = res.headers.get("X-Frame-Options");
+      const xFrameOptions = await hasXFrameOptions(decodeURIComponent(target));
       if (xFrameOptions) {
         // if there is, use Next.js rewrite instead of iframe
         return NextResponse.rewrite(decodeURIComponent(target), DUB_HEADERS);

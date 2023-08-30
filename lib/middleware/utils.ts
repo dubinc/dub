@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { redis } from "#/lib/upstash";
 
 export const parse = (req: NextRequest) => {
   let domain = req.headers.get("host") as string;
@@ -59,4 +60,25 @@ export const detectBot = (req: NextRequest) => {
     );
   }
   return false;
+};
+
+// check if a URL has a `X-Frame-Options` header (and caches it in Redis)
+export const hasXFrameOptions = async (url: string) => {
+  const cachedResults = await redis.get(`x-frame-options:${url}`);
+  if (cachedResults) {
+    return cachedResults === "yes";
+  }
+
+  const res = await fetch(url, {
+    headers: {
+      "User-Agent": "dub-bot/1.0",
+    },
+  });
+  const xFrameOptions = res.headers.get("X-Frame-Options"); // returns null if there is no `X-Frame-Options` header
+  // cache for 1 month
+  await redis.set(`x-frame-options:${url}`, xFrameOptions ? "yes" : "no", {
+    ex: 60 * 60 * 24 * 30,
+  });
+
+  return xFrameOptions;
 };
