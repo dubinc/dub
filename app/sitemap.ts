@@ -73,7 +73,7 @@ export default async function Sitemap() {
             lastModified: new Date(post.publishedAt),
           })),
           ...allTools.map((tool) => ({
-            url: `https://${domain}/${tool}`,
+            url: `https://${domain}/tools/${tool}`,
             lastModified: new Date(),
           })),
           ...allLegalPosts.map((post) => ({

@@ -39,7 +39,7 @@ export default function useDomains({ domain }: { domain?: string } = {}) {
     domains,
     primaryDomain:
       domains?.find((domain) => domain.primary)?.slug ||
-      (domains && domains[0].slug),
+      (domains && domains.length > 0 && domains[0].slug),
     verified: domain
       ? // If a domain is passed, check if it's verified
         domains?.find((d) => d.slug === domain)?.verified
