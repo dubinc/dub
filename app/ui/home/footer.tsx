@@ -17,7 +17,10 @@ const navigation = {
     { name: "Blog", href: "/blog" },
     // { name: "About", href: "/about" },
   ],
-  tools: [{ name: "Metatags API", href: "/tools/metatags" }],
+  tools: [
+    { name: "Metatags API", href: "/tools/metatags" },
+    { name: "Link Inspector", href: "/tools/inspect" },
+  ],
   legal: [
     { name: "Privacy", href: "/privacy" },
     { name: "Terms", href: "/terms" },

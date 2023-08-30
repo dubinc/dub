@@ -162,7 +162,7 @@ export default function Tweet({
       <div className="my-3">
         {video && (
           <video
-            className="rounded-lg border border-gray-200 drop-shadow-sm"
+            className="w-full rounded-lg border border-gray-200 drop-shadow-sm"
             loop
             autoPlay
             muted
