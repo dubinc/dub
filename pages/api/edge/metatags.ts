@@ -108,7 +108,7 @@ const getRelativeUrl = (url: string, imageUrl: string) => {
   return new URL(imageUrl, baseURL).toString();
 };
 
-export const getMetaTags = async (url: string, ev: NextFetchEvent) => {
+export const getMetaTags = async (url: string, ev?: NextFetchEvent) => {
   const html = await getHtml(url);
   if (!html) {
     return {
@@ -147,7 +147,7 @@ export const getMetaTags = async (url: string, ev: NextFetchEvent) => {
     object["icon"] ||
     object["shortcut icon"];
 
-  ev.waitUntil(
+  ev?.waitUntil(
     recordMetatags(url, title && description && image ? false : true),
   );
 
