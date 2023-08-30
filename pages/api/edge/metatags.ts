@@ -38,6 +38,14 @@ export default async function handler(req: NextRequest, ev: NextFetchEvent) {
         "Access-Control-Allow-Origin": "*",
       },
     });
+  } else if (req.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+      },
+    });
   } else {
     return new Response(`Method ${req.method} Not Allowed`, { status: 405 });
   }
