@@ -91,10 +91,22 @@ export default async function LinkMiddleware(
 
     // rewrite to target URL if link cloaking is enabled
     if (rewrite) {
-      return NextResponse.rewrite(
-        new URL(`/rewrite/${target}`, req.url),
-        DUB_HEADERS,
-      );
+      // check if there's a `X-Frame-Options` header
+      const res = await fetch(decodeURIComponent(target), {
+        headers: {
+          "User-Agent": "dub-bot/1.0",
+        },
+      });
+      const xFrameOptions = res.headers.get("X-Frame-Options");
+      if (xFrameOptions) {
+        // if there is, use Next.js rewrite instead of iframe
+        return NextResponse.rewrite(decodeURIComponent(target), DUB_HEADERS);
+      } else {
+        return NextResponse.rewrite(
+          new URL(`/rewrite/${target}`, req.url),
+          DUB_HEADERS,
+        );
+      }
 
       // rewrite to proxy page (/_proxy/[domain]/[key]) if it's a bot and proxy is enabled
     } else if (isBot && proxy) {
