@@ -49,7 +49,10 @@ export default async function LinkMiddleware(
     ios?: string;
     android?: string;
     geo?: object;
-  }>(`${domain}:${inspectMode ? key.slice(0, -1) : key}`);
+  }>(
+    // if inspect mode is enabled, remove the trailing `+` from the key
+    `${domain}:${inspectMode ? key.slice(0, -1) : key}`,
+  );
 
   const {
     url: target,
@@ -81,32 +84,39 @@ export default async function LinkMiddleware(
       );
     }
 
+    const isBot = detectBot(req);
+
     const { country } =
       process.env.VERCEL === "1" && req.geo ? req.geo : LOCALHOST_GEO_DATA;
 
-    const isBot = detectBot(req);
-    if (isBot && proxy) {
-      // rewrite to proxy page (/_proxy/[domain]/[key]) if it's a bot
+    // rewrite to target URL if link cloaking is enabled
+    if (rewrite) {
+      return NextResponse.rewrite(decodeURIComponent(target), DUB_HEADERS);
+
+      // rewrite to proxy page (/_proxy/[domain]/[key]) if it's a bot and proxy is enabled
+    } else if (isBot && proxy) {
       return NextResponse.rewrite(
         new URL(`/proxy/${domain}/${encodeURIComponent(key)}`, req.url),
       );
-    } else if (ios && userAgent(req).os?.name === "iOS") {
+
       // redirect to iOS link if it is specified and the user is on an iOS device
+    } else if (ios && userAgent(req).os?.name === "iOS") {
       return NextResponse.redirect(getFinalUrl(ios, { req }), DUB_HEADERS);
-    } else if (android && userAgent(req).os?.name === "Android") {
+
       // redirect to Android link if it is specified and the user is on an Android device
+    } else if (android && userAgent(req).os?.name === "Android") {
       return NextResponse.redirect(getFinalUrl(android, { req }), DUB_HEADERS);
-    } else if (geo && country && country in geo) {
+
       // redirect to geo-specific link if it is specified and the user is in the specified country
+    } else if (geo && country && country in geo) {
       return NextResponse.redirect(
         getFinalUrl(geo[country], { req }),
         DUB_HEADERS,
       );
+
+      // regular redirect
     } else {
-      // regular redirect / rewrite
-      return rewrite
-        ? NextResponse.rewrite(getFinalUrl(target, { req }), DUB_HEADERS)
-        : NextResponse.redirect(getFinalUrl(target, { req }), DUB_HEADERS);
+      return NextResponse.redirect(getFinalUrl(target, { req }), DUB_HEADERS);
     }
   } else {
     // short link not found, redirect to root

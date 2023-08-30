@@ -49,7 +49,7 @@ export default function MetatagsContent() {
           defaultValue={url}
           onChange={(e) =>
             router.replace(
-              `/metatags${
+              `/tools/metatags${
                 e.target.value.length > 0 ? `?url=${e.target.value}` : ""
               }`,
             )
