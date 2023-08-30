@@ -23,6 +23,7 @@ export default function CTA() {
       >
         Try Dub For Free
       </a>
+      <br />
       <Dashboard />
     </MaxWidthWrapper>
   );
@@ -30,177 +31,584 @@ export default function CTA() {
 
 const Dashboard = () => {
   return (
-    <svg
-      viewBox="0 0 1512 858"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className="w-full rounded-t-lg border border-b-0 border-gray-200 bg-white/10 pt-5 shadow-[inset_10px_-50px_94px_0_rgb(199,199,199,0.2)] backdrop-blur"
-    >
-      <mask id="path-2-inside-1_2322_265" fill="white">
-        <path d="M0 253H1512V858H0V253Z" />
-      </mask>
-      <path d="M0 253H1512V858H0V253Z" fill="#F9FAFB" />
-      <path
-        d="M0 254H1512V252H0V254Z"
-        fill="#D5D5D5"
-        mask="url(#path-2-inside-1_2322_265)"
+    <svg viewBox="0 0 1512 835" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <g filter="url(#filter0_b_2322_265)">
+        <mask id="path-1-inside-1_2322_265" fill="white">
+          <path d="M0 262H1512V835H0V262Z" />
+        </mask>
+        <path d="M0 262H1512V835H0V262Z" fill="white" fill-opacity="0.35" />
+        <path
+          d="M1511 262V835H1513V262H1511ZM1 835V262H-1V835H1Z"
+          fill="#DDDDDD"
+          mask="url(#path-1-inside-1_2322_265)"
+        />
+      </g>
+      <g filter="url(#filter1_b_2322_265)">
+        <path
+          d="M0 10C0 4.47716 4.47715 0 10 0H1502C1507.52 0 1512 4.47715 1512 10V262H0V10Z"
+          fill="white"
+          fill-opacity="0.2"
+        />
+        <path
+          d="M10 0.5H1502C1507.25 0.5 1511.5 4.75329 1511.5 10V261.5H0.5V10C0.5 4.7533 4.75329 0.5 10 0.5Z"
+          stroke="#DDDDDD"
+        />
+      </g>
+      <rect
+        x="1138.5"
+        y="169.5"
+        width="131"
+        height="39"
+        rx="4.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
       />
-      <rect x="1138" y="160" width="132" height="40" rx="5" fill="#E8E9ED" />
-      <g filter="url(#filter0_d_2322_265)">
-        <rect x="523" y="714" width="789" height="84" rx="5" fill="white" />
-      </g>
-      <rect x="588" y="731" width="111" height="20" rx="5" fill="#E8E9ED" />
-      <rect x="764" y="731" width="81" height="20" rx="5" fill="#E8E9ED" />
-      <rect x="588" y="762" width="254" height="16" rx="5" fill="#E8E9ED" />
-      <circle cx="560" cy="756" r="21" fill="#E8E9ED" />
-      <circle cx="719" cy="741" r="10" fill="#E8E9ED" />
-      <circle cx="746" cy="741" r="10" fill="#E8E9ED" />
-      <g filter="url(#filter1_d_2322_265)">
-        <rect x="523" y="619" width="789" height="84" rx="5" fill="white" />
-      </g>
-      <rect x="588" y="636" width="111" height="20" rx="5" fill="#E8E9ED" />
-      <rect x="764" y="636" width="81" height="20" rx="5" fill="#E8E9ED" />
-      <rect x="588" y="667" width="254" height="16" rx="5" fill="#E8E9ED" />
-      <circle cx="560" cy="661" r="21" fill="#E8E9ED" />
-      <circle cx="719" cy="646" r="10" fill="#E8E9ED" />
-      <circle cx="746" cy="646" r="10" fill="#E8E9ED" />
       <g filter="url(#filter2_d_2322_265)">
-        <rect x="523" y="334" width="789" height="84" rx="5" fill="white" />
+        <rect
+          x="523"
+          y="343"
+          width="789"
+          height="84"
+          rx="5"
+          fill="white"
+          fill-opacity="0.5"
+          shape-rendering="crispEdges"
+        />
+        <rect
+          x="523.5"
+          y="343.5"
+          width="788"
+          height="83"
+          rx="4.5"
+          stroke="#DDDDDD"
+          shape-rendering="crispEdges"
+        />
       </g>
-      <rect x="588" y="351" width="111" height="20" rx="5" fill="#E8E9ED" />
-      <rect x="764" y="351" width="81" height="20" rx="5" fill="#E8E9ED" />
-      <rect x="588" y="382" width="254" height="16" rx="5" fill="#E8E9ED" />
-      <circle cx="560" cy="376" r="21" fill="#E8E9ED" />
-      <circle cx="719" cy="361" r="10" fill="#E8E9ED" />
-      <circle cx="746" cy="361" r="10" fill="#E8E9ED" />
+      <rect
+        x="588.5"
+        y="360.5"
+        width="110"
+        height="19"
+        rx="4.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
+      <rect
+        x="764.5"
+        y="360.5"
+        width="80"
+        height="19"
+        rx="4.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
+      <rect
+        x="588.5"
+        y="391.5"
+        width="253"
+        height="15"
+        rx="4.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
+      <circle
+        cx="560"
+        cy="385"
+        r="20.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
+      <circle
+        cx="719"
+        cy="370"
+        r="9.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
+      <circle
+        cx="746"
+        cy="370"
+        r="9.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
       <g filter="url(#filter3_d_2322_265)">
-        <rect x="196" y="334" width="303" height="443" rx="5" fill="white" />
+        <rect
+          x="523"
+          y="438"
+          width="789"
+          height="84"
+          rx="5"
+          fill="white"
+          fill-opacity="0.5"
+          shape-rendering="crispEdges"
+        />
+        <rect
+          x="523.5"
+          y="438.5"
+          width="788"
+          height="83"
+          rx="4.5"
+          stroke="#DDDDDD"
+          shape-rendering="crispEdges"
+        />
       </g>
+      <rect
+        x="588.5"
+        y="455.5"
+        width="110"
+        height="19"
+        rx="4.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
+      <rect
+        x="764.5"
+        y="455.5"
+        width="80"
+        height="19"
+        rx="4.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
+      <rect
+        x="588.5"
+        y="486.5"
+        width="253"
+        height="15"
+        rx="4.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
+      <circle
+        cx="560"
+        cy="480"
+        r="20.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
+      <circle
+        cx="719"
+        cy="465"
+        r="9.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
+      <circle
+        cx="746"
+        cy="465"
+        r="9.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
       <g filter="url(#filter4_d_2322_265)">
-        <rect x="523" y="524" width="789" height="84" rx="5" fill="white" />
+        <rect
+          x="523"
+          y="533"
+          width="789"
+          height="84"
+          rx="5"
+          fill="white"
+          fill-opacity="0.5"
+          shape-rendering="crispEdges"
+        />
+        <rect
+          x="523.5"
+          y="533.5"
+          width="788"
+          height="83"
+          rx="4.5"
+          stroke="#DDDDDD"
+          shape-rendering="crispEdges"
+        />
       </g>
-      <rect x="588" y="541" width="111" height="20" rx="5" fill="#E8E9ED" />
-      <rect x="764" y="541" width="81" height="20" rx="5" fill="#E8E9ED" />
-      <rect x="588" y="572" width="254" height="16" rx="5" fill="#E8E9ED" />
-      <circle cx="560" cy="566" r="21" fill="#E8E9ED" />
-      <circle cx="719" cy="551" r="10" fill="#E8E9ED" />
-      <circle cx="746" cy="551" r="10" fill="#E8E9ED" />
+      <rect
+        x="588.5"
+        y="550.5"
+        width="110"
+        height="19"
+        rx="4.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
+      <rect
+        x="764.5"
+        y="550.5"
+        width="80"
+        height="19"
+        rx="4.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
+      <rect
+        x="588.5"
+        y="581.5"
+        width="253"
+        height="15"
+        rx="4.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
+      <circle
+        cx="560"
+        cy="575"
+        r="20.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
+      <circle
+        cx="719"
+        cy="560"
+        r="9.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
+      <circle
+        cx="746"
+        cy="560"
+        r="9.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
+      <g filter="url(#filter5_d_2322_265)">
+        <rect
+          x="523"
+          y="628"
+          width="789"
+          height="84"
+          rx="5"
+          fill="white"
+          fill-opacity="0.5"
+          shape-rendering="crispEdges"
+        />
+        <rect
+          x="523.5"
+          y="628.5"
+          width="788"
+          height="83"
+          rx="4.5"
+          stroke="#DDDDDD"
+          shape-rendering="crispEdges"
+        />
+      </g>
+      <rect
+        x="588.5"
+        y="645.5"
+        width="110"
+        height="19"
+        rx="4.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
+      <rect
+        x="764.5"
+        y="645.5"
+        width="80"
+        height="19"
+        rx="4.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
+      <rect
+        x="588.5"
+        y="676.5"
+        width="253"
+        height="15"
+        rx="4.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
+      <circle
+        cx="560"
+        cy="670"
+        r="20.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
+      <circle
+        cx="719"
+        cy="655"
+        r="9.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
+      <circle
+        cx="746"
+        cy="655"
+        r="9.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
+      <g filter="url(#filter6_d_2322_265)">
+        <rect
+          x="523"
+          y="723"
+          width="789"
+          height="84"
+          rx="5"
+          fill="white"
+          fill-opacity="0.5"
+          shape-rendering="crispEdges"
+        />
+        <rect
+          x="523.5"
+          y="723.5"
+          width="788"
+          height="83"
+          rx="4.5"
+          stroke="#DDDDDD"
+          shape-rendering="crispEdges"
+        />
+      </g>
+      <rect
+        x="588.5"
+        y="740.5"
+        width="110"
+        height="19"
+        rx="4.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
+      <rect
+        x="764.5"
+        y="740.5"
+        width="80"
+        height="19"
+        rx="4.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
+      <rect
+        x="588.5"
+        y="771.5"
+        width="253"
+        height="15"
+        rx="4.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
+      <circle
+        cx="560"
+        cy="765"
+        r="20.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
+      <circle
+        cx="719"
+        cy="750"
+        r="9.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
+      <circle
+        cx="746"
+        cy="750"
+        r="9.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
+      <g filter="url(#filter7_d_2322_265)">
+        <rect
+          x="196"
+          y="343"
+          width="303"
+          height="443"
+          rx="5"
+          fill="white"
+          fill-opacity="0.5"
+          shape-rendering="crispEdges"
+        />
+        <rect
+          x="196.5"
+          y="343.5"
+          width="302"
+          height="442"
+          rx="4.5"
+          stroke="#DDDDDD"
+          shape-rendering="crispEdges"
+        />
+      </g>
       <rect
         x="1275.5"
-        y="160.5"
+        y="169.5"
         width="39"
         height="39"
         rx="4.5"
         fill="white"
         stroke="#DDDDDD"
       />
-      <g filter="url(#filter5_d_2322_265)">
-        <rect x="523" y="429" width="789" height="84" rx="5" fill="white" />
-      </g>
-      <rect x="588" y="446" width="111" height="20" rx="5" fill="#E8E9ED" />
-      <rect x="764" y="446" width="81" height="20" rx="5" fill="#E8E9ED" />
-      <rect x="588" y="477" width="254" height="16" rx="5" fill="#E8E9ED" />
-      <circle cx="560" cy="471" r="21" fill="#E8E9ED" />
-      <circle cx="719" cy="456" r="10" fill="#E8E9ED" />
-      <circle cx="746" cy="456" r="10" fill="#E8E9ED" />
-      <circle cx="1296" cy="28" r="21" fill="#E8E9ED" />
-      <circle cx="294" cy="30" r="16" fill="#E8E9ED" />
-      <rect x="322" y="21" width="73" height="17" rx="5" fill="#E8E9ED" />
-      <rect x="196" y="75" width="66" height="23" rx="5" fill="#E8E9ED" />
-      <rect x="278" y="75" width="72" height="23" rx="5" fill="#E8E9ED" />
-      <rect x="191" y="156" width="96" height="40" rx="5" fill="#E8E9ED" />
-      <rect x="370" y="75" width="72" height="23" rx="5" fill="#E8E9ED" />
-      <rect x="407" y="20" width="77" height="20" rx="10" fill="#743EE4" />
-      <line y1="108" x2="1512" y2="108" stroke="#D9D9D9" stroke-width="2" />
+      <circle
+        cx="1296"
+        cy="37"
+        r="20.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
+      <circle
+        cx="294"
+        cy="39"
+        r="15.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
+      <rect
+        x="322.5"
+        y="30.5"
+        width="72"
+        height="16"
+        rx="4.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
+      <rect
+        x="196.5"
+        y="84.5"
+        width="65"
+        height="22"
+        rx="4.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
+      <rect
+        x="278.5"
+        y="84.5"
+        width="71"
+        height="22"
+        rx="4.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
+      <rect
+        x="191.5"
+        y="170.5"
+        width="95"
+        height="39"
+        rx="4.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
+      <rect
+        x="370.5"
+        y="84.5"
+        width="71"
+        height="22"
+        rx="4.5"
+        fill="#E8E9ED"
+        fill-opacity="0.5"
+        stroke="#DDDDDD"
+      />
+      <rect
+        x="407.5"
+        y="29.5"
+        width="76"
+        height="19"
+        rx="9.5"
+        fill="#743EE4"
+        stroke="#DDDDDD"
+      />
+      <line y1="117.5" x2="1512" y2="117.5" stroke="#DDDDDD" />
       <line
         x1="191"
-        y1="107.5"
+        y1="116.5"
         x2="267"
-        y2="107.5"
-        stroke="black"
+        y2="116.5"
+        stroke="#DDDDDD"
         stroke-width="3"
       />
       <path
-        fill-rule="evenodd"
-        clip-rule="evenodd"
-        d="M220.126 16.214L219.758 16.0031L219.34 15.7793L218.924 15.5718L218.477 15.365L218.01 15.1672L217.498 14.9697L216.967 14.7857L216.44 14.6239C217.745 15 218.981 15.5378 220.126 16.214ZM216.44 14.6239C215.03 14.2176 213.54 14 212 14C203.163 14 196 21.1634 196 30C196 38.8366 203.163 46 212 46C220.837 46 228 38.8366 228 30C228 24.1298 224.839 18.9979 220.126 16.214V38.7958H216.44V37.6057C215.143 38.4637 213.588 38.9634 211.916 38.9634C207.382 38.9634 203.707 35.2879 203.707 30.7539C203.707 26.22 207.382 22.5445 211.916 22.5445C213.588 22.5445 215.143 23.0441 216.44 23.9021V14.6239Z"
+        d="M220.126 48.2958H220.626V47.7958V26.1198C224.772 28.9023 227.5 33.6329 227.5 39C227.5 47.5604 220.56 54.5 212 54.5C203.44 54.5 196.5 47.5604 196.5 39C196.5 30.4396 203.44 23.5 212 23.5C213.362 23.5 214.682 23.6755 215.94 24.0049V32.0277C214.736 31.3996 213.367 31.0445 211.916 31.0445C207.106 31.0445 203.207 34.9438 203.207 39.7539C203.207 44.564 207.106 48.4634 211.916 48.4634C213.367 48.4634 214.736 48.1082 215.94 47.4801V47.7958V48.2958H216.44H220.126Z"
         fill="black"
+        stroke="#DDDDDD"
       />
       <defs>
         <filter
-          id="filter0_d_2322_265"
-          x="513"
-          y="706"
-          width="809"
-          height="104"
+          id="filter0_b_2322_265"
+          x="-10"
+          y="252"
+          width="1532"
+          height="593"
           filterUnits="userSpaceOnUse"
           color-interpolation-filters="sRGB"
         >
           <feFlood flood-opacity="0" result="BackgroundImageFix" />
-          <feColorMatrix
-            in="SourceAlpha"
-            type="matrix"
-            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
-            result="hardAlpha"
-          />
-          <feOffset dy="2" />
-          <feGaussianBlur stdDeviation="5" />
-          <feComposite in2="hardAlpha" operator="out" />
-          <feColorMatrix
-            type="matrix"
-            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.1 0"
-          />
-          <feBlend
-            mode="normal"
-            in2="BackgroundImageFix"
-            result="effect1_dropShadow_2322_265"
+          <feGaussianBlur in="BackgroundImageFix" stdDeviation="5" />
+          <feComposite
+            in2="SourceAlpha"
+            operator="in"
+            result="effect1_backgroundBlur_2322_265"
           />
           <feBlend
             mode="normal"
             in="SourceGraphic"
-            in2="effect1_dropShadow_2322_265"
+            in2="effect1_backgroundBlur_2322_265"
             result="shape"
           />
         </filter>
         <filter
-          id="filter1_d_2322_265"
-          x="513"
-          y="611"
-          width="809"
-          height="104"
+          id="filter1_b_2322_265"
+          x="-10"
+          y="-10"
+          width="1532"
+          height="282"
           filterUnits="userSpaceOnUse"
           color-interpolation-filters="sRGB"
         >
           <feFlood flood-opacity="0" result="BackgroundImageFix" />
-          <feColorMatrix
-            in="SourceAlpha"
-            type="matrix"
-            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
-            result="hardAlpha"
-          />
-          <feOffset dy="2" />
-          <feGaussianBlur stdDeviation="5" />
-          <feComposite in2="hardAlpha" operator="out" />
-          <feColorMatrix
-            type="matrix"
-            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.1 0"
-          />
-          <feBlend
-            mode="normal"
-            in2="BackgroundImageFix"
-            result="effect1_dropShadow_2322_265"
+          <feGaussianBlur in="BackgroundImageFix" stdDeviation="5" />
+          <feComposite
+            in2="SourceAlpha"
+            operator="in"
+            result="effect1_backgroundBlur_2322_265"
           />
           <feBlend
             mode="normal"
             in="SourceGraphic"
-            in2="effect1_dropShadow_2322_265"
+            in2="effect1_backgroundBlur_2322_265"
             result="shape"
           />
         </filter>
         <filter
           id="filter2_d_2322_265"
           x="513"
-          y="326"
+          y="335"
           width="809"
           height="104"
           filterUnits="userSpaceOnUse"
@@ -234,10 +642,10 @@ const Dashboard = () => {
         </filter>
         <filter
           id="filter3_d_2322_265"
-          x="186"
-          y="326"
-          width="323"
-          height="463"
+          x="513"
+          y="430"
+          width="809"
+          height="104"
           filterUnits="userSpaceOnUse"
           color-interpolation-filters="sRGB"
         >
@@ -270,7 +678,7 @@ const Dashboard = () => {
         <filter
           id="filter4_d_2322_265"
           x="513"
-          y="516"
+          y="525"
           width="809"
           height="104"
           filterUnits="userSpaceOnUse"
@@ -305,9 +713,79 @@ const Dashboard = () => {
         <filter
           id="filter5_d_2322_265"
           x="513"
-          y="421"
+          y="620"
           width="809"
           height="104"
+          filterUnits="userSpaceOnUse"
+          color-interpolation-filters="sRGB"
+        >
+          <feFlood flood-opacity="0" result="BackgroundImageFix" />
+          <feColorMatrix
+            in="SourceAlpha"
+            type="matrix"
+            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+            result="hardAlpha"
+          />
+          <feOffset dy="2" />
+          <feGaussianBlur stdDeviation="5" />
+          <feComposite in2="hardAlpha" operator="out" />
+          <feColorMatrix
+            type="matrix"
+            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.1 0"
+          />
+          <feBlend
+            mode="normal"
+            in2="BackgroundImageFix"
+            result="effect1_dropShadow_2322_265"
+          />
+          <feBlend
+            mode="normal"
+            in="SourceGraphic"
+            in2="effect1_dropShadow_2322_265"
+            result="shape"
+          />
+        </filter>
+        <filter
+          id="filter6_d_2322_265"
+          x="513"
+          y="715"
+          width="809"
+          height="104"
+          filterUnits="userSpaceOnUse"
+          color-interpolation-filters="sRGB"
+        >
+          <feFlood flood-opacity="0" result="BackgroundImageFix" />
+          <feColorMatrix
+            in="SourceAlpha"
+            type="matrix"
+            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+            result="hardAlpha"
+          />
+          <feOffset dy="2" />
+          <feGaussianBlur stdDeviation="5" />
+          <feComposite in2="hardAlpha" operator="out" />
+          <feColorMatrix
+            type="matrix"
+            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.1 0"
+          />
+          <feBlend
+            mode="normal"
+            in2="BackgroundImageFix"
+            result="effect1_dropShadow_2322_265"
+          />
+          <feBlend
+            mode="normal"
+            in="SourceGraphic"
+            in2="effect1_dropShadow_2322_265"
+            result="shape"
+          />
+        </filter>
+        <filter
+          id="filter7_d_2322_265"
+          x="186"
+          y="335"
+          width="323"
+          height="463"
           filterUnits="userSpaceOnUse"
           color-interpolation-filters="sRGB"
         >
