@@ -4,7 +4,12 @@ import {
   NextResponse,
   userAgent,
 } from "next/server";
-import { detectBot, getFinalUrl, parse } from "#/lib/middleware/utils";
+import {
+  detectBot,
+  getFinalUrl,
+  hasXFrameOptions,
+  parse,
+} from "#/lib/middleware/utils";
 import { ratelimit, redis } from "#/lib/upstash";
 import { recordClick } from "#/lib/tinybird";
 import { DUB_HEADERS, LOCALHOST_GEO_DATA, LOCALHOST_IP } from "../constants";
@@ -91,7 +96,17 @@ export default async function LinkMiddleware(
 
     // rewrite to target URL if link cloaking is enabled
     if (rewrite) {
-      return NextResponse.rewrite(decodeURIComponent(target), DUB_HEADERS);
+      // check if there's a `X-Frame-Options` header
+      const xFrameOptions = await hasXFrameOptions(decodeURIComponent(target));
+      if (xFrameOptions) {
+        // if there is, use Next.js rewrite instead of iframe
+        return NextResponse.rewrite(decodeURIComponent(target), DUB_HEADERS);
+      } else {
+        return NextResponse.rewrite(
+          new URL(`/rewrite/${target}`, req.url),
+          DUB_HEADERS,
+        );
+      }
 
       // rewrite to proxy page (/_proxy/[domain]/[key]) if it's a bot and proxy is enabled
     } else if (isBot && proxy) {

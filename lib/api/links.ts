@@ -6,6 +6,7 @@ import { redis } from "#/lib/upstash";
 import { getParamsFromURL, nanoid, truncate, validKeyRegex } from "#/lib/utils";
 import { isReservedKey } from "#/lib/edge-config";
 import { NextApiRequest } from "next";
+import { hasXFrameOptions } from "../middleware/utils";
 
 export async function getLinksForProject({
   projectId,
@@ -213,7 +214,7 @@ export async function addLink(link: LinkProps) {
   const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
     getParamsFromURL(url);
 
-  let [response, _] = await Promise.all([
+  let [response, _, __] = await Promise.all([
     prisma.link.create({
       data: {
         ...link,
@@ -246,6 +247,7 @@ export async function addLink(link: LinkProps) {
         ...(exat && { exat: exat as any }),
       },
     ),
+    rewrite && hasXFrameOptions(url),
   ]);
   if (proxy && image) {
     const { secure_url } = await cloudinary.v2.uploader.upload(image, {
@@ -348,6 +350,7 @@ export async function editLink(
       },
       exat ? { exat } : {},
     ),
+    rewrite && hasXFrameOptions(url),
     // if key is changed: rename resource in Cloudinary, delete the old key in Redis and change the clicks key name
     ...(changedDomain || changedKey
       ? [
