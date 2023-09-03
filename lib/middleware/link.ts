@@ -4,12 +4,7 @@ import {
   NextResponse,
   userAgent,
 } from "next/server";
-import {
-  detectBot,
-  getFinalUrl,
-  hasXFrameOptions,
-  parse,
-} from "#/lib/middleware/utils";
+import { detectBot, getFinalUrl, parse } from "#/lib/middleware/utils";
 import { ratelimit, redis } from "#/lib/upstash";
 import { recordClick } from "#/lib/tinybird";
 import { DUB_HEADERS, LOCALHOST_GEO_DATA, LOCALHOST_IP } from "../constants";
@@ -51,6 +46,7 @@ export default async function LinkMiddleware(
     password?: boolean;
     proxy?: boolean;
     rewrite?: boolean;
+    iframeable?: boolean;
     ios?: string;
     android?: string;
     geo?: object;
@@ -64,6 +60,7 @@ export default async function LinkMiddleware(
     password,
     proxy,
     rewrite,
+    iframeable,
     ios,
     android,
     geo,
@@ -96,16 +93,14 @@ export default async function LinkMiddleware(
 
     // rewrite to target URL if link cloaking is enabled
     if (rewrite) {
-      // check if there's a `X-Frame-Options` header
-      const xFrameOptions = await hasXFrameOptions(decodeURIComponent(target));
-      if (xFrameOptions) {
-        // if there is, use Next.js rewrite instead of iframe
-        return NextResponse.rewrite(decodeURIComponent(target), DUB_HEADERS);
-      } else {
+      if (iframeable) {
         return NextResponse.rewrite(
           new URL(`/rewrite/${target}`, req.url),
           DUB_HEADERS,
         );
+      } else {
+        // if link is not iframeable, use Next.js rewrite instead
+        return NextResponse.rewrite(decodeURIComponent(target), DUB_HEADERS);
       }
 
       // rewrite to proxy page (/_proxy/[domain]/[key]) if it's a bot and proxy is enabled
