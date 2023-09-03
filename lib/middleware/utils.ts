@@ -62,23 +62,39 @@ export const detectBot = (req: NextRequest) => {
   return false;
 };
 
-// check if a URL has a `X-Frame-Options` header (and caches it in Redis)
-export const hasXFrameOptions = async (url: string) => {
-  const cachedResults = await redis.get(`x-frame-options:${url}`);
-  if (cachedResults) {
-    return cachedResults === "yes";
-  }
-
+// check if a link can be displayed in an iframe
+export const isIframeable = async ({
+  url,
+  requestDomain,
+}: {
+  url: string;
+  requestDomain: string;
+}) => {
   const res = await fetch(url, {
     headers: {
       "User-Agent": "dub-bot/1.0",
     },
   });
-  const xFrameOptions = res.headers.get("X-Frame-Options"); // returns null if there is no `X-Frame-Options` header
-  // cache for 1 month
-  await redis.set(`x-frame-options:${url}`, xFrameOptions ? "yes" : "no", {
-    ex: 60 * 60 * 24 * 30,
-  });
 
-  return xFrameOptions;
+  const xFrameOptions = res.headers.get("X-Frame-Options"); // returns null if there is no `X-Frame-Options` header
+  if (xFrameOptions) {
+    return false;
+  }
+
+  const cspHeader = res.headers.get("content-security-policy");
+  if (!cspHeader) {
+    return true;
+  }
+
+  const frameAncestorsMatch = cspHeader.match(
+    /frame-ancestors\s+([\s\S]+?)(?=;|$)/i,
+  );
+  if (frameAncestorsMatch) {
+    const allowedOrigins = frameAncestorsMatch[1].split(/\s+/);
+    if (allowedOrigins.includes(requestDomain)) {
+      return true;
+    }
+  }
+
+  return false;
 };
