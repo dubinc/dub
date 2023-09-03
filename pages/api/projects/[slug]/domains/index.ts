@@ -1,7 +1,12 @@
 import { withProjectAuth } from "#/lib/auth";
 import prisma from "#/lib/prisma";
-import { addDomainToVercel, validateDomain } from "#/lib/api/domains";
+import {
+  addDomainToVercel,
+  setRootDomain,
+  validateDomain,
+} from "#/lib/api/domains";
 import { redis } from "#/lib/upstash";
+import { isIframeable } from "#/lib/middleware/utils";
 
 export default withProjectAuth(async (req, res, project) => {
   // GET /api/projects/[slug]/domains – get all domains for a project
@@ -44,7 +49,8 @@ export default withProjectAuth(async (req, res, project) => {
       */
     const response = await Promise.allSettled([
       target &&
-        redis.set(`root:${domain}`, {
+        setRootDomain({
+          domain,
           target,
           rewrite: type === "rewrite",
         }),
