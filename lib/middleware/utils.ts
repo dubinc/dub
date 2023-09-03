@@ -76,6 +76,11 @@ export const isIframeable = async ({
     },
   });
 
+  // if the request throws a status that's not 200, then it's not iframeable
+  if (!res.ok) {
+    return false;
+  }
+
   const xFrameOptions = res.headers.get("X-Frame-Options"); // returns null if there is no `X-Frame-Options` header
   if (xFrameOptions) {
     return false;
