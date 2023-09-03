@@ -535,15 +535,6 @@ const Dashboard = () => {
         fill-opacity="0.5"
         stroke="#DDDDDD"
       />
-      <rect
-        x="407.5"
-        y="29.5"
-        width="76"
-        height="19"
-        rx="9.5"
-        fill="#743EE4"
-        stroke="#DDDDDD"
-      />
       <line y1="117.5" x2="1512" y2="117.5" stroke="#DDDDDD" />
       <line
         x1="191"
