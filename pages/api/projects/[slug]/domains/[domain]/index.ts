@@ -82,12 +82,14 @@ export default withProjectAuth(
       */
         project.plan !== "free" &&
           (target
-            ? setRootDomain(
+            ? setRootDomain({
                 domain,
                 target,
-                type === "rewrite",
-                newDomain !== domain && newDomain,
-              )
+                rewrite: type === "rewrite",
+                ...(newDomain !== domain && {
+                  newDomain,
+                }),
+              })
             : redis.del(`root:${domain}`)),
         // if the domain is being set as the primary domain, set the current primary domain to false
         primary &&
