@@ -9,16 +9,18 @@ import useMediaQuery from "#/lib/hooks/use-media-query";
 
 export default function Modal({
   children,
+  className,
+  dialogOnly,
   showModal,
   setShowModal,
-  className,
   onClose,
   preventDefaultClose,
 }: {
   children: React.ReactNode;
+  className?: string;
+  dialogOnly?: boolean;
   showModal?: boolean;
   setShowModal?: Dispatch<SetStateAction<boolean>>;
-  className?: string;
   onClose?: () => void;
   preventDefaultClose?: boolean;
 }) {
@@ -41,7 +43,7 @@ export default function Modal({
   };
   const { isMobile } = useMediaQuery();
 
-  if (isMobile) {
+  if (isMobile && !dialogOnly) {
     return (
       <Drawer.Root
         open={setShowModal ? showModal : true}
@@ -81,13 +83,13 @@ export default function Modal({
       <Dialog.Portal>
         <Dialog.Overlay
           id="modal-backdrop"
-          className="fixed inset-0 z-40 hidden animate-fade-in bg-gray-100 bg-opacity-50 backdrop-blur-md md:block"
+          className="fixed inset-0 z-40 animate-fade-in bg-gray-100 bg-opacity-50 backdrop-blur-md"
         />
         <Dialog.Content
           onOpenAutoFocus={(e) => e.preventDefault()}
           onCloseAutoFocus={(e) => e.preventDefault()}
           className={cn(
-            "fixed inset-0 z-40 m-auto hidden max-h-fit w-full max-w-md animate-scale-in overflow-hidden rounded-2xl border border-gray-200 bg-white p-0 shadow-xl md:block",
+            "fixed inset-0 z-40 m-auto max-h-fit w-full max-w-md animate-scale-in overflow-hidden border border-gray-200 bg-white p-0 shadow-xl md:rounded-2xl",
             className,
           )}
         >

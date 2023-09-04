@@ -36,7 +36,7 @@ const Dashboard = () => {
         <mask id="path-1-inside-1_2322_265" fill="white">
           <path d="M0 262H1512V835H0V262Z" />
         </mask>
-        <path d="M0 262H1512V835H0V262Z" fill="white" fill-opacity="0.35" />
+        <path d="M0 262H1512V835H0V262Z" fill="white" fillOpacity="0.35" />
         <path
           d="M1511 262V835H1513V262H1511ZM1 835V262H-1V835H1Z"
           fill="#DDDDDD"
@@ -47,7 +47,7 @@ const Dashboard = () => {
         <path
           d="M0 10C0 4.47716 4.47715 0 10 0H1502C1507.52 0 1512 4.47715 1512 10V262H0V10Z"
           fill="white"
-          fill-opacity="0.2"
+          fillOpacity="0.2"
         />
         <path
           d="M10 0.5H1502C1507.25 0.5 1511.5 4.75329 1511.5 10V261.5H0.5V10C0.5 4.7533 4.75329 0.5 10 0.5Z"
@@ -61,7 +61,7 @@ const Dashboard = () => {
         height="39"
         rx="4.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <g filter="url(#filter2_d_2322_265)">
@@ -72,8 +72,8 @@ const Dashboard = () => {
           height="84"
           rx="5"
           fill="white"
-          fill-opacity="0.5"
-          shape-rendering="crispEdges"
+          fillOpacity="0.5"
+          shapeRendering="crispEdges"
         />
         <rect
           x="523.5"
@@ -82,7 +82,7 @@ const Dashboard = () => {
           height="83"
           rx="4.5"
           stroke="#DDDDDD"
-          shape-rendering="crispEdges"
+          shapeRendering="crispEdges"
         />
       </g>
       <rect
@@ -92,7 +92,7 @@ const Dashboard = () => {
         height="19"
         rx="4.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <rect
@@ -102,7 +102,7 @@ const Dashboard = () => {
         height="19"
         rx="4.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <rect
@@ -112,7 +112,7 @@ const Dashboard = () => {
         height="15"
         rx="4.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <circle
@@ -120,7 +120,7 @@ const Dashboard = () => {
         cy="385"
         r="20.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <circle
@@ -128,7 +128,7 @@ const Dashboard = () => {
         cy="370"
         r="9.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <circle
@@ -136,7 +136,7 @@ const Dashboard = () => {
         cy="370"
         r="9.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <g filter="url(#filter3_d_2322_265)">
@@ -147,8 +147,8 @@ const Dashboard = () => {
           height="84"
           rx="5"
           fill="white"
-          fill-opacity="0.5"
-          shape-rendering="crispEdges"
+          fillOpacity="0.5"
+          shapeRendering="crispEdges"
         />
         <rect
           x="523.5"
@@ -157,7 +157,7 @@ const Dashboard = () => {
           height="83"
           rx="4.5"
           stroke="#DDDDDD"
-          shape-rendering="crispEdges"
+          shapeRendering="crispEdges"
         />
       </g>
       <rect
@@ -167,7 +167,7 @@ const Dashboard = () => {
         height="19"
         rx="4.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <rect
@@ -177,7 +177,7 @@ const Dashboard = () => {
         height="19"
         rx="4.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <rect
@@ -187,7 +187,7 @@ const Dashboard = () => {
         height="15"
         rx="4.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <circle
@@ -195,7 +195,7 @@ const Dashboard = () => {
         cy="480"
         r="20.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <circle
@@ -203,7 +203,7 @@ const Dashboard = () => {
         cy="465"
         r="9.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <circle
@@ -211,7 +211,7 @@ const Dashboard = () => {
         cy="465"
         r="9.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <g filter="url(#filter4_d_2322_265)">
@@ -222,8 +222,8 @@ const Dashboard = () => {
           height="84"
           rx="5"
           fill="white"
-          fill-opacity="0.5"
-          shape-rendering="crispEdges"
+          fillOpacity="0.5"
+          shapeRendering="crispEdges"
         />
         <rect
           x="523.5"
@@ -232,7 +232,7 @@ const Dashboard = () => {
           height="83"
           rx="4.5"
           stroke="#DDDDDD"
-          shape-rendering="crispEdges"
+          shapeRendering="crispEdges"
         />
       </g>
       <rect
@@ -242,7 +242,7 @@ const Dashboard = () => {
         height="19"
         rx="4.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <rect
@@ -252,7 +252,7 @@ const Dashboard = () => {
         height="19"
         rx="4.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <rect
@@ -262,7 +262,7 @@ const Dashboard = () => {
         height="15"
         rx="4.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <circle
@@ -270,7 +270,7 @@ const Dashboard = () => {
         cy="575"
         r="20.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <circle
@@ -278,7 +278,7 @@ const Dashboard = () => {
         cy="560"
         r="9.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <circle
@@ -286,7 +286,7 @@ const Dashboard = () => {
         cy="560"
         r="9.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <g filter="url(#filter5_d_2322_265)">
@@ -297,8 +297,8 @@ const Dashboard = () => {
           height="84"
           rx="5"
           fill="white"
-          fill-opacity="0.5"
-          shape-rendering="crispEdges"
+          fillOpacity="0.5"
+          shapeRendering="crispEdges"
         />
         <rect
           x="523.5"
@@ -307,7 +307,7 @@ const Dashboard = () => {
           height="83"
           rx="4.5"
           stroke="#DDDDDD"
-          shape-rendering="crispEdges"
+          shapeRendering="crispEdges"
         />
       </g>
       <rect
@@ -317,7 +317,7 @@ const Dashboard = () => {
         height="19"
         rx="4.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <rect
@@ -327,7 +327,7 @@ const Dashboard = () => {
         height="19"
         rx="4.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <rect
@@ -337,7 +337,7 @@ const Dashboard = () => {
         height="15"
         rx="4.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <circle
@@ -345,7 +345,7 @@ const Dashboard = () => {
         cy="670"
         r="20.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <circle
@@ -353,7 +353,7 @@ const Dashboard = () => {
         cy="655"
         r="9.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <circle
@@ -361,7 +361,7 @@ const Dashboard = () => {
         cy="655"
         r="9.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <g filter="url(#filter6_d_2322_265)">
@@ -372,8 +372,8 @@ const Dashboard = () => {
           height="84"
           rx="5"
           fill="white"
-          fill-opacity="0.5"
-          shape-rendering="crispEdges"
+          fillOpacity="0.5"
+          shapeRendering="crispEdges"
         />
         <rect
           x="523.5"
@@ -382,7 +382,7 @@ const Dashboard = () => {
           height="83"
           rx="4.5"
           stroke="#DDDDDD"
-          shape-rendering="crispEdges"
+          shapeRendering="crispEdges"
         />
       </g>
       <rect
@@ -392,7 +392,7 @@ const Dashboard = () => {
         height="19"
         rx="4.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <rect
@@ -402,7 +402,7 @@ const Dashboard = () => {
         height="19"
         rx="4.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <rect
@@ -412,7 +412,7 @@ const Dashboard = () => {
         height="15"
         rx="4.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <circle
@@ -420,7 +420,7 @@ const Dashboard = () => {
         cy="765"
         r="20.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <circle
@@ -428,7 +428,7 @@ const Dashboard = () => {
         cy="750"
         r="9.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <circle
@@ -436,7 +436,7 @@ const Dashboard = () => {
         cy="750"
         r="9.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <g filter="url(#filter7_d_2322_265)">
@@ -447,8 +447,8 @@ const Dashboard = () => {
           height="443"
           rx="5"
           fill="white"
-          fill-opacity="0.5"
-          shape-rendering="crispEdges"
+          fillOpacity="0.5"
+          shapeRendering="crispEdges"
         />
         <rect
           x="196.5"
@@ -457,7 +457,7 @@ const Dashboard = () => {
           height="442"
           rx="4.5"
           stroke="#DDDDDD"
-          shape-rendering="crispEdges"
+          shapeRendering="crispEdges"
         />
       </g>
       <rect
@@ -474,7 +474,7 @@ const Dashboard = () => {
         cy="37"
         r="20.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <circle
@@ -482,7 +482,7 @@ const Dashboard = () => {
         cy="39"
         r="15.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <rect
@@ -492,7 +492,7 @@ const Dashboard = () => {
         height="16"
         rx="4.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <rect
@@ -502,7 +502,7 @@ const Dashboard = () => {
         height="22"
         rx="4.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <rect
@@ -512,7 +512,7 @@ const Dashboard = () => {
         height="22"
         rx="4.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <rect
@@ -522,7 +522,7 @@ const Dashboard = () => {
         height="39"
         rx="4.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <rect
@@ -532,7 +532,7 @@ const Dashboard = () => {
         height="22"
         rx="4.5"
         fill="#E8E9ED"
-        fill-opacity="0.5"
+        fillOpacity="0.5"
         stroke="#DDDDDD"
       />
       <line y1="117.5" x2="1512" y2="117.5" stroke="#DDDDDD" />
@@ -542,7 +542,7 @@ const Dashboard = () => {
         x2="267"
         y2="116.5"
         stroke="#DDDDDD"
-        stroke-width="3"
+        strokeWidth="3"
       />
       <path
         d="M220.126 48.2958H220.626V47.7958V26.1198C224.772 28.9023 227.5 33.6329 227.5 39C227.5 47.5604 220.56 54.5 212 54.5C203.44 54.5 196.5 47.5604 196.5 39C196.5 30.4396 203.44 23.5 212 23.5C213.362 23.5 214.682 23.6755 215.94 24.0049V32.0277C214.736 31.3996 213.367 31.0445 211.916 31.0445C207.106 31.0445 203.207 34.9438 203.207 39.7539C203.207 44.564 207.106 48.4634 211.916 48.4634C213.367 48.4634 214.736 48.1082 215.94 47.4801V47.7958V48.2958H216.44H220.126Z"
@@ -557,9 +557,9 @@ const Dashboard = () => {
           width="1532"
           height="593"
           filterUnits="userSpaceOnUse"
-          color-interpolation-filters="sRGB"
+          colorInterpolationFilters="sRGB"
         >
-          <feFlood flood-opacity="0" result="BackgroundImageFix" />
+          <feFlood floodOpacity="0" result="BackgroundImageFix" />
           <feGaussianBlur in="BackgroundImageFix" stdDeviation="5" />
           <feComposite
             in2="SourceAlpha"
@@ -580,9 +580,9 @@ const Dashboard = () => {
           width="1532"
           height="282"
           filterUnits="userSpaceOnUse"
-          color-interpolation-filters="sRGB"
+          colorInterpolationFilters="sRGB"
         >
-          <feFlood flood-opacity="0" result="BackgroundImageFix" />
+          <feFlood floodOpacity="0" result="BackgroundImageFix" />
           <feGaussianBlur in="BackgroundImageFix" stdDeviation="5" />
           <feComposite
             in2="SourceAlpha"
@@ -603,9 +603,9 @@ const Dashboard = () => {
           width="809"
           height="104"
           filterUnits="userSpaceOnUse"
-          color-interpolation-filters="sRGB"
+          colorInterpolationFilters="sRGB"
         >
-          <feFlood flood-opacity="0" result="BackgroundImageFix" />
+          <feFlood floodOpacity="0" result="BackgroundImageFix" />
           <feColorMatrix
             in="SourceAlpha"
             type="matrix"
@@ -638,9 +638,9 @@ const Dashboard = () => {
           width="809"
           height="104"
           filterUnits="userSpaceOnUse"
-          color-interpolation-filters="sRGB"
+          colorInterpolationFilters="sRGB"
         >
-          <feFlood flood-opacity="0" result="BackgroundImageFix" />
+          <feFlood floodOpacity="0" result="BackgroundImageFix" />
           <feColorMatrix
             in="SourceAlpha"
             type="matrix"
@@ -673,9 +673,9 @@ const Dashboard = () => {
           width="809"
           height="104"
           filterUnits="userSpaceOnUse"
-          color-interpolation-filters="sRGB"
+          colorInterpolationFilters="sRGB"
         >
-          <feFlood flood-opacity="0" result="BackgroundImageFix" />
+          <feFlood floodOpacity="0" result="BackgroundImageFix" />
           <feColorMatrix
             in="SourceAlpha"
             type="matrix"
@@ -708,9 +708,9 @@ const Dashboard = () => {
           width="809"
           height="104"
           filterUnits="userSpaceOnUse"
-          color-interpolation-filters="sRGB"
+          colorInterpolationFilters="sRGB"
         >
-          <feFlood flood-opacity="0" result="BackgroundImageFix" />
+          <feFlood floodOpacity="0" result="BackgroundImageFix" />
           <feColorMatrix
             in="SourceAlpha"
             type="matrix"
@@ -743,9 +743,9 @@ const Dashboard = () => {
           width="809"
           height="104"
           filterUnits="userSpaceOnUse"
-          color-interpolation-filters="sRGB"
+          colorInterpolationFilters="sRGB"
         >
-          <feFlood flood-opacity="0" result="BackgroundImageFix" />
+          <feFlood floodOpacity="0" result="BackgroundImageFix" />
           <feColorMatrix
             in="SourceAlpha"
             type="matrix"
@@ -778,9 +778,9 @@ const Dashboard = () => {
           width="323"
           height="463"
           filterUnits="userSpaceOnUse"
-          color-interpolation-filters="sRGB"
+          colorInterpolationFilters="sRGB"
         >
-          <feFlood flood-opacity="0" result="BackgroundImageFix" />
+          <feFlood floodOpacity="0" result="BackgroundImageFix" />
           <feColorMatrix
             in="SourceAlpha"
             type="matrix"

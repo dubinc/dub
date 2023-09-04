@@ -118,6 +118,8 @@ export const FEATURES_LIST = [
     slug: "analytics",
     thumbnail:
       "https://media.cleanshot.cloud/media/42580/FUSjMlxa2Xqne98F9KO5i960094hS5XinPIfgC9r.jpeg?Expires=1693806001&Signature=H5-txoTKREO1I7R-X05XDKQK2lS6EdMjnmb5MSTgfAsx-cJ4gXipCu99TZxJovoFGyBy2yLnVn3WrBhRtr~XkAhk0REtXrtLCpRe~dy0WJymLacZ-joGNIT203o5TptMueNAhWJIzdURsVJTl7VkU94BFHKCt31am8UuAIm8hh-ZI3YnjIteS9lNe4c2AJ2c6pDecNLjdG8OG6VeddSW29Lgehqdx4c3qKSTSbaL8fH0Hn-ez4spG4iHBgOXerY1R2kvaVaxjY6qN1OFZ9dWjiDIFAGo~MggxxNn8zSKwJHTtCqzKG9EYP-dozIjb-kmmlao0eolGHi1bh9tVUofuA__&Key-Pair-Id=K269JMAT9ZF4GZ",
+    videoUrl:
+      "https://www.youtube.com/embed/m062ApqcRow?si=8FRndy4ABWPTioHU&autoplay=1",
   },
   {
     title: "Branded Links that Stand Out",
@@ -129,6 +131,8 @@ export const FEATURES_LIST = [
     slug: "branded-links",
     thumbnail:
       "https://media.cleanshot.cloud/media/42580/FUSjMlxa2Xqne98F9KO5i960094hS5XinPIfgC9r.jpeg?Expires=1693806001&Signature=H5-txoTKREO1I7R-X05XDKQK2lS6EdMjnmb5MSTgfAsx-cJ4gXipCu99TZxJovoFGyBy2yLnVn3WrBhRtr~XkAhk0REtXrtLCpRe~dy0WJymLacZ-joGNIT203o5TptMueNAhWJIzdURsVJTl7VkU94BFHKCt31am8UuAIm8hh-ZI3YnjIteS9lNe4c2AJ2c6pDecNLjdG8OG6VeddSW29Lgehqdx4c3qKSTSbaL8fH0Hn-ez4spG4iHBgOXerY1R2kvaVaxjY6qN1OFZ9dWjiDIFAGo~MggxxNn8zSKwJHTtCqzKG9EYP-dozIjb-kmmlao0eolGHi1bh9tVUofuA__&Key-Pair-Id=K269JMAT9ZF4GZ",
+    videoUrl:
+      "https://www.youtube.com/embed/m062ApqcRow?si=8FRndy4ABWPTioHU&autoplay=1",
   },
   {
     title: "Free QR Code Generator",
@@ -140,6 +144,8 @@ export const FEATURES_LIST = [
     slug: "qr-codes",
     thumbnail:
       "https://media.cleanshot.cloud/media/42580/FUSjMlxa2Xqne98F9KO5i960094hS5XinPIfgC9r.jpeg?Expires=1693806001&Signature=H5-txoTKREO1I7R-X05XDKQK2lS6EdMjnmb5MSTgfAsx-cJ4gXipCu99TZxJovoFGyBy2yLnVn3WrBhRtr~XkAhk0REtXrtLCpRe~dy0WJymLacZ-joGNIT203o5TptMueNAhWJIzdURsVJTl7VkU94BFHKCt31am8UuAIm8hh-ZI3YnjIteS9lNe4c2AJ2c6pDecNLjdG8OG6VeddSW29Lgehqdx4c3qKSTSbaL8fH0Hn-ez4spG4iHBgOXerY1R2kvaVaxjY6qN1OFZ9dWjiDIFAGo~MggxxNn8zSKwJHTtCqzKG9EYP-dozIjb-kmmlao0eolGHi1bh9tVUofuA__&Key-Pair-Id=K269JMAT9ZF4GZ",
+    videoUrl:
+      "https://www.youtube.com/embed/m062ApqcRow?si=8FRndy4ABWPTioHU&autoplay=1",
   },
   {
     title: "Personalize Your Short links",
@@ -151,6 +157,8 @@ export const FEATURES_LIST = [
     slug: "personalization",
     thumbnail:
       "https://media.cleanshot.cloud/media/42580/FUSjMlxa2Xqne98F9KO5i960094hS5XinPIfgC9r.jpeg?Expires=1693806001&Signature=H5-txoTKREO1I7R-X05XDKQK2lS6EdMjnmb5MSTgfAsx-cJ4gXipCu99TZxJovoFGyBy2yLnVn3WrBhRtr~XkAhk0REtXrtLCpRe~dy0WJymLacZ-joGNIT203o5TptMueNAhWJIzdURsVJTl7VkU94BFHKCt31am8UuAIm8hh-ZI3YnjIteS9lNe4c2AJ2c6pDecNLjdG8OG6VeddSW29Lgehqdx4c3qKSTSbaL8fH0Hn-ez4spG4iHBgOXerY1R2kvaVaxjY6qN1OFZ9dWjiDIFAGo~MggxxNn8zSKwJHTtCqzKG9EYP-dozIjb-kmmlao0eolGHi1bh9tVUofuA__&Key-Pair-Id=K269JMAT9ZF4GZ",
+    videoUrl:
+      "https://www.youtube.com/embed/m062ApqcRow?si=8FRndy4ABWPTioHU&autoplay=1",
   },
   // { title: "Programmatic Link Creation", shortTitle: "API", slug: "api" },
   {
@@ -163,5 +171,7 @@ export const FEATURES_LIST = [
     slug: "collaboration",
     thumbnail:
       "https://media.cleanshot.cloud/media/42580/FUSjMlxa2Xqne98F9KO5i960094hS5XinPIfgC9r.jpeg?Expires=1693806001&Signature=H5-txoTKREO1I7R-X05XDKQK2lS6EdMjnmb5MSTgfAsx-cJ4gXipCu99TZxJovoFGyBy2yLnVn3WrBhRtr~XkAhk0REtXrtLCpRe~dy0WJymLacZ-joGNIT203o5TptMueNAhWJIzdURsVJTl7VkU94BFHKCt31am8UuAIm8hh-ZI3YnjIteS9lNe4c2AJ2c6pDecNLjdG8OG6VeddSW29Lgehqdx4c3qKSTSbaL8fH0Hn-ez4spG4iHBgOXerY1R2kvaVaxjY6qN1OFZ9dWjiDIFAGo~MggxxNn8zSKwJHTtCqzKG9EYP-dozIjb-kmmlao0eolGHi1bh9tVUofuA__&Key-Pair-Id=K269JMAT9ZF4GZ",
+    videoUrl:
+      "https://www.youtube.com/embed/m062ApqcRow?si=8FRndy4ABWPTioHU&autoplay=1",
   },
 ];
