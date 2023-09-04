@@ -19,7 +19,7 @@
 
 <p align="center">
   <a href="#introduction"><strong>Introduction</strong></a> ·
-  <a href="#deploy-your-own"><strong>Deploy Your Own</strong></a> ·
+  <a href="#local-development"><strong>Local Development</strong></a> ·
   <a href="#tech-stack"><strong>Tech Stack</strong></a> ·
   <a href="#implementation"><strong>Implementation</strong></a> ·
   <a href="#contributing"><strong>Contributing</strong></a>
@@ -61,13 +61,19 @@ Add a custom OG image in front of your target URL. Bots like Twitter/Facebook wi
 
 ![OG Image Proxy](https://user-images.githubusercontent.com/28986134/200727958-e8a5ac24-644b-45c6-8018-41c4dea25cd1.gif)
 
-## Deploy Your Own
+## Local Development
 
-> Note: one-click deployment is a bit broken at the moment – you'll need to change some of the hard-coded values in the codebase to get it working. We're working on fixing this.
+To develop Dub locally, you will need to clone this repository and set up all the env vars outlined in the [`.env.example` file](https://github.com/steven-tey/dub/blob/main/.env.example).
 
-You can deploy your own hosted version of Dub for greater privacy & control. Just click the link below to deploy a ready-to-go version of Dub to Vercel.
+Once that's done, you can use the following commands to run the app locally:
 
-[![Deploy with Vercel](https://vercel.com/button)](https://dub.sh/deploy)
+```
+yarn
+yarn build
+yarn dev
+```
+
+We're planning to add a proper, well-documented self-hosting guide for Dub soon – stay tuned!
 
 ## Tech Stack
 
