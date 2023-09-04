@@ -6,10 +6,10 @@ import { Github, LinkedIn, Twitter } from "@/components/shared/icons";
 import { useParams } from "next/navigation";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import va from "@vercel/analytics";
-import { features } from "#/lib/constants/content";
+import { FEATURES_LIST } from "#/lib/constants/content";
 
 const navigation = {
-  features: features.map(({ shortTitle, slug }) => ({
+  features: FEATURES_LIST.map(({ shortTitle, slug }) => ({
     name: shortTitle,
     href: `/features/${slug}`,
   })),

@@ -7,7 +7,11 @@ import {
   allLegalPosts,
 } from "contentlayer/generated";
 import { isHomeHostname, allTools } from "#/lib/constants";
-import { BLOG_CATEGORIES, HELP_CATEGORIES } from "#/lib/constants/content";
+import {
+  BLOG_CATEGORIES,
+  HELP_CATEGORIES,
+  FEATURES_LIST,
+} from "#/lib/constants/content";
 
 export default async function Sitemap() {
   const headersList = headers();
@@ -40,6 +44,10 @@ export default async function Sitemap() {
             url: `https://${domain}/pricing`,
             lastModified: new Date(),
           },
+          ...FEATURES_LIST.map((feature) => ({
+            url: `https://${domain}/features/${feature.slug}`,
+            lastModified: new Date(),
+          })),
           {
             url: `https://${domain}/blog`,
             lastModified: new Date(),

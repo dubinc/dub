@@ -30,7 +30,7 @@ const faqs = [
 
 export default function FAQ() {
   return (
-    <div className="mt-20 border-t border-gray-200 bg-white/10 shadow-[inset_10px_-50px_94px_0_rgb(199,199,199,0.2)] backdrop-blur">
+    <div className="mt-10 border-t border-gray-200 bg-white/10 shadow-[inset_10px_-50px_94px_0_rgb(199,199,199,0.2)] backdrop-blur">
       <MaxWidthWrapper className="my-20">
         <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
           <div className="p-3">
