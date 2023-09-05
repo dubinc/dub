@@ -42,7 +42,7 @@ SQL >
         {% else %} toDateTime(toStartOfDay(timestamp))
         {% end %} AS interval,
         uniq(*) as clicks
-    FROM click_events_mv
+    FROM click_events
     WHERE
         domain ={{ String(domain, "dub.sh", required=True) }}
         AND key ={{ String(key, "github", required=True) }}

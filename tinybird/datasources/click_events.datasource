@@ -24,5 +24,5 @@ SCHEMA >
     `referer_url` String `json:$.referer_url`
 
 ENGINE "MergeTree"
-ENGINE_PARTITION_KEY "toYear(timestamp)"
-ENGINE_SORTING_KEY "timestamp, domain, key, country, city, device, browser, os, bot, referer"
+ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
+ENGINE_SORTING_KEY "domain, key, timestamp"
