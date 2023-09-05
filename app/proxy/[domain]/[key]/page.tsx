@@ -11,7 +11,10 @@ export async function generateMetadata({
 }: {
   params: { domain: string; key: string };
 }) {
-  const data = await getLinkViaEdge(params.domain, params.key);
+  const domain = params.domain;
+  const key = decodeURIComponent(params.key); // key can potentially be encoded
+
+  const data = await getLinkViaEdge(domain, key);
 
   if (!data || data.proxy === 0) {
     return;
@@ -24,15 +27,19 @@ export async function generateMetadata({
     description: unescape(data.description),
     image: unescape(data.image),
     icons: `${GOOGLE_FAVICON_URL}${unescape(apexDomain)}`,
+    noIndex: true,
   });
 }
 
-export default async function ProxyOGPage({
+export default async function ProxyPage({
   params,
 }: {
   params: { domain: string; key: string };
 }) {
-  const data = await getLinkViaEdge(params.domain, params.key);
+  const domain = params.domain;
+  const key = decodeURIComponent(params.key);
+
+  const data = await getLinkViaEdge(domain, key);
 
   // if the link doesn't exist
   if (!data) {

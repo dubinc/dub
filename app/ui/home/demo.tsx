@@ -83,7 +83,7 @@ export default function Demo() {
               placeholder="Shorten your link"
               autoComplete="off"
               required
-              className="peer block w-full rounded-md border border-gray-200 bg-white p-2 pl-10 pr-12 shadow-lg focus:border-black focus:outline-none focus:ring-0 sm:text-sm"
+              className="peer block w-full rounded-md border-gray-200 pl-10 pr-12 text-sm text-gray-900 placeholder-gray-400 shadow-lg focus:border-gray-500 focus:outline-none focus:ring-gray-500"
             />
             <button
               type="submit"

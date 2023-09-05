@@ -12,6 +12,7 @@ export const metadata = constructMetadata({
   title,
   description,
   image,
+  noIndex: true,
 });
 
 export default function PasswordProtectedLinkPage() {

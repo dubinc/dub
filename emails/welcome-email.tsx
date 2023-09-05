@@ -77,7 +77,7 @@ export default function WelcomeEmail({
             <Text className="ml-1 text-sm leading-4 text-black">
               ◆ Follow us on{" "}
               <Link
-                href="https://twitter.com/dubdotsh"
+                href="https://twitter.com/dubdotco"
                 className="font-medium text-blue-600 no-underline"
               >
                 Twitter

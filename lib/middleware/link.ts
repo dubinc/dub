@@ -39,30 +39,41 @@ export default async function LinkMiddleware(
     }
   }
 
-  const { country } =
-    process.env.VERCEL === "1" && req.geo ? req.geo : LOCALHOST_GEO_DATA;
+  const inspectMode = key.endsWith("+");
 
   const response = await redis.get<{
     url: string;
     password?: boolean;
     proxy?: boolean;
     rewrite?: boolean;
+    iframeable?: boolean;
     ios?: string;
     android?: string;
     geo?: object;
-  }>(`${domain}:${key}`);
+  }>(
+    // if inspect mode is enabled, remove the trailing `+` from the key
+    `${domain}:${inspectMode ? key.slice(0, -1) : key}`,
+  );
 
   const {
     url: target,
     password,
     proxy,
     rewrite,
+    iframeable,
     ios,
     android,
     geo,
   } = response || {};
 
   if (target) {
+    // only show inspect model if the link is not password protected
+    if (inspectMode && !password) {
+      return NextResponse.rewrite(
+        new URL(`/inspect/${domain}/${encodeURIComponent(key)}`, req.url),
+      );
+    }
+
     // special case for link health monitoring with planetfall.io :)
     if (!req.headers.get("dub-no-track")) {
       ev.waitUntil(recordClick(domain, req, key)); // track the click only if there is no `dub-no-track` header
@@ -71,31 +82,51 @@ export default async function LinkMiddleware(
     if (password) {
       // rewrite to auth page (/protected/[domain]/[key]) if the link is password protected
       return NextResponse.rewrite(
-        new URL(`/protected/${domain}/${key}`, req.url),
+        new URL(`/protected/${domain}/${encodeURIComponent(key)}`, req.url),
       );
     }
 
     const isBot = detectBot(req);
-    if (isBot && proxy) {
-      // rewrite to proxy page (/_proxy/[domain]/[key]) if it's a bot
-      return NextResponse.rewrite(new URL(`/proxy/${domain}/${key}`, req.url));
-    } else if (ios && userAgent(req).os?.name === "iOS") {
+
+    const { country } =
+      process.env.VERCEL === "1" && req.geo ? req.geo : LOCALHOST_GEO_DATA;
+
+    // rewrite to target URL if link cloaking is enabled
+    if (rewrite) {
+      if (iframeable) {
+        return NextResponse.rewrite(
+          new URL(`/rewrite/${target}`, req.url),
+          DUB_HEADERS,
+        );
+      } else {
+        // if link is not iframeable, use Next.js rewrite instead
+        return NextResponse.rewrite(decodeURIComponent(target), DUB_HEADERS);
+      }
+
+      // rewrite to proxy page (/_proxy/[domain]/[key]) if it's a bot and proxy is enabled
+    } else if (isBot && proxy) {
+      return NextResponse.rewrite(
+        new URL(`/proxy/${domain}/${encodeURIComponent(key)}`, req.url),
+      );
+
       // redirect to iOS link if it is specified and the user is on an iOS device
+    } else if (ios && userAgent(req).os?.name === "iOS") {
       return NextResponse.redirect(getFinalUrl(ios, { req }), DUB_HEADERS);
-    } else if (android && userAgent(req).os?.name === "Android") {
+
       // redirect to Android link if it is specified and the user is on an Android device
+    } else if (android && userAgent(req).os?.name === "Android") {
       return NextResponse.redirect(getFinalUrl(android, { req }), DUB_HEADERS);
-    } else if (geo && country && country in geo) {
+
       // redirect to geo-specific link if it is specified and the user is in the specified country
+    } else if (geo && country && country in geo) {
       return NextResponse.redirect(
         getFinalUrl(geo[country], { req }),
         DUB_HEADERS,
       );
+
+      // regular redirect
     } else {
-      // regular redirect / rewrite
-      return rewrite
-        ? NextResponse.rewrite(getFinalUrl(target, { req }), DUB_HEADERS)
-        : NextResponse.redirect(getFinalUrl(target, { req }), DUB_HEADERS);
+      return NextResponse.redirect(getFinalUrl(target, { req }), DUB_HEADERS);
     }
   } else {
     // short link not found, redirect to root

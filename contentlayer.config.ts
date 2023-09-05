@@ -15,6 +15,9 @@ export const BlogPost = defineDocumentType(() => ({
       type: "string",
       required: true,
     },
+    seoTitle: {
+      type: "string",
+    },
     publishedAt: {
       type: "string",
       required: true,
@@ -22,6 +25,9 @@ export const BlogPost = defineDocumentType(() => ({
     summary: {
       type: "string",
       required: true,
+    },
+    seoDescription: {
+      type: "string",
     },
     image: {
       type: "string",

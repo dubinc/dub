@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { Copy, Tick } from "@/components/shared/icons";
 import { toast } from "sonner";

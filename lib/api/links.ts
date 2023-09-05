@@ -6,6 +6,7 @@ import { redis } from "#/lib/upstash";
 import { getParamsFromURL, nanoid, truncate, validKeyRegex } from "#/lib/utils";
 import { isReservedKey } from "#/lib/edge-config";
 import { NextApiRequest } from "next";
+import { isIframeable } from "../middleware/utils";
 
 export async function getLinksForProject({
   projectId,
@@ -235,7 +236,10 @@ export async function addLink(link: LinkProps) {
         url: encodeURIComponent(url),
         password: hasPassword,
         proxy,
-        ...(rewrite && { rewrite: true }),
+        ...(rewrite && {
+          rewrite: true,
+          iframeable: await isIframeable({ url, requestDomain: domain }),
+        }),
         ...(ios && { ios }),
         ...(android && { android }),
         ...(geo && { geo }),
@@ -341,7 +345,10 @@ export async function editLink(
         url: encodeURIComponent(url),
         password: hasPassword,
         proxy,
-        ...(rewrite && { rewrite: true }),
+        ...(rewrite && {
+          rewrite: true,
+          iframeable: await isIframeable({ url, requestDomain: domain }),
+        }),
         ...(ios && { ios }),
         ...(android && { android }),
         ...(geo && { geo }),

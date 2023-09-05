@@ -56,7 +56,7 @@ export default function Meta({
       <meta property="og:image" content={image} />
 
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:site" content="@dubdotsh" />
+      <meta name="twitter:site" content="@dubdotco" />
       <meta name="twitter:creator" content="@steventey" />
       <meta
         name="twitter:title"

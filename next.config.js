@@ -64,6 +64,7 @@ const nextConfig = {
         ],
         destination: "https://app.dub.co",
         permanent: true,
+        statusCode: 301,
       },
       {
         source: "/:path*",
@@ -75,6 +76,31 @@ const nextConfig = {
         ],
         destination: "https://app.dub.co/:path*",
         permanent: true,
+        statusCode: 301,
+      },
+      {
+        source: "/",
+        has: [
+          {
+            type: "host",
+            value: "api.dub.sh",
+          },
+        ],
+        destination: "https://api.dub.co",
+        permanent: true,
+        statusCode: 301,
+      },
+      {
+        source: "/:path*",
+        has: [
+          {
+            type: "host",
+            value: "api.dub.sh",
+          },
+        ],
+        destination: "https://api.dub.co/:path*",
+        permanent: true,
+        statusCode: 301,
       },
       {
         source: "/",
@@ -86,6 +112,7 @@ const nextConfig = {
         ],
         destination: "https://dub.co",
         permanent: true,
+        statusCode: 301,
       },
       ...REDIRECT_SEGMENTS.map(
         (segment) => (
@@ -99,6 +126,7 @@ const nextConfig = {
             ],
             destination: `https://dub.co/${segment}`,
             permanent: true,
+            statusCode: 301,
           },
           {
             source: `/${segment}/:path*`,
@@ -110,6 +138,7 @@ const nextConfig = {
             ],
             destination: `https://dub.co/${segment}/:path*`,
             permanent: true,
+            statusCode: 301,
           }
         ),
       ),
@@ -123,6 +152,7 @@ const nextConfig = {
         ],
         destination: "https://dub.co/tools/metatags",
         permanent: true,
+        statusCode: 301,
       },
       {
         source: "/metatags",
@@ -134,6 +164,19 @@ const nextConfig = {
         ],
         destination: "/tools/metatags",
         permanent: true,
+        statusCode: 301,
+      },
+      {
+        source: "/",
+        has: [
+          {
+            type: "host",
+            value: "staging.dub.sh",
+          },
+        ],
+        destination: "https://dub.co",
+        permanent: true,
+        statusCode: 301,
       },
       {
         source: "/",
@@ -145,6 +188,7 @@ const nextConfig = {
         ],
         destination: "https://preview.dub.co",
         permanent: true,
+        statusCode: 301,
       },
       {
         source: "/",
@@ -156,6 +200,7 @@ const nextConfig = {
         ],
         destination: "https://admin.dub.co",
         permanent: true,
+        statusCode: 301,
       },
     ];
   },
