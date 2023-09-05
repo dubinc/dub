@@ -31,7 +31,7 @@ export async function generateMetadata({
   });
 }
 
-export default async function ProxyOGPage({
+export default async function ProxyPage({
   params,
 }: {
   params: { domain: string; key: string };

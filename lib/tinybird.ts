@@ -56,7 +56,7 @@ export async function recordClick(
     ...(key && conn
       ? [
           conn.execute(
-            "UPDATE Link SET clicks = clicks + 1 WHERE domain = ? AND `key` = ?",
+            "UPDATE Link SET clicks = clicks + 1, lastClicked = NOW() WHERE domain = ? AND `key` = ?",
             [domain, key],
           ),
           conn.execute(

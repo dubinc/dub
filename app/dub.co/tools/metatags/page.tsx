@@ -16,7 +16,7 @@ export default function Metatags() {
     <>
       <div className="z-10 mx-2 my-10 flex max-w-md flex-col space-y-5 px-2.5 text-center sm:mx-auto sm:max-w-lg sm:px-0 lg:mb-28">
         <a
-          href="https://twitter.com/dubdotsh/status/1595459224498233347"
+          href="https://twitter.com/dubdotco/status/1595459224498233347"
           target="_blank"
           rel="noreferrer"
           className="mx-auto flex max-w-fit items-center justify-center space-x-2 overflow-hidden rounded-full bg-blue-100 px-7 py-2 transition-all hover:bg-blue-200"

@@ -2,6 +2,7 @@ import prisma from "#/lib/prisma";
 import { redis } from "#/lib/upstash";
 import cloudinary from "cloudinary";
 import { getApexDomain, validDomainRegex } from "#/lib/utils";
+import { isIframeable } from "../middleware/utils";
 
 export const validateDomain = async (
   domain: string,
@@ -164,19 +165,36 @@ export const verifyDomain = async (domain: string) => {
   ).then((res) => res.json());
 };
 
-export async function setRootDomain(
-  domain: string,
-  target: string,
-  rewrite: boolean,
-  newDomain?: string, // if the domain is changed, this will be the new domain
-) {
+export async function setRootDomain({
+  domain,
+  target,
+  rewrite,
+  newDomain,
+}: {
+  domain: string;
+  target: string;
+  rewrite: boolean;
+  newDomain?: string; // if the domain is changed, this will be the new domain
+}) {
   if (newDomain) {
     const pipeline = redis.pipeline();
     pipeline.del(`root:${domain}`);
-    pipeline.set(`root:${newDomain}`, { target, rewrite });
+    pipeline.set(`root:${newDomain}`, {
+      target,
+      ...(rewrite && {
+        rewrite: true,
+        iframeable: await isIframeable({ url: target, requestDomain: domain }),
+      }),
+    });
     return await pipeline.exec();
   } else {
-    await redis.set(`root:${domain}`, { target, rewrite });
+    await redis.set(`root:${domain}`, {
+      target,
+      ...(rewrite && {
+        rewrite: true,
+        iframeable: await isIframeable({ url: target, requestDomain: domain }),
+      }),
+    });
   }
 }
 

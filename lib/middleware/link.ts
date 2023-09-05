@@ -46,6 +46,7 @@ export default async function LinkMiddleware(
     password?: boolean;
     proxy?: boolean;
     rewrite?: boolean;
+    iframeable?: boolean;
     ios?: string;
     android?: string;
     geo?: object;
@@ -59,6 +60,7 @@ export default async function LinkMiddleware(
     password,
     proxy,
     rewrite,
+    iframeable,
     ios,
     android,
     geo,
@@ -91,7 +93,15 @@ export default async function LinkMiddleware(
 
     // rewrite to target URL if link cloaking is enabled
     if (rewrite) {
-      return NextResponse.rewrite(decodeURIComponent(target), DUB_HEADERS);
+      if (iframeable) {
+        return NextResponse.rewrite(
+          new URL(`/rewrite/${target}`, req.url),
+          DUB_HEADERS,
+        );
+      } else {
+        // if link is not iframeable, use Next.js rewrite instead
+        return NextResponse.rewrite(decodeURIComponent(target), DUB_HEADERS);
+      }
 
       // rewrite to proxy page (/_proxy/[domain]/[key]) if it's a bot and proxy is enabled
     } else if (isBot && proxy) {

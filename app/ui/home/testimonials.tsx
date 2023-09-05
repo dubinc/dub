@@ -22,6 +22,7 @@ const tweets = [
   "1632125000386854912",
   "1581017931043196928",
   "1643814463131332609",
+  "1696615753536114736",
 ];
 
 export default async function Testimonials() {

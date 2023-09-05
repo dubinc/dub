@@ -317,7 +317,7 @@ function AddEditDomainModal({
                 className="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-500 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
               >
                 <option value="redirect">Redirect</option>
-                <option value="rewrite">Rewrite</option>
+                <option value="rewrite">Rewrite (Link Cloaking)</option>
               </select>
             </motion.div>
           )}
