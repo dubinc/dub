@@ -99,8 +99,8 @@ export default function Features() {
                           src={feature.thumbnail}
                           alt={feature.title}
                           className="absolute inset-0 h-full w-full object-cover"
-                          width={800}
-                          height={600}
+                          width={1735}
+                          height={990}
                         />
                       </motion.div>
                     );

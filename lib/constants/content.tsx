@@ -116,8 +116,7 @@ export const FEATURES_LIST = [
       "Dub provides powerful analytics for your links, including geolocation, device, browser, and referrer information.",
     icon: BarChart,
     slug: "analytics",
-    thumbnail:
-      "https://media.cleanshot.cloud/media/42580/FUSjMlxa2Xqne98F9KO5i960094hS5XinPIfgC9r.jpeg?Expires=1693806001&Signature=H5-txoTKREO1I7R-X05XDKQK2lS6EdMjnmb5MSTgfAsx-cJ4gXipCu99TZxJovoFGyBy2yLnVn3WrBhRtr~XkAhk0REtXrtLCpRe~dy0WJymLacZ-joGNIT203o5TptMueNAhWJIzdURsVJTl7VkU94BFHKCt31am8UuAIm8hh-ZI3YnjIteS9lNe4c2AJ2c6pDecNLjdG8OG6VeddSW29Lgehqdx4c3qKSTSbaL8fH0Hn-ez4spG4iHBgOXerY1R2kvaVaxjY6qN1OFZ9dWjiDIFAGo~MggxxNn8zSKwJHTtCqzKG9EYP-dozIjb-kmmlao0eolGHi1bh9tVUofuA__&Key-Pair-Id=K269JMAT9ZF4GZ",
+    thumbnail: "https://d2vwwcvoksz7ty.cloudfront.net/features/analytics.png",
     videoUrl:
       "https://www.youtube.com/embed/m062ApqcRow?si=8FRndy4ABWPTioHU&autoplay=1",
   },
@@ -129,8 +128,7 @@ export const FEATURES_LIST = [
       "Dub offers free and unlimited custom domains on all plans for you to create branded links that stand out.",
     icon: Airplay,
     slug: "branded-links",
-    thumbnail:
-      "https://media.cleanshot.cloud/media/42580/FUSjMlxa2Xqne98F9KO5i960094hS5XinPIfgC9r.jpeg?Expires=1693806001&Signature=H5-txoTKREO1I7R-X05XDKQK2lS6EdMjnmb5MSTgfAsx-cJ4gXipCu99TZxJovoFGyBy2yLnVn3WrBhRtr~XkAhk0REtXrtLCpRe~dy0WJymLacZ-joGNIT203o5TptMueNAhWJIzdURsVJTl7VkU94BFHKCt31am8UuAIm8hh-ZI3YnjIteS9lNe4c2AJ2c6pDecNLjdG8OG6VeddSW29Lgehqdx4c3qKSTSbaL8fH0Hn-ez4spG4iHBgOXerY1R2kvaVaxjY6qN1OFZ9dWjiDIFAGo~MggxxNn8zSKwJHTtCqzKG9EYP-dozIjb-kmmlao0eolGHi1bh9tVUofuA__&Key-Pair-Id=K269JMAT9ZF4GZ",
+    thumbnail: "https://d2vwwcvoksz7ty.cloudfront.net/features/analytics.png",
     videoUrl:
       "https://www.youtube.com/embed/m062ApqcRow?si=8FRndy4ABWPTioHU&autoplay=1",
   },
@@ -142,8 +140,7 @@ export const FEATURES_LIST = [
       "QR codes and short links are like peas in a pod. Dub offers free QR codes for every short link you create.",
     icon: QrCode,
     slug: "qr-codes",
-    thumbnail:
-      "https://media.cleanshot.cloud/media/42580/FUSjMlxa2Xqne98F9KO5i960094hS5XinPIfgC9r.jpeg?Expires=1693806001&Signature=H5-txoTKREO1I7R-X05XDKQK2lS6EdMjnmb5MSTgfAsx-cJ4gXipCu99TZxJovoFGyBy2yLnVn3WrBhRtr~XkAhk0REtXrtLCpRe~dy0WJymLacZ-joGNIT203o5TptMueNAhWJIzdURsVJTl7VkU94BFHKCt31am8UuAIm8hh-ZI3YnjIteS9lNe4c2AJ2c6pDecNLjdG8OG6VeddSW29Lgehqdx4c3qKSTSbaL8fH0Hn-ez4spG4iHBgOXerY1R2kvaVaxjY6qN1OFZ9dWjiDIFAGo~MggxxNn8zSKwJHTtCqzKG9EYP-dozIjb-kmmlao0eolGHi1bh9tVUofuA__&Key-Pair-Id=K269JMAT9ZF4GZ",
+    thumbnail: "https://d2vwwcvoksz7ty.cloudfront.net/features/analytics.png",
     videoUrl:
       "https://www.youtube.com/embed/m062ApqcRow?si=8FRndy4ABWPTioHU&autoplay=1",
   },
@@ -155,8 +152,7 @@ export const FEATURES_LIST = [
       "Customize your link's behavior with device targeting, geo targeting, link cloaking, and more.",
     icon: Link2,
     slug: "personalization",
-    thumbnail:
-      "https://media.cleanshot.cloud/media/42580/FUSjMlxa2Xqne98F9KO5i960094hS5XinPIfgC9r.jpeg?Expires=1693806001&Signature=H5-txoTKREO1I7R-X05XDKQK2lS6EdMjnmb5MSTgfAsx-cJ4gXipCu99TZxJovoFGyBy2yLnVn3WrBhRtr~XkAhk0REtXrtLCpRe~dy0WJymLacZ-joGNIT203o5TptMueNAhWJIzdURsVJTl7VkU94BFHKCt31am8UuAIm8hh-ZI3YnjIteS9lNe4c2AJ2c6pDecNLjdG8OG6VeddSW29Lgehqdx4c3qKSTSbaL8fH0Hn-ez4spG4iHBgOXerY1R2kvaVaxjY6qN1OFZ9dWjiDIFAGo~MggxxNn8zSKwJHTtCqzKG9EYP-dozIjb-kmmlao0eolGHi1bh9tVUofuA__&Key-Pair-Id=K269JMAT9ZF4GZ",
+    thumbnail: "https://d2vwwcvoksz7ty.cloudfront.net/features/analytics.png",
     videoUrl:
       "https://www.youtube.com/embed/m062ApqcRow?si=8FRndy4ABWPTioHU&autoplay=1",
   },
@@ -169,8 +165,7 @@ export const FEATURES_LIST = [
       "Invite your teammates to collaborate on your links. For enterprises, Dub offers SAML SSO for better security.",
     icon: Users,
     slug: "collaboration",
-    thumbnail:
-      "https://media.cleanshot.cloud/media/42580/FUSjMlxa2Xqne98F9KO5i960094hS5XinPIfgC9r.jpeg?Expires=1693806001&Signature=H5-txoTKREO1I7R-X05XDKQK2lS6EdMjnmb5MSTgfAsx-cJ4gXipCu99TZxJovoFGyBy2yLnVn3WrBhRtr~XkAhk0REtXrtLCpRe~dy0WJymLacZ-joGNIT203o5TptMueNAhWJIzdURsVJTl7VkU94BFHKCt31am8UuAIm8hh-ZI3YnjIteS9lNe4c2AJ2c6pDecNLjdG8OG6VeddSW29Lgehqdx4c3qKSTSbaL8fH0Hn-ez4spG4iHBgOXerY1R2kvaVaxjY6qN1OFZ9dWjiDIFAGo~MggxxNn8zSKwJHTtCqzKG9EYP-dozIjb-kmmlao0eolGHi1bh9tVUofuA__&Key-Pair-Id=K269JMAT9ZF4GZ",
+    thumbnail: "https://d2vwwcvoksz7ty.cloudfront.net/features/analytics.png",
     videoUrl:
       "https://www.youtube.com/embed/m062ApqcRow?si=8FRndy4ABWPTioHU&autoplay=1",
   },
