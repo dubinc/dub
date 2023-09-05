@@ -58,6 +58,9 @@ function SAMLModal({
               },
               body: JSON.stringify({
                 metadataUrl: e.currentTarget.metadataUrl.value,
+                encodedRawMetadata: Buffer.from(
+                  e.currentTarget.metadataRaw.value,
+                ).toString("base64"),
               }),
             }).then(async (res) => {
               if (res.ok) {
@@ -97,9 +100,10 @@ function SAMLModal({
                 <option
                   key={provider.saml}
                   value={provider.saml}
-                  disabled={provider.wip}
+                  // disabled={provider.wip}
                 >
-                  {provider.name} {provider.wip && "(Coming Soon)"}
+                  {provider.name}
+                  {/* {provider.wip && "(Coming Soon)"} */}
                 </option>
               ))}
             </select>
@@ -123,16 +127,43 @@ function SAMLModal({
           </div>
 
           {currentProvider &&
-            (selectedProvider === "okta" || selectedProvider === "azure") && (
+            (selectedProvider === "google" ? (
               <div className="border-t border-gray-200 pt-4">
                 <div className="flex items-center space-x-1">
                   <h2 className="text-sm font-medium text-gray-900">
-                    {currentProvider.samlModalCopy.url}
+                    {currentProvider.samlModalCopy}
                   </h2>
                   <InfoTooltip
                     content={
                       <SimpleTooltipContent
-                        title={`Your ${currentProvider.samlModalCopy.url} is the URL to your SAML provider's metadata.`}
+                        title={`Your ${currentProvider.samlModalCopy} is the URL to your SAML provider's metadata.`}
+                        cta="Learn more."
+                        href={`${HOME_DOMAIN}/help/article/${selectedProvider}-saml#step-4-copy-the-metadata-url`}
+                      />
+                    }
+                  />
+                </div>
+                <input
+                  id="metadataRaw"
+                  name="metadataRaw"
+                  autoFocus
+                  type="url"
+                  placeholder="https://"
+                  autoComplete="off"
+                  required
+                  className="mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
+                />
+              </div>
+            ) : (
+              <div className="border-t border-gray-200 pt-4">
+                <div className="flex items-center space-x-1">
+                  <h2 className="text-sm font-medium text-gray-900">
+                    {currentProvider.samlModalCopy}
+                  </h2>
+                  <InfoTooltip
+                    content={
+                      <SimpleTooltipContent
+                        title={`Your ${currentProvider.samlModalCopy} is the URL to your SAML provider's metadata.`}
                         cta="Learn more."
                         href={`${HOME_DOMAIN}/help/article/${selectedProvider}-saml#step-4-copy-the-metadata-url`}
                       />
@@ -150,7 +181,7 @@ function SAMLModal({
                   className="mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
                 />
               </div>
-            )}
+            ))}
           <Button
             text="Save changes"
             disabled={!selectedProvider}
