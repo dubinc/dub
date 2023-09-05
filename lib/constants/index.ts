@@ -130,7 +130,7 @@ export const SHOW_BACKGROUND_SEGMENTS = new Set([
   "auth",
 ]);
 
-export const allTools = ["metatags"];
+export const allTools = ["metatags", "inspector"];
 
 export { default as COUNTRIES } from "./countries";
 export { default as ccTLDs } from "./cctlds";

@@ -19,10 +19,10 @@ const navigation = {
     { name: "Help Center", href: "/help" },
     { name: "Pricing", href: "/pricing" },
   ],
-  // company: [
-  //   { name: "About", href: "/about" },
-  // ],
-  tools: [{ name: "Metatags API", href: "/tools/metatags" }],
+  tools: [
+    { name: "Metatags API", href: "/tools/metatags" },
+    { name: "Link Inspector", href: "/tools/inspector" },
+  ],
   legal: [
     { name: "Privacy", href: "/privacy" },
     { name: "Terms", href: "/terms" },

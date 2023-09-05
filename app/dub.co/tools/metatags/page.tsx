@@ -4,6 +4,7 @@ import Background from "#/ui/home/background";
 import LaunchTweet from "./launch";
 import MetatagsContent from "./content";
 import { constructMetadata } from "#/lib/utils";
+import LinkPreview from "#/ui/home/link-preview";
 
 export const metadata = constructMetadata({
   title: "Metatags API - The Free API to Get Meta Tags from a URL",
@@ -14,7 +15,7 @@ export const metadata = constructMetadata({
 export default function Metatags() {
   return (
     <>
-      <div className="z-10 mx-2 my-10 flex max-w-md flex-col space-y-5 px-2.5 text-center sm:mx-auto sm:max-w-lg sm:px-0 lg:mb-28">
+      <div className="mx-2 my-10 flex max-w-md flex-col space-y-5 px-2.5 text-center sm:mx-auto sm:max-w-lg sm:px-0 lg:mb-28">
         <a
           href="https://twitter.com/dubdotco/status/1595459224498233347"
           target="_blank"
@@ -38,6 +39,7 @@ export default function Metatags() {
           and open-source.
         </h2>
 
+        <LinkPreview />
         <MetatagsContent />
 
         <a

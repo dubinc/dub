@@ -2,18 +2,25 @@ import { useRouter } from "next/router";
 import { useMemo, useState } from "react";
 import IconMenu from "@/components/shared/icon-menu";
 import { Sort, Tick } from "@/components/shared/icons";
-import { ChevronDown, SortDesc } from "lucide-react";
+import { ChevronDown, SortAsc, SortDesc } from "lucide-react";
 import Popover from "#/ui/popover";
 
 const sortOptions = [
   {
     display: "Date Added",
     slug: "createdAt",
+    order: "desc",
   },
   {
     display: "Number of Clicks",
     slug: "clicks",
+    order: "desc",
   },
+  // {
+  //   display: "Last Clicked",
+  //   slug: "lastClicked",
+  //   order: "asc",
+  // },
 ];
 
 export default function LinkSort() {
@@ -29,7 +36,7 @@ export default function LinkSort() {
     <Popover
       content={
         <div className="w-full p-2 md:w-48">
-          {sortOptions.map(({ display, slug }) => (
+          {sortOptions.map(({ display, slug, order }) => (
             <button
               key={slug}
               onClick={() => {
@@ -52,7 +59,13 @@ export default function LinkSort() {
             >
               <IconMenu
                 text={display}
-                icon={<SortDesc className="h-4 w-4" />}
+                icon={
+                  order === "desc" ? (
+                    <SortDesc className="h-4 w-4" />
+                  ) : (
+                    <SortAsc className="h-4 w-4" />
+                  )
+                }
               />
               {selectedSort.slug === slug && (
                 <Tick className="h-4 w-4" aria-hidden="true" />
@@ -68,7 +81,20 @@ export default function LinkSort() {
         onClick={() => setOpenPopover(!openPopover)}
         className="flex w-48 items-center justify-between space-x-2 rounded-md bg-white px-3 py-2.5 shadow transition-all duration-75 hover:shadow-md active:scale-95"
       >
-        <IconMenu text="Sort by" icon={<Sort className="h-4 w-4 shrink-0" />} />
+        <IconMenu
+          text={sort ? selectedSort.display : "Sort by"}
+          icon={
+            sort ? (
+              selectedSort.order === "desc" ? (
+                <SortDesc className="h-4 w-4" />
+              ) : (
+                <SortAsc className="h-4 w-4" />
+              )
+            ) : (
+              <Sort className="h-4 w-4 shrink-0" />
+            )
+          }
+        />
         <ChevronDown
           className={`h-5 w-5 text-gray-400 ${
             openPopover ? "rotate-180 transform" : ""
