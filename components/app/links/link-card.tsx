@@ -55,6 +55,7 @@ export default function LinkCard({
     url,
     rewrite,
     createdAt,
+    lastClicked,
     archived,
     tagId,
     comments,
@@ -364,7 +365,7 @@ export default function LinkCard({
         </div>
 
         <div className="flex items-center space-x-2">
-          <Number value={clicks}>
+          <Number value={clicks} lastClicked={lastClicked}>
             <Link
               onClick={(e) => {
                 e.stopPropagation();

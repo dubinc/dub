@@ -215,6 +215,7 @@ model Link {
   @@index(password)
   @@index(createdAt(sort: Desc))
   @@index(clicks(sort: Desc))
+  @@index(lastClicked(sort: Asc))
   @@index(userId)
   @@fulltext([key, url])
 }
