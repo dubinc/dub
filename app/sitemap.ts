@@ -1,3 +1,4 @@
+import { MetadataRoute } from "next";
 import prisma from "#/lib/prisma";
 import { headers } from "next/headers";
 import {
@@ -9,7 +10,7 @@ import {
 import { isHomeHostname, allTools } from "#/lib/constants";
 import { BLOG_CATEGORIES, HELP_CATEGORIES } from "#/lib/constants/content";
 
-export default async function Sitemap() {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const headersList = headers();
   let domain = headersList.get("host") as string;
   if (isHomeHostname(domain)) domain = "dub.co";
