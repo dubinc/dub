@@ -19,7 +19,7 @@ const navigation = {
   ],
   tools: [
     { name: "Metatags API", href: "/tools/metatags" },
-    { name: "Link Inspector", href: "/tools/inspect" },
+    { name: "Link Inspector", href: "/tools/inspector" },
   ],
   legal: [
     { name: "Privacy", href: "/privacy" },
