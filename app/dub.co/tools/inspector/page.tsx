@@ -1,15 +1,12 @@
 import Background from "#/ui/home/background";
 import { constructMetadata } from "#/lib/utils";
 import LinkInspectorForm from "./form";
-import { Photo } from "@/components/shared/icons";
-import LinkPreview from "#/ui/home/link-preview";
-import Link from "next/link";
 import BlurImage from "#/ui/blur-image";
 
 export const metadata = constructMetadata({
   title: "Link Inspector - Inspect a Short Link on Dub to Make Sure It's Safe",
   description:
-    "Dub's Link Inspector is a simple tool for inspecting short links on Dub to make sure it's safe to click on. If you think this link is malicious, please report it.",
+    "Dub's Link Inspector is a simple tool for inspecting short links on Dub to make sure it's safe to click on.",
 });
 
 export default function LinkInspector() {
@@ -20,8 +17,8 @@ export default function LinkInspector() {
           Link Inspector
         </h1>
         <h2 className="text-lg text-gray-600 sm:text-xl">
-          Inspect a short link on Dub to make sure it's safe to click on. If you
-          think this link is malicious, please report it.
+          Inspect a short link on Dub to make sure it's safe to click on – no
+          more unwanted Rick-Rolls or phishing links!
         </h2>
         <LinkInspectorForm />
         <a
