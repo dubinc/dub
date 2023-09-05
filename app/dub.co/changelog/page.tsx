@@ -31,7 +31,7 @@ export default function Changelog() {
         <div className="absolute bottom-2 right-0 flex items-center space-x-2">
           <p className="text-sm text-gray-500">Subscribe to updates →</p>
           <Link
-            href="https://twitter.com/dubdotsh"
+            href="https://twitter.com/dubdotco"
             className="rounded-full bg-blue-100 p-2 transition-colors hover:bg-blue-200"
             target="_blank"
             rel="noopener noreferrer"

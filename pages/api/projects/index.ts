@@ -55,7 +55,7 @@ export default withUserAuth(
       if (slugError || validDomain !== true) {
         return res.status(422).json({
           slugError,
-          domainError: validDomain ? null : "Invalid domain",
+          domainError: validDomain === true ? null : validDomain,
         });
       }
       const [slugExist, domainExist] = await Promise.all([

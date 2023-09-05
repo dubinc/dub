@@ -100,13 +100,13 @@ export const DEFAULT_REDIRECTS = {
   links: "https://app.dub.co/links",
   settings: "https://app.dub.co/settings",
   welcome: "https://app.dub.co/welcome",
-  discord: "https://twitter.com/dubdotsh", // placeholder for now
+  discord: "https://twitter.com/dubdotco", // placeholder for now
   tags: "https://dub.co/help/how-to-use-tags",
 };
 
 export const DUB_HEADERS = {
   headers: {
-    "x-powered-by": "dub.co - Link management for modern marketing teams",
+    "x-powered-by": "Dub.co - Link management for modern marketing teams",
   },
 };
 
@@ -129,7 +129,7 @@ export const SHOW_BACKGROUND_SEGMENTS = new Set([
   "auth",
 ]);
 
-export const allTools = ["metatags"];
+export const allTools = ["metatags", "inspector"];
 
 export { default as COUNTRIES } from "./countries";
 export { default as ccTLDs } from "./cctlds";

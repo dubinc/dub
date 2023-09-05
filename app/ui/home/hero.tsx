@@ -1,4 +1,4 @@
-import { allBlogPosts, allChangelogPosts } from "contentlayer/generated";
+import { allBlogPosts } from "contentlayer/generated";
 import { Github } from "@/components/shared/icons";
 import Link from "next/link";
 import { ExpandingArrow } from "../icons";

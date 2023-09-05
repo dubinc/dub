@@ -17,10 +17,14 @@ const navigation = {
     { name: "Blog", href: "/blog" },
     // { name: "About", href: "/about" },
   ],
-  tools: [{ name: "Metatags API", href: "/tools/metatags" }],
+  tools: [
+    { name: "Metatags API", href: "/tools/metatags" },
+    { name: "Link Inspector", href: "/tools/inspector" },
+  ],
   legal: [
     { name: "Privacy", href: "/privacy" },
     { name: "Terms", href: "/terms" },
+    { name: "Abuse", href: "/abuse" },
   ],
 };
 
@@ -55,7 +59,7 @@ export default function Footer() {
             </p>
             <div className="flex items-center space-x-2">
               <a
-                href="https://twitter.com/dubdotsh"
+                href="https://twitter.com/dubdotco"
                 target="_blank"
                 rel="noreferrer"
                 className="group rounded-md p-2 transition-colors hover:bg-gray-100 active:bg-gray-200"

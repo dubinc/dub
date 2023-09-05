@@ -63,11 +63,6 @@ export type DomainVerificationStatusProps =
   | "Domain Not Found"
   | "Unknown Error";
 
-export interface RootDomainProps {
-  target: string;
-  rewrite?: boolean;
-}
-
 export interface DomainProps {
   slug: string;
   verified: boolean;
