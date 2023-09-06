@@ -116,6 +116,8 @@ Check the **ON for everyone** checkbox and click **Save**.
   hideCaption={true}
 />
 
+This will allow users in your Google Workspace to automatically sign in to Dub with Google SAML SSO.
+
 You can now return to the Dub dashboard to complete the SAML SSO configuration.
 
 ## Step 3: Configure SAML SSO on Dub
@@ -137,62 +139,11 @@ Under the **SAML Single Sign-On** section, click on **Configure**. This will ope
 3. Click **Save changes**.
 
 <Image
-  alt="SAML SSO Modal"
-  src="https://d2vwwcvoksz7ty.cloudfront.net/help/okta-saml-modal.png"
-  width={2068}
-  height={1720}
+  alt="Google SAML SSO Modal"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/google-saml-modal.png"
+  width={1033}
+  height={740}
   hideCaption={true}
 />
 
-## Step 6: Assign Users
-
-<Note variant="warning">
-  We highly recommend configuring [SCIM Directory Sync](okta-scim) before
-  assigning users & groups to your project. This will ensure that your users are
-  automatically added to your project when they sign in for the first time, as
-  well as automatically removed when they are deactivated in Okta.
-</Note>
-
-Once you've configured SAML SSO, you can start assigning users & groups to your project.
-
-Click on the **Assignments** tab, and click **Assign**. You can choose to assign users individually, or assign them in bulk by group.
-
-<Image
-  alt="Assigning users in Okta"
-  src="https://d2vwwcvoksz7ty.cloudfront.net/help/okta-saml-assign.png"
-  width={2346}
-  height={1562}
-  hideCaption={true}
-/>
-
-Select the users or groups you want to assign and click **Assign**.
-
-<Image
-  alt="Assigning users in Okta choose users"
-  src="https://d2vwwcvoksz7ty.cloudfront.net/help/okta-saml-choose.png"
-  width={1564}
-  height={1356}
-  hideCaption={true}
-/>
-
-In the next screen, scroll to the bottom and click **Save and Go Back**.
-
-<Image
-  alt="Saving Okta assignment"
-  src="https://d2vwwcvoksz7ty.cloudfront.net/help/okta-saml-save.png"
-  width={3132}
-  height={2008}
-  hideCaption={true}
-/>
-
-Your assigned users should now receive an invitation email to join your Dub project.
-
-<Image
-  alt="SAML invite email"
-  src="https://d2vwwcvoksz7ty.cloudfront.net/help/saml-invite.png"
-  width={2226}
-  height={1564}
-  hideCaption={true}
-/>
-
-They will also be able to sign in to Dub using Okta SSO.
+That's it! You're all set – your team can now sign in to Dub using Google SAML SSO.
