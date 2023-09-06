@@ -41,15 +41,15 @@ export default function Changelog() {
 const DesktopChangelogEntry = ({ post }) => (
   <Link
     href={`/${post.type === "BlogPost" ? "blog" : "changelog"}/${post.slug}`}
-    className="group hidden grid-cols-5 items-center md:grid"
+    className="group hidden grid-cols-9 items-center md:grid"
   >
-    <dl>
+    <dl className="col-span-2">
       <dt className="sr-only">Published on</dt>
       <dd className="text-base font-medium text-gray-400 transition-colors group-hover:text-gray-700">
         <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
       </dd>
     </dl>
-    <div className="col-span-4 flex items-center">
+    <div className="col-span-7 flex items-center">
       <div className="relative ml-4">
         <div className="h-16 border-l border-gray-400 pr-8" />
         <div className="absolute -left-1 top-[1.6875rem] h-2.5 w-2.5 rounded-full bg-gray-400 transition-colors group-hover:bg-gray-700" />
