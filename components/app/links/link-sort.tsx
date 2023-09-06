@@ -16,11 +16,11 @@ const sortOptions = [
     slug: "clicks",
     order: "desc",
   },
-  // {
-  //   display: "Last Clicked",
-  //   slug: "lastClicked",
-  //   order: "asc",
-  // },
+  {
+    display: "Last Clicked",
+    slug: "lastClicked",
+    order: "asc",
+  },
 ];
 
 export default function LinkSort() {
