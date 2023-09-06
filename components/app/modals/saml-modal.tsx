@@ -103,10 +103,10 @@ function SAMLModal({
                 <option
                   key={provider.saml}
                   value={provider.saml}
-                  // disabled={provider.wip}
+                  disabled={provider.wip}
                 >
                   {provider.name}
-                  {/* {provider.wip && "(Coming Soon)"} */}
+                  {provider.wip && "(Coming Soon)"}
                 </option>
               ))}
             </select>

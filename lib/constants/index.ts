@@ -191,6 +191,7 @@ export const SAML_PROVIDERS = [
       url: "SCIM 2.0 Base URL",
       token: "OAuth Bearer Token",
     },
+    wip: false,
   },
   {
     name: "Azure AD",
@@ -202,6 +203,7 @@ export const SAML_PROVIDERS = [
       url: "Tenant URL",
       token: "Secret Token",
     },
+    wip: false,
   },
   {
     name: "Google",
@@ -213,5 +215,6 @@ export const SAML_PROVIDERS = [
       url: "SCIM 2.0 Base URL",
       token: "OAuth Bearer Token",
     },
+    wip: false,
   },
 ];
