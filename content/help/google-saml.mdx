@@ -50,7 +50,7 @@ Enter the \*App name** for your application, and click **Continue\*\*.
   hideCaption={true}
 />
 
-In the next screen, click **Download Metadata** to download the metadata XML file and click **Continue**.
+In the next screen, click **Download Metadata** to download the metadata XML file and click **Continue**. You'll need this file in Step 3.
 
 <Image
   alt="Downloading SAML metadata on the Google Admin Dashboard"
@@ -96,33 +96,29 @@ On the next screen, under the **Attributes** section, click **Add Mapping** and 
 
 Once that's done, click **Finish**.
 
-## Step 3: Submit Feedback
-
-Under the **Feedback** section, select **I'm an Okta customer adding an internal app** and click **Finish**.
+On the next screen, click **User access** to configure the application to allow users to log in.
 
 <Image
-  alt="Feedback section on the Okta Dashboard"
-  src="https://d2vwwcvoksz7ty.cloudfront.net/help/okta-saml-feedback.png"
-  width={2244}
-  height={1430}
+  alt="User access on the Google Admin Dashboard"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/google-saml-users.png"
+  width={1611}
+  height={741}
   hideCaption={true}
 />
 
-## Step 4: Copy the Metadata URL
-
-After you've submitted the feedback, you'll be redirected to the **Sign On** tab, which contains the metadata URL.
+Check the **ON for everyone** checkbox and click **Save**.
 
 <Image
-  alt="Sign On tab on the Okta Dashboard"
-  src="https://d2vwwcvoksz7ty.cloudfront.net/help/okta-saml-metadata-url.png"
-  width={3024}
-  height={1720}
+  alt="Turn on access for everyone on the Google Admin Dashboard"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/google-saml-save.png"
+  width={1607}
+  height={692}
   hideCaption={true}
 />
 
-Copy the metadata URL and return to the Dub dashboard.
+You can now return to the Dub dashboard to complete the SAML SSO configuration.
 
-## Step 5: Configure SAML SSO on Dub
+## Step 3: Configure SAML SSO on Dub
 
 In your project dashboard on Dub, click on the **Settings** tab in the menu bar at the top. Then, click on the **Security** tab in the sidebar.
 
@@ -136,8 +132,8 @@ In your project dashboard on Dub, click on the **Settings** tab in the menu bar 
 
 Under the **SAML Single Sign-On** section, click on **Configure**. This will open up the SAML SSO modal:
 
-1. Select **Okta** as the SAML provider.
-2. Enter the Metadata URL value that you copied from Step 4.
+1. Select **Google** as the SAML provider.
+2. Upload the metadata XML file you downloaded in Step 1.
 3. Click **Save changes**.
 
 <Image

@@ -204,7 +204,7 @@ export const SAML_PROVIDERS = [
     },
   },
   {
-    name: "Google Workspace",
+    name: "Google",
     logo: "/_static/icons/google.svg",
     saml: "google",
     samlModalCopy: "XML Metadata File",
