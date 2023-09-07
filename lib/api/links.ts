@@ -22,7 +22,7 @@ export async function getLinksForProject({
   domain?: string;
   tagId?: string;
   search?: string;
-  sort?: "createdAt" | "clicks" | "lastClicked"; // descending for "createdAt" and "clicks", ascending for "lastClicked"
+  sort?: "createdAt" | "clicks" | "lastClicked"; // descending for all
   page?: string;
   userId?: string | null;
   showArchived?: boolean;
@@ -52,7 +52,7 @@ export async function getLinksForProject({
       user: true,
     },
     orderBy: {
-      [sort]: sort === "lastClicked" ? "asc" : "desc",
+      [sort]: "desc",
     },
     take: 100,
     ...(page && {

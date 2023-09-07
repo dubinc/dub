@@ -9,17 +9,14 @@ const sortOptions = [
   {
     display: "Date Added",
     slug: "createdAt",
-    order: "desc",
   },
   {
     display: "Number of Clicks",
     slug: "clicks",
-    order: "desc",
   },
   {
     display: "Last Clicked",
     slug: "lastClicked",
-    order: "asc",
   },
 ];
 
@@ -36,7 +33,7 @@ export default function LinkSort() {
     <Popover
       content={
         <div className="w-full p-2 md:w-48">
-          {sortOptions.map(({ display, slug, order }) => (
+          {sortOptions.map(({ display, slug }) => (
             <button
               key={slug}
               onClick={() => {
@@ -59,13 +56,7 @@ export default function LinkSort() {
             >
               <IconMenu
                 text={display}
-                icon={
-                  order === "desc" ? (
-                    <SortDesc className="h-4 w-4" />
-                  ) : (
-                    <SortAsc className="h-4 w-4" />
-                  )
-                }
+                icon={<SortDesc className="h-4 w-4" />}
               />
               {selectedSort.slug === slug && (
                 <Tick className="h-4 w-4" aria-hidden="true" />
@@ -85,11 +76,7 @@ export default function LinkSort() {
           text={sort ? selectedSort.display : "Sort by"}
           icon={
             sort ? (
-              selectedSort.order === "desc" ? (
-                <SortDesc className="h-4 w-4" />
-              ) : (
-                <SortAsc className="h-4 w-4" />
-              )
+              <SortDesc className="h-4 w-4" />
             ) : (
               <Sort className="h-4 w-4 shrink-0" />
             )
