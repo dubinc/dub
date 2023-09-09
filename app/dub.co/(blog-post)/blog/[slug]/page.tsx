@@ -10,6 +10,7 @@ import { constructMetadata, formatDate } from "#/lib/utils";
 import BlurImage from "#/ui/blur-image";
 import { BLOG_CATEGORIES } from "#/lib/constants/content";
 import { getAndCacheTweet } from "#/lib/twitter";
+import getRepos from "#/lib/github";
 
 export async function generateStaticParams() {
   return allBlogPosts.map((post) => ({
@@ -48,7 +49,7 @@ export default async function BlogArticle({
     notFound();
   }
 
-  const [thumbnailBlurhash, images, tweets] = await Promise.all([
+  const [thumbnailBlurhash, images, tweets, repos] = await Promise.all([
     getBlurDataURL(data.image),
     await Promise.all(
       data.images.map(async (src: string) => ({
@@ -59,6 +60,7 @@ export default async function BlogArticle({
     await Promise.all(
       data.tweetIds.map(async (id: string) => getAndCacheTweet(id)),
     ),
+    getRepos(data.githubRepos),
   ]);
 
   const category = BLOG_CATEGORIES.find(
@@ -114,6 +116,7 @@ export default async function BlogArticle({
               code={data.body.code}
               images={images}
               tweets={tweets}
+              repos={repos}
               className="px-5 pb-20 pt-4 sm:px-10"
             />
           </div>

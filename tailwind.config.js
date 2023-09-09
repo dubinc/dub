@@ -10,6 +10,9 @@ module.exports = {
   },
   theme: {
     extend: {
+      screens: {
+        xs: "420px",
+      },
       fontFamily: {
         display: ["var(--font-satoshi)", "system-ui", "sans-serif"],
         default: ["var(--font-inter)", "system-ui", "sans-serif"],

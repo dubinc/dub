@@ -255,7 +255,7 @@ export default function LinkCard({
                     e.stopPropagation(); // to avoid selecting the link card
                   }}
                   className={cn(
-                    "w-full max-w-[170px] truncate text-sm font-semibold text-blue-800 sm:max-w-[300px] sm:text-base md:max-w-[360px] xl:max-w-[500px]",
+                    "w-full max-w-[140px] truncate text-sm font-semibold text-blue-800 sm:max-w-[300px] sm:text-base md:max-w-[360px] xl:max-w-[500px]",
                     {
                       "text-gray-500": archived,
                     },
@@ -335,7 +335,7 @@ export default function LinkCard({
               <p className="whitespace-nowrap text-sm text-gray-500">
                 {timeAgo(createdAt)}
               </p>
-              <p>•</p>
+              <p className="hidden xs:block">•</p>
               {rewrite && (
                 <Tooltip
                   content={
@@ -346,7 +346,7 @@ export default function LinkCard({
                     />
                   }
                 >
-                  <EyeOff className="h-4 w-4 text-gray-500" />
+                  <EyeOff className="hidden h-4 w-4 text-gray-500 xs:block" />
                 </Tooltip>
               )}
               <a
@@ -356,7 +356,7 @@ export default function LinkCard({
                 href={url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="max-w-[180px] truncate text-sm font-medium text-gray-700 underline-offset-2 hover:underline sm:max-w-[300px] md:max-w-[360px] xl:max-w-[440px]"
+                className="hidden max-w-[140px] truncate text-sm font-medium text-gray-700 underline-offset-2 hover:underline xs:block sm:max-w-[300px] md:max-w-[360px] xl:max-w-[440px]"
               >
                 {url}
               </a>

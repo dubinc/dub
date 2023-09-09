@@ -157,14 +157,14 @@ export default function AppLayout({
               <div className="flex items-center space-x-6">
                 <a
                   href={`${HOME_DOMAIN}/changelog`}
-                  className="hidden text-sm text-gray-500 transition-colors hover:text-gray-700 md:block"
+                  className="hidden text-sm text-gray-500 transition-colors hover:text-gray-700 sm:block"
                   target="_blank"
                 >
                   Changelog
                 </a>
                 <button
                   onClick={() => setShowCMDK(true)}
-                  className="hidden text-sm text-gray-500 transition-colors hover:text-gray-700 md:block"
+                  className="hidden text-sm text-gray-500 transition-colors hover:text-gray-700 sm:block"
                 >
                   Help
                 </button>

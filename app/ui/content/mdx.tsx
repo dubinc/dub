@@ -66,6 +66,38 @@ const components = {
       {...props}
     />
   ),
+  Quote: (props: {
+    author: string;
+    authorSrc: string;
+    title: string;
+    company: string;
+    companySrc: string;
+    text: string;
+  }) => (
+    <div className="not-prose mt-4 flex flex-col items-center justify-center space-y-4 rounded-md border border-gray-200 bg-white p-10">
+      <div className="w-fit rounded-full bg-gradient-to-r from-blue-100 to-green-100 p-1.5">
+        <img
+          className="h-20 w-20 rounded-full border-2 border-white"
+          src={props.authorSrc}
+          alt={props.author}
+        />
+      </div>
+      <p className="text-center text-lg text-gray-600 [text-wrap:balance]">
+        "{props.text}"
+      </p>
+      <div className="flex items-center justify-center space-x-2">
+        <img
+          className="h-12 w-12 rounded-md border-2 border-white"
+          src={props.companySrc}
+          alt={props.company}
+        />
+        <div className="flex flex-col">
+          <p className="font-semibold text-gray-600">{props.author}</p>
+          <p className="text-sm text-gray-500">{props.title}</p>
+        </div>
+      </div>
+    </div>
+  ),
   Prerequisites: (props: any) => (
     <div className="mt-4 rounded-md border border-gray-200 bg-white px-6 py-1 text-[0.95rem] leading-[1.4rem] shadow-md">
       <div className="-mb-6 flex items-center space-x-2 text-gray-600">
@@ -185,7 +217,7 @@ export function MDX({ code, images, tweets, repos, className }: MDXProps) {
           ...components,
           Image: MDXImage,
           Tweet,
-          MDXRepo,
+          GithubRepo: MDXRepo,
         }}
       />
     </article>

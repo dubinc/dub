@@ -116,7 +116,6 @@ const withProjectAuth =
       return handler(req, res, project, session);
     }
 
-    console.log(req.url);
     if (
       project.plan === "enterprise" &&
       !requiredRole.includes(project.users[0].role) &&
