@@ -97,7 +97,19 @@ const customers = [
     site: "https://lugg.com",
   },
   {
+    slug: "refine",
+    site: "https://refine.dev",
+  },
+  {
     slug: "crowdin",
     site: "https://crowdin.com",
+  },
+  {
+    slug: "peerlist",
+    site: "https://peerlist.io",
+  },
+  {
+    slug: "anja",
+    site: "https://www.anjahealth.com/",
   },
 ];
