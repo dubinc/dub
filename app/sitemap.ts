@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import {
   allBlogPosts,
   allChangelogPosts,
+  allCustomersPosts,
   allHelpPosts,
   allLegalPosts,
 } from "contentlayer/generated";
@@ -52,6 +53,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           ...BLOG_CATEGORIES.map((category) => ({
             url: `https://${domain}/blog/category/${category.slug}`,
             lastModified: new Date(),
+          })),
+          {
+            url: `https://${domain}/customers`,
+            lastModified: new Date(),
+          },
+          ...allCustomersPosts.map((post) => ({
+            url: `https://${domain}/customers/${post.slug}`,
+            lastModified: new Date(post.publishedAt),
           })),
           {
             url: `https://${domain}/help`,
