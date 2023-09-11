@@ -6,24 +6,28 @@ image: https://d2vwwcvoksz7ty.cloudfront.net/customers/prisma.png
 company: Prisma
 companyLogo: https://d2vwwcvoksz7ty.cloudfront.net/customers/prisma-logo.png
 companyUrl: https://prisma.io/
-companyDescription: Prisma is a server-side library that helps developers read and write data to the database in an intuitive, efficient and safe way.
+companyDescription: Prisma creates data DX tools to build modern data-driven applications with a great developer experience.
 companyIndustry: Developer Tools, SaaS
-companySize: 100-150
+companySize: 10-50
 companyFounded: 2016
 plan: Enterprise
 ---
 
-[Prisma](https://prisma.io/) is a popular open-source ORM for Node.js and TypeScript, known for its type-safe database client and query builder. It currently has ~1.5M weekly NPM downloads and is used by millions of developers around the world.
+[Prisma](https://prisma.io/) provides excellent tools for developers to build data-driven applications.
+
+At its core, the popular open-source Prisma ORM for Node.js and TypeScript is known for its intuitive data model, migrations, type-safety, and auto-completion. It currently has ~1.5M weekly NPM downloads and is used by millions of developers around the world.
 
 <GithubRepo url="https://github.com/prisma/prisma" />
 
-In fact, Dub itself uses Prisma under the hood to handle database queries and migrations – here is our [Prisma Schema](https://github.com/steven-tey/dub/blob/main/prisma/schema.prisma) file, fully open-source as well!
+In fact, Dub itself uses the Prisma ORM under the hood to handle database queries and migrations – here is our [Prisma Schema](https://github.com/steven-tey/dub/blob/main/prisma/schema.prisma) file, fully open-source as well!
+
+With [Prisma Accelerate](https://www.prisma.io/data-platform/accelerate) and [Prisma Pulse](https://www.prisma.io/data-platform/pulse), they're also providing new tools to build modern applications with great developer experience.
 
 ## The challenge
 
 Earlier this month, [Petra](https://twitter.com/petradonka) from the Prisma team reached out with one simple request – they wanted to migrate their existing `pris.ly` short links to Dub.
 
-For context, `pris.ly` links were used in the Prisma client and internal engines to link to documentation and other resources. For example, the following link in the default Prisma schema would redirect to the [Prisma Schema docs page](https://www.prisma.io/docs/concepts/components/prisma-schema):
+For context, `pris.ly` links were used in their various online communications, as well as the Prisma ORM to link to documentation and other resources. For example, the following link in the default Prisma schema would redirect to the [Prisma Schema docs page](https://www.prisma.io/docs/concepts/components/prisma-schema):
 
 <Image
   alt="Example of a pris.ly link used in Prisma Schema"
@@ -34,14 +38,14 @@ For context, `pris.ly` links were used in the Prisma client and internal engines
 
 In the past, Prisma used a [custom-built solution](https://github.com/prisma/pris.ly) to handle short links. However, this solution was not ideal for a few reasons:
 
-1. **Lack of analytics**: There was no way to track which links were clicked on the most, or which links were broken.
+1. **Lack of analytics**: There was no way to track which links were clicked on the most, or where the clicks were coming from.
 2. **Potential for link conflicts**: As the number of links grew, it became increasingly difficult to ensure that each link was unique.
-3. **Slow to update**: Every time a new link was added, it would take ~10 seconds for the new link to be deployed.
+3. **Complicated UX and slow updates**: To add a new link, a user would have to create a new [pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests) on the GitHub repository, merge it, and wait ~10 seconds for the new link to be deployed.
 
 <Quote
   author="Petra Donka"
   authorSrc="https://d2vwwcvoksz7ty.cloudfront.net/customers/prisma-petra.png"
-  title="Head of Developer Relations"
+  title="Head of Developer Connections"
   company="Prisma"
   companySrc="https://d2vwwcvoksz7ty.cloudfront.net/customers/prisma-logo.png"
   text="We wanted something that not only enables everyone at Prisma to create short links easily, but also provides more analytics for those links."
@@ -55,20 +59,20 @@ In less than a day, Prisma was able to migrate all 250+ of their existing `pris.
 
 1. **Analytics on each link**: Dub provides detailed analytics on each link, including the number of clicks over time, location data, device data, and more.
 2. **Easy to create new links**: Dub provides a simple UI to create new links, along with useful features such as [tags](/help/article/how-to-use-tags) to help organize links.
-3. **Instant updates**: When a link is added to Dub, it is instantly available to use – no more waiting for 10 seconds for the link to be deployed.
+3. **Smooth UX and instant updates**: With Dub, Prisma can now [easily create short links](/help/article/how-to-create-link) that are instantly available to use – no more waiting for 10 seconds for the link to be deployed.
 
 <Quote
   author="Petra Donka"
   authorSrc="https://d2vwwcvoksz7ty.cloudfront.net/customers/prisma-petra.png"
-  title="Head of Developer Relations"
+  title="Head of Developer Connections"
   company="Prisma"
   companySrc="https://d2vwwcvoksz7ty.cloudfront.net/customers/prisma-logo.png"
-  text="Dub is a fantastic product – the value prop was clear in just 5 mins of us going live with it."
+  text="Dub is a fantastic product – the value prop was clear in just 5 mins of us going live with it, when the first short link was created."
 />
 
 ## The results
 
-Since migrating to Dub, Prisma has been able to quickly create new links and track the performance of each link. This gave them insight into which issues their users were running into the most.
+Since migrating to Dub, Prisma has been able to quickly create new links and track the performance of each link. This gave them insight into which links are most used and how they can make even better use of those resources.
 
 <Quote
   author="Marc Hess"
