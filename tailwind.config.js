@@ -13,6 +13,14 @@ module.exports = {
       screens: {
         xs: "420px",
       },
+      typography: {
+        DEFAULT: {
+          css: {
+            "blockquote p:first-of-type::before": { content: "none" },
+            "blockquote p:first-of-type::after": { content: "none" },
+          },
+        },
+      },
       fontFamily: {
         display: ["var(--font-satoshi)", "system-ui", "sans-serif"],
         default: ["var(--font-inter)", "system-ui", "sans-serif"],
