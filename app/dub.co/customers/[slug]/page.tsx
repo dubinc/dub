@@ -21,16 +21,16 @@ export async function generateMetadata({
 }: {
   params: { slug: string };
 }): Promise<Metadata | undefined> {
-  const post = allBlogPosts.find((post) => post.slug === params.slug);
+  const post = allCustomersPosts.find((post) => post.slug === params.slug);
   if (!post) {
     return;
   }
 
-  const { title, seoTitle, summary, seoDescription, image } = post;
+  const { title, summary, image } = post;
 
   return constructMetadata({
-    title: `${seoTitle || title} – Dub`,
-    description: seoDescription || summary,
+    title: `${title} – Dub`,
+    description: summary,
     image,
   });
 }
