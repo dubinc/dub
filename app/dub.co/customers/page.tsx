@@ -112,4 +112,12 @@ const customers = [
     slug: "anja",
     site: "https://www.anjahealth.com/",
   },
+  {
+    slug: "inngest",
+    site: "https://www.inngest.com/",
+  },
+  {
+    slug: "1komma5grad",
+    site: "https://1komma5grad.com/",
+  },
 ];
