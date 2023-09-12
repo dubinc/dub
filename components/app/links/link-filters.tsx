@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { nFormatter, setQueryString } from "#/lib/utils";
+import { nFormatter, setQueryString, truncate } from "#/lib/utils";
 import { ChevronRight, XCircle, Search, Check, Trash } from "lucide-react";
 import useDomains from "#/lib/swr/use-domains";
 import { AnimatePresence, motion } from "framer-motion";
@@ -248,7 +248,7 @@ const DomainsFilter = ({ domains, primaryDomain }) => {
                   htmlFor={value}
                   className="flex w-full cursor-pointer justify-between px-3 py-2 pl-0 text-sm font-medium text-gray-700"
                 >
-                  <p>{punycode.toUnicode(value || "")}</p>
+                  <p>{truncate(punycode.toUnicode(value || ""), 24)}</p>
                   <Number value={count} unit="links">
                     <p className="text-gray-500">{nFormatter(count)}</p>
                   </Number>
