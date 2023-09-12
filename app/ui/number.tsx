@@ -1,12 +1,12 @@
 "use client";
 
 import { ReactNode } from "react";
-import { nFormatter } from "#/lib/utils";
+import { nFormatter, timeAgo } from "#/lib/utils";
 import Tooltip from "#/ui/tooltip";
 
 export default function Number({
   value,
-  unit = "clicks",
+  unit = "total clicks",
   children,
   lastClicked,
 }: {
@@ -27,12 +27,11 @@ export default function Number({
           </p>
           {lastClicked && (
             <p className="mt-1 text-xs text-gray-500">
-              Last clicked on{" "}
-              {new Date(lastClicked).toLocaleDateString("en-us", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })}
+              Last clicked {timeAgo(lastClicked)}{" "}
+              {Date.now() - new Date(lastClicked).getTime() > 60000 &&
+              Date.now() - new Date(lastClicked).getTime() < 82800000
+                ? "ago"
+                : ""}
             </p>
           )}
         </div>

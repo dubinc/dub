@@ -16,6 +16,7 @@ const navigation = {
   product: [
     { name: "Blog", href: "/blog" },
     { name: "Changelog", href: "/changelog" },
+    { name: "Customer Stories", href: "/customers" },
     { name: "Help Center", href: "/help" },
     { name: "Pricing", href: "/pricing" },
   ],

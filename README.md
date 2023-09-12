@@ -84,6 +84,7 @@ We're planning to add a proper, well-documented self-hosting guide for Dub soon 
 - [Tinybird](https://tinybird.com/) – analytics
 - [PlanetScale](https://planetscale.com/) – database
 - [NextAuth.js](https://next-auth.js.org/) – auth
+- [BoxyHQ](https://boxyhq.com/) – SSO/SAML
 - [Vercel](https://vercel.com/) – hosting
 - [Stripe](https://stripe.com/) – payments
 

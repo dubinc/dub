@@ -26,12 +26,12 @@ export default withProjectAuth(
 
       // POST /api/projects/[slug]/saml – create a new SAML connection
     } else if (req.method === "POST") {
-      const { metadataUrl } = req.body;
+      const { metadataUrl, encodedRawMetadata } = req.body;
 
       const { apiController } = await jackson();
 
       const data = await apiController.createSAMLConnection({
-        encodedRawMetadata: "",
+        encodedRawMetadata,
         metadataUrl,
         defaultRedirectUrl: `${process.env.NEXTAUTH_URL}/auth/saml`,
         redirectUrl: process.env.NEXTAUTH_URL as string,

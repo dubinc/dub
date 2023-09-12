@@ -30,6 +30,11 @@ export default function BlogLayoutHero() {
               active={category.slug === slug}
             />
           ))}
+          <CategoryLink
+            title="Customer Stories"
+            href="/customers"
+            active={false}
+          />
           <CategoryLink title="Changelog" href="/changelog" active={false} />
         </div>
       </div>

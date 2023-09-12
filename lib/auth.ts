@@ -118,7 +118,12 @@ const withProjectAuth =
 
     if (
       project.plan === "enterprise" &&
-      !requiredRole.includes(project.users[0].role)
+      !requiredRole.includes(project.users[0].role) &&
+      // removing self from project should be allowed (DELETE /api/projects/[slug]/users?userId=...)
+      !(
+        req.url === `/api/projects/${slug}/users?userId=${session.user.id}` &&
+        req.method === "DELETE"
+      )
     ) {
       return res.status(403).end("Unauthorized: Insufficient permissions.");
     }

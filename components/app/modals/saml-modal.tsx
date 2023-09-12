@@ -8,7 +8,7 @@ import {
 import Modal from "#/ui/modal";
 import Button from "#/ui/button";
 import { toast } from "sonner";
-import { Lock } from "lucide-react";
+import { Check, Lock, UploadCloud } from "lucide-react";
 import useProject from "#/lib/swr/use-project";
 import { InfoTooltip, SimpleTooltipContent } from "#/ui/tooltip";
 import { HOME_DOMAIN, SAML_PROVIDERS } from "#/lib/constants";
@@ -34,6 +34,9 @@ function SAMLModal({
     [selectedProvider],
   );
 
+  const [file, setFile] = useState<File | null>(null);
+  const [fileContent, setFileContent] = useState("");
+
   return (
     <Modal showModal={showSAMLModal} setShowModal={setShowSAMLModal}>
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-8 sm:px-16">
@@ -57,7 +60,10 @@ function SAMLModal({
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                metadataUrl: e.currentTarget.metadataUrl.value,
+                metadataUrl: e.currentTarget.metadataUrl?.value,
+                encodedRawMetadata: fileContent
+                  ? Buffer.from(fileContent).toString("base64")
+                  : undefined,
               }),
             }).then(async (res) => {
               if (res.ok) {
@@ -99,7 +105,8 @@ function SAMLModal({
                   value={provider.saml}
                   disabled={provider.wip}
                 >
-                  {provider.name} {provider.wip && "(Coming Soon)"}
+                  {provider.name}
+                  {provider.wip && "(Coming Soon)"}
                 </option>
               ))}
             </select>
@@ -123,16 +130,71 @@ function SAMLModal({
           </div>
 
           {currentProvider &&
-            (selectedProvider === "okta" || selectedProvider === "azure") && (
+            (selectedProvider === "google" ? (
               <div className="border-t border-gray-200 pt-4">
                 <div className="flex items-center space-x-1">
                   <h2 className="text-sm font-medium text-gray-900">
-                    {currentProvider.samlModalCopy.url}
+                    {currentProvider.samlModalCopy}
                   </h2>
                   <InfoTooltip
                     content={
                       <SimpleTooltipContent
-                        title={`Your ${currentProvider.samlModalCopy.url} is the URL to your SAML provider's metadata.`}
+                        title={`Your ${currentProvider.samlModalCopy} is the URL to your SAML provider's metadata.`}
+                        cta="Learn more."
+                        href={`${HOME_DOMAIN}/help/article/${selectedProvider}-saml`}
+                      />
+                    }
+                  />
+                </div>
+                <label
+                  htmlFor="metadataRaw"
+                  className="group relative mt-1 flex h-24 w-full cursor-pointer flex-col items-center justify-center rounded-md border border-gray-300 bg-white shadow-sm transition-all hover:bg-gray-50"
+                >
+                  {file ? (
+                    <>
+                      <Check className="h-5 w-5 text-green-600 transition-all duration-75 group-hover:scale-110 group-active:scale-95" />
+                      <p className="mt-2 text-sm text-gray-500">{file.name}</p>
+                    </>
+                  ) : (
+                    <>
+                      <UploadCloud className="h-5 w-5 text-gray-500 transition-all duration-75 group-hover:scale-110 group-active:scale-95" />
+                      <p className="mt-2 text-sm text-gray-500">
+                        Choose an .xml file to upload
+                      </p>
+                    </>
+                  )}
+                </label>
+                <input
+                  id="metadataRaw"
+                  name="metadataRaw"
+                  type="file"
+                  accept="text/xml"
+                  className="sr-only"
+                  required
+                  onChange={(e) => {
+                    const f = e.target?.files && e.target?.files[0];
+                    setFile(f);
+                    if (f) {
+                      const reader = new FileReader();
+                      reader.onload = (e) => {
+                        const content = e.target?.result;
+                        setFileContent(content as string);
+                      };
+                      reader.readAsText(f);
+                    }
+                  }}
+                />
+              </div>
+            ) : (
+              <div className="border-t border-gray-200 pt-4">
+                <div className="flex items-center space-x-1">
+                  <h2 className="text-sm font-medium text-gray-900">
+                    {currentProvider.samlModalCopy}
+                  </h2>
+                  <InfoTooltip
+                    content={
+                      <SimpleTooltipContent
+                        title={`Your ${currentProvider.samlModalCopy} is the URL to your SAML provider's metadata.`}
                         cta="Learn more."
                         href={`${HOME_DOMAIN}/help/article/${selectedProvider}-saml#step-4-copy-the-metadata-url`}
                       />
@@ -150,7 +212,7 @@ function SAMLModal({
                   className="mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
                 />
               </div>
-            )}
+            ))}
           <Button
             text="Save changes"
             disabled={!selectedProvider}

@@ -1,0 +1,149 @@
+---
+title: Configuring SAML SSO with Google Workspace
+updatedAt: 2023-09-05
+summary: For Dub Enterprise users, you can securely manage your team's access to Dub using Google Workspace SAML SSO.
+author: steventey
+categories:
+  - saml-sso
+related:
+  #   - google-scim
+  - okta-saml
+  - azure-saml
+excludeHeadingsFromSearch: true
+---
+
+<Note variant="success">
+  This feature is only available on [Dub Enterprise](/pricing).
+</Note>
+
+For Dub Enterprise users, you can securely manage your team's access to Dub using [Google Workspace SAML SSO](https://cloud.google.com/architecture/identity/single-sign-on).
+
+## Step 1: Create SAML Integration
+
+In your [Google Admin](https://admin.google.com/) dashboard, click on **Apps** in the sidebar and select **Web and mobile apps** from the list.
+
+<Image
+  alt="Apps > Web and mobile apps on the Google Admin Dashboard"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/google-saml-apps.png"
+  width={1612}
+  height={960}
+  hideCaption={true}
+/>
+
+If you don't already have an existing SAML application, click on **Add app** and select **Add custom SAML app** from the dropdown menu.
+
+<Image
+  alt="Create App on the Google Admin Dashboard"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/google-saml-create-app.png"
+  width={1611}
+  height={959}
+  hideCaption={true}
+/>
+
+Enter the \*App name** for your application, and click **Continue\*\*.
+
+<Image
+  alt="Configuring SAML app name on the Google Admin Dashboard"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/google-saml-app-name.png"
+  width={1624}
+  height={960}
+  hideCaption={true}
+/>
+
+In the next screen, click **Download Metadata** to download the metadata XML file and click **Continue**. You'll need this file in Step 3.
+
+<Image
+  alt="Downloading SAML metadata on the Google Admin Dashboard"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/google-saml-download.png"
+  width={1605}
+  height={986}
+  hideCaption={true}
+/>
+
+Copy the following values and paste them under **Service provider details**:
+
+<CopyBox title="ACS URL" copy="https://api.dub.co/auth/saml/callback" />
+
+<CopyBox title="Entity ID" copy="https://saml.dub.co" />
+
+<Image
+  alt="Service provider details on the Google Admin Dashboard"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/google-saml-provider.png"
+  width={1603}
+  height={962}
+  hideCaption={true}
+/>
+
+Click **Next** to proceed to the next step.
+
+## Step 2: Configure Attribute Mapping
+
+On the next screen, under the **Attributes** section, click **Add Mapping** and add the following attribute mappings:
+
+| Google Directory attributes | App attributes |
+| --------------------------- | -------------- |
+| `Primary email`             | `email`        |
+| `First name`                | `firstName`    |
+| `Last name`                 | `lastName`     |
+
+<Image
+  alt="Attribute Mapping on the Google Admin Dashboard"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/google-saml-attributes.png"
+  width={1611}
+  height={979}
+  hideCaption={true}
+/>
+
+Once that's done, click **Finish**.
+
+On the next screen, click **User access** to configure the application to allow users to log in.
+
+<Image
+  alt="User access on the Google Admin Dashboard"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/google-saml-users.png"
+  width={1611}
+  height={741}
+  hideCaption={true}
+/>
+
+Check the **ON for everyone** checkbox and click **Save**.
+
+<Image
+  alt="Turn on access for everyone on the Google Admin Dashboard"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/google-saml-save.png"
+  width={1607}
+  height={692}
+  hideCaption={true}
+/>
+
+This will allow users in your Google Workspace to automatically sign in to Dub with Google SAML SSO.
+
+You can now return to the Dub dashboard to complete the SAML SSO configuration.
+
+## Step 3: Configure SAML SSO on Dub
+
+In your project dashboard on Dub, click on the **Settings** tab in the menu bar at the top. Then, click on the **Security** tab in the sidebar.
+
+<Image
+  alt="SAML SSO section on the Dub Dashboard"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/saml-sso-section.png"
+  width={2480}
+  height={1486}
+  hideCaption={true}
+/>
+
+Under the **SAML Single Sign-On** section, click on **Configure**. This will open up the SAML SSO modal:
+
+1. Select **Google** as the SAML provider.
+2. Upload the metadata XML file you downloaded in Step 1.
+3. Click **Save changes**.
+
+<Image
+  alt="Google SAML SSO Modal"
+  src="https://d2vwwcvoksz7ty.cloudfront.net/help/google-saml-modal.png"
+  width={1033}
+  height={740}
+  hideCaption={true}
+/>
+
+That's it! You're all set – your team can now sign in to Dub using Google SAML SSO.

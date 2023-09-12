@@ -9,7 +9,6 @@ import {
   SPECIAL_APEX_DOMAINS,
   ccTLDs,
   SECOND_LEVEL_DOMAINS,
-  HOME_HOSTNAMES,
   HOME_DOMAIN,
 } from "./constants";
 

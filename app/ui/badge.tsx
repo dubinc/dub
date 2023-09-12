@@ -12,7 +12,7 @@ export default function Badge({
   return (
     <span
       className={cn(
-        "rounded-full border px-2 py-px text-xs font-medium capitalize",
+        "max-w-fit rounded-full border px-2 py-px text-xs font-medium capitalize",
         {
           "border-violet-600 bg-violet-600 text-white": variant === "purple",
           "border-blue-500 bg-blue-500 text-white": variant === "blue",
