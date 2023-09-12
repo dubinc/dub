@@ -12,16 +12,8 @@ import { useSession } from "next-auth/react";
 
 export const navItems = [
   {
-    name: "Blog",
-    slug: "blog",
-  },
-  {
     name: "Customers",
     slug: "customers",
-  },
-  {
-    name: "Pricing",
-    slug: "pricing",
   },
   {
     name: "Changelog",
@@ -30,6 +22,10 @@ export const navItems = [
   {
     name: "Help",
     slug: "help",
+  },
+  {
+    name: "Pricing",
+    slug: "pricing",
   },
 ];
 
