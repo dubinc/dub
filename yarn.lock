@@ -11068,10 +11068,10 @@ validate-npm-package-name@^5.0.0:
   dependencies:
     builtins "^5.0.0"
 
-vaul@^0.0.6:
-  version "0.0.6"
-  resolved "https://registry.yarnpkg.com/vaul/-/vaul-0.0.6.tgz#7b9a0b38bcf4637a462062a10419f5f9857a5904"
-  integrity sha512-YTI1wkukcgw8EKrZ4cgnj/NDXue0Y6vicGkix1iu4j2oNX2Wcdr9FXdPlvXxhzBdDfEl+dIMu8zjgri3UIawNg==
+vaul@^0.6.0:
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/vaul/-/vaul-0.6.0.tgz#bba81ee29ffc4c1cd9eb4f6f163b218e6d00c3d1"
+  integrity sha512-KLGrHya93SWH9xbWRNxXifj645ydCUe0KBiGCOBlIHsFRK6hnOr1qmrNqVG2G+fnxIp4DwDdHWOmcx5gNvHsCA==
   dependencies:
     "@radix-ui/react-dialog" "^1.0.4"
 
