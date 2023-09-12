@@ -12,20 +12,20 @@ import { useSession } from "next-auth/react";
 
 export const navItems = [
   {
-    name: "Pricing",
-    slug: "pricing",
+    name: "Customers",
+    slug: "customers",
   },
   {
     name: "Changelog",
     slug: "changelog",
   },
   {
-    name: "Blog",
-    slug: "blog",
-  },
-  {
     name: "Help",
     slug: "help",
+  },
+  {
+    name: "Pricing",
+    slug: "pricing",
   },
 ];
 

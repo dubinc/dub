@@ -41,7 +41,7 @@ export const BlogPost = defineDocumentType(() => ({
       type: "list",
       of: {
         type: "enum",
-        options: ["company", "education", "customer-stories"],
+        options: ["company", "education"],
         default: "company",
       },
       required: true,
@@ -139,6 +139,64 @@ export const HelpPost = defineDocumentType(() => ({
   computedFields: computedFields("help"),
 }));
 
+export const CustomersPost = defineDocumentType(() => ({
+  name: "CustomersPost",
+  filePathPattern: `**/customers/*.mdx`,
+  contentType: "mdx",
+  fields: {
+    title: {
+      type: "string",
+      required: true,
+    },
+    publishedAt: {
+      type: "string",
+      required: true,
+    },
+    summary: {
+      type: "string",
+      required: true,
+    },
+    image: {
+      type: "string",
+      required: true,
+    },
+    company: {
+      type: "string",
+      required: true,
+    },
+    companyLogo: {
+      type: "string",
+      required: true,
+    },
+    companyUrl: {
+      type: "string",
+      required: true,
+    },
+    companyDescription: {
+      type: "string",
+      required: true,
+    },
+    companyIndustry: {
+      type: "string",
+      required: true,
+    },
+    companySize: {
+      type: "string",
+      required: true,
+    },
+    companyFounded: {
+      type: "number",
+      required: true,
+    },
+    plan: {
+      type: "string",
+      required: true,
+    },
+  },
+  // @ts-ignore
+  computedFields: computedFields("customers"),
+}));
+
 export const LegalPost = defineDocumentType(() => ({
   name: "LegalPost",
   filePathPattern: `**/legal/*.mdx`,
@@ -157,7 +215,9 @@ export const LegalPost = defineDocumentType(() => ({
   computedFields: computedFields("legal"),
 }));
 
-const computedFields = (type: "blog" | "changelog" | "help" | "legal") => ({
+const computedFields = (
+  type: "blog" | "changelog" | "customers" | "help" | "legal",
+) => ({
   slug: {
     type: "string",
     resolve: (doc) => doc._raw.flattenedPath.replace(`${type}/`, ""),
@@ -224,7 +284,7 @@ const computedFields = (type: "blog" | "changelog" | "help" | "legal") => ({
 
 export default makeSource({
   contentDirPath: "content",
-  documentTypes: [BlogPost, ChangelogPost, LegalPost, HelpPost],
+  documentTypes: [BlogPost, ChangelogPost, CustomersPost, LegalPost, HelpPost],
   mdx: {
     remarkPlugins: [remarkGfm],
     rehypePlugins: [

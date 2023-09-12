@@ -4,7 +4,7 @@ import { Globe, Import, Link2, Lock, Settings, Webhook } from "lucide-react";
 
 export const BLOG_CATEGORIES: {
   title: string;
-  slug: "company" | "education" | "customer-stories";
+  slug: "company" | "education";
   description: string;
 }[] = [
   {
@@ -18,10 +18,6 @@ export const BLOG_CATEGORIES: {
   //   description: "Educational content about link management.",
   // },
   // {
-  //   title: "Customer Stories",
-  //   slug: "customer-stories",
-  //   description: "Learn how Dub customers use Dub.",
-  // },
 ];
 
 export const POPULAR_ARTICLES = [

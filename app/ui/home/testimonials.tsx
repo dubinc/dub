@@ -43,7 +43,7 @@ export default async function Testimonials() {
           </span>
         </h2>
         <p className="mt-5 text-gray-600 sm:text-lg">
-          Don't take it from us - here's what our users have to say about Dub.
+          Don't take it from us – here's what our users have to say about Dub.
         </p>
       </div>
       <TestimonialsMobile tweetsData={tweetsData} />
