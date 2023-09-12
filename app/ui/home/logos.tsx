@@ -28,7 +28,7 @@ export default function Logos({
       </p>
       <Link
         href="/customers"
-        className="mx-auto mt-8 grid w-full max-w-screen-lg grid-cols-2 items-center px-5 sm:grid-cols-6 sm:px-0"
+        className="mx-auto mt-8 grid w-full max-w-screen-lg grid-cols-2 items-center px-5 md:grid-cols-6 md:px-0"
       >
         {logos.slice(0, 6).map((logo) => (
           <BlurImage
@@ -36,13 +36,13 @@ export default function Logos({
             alt={logo.toUpperCase()}
             width={520}
             height={182}
-            className="h-20 grayscale transition-all hover:grayscale-0"
+            className="h-12 grayscale transition-all hover:grayscale-0 md:h-20"
           />
         ))}
       </Link>
       <Link
         href="/customers"
-        className="mx-auto grid w-full max-w-screen-lg grid-cols-2 items-center px-5 sm:grid-cols-6 sm:px-0"
+        className="mx-auto grid w-full max-w-screen-lg grid-cols-2 items-center px-5 md:grid-cols-6 md:px-0"
       >
         {logos.slice(6, 12).map((logo) => (
           <BlurImage
@@ -50,7 +50,7 @@ export default function Logos({
             alt={logo.toUpperCase()}
             width={520}
             height={182}
-            className="h-20 grayscale transition-all hover:grayscale-0"
+            className="h-12 grayscale transition-all hover:grayscale-0 md:h-20"
           />
         ))}
       </Link>
