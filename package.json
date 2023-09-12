@@ -92,7 +92,7 @@
     "topojson-client": "^3.1.0",
     "unsplash-js": "^7.0.18",
     "use-debounce": "^8.0.4",
-    "vaul": "^0.0.6"
+    "vaul": "^0.6.0"
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^4.0.0",
