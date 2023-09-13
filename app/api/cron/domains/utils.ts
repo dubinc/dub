@@ -10,12 +10,14 @@ export const handleDomainUpdates = async ({
   domain,
   createdAt,
   verified,
+  primary,
   changed,
   linksCount,
 }: {
   domain: string;
   createdAt: Date;
   verified: boolean;
+  primary: boolean;
   changed: boolean;
   linksCount: number;
 }) => {
@@ -45,6 +47,7 @@ export const handleDomainUpdates = async ({
       },
     },
     select: {
+      id: true,
       name: true,
       slug: true,
       sentEmails: true,
@@ -58,11 +61,6 @@ export const handleDomainUpdates = async ({
           },
         },
       },
-      _count: {
-        select: {
-          domains: true,
-        },
-      },
     },
   });
   if (!project) {
@@ -73,7 +71,6 @@ export const handleDomainUpdates = async ({
     });
     return;
   }
-  const projectName = project.name;
   const projectSlug = project.slug;
   const sentEmails = project.sentEmails.map((email) => email.type);
   const emails = project.users.map((user) => user.user.email) as string[];
@@ -99,16 +96,36 @@ export const handleDomainUpdates = async ({
         });
       }
     }
-    // else, delete the domain, but first,
-    // check if the project needs to be deleted as well
-    const deleteProjectAsWell = project._count.domains === 1;
-
+    // else, delete the domain
     return await Promise.allSettled([
-      deleteDomainAndLinks(domain).then(() => {
-        if (deleteProjectAsWell) {
+      deleteDomainAndLinks(domain).then(async () => {
+        // check if there are any domains left for the project
+        const remainingDomains = await prisma.domain.count({
+          where: {
+            projectId: project.id,
+          },
+        });
+        // if the deleted domain was the only domain, delete the project as well
+        if (remainingDomains === 0) {
           return prisma.project.delete({
             where: {
               slug: projectSlug,
+            },
+          });
+          // if the deleted domain was primary, make another domain primary
+        } else if (primary) {
+          const anotherDomain = await prisma.domain.findFirst({
+            where: {
+              projectId: project.id,
+            },
+          });
+          if (!anotherDomain) return;
+          return prisma.domain.update({
+            where: {
+              slug: anotherDomain.slug,
+            },
+            data: {
+              primary: true,
             },
           });
         }
@@ -116,11 +133,7 @@ export const handleDomainUpdates = async ({
       log({
         message: `Domain *${domain}* has been invalid for > 30 days and ${
           linksCount > 0 ? "has links but no link clicks" : "has no links"
-        }, deleting. ${
-          deleteProjectAsWell
-            ? "Since this is the only domain for the project, the project will be deleted as well."
-            : ""
-        }`,
+        }, deleting.`,
         type: "cron",
       }),
       emails.map((email) =>

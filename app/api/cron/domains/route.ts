@@ -49,6 +49,7 @@ export async function POST(req: Request) {
       select: {
         slug: true,
         verified: true,
+        primary: true,
         createdAt: true,
         projectId: true,
         _count: {
@@ -65,7 +66,7 @@ export async function POST(req: Request) {
 
     const results = await Promise.allSettled(
       domains.map(async (domain) => {
-        const { slug, verified, createdAt, _count } = domain;
+        const { slug, verified, primary, createdAt, _count } = domain;
         const [domainJson, configJson] = await Promise.all([
           getDomainResponse(slug),
           getConfigResponse(slug),
@@ -104,6 +105,7 @@ export async function POST(req: Request) {
           domain: slug,
           createdAt,
           verified: newVerified,
+          primary,
           changed,
           linksCount: _count.links,
         });
