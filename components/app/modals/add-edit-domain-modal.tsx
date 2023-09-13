@@ -116,6 +116,11 @@ function AddEditDomainModal({
       setDeleting(false);
       if (res.status === 200) {
         mutate(`/api/projects/${slug}/domains`);
+        mutate(
+          (key) => typeof key === "string" && key.startsWith(`/api/links`),
+          undefined,
+          { revalidate: true },
+        );
         setShowAddEditDomainModal(false);
         toast.success("Successfully deleted domain!");
       } else {
