@@ -216,8 +216,8 @@ export async function banUser(data: FormData) {
     };
   }
 
-  const blacklistedDomains = await get("domains");
-  const blacklistedEmails = await get("emails");
+  const blacklistedDomains = (await get("domains")) as string[];
+  const blacklistedEmails = (await get("emails")) as string[];
 
   const ban = await Promise.allSettled([
     deleteUserLinks(user.id),
