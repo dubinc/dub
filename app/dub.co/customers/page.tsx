@@ -89,12 +89,20 @@ const customers = [
     site: "https://checklyhq.com",
   },
   {
+    slug: "rovisys",
+    site: "https://www.rovisys.com",
+  },
+  {
     slug: "chatwoot",
     site: "https://chatwoot.com",
   },
   {
     slug: "lugg",
     site: "https://lugg.com",
+  },
+  {
+    slug: "vueschool",
+    site: "https://vueschool.io",
   },
   {
     slug: "refine",
@@ -115,6 +123,14 @@ const customers = [
   {
     slug: "inngest",
     site: "https://www.inngest.com/",
+  },
+  {
+    slug: "ashore",
+    site: "https://ashore.io/",
+  },
+  {
+    slug: "galactic",
+    site: "https://galacticrecords.com/",
   },
   {
     slug: "1komma5grad",
