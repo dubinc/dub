@@ -58,7 +58,7 @@ export default withProjectAuth(async (req, res, project, session) => {
       });
       return res.status(200).json({ message: "Invite sent" });
     } catch (error) {
-      return res.status(400).end(error);
+      return res.status(400).end(error.message);
     }
 
     // DELETE /api/projects/[slug]/invites – delete a pending invite
