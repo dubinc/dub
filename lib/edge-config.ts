@@ -2,14 +2,20 @@ import { get } from "@vercel/edge-config";
 import { getDomainWithoutWWW } from "./utils";
 
 export const isBlacklistedDomain = async (domain: string) => {
-  let blacklistedDomains;
+  let blacklistedDomains, blacklistedTerms;
   try {
-    blacklistedDomains = await get("domains");
+    [blacklistedDomains, blacklistedTerms] = await Promise.all([
+      get("domains"),
+      get("terms"),
+    ]);
   } catch (e) {
     blacklistedDomains = [];
+    blacklistedTerms = [];
   }
-  return new RegExp(blacklistedDomains.join("|")).test(
-    getDomainWithoutWWW(domain) || domain,
+  const domainToTest = getDomainWithoutWWW(domain) || domain;
+  return (
+    blacklistedDomains.includes(domainToTest) ||
+    new RegExp(blacklistedTerms.join("|")).test(domainToTest)
   );
 };
 

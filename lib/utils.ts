@@ -262,6 +262,8 @@ export const getApexDomain = (url: string) => {
     return "";
   }
   if (domain === "youtu.be") return "youtube.com";
+  if (domain === "raw.githubusercontent.com") return "github.com";
+  if (domain.endsWith(".vercel.app")) return "vercel.app";
 
   const parts = domain.split(".");
   if (parts.length > 2) {
