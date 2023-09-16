@@ -18,17 +18,18 @@ export default async function handler(req: NextRequest) {
     let domain = req.nextUrl.hostname;
     if (isHomeHostname(domain)) domain = "dub.sh";
 
-    if (process.env.NODE_ENV !== "development" && domain === "dub.sh") {
-      if (
-        key === "github" &&
-        (await isBlacklistedReferrer(req.headers.get("referer")))
-      ) {
+    if (
+      process.env.NODE_ENV !== "development" &&
+      domain === "dub.sh" &&
+      key === "github"
+    ) {
+      if (await isBlacklistedReferrer(req.headers.get("referer"))) {
         return new Response("Don't DDoS me pls 🥺", { status: 429 });
       }
       const ip = ipAddress(req) || LOCALHOST_IP;
       const { success } = await ratelimit(
         15,
-        key === "github" && endpoint !== "clicks" ? "1 h" : "10 s",
+        endpoint !== "clicks" ? "1 h" : "10 s",
       ).limit(`${ip}:${domain}:${key}:${endpoint}`);
 
       if (!success) {
