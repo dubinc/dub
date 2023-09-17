@@ -26,8 +26,10 @@ export const parse = (req: NextRequest) => {
 };
 
 export const getFinalUrl = (target: string, { req }: { req: NextRequest }) => {
-  // query is the query string (e.g. dub.sh/github/repo?utm_source=twitter -> ?utm_source=twitter)
+  // query is the query string (e.g. dub.sh/github?utm_source=twitter -> ?utm_source=twitter)
   const searchParams = req.nextUrl.searchParams;
+
+  if (searchParams.size === 0) return target; // if there are no query params, then return the target url as is (no need to parse it
 
   // get the query params of the target url
   const targetUrl = new URL(decodeURIComponent(target));
