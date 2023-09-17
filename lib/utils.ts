@@ -217,6 +217,23 @@ export const getFirstAndLastDay = (day: number) => {
   }
 };
 
+// Function to get the last day of the current month
+export const getLastDayOfMonth = () => {
+  const today = new Date();
+  const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0); // This will give the last day of the current month
+  return lastDay.getDate();
+};
+
+// Adjust the billingCycleStart based on the number of days in the current month
+export const getAdjustedBillingCycleStart = (billingCycleStart) => {
+  const lastDay = getLastDayOfMonth();
+  if (billingCycleStart > lastDay) {
+    return lastDay;
+  } else {
+    return billingCycleStart;
+  }
+};
+
 export const generateDomainFromName = (name: string) => {
   const normalizedName = slugify(name, { separator: "" });
   if (normalizedName.length < 3) {
@@ -262,6 +279,8 @@ export const getApexDomain = (url: string) => {
     return "";
   }
   if (domain === "youtu.be") return "youtube.com";
+  if (domain === "raw.githubusercontent.com") return "github.com";
+  if (domain.endsWith(".vercel.app")) return "vercel.app";
 
   const parts = domain.split(".");
   if (parts.length > 2) {

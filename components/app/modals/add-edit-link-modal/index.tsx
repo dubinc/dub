@@ -293,7 +293,7 @@ function AddEditLinkModal({
       preventDefaultClose={homepageDemo ? false : true}
       {...(welcomeFlow && { onClose: () => router.back() })}
     >
-      <div className="relative grid max-h-[min(906px,_90vh)] w-full divide-x divide-gray-100 overflow-auto scrollbar-hide md:grid-cols-2 md:overflow-hidden">
+      <div className="relative grid max-h-[90vh] w-full divide-x divide-gray-100 overflow-auto scrollbar-hide md:grid-cols-2 md:overflow-hidden">
         {!welcomeFlow && !homepageDemo && (
           <button
             onClick={() => setShowAddEditLinkModal(false)}
@@ -304,7 +304,7 @@ function AddEditLinkModal({
         )}
 
         <div
-          className="rounded-l-2xl scrollbar-hide md:max-h-[min(906px,_90vh)] md:overflow-auto"
+          className="rounded-l-2xl scrollbar-hide md:max-h-[90vh] md:overflow-auto"
           onScroll={handleScroll}
         >
           <div className="z-10 flex flex-col items-center justify-center space-y-3 border-b border-gray-200 bg-white px-4 pb-8 pt-8 transition-all md:sticky md:top-0 md:px-16">
@@ -589,7 +589,7 @@ function AddEditLinkModal({
             </div>
           </form>
         </div>
-        <div className="rounded-r-2xl scrollbar-hide md:max-h-[min(906px,_90vh)] md:overflow-auto">
+        <div className="rounded-r-2xl scrollbar-hide md:max-h-[90vh] md:overflow-auto">
           <Preview data={data} generatingMetatags={generatingMetatags} />
         </div>
       </div>

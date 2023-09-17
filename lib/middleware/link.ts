@@ -21,18 +21,18 @@ export default async function LinkMiddleware(
     return NextResponse.next();
   }
 
-  if (process.env.NODE_ENV !== "development" && domain === "dub.sh") {
-    if (
-      key === "github" &&
-      (await isBlacklistedReferrer(req.headers.get("referer")))
-    ) {
+  if (
+    process.env.NODE_ENV !== "development" &&
+    domain === "dub.sh" &&
+    key === "github"
+  ) {
+    if (await isBlacklistedReferrer(req.headers.get("referer"))) {
       return new Response("Don't DDoS me pls 🥺", { status: 429 });
     }
     const ip = ipAddress(req) || LOCALHOST_IP;
-    const { success } = await ratelimit(
-      10,
-      key === "github" ? "1 d" : "10 s",
-    ).limit(`${ip}:${domain}:${key}`);
+    const { success } = await ratelimit(10, "1 d").limit(
+      `${ip}:${domain}:${key}`,
+    );
 
     if (!success) {
       return new Response("Don't DDoS me pls 🥺", { status: 429 });

@@ -1,7 +1,7 @@
 import { sendEmail } from "emails";
 import UsageExceeded from "emails/usage-exceeded";
 import prisma from "#/lib/prisma";
-import { log } from "#/lib/utils";
+import { getAdjustedBillingCycleStart, log } from "#/lib/utils";
 import { ProjectProps } from "#/lib/types";
 import { getTopLinks } from "#/lib/tinybird";
 import ClicksSummary from "emails/clicks-summary";
@@ -42,11 +42,11 @@ export const updateUsage = async () => {
   // Reset billing cycles for projects that:
   // - Are not on the free plan
   // - Are on the free plan but have not exceeded usage
-  // - Have billingCycleStart today
+  // - Have adjustedBillingCycleStart that matches today's date
   const billingReset = projects.filter(
     ({ usage, usageLimit, plan, billingCycleStart }) =>
       !(plan === "free" && usage > usageLimit) &&
-      billingCycleStart === new Date().getDate(),
+      getAdjustedBillingCycleStart(billingCycleStart) === new Date().getDate(),
   );
 
   // Get all projects that have exceeded usage
