@@ -1,20 +1,25 @@
 import { NextRequest } from "next/server";
-import { redis } from "#/lib/upstash";
 
 export const parse = (req: NextRequest) => {
   let domain = req.headers.get("host") as string;
   domain = domain.replace("www.", ""); // remove www. from domain
   if (domain === "dub.localhost:8888" || domain === "staging.dub.sh") {
-    // for local development & staging environments
+    // for local development and staging environments
     domain = "dub.sh";
   }
 
   // path is the path of the URL (e.g. dub.co/stats/github -> /stats/github)
-  const path = req.nextUrl.pathname;
+  let path = req.nextUrl.pathname;
+
+  // special case for dub.sh/___dub_check/ (for checking if dub.sh links are working)
+  if (path.startsWith("/___dub_check/")) {
+    domain = "dub.sh";
+    path = path.replace("/___dub_check/", "/");
+  }
 
   // fullPath is the full URL path (along with search params)
   const searchParams = req.nextUrl.searchParams.toString();
-  const fullPath = `${req.nextUrl.pathname}${
+  const fullPath = `${path}${
     searchParams.length > 0 ? `?${searchParams}` : ""
   }`;
 
