@@ -8,7 +8,7 @@ export default function useProject() {
   const { slug } = useParams() as { slug?: string };
 
   const { data: project, error } = useSWR<ProjectProps>(
-    slug && `/api/projects/${slug}`,
+    slug && slug !== "qr-codes" && `/api/projects/${slug}`,
     fetcher,
     {
       dedupingInterval: 30000,

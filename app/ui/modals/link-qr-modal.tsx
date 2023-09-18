@@ -24,6 +24,7 @@ import IconMenu from "@/components/shared/icon-menu";
 import Popover from "#/ui/popover";
 import { toast } from "sonner";
 import { GOOGLE_FAVICON_URL } from "#/lib/constants";
+import { useDebouncedCallback } from "use-debounce";
 
 function LinkQRModalHelper({
   showLinkQRModal,
@@ -34,6 +35,14 @@ function LinkQRModalHelper({
   setShowLinkQRModal: Dispatch<SetStateAction<boolean>>;
   props: SimpleLinkProps;
 }) {
+  return (
+    <Modal showModal={showLinkQRModal} setShowModal={setShowLinkQRModal}>
+      <QRCodePicker props={props} />
+    </Modal>
+  );
+}
+
+export function QRCodePicker({ props }: { props: SimpleLinkProps }) {
   const anchorRef = useRef<HTMLAnchorElement>(null);
   const { logo } = useProject();
   const { avatarUrl, apexDomain } = useMemo(() => {
@@ -55,7 +64,7 @@ function LinkQRModalHelper({
     if (logo) return logo;
     return typeof window !== "undefined" && window.location.origin
       ? new URL("/_static/logo.svg", window.location.origin).href
-      : "";
+      : "https://dub.sh/_static/logo.svg";
   }, [logo]);
 
   function download(url: string, extension: string) {
@@ -102,9 +111,8 @@ function LinkQRModalHelper({
       throw e;
     }
   };
-
   return (
-    <Modal showModal={showLinkQRModal} setShowModal={setShowLinkQRModal}>
+    <>
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
         {avatarUrl ? (
           <BlurImage
@@ -179,18 +187,16 @@ function LinkQRModalHelper({
           ref={anchorRef}
         />
       </div>
-    </Modal>
+    </>
   );
 }
 
 function AdvancedSettings({ qrData, setFgColor, showLogo, setShowLogo }) {
   const { plan } = useProject();
   const [expanded, setExpanded] = useState(false);
-
-  const isApp = useMemo(() => {
-    if (typeof window === "undefined") return false;
-    return window.location.host.startsWith("app.");
-  }, []);
+  const debouncedSetFgColor = useDebouncedCallback((color) => {
+    setFgColor(color);
+  }, 100);
 
   return (
     <div>
@@ -265,7 +271,7 @@ function AdvancedSettings({ qrData, setFgColor, showLogo, setShowLogo }) {
                   <div className="flex max-w-xs flex-col items-center space-y-3 p-5 text-center">
                     <HexColorPicker
                       color={qrData.fgColor}
-                      onChange={(color) => setFgColor(color)}
+                      onChange={debouncedSetFgColor}
                     />
                   </div>
                 }
@@ -298,60 +304,58 @@ function AdvancedSettings({ qrData, setFgColor, showLogo, setShowLogo }) {
 function QrDropdown({ download, qrData, showLogo, logo }) {
   const [openPopover, setOpenPopover] = useState(false);
   return (
-    <>
-      <Popover
-        content={
-          <div className="grid w-full gap-1 p-2 sm:w-40">
-            <button
-              onClick={() => {
-                download(
-                  getQRAsSVGDataUri({
-                    ...qrData,
-                    ...(showLogo && {
-                      imageSettings: {
-                        ...qrData.imageSettings,
-                        src: logo || "https://dub.co/_static/logo.svg",
-                      },
-                    }),
+    <Popover
+      content={
+        <div className="grid w-full gap-1 p-2 sm:w-40">
+          <button
+            onClick={() => {
+              download(
+                getQRAsSVGDataUri({
+                  ...qrData,
+                  ...(showLogo && {
+                    imageSettings: {
+                      ...qrData.imageSettings,
+                      src: logo || "https://dub.co/_static/logo.svg",
+                    },
                   }),
-                  "svg",
-                );
-              }}
-              className="w-full rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
-            >
-              <IconMenu text="SVG" icon={<Photo className="h-4 w-4" />} />
-            </button>
-            <button
-              onClick={async () => {
-                download(await getQRAsCanvas(qrData, "image/png"), "png");
-              }}
-              className="w-full rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
-            >
-              <IconMenu text="PNG" icon={<Photo className="h-4 w-4" />} />
-            </button>
-            <button
-              onClick={async () => {
-                download(await getQRAsCanvas(qrData, "image/jpeg"), "jpg");
-              }}
-              className="w-full rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
-            >
-              <IconMenu text="JPEG" icon={<Photo className="h-4 w-4" />} />
-            </button>
-          </div>
-        }
-        align="center"
-        openPopover={openPopover}
-        setOpenPopover={setOpenPopover}
+                }),
+                "svg",
+              );
+            }}
+            className="w-full rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
+          >
+            <IconMenu text="SVG" icon={<Photo className="h-4 w-4" />} />
+          </button>
+          <button
+            onClick={async () => {
+              download(await getQRAsCanvas(qrData, "image/png"), "png");
+            }}
+            className="w-full rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
+          >
+            <IconMenu text="PNG" icon={<Photo className="h-4 w-4" />} />
+          </button>
+          <button
+            onClick={async () => {
+              download(await getQRAsCanvas(qrData, "image/jpeg"), "jpg");
+            }}
+            className="w-full rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
+          >
+            <IconMenu text="JPEG" icon={<Photo className="h-4 w-4" />} />
+          </button>
+        </div>
+      }
+      align="center"
+      openPopover={openPopover}
+      setOpenPopover={setOpenPopover}
+    >
+      <button
+        onClick={() => setOpenPopover(!openPopover)}
+        className="flex w-full items-center justify-center gap-2 rounded-md border border-black bg-black px-5 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
       >
-        <button
-          onClick={() => setOpenPopover(!openPopover)}
-          className="flex w-full items-center justify-center gap-2 rounded-md border border-black bg-black px-5 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
-        >
-          <Download />
-          Export
-        </button>
-      </Popover>
-    </>
+        <Download />
+        Export
+      </button>
+    </Popover>
   );
 }
 

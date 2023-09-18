@@ -1,6 +1,6 @@
 import { APP_DOMAIN } from "#/lib/constants";
 import { FEATURES_LIST } from "#/lib/constants/content";
-import { constructMetadata } from "#/lib/utils";
+import { cn, constructMetadata } from "#/lib/utils";
 import BlurImage from "#/ui/blur-image";
 import CTA from "#/ui/home/cta";
 import Logos from "#/ui/home/logos";
@@ -8,6 +8,8 @@ import { PlayCircle } from "lucide-react";
 import { notFound } from "next/navigation";
 import DemoVideo from "./video";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
+import Link from "next/link";
+import { QRCodePicker } from "#/ui/modals/link-qr-modal";
 
 export function generateMetadata({
   params,
@@ -76,40 +78,72 @@ export default function FeaturePage({
       <MaxWidthWrapper className="py-20 text-center">
         <div className="mx-auto max-w-xl">
           <h2 className="font-display text-3xl font-extrabold leading-[1.15] text-black [text-wrap:balance] sm:text-5xl sm:leading-[1.15]">
-            Detailed insights for every click
+            {data.bentoTitle}
           </h2>
           <p className="mt-5 text-gray-600 sm:text-lg">
-            Dub provides detailed analytics for every click on your links. See
-            where your audience is coming from and what devices they are using.
+            {data.bentoDescription}
           </p>
         </div>
-        <div className="mt-10 grid gap-4 sm:grid-cols-2">
-          <BentoCard />
-          <BentoCard />
-        </div>
+        {data.slug === "qr-codes" ? (
+          <div className="mx-auto mt-10 max-w-md rounded-2xl border border-gray-200 bg-white shadow backdrop-blur">
+            <QRCodePicker
+              props={{
+                key: "github",
+                url: "https://github.com/steven-tey/dub",
+              }}
+            />
+          </div>
+        ) : (
+          <>
+            <div className="mt-10 grid gap-4 md:grid-cols-2">
+              {data.bentoFeatures?.slice(0, 2).map((feature, idx) => (
+                <BentoCard key={idx} {...feature} />
+              ))}
+            </div>
+            <div className="mt-4 grid gap-4 md:grid-cols-3">
+              {data.bentoFeatures?.slice(2, 5).map((feature, idx) => (
+                <BentoCard key={idx} {...feature} />
+              ))}
+            </div>
+          </>
+        )}
       </MaxWidthWrapper>
       <CTA />
     </>
   );
 }
 
-const BentoCard = () => {
-  return (
-    <div className="relative h-[400px] overflow-hidden rounded-3xl border border-gray-200 bg-white/50 p-8 shadow backdrop-blur">
+const BentoCard = ({
+  title,
+  description,
+  href,
+}: {
+  title: string;
+  description: string;
+  href?: string;
+}) => {
+  const contents = (
+    <div
+      className={cn(
+        "relative h-[400px] overflow-hidden rounded-3xl border border-gray-200 bg-white/50 p-8 shadow backdrop-blur",
+        {
+          "transition-all hover:shadow-lg": href,
+        },
+      )}
+    >
       {/* <img
         src="/_static/features/analytics.svg"
         alt="Analytics"
         className="h-full w-full"
       /> */}
       <div className="absolute bottom-0 left-0 right-0 p-8">
-        <h3 className="text-xl font-semibold text-gray-700">
-          Powerful analytics for the modern marketer
-        </h3>
-        <p className="mt-2 text-gray-500">
-          Dub provides powerful analytics for your links, including geolocation,
-          device, browser, and referrer information.
-        </p>
+        <h3 className="text-xl font-semibold text-gray-700">{title}</h3>
+        <p className="mt-2 text-gray-500 [text-wrap:balance]">{description}</p>
       </div>
     </div>
   );
+  if (href) {
+    return <Link href={href}>{contents}</Link>;
+  }
+  return contents;
 };
