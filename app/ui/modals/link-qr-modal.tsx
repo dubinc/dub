@@ -24,6 +24,7 @@ import IconMenu from "@/components/shared/icon-menu";
 import Popover from "#/ui/popover";
 import { toast } from "sonner";
 import { GOOGLE_FAVICON_URL } from "#/lib/constants";
+import { useDebouncedCallback } from "use-debounce";
 
 function LinkQRModalHelper({
   showLinkQRModal,
@@ -55,7 +56,7 @@ function LinkQRModalHelper({
     if (logo) return logo;
     return typeof window !== "undefined" && window.location.origin
       ? new URL("/_static/logo.svg", window.location.origin).href
-      : "";
+      : "https://dub.sh/_static/logo.svg";
   }, [logo]);
 
   function download(url: string, extension: string) {
@@ -187,10 +188,9 @@ function AdvancedSettings({ qrData, setFgColor, showLogo, setShowLogo }) {
   const { plan } = useProject();
   const [expanded, setExpanded] = useState(false);
 
-  const isApp = useMemo(() => {
-    if (typeof window === "undefined") return false;
-    return window.location.host.startsWith("app.");
-  }, []);
+  const debouncedSetFgColor = useDebouncedCallback((color) => {
+    setFgColor(color);
+  }, 100);
 
   return (
     <div>
@@ -265,7 +265,7 @@ function AdvancedSettings({ qrData, setFgColor, showLogo, setShowLogo }) {
                   <div className="flex max-w-xs flex-col items-center space-y-3 p-5 text-center">
                     <HexColorPicker
                       color={qrData.fgColor}
-                      onChange={(color) => setFgColor(color)}
+                      onChange={debouncedSetFgColor}
                     />
                   </div>
                 }

@@ -35,6 +35,7 @@ import {
 import { useRouter } from "next/router";
 import { ModalContext } from "#/ui/modal-provider";
 import { motion } from "framer-motion";
+import { useDebouncedCallback } from "use-debounce";
 
 function LinkQRModalHelper({
   showLinkQRModal,
@@ -66,7 +67,7 @@ function LinkQRModalHelper({
     if (logo && plan !== "free") return logo;
     return typeof window !== "undefined" && window.location.origin
       ? new URL("/_static/logo.svg", window.location.origin).href
-      : "";
+      : "https://dub.sh/_static/logo.svg";
   }, [logo, plan]);
 
   function download(url: string, extension: string) {
@@ -207,6 +208,10 @@ function AdvancedSettings({
   const { plan, logo } = useProject();
   const [expanded, setExpanded] = useState(false);
 
+  const debouncedSetFgColor = useDebouncedCallback((color) => {
+    setFgColor(color);
+  }, 100);
+
   const { setShowAddProjectModal, setShowUpgradePlanModal } =
     useContext(ModalContext);
 
@@ -311,7 +316,7 @@ function AdvancedSettings({
                   <div className="flex max-w-xs flex-col items-center space-y-3 p-5 text-center">
                     <HexColorPicker
                       color={qrData.fgColor}
-                      onChange={(color) => setFgColor(color)}
+                      onChange={debouncedSetFgColor}
                     />
                   </div>
                 }
