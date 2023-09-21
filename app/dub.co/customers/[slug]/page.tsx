@@ -9,6 +9,7 @@ import BlurImage from "#/ui/blur-image";
 import { getAndCacheTweet } from "#/lib/twitter";
 import getRepos from "#/lib/github";
 import Link from "next/link";
+import CTA from "#/ui/home/cta";
 
 export async function generateStaticParams() {
   return allBlogPosts.map((post) => ({
@@ -79,9 +80,9 @@ export default async function CustomerStory({
       </MaxWidthWrapper>
 
       <div className="relative">
-        <div className="absolute top-52 h-full w-full border border-gray-200 bg-white/50 shadow-[inset_10px_-50px_94px_0_rgb(199,199,199,0.2)] backdrop-blur-lg" />
-        <MaxWidthWrapper className="grid grid-cols-4 gap-5 px-0 py-10 lg:gap-10">
-          <div className="relative col-span-4 mb-10 flex flex-col space-y-8 bg-white sm:rounded-xl sm:border sm:border-gray-200 md:col-span-3">
+        <div className="absolute top-52 h-[calc(100%-13rem)] w-full border border-gray-200 bg-white/50 shadow-[inset_10px_-50px_94px_0_rgb(199,199,199,0.2)] backdrop-blur-lg" />
+        <MaxWidthWrapper className="grid grid-cols-4 gap-5 px-0 pt-10 lg:gap-10">
+          <div className="relative col-span-4 flex flex-col space-y-8 bg-white sm:rounded-t-xl sm:border sm:border-gray-200 md:col-span-3">
             <BlurImage
               className="aspect-[1200/630] rounded-t-xl object-cover"
               src={data.image}
@@ -162,6 +163,7 @@ export default async function CustomerStory({
           </div>
         </MaxWidthWrapper>
       </div>
+      <CTA />
     </>
   );
 }
