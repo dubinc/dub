@@ -55,8 +55,7 @@ export const HOME_DOMAIN =
   process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
     ? "https://dub.co"
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
-    ? // ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-      "https://dub.co"
+    ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
     : "http://home.localhost:8888";
 
 export const APP_HOSTNAMES = new Set([

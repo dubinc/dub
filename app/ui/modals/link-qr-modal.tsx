@@ -12,7 +12,7 @@ import { HexColorInput, HexColorPicker } from "react-colorful";
 import BlurImage from "#/ui/blur-image";
 import { Clipboard, Download, Photo } from "@/components/shared/icons";
 import { Logo } from "#/ui/icons";
-import { ChevronRight } from "lucide-react";
+import { Check, ChevronRight } from "lucide-react";
 import Modal from "#/ui/modal";
 import Switch from "#/ui/switch";
 import Tooltip, { TooltipContent } from "#/ui/tooltip";
@@ -99,6 +99,7 @@ export function QRCodePicker({ props }: { props: SimpleLinkProps }) {
     [props, fgColor, showLogo, qrLogoUrl],
   );
 
+  const [copied, setCopied] = useState(false);
   const copyToClipboard = async () => {
     try {
       const canvas = await getQRAsCanvas(qrData, "image/png", true);
@@ -106,6 +107,8 @@ export function QRCodePicker({ props }: { props: SimpleLinkProps }) {
         // @ts-ignore
         const item = new ClipboardItem({ "image/png": blob });
         await navigator.clipboard.write([item]);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
       });
     } catch (e) {
       throw e;
@@ -170,7 +173,15 @@ export function QRCodePicker({ props }: { props: SimpleLinkProps }) {
             }}
             className="flex items-center justify-center gap-2 rounded-md border border-black bg-black px-5 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
           >
-            <Clipboard className="h-4 w-4" /> Copy
+            {copied ? (
+              <>
+                <Check className="h-4 w-4" /> <p>Copied</p>
+              </>
+            ) : (
+              <>
+                <Clipboard className="h-4 w-4" /> <p>Copy</p>
+              </>
+            )}
           </button>
           <QrDropdown
             download={download}
