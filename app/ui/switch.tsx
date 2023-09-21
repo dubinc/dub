@@ -40,9 +40,9 @@ const Switch = ({
       disabled={disabled}
       className={cn(
         disabled
-          ? "cursor-not-allowed radix-state-checked:bg-gray-300"
+          ? "cursor-not-allowed bg-gray-300"
           : "cursor-pointer focus:outline-none focus-visible:ring focus-visible:ring-blue-500 focus-visible:ring-opacity-75 radix-state-checked:bg-blue-500 radix-state-unchecked:bg-gray-200",
-        `relative inline-flex h-4 w-8 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out`,
+        "relative inline-flex h-4 w-8 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out",
         trackDimensions,
       )}
     >

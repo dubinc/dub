@@ -82,6 +82,7 @@ export default function Modal({
     >
       <Dialog.Portal>
         <Dialog.Overlay
+          // for detecting when there's an active opened modal
           id="modal-backdrop"
           className="fixed inset-0 z-40 animate-fade-in bg-gray-100 bg-opacity-50 backdrop-blur-md"
         />

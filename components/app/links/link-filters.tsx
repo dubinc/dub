@@ -426,10 +426,7 @@ const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
   ) : (
     <Popover
       content={
-        <div
-          data-exclude-click
-          className="flex w-48 flex-col divide-y divide-gray-200"
-        >
+        <div className="flex w-48 flex-col divide-y divide-gray-200">
           <div className="p-2">
             <form
               onClick={(e) => e.stopPropagation()} // prevent triggering <Command.Item> onClick
