@@ -271,7 +271,7 @@ function AddEditLinkModal({
       className="max-w-screen-lg"
       preventDefaultClose={homepageDemo ? false : true}
     >
-      <div className="relative grid max-h-[80vh] divide-x divide-gray-100 overflow-scroll scrollbar-hide md:max-h-[min(906px,_90vh)] md:grid-cols-2">
+      <div className="grid max-h-[80vh] divide-x divide-gray-100 overflow-scroll scrollbar-hide md:max-h-[min(906px,_90vh)] md:grid-cols-2">
         {!homepageDemo && (
           <button
             onClick={() => setShowAddEditLinkModal(false)}
