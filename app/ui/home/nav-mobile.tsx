@@ -1,205 +1,124 @@
 "use client";
 
 import { APP_DOMAIN } from "#/lib/constants";
-import { motion, useCycle } from "framer-motion";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ReactNode, useEffect, useRef } from "react";
 import { navItems } from "./nav";
 import { useSession } from "next-auth/react";
-
-const sidebar = {
-  open: (height = 1000) => ({
-    clipPath: `circle(${height * 2 + 200}px at 100% 0)`,
-    transition: {
-      type: "spring",
-      stiffness: 20,
-      restDelta: 2,
-    },
-  }),
-  closed: {
-    clipPath: "circle(0px at 100% 0)",
-    transition: {
-      type: "spring",
-      stiffness: 400,
-      damping: 40,
-    },
-  },
-};
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "#/ui/accordion";
+import { FEATURES_LIST } from "#/lib/constants/content";
+import { cn } from "#/lib/utils";
+import { useState } from "react";
+import { Menu, X } from "lucide-react";
 
 export default function MobileNav() {
   const { domain = "dub.co" } = useParams() as { domain: string };
-
-  const [isOpen, toggleOpen] = useCycle(false, true);
-  const containerRef = useRef(null);
-  const { height } = useDimensions(containerRef);
   const { data: session, status } = useSession() || {
     status: "unauthenticated", // if `useSession` is undefined, we're on a non dub.co domain
   };
+  const [open, setOpen] = useState(false);
 
   return (
-    <motion.nav
-      initial={false}
-      animate={isOpen ? "open" : "closed"}
-      custom={height}
-      className={`fixed inset-0 z-50 w-full lg:hidden ${
-        isOpen ? "" : "pointer-events-none"
-      }`}
-      ref={containerRef}
-    >
-      <motion.div
-        className="absolute inset-0 right-0 w-full bg-white"
-        variants={sidebar}
-      />
-      <motion.ul
-        variants={variants}
-        className="absolute grid w-full gap-3 px-10 py-16"
+    <>
+      <button
+        onClick={() => setOpen(!open)}
+        className={cn(
+          "absolute right-5 top-2 z-40 rounded-full p-2 transition-colors duration-200 hover:bg-gray-200 focus:outline-none active:bg-gray-300",
+          open && "hover:bg-gray-100 active:bg-gray-200",
+        )}
       >
-        {navItems.map(({ name, slug }) => (
-          <div key={slug} className="grid gap-3">
-            <MenuItem>
+        {open ? (
+          <X className="h-5 w-5 text-gray-600" />
+        ) : (
+          <Menu className="h-5 w-5 text-gray-600" />
+        )}
+      </button>
+      <nav
+        className={cn(
+          "fixed inset-0 z-20 hidden w-full bg-white px-5 py-16",
+          open && "block",
+        )}
+      >
+        <ul className="grid divide-y divide-gray-200">
+          <li className="py-3">
+            <Accordion type="single" collapsible>
+              <AccordionItem value="features" className="!py-0">
+                <AccordionTrigger className="flex w-full font-semibold capitalize">
+                  Features
+                </AccordionTrigger>
+                <AccordionContent className="grid gap-3">
+                  {FEATURES_LIST.map((feature) => (
+                    <Link
+                      key={feature.slug}
+                      href={
+                        domain === "dub.co"
+                          ? `/features/${feature.slug}`
+                          : `https://dub.co/features/${feature.slug}?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`
+                      }
+                      onClick={() => setOpen(false)}
+                      className="flex w-full space-x-2"
+                    >
+                      <feature.icon className="h-5 w-5 text-gray-500" />
+                      <span className="capitalize">{feature.shortTitle}</span>
+                    </Link>
+                  ))}
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </li>
+          {navItems.map(({ name, slug }) => (
+            <li key={slug} className="py-3">
               <Link
                 href={
                   domain === "dub.co"
                     ? `/${slug}`
                     : `https://dub.co/${slug}?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`
                 }
-                onClick={() => toggleOpen()}
+                onClick={() => setOpen(false)}
                 className="flex w-full font-semibold capitalize"
               >
                 {name}
               </Link>
-            </MenuItem>
-            <MenuItem className="my-3 h-px w-full bg-gray-300" />
-          </div>
-        ))}
+            </li>
+          ))}
 
-        {session ? (
-          <MenuItem key="Dashboard">
-            <Link
-              href={APP_DOMAIN}
-              className="flex w-full font-semibold capitalize"
-            >
-              Dashboard
-            </Link>
-          </MenuItem>
-        ) : status === "unauthenticated" ? (
-          <>
-            <MenuItem key="Login">
+          {session ? (
+            <li className="py-3">
               <Link
-                href={`${APP_DOMAIN}/login`}
+                href={APP_DOMAIN}
                 className="flex w-full font-semibold capitalize"
               >
-                Log in
+                Dashboard
               </Link>
-            </MenuItem>
-            <MenuItem className="my-3 h-px w-full bg-gray-300" />
+            </li>
+          ) : status === "unauthenticated" ? (
+            <>
+              <li className="py-3">
+                <Link
+                  href={`${APP_DOMAIN}/login`}
+                  className="flex w-full font-semibold capitalize"
+                >
+                  Log in
+                </Link>
+              </li>
 
-            <MenuItem key="Signup">
-              <Link
-                href={`${APP_DOMAIN}/register`}
-                className="flex w-full font-semibold capitalize"
-              >
-                Sign Up
-              </Link>
-            </MenuItem>
-          </>
-        ) : null}
-      </motion.ul>
-      <MenuToggle toggle={toggleOpen} />
-    </motion.nav>
+              <li className="py-3">
+                <Link
+                  href={`${APP_DOMAIN}/register`}
+                  className="flex w-full font-semibold capitalize"
+                >
+                  Sign Up
+                </Link>
+              </li>
+            </>
+          ) : null}
+        </ul>
+      </nav>
+    </>
   );
 }
-
-const MenuToggle = ({ toggle }: { toggle: any }) => (
-  <button
-    onClick={toggle}
-    className="pointer-events-auto absolute right-5 top-5 z-20"
-  >
-    <svg width="23" height="23" viewBox="0 0 23 23">
-      <Path
-        variants={{
-          closed: { d: "M 2 2.5 L 20 2.5" },
-          open: { d: "M 3 16.5 L 17 2.5" },
-        }}
-      />
-      <Path
-        d="M 2 9.423 L 20 9.423"
-        variants={{
-          closed: { opacity: 1 },
-          open: { opacity: 0 },
-        }}
-        transition={{ duration: 0.1 }}
-      />
-      <Path
-        variants={{
-          closed: { d: "M 2 16.346 L 20 16.346" },
-          open: { d: "M 3 2.5 L 17 16.346" },
-        }}
-      />
-    </svg>
-  </button>
-);
-
-const Path = (props: any) => (
-  <motion.path
-    fill="transparent"
-    strokeWidth="2"
-    stroke="hsl(0, 0%, 18%)"
-    strokeLinecap="round"
-    {...props}
-  />
-);
-
-const MenuItem = ({
-  className,
-  children,
-}: {
-  className?: string;
-  children?: ReactNode;
-}) => {
-  return (
-    <motion.li variants={MenuItemVariants} className={className}>
-      {children}
-    </motion.li>
-  );
-};
-
-const MenuItemVariants = {
-  open: {
-    y: 0,
-    opacity: 1,
-    transition: {
-      y: { stiffness: 1000, velocity: -100 },
-    },
-  },
-  closed: {
-    y: 50,
-    opacity: 0,
-    transition: {
-      y: { stiffness: 1000 },
-      duration: 0.02,
-    },
-  },
-};
-
-const variants = {
-  open: {
-    transition: { staggerChildren: 0.02, delayChildren: 0.15 },
-  },
-  closed: {
-    transition: { staggerChildren: 0.01, staggerDirection: -1 },
-  },
-};
-
-const useDimensions = (ref: any) => {
-  const dimensions = useRef({ width: 0, height: 0 });
-
-  useEffect(() => {
-    dimensions.current.width = ref.current.offsetWidth;
-    dimensions.current.height = ref.current.offsetHeight;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  return dimensions.current;
-};
