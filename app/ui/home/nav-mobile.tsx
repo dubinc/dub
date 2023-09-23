@@ -5,16 +5,10 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { navItems } from "./nav";
 import { useSession } from "next-auth/react";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "#/ui/accordion";
 import { FEATURES_LIST } from "#/lib/constants/content";
 import { cn } from "#/lib/utils";
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { ChevronDown, Menu, X } from "lucide-react";
 
 export default function MobileNav() {
   const { domain = "dub.co" } = useParams() as { domain: string };
@@ -22,6 +16,7 @@ export default function MobileNav() {
     status: "unauthenticated", // if `useSession` is undefined, we're on a non dub.co domain
   };
   const [open, setOpen] = useState(false);
+  const [openFeatures, setOpenFeatures] = useState(false);
 
   return (
     <>
@@ -46,30 +41,37 @@ export default function MobileNav() {
       >
         <ul className="grid divide-y divide-gray-200">
           <li className="py-3">
-            <Accordion type="single" collapsible>
-              <AccordionItem value="features" className="!py-0">
-                <AccordionTrigger className="flex w-full font-semibold capitalize">
-                  Features
-                </AccordionTrigger>
-                <AccordionContent className="grid gap-3">
-                  {FEATURES_LIST.map((feature) => (
-                    <Link
-                      key={feature.slug}
-                      href={
-                        domain === "dub.co"
-                          ? `/features/${feature.slug}`
-                          : `https://dub.co/features/${feature.slug}?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`
-                      }
-                      onClick={() => setOpen(false)}
-                      className="flex w-full space-x-2"
-                    >
-                      <feature.icon className="h-5 w-5 text-gray-500" />
-                      <span className="capitalize">{feature.shortTitle}</span>
-                    </Link>
-                  ))}
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
+            <button
+              className="flex w-full justify-between"
+              onClick={() => setOpenFeatures(!openFeatures)}
+            >
+              <p className="font-semibold">Features</p>
+              <ChevronDown
+                className={cn(
+                  "h-5 w-5 text-gray-500 transition-all",
+                  openFeatures && "rotate-180",
+                )}
+              />
+            </button>
+            {openFeatures && (
+              <div className="grid gap-4 overflow-hidden py-4">
+                {FEATURES_LIST.map((feature) => (
+                  <Link
+                    key={feature.slug}
+                    href={
+                      domain === "dub.co"
+                        ? `/features/${feature.slug}`
+                        : `https://dub.co/features/${feature.slug}?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`
+                    }
+                    onClick={() => setOpen(false)}
+                    className="flex w-full space-x-2"
+                  >
+                    <feature.icon className="h-5 w-5 text-gray-500" />
+                    <span className="text-sm">{feature.shortTitle}</span>
+                  </Link>
+                ))}
+              </div>
+            )}
           </li>
           {navItems.map(({ name, slug }) => (
             <li key={slug} className="py-3">
