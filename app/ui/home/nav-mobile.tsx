@@ -23,7 +23,7 @@ export default function MobileNav() {
       <button
         onClick={() => setOpen(!open)}
         className={cn(
-          "absolute right-5 top-2 z-40 rounded-full p-2 transition-colors duration-200 hover:bg-gray-200 focus:outline-none active:bg-gray-300",
+          "absolute right-3 top-3 z-40 rounded-full p-2 transition-colors duration-200 hover:bg-gray-200 focus:outline-none active:bg-gray-300 lg:hidden",
           open && "hover:bg-gray-100 active:bg-gray-200",
         )}
       >
