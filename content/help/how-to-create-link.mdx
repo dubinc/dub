@@ -192,6 +192,12 @@ This is particularly useful if you want to send iOS users to the App Store to do
 
 In both cases, the main **Destination URL** will be used as the fallback URL that will be used if the user's device type does not match the targeting rules.
 
+<Note variant="warning">
+  Device targeting currently is not supported for password-protected pages. If
+  you enable device targeting for a password-protected page, the user will be
+  redirected to the default destination URL regardless of their device type.
+</Note>
+
 ## Geo Targeting
 
 <Note variant="success">
@@ -215,6 +221,12 @@ To use this feature, toggle the "Geo Targeting" switch in the link builder. This
 />
 
 You can also add multiple geo-targeting rules by clicking on the "Add location" button.
+
+<Note variant="warning">
+  Geo targeting currently is not supported for password-protected pages. If you
+  enable geo targeting for a password-protected page, the user will be
+  redirected to the default destination URL regardless of their location.
+</Note>
 
 ## Link Comments
 
