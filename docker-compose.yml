@@ -1,0 +1,33 @@
+version: '3'
+
+services:
+  mysqldb:
+    image: mysql:latest
+    restart: always
+    env_file: ./.env
+    environment:
+      MYSQL_USER: "root" 
+      MYSQL_ROOT_PASSWORD: "mypass"
+      MYSQL_PASSWORD: "mypass"
+      MYSQL_DATABASE: "mydb"
+    ports:
+      - 3306:3306
+    volumes:
+      - db:/var/lib/mysql
+    networks:
+      - dub-network
+  app:
+    depends_on:
+      - mysqldb
+    build: .
+    command: [sh,-c,"cd /app && yarn prisma && yarn dev"]
+    ports:
+      - 8888:8888
+    environment:
+      - DATABASE_URL=mysql://root:mypass@mysqldb:3306/mydb
+    networks:
+      - dub-network
+volumes: 
+  db:
+networks:
+  dub-network:
