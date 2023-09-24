@@ -15,19 +15,23 @@ services:
     volumes:
       - db:/var/lib/mysql
     networks:
-      - dub-network
+      - dubnetwork
+
   app:
     depends_on:
       - mysqldb
     build: .
-    command: [sh,-c,"cd /app && yarn prisma && yarn dev"]
+    command: sh -c "cd /app && yarn prisma && yarn dev"
     ports:
       - 8888:8888
     environment:
       - DATABASE_URL=mysql://root:mypass@mysqldb:3306/mydb
     networks:
-      - dub-network
+      - dubnetwork
+
 volumes: 
   db:
+
 networks:
-  dub-network:
+  dubnetwork:
+    driver: bridge
