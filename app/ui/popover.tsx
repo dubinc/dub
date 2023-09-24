@@ -11,16 +11,18 @@ export default function Popover({
   align = "center",
   openPopover,
   setOpenPopover,
+  mobileOnly,
 }: {
   children: ReactNode;
   content: ReactNode | string;
   align?: "center" | "start" | "end";
   openPopover: boolean;
   setOpenPopover: Dispatch<SetStateAction<boolean>>;
+  mobileOnly?: boolean;
 }) {
   const { isMobile } = useMediaQuery();
 
-  if (isMobile) {
+  if (mobileOnly || isMobile) {
     return (
       <Drawer.Root open={openPopover} onOpenChange={setOpenPopover}>
         <div className="sm:hidden">{children}</div>
