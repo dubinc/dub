@@ -1,3 +1,7 @@
 node_modules
 .next
 .env.example
+README.md
+LICENSE.md
+.gitignore
+.prettierignore
