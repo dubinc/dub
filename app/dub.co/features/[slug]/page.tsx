@@ -10,6 +10,8 @@ import DemoVideo from "./video";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import Link from "next/link";
 import { QRCodePicker } from "#/ui/modals/link-qr-modal";
+import Image from "next/image";
+import { getBlurDataURL } from "#/lib/images";
 
 export function generateMetadata({
   params,
@@ -27,17 +29,32 @@ export function generateMetadata({
   });
 }
 
-export default function FeaturePage({
+export default async function FeaturePage({
   params,
 }: {
   params: {
     slug: string;
   };
 }) {
-  const data = FEATURES_LIST.find(({ slug }) => slug === params.slug);
-  if (!data) {
+  const feature = FEATURES_LIST.find(({ slug }) => slug === params.slug);
+  if (!feature) {
     notFound();
   }
+  const data = {
+    ...feature,
+    thumbnailBlurhash: await getBlurDataURL(feature.thumbnail),
+    bentoFeatures: feature.bentoFeatures
+      ? await Promise.all(
+          feature.bentoFeatures.map(async (feature) => ({
+            ...feature,
+            imageBlurhash: feature.image
+              ? await getBlurDataURL(feature.image)
+              : undefined,
+          })),
+        )
+      : undefined,
+  };
+
   return (
     <>
       <div className="mx-auto mt-12 max-w-md px-2.5 text-center sm:max-w-lg sm:px-0">
@@ -67,6 +84,9 @@ export default function FeaturePage({
         <DemoVideo url={data.videoUrl} />
         <BlurImage
           src={data.thumbnail}
+          placeholder="blur"
+          blurDataURL={data.thumbnailBlurhash}
+          priority
           alt={data.title}
           width={1735}
           height={990}
@@ -116,27 +136,43 @@ export default function FeaturePage({
 const BentoCard = ({
   title,
   description,
+  image,
+  imageBlurhash,
   href,
 }: {
   title: string;
   description: string;
+  image?: string;
+  imageBlurhash?: string;
   href?: string;
 }) => {
   const contents = (
     <div
       className={cn(
-        "relative h-[400px] overflow-hidden rounded-3xl border border-gray-200 bg-white/50 p-8 shadow backdrop-blur",
+        "relative flex flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white shadow",
         {
           "transition-all hover:shadow-lg": href,
         },
       )}
     >
-      {/* <img
-        src="/_static/features/analytics.svg"
-        alt="Analytics"
-        className="h-full w-full"
-      /> */}
-      <div className="absolute bottom-0 left-0 right-0 p-8">
+      {image && (
+        <div className="relative h-[250px]">
+          <div className="absolute top-0 h-16 w-full bg-gradient-to-b from-white to-transparent" />
+          <div className="absolute bottom-0 h-10 w-full bg-gradient-to-b from-transparent to-white" />
+          <div className="absolute left-0 h-full w-16 bg-gradient-to-r from-white to-transparent" />
+          <div className="absolute right-0 h-full w-16 bg-gradient-to-r from-transparent to-white" />
+          <Image
+            src={image}
+            placeholder="blur"
+            blurDataURL={imageBlurhash}
+            alt={title}
+            draggable={false}
+            width={750}
+            height={489}
+          />
+        </div>
+      )}
+      <div className="relative h-full bg-white p-8">
         <h3 className="text-xl font-semibold text-gray-700">{title}</h3>
         <p className="mt-2 text-gray-500 [text-wrap:balance]">{description}</p>
       </div>
