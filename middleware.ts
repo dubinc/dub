@@ -34,7 +34,9 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   const { domain, path, key } = parse(req);
 
   if (isHomeHostname(domain)) {
-    return NextResponse.rewrite(new URL(`/dub.co${path}`, req.url));
+    return NextResponse.rewrite(
+      new URL(`/dub.co${path === "/" ? "" : path}`, req.url),
+    );
   }
 
   // for public stats pages (e.g. dub.co/stats/github, vercel.fyi/stats/roomGPT)
