@@ -54,7 +54,6 @@
     "fuse.js": "^6.6.2",
     "github-slugger": "^2.0.0",
     "html-escaper": "^3.0.3",
-    "i": "^0.3.7",
     "js-cookie": "^3.0.5",
     "lucide-react": "^0.269.0",
     "ms": "^2.1.3",
