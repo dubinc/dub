@@ -31,7 +31,7 @@ export default function RewriteSection({
   }, [enabled]);
 
   return (
-    <div className="border-b border-gray-200 pb-5">
+    <div className="relative border-b border-gray-200 pb-5">
       <div className="flex items-center justify-between">
         <div className="flex items-center justify-between space-x-2">
           <h2 className="text-sm font-medium text-gray-900">Link Cloaking</h2>
