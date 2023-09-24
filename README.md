@@ -28,7 +28,7 @@
 
 ## Introduction
 
-Dub is an open-source link management tool for modern marketing teams to create, share, and track short links. 
+Dub is an open-source link management tool for modern marketing teams to create, share, and track short links.
 
 ## Features
 
@@ -45,9 +45,9 @@ To develop Dub locally, you will need to clone this repository and set up all th
 Once that's done, you can use the following commands to run the app locally:
 
 ```
-yarn
-yarn build
-yarn dev
+bun i
+bun run build
+bun dev
 ```
 
 We're planning to add a proper, well-documented self-hosting guide for Dub soon – stay tuned!
