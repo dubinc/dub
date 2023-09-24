@@ -12,7 +12,6 @@ import Link from "next/link";
 import CTA from "#/ui/home/cta";
 
 export async function generateStaticParams() {
-  console.log(allCustomersPosts);
   return allCustomersPosts.map((post) => ({
     slug: post.slug,
   }));
