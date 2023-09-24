@@ -70,7 +70,7 @@ export default function OGSection({
   const [openPopover, setOpenPopover] = useState(false);
 
   return (
-    <div className="grid gap-5 border-b border-gray-200 pb-5">
+    <div className="relative grid gap-5 border-b border-gray-200 pb-5">
       <div className="flex items-center justify-between">
         <div className="flex items-center justify-between space-x-2">
           <h2 className="text-sm font-medium text-gray-900">
