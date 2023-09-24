@@ -293,7 +293,7 @@ function AddEditLinkModal({
       preventDefaultClose={homepageDemo ? false : true}
       {...(welcomeFlow && { onClose: () => router.back() })}
     >
-      <div className="relative grid max-h-[90vh] w-full divide-x divide-gray-100 overflow-auto scrollbar-hide md:grid-cols-2 md:overflow-hidden">
+      <div className="grid max-h-[90vh] w-full divide-x divide-gray-100 overflow-auto scrollbar-hide md:grid-cols-2 md:overflow-hidden">
         {!welcomeFlow && !homepageDemo && (
           <button
             onClick={() => setShowAddEditLinkModal(false)}
