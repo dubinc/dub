@@ -4,14 +4,14 @@ import { cn, constructMetadata } from "#/lib/utils";
 import BlurImage from "#/ui/blur-image";
 import CTA from "#/ui/home/cta";
 import Logos from "#/ui/home/logos";
-import { PlayCircle } from "lucide-react";
+import { Play, PlayCircle } from "lucide-react";
 import { notFound } from "next/navigation";
-import DemoVideo from "./video";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import Link from "next/link";
 import { QRCodePicker } from "#/ui/modals/link-qr-modal";
 import Image from "next/image";
 import { getBlurDataURL } from "#/lib/images";
+import PlayButton from "./play-button";
 
 export function generateMetadata({
   params,
@@ -75,19 +75,39 @@ export default async function FeaturePage({
           >
             Start For Free
           </a>
-          <a
+          <PlayButton
+            url={data.videoUrl}
             className="flex items-center justify-center space-x-2 rounded-full border border-gray-300 bg-white px-5 py-2 shadow-lg transition-all hover:border-gray-800"
-            href="https://dub.sh/github"
-            target="_blank"
-            rel="noreferrer"
           >
             <PlayCircle className="h-5 w-5 text-gray-400" />
             <p className="text-sm">Watch Demo</p>
-          </a>
+          </PlayButton>
         </div>
       </div>
       <div className="relative mx-auto mt-10 max-w-screen-lg overflow-hidden border border-b-0 border-gray-200 lg:rounded-t-lg">
-        <DemoVideo url={data.videoUrl} />
+        <PlayButton
+          url={data.videoUrl}
+          className="group absolute inset-0 z-10 flex h-full w-full items-center justify-center bg-black bg-opacity-0 transition-all duration-300 hover:bg-opacity-5 focus:outline-none"
+        >
+          <div className="flex flex-col items-center space-y-4">
+            <div className="rounded-full bg-gradient-to-tr from-black to-gray-700 p-5 ring-[6px] ring-gray-300 transition-all duration-300 group-hover:scale-110 group-hover:ring-4 group-active:scale-90">
+              <Play className="h-5 w-5 text-white" fill="currentColor" />
+            </div>
+            <div className="flex rounded-full border border-gray-200 bg-white p-2 shadow-xl group-hover:shadow-2xl">
+              <BlurImage
+                src="https://d2vwwcvoksz7ty.cloudfront.net/author/steventey.jpg"
+                alt="Steven Tey"
+                width={36}
+                height={36}
+                className="h-10 w-10 rounded-full"
+              />
+              <div className="ml-2 mr-4 flex flex-col text-left">
+                <p className="text-sm font-medium text-gray-500">Watch Demo</p>
+                <p className="text-sm text-blue-500">2:30</p>
+              </div>
+            </div>
+          </div>
+        </PlayButton>
         <BlurImage
           src={data.thumbnail}
           placeholder="blur"
