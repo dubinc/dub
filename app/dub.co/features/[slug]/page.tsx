@@ -29,6 +29,12 @@ export function generateMetadata({
   });
 }
 
+export async function generateStaticParams() {
+  return FEATURES_LIST.map(({ slug }) => ({
+    slug,
+  }));
+}
+
 export default async function FeaturePage({
   params,
 }: {
