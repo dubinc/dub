@@ -2,7 +2,7 @@ import SettingsLayout from "@/components/layout/app/settings-layout";
 import { useRouter } from "next/router";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Infinity, Divider } from "@/components/shared/icons";
+import { InfinityIcon, Divider } from "@/components/shared/icons";
 import { InfoTooltip } from "#/ui/tooltip";
 import { fetcher, getFirstAndLastDay, nFormatter } from "#/lib/utils";
 import useProject from "#/lib/swr/use-project";
@@ -101,7 +101,7 @@ export default function ProjectBilling() {
                   <div className="h-8 w-8 animate-pulse rounded-md bg-gray-200" />
                 )}
                 <Divider className="h-8 w-8 text-gray-500" />
-                <Infinity className="h-8 w-8 text-gray-500" />
+                <InfinityIcon className="h-8 w-8 text-gray-500" />
               </div>
             ) : (
               <div className="mt-2 flex flex-col space-y-2">
@@ -152,7 +152,7 @@ export default function ProjectBilling() {
                 <div className="h-8 w-8 animate-pulse rounded-md bg-gray-200" />
               )}
               <Divider className="h-8 w-8 text-gray-500" />
-              <Infinity className="h-8 w-8 text-gray-500" />
+              <InfinityIcon className="h-8 w-8 text-gray-500" />
             </div>
           </div>
         </div>
