@@ -117,7 +117,7 @@ export const DUB_LOGO = "https://d2vwwcvoksz7ty.cloudfront.net/logo.png";
 export const DUB_THUMBNAIL =
   "https://d2vwwcvoksz7ty.cloudfront.net/thumbnail.png";
 
-export const SHOW_BACKGROUND_SEGMENTS = new Set([
+export const SHOW_BACKGROUND_SEGMENTS = [
   "tools",
   "pricing",
   "help",
@@ -128,7 +128,7 @@ export const SHOW_BACKGROUND_SEGMENTS = new Set([
   "login",
   "register",
   "auth",
-]);
+];
 
 export const allTools = ["metatags", "inspector"];
 

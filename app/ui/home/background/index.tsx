@@ -12,7 +12,7 @@ export default function Background() {
     // this is for /welcome which is still on /pages router
   }
 
-  return !segment || SHOW_BACKGROUND_SEGMENTS.has(segment) ? (
+  return !segment || SHOW_BACKGROUND_SEGMENTS.includes(segment) ? (
     <div className={styles.main}>
       <div className={styles.content} />
     </div>
