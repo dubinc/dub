@@ -8,19 +8,19 @@ import { getAndCacheTweet } from "#/lib/twitter";
 
 const tweets = [
   "1631671657617059842",
-  "1696615753536114736",
   "1573744854655533069",
   "1644155001034657792",
   "1646599529796456469",
   "1704382884340027663",
-  "1704243979460469097",
+  "1702990934558879779",
 
   "1704950736071598507",
   "1657473320957227010",
   "1582956754425421825",
   "1574639172605816832",
   "1586745532386578433",
-  "1702990934558879779",
+  "1704243979460469097",
+  "1706368025681858855",
 
   "1702714036398297321",
   "1675191509430444032",
@@ -28,6 +28,7 @@ const tweets = [
   "1581017931043196928",
   "1643814463131332609",
   "1663567242616004610",
+  "1696615753536114736",
 ];
 
 export default async function Testimonials() {
@@ -59,8 +60,8 @@ export default async function Testimonials() {
             data={tweet || null}
             className={
               // this is a bit hacky but it allows us to have a 3-column mosaic layout on desktop
-              // it basically says "if the card is NOT in the middle column, push it down by 4rem
-              idx <= 6 || idx >= 13 ? "relative lg:top-10" : ""
+              // it basically says "if the card is NOT in the middle column, push it down
+              idx <= 5 || idx >= 13 ? "relative lg:top-12" : ""
             }
           />
         ))}
