@@ -180,7 +180,7 @@ export const FEATURES_LIST = [
           "Customize the title, description, and image of your links when shared on social media.",
         image:
           "https://d2vwwcvoksz7ty.cloudfront.net/features/social-cards.png",
-        href: "/help/article/how-to-create-link#custom-social-media-cards?new",
+        href: "/help/article/how-to-create-link#custom-social-media-cards",
       },
       {
         title: "Free SSL certificates",
