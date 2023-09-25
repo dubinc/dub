@@ -16,7 +16,6 @@ import { ModalContext } from "#/ui/modal-provider";
 import Badge from "#/ui/badge";
 import { linkConstructor } from "#/lib/utils";
 import { HOME_DOMAIN } from "#/lib/constants";
-import { useGoogleOauthModal } from "@/components/app/modals/google-oauth-modal";
 import { useAcceptInviteModal } from "@/components/app/modals/accept-invite-modal";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import { LoadingSpinner } from "#/ui/icons";
@@ -82,7 +81,6 @@ export default function AppLayout({
     }
   }, [plan, id, name, slug, stripeId, createdAt]);
 
-  const { GoogleOauthModal, setShowGoogleOauthModal } = useGoogleOauthModal();
   const { setShowUpgradePlanModal, setShowCMDK } = useContext(ModalContext);
   const { AcceptInviteModal, setShowAcceptInviteModal } =
     useAcceptInviteModal();
@@ -91,16 +89,8 @@ export default function AppLayout({
   useEffect(() => {
     if (error && (error.status === 409 || error.status === 410)) {
       setShowAcceptInviteModal(true);
-    } else if (
-      !loading &&
-      session?.user?.email &&
-      !session.user?.name &&
-      !router.asPath.startsWith("/welcome") &&
-      !Cookies.get("hideGoogleOauthModal")
-    ) {
-      setShowGoogleOauthModal(true);
     }
-  }, [error, session, router.asPath]);
+  }, [error]);
 
   return (
     <div>
@@ -108,7 +98,6 @@ export default function AppLayout({
       {error && (error.status === 409 || error.status === 410) && (
         <AcceptInviteModal />
       )}
-      <GoogleOauthModal />
       {showProBanner && <ProBanner setShowProBanner={setShowProBanner} />}
       <div
         className={`min-h-screen w-full ${bgWhite ? "bg-white" : "bg-gray-50"}`}
