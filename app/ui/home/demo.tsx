@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { experimental_useFormStatus as useFormStatus } from "react-dom";
 import { motion } from "framer-motion";
 import LinkCard from "#/ui/home/link-card";
 import PlaceholderCard from "#/ui/home/placeholder-card";
@@ -20,7 +19,7 @@ export default function Demo() {
   const [showDefaultLink, setShowDefaultLink] = useState(true);
 
   return (
-    <div className="mx-auto w-full max-w-md px-2.5 sm:px-0">
+    <div className="mx-auto mb-5 w-full max-w-md px-2.5 sm:px-0">
       <form
         ref={formRef}
         onSubmit={(e) => {

@@ -22,7 +22,7 @@ export default function Logos({
   copy?: string;
 }) {
   return (
-    <div className="mt-20">
+    <div className="my-10">
       <p className="mx-auto max-w-sm text-center text-gray-600 sm:max-w-xl sm:text-lg">
         {copy}
       </p>

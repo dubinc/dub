@@ -55,8 +55,7 @@ export const HOME_DOMAIN =
   process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
     ? "https://dub.co"
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
-    ? // ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-      "https://dub.co"
+    ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
     : "http://home.localhost:8888";
 
 export const APP_HOSTNAMES = new Set([
@@ -118,17 +117,18 @@ export const DUB_LOGO = "https://d2vwwcvoksz7ty.cloudfront.net/logo.png";
 export const DUB_THUMBNAIL =
   "https://d2vwwcvoksz7ty.cloudfront.net/thumbnail.png";
 
-export const SHOW_BACKGROUND_SEGMENTS = new Set([
+export const SHOW_BACKGROUND_SEGMENTS = [
   "tools",
   "pricing",
   "help",
+  "features",
   "customers",
   "blog",
   "(blog-post)",
   "login",
   "register",
   "auth",
-]);
+];
 
 export const allTools = ["metatags", "inspector"];
 

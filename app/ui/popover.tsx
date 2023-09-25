@@ -47,13 +47,15 @@ export default function Popover({
       <PopoverPrimitive.Trigger className="hidden sm:inline-flex" asChild>
         {children}
       </PopoverPrimitive.Trigger>
-      <PopoverPrimitive.Content
-        sideOffset={8}
-        align={align}
-        className="z-50 hidden animate-slide-up-fade items-center rounded-md border border-gray-200 bg-white drop-shadow-lg sm:block"
-      >
-        {content}
-      </PopoverPrimitive.Content>
+      <PopoverPrimitive.Portal>
+        <PopoverPrimitive.Content
+          sideOffset={8}
+          align={align}
+          className="z-50 hidden animate-slide-up-fade items-center rounded-md border border-gray-200 bg-white drop-shadow-lg sm:block"
+        >
+          {content}
+        </PopoverPrimitive.Content>
+      </PopoverPrimitive.Portal>
     </PopoverPrimitive.Root>
   );
 }

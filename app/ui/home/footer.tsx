@@ -1,22 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { Logo, LogoType } from "#/ui/icons";
+import { LogoType } from "#/ui/icons";
 import { Github, LinkedIn, Twitter } from "@/components/shared/icons";
 import { useParams } from "next/navigation";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import va from "@vercel/analytics";
+import { FEATURES_LIST } from "#/lib/constants/content";
 
 const navigation = {
+  features: FEATURES_LIST.map(({ shortTitle, slug }) => ({
+    name: shortTitle,
+    href: `/features/${slug}`,
+  })),
   product: [
-    { name: "Pricing", href: "/pricing" },
+    { name: "Blog", href: "/blog" },
     { name: "Changelog", href: "/changelog" },
     { name: "Customer Stories", href: "/customers" },
     { name: "Help Center", href: "/help" },
-  ],
-  company: [
-    { name: "Blog", href: "/blog" },
-    // { name: "About", href: "/about" },
+    { name: "Pricing", href: "/pricing" },
   ],
   tools: [
     { name: "Metatags API", href: "/tools/metatags" },
@@ -93,9 +95,11 @@ export default function Footer() {
           <div className="mt-16 grid grid-cols-2 gap-8 xl:col-span-3 xl:mt-0">
             <div className="md:grid md:grid-cols-2 md:gap-8">
               <div>
-                <h3 className="text-sm font-semibold text-gray-900">Product</h3>
+                <h3 className="text-sm font-semibold text-gray-900">
+                  Features
+                </h3>
                 <ul role="list" className="mt-4 space-y-4">
-                  {navigation.product.map((item) => (
+                  {navigation.features.map((item) => (
                     <li key={item.name}>
                       <Link
                         href={createHref(item.href)}
@@ -116,9 +120,9 @@ export default function Footer() {
                 </ul>
               </div>
               <div className="mt-10 md:mt-0">
-                <h3 className="text-sm font-semibold text-gray-600">Company</h3>
+                <h3 className="text-sm font-semibold text-gray-600">Product</h3>
                 <ul role="list" className="mt-4 space-y-4">
-                  {navigation.company.map((item) => (
+                  {navigation.product.map((item) => (
                     <li key={item.name}>
                       <Link
                         href={createHref(item.href)}

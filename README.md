@@ -19,6 +19,7 @@
 
 <p align="center">
   <a href="#introduction"><strong>Introduction</strong></a> ·
+  <a href="#features"><strong>Features</strong></a> ·
   <a href="#local-development"><strong>Local Development</strong></a> ·
   <a href="#tech-stack"><strong>Tech Stack</strong></a> ·
   <a href="#contributing"><strong>Contributing</strong></a>
@@ -28,6 +29,14 @@
 ## Introduction
 
 Dub is an open-source link management tool for modern marketing teams to create, share, and track short links.
+
+## Features
+
+- [Advanced Analytics](https://dub.co/features/analytics)
+- [Branded Links](https://dub.co/features/branded-links)
+- [QR Codes](https://dub.co/features/qr-codes)
+- [Personalization](https://dub.co/features/personalization)
+- [Team Collabration](https://dub.co/features/collaboration)
 
 ## Local Development
 
