@@ -12,6 +12,9 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import { FEATURES_LIST } from "#/lib/constants/content";
 import BlurImage from "../blur-image";
+import { cn } from "#/lib/utils";
+import PlayButton from "#/ui/home/play-button";
+import { Play } from "lucide-react";
 
 export default function Features() {
   const [activeFeature, setActiveFeature] = useState(0);
@@ -35,7 +38,7 @@ export default function Features() {
           </p>
         </div>
 
-        <div className="my-10 h-[840px] w-full overflow-hidden rounded-xl border border-gray-200 bg-white/10 shadow-[inset_10px_-50px_94px_0_rgb(199,199,199,0.2)] backdrop-blur lg:h-[630px]">
+        <div className="my-10 w-full overflow-hidden rounded-xl border border-gray-200 bg-white/10 shadow-[inset_10px_-50px_94px_0_rgb(199,199,199,0.2)] backdrop-blur lg:h-[540px]">
           <div className="grid grid-cols-1 gap-10 p-5 lg:grid-cols-3">
             <Accordion
               type="single"
@@ -93,12 +96,46 @@ export default function Features() {
                           stiffness: 300,
                           damping: 30,
                         }}
-                        className="relative min-h-[600px] w-full overflow-hidden whitespace-nowrap rounded-2xl bg-white shadow-2xl lg:mt-10 lg:w-[800px]"
+                        className="relative -mb-6 aspect-[1735/990] w-full overflow-hidden rounded-t-2xl shadow-2xl lg:mt-10 lg:h-[500px] lg:w-[800px]"
                       >
+                        <PlayButton
+                          url={feature.videoUrl}
+                          className="group absolute inset-0 z-10 flex h-full w-full items-center justify-center bg-black bg-opacity-0 transition-all duration-300 hover:bg-opacity-5 focus:outline-none"
+                        >
+                          <div className="flex flex-col items-center space-y-4">
+                            <div className="rounded-full bg-gradient-to-tr from-black to-gray-700 p-5 ring-[6px] ring-gray-300 transition-all duration-300 group-hover:scale-110 group-hover:ring-4 group-active:scale-90">
+                              <Play
+                                className="h-5 w-5 text-white"
+                                fill="currentColor"
+                              />
+                            </div>
+                            <div className="flex rounded-full border border-gray-200 bg-white p-2 shadow-xl group-hover:shadow-2xl">
+                              <BlurImage
+                                src="https://d2vwwcvoksz7ty.cloudfront.net/author/steventey.jpg"
+                                alt="Steven Tey"
+                                width={36}
+                                height={36}
+                                className="h-10 w-10 rounded-full"
+                              />
+                              <div className="ml-2 mr-4 flex flex-col text-left">
+                                <p className="text-sm font-medium text-gray-500">
+                                  Watch Demo
+                                </p>
+                                <p className="text-sm text-blue-500">
+                                  {feature?.videoLength || "2:30"}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </PlayButton>
                         <BlurImage
                           src={feature.thumbnail}
                           alt={feature.title}
-                          className="absolute inset-0 h-full w-full object-cover"
+                          className={cn(
+                            "absolute h-full object-cover",
+                            feature.slug === "branded-links" &&
+                              "object-left-top",
+                          )}
                           width={1735}
                           height={990}
                         />

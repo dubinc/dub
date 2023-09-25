@@ -161,7 +161,8 @@ export const FEATURES_LIST = [
     thumbnail:
       "https://d2vwwcvoksz7ty.cloudfront.net/features/branded-links.png",
     videoUrl:
-      "https://www.youtube.com/embed/m062ApqcRow?si=8FRndy4ABWPTioHU&autoplay=1",
+      "https://www.youtube.com/embed/LbgvQxLVqq4?si=7_sJVXFZINPxbAdM&autoplay=1",
+    videoLength: "3:23",
     bentoTitle: "Impress your audience with branded links",
     bentoDescription:
       "Create custom short links that match your brand and stand out from the crowd, with free and unlimited custom domains on all plans.",

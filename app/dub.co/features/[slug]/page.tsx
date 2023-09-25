@@ -11,7 +11,7 @@ import Link from "next/link";
 import { QRCodePicker } from "#/ui/modals/link-qr-modal";
 import Image from "next/image";
 import { getBlurDataURL } from "#/lib/images";
-import PlayButton from "./play-button";
+import PlayButton from "../../../ui/home/play-button";
 
 export function generateMetadata({
   params,
