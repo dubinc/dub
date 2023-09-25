@@ -211,7 +211,8 @@ export const FEATURES_LIST = [
     slug: "qr-codes",
     thumbnail: "https://d2vwwcvoksz7ty.cloudfront.net/features/qr-codes.png",
     videoUrl:
-      "https://www.youtube.com/embed/m062ApqcRow?si=8FRndy4ABWPTioHU&autoplay=1",
+      "https://www.youtube.com/embed/fcWkUZoJJ7w?si=LKNOO67aL6Q-3xN4&autoplay=1",
+    videoLength: "1:07",
     bentoTitle: "Gorgeous QR codes for your links",
     bentoDescription:
       "Create beautiful flyers and posters with QR codes for your links.",
@@ -227,7 +228,8 @@ export const FEATURES_LIST = [
     thumbnail:
       "https://d2vwwcvoksz7ty.cloudfront.net/features/personalization.png",
     videoUrl:
-      "https://www.youtube.com/embed/m062ApqcRow?si=8FRndy4ABWPTioHU&autoplay=1",
+      "https://www.youtube.com/embed/K2UdLK8k1I4?si=79hu5XSW9pSjODOm&autoplay=1",
+    videoLength: "2:25",
     bentoTitle: "Optimize your links for every audience",
     bentoDescription:
       "Get the most out of every click by delivering the right experience to the right audience.",
@@ -280,7 +282,8 @@ export const FEATURES_LIST = [
     thumbnail:
       "https://d2vwwcvoksz7ty.cloudfront.net/features/collaboration.png",
     videoUrl:
-      "https://www.youtube.com/embed/m062ApqcRow?si=8FRndy4ABWPTioHU&autoplay=1",
+      "https://www.youtube.com/embed/_m9RM8L6TOw?si=49_XIkQ7g-61dRtV&autoplay=1",
+    videoLength: "2:13",
     bentoTitle: "Seamless collaboration for marketing teams",
     bentoDescription:
       "View and manage your team's links in one place, with fine-grained permissions and SAML SSO for enterprises.",
