@@ -114,7 +114,8 @@ export const FEATURES_LIST = [
     slug: "analytics",
     thumbnail: "https://d2vwwcvoksz7ty.cloudfront.net/features/analytics.png",
     videoUrl:
-      "https://www.youtube.com/embed/m062ApqcRow?si=8FRndy4ABWPTioHU&autoplay=1",
+      "https://www.youtube.com/embed/i05FamHTn_I?si=gRnWs5Kf2n6Qyqmd&autoplay=1",
+    videoLength: "2:56",
     bentoTitle: "Detailed insights for every click",
     bentoDescription:
       "Dub provides detailed analytics for every click on your links. See where your audience is coming from and what devices they are using.",

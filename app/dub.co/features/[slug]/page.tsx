@@ -103,7 +103,9 @@ export default async function FeaturePage({
               />
               <div className="ml-2 mr-4 flex flex-col text-left">
                 <p className="text-sm font-medium text-gray-500">Watch Demo</p>
-                <p className="text-sm text-blue-500">2:30</p>
+                <p className="text-sm text-blue-500">
+                  {data?.videoLength || "2:30"}
+                </p>
               </div>
             </div>
           </div>

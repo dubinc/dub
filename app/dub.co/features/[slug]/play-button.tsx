@@ -22,7 +22,7 @@ export default function PlayButton({
         setShowModal={setShowModal}
       >
         <iframe
-          className="aspect-video h-full w-full"
+          className="aspect-[2300/1440] h-full w-full"
           src={url}
           title="YouTube video player"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
