@@ -130,6 +130,8 @@ export default function Features() {
                         </PlayButton>
                         <BlurImage
                           src={feature.thumbnail}
+                          placeholder="blur"
+                          blurDataURL={feature.thumbnailBlurhash}
                           alt={feature.title}
                           className={cn(
                             "absolute h-full object-cover",
