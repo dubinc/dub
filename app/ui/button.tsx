@@ -5,25 +5,22 @@ import Tooltip from "#/ui/tooltip";
 import { cn } from "#/lib/utils";
 import { ReactNode } from "react";
 
-export default function Button({
-  text,
-  variant = "primary",
-  className,
-  onClick,
-  disabled,
-  loading,
-  icon,
-  disabledTooltip,
-}: {
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   text: string;
   variant?: "primary" | "secondary" | "success" | "danger";
-  className?: string;
-  onClick?: any;
-  disabled?: boolean;
   loading?: boolean;
   icon?: ReactNode;
   disabledTooltip?: string | ReactNode;
-}) {
+}
+
+export default function Button({
+  text,
+  variant = "primary",
+  loading,
+  icon,
+  disabledTooltip,
+  ...props
+}: ButtonProps) {
   if (disabledTooltip) {
     return (
       <Tooltip content={disabledTooltip} fullWidth>
@@ -36,10 +33,10 @@ export default function Button({
   return (
     <button
       // if onClick is passed, it's a "button" type, otherwise it's being used in a form, hence "submit"
-      type={onClick ? "button" : "submit"}
+      type={props.onClick ? "button" : "submit"}
       className={cn(
         "flex h-10 w-full items-center justify-center space-x-2 rounded-md border px-4 text-sm transition-all focus:outline-none",
-        disabled || loading
+        props.disabled || loading
           ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
           : {
               "border-black bg-black text-white hover:bg-white hover:text-black":
@@ -51,10 +48,10 @@ export default function Button({
               "border-red-500 bg-red-500 text-white hover:bg-white hover:text-red-500":
                 variant === "danger",
             },
-        className,
+        props.className,
       )}
-      {...(onClick ? { onClick } : {})}
-      disabled={disabled || loading}
+      disabled={props.disabled || loading}
+      {...props}
     >
       {loading ? <LoadingSpinner /> : icon ? icon : null}
       <p>{text}</p>

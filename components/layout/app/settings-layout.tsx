@@ -34,7 +34,12 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
             href: `/${slug}/settings/security`,
           },
         ]
-      : []),
+      : [
+          {
+            name: "API Keys",
+            href: "/settings/tokens",
+          },
+        ]),
   ];
 
   return (

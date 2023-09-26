@@ -56,6 +56,8 @@ export default function NavTabs() {
     return <div className="-mb-0.5 h-12 w-full" />;
   }
 
+  console.log("HACKY", router.asPath.split("?")[0]);
+
   if (!error) {
     return (
       <div className="-mb-0.5 flex h-12 items-center justify-start space-x-2 overflow-x-auto scrollbar-hide">
@@ -64,9 +66,12 @@ export default function NavTabs() {
             key={href}
             href={href}
             className={`border-b-2 p-1 ${
-              // hacky approach to getting the current tab – will replace with useSelectedLayoutSegments when upgrading to Next.js 13
-              router.asPath.split("?")[0].split("/").slice(0, 3).join("/") ===
-              href
+              // hacky approach to getting the current tab – will replace with useSelectedLayoutSegments when upgrading to Next.js App Router
+              router.asPath
+                .split("?")[0]
+                .split("/")
+                .slice(0, slug ? 3 : 2)
+                .join("/") === href
                 ? "border-black text-black"
                 : "border-transparent text-gray-600 hover:text-black"
             }`}

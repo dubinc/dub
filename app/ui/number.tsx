@@ -27,11 +27,7 @@ export default function Number({
           </p>
           {lastClicked && (
             <p className="mt-1 text-xs text-gray-500">
-              Last clicked {timeAgo(lastClicked)}{" "}
-              {Date.now() - new Date(lastClicked).getTime() > 60000 &&
-              Date.now() - new Date(lastClicked).getTime() < 82800000
-                ? "ago"
-                : ""}
+              Last clicked {timeAgo(lastClicked, { withAgo: true })}
             </p>
           )}
         </div>

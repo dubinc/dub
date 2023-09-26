@@ -38,7 +38,7 @@ export default function LinkInspectorCard({
               >
                 {linkConstructor({ domain, key, pretty: true })}
               </a>
-              <CopyButton url={linkConstructor({ domain, key })} />
+              <CopyButton value={linkConstructor({ domain, key })} />
             </div>
             <a
               href={url}
