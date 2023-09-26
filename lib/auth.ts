@@ -232,11 +232,40 @@ const withLinksAuth =
     } = {},
   ) =>
   async (req: NextApiRequest, res: NextApiResponse) => {
-    // console.log("Running withLinksAuth helper for endpoint: ", req.url);
+    let session: Session | undefined;
 
-    const session = await getSession(req, res);
-    if (!session?.user.id) {
-      return res.status(401).end("Unauthorized: Login required.");
+    const apiKey = req.headers.authorization?.split("Bearer ")[1];
+    if (apiKey) {
+      const hashedKey = hashToken(apiKey);
+      const user = await prisma.user.findFirst({
+        where: {
+          tokens: {
+            some: {
+              hashedKey,
+            },
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      });
+      if (!user) {
+        return res.status(401).end("Unauthorized: Invalid API key.");
+      }
+      session = {
+        user: {
+          id: user.id,
+          name: user.name || "",
+          email: user.email || "",
+        },
+      };
+    } else {
+      session = await getSession(req, res);
+      if (!session?.user.id) {
+        return res.status(401).end("Unauthorized: Login required.");
+      }
     }
 
     const { slug, domain } = req.query as {
