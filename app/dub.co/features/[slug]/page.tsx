@@ -26,6 +26,8 @@ export function generateMetadata({
   }
   return constructMetadata({
     title: `${data.title} – Dub`,
+    description: data.description,
+    image: data.thumbnail,
   });
 }
 
