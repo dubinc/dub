@@ -52,18 +52,18 @@ function AcceptInviteModal({
                 fetch(`/api/projects/${slug}/invites/accept`, {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
-                }).then(() => {
-                  toast.success("You now are a part of this project!");
+                }).then(async () => {
                   va.track("User accepted project invite", {
                     project: slug,
                   });
-                  mutate(
+                  await mutate(
                     (key) =>
                       typeof key === "string" &&
                       key.startsWith(`/api/projects`),
                     undefined,
                     { revalidate: true },
                   );
+                  toast.success("You now are a part of this project!");
                 });
               }}
               disabled={accepting}

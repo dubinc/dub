@@ -74,22 +74,24 @@ function DeleteLinkModal({
               },
             },
           ).then(async (res) => {
-            setDeleting(false);
             if (res.status === 200) {
-              mutate(`/api/links${getQueryString(router)}`);
-              mutate(
-                (key) =>
-                  typeof key === "string" &&
-                  key.startsWith(`/api/links/_count`),
-                undefined,
-                { revalidate: true },
-              );
+              await Promise.all([
+                mutate(`/api/links${getQueryString(router)}`),
+                mutate(
+                  (key) =>
+                    typeof key === "string" &&
+                    key.startsWith(`/api/links/_count`),
+                  undefined,
+                  { revalidate: true },
+                ),
+              ]);
               setShowDeleteLinkModal(false);
               toast.success("Successfully deleted shortlink!");
             } else {
               const { error } = await res.json();
               toast.error(error);
             }
+            setDeleting(false);
           });
         }}
         className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16"

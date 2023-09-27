@@ -36,20 +36,15 @@ function DeleteProjectModal({
           "Content-Type": "application/json",
         },
       }).then(async (res) => {
-        setDeleting(false);
         if (res.ok) {
-          router.push("/");
-          mutate("/api/projects");
-          // delay to allow for the route change to complete
-          await new Promise(() =>
-            setTimeout(() => {
-              resolve(null);
-            }, 200),
-          );
+          await mutate("/api/projects");
+          await router.push("/");
+          resolve(null);
         } else {
           const error = await res.text();
           reject(error);
         }
+        setDeleting(false);
       });
     });
   }

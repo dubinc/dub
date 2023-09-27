@@ -117,7 +117,7 @@ function AddProjectModalHelper({
             if (res.status === 200) {
               // track project creation event
               va.track("Created Project");
-              mutate("/api/projects");
+              await mutate("/api/projects");
               if (welcomeFlow) {
                 router.push({
                   pathname: "/welcome",
@@ -127,7 +127,7 @@ function AddProjectModalHelper({
                   },
                 });
               } else {
-                router.push(`/${slug}`);
+                await router.push(`/${slug}`);
                 toast.success("Successfully created project!");
                 setShowAddProjectModal(false);
               }

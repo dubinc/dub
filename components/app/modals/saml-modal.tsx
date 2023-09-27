@@ -67,9 +67,9 @@ function SAMLModal({
               }),
             }).then(async (res) => {
               if (res.ok) {
-                mutate();
-                toast.success("Successfully configured SAML");
+                await mutate();
                 setShowSAMLModal(false);
+                toast.success("Successfully configured SAML");
               } else {
                 const err = await res.text();
                 toast.error(err);

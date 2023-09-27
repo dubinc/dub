@@ -88,7 +88,7 @@ function SCIMModal({
               }),
             }).then(async (res) => {
               if (res.ok) {
-                mutate();
+                await mutate();
                 toast.success("Successfully configured SCIM");
               } else {
                 const err = await res.text();

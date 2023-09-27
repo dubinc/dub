@@ -12,9 +12,7 @@ export default function useLinks() {
       user: UserProps;
     })[]
   >(router.isReady && `/api/links${getQueryString(router)}`, fetcher, {
-    // disable this because it keeps refreshing the state of the modal when its open
-    revalidateOnFocus: false,
-    dedupingInterval: 30000,
+    dedupingInterval: 20000,
   });
 
   return {

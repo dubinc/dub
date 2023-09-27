@@ -124,15 +124,15 @@ function ImportShortModal({
                   body: JSON.stringify({
                     selectedDomains,
                   }),
-                }).then((res) => {
-                  setImporting(false);
+                }).then(async (res) => {
                   if (res.ok) {
+                    await mutate(`/api/projects/${slug}/domains`);
                     closeModal(router);
-                    mutate(`/api/projects/${slug}/domains`);
                     setPollLinks(true);
                   } else {
                     throw new Error();
                   }
+                  setImporting(false);
                 }),
                 {
                   loading: "Adding links to import queue...",
@@ -199,9 +199,9 @@ function ImportShortModal({
                 body: JSON.stringify({
                   apiKey: e.currentTarget.apiKey.value,
                 }),
-              }).then((res) => {
+              }).then(async (res) => {
                 if (res.ok) {
-                  mutate(`/api/projects/${slug}/import/short`);
+                  await mutate(`/api/projects/${slug}/import/short`);
                   toast.success("Successfully added API key");
                 } else {
                   toast.error("Error adding API key");

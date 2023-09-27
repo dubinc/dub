@@ -78,17 +78,17 @@ function EditRoleModal({
                 role,
               }),
             }).then(async (res) => {
-              setEditing(false);
               if (res.status === 200) {
+                await mutate(`/api/projects/${slug}/users`);
+                setShowEditRoleModal(false);
                 toast.success(
                   `Successfully changed ${name || email}'s role to ${role}.`,
                 );
-                mutate(`/api/projects/${slug}/users`);
-                setShowEditRoleModal(false);
               } else {
                 const error = await res.text();
                 toast.error(error);
               }
+              setEditing(false);
             });
           }}
         />

@@ -309,25 +309,26 @@ function AddEditLinkModal({
                 },
                 body: JSON.stringify(data),
               }).then(async (res) => {
-                setSaving(false);
                 if (res.status === 200) {
                   // track link creation event
                   endpoint.method === "POST" &&
                     va.track("Created Link", {
                       type: slug ? "Custom Domain" : "Default Domain",
                     });
-                  mutate(
-                    `/api/links${
-                      searchParams ? `?${searchParams.toString()}` : ""
-                    }`,
-                  );
-                  mutate(
-                    (key) =>
-                      typeof key === "string" &&
-                      key.startsWith(`/api/links/_count`),
-                    undefined,
-                    { revalidate: true },
-                  );
+                  await Promise.all([
+                    mutate(
+                      `/api/links${
+                        searchParams ? `?${searchParams.toString()}` : ""
+                      }`,
+                    ),
+                    mutate(
+                      (key) =>
+                        typeof key === "string" &&
+                        key.startsWith(`/api/links/_count`),
+                      undefined,
+                      { revalidate: true },
+                    ),
+                  ]);
                   // for welcome page, redirect to links page after adding a link
                   if (pathname === "/welcome") {
                     router.push("/links");
@@ -361,6 +362,7 @@ function AddEditLinkModal({
                     toast.error(res.statusText);
                   }
                 }
+                setSaving(false);
               });
             }}
             className="grid gap-6 bg-gray-50 pt-8"

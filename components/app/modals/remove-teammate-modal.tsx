@@ -121,8 +121,16 @@ function RemoveTeammateModal({
                 headers: { "Content-Type": "application/json" },
               },
             ).then(async (res) => {
-              setRemoving(false);
               if (res.status === 200) {
+                await mutate(
+                  `/api/projects/${slug}/${invite ? "invites" : "users"}`,
+                );
+                if (session?.user?.email === email) {
+                  await mutate("/api/projects");
+                  await router.push("/");
+                } else {
+                  setShowRemoveTeammateModal(false);
+                }
                 toast.success(
                   session?.user?.email === email
                     ? "You have left the project!"
@@ -130,16 +138,11 @@ function RemoveTeammateModal({
                     ? "Successfully revoked invitation!"
                     : "Successfully removed teammate!",
                 );
-                mutate(`/api/projects/${slug}/${invite ? "invites" : "users"}`);
-                setShowRemoveTeammateModal(false);
-                if (session?.user?.email === email) {
-                  mutate("/api/projects");
-                  router.push("/");
-                }
               } else {
                 const error = await res.text();
                 toast.error(error);
               }
+              setRemoving(false);
             });
           }}
         />

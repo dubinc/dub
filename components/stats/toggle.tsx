@@ -176,13 +176,11 @@ const SharePopover = () => {
           }),
         });
         if (res.status === 200) {
-          mutate(`${endpoint}${queryString}`);
+          await mutate(`${endpoint}${queryString}`);
           !publicStats &&
             navigator.clipboard.writeText(
               `https://${domain}/stats/${encodeURIComponent(key)}`,
             );
-          // artificial delay to sync toast with the switch change
-          await new Promise((r) => setTimeout(r, 200));
         }
         setUpdating(false);
         resolve();

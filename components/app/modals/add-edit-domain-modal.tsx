@@ -115,12 +115,14 @@ function AddEditDomainModal({
     }).then(async (res) => {
       setDeleting(false);
       if (res.status === 200) {
-        mutate(`/api/projects/${slug}/domains`);
-        mutate(
-          (key) => typeof key === "string" && key.startsWith(`/api/links`),
-          undefined,
-          { revalidate: true },
-        );
+        await Promise.all([
+          mutate(`/api/projects/${slug}/domains`),
+          mutate(
+            (key) => typeof key === "string" && key.startsWith(`/api/links`),
+            undefined,
+            { revalidate: true },
+          ),
+        ]);
         setShowAddEditDomainModal(false);
         toast.success("Successfully deleted domain!");
       } else {
@@ -162,7 +164,7 @@ function AddEditDomainModal({
           }).then(async (res) => {
             setSaving(false);
             if (res.status === 200) {
-              mutate(`/api/projects/${slug}/domains`);
+              await mutate(`/api/projects/${slug}/domains`);
               setShowAddEditDomainModal(false);
               toast.success(endpoint.successMessage);
               if (!props) {

@@ -488,7 +488,7 @@ export default function LinkCard({
                   className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
                 >
                   <IconMenu
-                    text="Archive"
+                    text={archived ? "Unarchive" : "Archive"}
                     icon={<Archive className="h-4 w-4" />}
                   />
                   <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 transition-all duration-75 group-hover:bg-gray-200 sm:inline-block">

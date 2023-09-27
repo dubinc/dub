@@ -3,6 +3,7 @@ import useSWR from "swr";
 import { ProjectProps } from "#/lib/types";
 import { fetcher } from "#/lib/utils";
 import { useMemo } from "react";
+import { DEFAULT_REDIRECTS } from "../constants";
 
 export default function useProject() {
   const router = useRouter();

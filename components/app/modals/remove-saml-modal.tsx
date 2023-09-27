@@ -83,15 +83,14 @@ function RemoveSAMLModal({
               method: "DELETE",
             }).then(async (res) => {
               if (res.ok) {
-                toast.success("SAML removed successfully");
-                mutate();
-                setRemoving(false);
+                await mutate();
                 setShowRemoveSAMLModal(false);
+                toast.success("SAML removed successfully");
               } else {
                 const error = await res.text();
                 toast.error(error);
-                setRemoving(false);
               }
+              setRemoving(false);
             });
           }}
         />
