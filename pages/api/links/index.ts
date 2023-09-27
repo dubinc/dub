@@ -98,7 +98,9 @@ export default withLinksAuth(
       ]).then((results) => results.map((result) => result.value));
 
       if (response === null) {
-        return res.status(409).end("Key already exists.");
+        return res
+          .status(409)
+          .end("Duplicate key: this short link already exists.");
       }
 
       if (!project && invalidFavicon) {

@@ -3,8 +3,8 @@ import { parse } from "#/lib/middleware/utils";
 import { HOME_DOMAIN } from "../constants";
 
 export default async function ApiMiddleware(req: NextRequest) {
-  const { fullPath } = parse(req);
-  if (fullPath === "/") {
+  const { fullPath, domain } = parse(req);
+  if (fullPath === "/" && domain === "api.dub.co") {
     return NextResponse.redirect(`${HOME_DOMAIN}/help/article/dub-api`, {
       status: 301,
     });
