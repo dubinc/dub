@@ -113,7 +113,6 @@ function AddEditDomainModal({
     fetch(`/api/projects/${slug}/domains/${domain}`, {
       method: "DELETE",
     }).then(async (res) => {
-      setDeleting(false);
       if (res.status === 200) {
         await Promise.all([
           mutate(`/api/projects/${slug}/domains`),
@@ -128,6 +127,7 @@ function AddEditDomainModal({
       } else {
         setDomainError("Something went wrong. Please try again.");
       }
+      setDeleting(false);
     });
   }
 
@@ -162,7 +162,6 @@ function AddEditDomainModal({
             },
             body: JSON.stringify(data),
           }).then(async (res) => {
-            setSaving(false);
             if (res.status === 200) {
               await mutate(`/api/projects/${slug}/domains`);
               setShowAddEditDomainModal(false);
@@ -180,6 +179,7 @@ function AddEditDomainModal({
               const error = await res.text();
               toast.error(error);
             }
+            setSaving(false);
           });
         }}
         className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16"
