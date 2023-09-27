@@ -1,7 +1,11 @@
 import prisma from "#/lib/prisma";
 import { redis } from "#/lib/upstash";
 import cloudinary from "cloudinary";
-import { getApexDomain, validDomainRegex } from "#/lib/utils";
+import {
+  getApexDomain,
+  getDomainWithoutWWW,
+  validDomainRegex,
+} from "#/lib/utils";
 import { isIframeable } from "../middleware/utils";
 
 export const validateDomain = async (
@@ -67,16 +71,26 @@ interface CustomResponse extends Response {
 
 export const addDomainToVercel = async (
   domain: string,
+  {
+    redirectToApex,
+  }: {
+    redirectToApex?: boolean;
+  } = {},
 ): Promise<CustomResponse> => {
   return await fetch(
-    `https://api.vercel.com/v9/projects/${process.env.PROJECT_ID_VERCEL}/domains?teamId=${process.env.TEAM_ID_VERCEL}`,
+    `https://api.vercel.com/v10/projects/${process.env.PROJECT_ID_VERCEL}/domains?teamId=${process.env.TEAM_ID_VERCEL}`,
     {
-      body: `{\n  "name": "${domain}"\n}`,
+      method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN}`,
         "Content-Type": "application/json",
       },
-      method: "POST",
+      body: JSON.stringify({
+        name: domain,
+        ...(redirectToApex && {
+          redirect: getDomainWithoutWWW(domain),
+        }),
+      }),
     },
   ).then((res) => res.json());
 };
