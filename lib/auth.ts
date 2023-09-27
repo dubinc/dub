@@ -5,6 +5,7 @@ import { type Link as LinkProps } from "@prisma/client";
 import { PlanProps, ProjectProps, UserProps } from "#/lib/types";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { createHash } from "crypto";
+import { ratelimit } from "./upstash";
 
 export interface Session {
   user: {
@@ -253,6 +254,18 @@ const withLinksAuth =
       });
       if (!user) {
         return res.status(401).end("Unauthorized: Invalid API key.");
+      }
+      const { success, limit, reset, remaining } = await ratelimit(
+        10,
+        "1 s",
+      ).limit(apiKey);
+      res.setHeader("X-RateLimit-Limit", limit.toString());
+      res.setHeader("X-RateLimit-Remaining", remaining.toString());
+      res.setHeader("X-RateLimit-Reset", reset.toString());
+      res.setHeader("Retry-After", reset.toString());
+
+      if (!success) {
+        return res.status(429).end("Too many requests.");
       }
       session = {
         user: {

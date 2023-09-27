@@ -28,7 +28,13 @@ export const ratelimit = (
     : // if Redis is not configured, return a dummy ratelimiter
       // with the function limit() that always returns true
       {
-        limit: () => ({ success: true }),
+        limit: () => ({
+          success: true,
+          limit: 10,
+          remaining: 10,
+          reset: 0,
+          retryAfter: 0,
+        }),
       };
 };
 
