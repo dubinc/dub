@@ -1,5 +1,6 @@
 "use server";
 import { deleteUserLinks } from "#/lib/api/links";
+import { deleteProject } from "#/lib/api/project";
 import { hashToken } from "#/lib/auth";
 import { DUB_PROJECT_ID } from "#/lib/constants";
 import prisma from "#/lib/prisma";
@@ -150,6 +151,7 @@ export async function getUserByKey(data: FormData) {
             select: {
               name: true,
               slug: true,
+              plan: true,
               domains: {
                 select: {
                   slug: true,
@@ -186,6 +188,10 @@ export async function getUserByKey(data: FormData) {
   return {
     email: response?.email as string,
     hostnames: Array.from(hostnames),
+    proProjectSlugs:
+      projects
+        .filter(({ project }) => project.plan === "pro")
+        .map(({ project }) => project.slug) || [],
     verifiedDomains: verifiedDomains || [],
     impersonateUrl: await getImpersonateUrl(email),
   };
@@ -207,6 +213,21 @@ export async function banUser(data: FormData) {
     },
     select: {
       id: true,
+      projects: {
+        where: {
+          role: "owner",
+        },
+        select: {
+          project: {
+            select: {
+              id: true,
+              slug: true,
+              logo: true,
+              stripeId: true,
+            },
+          },
+        },
+      },
     },
   });
 
@@ -245,6 +266,14 @@ export async function banUser(data: FormData) {
         }),
       },
     ).then((res) => res.json()),
+    ...user.projects.map(({ project }) =>
+      deleteProject({
+        id: project.id,
+        slug: project.slug,
+        stripeId: project.stripeId || undefined,
+        logo: project.logo || undefined,
+      }),
+    ),
   ]);
 
   const response = await prisma.user.delete({

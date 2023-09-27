@@ -14,11 +14,14 @@ export default function BanUser() {
   const [data, setData] = useState<{
     email: string;
     hostnames: string[];
+    proProjectSlugs: string[];
     verifiedDomains: string[];
     impersonateUrl: string;
   } | null>(null);
   const [copied, setCopied] = useState(false);
   const router = useRouter();
+
+  console.log(data?.proProjectSlugs);
 
   return (
     <div className="flex flex-col space-y-5">
@@ -38,12 +41,24 @@ export default function BanUser() {
       </form>
       {data && (
         <form
-          action={(data) =>
-            banUser(data).then(() => {
+          action={(formData) => {
+            if (
+              data.proProjectSlugs.length > 0 ||
+              data.verifiedDomains.length > 0
+            ) {
+              if (
+                !confirm(
+                  `This user has ${data.proProjectSlugs.length} pro projects and ${data.verifiedDomains.length} verified domains. Are you sure you want to ban them?`,
+                )
+              ) {
+                return;
+              }
+            }
+            banUser(formData).then(() => {
               toast.success("Successfully banned user");
               router.refresh();
-            })
-          }
+            });
+          }}
           className="flex w-full flex-col space-y-4 rounded-md border-t border-gray-200 py-4"
         >
           <div className="flex w-full items-center space-x-3">
@@ -74,6 +89,19 @@ export default function BanUser() {
               )}
             </button>
           </div>
+          {data.proProjectSlugs.length > 0 && (
+            <div className="flex flex-col space-y-2">
+              <p className="text-sm font-semibold">Pro Projects</p>
+              {data.proProjectSlugs.map((slug) => (
+                <div
+                  key={slug}
+                  className="rounded-md border border-gray-300 p-2 text-sm text-gray-500"
+                >
+                  {slug}
+                </div>
+              ))}
+            </div>
+          )}
           {data.verifiedDomains.length > 0 && (
             <div className="flex flex-col space-y-2">
               <p className="text-sm font-semibold">Verified Domains</p>
@@ -99,7 +127,7 @@ export default function BanUser() {
               <label htmlFor={hostname}>{hostname}</label>
             </div>
           ))}
-          <BanButton disabled={data.verifiedDomains.length > 0} />
+          <BanButton />
         </form>
       )}
     </div>
@@ -146,14 +174,7 @@ const Form = () => {
   );
 };
 
-const BanButton = ({ disabled }: { disabled?: boolean }) => {
+const BanButton = () => {
   const { pending } = useFormStatus();
-  return (
-    <Button
-      text="Confirm Ban"
-      loading={pending}
-      disabled={disabled}
-      variant="danger"
-    />
-  );
+  return <Button text="Confirm Ban" loading={pending} variant="danger" />;
 };

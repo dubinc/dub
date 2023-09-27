@@ -3,6 +3,7 @@ import { deleteDomainAndLinks } from "#/lib/api/domains";
 import prisma from "#/lib/prisma";
 import { cancelSubscription } from "#/lib/stripe";
 import cloudinary from "cloudinary";
+import { deleteProject } from "#/lib/api/project";
 
 export default withProjectAuth(
   async (req, res, project, session) => {
@@ -31,47 +32,9 @@ export default withProjectAuth(
       }
       // DELETE /api/projects/[slug] – delete a project
     } else if (req.method === "DELETE") {
-      const domains = (
-        await prisma.domain.findMany({
-          where: {
-            projectId: project.id,
-          },
-          select: {
-            slug: true,
-          },
-        })
-      ).map((domain) => domain.slug);
+      const response = await deleteProject(project);
 
-      // delete all domains, links, and uploaded images associated with the project
-      const deleteDomainsResponse = await Promise.allSettled(
-        domains.map((domain) =>
-          deleteDomainAndLinks(domain, {
-            // here, we don't need to delete in prisma because we're deleting the project later and have onDelete: CASCADE set
-            skipPrismaDelete: true,
-          }),
-        ),
-      );
-
-      const deleteProjectResponse = await Promise.all([
-        // delete project logo from Cloudinary
-        project.logo &&
-          cloudinary.v2.uploader.destroy(`logos/${project.id}`, {
-            invalidate: true,
-          }),
-        // if they have a Stripe subscription, cancel it
-        project.stripeId && cancelSubscription(project.stripeId),
-        // delete the project
-        prisma.project.delete({
-          where: {
-            slug: project.slug,
-          },
-        }),
-      ]);
-
-      return res.status(200).json({
-        deleteProjectResponse,
-        deleteDomainsResponse,
-      });
+      return res.status(200).json(response);
     } else {
       res.setHeader("Allow", ["GET", "PUT", "DELETE"]);
       return res.status(405).end(`Method ${req.method} Not Allowed`);
