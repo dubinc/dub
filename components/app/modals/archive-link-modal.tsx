@@ -80,16 +80,17 @@ function ArchiveLinkModal({
                 },
               },
             ).then(async (res) => {
-              setArchiving(false);
               if (res.status === 200) {
-                mutate(`/api/links${getQueryString(router)}`);
-                mutate(
-                  (key) =>
-                    typeof key === "string" &&
-                    key.startsWith(`/api/links/_count`),
-                  undefined,
-                  { revalidate: true },
-                );
+                await Promise.all([
+                  mutate(`/api/links${getQueryString(router)}`),
+                  mutate(
+                    (key) =>
+                      typeof key === "string" &&
+                      key.startsWith(`/api/links/_count`),
+                    undefined,
+                    { revalidate: true },
+                  ),
+                ]);
                 setShowArchiveLinkModal(false);
                 toast.success(
                   `Successfully ${archived ? "archived" : "unarchived"} link!`,
@@ -97,8 +98,10 @@ function ArchiveLinkModal({
               } else {
                 toast.error(res.statusText);
               }
+              setArchiving(false);
             });
           }}
+          autoFocus
           loading={archiving}
           text={`Confirm ${archived ? "archive" : "unarchive"}`}
         />

@@ -60,18 +60,18 @@ function InviteTeammateModal({
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email }),
           }).then(async (res) => {
-            setInviting(false);
             if (res.status === 200) {
+              await mutate(`/api/projects/${slug}/invites`);
               toast.success("Invitation sent!");
               va.track("User invited teammate", {
                 project: slug,
               });
-              mutate(`/api/projects/${slug}/invites`);
               setShowInviteTeammateModal(false);
             } else {
               const error = await res.text();
               toast.error(error);
             }
+            setInviting(false);
           });
         }}
         className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 text-left sm:px-16"

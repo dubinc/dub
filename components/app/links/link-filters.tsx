@@ -395,11 +395,11 @@ const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
-    }).then((res) => {
+    }).then(async (res) => {
       setProcessing(false);
       if (res.ok) {
+        await mutate(`/api/projects/${slug}/tags`);
         toast.success("Tag updated");
-        mutate(`/api/projects/${slug}/tags`);
       } else {
         toast.error("Something went wrong");
       }
@@ -410,14 +410,14 @@ const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
     setProcessing(true);
     fetch(`/api/projects/${slug}/tags/${tag.id}`, {
       method: "DELETE",
-    }).then((res) => {
-      setProcessing(false);
+    }).then(async (res) => {
       if (res.ok) {
+        await mutate(`/api/projects/${slug}/tags`);
         toast.success("Tag deleted");
-        mutate(`/api/projects/${slug}/tags`);
       } else {
         toast.error("Something went wrong");
       }
+      setProcessing(false);
     });
   };
 

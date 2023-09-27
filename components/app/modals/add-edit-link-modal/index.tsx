@@ -333,40 +333,37 @@ function AddEditLinkModal({
                 },
                 body: JSON.stringify(rest),
               }).then(async (res) => {
-                setSaving(false);
                 if (res.status === 200) {
                   // track link creation event
                   endpoint.method === "POST" &&
                     va.track("Created Link", {
                       type: slug ? "Custom Domain" : "Default Domain",
                     });
-                  mutate(`/api/links${getQueryString(router)}`);
-                  mutate(
-                    (key) =>
-                      typeof key === "string" &&
-                      key.startsWith(`/api/links/_count`),
-                    undefined,
-                    { revalidate: true },
-                  );
+                  await Promise.all([
+                    mutate(`/api/links${getQueryString(router)}`),
+                    mutate(
+                      (key) =>
+                        typeof key === "string" &&
+                        key.startsWith(`/api/links/_count`),
+                      undefined,
+                      { revalidate: true },
+                    ),
+                  ]);
                   // for welcome page, redirect to links page after adding a link
                   if (router.pathname === "/app/welcome") {
-                    router.push("/links").then(() => {
-                      setShowAddEditLinkModal(false);
-                    });
+                    await router.push("/links");
+                    setShowAddEditLinkModal(false);
                   }
                   // copy shortlink to clipboard when adding a new link
                   if (!props) {
-                    navigator.clipboard
-                      .writeText(
-                        linkConstructor({
-                          // remove leading and trailing slashes
-                          key: data.key.replace(/^\/+|\/+$/g, ""),
-                          domain,
-                        }),
-                      )
-                      .then(() => {
-                        toast.success("Copied shortlink to clipboard!");
-                      });
+                    await navigator.clipboard.writeText(
+                      linkConstructor({
+                        // remove leading and trailing slashes
+                        key: data.key.replace(/^\/+|\/+$/g, ""),
+                        domain,
+                      }),
+                    );
+                    toast.success("Copied shortlink to clipboard!");
                   } else {
                     toast.success("Successfully updated shortlink!");
                   }
@@ -384,6 +381,7 @@ function AddEditLinkModal({
                     toast.error(res.statusText);
                   }
                 }
+                setSaving(false);
               });
             }}
             className="grid gap-6 bg-gray-50 pt-8"

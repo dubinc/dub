@@ -88,15 +88,14 @@ function RemoveSCIMModal({
               method: "DELETE",
             }).then(async (res) => {
               if (res.ok) {
-                toast.success("SCIM directory removed successfully");
-                mutate();
-                setRemoving(false);
+                await mutate();
                 setShowRemoveSCIMModal(false);
+                toast.success("SCIM directory removed successfully");
               } else {
                 const error = await res.text();
                 toast.error(error);
-                setRemoving(false);
               }
+              setRemoving(false);
             });
           }}
         />

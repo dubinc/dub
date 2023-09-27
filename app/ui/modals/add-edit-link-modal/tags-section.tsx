@@ -49,7 +49,7 @@ export default function TagsSection({
       body: JSON.stringify({ tag }),
     }).then(async (res) => {
       if (res.ok) {
-        mutate(`/api/projects/${slug}/tags`);
+        await mutate(`/api/projects/${slug}/tags`);
         const newTag = await res.json();
         setData({ ...data, tagId: newTag.id });
         toast.success(`Successfully created tag!`);

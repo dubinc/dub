@@ -45,9 +45,9 @@ To develop Dub locally, you will need to clone this repository and set up all th
 Once that's done, you can use the following commands to run the app locally:
 
 ```
-bun i
-bun run build
-bun dev
+yarn
+yarn build
+yarn dev
 ```
 
 We're planning to add a proper, well-documented self-hosting guide for Dub soon – stay tuned!
