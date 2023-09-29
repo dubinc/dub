@@ -87,6 +87,15 @@ If you're adding a subdomain (e.g. `go.example.com`), you'll need to add a `CNAM
 - **Value**: `cname.dub.co`
 - **TTL**: `86400` (or the highest value possible)
 
+Note that we do not support using `www.` as a subdomain, since the `www.` subdomain will always redirect to the apex domain instead.
+
+We recommend using the following variations for your subdomains:
+
+- `go.example.com`
+- `try.example.com`
+- `links.example.com`
+- `l.example.com`
+
 <Note variant="warning">
   If you're using Cloudflare as your DNS provider, you might need to configure
   some extra steps for it to work properly. Please refer to our guide on [using
