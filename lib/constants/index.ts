@@ -86,6 +86,13 @@ export const API_HOSTNAMES = new Set([
   "api.localhost:8888",
 ]);
 
+export const API_DOMAIN =
+  process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
+    ? "https://api.dub.co"
+    : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
+    ? "https://api.dub.sh"
+    : "http://api.localhost:8888";
+
 export const ADMIN_HOSTNAMES = new Set([
   "admin.dub.co",
   "admin.localhost:8888",

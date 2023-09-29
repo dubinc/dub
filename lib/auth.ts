@@ -6,6 +6,7 @@ import { PlanProps, ProjectProps, UserProps } from "#/lib/types";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { createHash } from "crypto";
 import { ratelimit } from "./upstash";
+import { API_DOMAIN } from "./constants";
 
 export interface Session {
   user: {
@@ -233,11 +234,41 @@ const withLinksAuth =
     } = {},
   ) =>
   async (req: NextApiRequest, res: NextApiResponse) => {
+    const { slug, domain } = req.query as {
+      slug?: string;
+      domain?: string;
+    };
+
+    // if slug is misconfgured
+    if (slug && typeof slug !== "string") {
+      return res.status(400).end("Missing or misconfigured project slug.");
+    }
+
     let session: Session | undefined;
 
     const apiKey = req.headers.authorization?.split("Bearer ")[1];
     if (apiKey) {
+      // if there is no slug, it's the default dub.sh link
+      if (!slug) {
+        return res
+          .status(403)
+          .end("Unauthorized: API is not supported for dub.sh links yet.");
+      }
+
+      if (req.method === "PUT") {
+        return res
+          .status(403)
+          .end("Unauthorized: API is not supported for editing links yet.");
+      }
+
+      const url = new URL(req.url || "", API_DOMAIN);
+
+      if (url.pathname.includes("/stats/")) {
+        return res.status(403).end("Unauthorized: Invalid route.");
+      }
+
       const hashedKey = hashToken(apiKey);
+
       const user = await prisma.user.findFirst({
         where: {
           tokens: {
@@ -255,6 +286,7 @@ const withLinksAuth =
       if (!user) {
         return res.status(401).end("Unauthorized: Invalid API key.");
       }
+
       const { success, limit, reset, remaining } = await ratelimit(
         10,
         "1 s",
@@ -279,16 +311,6 @@ const withLinksAuth =
       if (!session?.user.id) {
         return res.status(401).end("Unauthorized: Login required.");
       }
-    }
-
-    const { slug, domain } = req.query as {
-      slug?: string;
-      domain?: string;
-    };
-
-    // if slug is misconfgured
-    if (slug && typeof slug !== "string") {
-      return res.status(400).end("Missing or misconfigured project slug.");
     }
 
     let project: ProjectProps | undefined;
@@ -365,9 +387,9 @@ const withLinksAuth =
       }
     }
 
-    // if key is defined, check if the  current user is the owner of the link (only for dub.sh links)
+    // if key is defined, fetch link details
     const { key } = req.query;
-    if (key && !domain && !skipKeyCheck) {
+    if (key) {
       if (typeof key !== "string") {
         return res.status(400).end("Missing or misconfigured link key.");
       }
@@ -380,11 +402,12 @@ const withLinksAuth =
             },
           },
         })) || undefined;
+
       if (!link) {
         return res.status(404).end("Link not found.");
 
         // for dub.sh links, check if the user is the owner of the link
-      } else if (!slug && link.userId !== session.user.id) {
+      } else if (!slug && link.userId !== session.user.id && !skipKeyCheck) {
         return res.status(404).end("Link not found.");
       }
     }
