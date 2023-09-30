@@ -11,9 +11,9 @@ import { useState } from "react";
 import { ChevronDown, Menu, X } from "lucide-react";
 
 export default function MobileNav() {
-  const { domain = "dub.co" } = useParams() as { domain: string };
+  const { domain = "7qr.codes" } = useParams() as { domain: string };
   const { data: session, status } = useSession() || {
-    status: "unauthenticated", // if `useSession` is undefined, we're on a non dub.co domain
+    status: "unauthenticated", // if `useSession` is undefined, we're on a non 7qr.codes domain
   };
   const [open, setOpen] = useState(false);
   const [openFeatures, setOpenFeatures] = useState(false);
@@ -59,9 +59,9 @@ export default function MobileNav() {
                   <Link
                     key={feature?.slug}
                     href={
-                      domain === "dub.co"
+                      domain === "7qr.codes"
                         ? `/features/${feature?.slug}`
-                        : `https://dub.co/features/${feature?.slug}?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`
+                        : `https://7qr.codes/features/${feature?.slug}?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`
                     }
                     onClick={() => setOpen(false)}
                     className="flex w-full space-x-2"
@@ -77,9 +77,9 @@ export default function MobileNav() {
             <li key={slug} className="py-3">
               <Link
                 href={
-                  domain === "dub.co"
+                  domain === "7qr.codes"
                     ? `/${slug}`
-                    : `https://dub.co/${slug}?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`
+                    : `https://7qr.codes/${slug}?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`
                 }
                 onClick={() => setOpen(false)}
                 className="flex w-full font-semibold capitalize"

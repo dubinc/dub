@@ -8,7 +8,7 @@ export const parse = (req: NextRequest) => {
     domain = "dub.sh";
   }
 
-  // path is the path of the URL (e.g. dub.co/stats/github -> /stats/github)
+  // path is the path of the URL (e.g. 7qr.codes/stats/github -> /stats/github)
   let path = req.nextUrl.pathname;
 
   // special case for dub.sh/___dub_check/ (for checking if dub.sh links are working)
@@ -24,7 +24,7 @@ export const parse = (req: NextRequest) => {
   }`;
 
   // Here, we are using decodeURIComponent to handle foreign languages like Hebrew
-  const key = decodeURIComponent(path.split("/")[1]); // key is the first part of the path (e.g. dub.co/stats/github -> stats)
+  const key = decodeURIComponent(path.split("/")[1]); // key is the first part of the path (e.g. 7qr.codes/stats/github -> stats)
   const fullKey = decodeURIComponent(path.slice(1)); // fullKey is the full path without the first slash (to account for multi-level subpaths, e.g. dub.sh/github/repo -> github/repo)
 
   return { domain, path, fullPath, key, fullKey };

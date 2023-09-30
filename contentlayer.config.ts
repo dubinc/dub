@@ -273,7 +273,7 @@ const computedFields = (
       dateModified: doc?.publishedAt,
       description: doc?.summary,
       image: doc.image,
-      url: `https://dub.co/${doc._raw.flattenedPath}`,
+      url: `https://7qr.codesdes/${doc._raw.flattenedPath}`,
       author: {
         "@type": "Person",
         name: doc.author,

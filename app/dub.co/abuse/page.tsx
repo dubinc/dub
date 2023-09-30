@@ -6,7 +6,7 @@ import { allLegalPosts } from "contentlayer/generated";
 
 export const metadata: Metadata = constructMetadata({
   title: "Report Abuse – Dub",
-  image: "/api/og/help?title=Report+Abuse&summary=dub.co/abuse",
+  image: "/api/og/help?title=Report+Abuse&summary=7qr.codes/abuse",
 });
 
 export default function Abuse() {

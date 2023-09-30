@@ -20,7 +20,7 @@ This guide will show you how to add a custom domain to Dub.
 
 Before you begin, you'll need the following:
 
-- A Dub account. If you don't have one, you can [create one for free](https://app.dub.co/register).
+- A Dub account. If you don't have one, you can [create one for free](https://app.7qr.codes/register).
 - A domain name. If you don't have one, you can purchase one from any one of the following domain registrars:
   - [Namecheap](https://www.namecheap.com/)
   - [GoDaddy](https://www.godaddy.com/)
@@ -31,11 +31,11 @@ Before you begin, you'll need the following:
 
 ## Step 1: Add a custom domain
 
-First, [log in](https://app.dub.co/login) to your Dub account.
+First, [log in](https://app.7qr.codes/login) to your Dub account.
 
 ### Don't have a project yet?
 
-1. Navigate to the [Dub Dashboard](https://app.dub.co/) and click on the **Create project** button.
+1. Navigate to the [Dub Dashboard](https://app.7qr.codes/) and click on the **Create project** button.
 2. Enter the domain you want to use under the "Shortlink domain" input and click **Create project**.
 
 <Image
@@ -84,7 +84,7 @@ If you're adding an apex domain (e.g. `example.com`), you'll need to add an `A` 
 If you're adding a subdomain (e.g. `go.example.com`), you'll need to add a `CNAME` record with the following values:
 
 - **Name**: `go` (or whatever subdomain you want to use)
-- **Value**: `cname.dub.co`
+- **Value**: `cname.7qr.codes`
 - **TTL**: `86400` (or the highest value possible)
 
 Note that we do not support using `www.` as a subdomain, since the `www.` subdomain will always redirect to the apex domain instead.
@@ -131,4 +131,4 @@ To do that, you'll need to add a TXT record with the following values:
 
 ## How long do I have to wait for my domain to work?
 
-Domain configuration can take anywhere between 1 to 24 hours to complete. If your domain still doesn't work after 24 hours, please [send us an email](mailto:support@dub.co?subject=Domain%20not%20working) and we'll be happy to help you out.
+Domain configuration can take anywhere between 1 to 24 hours to complete. If your domain still doesn't work after 24 hours, please [send us an email](mailto:support@7qr.codes?subject=Domain%20not%20working) and we'll be happy to help you out.

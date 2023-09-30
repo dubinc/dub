@@ -42,7 +42,7 @@ export const PAGINATION_LIMIT = 100;
 */
 
 export const HOME_HOSTNAMES = new Set([
-  "dub.co",
+  "7qr.codes",
   "home.localhost:8888",
   "localhost",
 ]);
@@ -53,54 +53,54 @@ export const isHomeHostname = (domain: string) => {
 
 export const HOME_DOMAIN =
   process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-    ? "https://dub.co"
+    ? "https://7qr.codes"
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
     ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
     : "http://home.localhost:8888";
 
 export const APP_HOSTNAMES = new Set([
-  "app.dub.co",
-  "preview.dub.co",
+  "app.7qr.codes",
+  "preview.7qr.codes",
   "localhost:8888",
   "localhost",
 ]);
 
 export const APP_DOMAIN =
   process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-    ? "https://app.dub.co"
+    ? "https://app.7qr.codes"
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
-    ? // ? "https://preview.dub.co"
-      "https://app.dub.co"
+    ? // ? "https://preview.7qr.codes"
+      "https://app.7qr.codes"
     : "http://localhost:8888";
 
 export const APP_DOMAIN_WITH_NGROK =
   process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-    ? "https://app.dub.co"
+    ? "https://app.7qr.codes"
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
-    ? "https://preview.dub.co"
+    ? "https://preview.7qr.codes"
     : process.env.NGROK_URL;
 
-export const API_HOSTNAMES = new Set(["api.dub.co", "api.localhost:8888"]);
+export const API_HOSTNAMES = new Set(["api.7qr.codes", "api.localhost:8888"]);
 
 export const ADMIN_HOSTNAMES = new Set([
-  "admin.dub.co",
+  "admin.7qr.codes",
   "admin.localhost:8888",
 ]);
 
 export const DEFAULT_REDIRECTS = {
-  home: "https://dub.co",
-  dub: "https://dub.co",
-  signin: "https://app.dub.co/login",
-  login: "https://app.dub.co/login",
-  register: "https://app.dub.co/register",
-  signup: "https://app.dub.co/register",
-  app: "https://app.dub.co",
-  dashboard: "https://app.dub.co",
-  links: "https://app.dub.co/links",
-  settings: "https://app.dub.co/settings",
-  welcome: "https://app.dub.co/welcome",
+  home: "https://7qr.codes",
+  dub: "https://7qr.codes",
+  signin: "https://app.7qr.codes/login",
+  login: "https://app.7qr.codes/login",
+  register: "https://app.7qr.codes/register",
+  signup: "https://app.7qr.codes/register",
+  app: "https://app.7qr.codes",
+  dashboard: "https://app.7qr.codes",
+  links: "https://app.7qr.codes/links",
+  settings: "https://app.7qr.codes/settings",
+  welcome: "https://app.7qr.codes/welcome",
   discord: "https://twitter.com/dubdotco", // placeholder for now
-  tags: "https://dub.co/help/how-to-use-tags",
+  tags: "https://7qr.codes/help/how-to-use-tags",
 };
 
 export const DUB_HEADERS = {

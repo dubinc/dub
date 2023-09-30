@@ -18,7 +18,7 @@ export default withProjectAuth(
         issuer: samlAudience,
         acs:
           process.env.NODE_ENV === "production"
-            ? "https://api.dub.co/auth/saml/callback"
+            ? "https://api.7qr.codes/auth/saml/callback"
             : `${APP_DOMAIN_WITH_NGROK}/api/auth/saml/callback`,
       };
 

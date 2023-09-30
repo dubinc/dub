@@ -5,7 +5,7 @@ import { allLegalPosts } from "contentlayer/generated";
 
 export const metadata: Metadata = constructMetadata({
   title: "Privacy Policy – Dub",
-  image: "/api/og/help?title=Privacy+Policy&summary=dub.co/privacy",
+  image: "/api/og/help?title=Privacy+Policy&summary=7qr.codes/privacy",
 });
 
 export default function Privacy() {

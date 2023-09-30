@@ -18,7 +18,7 @@ import {
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const headersList = headers();
   let domain = headersList.get("host") as string;
-  if (isHomeHostname(domain)) domain = "dub.co";
+  if (isHomeHostname(domain)) domain = "7qr.codes";
 
   const links = await prisma.link.findMany({
     where: {
@@ -40,7 +40,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `https://${domain}`,
       lastModified: new Date(),
     },
-    ...(domain === "dub.co"
+    ...(domain === "7qr.codes"
       ? [
           {
             url: `https://${domain}/pricing`,

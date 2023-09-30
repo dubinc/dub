@@ -40,7 +40,7 @@ export default async function handler() {
         }}
       >
         <img
-          src="https://dub.co/_static/logotype.png"
+          src="https://7qr.codes/_static/logotype.png"
           style={{
             height: "40px",
             position: "absolute",

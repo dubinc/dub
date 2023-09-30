@@ -25,7 +25,7 @@ export default function useDomains({ domain }: { domain?: string } = {}) {
             slug: "dub.sh",
             verified: true,
             primary: true,
-            target: "https://dub.co",
+            target: "https://7qr.codes",
             type: "redirect",
           },
         ] as DomainProps[]);

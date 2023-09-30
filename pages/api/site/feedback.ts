@@ -24,8 +24,8 @@ export default async function handler(
     }
 
     const response = await resend.emails.send({
-      from: "feedback@dub.co",
-      to: ["steven@dub.co"],
+      from: "feedback@7qr.codes",
+      to: ["steven@7qr.codes"],
       ...(email && { reply_to: email }),
       subject: "🎉 New Feedback Received!",
       react: FeedbackEmail({

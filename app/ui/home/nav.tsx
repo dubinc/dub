@@ -33,16 +33,16 @@ export const navItems = [
 ];
 
 export default function Nav() {
-  const { domain = "dub.co" } = useParams() as { domain: string };
+  const { domain = "7qr.codes" } = useParams() as { domain: string };
   const scrolled = useScroll(80);
   const selectedLayout = useSelectedLayoutSegment();
   const helpCenter = selectedLayout === "help";
   const { data: session, status } =
-    domain === "dub.co"
+    domain === "7qr.codes"
       ? useSession()
       : {
           data: null,
-          status: "unauthenticated", // if `useSession` is undefined, we're on a non dub.co domain
+          status: "unauthenticated", // if `useSession` is undefined, we're on a non 7qr.codes domain
         };
 
   return (
@@ -61,8 +61,8 @@ export default function Nav() {
         <div className="flex h-14 items-center justify-between">
           <div className="flex items-center space-x-4">
             <Link
-              href={domain === "dub.co" ? "/" : `https://dub.co`}
-              {...(domain !== "dub.co" && {
+              href={domain === "7qr.codes" ? "/" : `https://7qr.codes`}
+              {...(domain !== "7qr.codes" && {
                 onClick: () => {
                   va.track("Referred from custom domain", {
                     domain,
@@ -110,11 +110,11 @@ export default function Nav() {
                           <Link
                             key={feature?.slug}
                             href={
-                              domain === "dub.co"
+                              domain === "7qr.codes"
                                 ? `/features/${feature?.slug}`
-                                : `https://dub.co/features/${feature?.slug}`
+                                : `https://7qr.codes/features/${feature?.slug}`
                             }
-                            {...(domain !== "dub.co" && {
+                            {...(domain !== "7qr.codes" && {
                               onClick: () => {
                                 va.track("Referred from custom domain", {
                                   domain,
@@ -145,11 +145,11 @@ export default function Nav() {
                         id={`nav-${slug}`}
                         key={slug}
                         href={
-                          domain === "dub.co"
+                          domain === "7qr.codes"
                             ? `/${slug}`
-                            : `https://dub.co/${slug}`
+                            : `https://7qr.codes/${slug}`
                         }
-                        {...(domain !== "dub.co" && {
+                        {...(domain !== "7qr.codes" && {
                           onClick: () => {
                             va.track("Referred from custom domain", {
                               domain,
@@ -187,7 +187,7 @@ export default function Nav() {
               <>
                 <Link
                   href={`${APP_DOMAIN}/login`}
-                  {...(domain !== "dub.co" && {
+                  {...(domain !== "7qr.codes" && {
                     onClick: () => {
                       va.track("Referred from custom domain", {
                         domain,
@@ -201,7 +201,7 @@ export default function Nav() {
                 </Link>
                 <Link
                   href={`${APP_DOMAIN}/register`}
-                  {...(domain !== "dub.co" && {
+                  {...(domain !== "7qr.codes" && {
                     onClick: () => {
                       va.track("Referred from custom domain", {
                         domain,

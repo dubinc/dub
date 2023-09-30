@@ -35,11 +35,11 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
 
   if (isHomeHostname(domain)) {
     return NextResponse.rewrite(
-      new URL(`/dub.co${path === "/" ? "" : path}`, req.url),
+      new URL(`/7qr.codes${path === "/" ? "" : path}`, req.url),
     );
   }
 
-  // for public stats pages (e.g. dub.co/stats/github, vercel.fyi/stats/roomGPT)
+  // for public stats pages (e.g. 7qr.codes/stats/github, vercel.fyi/stats/roomGPT)
   if (key === "stats") {
     return NextResponse.rewrite(new URL(`/${domain}${path}`, req.url));
   }
@@ -59,7 +59,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
     return AdminMiddleware(req);
   }
 
-  // for root pages (e.g. dub.co, vercel.fyi, etc.)
+  // for root pages (e.g. 7qr.codes, vercel.fyi, etc.)
   if (key.length === 0) {
     return RootMiddleware(req, ev);
   }

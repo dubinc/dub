@@ -65,7 +65,7 @@ export default function PlaceholderContent() {
             <InlineSnippet>{domain}</InlineSnippet> is a custom domain on{" "}
             <a
               className="bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text font-semibold text-transparent decoration-rose-600 hover:underline"
-              href="https://dub.co"
+              href="https://7qr.codes"
               onClick={() =>
                 va.track("Referred from custom domain", {
                   domain,
@@ -80,7 +80,7 @@ export default function PlaceholderContent() {
           </motion.p>
           <motion.a
             variants={STAGGER_CHILD_VARIANTS}
-            href="https://dub.co"
+            href="https://7qr.codes"
             onClick={() =>
               va.track("Referred from custom domain", {
                 domain,

@@ -26,7 +26,7 @@ export default function LinkInspector() {
           className="relative overflow-hidden rounded-md border border-gray-300 bg-gray-50"
         >
           <div className="grid gap-1 bg-white p-3 text-left">
-            <p className="text-sm text-[#536471]">dub.co</p>
+            <p className="text-sm text-[#536471]">7qr.codes</p>
             <h3 className="truncate text-sm font-medium text-[#0f1419]">
               Link Inspector
             </h3>

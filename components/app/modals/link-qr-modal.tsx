@@ -372,7 +372,7 @@ function QrDropdown({ download, qrData, showLogo, logo }) {
                     ...(showLogo && {
                       imageSettings: {
                         ...qrData.imageSettings,
-                        src: logo || "https://dub.co/_static/logo.svg",
+                        src: logo || "https://7qr.codes/_static/logo.svg",
                       },
                     }),
                   }),

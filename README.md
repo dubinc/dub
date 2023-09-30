@@ -1,4 +1,4 @@
-<a href="https://dub.co">
+<a href="https://7qr.codes">
   <img alt="Dub – an open-source link management tool for modern marketing teams to create, share, and track short links." src="https://github.com/steven-tey/dub/assets/28986134/8f70a87f-4f13-426a-9785-a47f77433edd">
   <h1 align="center">Dub</h1>
 </a>
@@ -32,11 +32,11 @@ Dub is an open-source link management tool for modern marketing teams to create,
 
 ## Features
 
-- [Advanced Analytics](https://dub.co/features/analytics)
-- [Branded Links](https://dub.co/features/branded-links)
-- [QR Codes](https://dub.co/features/qr-codes)
-- [Personalization](https://dub.co/features/personalization)
-- [Team Collabration](https://dub.co/features/collaboration)
+- [Advanced Analytics](https://7qr.codes/features/analytics)
+- [Branded Links](https://7qr.codes/features/branded-links)
+- [QR Codes](https://7qr.codes/features/qr-codes)
+- [Personalization](https://7qr.codes/features/personalization)
+- [Team Collabration](https://7qr.codes/features/collaboration)
 
 ## Local Development
 
@@ -84,4 +84,4 @@ We love our contributors! Here's how you can contribute:
 
 Inspired by [Plausible](https://plausible.io/), Dub is open-source under the GNU Affero General Public License Version 3 (AGPLv3) or any later version. You can [find it here](https://github.com/steven-tey/dub/blob/main/LICENSE.md).
 
-It is also worth noting that the AGPLv3 license applies only to the Dub app only (everything under `app.dub.co`) – everything else (e.g. `dub.co` marketing pages) are available as a reference only. Simply copying and redistributing the designs for commercial use (without significant changes) is considered a violation of our license.
+It is also worth noting that the AGPLv3 license applies only to the Dub app only (everything under `app.7qr.codes`) – everything else (e.g. `7qr.codes` marketing pages) are available as a reference only. Simply copying and redistributing the designs for commercial use (without significant changes) is considered a violation of our license.

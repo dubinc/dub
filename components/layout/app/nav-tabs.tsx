@@ -15,12 +15,12 @@ const TabsHelper = (router: NextRouter): { name: string; href: string }[] => {
     key?: string;
   };
   if (key) {
-    // link stats page (e.g. app.dub.co/steven/stey.me/devrel, app.dub.co/links/github)
+    // link stats page (e.g. app.7qr.codes/steven/stey.me/devrel, app.7qr.codes/links/github)
     return [{ name: "← All Links", href: `/${slug || "links"}` }];
   } else if (domain) {
-    // root domain stats page (e.g. app.dub.co/steven/stey.me)
+    // root domain stats page (e.g. app.7qr.codes/steven/stey.me)
     return [{ name: "← All Domains", href: `/${slug}/domains` }];
-    // project pages (e.g. app.dub.co/steven, app.dub.co/steven/settings)
+    // project pages (e.g. app.7qr.codes/steven, app.7qr.codes/steven/settings)
   } else if (slug) {
     return [
       { name: "Links", href: `/${slug}` },
@@ -28,7 +28,7 @@ const TabsHelper = (router: NextRouter): { name: string; href: string }[] => {
       { name: "Settings", href: `/${slug}/settings` },
     ];
   }
-  // home page (e.g. app.dub.co, app.dub.co/settings)
+  // home page (e.g. app.7qr.codes, app.7qr.codes/settings)
   return [
     { name: "Projects", href: `/` },
     { name: "Dub.sh Links", href: `/links` },

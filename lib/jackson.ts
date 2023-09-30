@@ -7,12 +7,12 @@ import type {
   IDirectorySyncController,
 } from "@boxyhq/saml-jackson";
 
-export const samlAudience = "https://saml.dub.co";
+export const samlAudience = "https://saml.7qr.codes";
 
 const opts: JacksonOption = {
   externalUrl:
     process.env.NODE_ENV === "production"
-      ? "https://api.dub.co"
+      ? "https://api.7qr.codes"
       : `${process.env.NEXTAUTH_URL}`,
   samlPath:
     process.env.NODE_ENV === "production"

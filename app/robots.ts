@@ -5,7 +5,7 @@ import { isHomeHostname } from "#/lib/constants";
 export default function robots(): MetadataRoute.Robots {
   const headersList = headers();
   let domain = headersList.get("host") as string;
-  if (isHomeHostname(domain)) domain = "dub.co";
+  if (isHomeHostname(domain)) domain = "7qr.codes";
 
   return {
     rules: {
