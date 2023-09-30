@@ -5,7 +5,7 @@ import { conn } from "./planetscale";
 
 /**
  * Recording clicks with geo, ua, referer and timestamp data
- * If key is not specified, record click as the root click ("_root", e.g. dub.sh, vercel.fyi)
+ * If key is not specified, record click as the root click ("_root", e.g. 7qr.sh, vercel.fyi)
  **/
 export async function recordClick(
   domain: string,

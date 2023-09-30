@@ -49,7 +49,7 @@ export default function Stats({ staticDomain }: { staticDomain?: string }) {
       : "";
 
   const { basePath, domain, endpoint } = useMemo(() => {
-    // Project link page, e.g. app.7qr.codes/dub/dub.sh/github
+    // Project link page, e.g. app.7qr.codes/dub/7qr.sh/github
     if (slug && domainSlug && key) {
       return {
         // for _root domain stats page (e.g. app.7qr.codes/steven/stey.me), we don't want to show the key in the URL
@@ -64,7 +64,7 @@ export default function Stats({ staticDomain }: { staticDomain?: string }) {
     } else if (key && router.asPath.startsWith("/links")) {
       return {
         basePath: `/links/${encodeURIComponent(key)}`,
-        domain: "dub.sh",
+        domain: "7qr.sh",
         endpoint: `/api/links/${encodeURIComponent(key)}/stats`,
       };
     }
@@ -81,9 +81,9 @@ export default function Stats({ staticDomain }: { staticDomain?: string }) {
     <StatsContext.Provider
       value={{
         basePath, // basePath for the page (e.g. /stats/[key], /links/[key], /[slug]/[domain]/[key])
-        domain: domain!, // domain for the link (e.g. dub.sh, stey.me, etc.)
+        domain: domain!, // domain for the link (e.g. 7qr.sh, stey.me, etc.)
         endpoint, // endpoint for the API (e.g. /api/edge/links/[key]/stats)
-        queryString, // query string for the API (e.g. ?interval=24h&domain=dub.sh, ?interval=24h, etc.)
+        queryString, // query string for the API (e.g. ?interval=24h&domain=7qr.sh, ?interval=24h, etc.)
         interval, // time interval (e.g. 24h, 7d, 30d, etc.)
         key, // link key (e.g. github, weathergpt, etc.)
       }}

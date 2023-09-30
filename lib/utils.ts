@@ -137,7 +137,7 @@ export const chunk = <T>(array: T[], chunk_size: number): T[][] => {
 
 export function linkConstructor({
   key,
-  domain = "dub.sh",
+  domain = "7qr.sh",
   localhost,
   pretty,
   noDomain,

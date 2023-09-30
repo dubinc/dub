@@ -22,7 +22,7 @@ export default function useDomains({ domain }: { domain?: string } = {}) {
       ? data
       : ([
           {
-            slug: "dub.sh",
+            slug: "7qr.sh",
             verified: true,
             primary: true,
             target: "https://7qr.codes",

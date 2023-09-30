@@ -35,7 +35,7 @@ export async function POST(req: Request) {
         slug: {
           // exclude domains that belong to us
           notIn: [
-            "dub.sh",
+            "7qr.sh",
             "stey.me",
             "steven.yt",
             "vercel.fyi",

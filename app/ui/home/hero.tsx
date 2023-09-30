@@ -45,7 +45,7 @@ const Hero = () => {
         </a>
         <a
           className="flex items-center justify-center space-x-2 rounded-full border border-gray-300 bg-white px-5 py-2 shadow-lg transition-all hover:border-gray-800"
-          href="https://dub.sh/github"
+          href="https://7qr.sh/github"
           target="_blank"
           rel="noreferrer"
         >

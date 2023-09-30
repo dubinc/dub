@@ -64,7 +64,7 @@ export function QRCodePicker({ props }: { props: SimpleLinkProps }) {
     if (logo) return logo;
     return typeof window !== "undefined" && window.location.origin
       ? new URL("/_static/logo.svg", window.location.origin).href
-      : "https://dub.sh/_static/logo.svg";
+      : "https://7qr.sh/_static/logo.svg";
   }, [logo]);
 
   function download(url: string, extension: string) {

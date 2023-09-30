@@ -16,11 +16,11 @@ export default async function handler(req: NextRequest) {
     const interval = req.nextUrl.searchParams.get("interval");
     const endpoint = req.nextUrl.searchParams.get("endpoint") as string;
     let domain = req.nextUrl.hostname;
-    if (isHomeHostname(domain)) domain = "dub.sh";
+    if (isHomeHostname(domain)) domain = "7qr.sh";
 
     if (
       process.env.NODE_ENV !== "development" &&
-      domain === "dub.sh" &&
+      domain === "7qr.sh" &&
       key === "github"
     ) {
       if (await isBlacklistedReferrer(req.headers.get("referer"))) {
@@ -38,13 +38,13 @@ export default async function handler(req: NextRequest) {
     }
 
     let data;
-    // if the link is NOT dub.sh/github (demo link)
-    if (!(domain === "dub.sh" && key === "github")) {
+    // if the link is NOT 7qr.sh/github (demo link)
+    if (!(domain === "7qr.sh" && key === "github")) {
       data = await getLinkViaEdge(domain, key);
       // if the link is explicitly private (publicStats === false)
-      // or if the link doesn't exist in database (data === undefined) and is not a dub.sh link
-      // (we need to exclude dub.sh public demo links here)
-      if (data?.publicStats === 0 || (domain !== "dub.sh" && !data)) {
+      // or if the link doesn't exist in database (data === undefined) and is not a 7qr.sh link
+      // (we need to exclude 7qr.sh public demo links here)
+      if (data?.publicStats === 0 || (domain !== "7qr.sh" && !data)) {
         return new Response(`Stats for this link are not public`, {
           status: 403,
         });

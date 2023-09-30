@@ -6,7 +6,7 @@ export default withLinksAuth(
     // GET /api/links/[key]/exists - check if a key exists
     if (req.method === "GET") {
       const { key } = req.query as { key: string };
-      const response = await checkIfKeyExists(domain || "dub.sh", key);
+      const response = await checkIfKeyExists(domain || "7qr.sh", key);
       return res.status(200).json(response);
     } else {
       res.setHeader("Allow", ["GET"]);

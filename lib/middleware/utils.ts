@@ -3,17 +3,17 @@ import { NextRequest } from "next/server";
 export const parse = (req: NextRequest) => {
   let domain = req.headers.get("host") as string;
   domain = domain.replace("www.", ""); // remove www. from domain
-  if (domain === "dub.localhost:8888" || domain === "staging.dub.sh") {
+  if (domain === "dub.localhost:8888" || domain === "staging.7qr.sh") {
     // for local development and staging environments
-    domain = "dub.sh";
+    domain = "7qr.sh";
   }
 
   // path is the path of the URL (e.g. 7qr.codes/stats/github -> /stats/github)
   let path = req.nextUrl.pathname;
 
-  // special case for dub.sh/___dub_check/ (for checking if dub.sh links are working)
+  // special case for 7qr.sh/___dub_check/ (for checking if 7qr.sh links are working)
   if (path.startsWith("/___dub_check/")) {
-    domain = "dub.sh";
+    domain = "7qr.sh";
     path = path.replace("/___dub_check/", "/");
   }
 
@@ -25,13 +25,13 @@ export const parse = (req: NextRequest) => {
 
   // Here, we are using decodeURIComponent to handle foreign languages like Hebrew
   const key = decodeURIComponent(path.split("/")[1]); // key is the first part of the path (e.g. 7qr.codes/stats/github -> stats)
-  const fullKey = decodeURIComponent(path.slice(1)); // fullKey is the full path without the first slash (to account for multi-level subpaths, e.g. dub.sh/github/repo -> github/repo)
+  const fullKey = decodeURIComponent(path.slice(1)); // fullKey is the full path without the first slash (to account for multi-level subpaths, e.g. 7qr.sh/github/repo -> github/repo)
 
   return { domain, path, fullPath, key, fullKey };
 };
 
 export const getFinalUrl = (target: string, { req }: { req: NextRequest }) => {
-  // query is the query string (e.g. dub.sh/github?utm_source=twitter -> ?utm_source=twitter)
+  // query is the query string (e.g. 7qr.sh/github?utm_source=twitter -> ?utm_source=twitter)
   const searchParams = req.nextUrl.searchParams;
 
   // get the query params of the target url

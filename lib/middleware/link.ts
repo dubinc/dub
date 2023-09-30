@@ -23,7 +23,7 @@ export default async function LinkMiddleware(
 
   if (
     process.env.NODE_ENV !== "development" &&
-    domain === "dub.sh" &&
+    domain === "7qr.sh" &&
     key === "github"
   ) {
     if (await isBlacklistedReferrer(req.headers.get("referer"))) {

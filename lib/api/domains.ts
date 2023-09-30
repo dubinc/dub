@@ -17,7 +17,7 @@ export const validateDomain = async (
   }
   const validDomain =
     validDomainRegex.test(domain) &&
-    // make sure the domain doesn't contain 7qr.codes/dub.sh
+    // make sure the domain doesn't contain 7qr.codes/7qr.sh
     !/^(dub\.co|.*\.dub\.co|dub\.sh|.*\.dub\.sh)$/i.test(domain);
 
   if (!validDomain) {

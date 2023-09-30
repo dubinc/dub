@@ -15,7 +15,7 @@ export const config = {
 export default withLinksAuth(
   async (req, res, session, project) => {
     // GET /api/links – get all links for a project
-    // if no project, get all dub.sh links for user
+    // if no project, get all 7qr.sh links for user
     if (req.method === "GET") {
       const { domain, tagId, search, sort, page, userId, showArchived } =
         req.query as {
@@ -105,7 +105,7 @@ export default withLinksAuth(
         await log({
           message: `*${
             session.user.email
-          }* created a new link (dub.sh/${key}) for ${url} ${
+          }* created a new link (7qr.sh/${key}) for ${url} ${
             invalidFavicon
               ? " but it has an invalid favicon :thinking_face:"
               : ""

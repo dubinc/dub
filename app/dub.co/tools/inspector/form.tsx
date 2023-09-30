@@ -15,7 +15,7 @@ export default function LinkInspectorForm() {
         <input
           name="url"
           type="url"
-          placeholder="https://dub.sh/github"
+          placeholder="https://7qr.sh/github"
           autoComplete="off"
           required
           className="peer block w-full rounded-md border-gray-300 pl-10 pr-12 text-sm text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500"

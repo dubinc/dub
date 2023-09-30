@@ -43,7 +43,7 @@ export default function Metatags() {
         <MetatagsContent />
 
         <a
-          href="https://dub.sh/metatags-code"
+          href="https://7qr.sh/metatags-code"
           target="_blank"
           rel="noreferrer"
           className="mx-auto mt-2 flex items-center justify-center space-x-2 text-sm text-gray-500 transition-all hover:text-black"

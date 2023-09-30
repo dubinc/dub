@@ -21,7 +21,7 @@ export default async function handler(req: NextRequest) {
     satoshiBold,
   ]);
 
-  const domain = req.nextUrl.searchParams.get("domain") || "dub.sh";
+  const domain = req.nextUrl.searchParams.get("domain") || "7qr.sh";
   const key = req.nextUrl.searchParams.get("key") || "github";
 
   const data = await getLinkViaEdge(domain, key);

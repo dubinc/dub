@@ -1,7 +1,7 @@
 "use client";
 /* 
   This Stats component lives in 3 different places:
-  1. Project link page, e.g. app.7qr.codes/dub/dub.sh/github
+  1. Project link page, e.g. app.7qr.codes/dub/7qr.sh/github
   2. Generic Dub.co link page, e.g. app.7qr.codes/links/steven
   3. Public stats page, e.g. 7qr.codes/stats/github, stey.me/stats/weathergpt
 
@@ -81,7 +81,7 @@ export default function Stats({
       : "";
 
   const { basePath, domain, endpoint } = useMemo(() => {
-    // Project link page, e.g. app.7qr.codes/dub/dub.sh/github
+    // Project link page, e.g. app.7qr.codes/dub/7qr.sh/github
     if (slug && domainSlug && key) {
       return {
         basePath: `/${slug}/${domainSlug}/${key}`,
@@ -93,7 +93,7 @@ export default function Stats({
     } else if (key && pathname?.startsWith("/links")) {
       return {
         basePath: `/links/${key}`,
-        domain: "dub.sh",
+        domain: "7qr.sh",
         endpoint: `/api/links/${key}/stats`,
       };
     }
@@ -110,9 +110,9 @@ export default function Stats({
     <StatsContext.Provider
       value={{
         basePath, // basePath for the page (e.g. /stats/[key], /links/[key], /[slug]/[domain]/[key])
-        domain: domain!, // domain for the link (e.g. dub.sh, stey.me, etc.)
+        domain: domain!, // domain for the link (e.g. 7qr.sh, stey.me, etc.)
         endpoint, // endpoint for the API (e.g. /api/edge/links/[key]/stats)
-        queryString, // query string for the API (e.g. ?interval=24h&domain=dub.sh, ?interval=24h, etc.)
+        queryString, // query string for the API (e.g. ?interval=24h&domain=7qr.sh, ?interval=24h, etc.)
         interval, // time interval (e.g. 24h, 7d, 30d, etc.)
         key: decodeURIComponent(key), // link key (e.g. github, weathergpt, etc.)
         modal, // whether or not this is a modal

@@ -64,7 +64,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
     return RootMiddleware(req, ev);
   }
 
-  if (domain === "dub.sh" && DEFAULT_REDIRECTS[key]) {
+  if (domain === "7qr.sh" && DEFAULT_REDIRECTS[key]) {
     return NextResponse.redirect(DEFAULT_REDIRECTS[key]);
   }
 
