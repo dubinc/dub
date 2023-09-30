@@ -45,7 +45,7 @@ export default function RegisterForm() {
             }
             await signIn("saml", undefined, {
               tenant: data.projectId,
-              product: "Dub",
+              product: "7qr",
             });
           });
         }}
@@ -59,7 +59,7 @@ export default function RegisterForm() {
                 Project Slug
               </h2>
               <InfoTooltip
-                content={`This is your project's unique identifier on Dub. E.g. app.7qr.codes/acme is "acme".`}
+                content={`This is your project's unique identifier on 7qr. E.g. app.7qr.codes/acme is "acme".`}
               />
             </div>
             <input

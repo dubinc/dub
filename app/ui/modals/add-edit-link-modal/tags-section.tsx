@@ -116,7 +116,7 @@ export default function TagsSection({
               <Tooltip
                 content={
                   <SimpleTooltipContent
-                    title="Tags are used to organize your links in your Dub dashboard."
+                    title="Tags are used to organize your links in your 7qr dashboard."
                     cta="Learn more about tags."
                     href={`${HOME_DOMAIN}/help/article/how-to-use-tags`}
                   />

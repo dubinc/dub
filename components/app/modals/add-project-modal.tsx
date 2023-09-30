@@ -158,7 +158,7 @@ function AddProjectModalHelper({
             <p className="block text-sm font-medium text-gray-700">
               Project Name
             </p>
-            <InfoTooltip content="This is the name of your project on Dub." />
+            <InfoTooltip content="This is the name of your project on 7qr." />
           </label>
           <div className="mt-1 flex rounded-md shadow-sm">
             <input
@@ -169,7 +169,7 @@ function AddProjectModalHelper({
               autoFocus
               autoComplete="off"
               className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-              placeholder="Dub"
+              placeholder="7qr"
               value={name}
               onChange={(e) => {
                 setData({ ...data, name: e.target.value });
@@ -184,7 +184,7 @@ function AddProjectModalHelper({
             <p className="block text-sm font-medium text-gray-700">
               Project Slug
             </p>
-            <InfoTooltip content="This is your project's unique slug on Dub." />
+            <InfoTooltip content="This is your project's unique slug on 7qr." />
           </label>
           <div className="relative mt-1 flex rounded-md shadow-sm">
             <span className="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-5 text-gray-500 sm:text-sm">
@@ -202,7 +202,7 @@ function AddProjectModalHelper({
                   ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                   : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
               } block w-full rounded-r-md focus:outline-none sm:text-sm`}
-              placeholder="dub"
+              placeholder="7qr"
               value={slug}
               onChange={(e) => {
                 setSlugError(null);

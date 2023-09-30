@@ -15,7 +15,7 @@ import {
   Text,
 } from "@react-email/components";
 import { linkConstructor, timeAgo } from "../lib/utils";
-import { DUB_LOGO } from "../lib/constants";
+import { _7QR_LOGO } from "../lib/constants";
 import Footer from "./components/footer";
 
 export default function LinksImported({
@@ -74,10 +74,10 @@ export default function LinksImported({
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
             <Section className="mt-8">
               <Img
-                src={DUB_LOGO}
+                src={_7QR_LOGO}
                 width="40"
                 height="40"
-                alt="Dub"
+                alt="7qr"
                 className="mx-auto my-0"
               />
             </Section>
@@ -89,7 +89,7 @@ export default function LinksImported({
               <strong>
                 imported {Intl.NumberFormat("en-us").format(count)} links
               </strong>{" "}
-              from {provider} into your Dub project,{" "}
+              from {provider} into your 7qr project,{" "}
               <Link
                 href={`https://app.7qr.codes/${projectSlug}`}
                 className="font-medium text-blue-600 no-underline"

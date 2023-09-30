@@ -2,8 +2,8 @@ import Head from "next/head";
 import { FAVICON_FOLDER } from "#/lib/constants";
 
 export default function Meta({
-  title = "Dub - Link Management for Modern Marketing Teams",
-  description = "Dub is an open-source link management tool for modern marketing teams to create, share, and track short links.",
+  title = "7qr - Link Management for Modern Marketing Teams",
+  description = "7qr is an open-source link management tool for modern marketing teams to create, share, and track short links.",
   image = "https://7qr.codes/_static/thumbnail.png",
 }: {
   title?: string;
@@ -60,7 +60,7 @@ export default function Meta({
       <meta name="twitter:creator" content="@steventey" />
       <meta
         name="twitter:title"
-        content="Dub - Open-Source Bitly Alternative"
+        content="7qr - Open-Source Bitly Alternative"
       />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={image} />

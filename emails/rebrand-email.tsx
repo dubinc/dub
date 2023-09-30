@@ -12,7 +12,7 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import { DUB_LOGO, DUB_THUMBNAIL } from "../lib/constants";
+import { _7QR_LOGO, _7QR_THUMBNAIL } from "../lib/constants";
 import Footer from "./components/footer";
 
 export default function RebrandEmail({
@@ -26,35 +26,35 @@ export default function RebrandEmail({
     <Html>
       <Head />
       <Preview>
-        Today, we're thrilled to announce our rebrand. Dub.sh is now Dub.co.
+        Today, we're thrilled to announce our rebrand. 7qr.sh is now 7qr.codes.
       </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
             <Section className="mt-8">
               <Img
-                src={DUB_LOGO}
+                src={_7QR_LOGO}
                 width="40"
                 height="40"
-                alt="Dub"
+                alt="7qr"
                 className="mx-auto my-0"
               />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-center text-xl font-semibold text-black">
-              Dub​.sh is rebranding to Dub​.co
+              7qr​.sh is rebranding to 7qr​.co
             </Heading>
             <Section className="my-8">
-              <Img src={DUB_THUMBNAIL} alt="Dub" className="max-w-[500px]" />
+              <Img src={_7QR_THUMBNAIL} alt="7qr" className="max-w-[500px]" />
             </Section>
             <Text className="text-sm leading-6 text-black">
               Hey{name ? ` ${name}` : " there"}!
             </Text>
             <Text className="text-sm leading-6 text-black">
-              My name is Steven, and I'm the founder of Dub. Today, I have some
+              My name is Steven, and I'm the founder of 7qr. Today, I have some
               exciting news to share with you.
             </Text>
             <Text className="text-sm font-bold leading-6 text-black">
-              Dub​.sh is rebranding to Dub​.co.
+              7qr​.sh is rebranding to 7qr​.co.
             </Text>
             <Text className="text-sm leading-6 text-black">
               You can learn more about the rebrand and what's changing{" "}
@@ -68,7 +68,7 @@ export default function RebrandEmail({
             </Text>
             <Text className="text-sm leading-6 text-black">
               Moving forward, we'll also be sending product update emails from{" "}
-              <strong>ship.dub​.co</strong> instead of{" "}
+              <strong>ship.7qr​.co</strong> instead of{" "}
               <strong>ship.dub​.sh</strong>. We'd appreciate it if you can add{" "}
               <strong>ship.dub​.co</strong> to your email whitelist to ensure
               you receive our emails.
@@ -94,9 +94,9 @@ export default function RebrandEmail({
                 href="https://7qr.codes/help"
                 className="font-bold text-blue-600 no-underline"
               >
-                Dub Help Center
+                7qr Help Center
               </Link>{" "}
-              - a one-stop shop for all your Dub questions
+              - a one-stop shop for all your 7qr questions
             </Text>
             <Text className="ml-1 text-sm leading-6 text-black">
               ◆ <strong>Geo Targeting</strong> - Redirect visitors based on
@@ -128,7 +128,7 @@ export default function RebrandEmail({
               >
                 changelog
               </Link>{" "}
-              to see what's new on Dub.
+              to see what's new on 7qr.
             </Text>
 
             <Text className="text-sm leading-6 text-black">
@@ -136,7 +136,7 @@ export default function RebrandEmail({
               happy to help!
             </Text>
             <Text className="text-sm font-light leading-6 text-gray-400">
-              Steven from Dub
+              Steven from 7qr
             </Text>
 
             <Footer email={email} marketing />

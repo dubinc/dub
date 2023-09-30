@@ -1,7 +1,7 @@
 ---
 title: Configuring SAML SSO with Azure AD
 updatedAt: 2023-08-17
-summary: For Dub Enterprise users, you can securely manage your team's access to Dub using Azure AD SAML SSO.
+summary: For 7qr Enterprise users, you can securely manage your team's access to 7qr using Azure AD SAML SSO.
 author: steventey
 categories:
   - saml-sso
@@ -13,10 +13,10 @@ excludeHeadingsFromSearch: true
 ---
 
 <Note variant="success">
-  This feature is only available on [Dub Enterprise](/pricing).
+  This feature is only available on [7qr Enterprise](/pricing).
 </Note>
 
-For Dub Enterprise users, you can securely manage your team's access to Dub using [Azure AD SAML SSO](https://learn.microsoft.com/en-us/azure/active-directory/architecture/auth-saml).
+For 7qr Enterprise users, you can securely manage your team's access to 7qr using [Azure AD SAML SSO](https://learn.microsoft.com/en-us/azure/active-directory/architecture/auth-saml).
 
 ## Step 1: Create or Select SAML Application
 
@@ -52,7 +52,7 @@ If not, click on **New application** at the top.
   hideCaption={true}
 />
 
-In the next screen, click on **Create your own application**. Give your application a **Name** (e.g. "Dub") and click **Create**.
+In the next screen, click on **Create your own application**. Give your application a **Name** (e.g. "7qr") and click **Create**.
 
 <Image
   alt="Create your own application option on the Azure Dashboard"
@@ -144,7 +144,7 @@ Once that's done, click on the `X` button in the top right corner to go back to 
 
 ## Step 4: Copy the Metadata URL
 
-Scroll down to the 3rd section on the page, **SAML Certificates**. Copy the **App Federation Metadata Url** value and return to the Dub dashboard.
+Scroll down to the 3rd section on the page, **SAML Certificates**. Copy the **App Federation Metadata Url** value and return to the 7qr dashboard.
 
 <Image
   alt="Metadata URL on the Azure Dashboard"
@@ -154,12 +154,12 @@ Scroll down to the 3rd section on the page, **SAML Certificates**. Copy the **Ap
   hideCaption={true}
 />
 
-## Step 5: Configure SAML SSO on Dub
+## Step 5: Configure SAML SSO on 7qr
 
-In your project dashboard on Dub, click on the **Settings** tab in the menu bar at the top. Then, click on the **Security** tab in the sidebar.
+In your project dashboard on 7qr, click on the **Settings** tab in the menu bar at the top. Then, click on the **Security** tab in the sidebar.
 
 <Image
-  alt="SAML SSO section on the Dub Dashboard"
+  alt="SAML SSO section on the 7qr Dashboard"
   src="https://d2vwwcvoksz7ty.cloudfront.net/help/saml-sso-section.png"
   width={2480}
   height={1486}
@@ -213,7 +213,7 @@ From the right side of the screen, select the users you want to assign to the ap
   hideCaption={true}
 />
 
-Your assigned users should now receive an invitation email to join your Dub project.
+Your assigned users should now receive an invitation email to join your 7qr project.
 
 <Image
   alt="SAML invite email"
@@ -227,7 +227,7 @@ Your assigned users should now receive an invitation email to join your Dub proj
   Azure AD SCIM provisioning can take [anywhere between 20-40 minutes to
   sync](https://learn.microsoft.com/en-us/azure/databricks/administration-guide/users-groups/scim/aad#provisioning-tips).
   This means that it may take up to 40 minutes for your users to receive the
-  invitation email and be able to join your Dub project.
+  invitation email and be able to join your 7qr project.
 </Note>
 
-They will also be able to sign in to Dub using Azure AD SSO.
+They will also be able to sign in to 7qr using Azure AD SSO.

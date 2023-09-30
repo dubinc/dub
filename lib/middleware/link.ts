@@ -7,7 +7,7 @@ import {
 import { detectBot, getFinalUrl, parse } from "#/lib/middleware/utils";
 import { ratelimit, redis } from "#/lib/upstash";
 import { recordClick } from "#/lib/tinybird";
-import { DUB_HEADERS, LOCALHOST_GEO_DATA, LOCALHOST_IP } from "../constants";
+import { _7QR_HEADERS, LOCALHOST_GEO_DATA, LOCALHOST_IP } from "../constants";
 import { ipAddress } from "@vercel/edge";
 import { isBlacklistedReferrer } from "../edge-config";
 
@@ -23,7 +23,7 @@ export default async function LinkMiddleware(
 
   if (
     process.env.NODE_ENV !== "development" &&
-    domain === "7qr.sh" &&
+    domain === "dub.sh" &&
     key === "github"
   ) {
     if (await isBlacklistedReferrer(req.headers.get("referer"))) {
@@ -102,34 +102,34 @@ export default async function LinkMiddleware(
       if (iframeable) {
         return NextResponse.rewrite(
           new URL(`/rewrite/${target}`, req.url),
-          DUB_HEADERS,
+          _7QR_HEADERS,
         );
       } else {
         // if link is not iframeable, use Next.js rewrite instead
-        return NextResponse.rewrite(decodeURIComponent(target), DUB_HEADERS);
+        return NextResponse.rewrite(decodeURIComponent(target), _7QR_HEADERS);
       }
 
       // redirect to iOS link if it is specified and the user is on an iOS device
     } else if (ios && userAgent(req).os?.name === "iOS") {
-      return NextResponse.redirect(getFinalUrl(ios, { req }), DUB_HEADERS);
+      return NextResponse.redirect(getFinalUrl(ios, { req }), _7QR_HEADERS);
 
       // redirect to Android link if it is specified and the user is on an Android device
     } else if (android && userAgent(req).os?.name === "Android") {
-      return NextResponse.redirect(getFinalUrl(android, { req }), DUB_HEADERS);
+      return NextResponse.redirect(getFinalUrl(android, { req }), _7QR_HEADERS);
 
       // redirect to geo-specific link if it is specified and the user is in the specified country
     } else if (geo && country && country in geo) {
       return NextResponse.redirect(
         getFinalUrl(geo[country], { req }),
-        DUB_HEADERS,
+        _7QR_HEADERS,
       );
 
       // regular redirect
     } else {
-      return NextResponse.redirect(getFinalUrl(target, { req }), DUB_HEADERS);
+      return NextResponse.redirect(getFinalUrl(target, { req }), _7QR_HEADERS);
     }
   } else {
     // short link not found, redirect to root
-    return NextResponse.redirect(new URL("/", req.url), DUB_HEADERS);
+    return NextResponse.redirect(new URL("/", req.url), _7QR_HEADERS);
   }
 }

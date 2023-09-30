@@ -45,7 +45,7 @@ function SAMLModal({
         </div>
         <h3 className="text-lg font-medium">Configure SAML</h3>
         <p className="text-center text-sm text-gray-500">
-          Select a provider to configure SAML for your Dub project.
+          Select a provider to configure SAML for your 7qr project.
         </p>
       </div>
 

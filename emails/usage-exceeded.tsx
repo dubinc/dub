@@ -12,7 +12,7 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import { DUB_LOGO } from "../lib/constants";
+import { _7QR_LOGO } from "../lib/constants";
 import { ProjectProps } from "../lib/types";
 import { capitalize, nFormatter } from "../lib/utils";
 import Footer from "./components/footer";
@@ -43,10 +43,10 @@ export default function UsageExceeded({
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
             <Section className="mt-8">
               <Img
-                src={DUB_LOGO}
+                src={_7QR_LOGO}
                 width="40"
                 height="40"
-                alt="Dub"
+                alt="7qr"
                 className="mx-auto my-0"
               />
             </Section>
@@ -54,7 +54,7 @@ export default function UsageExceeded({
               Usage Limit Exceeded
             </Heading>
             <Text className="text-sm leading-6 text-black">
-              Your Dub project, <strong> {name} </strong> has exceeded the
+              Your 7qr project, <strong> {name} </strong> has exceeded the
               <strong> {capitalize(plan)} Plan </strong>
               limit of <strong>{nFormatter(usageLimit)} link clicks</strong>.
               You have used{" "}

@@ -107,7 +107,7 @@ function ImportBitlyModal({
         </div>
         <h3 className="text-lg font-medium">Import Your Bitly Links</h3>
         <p className="text-center text-sm text-gray-500">
-          Easily import all your existing Bitly links into Dub with just a few
+          Easily import all your existing Bitly links into 7qr with just a few
           clicks.
         </p>
       </div>

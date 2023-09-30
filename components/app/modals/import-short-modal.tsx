@@ -99,7 +99,7 @@ function ImportShortModal({
         </div>
         <h3 className="text-lg font-medium">Import Your Short.io Links</h3>
         <p className="text-center text-sm text-gray-500">
-          Easily import all your existing Short.io links into Dub with just a
+          Easily import all your existing Short.io links into 7qr with just a
           few clicks.
         </p>
       </div>

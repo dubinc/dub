@@ -276,7 +276,7 @@ function AdvancedSettings({
                   thumbTranslate="translate-x-6"
                 />
                 <p className="text-sm text-gray-600">
-                  Show {!slug || (!logo && "Dub.co")} Logo
+                  Show {!slug || (!logo && "7qr.codes")} Logo
                 </p>
               </div>
             ) : (
@@ -309,7 +309,7 @@ function AdvancedSettings({
                     thumbTranslate="translate-x-6"
                     disabled={true}
                   />
-                  <p className="text-sm text-gray-600">Show Dub.co Logo</p>
+                  <p className="text-sm text-gray-600">Show 7qr.codes Logo</p>
                 </div>
               </Tooltip>
             )}

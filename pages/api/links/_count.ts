@@ -1,5 +1,5 @@
 import { withLinksAuth } from "#/lib/auth";
-import { DUB_PROJECT_ID } from "#/lib/constants";
+import { _7QR_PROJECT_ID } from "#/lib/constants";
 import { getLinksCount } from "#/lib/api/links";
 
 export default withLinksAuth(async (req, res, session, project) => {
@@ -8,7 +8,7 @@ export default withLinksAuth(async (req, res, session, project) => {
     const { userId } = req.query as { userId?: string };
     const count = await getLinksCount({
       req,
-      projectId: project?.id || DUB_PROJECT_ID,
+      projectId: project?.id || _7QR_PROJECT_ID,
       userId: project?.id ? userId : session.user.id,
     });
     return res.status(200).json(count);

@@ -66,7 +66,7 @@ function SCIMModal({
         <p className="text-center text-sm text-gray-500">
           {currentProvider
             ? "Your project is currently syncing with your SCIM directory."
-            : "Select a provider to configure directory sync for your Dub project."}
+            : "Select a provider to configure directory sync for your 7qr project."}
         </p>
       </div>
 

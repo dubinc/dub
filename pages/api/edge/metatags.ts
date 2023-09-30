@@ -58,7 +58,7 @@ const getHtml = async (url: string) => {
     const response = await fetch(url, {
       signal: controller.signal,
       headers: {
-        "User-Agent": "dub-bot/1.0",
+        "User-Agent": "7qr-bot/1.0",
       },
     });
     clearTimeout(timeoutId);

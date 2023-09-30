@@ -1,7 +1,7 @@
 ---
 title: Configuring SCIM Directory Sync with Azure AD
 updatedAt: 2023-08-17
-summary: For Dub Enterprise users, you can automatically provision and deprovision users from Azure AD to Dub using SCIM Directory Sync.
+summary: For 7qr Enterprise users, you can automatically provision and deprovision users from Azure AD to 7qr using SCIM Directory Sync.
 author: steventey
 categories:
   - saml-sso
@@ -13,10 +13,10 @@ excludeHeadingsFromSearch: true
 ---
 
 <Note variant="success">
-  This feature is only available on [Dub Enterprise](/pricing).
+  This feature is only available on [7qr Enterprise](/pricing).
 </Note>
 
-For Dub Enterprise users, you can automatically provision and deprovision users from your Azure Active Directory (AD) to Dub using [SCIM Directory Sync](https://learn.microsoft.com/en-us/azure/active-directory/architecture/sync-scim).
+For 7qr Enterprise users, you can automatically provision and deprovision users from your Azure Active Directory (AD) to 7qr using [SCIM Directory Sync](https://learn.microsoft.com/en-us/azure/active-directory/architecture/sync-scim).
 
 <Prerequisites>
 
@@ -24,12 +24,12 @@ Before you can configure SCIM Directory Sync, you need to create a SAML applicat
 
 </Prerequisites>
 
-## Step 1: Configure Directory Sync on Dub
+## Step 1: Configure Directory Sync on 7qr
 
-In your project dashboard on Dub, click on the **Settings** tab in the menu bar at the top. Then, click on the **Security** tab in the sidebar.
+In your project dashboard on 7qr, click on the **Settings** tab in the menu bar at the top. Then, click on the **Security** tab in the sidebar.
 
 <Image
-  alt="Directory Sync section on the Dub Dashboard"
+  alt="Directory Sync section on the 7qr Dashboard"
   src="https://d2vwwcvoksz7ty.cloudfront.net/help/scim-directory-sync.png"
   width={2576}
   height={1608}
@@ -49,7 +49,7 @@ Under the **Directory Sync** section, click on **Configure**. This will open up 
   hideCaption={true}
 />
 
-This will generate a Directory Sync connection for your Dub project, and return 2 values, which will be needed in Step 2:
+This will generate a Directory Sync connection for your 7qr project, and return 2 values, which will be needed in Step 2:
 
 1. **Tenant URL**
 2. **Secret Token**
@@ -64,7 +64,7 @@ This will generate a Directory Sync connection for your Dub project, and return 
 
 ## Step 2: Add Provisioning to SAML Application
 
-Click on the **Provisioning** tab of your existing Dub Okta SAML application that you want to enable SCIM provisioning for.
+Click on the **Provisioning** tab of your existing 7qr Okta SAML application that you want to enable SCIM provisioning for.
 
 <Image
   alt="Provisioning tab of Okta SAML application"
@@ -124,11 +124,11 @@ Click **Save** to save the changes.
   hideCaption={true}
 />
 
-Congratulations! You've successfully configured SCIM provisioning for your Dub project.
+Congratulations! You've successfully configured SCIM provisioning for your 7qr project.
 
 ## Step 3: Assign Users
 
-Once you've configured Directory sync, you can assign users to Dub directly within Azure AD.
+Once you've configured Directory sync, you can assign users to 7qr directly within Azure AD.
 
 From your application, click the **Users and groups** from the left navigation menu and click **Add user/group**.
 
@@ -152,7 +152,7 @@ From the right side of the screen, select the users you want to assign to the ap
   hideCaption={true}
 />
 
-Your assigned users should now receive an invitation email to join your Dub project.
+Your assigned users should now receive an invitation email to join your 7qr project.
 
 <Image
   alt="SAML invite email"
@@ -166,7 +166,7 @@ Your assigned users should now receive an invitation email to join your Dub proj
   Azure AD SCIM provisioning can take [anywhere between 20-40 minutes to
   sync](https://learn.microsoft.com/en-us/azure/databricks/administration-guide/users-groups/scim/aad#provisioning-tips).
   This means that it may take up to 40 minutes for your users to receive the
-  invitation email and be able to join your Dub project.
+  invitation email and be able to join your 7qr project.
 </Note>
 
-They will also be able to sign in to Dub using Azure AD SSO.
+They will also be able to sign in to 7qr using Azure AD SSO.

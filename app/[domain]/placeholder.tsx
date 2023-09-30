@@ -56,7 +56,7 @@ export default function PlaceholderContent() {
             className="font-display text-4xl font-bold text-gray-800 transition-colors sm:text-5xl"
             variants={STAGGER_CHILD_VARIANTS}
           >
-            Welcome to Dub
+            Welcome to 7qr
           </motion.h1>
           <motion.p
             className="max-w-xl text-gray-600 transition-colors sm:text-lg"
@@ -73,7 +73,7 @@ export default function PlaceholderContent() {
                 })
               }
             >
-              Dub
+              7qr
             </a>{" "}
             - a link management tool for modern marketing teams to create,
             share, and track short links.

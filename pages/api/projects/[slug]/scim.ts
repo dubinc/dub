@@ -12,7 +12,7 @@ export default withProjectAuth(
       const { data, error } =
         await directorySyncController.directories.getByTenantAndProduct(
           project.id,
-          "Dub",
+          "7qr",
         );
       if (error) {
         return res.status(500).end(error.message);
@@ -31,9 +31,9 @@ export default withProjectAuth(
 
       const [data, _] = await Promise.all([
         directorySyncController.directories.create({
-          name: "Dub SCIM Directory",
+          name: "7qr SCIM Directory",
           tenant: project.id,
-          product: "Dub",
+          product: "7qr",
           type: provider,
         }),
         currentDirectoryId &&

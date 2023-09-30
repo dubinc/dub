@@ -3,7 +3,7 @@ import { getToken } from "next-auth/jwt";
 import { parse } from "#/lib/middleware/utils";
 import { UserProps } from "../types";
 import { conn } from "../planetscale";
-import { DUB_PROJECT_ID } from "../constants";
+import { _7QR_PROJECT_ID } from "../constants";
 
 export default async function AdminMiddleware(req: NextRequest) {
   const { path } = parse(req);
@@ -24,7 +24,7 @@ export default async function AdminMiddleware(req: NextRequest) {
     ])
     .then((res) => res.rows[0] as { projectId: string } | undefined);
 
-  if (response?.projectId === DUB_PROJECT_ID) {
+  if (response?.projectId === _7QR_PROJECT_ID) {
     isAdmin = true;
   }
 

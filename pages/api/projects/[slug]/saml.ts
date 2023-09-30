@@ -10,7 +10,7 @@ export default withProjectAuth(
 
       const connections = await apiController.getConnections({
         tenant: project.id,
-        product: "Dub",
+        product: "7qr",
       });
 
       const response = {
@@ -36,7 +36,7 @@ export default withProjectAuth(
         defaultRedirectUrl: `${process.env.NEXTAUTH_URL}/auth/saml`,
         redirectUrl: process.env.NEXTAUTH_URL as string,
         tenant: project.id,
-        product: "Dub",
+        product: "7qr",
       });
 
       return res.status(200).json(data);

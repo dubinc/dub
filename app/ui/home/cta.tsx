@@ -14,14 +14,14 @@ export default function CTA() {
         your marketing efforts
       </h2>
       <p className="text-gray-600 sm:text-xl">
-        See why Dub is the link management tool of choice for modern marketing
+        See why 7qr is the link management tool of choice for modern marketing
         teams
       </p>
       <a
         href={`${APP_DOMAIN}/register`}
         className="rounded-full border border-black bg-black px-5 py-2 text-sm text-white shadow-lg transition-all hover:bg-white hover:text-black"
       >
-        Try Dub For Free
+        Try 7qr For Free
       </a>
       <br />
       <Dashboard />

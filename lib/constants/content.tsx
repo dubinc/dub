@@ -21,7 +21,7 @@ export const BLOG_CATEGORIES: {
   {
     title: "Company News",
     slug: "company",
-    description: "Updates and announcements from Dub.",
+    description: "Updates and announcements from 7qr.",
   },
   // {
   //   title: "Education",
@@ -54,45 +54,45 @@ export const HELP_CATEGORIES: {
   icon: JSX.Element;
 }[] = [
   {
-    title: "Dub Overview",
+    title: "7qr Overview",
     slug: "overview",
-    description: "Learn about Dub and how it can help you.",
+    description: "Learn about 7qr and how it can help you.",
     icon: <Logo className="h-6 w-6 text-gray-500" />,
   },
   {
     title: "Getting Started",
     slug: "getting-started",
-    description: "Learn how to get started with Dub.",
+    description: "Learn how to get started with 7qr.",
     icon: <Settings className="h-6 w-6 text-gray-500" />,
   },
   {
     title: "Link Management",
     slug: "link-management",
-    description: "Learn how to manage your links on Dub.",
+    description: "Learn how to manage your links on 7qr.",
     icon: <Link2 className="h-6 w-6 text-gray-500" />,
   },
   {
     title: "Custom Domains",
     slug: "custom-domains",
-    description: "Learn how to use custom domains with Dub.",
+    description: "Learn how to use custom domains with 7qr.",
     icon: <Globe className="h-6 w-6 text-gray-500" />,
   },
   {
-    title: "Migrating to Dub",
+    title: "Migrating to 7qr",
     slug: "migrating",
-    description: "Easily migrate to Dub from other services.",
+    description: "Easily migrate to 7qr from other services.",
     icon: <Import className="h-6 w-6 text-gray-500" />,
   },
   {
     title: "SAML SSO",
     slug: "saml-sso",
-    description: "Secure your Dub project with SAML SSO.",
+    description: "Secure your 7qr project with SAML SSO.",
     icon: <Lock className="h-6 w-6 text-gray-500" />,
   },
   {
     title: "API",
     slug: "api",
-    description: "Learn how to use the Dub API.",
+    description: "Learn how to use the 7qr API.",
     icon: <Webhook className="h-6 w-6 text-gray-500" />,
   },
 ];
@@ -109,7 +109,7 @@ export const FEATURES_LIST = [
     shortTitle: "Advanced Analytics",
     accordionTitle: "Analytics that matter",
     description:
-      "Dub provides powerful analytics for your links, including geolocation, device, browser, and referrer information.",
+      "7qr provides powerful analytics for your links, including geolocation, device, browser, and referrer information.",
     icon: BarChart,
     slug: "analytics",
     thumbnail: "https://d2vwwcvoksz7ty.cloudfront.net/features/analytics.png",
@@ -120,7 +120,7 @@ export const FEATURES_LIST = [
     videoLength: "2:56",
     bentoTitle: "Detailed insights for every click",
     bentoDescription:
-      "Dub provides detailed analytics for every click on your links. See where your audience is coming from and what devices they are using.",
+      "7qr provides detailed analytics for every click on your links. See where your audience is coming from and what devices they are using.",
     bentoFeatures: [
       {
         title: "Time-series data",
@@ -157,7 +157,7 @@ export const FEATURES_LIST = [
     shortTitle: "Branded Links",
     accordionTitle: "Use your own domain",
     description:
-      "Dub offers free and unlimited custom domains on all plans for you to create branded links that stand out.",
+      "7qr offers free and unlimited custom domains on all plans for you to create branded links that stand out.",
     icon: Airplay,
     slug: "branded-links",
     thumbnail:
@@ -189,7 +189,7 @@ export const FEATURES_LIST = [
       {
         title: "Free SSL certificates",
         description:
-          "Dub automatically provisions SSL certificates for your custom domains.",
+          "7qr automatically provisions SSL certificates for your custom domains.",
       },
       {
         title: "Link cloaking",
@@ -200,7 +200,7 @@ export const FEATURES_LIST = [
       {
         title: "Custom QR codes",
         description:
-          "With Dub Pro, you can create branded QR codes for your links.",
+          "With 7qr Pro, you can create branded QR codes for your links.",
         href: "/features/qr-codes",
       },
     ],
@@ -210,7 +210,7 @@ export const FEATURES_LIST = [
     shortTitle: "QR Codes",
     accordionTitle: "Free QR Code Generator",
     description:
-      "QR codes and short links are like peas in a pod. Dub offers free QR codes for every short link you create.",
+      "QR codes and short links are like peas in a pod. 7qr offers free QR codes for every short link you create.",
     icon: QrCode,
     slug: "qr-codes",
     thumbnail: "https://d2vwwcvoksz7ty.cloudfront.net/features/qr-codes.png",
@@ -284,7 +284,7 @@ export const FEATURES_LIST = [
     shortTitle: "Team collaboration",
     accordionTitle: "Collaborate With Your Team",
     description:
-      "Invite your teammates to collaborate on your links. For enterprises, Dub offers SAML SSO for better security.",
+      "Invite your teammates to collaborate on your links. For enterprises, 7qr offers SAML SSO for better security.",
     icon: Users,
     slug: "collaboration",
     thumbnail:
@@ -308,7 +308,7 @@ export const FEATURES_LIST = [
       {
         title: "SAML SSO",
         description:
-          "Dub offers SAML SSO for enterprises to provide better security and control over their projects.",
+          "7qr offers SAML SSO for enterprises to provide better security and control over their projects.",
         image: "https://d2vwwcvoksz7ty.cloudfront.net/features/saml.png",
         href: "/help/category/saml-sso",
       },
@@ -321,7 +321,7 @@ export const FEATURES_LIST = [
       {
         title: "Fine-grained permissions",
         description:
-          "Enterprises on Dub can set role-based access controls (RBAC) to control who can create, edit, and delete links.",
+          "Enterprises on 7qr can set role-based access controls (RBAC) to control who can create, edit, and delete links.",
       },
       {
         title: "Team analytics",

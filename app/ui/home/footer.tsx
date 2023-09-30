@@ -53,7 +53,7 @@ export default function Footer() {
                 },
               })}
             >
-              <span className="sr-only">Dub.co Logo</span>
+              <span className="sr-only">7qr.codes Logo</span>
               <LogoType className="h-7 text-gray-600" />
             </Link>
             <p className="max-w-xs text-sm text-gray-500">
@@ -195,7 +195,7 @@ export default function Footer() {
         </div>
         <div className="mt-16 border-t border-gray-900/10 pt-8 sm:mt-20 lg:mt-24">
           <p className="text-sm leading-5 text-gray-500">
-            © {new Date().getFullYear()} Dub.co
+            © {new Date().getFullYear()} 7qr.codes
           </p>
         </div>
       </MaxWidthWrapper>

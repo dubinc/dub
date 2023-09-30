@@ -17,8 +17,8 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function constructMetadata({
-  title = "Dub - Link Management for Modern Marketing Teams",
-  description = "Dub is an open-source link management tool for modern marketing teams to create, share, and track short links.",
+  title = "7qr - Link Management for Modern Marketing Teams",
+  description = "7qr is an open-source link management tool for modern marketing teams to create, share, and track short links.",
   image = "https://7qr.codes/_static/thumbnail.png",
   icons = "/favicon.ico",
   noIndex = false,
@@ -293,7 +293,7 @@ export const getApexDomain = (url: string) => {
     ) {
       return parts.slice(-3).join(".");
     }
-    // otherwise, it's a subdomain (e.g. dub.vercel.app), so we return the last 2 parts
+    // otherwise, it's a subdomain (e.g. 7qr.vercel.app), so we return the last 2 parts
     return parts.slice(-2).join(".");
   }
   // if it's a normal domain (e.g. 7qr.codes), we return the domain
@@ -450,8 +450,8 @@ export async function generateMD5Hash(message) {
 }
 
 const logTypeToEnv = {
-  cron: process.env.DUB_SLACK_HOOK_CRON,
-  links: process.env.DUB_SLACK_HOOK_LINKS,
+  cron: process.env._7QR_SLACK_HOOK_CRON,
+  links: process.env._7QR_SLACK_HOOK_LINKS,
 };
 
 export const log = async ({
@@ -465,8 +465,8 @@ export const log = async ({
 }) => {
   if (
     process.env.NODE_ENV === "development" ||
-    !process.env.DUB_SLACK_HOOK_CRON ||
-    !process.env.DUB_SLACK_HOOK_LINKS
+    !process.env._7QR_SLACK_HOOK_CRON ||
+    !process.env._7QR_SLACK_HOOK_LINKS
   )
     console.log(message);
   /* Log a message to the console */
@@ -491,7 +491,7 @@ export const log = async ({
       }),
     });
   } catch (e) {
-    console.log(`Failed to log to Dub Slack. Error: ${e}`);
+    console.log(`Failed to log to 7qr Slack. Error: ${e}`);
   }
 };
 

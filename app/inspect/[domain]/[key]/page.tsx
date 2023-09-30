@@ -27,9 +27,9 @@ export async function generateMetadata({
 
   return constructMetadata({
     title:
-      "Link Inspector - Inspect a Short Link on Dub to Make Sure It's Safe",
+      "Link Inspector - Inspect a Short Link on 7qr to Make Sure It's Safe",
     description:
-      "Dub's Link Inspector is a simple tool for inspecting short links on Dub to make sure it's safe to click on. If you think this link is malicious, please report it.",
+      "7qr's Link Inspector is a simple tool for inspecting short links on 7qr to make sure it's safe to click on. If you think this link is malicious, please report it.",
     noIndex: true,
   });
 }
@@ -58,7 +58,7 @@ export default async function InspectPage({
             Link Inspector
           </h1>
           <h2 className="text-lg text-gray-600 sm:text-xl">
-            Inspect a short link on Dub to make sure it's safe to click on. If
+            Inspect a short link on 7qr to make sure it's safe to click on. If
             you think this link is malicious, please report it.
           </h2>
 

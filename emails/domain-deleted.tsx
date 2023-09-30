@@ -12,13 +12,13 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import { DUB_LOGO } from "../lib/constants";
+import { _7QR_LOGO } from "../lib/constants";
 import Footer from "./components/footer";
 
 export default function DomainDeleted({
   email = "panic@thedis.co",
   domain = "7qr.sh",
-  projectSlug = "dub",
+  projectSlug = "7qr",
 }: {
   email: string;
   domain: string;
@@ -33,10 +33,10 @@ export default function DomainDeleted({
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
             <Section className="mt-8">
               <Img
-                src={DUB_LOGO}
+                src={_7QR_LOGO}
                 width="40"
                 height="40"
-                alt="Dub"
+                alt="7qr"
                 className="mx-auto my-0"
               />
             </Section>
@@ -45,7 +45,7 @@ export default function DomainDeleted({
             </Heading>
             <Text className="text-sm leading-6 text-black">
               Your domain <code className="text-purple-600">{domain}</code> for
-              your Dub project{" "}
+              your 7qr project{" "}
               <Link
                 href={`https://app.7qr.codes/${projectSlug}`}
                 className="font-medium text-blue-600 no-underline"
@@ -53,11 +53,11 @@ export default function DomainDeleted({
                 {projectSlug}↗
               </Link>{" "}
               has been invalid for 30 days. As a result, it has been deleted
-              from Dub.
+              from 7qr.
             </Text>
             <Text className="text-sm leading-6 text-black">
               If you would like to restore the domain, you can easily create it
-              again on Dub with the link below.
+              again on 7qr with the link below.
             </Text>
             <Section className="my-8 text-center">
               <Link
@@ -68,7 +68,7 @@ export default function DomainDeleted({
               </Link>
             </Section>
             <Text className="text-sm leading-6 text-black">
-              If you did not want to keep using this domain on Dub anyway, you
+              If you did not want to keep using this domain on 7qr anyway, you
               can simply ignore this email.
             </Text>
             <Footer email={email} />

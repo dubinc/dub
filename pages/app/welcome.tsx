@@ -48,7 +48,7 @@ export default function Welcome() {
 
   return (
     <div className="flex h-screen flex-col items-center">
-      <Meta title="Welcome to Dub" />
+      <Meta title="Welcome to 7qr" />
       <Background />
       <AddProjectModal />
       <AddEditLinkModal />

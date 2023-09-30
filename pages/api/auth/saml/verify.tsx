@@ -26,7 +26,7 @@ export default async function handler(
 
     const connections = await apiController.getConnections({
       tenant: project.id,
-      product: "Dub",
+      product: "7qr",
     });
 
     if (!connections || connections.length === 0) {

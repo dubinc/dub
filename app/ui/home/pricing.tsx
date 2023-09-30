@@ -31,7 +31,7 @@ const pricingItems = [
           <SimpleTooltipContent
             title="Password protection, link expiration, device targeting, custom social media cards, etc."
             cta="Learn more."
-            href="/help/article/how-to-create-link#the-dub-link-builder"
+            href="/help/article/how-to-create-link#the-7qr-link-builder"
           />
         ),
       },
@@ -86,7 +86,7 @@ const pricingItems = [
           <SimpleTooltipContent
             title="Password protection, link expiration, device targeting, custom social media cards, etc."
             cta="Learn more."
-            href="/help/article/how-to-create-link#the-dub-link-builder"
+            href="/help/article/how-to-create-link#the-7qr-link-builder"
           />
         ),
       },
@@ -139,7 +139,7 @@ const pricingItems = [
           <SimpleTooltipContent
             title="Password protection, link expiration, device targeting, custom social media cards, etc."
             cta="Learn more."
-            href="/help/article/how-to-create-link#the-dub-link-builder"
+            href="/help/article/how-to-create-link#the-7qr-link-builder"
           />
         ),
       },

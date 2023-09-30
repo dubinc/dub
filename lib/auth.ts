@@ -263,7 +263,7 @@ const withLinksAuth =
         return res.status(403).end("Unauthorized: Invalid domain.");
       }
 
-      // if project slug is defined, that means it's a custom project on Dub
+      // if project slug is defined, that means it's a custom project on 7qr
     } else {
       project = (await prisma.project.findUnique({
         where: {

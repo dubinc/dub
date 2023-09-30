@@ -76,12 +76,12 @@ export default function GeoSection({
         <Switch
           fn={() => setEnabled(!enabled)}
           checked={enabled}
-          // geo targeting is only available on Dub's Pro plan
+          // geo targeting is only available on 7qr's Pro plan
           {...(!plan || plan === "free"
             ? {
                 disabledTooltip: (
                   <TooltipContent
-                    title="Geo targeting is only available on Dub's Pro plan. Upgrade to Pro to use this feature."
+                    title="Geo targeting is only available on 7qr's Pro plan. Upgrade to Pro to use this feature."
                     cta="Upgrade to Pro"
                     {...(plan === "free"
                       ? {

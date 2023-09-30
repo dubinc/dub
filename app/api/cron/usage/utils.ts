@@ -122,7 +122,7 @@ export const updateUsage = async () => {
           emails.map((email) => {
             limiter.schedule(() =>
               sendEmail({
-                subject: `Your 30-day Dub summary for ${project.name}`,
+                subject: `Your 30-day 7qr summary for ${project.name}`,
                 email,
                 react: ClicksSummary({
                   email,
@@ -177,7 +177,7 @@ const sendUsageLimitEmail = async (
     emails.map((email) => {
       limiter.schedule(() =>
         sendEmail({
-          subject: `You have exceeded your Dub usage limit`,
+          subject: `You have exceeded your 7qr usage limit`,
           email,
           react: UsageExceeded({
             email,

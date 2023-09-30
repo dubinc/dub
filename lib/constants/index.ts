@@ -103,9 +103,9 @@ export const DEFAULT_REDIRECTS = {
   tags: "https://7qr.codes/help/how-to-use-tags",
 };
 
-export const DUB_HEADERS = {
+export const _7QR_HEADERS = {
   headers: {
-    "x-powered-by": "Dub.co - Link management for modern marketing teams",
+    "x-powered-by": "7qr.codes - Link management for modern marketing teams",
   },
 };
 
@@ -113,8 +113,8 @@ export const FAVICON_FOLDER = "/_static/favicons";
 export const GOOGLE_FAVICON_URL =
   "https://www.google.com/s2/favicons?sz=64&domain_url=";
 
-export const DUB_LOGO = "https://d2vwwcvoksz7ty.cloudfront.net/logo.png";
-export const DUB_THUMBNAIL =
+export const _7QR_LOGO = "https://d2vwwcvoksz7ty.cloudfront.net/logo.png";
+export const _7QR_THUMBNAIL =
   "https://d2vwwcvoksz7ty.cloudfront.net/thumbnail.png";
 
 export const SHOW_BACKGROUND_SEGMENTS = [
@@ -179,7 +179,7 @@ export const DEFAULT_LINK_PROPS: LinkProps = {
   proxy: false,
 };
 
-export const DUB_PROJECT_ID = "cl7pj5kq4006835rbjlt2ofka";
+export const _7QR_PROJECT_ID = "cl7pj5kq4006835rbjlt2ofka";
 
 export const SAML_PROVIDERS = [
   {

@@ -154,7 +154,7 @@ const Form = () => {
           // replace http://7qr.sh/ or https://7qr.sh/ with nothing
           const pastedText = e.clipboardData
             .getData("text")
-            .replace(/https?:\/\/dub\.sh\//, "");
+            .replace(/https?:\/\/7qr\.sh\//, "");
           e.currentTarget.value = pastedText;
 
           // Prevent the default paste behavior

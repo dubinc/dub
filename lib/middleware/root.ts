@@ -2,7 +2,7 @@ import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 import { redis } from "#/lib/upstash";
 import { recordClick } from "#/lib/tinybird";
 import { parse } from "./utils";
-import { DUB_HEADERS } from "#/lib/constants";
+import { _7QR_HEADERS } from "#/lib/constants";
 
 export default async function RootMiddleware(
   req: NextRequest,
@@ -34,14 +34,14 @@ export default async function RootMiddleware(
         // are not. TODO: standardize this in the future.
         return NextResponse.rewrite(
           new URL(`/rewrite/${encodeURIComponent(target)}`, req.url),
-          DUB_HEADERS,
+          _7QR_HEADERS,
         );
       } else {
         // if link is not iframeable, use Next.js rewrite instead
-        return NextResponse.rewrite(target, DUB_HEADERS);
+        return NextResponse.rewrite(target, _7QR_HEADERS);
       }
     } else {
-      return NextResponse.redirect(target, DUB_HEADERS);
+      return NextResponse.redirect(target, _7QR_HEADERS);
     }
   } else {
     // rewrite to root page unless the user defines a site to redirect to

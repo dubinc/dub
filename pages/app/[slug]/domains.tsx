@@ -27,7 +27,7 @@ export default function ProjectDomains() {
               <InfoTooltip
                 content={
                   <TooltipContent
-                    title="Learn more about how to add, configure, and verify custom domains on Dub."
+                    title="Learn more about how to add, configure, and verify custom domains on 7qr."
                     href={`${HOME_DOMAIN}/help/article/how-to-add-custom-domain`}
                     target="_blank"
                     cta="Learn more"

@@ -12,13 +12,13 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import { DUB_LOGO } from "../lib/constants";
+import { _7QR_LOGO } from "../lib/constants";
 import Footer from "./components/footer";
 
 export default function InvalidDomain({
   email = "panic@thedis.co",
   domain = "7qr.sh",
-  projectSlug = "dub",
+  projectSlug = "7qr",
   invalidDays = 14,
 }: {
   email: string;
@@ -35,10 +35,10 @@ export default function InvalidDomain({
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
             <Section className="mt-8">
               <Img
-                src={DUB_LOGO}
+                src={_7QR_LOGO}
                 width="40"
                 height="40"
-                alt="Dub"
+                alt="7qr"
                 className="mx-auto my-0"
               />
             </Section>
@@ -47,7 +47,7 @@ export default function InvalidDomain({
             </Heading>
             <Text className="text-sm leading-6 text-black">
               Your domain <code className="text-purple-600">{domain}</code> for
-              your Dub project{" "}
+              your 7qr project{" "}
               <Link
                 href={`https://app.7qr.codes/${projectSlug}`}
                 className="font-medium text-blue-600 no-underline"
@@ -58,7 +58,7 @@ export default function InvalidDomain({
             </Text>
             <Text className="text-sm leading-6 text-black">
               If your domain remains unconfigured for 30 days, it will be
-              automatically deleted from Dub. Please click the link below to
+              automatically deleted from 7qr. Please click the link below to
               configure your domain.
             </Text>
             <Section className="my-8 text-center">
@@ -70,7 +70,7 @@ export default function InvalidDomain({
               </Link>
             </Section>
             <Text className="text-sm leading-6 text-black">
-              If you do not want to keep this domain on Dub, you can{" "}
+              If you do not want to keep this domain on 7qr, you can{" "}
               <Link
                 href={`https://app.7qr.codes/${projectSlug}/domains`}
                 className="font-medium text-blue-600 no-underline"

@@ -15,7 +15,7 @@ import {
   Text,
 } from "@react-email/components";
 import { Link2, MousePointerClick } from "lucide-react";
-import { DUB_LOGO } from "../lib/constants";
+import { _7QR_LOGO } from "../lib/constants";
 import { nFormatter, truncate } from "../lib/utils";
 import Footer from "./components/footer";
 
@@ -61,24 +61,24 @@ export default function ClicksSummary({
   return (
     <Html>
       <Head />
-      <Preview>Your 30-day Dub summary for {projectName}</Preview>
+      <Preview>Your 30-day 7qr summary for {projectName}</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
             <Section className="mt-8">
               <Img
-                src={DUB_LOGO}
+                src={_7QR_LOGO}
                 width="40"
                 height="40"
-                alt="Dub"
+                alt="7qr"
                 className="mx-auto my-0"
               />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-center text-xl font-semibold text-black">
-              Your 30-day Dub summary for {projectName}
+              Your 30-day 7qr summary for {projectName}
             </Heading>
             <Text className="text-sm leading-6 text-black">
-              In the last 30 days, your Dub project,{" "}
+              In the last 30 days, your 7qr project,{" "}
               <strong>{projectName}</strong> received{" "}
               <strong>{nFormatter(totalClicks)} link clicks</strong>. You also
               created <strong>{createdLinks} new links</strong> during that

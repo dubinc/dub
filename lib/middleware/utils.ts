@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 export const parse = (req: NextRequest) => {
   let domain = req.headers.get("host") as string;
   domain = domain.replace("www.", ""); // remove www. from domain
-  if (domain === "dub.localhost:8888" || domain === "staging.7qr.sh") {
+  if (domain === "7qr.localhost:8888" || domain === "staging.7qr.sh") {
     // for local development and staging environments
     domain = "7qr.sh";
   }
@@ -80,7 +80,7 @@ export const isIframeable = async ({
 }) => {
   const res = await fetch(url, {
     headers: {
-      "User-Agent": "dub-bot/1.0",
+      "User-Agent": "7qr-bot/1.0",
     },
   });
 

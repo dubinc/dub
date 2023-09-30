@@ -4,7 +4,7 @@ import ImpersonateProject from "./components/impersonate-project";
 import BanUser from "./components/ban";
 
 export const metadata = constructMetadata({
-  title: "Dub Admin",
+  title: "7qr Admin",
   noIndex: true,
 });
 
@@ -26,7 +26,7 @@ export default function AdminPage() {
       <div className="flex flex-col space-y-4 px-5 py-10">
         <h2 className="text-xl font-semibold">Ban Users</h2>
         <p className="text-sm text-gray-500">
-          Ban users from Dub. This will prevent them from logging in.
+          Ban users from 7qr. This will prevent them from logging in.
         </p>
         <BanUser />
       </div>

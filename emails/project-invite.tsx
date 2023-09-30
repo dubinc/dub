@@ -11,7 +11,7 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import { DUB_LOGO } from "../lib/constants";
+import { _7QR_LOGO } from "../lib/constants";
 import Footer from "./components/footer";
 
 export default function ProjectInvite({
@@ -30,21 +30,21 @@ export default function ProjectInvite({
   return (
     <Html>
       <Head />
-      <Preview>Join {projectName} on Dub</Preview>
+      <Preview>Join {projectName} on 7qr</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
             <Section className="mt-8">
               <Img
-                src={DUB_LOGO}
+                src={_7QR_LOGO}
                 width="40"
                 height="40"
-                alt="Dub"
+                alt="7qr"
                 className="mx-auto my-0"
               />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-center text-xl font-semibold text-black">
-              Join {projectName} on Dub
+              Join {projectName} on 7qr
             </Heading>
             {projectUser && projectUserEmail ? (
               <Text className="text-sm leading-6 text-black">
@@ -56,12 +56,12 @@ export default function ProjectInvite({
                   {projectUserEmail}
                 </Link>
                 ) has invited you to join the <strong>{projectName}</strong>{" "}
-                project on Dub!
+                project on 7qr!
               </Text>
             ) : (
               <Text className="text-sm leading-6 text-black">
                 You have been invited to join the <strong>{projectName}</strong>{" "}
-                project on Dub!
+                project on 7qr!
               </Text>
             )}
             <Section className="mb-8 text-center">

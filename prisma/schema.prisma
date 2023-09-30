@@ -163,7 +163,7 @@ model Link {
   password  String? // password to access the link – also stored on Redis
 
   proxy       Boolean @default(false) // Proxy to use custom OG tags (stored on redis) – if false, will use OG tags from target url
-  title       String? // OG title for the link (e.g. Dub - Open-Source Bitly Alternative)
+  title       String? // OG title for the link (e.g. 7qr - Open-Source Bitly Alternative)
   description String? @db.VarChar(280) // OG description for the link (e.g. An open-source link management tool for modern marketing teams to create, share, and track short links.)
   image       String? @db.LongText // OG image for the link (e.g. https://7qr.sh/og-image.png)
 
@@ -171,7 +171,7 @@ model Link {
   utm_source   String? // UTM source for the link (e.g. youtube.com)
   utm_medium   String? // UTM medium for the link (e.g. social)
   utm_campaign String? // UTM campaign for the link (e.g. summer-sale)
-  utm_term     String? // UTM term for the link (e.g. dub)
+  utm_term     String? // UTM term for the link (e.g. 7qr)
   utm_content  String? // UTM content for the link (e.g. description)
 
   // Link cloaking/masking via rewrite

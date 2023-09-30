@@ -1,8 +1,8 @@
 "use client";
 /* 
   This Stats component lives in 3 different places:
-  1. Project link page, e.g. app.7qr.codes/dub/7qr.sh/github
-  2. Generic Dub.co link page, e.g. app.7qr.codes/links/steven
+  1. Project link page, e.g. app.7qr.codes/7qr/7qr.sh/github
+  2. Generic 7qr.codes link page, e.g. app.7qr.codes/links/steven
   3. Public stats page, e.g. 7qr.codes/stats/github, stey.me/stats/weathergpt
 
   We use the `useEndpoint()` hook to get the correct layout
@@ -81,7 +81,7 @@ export default function Stats({
       : "";
 
   const { basePath, domain, endpoint } = useMemo(() => {
-    // Project link page, e.g. app.7qr.codes/dub/7qr.sh/github
+    // Project link page, e.g. app.7qr.codes/7qr/7qr.sh/github
     if (slug && domainSlug && key) {
       return {
         basePath: `/${slug}/${domainSlug}/${key}`,
@@ -89,7 +89,7 @@ export default function Stats({
         endpoint: `/api/links/${key}/stats`,
       };
 
-      // Generic Dub.co link page, e.g. app.7qr.codes/links/steven
+      // Generic 7qr.codes link page, e.g. app.7qr.codes/links/steven
     } else if (key && pathname?.startsWith("/links")) {
       return {
         basePath: `/links/${key}`,

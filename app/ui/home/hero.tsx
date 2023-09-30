@@ -32,7 +32,7 @@ const Hero = () => {
         </span>
       </h1>
       <h2 className="mt-5 text-gray-600 sm:text-xl">
-        Dub is an open-source link management tool for modern marketing teams to
+        7qr is an open-source link management tool for modern marketing teams to
         create, share, and track short links.
       </h2>
 

@@ -14,7 +14,7 @@ export default function Changelog() {
           </span>
         </h2>
         <p className="mt-5 text-gray-600 sm:text-lg">
-          Check out our changelog to see what's new on Dub.
+          Check out our changelog to see what's new on 7qr.
         </p>
       </div>
       <ul className="mx-5 max-w-2xl md:mx-auto md:translate-x-28">

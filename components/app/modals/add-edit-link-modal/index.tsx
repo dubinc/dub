@@ -190,7 +190,7 @@ function AddEditLinkModal({
   }, [debouncedUrl, password, showAddEditLinkModal, proxy]);
 
   const logo = useMemo(() => {
-    // if the link is password protected, or if it's a new link and there's no URL yet, return the default Dub logo
+    // if the link is password protected, or if it's a new link and there's no URL yet, return the default 7qr logo
     // otherwise, get the favicon of the URL
     const url = password || !debouncedUrl ? null : debouncedUrl || props?.url;
 

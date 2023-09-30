@@ -2,7 +2,7 @@ import { addLink, getLinksForProject, processKey } from "#/lib/api/links";
 import { withLinksAuth } from "#/lib/auth";
 import { isBlacklistedDomain, isBlacklistedKey } from "#/lib/edge-config";
 import { getApexDomain, log } from "#/lib/utils";
-import { DUB_PROJECT_ID, GOOGLE_FAVICON_URL } from "#/lib/constants";
+import { _7QR_PROJECT_ID, GOOGLE_FAVICON_URL } from "#/lib/constants";
 
 export const config = {
   api: {
@@ -28,7 +28,7 @@ export default withLinksAuth(
           showArchived?: string;
         };
       const response = await getLinksForProject({
-        projectId: project?.id || DUB_PROJECT_ID,
+        projectId: project?.id || _7QR_PROJECT_ID,
         domain,
         tagId,
         search,
@@ -84,7 +84,7 @@ export default withLinksAuth(
         addLink({
           ...req.body,
           key,
-          projectId: project?.id || DUB_PROJECT_ID,
+          projectId: project?.id || _7QR_PROJECT_ID,
           userId: session.user.id,
         }),
         ...(!project

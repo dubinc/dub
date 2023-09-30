@@ -1,7 +1,7 @@
 ---
 title: Configuring SCIM Directory Sync with Okta
 updatedAt: 2023-08-16
-summary: For Dub Enterprise users, you can automatically provision and deprovision users from your Okta directory to Dub using SCIM Directory Sync.
+summary: For 7qr Enterprise users, you can automatically provision and deprovision users from your Okta directory to 7qr using SCIM Directory Sync.
 author: steventey
 categories:
   - saml-sso
@@ -13,10 +13,10 @@ excludeHeadingsFromSearch: true
 ---
 
 <Note variant="success">
-  This feature is only available on [Dub Enterprise](/pricing).
+  This feature is only available on [7qr Enterprise](/pricing).
 </Note>
 
-For Dub Enterprise users, you can automatically provision and deprovision users from your Okta directory to Dub using [SCIM Directory Sync](https://developer.okta.com/docs/concepts/scim/).
+For 7qr Enterprise users, you can automatically provision and deprovision users from your Okta directory to 7qr using [SCIM Directory Sync](https://developer.okta.com/docs/concepts/scim/).
 
 <Prerequisites>
 
@@ -24,12 +24,12 @@ Before you can configure SCIM Directory Sync, you need to create a SAML applicat
 
 </Prerequisites>
 
-## Step 1: Configure Directory Sync on Dub
+## Step 1: Configure Directory Sync on 7qr
 
-In your project dashboard on Dub, click on the **Settings** tab in the menu bar at the top. Then, click on the **Security** tab in the sidebar.
+In your project dashboard on 7qr, click on the **Settings** tab in the menu bar at the top. Then, click on the **Security** tab in the sidebar.
 
 <Image
-  alt="Directory Sync section on the Dub Dashboard"
+  alt="Directory Sync section on the 7qr Dashboard"
   src="https://d2vwwcvoksz7ty.cloudfront.net/help/scim-directory-sync.png"
   width={2576}
   height={1608}
@@ -49,7 +49,7 @@ Under the **Directory Sync** section, click on **Configure**. This will open up 
   hideCaption={true}
 />
 
-This will generate a Directory Sync connection for your Dub project, and return 2 values, which will be needed in Step 2:
+This will generate a Directory Sync connection for your 7qr project, and return 2 values, which will be needed in Step 2:
 
 1. **SCIM 2.0 Base URL**
 2. **OAuth Bearer Token**
@@ -64,7 +64,7 @@ This will generate a Directory Sync connection for your Dub project, and return 
 
 ## Step 2: Add Provisioning to SAML Application
 
-Go to the **General** tab of your existing Dub Okta SAML application that you want to enable SCIM provisioning for. Under **App Settings** click **Edit**.
+Go to the **General** tab of your existing 7qr Okta SAML application that you want to enable SCIM provisioning for. Under **App Settings** click **Edit**.
 
 <Image
   alt="General tab of Okta SAML application"
@@ -140,7 +140,7 @@ Check the following options, and click **Save**:
 
 ## Step 4: Assign Users
 
-Once you've configured Directory sync, you can assign users to Dub directly within Okta.
+Once you've configured Directory sync, you can assign users to 7qr directly within Okta.
 
 Click on the **Assignments** tab, and click **Assign**. You can choose to assign users individually, or assign them in bulk by group.
 
@@ -172,7 +172,7 @@ In the next screen, scroll to the bottom and click **Save and Go Back**.
   hideCaption={true}
 />
 
-Your assigned users should now receive an invitation email to join your Dub project.
+Your assigned users should now receive an invitation email to join your 7qr project.
 
 <Image
   alt="SAML invite email"
@@ -182,4 +182,4 @@ Your assigned users should now receive an invitation email to join your Dub proj
   hideCaption={true}
 />
 
-They will also be able to sign in to Dub using Okta SSO.
+They will also be able to sign in to 7qr using Okta SSO.

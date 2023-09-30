@@ -2,7 +2,7 @@
 import { deleteUserLinks } from "#/lib/api/links";
 import { deleteProject } from "#/lib/api/project";
 import { hashToken } from "#/lib/auth";
-import { DUB_PROJECT_ID } from "#/lib/constants";
+import { _7QR_PROJECT_ID } from "#/lib/constants";
 import prisma from "#/lib/prisma";
 import { getDomainWithoutWWW } from "#/lib/utils";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
@@ -18,7 +18,7 @@ async function isAdmin() {
       userId_projectId: {
         // @ts-ignore
         userId: session.user.id,
-        projectId: DUB_PROJECT_ID,
+        projectId: _7QR_PROJECT_ID,
       },
     },
   });

@@ -49,7 +49,7 @@ export default function Stats({ staticDomain }: { staticDomain?: string }) {
       : "";
 
   const { basePath, domain, endpoint } = useMemo(() => {
-    // Project link page, e.g. app.7qr.codes/dub/7qr.sh/github
+    // Project link page, e.g. app.7qr.codes/7qr/7qr.sh/github
     if (slug && domainSlug && key) {
       return {
         // for _root domain stats page (e.g. app.7qr.codes/steven/stey.me), we don't want to show the key in the URL
@@ -60,7 +60,7 @@ export default function Stats({ staticDomain }: { staticDomain?: string }) {
         endpoint: `/api/links/${encodeURIComponent(key)}/stats`,
       };
 
-      // Generic Dub.sh link page, e.g. app.7qr.codes/links/steven
+      // Generic 7qr.sh link page, e.g. app.7qr.codes/links/steven
     } else if (key && router.asPath.startsWith("/links")) {
       return {
         basePath: `/links/${encodeURIComponent(key)}`,

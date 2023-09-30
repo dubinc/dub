@@ -82,7 +82,7 @@ const SAMLSection = ({
             <h2 className="text-xl font-medium">SAML Single Sign-On</h2>
             <p className="text-sm text-gray-500">
               Set up SAML Single Sign-On (SSO) to allow your team to sign in to
-              Dub with your identity provider.
+              7qr with your identity provider.
             </p>
           </div>
 

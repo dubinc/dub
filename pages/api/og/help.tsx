@@ -24,7 +24,7 @@ export default async function (req: NextRequest) {
   const { searchParams } = new URL(req.url);
 
   const title = searchParams.get("title") || "Help Center";
-  const summary = searchParams.get("summary") || "Learn how to use Dub";
+  const summary = searchParams.get("summary") || "Learn how to use 7qr";
 
   return new ImageResponse(
     (

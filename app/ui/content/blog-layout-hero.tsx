@@ -25,7 +25,7 @@ export default function BlogLayoutHero() {
             {data?.title || "Blog"}
           </h1>
           <p className="mt-4 text-xl text-gray-500">
-            {data?.description || "Latest news and updates from Dub."}
+            {data?.description || "Latest news and updates from 7qr."}
           </p>
           <nav className="mt-6 hidden w-fit items-center space-x-2 rounded-full border border-gray-200 bg-white p-2 md:flex">
             <CategoryLink title="Overview" href="/blog" active={!slug} />

@@ -12,7 +12,7 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import { DUB_LOGO, DUB_THUMBNAIL } from "../lib/constants";
+import { _7QR_LOGO, _7QR_THUMBNAIL } from "../lib/constants";
 import Footer from "./components/footer";
 
 export default function WelcomeEmail({
@@ -25,30 +25,30 @@ export default function WelcomeEmail({
   return (
     <Html>
       <Head />
-      <Preview>Welcome to Dub</Preview>
+      <Preview>Welcome to 7qr</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
             <Section className="mt-8">
               <Img
-                src={DUB_LOGO}
+                src={_7QR_LOGO}
                 width="40"
                 height="40"
-                alt="Dub"
+                alt="7qr"
                 className="mx-auto my-0"
               />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-center text-xl font-semibold text-black">
-              Welcome to Dub
+              Welcome to 7qr
             </Heading>
             <Section className="my-8">
-              <Img src={DUB_THUMBNAIL} alt="Dub" className="max-w-[500px]" />
+              <Img src={_7QR_THUMBNAIL} alt="7qr" className="max-w-[500px]" />
             </Section>
             <Text className="text-sm leading-6 text-black">
               Thanks for signing up{name && `, ${name}`}!
             </Text>
             <Text className="text-sm leading-6 text-black">
-              My name is Steven, and I'm the founder of Dub - the link
+              My name is Steven, and I'm the founder of 7qr - the link
               management tool for modern marketing teams. I'm excited to have
               you on board!
             </Text>
@@ -61,7 +61,7 @@ export default function WelcomeEmail({
                 href="https://app.7qr.codes/links"
                 className="font-medium text-blue-600 no-underline"
               >
-                Dub.sh short link
+                7qr.sh short link
               </Link>
             </Text>
             <Text className="ml-1 text-sm leading-4 text-black">
@@ -88,7 +88,7 @@ export default function WelcomeEmail({
               happy to help!
             </Text>
             <Text className="text-sm font-light leading-6 text-gray-400">
-              Steven from Dub
+              Steven from 7qr
             </Text>
 
             <Footer email={email} marketing />

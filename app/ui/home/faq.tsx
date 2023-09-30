@@ -16,15 +16,15 @@ const faqs = [
   },
   {
     question: "Can I use the free plan for commercial purposes?",
-    answer: `Yes, absolutely! We want to make sure that everyone can use Dub for free, whether it's for personal or commercial use. However, we do have a fair use policy in place to prevent abuse. If you exceed the fair use policy, we may ask you to upgrade to the Pro plan.`,
+    answer: `Yes, absolutely! We want to make sure that everyone can use 7qr for free, whether it's for personal or commercial use. However, we do have a fair use policy in place to prevent abuse. If you exceed the fair use policy, we may ask you to upgrade to the Pro plan.`,
   },
   {
     question: "Can I cancel my subscription at any time?",
-    answer: `Yes, you can cancel your subscription at any time. If you cancel your subscription, you will still be able to use Dub until the end of your billing period. After that, you will be downgraded to the free plan.`,
+    answer: `Yes, you can cancel your subscription at any time. If you cancel your subscription, you will still be able to use 7qr until the end of your billing period. After that, you will be downgraded to the free plan.`,
   },
   {
     question: "Do you offer refunds?",
-    answer: `We currently do not offer refunds. However, you can cancel your subscription at any time, after which you won't be charged again. We are constantly working on improving Dub, so this might change in the future.`,
+    answer: `We currently do not offer refunds. However, you can cancel your subscription at any time, after which you won't be charged again. We are constantly working on improving 7qr, so this might change in the future.`,
   },
 ];
 

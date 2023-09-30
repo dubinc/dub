@@ -58,7 +58,7 @@ export default async function handler() {
             Changelog
           </h1>
           <p tw="text-lg text-gray-500">
-            All the latest updates, improvements, and fixes to Dub.
+            All the latest updates, improvements, and fixes to 7qr.
           </p>
         </div>
         <div tw="flex w-full pt-10 pl-28">

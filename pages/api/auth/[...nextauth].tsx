@@ -22,7 +22,7 @@ export const authOptions: NextAuthOptions = {
         } else {
           sendEmail({
             email: identifier,
-            subject: "Your Dub Login Link",
+            subject: "Your 7qr Login Link",
             react: LoginLink({ url, email: identifier }),
           });
         }
@@ -57,7 +57,7 @@ export const authOptions: NextAuthOptions = {
           where: { email: profile.email },
         });
 
-        // user is authorized but doesn't have a Dub account, create one for them
+        // user is authorized but doesn't have a 7qr account, create one for them
         if (!existingUser) {
           existingUser = await prisma.user.create({
             data: {
@@ -127,7 +127,7 @@ export const authOptions: NextAuthOptions = {
           where: { email: userInfo.email },
         });
 
-        // user is authorized but doesn't have a Dub account, create one for them
+        // user is authorized but doesn't have a 7qr account, create one for them
         if (!existingUser) {
           existingUser = await prisma.user.create({
             data: {
@@ -196,7 +196,7 @@ export const authOptions: NextAuthOptions = {
           });
         }
         
-        // user is authorized but doesn't have a Dub account, create one for them
+        // user is authorized but doesn't have a 7qr account, create one for them
         if (!userExists) {
           userExists = await prisma.user.create({
             data: {
@@ -310,7 +310,7 @@ export const authOptions: NextAuthOptions = {
           new Date(user.createdAt).getTime() > Date.now() - 10000
         ) {
           sendEmail({
-            subject: "Welcome to Dub.co!",
+            subject: "Welcome to 7qr.codes!",
             email,
             react: WelcomeEmail({
               email,

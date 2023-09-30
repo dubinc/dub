@@ -15,7 +15,7 @@ export default function DeviceIcon({
     return (
       <img
         alt={display}
-        src={`https://avatars.dicebear.com/api/bottts/dub.svg`}
+        src={`https://avatars.dicebear.com/api/bottts/7qr.svg`}
         className={className}
       />
     );

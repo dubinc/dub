@@ -31,7 +31,7 @@ const TabsHelper = (router: NextRouter): { name: string; href: string }[] => {
   // home page (e.g. app.7qr.codes, app.7qr.codes/settings)
   return [
     { name: "Projects", href: `/` },
-    { name: "Dub.sh Links", href: `/links` },
+    { name: "7qr.sh Links", href: `/links` },
     { name: "Settings", href: `/settings` },
   ];
 };

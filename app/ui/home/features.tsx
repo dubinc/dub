@@ -33,7 +33,7 @@ export default function Features() {
             marketing teams
           </h2>
           <p className="mt-5 text-gray-600 sm:text-lg">
-            Dub is more than just a link shortener. We've built a suite of
+            7qr is more than just a link shortener. We've built a suite of
             powerful features that gives you marketing superpowers.
           </p>
         </div>

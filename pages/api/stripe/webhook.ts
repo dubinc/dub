@@ -129,7 +129,7 @@ export default async function webhookHandler(
 
             await sendEmail({
               email: owner.email as string,
-              subject: `Thank you for upgrading to Dub ${plan.name}!`,
+              subject: `Thank you for upgrading to 7qr ${plan.name}!`,
               react: UpgradeEmail({
                 name: owner.name,
                 email: owner.email as string,

@@ -256,7 +256,7 @@ export default function OGSection({
                 minRows={3}
                 maxLength={120}
                 className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-                placeholder="Dub - Open Source Bitly Alternative"
+                placeholder="7qr - Open Source Bitly Alternative"
                 value={title || ""}
                 onChange={(e) => {
                   setData({ ...data, title: e.target.value });
@@ -287,7 +287,7 @@ export default function OGSection({
                 minRows={3}
                 maxLength={240}
                 className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-                placeholder="Dub is open-source link management tool for modern marketing teams to create, share, and track short links."
+                placeholder="7qr is open-source link management tool for modern marketing teams to create, share, and track short links."
                 value={description || ""}
                 onChange={(e) => {
                   setData({

@@ -1,7 +1,7 @@
 ---
-title: Using Cloudflare domains with Dub
+title: Using Cloudflare domains with 7qr
 updatedAt: 2023-08-03
-summary: Learn how to use Cloudflare domains for your Dub project
+summary: Learn how to use Cloudflare domains for your 7qr project
 author: steventey
 categories:
   - custom-domains
@@ -10,10 +10,10 @@ related:
   - how-to-redirect-root-domain
 ---
 
-If you're using a domain on Cloudflare for your Dub project, you might need to configure a few extra steps to make sure that your domain works properly.
+If you're using a domain on Cloudflare for your 7qr project, you might need to configure a few extra steps to make sure that your domain works properly.
 
 <Prerequisites>
-  If you haven't already, you'll need to add your domain to your Dub project.
+  If you haven't already, you'll need to add your domain to your 7qr project.
   You can learn how to do that [here](how-to-add-custom-domain).
 </Prerequisites>
 
@@ -41,11 +41,11 @@ You can do that by following these steps:
   height={1088}
 />
 
-This will make sure that the traffic to your domain is always encrypted between Cloudflare and Dub. You can learn more about Cloudflare's SSL/TLS encryption modes [here](https://developers.cloudflare.com/ssl/origin-configuration/ssl-modes/).
+This will make sure that the traffic to your domain is always encrypted between Cloudflare and 7qr. You can learn more about Cloudflare's SSL/TLS encryption modes [here](https://developers.cloudflare.com/ssl/origin-configuration/ssl-modes/).
 
 ## Using Cloudflare's DNS only (without proxy)
 
-If you're only using Cloudflare's DNS for your custom domain, all you need to do is [set your domain's DNS records](how-to-add-custom-domain#step-2-configure-your-domain) to point to Dub's servers and make sure that you're using the **DNS only** option on Cloudflare.
+If you're only using Cloudflare's DNS for your custom domain, all you need to do is [set your domain's DNS records](how-to-add-custom-domain#step-2-configure-your-domain) to point to 7qr's servers and make sure that you're using the **DNS only** option on Cloudflare.
 
 <Image
   alt={`Set your domain's Proxy status to "DNS only" on Cloudflare (greyed out cloud icon)`}
@@ -54,4 +54,4 @@ If you're only using Cloudflare's DNS for your custom domain, all you need to do
   height={372}
 />
 
-This will make sure that the traffic to your domain is _not proxied through Cloudflare_ and is sent directly to Dub. You can learn more about Cloudflare's proxy options [here](https://support.cloudflare.com/hc/en-us/articles/200169626-Identifying-network-ports-compatible-with-Cloudflare-s-proxy).
+This will make sure that the traffic to your domain is _not proxied through Cloudflare_ and is sent directly to 7qr. You can learn more about Cloudflare's proxy options [here](https://support.cloudflare.com/hc/en-us/articles/200169626-Identifying-network-ports-compatible-with-Cloudflare-s-proxy).

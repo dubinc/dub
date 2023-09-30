@@ -15,7 +15,7 @@ export default function ProjectSettingsGeneral() {
     <SettingsLayout>
       <Form
         title="Project Name"
-        description="This is the name of your project on Dub."
+        description="This is the name of your project on 7qr."
         inputData={{
           name: "name",
           defaultValue: name,
@@ -52,7 +52,7 @@ export default function ProjectSettingsGeneral() {
       />
       <Form
         title="Project Slug"
-        description="This is your project's unique slug on Dub."
+        description="This is your project's unique slug on 7qr."
         inputData={{
           name: "slug",
           defaultValue: slug,

@@ -6,7 +6,7 @@ import { constructMetadata } from "#/lib/utils";
 import { HOME_DOMAIN } from "#/lib/constants";
 
 export const metadata = constructMetadata({
-  title: "Sign in to Dub",
+  title: "Sign in to 7qr",
 });
 
 export default function LoginPage() {
@@ -23,7 +23,7 @@ export default function LoginPage() {
         <a href={HOME_DOMAIN}>
           <Logo className="h-10 w-10" />
         </a>
-        <h3 className="text-xl font-semibold">Sign in to Dub</h3>
+        <h3 className="text-xl font-semibold">Sign in to 7qr</h3>
         <p className="text-sm text-gray-500">
           Start creating short links with superpowers.
         </p>

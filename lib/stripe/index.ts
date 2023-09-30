@@ -5,7 +5,7 @@ export const stripe = new Stripe(
   {
     apiVersion: "2023-08-16",
     appInfo: {
-      name: "Dub.co",
+      name: "7qr.codes",
       version: "0.1.0",
     },
   },
@@ -24,7 +24,7 @@ export async function cancelSubscription(customer?: string) {
     return await stripe.subscriptions.update(subscriptionId, {
       cancel_at_period_end: true,
       cancellation_details: {
-        comment: "Customer deleted their Dub project.",
+        comment: "Customer deleted their 7qr project.",
       },
     });
   } catch (error) {

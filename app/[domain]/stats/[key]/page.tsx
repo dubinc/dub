@@ -19,7 +19,7 @@ export async function generateMetadata({
   }
 
   return constructMetadata({
-    title: `Stats for ${params.domain}/${params.key} – Dub`,
+    title: `Stats for ${params.domain}/${params.key} – 7qr`,
     description: `Stats page for ${params.domain}/${params.key}${
       data?.url ? `, which redirects to ${data.url}` : ""
     }.`,
