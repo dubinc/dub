@@ -216,18 +216,6 @@ export default async function handler(): Promise<
           summary: "Delete a link",
           parameters: [
             {
-              name: "slug",
-              description:
-                "The slug for the project to retrieve links for. E.g. for app.dub.co/vercel, the slug is 'vercel'.",
-              in: "query",
-              required: true,
-              schema: {
-                description:
-                  "The slug for the project to retrieve links for. E.g. for app.dub.co/vercel, the slug is 'vercel'.",
-                type: "string",
-              },
-            },
-            {
               name: "key",
               description:
                 "The key of the link to delete. E.g. for dub.sh/github, the key is 'github'.",
@@ -248,6 +236,18 @@ export default async function handler(): Promise<
               schema: {
                 description:
                   "The domain of the link to delete. E.g. for dub.sh/github, the domain is 'dub.sh'.",
+                type: "string",
+              },
+            },
+            {
+              name: "slug",
+              description:
+                "The project slug of the link to delete. E.g. for app.dub.co/vercel, the slug is 'vercel'.",
+              in: "query",
+              required: true,
+              schema: {
+                description:
+                  "The project slug of the link to delete. E.g. for app.dub.co/vercel, the slug is 'vercel'.",
                 type: "string",
               },
             },
