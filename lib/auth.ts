@@ -299,6 +299,14 @@ const withLinksAuth =
       if (!success) {
         return res.status(429).end("Too many requests.");
       }
+      await prisma.token.update({
+        where: {
+          hashedKey,
+        },
+        data: {
+          lastUsed: new Date(),
+        },
+      });
       session = {
         user: {
           id: user.id,

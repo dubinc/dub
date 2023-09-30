@@ -100,9 +100,7 @@ export default withLinksAuth(
       // DELETE /api/links/:key – delete a link
     } else if (req.method === "DELETE") {
       const response = await deleteLink(domain || "dub.sh", oldKey);
-      return res.status(200).json({
-        message: `Link deleted.`,
-      });
+      return res.status(200).json(response[0]);
     } else {
       res.setHeader("Allow", ["GET", "PUT", "DELETE"]);
       return res.status(405).end(`Method ${req.method} Not Allowed`);

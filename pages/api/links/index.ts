@@ -22,7 +22,7 @@ export default withLinksAuth(
           domain?: string;
           tagId?: string;
           search?: string;
-          sort?: "createdAt" | "clicks";
+          sort?: "createdAt" | "clicks" | "lastClicked";
           page?: string;
           userId?: string;
           showArchived?: string;
