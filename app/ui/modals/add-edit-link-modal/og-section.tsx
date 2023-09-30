@@ -60,7 +60,7 @@ export default function OGSection({
       // if custom OG is enabled
       setData((prev) => ({
         ...prev,
-        title: props.title || title,
+        title: props?.title || title,
         description: props.description || description,
         image: props.image || image,
       }));

@@ -45,7 +45,7 @@ export async function inviteUser({
   });
 
   const params = new URLSearchParams({
-    callbackUrl: `${process.env.NEXTAUTH_URL}/${project.slug}`,
+    callbackUrl: `${process.env.NEXTAUTH_URL}/${project?.slug}`,
     email,
     token,
   });

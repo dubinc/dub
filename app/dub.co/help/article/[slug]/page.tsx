@@ -10,14 +10,13 @@ import { MDX } from "#/ui/content/mdx";
 import TableOfContents from "#/ui/content/table-of-contents";
 import Feedback from "#/ui/content/feedback";
 import HelpArticleLink from "#/ui/content/help-article-link";
-import { getBlurDataURL } from "#/lib/images";
 import { Metadata } from "next";
 import { constructMetadata } from "#/lib/utils";
 import { getAndCacheTweet } from "#/lib/twitter";
 
 export async function generateStaticParams() {
   return allHelpPosts.map((post) => ({
-    slug: post.slug,
+    slug: post?.slug,
   }));
 }
 
@@ -26,7 +25,7 @@ export async function generateMetadata({
 }: {
   params: { slug: string };
 }): Promise<Metadata | undefined> {
-  const post = allHelpPosts.find((post) => post.slug === params.slug);
+  const post = allHelpPosts.find((post) => post?.slug === params?.slug);
   if (!post) {
     return;
   }
@@ -49,19 +48,18 @@ export default async function HelpArticle({
     slug: string;
   };
 }) {
-  const data = allHelpPosts.find((post) => post.slug === params.slug);
+  const data = allHelpPosts.find((post) => post?.slug === params?.slug);
   if (!data) {
     notFound();
   }
   const category = HELP_CATEGORIES.find(
-    (category) => data.categories[0] === category.slug,
+    (category) => data.categories[0] === category?.slug,
   )!;
 
   const [images, tweets] = await Promise.all([
     await Promise.all(
       data.images.map(async (src: string) => ({
-        src,
-        blurDataURL: await getBlurDataURL(src),
+        src
       })),
     ),
     await Promise.all(
@@ -72,7 +70,7 @@ export default async function HelpArticle({
   const relatedArticles =
     ((data.related &&
       data.related
-        .map((slug) => allHelpPosts.find((post) => post.slug === slug))
+        .map((slug) => allHelpPosts.find((post) => post?.slug === slug))
         .filter(Boolean)) as HelpPost[]) || [];
 
   return (
@@ -93,26 +91,26 @@ export default async function HelpArticle({
               </Link>
               <ChevronRight className="h-4 w-4 text-gray-400" />
               <Link
-                href={`/help/category/${category.slug}`}
+                href={`/help/category/${category?.slug}`}
                 className="whitespace-nowrap text-sm font-medium text-gray-500 hover:text-gray-800"
               >
-                {category.title}
+                {category?.title}
               </Link>
               <ChevronRight className="h-4 w-4 text-gray-400" />
               <Link
-                href={`/help/article/${data.slug}`}
+                href={`/help/article/${data?.slug}`}
                 className="truncate text-sm font-medium text-gray-500 hover:text-gray-800"
               >
-                {data.title}
+                {data?.title}
               </Link>
             </div>
             <div className="flex flex-col space-y-4">
-              <Link href={`/help/article/${data.slug}`}>
+              <Link href={`/help/article/${data?.slug}`}>
                 <h1 className="font-display text-3xl font-bold !leading-snug sm:text-4xl">
-                  {data.title}
+                  {data?.title}
                 </h1>
               </Link>
-              <p className="text-gray-500">{data.summary}</p>
+              <p className="text-gray-500">{data?.summary}</p>
               <Author username={data.author} updatedAt={data.updatedAt} />
             </div>
             <MDX code={data.body.code} images={images} tweets={tweets} />
@@ -123,7 +121,7 @@ export default async function HelpArticle({
                 </h2>
                 <div className="grid gap-2 rounded-xl border border-gray-200 bg-white p-4">
                   {relatedArticles.map((article) => (
-                    <HelpArticleLink key={article.slug} article={article} />
+                    <HelpArticleLink key={article?.slug} article={article} />
                   ))}
                 </div>
               </div>
@@ -136,7 +134,7 @@ export default async function HelpArticle({
             )}
             <div className="flex justify-center pt-5">
               <Link
-                href={`https://github.com/steven-tey/dub/blob/main/content/help/${params.slug}.mdx`}
+                href={`https://github.com/steven-tey/dub/blob/main/content/help/${params?.slug}.mdx`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs text-gray-500 transition-colors hover:text-gray-800"

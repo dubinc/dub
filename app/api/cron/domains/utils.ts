@@ -71,7 +71,7 @@ export const handleDomainUpdates = async ({
     });
     return;
   }
-  const projectSlug = project.slug;
+  const projectSlug = project?.slug;
   const sentEmails = project.sentEmails.map((email) => email.type);
   const emails = project.users.map((user) => user.user.email) as string[];
 
@@ -122,7 +122,7 @@ export const handleDomainUpdates = async ({
           if (!anotherDomain) return;
           return prisma.domain.update({
             where: {
-              slug: anotherDomain.slug,
+              slug: anotherDomain?.slug,
             },
             data: {
               primary: true,

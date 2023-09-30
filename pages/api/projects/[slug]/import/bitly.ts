@@ -59,7 +59,7 @@ export default withProjectAuth(async (req, res, project) => {
     // check if there are domains that are not in the project
     // if yes, add them to the project
     const domainsNotInProject = selectedDomains.filter(
-      ({ domain }) => !project.domains?.find((d) => d.slug === domain),
+      ({ domain }) => !project.domains?.find((d) => d?.slug === domain),
     );
     if (domainsNotInProject.length > 0) {
       await Promise.allSettled([

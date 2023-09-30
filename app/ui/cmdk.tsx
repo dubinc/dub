@@ -83,13 +83,13 @@ const CommandResults = ({
 }) => {
   const router = useRouter();
   const popularArticles = POPULAR_ARTICLES.map(
-    (slug) => allHelpPosts.find((post) => post.slug === slug)!,
-  );
+    (slug) => allHelpPosts.find((post) => post?.slug === slug)!,
+  ).filter(p => !!p);
 
   const allItems = [
     ...allHelpPosts.map((post) => ({
       ...post,
-      description: post.summary,
+      description: post?.summary,
     })),
     // get all table of contents headings too
     ...allHelpPosts.flatMap((post) => {
@@ -98,10 +98,10 @@ const CommandResults = ({
       }
       return post.tableOfContents.map(
         (toc: { title: string; slug: string }) => ({
-          slug: `${post.slug}#${toc.slug}`,
-          title: toc.title,
+          slug: `${post?.slug}#${toc?.slug}`,
+          title: toc?.title,
           description: null, // omit description since we don't want to search it
-          summary: `In: "${post.title}"`,
+          summary: `In: "${post?.title}"`,
         }),
       );
     }),

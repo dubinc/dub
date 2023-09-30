@@ -13,7 +13,7 @@ import { Check, List } from "lucide-react";
 export default function BlogLayoutHero() {
   const { slug } = useParams() as { slug?: string };
 
-  const data = BLOG_CATEGORIES.find((category) => category.slug === slug);
+  const data = BLOG_CATEGORIES.find((category) => category?.slug === slug);
 
   const [openPopover, setOpenPopover] = useState(false);
 
@@ -31,10 +31,10 @@ export default function BlogLayoutHero() {
             <CategoryLink title="Overview" href="/blog" active={!slug} />
             {BLOG_CATEGORIES.map((category) => (
               <CategoryLink
-                key={category.slug}
-                title={category.title}
-                href={`/blog/category/${category.slug}`}
-                active={category.slug === slug}
+                key={category?.slug}
+                title={category?.title}
+                href={`/blog/category/${category?.slug}`}
+                active={category?.slug === slug}
               />
             ))}
             <CategoryLink title="Customer Stories" href="/customers" />
@@ -54,10 +54,10 @@ export default function BlogLayoutHero() {
             />
             {BLOG_CATEGORIES.map((category) => (
               <CategoryLink
-                key={category.slug}
-                title={category.title}
-                href={`/blog/category/${category.slug}`}
-                active={category.slug === slug}
+                key={category?.slug}
+                title={category?.title}
+                href={`/blog/category/${category?.slug}`}
+                active={category?.slug === slug}
                 mobile
                 setOpenPopover={setOpenPopover}
               />

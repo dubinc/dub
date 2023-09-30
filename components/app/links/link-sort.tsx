@@ -26,7 +26,7 @@ export default function LinkSort() {
   const { sort } = router.query as { sort?: string };
 
   const selectedSort = useMemo(() => {
-    return sortOptions.find((s) => s.slug === sort) || sortOptions[0];
+    return sortOptions.find((s) => s?.slug === sort) || sortOptions[0];
   }, [sort]);
 
   return (
@@ -47,7 +47,7 @@ export default function LinkSort() {
                 }
                 const { slug: omit, ...finalQuery } = newQuery;
                 router.push({
-                  pathname: `/${router.query.slug || "links"}`,
+                  pathname: `/${router.query?.slug || "links"}`,
                   query: finalQuery,
                 });
                 setOpenPopover(false);
@@ -58,7 +58,7 @@ export default function LinkSort() {
                 text={display}
                 icon={<SortDesc className="h-4 w-4" />}
               />
-              {selectedSort.slug === slug && (
+              {selectedSort?.slug === slug && (
                 <Tick className="h-4 w-4" aria-hidden="true" />
               )}
             </button>

@@ -72,7 +72,7 @@ function ImportShortModal({
     // here, we omit the slug from the query string as well
     const { slug, ...finalQuery } = router.query;
     router.push({
-      pathname: `/${router.query.slug}`,
+      pathname: `/${router.query?.slug}`,
       query: finalQuery,
     });
   };

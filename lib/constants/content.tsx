@@ -99,7 +99,7 @@ export const HELP_CATEGORIES: {
 
 export const getPopularArticles = () => {
   return POPULAR_ARTICLES.map(
-    (slug) => allHelpPosts.find((post) => post.slug === slug)!,
+    (slug) => allHelpPosts.find((post) => post?.slug === slug)!,
   );
 };
 

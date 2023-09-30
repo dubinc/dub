@@ -10,7 +10,7 @@ export const metadata: Metadata = constructMetadata({
 });
 
 export default function Abuse() {
-  const post = allLegalPosts.find((post) => post.slug === "abuse")!;
+  const post = allLegalPosts.find((post) => post?.slug === "abuse")!;
   return (
     <>
       <Script src="https://tally.so/widgets/embed.js" strategy="lazyOnload" />

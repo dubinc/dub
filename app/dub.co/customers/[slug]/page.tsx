@@ -1,10 +1,9 @@
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
-import { allBlogPosts, allCustomersPosts } from "contentlayer/generated";
+import { allCustomersPosts } from "contentlayer/generated";
 import { notFound } from "next/navigation";
 import { MDX } from "#/ui/content/mdx";
-import { getBlurDataURL } from "#/lib/images";
 import { Metadata } from "next";
-import { cn, constructMetadata, formatDate, getApexDomain } from "#/lib/utils";
+import { cn, constructMetadata, getApexDomain } from "#/lib/utils";
 import BlurImage from "#/ui/blur-image";
 import { getAndCacheTweet } from "#/lib/twitter";
 import getRepos from "#/lib/github";
@@ -13,7 +12,7 @@ import CTA from "#/ui/home/cta";
 
 export async function generateStaticParams() {
   return allCustomersPosts.map((post) => ({
-    slug: post.slug,
+    slug: post?.slug,
   }));
 }
 
@@ -22,7 +21,7 @@ export async function generateMetadata({
 }: {
   params: { slug: string };
 }): Promise<Metadata | undefined> {
-  const post = allCustomersPosts.find((post) => post.slug === params.slug);
+  const post = allCustomersPosts.find((post) => post?.slug === params?.slug);
   if (!post) {
     return;
   }
@@ -43,17 +42,15 @@ export default async function CustomerStory({
     slug: string;
   };
 }) {
-  const data = allCustomersPosts.find((post) => post.slug === params.slug);
+  const data = allCustomersPosts.find((post) => post?.slug === params?.slug);
   if (!data) {
     notFound();
   }
 
-  const [thumbnailBlurhash, images, tweets, repos] = await Promise.all([
-    getBlurDataURL(data.image),
+  const [images, tweets, repos] = await Promise.all([
     await Promise.all(
       data.images.map(async (src: string) => ({
         src,
-        blurDataURL: await getBlurDataURL(src),
       })),
     ),
     await Promise.all(
@@ -73,9 +70,9 @@ export default async function CustomerStory({
             ← All Customers
           </Link>
           <h1 className="font-display text-3xl font-extrabold text-gray-700 [text-wrap:balance] sm:text-4xl sm:leading-snug">
-            {data.title}
+            {data?.title}
           </h1>
-          <p className="text-xl text-gray-500">{data.summary}</p>
+          <p className="text-xl text-gray-500">{data?.summary}</p>
         </div>
       </MaxWidthWrapper>
 
@@ -86,10 +83,9 @@ export default async function CustomerStory({
             <BlurImage
               className="aspect-[1200/630] rounded-t-xl object-cover"
               src={data.image}
-              blurDataURL={thumbnailBlurhash}
               width={1200}
               height={630}
-              alt={data.title}
+              alt={data?.title}
               priority // cause it's above the fold
             />
             <div className="grid grid-cols-2 gap-5 px-5 md:hidden">

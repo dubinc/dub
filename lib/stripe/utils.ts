@@ -35,7 +35,7 @@ export function isNewCustomer(
       const oldPriceId =
         previousAttributes?.items?.data &&
         previousAttributes?.items?.data[0].price.id;
-      if (oldPriceId && getPlanFromPriceId(oldPriceId).slug === "pro") {
+      if (oldPriceId && getPlanFromPriceId(oldPriceId)?.slug === "pro") {
         isNewCustomer = true;
       }
     }

@@ -10,18 +10,18 @@ export async function GET() {
         <link href="https://dub.co/"/>
         <updated>${new Date().toISOString()}</updated>
         <id>https://dub.co/</id>${[...allBlogPosts, ...allChangelogPosts]
-          .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+          .sort((a, b) => b?.publishedAt.localeCompare(a?.publishedAt))
           .map((post) => {
             return `
         <entry>
             <id>https://dub.co/${
               post.type === "BlogPost" ? "blog" : "changelog"
-            }/${post.slug}</id>
-            <title>${post.title}</title>
+            }/${post?.slug}</id>
+            <title>${post?.title}</title>
             <link href="https://dub.co/${
               post.type === "BlogPost" ? "blog" : "changelog"
-            }/${post.slug}"/>
-            <updated>${post.publishedAt}</updated>
+            }/${post?.slug}"/>
+            <updated>${post?.publishedAt}</updated>
             <author><name>${post.author}</name></author>
         </entry>`;
           })

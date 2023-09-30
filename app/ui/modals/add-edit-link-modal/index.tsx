@@ -162,7 +162,7 @@ function AddEditLinkModal({
             setData((prev) => ({
               ...prev,
               ...{
-                title: truncate(results.title, 120),
+                title: truncate(results?.title, 120),
                 description: truncate(results.description, 240),
                 image: results.image,
               },

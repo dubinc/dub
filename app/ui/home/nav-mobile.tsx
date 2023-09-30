@@ -57,11 +57,11 @@ export default function MobileNav() {
               <div className="grid gap-4 overflow-hidden py-4">
                 {FEATURES_LIST.map((feature) => (
                   <Link
-                    key={feature.slug}
+                    key={feature?.slug}
                     href={
                       domain === "dub.co"
-                        ? `/features/${feature.slug}`
-                        : `https://dub.co/features/${feature.slug}?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`
+                        ? `/features/${feature?.slug}`
+                        : `https://dub.co/features/${feature?.slug}?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`
                     }
                     onClick={() => setOpen(false)}
                     className="flex w-full space-x-2"

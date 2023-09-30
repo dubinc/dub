@@ -8,7 +8,7 @@ export default function LegalPage({ post }: { post: LegalPost }) {
     <div className="bg-gray-50">
       <div className="bg-white py-20 sm:py-40">
         <h1 className="mt-5 text-center font-display text-4xl font-extrabold leading-[1.15] text-black sm:text-6xl sm:leading-[1.15]">
-          {post.title}
+          {post?.title}
         </h1>
       </div>
       <MaxWidthWrapper className="flex max-w-screen-md flex-col items-center p-10 sm:pt-20">

@@ -92,8 +92,8 @@ const SAMLSection = ({
                 <div className="h-8 w-8 animate-pulse rounded-full bg-gray-100" />
               )}
               <div className="flex flex-col">
-                {data.title ? (
-                  <h3 className="font-medium">{data.title}</h3>
+                {data?.title ? (
+                  <h3 className="font-medium">{data?.title}</h3>
                 ) : (
                   <div className="h-5 w-20 animate-pulse rounded-md bg-gray-100" />
                 )}
@@ -240,8 +240,8 @@ const SCIMSection = ({
                 <div className="h-8 w-8 animate-pulse rounded-full bg-gray-100" />
               )}
               <div className="flex flex-col">
-                {data.title ? (
-                  <h3 className="font-medium">{data.title}</h3>
+                {data?.title ? (
+                  <h3 className="font-medium">{data?.title}</h3>
                 ) : (
                   <div className="h-5 w-20 animate-pulse rounded-md bg-gray-100" />
                 )}

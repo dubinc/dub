@@ -28,7 +28,7 @@ export default function Customers() {
         </div>
         <div className="grid grid-cols-2 gap-5 py-5 md:grid-cols-4">
           {customers.map((customer) => (
-            <Customer key={customer.slug} {...customer} />
+            <Customer key={customer?.slug} {...customer} />
           ))}
         </div>
       </MaxWidthWrapper>

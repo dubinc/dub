@@ -50,7 +50,7 @@ export default function Features() {
               }}
             >
               {FEATURES_LIST.map((feature) => (
-                <AccordionItem key={feature.slug} value={feature.slug}>
+                <AccordionItem key={feature?.slug} value={feature?.slug}>
                   <AccordionTrigger>
                     <div className="flex items-center space-x-3 p-3">
                       <feature.icon className="h-5 w-5 text-gray-500" />
@@ -65,7 +65,7 @@ export default function Features() {
                         {feature.description}
                       </p>
                       <Link
-                        href={`/features/${feature.slug}`}
+                        href={`/features/${feature?.slug}`}
                         className="block max-w-fit rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
                       >
                         Learn more
@@ -81,7 +81,7 @@ export default function Features() {
                   if (index === activeFeature) {
                     return (
                       <motion.div
-                        key={feature.slug}
+                        key={feature?.slug}
                         initial={{
                           y: 10,
                           opacity: 0,
@@ -110,13 +110,6 @@ export default function Features() {
                               />
                             </div>
                             <div className="flex rounded-full border border-gray-200 bg-white p-2 shadow-xl group-hover:shadow-2xl">
-                              <BlurImage
-                                src="https://d2vwwcvoksz7ty.cloudfront.net/author/steventey.jpg"
-                                alt="Steven Tey"
-                                width={36}
-                                height={36}
-                                className="h-10 w-10 rounded-full"
-                              />
                               <div className="ml-2 mr-4 flex flex-col text-left">
                                 <p className="text-sm font-medium text-gray-500">
                                   Watch Demo
@@ -130,12 +123,10 @@ export default function Features() {
                         </PlayButton>
                         <BlurImage
                           src={feature.thumbnail}
-                          placeholder="blur"
-                          blurDataURL={feature.thumbnailBlurhash}
-                          alt={feature.title}
+                          alt={feature?.title}
                           className={cn(
                             "absolute h-full object-cover",
-                            feature.slug === "branded-links" &&
+                            feature?.slug === "branded-links" &&
                               "object-left-top",
                           )}
                           width={1735}

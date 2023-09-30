@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Author from "#/ui/content/author";
 import { MDX } from "#/ui/content/mdx";
-import { getBlurDataURL } from "#/lib/images";
 import { Metadata } from "next";
 import { constructMetadata, formatDate } from "#/lib/utils";
 import BlurImage from "#/ui/blur-image";
@@ -15,7 +14,7 @@ import CTA from "#/ui/home/cta";
 
 export async function generateStaticParams() {
   return allBlogPosts.map((post) => ({
-    slug: post.slug,
+    slug: post?.slug,
   }));
 }
 
@@ -24,7 +23,7 @@ export async function generateMetadata({
 }: {
   params: { slug: string };
 }): Promise<Metadata | undefined> {
-  const post = allBlogPosts.find((post) => post.slug === params.slug);
+  const post = allBlogPosts.find((post) => post?.slug === params?.slug);
   if (!post) {
     return;
   }
@@ -45,17 +44,15 @@ export default async function BlogArticle({
     slug: string;
   };
 }) {
-  const data = allBlogPosts.find((post) => post.slug === params.slug);
+  const data = allBlogPosts.find((post) => post?.slug === params?.slug);
   if (!data) {
     notFound();
   }
 
-  const [thumbnailBlurhash, images, tweets, repos] = await Promise.all([
-    getBlurDataURL(data.image),
+  const [images, tweets, repos] = await Promise.all([
     await Promise.all(
       data.images.map(async (src: string) => ({
         src,
-        blurDataURL: await getBlurDataURL(src),
       })),
     ),
     await Promise.all(
@@ -65,13 +62,13 @@ export default async function BlogArticle({
   ]);
 
   const category = BLOG_CATEGORIES.find(
-    (category) => category.slug === data.categories[0],
+    (category) => category?.slug === data.categories[0],
   )!;
 
   const relatedArticles =
     (data.related &&
       data.related.map(
-        (slug) => allBlogPosts.find((post) => post.slug === slug)!,
+        (slug) => allBlogPosts.find((post) => post?.slug === slug)!,
       )) ||
     [];
 
@@ -81,22 +78,22 @@ export default async function BlogArticle({
         <div className="flex max-w-screen-sm flex-col space-y-4 pt-16">
           <div className="flex items-center space-x-4">
             <Link
-              href={`/blog/category/${category.slug}`}
+              href={`/blog/category/${category?.slug}`}
               className="rounded-full border border-gray-200 bg-white px-4 py-1.5 text-sm font-semibold text-gray-700 shadow-[inset_10px_-50px_94px_0_rgb(199,199,199,0.1)] backdrop-blur transition-all hover:border-gray-300 hover:bg-white/50"
             >
-              {category.title}
+              {category?.title}
             </Link>
             <time
-              dateTime={data.publishedAt}
+              dateTime={data?.publishedAt}
               className="text-sm text-gray-500 transition-colors hover:text-gray-800"
             >
-              {formatDate(data.publishedAt)}
+              {formatDate(data?.publishedAt)}
             </time>
           </div>
           <h1 className="font-display text-3xl font-extrabold text-gray-700 sm:text-4xl sm:leading-snug">
-            {data.title}
+            {data?.title}
           </h1>
-          <p className="text-xl text-gray-500">{data.summary}</p>
+          <p className="text-xl text-gray-500">{data?.summary}</p>
         </div>
       </MaxWidthWrapper>
 
@@ -107,10 +104,9 @@ export default async function BlogArticle({
             <BlurImage
               className="aspect-[1200/630] rounded-t-xl object-cover"
               src={data.image}
-              blurDataURL={thumbnailBlurhash}
               width={1200}
               height={630}
-              alt={data.title}
+              alt={data?.title}
               priority // cause it's above the fold
             />
             <MDX
@@ -131,19 +127,19 @@ export default async function BlogArticle({
                 <p className="text-sm text-gray-500">Read more</p>
                 <ul className="flex flex-col space-y-4">
                   {relatedArticles.map((post) => (
-                    <li key={post.slug}>
+                    <li key={post?.slug}>
                       <Link
-                        href={`/blog/${post.slug}`}
+                        href={`/blog/${post?.slug}`}
                         className="group flex flex-col space-y-2"
                       >
                         <p className="font-semibold text-gray-700 underline-offset-4 group-hover:underline">
-                          {post.title}
+                          {post?.title}
                         </p>
                         <p className="line-clamp-2 text-sm text-gray-500 underline-offset-2 group-hover:underline">
-                          {post.summary}
+                          {post?.summary}
                         </p>
                         <p className="text-xs text-gray-400 underline-offset-2 group-hover:underline">
-                          {formatDate(post.publishedAt)}
+                          {formatDate(post?.publishedAt)}
                         </p>
                       </Link>
                     </li>

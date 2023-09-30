@@ -95,7 +95,7 @@ export default async function webhookHandler(
             },
             data: {
               usageLimit,
-              plan: plan.slug,
+              plan: plan?.slug,
             },
             select: {
               users: {
@@ -167,7 +167,7 @@ export default async function webhookHandler(
             return;
           }
 
-          const projectDomains = project.domains.map((domain) => domain.slug);
+          const projectDomains = project.domains.map((domain) => domain?.slug);
 
           const pipeline = redis.pipeline();
           // remove root domain redirect for all domains

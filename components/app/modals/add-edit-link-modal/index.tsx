@@ -77,7 +77,7 @@ function AddEditLinkModal({
         ...DEFAULT_LINK_PROPS,
         domain:
           primaryDomain ||
-          (domains && domains.length > 0 && domains[0].slug) ||
+          (domains && domains.length > 0 && domains[0]?.slug) ||
           "",
         key: "",
         url: "",
@@ -172,7 +172,7 @@ function AddEditLinkModal({
             setData((prev) => ({
               ...prev,
               ...{
-                title: truncate(results.title, 120),
+                title: truncate(results?.title, 120),
                 description: truncate(results.description, 240),
                 image: results.image,
               },

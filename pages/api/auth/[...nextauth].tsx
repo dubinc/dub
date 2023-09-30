@@ -5,7 +5,7 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { sendEmail } from "emails";
 import LoginLink from "emails/login-link";
 import WelcomeEmail from "emails/welcome-email";
-import NextAuth, { type NextAuthOptions, User } from "next-auth";
+import NextAuth, { type NextAuthOptions } from "next-auth";
 import prisma from "#/lib/prisma";
 import jackson from "#/lib/jackson";
 import { isBlacklistedEmail } from "#/lib/edge-config";
@@ -174,11 +174,12 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     signIn: async ({ user, account, profile }) => {
       console.log({ user, account, profile });
-      if (!user.email || (await isBlacklistedEmail(user.email))) {
+      const isBlacklisted = user.email && (await isBlacklistedEmail(user.email));
+      if (!user.email || isBlacklisted) {
         return false;
       }
       if (account?.provider === "google") {
-        const userExists = await prisma.user.findUnique({
+        let userExists = await prisma.user.findUnique({
           where: { email: user.email },
           select: { name: true },
         });
@@ -191,6 +192,16 @@ export const authOptions: NextAuthOptions = {
               name: profile?.name,
               // @ts-ignore - this is a bug in the types, `picture` is a valid on the `Profile` type
               image: profile?.picture,
+            },
+          });
+        }
+        
+        // user is authorized but doesn't have a Dub account, create one for them
+        if (!userExists) {
+          userExists = await prisma.user.create({
+            data: {
+              email: user.email,
+              name: profile?.name,
             },
           });
         }

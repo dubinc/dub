@@ -113,7 +113,7 @@ export const updateUsage = async () => {
               },
             },
           }),
-          getTopLinks(project.domains.map((domain) => domain.slug)),
+          getTopLinks(project.domains.map((domain) => domain?.slug)),
         ]);
 
         const emails = project.users.map((user) => user.user.email) as string[];
@@ -127,7 +127,7 @@ export const updateUsage = async () => {
                 react: ClicksSummary({
                   email,
                   projectName: project.name,
-                  projectSlug: project.slug,
+                  projectSlug: project?.slug,
                   totalClicks: project.usage,
                   createdLinks:
                     createdLinks.status === "fulfilled"
@@ -191,7 +191,7 @@ const sendUsageLimitEmail = async (
       data: {
         project: {
           connect: {
-            slug: project.slug,
+            slug: project?.slug,
           },
         },
         type: `${type}UsageLimitEmail`,

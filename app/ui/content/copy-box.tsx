@@ -8,7 +8,7 @@ export default function CopyBox(props) {
   const [copied, setCopied] = useState(false);
   return (
     <div className="not-prose my-4 rounded-xl border border-gray-200 bg-white p-4">
-      <p>{props.title}</p>
+      <p>{props?.title}</p>
       <div className="mt-1 flex w-full items-center justify-between rounded-md bg-gray-100 p-1.5 pl-3">
         <div className="overflow-auto scrollbar-hide">
           <p className="whitespace-nowrap text-gray-600 sm:text-sm">

@@ -1,7 +1,6 @@
 import Background from "#/ui/home/background";
 import { constructMetadata } from "#/lib/utils";
 import LinkInspectorForm from "./form";
-import BlurImage from "#/ui/blur-image";
 
 export const metadata = constructMetadata({
   title: "Link Inspector - Inspect a Short Link on Dub to Make Sure It's Safe",
@@ -26,14 +25,6 @@ export default function LinkInspector() {
           target="_blank"
           className="relative overflow-hidden rounded-md border border-gray-300 bg-gray-50"
         >
-          <BlurImage
-            src="https://d2vwwcvoksz7ty.cloudfront.net/changelog/link-inspector.png"
-            alt="Link Inspector OG image"
-            width={1071}
-            height={630}
-            className="h-[250px] w-full border-b border-gray-300 object-cover"
-          />
-
           <div className="grid gap-1 bg-white p-3 text-left">
             <p className="text-sm text-[#536471]">dub.co</p>
             <h3 className="truncate text-sm font-medium text-[#0f1419]">

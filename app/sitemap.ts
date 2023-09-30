@@ -22,7 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const links = await prisma.link.findMany({
     where: {
-      domain: domain === "dub.co" ? "dub.sh" : domain,
+      domain,
       publicStats: true,
     },
     select: {
@@ -47,7 +47,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             lastModified: new Date(),
           },
           ...FEATURES_LIST.map((feature) => ({
-            url: `https://${domain}/features/${feature.slug}`,
+            url: `https://${domain}/features/${feature?.slug}`,
             lastModified: new Date(),
           })),
           {
@@ -55,11 +55,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             lastModified: new Date(),
           },
           ...allBlogPosts.map((post) => ({
-            url: `https://${domain}/blog/${post.slug}`,
-            lastModified: new Date(post.publishedAt),
+            url: `https://${domain}/blog/${post?.slug}`,
+            lastModified: new Date(post?.publishedAt),
           })),
           ...BLOG_CATEGORIES.map((category) => ({
-            url: `https://${domain}/blog/category/${category.slug}`,
+            url: `https://${domain}/blog/category/${category?.slug}`,
             lastModified: new Date(),
           })),
           {
@@ -67,19 +67,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             lastModified: new Date(),
           },
           ...allCustomersPosts.map((post) => ({
-            url: `https://${domain}/customers/${post.slug}`,
-            lastModified: new Date(post.publishedAt),
+            url: `https://${domain}/customers/${post?.slug}`,
+            lastModified: new Date(post?.publishedAt),
           })),
           {
             url: `https://${domain}/help`,
             lastModified: new Date(),
           },
           ...allHelpPosts.map((post) => ({
-            url: `https://${domain}/help/article/${post.slug}`,
+            url: `https://${domain}/help/article/${post?.slug}`,
             lastModified: new Date(post.updatedAt),
           })),
           ...HELP_CATEGORIES.map((category) => ({
-            url: `https://${domain}/help/category/${category.slug}`,
+            url: `https://${domain}/help/category/${category?.slug}`,
             lastModified: new Date(),
           })),
           {
@@ -87,15 +87,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             lastModified: new Date(),
           },
           ...allChangelogPosts.map((post) => ({
-            url: `https://${domain}/changelog/${post.slug}`,
-            lastModified: new Date(post.publishedAt),
+            url: `https://${domain}/changelog/${post?.slug}`,
+            lastModified: new Date(post?.publishedAt),
           })),
           ...allTools.map((tool) => ({
             url: `https://${domain}/tools/${tool}`,
             lastModified: new Date(),
           })),
           ...allLegalPosts.map((post) => ({
-            url: `https://${domain}/${post.slug}`,
+            url: `https://${domain}/${post?.slug}`,
             lastModified: new Date(post.updatedAt),
           })),
         ]

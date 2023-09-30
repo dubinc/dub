@@ -268,10 +268,10 @@ const computedFields = (
     resolve: (doc) => ({
       "@context": "https://schema.org",
       "@type": `${capitalize(type)}Posting`,
-      headline: doc.title,
-      datePublished: doc.publishedAt,
-      dateModified: doc.publishedAt,
-      description: doc.summary,
+      headline: doc?.title,
+      datePublished: doc?.publishedAt,
+      dateModified: doc?.publishedAt,
+      description: doc?.summary,
       image: doc.image,
       url: `https://dub.co/${doc._raw.flattenedPath}`,
       author: {

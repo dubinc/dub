@@ -7,7 +7,7 @@ import Zoom from "react-medium-image-zoom";
 import "react-medium-image-zoom/dist/styles.css";
 
 export default function ZoomImage(
-  props: ImageProps & { blurDataURL?: string; hideCaption?: boolean },
+  props: ImageProps & { hideCaption?: boolean },
 ) {
   const { width, height, isDesktop } = useMediaQuery();
   return (
@@ -23,11 +23,6 @@ export default function ZoomImage(
         <BlurImage
           {...props}
           className="rounded-lg border border-gray-200"
-          placeholder="blur"
-          blurDataURL={
-            props.blurDataURL ||
-            "data:image/webp;base64,AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
-          }
         />
       </Zoom>
       {!props?.hideCaption && (

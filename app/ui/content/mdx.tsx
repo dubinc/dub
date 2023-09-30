@@ -98,7 +98,7 @@ const components = {
         />
         <div className="flex flex-col">
           <p className="font-semibold text-gray-600">{props.author}</p>
-          <p className="text-sm text-gray-500">{props.title}</p>
+          <p className="text-sm text-gray-500">{props?.title}</p>
         </div>
       </div>
     </div>
@@ -118,7 +118,7 @@ const components = {
       {(props.articles || POPULAR_ARTICLES).map((slug) => (
         <HelpArticleLink
           key={slug}
-          article={allHelpPosts.find((post) => post.slug === slug)!}
+          article={allHelpPosts.find((post) => post?.slug === slug)!}
         />
       ))}
     </div>
@@ -127,9 +127,9 @@ const components = {
     <div className="not-prose grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {HELP_CATEGORIES.map((category) => (
         <CategoryCard
-          key={category.slug}
-          href={`/help/category/${category.slug}`}
-          name={category.title}
+          key={category?.slug}
+          href={`/help/category/${category?.slug}`}
+          name={category?.title}
           description={category.description}
           icon={category.icon}
           pattern={{
@@ -146,26 +146,26 @@ const components = {
   Changelog: (props: any) => (
     <ul className="not-prose grid list-none rounded-xl border border-gray-200 bg-white p-4">
       {[...allBlogPosts, ...allChangelogPosts]
-        .filter((post) => post.publishedAt <= props.before)
-        .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+        .filter((post) => post?.publishedAt <= props.before)
+        .sort((a, b) => b?.publishedAt.localeCompare(a?.publishedAt))
         .slice(0, props.count)
         .map((post) => (
-          <li key={post.slug}>
+          <li key={post?.slug}>
             <Link
               href={`/${post.type === "BlogPost" ? "blog" : "changelog"}/${
-                post.slug
+                post?.slug
               }`}
               className="group flex items-center justify-between rounded-lg px-2 py-3 transition-colors hover:bg-purple-100 active:bg-purple-200 sm:px-4"
             >
               <div>
                 <p className="text-xs font-medium text-gray-400 group-hover:text-purple-600">
-                  {formatDate(post.publishedAt)}
+                  {formatDate(post?.publishedAt)}
                 </p>
                 <h3 className="my-px text-base font-medium text-gray-600 group-hover:text-purple-600">
-                  {post.title}
+                  {post?.title}
                 </h3>
                 <p className="line-clamp-1 text-sm text-gray-500 group-hover:text-purple-600">
-                  {post.summary}
+                  {post?.summary}
                 </p>
               </div>
               <ExpandingArrow className="-ml-4 h-4 w-4 text-gray-400 group-hover:text-purple-600" />
@@ -178,7 +178,7 @@ const components = {
 
 interface MDXProps {
   code: string;
-  images?: { alt: string; src: string; blurDataURL: string }[];
+  images?: { alt: string; src: string;}[];
   tweets?: any[];
   repos?: GithubRepoProps[];
   className?: string;
@@ -189,11 +189,7 @@ export function MDX({ code, images, tweets, repos, className }: MDXProps) {
 
   const MDXImage = (props: any) => {
     if (!images) return null;
-    const blurDataURL = images.find(
-      (image) => image.src === props.src,
-    )?.blurDataURL;
-
-    return <ZoomImage {...props} blurDataURL={blurDataURL} />;
+    return <ZoomImage {...props} />;
   };
 
   const Tweet = ({ id }: { id: string }) => {

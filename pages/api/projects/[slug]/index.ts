@@ -17,7 +17,7 @@ export default withProjectAuth(
       try {
         const response = await prisma.project.update({
           where: {
-            slug: project.slug,
+            slug: project?.slug,
           },
           data: {
             ...(name && { name }),

@@ -28,7 +28,7 @@ export default function ProjectSelect() {
   const selected = useMemo(() => {
     if (slug && projects && !error) {
       const selectedProject = projects?.find(
-        (project) => project.slug === slug,
+        (project) => project?.slug === slug,
       );
       return {
         ...selectedProject,
@@ -99,7 +99,7 @@ export default function ProjectSelect() {
               <span className="inline-block max-w-[100px] truncate text-sm font-medium sm:max-w-[200px]">
                 {selected.name}
               </span>
-              {selected.slug !== "/" && <PlanBadge plan={selected.plan} />}
+              {selected?.slug !== "/" && <PlanBadge plan={selected.plan} />}
             </div>
           </div>
           <ChevronsUpDown
@@ -132,15 +132,15 @@ function ProjectList({
   const { domain, key } = router.query as { domain?: string; key?: string };
   const href = useCallback(
     (slug: string) => {
-      if (domain || key || selected.slug === "/") {
+      if (domain || key || selected?.slug === "/") {
         // if we're on a link page, navigate back to the project root
         return `/${slug}`;
       } else {
         // else, we keep the path but remove all query params
-        return router.asPath.replace(selected.slug, slug).split("?")[0];
+        return router.asPath.replace(selected?.slug, slug).split("?")[0];
       }
     },
-    [domain, key, router, selected.slug],
+    [domain, key, router, selected?.slug],
   );
 
   return (
@@ -149,7 +149,7 @@ function ProjectList({
       <Link
         key="personal"
         className={`relative flex w-full items-center space-x-2 rounded-md px-2 py-1.5 hover:bg-gray-100 active:bg-gray-200 ${
-          selected.slug === "/" ? "font-medium" : ""
+          selected?.slug === "/" ? "font-medium" : ""
         } transition-all duration-75`}
         href="/links"
         onClick={() => setOpenPopover(false)}
@@ -157,12 +157,12 @@ function ProjectList({
         <Avatar user={session?.user} className="h-7 w-7" />
         <span
           className={`block truncate pr-8 text-sm ${
-            selected.slug === "/" ? "font-medium" : "font-normal"
+            selected?.slug === "/" ? "font-medium" : "font-normal"
           }`}
         >
           {session?.user?.name || session?.user?.email}
         </span>
-        {selected.slug === "/" ? (
+        {selected?.slug === "/" ? (
           <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-black">
             <Tick className="h-5 w-5" aria-hidden="true" />
           </span>
@@ -173,7 +173,7 @@ function ProjectList({
         <Link
           key={slug}
           className={`relative flex w-full items-center space-x-2 rounded-md px-2 py-1.5 hover:bg-gray-100 active:bg-gray-200 ${
-            selected.slug === slug ? "font-medium" : ""
+            selected?.slug === slug ? "font-medium" : ""
           } transition-all duration-75`}
           href={href(slug)}
           shallow={false}
@@ -186,12 +186,12 @@ function ProjectList({
           />
           <span
             className={`block truncate text-sm ${
-              selected.slug === slug ? "font-medium" : "font-normal"
+              selected?.slug === slug ? "font-medium" : "font-normal"
             }`}
           >
             {name}
           </span>
-          {selected.slug === slug ? (
+          {selected?.slug === slug ? (
             <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-black">
               <Tick className="h-5 w-5" aria-hidden="true" />
             </span>

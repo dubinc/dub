@@ -44,7 +44,7 @@ export default function ProjectDomains() {
           domains.length > 0 ? (
             <ul className="grid grid-cols-1 gap-3">
               {domains.map((domain) => (
-                <li key={domain.slug}>
+                <li key={domain?.slug}>
                   <DomainCard props={domain} />
                 </li>
               ))}

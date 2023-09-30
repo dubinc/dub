@@ -26,7 +26,7 @@ export default function Toggle() {
   const [openDatePopover, setOpenDatePopover] = useState(false);
 
   const selectedInterval = useMemo(() => {
-    return INTERVALS.find((s) => s.slug === interval) || INTERVALS[1];
+    return INTERVALS.find((s) => s?.slug === interval) || INTERVALS[1];
   }, [interval]);
 
   const scrolled = useScroll(80);
@@ -93,7 +93,7 @@ export default function Toggle() {
                       className="flex w-full items-center justify-between space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
                     >
                       <p className="text-sm">{display}</p>
-                      {selectedInterval.slug === slug && (
+                      {selectedInterval?.slug === slug && (
                         <Tick className="h-4 w-4" aria-hidden="true" />
                       )}
                     </Link>

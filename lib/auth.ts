@@ -314,9 +314,9 @@ const withLinksAuth =
 
         // prevent unauthorized access to domains
         if (
-          (domain && !project.domains?.find((d) => d.slug === domain)) ||
+          (domain && !project.domains?.find((d) => d?.slug === domain)) ||
           (req.body.domain &&
-            !project.domains?.find((d) => d.slug === req.body.domain))
+            !project.domains?.find((d) => d?.slug === req.body.domain))
         ) {
           return res.status(403).end("Unauthorized: Invalid domain.");
         }

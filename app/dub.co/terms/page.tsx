@@ -9,6 +9,6 @@ export const metadata: Metadata = constructMetadata({
 });
 
 export default function Terms() {
-  const post = allLegalPosts.find((post) => post.slug === "terms")!;
+  const post = allLegalPosts.find((post) => post?.slug === "terms")!;
   return <LegalPage post={post} />;
 }

@@ -63,7 +63,7 @@ export default async function AppMiddleware(req: NextRequest) {
 
         // redirect them to the project slug
         if (project?.slug) {
-          return NextResponse.redirect(new URL(project.slug, req.url));
+          return NextResponse.redirect(new URL(project?.slug, req.url));
         } else {
           return NextResponse.redirect(new URL("/", req.url));
         }

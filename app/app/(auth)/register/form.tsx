@@ -35,7 +35,7 @@ export default function RegisterForm() {
           setClickedSSO(true);
           fetch("/api/auth/saml/verify", {
             method: "POST",
-            body: JSON.stringify({ slug: e.currentTarget.slug.value }),
+            body: JSON.stringify({ slug: e.currentTarget?.slug.value }),
           }).then(async (res) => {
             const { data, error } = await res.json();
             if (error) {

@@ -18,15 +18,15 @@ export default function TableOfContents({
     <div className="grid gap-4 border-l-2 border-gray-200">
       {items.map((item, idx) => (
         <Link
-          key={item.slug}
-          href={`#${item.slug}`}
+          key={item?.slug}
+          href={`#${item?.slug}`}
           className={cn("-ml-0.5 pl-4 text-sm text-gray-500", {
             "border-l-2 border-black text-black": currentAnchor
-              ? currentAnchor === item.slug
+              ? currentAnchor === item?.slug
               : idx === 0,
           })}
         >
-          {item.title}
+          {item?.title}
         </Link>
       ))}
     </div>

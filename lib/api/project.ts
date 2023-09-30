@@ -16,7 +16,7 @@ export async function deleteProject(
         slug: true,
       },
     })
-  ).map((domain) => domain.slug);
+  ).map((domain) => domain?.slug);
 
   // delete all domains, links, and uploaded images associated with the project
   const deleteDomainsResponse = await Promise.allSettled(
@@ -39,7 +39,7 @@ export async function deleteProject(
     // delete the project
     prisma.project.delete({
       where: {
-        slug: project.slug,
+        slug: project?.slug,
       },
     }),
   ]);

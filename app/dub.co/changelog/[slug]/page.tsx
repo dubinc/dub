@@ -4,7 +4,6 @@ import { allChangelogPosts } from "contentlayer/generated";
 import { MDX } from "#/ui/content/mdx";
 import Link from "next/link";
 import { constructMetadata, formatDate } from "#/lib/utils";
-import { getBlurDataURL } from "#/lib/images";
 import BlurImage from "#/ui/blur-image";
 import Author from "#/ui/content/author";
 import { Facebook, LinkedIn, Twitter } from "@/components/shared/icons";
@@ -12,7 +11,7 @@ import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 
 export async function generateStaticParams() {
   return allChangelogPosts.map((post) => ({
-    slug: post.slug,
+    slug: post?.slug,
   }));
 }
 
@@ -21,7 +20,7 @@ export async function generateMetadata({
 }: {
   params: { slug: string };
 }): Promise<Metadata | undefined> {
-  const post = allChangelogPosts.find((post) => post.slug === params.slug);
+  const post = allChangelogPosts.find((post) => post?.slug === params?.slug);
   if (!post) {
     return;
   }
@@ -40,7 +39,7 @@ export default async function ChangelogPost({
 }: {
   params: { slug: string };
 }) {
-  const post = allChangelogPosts.find((post) => post.slug === params.slug);
+  const post = allChangelogPosts.find((post) => post?.slug === params?.slug);
   if (!post) {
     notFound();
   }
@@ -65,31 +64,29 @@ export default async function ChangelogPost({
               ← Back to Changelog
             </Link>
             <time
-              dateTime={post.publishedAt}
+              dateTime={post?.publishedAt}
               className="flex items-center text-sm text-gray-500 md:text-base"
             >
-              {formatDate(post.publishedAt)}
+              {formatDate(post?.publishedAt)}
             </time>
           </div>
           <h1 className="font-display text-3xl font-bold tracking-tight text-gray-800 sm:text-4xl">
-            {post.title}
+            {post?.title}
           </h1>
         </div>
         <BlurImage
           src={post.image}
-          alt={post.title}
+          alt={post?.title}
           width={1200}
           height={630}
           priority // since it's above the fold
-          placeholder="blur"
-          blurDataURL={await getBlurDataURL(post.image)}
           className="aspect-video border border-gray-100 object-cover md:rounded-2xl"
         />
         <div className="mx-5 mb-10 flex items-center justify-between md:mx-0">
           <Author username={post.author} />
           <div className="flex items-center space-x-6">
             <Link
-              href={`https://twitter.com/intent/tweet?text=${post.title}&url=https://dub.co/changelog/${post.slug}&via=${post.author}`}
+              href={`https://twitter.com/intent/tweet?text=${post?.title}&url=https://dub.co/changelog/${post?.slug}&via=${post.author}`}
               target="_blank"
               rel="noopener noreferrer"
               className="transition-all hover:scale-110"
@@ -98,7 +95,7 @@ export default async function ChangelogPost({
             </Link>
             <Link
               href={`
-            http://www.linkedin.com/shareArticle?mini=true&url=https://dub.co/changelog/${post.slug}`}
+            http://www.linkedin.com/shareArticle?mini=true&url=https://dub.co/changelog/${post?.slug}`}
               target="_blank"
               rel="noopener noreferrer"
               className="transition-all hover:scale-110"
@@ -106,7 +103,7 @@ export default async function ChangelogPost({
               <LinkedIn className="h-6 w-6" fill="black" />
             </Link>
             <Link
-              href={`https://www.facebook.com/sharer/sharer.php?u=https://dub.co/changelog/${post.slug}`}
+              href={`https://www.facebook.com/sharer/sharer.php?u=https://dub.co/changelog/${post?.slug}`}
               target="_blank"
               rel="noopener noreferrer"
               className="transition-all hover:scale-110"
@@ -118,7 +115,7 @@ export default async function ChangelogPost({
         <MDX code={post.body.code} className="mx-5 sm:prose-lg md:mx-0" />
         <div className="mt-10 flex justify-end border-t border-gray-200 pt-5">
           <Link
-            href={`https://github.com/steven-tey/dub/blob/main/content/changelog/${params.slug}.mdx`}
+            href={`https://github.com/steven-tey/dub/blob/main/content/changelog/${params?.slug}.mdx`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm text-gray-500 transition-colors hover:text-gray-800"

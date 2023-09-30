@@ -36,7 +36,7 @@ export default function useDomains({ domain }: { domain?: string } = {}) {
     primaryDomain: domains?.find((domain) => domain.primary)?.slug,
     verified: domain
       ? // If a domain is passed, check if it's verified
-        domains?.find((d) => d.slug === domain)?.verified
+        domains?.find((d) => d?.slug === domain)?.verified
       : // If no domain is passed, check if any of the domains are verified
         domains?.some((d) => d.verified),
     loading: !domains && !error,

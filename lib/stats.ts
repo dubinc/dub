@@ -146,7 +146,7 @@ export const getStats = async ({
   }
 
   let url = new URL(
-    `https://api.us-east.tinybird.co/v0/pipes/${endpoint}.json`,
+    `${process.env.TINYBIRD_URL}/v0/pipes/${endpoint}.json`,
   );
   url.searchParams.append("domain", domain);
   url.searchParams.append("key", decodeURIComponent(key));

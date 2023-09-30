@@ -41,6 +41,6 @@ export async function GET(req: Request) {
 
   // redirect to project page with import query param
   return NextResponse.redirect(
-    `${APP_DOMAIN}${project ? `/${project.slug}?import=bitly` : ""}`,
+    `${APP_DOMAIN}${project ? `/${project?.slug}?import=bitly` : ""}`,
   );
 }

@@ -37,7 +37,7 @@ export default function App() {
         >
           {projects ? (
             projects.length > 0 ? (
-              projects.map((d) => <ProjectCard key={d.slug} {...d} />)
+              projects.map((d) => <ProjectCard key={d?.slug} {...d} />)
             ) : (
               <NoProjectsPlaceholder />
             )

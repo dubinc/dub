@@ -33,16 +33,16 @@ export default function HelpCenter() {
             </h2>
             <div className="mt-4 grid gap-2 md:grid-cols-2">
               {popularArticles.map((article) => (
-                <HelpArticleLink key={article.slug} article={article} />
+                <HelpArticleLink key={article?.slug} article={article} />
               ))}
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
             {HELP_CATEGORIES.map((category) => (
               <CategoryCard
-                key={category.slug}
-                href={`/help/category/${category.slug}`}
-                name={category.title}
+                key={category?.slug}
+                href={`/help/category/${category?.slug}`}
+                name={category?.title}
                 description={category.description}
                 icon={category.icon}
                 pattern={{

@@ -9,6 +9,6 @@ export const metadata: Metadata = constructMetadata({
 });
 
 export default function Privacy() {
-  const post = allLegalPosts.find((post) => post.slug === "privacy")!;
+  const post = allLegalPosts.find((post) => post?.slug === "privacy")!;
   return <LegalPage post={post} />;
 }

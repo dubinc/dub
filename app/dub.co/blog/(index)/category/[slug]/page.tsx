@@ -3,12 +3,11 @@ import { allBlogPosts } from "contentlayer/generated";
 import { BLOG_CATEGORIES } from "#/lib/constants/content";
 import { Metadata } from "next";
 import { constructMetadata } from "#/lib/utils";
-import { getBlurDataURL } from "#/lib/images";
 import BlogCard from "#/ui/content/blog-card";
 
 export async function generateStaticParams() {
   return BLOG_CATEGORIES.map((category) => ({
-    slug: category.slug,
+    slug: category?.slug,
   }));
 }
 
@@ -18,7 +17,7 @@ export async function generateMetadata({
   params: { slug: string };
 }): Promise<Metadata | undefined> {
   const category = BLOG_CATEGORIES.find(
-    (category) => category.slug === params.slug,
+    (category) => category?.slug === params?.slug,
   );
   if (!category) {
     return;
@@ -43,22 +42,21 @@ export default async function BlogCategory({
   };
 }) {
   const data = BLOG_CATEGORIES.find(
-    (category) => category.slug === params.slug,
+    (category) => category?.slug === params?.slug,
   );
   if (!data) {
     notFound();
   }
   const articles = await Promise.all(
     allBlogPosts
-      .filter((post) => post.categories.includes(data.slug))
-      .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+      .filter((post) => post.categories.includes(data?.slug))
+      .sort((a, b) => b?.publishedAt.localeCompare(a?.publishedAt))
       .map(async (post) => ({
         ...post,
-        blurDataURL: await getBlurDataURL(post.image),
       })),
   );
 
   return articles.map((article, idx) => (
-    <BlogCard key={article.slug} data={article} priority={idx <= 1} />
+    <BlogCard key={article?.slug} data={article} priority={idx <= 1} />
   ));
 }

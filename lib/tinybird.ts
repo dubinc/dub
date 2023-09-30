@@ -18,7 +18,7 @@ export async function recordClick(
 
   return await Promise.allSettled([
     fetch(
-      "https://api.us-east.tinybird.co/v0/events?name=click_events&wait=true",
+      `${process.env.TINYBIRD_URL}/v0/events?name=click_events&wait=true`,
       {
         method: "POST",
         body: JSON.stringify({
@@ -70,7 +70,7 @@ export async function recordClick(
 
 export async function getTopLinks(domains: string[]) {
   return await fetch(
-    `https://api.us-east.tinybird.co/v0/pipes/top_links.json?domains=${domains.join(
+    `${process.env.TINYBIRD_URL}/v0/pipes/top_links.json?domains=${domains.join(
       ",",
     )}`,
     {

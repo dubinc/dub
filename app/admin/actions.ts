@@ -191,7 +191,7 @@ export async function getUserByKey(data: FormData) {
     proProjectSlugs:
       projects
         .filter(({ project }) => project.plan === "pro")
-        .map(({ project }) => project.slug) || [],
+        .map(({ project }) => project?.slug) || [],
     verifiedDomains: verifiedDomains || [],
     impersonateUrl: await getImpersonateUrl(email),
   };
@@ -269,7 +269,7 @@ export async function banUser(data: FormData) {
     ...user.projects.map(({ project }) =>
       deleteProject({
         id: project.id,
-        slug: project.slug,
+        slug: project?.slug,
         stripeId: project.stripeId || undefined,
         logo: project.logo || undefined,
       }),

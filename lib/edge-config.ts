@@ -9,8 +9,7 @@ export const isBlacklistedDomain = async (domain: string) => {
       get("terms"),
     ]);
   } catch (e) {
-    blacklistedDomains = [];
-    blacklistedTerms = [];
+    return false;
   }
   const domainToTest = getDomainWithoutWWW(domain) || domain;
   return (
@@ -25,7 +24,7 @@ export const isBlacklistedReferrer = async (referrer: string | null) => {
   try {
     referrers = await get("referrers");
   } catch (e) {
-    referrers = [];
+    return false;
   }
   return !referrers.includes(hostname);
 };
@@ -35,7 +34,7 @@ export const isBlacklistedKey = async (key: string) => {
   try {
     blacklistedKeys = await get("keys");
   } catch (e) {
-    blacklistedKeys = [];
+    return false;
   }
   return new RegExp(blacklistedKeys.join("|"), "i").test(key);
 };
@@ -45,7 +44,7 @@ export const isWhitelistedEmail = async (email: string) => {
   try {
     whitelistedEmails = await get("whitelist");
   } catch (e) {
-    whitelistedEmails = [];
+    return false;
   }
   return whitelistedEmails.includes(email);
 };
@@ -55,8 +54,9 @@ export const isBlacklistedEmail = async (email: string) => {
   try {
     blacklistedEmails = await get("emails");
   } catch (e) {
-    blacklistedEmails = [];
+    return false;
   }
+
   return new RegExp(blacklistedEmails.join("|"), "i").test(email);
 };
 

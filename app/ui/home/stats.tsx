@@ -11,7 +11,7 @@ export default async function Stats() {
     }),
     prisma.link.count(),
     process.env.TINYBIRD_API_KEY
-      ? fetch(`https://api.us-east.tinybird.co/v0/pipes/all_clicks.json`, {
+      ? fetch(`${process.env.TINYBIRD_URL}/v0/pipes/all_clicks.json`, {
           headers: {
             Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
           },

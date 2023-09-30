@@ -71,7 +71,7 @@ const pricingItems = [
   {
     plan: "Pro",
     tagline: "For larger teams with increased usage",
-    quota: PLANS.find((p) => p.slug === "pro")!.quota,
+    quota: PLANS.find((p) => p?.slug === "pro")!.quota,
     features: [
       { text: "Unlimited branded links" },
       {
@@ -124,7 +124,7 @@ const pricingItems = [
   {
     plan: "Enterprise",
     tagline: "For businesses with custom needs",
-    quota: PLANS.find((p) => p.slug === "enterprise")!.quota,
+    quota: PLANS.find((p) => p?.slug === "enterprise")!.quota,
     features: [
       { text: "Unlimited branded links" },
       {
@@ -224,7 +224,7 @@ const Pricing = () => {
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-3">
         {pricingItems.map(({ plan, tagline, quota, features, cta }) => {
           const price =
-            PLANS.find((p) => p.slug === plan.toLowerCase())?.price[period]
+            PLANS.find((p) => p?.slug === plan.toLowerCase())?.price[period]
               .amount || 0;
           return (
             <div

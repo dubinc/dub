@@ -19,10 +19,10 @@ export default function Changelog() {
       </div>
       <ul className="mx-5 max-w-2xl md:mx-auto md:translate-x-28">
         {[...allBlogPosts, ...allChangelogPosts]
-          .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+          .sort((a, b) => b?.publishedAt.localeCompare(a?.publishedAt))
           .slice(0, 6)
           .map((post) => (
-            <li key={post.slug}>
+            <li key={post?.slug}>
               <DesktopChangelogEntry post={post} />
               <MobileChangelogEntry post={post} />
             </li>
@@ -40,13 +40,13 @@ export default function Changelog() {
 
 const DesktopChangelogEntry = ({ post }) => (
   <Link
-    href={`/${post.type === "BlogPost" ? "blog" : "changelog"}/${post.slug}`}
+    href={`/${post.type === "BlogPost" ? "blog" : "changelog"}/${post?.slug}`}
     className="group hidden grid-cols-9 items-center md:grid"
   >
     <dl className="col-span-2">
       <dt className="sr-only">Published on</dt>
       <dd className="text-base font-medium text-gray-400 transition-colors group-hover:text-gray-700">
-        <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
+        <time dateTime={post?.publishedAt}>{formatDate(post?.publishedAt)}</time>
       </dd>
     </dl>
     <div className="col-span-7 flex items-center">
@@ -55,7 +55,7 @@ const DesktopChangelogEntry = ({ post }) => (
         <div className="absolute -left-1 top-[1.6875rem] h-2.5 w-2.5 rounded-full bg-gray-400 transition-colors group-hover:bg-gray-700" />
       </div>
       <h3 className="text-2xl font-medium tracking-tight text-gray-700 transition-colors group-hover:text-black">
-        {post.title}
+        {post?.title}
       </h3>
     </div>
   </Link>
@@ -63,7 +63,7 @@ const DesktopChangelogEntry = ({ post }) => (
 
 const MobileChangelogEntry = ({ post }) => (
   <Link
-    href={`/${post.type === "BlogPost" ? "blog" : "changelog"}/${post.slug}`}
+    href={`/${post.type === "BlogPost" ? "blog" : "changelog"}/${post?.slug}`}
     className="flex items-center space-x-4 rounded-lg active:bg-gray-100 md:hidden"
   >
     <div className="relative">
@@ -74,13 +74,13 @@ const MobileChangelogEntry = ({ post }) => (
       <dl>
         <dt className="sr-only">Published on</dt>
         <dd className="text-sm font-medium text-gray-400">
-          <time dateTime={post.publishedAt}>
-            {formatDate(post.publishedAt)}
+          <time dateTime={post?.publishedAt}>
+            {formatDate(post?.publishedAt)}
           </time>
         </dd>
       </dl>
       <h3 className="text-lg font-medium tracking-tight text-gray-700">
-        {post.title}
+        {post?.title}
       </h3>
     </div>
   </Link>

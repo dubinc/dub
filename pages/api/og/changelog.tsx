@@ -20,7 +20,7 @@ export default async function handler() {
   ]);
 
   const post = allChangelogPosts.sort((a, b) => {
-    if (new Date(a.publishedAt) > new Date(b.publishedAt)) {
+    if (new Date(a?.publishedAt) > new Date(b?.publishedAt)) {
       return -1;
     }
     return 1;
@@ -62,7 +62,7 @@ export default async function handler() {
           </p>
         </div>
         <div tw="flex w-full pt-10 pl-28">
-          <p tw="text-gray-500">{formatDate(post.publishedAt)}</p>
+          <p tw="text-gray-500">{formatDate(post?.publishedAt)}</p>
           <div tw="flex flex-col ml-24">
             <img src={post.image} tw="rounded-lg h-96" />
           </div>

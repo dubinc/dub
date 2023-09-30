@@ -108,17 +108,17 @@ export default function Nav() {
                       <div className="grid w-[32rem] grid-cols-2 gap-1 p-3">
                         {FEATURES_LIST.map((feature) => (
                           <Link
-                            key={feature.slug}
+                            key={feature?.slug}
                             href={
                               domain === "dub.co"
-                                ? `/features/${feature.slug}`
-                                : `https://dub.co/features/${feature.slug}`
+                                ? `/features/${feature?.slug}`
+                                : `https://dub.co/features/${feature?.slug}`
                             }
                             {...(domain !== "dub.co" && {
                               onClick: () => {
                                 va.track("Referred from custom domain", {
                                   domain,
-                                  medium: `navbar item (features/${feature.slug})`,
+                                  medium: `navbar item (features/${feature?.slug})`,
                                 });
                               },
                             })}
@@ -131,7 +131,7 @@ export default function Nav() {
                               </p>
                             </div>
                             <p className="mt-1 line-clamp-1 text-sm text-gray-500">
-                              {feature.title}
+                              {feature?.title}
                             </p>
                           </Link>
                         ))}

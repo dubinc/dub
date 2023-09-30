@@ -367,7 +367,7 @@ export const setQueryString = ({
   // here, we omit the slug from the query string as well
   const { slug, ...finalQuery } = newQuery;
   router.replace({
-    pathname: `/${router.query.slug || "links"}`,
+    pathname: `/${router.query?.slug || "links"}`,
     query: finalQuery,
   });
 };

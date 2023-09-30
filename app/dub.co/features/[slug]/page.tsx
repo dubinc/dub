@@ -10,7 +10,6 @@ import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import Link from "next/link";
 import { QRCodePicker } from "#/ui/modals/link-qr-modal";
 import Image from "next/image";
-import { getBlurDataURL } from "#/lib/images";
 import PlayButton from "../../../ui/home/play-button";
 
 export function generateMetadata({
@@ -20,12 +19,12 @@ export function generateMetadata({
     slug: string;
   };
 }) {
-  const data = FEATURES_LIST.find(({ slug }) => slug === params.slug);
+  const data = FEATURES_LIST.find(({ slug }) => slug === params?.slug);
   if (!data) {
     return;
   }
   return constructMetadata({
-    title: `${data.title} – Dub`,
+    title: `${data?.title} – Dub`,
     description: data.description,
     image: data.thumbnail,
   });
@@ -44,20 +43,16 @@ export default async function FeaturePage({
     slug: string;
   };
 }) {
-  const feature = FEATURES_LIST.find(({ slug }) => slug === params.slug);
+  const feature = FEATURES_LIST.find(({ slug }) => slug === params?.slug);
   if (!feature) {
     notFound();
   }
   const data = {
     ...feature,
-    thumbnailBlurhash: await getBlurDataURL(feature.thumbnail),
     bentoFeatures: feature.bentoFeatures
       ? await Promise.all(
           feature.bentoFeatures.map(async (feature) => ({
             ...feature,
-            imageBlurhash: feature.image
-              ? await getBlurDataURL(feature.image)
-              : undefined,
           })),
         )
       : undefined,
@@ -67,7 +62,7 @@ export default async function FeaturePage({
     <>
       <div className="mx-auto mt-12 max-w-md px-2.5 text-center sm:max-w-lg sm:px-0">
         <h1 className="mt-5 font-display text-3xl font-extrabold leading-[1.15] text-black [text-wrap:balance] sm:text-5xl sm:leading-[1.15]">
-          {data.title}
+          {data?.title}
         </h1>
         <p className="mt-5 text-gray-600 sm:text-xl">{data.description}</p>
         <div className="mx-auto mt-5 flex max-w-fit space-x-4">
@@ -96,13 +91,6 @@ export default async function FeaturePage({
               <Play className="h-5 w-5 text-white" fill="currentColor" />
             </div>
             <div className="flex rounded-full border border-gray-200 bg-white p-2 shadow-xl group-hover:shadow-2xl">
-              <BlurImage
-                src="https://d2vwwcvoksz7ty.cloudfront.net/author/steventey.jpg"
-                alt="Steven Tey"
-                width={36}
-                height={36}
-                className="h-10 w-10 rounded-full"
-              />
               <div className="ml-2 mr-4 flex flex-col text-left">
                 <p className="text-sm font-medium text-gray-500">Watch Demo</p>
                 <p className="text-sm text-blue-500">
@@ -114,10 +102,9 @@ export default async function FeaturePage({
         </PlayButton>
         <BlurImage
           src={data.thumbnail}
-          placeholder="blur"
-          blurDataURL={data.thumbnailBlurhash}
+          
           priority
-          alt={data.title}
+          alt={data?.title}
           width={1735}
           height={990}
         />
@@ -134,7 +121,7 @@ export default async function FeaturePage({
             {data.bentoDescription}
           </p>
         </div>
-        {data.slug === "qr-codes" ? (
+        {data?.slug === "qr-codes" ? (
           <div className="mx-auto mt-10 max-w-md rounded-2xl border border-gray-200 bg-white shadow backdrop-blur">
             <QRCodePicker
               props={{
@@ -193,8 +180,7 @@ const BentoCard = ({
           <div className="absolute right-0 h-full w-16 bg-gradient-to-r from-transparent to-white" />
           <Image
             src={image}
-            placeholder="blur"
-            blurDataURL={imageBlurhash}
+            
             alt={title}
             draggable={false}
             width={750}
