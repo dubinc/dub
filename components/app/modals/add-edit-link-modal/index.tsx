@@ -407,7 +407,7 @@ function AddEditLinkModal({
                     id={`url-${randomIdx}`}
                     type="url"
                     required
-                    placeholder="https://github.com/steven-tey/dub"
+                    placeholder="https://github.com"
                     value={url}
                     autoFocus={!key}
                     autoComplete="off"

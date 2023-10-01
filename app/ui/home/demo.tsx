@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import LinkCard from "#/ui/home/link-card";
 import PlaceholderCard from "#/ui/home/placeholder-card";
@@ -17,6 +17,15 @@ export default function Demo() {
   const [hashes, setHashes] = useLocalStorage<SimpleLinkProps[]>("hashes", []);
   const [submitting, setSubmitting] = useState(false);
   const [showDefaultLink, setShowDefaultLink] = useState(true);
+
+  const checkURL = useCallback((e) => {
+    var string = e.target.value;
+    if (!~string.indexOf("http")) {
+      string = "https://" + string;
+    }
+    e.target.value = string;
+    return e
+  }, []);
 
   return (
     <div className="mx-auto mb-5 w-full max-w-md px-2.5 sm:px-0">
@@ -79,6 +88,7 @@ export default function Demo() {
             <input
               name="url"
               type="url"
+              onBlur={checkURL}
               placeholder="Shorten your link"
               autoComplete="off"
               required

@@ -301,6 +301,7 @@ export const getApexDomain = (url: string) => {
 };
 
 export const isValidUrl = (url: string) => {
+  console.log("isValid", url)
   try {
     new URL(url);
     return true;

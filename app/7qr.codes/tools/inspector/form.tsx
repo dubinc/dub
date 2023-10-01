@@ -1,8 +1,18 @@
 "use client";
 
 import { Link2 } from "lucide-react";
+import { useCallback } from "react";
 
 export default function LinkInspectorForm() {
+  const checkURL = useCallback((e) => {
+    var string = e.target.value;
+    if (!~string.indexOf("http")) {
+      string = "https://" + string;
+    }
+    e.target.value = string;
+    return e
+  }, []);
+
   return (
     <form
       onSubmit={(e) => {
@@ -15,6 +25,7 @@ export default function LinkInspectorForm() {
         <input
           name="url"
           type="url"
+          onBlur={checkURL}
           placeholder="https://7qr.sh/github"
           autoComplete="off"
           required
