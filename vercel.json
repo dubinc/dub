@@ -1,0 +1,44 @@
+{
+  "rewrites": [
+    {
+      "source": "/docs",
+      "has": [
+        {
+          "type": "host",
+          "value": "dub.co"
+        }
+      ],
+      "destination": "https://dub.mintlify.dev/docs"
+    },
+    {
+      "source": "/docs/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "dub.co"
+        }
+      ],
+      "destination": "https://dub.mintlify.dev/docs/:path*"
+    },
+    {
+      "source": "/docs",
+      "has": [
+        {
+          "type": "host",
+          "value": "dub-(?<branch>.*)-elegance.vercel.app"
+        }
+      ],
+      "destination": "https://dub.mintlify.dev/docs"
+    },
+    {
+      "source": "/docs/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "dub-(?<branch>.*)-elegance.vercel.app"
+        }
+      ],
+      "destination": "https://dub.mintlify.dev/docs/:path*"
+    }
+  ]
+}

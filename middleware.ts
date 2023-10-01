@@ -34,10 +34,6 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   const { domain, path, fullPath, key } = parse(req);
 
   if (isHomeHostname(domain)) {
-    // for docs via Mintlify
-    if (fullPath.startsWith("/docs")) {
-      return NextResponse.rewrite(`https://dub.mintlify.dev/docs${fullPath}`);
-    }
     return NextResponse.rewrite(
       new URL(`/dub.co${path === "/" ? "" : path}`, req.url),
     );
