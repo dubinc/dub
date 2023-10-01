@@ -11,12 +11,17 @@ export const config = {
 };
 
 export default async function handler(req: NextRequest) {
+  let domain = req.nextUrl.hostname;
+  let corsOrigin = "";
+  if (isHomeHostname(domain)) {
+    domain = "dub.sh";
+    corsOrigin = req.nextUrl.hostname;
+  }
+
   if (req.method === "GET") {
     const key = req.nextUrl.pathname.split("/")[4];
     const interval = req.nextUrl.searchParams.get("interval");
     const endpoint = req.nextUrl.searchParams.get("endpoint") as string;
-    let domain = req.nextUrl.hostname;
-    if (isHomeHostname(domain)) domain = "dub.sh";
 
     if (
       process.env.NODE_ENV !== "development" &&
@@ -62,7 +67,21 @@ export default async function handler(req: NextRequest) {
       interval,
     });
 
-    return new Response(JSON.stringify(response), { status: 200 });
+    return new Response(JSON.stringify(response), {
+      status: 200,
+      headers: {
+        "Access-Control-Allow-Origin": corsOrigin,
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+      },
+    });
+  } else if (req.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "Access-Control-Allow-Origin": corsOrigin,
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+      },
+    });
   } else {
     return new Response(`Method ${req.method} Not Allowed`, { status: 405 });
   }
