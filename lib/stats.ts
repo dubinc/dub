@@ -167,13 +167,17 @@ export const getStats = async ({
     url.searchParams.append("granularity", intervalData[interval].granularity);
   }
 
+  console.log(url.href);
+
   return await fetch(url.toString(), {
     headers: {
       Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
     },
   })
     .then((res) => res.json())
-    .then(({ data }) => {
+    .then((res) => {
+      const { data, error } = res;
+      error && console.log(error)
       if (endpoint === "clicks") {
         try {
           const clicks = data[0]["count()"];
