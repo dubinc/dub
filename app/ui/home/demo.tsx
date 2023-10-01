@@ -1,12 +1,11 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import LinkCard from "#/ui/home/link-card";
 import PlaceholderCard from "#/ui/home/placeholder-card";
 import { LoadingSpinner } from "#/ui/icons";
-import { CornerDownLeft, Link2 } from "lucide-react";
-import Tooltip, { TooltipContent } from "#/ui/tooltip";
+import { CornerDownLeft } from "lucide-react";
 import { APP_DOMAIN, FRAMER_MOTION_LIST_ITEM_VARIANTS } from "#/lib/constants";
 import useLocalStorage from "#/lib/hooks/use-local-storage";
 import { SimpleLinkProps } from "#/lib/types";
@@ -18,18 +17,24 @@ export default function Demo() {
   const [submitting, setSubmitting] = useState(false);
   const [showDefaultLink, setShowDefaultLink] = useState(true);
 
-  const checkURL = useCallback((e) => {
-    var string = e.target.value;
-    if (!~string.indexOf("http")) {
-      string = "https://" + string;
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const parseUrl = useCallback((url: string) => {
+    const expression = /[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)?/gi;
+    const regex = new RegExp(expression);
+    const isValidUrl = url.match(regex);
+
+    if (!~url.indexOf("http") && isValidUrl) {
+      return "https://" + url;
     }
-    e.target.value = string;
-    return e
+    
+    return url;
   }, []);
 
   return (
-    <div className="mx-auto mb-5 w-full max-w-md px-2.5 sm:px-0">
+    <div className="mx-auto mb-5 w-full max-w-xl px-2.5 sm:px-0">
       <form
+        noValidate
         ref={formRef}
         onSubmit={(e) => {
           e.preventDefault();
@@ -40,7 +45,7 @@ export default function Demo() {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              url: e.currentTarget.url.value,
+              url: parseUrl(e.currentTarget.url.value)
             }),
           }).then(async (res) => {
             setSubmitting(false);
@@ -62,55 +67,32 @@ export default function Demo() {
           });
         }}
       >
-        {hashes.length >= 3 ? (
-          <Tooltip
-            content={
-              <TooltipContent
-                title="Maximum number of links reached. Swipe to delete existing links or
-              create a free account."
-                cta="Start For Free"
-                href={`${APP_DOMAIN}/register`}
-              />
-            }
-          >
-            <div className="relative flex w-full items-center">
-              <div className="block w-full rounded-md border border-gray-200 bg-white p-2 pl-3 pr-12 text-sm text-gray-400 shadow-lg focus:border-black">
-                Shorten your link
-              </div>
-              <div className="absolute inset-y-0 right-0 my-1.5 mr-1.5 flex w-10 cursor-not-allowed items-center justify-center rounded border border-gray-200 font-sans text-sm font-medium text-gray-400">
-                <CornerDownLeft className="h-4 w-4" />
-              </div>
-            </div>
-          </Tooltip>
-        ) : (
-          <div className="relative flex items-center">
-            <Link2 className="absolute inset-y-0 left-0 my-2 ml-3 w-5 text-gray-400" />
-            <input
-              name="url"
-              type="url"
-              onBlur={checkURL}
-              placeholder="Shorten your link"
-              autoComplete="off"
-              required
-              className="peer block w-full rounded-md border-gray-200 pl-10 pr-12 text-sm text-gray-900 placeholder-gray-400 shadow-lg focus:border-gray-500 focus:outline-none focus:ring-gray-500"
-            />
-            <button
-              type="submit"
-              disabled={submitting}
-              className={`${
-                submitting
-                  ? "cursor-not-allowed bg-gray-100"
-                  : "hover:border-gray-700 hover:text-gray-700 peer-focus:text-gray-700"
+        <div className="relative flex items-center">
+          <input
+            autoFocus
+            ref={inputRef}
+            name="url"
+            type="url"
+            placeholder="Example: https://mega-long-link.com/shorten-it"
+            autoComplete="off"
+            required
+            className="peer block w-full rounded-lg border-gray-200 py-4 pl-5 pr-12 text-lg text-gray-900 placeholder-gray-400 shadow-lg focus:border-gray-500 focus:outline-none focus:ring-gray-500"
+          />
+          <button
+            type="submit"
+            disabled={submitting}
+            className={`${submitting
+              ? "cursor-not-allowed bg-gray-100"
+              : "hover:border-gray-700 hover:text-gray-700 peer-focus:text-gray-700"
               } absolute inset-y-0 right-0 my-1.5 mr-1.5 flex w-10 items-center justify-center rounded border border-gray-200 font-sans text-sm font-medium text-gray-400`}
-            >
-              {submitting ? (
-                <LoadingSpinner className="h-4 w-4" />
-              ) : (
-                <CornerDownLeft className="h-4 w-4" />
-              )}
-            </button>
-          </div>
-        )}
+          >
+            {submitting ? (
+              <LoadingSpinner className="h-4 w-4" />
+            ) : (
+              <CornerDownLeft className="h-4 w-4" />
+            )}
+          </button>
+        </div>
       </form>
 
       <motion.ul
@@ -129,9 +111,9 @@ export default function Demo() {
       >
         {showDefaultLink && (
           <LinkCard
-            key="github"
-            _key="github"
-            url="https://github.com/steven-tey/dub"
+            key="chatgpt"
+            _key="chatgpt"
+            url="https://chat.openai.com"
             hashes={hashes}
             setHashes={setHashes}
             setShowDefaultLink={setShowDefaultLink}

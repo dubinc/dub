@@ -4,7 +4,6 @@ import Globe from "#/ui/home/globe";
 import Stats, { StatsSection } from "#/ui/home/stats";
 import Features from "#/ui/home/features";
 import Logos from "#/ui/home/logos";
-import OSS, { OSSSection } from "#/ui/home/oss";
 import Testimonials from "#/ui/home/testimonials";
 import Changelog from "#/ui/home/changelog";
 import { Suspense } from "react";
@@ -32,9 +31,6 @@ export default function Home() {
         <Testimonials />
       </Suspense>
       <Changelog />
-      <Suspense fallback={<OSSSection stars={10000} />}>
-        <OSS />
-      </Suspense>
       <CTA />
     </>
   );

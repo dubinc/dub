@@ -143,7 +143,7 @@ export default function LinkCard({
         onDrag={() => setVelocity(x.getVelocity())}
         onDragEnd={() => flyAway(500)}
         whileTap={{ scale: 1.05 }}
-        className="flex max-w-md cursor-grab items-center justify-between rounded-md border border-gray-200 bg-white p-3 shadow-lg transition-[border-color] hover:border-black active:cursor-grabbing"
+        className="flex max-w-xl cursor-grab items-center justify-between rounded-md border border-gray-200 bg-white p-3 shadow-lg transition-[border-color] hover:border-black active:cursor-grabbing"
       >
         <div className="flex items-center space-x-3">
           <BlurImage

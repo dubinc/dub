@@ -138,7 +138,8 @@ export const getStats = async ({
       [domain, decodeURIComponent(key)],
     );
     try {
-      const clicks = response.rows[0]["clicks"];
+      const row = response.rows[0];
+      const clicks = row?.["clicks"];
       return clicks || "0";
     } catch (e) {
       console.log(e, "Potential reason: Link is not in MySQL DB");
