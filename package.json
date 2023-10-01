@@ -2,7 +2,7 @@
   "private": true,
   "license": "AGPL-3.0-or-later",
   "scripts": {
-    "dev": "concurrently --kill-others \"prisma migrate && next dev --port 8888\" \"prisma studio --browser none\" \"email dev --port 3333\"",
+    "dev": "concurrently --kill-others \"prisma generate && next dev --port 8888\" \"prisma studio --browser none\" \"email dev --port 3333\" \"cd docs && mintlify dev --port 3334\"",
     "build": "prisma generate & next build",
     "format:write": "prettier --write \"**/*.{css,js,json,jsx,ts,tsx}\"",
     "format": "prettier \"**/*.{css,js,json,jsx,ts,tsx}\"",
