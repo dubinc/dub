@@ -36,7 +36,9 @@ export default withUserAuth(async (req, res, session) => {
   } else if (req.method === "POST") {
     const { name } = req.body;
     const token = generateToken();
-    const hashedKey = hashToken(token);
+    const hashedKey = hashToken(token, {
+      noSecret: true,
+    });
     // take first 3 and last 4 characters of the key
     const partialKey = `${token.slice(0, 3)}...${token.slice(-4)}`;
 

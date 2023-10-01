@@ -21,9 +21,16 @@ export async function getSession(req: NextApiRequest, res: NextApiResponse) {
   return (await getServerSession(req, res, authOptions)) as Session;
 }
 
-export const hashToken = (token: string) => {
+export const hashToken = (
+  token: string,
+  {
+    noSecret = false,
+  }: {
+    noSecret?: boolean;
+  } = {},
+) => {
   return createHash("sha256")
-    .update(`${token}${process.env.NEXTAUTH_SECRET}`)
+    .update(`${token}${noSecret ? "" : process.env.NEXTAUTH_SECRET}`)
     .digest("hex");
 };
 interface WithProjectNextApiHandler {
@@ -267,7 +274,9 @@ const withLinksAuth =
         return res.status(403).end("Unauthorized: Invalid route.");
       }
 
-      const hashedKey = hashToken(apiKey);
+      const hashedKey = hashToken(apiKey, {
+        noSecret: true,
+      });
 
       const user = await prisma.user.findFirst({
         where: {

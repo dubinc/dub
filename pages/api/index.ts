@@ -33,7 +33,7 @@ export default async function handler(): Promise<
       "/links": {
         get: {
           description:
-            "Allows to retrieve the list of links of the authenticated user or project. The list will be paginated and the provided query parameters allow filtering the returned projects.",
+            "Retrieve a list of links for the authenticated user or project. The list will be paginated and the provided query parameters allow filtering the returned links.",
           operationId: "getLinks",
           security: [
             {
@@ -156,7 +156,7 @@ export default async function handler(): Promise<
         },
         post: {
           description:
-            "Allows to create a new link for the authenticated user or project.",
+            "Create a new link for the authenticated user or project.",
           operationId: "createLink",
           security: [
             {
@@ -204,9 +204,68 @@ export default async function handler(): Promise<
         },
       },
       "/links/{key}": {
+        get: {
+          description: "Retrieve a link for the authenticated user or project.",
+          operationId: "getLink",
+          security: [
+            {
+              bearerToken: [],
+            },
+          ],
+          summary: "Retrieve a link",
+          parameters: [
+            {
+              name: "key",
+              description:
+                "The key of the link to retrieve. E.g. for dub.sh/github, the key is 'github'.",
+              in: "path",
+              required: true,
+              schema: {
+                description:
+                  "The key of the link to retrieve. E.g. for dub.sh/github, the key is 'github'.",
+                type: "string",
+              },
+            },
+            {
+              name: "domain",
+              description:
+                "The domain of the link to retrieve. E.g. for dub.sh/github, the domain is 'dub.sh'.",
+              in: "query",
+              required: true,
+              schema: {
+                description:
+                  "The domain of the link to retrieve. E.g. for dub.sh/github, the domain is 'dub.sh'.",
+                type: "string",
+              },
+            },
+            {
+              name: "slug",
+              description:
+                "The project slug of the link to retrieve. E.g. for app.dub.co/vercel, the slug is 'vercel'.",
+              in: "query",
+              required: true,
+              schema: {
+                description:
+                  "The project slug of the link to retrieve. E.g. for app.dub.co/vercel, the slug is 'vercel'.",
+                type: "string",
+              },
+            },
+          ],
+          responses: {
+            "200": {
+              description: "The retrieved link",
+              content: {
+                "application/json": {
+                  schema: {
+                    $ref: "#/components/schemas/Link",
+                  },
+                },
+              },
+            },
+          },
+        },
         delete: {
-          description:
-            "Allows to delete a link for the authenticated user or project.",
+          description: "Delete a link for the authenticated user or project.",
           operationId: "deleteLink",
           security: [
             {
@@ -276,6 +335,7 @@ export default async function handler(): Promise<
               type: "string",
               format: "cuid",
               description: "The unique ID of the short link.",
+              readOnly: true,
             },
             domain: {
               type: "string",
@@ -298,12 +358,14 @@ export default async function handler(): Promise<
               type: "string",
               format: "date-time",
               description: "The date and time when the short link will expire.",
+              default: null,
               nullable: true,
             },
             password: {
               type: "string",
               description:
                 "The password required to access the destination URL of the short link.",
+              default: null,
               nullable: true,
             },
             proxy: {
@@ -316,43 +378,51 @@ export default async function handler(): Promise<
               type: "string",
               description:
                 "The title of the short link generated via api.dub.co/metatags. Will be used for Custom Social Media Cards if `proxy` is true.",
+              default: null,
               nullable: true,
             },
             description: {
               type: "string",
               description:
                 "The description of the short link generated via api.dub.co/metatags. Will be used for Custom Social Media Cards if `proxy` is true.",
+              default: null,
               nullable: true,
             },
             image: {
               type: "string",
               description:
                 "The image of the short link generated via api.dub.co/metatags. Will be used for Custom Social Media Cards if `proxy` is true.",
+              default: null,
               nullable: true,
             },
             utm_source: {
               type: "string",
               description: "The UTM source of the short link.",
+              default: null,
               nullable: true,
             },
             utm_medium: {
               type: "string",
               description: "The UTM medium of the short link.",
+              default: null,
               nullable: true,
             },
             utm_campaign: {
               type: "string",
               description: "The UTM campaign of the short link.",
+              default: null,
               nullable: true,
             },
             utm_term: {
               type: "string",
               description: "The UTM term of the short link.",
+              default: null,
               nullable: true,
             },
             utm_content: {
               type: "string",
               description: "The UTM content of the short link.",
+              default: null,
               nullable: true,
             },
             rewrite: {
@@ -364,12 +434,14 @@ export default async function handler(): Promise<
               type: "string",
               description:
                 "The iOS destination URL for the short link for iOS device targeting.",
+              default: null,
               nullable: true,
             },
             android: {
               type: "string",
               description:
                 "The Android destination URL for the short link for Android device targeting.",
+              default: null,
               nullable: true,
             },
             geo: {
@@ -379,6 +451,7 @@ export default async function handler(): Promise<
                 type: "string",
                 format: "uri",
               },
+              default: null,
               nullable: true,
             },
             userId: {
@@ -401,38 +474,52 @@ export default async function handler(): Promise<
               type: "number",
               description: "The number of clicks on the short link.",
               default: 0,
+              readOnly: true,
             },
             lastClicked: {
               type: "string",
               format: "date-time",
               description:
                 "The date and time when the short link was last clicked.",
+              default: null,
               nullable: true,
+              readOnly: true,
             },
             createdAt: {
               type: "string",
               format: "date-time",
               description: "The date and time when the short link was created.",
+              readOnly: true,
             },
             updatedAt: {
               type: "string",
               format: "date-time",
               description:
                 "The date and time when the short link was last updated.",
+              readOnly: true,
             },
             tagId: {
               type: "string",
               format: "cuid",
               description:
                 "The unique id of the tag assigned to the short link.",
+              default: null,
               nullable: true,
             },
             comments: {
               type: "string",
               description: "The comments for the short link.",
+              default: null,
               nullable: true,
             },
           },
+        },
+      },
+      securitySchemes: {
+        bearerToken: {
+          type: "http",
+          description: "Default authentication mechanism",
+          scheme: "bearer",
         },
       },
     },
