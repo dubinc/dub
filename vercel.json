@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/docs",
+      "destination": "https://dub.mintlify.dev/docs"
+    },
+    {
+      "source": "/docs/:match*",
+      "destination": "https://dub.mintlify.dev/docs/:match*"
+    }
+  ]
+}
