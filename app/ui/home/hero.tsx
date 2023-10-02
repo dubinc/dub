@@ -33,15 +33,6 @@ const Hero = () => {
       <h2 className="mt-5 text-gray-600 sm:text-xl">
         Create short links, QR Codes. Share them anywhere. Track what’s working, and what’s not.
       </h2>
-
-      <div className="mx-auto mt-10 flex max-w-fit space-x-4">
-        <a
-          href={`${APP_DOMAIN}/register`}
-          className="rounded-full border border-black bg-black px-5 py-2 text-sm text-white shadow-lg transition-all hover:bg-white hover:text-black"
-        >
-          Start For Free
-        </a>
-      </div>
     </div>
   );
 };

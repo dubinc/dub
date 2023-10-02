@@ -1,7 +1,5 @@
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { motion, useAnimation, useMotionValue } from "framer-motion";
-import { toast } from "sonner";
+import { useRef } from "react";
 import useSWR from "swr";
 import { useAddEditLinkModal } from "#/ui/modals/add-edit-link-modal";
 import { useLinkQRModal } from "#/ui/modals/link-qr-modal";
@@ -12,7 +10,6 @@ import { Chart, ThreeDots } from "@/components/shared/icons";
 import { LoadingDots } from "#/ui/icons";
 import {
   DEFAULT_LINK_PROPS,
-  FRAMER_MOTION_LIST_ITEM_VARIANTS,
   GOOGLE_FAVICON_URL,
 } from "#/lib/constants";
 import { SimpleLinkProps } from "#/lib/types";
@@ -27,9 +24,6 @@ import Number from "#/ui/number";
 export default function LinkCard({
   _key: key,
   url,
-  hashes,
-  setHashes,
-  setShowDefaultLink,
 }: {
   _key: string;
   url: string;
@@ -40,68 +34,6 @@ export default function LinkCard({
   const apexDomain = getApexDomain(url);
 
   const cardElem = useRef<HTMLDivElement | null>(null);
-
-  const x = useMotionValue(0);
-  const controls = useAnimation();
-
-  const [constrained, setConstrained] = useState(true);
-
-  const [velocity, setVelocity] = useState<number>(0);
-
-  const isDelete = (childNode, parentNode) => {
-    const childRect = childNode.getBoundingClientRect();
-    const parentRect = parentNode.getBoundingClientRect();
-    return parentRect.left >= childRect.right ||
-      parentRect.right <= childRect.left
-      ? true
-      : undefined;
-  };
-
-  // determine direction of swipe based on velocity
-  const direction = useMemo(() => {
-    return velocity >= 1 ? "right" : velocity <= -1 ? "left" : undefined;
-  }, [velocity]);
-
-  const flyAway = (min) => {
-    const flyAwayDistance = (direction) => {
-      const parentWidth =
-        // @ts-ignore
-        cardElem.current?.parentNode?.getBoundingClientRect().width || 0;
-      const childWidth = cardElem.current?.getBoundingClientRect().width || 0;
-      return direction === "left"
-        ? -parentWidth / 2 - childWidth / 2
-        : parentWidth / 2 + childWidth / 2;
-    };
-    if (direction && Math.abs(velocity) > min) {
-      console.log("flying away");
-      setConstrained(false);
-      controls.start({
-        x: flyAwayDistance(direction),
-      });
-    }
-  };
-
-  useEffect(() => {
-    const unsubscribeX = x.onChange(() => {
-      if (cardElem.current) {
-        const childNode = cardElem.current;
-        // @ts-ignore
-        const parentNode = cardElem.current.parentNode;
-        const deleted = isDelete(childNode, parentNode);
-        if (deleted) {
-          toast.success("Link deleted!");
-          if (setShowDefaultLink) {
-            setShowDefaultLink(false);
-          }
-          if (hashes && setHashes) {
-            setHashes(hashes.filter((hash) => hash.key !== key));
-          }
-        }
-      }
-    });
-
-    return () => unsubscribeX();
-  });
 
   const { showLinkQRModal, setShowLinkQRModal, LinkQRModal } = useLinkQRModal({
     props: {
@@ -130,20 +62,12 @@ export default function LinkCard({
   );
 
   return (
-    <motion.li variants={FRAMER_MOTION_LIST_ITEM_VARIANTS}>
+    <li>
       <LinkQRModal />
       <AddEditLinkModal />
-      <motion.div
-        animate={controls}
-        drag="x"
-        dragConstraints={constrained && { left: 0, right: 0 }}
-        dragElastic={1}
+      <div
         ref={cardElem}
-        style={{ x }}
-        onDrag={() => setVelocity(x.getVelocity())}
-        onDragEnd={() => flyAway(500)}
-        whileTap={{ scale: 1.05 }}
-        className="flex max-w-xl cursor-grab items-center justify-between rounded-md border border-gray-200 bg-white p-3 shadow-lg transition-[border-color] hover:border-black active:cursor-grabbing"
+        className="flex max-w-xl items-center justify-between rounded-md border border-gray-200 bg-white p-3 shadow-lg transition-[border-color]"
       >
         <div className="flex items-center space-x-3">
           <BlurImage
@@ -206,7 +130,7 @@ export default function LinkCard({
           <span className="sr-only">Edit</span>
           <ThreeDots className="h-5 w-5 text-gray-500" />
         </button>
-      </motion.div>
-    </motion.li>
+      </div>
+    </li>
   );
 }

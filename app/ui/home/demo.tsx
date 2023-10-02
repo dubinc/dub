@@ -27,7 +27,7 @@ export default function Demo() {
     if (!~url.indexOf("http") && isValidUrl) {
       return "https://" + url;
     }
-    
+
     return url;
   }, []);
 
@@ -60,6 +60,7 @@ export default function Demo() {
               ]);
               toast.success("Successfully shortened link!");
               formRef.current?.reset();
+              window.location.replace(`${APP_DOMAIN}/register`);
             } else {
               const error = await res.text();
               toast.error(error);
@@ -67,29 +68,60 @@ export default function Demo() {
           });
         }}
       >
-        <div className="relative flex items-center">
-          <input
-            autoFocus
-            ref={inputRef}
-            name="url"
-            type="url"
-            placeholder="Example: https://mega-long-link.com/shorten-it"
-            autoComplete="off"
-            required
-            className="peer block w-full rounded-lg border-gray-200 py-4 pl-5 pr-12 text-lg text-gray-900 placeholder-gray-400 shadow-lg focus:border-gray-500 focus:outline-none focus:ring-gray-500"
-          />
+        <div className="relative flex flex-col space-y-6 items-start">
+          <label className="w-full text-lg">
+            <span className="font-medium">Paste a long URL</span>
+            <input
+              autoFocus
+              ref={inputRef}
+              name="url"
+              type="url"
+              placeholder="Example: https://mega-long-link.com/shorten-it"
+              autoComplete="off"
+              required
+              className="peer block w-full rounded-lg border-gray-300 mt-2 py-4 pl-5 pr-12 text-lg text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500"
+            />
+          </label>
+          <div className="flex w-full flex-col md:flex-row space-y-6 md:space-x-4 md:space-y-0">
+            <div className="flex w-full flex-row space-x-4 basis-2/5">
+              <label className="w-full text-lg">
+                <span className="font-medium">Domain</span>
+                <input
+                  ref={inputRef}
+                  name="domain"
+                  type="text"
+                  value="7qr.sh"
+                  required
+                  readOnly
+                  disabled
+                  className="peer block w-full rounded-lg border-gray-300 py-4 pl-5 pr-12 text-lg bg-gray-100 text-gray-400 focus:border-none focus:outline-none focus:ring-0"
+                />
+              </label>
+              <span className="block pt-11 font-bold">/</span>
+            </div>
+            <label className="w-full text-lg basis-3/5">
+              <span className="font-medium">Enter a back-half</span> (optional)
+              <input
+                ref={inputRef}
+                name="backhalf"
+                type="text"
+                placeholder="example: best-link"
+                className="peer block w-full rounded-lg border-gray-300 py-4 pl-5 pr-12 text-lg text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500"
+              />
+            </label>
+          </div>
           <button
             type="submit"
             disabled={submitting}
             className={`${submitting
-              ? "cursor-not-allowed bg-gray-100"
-              : "hover:border-gray-700 hover:text-gray-700 peer-focus:text-gray-700"
-              } absolute inset-y-0 right-0 my-1.5 mr-1.5 flex w-10 items-center justify-center rounded border border-gray-200 font-sans text-sm font-medium text-gray-400`}
+              ? "cursor-not-allowed"
+              : "cursor-pointer"
+              } py-4 px-8 bg-purple-700 hover:bg-purple-800 text-white font-bold px-4 rounded-lg`}
           >
             {submitting ? (
               <LoadingSpinner className="h-4 w-4" />
             ) : (
-              <CornerDownLeft className="h-4 w-4" />
+              <span>Sign up and get your link</span>
             )}
           </button>
         </div>
