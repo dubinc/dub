@@ -6,7 +6,7 @@ export default async function ApiMiddleware(req: NextRequest) {
   const { fullPath, domain } = parse(req);
   if (fullPath === "/" && domain === "api.dub.co") {
     return NextResponse.redirect(`${HOME_DOMAIN}/help/article/dub-api`, {
-      status: 301,
+      status: 307,
     });
 
     // special case for metatags
