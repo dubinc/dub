@@ -35,10 +35,10 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
           },
         ]
       : [
-          {
-            name: "API Keys",
-            href: "/settings/tokens",
-          },
+          // {
+          //   name: "API Keys",
+          //   href: "/settings/tokens",
+          // },
         ]),
   ];
 
