@@ -4,25 +4,25 @@ import { nFormatter } from "#/lib/utils";
 
 export default async function Stats() {
   const [domains, shortlinks, clicks] = await Promise.all([
-    prisma.domain.count({
-      where: {
-        verified: true,
+    prisma.domain
+      .count({
+        where: {
+          verified: true,
+        },
+      })
+      .catch(() => 1000),
+    prisma.link.count().catch(() => 20000),
+    fetch(`https://api.us-east.tinybird.co/v0/pipes/all_clicks.json`, {
+      headers: {
+        Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
       },
-    }),
-    prisma.link.count(),
-    process.env.TINYBIRD_API_KEY
-      ? fetch(`https://api.us-east.tinybird.co/v0/pipes/all_clicks.json`, {
-          headers: {
-            Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
-          },
-          next: {
-            revalidate: 300,
-          },
-        })
-          .then((res) => res.json())
-          .then((res) => res.data[0]["count(timestamp)"])
-          .catch(() => 5000000)
-      : 5000000,
+      next: {
+        revalidate: 300,
+      },
+    })
+      .then((res) => res.json())
+      .then((res) => res.data[0]["count(timestamp)"])
+      .catch(() => 5000000),
   ]);
 
   return (
