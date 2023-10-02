@@ -62,21 +62,7 @@ export default async function handler(req: NextRequest) {
       interval,
     });
 
-    return new Response(JSON.stringify(response), {
-      status: 200,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, OPTIONS",
-      },
-    });
-  } else if (req.method === "OPTIONS") {
-    return new Response(null, {
-      status: 204,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, OPTIONS",
-      },
-    });
+    return new Response(JSON.stringify(response), { status: 200 });
   } else {
     return new Response(`Method ${req.method} Not Allowed`, { status: 405 });
   }
