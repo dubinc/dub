@@ -253,8 +253,16 @@ const withLinksAuth =
 
     let session: Session | undefined;
 
-    const apiKey = req.headers.authorization?.split("Bearer ")[1];
-    if (apiKey) {
+    const authorizationHeader = req.headers.authorization;
+    if (authorizationHeader) {
+      if (!authorizationHeader.includes("Bearer ")) {
+        return res
+          .status(400)
+          .end(
+            "Misconfigured authorization header. Did you forget to add 'Bearer '? Learn more: https://dub.sh/auth ",
+          );
+      }
+      const apiKey = authorizationHeader.replace("Bearer ", "");
       // if there is no slug, it's the default dub.sh link
       if (!slug) {
         return res
