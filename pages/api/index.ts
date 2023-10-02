@@ -185,12 +185,10 @@ export default async function handler(): Promise<
                     domain: {
                       type: "string",
                       description: "The domain of the short link.",
-                      required: true,
                     },
                     url: {
                       type: "string",
                       description: "The destination URL of the short link.",
-                      required: true,
                     },
                     key: {
                       type: "string",
