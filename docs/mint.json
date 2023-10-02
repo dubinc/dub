@@ -3,7 +3,8 @@
   "name": "Docs",
   "logo": {
     "dark": "/logos/logotype-dark.svg",
-    "light": "/logos/logotype.svg"
+    "light": "/logos/logotype.svg",
+    "href": "https://dub.co"
   },
   "favicon": "/logos/favicon.png",
   "colors": {
@@ -58,6 +59,15 @@
         "api-reference/endpoint/retrieve-a-link",
         "api-reference/endpoint/delete-a-link",
         "api-reference/endpoint/retrieve-a-list-of-links"
+      ]
+    },
+    {
+      "group": "Integrations",
+      "pages": [
+        "integrations/zapier",
+        "integrations/pipedream",
+        "integrations/make",
+        "integrations/raycast"
       ]
     }
   ],
