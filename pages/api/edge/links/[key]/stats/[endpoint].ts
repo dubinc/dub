@@ -16,7 +16,9 @@ export default async function handler(req: NextRequest) {
     const interval = req.nextUrl.searchParams.get("interval");
     const endpoint = req.nextUrl.searchParams.get("endpoint") as string;
     let domain = req.nextUrl.hostname;
-    if (isHomeHostname(domain)) domain = "dub.sh";
+    if (isHomeHostname(domain) || domain === "api.dub.sh") {
+      domain = "dub.sh";
+    }
 
     if (
       process.env.NODE_ENV !== "development" &&
