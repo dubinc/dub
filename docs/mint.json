@@ -49,7 +49,9 @@
   "navigation": [
     {
       "group": "API Reference",
-      "pages": ["api-reference/introduction"]
+      "pages": [
+        "api-reference/introduction"
+      ]
     },
     {
       "group": "Links",
@@ -61,6 +63,9 @@
       ]
     }
   ],
+  "api": {
+    "maintainOrder": true
+  },
   "feedback": {
     "thumbsRating": true
   },
