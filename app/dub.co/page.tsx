@@ -22,7 +22,7 @@ export default function Home() {
       </Suspense>
       <Suspense
         fallback={
-          <StatsSection domains={1000} shortlinks={20000} clicks={3500000} />
+          <StatsSection domains={1000} shortlinks={20000} clicks={5000000} />
         }
       >
         <Stats />
