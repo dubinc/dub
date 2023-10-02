@@ -1,4 +1,9 @@
-import { addLink, getLinksForProject, processKey } from "#/lib/api/links";
+import {
+  addLink,
+  getLinksForProject,
+  getRandomKey,
+  processKey,
+} from "#/lib/api/links";
 import { withLinksAuth } from "#/lib/auth";
 import { isBlacklistedDomain, isBlacklistedKey } from "#/lib/edge-config";
 import { getApexDomain, log } from "#/lib/utils";
@@ -42,8 +47,15 @@ export default withLinksAuth(
       // POST /api/links – create a new link
     } else if (req.method === "POST") {
       let { domain, key, url, rewrite, geo } = req.body;
-      if (!domain || !key || !url) {
-        return res.status(400).end("Missing domain or key or url.");
+      if (!url) {
+        return res.status(400).end("Missing destination url.");
+      }
+      if (!domain) {
+        return res.status(400).end("Missing short link domain.");
+      }
+
+      if (!key) {
+        key = await getRandomKey(domain);
       }
 
       // if it's not a custom project, do some filtering
