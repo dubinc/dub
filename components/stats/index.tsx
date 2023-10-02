@@ -39,14 +39,11 @@ export default function Stats({ staticDomain }: { staticDomain?: string }) {
     interval?: string;
   };
 
-  const queryString =
-    interval || domainSlug
-      ? `?${new URLSearchParams({
-          ...(slug && { slug }),
-          ...(interval && { interval }),
-          ...(domainSlug && { domain: domainSlug }),
-        }).toString()}`
-      : "";
+  const queryString = `?${new URLSearchParams({
+    ...(slug && { slug }),
+    ...(interval && { interval }),
+    domain: staticDomain || domainSlug || "dub.sh",
+  }).toString()}`;
 
   const { basePath, domain, endpoint } = useMemo(() => {
     // Project link page, e.g. app.dub.co/dub/dub.sh/github
