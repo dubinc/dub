@@ -35,28 +35,7 @@ export const FADE_IN_ANIMATION_SETTINGS = {
 
 export const PAGINATION_LIMIT = 100;
 
-/*
-  NOTE: We're using home.localhost:8888 for HOME_DOMAIN and localhost:8888 for APP_DOMAIN
-  in local development because Google OAuth doesn't allow subdomain localhost (e.g. app.localhost:8888)
-  as the callback URL. 
-*/
-
-export const HOME_HOSTNAMES = new Set([
-  "dub.co",
-  "home.localhost:8888",
-  "localhost",
-]);
-
-export const isHomeHostname = (domain: string) => {
-  return HOME_HOSTNAMES.has(domain) || domain.endsWith(".vercel.app");
-};
-
-export const HOME_DOMAIN =
-  process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-    ? "https://dub.co"
-    : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
-    ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-    : "http://home.localhost:8888";
+export const HOME_DOMAIN = "https://dub.co";
 
 export const APP_HOSTNAMES = new Set([
   "app.dub.co",
@@ -69,8 +48,7 @@ export const APP_DOMAIN =
   process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
     ? "https://app.dub.co"
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
-    ? // ? "https://preview.dub.co"
-      "https://app.dub.co"
+    ? "https://preview.dub.co"
     : "http://localhost:8888";
 
 export const APP_DOMAIN_WITH_NGROK =

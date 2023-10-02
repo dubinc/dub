@@ -7,7 +7,6 @@ import Background from "#/ui/home/background";
 import LinkInspectorCard from "./card";
 import LinkPreview from "#/ui/home/link-preview";
 import { HOME_DOMAIN } from "#/lib/constants";
-import { ExpandingArrow } from "#/ui/icons";
 
 export const runtime = "edge";
 

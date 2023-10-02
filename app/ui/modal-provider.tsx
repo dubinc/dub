@@ -18,7 +18,6 @@ import { useRouter } from "next/router";
 import { getQueryString } from "#/lib/utils";
 import { useUpgradePlanModal } from "@/components/app/modals/upgrade-plan-modal";
 import { useCompleteSetupModal } from "@/components/app/modals/complete-setup-modal";
-import useCMDK from "./cmdk";
 
 export const ModalContext = createContext<{
   setShowAddProjectModal: Dispatch<SetStateAction<boolean>>;
@@ -29,7 +28,6 @@ export const ModalContext = createContext<{
   setShowImportBitlyModal: Dispatch<SetStateAction<boolean>>;
   setShowImportShortModal: Dispatch<SetStateAction<boolean>>;
   setPollLinks: Dispatch<SetStateAction<boolean>>;
-  setShowCMDK: Dispatch<SetStateAction<boolean>>;
 }>({
   setShowAddProjectModal: () => {},
   setShowCompleteSetupModal: () => {},
@@ -39,7 +37,6 @@ export const ModalContext = createContext<{
   setShowImportBitlyModal: () => {},
   setShowImportShortModal: () => {},
   setPollLinks: () => {},
-  setShowCMDK: () => {},
 });
 
 export default function ModalProvider({ children }: { children: ReactNode }) {
@@ -48,7 +45,6 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
     useCompleteSetupModal();
   const { setShowAddEditDomainModal, AddEditDomainModal } =
     useAddEditDomainModal();
-  const { CMDK, setShowCMDK } = useCMDK();
 
   const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal();
   const { setShowUpgradePlanModal, UpgradePlanModal } = useUpgradePlanModal();
@@ -91,10 +87,8 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
         setShowImportBitlyModal,
         setShowImportShortModal,
         setPollLinks,
-        setShowCMDK,
       }}
     >
-      <CMDK />
       <AddProjectModal />
       <CompleteSetupModal />
       <AddEditDomainModal />

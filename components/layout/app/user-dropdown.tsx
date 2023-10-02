@@ -41,8 +41,6 @@ export default function UserDropdown() {
     setUnreadChangelogs(unreadChangelogs);
   }, []);
 
-  const { setShowCMDK } = useContext(ModalContext);
-
   return (
     <div className="relative inline-block">
       <Popover
@@ -58,18 +56,17 @@ export default function UserDropdown() {
                 {session?.user?.email}
               </p>
             </div>
-            <button
+            <Link
+              href={`${HOME_DOMAIN}/help`}
+              target="_blank"
+              rel="noopener noreferrer"
               className="w-full rounded-md p-2 text-sm transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
-              onClick={() => {
-                setShowCMDK(true);
-                setOpenPopover(false);
-              }}
             >
               <IconMenu
                 text="Help Center"
                 icon={<HelpCircle className="h-4 w-4" />}
               />
-            </button>
+            </Link>
             <button
               className="w-full rounded-md p-2 text-sm transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
               onClick={() => {

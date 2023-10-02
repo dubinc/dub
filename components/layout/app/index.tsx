@@ -81,7 +81,7 @@ export default function AppLayout({
     }
   }, [plan, id, name, slug, stripeId, createdAt]);
 
-  const { setShowUpgradePlanModal, setShowCMDK } = useContext(ModalContext);
+  const { setShowUpgradePlanModal } = useContext(ModalContext);
   const { AcceptInviteModal, setShowAcceptInviteModal } =
     useAcceptInviteModal();
 
@@ -151,12 +151,13 @@ export default function AppLayout({
                 >
                   Changelog
                 </a>
-                <button
-                  onClick={() => setShowCMDK(true)}
+                <a
+                  href={`${HOME_DOMAIN}/help`}
                   className="hidden text-sm text-gray-500 transition-colors hover:text-gray-700 sm:block"
+                  target="_blank"
                 >
                   Help
-                </button>
+                </a>
                 <UserDropdown />
               </div>
             </div>

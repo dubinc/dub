@@ -4,7 +4,6 @@ import {
   API_HOSTNAMES,
   APP_HOSTNAMES,
   DEFAULT_REDIRECTS,
-  isHomeHostname,
 } from "#/lib/constants";
 import {
   AppMiddleware,
@@ -31,22 +30,7 @@ export const config = {
 };
 
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
-  const { domain, path, fullPath, key } = parse(req);
-
-  if (isHomeHostname(domain)) {
-    // for docs via Mintlify
-    if (fullPath.startsWith("/docs")) {
-      return NextResponse.rewrite(`https://dub.mintlify.dev/docs${fullPath}`);
-    }
-    return NextResponse.rewrite(
-      new URL(`/dub.co${path === "/" ? "" : path}`, req.url),
-    );
-  }
-
-  // for public stats pages (e.g. dub.co/stats/github, vercel.fyi/stats/roomGPT)
-  if (key === "stats") {
-    return NextResponse.rewrite(new URL(`/${domain}${path}`, req.url));
-  }
+  const { domain, path, key } = parse(req);
 
   // for App
   if (APP_HOSTNAMES.has(domain)) {
@@ -58,9 +42,13 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
     return ApiMiddleware(req);
   }
 
-  // for Admin
-  if (ADMIN_HOSTNAMES.has(domain)) {
-    return AdminMiddleware(req);
+  // for public stats pages (e.g. vercel.fyi/stats/roomGPT)
+  if (key === "stats") {
+    return NextResponse.rewrite(new URL(`/${domain}${path}`, req.url));
+  }
+
+  if (domain === "dub.sh" && DEFAULT_REDIRECTS[key]) {
+    return NextResponse.redirect(DEFAULT_REDIRECTS[key]);
   }
 
   // for root pages (e.g. dub.co, vercel.fyi, etc.)
@@ -68,8 +56,9 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
     return RootMiddleware(req, ev);
   }
 
-  if (domain === "dub.sh" && DEFAULT_REDIRECTS[key]) {
-    return NextResponse.redirect(DEFAULT_REDIRECTS[key]);
+  // for Admin
+  if (ADMIN_HOSTNAMES.has(domain)) {
+    return AdminMiddleware(req);
   }
 
   return LinkMiddleware(req, ev);
