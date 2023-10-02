@@ -3,6 +3,12 @@ title: "Introduction"
 description: "Fundamental concepts of the Dub API."
 ---
 
+<Info>
+  Dub's API is currently in beta. If you have any questions or feedback, please
+  reach out to us at
+  [support@dub.co](mailto:support@dub.co?subject=Dub%20API%20Feedback).
+</Info>
+
 ## Base URL
 
 Dub's API is built on REST principles and is served over HTTPS. To ensure data privacy, unencrypted HTTP is not supported.
@@ -36,3 +42,10 @@ The API returns standard HTTP response codes to indicate the success or failure 
 | `404` | The requested resource could not be found.                                                     |
 | `429` | Too many requests.                                                                             |
 | `500` | The server encountered an unexpected condition which prevented it from fulfilling the request. |
+
+## Caveats
+
+- Dub's API is currently in beta and is subject to change. However, we will do our best to keep breaking changes to a minimum.
+- The API does not support `PUT` requests at this time. One workaround would be to
+  `DELETE` the resource and `POST` a new one.
+- The API does not support `dub.sh` shortlinks at this time.
