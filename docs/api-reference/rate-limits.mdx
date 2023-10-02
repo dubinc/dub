@@ -1,0 +1,19 @@
+---
+title: "Rate limits"
+description: "Learn about Dub's API rate limits."
+---
+
+Dub's API rate limiting is in conformance with the [IETF standard](https://datatracker.ietf.org/doc/html/draft-ietf-httpapi-ratelimit-headers):
+
+| Header Name             | Description                                                                     |
+| ----------------------- | ------------------------------------------------------------------------------- |
+| `X-RateLimit-Limit`     | The maximum number of requests that the consumer is permitted to make per hour. |
+| `X-RateLimit-Remaining` | The number of requests remaining in the current rate limit window.              |
+| `X-RateLimit-Reset`     | The time at which the current rate limit window resets in UTC epoch seconds.    |
+| `Retry-After`           | The number of seconds to wait before retrying the request again.                |
+
+Dub's API is capped at **10 requests per second** per user.
+
+This is implemented to ensure a fair usage policy so that excessive use by a single user does not adversely affect the performance and usage of the API by others.
+
+You'll receive a `429 Too Many Requests` response code if the rate limit is exceeded.

@@ -49,9 +49,7 @@
   "navigation": [
     {
       "group": "API Reference",
-      "pages": [
-        "api-reference/introduction"
-      ]
+      "pages": ["api-reference/introduction", "api-reference/rate-limits"]
     },
     {
       "group": "Links",
