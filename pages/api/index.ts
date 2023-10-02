@@ -24,10 +24,6 @@ export default async function handler(): Promise<
         url: "https://api.dub.co",
         description: "Production API",
       },
-      {
-        url: "https://api.dub.sh",
-        description: "Staging API",
-      },
     ],
     paths: {
       "/links": {
@@ -331,12 +327,6 @@ export default async function handler(): Promise<
         Link: {
           type: "object",
           properties: {
-            id: {
-              type: "string",
-              format: "cuid",
-              description: "The unique ID of the short link.",
-              readOnly: true,
-            },
             domain: {
               type: "string",
               description: "The domain of the short link.",
