@@ -317,6 +317,6 @@ export default makeSource({
           },
         },
       ],
-    ],
+    ] as any,
   },
 });
