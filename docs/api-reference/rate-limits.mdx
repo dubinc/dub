@@ -1,22 +1,19 @@
 ---
-title: "Rate Limits"
-description: "Example overview page before API endpoints"
+title: "Rate limits"
+description: "Learn about Dub's API rate limits."
 ---
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas et eros iaculis tortor dapibus cursus. Curabitur quis sapien nec tortor dictum gravida.
+Dub's API rate limiting is in conformance with the [IETF standard](https://datatracker.ietf.org/doc/html/draft-ietf-httpapi-ratelimit-headers):
 
-```bash
-'Authorization': 'Token <team_token>'
-```
+| Header Name             | Description                                                                     |
+| ----------------------- | ------------------------------------------------------------------------------- |
+| `X-RateLimit-Limit`     | The maximum number of requests that the consumer is permitted to make per hour. |
+| `X-RateLimit-Remaining` | The number of requests remaining in the current rate limit window.              |
+| `X-RateLimit-Reset`     | The time at which the current rate limit window resets in UTC epoch seconds.    |
+| `Retry-After`           | The number of seconds to wait before retrying the request again.                |
 
-## API Tokens
+Dub's API is capped at **10 requests per second** per user.
 
-Nullam convallis mauris at nunc consectetur, ac imperdiet leo rutrum. Maecenas cursus purus a pellentesque blandit. Pellentesque vitae lacinia libero, non mollis metus.
+This is implemented to ensure a fair usage policy so that excessive use by a single user does not adversely affect the performance and usage of the API by others.
 
-Nam id ullamcorper urna, at rutrum enim. [Maecenas vulputate](/introduction) vehicula libero, vitae sodales augue pretium nec. Quisque a magna tempor, semper risus vel, fermentum nunc. Pellentesque fermentum interdum ex, eu convallis massa blandit sed. Aliquam bibendum ipsum vel laoreet auctor.
-
-### Permissions
-
-Etiam lobortis ut odio ut fermentum. Nunc odio velit, sollicitudin at consectetur id, tristique eget turpis. Aliquam at risus vitae dolor sodales venenatis. In hac habitasse platea dictumst.
-
-Aenean consequat diam eget mollis fermentum. [Quisque eu malesuada](/introduction) felis, non dignissim libero.
+You'll receive a `429 Too Many Requests` response code if the rate limit is exceeded.
