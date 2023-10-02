@@ -30,6 +30,18 @@ export default function Avatar({
         `https://avatars.dicebear.com/api/micah/${user?.email}.svg`
       }
       className={cn("h-10 w-10 rounded-full border border-gray-300", className)}
+      draggable={false}
+    />
+  );
+}
+
+export function TokenAvatar({ id }: { id: string }) {
+  return (
+    <img
+      src={`https://api.dicebear.com/7.x/shapes/svg?seed=${id}`}
+      alt="avatar"
+      className="h-10 w-10 rounded-full"
+      draggable={false}
     />
   );
 }

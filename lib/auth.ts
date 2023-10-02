@@ -5,6 +5,8 @@ import { type Link as LinkProps } from "@prisma/client";
 import { PlanProps, ProjectProps, UserProps } from "#/lib/types";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { createHash } from "crypto";
+import { ratelimit } from "./upstash";
+import { API_DOMAIN } from "./constants";
 
 export interface Session {
   user: {
@@ -19,9 +21,16 @@ export async function getSession(req: NextApiRequest, res: NextApiResponse) {
   return (await getServerSession(req, res, authOptions)) as Session;
 }
 
-export const hashToken = (token: string) => {
+export const hashToken = (
+  token: string,
+  {
+    noSecret = false,
+  }: {
+    noSecret?: boolean;
+  } = {},
+) => {
   return createHash("sha256")
-    .update(`${token}${process.env.NEXTAUTH_SECRET}`)
+    .update(`${token}${noSecret ? "" : process.env.NEXTAUTH_SECRET}`)
     .digest("hex");
 };
 interface WithProjectNextApiHandler {
@@ -232,13 +241,6 @@ const withLinksAuth =
     } = {},
   ) =>
   async (req: NextApiRequest, res: NextApiResponse) => {
-    // console.log("Running withLinksAuth helper for endpoint: ", req.url);
-
-    const session = await getSession(req, res);
-    if (!session?.user.id) {
-      return res.status(401).end("Unauthorized: Login required.");
-    }
-
     const { slug, domain } = req.query as {
       slug?: string;
       domain?: string;
@@ -247,6 +249,85 @@ const withLinksAuth =
     // if slug is misconfgured
     if (slug && typeof slug !== "string") {
       return res.status(400).end("Missing or misconfigured project slug.");
+    }
+
+    let session: Session | undefined;
+
+    const apiKey = req.headers.authorization?.split("Bearer ")[1];
+    if (apiKey) {
+      // if there is no slug, it's the default dub.sh link
+      if (!slug) {
+        return res
+          .status(403)
+          .end("Unauthorized: API is not supported for dub.sh links yet.");
+      }
+
+      if (req.method === "PUT") {
+        return res
+          .status(403)
+          .end("Unauthorized: API is not supported for editing links yet.");
+      }
+
+      const url = new URL(req.url || "", API_DOMAIN);
+
+      if (url.pathname.includes("/stats/")) {
+        return res.status(403).end("Unauthorized: Invalid route.");
+      }
+
+      const hashedKey = hashToken(apiKey, {
+        noSecret: true,
+      });
+
+      const user = await prisma.user.findFirst({
+        where: {
+          tokens: {
+            some: {
+              hashedKey,
+            },
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      });
+      if (!user) {
+        return res.status(401).end("Unauthorized: Invalid API key.");
+      }
+
+      const { success, limit, reset, remaining } = await ratelimit(
+        10,
+        "1 s",
+      ).limit(apiKey);
+      res.setHeader("X-RateLimit-Limit", limit.toString());
+      res.setHeader("X-RateLimit-Remaining", remaining.toString());
+      res.setHeader("X-RateLimit-Reset", reset.toString());
+      res.setHeader("Retry-After", reset.toString());
+
+      if (!success) {
+        return res.status(429).end("Too many requests.");
+      }
+      await prisma.token.update({
+        where: {
+          hashedKey,
+        },
+        data: {
+          lastUsed: new Date(),
+        },
+      });
+      session = {
+        user: {
+          id: user.id,
+          name: user.name || "",
+          email: user.email || "",
+        },
+      };
+    } else {
+      session = await getSession(req, res);
+      if (!session?.user.id) {
+        return res.status(401).end("Unauthorized: Login required.");
+      }
     }
 
     let project: ProjectProps | undefined;
@@ -323,9 +404,9 @@ const withLinksAuth =
       }
     }
 
-    // if key is defined, check if the  current user is the owner of the link (only for dub.sh links)
+    // if key is defined, fetch link details
     const { key } = req.query;
-    if (key && !domain && !skipKeyCheck) {
+    if (key) {
       if (typeof key !== "string") {
         return res.status(400).end("Missing or misconfigured link key.");
       }
@@ -338,11 +419,12 @@ const withLinksAuth =
             },
           },
         })) || undefined;
+
       if (!link) {
         return res.status(404).end("Link not found.");
 
         // for dub.sh links, check if the user is the owner of the link
-      } else if (!slug && link.userId !== session.user.id) {
+      } else if (!slug && link.userId !== session.user.id && !skipKeyCheck) {
         return res.status(404).end("Link not found.");
       }
     }

@@ -12,35 +12,30 @@ export const config = {
 
 export default async function handler(req: NextRequest) {
   if (req.method === "GET") {
+    const domain = req.nextUrl.searchParams.get("domain") || "dub.sh";
     const key = req.nextUrl.pathname.split("/")[4];
     const interval = req.nextUrl.searchParams.get("interval");
     const endpoint = req.nextUrl.searchParams.get("endpoint") as string;
-    let domain = req.nextUrl.hostname;
-    if (isHomeHostname(domain)) domain = "dub.sh";
 
-    if (
-      process.env.NODE_ENV !== "development" &&
-      domain === "dub.sh" &&
-      key === "github"
-    ) {
-      if (await isBlacklistedReferrer(req.headers.get("referer"))) {
-        return new Response("Don't DDoS me pls 🥺", { status: 429 });
+    // demo link (dub.sh/github)
+    if (domain === "dub.sh" && key === "github") {
+      // Rate limit in production
+      if (process.env.NODE_ENV !== "development") {
+        if (await isBlacklistedReferrer(req.headers.get("referer"))) {
+          return new Response("Don't DDoS me pls 🥺", { status: 429 });
+        }
+        const ip = ipAddress(req) || LOCALHOST_IP;
+        const { success } = await ratelimit(
+          15,
+          endpoint !== "clicks" ? "1 h" : "10 s",
+        ).limit(`${ip}:${domain}:${key}:${endpoint}`);
+
+        if (!success) {
+          return new Response("Don't DDoS me pls 🥺", { status: 429 });
+        }
       }
-      const ip = ipAddress(req) || LOCALHOST_IP;
-      const { success } = await ratelimit(
-        15,
-        endpoint !== "clicks" ? "1 h" : "10 s",
-      ).limit(`${ip}:${domain}:${key}:${endpoint}`);
-
-      if (!success) {
-        return new Response("Don't DDoS me pls 🥺", { status: 429 });
-      }
-    }
-
-    let data;
-    // if the link is NOT dub.sh/github (demo link)
-    if (!(domain === "dub.sh" && key === "github")) {
-      data = await getLinkViaEdge(domain, key);
+    } else {
+      const data = await getLinkViaEdge(domain, key);
       // if the link is explicitly private (publicStats === false)
       // or if the link doesn't exist in database (data === undefined) and is not a dub.sh link
       // (we need to exclude dub.sh public demo links here)

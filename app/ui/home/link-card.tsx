@@ -163,7 +163,7 @@ export default function LinkCard({
               >
                 {linkConstructor({ key, pretty: true })}
               </a>
-              <CopyButton url={linkConstructor({ key })} />
+              <CopyButton value={linkConstructor({ key })} />
               <button
                 onClick={() => setShowLinkQRModal(true)}
                 className="group rounded-full bg-gray-100 p-1.5 transition-all duration-75 hover:scale-105 hover:bg-blue-100 focus:outline-none active:scale-95"

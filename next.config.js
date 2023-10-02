@@ -101,30 +101,6 @@ const nextConfig = {
         has: [
           {
             type: "host",
-            value: "api.dub.sh",
-          },
-        ],
-        destination: "https://api.dub.co",
-        permanent: true,
-        statusCode: 301,
-      },
-      {
-        source: "/:path*",
-        has: [
-          {
-            type: "host",
-            value: "api.dub.sh",
-          },
-        ],
-        destination: "https://api.dub.co/:path*",
-        permanent: true,
-        statusCode: 301,
-      },
-      {
-        source: "/",
-        has: [
-          {
-            type: "host",
             value: "dub.sh",
           },
         ],

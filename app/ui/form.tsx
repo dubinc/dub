@@ -7,6 +7,7 @@ export default function Form({
   description,
   inputData,
   helpText,
+  buttonText = "Save Changes",
   disabledTooltip,
   handleSubmit,
 }: {
@@ -14,6 +15,7 @@ export default function Form({
   description: string;
   inputData: InputHTMLAttributes<HTMLInputElement>;
   helpText?: string;
+  buttonText?: string;
   disabledTooltip?: string | ReactNode;
   handleSubmit: (data) => Promise<any>;
 }) {
@@ -63,7 +65,7 @@ export default function Form({
         <p className="text-sm text-gray-500">{helpText}</p>
         <div>
           <Button
-            text="Save Changes"
+            text={buttonText}
             loading={saving}
             disabled={saveDisabled}
             disabledTooltip={disabledTooltip}

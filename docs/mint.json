@@ -1,0 +1,73 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "Docs",
+  "logo": {
+    "dark": "/logos/logotype-dark.svg",
+    "light": "/logos/logotype.svg"
+  },
+  "favicon": "/logos/favicon.png",
+  "colors": {
+    "primary": "#9563FF",
+    "light": "#AE87FF",
+    "dark": "#0D001D",
+    "background": {
+      "dark": "#090014"
+    },
+    "anchors": {
+      "from": "#FF7F57",
+      "to": "#9563FF"
+    }
+  },
+  "topbarLinks": [
+    {
+      "name": "Support",
+      "url": "mailto:support@dub.co"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Dashboard",
+    "url": "https://app.dub.co"
+  },
+  "openapi": "https://api.dub.sh",
+  "anchors": [
+    {
+      "name": "Help Center",
+      "icon": "question",
+      "url": "https://dub.co/help"
+    },
+    {
+      "name": "Blog",
+      "icon": "newspaper",
+      "url": "https://dub.co/blog"
+    },
+    {
+      "name": "GitHub",
+      "icon": "github",
+      "url": "https://dub.sh/github"
+    }
+  ],
+  "navigation": [
+    {
+      "group": "API Reference",
+      "pages": ["api-reference/introduction"]
+    },
+    {
+      "group": "Links",
+      "pages": [
+        "api-reference/endpoint/create-a-new-link",
+        "api-reference/endpoint/retrieve-a-link",
+        "api-reference/endpoint/delete-a-link",
+        "api-reference/endpoint/retrieve-a-list-of-links"
+      ]
+    }
+  ],
+  "feedback": {
+    "thumbsRating": true
+  },
+  "footerSocials": {
+    "twitter": "https://twitter.com/dubdotco",
+    "github": "https://github.com/steven-tey/dub",
+    "linkedin": "https://www.linkedin.com/company/dubhq",
+    "website": "https://dub.co"
+  }
+}

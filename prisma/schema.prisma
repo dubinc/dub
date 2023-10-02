@@ -23,6 +23,7 @@ model User {
   sessions       Session[]
   projects       ProjectUsers[]
   links          Link[]
+  tokens        Token[]
   createdAt      DateTime       @default(now())
 }
 
@@ -62,6 +63,21 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model Token {
+  id        String   @id @default(cuid())
+  name      String
+  hashedKey String   @unique
+  partialKey String
+  expires   DateTime?
+  lastUsed  DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+
+  @@index([userId])
 }
 
 model Project {

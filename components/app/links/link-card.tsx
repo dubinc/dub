@@ -271,7 +271,7 @@ export default function LinkCard({
                   })}
                 </a>
               )}
-              <CopyButton url={linkConstructor({ key, domain })} />
+              <CopyButton value={linkConstructor({ key, domain })} />
               {comments && (
                 <Tooltip
                   content={

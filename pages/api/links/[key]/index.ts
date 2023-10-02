@@ -30,6 +30,7 @@ export default withLinksAuth(
         return res.status(400).end("Missing domain or key or url.");
       }
 
+      // for default dub.sh links (not part of a project)
       if (!project) {
         if (key.includes("/")) {
           return res.status(422).end("Key cannot contain '/'.");
@@ -99,7 +100,7 @@ export default withLinksAuth(
       // DELETE /api/links/:key – delete a link
     } else if (req.method === "DELETE") {
       const response = await deleteLink(domain || "dub.sh", oldKey);
-      return res.status(200).json(response);
+      return res.status(200).json(response[0]);
     } else {
       res.setHeader("Allow", ["GET", "PUT", "DELETE"]);
       return res.status(405).end(`Method ${req.method} Not Allowed`);
