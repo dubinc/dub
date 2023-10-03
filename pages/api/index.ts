@@ -180,119 +180,7 @@ export default async function handler(): Promise<
             content: {
               "application/json": {
                 schema: {
-                  type: "object",
-                  properties: {
-                    domain: {
-                      type: "string",
-                      description: "The domain of the short link.",
-                    },
-                    url: {
-                      type: "string",
-                      description: "The destination URL of the short link.",
-                    },
-                    key: {
-                      type: "string",
-                      description:
-                        "The short link slug. If not provided, a random 7-character slug will be generated.",
-                    },
-                    archived: {
-                      type: "boolean",
-                      description: "Whether the short link is archived.",
-                      default: false,
-                    },
-                    expiresAt: {
-                      type: "string",
-                      format: "date-time",
-                      description:
-                        "The date and time when the short link will expire.",
-                      default: null,
-                      nullable: true,
-                    },
-                    password: {
-                      type: "string",
-                      description:
-                        "The password required to access the destination URL of the short link.",
-                      default: null,
-                      nullable: true,
-                    },
-                    proxy: {
-                      type: "boolean",
-                      description:
-                        "Whether the short link uses Custom Social Media Cards feature.",
-                      default: false,
-                    },
-                    title: {
-                      type: "string",
-                      description:
-                        "The title of the short link generated via api.dub.co/metatags. Will be used for Custom Social Media Cards if `proxy` is true.",
-                      default: null,
-                      nullable: true,
-                    },
-                    description: {
-                      type: "string",
-                      description:
-                        "The description of the short link generated via api.dub.co/metatags. Will be used for Custom Social Media Cards if `proxy` is true.",
-                      default: null,
-                      nullable: true,
-                    },
-                    image: {
-                      type: "string",
-                      description:
-                        "The image of the short link generated via api.dub.co/metatags. Will be used for Custom Social Media Cards if `proxy` is true.",
-                      default: null,
-                      nullable: true,
-                    },
-                    rewrite: {
-                      type: "boolean",
-                      description: "Whether the short link uses link cloaking.",
-                      default: false,
-                    },
-                    ios: {
-                      type: "string",
-                      description:
-                        "The iOS destination URL for the short link for iOS device targeting.",
-                      default: null,
-                      nullable: true,
-                    },
-                    android: {
-                      type: "string",
-                      description:
-                        "The Android destination URL for the short link for Android device targeting.",
-                      default: null,
-                      nullable: true,
-                    },
-                    geo: {
-                      type: "object",
-                      description:
-                        "Geo targeting information for the short link.",
-                      additionalProperties: {
-                        type: "string",
-                        format: "uri",
-                      },
-                      default: null,
-                      nullable: true,
-                    },
-                    publicStats: {
-                      type: "boolean",
-                      description:
-                        "Whether the short link's stats are publicly accessible.",
-                      default: false,
-                    },
-                    tagId: {
-                      type: "string",
-                      format: "cuid",
-                      description:
-                        "The unique id of the tag assigned to the short link.",
-                      default: null,
-                      nullable: true,
-                    },
-                    comments: {
-                      type: "string",
-                      description: "The comments for the short link.",
-                      default: null,
-                      nullable: true,
-                    },
-                  },
+                  $ref: "#/components/schemas/LinkBody",
                   required: ["domain", "url"],
                 },
               },
@@ -373,6 +261,77 @@ export default async function handler(): Promise<
             },
           },
         },
+        put: {
+          description: "Edit link for the authenticated user or project.",
+          operationId: "editLink",
+          security: [
+            {
+              bearerToken: [],
+            },
+          ],
+          summary: "Edit a link",
+          parameters: [
+            {
+              name: "key",
+              description:
+                "The key of the link to edit. E.g. for dub.sh/github, the key is 'github'.",
+              in: "path",
+              required: true,
+              schema: {
+                description:
+                  "The key of the link to edit. E.g. for dub.sh/github, the key is 'github'.",
+                type: "string",
+              },
+            },
+            {
+              name: "domain",
+              description:
+                "The domain of the link to edit. E.g. for dub.sh/github, the domain is 'dub.sh'.",
+              in: "query",
+              required: true,
+              schema: {
+                description:
+                  "The domain of the link to edit. E.g. for dub.sh/github, the domain is 'dub.sh'.",
+                type: "string",
+              },
+            },
+            {
+              name: "slug",
+              description:
+                "The project slug of the link to edit. E.g. for app.dub.co/vercel, the slug is 'vercel'.",
+              in: "query",
+              required: true,
+              schema: {
+                description:
+                  "The project slug of the link to edit. E.g. for app.dub.co/vercel, the slug is 'vercel'.",
+                type: "string",
+              },
+            },
+          ],
+          requestBody: {
+            description: "Details of the link to edit.",
+            required: true,
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/LinkBody",
+                },
+              },
+            },
+          },
+          responses: {
+            "200": {
+              description: "The edited link",
+              content: {
+                "application/json": {
+                  schema: {
+                    $ref: "#/components/schemas/Link",
+                  },
+                },
+              },
+            },
+          },
+        },
         delete: {
           description: "Delete a link for the authenticated user or project.",
           operationId: "deleteLink",
@@ -438,21 +397,36 @@ export default async function handler(): Promise<
     components: {
       schemas: {
         Link: {
+          allOf: [
+            {
+              type: "object",
+              properties: {
+                id: {
+                  type: "string",
+                  format: "cuid",
+                  description: "The unique ID of the short link.",
+                },
+              },
+            },
+            {
+              $ref: "#/components/schemas/LinkBody",
+            },
+            {
+              $ref: "#/components/schemas/LinkResponse",
+            },
+          ],
+        },
+        LinkBody: {
           type: "object",
           properties: {
-            id: {
-              type: "string",
-              format: "cuid",
-              description: "The unique ID of the short link.",
-              readOnly: true,
-            },
             domain: {
               type: "string",
               description: "The domain of the short link.",
             },
             key: {
               type: "string",
-              description: "The short link slug.",
+              description:
+                "The short link slug. If not provided, a random 7-character slug will be generated.",
             },
             url: {
               type: "string",
@@ -504,6 +478,60 @@ export default async function handler(): Promise<
               default: null,
               nullable: true,
             },
+            rewrite: {
+              type: "boolean",
+              description: "Whether the short link uses link cloaking.",
+              default: false,
+            },
+            ios: {
+              type: "string",
+              description:
+                "The iOS destination URL for the short link for iOS device targeting.",
+              default: null,
+              nullable: true,
+            },
+            android: {
+              type: "string",
+              description:
+                "The Android destination URL for the short link for Android device targeting.",
+              default: null,
+              nullable: true,
+            },
+            geo: {
+              type: "object",
+              description: "Geo targeting information for the short link.",
+              additionalProperties: {
+                type: "string",
+                format: "uri",
+              },
+              default: null,
+              nullable: true,
+            },
+            publicStats: {
+              type: "boolean",
+              description:
+                "Whether the short link's stats are publicly accessible.",
+              default: false,
+            },
+            tagId: {
+              type: "string",
+              format: "cuid",
+              description:
+                "The unique id of the tag assigned to the short link.",
+              default: null,
+              nullable: true,
+            },
+            comments: {
+              type: "string",
+              description: "The comments for the short link.",
+              default: null,
+              nullable: true,
+            },
+          },
+        },
+        LinkResponse: {
+          type: "object",
+          properties: {
             utm_source: {
               type: "string",
               description: "The UTM source of the short link.",
@@ -534,35 +562,6 @@ export default async function handler(): Promise<
               default: null,
               nullable: true,
             },
-            rewrite: {
-              type: "boolean",
-              description: "Whether the short link uses link cloaking.",
-              default: false,
-            },
-            ios: {
-              type: "string",
-              description:
-                "The iOS destination URL for the short link for iOS device targeting.",
-              default: null,
-              nullable: true,
-            },
-            android: {
-              type: "string",
-              description:
-                "The Android destination URL for the short link for Android device targeting.",
-              default: null,
-              nullable: true,
-            },
-            geo: {
-              type: "object",
-              description: "Geo targeting information for the short link.",
-              additionalProperties: {
-                type: "string",
-                format: "uri",
-              },
-              default: null,
-              nullable: true,
-            },
             userId: {
               type: "string",
               format: "cuid",
@@ -572,12 +571,6 @@ export default async function handler(): Promise<
               type: "string",
               format: "cuid",
               description: "The project ID of the short link.",
-            },
-            publicStats: {
-              type: "boolean",
-              description:
-                "Whether the short link's stats are publicly accessible.",
-              default: false,
             },
             clicks: {
               type: "number",
@@ -606,20 +599,6 @@ export default async function handler(): Promise<
               description:
                 "The date and time when the short link was last updated.",
               readOnly: true,
-            },
-            tagId: {
-              type: "string",
-              format: "cuid",
-              description:
-                "The unique id of the tag assigned to the short link.",
-              default: null,
-              nullable: true,
-            },
-            comments: {
-              type: "string",
-              description: "The comments for the short link.",
-              default: null,
-              nullable: true,
             },
           },
         },

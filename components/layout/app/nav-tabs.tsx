@@ -56,8 +56,6 @@ export default function NavTabs() {
     return <div className="-mb-0.5 h-12 w-full" />;
   }
 
-  console.log("HACKY", router.asPath.split("?")[0]);
-
   if (!error) {
     return (
       <div className="-mb-0.5 flex h-12 items-center justify-start space-x-2 overflow-x-auto scrollbar-hide">
