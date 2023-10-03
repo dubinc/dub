@@ -270,16 +270,15 @@ export async function addLink(link: LinkProps) {
   return response;
 }
 
-export async function editLink(
-  link: LinkProps,
-  {
-    oldDomain,
-    oldKey,
-  }: {
-    oldDomain: string;
-    oldKey: string;
-  },
-) {
+export async function editLink({
+  domain: oldDomain = "dub.sh",
+  key: oldKey,
+  updatedLink,
+}: {
+  domain?: string;
+  key: string;
+  updatedLink: LinkProps;
+}) {
   const {
     id,
     domain,
@@ -295,7 +294,7 @@ export async function editLink(
     ios,
     android,
     geo,
-  } = link;
+  } = updatedLink;
   const hasPassword = password && password.length > 0 ? true : false;
   const exat = expiresAt ? new Date(expiresAt).getTime() : null;
   const changedKey = key !== oldKey;
@@ -309,13 +308,16 @@ export async function editLink(
   const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
     getParamsFromURL(url);
 
+  // exclude fields that should not be updated
+  const { id: _, clicks, lastClicked, updatedAt, ...rest } = updatedLink;
+
   const [response, ...effects] = await Promise.all([
     prisma.link.update({
       where: {
         id,
       },
       data: {
-        ...link,
+        ...rest,
         key,
         title: truncate(title, 120),
         description: truncate(description, 240),
@@ -383,7 +385,13 @@ export async function editLink(
   return response;
 }
 
-export async function deleteLink(domain: string, key: string) {
+export async function deleteLink({
+  domain = "dub.sh",
+  key,
+}: {
+  domain?: string;
+  key: string;
+}) {
   return await Promise.all([
     prisma.link.delete({
       where: {

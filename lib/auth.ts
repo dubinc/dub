@@ -241,9 +241,10 @@ const withLinksAuth =
     } = {},
   ) =>
   async (req: NextApiRequest, res: NextApiResponse) => {
-    const { slug, domain } = req.query as {
-      slug?: string;
-      domain?: string;
+    const { slug, domain, key } = req.query as {
+      slug?: string; // project slug (query param)
+      domain?: string; // link domain (query param)
+      key?: string; // link key (path param)
     };
 
     // if slug is misconfgured
@@ -268,12 +269,6 @@ const withLinksAuth =
         return res
           .status(403)
           .end("Unauthorized: API is not supported for dub.sh links yet.");
-      }
-
-      if (req.method === "PUT") {
-        return res
-          .status(403)
-          .end("Unauthorized: API is not supported for editing links yet.");
       }
 
       const url = new URL(req.url || "", API_DOMAIN);
@@ -412,8 +407,6 @@ const withLinksAuth =
       }
     }
 
-    // if key is defined, fetch link details
-    const { key } = req.query;
     if (key) {
       if (typeof key !== "string") {
         return res.status(400).end("Missing or misconfigured link key.");

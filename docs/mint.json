@@ -57,6 +57,7 @@
       "pages": [
         "api-reference/endpoint/create-a-new-link",
         "api-reference/endpoint/retrieve-a-link",
+        "api-reference/endpoint/edit-a-link",
         "api-reference/endpoint/delete-a-link",
         "api-reference/endpoint/retrieve-a-list-of-links"
       ]
