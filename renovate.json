@@ -1,0 +1,8 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:base", "group:allNonMajor"],
+  "additionalBranchPrefix": "QR-0000/",
+  "commitMessageSuffix": "[QR-0000]",
+  "commitMessagePrefix": "chore(deps): ",
+  "labels": ["MR::Review Needed", "Risk::Not set"]
+}
