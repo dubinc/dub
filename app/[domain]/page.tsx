@@ -1,5 +1,6 @@
 import prisma from "#/lib/prisma";
 import { constructMetadata } from "#/lib/utils";
+import Background from "#/ui/home/background";
 import PlaceholderContent from "./placeholder";
 
 export async function generateMetadata({
@@ -38,5 +39,10 @@ export async function generateStaticParams() {
 }
 
 export default function CustomDomainPage() {
-  return <PlaceholderContent />;
+  return (
+    <>
+      <Background />
+      <PlaceholderContent />
+    </>
+  );
 }

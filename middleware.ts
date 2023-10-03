@@ -51,14 +51,14 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
     return NextResponse.redirect(DEFAULT_REDIRECTS[key]);
   }
 
-  // for root pages (e.g. dub.co, vercel.fyi, etc.)
-  if (key.length === 0) {
-    return RootMiddleware(req, ev);
-  }
-
   // for Admin
   if (ADMIN_HOSTNAMES.has(domain)) {
     return AdminMiddleware(req);
+  }
+
+  // for root pages (e.g. dub.co, vercel.fyi, etc.)
+  if (key.length === 0) {
+    return RootMiddleware(req, ev);
   }
 
   return LinkMiddleware(req, ev);
