@@ -28,24 +28,25 @@ export default withLinksAuth(
         return res.status(304).end("No fields to update.");
       }
 
-      let { key, url, rewrite } = req.body;
+      const updatedLink = {
+        ...link,
+        ...req.body,
+      };
+
+      let { key, url, rewrite } = updatedLink;
 
       // for default dub.sh links (not part of a project)
       if (!project) {
-        if (key) {
-          if (key.includes("/")) {
-            return res.status(422).end("Key cannot contain '/'.");
-          }
-          const keyBlacklisted = await isBlacklistedKey(key);
-          if (keyBlacklisted) {
-            return res.status(422).end("Invalid key.");
-          }
+        if (key.includes("/")) {
+          return res.status(422).end("Key cannot contain '/'.");
         }
-        if (url) {
-          const domainBlacklisted = await isBlacklistedDomain(url);
-          if (domainBlacklisted) {
-            return res.status(422).end("Invalid url.");
-          }
+        const keyBlacklisted = await isBlacklistedKey(key);
+        if (keyBlacklisted) {
+          return res.status(422).end("Invalid key.");
+        }
+        const domainBlacklisted = await isBlacklistedDomain(url);
+        if (domainBlacklisted) {
+          return res.status(422).end("Invalid url.");
         }
         if (rewrite) {
           return res
@@ -54,21 +55,16 @@ export default withLinksAuth(
         }
       }
 
-      if (key) {
-        key = processKey(key);
-        if (!key) {
-          return res.status(422).end("Invalid key.");
-        }
+      key = processKey(key);
+      if (!key) {
+        return res.status(422).end("Invalid key.");
       }
 
       const [response, invalidFavicon] = await Promise.allSettled([
         editLink({
-          domain: domain || "dub.sh",
+          domain,
           key: link!.key, // link is guaranteed to exist because if not we will return 404,
-          updatedLink: {
-            ...link,
-            ...req.body,
-          },
+          updatedLink,
         }),
         ...(!project && url
           ? [
@@ -102,7 +98,7 @@ export default withLinksAuth(
       // DELETE /api/links/:key – delete a link
     } else if (req.method === "DELETE") {
       const response = await deleteLink({
-        domain: domain || "dub.sh",
+        domain,
         key: link!.key, // link is guaranteed to exist because if not we will return 404
       });
       return res.status(200).json(response[0]);

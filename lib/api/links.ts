@@ -271,11 +271,11 @@ export async function addLink(link: LinkProps) {
 }
 
 export async function editLink({
-  domain: oldDomain,
+  domain: oldDomain = "dub.sh",
   key: oldKey,
   updatedLink,
 }: {
-  domain: string;
+  domain?: string;
   key: string;
   updatedLink: LinkProps;
 }) {
@@ -308,13 +308,16 @@ export async function editLink({
   const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
     getParamsFromURL(url);
 
+  // exclude fields that should not be updated
+  const { id: _, clicks, lastClicked, updatedAt, ...rest } = updatedLink;
+
   const [response, ...effects] = await Promise.all([
     prisma.link.update({
       where: {
         id,
       },
       data: {
-        ...updatedLink,
+        ...rest,
         key,
         title: truncate(title, 120),
         description: truncate(description, 240),
@@ -325,7 +328,6 @@ export async function editLink({
         utm_term,
         utm_content,
         geo: geo || undefined,
-        updatedAt: new Date(),
       },
     }),
     // only upload image to cloudinary if proxy is true and there's an image
@@ -384,10 +386,10 @@ export async function editLink({
 }
 
 export async function deleteLink({
-  domain,
+  domain = "dub.sh",
   key,
 }: {
-  domain: string;
+  domain?: string;
   key: string;
 }) {
   return await Promise.all([
