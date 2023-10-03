@@ -14,34 +14,38 @@ export const config = {
 
 export default withLinksAuth(
   async (req, res, session, project, domain, link) => {
-    const { key: oldKey, domain: oldDomain } = req.query as {
-      key: string;
-      domain: string;
-    };
-
     // GET /api/links/:key – get a link
     if (req.method === "GET") {
       return res.status(200).json(link);
 
       // PUT /api/links/:key – edit a link
     } else if (req.method === "PUT") {
-      let { domain, key, url, rewrite } = req.body;
-      if (!domain || !key || !url) {
-        return res.status(400).end("Missing domain or key or url.");
+      // if request body is empty or not a valid json
+      if (!req.body || typeof req.body !== "object") {
+        return res.status(400).end("Missing or invalid request body.");
       }
+      if (Object.keys(req.body).length === 0) {
+        return res.status(304).end("No fields to update.");
+      }
+
+      let { key, url, rewrite } = req.body;
 
       // for default dub.sh links (not part of a project)
       if (!project) {
-        if (key.includes("/")) {
-          return res.status(422).end("Key cannot contain '/'.");
+        if (key) {
+          if (key.includes("/")) {
+            return res.status(422).end("Key cannot contain '/'.");
+          }
+          const keyBlacklisted = await isBlacklistedKey(key);
+          if (keyBlacklisted) {
+            return res.status(422).end("Invalid key.");
+          }
         }
-        const keyBlacklisted = await isBlacklistedKey(key);
-        if (keyBlacklisted) {
-          return res.status(422).end("Invalid key.");
-        }
-        const domainBlacklisted = await isBlacklistedDomain(url);
-        if (domainBlacklisted) {
-          return res.status(422).end("Invalid url.");
+        if (url) {
+          const domainBlacklisted = await isBlacklistedDomain(url);
+          if (domainBlacklisted) {
+            return res.status(422).end("Invalid url.");
+          }
         }
         if (rewrite) {
           return res
@@ -50,25 +54,23 @@ export default withLinksAuth(
         }
       }
 
-      key = processKey(key);
-      if (!key) {
-        return res.status(422).end("Invalid key.");
+      if (key) {
+        key = processKey(key);
+        if (!key) {
+          return res.status(422).end("Invalid key.");
+        }
       }
 
       const [response, invalidFavicon] = await Promise.allSettled([
-        editLink(
-          {
+        editLink({
+          domain: domain || "dub.sh",
+          key: link!.key, // link is guaranteed to exist because if not we will return 404,
+          updatedLink: {
+            ...link,
             ...req.body,
-            key,
-            domain: req.body.domain || "dub.sh",
-            userId: session.user.id,
           },
-          {
-            oldDomain: oldDomain || "dub.sh",
-            oldKey,
-          },
-        ),
-        ...(!project
+        }),
+        ...(!project && url
           ? [
               fetch(`${GOOGLE_FAVICON_URL}${getApexDomain(url)}`).then(
                 (res) => !res.ok,
@@ -99,7 +101,10 @@ export default withLinksAuth(
 
       // DELETE /api/links/:key – delete a link
     } else if (req.method === "DELETE") {
-      const response = await deleteLink(domain || "dub.sh", oldKey);
+      const response = await deleteLink({
+        domain: domain || "dub.sh",
+        key: link!.key, // link is guaranteed to exist because if not we will return 404
+      });
       return res.status(200).json(response[0]);
     } else {
       res.setHeader("Allow", ["GET", "PUT", "DELETE"]);
