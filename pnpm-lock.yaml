@@ -17,6 +17,12 @@ importers:
       prettier-plugin-tailwindcss:
         specifier: ^0.5.3
         version: 0.5.3(prettier@3.0.3)
+      tailwind-config:
+        specifier: workspace:*
+        version: link:packages/tailwind-config
+      tsconfig:
+        specifier: workspace:*
+        version: link:packages/tsconfig
       turbo:
         specifier: ^1.10.12
         version: 1.10.12
@@ -75,10 +81,10 @@ importers:
         version: 1.44.1
       '@tailwindcss/forms':
         specifier: ^0.5.3
-        version: 0.5.3(tailwindcss@3.3.2)
+        version: 0.5.3(tailwindcss@3.3.3)
       '@tailwindcss/typography':
         specifier: ^0.5.9
-        version: 0.5.9(tailwindcss@3.3.2)
+        version: 0.5.9(tailwindcss@3.3.3)
       '@upstash/qstash':
         specifier: ^0.3.6
         version: 0.3.6
@@ -325,13 +331,19 @@ importers:
         version: 0.1.13(prettier@2.8.0)
       tailwindcss:
         specifier: ^3.3.2
-        version: 3.3.2
+        version: 3.3.3
       turbo:
         specifier: ^1.10.14
         version: 1.10.14
       typescript:
         specifier: ^5.1.6
         version: 5.1.6
+
+  packages/tailwind-config:
+    devDependencies:
+      tailwindcss:
+        specifier: ^3.3.3
+        version: 3.3.3
 
   packages/tsconfig: {}
 
@@ -6296,16 +6308,16 @@ packages:
       tslib: 2.6.2
     dev: false
 
-  /@tailwindcss/forms@0.5.3(tailwindcss@3.3.2):
+  /@tailwindcss/forms@0.5.3(tailwindcss@3.3.3):
     resolution: {integrity: sha512-y5mb86JUoiUgBjY/o6FJSFZSEttfb3Q5gllE4xoKjAAD+vBrnIhE4dViwUuow3va8mpH4s9jyUbUbrRGoRdc2Q==}
     peerDependencies:
       tailwindcss: '>=3.0.0 || >= 3.0.0-alpha.1'
     dependencies:
       mini-svg-data-uri: 1.4.4
-      tailwindcss: 3.3.2
+      tailwindcss: 3.3.3
     dev: false
 
-  /@tailwindcss/typography@0.5.9(tailwindcss@3.3.2):
+  /@tailwindcss/typography@0.5.9(tailwindcss@3.3.3):
     resolution: {integrity: sha512-t8Sg3DyynFysV9f4JDOVISGsjazNb48AeIYQwcL+Bsq5uf4RYL75C1giZ43KISjeDGBaTN3Kxh7Xj/vRSMJUUg==}
     peerDependencies:
       tailwindcss: '>=3.0.0 || insiders'
@@ -6314,7 +6326,7 @@ packages:
       lodash.isplainobject: 4.0.6
       lodash.merge: 4.6.2
       postcss-selector-parser: 6.0.10
-      tailwindcss: 3.3.2
+      tailwindcss: 3.3.3
     dev: false
 
   /@tediousjs/connection-string@0.4.4:
@@ -14100,8 +14112,8 @@ packages:
       - ts-node
     dev: false
 
-  /tailwindcss@3.3.2:
-    resolution: {integrity: sha512-9jPkMiIBXvPc2KywkraqsUfbfj+dHDb+JPWtSJa9MLFdrPyazI7q6WX2sUrm7R9eVR7qqv3Pas7EvQFzxKnI6w==}
+  /tailwindcss@3.3.3:
+    resolution: {integrity: sha512-A0KgSkef7eE4Mf+nKJ83i75TMyq8HqY3qmFIJSWy8bNt0v1lG7jUcpGpoTFxAwYcWOphcTBLPPJg+bDfhDf52w==}
     engines: {node: '>=14.0.0'}
     hasBin: true
     dependencies:
@@ -14125,7 +14137,6 @@ packages:
       postcss-load-config: 4.0.1(postcss@8.4.31)
       postcss-nested: 6.0.1(postcss@8.4.31)
       postcss-selector-parser: 6.0.13
-      postcss-value-parser: 4.2.0
       resolve: 1.22.6
       sucrase: 3.34.0
     transitivePeerDependencies:
