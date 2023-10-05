@@ -14,7 +14,7 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import { linkConstructor, timeAgo } from "../../lib/utils";
+import { linkConstructor, timeAgo } from "../lib/utils";
 import { DUB_LOGO } from "../lib/constants";
 import Footer from "./components/footer";
 

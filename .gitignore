@@ -2,6 +2,7 @@
 
 # dependencies
 node_modules
+dist/
 
 # next.js
 .next/
