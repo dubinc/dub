@@ -13,7 +13,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   disabledTooltip?: string | ReactNode;
 }
 
-export default function Button({
+export function Button({
   text,
   variant = "primary",
   loading,

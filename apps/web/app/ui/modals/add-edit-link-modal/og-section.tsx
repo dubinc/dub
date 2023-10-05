@@ -14,7 +14,7 @@ import Switch from "#/ui/switch";
 import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "#/lib/constants";
 import { InfoTooltip, SimpleTooltipContent } from "#/ui/tooltip";
 import { Link2 } from "lucide-react";
-import Popover from "#/ui/popover";
+import { Popover } from "ui";
 import Unsplash from "@/components/shared/icons/unsplash";
 import UnsplashSearch from "./unsplash-search";
 

@@ -24,7 +24,7 @@ import useProject from "#/lib/swr/use-project";
 import { SimpleLinkProps } from "#/lib/types";
 import { getApexDomain, linkConstructor } from "#/lib/utils";
 import IconMenu from "@/components/shared/icon-menu";
-import Popover from "#/ui/popover";
+import { Popover } from "ui";
 import { toast } from "sonner";
 import {
   APP_HOSTNAMES,

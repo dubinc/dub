@@ -2,7 +2,7 @@ import { fetcher, timeAgo } from "#/lib/utils";
 import { TokenAvatar } from "#/ui/avatar";
 import Form from "#/ui/form";
 import { LoadingSpinner } from "#/ui/icons";
-import Popover from "#/ui/popover";
+import { Popover } from "ui";
 import { useDeleteTokenModal } from "@/components/app/modals/delete-token-modal";
 import { useTokenCreatedModal } from "@/components/app/modals/token-created-modal";
 import SettingsLayout from "@/components/layout/app/settings-layout";

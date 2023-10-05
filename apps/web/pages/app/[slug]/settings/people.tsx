@@ -4,7 +4,7 @@ import { useState } from "react";
 import BlurImage from "#/ui/blur-image";
 import { UserProps } from "#/lib/types";
 import { cn, timeAgo } from "#/lib/utils";
-import Popover from "#/ui/popover";
+import { Popover } from "ui";
 import IconMenu from "@/components/shared/icon-menu";
 import { UserMinus } from "lucide-react";
 import { ThreeDots } from "@/components/shared/icons";

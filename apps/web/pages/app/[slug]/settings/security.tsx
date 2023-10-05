@@ -5,7 +5,7 @@ import SettingsLayout from "@/components/layout/app/settings-layout";
 import { FolderSync, Lock, ShieldOff } from "lucide-react";
 import { Dispatch, SetStateAction, useContext, useMemo, useState } from "react";
 import { ThreeDots } from "@/components/shared/icons";
-import Popover from "#/ui/popover";
+import { Popover } from "ui";
 import IconMenu from "@/components/shared/icon-menu";
 import useSAML from "#/lib/swr/use-saml";
 import useSCIM from "#/lib/swr/use-scim";

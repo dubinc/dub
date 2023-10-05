@@ -10,7 +10,7 @@ import IconMenu from "@/components/shared/icon-menu";
 import BlurImage from "#/ui/blur-image";
 import CopyButton from "@/components/shared/copy-button";
 import { Chart, Delete, ThreeDots } from "@/components/shared/icons";
-import Popover from "#/ui/popover";
+import { Popover } from "ui";
 import Tooltip, { SimpleTooltipContent, TooltipContent } from "#/ui/tooltip";
 import useProject from "#/lib/swr/use-project";
 import { type Link as LinkProps } from "@prisma/client";
@@ -335,7 +335,7 @@ export default function LinkCard({
               <p className="whitespace-nowrap text-sm text-gray-500">
                 {timeAgo(createdAt)}
               </p>
-              <p className="hidden xs:block">•</p>
+              <p className="xs:block hidden">•</p>
               {rewrite && (
                 <Tooltip
                   content={
@@ -346,7 +346,7 @@ export default function LinkCard({
                     />
                   }
                 >
-                  <EyeOff className="hidden h-4 w-4 text-gray-500 xs:block" />
+                  <EyeOff className="xs:block hidden h-4 w-4 text-gray-500" />
                 </Tooltip>
               )}
               <a
@@ -356,7 +356,7 @@ export default function LinkCard({
                 href={url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hidden max-w-[140px] truncate text-sm font-medium text-gray-700 underline-offset-2 hover:underline xs:block sm:max-w-[300px] md:max-w-[360px] xl:max-w-[440px]"
+                className="xs:block hidden max-w-[140px] truncate text-sm font-medium text-gray-700 underline-offset-2 hover:underline sm:max-w-[300px] md:max-w-[360px] xl:max-w-[440px]"
               >
                 {url}
               </a>

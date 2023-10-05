@@ -5,7 +5,7 @@ import { ExpandingArrow } from "#/ui/icons";
 import { INTERVALS } from "#/lib/stats";
 import { cn, linkConstructor } from "#/lib/utils";
 import IconMenu from "@/components/shared/icon-menu";
-import Popover from "#/ui/popover";
+import { Popover } from "ui";
 import useSWR, { mutate } from "swr";
 import { fetcher } from "#/lib/utils";
 import { toast } from "sonner";
@@ -198,7 +198,7 @@ const SharePopover = () => {
           <div className="p-4">
             <p className="font-semibold text-gray-800">Share Link</p>
             <div className="divide-x-200 mt-2 flex items-center justify-between divide-x overflow-hidden rounded-md border border-gray-200 bg-gray-100">
-              <div className="overflow-scroll pl-2 scrollbar-hide">
+              <div className="scrollbar-hide overflow-scroll pl-2">
                 <p className="whitespace-nowrap text-gray-600">
                   https://{domain}/stats/{encodeURIComponent(key)}
                 </p>

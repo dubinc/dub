@@ -25,7 +25,7 @@ import useTags from "#/lib/swr/use-tags";
 import TagBadge, { COLORS_LIST } from "@/components/app/links/tag-badge";
 import { TagProps } from "#/lib/types";
 import { ThreeDots } from "@/components/shared/icons";
-import Popover from "#/ui/popover";
+import { Popover } from "ui";
 import IconMenu from "@/components/shared/icon-menu";
 import { mutate } from "swr";
 import Number from "#/ui/number";

@@ -280,6 +280,9 @@ importers:
       topojson-client:
         specifier: ^3.1.0
         version: 3.1.0
+      ui:
+        specifier: workspace:*
+        version: link:../../packages/ui
       unsplash-js:
         specifier: ^7.0.18
         version: 7.0.18

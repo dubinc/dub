@@ -3,7 +3,7 @@ import { useCallback, useContext, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Tick } from "@/components/shared/icons";
 import { ChevronsUpDown, PlusCircle } from "lucide-react";
-import Popover from "#/ui/popover";
+import { Popover } from "ui";
 import { PlanProps, ProjectWithDomainProps } from "#/lib/types";
 import useProjects from "#/lib/swr/use-projects";
 import PlanBadge from "@/components/app/projects/plan-badge";

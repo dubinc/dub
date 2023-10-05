@@ -58,7 +58,7 @@ export default function NavTabs() {
 
   if (!error) {
     return (
-      <div className="-mb-0.5 flex h-12 items-center justify-start space-x-2 overflow-x-auto scrollbar-hide">
+      <div className="scrollbar-hide -mb-0.5 flex h-12 items-center justify-start space-x-2 overflow-x-auto">
         {tabs.map(({ name, href }) => (
           <Link
             key={href}

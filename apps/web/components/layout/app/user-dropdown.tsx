@@ -1,7 +1,7 @@
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 import { Logout } from "@/components/shared/icons";
-import Popover from "#/ui/popover";
+import { Popover } from "ui";
 import IconMenu from "../../shared/icon-menu";
 import va from "@vercel/analytics";
 import Link from "next/link";
@@ -10,7 +10,6 @@ import { Crisp } from "crisp-sdk-web";
 import { LoadingCircle } from "#/ui/icons";
 import Badge from "#/ui/badge";
 import Cookies from "js-cookie";
-import { ModalContext } from "#/ui/modal-provider";
 import { allChangelogPosts } from "contentlayer/generated";
 import { HOME_DOMAIN } from "#/lib/constants";
 import Avatar from "#/ui/avatar";

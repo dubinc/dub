@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import IconMenu from "@/components/shared/icon-menu";
 import { Sort, Tick } from "@/components/shared/icons";
 import { ChevronDown, SortAsc, SortDesc } from "lucide-react";
-import Popover from "#/ui/popover";
+import { Popover } from "ui";
 
 const sortOptions = [
   {

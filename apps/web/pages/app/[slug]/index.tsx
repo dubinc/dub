@@ -5,7 +5,7 @@ import AppLayout from "components/layout/app";
 import { useRouter } from "next/router";
 import useProject from "#/lib/swr/use-project";
 import { useState } from "react";
-import Popover from "#/ui/popover";
+import { Popover } from "ui";
 import { ChevronDown, FilePlus2, Sheet } from "lucide-react";
 import IconMenu from "@/components/shared/icon-menu";
 import Tooltip from "#/ui/tooltip";
