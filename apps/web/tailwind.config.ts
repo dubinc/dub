@@ -9,6 +9,8 @@ const config: Pick<Config, "presets"> = {
         "./app/**/*.{js,ts,jsx,tsx}",
         "./pages/**/*.{js,ts,jsx,tsx}",
         "./components/**/*.{js,ts,jsx,tsx}",
+        // h/t to https://www.willliu.com/blog/Why-your-Tailwind-styles-aren-t-working-in-your-Turborepo
+        "../../packages/ui/**/*{.js,.ts,.jsx,.tsx}",
       ],
     },
   ],

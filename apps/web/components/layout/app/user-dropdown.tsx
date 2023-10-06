@@ -8,7 +8,7 @@ import Link from "next/link";
 import { Edit3, HelpCircle, MessageCircle, Settings } from "lucide-react";
 import { Crisp } from "crisp-sdk-web";
 import { LoadingCircle } from "#/ui/icons";
-import Badge from "#/ui/badge";
+import { Badge } from "ui";
 import Cookies from "js-cookie";
 import { allChangelogPosts } from "contentlayer/generated";
 import { HOME_DOMAIN } from "#/lib/constants";
@@ -105,7 +105,7 @@ export default function UserDropdown() {
             >
               <IconMenu text="Changelog" icon={<Edit3 className="h-4 w-4" />} />
               {unreadChangelogs > 0 && (
-                <Badge text={`${unreadChangelogs}`} variant="blue" />
+                <Badge variant="blue">{unreadChangelogs}</Badge>
               )}
             </Link>
             <button

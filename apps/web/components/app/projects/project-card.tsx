@@ -8,7 +8,7 @@ import { fetcher, nFormatter } from "#/lib/utils";
 import { BarChart2, Globe, Link2 } from "lucide-react";
 import PlanBadge from "./plan-badge";
 import { GOOGLE_FAVICON_URL } from "#/lib/constants";
-import Badge from "#/ui/badge";
+import { Badge } from "ui";
 import Number from "#/ui/number";
 
 export default function ProjectCard({
@@ -68,7 +68,7 @@ export default function ProjectCard({
               >
                 <div className="ml-1 flex items-center">
                   {domains.length > 1 ? (
-                    <Badge text={`+${domains.length - 1}`} variant="gray" />
+                    <Badge variant="gray">+{domains.length - 1}</Badge>
                   ) : primaryDomain?.verified ? (
                     <CheckCircleFill className="h-5 w-5 text-blue-500" />
                   ) : (

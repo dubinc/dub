@@ -5,7 +5,7 @@ import { useContext, useMemo } from "react";
 import useDomains from "#/lib/swr/use-domains";
 import useLinksCount from "#/lib/swr/use-links-count";
 import useUsers from "#/lib/swr/use-users";
-import Badge from "#/ui/badge";
+import { Badge } from "ui";
 import useProject from "#/lib/swr/use-project";
 
 const TabsHelper = (router: NextRouter): { name: string; href: string }[] => {
@@ -110,7 +110,7 @@ const OnboardingChecklist = () => {
       <p className="whitespace-nowrap text-sm text-gray-600">
         Onboarding Checklist
       </p>
-      <Badge text={remainder.toString()} variant="blue" />
+      <Badge variant="blue">{remainder.toString()}</Badge>
     </button>
   );
 };

@@ -49,9 +49,9 @@ export function Tooltip({
     );
   }
   return (
-    <TooltipPrimitive.Provider delayDuration={100}>
+    <TooltipPrimitive.Provider delayDuration={0}>
       <TooltipPrimitive.Root>
-        <TooltipPrimitive.Trigger className="hidden md:inline-flex" asChild>
+        <TooltipPrimitive.Trigger className="md:inline-flex" asChild>
           {children}
         </TooltipPrimitive.Trigger>
         {/* 
@@ -61,7 +61,7 @@ export function Tooltip({
         <TooltipPrimitive.Content
           sideOffset={8}
           side="top"
-          className="animate-slide-up-fade z-[99] hidden items-center overflow-hidden rounded-md border border-gray-200 bg-white shadow-md md:block"
+          className="animate-slide-up-fade z-[99] items-center overflow-hidden rounded-md border border-gray-200 bg-white shadow-md md:block"
         >
           {typeof content === "string" ? (
             <div className="block max-w-xs px-4 py-2 text-center text-sm text-gray-700">

@@ -9,7 +9,7 @@ import IconMenu from "@/components/shared/icon-menu";
 import { UserMinus } from "lucide-react";
 import { ThreeDots } from "@/components/shared/icons";
 import { useRemoveTeammateModal } from "@/components/app/modals/remove-teammate-modal";
-import Badge from "#/ui/badge";
+import { Badge } from "ui";
 import useUsers from "#/lib/swr/use-users";
 import { useSession } from "next-auth/react";
 import { useEditRoleModal } from "@/components/app/modals/edit-role-modal";
@@ -142,7 +142,7 @@ const UserCard = ({
             </div>
           </div>
 
-          {expiredInvite && <Badge variant="gray" text="Expired" />}
+          {expiredInvite && <Badge variant="gray">Expired</Badge>}
         </div>
         <div className="flex items-center space-x-3">
           {currentTab === "Members" ? (

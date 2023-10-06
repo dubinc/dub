@@ -15,7 +15,7 @@ import { CheckCircleFill } from "@/components/shared/icons";
 import { capitalize } from "#/lib/utils";
 import { PLANS } from "#/lib/stripe/utils";
 import { getStripe } from "#/lib/stripe/client";
-import Badge from "#/ui/badge";
+import { Badge } from "ui";
 import Confetti from "react-dom-confetti";
 import { Logo } from "#/ui/icons";
 
@@ -103,12 +103,12 @@ function UpgradePlanModal({
                   {plan} {capitalize(period)}
                 </h4>
                 <Badge
-                  text={`$${
-                    PLANS.find((p) => p.name === plan)!.price[period].amount
-                  }/${period.replace("ly", "")}`}
                   variant="neutral"
                   className="text-sm font-normal normal-case"
-                />
+                >
+                  ${PLANS.find((p) => p.name === plan)!.price[period].amount}/
+                  {period.replace("ly", "")}
+                </Badge>
               </div>
               <Confetti
                 active={period === "yearly"}

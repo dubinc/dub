@@ -13,7 +13,7 @@ import { useSession } from "next-auth/react";
 import ProBanner from "./pro-banner";
 import Cookies from "js-cookie";
 import { ModalContext } from "#/ui/modal-provider";
-import Badge from "#/ui/badge";
+import { Badge } from "ui";
 import { linkConstructor } from "#/lib/utils";
 import { HOME_DOMAIN } from "#/lib/constants";
 import { useAcceptInviteModal } from "@/components/app/modals/accept-invite-modal";
@@ -135,11 +135,9 @@ export default function AppLayout({
                     onClick={() => setShowUpgradePlanModal(true)}
                     className="mb-1 ml-3 hidden sm:block"
                   >
-                    <Badge
-                      text="Upgrade to Pro"
-                      variant="blue"
-                      className="px-3 py-1"
-                    />
+                    <Badge variant="blue" className="px-3 py-1">
+                      Upgrade to Pro
+                    </Badge>
                   </button>
                 )}
               </div>

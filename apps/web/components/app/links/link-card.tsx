@@ -192,7 +192,7 @@ export default function LinkCard({
   }, [onKeyDown]);
 
   return (
-    <div
+    <li
       ref={linkRef}
       className={`${
         selected ? "border-black" : "border-gray-50"
@@ -207,7 +207,7 @@ export default function LinkCard({
           <DeleteLinkModal />
         </>
       )}
-      <li className="relative flex items-center justify-between">
+      <div className="relative flex items-center justify-between">
         <div className="relative flex shrink items-center">
           {archived ? (
             <Tooltip content="This link is archived. It will still work, but won't be shown in your dashboard.">
@@ -529,7 +529,7 @@ export default function LinkCard({
             </button>
           </Popover>
         </div>
-      </li>
-    </div>
+      </div>
+    </li>
   );
 }

@@ -13,7 +13,7 @@ import { Token } from "@prisma/client";
 import { Logo } from "#/ui/icons";
 import { TokenAvatar } from "#/ui/avatar";
 import { timeAgo } from "#/lib/utils";
-import Badge from "#/ui/badge";
+import { Badge } from "ui";
 
 function DeleteTokenModal({
   showDeleteTokenModal,
@@ -42,11 +42,9 @@ function DeleteTokenModal({
 
       <div className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 text-left sm:px-16">
         <div className="relative flex items-center space-x-3 rounded-md border border-gray-300 bg-white px-1 py-3">
-          <Badge
-            text={token.partialKey}
-            variant="neutral"
-            className="absolute right-2 top-2"
-          />
+          <Badge variant="neutral" className="absolute right-2 top-2">
+            {token.partialKey}
+          </Badge>
           <TokenAvatar id={token.id} />
           <div className="flex flex-col">
             <h3 className="line-clamp-1 w-48 font-semibold text-gray-700">
