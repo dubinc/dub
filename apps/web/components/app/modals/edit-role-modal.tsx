@@ -11,10 +11,8 @@ import BlurImage from "#/ui/blur-image";
 import Modal from "#/ui/modal";
 import useProject from "#/lib/swr/use-project";
 import { toast } from "sonner";
-import Button from "#/ui/button";
+import { Button, Logo } from "ui";
 import { UserProps } from "#/lib/types";
-import { Logo } from "#/ui/icons";
-import { useSession } from "next-auth/react";
 import Avatar from "#/ui/avatar";
 
 function EditRoleModal({

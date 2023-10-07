@@ -13,7 +13,7 @@ import { type Link as LinkProps } from "@prisma/client";
 import { getApexDomain, getQueryString, linkConstructor } from "#/lib/utils";
 import { GOOGLE_FAVICON_URL } from "#/lib/constants";
 import { toast } from "sonner";
-import Button from "#/ui/button";
+import { Button } from "ui";
 
 function ArchiveLinkModal({
   showArchiveLinkModal,

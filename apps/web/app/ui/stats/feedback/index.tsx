@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { experimental_useFormStatus as useFormStatus } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import Button from "#/ui/button";
+import { Button } from "ui";
 import { submitFeedback } from "./action";
 import { CheckCircle } from "lucide-react";
 
@@ -11,7 +11,7 @@ export default function Feedback() {
   const [submitted, setSubmitted] = useState(false);
 
   return (
-    <div className="relative z-0 h-[400px] overflow-scroll border border-gray-200 bg-white px-7 py-5 scrollbar-hide sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
+    <div className="scrollbar-hide relative z-0 h-[400px] overflow-scroll border border-gray-200 bg-white px-7 py-5 sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
       <div className="mb-5 flex">
         <h1 className="text-xl font-semibold">Feedback</h1>
       </div>

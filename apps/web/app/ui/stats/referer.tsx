@@ -1,6 +1,6 @@
 import BlurImage from "#/ui/blur-image";
 import { Link2 } from "lucide-react";
-import { LoadingCircle } from "#/ui/icons";
+import { LoadingCircle } from "ui";
 import useSWR from "swr";
 import { fetcher } from "#/lib/utils";
 import { GOOGLE_FAVICON_URL } from "#/lib/constants";
@@ -64,7 +64,7 @@ export default function Referer() {
         </div>
         {barList()}
       </Modal>
-      <div className="relative z-0 h-[400px] overflow-scroll border border-gray-200 bg-white px-7 py-5 scrollbar-hide sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
+      <div className="scrollbar-hide relative z-0 h-[400px] overflow-scroll border border-gray-200 bg-white px-7 py-5 sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
         <div className="mb-5 flex">
           <h1 className="text-xl font-semibold">Referrers</h1>
         </div>

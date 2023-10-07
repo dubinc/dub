@@ -10,13 +10,12 @@ import {
 } from "react";
 import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
-import { Logo } from "#/ui/icons";
 import { AlertCircleFill } from "@/components/shared/icons";
 import Modal from "#/ui/modal";
 import { generateDomainFromName } from "#/lib/utils";
 import slugify from "@sindresorhus/slugify";
 import va from "@vercel/analytics";
-import Button from "#/ui/button";
+import { Button, Logo } from "ui";
 import { toast } from "sonner";
 import { InfoTooltip } from "#/ui/tooltip";
 import { HOME_DOMAIN } from "#/lib/constants";

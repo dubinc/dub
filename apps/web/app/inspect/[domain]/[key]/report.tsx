@@ -1,6 +1,6 @@
 "use client";
 import { cn } from "#/lib/utils";
-import { LoadingSpinner } from "#/ui/icons";
+import { LoadingSpinner } from "ui";
 import { Flag } from "lucide-react";
 import { useState } from "react";
 

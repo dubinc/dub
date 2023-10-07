@@ -6,10 +6,9 @@ import {
   useState,
 } from "react";
 import Modal from "#/ui/modal";
-import Button from "#/ui/button";
+import { Button, Logo } from "ui";
 import { toast } from "sonner";
 import { Eye, EyeOff, FolderSync, RefreshCcw } from "lucide-react";
-import { Logo } from "#/ui/icons";
 import useProject from "#/lib/swr/use-project";
 import { InfoTooltip, SimpleTooltipContent } from "#/ui/tooltip";
 import { HOME_DOMAIN, SAML_PROVIDERS } from "#/lib/constants";
@@ -171,7 +170,7 @@ function SCIMModal({
                   />
                 </div>
                 <div className="mt-1 flex w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm">
-                  <div className="overflow-auto scrollbar-hide">
+                  <div className="scrollbar-hide overflow-auto">
                     <p className="whitespace-nowrap text-gray-600 sm:text-sm">
                       {scim.directories[0].scim.endpoint}
                     </p>

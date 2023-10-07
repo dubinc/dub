@@ -1,9 +1,7 @@
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { ReactNode, useContext, useEffect, useState } from "react";
 import { Divider } from "@/components/shared/icons";
-import Logo from "#/ui/icons/logo";
 import Meta from "../meta";
 import ProjectSelect from "./project-select";
 import UserDropdown from "./user-dropdown";
@@ -18,7 +16,7 @@ import { linkConstructor } from "#/lib/utils";
 import { HOME_DOMAIN } from "#/lib/constants";
 import { useAcceptInviteModal } from "@/components/app/modals/accept-invite-modal";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
-import { LoadingSpinner } from "#/ui/icons";
+import { LoadingSpinner, Logo } from "ui";
 import { FileX2 } from "lucide-react";
 import BlurImage from "#/ui/blur-image";
 import NavTabs from "./nav-tabs";

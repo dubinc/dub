@@ -5,7 +5,7 @@ import { useState } from "react";
 import { experimental_useFormStatus as useFormStatus } from "react-dom";
 import { verifyPassword } from "./action";
 import { AlertCircleFill } from "@/components/shared/icons";
-import Button from "#/ui/button";
+import { Button } from "ui";
 import { toast } from "sonner";
 
 export default function PasswordForm() {

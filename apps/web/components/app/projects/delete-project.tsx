@@ -1,6 +1,6 @@
 import useProject from "#/lib/swr/use-project";
 import { cn } from "#/lib/utils";
-import Button from "#/ui/button";
+import { Button } from "ui";
 import { useDeleteProjectModal } from "components/app/modals/delete-project-modal";
 
 export default function DeleteProject() {

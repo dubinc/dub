@@ -1,6 +1,6 @@
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { type Link as LinkProps } from "@prisma/client";
-import Switch from "#/ui/switch";
+import { Switch } from "ui";
 import { motion } from "framer-motion";
 import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "#/lib/constants";
 import { Eye, EyeOff } from "@/components/shared/icons";

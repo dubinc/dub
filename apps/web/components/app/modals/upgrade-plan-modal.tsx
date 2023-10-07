@@ -6,7 +6,7 @@ import {
   useState,
 } from "react";
 import Modal from "#/ui/modal";
-import Button from "#/ui/button";
+import { Button, Logo } from "ui";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -17,7 +17,6 @@ import { PLANS } from "#/lib/stripe/utils";
 import { getStripe } from "#/lib/stripe/client";
 import { Badge } from "ui";
 import Confetti from "react-dom-confetti";
-import { Logo } from "#/ui/icons";
 
 function UpgradePlanModal({
   showUpgradePlanModal,

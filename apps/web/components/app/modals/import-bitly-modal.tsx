@@ -10,15 +10,13 @@ import {
 } from "react";
 import Modal from "#/ui/modal";
 import useProject from "#/lib/swr/use-project";
-import Switch from "#/ui/switch";
-import Button from "#/ui/button";
+import { Button, Logo, LoadingSpinner, Switch } from "ui";
+import Tooltip from "#/ui/tooltip";
 import { toast } from "sonner";
 import { ArrowRight } from "lucide-react";
-import { Logo, LoadingSpinner } from "#/ui/icons";
 import { ModalContext } from "#/ui/modal-provider";
 import useSWR, { mutate } from "swr";
 import { BitlyGroupProps } from "#/lib/types";
-import Tooltip from "#/ui/tooltip";
 import { fetcher } from "#/lib/utils";
 import { HOME_DOMAIN } from "#/lib/constants";
 

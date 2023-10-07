@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 import { mutate } from "swr";
-import { Logo, LoadingDots } from "#/ui/icons";
+import { Logo, LoadingDots } from "ui";
 import Modal from "#/ui/modal";
 import useProject from "#/lib/swr/use-project";
 import { toast } from "sonner";
@@ -73,11 +73,7 @@ function AcceptInviteModal({
                   : "border-black bg-black text-white hover:bg-white hover:text-black"
               } flex h-10 w-full items-center justify-center rounded-md border text-sm transition-all focus:outline-none`}
             >
-              {accepting ? (
-                <LoadingDots color="#808080" />
-              ) : (
-                <p>Accept invite</p>
-              )}
+              {accepting ? <LoadingDots /> : <p>Accept invite</p>}
             </button>
           </div>
         </>

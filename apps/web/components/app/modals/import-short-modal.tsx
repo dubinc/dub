@@ -9,11 +9,9 @@ import {
   useState,
 } from "react";
 import Modal from "#/ui/modal";
-import Switch from "#/ui/switch";
-import Button from "#/ui/button";
+import { Button, Logo, LoadingSpinner, Switch } from "ui";
 import { toast } from "sonner";
 import { ArrowRight } from "lucide-react";
-import { Logo, LoadingSpinner } from "#/ui/icons";
 import { ModalContext } from "#/ui/modal-provider";
 import useSWR, { mutate } from "swr";
 import { ShortioDomainProps } from "#/lib/types";

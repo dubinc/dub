@@ -2,7 +2,7 @@ import { useContext, useState } from "react";
 import TabSelect from "@/components/shared/tab-select";
 import { COUNTRIES } from "#/lib/constants";
 import { LocationTabs } from "#/lib/stats";
-import { LoadingCircle } from "#/ui/icons";
+import { LoadingCircle } from "ui";
 import useSWR from "swr";
 import { fetcher } from "#/lib/utils";
 import { StatsContext } from ".";
@@ -61,7 +61,7 @@ export default function Locations() {
         </div>
         {barList()}
       </Modal>
-      <div className="relative z-0 h-[400px] overflow-scroll border border-gray-200 bg-white px-7 py-5 scrollbar-hide  sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
+      <div className="scrollbar-hide relative z-0 h-[400px] overflow-scroll border border-gray-200 bg-white px-7 py-5  sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
         <div className="mb-5 flex justify-between">
           <h1 className="text-xl font-semibold">Locations</h1>
           <TabSelect

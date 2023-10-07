@@ -7,7 +7,7 @@ import va from "@vercel/analytics";
 import Link from "next/link";
 import { Edit3, HelpCircle, MessageCircle, Settings } from "lucide-react";
 import { Crisp } from "crisp-sdk-web";
-import { LoadingCircle } from "#/ui/icons";
+import { LoadingCircle } from "ui";
 import { Badge } from "ui";
 import Cookies from "js-cookie";
 import { allChangelogPosts } from "contentlayer/generated";

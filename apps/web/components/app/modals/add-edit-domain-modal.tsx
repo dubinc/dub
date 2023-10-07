@@ -11,7 +11,6 @@ import {
 import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
 import BlurImage from "#/ui/blur-image";
-import { Logo } from "#/ui/icons";
 import { AlertCircleFill, Lock } from "@/components/shared/icons";
 import Modal from "#/ui/modal";
 import { DomainProps } from "#/lib/types";
@@ -19,8 +18,7 @@ import Tooltip, { TooltipContent } from "#/ui/tooltip";
 import useProject from "#/lib/swr/use-project";
 import { AnimatePresence, motion } from "framer-motion";
 import { SWIPE_REVEAL_ANIMATION_SETTINGS } from "#/lib/constants";
-import Switch from "#/ui/switch";
-import Button from "#/ui/button";
+import { Button, Logo, Switch } from "ui";
 import { toast } from "sonner";
 import { ModalContext } from "#/ui/modal-provider";
 

@@ -1,15 +1,13 @@
 import { useContext, useMemo, useState } from "react";
 import { Copy, Tick } from "@/components/shared/icons";
 import { Calendar, ChevronDown, Share2, Lock } from "lucide-react";
-import { ExpandingArrow } from "#/ui/icons";
+import { ExpandingArrow, Popover, Switch } from "ui";
 import { INTERVALS } from "#/lib/stats";
 import { cn, linkConstructor } from "#/lib/utils";
 import IconMenu from "@/components/shared/icon-menu";
-import { Popover } from "ui";
 import useSWR, { mutate } from "swr";
 import { fetcher } from "#/lib/utils";
 import { toast } from "sonner";
-import Switch from "#/ui/switch";
 import Link from "next/link";
 import { StatsContext } from ".";
 import useScroll from "#/lib/hooks/use-scroll";

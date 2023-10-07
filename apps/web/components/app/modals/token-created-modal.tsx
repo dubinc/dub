@@ -6,8 +6,7 @@ import {
   useState,
 } from "react";
 import Modal from "#/ui/modal";
-import Button from "#/ui/button";
-import { Logo } from "#/ui/icons";
+import { Button, Logo } from "ui";
 import CopyButton from "@/components/shared/copy-button";
 
 function TokenCreatedModal({

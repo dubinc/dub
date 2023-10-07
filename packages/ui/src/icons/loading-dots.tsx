@@ -1,3 +1,5 @@
+import "./loading-dots.css";
+
 const LoadingDots = () => {
   return (
     <span className="loading-dots">

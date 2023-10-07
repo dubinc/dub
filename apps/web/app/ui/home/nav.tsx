@@ -9,7 +9,7 @@ import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 import { APP_DOMAIN, SHOW_BACKGROUND_SEGMENTS } from "#/lib/constants";
 import va from "@vercel/analytics";
 import { ChevronDown } from "lucide-react";
-import { LogoType } from "#/ui/icons";
+import { LogoType } from "ui";
 import { useSession } from "next-auth/react";
 import { FEATURES_LIST } from "#/lib/constants/content";
 
@@ -101,7 +101,7 @@ export default function Nav() {
                       >
                         Features
                       </p>
-                      <ChevronDown className="h-4 w-4 transition-all group-data-[state=open]:rotate-180" />
+                      <ChevronDown className="group-data-[state=open]:rotate-180 h-4 w-4 transition-all" />
                     </NavigationMenuPrimitive.Trigger>
 
                     <NavigationMenuPrimitive.Content>
@@ -130,7 +130,7 @@ export default function Nav() {
                                 {feature.shortTitle}
                               </p>
                             </div>
-                            <p className="mt-1 line-clamp-1 text-sm text-gray-500">
+                            <p className="line-clamp-1 mt-1 text-sm text-gray-500">
                               {feature.title}
                             </p>
                           </Link>
@@ -170,7 +170,7 @@ export default function Nav() {
                   ))}
                 </NavigationMenuPrimitive.List>
 
-                <NavigationMenuPrimitive.Viewport className="absolute left-0 top-full flex w-[var(--radix-navigation-menu-viewport-width)] origin-[top_center] justify-start rounded-lg border border-gray-200 bg-white shadow-lg data-[state=closed]:animate-scale-out-content data-[state=open]:animate-scale-in-content" />
+                <NavigationMenuPrimitive.Viewport className="data-[state=closed]:animate-scale-out-content data-[state=open]:animate-scale-in-content absolute left-0 top-full flex w-[var(--radix-navigation-menu-viewport-width)] origin-[top_center] justify-start rounded-lg border border-gray-200 bg-white shadow-lg" />
               </NavigationMenuPrimitive.Root>
             )}
           </div>

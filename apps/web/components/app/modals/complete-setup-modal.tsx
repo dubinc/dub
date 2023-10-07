@@ -9,7 +9,7 @@ import {
 } from "react";
 import Modal from "#/ui/modal";
 import { CheckCircleFill } from "@/components/shared/icons";
-import { Logo, ExpandingArrow } from "#/ui/icons";
+import { Logo, ExpandingArrow } from "ui";
 import useDomains from "#/lib/swr/use-domains";
 import useLinksCount from "#/lib/swr/use-links-count";
 import { ModalContext } from "#/ui/modal-provider";

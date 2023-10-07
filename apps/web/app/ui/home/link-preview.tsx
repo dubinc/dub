@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { useDebounce } from "use-debounce";
 import useSWR from "swr";
 import { Photo } from "@/components/shared/icons";
-import { LoadingCircle } from "#/ui/icons";
+import { LoadingCircle } from "ui";
 import { fetcher, getDomainWithoutWWW, getUrlFromString } from "#/lib/utils";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Link2 } from "lucide-react";

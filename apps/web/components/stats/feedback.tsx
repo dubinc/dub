@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useSession } from "next-auth/react";
-import { LoadingDots } from "#/ui/icons";
+import { Button } from "ui";
 import { useDebouncedCallback } from "use-debounce";
 import { CheckCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -60,7 +60,7 @@ export default function Feedback() {
   );
 
   return (
-    <div className="relative z-0 h-[400px] overflow-scroll border border-gray-200 bg-white px-7 py-5 scrollbar-hide sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
+    <div className="scrollbar-hide relative z-0 h-[400px] overflow-scroll border border-gray-200 bg-white px-7 py-5 sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
       <div className="mb-5 flex">
         <h1 className="text-xl font-semibold">Feedback</h1>
       </div>
@@ -119,20 +119,7 @@ export default function Feedback() {
                 aria-invalid="true"
               />
             </div>
-            <button
-              disabled={state === "submitting"}
-              className={`${
-                state === "submitting"
-                  ? "cursor-not-allowed border-gray-200 bg-gray-100"
-                  : "border-black bg-black text-white hover:bg-white hover:text-black"
-              } flex h-10 w-full items-center justify-center rounded-md border text-sm transition-all focus:outline-none`}
-            >
-              {state === "submitting" ? (
-                <LoadingDots color="#808080" />
-              ) : (
-                <p>Submit feedback</p>
-              )}
-            </button>
+            <Button text="Submit feedback" loading={state === "submitting"} />
           </motion.form>
         )}
       </AnimatePresence>

@@ -10,7 +10,7 @@ import { nFormatter } from "#/lib/utils";
 import styles from "./bar-chart.module.css";
 import useSWR from "swr";
 import { fetcher } from "#/lib/utils";
-import { LoadingCircle } from "#/ui/icons";
+import { LoadingCircle } from "ui";
 import { StatsContext } from ".";
 import useMediaQuery from "#/lib/hooks/use-media-query";
 

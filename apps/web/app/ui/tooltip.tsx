@@ -1,10 +1,9 @@
 "use client";
 
-import { Tooltip } from "ui";
+import { Tooltip, Button } from "ui";
 export { Tooltip as default } from "ui";
 import Link from "next/link";
 import { ReactNode, useState } from "react";
-import Button from "./button";
 import Script from "next/script";
 import { ExternalLink, HelpCircle } from "lucide-react";
 import { DomainProps } from "#/lib/types";

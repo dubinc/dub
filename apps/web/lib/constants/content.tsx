@@ -1,4 +1,4 @@
-import { Logo } from "#/ui/icons";
+import { Logo } from "ui";
 import { allHelpPosts } from "contentlayer/generated";
 import {
   Airplay,

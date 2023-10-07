@@ -9,11 +9,10 @@ import {
 } from "react";
 import { HexColorInput, HexColorPicker } from "react-colorful";
 import BlurImage from "#/ui/blur-image";
-import { Logo } from "#/ui/icons";
+import { Logo, Switch } from "ui";
 import { Clipboard, Download, Photo } from "@/components/shared/icons";
 import { Check, ChevronRight } from "lucide-react";
 import Modal from "#/ui/modal";
-import Switch from "#/ui/switch";
 import Tooltip, {
   InfoTooltip,
   SimpleTooltipContent,

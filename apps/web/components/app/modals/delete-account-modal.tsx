@@ -9,7 +9,7 @@ import {
 import { toast } from "sonner";
 import BlurImage from "#/ui/blur-image";
 import Modal from "#/ui/modal";
-import Button from "#/ui/button";
+import { Button } from "ui";
 import { useSession } from "next-auth/react";
 import Avatar from "#/ui/avatar";
 

@@ -21,9 +21,8 @@ import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
 import BlurImage from "#/ui/blur-image";
 import { AlertCircleFill, Lock, Random, X } from "@/components/shared/icons";
-import { LoadingCircle, Logo } from "#/ui/icons";
 import Modal from "#/ui/modal";
-import Tooltip, { TooltipContent } from "#/ui/tooltip";
+import { TooltipContent } from "#/ui/tooltip";
 import useProject from "#/lib/swr-app/use-project";
 import { type Link as LinkProps } from "@prisma/client";
 import {
@@ -45,7 +44,7 @@ import useDomains from "#/lib/swr-app/use-domains";
 import { toast } from "sonner";
 import va from "@vercel/analytics";
 import punycode from "punycode/";
-import Button from "#/ui/button";
+import { Button, Tooltip, LoadingCircle, Logo } from "ui";
 import { ModalContext } from "#/ui/modal-provider";
 import RewriteSection from "./rewrite-section";
 import CommentsSection from "./comments-section";
@@ -271,7 +270,7 @@ function AddEditLinkModal({
       className="max-w-screen-lg"
       preventDefaultClose={homepageDemo ? false : true}
     >
-      <div className="grid max-h-[80vh] divide-x divide-gray-100 overflow-scroll scrollbar-hide md:max-h-[min(906px,_90vh)] md:grid-cols-2">
+      <div className="scrollbar-hide grid max-h-[80vh] divide-x divide-gray-100 overflow-scroll md:max-h-[min(906px,_90vh)] md:grid-cols-2">
         {!homepageDemo && (
           <button
             onClick={() => setShowAddEditLinkModal(false)}

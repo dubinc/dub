@@ -8,9 +8,8 @@ import {
 import { motion } from "framer-motion";
 import TextareaAutosize from "react-textarea-autosize";
 import { UploadCloud } from "@/components/shared/icons";
-import { LoadingCircle } from "#/ui/icons";
+import { LoadingCircle, Switch } from "ui";
 import { type Link as LinkProps } from "@prisma/client";
-import Switch from "#/ui/switch";
 import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "#/lib/constants";
 import { InfoTooltip, SimpleTooltipContent } from "#/ui/tooltip";
 import { Link2 } from "lucide-react";

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { LogoType } from "#/ui/icons";
+import { LogoType } from "ui";
 import { Github, LinkedIn, Twitter } from "@/components/shared/icons";
 import { useParams } from "next/navigation";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";

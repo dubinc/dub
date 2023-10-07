@@ -6,7 +6,7 @@ import {
   useState,
 } from "react";
 import { type Link as LinkProps } from "@prisma/client";
-import Switch from "#/ui/switch";
+import { Switch } from "ui";
 import { motion } from "framer-motion";
 import {
   COUNTRIES,

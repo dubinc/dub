@@ -8,9 +8,8 @@ import {
 import { mutate } from "swr";
 import Modal from "#/ui/modal";
 import { toast } from "sonner";
-import Button from "#/ui/button";
+import { Button, Logo } from "ui";
 import { Token } from "@prisma/client";
-import { Logo } from "#/ui/icons";
 import { TokenAvatar } from "#/ui/avatar";
 import { timeAgo } from "#/lib/utils";
 import { Badge } from "ui";

@@ -6,7 +6,7 @@ import {
   useState,
 } from "react";
 import Modal from "#/ui/modal";
-import Button from "#/ui/button";
+import { Button } from "ui";
 import { toast } from "sonner";
 import { Check, Lock, UploadCloud } from "lucide-react";
 import useProject from "#/lib/swr/use-project";

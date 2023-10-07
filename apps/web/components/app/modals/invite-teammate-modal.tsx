@@ -12,8 +12,7 @@ import va from "@vercel/analytics";
 import Modal from "#/ui/modal";
 import useProject from "#/lib/swr/use-project";
 import { toast } from "sonner";
-import Button from "#/ui/button";
-import { Logo } from "#/ui/icons";
+import { Button, Logo } from "ui";
 
 function InviteTeammateModal({
   showInviteTeammateModal,

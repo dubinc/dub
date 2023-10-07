@@ -7,8 +7,7 @@ import {
   useState,
 } from "react";
 import Modal from "#/ui/modal";
-import Button from "#/ui/button";
-import { Logo } from "#/ui/icons";
+import { Button, Logo } from "ui";
 import { Google } from "@/components/shared/icons";
 import Cookies from "js-cookie";
 import { HOME_DOMAIN } from "#/lib/constants";

@@ -1,3 +1,4 @@
+import "./loading-spinner.css";
 import { cn } from "../lib/utils";
 
 export default function LoadingSpinner({ className }: { className?: string }) {

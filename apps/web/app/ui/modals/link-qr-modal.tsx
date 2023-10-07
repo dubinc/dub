@@ -11,17 +11,15 @@ import {
 import { HexColorInput, HexColorPicker } from "react-colorful";
 import BlurImage from "#/ui/blur-image";
 import { Clipboard, Download, Photo } from "@/components/shared/icons";
-import { Logo } from "#/ui/icons";
 import { Check, ChevronRight } from "lucide-react";
 import Modal from "#/ui/modal";
-import Switch from "#/ui/switch";
 import Tooltip, { TooltipContent } from "#/ui/tooltip";
 import { QRCodeSVG, getQRAsCanvas, getQRAsSVGDataUri } from "#/lib/qr";
 import useProject from "#/lib/swr-app/use-project";
 import { SimpleLinkProps } from "#/lib/types";
 import { getApexDomain, linkConstructor } from "#/lib/utils";
 import IconMenu from "@/components/shared/icon-menu";
-import { Popover } from "ui";
+import { Logo, Popover, Switch } from "ui";
 import { toast } from "sonner";
 import { GOOGLE_FAVICON_URL } from "#/lib/constants";
 import { useDebouncedCallback } from "use-debounce";

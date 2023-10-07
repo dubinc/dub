@@ -7,14 +7,13 @@ import {
   ExternalLink,
   XCircleFill,
 } from "@/components/shared/icons";
-import { LoadingCircle, LoadingDots } from "#/ui/icons";
 import { DomainProps, DomainVerificationStatusProps } from "#/lib/types";
 import { capitalize, fetcher, nFormatter, truncate } from "#/lib/utils";
 import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
 import DomainConfiguration from "./domain-configuration";
 import Link from "next/link";
 import punycode from "punycode/";
-import Button from "#/ui/button";
+import { Button, LoadingCircle, LoadingDots } from "ui";
 import Number from "#/ui/number";
 
 export default function DomainCard({ props }: { props: DomainProps }) {
@@ -69,7 +68,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                 <Chart className="h-4 w-4" />
                 <p className="text-sm">
                   {!clicks && clicks !== 0 ? (
-                    <LoadingDots color="#71717A" />
+                    <LoadingDots />
                   ) : (
                     nFormatter(clicks)
                   )}

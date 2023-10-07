@@ -14,7 +14,6 @@ import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
 import BlurImage from "#/ui/blur-image";
 import { AlertCircleFill, Lock, Random, X } from "@/components/shared/icons";
-import { LoadingCircle, Logo } from "#/ui/icons";
 import Modal from "#/ui/modal";
 import Tooltip, { TooltipContent } from "#/ui/tooltip";
 import useProject from "#/lib/swr/use-project";
@@ -34,7 +33,7 @@ import useDomains from "#/lib/swr/use-domains";
 import { toast } from "sonner";
 import va from "@vercel/analytics";
 import punycode from "punycode/";
-import Button from "#/ui/button";
+import { Button, LoadingCircle, Logo } from "ui";
 import { ModalContext } from "#/ui/modal-provider";
 import TagsSection from "#/ui/modals/add-edit-link-modal/tags-section";
 import OGSection from "#/ui/modals/add-edit-link-modal/og-section";
@@ -293,7 +292,7 @@ function AddEditLinkModal({
       preventDefaultClose={homepageDemo ? false : true}
       {...(welcomeFlow && { onClose: () => router.back() })}
     >
-      <div className="grid max-h-[90vh] w-full divide-x divide-gray-100 overflow-auto scrollbar-hide md:grid-cols-2 md:overflow-hidden">
+      <div className="scrollbar-hide grid max-h-[90vh] w-full divide-x divide-gray-100 overflow-auto md:grid-cols-2 md:overflow-hidden">
         {!welcomeFlow && !homepageDemo && (
           <button
             onClick={() => setShowAddEditLinkModal(false)}
@@ -304,7 +303,7 @@ function AddEditLinkModal({
         )}
 
         <div
-          className="rounded-l-2xl scrollbar-hide md:max-h-[90vh] md:overflow-auto"
+          className="scrollbar-hide rounded-l-2xl md:max-h-[90vh] md:overflow-auto"
           onScroll={handleScroll}
         >
           <div className="z-10 flex flex-col items-center justify-center space-y-3 border-b border-gray-200 bg-white px-4 pb-8 pt-8 transition-all md:sticky md:top-0 md:px-16">
@@ -587,7 +586,7 @@ function AddEditLinkModal({
             </div>
           </form>
         </div>
-        <div className="rounded-r-2xl scrollbar-hide md:max-h-[90vh] md:overflow-auto">
+        <div className="scrollbar-hide rounded-r-2xl md:max-h-[90vh] md:overflow-auto">
           <Preview data={data} generatingMetatags={generatingMetatags} />
         </div>
       </div>
