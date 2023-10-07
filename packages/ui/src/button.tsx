@@ -2,7 +2,7 @@
 
 import { LoadingSpinner } from "./icons";
 import { Tooltip } from "./tooltip";
-import { cn } from "./lib/utils";
+import { cn } from "lib";
 import { ReactNode } from "react";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {

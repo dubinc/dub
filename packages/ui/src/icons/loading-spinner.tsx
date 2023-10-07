@@ -1,5 +1,5 @@
 import "./loading-spinner.css";
-import { cn } from "../lib/utils";
+import { cn } from "../../../lib/src/utils";
 
 export default function LoadingSpinner({ className }: { className?: string }) {
   return (

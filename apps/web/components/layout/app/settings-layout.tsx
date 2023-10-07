@@ -6,7 +6,7 @@ const AppLayout = dynamic(() => import("@/components/layout/app"), {
 });
 import { MaxWidthWrapper } from "ui";
 import { ReactNode } from "react";
-import { cn } from "#/lib/utils";
+import { cn } from "lib";
 
 export default function SettingsLayout({ children }: { children: ReactNode }) {
   const router = useRouter();

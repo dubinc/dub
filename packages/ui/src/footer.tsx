@@ -5,7 +5,7 @@ import { LogoType, Github, LinkedIn, Twitter } from "./icons";
 import { useParams } from "next/navigation";
 import { MaxWidthWrapper } from "./max-width-wrapper";
 import va from "@vercel/analytics";
-import { FEATURES_LIST } from "./lib/constants/content";
+import { FEATURES_LIST } from "lib";
 
 const navigation = {
   features: FEATURES_LIST.map(({ shortTitle, slug }) => ({

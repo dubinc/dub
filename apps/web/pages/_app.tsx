@@ -4,7 +4,7 @@ import type { Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
 import { Toaster } from "sonner";
 import "@/styles/globals.css";
-import { cn } from "#/lib/utils";
+import { cn } from "lib";
 import { satoshi, inter } from "@/styles/fonts";
 import ModalProvider from "#/ui/modal-provider";
 

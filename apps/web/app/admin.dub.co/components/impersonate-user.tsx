@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "#/lib/utils";
+import { cn } from "lib";
 import { experimental_useFormStatus as useFormStatus } from "react-dom";
 import { LoadingSpinner } from "ui";
 import { getUser } from "../actions";

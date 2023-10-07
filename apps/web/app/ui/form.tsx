@@ -1,6 +1,6 @@
 import { useState, useMemo, InputHTMLAttributes, ReactNode } from "react";
 import { Button } from "ui";
-import { cn } from "#/lib/utils";
+import { cn } from "lib";
 
 export default function Form({
   title,

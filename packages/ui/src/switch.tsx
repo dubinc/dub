@@ -2,7 +2,7 @@
 
 import { Dispatch, ReactNode, SetStateAction } from "react";
 import * as SwitchPrimitive from "@radix-ui/react-switch";
-import { cn } from "./lib/utils";
+import { cn } from "lib";
 import { Tooltip } from "./tooltip";
 
 export function Switch({

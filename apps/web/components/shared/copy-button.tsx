@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Copy, Tick } from "@/components/shared/icons";
 import { toast } from "sonner";
-import { cn } from "#/lib/utils";
+import { cn } from "lib";
 
 export default function CopyButton({
   value,

@@ -83,5 +83,3 @@ We love our contributors! Here's how you can contribute:
 ## License
 
 Inspired by [Plausible](https://plausible.io/), Dub is open-source under the GNU Affero General Public License Version 3 (AGPLv3) or any later version. You can [find it here](https://github.com/steven-tey/dub/blob/main/LICENSE.md).
-
-It is also worth noting that the AGPLv3 license applies only to the Dub app only (everything under `app.dub.co`) – everything else (e.g. `dub.co` marketing pages) are available as a reference only. Simply copying and redistributing the designs for commercial use (without significant changes) is considered a violation of our license.

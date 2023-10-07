@@ -1,11 +1,9 @@
 "use client";
 
-import { APP_DOMAIN } from "./lib/constants";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { navItems } from "./nav";
-import { FEATURES_LIST } from "./lib/constants/content";
-import { cn } from "./lib/utils";
+import { cn, FEATURES_LIST, APP_DOMAIN } from "lib";
 import { useState } from "react";
 import { ChevronDown, Menu, X } from "lucide-react";
 

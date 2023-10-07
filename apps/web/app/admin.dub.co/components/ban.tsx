@@ -1,11 +1,10 @@
 "use client";
 
-import { cn } from "#/lib/utils";
+import { cn } from "lib";
 import { experimental_useFormStatus as useFormStatus } from "react-dom";
-import { LoadingSpinner } from "ui";
 import { getUserByKey, banUser } from "../actions";
 import { useState } from "react";
-import { Button } from "ui";
+import { Button, LoadingSpinner } from "ui";
 import { toast } from "sonner";
 import { Copy, Tick } from "@/components/shared/icons";
 import { useRouter } from "next/navigation";

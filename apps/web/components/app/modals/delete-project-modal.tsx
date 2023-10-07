@@ -12,7 +12,7 @@ import BlurImage from "#/ui/blur-image";
 import Modal from "#/ui/modal";
 import useProject from "#/lib/swr/use-project";
 import { Button } from "ui";
-import { cn } from "#/lib/utils";
+import { cn } from "lib";
 
 function DeleteProjectModal({
   showDeleteProjectModal,
