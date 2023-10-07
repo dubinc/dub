@@ -31,11 +31,15 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
+    "@radix-ui/react-navigation-menu": "^1.1.2",
     "@radix-ui/react-popover": "1.0.5",
     "@radix-ui/react-switch": "^1.0.1",
     "@radix-ui/react-tooltip": "^1.0.2",
+    "@vercel/analytics": "^1.0.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^1.2.1",
+    "lucide-react": "^0.269.0",
+    "next": "13.5.5-canary.4",
     "tailwind-merge": "^1.13.2",
     "vaul": "^0.6.8"
   }

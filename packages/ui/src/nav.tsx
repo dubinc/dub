@@ -3,15 +3,14 @@
 import Link from "next/link";
 import { useParams, useSelectedLayoutSegment } from "next/navigation";
 import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu";
-import useScroll from "#/lib/hooks/use-scroll";
-import { cn } from "#/lib/utils";
-import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
-import { APP_DOMAIN, SHOW_BACKGROUND_SEGMENTS } from "#/lib/constants";
+import useScroll from "./lib/hooks/use-scroll";
+import { cn } from "./lib/utils";
+import { MaxWidthWrapper } from "./max-width-wrapper";
+import { APP_DOMAIN, SHOW_BACKGROUND_SEGMENTS } from "./lib/constants";
+import { FEATURES_LIST } from "./lib/constants/content";
 import va from "@vercel/analytics";
 import { ChevronDown } from "lucide-react";
-import { LogoType } from "ui";
-import { useSession } from "next-auth/react";
-import { FEATURES_LIST } from "#/lib/constants/content";
+import { LogoType } from "./icons";
 
 export const navItems = [
   {
@@ -32,18 +31,11 @@ export const navItems = [
   },
 ];
 
-export default function Nav() {
+export function Nav() {
   const { domain = "dub.co" } = useParams() as { domain: string };
   const scrolled = useScroll(80);
   const selectedLayout = useSelectedLayoutSegment();
   const helpCenter = selectedLayout === "help";
-  const { data: session, status } =
-    domain === "dub.co"
-      ? useSession()
-      : {
-          data: null,
-          status: "unauthenticated", // if `useSession` is undefined, we're on a non dub.co domain
-        };
 
   return (
     <div
@@ -101,7 +93,7 @@ export default function Nav() {
                       >
                         Features
                       </p>
-                      <ChevronDown className="group-data-[state=open]:rotate-180 h-4 w-4 transition-all" />
+                      <ChevronDown className="h-4 w-4 transition-all group-data-[state=open]:rotate-180" />
                     </NavigationMenuPrimitive.Trigger>
 
                     <NavigationMenuPrimitive.Content>
@@ -130,7 +122,7 @@ export default function Nav() {
                                 {feature.shortTitle}
                               </p>
                             </div>
-                            <p className="line-clamp-1 mt-1 text-sm text-gray-500">
+                            <p className="mt-1 line-clamp-1 text-sm text-gray-500">
                               {feature.title}
                             </p>
                           </Link>
@@ -176,45 +168,34 @@ export default function Nav() {
           </div>
 
           <div className="hidden lg:block">
-            {session ? (
-              <Link
-                href={APP_DOMAIN}
-                className="animate-fade-in rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
-              >
-                Dashboard
-              </Link>
-            ) : status === "unauthenticated" ? (
-              <>
-                <Link
-                  href={`${APP_DOMAIN}/login`}
-                  {...(domain !== "dub.co" && {
-                    onClick: () => {
-                      va.track("Referred from custom domain", {
-                        domain,
-                        medium: `navbar item (login)`,
-                      });
-                    },
-                  })}
-                  className="animate-fade-in rounded-full px-4 py-1.5 text-sm font-medium text-gray-500 transition-colors ease-out hover:text-black"
-                >
-                  Log in
-                </Link>
-                <Link
-                  href={`${APP_DOMAIN}/register`}
-                  {...(domain !== "dub.co" && {
-                    onClick: () => {
-                      va.track("Referred from custom domain", {
-                        domain,
-                        medium: `navbar item (signup)`,
-                      });
-                    },
-                  })}
-                  className="animate-fade-in rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
-                >
-                  Sign Up
-                </Link>
-              </>
-            ) : null}
+            <Link
+              href={`${APP_DOMAIN}/login`}
+              {...(domain !== "dub.co" && {
+                onClick: () => {
+                  va.track("Referred from custom domain", {
+                    domain,
+                    medium: `navbar item (login)`,
+                  });
+                },
+              })}
+              className="animate-fade-in rounded-full px-4 py-1.5 text-sm font-medium text-gray-500 transition-colors ease-out hover:text-black"
+            >
+              Log in
+            </Link>
+            <Link
+              href={`${APP_DOMAIN}/register`}
+              {...(domain !== "dub.co" && {
+                onClick: () => {
+                  va.track("Referred from custom domain", {
+                    domain,
+                    medium: `navbar item (signup)`,
+                  });
+                },
+              })}
+              className="animate-fade-in rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
+            >
+              Sign Up
+            </Link>
           </div>
         </div>
       </MaxWidthWrapper>

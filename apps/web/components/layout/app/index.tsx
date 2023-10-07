@@ -15,7 +15,7 @@ import { Badge } from "ui";
 import { linkConstructor } from "#/lib/utils";
 import { HOME_DOMAIN } from "#/lib/constants";
 import { useAcceptInviteModal } from "@/components/app/modals/accept-invite-modal";
-import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
+import { MaxWidthWrapper } from "ui";
 import { LoadingSpinner, Logo } from "ui";
 import { FileX2 } from "lucide-react";
 import BlurImage from "#/ui/blur-image";

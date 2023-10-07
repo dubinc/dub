@@ -4,7 +4,7 @@ const AppLayout = dynamic(() => import("@/components/layout/app"), {
 });
 import LinksContainer from "@/components/app/links/links-container";
 import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal";
-import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
+import { MaxWidthWrapper } from "ui";
 
 export default function Links() {
   const { AddEditLinkModal, AddEditLinkButton } = useAddEditLinkModal();

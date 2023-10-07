@@ -1,11 +1,11 @@
-import MobileNav from "#/ui/home/nav-mobile";
-import Nav from "#/ui/home/nav";
-import Footer from "#/ui/home/footer";
+import { NavMobile } from "ui";
+import { Nav } from "ui";
+import { Footer } from "ui";
 
 export default function CustomDomainLayout(props) {
   return (
     <div className="flex min-h-screen flex-col justify-between">
-      <MobileNav />
+      <NavMobile />
       <Nav />
       {props.children}
       <Footer />

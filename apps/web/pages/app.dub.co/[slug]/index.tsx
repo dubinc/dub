@@ -1,6 +1,6 @@
 import LinksContainer from "@/components/app/links/links-container";
 import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal";
-import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
+import { MaxWidthWrapper } from "ui";
 import AppLayout from "components/layout/app";
 import { useRouter } from "next/router";
 import useProject from "#/lib/swr/use-project";

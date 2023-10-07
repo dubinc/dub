@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { LogoType } from "ui";
-import { Github, LinkedIn, Twitter } from "@/components/shared/icons";
+import { LogoType, Github, LinkedIn, Twitter } from "./icons";
 import { useParams } from "next/navigation";
-import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
+import { MaxWidthWrapper } from "./max-width-wrapper";
 import va from "@vercel/analytics";
-import { FEATURES_LIST } from "#/lib/constants/content";
+import { FEATURES_LIST } from "./lib/constants/content";
 
 const navigation = {
   features: FEATURES_LIST.map(({ shortTitle, slug }) => ({
@@ -31,7 +30,7 @@ const navigation = {
   ],
 };
 
-export default function Footer() {
+export function Footer() {
   const { domain = "dub.co" } = useParams() as { domain: string };
 
   const createHref = (href: string) =>

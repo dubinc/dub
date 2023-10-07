@@ -368,6 +368,9 @@ importers:
 
   packages/ui:
     dependencies:
+      '@radix-ui/react-navigation-menu':
+        specifier: ^1.1.2
+        version: 1.1.2(react-dom@18.2.0)(react@18.2.0)
       '@radix-ui/react-popover':
         specifier: 1.0.5
         version: 1.0.5(@types/react@18.2.14)(react-dom@18.2.0)(react@18.2.0)
@@ -377,12 +380,21 @@ importers:
       '@radix-ui/react-tooltip':
         specifier: ^1.0.2
         version: 1.0.2(@types/react@18.2.14)(react-dom@18.2.0)(react@18.2.0)
+      '@vercel/analytics':
+        specifier: ^1.0.0
+        version: 1.0.0(react@18.2.0)
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.0
       clsx:
         specifier: ^1.2.1
         version: 1.2.1
+      lucide-react:
+        specifier: ^0.269.0
+        version: 0.269.0(react@18.2.0)
+      next:
+        specifier: 13.5.5-canary.4
+        version: 13.5.5-canary.4(@babel/core@7.23.0)(@opentelemetry/api@1.6.0)(react-dom@18.2.0)(react@18.2.0)
       tailwind-merge:
         specifier: ^1.13.2
         version: 1.13.2

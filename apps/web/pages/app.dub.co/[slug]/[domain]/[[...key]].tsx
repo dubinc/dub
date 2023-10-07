@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import AppLayout from "@/components/layout/app";
 import BlurImage from "#/ui/blur-image";
-import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
+import { MaxWidthWrapper } from "ui";
 import Stats from "@/components/stats";
 import useProject from "#/lib/swr/use-project";
 import { ModalContext } from "#/ui/modal-provider";

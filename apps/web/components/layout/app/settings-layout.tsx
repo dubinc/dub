@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 const AppLayout = dynamic(() => import("@/components/layout/app"), {
   ssr: false,
 });
-import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
+import { MaxWidthWrapper } from "ui";
 import { ReactNode } from "react";
 import { cn } from "#/lib/utils";
 

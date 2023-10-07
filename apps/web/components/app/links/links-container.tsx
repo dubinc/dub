@@ -1,4 +1,4 @@
-import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
+import { MaxWidthWrapper } from "ui";
 import LinkCard from "./link-card";
 import LinkCardPlaceholder from "./link-card-placeholder";
 import LinkFilters from "./link-filters";
@@ -25,7 +25,7 @@ export default function LinksContainer({
           <LinkSort />
         </div>
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-7">
-          <div className="sticky top-32 col-span-2 hidden max-h-[calc(100vh-150px)] self-start overflow-auto rounded-lg border border-gray-100 bg-white shadow scrollbar-hide lg:block">
+          <div className="scrollbar-hide sticky top-32 col-span-2 hidden max-h-[calc(100vh-150px)] self-start overflow-auto rounded-lg border border-gray-100 bg-white shadow lg:block">
             <LinkFilters />
           </div>
           <div className="col-span-1 auto-rows-min grid-cols-1 lg:col-span-5">

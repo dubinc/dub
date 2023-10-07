@@ -1,7 +1,7 @@
 import NoProjectsPlaceholder from "@/components/app/projects/no-projects-placeholder";
 import ProjectCard from "@/components/app/projects/project-card";
 import ProjectCardPlaceholder from "@/components/app/projects/project-card-placeholder";
-import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
+import { MaxWidthWrapper } from "ui";
 import dynamic from "next/dynamic";
 const AppLayout = dynamic(() => import("@/components/layout/app"), {
   ssr: false,

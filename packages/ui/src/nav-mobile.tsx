@@ -1,20 +1,16 @@
 "use client";
 
-import { APP_DOMAIN } from "#/lib/constants";
+import { APP_DOMAIN } from "./lib/constants";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { navItems } from "./nav";
-import { useSession } from "next-auth/react";
-import { FEATURES_LIST } from "#/lib/constants/content";
-import { cn } from "#/lib/utils";
+import { FEATURES_LIST } from "./lib/constants/content";
+import { cn } from "./lib/utils";
 import { useState } from "react";
 import { ChevronDown, Menu, X } from "lucide-react";
 
-export default function MobileNav() {
+export function NavMobile() {
   const { domain = "dub.co" } = useParams() as { domain: string };
-  const { data: session, status } = useSession() || {
-    status: "unauthenticated", // if `useSession` is undefined, we're on a non dub.co domain
-  };
   const [open, setOpen] = useState(false);
   const [openFeatures, setOpenFeatures] = useState(false);
 
@@ -89,36 +85,23 @@ export default function MobileNav() {
             </li>
           ))}
 
-          {session ? (
-            <li className="py-3">
-              <Link
-                href={APP_DOMAIN}
-                className="flex w-full font-semibold capitalize"
-              >
-                Dashboard
-              </Link>
-            </li>
-          ) : status === "unauthenticated" ? (
-            <>
-              <li className="py-3">
-                <Link
-                  href={`${APP_DOMAIN}/login`}
-                  className="flex w-full font-semibold capitalize"
-                >
-                  Log in
-                </Link>
-              </li>
+          <li className="py-3">
+            <Link
+              href={`${APP_DOMAIN}/login`}
+              className="flex w-full font-semibold capitalize"
+            >
+              Log in
+            </Link>
+          </li>
 
-              <li className="py-3">
-                <Link
-                  href={`${APP_DOMAIN}/register`}
-                  className="flex w-full font-semibold capitalize"
-                >
-                  Sign Up
-                </Link>
-              </li>
-            </>
-          ) : null}
+          <li className="py-3">
+            <Link
+              href={`${APP_DOMAIN}/register`}
+              className="flex w-full font-semibold capitalize"
+            >
+              Sign Up
+            </Link>
+          </li>
         </ul>
       </nav>
     </>
