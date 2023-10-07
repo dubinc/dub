@@ -17,7 +17,7 @@ export default function RegisterForm() {
   const [clickedSSO, setClickedSSO] = useState(false);
 
   return (
-    <div className="flex flex-col space-y-3 bg-gray-50 px-4 py-8 sm:px-16">
+    <>
       <Button
         text="Continue with Google"
         onClick={() => {
@@ -98,6 +98,6 @@ export default function RegisterForm() {
         </Link>
         .
       </p>
-    </div>
+    </>
   );
 }

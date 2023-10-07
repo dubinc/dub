@@ -27,17 +27,19 @@ export default function RegisterPage() {
           Get started for free. No credit card required.
         </p>
       </div>
-      <Suspense
-        fallback={
-          <div className="flex flex-col space-y-3 bg-gray-50 px-4 py-8 sm:px-16">
-            <Button disabled={true} text="" variant="secondary" />
-            <Button disabled={true} text="" variant="secondary" />
-            <div className="mx-auto h-5 w-3/4 rounded-lg bg-gray-100" />
-          </div>
-        }
-      >
-        <RegisterForm />
-      </Suspense>
+      <div className="flex flex-col space-y-3 bg-gray-50 px-4 py-8 sm:px-16">
+        <Suspense
+          fallback={
+            <>
+              <Button disabled={true} text="" variant="secondary" />
+              <Button disabled={true} text="" variant="secondary" />
+              <div className="mx-auto h-5 w-3/4 rounded-lg bg-gray-100" />
+            </>
+          }
+        >
+          <RegisterForm />
+        </Suspense>
+      </div>
     </div>
   );
 }

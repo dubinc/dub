@@ -11,6 +11,5 @@ export default defineConfig((options: Options) => ({
   dts: true,
   minify: true,
   external: ["react"],
-  injectStyle: true,
   ...options,
 }));
