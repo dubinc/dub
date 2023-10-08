@@ -8,6 +8,9 @@ importers:
 
   .:
     devDependencies:
+      '@dub/tailwind-config':
+        specifier: workspace:*
+        version: link:packages/tailwind-config
       eslint:
         specifier: ^8.48.0
         version: 8.48.0
@@ -20,9 +23,6 @@ importers:
       prettier-plugin-tailwindcss:
         specifier: ^0.5.3
         version: 0.5.3(prettier-plugin-organize-imports@3.2.3)(prettier@3.0.3)
-      tailwind-config:
-        specifier: workspace:*
-        version: link:packages/tailwind-config
       tsconfig:
         specifier: workspace:*
         version: link:packages/tsconfig
@@ -37,6 +37,9 @@ importers:
       '@boxyhq/saml-jackson':
         specifier: ^1.11.3
         version: 1.11.3
+      '@dub/tailwind-config':
+        specifier: workspace:*
+        version: link:../../packages/tailwind-config
       '@dub/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -390,6 +393,9 @@ importers:
         specifier: ^0.6.8
         version: 0.6.8(@types/react-dom@18.2.6)(@types/react@18.2.14)(react-dom@18.2.0)(react@18.2.0)
     devDependencies:
+      '@dub/tailwind-config':
+        specifier: workspace:*
+        version: link:../tailwind-config
       '@types/react':
         specifier: ^18.2.5
         version: 18.2.14
@@ -405,9 +411,6 @@ importers:
       react:
         specifier: ^18.2.0
         version: 18.2.0
-      tailwind-config:
-        specifier: workspace:*
-        version: link:../tailwind-config
       tailwindcss:
         specifier: ^3.3.3
         version: 3.3.3

@@ -8,6 +8,7 @@
     "lint": "turbo lint",
     "clean": "turbo clean",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "publish-tw": "turbo build --filter='@dub/tailwind-config' && cd packages/tailwind-config && npm publish --access public && cd ../../",
     "publish-ui": "turbo build --filter='@dub/ui' && cd packages/ui && npm publish --access public && cd ../../",
     "publish-utils": "turbo build --filter='@dub/utils' && cd packages/utils && npm publish --access public && cd ../../"
   },
@@ -16,7 +17,7 @@
     "prettier": "^3.0.3",
     "prettier-plugin-organize-imports": "^3.2.3",
     "prettier-plugin-tailwindcss": "^0.5.3",
-    "tailwind-config": "workspace:*",
+    "@dub/tailwind-config": "workspace:*",
     "tsconfig": "workspace:*",
     "turbo": "^1.10.12"
   },

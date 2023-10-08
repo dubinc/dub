@@ -1,7 +1,7 @@
 {
   "name": "@dub/ui",
   "description": "UI components for Dub.co",
-  "version": "0.0.4",
+  "version": "0.0.6",
   "sideEffects": [
     "**/*.css"
   ],
@@ -27,7 +27,7 @@
     "postcss": "^8.4.31",
     "react": "^18.2.0",
     "next": "13.5.4",
-    "tailwind-config": "workspace:*",
+    "@dub/tailwind-config": "workspace:*",
     "tailwindcss": "^3.3.3",
     "tsconfig": "workspace:*",
     "tsup": "^6.1.3",

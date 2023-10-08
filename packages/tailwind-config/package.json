@@ -1,7 +1,7 @@
 {
-  "name": "tailwind-config",
+  "name": "@dub/tailwind-config",
+  "description": "Tailwindcss config for Dub.co",
   "version": "0.0.0",
-  "private": true,
   "main": "index.ts",
   "types": "index.ts",
   "devDependencies": {
@@ -12,5 +12,20 @@
     "@tailwindcss/typography": "^0.5.9",
     "tailwind-scrollbar-hide": "^1.1.7",
     "tailwindcss-radix": "^2.8.0"
-  }
+  },
+  "author": "Steven Tey <stevensteel97@gmail.com>",
+  "homepage": "https://dub.co",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/steven-tey/dub.git"
+  },
+  "bugs": {
+    "url": "https://github.com/steven-tey/dub/issues"
+  },
+  "keywords": [
+    "dub",
+    "dub.co",
+    "tailwind",
+    "tailwindcss"
+  ]
 }
