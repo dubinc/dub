@@ -11,7 +11,7 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import { DUB_LOGO, DUB_THUMBNAIL } from "lib";
+import { DUB_LOGO, DUB_THUMBNAIL } from "@dub/utils";
 import Footer from "./components/footer";
 
 export default function WelcomeEmail({

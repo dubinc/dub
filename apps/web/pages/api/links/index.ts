@@ -6,7 +6,12 @@ import {
 } from "#/lib/api/links";
 import { withLinksAuth } from "#/lib/auth";
 import { isBlacklistedDomain, isBlacklistedKey } from "#/lib/edge-config";
-import { DUB_PROJECT_ID, GOOGLE_FAVICON_URL, getApexDomain, log } from "lib";
+import {
+  DUB_PROJECT_ID,
+  GOOGLE_FAVICON_URL,
+  getApexDomain,
+  log,
+} from "@dub/utils";
 
 export const config = {
   api: {

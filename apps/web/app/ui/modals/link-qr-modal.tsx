@@ -5,7 +5,7 @@ import useProject from "#/lib/swr-app/use-project";
 import { SimpleLinkProps } from "#/lib/types";
 import { BlurImage } from "@/components/shared/blur-image";
 import { Clipboard, Download } from "@/components/shared/icons";
-import { GOOGLE_FAVICON_URL, getApexDomain, linkConstructor } from "lib";
+import { GOOGLE_FAVICON_URL, getApexDomain, linkConstructor } from "@dub/utils";
 import { Check, ChevronRight } from "lucide-react";
 import {
   Dispatch,
@@ -26,7 +26,7 @@ import {
   Switch,
   Tooltip,
   TooltipContent,
-} from "ui";
+} from "@dub/ui";
 import { useDebouncedCallback } from "use-debounce";
 
 function LinkQRModalHelper({

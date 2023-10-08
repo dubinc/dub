@@ -15,7 +15,7 @@ import {
   getUrlWithoutUTMParams,
   linkConstructor,
   truncate,
-} from "lib";
+} from "@dub/utils";
 import {
   useParams,
   usePathname,
@@ -43,7 +43,7 @@ import {
   Modal,
   Tooltip,
   TooltipContent,
-} from "ui";
+} from "@dub/ui";
 import { useDebounce } from "use-debounce";
 import AndroidSection from "./android-section";
 import CommentsSection from "./comments-section";

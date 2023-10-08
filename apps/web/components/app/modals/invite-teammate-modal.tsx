@@ -11,7 +11,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { Button, Logo, Modal } from "ui";
+import { Button, Logo, Modal } from "@dub/ui";
 
 function InviteTeammateModal({
   showInviteTeammateModal,

@@ -1,4 +1,8 @@
-import { LOCALHOST_GEO_DATA, capitalize, getDomainWithoutWWW } from "lib";
+import {
+  LOCALHOST_GEO_DATA,
+  capitalize,
+  getDomainWithoutWWW,
+} from "@dub/utils";
 import { NextRequest, userAgent } from "next/server";
 import { conn } from "./planetscale";
 

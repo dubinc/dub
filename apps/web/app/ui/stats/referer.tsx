@@ -1,9 +1,9 @@
 import { BlurImage } from "@/components/shared/blur-image";
-import { GOOGLE_FAVICON_URL, fetcher } from "lib";
+import { GOOGLE_FAVICON_URL, fetcher } from "@dub/utils";
 import { Link2, Maximize } from "lucide-react";
 import { useContext, useState } from "react";
 import useSWR from "swr";
-import { LoadingCircle, Modal } from "ui";
+import { LoadingCircle, Modal } from "@dub/ui";
 import { StatsContext } from ".";
 import BarList from "./bar-list";
 

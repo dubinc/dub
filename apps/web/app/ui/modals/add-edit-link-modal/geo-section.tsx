@@ -2,7 +2,7 @@ import useProject from "#/lib/swr-app/use-project";
 import { ModalContext } from "#/ui/modal-provider";
 import { type Link as LinkProps } from "@prisma/client";
 import { motion } from "framer-motion";
-import { COUNTRIES, FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "lib";
+import { COUNTRIES, FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "@dub/utils";
 import { Trash } from "lucide-react";
 import {
   Dispatch,
@@ -11,7 +11,12 @@ import {
   useEffect,
   useState,
 } from "react";
-import { InfoTooltip, SimpleTooltipContent, Switch, TooltipContent } from "ui";
+import {
+  InfoTooltip,
+  SimpleTooltipContent,
+  Switch,
+  TooltipContent,
+} from "@dub/ui";
 
 export default function GeoSection({
   props,

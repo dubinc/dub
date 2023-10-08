@@ -12,6 +12,8 @@ import {
   ccTLDs,
 } from "./constants";
 
+export * from "./constants";
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }

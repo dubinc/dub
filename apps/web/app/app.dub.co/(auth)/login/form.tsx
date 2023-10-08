@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Button, Google, InfoTooltip } from "ui";
+import { Button, Google, InfoTooltip } from "@dub/ui";
 
 export default function LoginForm() {
   const searchParams = useSearchParams();

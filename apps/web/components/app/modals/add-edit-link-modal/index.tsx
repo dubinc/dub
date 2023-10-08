@@ -25,7 +25,7 @@ import {
   isValidUrl,
   linkConstructor,
   truncate,
-} from "lib";
+} from "@dub/utils";
 import { useRouter } from "next/router";
 import punycode from "punycode/";
 import {
@@ -48,7 +48,7 @@ import {
   Modal,
   Tooltip,
   TooltipContent,
-} from "ui";
+} from "@dub/ui";
 import { useDebounce } from "use-debounce";
 import GeoSection from "./geo-section";
 import RewriteSection from "./rewrite-section";

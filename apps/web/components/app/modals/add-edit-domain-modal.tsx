@@ -4,7 +4,7 @@ import { ModalContext } from "#/ui/modal-provider";
 import { BlurImage } from "@/components/shared/blur-image";
 import { AlertCircleFill, Lock } from "@/components/shared/icons";
 import { AnimatePresence, motion } from "framer-motion";
-import { SWIPE_REVEAL_ANIMATION_SETTINGS } from "lib";
+import { SWIPE_REVEAL_ANIMATION_SETTINGS } from "@dub/utils";
 import { useRouter } from "next/router";
 import {
   Dispatch,
@@ -17,7 +17,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { Button, Logo, Modal, Switch, Tooltip, TooltipContent } from "ui";
+import { Button, Logo, Modal, Switch, Tooltip, TooltipContent } from "@dub/ui";
 import { useDebounce } from "use-debounce";
 
 function AddEditDomainModal({

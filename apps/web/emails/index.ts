@@ -1,4 +1,4 @@
-import { nanoid } from "lib";
+import { nanoid } from "@dub/utils";
 import { JSXElementConstructor, ReactElement } from "react";
 import { Resend } from "resend";
 

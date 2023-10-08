@@ -1,5 +1,5 @@
 import { DomainVerificationStatusProps } from "#/lib/types";
-import { getSubdomain } from "lib";
+import { getSubdomain } from "@dub/utils";
 import { useState } from "react";
 
 export const InlineSnippet = ({ children }: { children: string }) => {

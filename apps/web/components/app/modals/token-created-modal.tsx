@@ -5,7 +5,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { Button, CopyButton, Logo, Modal } from "ui";
+import { Button, CopyButton, Logo, Modal } from "@dub/ui";
 
 function TokenCreatedModal({
   showTokenCreatedModal,

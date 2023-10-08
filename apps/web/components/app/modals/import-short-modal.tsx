@@ -1,6 +1,6 @@
 import { ShortioDomainProps } from "#/lib/types";
 import { ModalContext } from "#/ui/modal-provider";
-import { HOME_DOMAIN, fetcher, nFormatter } from "lib";
+import { HOME_DOMAIN, fetcher, nFormatter } from "@dub/utils";
 import { ArrowRight } from "lucide-react";
 import { NextRouter, useRouter } from "next/router";
 import {
@@ -22,7 +22,7 @@ import {
   Modal,
   SimpleTooltipContent,
   Switch,
-} from "ui";
+} from "@dub/ui";
 
 function ImportShortModal({
   showImportShortModal,

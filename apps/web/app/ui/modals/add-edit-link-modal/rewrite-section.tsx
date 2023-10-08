@@ -1,8 +1,8 @@
 import { type Link as LinkProps } from "@prisma/client";
-import { HOME_DOMAIN } from "lib";
+import { HOME_DOMAIN } from "@dub/utils";
 import { useParams } from "next/navigation";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { InfoTooltip, SimpleTooltipContent, Switch } from "ui";
+import { InfoTooltip, SimpleTooltipContent, Switch } from "@dub/ui";
 
 export default function RewriteSection({
   data,

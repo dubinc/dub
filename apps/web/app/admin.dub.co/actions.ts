@@ -6,7 +6,7 @@ import prisma from "#/lib/prisma";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { get } from "@vercel/edge-config";
 import { randomBytes } from "crypto";
-import { DUB_PROJECT_ID, getDomainWithoutWWW } from "lib";
+import { DUB_PROJECT_ID, getDomainWithoutWWW } from "@dub/utils";
 import { getServerSession } from "next-auth";
 
 async function isAdmin() {

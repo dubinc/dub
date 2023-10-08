@@ -1,4 +1,4 @@
-import { fetcher, getQueryString } from "lib";
+import { fetcher, getQueryString } from "@dub/utils";
 import { useRouter } from "next/router";
 import useSWR from "swr";
 

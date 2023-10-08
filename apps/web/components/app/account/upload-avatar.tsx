@@ -2,7 +2,7 @@ import { UploadCloud } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Button } from "ui";
+import { Button } from "@dub/ui";
 
 export default function UploadAvatar() {
   const { data: session, update } = useSession();

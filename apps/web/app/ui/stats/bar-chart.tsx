@@ -4,10 +4,10 @@ import { GridRows } from "@visx/grid";
 import { scaleBand, scaleLinear } from "@visx/scale";
 import { useTooltip, useTooltipInPortal } from "@visx/tooltip";
 import { motion } from "framer-motion";
-import { fetcher, nFormatter } from "lib";
+import { fetcher, nFormatter } from "@dub/utils";
 import { useCallback, useContext, useMemo } from "react";
 import useSWR from "swr";
-import { LoadingCircle, useMediaQuery } from "ui";
+import { LoadingCircle, useMediaQuery } from "@dub/ui";
 import { StatsContext } from ".";
 import styles from "./bar-chart.module.css";
 

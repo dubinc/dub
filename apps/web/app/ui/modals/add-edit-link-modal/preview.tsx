@@ -1,8 +1,8 @@
 import { BlurImage } from "@/components/shared/blur-image";
 import { type Link as LinkProps } from "@prisma/client";
-import { getDomainWithoutWWW } from "lib";
+import { getDomainWithoutWWW } from "@dub/utils";
 import { useMemo } from "react";
-import { Facebook, LinkedIn, LoadingCircle, Photo, Twitter } from "ui";
+import { Facebook, LinkedIn, LoadingCircle, Photo, Twitter } from "@dub/ui";
 import { useDebounce } from "use-debounce";
 
 export default function Preview({

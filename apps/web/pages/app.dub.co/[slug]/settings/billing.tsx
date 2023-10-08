@@ -5,12 +5,12 @@ import SettingsLayout from "@/components/layout/app/settings-layout";
 import { Divider, InfinityIcon } from "@/components/shared/icons";
 import va from "@vercel/analytics";
 import { motion } from "framer-motion";
-import { fetcher, getFirstAndLastDay, nFormatter } from "lib";
+import { fetcher, getFirstAndLastDay, nFormatter } from "@dub/utils";
 import { useRouter } from "next/router";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
-import { Button, InfoTooltip, NumberTooltip } from "ui";
+import { Button, InfoTooltip, NumberTooltip } from "@dub/ui";
 
 export default function ProjectBilling() {
   const router = useRouter();

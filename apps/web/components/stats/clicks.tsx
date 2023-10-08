@@ -1,10 +1,10 @@
 import { Chart } from "@/components/shared/icons";
 import BarChart from "@/components/stats/bar-chart";
-import { fetcher, nFormatter } from "lib";
+import { fetcher, nFormatter } from "@dub/utils";
 import { useRouter } from "next/router";
 import { useContext } from "react";
 import useSWR from "swr";
-import { NumberTooltip } from "ui";
+import { NumberTooltip } from "@dub/ui";
 import { StatsContext } from ".";
 
 export default function Clicks() {

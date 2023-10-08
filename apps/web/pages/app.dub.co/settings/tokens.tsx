@@ -2,12 +2,12 @@ import { useDeleteTokenModal } from "@/components/app/modals/delete-token-modal"
 import { useTokenCreatedModal } from "@/components/app/modals/token-created-modal";
 import SettingsLayout from "@/components/layout/app/settings-layout";
 import { Token } from "@prisma/client";
-import { fetcher, timeAgo } from "lib";
+import { fetcher, timeAgo } from "@dub/utils";
 import { FolderOpen, MoreVertical, Trash } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
-import { Form, IconMenu, LoadingSpinner, Popover, TokenAvatar } from "ui";
+import { Form, IconMenu, LoadingSpinner, Popover, TokenAvatar } from "@dub/ui";
 
 export default function TokensPage() {
   const {

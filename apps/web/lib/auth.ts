@@ -3,7 +3,7 @@ import { PlanProps, ProjectProps, UserProps } from "#/lib/types";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { type Link as LinkProps } from "@prisma/client";
 import { createHash } from "crypto";
-import { API_DOMAIN } from "lib";
+import { API_DOMAIN } from "@dub/utils";
 import { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth/next";
 import { ratelimit } from "./upstash";

@@ -1,7 +1,7 @@
 import useProject from "#/lib/swr/use-project";
 import useSAML from "#/lib/swr/use-saml";
 import { SAMLProviderProps } from "#/lib/types";
-import { HOME_DOMAIN, SAML_PROVIDERS } from "lib";
+import { HOME_DOMAIN, SAML_PROVIDERS } from "@dub/utils";
 import { Check, Lock, UploadCloud } from "lucide-react";
 import {
   Dispatch,
@@ -11,7 +11,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { Button, InfoTooltip, Modal, SimpleTooltipContent } from "ui";
+import { Button, InfoTooltip, Modal, SimpleTooltipContent } from "@dub/ui";
 
 function SAMLModal({
   showSAMLModal,

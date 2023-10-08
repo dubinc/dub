@@ -1,7 +1,7 @@
 import useProject from "#/lib/swr/use-project";
 import { BitlyGroupProps } from "#/lib/types";
 import { ModalContext } from "#/ui/modal-provider";
-import { HOME_DOMAIN, fetcher } from "lib";
+import { HOME_DOMAIN, fetcher } from "@dub/utils";
 import { ArrowRight } from "lucide-react";
 import { NextRouter, useRouter } from "next/router";
 import {
@@ -15,7 +15,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
-import { Button, LoadingSpinner, Logo, Modal, Switch, Tooltip } from "ui";
+import { Button, LoadingSpinner, Logo, Modal, Switch, Tooltip } from "@dub/ui";
 
 function ImportBitlyModal({
   showImportBitlyModal,

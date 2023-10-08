@@ -1,5 +1,5 @@
 import useLinks from "#/lib/swr/use-links";
-import { MaxWidthWrapper } from "ui";
+import { MaxWidthWrapper } from "@dub/ui";
 import { useLinkFiltersModal } from "../modals/link-filters-modal";
 import LinkCard from "./link-card";
 import LinkCardPlaceholder from "./link-card-placeholder";

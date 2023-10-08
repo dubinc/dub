@@ -1,4 +1,4 @@
-import { cn } from "../../../lib/src/utils";
+import { cn } from "@dub/utils";
 
 export default function LogoType({ className }: { className?: string }) {
   return (

@@ -11,7 +11,7 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import { DUB_LOGO, capitalize, nFormatter } from "lib";
+import { DUB_LOGO, capitalize, nFormatter } from "@dub/utils";
 import { ProjectProps } from "../lib/types";
 import Footer from "./components/footer";
 

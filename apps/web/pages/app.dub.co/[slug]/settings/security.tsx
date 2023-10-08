@@ -8,10 +8,10 @@ import { useSCIMModal } from "@/components/app/modals/scim-modal";
 import { useUpgradePlanModal } from "@/components/app/modals/upgrade-plan-modal";
 import SettingsLayout from "@/components/layout/app/settings-layout";
 import { ThreeDots } from "@/components/shared/icons";
-import { HOME_DOMAIN, SAML_PROVIDERS } from "lib";
+import { HOME_DOMAIN, SAML_PROVIDERS } from "@dub/utils";
 import { FolderSync, Lock, ShieldOff } from "lucide-react";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
-import { Button, IconMenu, Popover, TooltipContent } from "ui";
+import { Button, IconMenu, Popover, TooltipContent } from "@dub/ui";
 
 export default function ProjectSecurity() {
   const { setShowUpgradePlanModal, UpgradePlanModal } = useUpgradePlanModal({

@@ -12,7 +12,7 @@ import {
   HOME_DOMAIN,
   getApexDomain,
   linkConstructor,
-} from "lib";
+} from "@dub/utils";
 import { Check, ChevronRight } from "lucide-react";
 import { useRouter } from "next/router";
 import {
@@ -37,7 +37,7 @@ import {
   Switch,
   Tooltip,
   TooltipContent,
-} from "ui";
+} from "@dub/ui";
 import { useDebouncedCallback } from "use-debounce";
 
 function LinkQRModalHelper({

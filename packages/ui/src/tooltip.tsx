@@ -1,7 +1,7 @@
 "use client";
 
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
-import { nFormatter, timeAgo } from "lib";
+import { nFormatter, timeAgo } from "@dub/utils";
 import { HelpCircle } from "lucide-react";
 import Link from "next/link";
 import { ReactNode } from "react";

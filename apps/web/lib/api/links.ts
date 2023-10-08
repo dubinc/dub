@@ -9,7 +9,7 @@ import {
   nanoid,
   truncate,
   validKeyRegex,
-} from "lib";
+} from "@dub/utils";
 import { NextApiRequest } from "next";
 import { isIframeable } from "../middleware/utils";
 

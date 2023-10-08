@@ -1,5 +1,5 @@
-import { constructMetadata } from "lib";
-import { Background, Logo } from "ui";
+import { constructMetadata } from "@dub/utils";
+import { Background, Logo } from "@dub/ui";
 import PasswordForm from "./form";
 
 const title = "Password Required";

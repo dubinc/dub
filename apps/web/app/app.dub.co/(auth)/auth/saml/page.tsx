@@ -1,4 +1,4 @@
-import { LoadingSpinner } from "ui";
+import { LoadingSpinner } from "@dub/ui";
 import SAMLIDPForm from "./form";
 
 export default function SAMLPage() {

@@ -13,7 +13,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { ExpandingArrow, Logo, Modal } from "ui";
+import { ExpandingArrow, Logo, Modal } from "@dub/ui";
 
 function CompleteSetupModal({
   showCompleteSetupModal,

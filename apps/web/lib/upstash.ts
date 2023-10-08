@@ -1,6 +1,6 @@
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
-import { nanoid } from "lib";
+import { nanoid } from "@dub/utils";
 
 // Initiate Redis instance by connecting to REST URL
 export const redis = new Redis({

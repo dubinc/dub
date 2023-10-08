@@ -2,10 +2,10 @@
 
 import { motion } from "framer-motion";
 import Fuse from "fuse.js";
-import { cn, nFormatter } from "lib";
+import { cn, nFormatter } from "@dub/utils";
 import { Search } from "lucide-react";
 import { ReactNode, useMemo, useState } from "react";
-import { NumberTooltip } from "ui";
+import { NumberTooltip } from "@dub/ui";
 
 export default function BarList({
   tab,

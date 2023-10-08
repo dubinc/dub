@@ -1,7 +1,7 @@
 import useProject from "#/lib/swr/use-project";
 import useSCIM from "#/lib/swr/use-scim";
 import { SAMLProviderProps } from "#/lib/types";
-import { HOME_DOMAIN, SAML_PROVIDERS } from "lib";
+import { HOME_DOMAIN, SAML_PROVIDERS } from "@dub/utils";
 import { Eye, EyeOff, FolderSync, RefreshCcw } from "lucide-react";
 import {
   Dispatch,
@@ -19,7 +19,7 @@ import {
   Modal,
   SimpleTooltipContent,
   Tick,
-} from "ui";
+} from "@dub/ui";
 
 function SCIMModal({
   showSCIMModal,

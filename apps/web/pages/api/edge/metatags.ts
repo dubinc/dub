@@ -1,6 +1,6 @@
 import { ratelimit, recordMetatags } from "#/lib/upstash";
 import { ipAddress } from "@vercel/edge";
-import { LOCALHOST_IP, isValidUrl } from "lib";
+import { LOCALHOST_IP, isValidUrl } from "@dub/utils";
 import { getToken } from "next-auth/jwt";
 import { NextFetchEvent, NextRequest } from "next/server";
 import { parse } from "node-html-parser";

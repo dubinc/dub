@@ -1,11 +1,11 @@
 import { DomainProps, ProjectWithDomainProps } from "#/lib/types";
 import { BlurImage } from "@/components/shared/blur-image";
 import { CheckCircleFill, XCircleFill } from "@/components/shared/icons";
-import { GOOGLE_FAVICON_URL, fetcher, nFormatter } from "lib";
+import { GOOGLE_FAVICON_URL, fetcher, nFormatter } from "@dub/utils";
 import { BarChart2, ExternalLink, Globe, Link2 } from "lucide-react";
 import Link from "next/link";
 import useSWR from "swr";
-import { Badge, NumberTooltip, Tooltip } from "ui";
+import { Badge, NumberTooltip, Tooltip } from "@dub/ui";
 import PlanBadge from "./plan-badge";
 
 export default function ProjectCard({

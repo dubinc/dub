@@ -1,7 +1,7 @@
 import { UploadCloud } from "@/components/shared/icons";
 import { type Link as LinkProps } from "@prisma/client";
 import { motion } from "framer-motion";
-import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "lib";
+import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "@dub/utils";
 import { Link2 } from "lucide-react";
 import {
   Dispatch,
@@ -18,7 +18,7 @@ import {
   SimpleTooltipContent,
   Switch,
   Unsplash,
-} from "ui";
+} from "@dub/ui";
 import UnsplashSearch from "./unsplash-search";
 
 export default function OGSection({

@@ -12,7 +12,7 @@ import {
   nFormatter,
   setQueryString,
   truncate,
-} from "lib";
+} from "@dub/utils";
 import { Check, ChevronRight, Search, Trash, XCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
@@ -34,7 +34,7 @@ import {
   NumberTooltip,
   Popover,
   Switch,
-} from "ui";
+} from "@dub/ui";
 import { useDebouncedCallback } from "use-debounce";
 
 export default function LinkFilters() {

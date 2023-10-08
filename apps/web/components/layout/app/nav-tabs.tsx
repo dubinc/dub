@@ -6,7 +6,7 @@ import { ModalContext } from "#/ui/modal-provider";
 import Link from "next/link";
 import { NextRouter, useRouter } from "next/router";
 import { useContext, useMemo } from "react";
-import { Badge } from "ui";
+import { Badge } from "@dub/ui";
 
 const TabsHelper = (router: NextRouter): { name: string; href: string }[] => {
   const { slug, domain, key } = router.query as {

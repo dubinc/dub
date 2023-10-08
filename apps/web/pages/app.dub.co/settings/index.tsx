@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { toast } from "sonner";
-import { Button, Form } from "ui";
+import { Button, Form } from "@dub/ui";
 
 export default function PersonalSettings() {
   const { data: session, update } = useSession();

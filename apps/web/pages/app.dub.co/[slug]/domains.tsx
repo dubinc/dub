@@ -5,8 +5,8 @@ import DomainCardPlaceholder from "@/components/app/domains/domain-card-placehol
 import NoDomainsPlaceholder from "@/components/app/domains/no-domains-placeholder";
 import { useAddEditDomainModal } from "@/components/app/modals/add-edit-domain-modal";
 import AppLayout from "components/layout/app";
-import { HOME_DOMAIN } from "lib";
-import { InfoTooltip, MaxWidthWrapper, TooltipContent } from "ui";
+import { HOME_DOMAIN } from "@dub/utils";
+import { InfoTooltip, MaxWidthWrapper, TooltipContent } from "@dub/ui";
 
 export default function ProjectDomains() {
   const { id: projectId } = useProject();

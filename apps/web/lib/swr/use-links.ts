@@ -1,5 +1,5 @@
 import { type Link as LinkProps } from "@prisma/client";
-import { fetcher, getQueryString } from "lib";
+import { fetcher, getQueryString } from "@dub/utils";
 import { useRouter } from "next/router";
 import useSWR from "swr";
 import { UserProps } from "../types";

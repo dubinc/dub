@@ -3,7 +3,7 @@ import { UploadCloud } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { Button } from "ui";
+import { Button } from "@dub/ui";
 
 export default function UploadLogo() {
   const { slug, logo } = useProject();

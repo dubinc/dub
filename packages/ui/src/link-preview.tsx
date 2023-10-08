@@ -1,6 +1,6 @@
 "use client";
 
-import { fetcher, getDomainWithoutWWW, getUrlFromString } from "lib";
+import { fetcher, getDomainWithoutWWW, getUrlFromString } from "@dub/utils";
 import { Link2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef } from "react";

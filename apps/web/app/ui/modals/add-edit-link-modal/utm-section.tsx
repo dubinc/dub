@@ -7,9 +7,9 @@ import {
   getParamsFromURL,
   getUrlWithoutUTMParams,
   paramsMetadata,
-} from "lib";
+} from "@dub/utils";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
-import { InfoTooltip, SimpleTooltipContent, Switch } from "ui";
+import { InfoTooltip, SimpleTooltipContent, Switch } from "@dub/ui";
 
 export default function UTMSection({
   props,

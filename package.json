@@ -7,7 +7,9 @@
     "dev": "turbo dev",
     "lint": "turbo lint",
     "clean": "turbo clean",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "publish-ui": "turbo build && cd packages/ui && npm publish --access public && cd ../../",
+    "publish-utils": "turbo build && cd packages/utils && npm publish --access public && cd ../../"
   },
   "devDependencies": {
     "eslint": "^8.48.0",

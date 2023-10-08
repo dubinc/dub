@@ -1,5 +1,5 @@
 import type { Directory } from "@boxyhq/saml-jackson";
-import { fetcher } from "lib";
+import { fetcher } from "@dub/utils";
 import { useRouter } from "next/router";
 import { useMemo } from "react";
 import useSWR from "swr";

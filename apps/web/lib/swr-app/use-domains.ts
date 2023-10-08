@@ -1,5 +1,5 @@
 import { DomainProps } from "#/lib/types";
-import { fetcher } from "lib";
+import { fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
 import useSWR from "swr";

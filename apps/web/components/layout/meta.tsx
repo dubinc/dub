@@ -1,4 +1,4 @@
-import { FAVICON_FOLDER } from "lib";
+import { FAVICON_FOLDER } from "@dub/utils";
 import Head from "next/head";
 
 export default function Meta({

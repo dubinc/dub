@@ -4,7 +4,7 @@ import { getPlanFromPriceId, isNewCustomer } from "#/lib/stripe/utils";
 import { redis } from "#/lib/upstash";
 import { sendEmail } from "emails";
 import UpgradeEmail from "emails/upgrade-email";
-import { log } from "lib";
+import { log } from "@dub/utils";
 import { NextApiRequest, NextApiResponse } from "next";
 import { Readable } from "node:stream";
 import Stripe from "stripe";

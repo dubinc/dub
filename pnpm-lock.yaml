@@ -37,6 +37,12 @@ importers:
       '@boxyhq/saml-jackson':
         specifier: ^1.11.3
         version: 1.11.3
+      '@dub/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      '@dub/utils':
+        specifier: workspace:*
+        version: link:../../packages/utils
       '@next-auth/prisma-adapter':
         specifier: ^1.0.5
         version: 1.0.5(@prisma/client@5.2.0)(next-auth@4.23.1)
@@ -169,9 +175,6 @@ importers:
       js-cookie:
         specifier: ^3.0.5
         version: 3.0.5
-      lib:
-        specifier: workspace:*
-        version: link:../../packages/lib
       lucide-react:
         specifier: ^0.269.0
         version: 0.269.0(react@18.2.0)
@@ -277,9 +280,6 @@ importers:
       topojson-client:
         specifier: ^3.1.0
         version: 3.1.0
-      ui:
-        specifier: workspace:*
-        version: link:../../packages/ui
       unsplash-js:
         specifier: ^7.0.18
         version: 7.0.18
@@ -342,49 +342,6 @@ importers:
         specifier: ^5.1.6
         version: 5.1.6
 
-  packages/lib:
-    dependencies:
-      '@sindresorhus/slugify':
-        specifier: ^2.2.1
-        version: 2.2.1
-      clsx:
-        specifier: ^1.2.1
-        version: 1.2.1
-      ms:
-        specifier: ^2.1.3
-        version: 2.1.3
-      nanoid:
-        specifier: ^5.0.1
-        version: 5.0.1
-      tailwind-merge:
-        specifier: ^1.13.2
-        version: 1.13.2
-    devDependencies:
-      '@types/ms':
-        specifier: ^0.7.31
-        version: 0.7.31
-      '@types/node':
-        specifier: 18.11.9
-        version: 18.11.9
-      '@types/react':
-        specifier: ^18.2.5
-        version: 18.2.14
-      next:
-        specifier: 13.5.4
-        version: 13.5.4(react-dom@18.2.0)(react@18.2.0)
-      react:
-        specifier: ^18.2.0
-        version: 18.2.0
-      tsconfig:
-        specifier: workspace:*
-        version: link:../tsconfig
-      tsup:
-        specifier: ^6.1.3
-        version: 6.1.3(postcss@8.4.31)(typescript@5.1.6)
-      typescript:
-        specifier: ^5.1.6
-        version: 5.1.6
-
   packages/tailwind-config:
     dependencies:
       '@tailwindcss/forms':
@@ -408,6 +365,9 @@ importers:
 
   packages/ui:
     dependencies:
+      '@dub/utils':
+        specifier: workspace:*
+        version: link:../utils
       '@radix-ui/react-accordion':
         specifier: ^1.0.1
         version: 1.0.1(react-dom@18.2.0)(react@18.2.0)
@@ -432,9 +392,6 @@ importers:
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.0
-      lib:
-        specifier: workspace:*
-        version: link:../lib
       lucide-react:
         specifier: ^0.284.0
         version: 0.284.0(react@18.2.0)
@@ -472,6 +429,49 @@ importers:
       tailwindcss:
         specifier: ^3.3.3
         version: 3.3.3
+      tsconfig:
+        specifier: workspace:*
+        version: link:../tsconfig
+      tsup:
+        specifier: ^6.1.3
+        version: 6.1.3(postcss@8.4.31)(typescript@5.1.6)
+      typescript:
+        specifier: ^5.1.6
+        version: 5.1.6
+
+  packages/utils:
+    dependencies:
+      '@sindresorhus/slugify':
+        specifier: ^2.2.1
+        version: 2.2.1
+      clsx:
+        specifier: ^1.2.1
+        version: 1.2.1
+      ms:
+        specifier: ^2.1.3
+        version: 2.1.3
+      nanoid:
+        specifier: ^5.0.1
+        version: 5.0.1
+      tailwind-merge:
+        specifier: ^1.13.2
+        version: 1.13.2
+    devDependencies:
+      '@types/ms':
+        specifier: ^0.7.31
+        version: 0.7.31
+      '@types/node':
+        specifier: 18.11.9
+        version: 18.11.9
+      '@types/react':
+        specifier: ^18.2.5
+        version: 18.2.14
+      next:
+        specifier: 13.5.4
+        version: 13.5.4(react-dom@18.2.0)(react@18.2.0)
+      react:
+        specifier: ^18.2.0
+        version: 18.2.0
       tsconfig:
         specifier: workspace:*
         version: link:../tsconfig

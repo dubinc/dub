@@ -1,6 +1,6 @@
 "use client";
 
-import { SHOW_BACKGROUND_SEGMENTS } from "lib";
+import { SHOW_BACKGROUND_SEGMENTS } from "@dub/utils";
 import { useSelectedLayoutSegment } from "next/navigation";
 
 export function Background() {

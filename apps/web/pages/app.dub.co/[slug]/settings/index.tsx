@@ -5,7 +5,7 @@ import SettingsLayout from "@/components/layout/app/settings-layout";
 import { useRouter } from "next/router";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { Form } from "ui";
+import { Form } from "@dub/ui";
 
 export default function ProjectSettingsGeneral() {
   const router = useRouter();

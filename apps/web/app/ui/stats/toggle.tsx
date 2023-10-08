@@ -1,6 +1,6 @@
 import { INTERVALS } from "#/lib/stats";
 import useProject from "#/lib/swr-app/use-project";
-import { APP_DOMAIN, cn, fetcher, linkConstructor } from "lib";
+import { APP_DOMAIN, cn, fetcher, linkConstructor } from "@dub/utils";
 import { Calendar, ChevronDown, Lock, Share2 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -18,7 +18,7 @@ import {
   Tooltip,
   TooltipContent,
   useScroll,
-} from "ui";
+} from "@dub/ui";
 import { StatsContext } from ".";
 
 export default function Toggle() {

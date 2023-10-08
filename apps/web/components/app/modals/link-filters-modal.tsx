@@ -6,7 +6,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { IconMenu, Modal } from "ui";
+import { IconMenu, Modal } from "@dub/ui";
 import LinkFilters from "../links/link-filters";
 
 function LinkFiltersModal({

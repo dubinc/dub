@@ -5,7 +5,7 @@ import { ProjectProps } from "#/lib/types";
 import { sendEmail } from "emails";
 import ClicksSummary from "emails/clicks-summary";
 import UsageExceeded from "emails/usage-exceeded";
-import { getAdjustedBillingCycleStart, log } from "lib";
+import { getAdjustedBillingCycleStart, log } from "@dub/utils";
 
 export const updateUsage = async () => {
   const projects = await prisma.project.findMany({

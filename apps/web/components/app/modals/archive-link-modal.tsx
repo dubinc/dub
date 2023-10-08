@@ -5,7 +5,7 @@ import {
   getApexDomain,
   getQueryString,
   linkConstructor,
-} from "lib";
+} from "@dub/utils";
 import { useRouter } from "next/router";
 import {
   Dispatch,
@@ -16,7 +16,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { Button, Modal } from "ui";
+import { Button, Modal } from "@dub/ui";
 
 function ArchiveLinkModal({
   showArchiveLinkModal,

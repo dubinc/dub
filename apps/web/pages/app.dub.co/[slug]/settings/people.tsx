@@ -7,11 +7,11 @@ import SettingsLayout from "@/components/layout/app/settings-layout";
 import { BlurImage } from "@/components/shared/blur-image";
 import { ThreeDots } from "@/components/shared/icons";
 import { useInviteTeammateModal } from "components/app/modals/invite-teammate-modal";
-import { cn, timeAgo } from "lib";
+import { cn, timeAgo } from "@dub/utils";
 import { UserMinus } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
-import { Avatar, Badge, IconMenu, Popover } from "ui";
+import { Avatar, Badge, IconMenu, Popover } from "@dub/ui";
 
 const tabs: Array<"Members" | "Invitations"> = ["Members", "Invitations"];
 

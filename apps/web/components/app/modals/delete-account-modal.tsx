@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { Avatar, Button, Modal } from "ui";
+import { Avatar, Button, Modal } from "@dub/ui";
 
 function DeleteAccountModal({
   showDeleteAccountModal,

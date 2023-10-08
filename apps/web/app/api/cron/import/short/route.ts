@@ -1,6 +1,6 @@
 import { receiver } from "#/lib/cron";
 import { redis } from "#/lib/upstash";
-import { log } from "lib";
+import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { importLinksFromShort } from "./utils";
 

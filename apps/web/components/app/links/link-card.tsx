@@ -21,7 +21,7 @@ import {
   nFormatter,
   setQueryString,
   timeAgo,
-} from "lib";
+} from "@dub/utils";
 import {
   Archive,
   CopyPlus,
@@ -45,7 +45,7 @@ import {
   Tooltip,
   TooltipContent,
   useIntersectionObserver,
-} from "ui";
+} from "@dub/ui";
 
 export default function LinkCard({
   props,

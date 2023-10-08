@@ -7,7 +7,7 @@ import { useCompleteSetupModal } from "@/components/app/modals/complete-setup-mo
 import { useImportBitlyModal } from "@/components/app/modals/import-bitly-modal";
 import { useImportShortModal } from "@/components/app/modals/import-short-modal";
 import { useUpgradePlanModal } from "@/components/app/modals/upgrade-plan-modal";
-import { getQueryString } from "lib";
+import { getQueryString } from "@dub/utils";
 import { useRouter } from "next/router";
 import {
   Dispatch,

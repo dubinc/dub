@@ -12,7 +12,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { Avatar, Button, Logo, Modal } from "ui";
+import { Avatar, Button, Logo, Modal } from "@dub/ui";
 
 function RemoveTeammateModal({
   showRemoveTeammateModal,

@@ -1,7 +1,7 @@
 import { getLinkViaEdge } from "#/lib/planetscale";
-import { HOME_DOMAIN, constructMetadata } from "lib";
+import { HOME_DOMAIN, constructMetadata } from "@dub/utils";
 import { notFound } from "next/navigation";
-import { Background, Footer, LinkPreview, Nav } from "ui";
+import { Background, Footer, LinkPreview, Nav } from "@dub/ui";
 import LinkInspectorCard from "./card";
 
 export const runtime = "edge";

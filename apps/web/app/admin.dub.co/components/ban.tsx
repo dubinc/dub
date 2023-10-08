@@ -1,11 +1,11 @@
 "use client";
 
-import { cn } from "lib";
+import { cn } from "@dub/utils";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { experimental_useFormStatus as useFormStatus } from "react-dom";
 import { toast } from "sonner";
-import { Button, Copy, LoadingSpinner, Tick } from "ui";
+import { Button, Copy, LoadingSpinner, Tick } from "@dub/ui";
 import { banUser, getUserByKey } from "../actions";
 
 export default function BanUser() {

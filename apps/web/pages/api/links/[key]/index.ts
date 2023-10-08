@@ -1,7 +1,7 @@
 import { deleteLink, editLink, processKey } from "#/lib/api/links";
 import { withLinksAuth } from "#/lib/auth";
 import { isBlacklistedDomain, isBlacklistedKey } from "#/lib/edge-config";
-import { GOOGLE_FAVICON_URL, getApexDomain, log } from "lib";
+import { GOOGLE_FAVICON_URL, getApexDomain, log } from "@dub/utils";
 
 export const config = {
   api: {

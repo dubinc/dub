@@ -1,6 +1,6 @@
 import { inter, satoshi } from "@/styles/fonts";
 import "@/styles/globals.css";
-import { cn, constructMetadata } from "lib";
+import { cn, constructMetadata } from "@dub/utils";
 import Providers from "./providers";
 
 export const metadata = constructMetadata();

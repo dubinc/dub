@@ -1,9 +1,9 @@
 import { DeviceTabs, uaToBot } from "#/lib/stats";
-import { fetcher } from "lib";
+import { fetcher } from "@dub/utils";
 import { Maximize } from "lucide-react";
 import { useContext, useState } from "react";
 import useSWR from "swr";
-import { LoadingCircle, Modal, TabSelect } from "ui";
+import { LoadingCircle, Modal, TabSelect } from "@dub/ui";
 import { StatsContext } from ".";
 import BarList from "./bar-list";
 import DeviceIcon from "./device-icon";

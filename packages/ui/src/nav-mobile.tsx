@@ -1,6 +1,6 @@
 "use client";
 
-import { APP_DOMAIN, cn } from "lib";
+import { APP_DOMAIN, cn } from "@dub/utils";
 import { ChevronDown, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";

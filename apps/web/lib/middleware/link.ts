@@ -2,7 +2,7 @@ import { detectBot, getFinalUrl, parse } from "#/lib/middleware/utils";
 import { recordClick } from "#/lib/tinybird";
 import { ratelimit, redis } from "#/lib/upstash";
 import { ipAddress } from "@vercel/edge";
-import { DUB_HEADERS, LOCALHOST_GEO_DATA, LOCALHOST_IP } from "lib";
+import { DUB_HEADERS, LOCALHOST_GEO_DATA, LOCALHOST_IP } from "@dub/utils";
 import {
   NextFetchEvent,
   NextRequest,

@@ -1,6 +1,6 @@
 import Spline from "@splinetool/react-spline";
 import { motion } from "framer-motion";
-import { STAGGER_CHILD_VARIANTS } from "lib";
+import { STAGGER_CHILD_VARIANTS } from "@dub/utils";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { useDebounce } from "use-debounce";

@@ -1,8 +1,8 @@
 import { Chart } from "@/components/shared/icons";
-import { fetcher, nFormatter } from "lib";
+import { fetcher, nFormatter } from "@dub/utils";
 import { useContext } from "react";
 import useSWR from "swr";
-import { NumberTooltip } from "ui";
+import { NumberTooltip } from "@dub/ui";
 import { StatsContext } from ".";
 import BarChart from "./bar-chart";
 

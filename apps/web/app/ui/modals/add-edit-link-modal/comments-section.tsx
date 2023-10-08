@@ -1,9 +1,9 @@
 import { type Link as LinkProps } from "@prisma/client";
 import { motion } from "framer-motion";
-import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "lib";
+import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "@dub/utils";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
-import { InfoTooltip, SimpleTooltipContent, Switch } from "ui";
+import { InfoTooltip, SimpleTooltipContent, Switch } from "@dub/ui";
 
 export default function CommentsSection({
   props,

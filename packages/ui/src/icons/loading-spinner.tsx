@@ -1,4 +1,4 @@
-import { cn } from "lib";
+import { cn } from "@dub/utils";
 
 export default function LoadingSpinner({ className }: { className?: string }) {
   return (

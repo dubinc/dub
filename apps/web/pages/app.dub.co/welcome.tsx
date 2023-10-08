@@ -9,7 +9,7 @@ import { AnimatePresence } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
-import { Background } from "ui";
+import { Background } from "@dub/ui";
 
 export default function Welcome() {
   const { setShowAddProjectModal, AddProjectModal } = useAddProjectModal();

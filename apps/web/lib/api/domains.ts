@@ -1,7 +1,11 @@
 import prisma from "#/lib/prisma";
 import { redis } from "#/lib/upstash";
 import cloudinary from "cloudinary";
-import { getApexDomain, getDomainWithoutWWW, validDomainRegex } from "lib";
+import {
+  getApexDomain,
+  getDomainWithoutWWW,
+  validDomainRegex,
+} from "@dub/utils";
 import { isIframeable } from "../middleware/utils";
 
 export const validateDomain = async (

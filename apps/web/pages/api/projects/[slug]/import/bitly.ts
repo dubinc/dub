@@ -4,7 +4,7 @@ import { qstash } from "#/lib/cron";
 import prisma from "#/lib/prisma";
 import { BitlyGroupProps } from "#/lib/types";
 import { redis } from "#/lib/upstash";
-import { APP_DOMAIN_WITH_NGROK } from "lib";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 
 export default withProjectAuth(async (req, res, project) => {
   // get bitly groups and their respective domains

@@ -1,5 +1,5 @@
 import { TagProps } from "#/lib/types";
-import { fetcher } from "lib";
+import { fetcher } from "@dub/utils";
 import { useRouter } from "next/router";
 import useSWR from "swr";
 
