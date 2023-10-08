@@ -1,3 +1,4 @@
+import { Avatar, Button, Modal } from "@dub/ui";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import {
@@ -8,7 +9,6 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { Avatar, Button, Modal } from "@dub/ui";
 
 function DeleteAccountModal({
   showDeleteAccountModal,

@@ -1,8 +1,6 @@
 import { isReservedKey } from "#/lib/edge-config";
 import prisma from "#/lib/prisma";
 import { redis } from "#/lib/upstash";
-import { type Link as LinkProps } from "@prisma/client";
-import cloudinary from "cloudinary";
 import {
   DEFAULT_REDIRECTS,
   getParamsFromURL,
@@ -10,6 +8,8 @@ import {
   truncate,
   validKeyRegex,
 } from "@dub/utils";
+import { type Link as LinkProps } from "@prisma/client";
+import cloudinary from "cloudinary";
 import { NextApiRequest } from "next";
 import { isIframeable } from "../middleware/utils";
 

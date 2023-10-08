@@ -1,6 +1,6 @@
 import { ratelimit } from "#/lib/upstash";
-import { ipAddress } from "@vercel/edge";
 import { LOCALHOST_IP } from "@dub/utils";
+import { ipAddress } from "@vercel/edge";
 import { NextResponse } from "next/server";
 import { unsplash } from "../utils";
 

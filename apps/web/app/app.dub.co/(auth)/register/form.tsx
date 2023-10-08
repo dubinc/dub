@@ -1,11 +1,11 @@
 "use client";
 
+import { Button, Google, InfoTooltip } from "@dub/ui";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Button, Google, InfoTooltip } from "@dub/ui";
 
 export default function RegisterForm() {
   const searchParams = useSearchParams();

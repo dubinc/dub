@@ -3,9 +3,9 @@ import { ModalContext } from "#/ui/modal-provider";
 import NoProjectsPlaceholder from "@/components/app/projects/no-projects-placeholder";
 import ProjectCard from "@/components/app/projects/project-card";
 import ProjectCardPlaceholder from "@/components/app/projects/project-card-placeholder";
+import { MaxWidthWrapper } from "@dub/ui";
 import dynamic from "next/dynamic";
 import { useContext } from "react";
-import { MaxWidthWrapper } from "@dub/ui";
 const AppLayout = dynamic(() => import("@/components/layout/app"), {
   ssr: false,
 });

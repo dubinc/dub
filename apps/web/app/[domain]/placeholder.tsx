@@ -1,10 +1,10 @@
 "use client";
 
 import { InlineSnippet } from "@/components/app/domains/domain-configuration";
+import { STAGGER_CHILD_VARIANTS } from "@dub/utils";
 import Spline from "@splinetool/react-spline";
 import va from "@vercel/analytics";
 import { motion } from "framer-motion";
-import { STAGGER_CHILD_VARIANTS } from "@dub/utils";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { useDebounce } from "use-debounce";

@@ -6,12 +6,12 @@ import { useRemoveTeammateModal } from "@/components/app/modals/remove-teammate-
 import SettingsLayout from "@/components/layout/app/settings-layout";
 import { BlurImage } from "@/components/shared/blur-image";
 import { ThreeDots } from "@/components/shared/icons";
-import { useInviteTeammateModal } from "components/app/modals/invite-teammate-modal";
+import { Avatar, Badge, IconMenu, Popover } from "@dub/ui";
 import { cn, timeAgo } from "@dub/utils";
+import { useInviteTeammateModal } from "components/app/modals/invite-teammate-modal";
 import { UserMinus } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
-import { Avatar, Badge, IconMenu, Popover } from "@dub/ui";
 
 const tabs: Array<"Members" | "Invitations"> = ["Members", "Invitations"];
 

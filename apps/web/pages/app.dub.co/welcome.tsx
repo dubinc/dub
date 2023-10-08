@@ -4,12 +4,12 @@ import { useUpgradePlanModal } from "@/components/app/modals/upgrade-plan-modal"
 import Interim from "@/components/app/welcome/interim";
 import Intro from "@/components/app/welcome/intro";
 import Meta from "@/components/layout/meta";
+import { Background } from "@dub/ui";
 import va from "@vercel/analytics";
 import { AnimatePresence } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
-import { Background } from "@dub/ui";
 
 export default function Welcome() {
   const { setShowAddProjectModal, AddProjectModal } = useAddProjectModal();

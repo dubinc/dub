@@ -1,3 +1,4 @@
+import { DUB_LOGO, nFormatter, truncate } from "@dub/utils";
 import {
   Body,
   Column,
@@ -14,7 +15,6 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import { DUB_LOGO, nFormatter, truncate } from "@dub/utils";
 import { Link2, MousePointerClick } from "lucide-react";
 import Footer from "./components/footer";
 

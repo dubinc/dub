@@ -1,8 +1,8 @@
 "use client";
 
+import { APP_DOMAIN, SHOW_BACKGROUND_SEGMENTS, cn } from "@dub/utils";
 import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu";
 import va from "@vercel/analytics";
-import { APP_DOMAIN, SHOW_BACKGROUND_SEGMENTS, cn } from "@dub/utils";
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { useParams, useSelectedLayoutSegment } from "next/navigation";

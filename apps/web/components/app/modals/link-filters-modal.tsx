@@ -1,3 +1,4 @@
+import { IconMenu, Modal } from "@dub/ui";
 import { ChevronDown, Filter } from "lucide-react";
 import {
   Dispatch,
@@ -6,7 +7,6 @@ import {
   useMemo,
   useState,
 } from "react";
-import { IconMenu, Modal } from "@dub/ui";
 import LinkFilters from "../links/link-filters";
 
 function LinkFiltersModal({

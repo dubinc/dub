@@ -4,7 +4,18 @@ import { SimpleLinkProps } from "#/lib/types";
 import { ModalContext } from "#/ui/modal-provider";
 import { BlurImage } from "@/components/shared/blur-image";
 import { Clipboard, Download } from "@/components/shared/icons";
-import { motion } from "framer-motion";
+import {
+  IconMenu,
+  InfoTooltip,
+  Logo,
+  Modal,
+  Photo,
+  Popover,
+  SimpleTooltipContent,
+  Switch,
+  Tooltip,
+  TooltipContent,
+} from "@dub/ui";
 import {
   APP_HOSTNAMES,
   FADE_IN_ANIMATION_SETTINGS,
@@ -13,6 +24,7 @@ import {
   getApexDomain,
   linkConstructor,
 } from "@dub/utils";
+import { motion } from "framer-motion";
 import { Check, ChevronRight } from "lucide-react";
 import { useRouter } from "next/router";
 import {
@@ -26,18 +38,6 @@ import {
 } from "react";
 import { HexColorInput, HexColorPicker } from "react-colorful";
 import { toast } from "sonner";
-import {
-  IconMenu,
-  InfoTooltip,
-  Logo,
-  Modal,
-  Photo,
-  Popover,
-  SimpleTooltipContent,
-  Switch,
-  Tooltip,
-  TooltipContent,
-} from "@dub/ui";
 import { useDebouncedCallback } from "use-debounce";
 
 function LinkQRModalHelper({

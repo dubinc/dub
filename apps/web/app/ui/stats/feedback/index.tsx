@@ -1,10 +1,10 @@
 "use client";
 
+import { Button } from "@dub/ui";
 import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle } from "lucide-react";
 import { useState } from "react";
 import { experimental_useFormStatus as useFormStatus } from "react-dom";
-import { Button } from "@dub/ui";
 import { submitFeedback } from "./action";
 
 export default function Feedback() {

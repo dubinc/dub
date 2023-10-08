@@ -1,5 +1,6 @@
-import { Token } from "@prisma/client";
+import { Badge, Button, Logo, Modal, TokenAvatar } from "@dub/ui";
 import { timeAgo } from "@dub/utils";
+import { Token } from "@prisma/client";
 import {
   Dispatch,
   SetStateAction,
@@ -9,7 +10,6 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { Badge, Button, Logo, Modal, TokenAvatar } from "@dub/ui";
 
 function DeleteTokenModal({
   showDeleteTokenModal,

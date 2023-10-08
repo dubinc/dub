@@ -1,7 +1,7 @@
 import LinksContainer from "@/components/app/links/links-container";
 import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal";
-import dynamic from "next/dynamic";
 import { MaxWidthWrapper } from "@dub/ui";
+import dynamic from "next/dynamic";
 const AppLayout = dynamic(() => import("@/components/layout/app"), {
   ssr: false,
 });

@@ -3,10 +3,10 @@ import useLinksCount from "#/lib/swr/use-links-count";
 import useProject from "#/lib/swr/use-project";
 import useUsers from "#/lib/swr/use-users";
 import { ModalContext } from "#/ui/modal-provider";
+import { Badge } from "@dub/ui";
 import Link from "next/link";
 import { NextRouter, useRouter } from "next/router";
 import { useContext, useMemo } from "react";
-import { Badge } from "@dub/ui";
 
 const TabsHelper = (router: NextRouter): { name: string; href: string }[] => {
   const { slug, domain, key } = router.query as {

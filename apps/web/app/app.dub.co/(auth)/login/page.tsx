@@ -1,6 +1,6 @@
+import { Button, Logo } from "@dub/ui";
 import { HOME_DOMAIN, constructMetadata } from "@dub/utils";
 import { Suspense } from "react";
-import { Button, Logo } from "@dub/ui";
 import LoginForm from "./form";
 
 export const metadata = constructMetadata({

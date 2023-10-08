@@ -3,13 +3,13 @@ import useProjects from "#/lib/swr/use-projects";
 import { PlanProps, ProjectWithDomainProps } from "#/lib/types";
 import { ModalContext } from "#/ui/modal-provider";
 import PlanBadge from "@/components/app/projects/plan-badge";
+import { Avatar, Popover, Tick } from "@dub/ui";
 import { GOOGLE_FAVICON_URL } from "@dub/utils";
 import { ChevronsUpDown, PlusCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useCallback, useContext, useMemo, useState } from "react";
-import { Avatar, Popover, Tick } from "@dub/ui";
 
 export default function ProjectSelect() {
   const { projects } = useProjects();

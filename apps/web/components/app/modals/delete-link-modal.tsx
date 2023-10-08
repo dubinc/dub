@@ -1,11 +1,12 @@
 import { BlurImage } from "@/components/shared/blur-image";
-import { type Link as LinkProps } from "@prisma/client";
+import { Button, Modal } from "@dub/ui";
 import {
   GOOGLE_FAVICON_URL,
   getApexDomain,
   getQueryString,
   linkConstructor,
 } from "@dub/utils";
+import { type Link as LinkProps } from "@prisma/client";
 import { useRouter } from "next/router";
 import {
   Dispatch,
@@ -16,7 +17,6 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { Button, Modal } from "@dub/ui";
 
 function DeleteLinkModal({
   showDeleteLinkModal,

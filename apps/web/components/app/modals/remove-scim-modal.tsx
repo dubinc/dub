@@ -2,6 +2,7 @@ import useProject from "#/lib/swr/use-project";
 import useSCIM from "#/lib/swr/use-scim";
 import { SAMLProviderProps } from "#/lib/types";
 import { BlurImage } from "@/components/shared/blur-image";
+import { Button, Logo, Modal } from "@dub/ui";
 import { SAML_PROVIDERS } from "@dub/utils";
 import {
   Dispatch,
@@ -11,7 +12,6 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { Button, Logo, Modal } from "@dub/ui";
 
 function RemoveSCIMModal({
   showRemoveSCIMModal,

@@ -3,6 +3,7 @@ import useLinksCount from "#/lib/swr/use-links-count";
 import useUsers from "#/lib/swr/use-users";
 import { ModalContext } from "#/ui/modal-provider";
 import { CheckCircleFill } from "@/components/shared/icons";
+import { ExpandingArrow, Logo, Modal } from "@dub/ui";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import {
@@ -13,7 +14,6 @@ import {
   useMemo,
   useState,
 } from "react";
-import { ExpandingArrow, Logo, Modal } from "@dub/ui";
 
 function CompleteSetupModal({
   showCompleteSetupModal,

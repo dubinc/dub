@@ -3,14 +3,14 @@ import { ModalContext } from "#/ui/modal-provider";
 import PlanBadge from "@/components/app/projects/plan-badge";
 import SettingsLayout from "@/components/layout/app/settings-layout";
 import { Divider, InfinityIcon } from "@/components/shared/icons";
+import { Button, InfoTooltip, NumberTooltip } from "@dub/ui";
+import { fetcher, getFirstAndLastDay, nFormatter } from "@dub/utils";
 import va from "@vercel/analytics";
 import { motion } from "framer-motion";
-import { fetcher, getFirstAndLastDay, nFormatter } from "@dub/utils";
 import { useRouter } from "next/router";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
-import { Button, InfoTooltip, NumberTooltip } from "@dub/ui";
 
 export default function ProjectBilling() {
   const router = useRouter();

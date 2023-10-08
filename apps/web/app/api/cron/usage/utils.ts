@@ -2,10 +2,10 @@ import { limiter } from "#/lib/cron";
 import prisma from "#/lib/prisma";
 import { getTopLinks } from "#/lib/tinybird";
 import { ProjectProps } from "#/lib/types";
+import { getAdjustedBillingCycleStart, log } from "@dub/utils";
 import { sendEmail } from "emails";
 import ClicksSummary from "emails/clicks-summary";
 import UsageExceeded from "emails/usage-exceeded";
-import { getAdjustedBillingCycleStart, log } from "@dub/utils";
 
 export const updateUsage = async () => {
   const projects = await prisma.project.findMany({

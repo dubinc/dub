@@ -1,6 +1,7 @@
 import useProject from "#/lib/swr/use-project";
 import useSAML from "#/lib/swr/use-saml";
 import { BlurImage } from "@/components/shared/blur-image";
+import { Button, Logo, Modal } from "@dub/ui";
 import { SAML_PROVIDERS } from "@dub/utils";
 import {
   Dispatch,
@@ -10,7 +11,6 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { Button, Logo, Modal } from "@dub/ui";
 
 function RemoveSAMLModal({
   showRemoveSAMLModal,

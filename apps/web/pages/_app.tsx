@@ -1,8 +1,8 @@
 import ModalProvider from "#/ui/modal-provider";
 import { inter, satoshi } from "@/styles/fonts";
 import "@/styles/globals.css";
-import { Analytics } from "@vercel/analytics/react";
 import { cn } from "@dub/utils";
+import { Analytics } from "@vercel/analytics/react";
 import type { Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
 import type { AppProps } from "next/app";

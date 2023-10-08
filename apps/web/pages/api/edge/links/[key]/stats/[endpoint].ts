@@ -2,8 +2,8 @@ import { isBlacklistedReferrer } from "#/lib/edge-config";
 import { getLinkViaEdge } from "#/lib/planetscale";
 import { getStats } from "#/lib/stats";
 import { ratelimit } from "#/lib/upstash";
-import { ipAddress } from "@vercel/edge";
 import { LOCALHOST_IP } from "@dub/utils";
+import { ipAddress } from "@vercel/edge";
 import type { NextRequest } from "next/server";
 
 export const config = {

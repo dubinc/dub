@@ -1,7 +1,15 @@
 import { UploadCloud } from "@/components/shared/icons";
+import {
+  InfoTooltip,
+  LoadingCircle,
+  Popover,
+  SimpleTooltipContent,
+  Switch,
+  Unsplash,
+} from "@dub/ui";
+import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "@dub/utils";
 import { type Link as LinkProps } from "@prisma/client";
 import { motion } from "framer-motion";
-import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "@dub/utils";
 import { Link2 } from "lucide-react";
 import {
   Dispatch,
@@ -11,14 +19,6 @@ import {
   useState,
 } from "react";
 import TextareaAutosize from "react-textarea-autosize";
-import {
-  InfoTooltip,
-  LoadingCircle,
-  Popover,
-  SimpleTooltipContent,
-  Switch,
-  Unsplash,
-} from "@dub/ui";
 import UnsplashSearch from "./unsplash-search";
 
 export default function OGSection({

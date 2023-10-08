@@ -6,12 +6,12 @@ import {
   ExternalLink,
   XCircleFill,
 } from "@/components/shared/icons";
+import { Button, LoadingCircle, LoadingDots, NumberTooltip } from "@dub/ui";
 import { capitalize, fetcher, nFormatter, truncate } from "@dub/utils";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import punycode from "punycode/";
 import useSWR, { mutate } from "swr";
-import { Button, LoadingCircle, LoadingDots, NumberTooltip } from "@dub/ui";
 import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
 import DomainConfiguration from "./domain-configuration";
 

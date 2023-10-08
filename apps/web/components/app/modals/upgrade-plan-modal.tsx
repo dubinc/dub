@@ -1,8 +1,9 @@
 import { getStripe } from "#/lib/stripe/client";
 import { PLANS } from "#/lib/stripe/utils";
 import { CheckCircleFill } from "@/components/shared/icons";
-import { motion } from "framer-motion";
+import { Badge, Button, Logo, Modal } from "@dub/ui";
 import { HOME_DOMAIN, STAGGER_CHILD_VARIANTS, capitalize } from "@dub/utils";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import {
@@ -13,7 +14,6 @@ import {
   useState,
 } from "react";
 import Confetti from "react-dom-confetti";
-import { Badge, Button, Logo, Modal } from "@dub/ui";
 
 function UpgradePlanModal({
   showUpgradePlanModal,

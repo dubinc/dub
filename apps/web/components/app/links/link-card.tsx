@@ -10,7 +10,17 @@ import { useDeleteLinkModal } from "@/components/app/modals/delete-link-modal";
 import { useLinkQRModal } from "@/components/app/modals/link-qr-modal";
 import { BlurImage } from "@/components/shared/blur-image";
 import { Chart, Delete, ThreeDots } from "@/components/shared/icons";
-import { type Link as LinkProps } from "@prisma/client";
+import {
+  Avatar,
+  CopyButton,
+  IconMenu,
+  NumberTooltip,
+  Popover,
+  SimpleTooltipContent,
+  Tooltip,
+  TooltipContent,
+  useIntersectionObserver,
+} from "@dub/ui";
 import {
   GOOGLE_FAVICON_URL,
   HOME_DOMAIN,
@@ -22,6 +32,7 @@ import {
   setQueryString,
   timeAgo,
 } from "@dub/utils";
+import { type Link as LinkProps } from "@prisma/client";
 import {
   Archive,
   CopyPlus,
@@ -35,17 +46,6 @@ import { useRouter } from "next/router";
 import punycode from "punycode/";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import useSWR from "swr";
-import {
-  Avatar,
-  CopyButton,
-  IconMenu,
-  NumberTooltip,
-  Popover,
-  SimpleTooltipContent,
-  Tooltip,
-  TooltipContent,
-  useIntersectionObserver,
-} from "@dub/ui";
 
 export default function LinkCard({
   props,

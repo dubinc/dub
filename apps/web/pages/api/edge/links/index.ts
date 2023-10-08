@@ -1,7 +1,7 @@
 import { isBlacklistedDomain } from "#/lib/edge-config";
 import { ratelimit, setRandomKey } from "#/lib/upstash";
-import { ipAddress } from "@vercel/edge";
 import { LOCALHOST_IP, isValidUrl } from "@dub/utils";
+import { ipAddress } from "@vercel/edge";
 import { NextResponse, type NextRequest } from "next/server";
 
 export const config = {

@@ -1,8 +1,8 @@
 import { isWhitelistedEmail } from "#/lib/edge-config";
 import { conn } from "#/lib/planetscale";
 import { ratelimit } from "#/lib/upstash";
-import { ipAddress } from "@vercel/edge";
 import { LOCALHOST_IP } from "@dub/utils";
+import { ipAddress } from "@vercel/edge";
 import { NextRequest } from "next/server";
 
 export const config = {

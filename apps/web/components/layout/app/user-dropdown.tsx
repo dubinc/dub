@@ -1,4 +1,5 @@
 import { Logout } from "@/components/shared/icons";
+import { Badge, IconMenu, LoadingCircle, Popover } from "@dub/ui";
 import va from "@vercel/analytics";
 import { Crisp } from "crisp-sdk-web";
 import Cookies from "js-cookie";
@@ -6,10 +7,9 @@ import { Edit3, HelpCircle, MessageCircle, Settings } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Badge, IconMenu, LoadingCircle, Popover } from "@dub/ui";
 // import { allChangelogPosts } from "contentlayer/generated";
-import { HOME_DOMAIN } from "@dub/utils";
 import { Avatar } from "@dub/ui";
+import { HOME_DOMAIN } from "@dub/utils";
 
 export default function UserDropdown() {
   const { data: session } = useSession();

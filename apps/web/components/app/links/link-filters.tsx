@@ -6,13 +6,21 @@ import { TagProps } from "#/lib/types";
 import { ModalContext } from "#/ui/modal-provider";
 import TagBadge, { COLORS_LIST } from "@/components/app/links/tag-badge";
 import { ThreeDots } from "@/components/shared/icons";
-import { AnimatePresence, motion } from "framer-motion";
+import {
+  IconMenu,
+  LoadingCircle,
+  LoadingSpinner,
+  NumberTooltip,
+  Popover,
+  Switch,
+} from "@dub/ui";
 import {
   SWIPE_REVEAL_ANIMATION_SETTINGS,
   nFormatter,
   setQueryString,
   truncate,
 } from "@dub/utils";
+import { AnimatePresence, motion } from "framer-motion";
 import { Check, ChevronRight, Search, Trash, XCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
@@ -27,14 +35,6 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import {
-  IconMenu,
-  LoadingCircle,
-  LoadingSpinner,
-  NumberTooltip,
-  Popover,
-  Switch,
-} from "@dub/ui";
 import { useDebouncedCallback } from "use-debounce";
 
 export default function LinkFilters() {

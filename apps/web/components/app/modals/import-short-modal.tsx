@@ -1,5 +1,14 @@
 import { ShortioDomainProps } from "#/lib/types";
 import { ModalContext } from "#/ui/modal-provider";
+import {
+  Button,
+  InfoTooltip,
+  LoadingSpinner,
+  Logo,
+  Modal,
+  SimpleTooltipContent,
+  Switch,
+} from "@dub/ui";
 import { HOME_DOMAIN, fetcher, nFormatter } from "@dub/utils";
 import { ArrowRight } from "lucide-react";
 import { NextRouter, useRouter } from "next/router";
@@ -14,15 +23,6 @@ import {
 } from "react";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
-import {
-  Button,
-  InfoTooltip,
-  LoadingSpinner,
-  Logo,
-  Modal,
-  SimpleTooltipContent,
-  Switch,
-} from "@dub/ui";
 
 function ImportShortModal({
   showImportShortModal,

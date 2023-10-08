@@ -1,12 +1,12 @@
 "use client";
 
+import { ALL_TOOLS } from "@dub/utils";
 import va from "@vercel/analytics";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { FEATURES_LIST } from "./content";
 import { Github, LinkedIn, LogoType, Twitter } from "./icons";
 import { MaxWidthWrapper } from "./max-width-wrapper";
-import { ALL_TOOLS } from "@dub/utils";
 
 const navigation = {
   features: FEATURES_LIST.map(({ shortTitle, slug }) => ({

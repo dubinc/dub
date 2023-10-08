@@ -1,10 +1,10 @@
 import { deleteDomainAndLinks } from "#/lib/api/domains";
 import { limiter } from "#/lib/cron";
 import prisma from "#/lib/prisma";
+import { log } from "@dub/utils";
 import { sendEmail } from "emails";
 import DomainDeleted from "emails/domain-deleted";
 import InvalidDomain from "emails/invalid-domain";
-import { log } from "@dub/utils";
 
 export const handleDomainUpdates = async ({
   domain,

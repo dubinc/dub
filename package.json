@@ -8,8 +8,8 @@
     "lint": "turbo lint",
     "clean": "turbo clean",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "publish-ui": "turbo build && cd packages/ui && npm publish --access public && cd ../../",
-    "publish-utils": "turbo build && cd packages/utils && npm publish --access public && cd ../../"
+    "publish-ui": "turbo build --filter='@dub/ui' && cd packages/ui && npm publish --access public && cd ../../",
+    "publish-utils": "turbo build --filter='@dub/utils' && cd packages/utils && npm publish --access public && cd ../../"
   },
   "devDependencies": {
     "eslint": "^8.48.0",

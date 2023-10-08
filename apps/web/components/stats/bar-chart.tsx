@@ -1,3 +1,5 @@
+import { LoadingCircle } from "@dub/ui";
+import { fetcher, nFormatter } from "@dub/utils";
 import { AxisBottom, AxisLeft } from "@visx/axis";
 import { localPoint } from "@visx/event";
 import { GridRows } from "@visx/grid";
@@ -5,11 +7,9 @@ import { withScreenSize } from "@visx/responsive";
 import { scaleBand, scaleLinear } from "@visx/scale";
 import { useTooltip, useTooltipInPortal } from "@visx/tooltip";
 import { motion } from "framer-motion";
-import { fetcher, nFormatter } from "@dub/utils";
 import { useRouter } from "next/router";
 import { useCallback, useContext, useMemo } from "react";
 import useSWR from "swr";
-import { LoadingCircle } from "@dub/ui";
 import { StatsContext } from ".";
 import styles from "./bar-chart.module.css";
 

@@ -1,8 +1,8 @@
 import { BlurImage } from "@/components/shared/blur-image";
-import { motion } from "framer-motion";
-import { STAGGER_CHILD_VARIANTS } from "@dub/utils";
-import { useRouter } from "next/router";
 import { Logo } from "@dub/ui";
+import { STAGGER_CHILD_VARIANTS } from "@dub/utils";
+import { motion } from "framer-motion";
+import { useRouter } from "next/router";
 
 export default function Interim() {
   const router = useRouter();

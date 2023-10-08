@@ -1,4 +1,5 @@
 import useProject from "#/lib/swr/use-project";
+import { LoadingDots, Logo, Modal } from "@dub/ui";
 import va from "@vercel/analytics";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -11,7 +12,6 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { LoadingDots, Logo, Modal } from "@dub/ui";
 
 function AcceptInviteModal({
   showAcceptInviteModal,

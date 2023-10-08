@@ -1,11 +1,11 @@
 import useProject from "#/lib/swr/use-project";
 import LinksContainer from "@/components/app/links/links-container";
 import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal";
+import { IconMenu, MaxWidthWrapper, Popover, Tooltip } from "@dub/ui";
 import AppLayout from "components/layout/app";
 import { ChevronDown, FilePlus2, Sheet } from "lucide-react";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { IconMenu, MaxWidthWrapper, Popover, Tooltip } from "@dub/ui";
 
 export default function ProjectLinks() {
   const { slug } = useProject();

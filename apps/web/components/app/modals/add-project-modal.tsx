@@ -1,7 +1,8 @@
 import { AlertCircleFill } from "@/components/shared/icons";
+import { Button, InfoTooltip, Logo, Modal } from "@dub/ui";
+import { HOME_DOMAIN, generateDomainFromName } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import va from "@vercel/analytics";
-import { HOME_DOMAIN, generateDomainFromName } from "@dub/utils";
 import { useRouter } from "next/router";
 import {
   Dispatch,
@@ -14,7 +15,6 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { Button, InfoTooltip, Logo, Modal } from "@dub/ui";
 import { useDebounce } from "use-debounce";
 
 function AddProjectModalHelper({

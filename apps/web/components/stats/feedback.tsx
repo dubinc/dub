@@ -1,9 +1,9 @@
+import { Button } from "@dub/ui";
 import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Button } from "@dub/ui";
 import { useDebouncedCallback } from "use-debounce";
 
 export default function Feedback() {

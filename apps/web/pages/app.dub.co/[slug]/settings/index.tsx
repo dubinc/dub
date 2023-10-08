@@ -2,10 +2,10 @@ import useProject from "#/lib/swr/use-project";
 import DeleteProject from "@/components/app/projects/delete-project";
 import UploadLogo from "@/components/app/projects/upload-logo";
 import SettingsLayout from "@/components/layout/app/settings-layout";
+import { Form } from "@dub/ui";
 import { useRouter } from "next/router";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { Form } from "@dub/ui";
 
 export default function ProjectSettingsGeneral() {
   const router = useRouter();

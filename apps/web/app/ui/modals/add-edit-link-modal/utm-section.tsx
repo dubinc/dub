@@ -1,5 +1,4 @@
-import { type Link as LinkProps } from "@prisma/client";
-import { motion } from "framer-motion";
+import { InfoTooltip, SimpleTooltipContent, Switch } from "@dub/ui";
 import {
   FADE_IN_ANIMATION_SETTINGS,
   HOME_DOMAIN,
@@ -8,8 +7,9 @@ import {
   getUrlWithoutUTMParams,
   paramsMetadata,
 } from "@dub/utils";
+import { type Link as LinkProps } from "@prisma/client";
+import { motion } from "framer-motion";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
-import { InfoTooltip, SimpleTooltipContent, Switch } from "@dub/ui";
 
 export default function UTMSection({
   props,

@@ -1,9 +1,9 @@
+import { MaxWidthWrapper } from "@dub/ui";
 import { cn } from "@dub/utils";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { ReactNode } from "react";
-import { MaxWidthWrapper } from "@dub/ui";
 const AppLayout = dynamic(() => import("@/components/layout/app"), {
   ssr: false,
 });

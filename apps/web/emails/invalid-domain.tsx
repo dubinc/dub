@@ -1,3 +1,4 @@
+import { DUB_LOGO } from "@dub/utils";
 import {
   Body,
   Container,
@@ -11,7 +12,6 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import { DUB_LOGO } from "@dub/utils";
 import Footer from "./components/footer";
 
 export default function InvalidDomain({

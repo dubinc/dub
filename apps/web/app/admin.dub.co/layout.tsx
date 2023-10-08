@@ -1,5 +1,5 @@
-import { ReactNode } from "react";
 import { Background } from "@dub/ui";
+import { ReactNode } from "react";
 
 export default async function AdminLayout({
   children,

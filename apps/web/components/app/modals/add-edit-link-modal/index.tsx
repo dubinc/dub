@@ -12,8 +12,14 @@ import TagsSection from "#/ui/modals/add-edit-link-modal/tags-section";
 import UTMSection from "#/ui/modals/add-edit-link-modal/utm-section";
 import { BlurImage } from "@/components/shared/blur-image";
 import { AlertCircleFill, Lock, Random, X } from "@/components/shared/icons";
-import { type Link as LinkProps } from "@prisma/client";
-import va from "@vercel/analytics";
+import {
+  Button,
+  LoadingCircle,
+  Logo,
+  Modal,
+  Tooltip,
+  TooltipContent,
+} from "@dub/ui";
 import {
   DEFAULT_LINK_PROPS,
   GOOGLE_FAVICON_URL,
@@ -26,6 +32,8 @@ import {
   linkConstructor,
   truncate,
 } from "@dub/utils";
+import { type Link as LinkProps } from "@prisma/client";
+import va from "@vercel/analytics";
 import { useRouter } from "next/router";
 import punycode from "punycode/";
 import {
@@ -41,14 +49,6 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import {
-  Button,
-  LoadingCircle,
-  Logo,
-  Modal,
-  Tooltip,
-  TooltipContent,
-} from "@dub/ui";
 import { useDebounce } from "use-debounce";
 import GeoSection from "./geo-section";
 import RewriteSection from "./rewrite-section";

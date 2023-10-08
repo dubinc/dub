@@ -1,10 +1,10 @@
 "use client";
 
+import { Copy, LoadingSpinner, Tick } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useState } from "react";
 import { experimental_useFormStatus as useFormStatus } from "react-dom";
 import { toast } from "sonner";
-import { Copy, LoadingSpinner, Tick } from "@dub/ui";
 import { getProjectOwner } from "../actions";
 
 export default function ImpersonateProject() {

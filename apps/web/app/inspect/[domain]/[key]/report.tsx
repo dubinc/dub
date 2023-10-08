@@ -1,9 +1,9 @@
 "use client";
 
+import { LoadingSpinner } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Flag } from "lucide-react";
 import { useState } from "react";
-import { LoadingSpinner } from "@dub/ui";
 
 export default function ReportButton({ link }: { link: string }) {
   const [opening, setOpening] = useState(false);

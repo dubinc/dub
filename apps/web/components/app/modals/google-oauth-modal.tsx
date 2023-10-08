@@ -1,5 +1,6 @@
-import Cookies from "js-cookie";
+import { Button, Google, Logo, Modal } from "@dub/ui";
 import { HOME_DOMAIN } from "@dub/utils";
+import Cookies from "js-cookie";
 import { signIn } from "next-auth/react";
 import {
   Dispatch,
@@ -8,7 +9,6 @@ import {
   useMemo,
   useState,
 } from "react";
-import { Button, Google, Logo, Modal } from "@dub/ui";
 
 function GoogleOauthModal({
   showGoogleOauthModal,

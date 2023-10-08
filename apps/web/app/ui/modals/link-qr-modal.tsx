@@ -5,6 +5,16 @@ import useProject from "#/lib/swr-app/use-project";
 import { SimpleLinkProps } from "#/lib/types";
 import { BlurImage } from "@/components/shared/blur-image";
 import { Clipboard, Download } from "@/components/shared/icons";
+import {
+  IconMenu,
+  Logo,
+  Modal,
+  Photo,
+  Popover,
+  Switch,
+  Tooltip,
+  TooltipContent,
+} from "@dub/ui";
 import { GOOGLE_FAVICON_URL, getApexDomain, linkConstructor } from "@dub/utils";
 import { Check, ChevronRight } from "lucide-react";
 import {
@@ -17,16 +27,6 @@ import {
 } from "react";
 import { HexColorInput, HexColorPicker } from "react-colorful";
 import { toast } from "sonner";
-import {
-  IconMenu,
-  Logo,
-  Modal,
-  Photo,
-  Popover,
-  Switch,
-  Tooltip,
-  TooltipContent,
-} from "@dub/ui";
 import { useDebouncedCallback } from "use-debounce";
 
 function LinkQRModalHelper({

@@ -1,9 +1,9 @@
 import useLinksCount from "#/lib/swr/use-links-count";
+import { NumberTooltip } from "@dub/ui";
 import { PAGINATION_LIMIT, nFormatter, setQueryString } from "@dub/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/router";
 import { useMemo } from "react";
-import { NumberTooltip } from "@dub/ui";
 
 export default function LinkPagination() {
   const router = useRouter();

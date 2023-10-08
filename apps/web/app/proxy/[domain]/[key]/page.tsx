@@ -1,10 +1,10 @@
 import { getLinkViaEdge } from "#/lib/planetscale";
-import { unescape } from "html-escaper";
 import {
   GOOGLE_FAVICON_URL,
   constructMetadata,
   getApexDomain,
 } from "@dub/utils";
+import { unescape } from "html-escaper";
 import { notFound, redirect } from "next/navigation";
 
 export const runtime = "edge";

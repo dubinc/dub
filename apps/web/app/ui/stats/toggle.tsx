@@ -1,13 +1,5 @@
 import { INTERVALS } from "#/lib/stats";
 import useProject from "#/lib/swr-app/use-project";
-import { APP_DOMAIN, cn, fetcher, linkConstructor } from "@dub/utils";
-import { Calendar, ChevronDown, Lock, Share2 } from "lucide-react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
-import punycode from "punycode/";
-import { useContext, useMemo, useState } from "react";
-import { toast } from "sonner";
-import useSWR, { mutate } from "swr";
 import {
   Copy,
   ExpandingArrow,
@@ -19,6 +11,14 @@ import {
   TooltipContent,
   useScroll,
 } from "@dub/ui";
+import { APP_DOMAIN, cn, fetcher, linkConstructor } from "@dub/utils";
+import { Calendar, ChevronDown, Lock, Share2 } from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import punycode from "punycode/";
+import { useContext, useMemo, useState } from "react";
+import { toast } from "sonner";
+import useSWR, { mutate } from "swr";
 import { StatsContext } from ".";
 
 export default function Toggle() {

@@ -1,11 +1,11 @@
 import { LocationTabs } from "#/lib/stats";
 import BarList from "#/ui/stats/bar-list";
+import { LoadingCircle, Modal, TabSelect } from "@dub/ui";
 import { COUNTRIES, fetcher } from "@dub/utils";
 import { Maximize } from "lucide-react";
 import { useRouter } from "next/router";
 import { useContext, useState } from "react";
 import useSWR from "swr";
-import { LoadingCircle, Modal, TabSelect } from "@dub/ui";
 import { StatsContext } from ".";
 
 export default function Locations() {

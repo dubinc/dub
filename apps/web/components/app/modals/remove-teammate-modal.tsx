@@ -1,6 +1,7 @@
 import useProject from "#/lib/swr/use-project";
 import { UserProps } from "#/lib/types";
 import { BlurImage } from "@/components/shared/blur-image";
+import { Avatar, Button, Logo, Modal } from "@dub/ui";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import {
@@ -12,7 +13,6 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { Avatar, Button, Logo, Modal } from "@dub/ui";
 
 function RemoveTeammateModal({
   showRemoveTeammateModal,
