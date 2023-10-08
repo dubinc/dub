@@ -280,7 +280,7 @@ function AddProjectModalHelper({
 
         <Button
           disabled={slugError || domainError ? true : false}
-          loading={true}
+          loading={saving}
           text="Create project"
         />
       </form>
