@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import Background from "#/ui/home/background";
+import { Background } from "ui";
 
 export default async function AdminLayout({
   children,

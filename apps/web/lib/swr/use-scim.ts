@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import useSWR from "swr";
 import type { Directory } from "@boxyhq/saml-jackson";
-import { fetcher } from "#/lib/utils";
+import { fetcher } from "lib";
 import { useMemo } from "react";
 
 export default function useSCIM() {

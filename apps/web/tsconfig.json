@@ -11,8 +11,7 @@
       "@/pages/*": ["pages/*"],
       "@/styles/*": ["styles/*"],
       "#/ui/*": ["app/ui/*"],
-      "#/lib/*": ["lib/*"],
-      "contentlayer/generated": ["./.contentlayer/generated"]
+      "#/lib/*": ["lib/*"]
     },
     "downlevelIteration": true,
     "forceConsistentCasingInFileNames": true,
@@ -32,12 +31,6 @@
       }
     ]
   },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    ".contentlayer/generated"
-  ],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
 }

@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import useSWR from "swr";
 import { type Link as LinkProps } from "@prisma/client";
-import { fetcher } from "#/lib/utils";
+import { fetcher } from "lib";
 
 export default function useLink() {
   const router = useRouter();

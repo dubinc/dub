@@ -1,4 +1,4 @@
-import { nanoid } from "#/lib/utils";
+import { nanoid } from "lib";
 import { ReactElement, JSXElementConstructor } from "react";
 import { Resend } from "resend";
 

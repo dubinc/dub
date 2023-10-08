@@ -3,7 +3,7 @@ import { useInviteTeammateModal } from "components/app/modals/invite-teammate-mo
 import { useState } from "react";
 import BlurImage from "#/ui/blur-image";
 import { UserProps } from "#/lib/types";
-import { cn, timeAgo } from "#/lib/utils";
+import { cn, timeAgo } from "lib";
 import { Popover } from "ui";
 import IconMenu from "@/components/shared/icon-menu";
 import { UserMinus } from "lucide-react";

@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import LoginForm from "./form";
 import { Button, Logo } from "ui";
-import { constructMetadata } from "#/lib/utils";
+import { constructMetadata } from "lib";
 import { HOME_DOMAIN } from "#/lib/constants";
 
 export const metadata = constructMetadata({

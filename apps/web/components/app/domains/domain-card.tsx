@@ -8,7 +8,7 @@ import {
   XCircleFill,
 } from "@/components/shared/icons";
 import { DomainProps, DomainVerificationStatusProps } from "#/lib/types";
-import { capitalize, fetcher, nFormatter, truncate } from "#/lib/utils";
+import { capitalize, fetcher, nFormatter, truncate } from "lib";
 import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
 import DomainConfiguration from "./domain-configuration";
 import Link from "next/link";

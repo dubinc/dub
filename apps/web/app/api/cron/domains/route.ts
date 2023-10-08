@@ -7,7 +7,7 @@ import {
   verifyDomain,
 } from "#/lib/api/domains";
 import prisma from "#/lib/prisma";
-import { log } from "#/lib/utils";
+import { log } from "lib";
 
 /**
  * Cron to check if domains are verified.

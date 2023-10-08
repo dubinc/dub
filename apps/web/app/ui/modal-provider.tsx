@@ -15,7 +15,7 @@ import { useImportShortModal } from "@/components/app/modals/import-short-modal"
 import { useAddEditDomainModal } from "@/components/app/modals/add-edit-domain-modal";
 import { mutate } from "swr";
 import { useRouter } from "next/router";
-import { getQueryString } from "#/lib/utils";
+import { getQueryString } from "lib";
 import { useUpgradePlanModal } from "@/components/app/modals/upgrade-plan-modal";
 import { useCompleteSetupModal } from "@/components/app/modals/complete-setup-modal";
 

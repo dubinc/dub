@@ -31,7 +31,7 @@ import {
   getUrlWithoutUTMParams,
   linkConstructor,
   truncate,
-} from "#/lib/utils";
+} from "lib";
 import ExpirationSection from "./expiration-section";
 import OGSection from "./og-section";
 import PasswordSection from "./password-section";

@@ -10,7 +10,7 @@ import { mutate } from "swr";
 import BlurImage from "#/ui/blur-image";
 import Modal from "#/ui/modal";
 import { type Link as LinkProps } from "@prisma/client";
-import { getApexDomain, getQueryString, linkConstructor } from "#/lib/utils";
+import { getApexDomain, getQueryString, linkConstructor } from "lib";
 import { GOOGLE_FAVICON_URL } from "#/lib/constants";
 import { toast } from "sonner";
 import { Button } from "ui";

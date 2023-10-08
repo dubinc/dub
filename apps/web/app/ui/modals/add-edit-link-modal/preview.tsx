@@ -2,7 +2,7 @@ import BlurImage from "#/ui/blur-image";
 import { Facebook, LinkedIn, Photo, Twitter } from "@/components/shared/icons";
 import { LoadingCircle } from "ui";
 import { type Link as LinkProps } from "@prisma/client";
-import { getDomainWithoutWWW } from "#/lib/utils";
+import { getDomainWithoutWWW } from "lib";
 import { useMemo } from "react";
 import { useDebounce } from "use-debounce";
 

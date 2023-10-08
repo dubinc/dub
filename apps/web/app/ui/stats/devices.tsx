@@ -4,7 +4,7 @@ import { LoadingCircle } from "ui";
 import { DeviceTabs, uaToBot } from "#/lib/stats";
 import DeviceIcon from "./device-icon";
 import useSWR from "swr";
-import { fetcher } from "#/lib/utils";
+import { fetcher } from "lib";
 import { StatsContext } from ".";
 import BarList from "./bar-list";
 import { Maximize } from "lucide-react";

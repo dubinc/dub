@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { Button, Logo } from "ui";
 import { Token } from "@prisma/client";
 import { TokenAvatar } from "#/ui/avatar";
-import { timeAgo } from "#/lib/utils";
+import { timeAgo } from "lib";
 import { Badge } from "ui";
 
 function DeleteTokenModal({

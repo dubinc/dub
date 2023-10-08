@@ -7,10 +7,10 @@ import { withScreenSize } from "@visx/responsive";
 import { scaleBand, scaleLinear } from "@visx/scale";
 import { useTooltip, useTooltipInPortal } from "@visx/tooltip";
 import { motion } from "framer-motion";
-import { nFormatter } from "#/lib/utils";
+import { nFormatter } from "lib";
 import styles from "./bar-chart.module.css";
 import useSWR from "swr";
-import { fetcher } from "#/lib/utils";
+import { fetcher } from "lib";
 import { LoadingCircle } from "ui";
 import { StatsContext } from ".";
 

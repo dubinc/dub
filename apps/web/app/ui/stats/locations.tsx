@@ -4,7 +4,7 @@ import { COUNTRIES } from "#/lib/constants";
 import { LocationTabs } from "#/lib/stats";
 import { LoadingCircle } from "ui";
 import useSWR from "swr";
-import { fetcher } from "#/lib/utils";
+import { fetcher } from "lib";
 import { StatsContext } from ".";
 import { Maximize } from "lucide-react";
 import BarList from "./bar-list";

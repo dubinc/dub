@@ -5,7 +5,7 @@ import { useDebounce } from "use-debounce";
 import useSWR from "swr";
 import { Photo } from "@/components/shared/icons";
 import { LoadingCircle } from "ui";
-import { fetcher, getDomainWithoutWWW, getUrlFromString } from "#/lib/utils";
+import { fetcher, getDomainWithoutWWW, getUrlFromString } from "lib";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Link2 } from "lucide-react";
 

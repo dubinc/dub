@@ -1,17 +1,15 @@
 import { useEffect, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 import { Logout } from "@/components/shared/icons";
-import { Popover } from "ui";
 import IconMenu from "../../shared/icon-menu";
 import va from "@vercel/analytics";
 import Link from "next/link";
 import { Edit3, HelpCircle, MessageCircle, Settings } from "lucide-react";
 import { Crisp } from "crisp-sdk-web";
-import { LoadingCircle } from "ui";
-import { Badge } from "ui";
+import { Badge, Popover, LoadingCircle } from "ui";
 import Cookies from "js-cookie";
-import { allChangelogPosts } from "contentlayer/generated";
-import { HOME_DOMAIN } from "#/lib/constants";
+// import { allChangelogPosts } from "contentlayer/generated";
+import { HOME_DOMAIN } from "lib";
 import Avatar from "#/ui/avatar";
 
 export default function UserDropdown() {
@@ -30,15 +28,15 @@ export default function UserDropdown() {
     });
   }, []);
 
-  const [unreadChangelogs, setUnreadChangelogs] = useState(0);
-  useEffect(() => {
-    const lastReadChangelog =
-      Cookies.get("lastReadChangelog") || new Date("2023-08-13").toISOString();
-    const unreadChangelogs = allChangelogPosts.filter(
-      (post) => post.publishedAt > lastReadChangelog,
-    ).length;
-    setUnreadChangelogs(unreadChangelogs);
-  }, []);
+  const [unreadChangelogs, setUnreadChangelogs] = useState(3);
+  // useEffect(() => {
+  //   const lastReadChangelog =
+  //     Cookies.get("lastReadChangelog") || new Date("2023-08-13").toISOString();
+  //   const unreadChangelogs = allChangelogPosts.filter(
+  //     (post) => post.publishedAt > lastReadChangelog,
+  //   ).length;
+  //   setUnreadChangelogs(unreadChangelogs);
+  // }, []);
 
   return (
     <div className="relative inline-block">

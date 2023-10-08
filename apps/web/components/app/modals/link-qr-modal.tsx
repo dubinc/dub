@@ -21,7 +21,7 @@ import Tooltip, {
 import { QRCodeSVG, getQRAsCanvas, getQRAsSVGDataUri } from "#/lib/qr";
 import useProject from "#/lib/swr/use-project";
 import { SimpleLinkProps } from "#/lib/types";
-import { getApexDomain, linkConstructor } from "#/lib/utils";
+import { getApexDomain, linkConstructor } from "lib";
 import IconMenu from "@/components/shared/icon-menu";
 import { Popover } from "ui";
 import { toast } from "sonner";

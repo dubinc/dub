@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { navItems } from "./nav";
-import { cn, FEATURES_LIST, APP_DOMAIN } from "lib";
+import { cn, APP_DOMAIN } from "lib";
+import { FEATURES_LIST } from "./content";
 import { useState } from "react";
 import { ChevronDown, Menu, X } from "lucide-react";
 

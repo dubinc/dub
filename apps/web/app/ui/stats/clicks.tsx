@@ -1,8 +1,8 @@
 import { Chart } from "@/components/shared/icons";
 import BarChart from "./bar-chart";
-import { nFormatter } from "#/lib/utils";
+import { nFormatter } from "lib";
 import useSWR from "swr";
-import { fetcher } from "#/lib/utils";
+import { fetcher } from "lib";
 import { StatsContext } from ".";
 import { useContext } from "react";
 import Number from "#/ui/number";

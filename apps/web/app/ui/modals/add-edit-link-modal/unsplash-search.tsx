@@ -2,7 +2,7 @@ import { type Link as LinkProps } from "@prisma/client";
 import { LoadingSpinner } from "ui";
 import { Dispatch, SetStateAction, useState } from "react";
 import useSWR from "swr";
-import { fetcher } from "#/lib/utils";
+import { fetcher } from "lib";
 import { useDebounce } from "use-debounce";
 import { Basic } from "unsplash-js/dist/methods/photos/types";
 import { toast } from "sonner";

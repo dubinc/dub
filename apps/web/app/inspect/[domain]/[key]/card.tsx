@@ -1,5 +1,5 @@
 import { GOOGLE_FAVICON_URL } from "#/lib/constants";
-import { getApexDomain, linkConstructor } from "#/lib/utils";
+import { getApexDomain, linkConstructor } from "lib";
 import CopyButton from "@/components/shared/copy-button";
 import BlurImage from "#/ui/blur-image";
 import Script from "next/script";

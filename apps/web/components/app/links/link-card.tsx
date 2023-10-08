@@ -22,7 +22,7 @@ import {
   nFormatter,
   setQueryString,
   timeAgo,
-} from "#/lib/utils";
+} from "lib";
 import useIntersectionObserver from "#/lib/hooks/use-intersection-observer";
 import useDomains from "#/lib/swr/use-domains";
 import {

@@ -1,9 +1,9 @@
 import { getLinkViaEdge } from "#/lib/planetscale";
-import { constructMetadata, getApexDomain } from "#/lib/utils";
+import { constructMetadata, getApexDomain } from "lib";
 import { Footer } from "ui";
 import { Nav } from "ui";
 import { notFound } from "next/navigation";
-import Background from "#/ui/home/background";
+import { Background } from "ui";
 import LinkInspectorCard from "./card";
 import LinkPreview from "#/ui/home/link-preview";
 import { HOME_DOMAIN } from "#/lib/constants";

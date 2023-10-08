@@ -16,7 +16,7 @@ import { ModalContext } from "#/ui/modal-provider";
 import useSWR, { mutate } from "swr";
 import { ShortioDomainProps } from "#/lib/types";
 import { InfoTooltip, SimpleTooltipContent } from "#/ui/tooltip";
-import { fetcher, nFormatter } from "#/lib/utils";
+import { fetcher, nFormatter } from "lib";
 import { HOME_DOMAIN } from "#/lib/constants";
 
 function ImportShortModal({

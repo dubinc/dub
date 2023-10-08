@@ -1,4 +1,4 @@
-import Background from "#/ui/home/background";
+import { Background } from "ui";
 import { ReactNode } from "react";
 
 export const runtime = "edge";

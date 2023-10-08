@@ -12,7 +12,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { HOME_DOMAIN, STAGGER_CHILD_VARIANTS } from "#/lib/constants";
 import { CheckCircleFill } from "@/components/shared/icons";
-import { capitalize } from "#/lib/utils";
+import { capitalize } from "lib";
 import { PLANS } from "#/lib/stripe/utils";
 import { getStripe } from "#/lib/stripe/client";
 import { Badge } from "ui";

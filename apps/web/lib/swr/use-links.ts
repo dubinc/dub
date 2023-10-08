@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import useSWR from "swr";
 import { type Link as LinkProps } from "@prisma/client";
-import { fetcher, getQueryString } from "#/lib/utils";
+import { fetcher, getQueryString } from "lib";
 import { UserProps } from "../types";
 
 export default function useLinks() {

@@ -6,7 +6,7 @@ import {
   getParamsFromURL,
   paramsMetadata,
   getUrlWithoutUTMParams,
-} from "#/lib/utils";
+} from "lib";
 import { Switch } from "ui";
 import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "#/lib/constants";
 import { InfoTooltip, SimpleTooltipContent } from "#/ui/tooltip";

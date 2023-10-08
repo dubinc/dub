@@ -1,6 +1,6 @@
 import { NextFetchEvent, NextRequest } from "next/server";
 import { parse } from "node-html-parser";
-import { isValidUrl } from "#/lib/utils";
+import { isValidUrl } from "lib";
 import { ratelimit, recordMetatags } from "#/lib/upstash";
 import { getToken } from "next-auth/jwt";
 import { ipAddress } from "@vercel/edge";

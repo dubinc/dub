@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
-import { nFormatter, timeAgo } from "#/lib/utils";
+import { nFormatter, timeAgo } from "lib";
 import Tooltip from "#/ui/tooltip";
 
 export default function Number({

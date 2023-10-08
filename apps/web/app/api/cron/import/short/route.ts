@@ -1,4 +1,4 @@
-import { log } from "#/lib/utils";
+import { log } from "lib";
 import { redis } from "#/lib/upstash";
 import { NextResponse } from "next/server";
 import { receiver } from "#/lib/cron";

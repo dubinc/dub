@@ -3,7 +3,7 @@
 import { ReactNode } from "react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { Drawer } from "vaul";
-import { useMediaQuery } from "lib";
+import { useMediaQuery } from "./hooks";
 
 export function Tooltip({
   children,

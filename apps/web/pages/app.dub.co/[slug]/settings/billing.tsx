@@ -4,7 +4,7 @@ import { useContext, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { InfinityIcon, Divider } from "@/components/shared/icons";
 import { InfoTooltip } from "#/ui/tooltip";
-import { fetcher, getFirstAndLastDay, nFormatter } from "#/lib/utils";
+import { fetcher, getFirstAndLastDay, nFormatter } from "lib";
 import useProject from "#/lib/swr/use-project";
 import PlanBadge from "@/components/app/projects/plan-badge";
 import { toast } from "sonner";

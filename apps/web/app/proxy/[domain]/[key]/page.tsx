@@ -1,6 +1,6 @@
 import { getLinkViaEdge } from "#/lib/planetscale";
 import { unescape } from "html-escaper";
-import { constructMetadata, getApexDomain } from "#/lib/utils";
+import { constructMetadata, getApexDomain } from "lib";
 import { notFound, redirect } from "next/navigation";
 import { GOOGLE_FAVICON_URL } from "#/lib/constants";
 

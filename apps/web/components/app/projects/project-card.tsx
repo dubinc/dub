@@ -4,7 +4,7 @@ import BlurImage from "#/ui/blur-image";
 import { CheckCircleFill, XCircleFill } from "@/components/shared/icons";
 import Tooltip, { DomainsTooltip } from "#/ui/tooltip";
 import { ProjectWithDomainProps } from "#/lib/types";
-import { fetcher, nFormatter } from "#/lib/utils";
+import { fetcher, nFormatter } from "lib";
 import { BarChart2, Globe, Link2 } from "lucide-react";
 import PlanBadge from "./plan-badge";
 import { GOOGLE_FAVICON_URL } from "#/lib/constants";

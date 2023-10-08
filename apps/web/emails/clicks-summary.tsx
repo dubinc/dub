@@ -16,7 +16,7 @@ import {
 } from "@react-email/components";
 import { Link2, MousePointerClick } from "lucide-react";
 import { DUB_LOGO } from "../lib/constants";
-import { nFormatter, truncate } from "../lib/utils";
+import { nFormatter, truncate } from "lib";
 import Footer from "./components/footer";
 
 export default function ClicksSummary({

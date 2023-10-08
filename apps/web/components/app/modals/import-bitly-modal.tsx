@@ -17,7 +17,7 @@ import { ArrowRight } from "lucide-react";
 import { ModalContext } from "#/ui/modal-provider";
 import useSWR, { mutate } from "swr";
 import { BitlyGroupProps } from "#/lib/types";
-import { fetcher } from "#/lib/utils";
+import { fetcher } from "lib";
 import { HOME_DOMAIN } from "#/lib/constants";
 
 function ImportBitlyModal({

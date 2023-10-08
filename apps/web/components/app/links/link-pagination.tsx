@@ -1,6 +1,6 @@
 import { PAGINATION_LIMIT } from "#/lib/constants";
 import useLinksCount from "#/lib/swr/use-links-count";
-import { nFormatter, setQueryString } from "#/lib/utils";
+import { nFormatter, setQueryString } from "lib";
 import Number from "#/ui/number";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/router";

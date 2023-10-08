@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { nFormatter, setQueryString, truncate } from "#/lib/utils";
+import { nFormatter, setQueryString, truncate } from "lib";
 import { ChevronRight, XCircle, Search, Check, Trash } from "lucide-react";
 import useDomains from "#/lib/swr/use-domains";
 import { AnimatePresence, motion } from "framer-motion";

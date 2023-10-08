@@ -3,7 +3,7 @@ import { DEFAULT_REDIRECTS } from "#/lib/constants";
 import prisma from "#/lib/prisma";
 import { type Link as LinkProps } from "@prisma/client";
 import { redis } from "#/lib/upstash";
-import { getParamsFromURL, nanoid, truncate, validKeyRegex } from "#/lib/utils";
+import { getParamsFromURL, nanoid, truncate, validKeyRegex } from "lib";
 import { isReservedKey } from "#/lib/edge-config";
 import { NextApiRequest } from "next";
 import { isIframeable } from "../middleware/utils";

@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { ipAddress } from "@vercel/edge";
 import { LOCALHOST_IP } from "#/lib/constants";
 import { ratelimit, setRandomKey } from "#/lib/upstash";
-import { isValidUrl } from "#/lib/utils";
+import { isValidUrl } from "lib";
 import { isBlacklistedDomain } from "#/lib/edge-config";
 
 export const config = {

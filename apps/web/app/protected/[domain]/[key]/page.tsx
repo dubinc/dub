@@ -1,5 +1,5 @@
-import { constructMetadata } from "#/lib/utils";
-import Background from "#/ui/home/background";
+import { constructMetadata } from "lib";
+import { Background } from "ui";
 import { Logo } from "ui";
 import PasswordForm from "./form";
 

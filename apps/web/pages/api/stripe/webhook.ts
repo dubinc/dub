@@ -5,7 +5,7 @@ import prisma from "#/lib/prisma";
 import { stripe } from "#/lib/stripe";
 import { getPlanFromPriceId, isNewCustomer } from "#/lib/stripe/utils";
 import { redis } from "#/lib/upstash";
-import { log } from "#/lib/utils";
+import { log } from "lib";
 import { sendEmail } from "emails";
 import UpgradeEmail from "emails/upgrade-email";
 

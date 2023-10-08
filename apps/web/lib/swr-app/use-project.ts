@@ -1,7 +1,7 @@
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { ProjectProps } from "#/lib/types";
-import { fetcher } from "#/lib/utils";
+import { fetcher } from "lib";
 import { useMemo } from "react";
 
 export default function useProject() {

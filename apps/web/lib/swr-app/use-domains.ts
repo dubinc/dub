@@ -2,7 +2,7 @@ import { useParams } from "next/navigation";
 import { useMemo } from "react";
 import useSWR from "swr";
 import { DomainProps } from "#/lib/types";
-import { fetcher } from "#/lib/utils";
+import { fetcher } from "lib";
 
 export default function useDomains({ domain }: { domain?: string } = {}) {
   const { slug } = useParams() as {

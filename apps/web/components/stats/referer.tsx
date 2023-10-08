@@ -3,7 +3,7 @@ import BlurImage from "#/ui/blur-image";
 import { Link2 } from "lucide-react";
 import { LoadingCircle } from "ui";
 import useSWR from "swr";
-import { fetcher } from "#/lib/utils";
+import { fetcher } from "lib";
 import { GOOGLE_FAVICON_URL } from "#/lib/constants";
 import { useContext, useState } from "react";
 import { StatsContext } from ".";

@@ -8,7 +8,7 @@ import {
 } from "#/lib/api/domains";
 import prisma from "#/lib/prisma";
 import { isReservedKey } from "#/lib/edge-config";
-import { validSlugRegex } from "#/lib/utils";
+import { validSlugRegex } from "lib";
 
 export default withUserAuth(
   async (req: NextApiRequest, res: NextApiResponse, session: Session) => {

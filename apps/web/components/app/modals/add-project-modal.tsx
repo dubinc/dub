@@ -12,7 +12,7 @@ import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
 import { AlertCircleFill } from "@/components/shared/icons";
 import Modal from "#/ui/modal";
-import { generateDomainFromName } from "#/lib/utils";
+import { generateDomainFromName } from "lib";
 import slugify from "@sindresorhus/slugify";
 import va from "@vercel/analytics";
 import { Button, Logo } from "ui";
@@ -283,7 +283,7 @@ function AddProjectModalHelper({
 
         <Button
           disabled={slugError || domainError ? true : false}
-          loading={saving}
+          loading={true}
           text="Create project"
         />
       </form>

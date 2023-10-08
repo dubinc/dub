@@ -1,5 +1,3 @@
-const { withContentlayer } = require("next-contentlayer");
-
 const REDIRECT_SEGMENTS = [
   "pricing",
   "blog",
@@ -11,7 +9,7 @@ const REDIRECT_SEGMENTS = [
 ];
 
 /** @type {import('next').NextConfig} */
-const nextConfig = {
+module.exports = {
   reactStrictMode: false,
   experimental: {
     useDeploymentId: true,
@@ -199,5 +197,3 @@ const nextConfig = {
     ];
   },
 };
-
-module.exports = withContentlayer(nextConfig);

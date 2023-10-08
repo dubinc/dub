@@ -12,7 +12,7 @@ import ProBanner from "./pro-banner";
 import Cookies from "js-cookie";
 import { ModalContext } from "#/ui/modal-provider";
 import { Badge } from "ui";
-import { linkConstructor } from "#/lib/utils";
+import { linkConstructor } from "lib";
 import { HOME_DOMAIN } from "#/lib/constants";
 import { useAcceptInviteModal } from "@/components/app/modals/accept-invite-modal";
 import { MaxWidthWrapper } from "ui";

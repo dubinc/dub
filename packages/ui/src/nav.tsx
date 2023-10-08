@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useParams, useSelectedLayoutSegment } from "next/navigation";
 import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu";
-import { cn, useScroll, FEATURES_LIST } from "lib";
+import { cn, APP_DOMAIN, SHOW_BACKGROUND_SEGMENTS } from "lib";
+import { FEATURES_LIST } from "./content";
+import { useScroll } from "./hooks";
 import { MaxWidthWrapper } from "./max-width-wrapper";
-import { APP_DOMAIN, SHOW_BACKGROUND_SEGMENTS } from "../../lib/constants";
 import va from "@vercel/analytics";
 import { ChevronDown } from "lucide-react";
 import { LogoType } from "./icons";

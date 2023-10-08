@@ -1,4 +1,4 @@
-import { fetcher, timeAgo } from "#/lib/utils";
+import { fetcher, timeAgo } from "lib";
 import { TokenAvatar } from "#/ui/avatar";
 import Form from "#/ui/form";
 import { LoadingSpinner } from "ui";

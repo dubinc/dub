@@ -1,6 +1,6 @@
 "use client";
 
-import { cn, nFormatter } from "#/lib/utils";
+import { cn, nFormatter } from "lib";
 import { ReactNode, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";

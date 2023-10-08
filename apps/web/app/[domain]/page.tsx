@@ -1,6 +1,6 @@
 import prisma from "#/lib/prisma";
-import { constructMetadata } from "#/lib/utils";
-import Background from "#/ui/home/background";
+import { constructMetadata } from "lib";
+import { Background } from "ui";
 import PlaceholderContent from "./placeholder";
 
 export async function generateMetadata({

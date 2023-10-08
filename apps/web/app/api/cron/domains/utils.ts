@@ -1,5 +1,5 @@
 import { sendEmail } from "emails";
-import { log } from "#/lib/utils";
+import { log } from "lib";
 import { deleteDomainAndLinks } from "#/lib/api/domains";
 import prisma from "#/lib/prisma";
 import InvalidDomain from "emails/invalid-domain";

@@ -1,6 +1,6 @@
 import { NextRequest, userAgent } from "next/server";
 import { LOCALHOST_GEO_DATA } from "./constants";
-import { capitalize, getDomainWithoutWWW } from "./utils";
+import { capitalize, getDomainWithoutWWW } from "lib";
 import { conn } from "./planetscale";
 
 /**

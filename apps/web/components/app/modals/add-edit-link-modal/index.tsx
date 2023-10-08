@@ -27,7 +27,7 @@ import {
   isValidUrl,
   linkConstructor,
   truncate,
-} from "#/lib/utils";
+} from "lib";
 import { DEFAULT_LINK_PROPS, GOOGLE_FAVICON_URL } from "#/lib/constants";
 import useDomains from "#/lib/swr/use-domains";
 import { toast } from "sonner";

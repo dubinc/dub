@@ -53,6 +53,8 @@ const config: Config = {
         "accordion-up": "accordion-up 300ms cubic-bezier(0.87, 0, 0.13, 1)",
         // Custom wiggle animation
         wiggle: "wiggle 0.75s infinite",
+        // Custom spinner animation
+        spinner: "spinner 1.2s linear infinite",
       },
       keyframes: {
         // Modal
@@ -135,6 +137,15 @@ const config: Config = {
           "45%": { transform: "translateX(-6px) rotate(-2.4deg)" },
           "60%": { transform: "translateX(2px) rotate(1.6deg)" },
           "75%": { transform: "translateX(-1px) rotate(-0.8deg)" },
+        },
+        // Custom spinner animation
+        spinner: {
+          "0%": {
+            opacity: "1",
+          },
+          "100%": {
+            opacity: "0",
+          },
         },
       },
       colors: {

@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import useSWR from "swr";
 import type { SAMLSSORecord } from "@boxyhq/saml-jackson";
-import { fetcher } from "#/lib/utils";
+import { fetcher } from "lib";
 import { useMemo } from "react";
 
 export default function useSAML() {
