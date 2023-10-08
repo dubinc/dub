@@ -118,7 +118,10 @@ export const SHOW_BACKGROUND_SEGMENTS = [
   "auth",
 ];
 
-export const allTools = ["metatags", "inspector"];
+export const ALL_TOOLS = [
+  { name: "Metatags API", slug: "metatags" },
+  { name: "Link Inspector", slug: "inspector" },
+];
 
 export { default as ccTLDs } from "./cctlds";
 export { default as COUNTRIES } from "./countries";

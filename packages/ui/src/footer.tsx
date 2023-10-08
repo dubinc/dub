@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import { FEATURES_LIST } from "./content";
 import { Github, LinkedIn, LogoType, Twitter } from "./icons";
 import { MaxWidthWrapper } from "./max-width-wrapper";
+import { ALL_TOOLS } from "@dub/utils";
 
 const navigation = {
   features: FEATURES_LIST.map(({ shortTitle, slug }) => ({
@@ -19,10 +20,10 @@ const navigation = {
     { name: "Help Center", href: "/help" },
     { name: "Pricing", href: "/pricing" },
   ],
-  tools: [
-    { name: "Metatags API", href: "/tools/metatags" },
-    { name: "Link Inspector", href: "/tools/inspector" },
-  ],
+  tools: ALL_TOOLS.map(({ name, slug }) => ({
+    name,
+    href: `/tools/${slug}`,
+  })),
   legal: [
     { name: "Privacy", href: "/privacy" },
     { name: "Terms", href: "/terms" },
