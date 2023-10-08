@@ -1,5 +1,5 @@
+import { inter, satoshi } from "@/styles/fonts";
 import "@/styles/globals.css";
-import { satoshi, inter } from "@/styles/fonts";
 import { cn, constructMetadata } from "lib";
 import Providers from "./providers";
 

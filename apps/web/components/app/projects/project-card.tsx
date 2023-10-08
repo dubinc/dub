@@ -1,15 +1,12 @@
+import { DomainProps, ProjectWithDomainProps } from "#/lib/types";
+import { BlurImage } from "@/components/shared/blur-image";
+import { CheckCircleFill, XCircleFill } from "@/components/shared/icons";
+import { GOOGLE_FAVICON_URL, fetcher, nFormatter } from "lib";
+import { BarChart2, ExternalLink, Globe, Link2 } from "lucide-react";
 import Link from "next/link";
 import useSWR from "swr";
-import BlurImage from "#/ui/blur-image";
-import { CheckCircleFill, XCircleFill } from "@/components/shared/icons";
-import Tooltip, { DomainsTooltip } from "#/ui/tooltip";
-import { ProjectWithDomainProps } from "#/lib/types";
-import { fetcher, nFormatter } from "lib";
-import { BarChart2, Globe, Link2 } from "lucide-react";
+import { Badge, NumberTooltip, Tooltip } from "ui";
 import PlanBadge from "./plan-badge";
-import { GOOGLE_FAVICON_URL } from "#/lib/constants";
-import { Badge } from "ui";
-import Number from "#/ui/number";
 
 export default function ProjectCard({
   id,
@@ -91,24 +88,75 @@ export default function ProjectCard({
         <div className="flex items-center space-x-2 text-gray-500">
           <Link2 className="h-4 w-4" />
           {count || count === 0 ? (
-            <Number value={count} unit="links">
+            <NumberTooltip value={count} unit="links">
               <h2 className="whitespace-nowrap text-sm">
                 {nFormatter(count)} link{count != 1 && "s"}
               </h2>
-            </Number>
+            </NumberTooltip>
           ) : (
             <div className="h-4 w-8 animate-pulse rounded-md bg-gray-200" />
           )}
         </div>
         <div className="flex items-center space-x-2 text-gray-500">
           <BarChart2 className="h-4 w-4" />
-          <Number value={usage}>
+          <NumberTooltip value={usage}>
             <h2 className="whitespace-nowrap text-sm">
               {nFormatter(usage)} click{usage != 1 && "s"}
             </h2>
-          </Number>
+          </NumberTooltip>
         </div>
       </div>
     </Link>
   );
 }
+
+const DomainsTooltip = ({
+  domains,
+  title,
+  cta,
+  href,
+}: {
+  domains: DomainProps[];
+  title: string;
+  cta?: string;
+  href: string;
+}) => {
+  return (
+    <div
+      className="flex w-full flex-col items-center space-y-2 p-4 md:w-60"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <p className="px-2 text-sm text-gray-500">{title}</p>
+      <div className="flex w-full flex-col">
+        {domains.map(({ slug, verified }) => (
+          <a
+            key={slug}
+            href={`https://${slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex items-center justify-between rounded-md p-2 transition-all hover:bg-gray-100"
+          >
+            <div className="flex items-center space-x-1">
+              {verified ? (
+                <CheckCircleFill className="h-5 w-5 text-blue-500" />
+              ) : (
+                <XCircleFill className="h-5 w-5 text-gray-300" />
+              )}
+              <p className="text-sm font-semibold text-gray-500">{slug}</p>
+            </div>
+            <ExternalLink className="h-4 w-4 text-gray-500 md:invisible md:group-hover:visible" />
+          </a>
+        ))}
+      </div>
+
+      <div className="mt-2 w-full px-2">
+        <Link
+          href={href}
+          className="block rounded-md border border-black bg-black px-3 py-1.5 text-center text-sm text-white transition-all hover:bg-white hover:text-black"
+        >
+          {cta}
+        </Link>
+      </div>
+    </div>
+  );
+};

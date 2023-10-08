@@ -1,3 +1,7 @@
+import useProject from "#/lib/swr/use-project";
+import useSAML from "#/lib/swr/use-saml";
+import { BlurImage } from "@/components/shared/blur-image";
+import { SAML_PROVIDERS } from "lib";
 import {
   Dispatch,
   SetStateAction,
@@ -5,13 +9,8 @@ import {
   useMemo,
   useState,
 } from "react";
-import BlurImage from "#/ui/blur-image";
-import Modal from "#/ui/modal";
-import useProject from "#/lib/swr/use-project";
 import { toast } from "sonner";
-import { Button, Logo } from "ui";
-import useSAML from "#/lib/swr/use-saml";
-import { SAML_PROVIDERS } from "#/lib/constants";
+import { Button, Logo, Modal } from "ui";
 
 function RemoveSAMLModal({
   showRemoveSAMLModal,

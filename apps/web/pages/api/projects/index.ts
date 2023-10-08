@@ -1,14 +1,13 @@
-import { NextApiRequest, NextApiResponse } from "next";
-import { Session, withUserAuth } from "#/lib/auth";
-import { DEFAULT_REDIRECTS } from "#/lib/constants";
 import {
   addDomainToVercel,
   domainExists,
   validateDomain,
 } from "#/lib/api/domains";
-import prisma from "#/lib/prisma";
+import { Session, withUserAuth } from "#/lib/auth";
 import { isReservedKey } from "#/lib/edge-config";
-import { validSlugRegex } from "lib";
+import prisma from "#/lib/prisma";
+import { DEFAULT_REDIRECTS, validSlugRegex } from "lib";
+import { NextApiRequest, NextApiResponse } from "next";
 
 export default withUserAuth(
   async (req: NextApiRequest, res: NextApiResponse, session: Session) => {

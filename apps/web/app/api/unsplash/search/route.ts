@@ -1,8 +1,8 @@
+import { ratelimit } from "#/lib/upstash";
+import { ipAddress } from "@vercel/edge";
+import { LOCALHOST_IP } from "lib";
 import { NextResponse } from "next/server";
 import { unsplash } from "../utils";
-import { ipAddress } from "@vercel/edge";
-import { LOCALHOST_IP } from "#/lib/constants";
-import { ratelimit } from "#/lib/upstash";
 
 export const runtime = "edge";
 

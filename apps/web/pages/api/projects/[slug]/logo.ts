@@ -1,6 +1,6 @@
 import { withProjectAuth } from "#/lib/auth";
-import cloudinary from "cloudinary";
 import prisma from "#/lib/prisma";
+import cloudinary from "cloudinary";
 
 export const config = {
   api: {

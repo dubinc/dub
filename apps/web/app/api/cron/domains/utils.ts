@@ -1,10 +1,10 @@
-import { sendEmail } from "emails";
-import { log } from "lib";
 import { deleteDomainAndLinks } from "#/lib/api/domains";
-import prisma from "#/lib/prisma";
-import InvalidDomain from "emails/invalid-domain";
-import DomainDeleted from "emails/domain-deleted";
 import { limiter } from "#/lib/cron";
+import prisma from "#/lib/prisma";
+import { sendEmail } from "emails";
+import DomainDeleted from "emails/domain-deleted";
+import InvalidDomain from "emails/invalid-domain";
+import { log } from "lib";
 
 export const handleDomainUpdates = async ({
   domain,

@@ -1,6 +1,6 @@
 import { withProjectAuth } from "#/lib/auth";
-import { APP_DOMAIN } from "#/lib/constants";
 import { stripe } from "#/lib/stripe";
+import { APP_DOMAIN } from "lib";
 
 export default withProjectAuth(async (req, res, project) => {
   // POST /api/projects/[slug]/billing/manage – manage a user's subscription

@@ -1,7 +1,7 @@
 import { constructMetadata } from "lib";
-import ImpersonateUser from "./components/impersonate-user";
-import ImpersonateProject from "./components/impersonate-project";
 import BanUser from "./components/ban";
+import ImpersonateProject from "./components/impersonate-project";
+import ImpersonateUser from "./components/impersonate-user";
 
 export const metadata = constructMetadata({
   title: "Dub Admin",

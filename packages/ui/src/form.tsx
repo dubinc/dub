@@ -1,8 +1,8 @@
-import { useState, useMemo, InputHTMLAttributes, ReactNode } from "react";
-import { Button } from "ui";
 import { cn } from "lib";
+import { InputHTMLAttributes, ReactNode, useMemo, useState } from "react";
+import { Button } from "./button";
 
-export default function Form({
+export function Form({
   title,
   description,
   inputData,
@@ -17,7 +17,7 @@ export default function Form({
   helpText?: string;
   buttonText?: string;
   disabledTooltip?: string | ReactNode;
-  handleSubmit: (data) => Promise<any>;
+  handleSubmit: (data: any) => Promise<any>;
 }) {
   const [value, setValue] = useState(inputData.defaultValue);
   const [saving, setSaving] = useState(false);

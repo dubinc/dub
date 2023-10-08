@@ -4,8 +4,8 @@
 // to use next-auth signIn in a server action yet
 // will revisit this when that's possible
 
-import { conn } from "#/lib/planetscale";
 import { isWhitelistedEmail } from "#/lib/edge-config";
+import { conn } from "#/lib/planetscale";
 
 export async function accountExists(data: FormData) {
   const email = data.get("email") as string | undefined;

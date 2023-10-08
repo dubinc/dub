@@ -1,11 +1,11 @@
-import { sendEmail } from "emails";
-import UsageExceeded from "emails/usage-exceeded";
-import prisma from "#/lib/prisma";
-import { getAdjustedBillingCycleStart, log } from "lib";
-import { ProjectProps } from "#/lib/types";
-import { getTopLinks } from "#/lib/tinybird";
-import ClicksSummary from "emails/clicks-summary";
 import { limiter } from "#/lib/cron";
+import prisma from "#/lib/prisma";
+import { getTopLinks } from "#/lib/tinybird";
+import { ProjectProps } from "#/lib/types";
+import { sendEmail } from "emails";
+import ClicksSummary from "emails/clicks-summary";
+import UsageExceeded from "emails/usage-exceeded";
+import { getAdjustedBillingCycleStart, log } from "lib";
 
 export const updateUsage = async () => {
   const projects = await prisma.project.findMany({

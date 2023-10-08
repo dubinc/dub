@@ -1,12 +1,12 @@
+import useLinks from "#/lib/swr/use-links";
 import { MaxWidthWrapper } from "ui";
+import { useLinkFiltersModal } from "../modals/link-filters-modal";
 import LinkCard from "./link-card";
 import LinkCardPlaceholder from "./link-card-placeholder";
 import LinkFilters from "./link-filters";
-import NoLinksPlaceholder from "./no-links-placeholder";
-import LinkSort from "./link-sort";
-import useLinks from "#/lib/swr/use-links";
-import { useLinkFiltersModal } from "../modals/link-filters-modal";
 import LinkPagination from "./link-pagination";
+import LinkSort from "./link-sort";
+import NoLinksPlaceholder from "./no-links-placeholder";
 
 export default function LinksContainer({
   AddEditLinkButton,

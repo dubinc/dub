@@ -1,8 +1,8 @@
-import prisma from "#/lib/prisma";
-import { ProjectProps } from "../types";
 import { deleteDomainAndLinks } from "#/lib/api/domains";
+import prisma from "#/lib/prisma";
 import { cancelSubscription } from "#/lib/stripe";
 import cloudinary from "cloudinary";
+import { ProjectProps } from "../types";
 
 export async function deleteProject(
   project: Pick<ProjectProps, "id" | "slug" | "stripeId" | "logo">,

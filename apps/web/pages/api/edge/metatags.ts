@@ -1,10 +1,9 @@
+import { ratelimit, recordMetatags } from "#/lib/upstash";
+import { ipAddress } from "@vercel/edge";
+import { LOCALHOST_IP, isValidUrl } from "lib";
+import { getToken } from "next-auth/jwt";
 import { NextFetchEvent, NextRequest } from "next/server";
 import { parse } from "node-html-parser";
-import { isValidUrl } from "lib";
-import { ratelimit, recordMetatags } from "#/lib/upstash";
-import { getToken } from "next-auth/jwt";
-import { ipAddress } from "@vercel/edge";
-import { LOCALHOST_IP } from "#/lib/constants";
 
 export const config = {
   runtime: "edge",

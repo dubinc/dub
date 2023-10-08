@@ -1,12 +1,8 @@
 import { getLinkViaEdge } from "#/lib/planetscale";
-import { constructMetadata, getApexDomain } from "lib";
-import { Footer } from "ui";
-import { Nav } from "ui";
+import { HOME_DOMAIN, constructMetadata } from "lib";
 import { notFound } from "next/navigation";
-import { Background } from "ui";
+import { Background, Footer, LinkPreview, Nav } from "ui";
 import LinkInspectorCard from "./card";
-import LinkPreview from "#/ui/home/link-preview";
-import { HOME_DOMAIN } from "#/lib/constants";
 
 export const runtime = "edge";
 

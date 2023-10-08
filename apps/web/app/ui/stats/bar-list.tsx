@@ -1,11 +1,11 @@
 "use client";
 
-import { cn, nFormatter } from "lib";
-import { ReactNode, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Search } from "lucide-react";
 import Fuse from "fuse.js";
-import Number from "#/ui/number";
+import { cn, nFormatter } from "lib";
+import { Search } from "lucide-react";
+import { ReactNode, useMemo, useState } from "react";
+import { NumberTooltip } from "ui";
 
 export default function BarList({
   tab,
@@ -62,9 +62,9 @@ export default function BarList({
               animate={{ transform: "scaleX(1)" }}
             />
           </div>
-          <Number value={clicks}>
+          <NumberTooltip value={clicks}>
             <p className="z-10 text-sm text-gray-600">{nFormatter(clicks)}</p>
-          </Number>
+          </NumberTooltip>
         </div>
       ))}
     </div>

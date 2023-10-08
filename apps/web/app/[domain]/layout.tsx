@@ -1,6 +1,4 @@
-import { NavMobile } from "ui";
-import { Nav } from "ui";
-import { Footer } from "ui";
+import { Footer, Nav, NavMobile } from "ui";
 
 export default function CustomDomainLayout(props) {
   return (

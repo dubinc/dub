@@ -1,5 +1,5 @@
-import { cn } from "lib";
 import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "lib";
 
 const badgeVariants = cva(
   "max-w-fit rounded-full border px-2 py-px text-xs font-medium capitalize",
@@ -20,13 +20,13 @@ const badgeVariants = cva(
   },
 );
 
-export interface BadgeProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+interface BadgeProps
+  extends React.HTMLAttributes<HTMLSpanElement>,
     VariantProps<typeof badgeVariants> {}
 
 function Badge({ className, variant, ...props }: BadgeProps) {
   return (
-    <div className={cn(badgeVariants({ variant }), className)} {...props} />
+    <span className={cn(badgeVariants({ variant }), className)} {...props} />
   );
 }
 

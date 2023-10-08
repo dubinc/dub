@@ -1,8 +1,7 @@
+import { HOME_DOMAIN, constructMetadata } from "lib";
 import { Suspense } from "react";
-import LoginForm from "./form";
 import { Button, Logo } from "ui";
-import { constructMetadata } from "lib";
-import { HOME_DOMAIN } from "#/lib/constants";
+import LoginForm from "./form";
 
 export const metadata = constructMetadata({
   title: "Sign in to Dub",

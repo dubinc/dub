@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
 import prisma from "#/lib/prisma";
 import { redis } from "#/lib/upstash";
-import { APP_DOMAIN } from "#/lib/constants";
+import { APP_DOMAIN } from "lib";
+import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);

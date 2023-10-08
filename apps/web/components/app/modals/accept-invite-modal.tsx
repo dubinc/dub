@@ -1,5 +1,7 @@
-import { useRouter } from "next/router";
+import useProject from "#/lib/swr/use-project";
+import va from "@vercel/analytics";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import {
   Dispatch,
   SetStateAction,
@@ -7,12 +9,9 @@ import {
   useMemo,
   useState,
 } from "react";
-import { mutate } from "swr";
-import { Logo, LoadingDots } from "ui";
-import Modal from "#/ui/modal";
-import useProject from "#/lib/swr/use-project";
 import { toast } from "sonner";
-import va from "@vercel/analytics";
+import { mutate } from "swr";
+import { LoadingDots, Logo, Modal } from "ui";
 
 function AcceptInviteModal({
   showAcceptInviteModal,

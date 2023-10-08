@@ -1,9 +1,8 @@
+import { Sort } from "@/components/shared/icons";
+import { ChevronDown, SortDesc } from "lucide-react";
 import { useRouter } from "next/router";
 import { useMemo, useState } from "react";
-import IconMenu from "@/components/shared/icon-menu";
-import { Sort, Tick } from "@/components/shared/icons";
-import { ChevronDown, SortAsc, SortDesc } from "lucide-react";
-import { Popover } from "ui";
+import { IconMenu, Popover, Tick } from "ui";
 
 const sortOptions = [
   {

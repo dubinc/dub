@@ -1,16 +1,14 @@
-import { withProjectAuth } from "#/lib/auth";
 import {
   addDomainToVercel,
-  removeDomainFromVercel,
-  validateDomain,
-} from "#/lib/api/domains";
-import prisma from "#/lib/prisma";
-import {
   changeDomainForImages,
   changeDomainForLinks,
   deleteDomainAndLinks,
+  removeDomainFromVercel,
   setRootDomain,
+  validateDomain,
 } from "#/lib/api/domains";
+import { withProjectAuth } from "#/lib/auth";
+import prisma from "#/lib/prisma";
 import { redis } from "#/lib/upstash";
 
 export default withProjectAuth(

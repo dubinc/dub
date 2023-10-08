@@ -1,6 +1,6 @@
-import { useState } from "react";
 import { DomainVerificationStatusProps } from "#/lib/types";
 import { getSubdomain } from "lib";
+import { useState } from "react";
 
 export const InlineSnippet = ({ children }: { children: string }) => {
   return (

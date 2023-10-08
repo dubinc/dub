@@ -1,4 +1,4 @@
-import { Session, withUserAuth } from "#/lib/auth";
+import { withUserAuth } from "#/lib/auth";
 import prisma from "#/lib/prisma";
 
 export default withUserAuth(async (req, res, session) => {

@@ -1,6 +1,6 @@
-import useSWR from "swr";
 import { ProjectWithDomainProps } from "#/lib/types";
 import { fetcher } from "lib";
+import useSWR from "swr";
 
 export default function useProjects() {
   const { data: projects } = useSWR<ProjectWithDomainProps[]>(

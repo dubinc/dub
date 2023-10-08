@@ -1,5 +1,5 @@
 import { nanoid } from "lib";
-import { ReactElement, JSXElementConstructor } from "react";
+import { JSXElementConstructor, ReactElement } from "react";
 import { Resend } from "resend";
 
 export const resend = process.env.RESEND_API_KEY

@@ -1,5 +1,3 @@
-import { Button } from "ui";
-import Form from "#/ui/form";
 import UploadAvatar from "@/components/app/account/upload-avatar";
 import { useDeleteAccountModal } from "@/components/app/modals/delete-account-modal";
 import SettingsLayout from "@/components/layout/app/settings-layout";
@@ -7,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { toast } from "sonner";
+import { Button, Form } from "ui";
 
 export default function PersonalSettings() {
   const { data: session, update } = useSession();

@@ -1,7 +1,7 @@
-import ErrorPage from "next/error";
+import useLink from "#/lib/swr/use-link";
 import AppLayout from "@/components/layout/app";
 import Stats from "@/components/stats";
-import useLink from "#/lib/swr/use-link";
+import ErrorPage from "next/error";
 
 export default function StatsPage() {
   const { loading, error } = useLink();

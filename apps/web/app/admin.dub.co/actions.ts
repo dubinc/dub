@@ -2,12 +2,11 @@
 import { deleteUserLinks } from "#/lib/api/links";
 import { deleteProject } from "#/lib/api/project";
 import { hashToken } from "#/lib/auth";
-import { DUB_PROJECT_ID } from "#/lib/constants";
 import prisma from "#/lib/prisma";
-import { getDomainWithoutWWW } from "lib";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { get } from "@vercel/edge-config";
 import { randomBytes } from "crypto";
+import { DUB_PROJECT_ID, getDomainWithoutWWW } from "lib";
 import { getServerSession } from "next-auth";
 
 async function isAdmin() {

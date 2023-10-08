@@ -1,22 +1,21 @@
 import {
   Body,
-  Link,
+  Column,
   Container,
   Head,
   Heading,
   Hr,
   Html,
   Img,
+  Link,
   Preview,
   Row,
-  Column,
   Section,
   Tailwind,
   Text,
 } from "@react-email/components";
+import { DUB_LOGO, nFormatter, truncate } from "lib";
 import { Link2, MousePointerClick } from "lucide-react";
-import { DUB_LOGO } from "../lib/constants";
-import { nFormatter, truncate } from "lib";
 import Footer from "./components/footer";
 
 export default function ClicksSummary({

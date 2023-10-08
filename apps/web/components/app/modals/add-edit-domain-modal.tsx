@@ -1,3 +1,10 @@
+import useProject from "#/lib/swr/use-project";
+import { DomainProps } from "#/lib/types";
+import { ModalContext } from "#/ui/modal-provider";
+import { BlurImage } from "@/components/shared/blur-image";
+import { AlertCircleFill, Lock } from "@/components/shared/icons";
+import { AnimatePresence, motion } from "framer-motion";
+import { SWIPE_REVEAL_ANIMATION_SETTINGS } from "lib";
 import { useRouter } from "next/router";
 import {
   Dispatch,
@@ -8,19 +15,10 @@ import {
   useMemo,
   useState,
 } from "react";
-import { mutate } from "swr";
-import { useDebounce } from "use-debounce";
-import BlurImage from "#/ui/blur-image";
-import { AlertCircleFill, Lock } from "@/components/shared/icons";
-import Modal from "#/ui/modal";
-import { DomainProps } from "#/lib/types";
-import Tooltip, { TooltipContent } from "#/ui/tooltip";
-import useProject from "#/lib/swr/use-project";
-import { AnimatePresence, motion } from "framer-motion";
-import { SWIPE_REVEAL_ANIMATION_SETTINGS } from "#/lib/constants";
-import { Button, Logo, Switch } from "ui";
 import { toast } from "sonner";
-import { ModalContext } from "#/ui/modal-provider";
+import { mutate } from "swr";
+import { Button, Logo, Modal, Switch, Tooltip, TooltipContent } from "ui";
+import { useDebounce } from "use-debounce";
 
 function AddEditDomainModal({
   showAddEditDomainModal,

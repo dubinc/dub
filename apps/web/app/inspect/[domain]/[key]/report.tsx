@@ -1,9 +1,9 @@
 "use client";
 
 import { cn } from "lib";
-import { LoadingSpinner } from "ui";
 import { Flag } from "lucide-react";
 import { useState } from "react";
+import { LoadingSpinner } from "ui";
 
 export default function ReportButton({ link }: { link: string }) {
   const [opening, setOpening] = useState(false);

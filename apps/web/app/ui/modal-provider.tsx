@@ -1,5 +1,14 @@
 "use client";
 
+import { useAddEditDomainModal } from "@/components/app/modals/add-edit-domain-modal";
+import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal";
+import { useAddProjectModal } from "@/components/app/modals/add-project-modal";
+import { useCompleteSetupModal } from "@/components/app/modals/complete-setup-modal";
+import { useImportBitlyModal } from "@/components/app/modals/import-bitly-modal";
+import { useImportShortModal } from "@/components/app/modals/import-short-modal";
+import { useUpgradePlanModal } from "@/components/app/modals/upgrade-plan-modal";
+import { getQueryString } from "lib";
+import { useRouter } from "next/router";
 import {
   Dispatch,
   ReactNode,
@@ -8,16 +17,7 @@ import {
   useEffect,
   useState,
 } from "react";
-import { useAddProjectModal } from "@/components/app/modals/add-project-modal";
-import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal";
-import { useImportBitlyModal } from "@/components/app/modals/import-bitly-modal";
-import { useImportShortModal } from "@/components/app/modals/import-short-modal";
-import { useAddEditDomainModal } from "@/components/app/modals/add-edit-domain-modal";
 import { mutate } from "swr";
-import { useRouter } from "next/router";
-import { getQueryString } from "lib";
-import { useUpgradePlanModal } from "@/components/app/modals/upgrade-plan-modal";
-import { useCompleteSetupModal } from "@/components/app/modals/complete-setup-modal";
 
 export const ModalContext = createContext<{
   setShowAddProjectModal: Dispatch<SetStateAction<boolean>>;

@@ -1,3 +1,7 @@
+import { AlertCircleFill } from "@/components/shared/icons";
+import slugify from "@sindresorhus/slugify";
+import va from "@vercel/analytics";
+import { HOME_DOMAIN, generateDomainFromName } from "lib";
 import { useRouter } from "next/router";
 import {
   Dispatch,
@@ -8,17 +12,10 @@ import {
   useMemo,
   useState,
 } from "react";
-import { mutate } from "swr";
-import { useDebounce } from "use-debounce";
-import { AlertCircleFill } from "@/components/shared/icons";
-import Modal from "#/ui/modal";
-import { generateDomainFromName } from "lib";
-import slugify from "@sindresorhus/slugify";
-import va from "@vercel/analytics";
-import { Button, Logo } from "ui";
 import { toast } from "sonner";
-import { InfoTooltip } from "#/ui/tooltip";
-import { HOME_DOMAIN } from "#/lib/constants";
+import { mutate } from "swr";
+import { Button, InfoTooltip, Logo, Modal } from "ui";
+import { useDebounce } from "use-debounce";
 
 function AddProjectModalHelper({
   showAddProjectModal,

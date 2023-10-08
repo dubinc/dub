@@ -5,9 +5,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import Modal from "#/ui/modal";
-import { Button, Logo } from "ui";
-import CopyButton from "@/components/shared/copy-button";
+import { Button, CopyButton, Logo, Modal } from "ui";
 
 function TokenCreatedModal({
   showTokenCreatedModal,

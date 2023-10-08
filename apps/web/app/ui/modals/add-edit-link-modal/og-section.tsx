@@ -1,3 +1,8 @@
+import { UploadCloud } from "@/components/shared/icons";
+import { type Link as LinkProps } from "@prisma/client";
+import { motion } from "framer-motion";
+import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "lib";
+import { Link2 } from "lucide-react";
 import {
   Dispatch,
   SetStateAction,
@@ -5,16 +10,15 @@ import {
   useEffect,
   useState,
 } from "react";
-import { motion } from "framer-motion";
 import TextareaAutosize from "react-textarea-autosize";
-import { UploadCloud } from "@/components/shared/icons";
-import { LoadingCircle, Switch } from "ui";
-import { type Link as LinkProps } from "@prisma/client";
-import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "#/lib/constants";
-import { InfoTooltip, SimpleTooltipContent } from "#/ui/tooltip";
-import { Link2 } from "lucide-react";
-import { Popover } from "ui";
-import Unsplash from "@/components/shared/icons/unsplash";
+import {
+  InfoTooltip,
+  LoadingCircle,
+  Popover,
+  SimpleTooltipContent,
+  Switch,
+  Unsplash,
+} from "ui";
 import UnsplashSearch from "./unsplash-search";
 
 export default function OGSection({

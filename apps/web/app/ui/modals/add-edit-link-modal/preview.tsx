@@ -1,9 +1,8 @@
-import BlurImage from "#/ui/blur-image";
-import { Facebook, LinkedIn, Photo, Twitter } from "@/components/shared/icons";
-import { LoadingCircle } from "ui";
+import { BlurImage } from "@/components/shared/blur-image";
 import { type Link as LinkProps } from "@prisma/client";
 import { getDomainWithoutWWW } from "lib";
 import { useMemo } from "react";
+import { Facebook, LinkedIn, LoadingCircle, Photo, Twitter } from "ui";
 import { useDebounce } from "use-debounce";
 
 export default function Preview({

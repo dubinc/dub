@@ -1,3 +1,6 @@
+import useProject from "#/lib/swr/use-project";
+import { UserProps } from "#/lib/types";
+import { BlurImage } from "@/components/shared/blur-image";
 import { useRouter } from "next/router";
 import {
   Dispatch,
@@ -6,14 +9,9 @@ import {
   useMemo,
   useState,
 } from "react";
-import { mutate } from "swr";
-import BlurImage from "#/ui/blur-image";
-import Modal from "#/ui/modal";
-import useProject from "#/lib/swr/use-project";
 import { toast } from "sonner";
-import { Button, Logo } from "ui";
-import { UserProps } from "#/lib/types";
-import Avatar from "#/ui/avatar";
+import { mutate } from "swr";
+import { Avatar, Button, Logo, Modal } from "ui";
 
 function EditRoleModal({
   showEditRoleModal,

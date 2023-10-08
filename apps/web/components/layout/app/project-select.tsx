@@ -1,17 +1,15 @@
+import useProject from "#/lib/swr/use-project";
+import useProjects from "#/lib/swr/use-projects";
+import { PlanProps, ProjectWithDomainProps } from "#/lib/types";
+import { ModalContext } from "#/ui/modal-provider";
+import PlanBadge from "@/components/app/projects/plan-badge";
+import { GOOGLE_FAVICON_URL } from "lib";
+import { ChevronsUpDown, PlusCircle } from "lucide-react";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { useCallback, useContext, useMemo, useState } from "react";
-import { useSession } from "next-auth/react";
-import { Tick } from "@/components/shared/icons";
-import { ChevronsUpDown, PlusCircle } from "lucide-react";
-import { Popover } from "ui";
-import { PlanProps, ProjectWithDomainProps } from "#/lib/types";
-import useProjects from "#/lib/swr/use-projects";
-import PlanBadge from "@/components/app/projects/plan-badge";
-import { GOOGLE_FAVICON_URL } from "#/lib/constants";
-import { ModalContext } from "#/ui/modal-provider";
-import Link from "next/link";
-import useProject from "#/lib/swr/use-project";
-import Avatar from "#/ui/avatar";
+import { Avatar, Popover, Tick } from "ui";
 
 export default function ProjectSelect() {
   const { projects } = useProjects();

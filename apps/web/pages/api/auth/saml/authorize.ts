@@ -1,5 +1,5 @@
-import { NextApiRequest, NextApiResponse } from "next";
 import jackson from "#/lib/jackson";
+import { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(
   req: NextApiRequest,
@@ -10,9 +10,8 @@ export default async function handler(
 
     const requestParams = req.method === "GET" ? req.query : req.body;
 
-    const { redirect_url, authorize_form } = await oauthController.authorize(
-      requestParams,
-    );
+    const { redirect_url, authorize_form } =
+      await oauthController.authorize(requestParams);
 
     if (redirect_url) {
       res.redirect(302, redirect_url);

@@ -1,15 +1,15 @@
+import slugify from "@sindresorhus/slugify";
 import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-import { Metadata } from "next";
-import { NextRouter } from "next/router";
 import ms from "ms";
 import { customAlphabet } from "nanoid";
-import slugify from "@sindresorhus/slugify";
+import { Metadata } from "next";
+import { NextRouter } from "next/router";
+import { twMerge } from "tailwind-merge";
 import {
+  HOME_DOMAIN,
+  SECOND_LEVEL_DOMAINS,
   SPECIAL_APEX_DOMAINS,
   ccTLDs,
-  SECOND_LEVEL_DOMAINS,
-  HOME_DOMAIN,
 } from "./constants";
 
 export function cn(...inputs: ClassValue[]) {

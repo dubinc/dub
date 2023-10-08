@@ -1,10 +1,10 @@
+import LinksContainer from "@/components/app/links/links-container";
+import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal";
 import dynamic from "next/dynamic";
+import { MaxWidthWrapper } from "ui";
 const AppLayout = dynamic(() => import("@/components/layout/app"), {
   ssr: false,
 });
-import LinksContainer from "@/components/app/links/links-container";
-import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal";
-import { MaxWidthWrapper } from "ui";
 
 export default function Links() {
   const { AddEditLinkModal, AddEditLinkButton } = useAddEditLinkModal();

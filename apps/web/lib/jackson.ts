@@ -1,11 +1,11 @@
-import jackson from "@boxyhq/saml-jackson";
 import type {
   IConnectionAPIController,
-  IOAuthController,
-  JacksonOption,
-  ISPSAMLConfig,
   IDirectorySyncController,
+  IOAuthController,
+  ISPSAMLConfig,
+  JacksonOption,
 } from "@boxyhq/saml-jackson";
+import jackson from "@boxyhq/saml-jackson";
 
 export const samlAudience = "https://saml.dub.co";
 

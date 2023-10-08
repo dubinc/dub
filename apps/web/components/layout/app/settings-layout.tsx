@@ -1,12 +1,12 @@
+import { cn } from "lib";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import dynamic from "next/dynamic";
+import { ReactNode } from "react";
+import { MaxWidthWrapper } from "ui";
 const AppLayout = dynamic(() => import("@/components/layout/app"), {
   ssr: false,
 });
-import { MaxWidthWrapper } from "ui";
-import { ReactNode } from "react";
-import { cn } from "lib";
 
 export default function SettingsLayout({ children }: { children: ReactNode }) {
   const router = useRouter();

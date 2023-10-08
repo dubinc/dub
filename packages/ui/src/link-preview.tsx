@@ -1,15 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
-import { useDebounce } from "use-debounce";
-import useSWR from "swr";
-import { Photo } from "@/components/shared/icons";
-import { LoadingCircle } from "ui";
 import { fetcher, getDomainWithoutWWW, getUrlFromString } from "lib";
-import { useRouter, useSearchParams } from "next/navigation";
 import { Link2 } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useRef } from "react";
+import useSWR from "swr";
+import { useDebounce } from "use-debounce";
+import { LoadingCircle, Photo } from "./icons";
 
-export default function LinkPreview({ defaultUrl }: { defaultUrl?: string }) {
+export function LinkPreview({ defaultUrl }: { defaultUrl?: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const url =

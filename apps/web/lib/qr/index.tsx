@@ -5,9 +5,9 @@
  * Copyright (c) Paul O'Shannessy
  * SPDX-License-Identifier: ISC
  */
+import { escape } from "html-escaper";
 import type { CSSProperties } from "react";
 import React, { useEffect, useRef, useState } from "react";
-import { escape } from "html-escaper";
 import qrcodegen from "./codegen";
 
 type Modules = ReturnType<qrcodegen.QrCode["getModules"]>;

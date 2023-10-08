@@ -1,7 +1,7 @@
-import { NextApiRequest, NextApiResponse } from "next";
 import { ratelimit } from "#/lib/upstash";
-import { Resend } from "resend";
 import FeedbackEmail from "emails/feedback-email";
+import { NextApiRequest, NextApiResponse } from "next";
+import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 

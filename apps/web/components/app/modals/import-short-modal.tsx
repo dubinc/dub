@@ -1,3 +1,7 @@
+import { ShortioDomainProps } from "#/lib/types";
+import { ModalContext } from "#/ui/modal-provider";
+import { HOME_DOMAIN, fetcher, nFormatter } from "lib";
+import { ArrowRight } from "lucide-react";
 import { NextRouter, useRouter } from "next/router";
 import {
   Dispatch,
@@ -8,16 +12,17 @@ import {
   useMemo,
   useState,
 } from "react";
-import Modal from "#/ui/modal";
-import { Button, Logo, LoadingSpinner, Switch } from "ui";
 import { toast } from "sonner";
-import { ArrowRight } from "lucide-react";
-import { ModalContext } from "#/ui/modal-provider";
 import useSWR, { mutate } from "swr";
-import { ShortioDomainProps } from "#/lib/types";
-import { InfoTooltip, SimpleTooltipContent } from "#/ui/tooltip";
-import { fetcher, nFormatter } from "lib";
-import { HOME_DOMAIN } from "#/lib/constants";
+import {
+  Button,
+  InfoTooltip,
+  LoadingSpinner,
+  Logo,
+  Modal,
+  SimpleTooltipContent,
+  Switch,
+} from "ui";
 
 function ImportShortModal({
   showImportShortModal,

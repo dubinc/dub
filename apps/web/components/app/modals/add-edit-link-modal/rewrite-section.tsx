@@ -1,9 +1,8 @@
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { type Link as LinkProps } from "@prisma/client";
-import { Switch } from "ui";
-import { HOME_DOMAIN } from "#/lib/constants";
-import { InfoTooltip, SimpleTooltipContent } from "#/ui/tooltip";
+import { HOME_DOMAIN } from "lib";
 import { useRouter } from "next/router";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { InfoTooltip, SimpleTooltipContent, Switch } from "ui";
 
 export default function RewriteSection({
   data,

@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { useDebounce } from "use-debounce";
-import { STAGGER_CHILD_VARIANTS } from "#/lib/constants";
-import Spline from "@splinetool/react-spline";
 import { InlineSnippet } from "@/components/app/domains/domain-configuration";
-import { useParams } from "next/navigation";
+import Spline from "@splinetool/react-spline";
 import va from "@vercel/analytics";
+import { motion } from "framer-motion";
+import { STAGGER_CHILD_VARIANTS } from "lib";
+import { useParams } from "next/navigation";
+import { useState } from "react";
+import { useDebounce } from "use-debounce";
 
 export default function PlaceholderContent() {
   const { domain } = useParams() as { domain: string };

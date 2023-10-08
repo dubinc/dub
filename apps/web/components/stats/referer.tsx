@@ -1,15 +1,12 @@
-import { useRouter } from "next/router";
-import BlurImage from "#/ui/blur-image";
-import { Link2 } from "lucide-react";
-import { LoadingCircle } from "ui";
-import useSWR from "swr";
-import { fetcher } from "lib";
-import { GOOGLE_FAVICON_URL } from "#/lib/constants";
-import { useContext, useState } from "react";
-import { StatsContext } from ".";
 import BarList from "#/ui/stats/bar-list";
-import { Maximize } from "lucide-react";
-import Modal from "#/ui/modal";
+import { BlurImage } from "@/components/shared/blur-image";
+import { GOOGLE_FAVICON_URL, fetcher } from "lib";
+import { Link2, Maximize } from "lucide-react";
+import { useRouter } from "next/router";
+import { useContext, useState } from "react";
+import useSWR from "swr";
+import { LoadingCircle, Modal } from "ui";
+import { StatsContext } from ".";
 
 export default function Referer() {
   const router = useRouter();

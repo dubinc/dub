@@ -1,6 +1,6 @@
 import { withProjectAuth } from "#/lib/auth";
-import { APP_DOMAIN_WITH_NGROK } from "#/lib/constants";
 import jackson, { samlAudience } from "#/lib/jackson";
+import { APP_DOMAIN_WITH_NGROK } from "lib";
 
 export default withProjectAuth(
   async (req, res, project) => {

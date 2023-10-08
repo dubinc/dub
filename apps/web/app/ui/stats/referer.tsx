@@ -1,14 +1,11 @@
-import BlurImage from "#/ui/blur-image";
-import { Link2 } from "lucide-react";
-import { LoadingCircle } from "ui";
-import useSWR from "swr";
-import { fetcher } from "lib";
-import { GOOGLE_FAVICON_URL } from "#/lib/constants";
-import { StatsContext } from ".";
+import { BlurImage } from "@/components/shared/blur-image";
+import { GOOGLE_FAVICON_URL, fetcher } from "lib";
+import { Link2, Maximize } from "lucide-react";
 import { useContext, useState } from "react";
+import useSWR from "swr";
+import { LoadingCircle, Modal } from "ui";
+import { StatsContext } from ".";
 import BarList from "./bar-list";
-import { Maximize } from "lucide-react";
-import Modal from "#/ui/modal";
 
 export default function Referer() {
   const { endpoint, queryString, modal } = useContext(StatsContext);

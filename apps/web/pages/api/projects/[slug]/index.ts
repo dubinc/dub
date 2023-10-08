@@ -1,9 +1,6 @@
-import { withProjectAuth } from "#/lib/auth";
-import { deleteDomainAndLinks } from "#/lib/api/domains";
-import prisma from "#/lib/prisma";
-import { cancelSubscription } from "#/lib/stripe";
-import cloudinary from "cloudinary";
 import { deleteProject } from "#/lib/api/project";
+import { withProjectAuth } from "#/lib/auth";
+import prisma from "#/lib/prisma";
 
 export default withProjectAuth(
   async (req, res, project, session) => {

@@ -1,10 +1,10 @@
-import type { NextRequest } from "next/server";
-import { getStats } from "#/lib/stats";
-import { getLinkViaEdge } from "#/lib/planetscale";
-import { ipAddress } from "@vercel/edge";
-import { LOCALHOST_IP } from "#/lib/constants";
-import { ratelimit } from "#/lib/upstash";
 import { isBlacklistedReferrer } from "#/lib/edge-config";
+import { getLinkViaEdge } from "#/lib/planetscale";
+import { getStats } from "#/lib/stats";
+import { ratelimit } from "#/lib/upstash";
+import { ipAddress } from "@vercel/edge";
+import { LOCALHOST_IP } from "lib";
+import type { NextRequest } from "next/server";
 
 export const config = {
   runtime: "edge",

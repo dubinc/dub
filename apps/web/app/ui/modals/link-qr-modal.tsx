@@ -1,5 +1,12 @@
 "use client";
 
+import { QRCodeSVG, getQRAsCanvas, getQRAsSVGDataUri } from "#/lib/qr";
+import useProject from "#/lib/swr-app/use-project";
+import { SimpleLinkProps } from "#/lib/types";
+import { BlurImage } from "@/components/shared/blur-image";
+import { Clipboard, Download } from "@/components/shared/icons";
+import { GOOGLE_FAVICON_URL, getApexDomain, linkConstructor } from "lib";
+import { Check, ChevronRight } from "lucide-react";
 import {
   Dispatch,
   SetStateAction,
@@ -9,19 +16,17 @@ import {
   useState,
 } from "react";
 import { HexColorInput, HexColorPicker } from "react-colorful";
-import BlurImage from "#/ui/blur-image";
-import { Clipboard, Download, Photo } from "@/components/shared/icons";
-import { Check, ChevronRight } from "lucide-react";
-import Modal from "#/ui/modal";
-import Tooltip, { TooltipContent } from "#/ui/tooltip";
-import { QRCodeSVG, getQRAsCanvas, getQRAsSVGDataUri } from "#/lib/qr";
-import useProject from "#/lib/swr-app/use-project";
-import { SimpleLinkProps } from "#/lib/types";
-import { getApexDomain, linkConstructor } from "lib";
-import IconMenu from "@/components/shared/icon-menu";
-import { Logo, Popover, Switch } from "ui";
 import { toast } from "sonner";
-import { GOOGLE_FAVICON_URL } from "#/lib/constants";
+import {
+  IconMenu,
+  Logo,
+  Modal,
+  Photo,
+  Popover,
+  Switch,
+  Tooltip,
+  TooltipContent,
+} from "ui";
 import { useDebouncedCallback } from "use-debounce";
 
 function LinkQRModalHelper({

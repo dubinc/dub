@@ -1,8 +1,8 @@
-import { useParams } from "next/navigation";
-import useSWR from "swr";
 import { ProjectProps } from "#/lib/types";
 import { fetcher } from "lib";
+import { useParams } from "next/navigation";
 import { useMemo } from "react";
+import useSWR from "swr";
 
 export default function useProject() {
   const { slug } = useParams() as { slug?: string };

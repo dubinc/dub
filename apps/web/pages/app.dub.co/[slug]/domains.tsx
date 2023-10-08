@@ -1,13 +1,12 @@
-import { useAddEditDomainModal } from "@/components/app/modals/add-edit-domain-modal";
-import { MaxWidthWrapper } from "ui";
-import AppLayout from "components/layout/app";
+import useDomains from "#/lib/swr/use-domains";
 import useProject from "#/lib/swr/use-project";
 import DomainCard from "@/components/app/domains/domain-card";
-import useDomains from "#/lib/swr/use-domains";
 import DomainCardPlaceholder from "@/components/app/domains/domain-card-placeholder";
 import NoDomainsPlaceholder from "@/components/app/domains/no-domains-placeholder";
-import { InfoTooltip, TooltipContent } from "#/ui/tooltip";
-import { HOME_DOMAIN } from "#/lib/constants";
+import { useAddEditDomainModal } from "@/components/app/modals/add-edit-domain-modal";
+import AppLayout from "components/layout/app";
+import { HOME_DOMAIN } from "lib";
+import { InfoTooltip, MaxWidthWrapper, TooltipContent } from "ui";
 
 export default function ProjectDomains() {
   const { id: projectId } = useProject();

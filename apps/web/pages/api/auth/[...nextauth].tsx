@@ -1,14 +1,14 @@
-import EmailProvider from "next-auth/providers/email";
-import GoogleProvider from "next-auth/providers/google";
-import CredentialsProvider from "next-auth/providers/credentials";
+import { isBlacklistedEmail } from "#/lib/edge-config";
+import jackson from "#/lib/jackson";
+import prisma from "#/lib/prisma";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { sendEmail } from "emails";
 import LoginLink from "emails/login-link";
 import WelcomeEmail from "emails/welcome-email";
-import NextAuth, { type NextAuthOptions, User } from "next-auth";
-import prisma from "#/lib/prisma";
-import jackson from "#/lib/jackson";
-import { isBlacklistedEmail } from "#/lib/edge-config";
+import NextAuth, { type NextAuthOptions } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
+import EmailProvider from "next-auth/providers/email";
+import GoogleProvider from "next-auth/providers/google";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 

@@ -1,20 +1,17 @@
-import SettingsLayout from "@/components/layout/app/settings-layout";
-import { useInviteTeammateModal } from "components/app/modals/invite-teammate-modal";
-import { useState } from "react";
-import BlurImage from "#/ui/blur-image";
-import { UserProps } from "#/lib/types";
-import { cn, timeAgo } from "lib";
-import { Popover } from "ui";
-import IconMenu from "@/components/shared/icon-menu";
-import { UserMinus } from "lucide-react";
-import { ThreeDots } from "@/components/shared/icons";
-import { useRemoveTeammateModal } from "@/components/app/modals/remove-teammate-modal";
-import { Badge } from "ui";
-import useUsers from "#/lib/swr/use-users";
-import { useSession } from "next-auth/react";
-import { useEditRoleModal } from "@/components/app/modals/edit-role-modal";
 import useProject from "#/lib/swr/use-project";
-import Avatar from "#/ui/avatar";
+import useUsers from "#/lib/swr/use-users";
+import { UserProps } from "#/lib/types";
+import { useEditRoleModal } from "@/components/app/modals/edit-role-modal";
+import { useRemoveTeammateModal } from "@/components/app/modals/remove-teammate-modal";
+import SettingsLayout from "@/components/layout/app/settings-layout";
+import { BlurImage } from "@/components/shared/blur-image";
+import { ThreeDots } from "@/components/shared/icons";
+import { useInviteTeammateModal } from "components/app/modals/invite-teammate-modal";
+import { cn, timeAgo } from "lib";
+import { UserMinus } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { useState } from "react";
+import { Avatar, Badge, IconMenu, Popover } from "ui";
 
 const tabs: Array<"Members" | "Invitations"> = ["Members", "Invitations"];
 

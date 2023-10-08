@@ -1,13 +1,13 @@
-import { NextApiRequest, NextApiResponse } from "next";
-import { Readable } from "node:stream";
-import Stripe from "stripe";
 import prisma from "#/lib/prisma";
 import { stripe } from "#/lib/stripe";
 import { getPlanFromPriceId, isNewCustomer } from "#/lib/stripe/utils";
 import { redis } from "#/lib/upstash";
-import { log } from "lib";
 import { sendEmail } from "emails";
 import UpgradeEmail from "emails/upgrade-email";
+import { log } from "lib";
+import { NextApiRequest, NextApiResponse } from "next";
+import { Readable } from "node:stream";
+import Stripe from "stripe";
 
 // Stripe requires the raw body to construct the event.
 export const config = {

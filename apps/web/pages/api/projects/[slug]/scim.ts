@@ -1,5 +1,4 @@
 import { withProjectAuth } from "#/lib/auth";
-import { APP_DOMAIN_WITH_NGROK } from "#/lib/constants";
 import jackson from "#/lib/jackson";
 import { SAMLProviderProps } from "#/lib/types";
 
@@ -52,9 +51,8 @@ export default withProjectAuth(
         return res.status(400).end(`Missing SCIM directory ID`);
       }
 
-      const response = await directorySyncController.directories.delete(
-        directoryId,
-      );
+      const response =
+        await directorySyncController.directories.delete(directoryId);
 
       return res.status(200).json(response);
     } else {

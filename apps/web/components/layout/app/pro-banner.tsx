@@ -1,8 +1,8 @@
-import { useRouter } from "next/router";
-import Cookies from "js-cookie";
-import { Dispatch, SetStateAction, useContext } from "react";
-import va from "@vercel/analytics";
 import { ModalContext } from "#/ui/modal-provider";
+import va from "@vercel/analytics";
+import Cookies from "js-cookie";
+import { useRouter } from "next/router";
+import { Dispatch, SetStateAction, useContext } from "react";
 
 export default function ProBanner({
   setShowProBanner,

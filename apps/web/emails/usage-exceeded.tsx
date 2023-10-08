@@ -1,20 +1,18 @@
 import {
   Body,
-  Link,
   Container,
   Head,
   Heading,
-  Hr,
   Html,
   Img,
+  Link,
   Preview,
   Section,
   Tailwind,
   Text,
 } from "@react-email/components";
-import { DUB_LOGO } from "../lib/constants";
+import { DUB_LOGO, capitalize, nFormatter } from "lib";
 import { ProjectProps } from "../lib/types";
-import { capitalize, nFormatter } from "lib";
 import Footer from "./components/footer";
 
 export default function UsageExceeded({

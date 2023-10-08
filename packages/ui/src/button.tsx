@@ -1,9 +1,9 @@
 "use client";
 
-import { LoadingSpinner } from "./icons";
-import { Tooltip } from "./tooltip";
 import { cn } from "lib";
 import { ReactNode } from "react";
+import { LoadingSpinner } from "./icons";
+import { Tooltip } from "./tooltip";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   text: string;

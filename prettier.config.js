@@ -5,5 +5,9 @@ module.exports = {
   trailingComma: "all",
   printWidth: 80,
   tabWidth: 2,
-  plugins: ["prettier-plugin-tailwindcss"],
+  plugins: [
+    // comment for better diff
+    "prettier-plugin-organize-imports",
+    "prettier-plugin-tailwindcss",
+  ],
 };

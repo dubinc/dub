@@ -1,11 +1,11 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
+import { CheckCircle } from "lucide-react";
 import { useState } from "react";
 import { experimental_useFormStatus as useFormStatus } from "react-dom";
-import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "ui";
 import { submitFeedback } from "./action";
-import { CheckCircle } from "lucide-react";
 
 export default function Feedback() {
   const [submitted, setSubmitted] = useState(false);

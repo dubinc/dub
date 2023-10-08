@@ -1,20 +1,17 @@
-import { Button } from "ui";
-import { useSAMLModal } from "@/components/app/modals/saml-modal";
-import { useRemoveSAMLModal } from "@/components/app/modals/remove-saml-modal";
-import SettingsLayout from "@/components/layout/app/settings-layout";
-import { FolderSync, Lock, ShieldOff } from "lucide-react";
-import { Dispatch, SetStateAction, useContext, useMemo, useState } from "react";
-import { ThreeDots } from "@/components/shared/icons";
-import { Popover } from "ui";
-import IconMenu from "@/components/shared/icon-menu";
+import useProject from "#/lib/swr/use-project";
 import useSAML from "#/lib/swr/use-saml";
 import useSCIM from "#/lib/swr/use-scim";
+import { useRemoveSAMLModal } from "@/components/app/modals/remove-saml-modal";
 import { useRemoveSCIMModal } from "@/components/app/modals/remove-scim-modal";
+import { useSAMLModal } from "@/components/app/modals/saml-modal";
 import { useSCIMModal } from "@/components/app/modals/scim-modal";
-import { HOME_DOMAIN, SAML_PROVIDERS } from "#/lib/constants";
-import useProject from "#/lib/swr/use-project";
-import { TooltipContent } from "#/ui/tooltip";
 import { useUpgradePlanModal } from "@/components/app/modals/upgrade-plan-modal";
+import SettingsLayout from "@/components/layout/app/settings-layout";
+import { ThreeDots } from "@/components/shared/icons";
+import { HOME_DOMAIN, SAML_PROVIDERS } from "lib";
+import { FolderSync, Lock, ShieldOff } from "lucide-react";
+import { Dispatch, SetStateAction, useMemo, useState } from "react";
+import { Button, IconMenu, Popover, TooltipContent } from "ui";
 
 export default function ProjectSecurity() {
   const { setShowUpgradePlanModal, UpgradePlanModal } = useUpgradePlanModal({

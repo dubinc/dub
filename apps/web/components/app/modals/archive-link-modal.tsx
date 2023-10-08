@@ -1,3 +1,11 @@
+import { BlurImage } from "@/components/shared/blur-image";
+import { type Link as LinkProps } from "@prisma/client";
+import {
+  GOOGLE_FAVICON_URL,
+  getApexDomain,
+  getQueryString,
+  linkConstructor,
+} from "lib";
 import { useRouter } from "next/router";
 import {
   Dispatch,
@@ -6,14 +14,9 @@ import {
   useMemo,
   useState,
 } from "react";
-import { mutate } from "swr";
-import BlurImage from "#/ui/blur-image";
-import Modal from "#/ui/modal";
-import { type Link as LinkProps } from "@prisma/client";
-import { getApexDomain, getQueryString, linkConstructor } from "lib";
-import { GOOGLE_FAVICON_URL } from "#/lib/constants";
 import { toast } from "sonner";
-import { Button } from "ui";
+import { mutate } from "swr";
+import { Button, Modal } from "ui";
 
 function ArchiveLinkModal({
   showArchiveLinkModal,

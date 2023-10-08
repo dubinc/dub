@@ -1,20 +1,19 @@
-import Link from "next/link";
-import { useRouter } from "next/router";
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
-import useSWR from "swr";
+import useDomains from "#/lib/swr/use-domains";
+import useProject from "#/lib/swr/use-project";
+import useTags from "#/lib/swr/use-tags";
+import { UserProps } from "#/lib/types";
+import { ModalContext } from "#/ui/modal-provider";
+import TagBadge from "@/components/app/links/tag-badge";
 import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal";
 import { useArchiveLinkModal } from "@/components/app/modals/archive-link-modal";
 import { useDeleteLinkModal } from "@/components/app/modals/delete-link-modal";
 import { useLinkQRModal } from "@/components/app/modals/link-qr-modal";
-import IconMenu from "@/components/shared/icon-menu";
-import BlurImage from "#/ui/blur-image";
-import CopyButton from "@/components/shared/copy-button";
+import { BlurImage } from "@/components/shared/blur-image";
 import { Chart, Delete, ThreeDots } from "@/components/shared/icons";
-import { Popover } from "ui";
-import Tooltip, { SimpleTooltipContent, TooltipContent } from "#/ui/tooltip";
-import useProject from "#/lib/swr/use-project";
 import { type Link as LinkProps } from "@prisma/client";
 import {
+  GOOGLE_FAVICON_URL,
+  HOME_DOMAIN,
   cn,
   fetcher,
   getApexDomain,
@@ -23,8 +22,6 @@ import {
   setQueryString,
   timeAgo,
 } from "lib";
-import useIntersectionObserver from "#/lib/hooks/use-intersection-observer";
-import useDomains from "#/lib/swr/use-domains";
 import {
   Archive,
   CopyPlus,
@@ -33,14 +30,22 @@ import {
   MessageCircle,
   QrCode,
 } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/router";
 import punycode from "punycode/";
-import { GOOGLE_FAVICON_URL, HOME_DOMAIN } from "#/lib/constants";
-import useTags from "#/lib/swr/use-tags";
-import TagBadge from "@/components/app/links/tag-badge";
-import { ModalContext } from "#/ui/modal-provider";
-import Number from "#/ui/number";
-import Avatar from "#/ui/avatar";
-import { UserProps } from "#/lib/types";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import useSWR from "swr";
+import {
+  Avatar,
+  CopyButton,
+  IconMenu,
+  NumberTooltip,
+  Popover,
+  SimpleTooltipContent,
+  Tooltip,
+  TooltipContent,
+  useIntersectionObserver,
+} from "ui";
 
 export default function LinkCard({
   props,
@@ -365,7 +370,7 @@ export default function LinkCard({
         </div>
 
         <div className="flex items-center space-x-2">
-          <Number value={clicks} lastClicked={lastClicked}>
+          <NumberTooltip value={clicks} lastClicked={lastClicked}>
             <Link
               onClick={(e) => {
                 e.stopPropagation();
@@ -381,7 +386,7 @@ export default function LinkCard({
                 <span className="ml-1 hidden sm:inline-block">clicks</span>
               </p>
             </Link>
-          </Number>
+          </NumberTooltip>
           <Popover
             content={
               <div className="grid w-full gap-px p-2 sm:w-48">

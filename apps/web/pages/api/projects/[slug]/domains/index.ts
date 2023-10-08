@@ -1,12 +1,10 @@
-import { withProjectAuth } from "#/lib/auth";
-import prisma from "#/lib/prisma";
 import {
   addDomainToVercel,
   setRootDomain,
   validateDomain,
 } from "#/lib/api/domains";
-import { redis } from "#/lib/upstash";
-import { isIframeable } from "#/lib/middleware/utils";
+import { withProjectAuth } from "#/lib/auth";
+import prisma from "#/lib/prisma";
 
 export default withProjectAuth(async (req, res, project) => {
   // GET /api/projects/[slug]/domains – get all domains for a project

@@ -1,10 +1,10 @@
-import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { CheckCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "ui";
 import { useDebouncedCallback } from "use-debounce";
-import { CheckCircle } from "lucide-react";
-import { toast } from "sonner";
 
 export default function Feedback() {
   let session;

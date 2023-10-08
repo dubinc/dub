@@ -1,4 +1,22 @@
+import useDomains from "#/lib/swr/use-domains";
+import useLinks from "#/lib/swr/use-links";
+import useLinksCount from "#/lib/swr/use-links-count";
+import useTags from "#/lib/swr/use-tags";
+import { TagProps } from "#/lib/types";
+import { ModalContext } from "#/ui/modal-provider";
+import TagBadge, { COLORS_LIST } from "@/components/app/links/tag-badge";
+import { ThreeDots } from "@/components/shared/icons";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  SWIPE_REVEAL_ANIMATION_SETTINGS,
+  nFormatter,
+  setQueryString,
+  truncate,
+} from "lib";
+import { Check, ChevronRight, Search, Trash, XCircle } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
+import punycode from "punycode/";
 import {
   useCallback,
   useContext,
@@ -7,28 +25,17 @@ import {
   useRef,
   useState,
 } from "react";
-import { nFormatter, setQueryString, truncate } from "lib";
-import { ChevronRight, XCircle, Search, Check, Trash } from "lucide-react";
-import useDomains from "#/lib/swr/use-domains";
-import { AnimatePresence, motion } from "framer-motion";
-import { SWIPE_REVEAL_ANIMATION_SETTINGS } from "#/lib/constants";
-import { useDebouncedCallback } from "use-debounce";
-import useLinks from "#/lib/swr/use-links";
-import { LoadingCircle, LoadingSpinner } from "ui";
-import useLinksCount from "#/lib/swr/use-links-count";
-import punycode from "punycode/";
-import { Switch } from "ui";
-import { useSession } from "next-auth/react";
 import { toast } from "sonner";
-import { ModalContext } from "#/ui/modal-provider";
-import useTags from "#/lib/swr/use-tags";
-import TagBadge, { COLORS_LIST } from "@/components/app/links/tag-badge";
-import { TagProps } from "#/lib/types";
-import { ThreeDots } from "@/components/shared/icons";
-import { Popover } from "ui";
-import IconMenu from "@/components/shared/icon-menu";
 import { mutate } from "swr";
-import Number from "#/ui/number";
+import {
+  IconMenu,
+  LoadingCircle,
+  LoadingSpinner,
+  NumberTooltip,
+  Popover,
+  Switch,
+} from "ui";
+import { useDebouncedCallback } from "use-debounce";
 
 export default function LinkFilters() {
   const { primaryDomain } = useDomains();
@@ -249,9 +256,9 @@ const DomainsFilter = ({ domains, primaryDomain }) => {
                   className="flex w-full cursor-pointer justify-between px-3 py-2 pl-0 text-sm font-medium text-gray-700"
                 >
                   <p>{truncate(punycode.toUnicode(value || ""), 24)}</p>
-                  <Number value={count} unit="links">
+                  <NumberTooltip value={count} unit="links">
                     <p className="text-gray-500">{nFormatter(count)}</p>
-                  </Number>
+                  </NumberTooltip>
                 </label>
               </div>
             ))}

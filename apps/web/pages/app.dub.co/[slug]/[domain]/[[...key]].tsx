@@ -1,11 +1,11 @@
-import { useContext } from "react";
-import AppLayout from "@/components/layout/app";
-import BlurImage from "#/ui/blur-image";
-import { MaxWidthWrapper } from "ui";
-import Stats from "@/components/stats";
 import useProject from "#/lib/swr/use-project";
 import { ModalContext } from "#/ui/modal-provider";
+import AppLayout from "@/components/layout/app";
+import { BlurImage } from "@/components/shared/blur-image";
+import Stats from "@/components/stats";
 import { Lock } from "lucide-react";
+import { useContext } from "react";
+import { MaxWidthWrapper } from "ui";
 
 export default function StatsPage() {
   const { slug, exceededUsage } = useProject();

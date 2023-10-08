@@ -1,9 +1,8 @@
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { type Link as LinkProps } from "@prisma/client";
-import { Switch } from "ui";
 import { motion } from "framer-motion";
-import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "#/lib/constants";
-import { InfoTooltip, SimpleTooltipContent } from "#/ui/tooltip";
+import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "lib";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { InfoTooltip, SimpleTooltipContent, Switch } from "ui";
 
 export default function IOSSection({
   props,

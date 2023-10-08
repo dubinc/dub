@@ -1,3 +1,4 @@
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import {
   Dispatch,
@@ -7,11 +8,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import BlurImage from "#/ui/blur-image";
-import Modal from "#/ui/modal";
-import { Button } from "ui";
-import { useSession } from "next-auth/react";
-import Avatar from "#/ui/avatar";
+import { Avatar, Button, Modal } from "ui";
 
 function DeleteAccountModal({
   showDeleteAccountModal,

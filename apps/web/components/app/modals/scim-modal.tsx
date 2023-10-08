@@ -1,3 +1,8 @@
+import useProject from "#/lib/swr/use-project";
+import useSCIM from "#/lib/swr/use-scim";
+import { SAMLProviderProps } from "#/lib/types";
+import { HOME_DOMAIN, SAML_PROVIDERS } from "lib";
+import { Eye, EyeOff, FolderSync, RefreshCcw } from "lucide-react";
 import {
   Dispatch,
   SetStateAction,
@@ -5,16 +10,16 @@ import {
   useMemo,
   useState,
 } from "react";
-import Modal from "#/ui/modal";
-import { Button, Logo } from "ui";
 import { toast } from "sonner";
-import { Eye, EyeOff, FolderSync, RefreshCcw } from "lucide-react";
-import useProject from "#/lib/swr/use-project";
-import { InfoTooltip, SimpleTooltipContent } from "#/ui/tooltip";
-import { HOME_DOMAIN, SAML_PROVIDERS } from "#/lib/constants";
-import useSCIM from "#/lib/swr/use-scim";
-import { SAMLProviderProps } from "#/lib/types";
-import { Copy, Tick } from "@/components/shared/icons";
+import {
+  Button,
+  Copy,
+  InfoTooltip,
+  Logo,
+  Modal,
+  SimpleTooltipContent,
+  Tick,
+} from "ui";
 
 function SCIMModal({
   showSCIMModal,

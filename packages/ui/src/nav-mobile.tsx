@@ -1,12 +1,12 @@
 "use client";
 
+import { APP_DOMAIN, cn } from "lib";
+import { ChevronDown, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { navItems } from "./nav";
-import { cn, APP_DOMAIN } from "lib";
-import { FEATURES_LIST } from "./content";
 import { useState } from "react";
-import { ChevronDown, Menu, X } from "lucide-react";
+import { FEATURES_LIST } from "./content";
+import { navItems } from "./nav";
 
 export function NavMobile() {
   const { domain = "dub.co" } = useParams() as { domain: string };
@@ -50,19 +50,19 @@ export function NavMobile() {
             </button>
             {openFeatures && (
               <div className="grid gap-4 overflow-hidden py-4">
-                {FEATURES_LIST.map((feature) => (
+                {FEATURES_LIST.map(({ slug, icon: Icon, shortTitle }) => (
                   <Link
-                    key={feature.slug}
+                    key={slug}
                     href={
                       domain === "dub.co"
-                        ? `/features/${feature.slug}`
-                        : `https://dub.co/features/${feature.slug}?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`
+                        ? `/features/${slug}`
+                        : `https://dub.co/features/${slug}?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`
                     }
                     onClick={() => setOpen(false)}
                     className="flex w-full space-x-2"
                   >
-                    <feature.icon className="h-5 w-5 text-gray-500" />
-                    <span className="text-sm">{feature.shortTitle}</span>
+                    <Icon className="h-5 w-5 text-gray-500" />
+                    <span className="text-sm">{shortTitle}</span>
                   </Link>
                 ))}
               </div>

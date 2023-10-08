@@ -1,8 +1,8 @@
-import { useRouter } from "next/router";
-import useSWR from "swr";
 import type { Directory } from "@boxyhq/saml-jackson";
 import { fetcher } from "lib";
+import { useRouter } from "next/router";
 import { useMemo } from "react";
+import useSWR from "swr";
 
 export default function useSCIM() {
   const router = useRouter();

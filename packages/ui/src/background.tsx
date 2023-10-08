@@ -1,7 +1,7 @@
 "use client";
 
-import { useSelectedLayoutSegment } from "next/navigation";
 import { SHOW_BACKGROUND_SEGMENTS } from "lib";
+import { useSelectedLayoutSegment } from "next/navigation";
 
 export function Background() {
   let segment;

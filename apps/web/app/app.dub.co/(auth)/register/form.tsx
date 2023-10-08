@@ -1,13 +1,11 @@
 "use client";
 
+import { signIn } from "next-auth/react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { signIn } from "next-auth/react";
-import { Google } from "@/components/shared/icons";
-import { Button } from "ui";
-import Link from "next/link";
-import { InfoTooltip } from "#/ui/tooltip";
 import { toast } from "sonner";
+import { Button, Google, InfoTooltip } from "ui";
 
 export default function RegisterForm() {
   const searchParams = useSearchParams();

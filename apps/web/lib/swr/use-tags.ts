@@ -1,7 +1,7 @@
-import { useRouter } from "next/router";
-import useSWR from "swr";
 import { TagProps } from "#/lib/types";
 import { fetcher } from "lib";
+import { useRouter } from "next/router";
+import useSWR from "swr";
 
 export default function useTags() {
   const router = useRouter();

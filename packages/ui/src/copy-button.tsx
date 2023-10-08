@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { Copy, Tick } from "@/components/shared/icons";
-import { toast } from "sonner";
 import { cn } from "lib";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Copy, Tick } from "./icons";
 
-export default function CopyButton({
+export function CopyButton({
   value,
   className,
 }: {

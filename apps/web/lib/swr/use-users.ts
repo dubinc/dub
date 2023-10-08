@@ -1,7 +1,7 @@
-import { useRouter } from "next/router";
-import useSWR from "swr";
 import { UserProps } from "#/lib/types";
 import { fetcher } from "lib";
+import { useRouter } from "next/router";
+import useSWR from "swr";
 
 export default function useUsers({ invites }: { invites?: boolean } = {}) {
   const router = useRouter();

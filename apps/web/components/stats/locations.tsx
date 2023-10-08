@@ -1,15 +1,12 @@
-import { useContext, useState } from "react";
-import TabSelect from "@/components/shared/tab-select";
-import { COUNTRIES } from "#/lib/constants";
 import { LocationTabs } from "#/lib/stats";
-import { LoadingCircle } from "ui";
-import { useRouter } from "next/router";
-import useSWR from "swr";
-import { fetcher } from "lib";
-import { StatsContext } from ".";
-import { Maximize } from "lucide-react";
 import BarList from "#/ui/stats/bar-list";
-import Modal from "#/ui/modal";
+import { COUNTRIES, fetcher } from "lib";
+import { Maximize } from "lucide-react";
+import { useRouter } from "next/router";
+import { useContext, useState } from "react";
+import useSWR from "swr";
+import { LoadingCircle, Modal, TabSelect } from "ui";
+import { StatsContext } from ".";
 
 export default function Locations() {
   const [tab, setTab] = useState<LocationTabs>("country");

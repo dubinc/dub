@@ -1,3 +1,20 @@
+import { QRCodeSVG, getQRAsCanvas, getQRAsSVGDataUri } from "#/lib/qr";
+import useProject from "#/lib/swr/use-project";
+import { SimpleLinkProps } from "#/lib/types";
+import { ModalContext } from "#/ui/modal-provider";
+import { BlurImage } from "@/components/shared/blur-image";
+import { Clipboard, Download } from "@/components/shared/icons";
+import { motion } from "framer-motion";
+import {
+  APP_HOSTNAMES,
+  FADE_IN_ANIMATION_SETTINGS,
+  GOOGLE_FAVICON_URL,
+  HOME_DOMAIN,
+  getApexDomain,
+  linkConstructor,
+} from "lib";
+import { Check, ChevronRight } from "lucide-react";
+import { useRouter } from "next/router";
 import {
   Dispatch,
   SetStateAction,
@@ -8,32 +25,19 @@ import {
   useState,
 } from "react";
 import { HexColorInput, HexColorPicker } from "react-colorful";
-import BlurImage from "#/ui/blur-image";
-import { Logo, Switch } from "ui";
-import { Clipboard, Download, Photo } from "@/components/shared/icons";
-import { Check, ChevronRight } from "lucide-react";
-import Modal from "#/ui/modal";
-import Tooltip, {
-  InfoTooltip,
-  SimpleTooltipContent,
-  TooltipContent,
-} from "#/ui/tooltip";
-import { QRCodeSVG, getQRAsCanvas, getQRAsSVGDataUri } from "#/lib/qr";
-import useProject from "#/lib/swr/use-project";
-import { SimpleLinkProps } from "#/lib/types";
-import { getApexDomain, linkConstructor } from "lib";
-import IconMenu from "@/components/shared/icon-menu";
-import { Popover } from "ui";
 import { toast } from "sonner";
 import {
-  APP_HOSTNAMES,
-  FADE_IN_ANIMATION_SETTINGS,
-  GOOGLE_FAVICON_URL,
-  HOME_DOMAIN,
-} from "#/lib/constants";
-import { useRouter } from "next/router";
-import { ModalContext } from "#/ui/modal-provider";
-import { motion } from "framer-motion";
+  IconMenu,
+  InfoTooltip,
+  Logo,
+  Modal,
+  Photo,
+  Popover,
+  SimpleTooltipContent,
+  Switch,
+  Tooltip,
+  TooltipContent,
+} from "ui";
 import { useDebouncedCallback } from "use-debounce";
 
 function LinkQRModalHelper({

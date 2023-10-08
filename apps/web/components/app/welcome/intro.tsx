@@ -1,9 +1,9 @@
-import { useRouter } from "next/router";
 import Spline from "@splinetool/react-spline";
+import { motion } from "framer-motion";
+import { STAGGER_CHILD_VARIANTS } from "lib";
+import { useRouter } from "next/router";
 import { useState } from "react";
 import { useDebounce } from "use-debounce";
-import { motion } from "framer-motion";
-import { STAGGER_CHILD_VARIANTS } from "#/lib/constants";
 
 export default function Intro() {
   const router = useRouter();

@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
 import { parse } from "#/lib/middleware/utils";
-import { UserProps } from "../types";
+import { DUB_PROJECT_ID } from "lib";
+import { getToken } from "next-auth/jwt";
+import { NextRequest, NextResponse } from "next/server";
 import { conn } from "../planetscale";
-import { DUB_PROJECT_ID } from "../constants";
+import { UserProps } from "../types";
 
 export default async function AdminMiddleware(req: NextRequest) {
   const { path } = parse(req);

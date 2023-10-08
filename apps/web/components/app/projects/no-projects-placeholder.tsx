@@ -1,7 +1,7 @@
-import Link from "next/link";
-import BlurImage from "#/ui/blur-image";
-import { useContext } from "react";
 import { ModalContext } from "#/ui/modal-provider";
+import { BlurImage } from "@/components/shared/blur-image";
+import Link from "next/link";
+import { useContext } from "react";
 
 export default function NoProjectsPlaceholder() {
   const { setShowAddProjectModal } = useContext(ModalContext);

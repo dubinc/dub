@@ -1,12 +1,12 @@
 "use client";
 
+import { AlertCircleFill } from "@/components/shared/icons";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { experimental_useFormStatus as useFormStatus } from "react-dom";
-import { verifyPassword } from "./action";
-import { AlertCircleFill } from "@/components/shared/icons";
-import { Button } from "ui";
 import { toast } from "sonner";
+import { Button } from "ui";
+import { verifyPassword } from "./action";
 
 export default function PasswordForm() {
   const { domain, key } = useParams() as {

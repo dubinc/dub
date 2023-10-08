@@ -1,3 +1,4 @@
+import { ChevronDown, Filter } from "lucide-react";
 import {
   Dispatch,
   SetStateAction,
@@ -5,10 +6,8 @@ import {
   useMemo,
   useState,
 } from "react";
-import Modal from "#/ui/modal";
+import { IconMenu, Modal } from "ui";
 import LinkFilters from "../links/link-filters";
-import IconMenu from "@/components/shared/icon-menu";
-import { ChevronDown, Filter } from "lucide-react";
 
 function LinkFiltersModal({
   showLinkFiltersModal,

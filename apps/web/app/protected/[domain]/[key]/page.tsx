@@ -1,6 +1,5 @@
 import { constructMetadata } from "lib";
-import { Background } from "ui";
-import { Logo } from "ui";
+import { Background, Logo } from "ui";
 import PasswordForm from "./form";
 
 const title = "Password Required";

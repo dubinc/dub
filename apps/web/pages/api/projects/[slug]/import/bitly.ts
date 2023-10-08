@@ -1,10 +1,10 @@
 import { addDomainToVercel } from "#/lib/api/domains";
 import { withProjectAuth } from "#/lib/auth";
-import { APP_DOMAIN_WITH_NGROK } from "#/lib/constants";
 import { qstash } from "#/lib/cron";
 import prisma from "#/lib/prisma";
 import { BitlyGroupProps } from "#/lib/types";
 import { redis } from "#/lib/upstash";
+import { APP_DOMAIN_WITH_NGROK } from "lib";
 
 export default withProjectAuth(async (req, res, project) => {
   // get bitly groups and their respective domains

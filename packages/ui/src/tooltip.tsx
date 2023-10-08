@@ -1,7 +1,10 @@
 "use client";
 
-import { ReactNode } from "react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
+import { nFormatter, timeAgo } from "lib";
+import { HelpCircle } from "lucide-react";
+import Link from "next/link";
+import { ReactNode } from "react";
 import { Drawer } from "vaul";
 import { useMediaQuery } from "./hooks";
 
@@ -73,5 +76,109 @@ export function Tooltip({
         </TooltipPrimitive.Content>
       </TooltipPrimitive.Root>
     </TooltipPrimitive.Provider>
+  );
+}
+
+export function TooltipContent({
+  title,
+  cta,
+  href,
+  target,
+  onClick,
+}: {
+  title: string;
+  cta?: string;
+  href?: string;
+  target?: string;
+  onClick?: () => void;
+}) {
+  return (
+    <div className="flex flex-col items-center space-y-3 p-4 text-center md:max-w-xs">
+      <p className="text-sm text-gray-700">{title}</p>
+      {cta &&
+        (href ? (
+          <Link
+            href={href}
+            {...(target ? { target } : {})}
+            className="mt-4 w-full rounded-md border border-black bg-black px-3 py-1.5 text-center text-sm text-white transition-all hover:bg-white hover:text-black"
+          >
+            {cta}
+          </Link>
+        ) : onClick ? (
+          <button
+            type="button"
+            className="mt-4 w-full rounded-md border border-black bg-black px-3 py-1.5 text-center text-sm text-white transition-all hover:bg-white hover:text-black"
+            onClick={onClick}
+          >
+            {cta}
+          </button>
+        ) : null)}
+    </div>
+  );
+}
+
+export function SimpleTooltipContent({
+  title,
+  cta,
+  href,
+}: {
+  title: string;
+  cta: string;
+  href: string;
+}) {
+  return (
+    <div className="max-w-xs px-4 py-2 text-center text-sm text-gray-700">
+      {title}{" "}
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex text-gray-500 underline underline-offset-4 hover:text-gray-800"
+      >
+        {cta}
+      </a>
+    </div>
+  );
+}
+
+export function InfoTooltip({ content }: { content: ReactNode | string }) {
+  return (
+    <Tooltip content={content}>
+      <HelpCircle className="h-4 w-4 text-gray-500" />
+    </Tooltip>
+  );
+}
+
+export function NumberTooltip({
+  value,
+  unit = "total clicks",
+  children,
+  lastClicked,
+}: {
+  value?: number | null;
+  unit?: string;
+  children: ReactNode;
+  lastClicked?: Date | null;
+}) {
+  if ((!value || value < 1000) && !lastClicked) {
+    return children;
+  }
+  return (
+    <Tooltip
+      content={
+        <div className="block max-w-xs px-4 py-2 text-center text-sm text-gray-700">
+          <p className="text-sm font-semibold text-gray-700">
+            {nFormatter(value || 0, { full: true })} {unit}
+          </p>
+          {lastClicked && (
+            <p className="mt-1 text-xs text-gray-500">
+              Last clicked {timeAgo(lastClicked, { withAgo: true })}
+            </p>
+          )}
+        </div>
+      }
+    >
+      {children}
+    </Tooltip>
   );
 }

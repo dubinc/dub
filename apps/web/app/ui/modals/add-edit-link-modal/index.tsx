@@ -1,11 +1,28 @@
 "use client";
 
+import useDomains from "#/lib/swr-app/use-domains";
+import useProject from "#/lib/swr-app/use-project";
+import { ModalContext } from "#/ui/modal-provider";
+import { BlurImage } from "@/components/shared/blur-image";
+import { AlertCircleFill, Lock, Random, X } from "@/components/shared/icons";
+import { type Link as LinkProps } from "@prisma/client";
+import va from "@vercel/analytics";
+import {
+  DEFAULT_LINK_PROPS,
+  GOOGLE_FAVICON_URL,
+  deepEqual,
+  getApexDomain,
+  getUrlWithoutUTMParams,
+  linkConstructor,
+  truncate,
+} from "lib";
 import {
   useParams,
   usePathname,
   useRouter,
   useSearchParams,
 } from "next/navigation";
+import punycode from "punycode/";
 import {
   Dispatch,
   SetStateAction,
@@ -17,38 +34,27 @@ import {
   useMemo,
   useState,
 } from "react";
+import { toast } from "sonner";
 import { mutate } from "swr";
-import { useDebounce } from "use-debounce";
-import BlurImage from "#/ui/blur-image";
-import { AlertCircleFill, Lock, Random, X } from "@/components/shared/icons";
-import Modal from "#/ui/modal";
-import { TooltipContent } from "#/ui/tooltip";
-import useProject from "#/lib/swr-app/use-project";
-import { type Link as LinkProps } from "@prisma/client";
 import {
-  deepEqual,
-  getApexDomain,
-  getUrlWithoutUTMParams,
-  linkConstructor,
-  truncate,
-} from "lib";
+  Button,
+  LoadingCircle,
+  Logo,
+  Modal,
+  Tooltip,
+  TooltipContent,
+} from "ui";
+import { useDebounce } from "use-debounce";
+import AndroidSection from "./android-section";
+import CommentsSection from "./comments-section";
 import ExpirationSection from "./expiration-section";
+import GeoSection from "./geo-section";
+import IOSSection from "./ios-section";
 import OGSection from "./og-section";
 import PasswordSection from "./password-section";
-import UTMSection from "./utm-section";
-import IOSSection from "./ios-section";
 import Preview from "./preview";
-import AndroidSection from "./android-section";
-import { DEFAULT_LINK_PROPS, GOOGLE_FAVICON_URL } from "#/lib/constants";
-import useDomains from "#/lib/swr-app/use-domains";
-import { toast } from "sonner";
-import va from "@vercel/analytics";
-import punycode from "punycode/";
-import { Button, Tooltip, LoadingCircle, Logo } from "ui";
-import { ModalContext } from "#/ui/modal-provider";
 import RewriteSection from "./rewrite-section";
-import CommentsSection from "./comments-section";
-import GeoSection from "./geo-section";
+import UTMSection from "./utm-section";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
@@ -78,7 +84,7 @@ function AddEditLinkModal({
   const [data, setData] = useState<LinkProps>(
     props ||
       duplicateProps || {
-        ...DEFAULT_LINK_PROPS,
+        ...(DEFAULT_LINK_PROPS as LinkProps),
         domain: primaryDomain || "",
         key: "",
         url: "",

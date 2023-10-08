@@ -8,19 +8,19 @@
   We use the `useEndpoint()` hook to get the correct layout
 */
 
-import { createContext, useMemo } from "react";
+import { X } from "lucide-react";
 import {
   useParams,
   usePathname,
   useRouter,
   useSearchParams,
 } from "next/navigation";
-import { X } from "lucide-react";
-import Toggle from "./toggle";
+import { createContext, useMemo } from "react";
 import Clicks from "./clicks";
 import Devices from "./devices";
 import Locations from "./locations";
 import Referer from "./referer";
+import Toggle from "./toggle";
 // using the regular feedback component until Server Actions play nice with ISR
 import Feedback from "@/components/stats/feedback";
 

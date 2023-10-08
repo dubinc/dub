@@ -1,3 +1,5 @@
+import { Token } from "@prisma/client";
+import { timeAgo } from "lib";
 import {
   Dispatch,
   SetStateAction,
@@ -5,14 +7,9 @@ import {
   useMemo,
   useState,
 } from "react";
-import { mutate } from "swr";
-import Modal from "#/ui/modal";
 import { toast } from "sonner";
-import { Button, Logo } from "ui";
-import { Token } from "@prisma/client";
-import { TokenAvatar } from "#/ui/avatar";
-import { timeAgo } from "lib";
-import { Badge } from "ui";
+import { mutate } from "swr";
+import { Badge, Button, Logo, Modal, TokenAvatar } from "ui";
 
 function DeleteTokenModal({
   showDeleteTokenModal,

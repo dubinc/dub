@@ -1,9 +1,9 @@
 import { Session, hashToken } from "#/lib/auth";
 import prisma from "#/lib/prisma";
-import { sendEmail } from "emails";
-import { randomBytes } from "crypto";
-import ProjectInvite from "emails/project-invite";
 import { ProjectProps } from "#/lib/types";
+import { randomBytes } from "crypto";
+import { sendEmail } from "emails";
+import ProjectInvite from "emails/project-invite";
 
 export async function inviteUser({
   email,

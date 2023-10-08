@@ -1,3 +1,10 @@
+import { getStripe } from "#/lib/stripe/client";
+import { PLANS } from "#/lib/stripe/utils";
+import { CheckCircleFill } from "@/components/shared/icons";
+import { motion } from "framer-motion";
+import { HOME_DOMAIN, STAGGER_CHILD_VARIANTS, capitalize } from "lib";
+import Link from "next/link";
+import { useRouter } from "next/router";
 import {
   Dispatch,
   SetStateAction,
@@ -5,18 +12,8 @@ import {
   useMemo,
   useState,
 } from "react";
-import Modal from "#/ui/modal";
-import { Button, Logo } from "ui";
-import { useRouter } from "next/router";
-import Link from "next/link";
-import { motion } from "framer-motion";
-import { HOME_DOMAIN, STAGGER_CHILD_VARIANTS } from "#/lib/constants";
-import { CheckCircleFill } from "@/components/shared/icons";
-import { capitalize } from "lib";
-import { PLANS } from "#/lib/stripe/utils";
-import { getStripe } from "#/lib/stripe/client";
-import { Badge } from "ui";
 import Confetti from "react-dom-confetti";
+import { Badge, Button, Logo, Modal } from "ui";
 
 function UpgradePlanModal({
   showUpgradePlanModal,

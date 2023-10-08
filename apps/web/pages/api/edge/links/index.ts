@@ -1,9 +1,8 @@
-import { NextResponse, type NextRequest } from "next/server";
-import { ipAddress } from "@vercel/edge";
-import { LOCALHOST_IP } from "#/lib/constants";
-import { ratelimit, setRandomKey } from "#/lib/upstash";
-import { isValidUrl } from "lib";
 import { isBlacklistedDomain } from "#/lib/edge-config";
+import { ratelimit, setRandomKey } from "#/lib/upstash";
+import { ipAddress } from "@vercel/edge";
+import { LOCALHOST_IP, isValidUrl } from "lib";
+import { NextResponse, type NextRequest } from "next/server";
 
 export const config = {
   runtime: "edge",

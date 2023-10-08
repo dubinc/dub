@@ -1,21 +1,25 @@
-import { useContext, useMemo, useState } from "react";
-import { Copy, Tick } from "@/components/shared/icons";
-import { Calendar, ChevronDown, Share2, Lock } from "lucide-react";
-import { ExpandingArrow, Popover, Switch } from "ui";
 import { INTERVALS } from "#/lib/stats";
-import { cn, linkConstructor } from "lib";
-import IconMenu from "@/components/shared/icon-menu";
-import useSWR, { mutate } from "swr";
-import { fetcher } from "lib";
-import { toast } from "sonner";
-import Link from "next/link";
-import { StatsContext } from ".";
-import useScroll from "#/lib/hooks/use-scroll";
-import Tooltip, { TooltipContent } from "../tooltip";
 import useProject from "#/lib/swr-app/use-project";
+import { APP_DOMAIN, cn, fetcher, linkConstructor } from "lib";
+import { Calendar, ChevronDown, Lock, Share2 } from "lucide-react";
+import Link from "next/link";
 import { useParams } from "next/navigation";
-import { APP_DOMAIN } from "#/lib/constants";
 import punycode from "punycode/";
+import { useContext, useMemo, useState } from "react";
+import { toast } from "sonner";
+import useSWR, { mutate } from "swr";
+import {
+  Copy,
+  ExpandingArrow,
+  IconMenu,
+  Popover,
+  Switch,
+  Tick,
+  Tooltip,
+  TooltipContent,
+  useScroll,
+} from "ui";
+import { StatsContext } from ".";
 
 export default function Toggle() {
   const { slug: projectSlug } = useParams() as { slug?: string };

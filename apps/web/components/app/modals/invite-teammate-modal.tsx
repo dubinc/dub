@@ -1,3 +1,6 @@
+import useProject from "#/lib/swr/use-project";
+import { BlurImage } from "@/components/shared/blur-image";
+import va from "@vercel/analytics";
 import { useRouter } from "next/router";
 import {
   Dispatch,
@@ -6,13 +9,9 @@ import {
   useMemo,
   useState,
 } from "react";
-import { mutate } from "swr";
-import BlurImage from "#/ui/blur-image";
-import va from "@vercel/analytics";
-import Modal from "#/ui/modal";
-import useProject from "#/lib/swr/use-project";
 import { toast } from "sonner";
-import { Button, Logo } from "ui";
+import { mutate } from "swr";
+import { Button, Logo, Modal } from "ui";
 
 function InviteTeammateModal({
   showInviteTeammateModal,

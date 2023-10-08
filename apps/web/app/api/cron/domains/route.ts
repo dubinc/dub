@@ -1,13 +1,13 @@
-import { NextResponse } from "next/server";
-import { receiver } from "#/lib/cron";
-import { handleDomainUpdates } from "./utils";
 import {
   getConfigResponse,
   getDomainResponse,
   verifyDomain,
 } from "#/lib/api/domains";
+import { receiver } from "#/lib/cron";
 import prisma from "#/lib/prisma";
 import { log } from "lib";
+import { NextResponse } from "next/server";
+import { handleDomainUpdates } from "./utils";
 
 /**
  * Cron to check if domains are verified.

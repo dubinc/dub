@@ -1,6 +1,6 @@
+import { fetcher, getQueryString } from "lib";
 import { useRouter } from "next/router";
 import useSWR from "swr";
-import { fetcher, getQueryString } from "lib";
 
 export default function useLinksCount({
   groupBy,

@@ -1,5 +1,4 @@
-import { useRouter } from "next/router";
-import useSWR, { mutate } from "swr";
+import { DomainProps, DomainVerificationStatusProps } from "#/lib/types";
 import {
   AlertCircleFill,
   Chart,
@@ -7,14 +6,14 @@ import {
   ExternalLink,
   XCircleFill,
 } from "@/components/shared/icons";
-import { DomainProps, DomainVerificationStatusProps } from "#/lib/types";
 import { capitalize, fetcher, nFormatter, truncate } from "lib";
+import Link from "next/link";
+import { useRouter } from "next/router";
+import punycode from "punycode/";
+import useSWR, { mutate } from "swr";
+import { Button, LoadingCircle, LoadingDots, NumberTooltip } from "ui";
 import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
 import DomainConfiguration from "./domain-configuration";
-import Link from "next/link";
-import punycode from "punycode/";
-import { Button, LoadingCircle, LoadingDots } from "ui";
-import Number from "#/ui/number";
 
 export default function DomainCard({ props }: { props: DomainProps }) {
   const router = useRouter();
@@ -60,7 +59,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
               </p>
               <ExternalLink className="h-5 w-5" />
             </a>
-            <Number value={clicks}>
+            <NumberTooltip value={clicks}>
               <Link
                 href={`/${slug}/${domain}`}
                 className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 transition-all duration-75 hover:scale-105 active:scale-100"
@@ -75,7 +74,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                   <span className="ml-1 hidden sm:inline-block">clicks</span>
                 </p>
               </Link>
-            </Number>
+            </NumberTooltip>
             {primary && (
               <span className="rounded-full bg-blue-500 px-3 py-0.5 text-xs text-white">
                 Primary Domain

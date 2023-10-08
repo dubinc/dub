@@ -1,10 +1,9 @@
-import { PAGINATION_LIMIT } from "#/lib/constants";
 import useLinksCount from "#/lib/swr/use-links-count";
-import { nFormatter, setQueryString } from "lib";
-import Number from "#/ui/number";
+import { PAGINATION_LIMIT, nFormatter, setQueryString } from "lib";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/router";
 import { useMemo } from "react";
+import { NumberTooltip } from "ui";
 
 export default function LinkPagination() {
   const router = useRouter();
@@ -91,9 +90,9 @@ export default function LinkPagination() {
       <p className="text-sm text-gray-500">
         Showing {(currentPage - 1) * PAGINATION_LIMIT + 1} -{" "}
         {Math.min(currentPage * PAGINATION_LIMIT, count)} of{" "}
-        <Number value={count} unit="links">
+        <NumberTooltip value={count} unit="links">
           <span>{nFormatter(count)}</span>
-        </Number>{" "}
+        </NumberTooltip>{" "}
         links
       </p>
     </div>

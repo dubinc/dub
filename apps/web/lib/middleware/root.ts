@@ -1,8 +1,8 @@
-import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
-import { redis } from "#/lib/upstash";
 import { recordClick } from "#/lib/tinybird";
+import { redis } from "#/lib/upstash";
+import { DUB_HEADERS } from "lib";
+import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 import { parse } from "./utils";
-import { DUB_HEADERS } from "#/lib/constants";
 
 export default async function RootMiddleware(
   req: NextRequest,

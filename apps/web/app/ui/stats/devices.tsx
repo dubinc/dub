@@ -1,14 +1,12 @@
-import { useContext, useState } from "react";
-import TabSelect from "@/components/shared/tab-select";
-import { LoadingCircle } from "ui";
 import { DeviceTabs, uaToBot } from "#/lib/stats";
-import DeviceIcon from "./device-icon";
-import useSWR from "swr";
 import { fetcher } from "lib";
+import { Maximize } from "lucide-react";
+import { useContext, useState } from "react";
+import useSWR from "swr";
+import { LoadingCircle, Modal, TabSelect } from "ui";
 import { StatsContext } from ".";
 import BarList from "./bar-list";
-import { Maximize } from "lucide-react";
-import Modal from "#/ui/modal";
+import DeviceIcon from "./device-icon";
 
 export default function Devices() {
   const [tab, setTab] = useState<DeviceTabs>("device");

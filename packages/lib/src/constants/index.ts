@@ -33,7 +33,28 @@ export const FADE_IN_ANIMATION_SETTINGS = {
 
 export const PAGINATION_LIMIT = 100;
 
-export const HOME_DOMAIN = "https://dub.co";
+/*
+  NOTE: We're using home.localhost:8888 for HOME_DOMAIN and localhost:8888 for APP_DOMAIN
+  in local development because Google OAuth doesn't allow subdomain localhost (e.g. app.localhost:8888)
+  as the callback URL. 
+*/
+
+export const HOME_HOSTNAMES = new Set([
+  "dub.co",
+  "home.localhost:8888",
+  "localhost",
+]);
+
+export const isHomeHostname = (domain: string) => {
+  return HOME_HOSTNAMES.has(domain) || domain.endsWith(".vercel.app");
+};
+
+export const HOME_DOMAIN =
+  process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
+    ? "https://dub.co"
+    : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
+    ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+    : "http://home.localhost:8888";
 
 export const APP_HOSTNAMES = new Set([
   "app.dub.co",
@@ -46,7 +67,8 @@ export const APP_DOMAIN =
   process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
     ? "https://app.dub.co"
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
-    ? "https://preview.dub.co"
+    ? // ? "https://preview.dub.co"
+      "https://app.dub.co"
     : "http://localhost:8888";
 
 export const APP_DOMAIN_WITH_NGROK =
@@ -119,8 +141,8 @@ export const SHOW_BACKGROUND_SEGMENTS = [
 
 export const allTools = ["metatags", "inspector"];
 
-export { default as COUNTRIES } from "./countries";
 export { default as ccTLDs } from "./cctlds";
+export { default as COUNTRIES } from "./countries";
 
 export const SECOND_LEVEL_DOMAINS = new Set([
   "com",
@@ -143,3 +165,65 @@ export const SPECIAL_APEX_DOMAINS = new Set([
   "fly.dev",
   "web.app",
 ]);
+
+export const DEFAULT_LINK_PROPS = {
+  key: "",
+  url: "",
+  domain: "",
+  archived: false,
+  expiresAt: null,
+  password: null,
+
+  title: null,
+  description: null,
+  image: null,
+  rewrite: false,
+  ios: null,
+  android: null,
+
+  clicks: 0,
+  userId: "",
+
+  proxy: false,
+};
+
+export const DUB_PROJECT_ID = "cl7pj5kq4006835rbjlt2ofka";
+
+export const SAML_PROVIDERS = [
+  {
+    name: "Okta",
+    logo: "/_static/icons/okta.svg",
+    saml: "okta",
+    samlModalCopy: "Metadata URL",
+    scim: "okta-scim-v2",
+    scimModalCopy: {
+      url: "SCIM 2.0 Base URL",
+      token: "OAuth Bearer Token",
+    },
+    wip: false,
+  },
+  {
+    name: "Azure AD",
+    logo: "/_static/icons/azure.svg",
+    saml: "azure",
+    samlModalCopy: "App Federation Metadata URL",
+    scim: "azure-scim-v2",
+    scimModalCopy: {
+      url: "Tenant URL",
+      token: "Secret Token",
+    },
+    wip: false,
+  },
+  {
+    name: "Google",
+    logo: "/_static/icons/google.svg",
+    saml: "google",
+    samlModalCopy: "XML Metadata File",
+    scim: "google",
+    scimModalCopy: {
+      url: "SCIM 2.0 Base URL",
+      token: "OAuth Bearer Token",
+    },
+    wip: false,
+  },
+];

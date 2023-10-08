@@ -1,13 +1,12 @@
 "use client";
 
 import { cn } from "lib";
-import { experimental_useFormStatus as useFormStatus } from "react-dom";
-import { getUserByKey, banUser } from "../actions";
-import { useState } from "react";
-import { Button, LoadingSpinner } from "ui";
-import { toast } from "sonner";
-import { Copy, Tick } from "@/components/shared/icons";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { experimental_useFormStatus as useFormStatus } from "react-dom";
+import { toast } from "sonner";
+import { Button, Copy, LoadingSpinner, Tick } from "ui";
+import { banUser, getUserByKey } from "../actions";
 
 export default function BanUser() {
   const [data, setData] = useState<{

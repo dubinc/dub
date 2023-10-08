@@ -10,7 +10,7 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import { DUB_LOGO } from "../lib/constants";
+import { DUB_LOGO } from "lib";
 
 export default function FeedbackEmail({
   email = "panic@thedis.co",

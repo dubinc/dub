@@ -1,12 +1,12 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import { inviteUser } from "#/lib/api/users";
 import jackson from "#/lib/jackson";
 import prisma from "#/lib/prisma";
+import { ProjectProps } from "#/lib/types";
 import type {
   DirectorySyncEvent,
   DirectorySyncRequest,
 } from "@boxyhq/saml-jackson";
-import { inviteUser } from "#/lib/api/users";
-import { ProjectProps } from "#/lib/types";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 // Fetch the auth token from the request headers
 export const extractAuthToken = (req: NextApiRequest): string | null => {

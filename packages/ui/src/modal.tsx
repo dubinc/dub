@@ -1,13 +1,13 @@
 "use client";
 
-import { Dispatch, SetStateAction } from "react";
-import { useRouter } from "next/navigation";
-import { cn } from "lib";
-import { Drawer } from "vaul";
 import * as Dialog from "@radix-ui/react-dialog";
-import useMediaQuery from "#/lib/hooks/use-media-query";
+import { cn } from "lib";
+import { useRouter } from "next/navigation";
+import { Dispatch, SetStateAction } from "react";
+import { Drawer } from "vaul";
+import { useMediaQuery } from "./hooks";
 
-export default function Modal({
+export function Modal({
   children,
   className,
   dialogOnly,

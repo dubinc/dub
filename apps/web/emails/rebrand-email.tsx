@@ -1,12 +1,12 @@
 import {
   Body,
-  Link,
   Container,
   Head,
   Heading,
   Hr,
   Html,
   Img,
+  Link,
   Preview,
   Section,
   Tailwind,

@@ -1,18 +1,17 @@
 import {
   Body,
-  Link,
   Container,
   Head,
   Heading,
-  Hr,
   Html,
   Img,
+  Link,
   Preview,
   Section,
   Tailwind,
   Text,
 } from "@react-email/components";
-import { DUB_LOGO, DUB_THUMBNAIL } from "../lib/constants";
+import { DUB_LOGO, DUB_THUMBNAIL } from "lib";
 import Footer from "./components/footer";
 
 export default function WelcomeEmail({

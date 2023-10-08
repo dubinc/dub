@@ -1,10 +1,9 @@
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { type Link as LinkProps } from "@prisma/client";
-import { Switch } from "ui";
-import { motion } from "framer-motion";
-import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "#/lib/constants";
 import { Eye, EyeOff } from "@/components/shared/icons";
-import { InfoTooltip, SimpleTooltipContent } from "#/ui/tooltip";
+import { type Link as LinkProps } from "@prisma/client";
+import { motion } from "framer-motion";
+import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "lib";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { InfoTooltip, SimpleTooltipContent, Switch } from "ui";
 
 export default function PasswordSection({
   props,

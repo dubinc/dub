@@ -1,6 +1,6 @@
 import { cn } from "lib";
 
-export default function Avatar({
+export function Avatar({
   user = {},
   className,
 }: {

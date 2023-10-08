@@ -1,3 +1,5 @@
+import Cookies from "js-cookie";
+import { HOME_DOMAIN } from "lib";
 import { signIn } from "next-auth/react";
 import {
   Dispatch,
@@ -6,11 +8,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import Modal from "#/ui/modal";
-import { Button, Logo } from "ui";
-import { Google } from "@/components/shared/icons";
-import Cookies from "js-cookie";
-import { HOME_DOMAIN } from "#/lib/constants";
+import { Button, Google, Logo, Modal } from "ui";
 
 function GoogleOauthModal({
   showGoogleOauthModal,

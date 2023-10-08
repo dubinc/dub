@@ -1,8 +1,7 @@
-import { GOOGLE_FAVICON_URL } from "#/lib/constants";
-import { getApexDomain, linkConstructor } from "lib";
-import CopyButton from "@/components/shared/copy-button";
-import BlurImage from "#/ui/blur-image";
+import { BlurImage } from "@/components/shared/blur-image";
+import { GOOGLE_FAVICON_URL, getApexDomain, linkConstructor } from "lib";
 import Script from "next/script";
+import { CopyButton } from "ui";
 import ReportButton from "./report";
 
 export default function LinkInspectorCard({

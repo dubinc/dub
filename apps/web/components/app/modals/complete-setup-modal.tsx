@@ -1,3 +1,9 @@
+import useDomains from "#/lib/swr/use-domains";
+import useLinksCount from "#/lib/swr/use-links-count";
+import useUsers from "#/lib/swr/use-users";
+import { ModalContext } from "#/ui/modal-provider";
+import { CheckCircleFill } from "@/components/shared/icons";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import {
   Dispatch,
@@ -7,14 +13,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import Modal from "#/ui/modal";
-import { CheckCircleFill } from "@/components/shared/icons";
-import { Logo, ExpandingArrow } from "ui";
-import useDomains from "#/lib/swr/use-domains";
-import useLinksCount from "#/lib/swr/use-links-count";
-import { ModalContext } from "#/ui/modal-provider";
-import Link from "next/link";
-import useUsers from "#/lib/swr/use-users";
+import { ExpandingArrow, Logo, Modal } from "ui";
 
 function CompleteSetupModal({
   showCompleteSetupModal,

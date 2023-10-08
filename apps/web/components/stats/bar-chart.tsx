@@ -1,5 +1,3 @@
-import { useRouter } from "next/router";
-import { useCallback, useContext, useMemo } from "react";
 import { AxisBottom, AxisLeft } from "@visx/axis";
 import { localPoint } from "@visx/event";
 import { GridRows } from "@visx/grid";
@@ -7,12 +5,13 @@ import { withScreenSize } from "@visx/responsive";
 import { scaleBand, scaleLinear } from "@visx/scale";
 import { useTooltip, useTooltipInPortal } from "@visx/tooltip";
 import { motion } from "framer-motion";
-import { nFormatter } from "lib";
-import styles from "./bar-chart.module.css";
+import { fetcher, nFormatter } from "lib";
+import { useRouter } from "next/router";
+import { useCallback, useContext, useMemo } from "react";
 import useSWR from "swr";
-import { fetcher } from "lib";
 import { LoadingCircle } from "ui";
 import { StatsContext } from ".";
+import styles from "./bar-chart.module.css";
 
 const LEFT_AXIS_WIDTH = 30;
 const CHART_MAX_HEIGHT = 400;

@@ -1,12 +1,11 @@
 "use client";
 
 import { cn } from "lib";
-import { experimental_useFormStatus as useFormStatus } from "react-dom";
-import { LoadingSpinner } from "ui";
-import { getProjectOwner } from "../actions";
 import { useState } from "react";
+import { experimental_useFormStatus as useFormStatus } from "react-dom";
 import { toast } from "sonner";
-import { Copy, Tick } from "@/components/shared/icons";
+import { Copy, LoadingSpinner, Tick } from "ui";
+import { getProjectOwner } from "../actions";
 
 export default function ImpersonateProject() {
   const [data, setData] = useState<{

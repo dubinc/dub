@@ -1,7 +1,7 @@
-import type { Config } from "tailwindcss";
 import forms from "@tailwindcss/forms";
 import typography from "@tailwindcss/typography";
 import scrollbarHide from "tailwind-scrollbar-hide";
+import type { Config } from "tailwindcss";
 import radix from "tailwindcss-radix";
 
 const config: Config = {

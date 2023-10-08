@@ -1,12 +1,12 @@
-import { NextApiRequest, NextApiResponse } from "next";
-import { getServerSession } from "next-auth/next";
 import prisma from "#/lib/prisma";
-import { type Link as LinkProps } from "@prisma/client";
 import { PlanProps, ProjectProps, UserProps } from "#/lib/types";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
+import { type Link as LinkProps } from "@prisma/client";
 import { createHash } from "crypto";
+import { API_DOMAIN } from "lib";
+import { NextApiRequest, NextApiResponse } from "next";
+import { getServerSession } from "next-auth/next";
 import { ratelimit } from "./upstash";
-import { API_DOMAIN } from "./constants";
 
 export interface Session {
   user: {

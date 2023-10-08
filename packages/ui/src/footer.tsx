@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
-import { LogoType, Github, LinkedIn, Twitter } from "./icons";
-import { useParams } from "next/navigation";
-import { MaxWidthWrapper } from "./max-width-wrapper";
 import va from "@vercel/analytics";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import { FEATURES_LIST } from "./content";
+import { Github, LinkedIn, LogoType, Twitter } from "./icons";
+import { MaxWidthWrapper } from "./max-width-wrapper";
 
 const navigation = {
   features: FEATURES_LIST.map(({ shortTitle, slug }) => ({

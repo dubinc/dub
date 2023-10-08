@@ -1,18 +1,16 @@
+import useProject from "#/lib/swr/use-project";
+import { ModalContext } from "#/ui/modal-provider";
+import PlanBadge from "@/components/app/projects/plan-badge";
 import SettingsLayout from "@/components/layout/app/settings-layout";
+import { Divider, InfinityIcon } from "@/components/shared/icons";
+import va from "@vercel/analytics";
+import { motion } from "framer-motion";
+import { fetcher, getFirstAndLastDay, nFormatter } from "lib";
 import { useRouter } from "next/router";
 import { useContext, useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
-import { InfinityIcon, Divider } from "@/components/shared/icons";
-import { InfoTooltip } from "#/ui/tooltip";
-import { fetcher, getFirstAndLastDay, nFormatter } from "lib";
-import useProject from "#/lib/swr/use-project";
-import PlanBadge from "@/components/app/projects/plan-badge";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
-import va from "@vercel/analytics";
-import { ModalContext } from "#/ui/modal-provider";
-import { Button } from "ui";
-import Number from "#/ui/number";
+import { Button, InfoTooltip, NumberTooltip } from "ui";
 
 export default function ProjectBilling() {
   const router = useRouter();
@@ -92,11 +90,11 @@ export default function ProjectBilling() {
             {plan === "enterprise" ? (
               <div className="mt-4 flex items-center">
                 {usage || usage === 0 ? (
-                  <Number value={usage}>
+                  <NumberTooltip value={usage}>
                     <p className="text-2xl font-semibold text-black">
                       {nFormatter(usage)}
                     </p>
-                  </Number>
+                  </NumberTooltip>
                 ) : (
                   <div className="h-8 w-8 animate-pulse rounded-md bg-gray-200" />
                 )}
@@ -107,9 +105,9 @@ export default function ProjectBilling() {
               <div className="mt-2 flex flex-col space-y-2">
                 {usage !== undefined && usageLimit ? (
                   <p className="text-sm text-gray-600">
-                    <Number value={usage}>
+                    <NumberTooltip value={usage}>
                       <span>{nFormatter(usage)} </span>
-                    </Number>
+                    </NumberTooltip>
                     / {nFormatter(usageLimit)} clicks (
                     {((usage / usageLimit) * 100).toFixed(1)}%)
                   </p>
@@ -143,11 +141,11 @@ export default function ProjectBilling() {
             </div>
             <div className="mt-4 flex items-center">
               {links || links === 0 ? (
-                <Number value={links} unit="links">
+                <NumberTooltip value={links} unit="links">
                   <p className="text-2xl font-semibold text-black">
                     {nFormatter(links)}
                   </p>
-                </Number>
+                </NumberTooltip>
               ) : (
                 <div className="h-8 w-8 animate-pulse rounded-md bg-gray-200" />
               )}

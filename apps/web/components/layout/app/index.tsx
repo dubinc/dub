@@ -1,25 +1,22 @@
+import useProject from "#/lib/swr/use-project";
+import { ModalContext } from "#/ui/modal-provider";
+import { useAcceptInviteModal } from "@/components/app/modals/accept-invite-modal";
+import { BlurImage } from "@/components/shared/blur-image";
+import { Divider } from "@/components/shared/icons";
+import { Crisp } from "crisp-sdk-web";
+import Cookies from "js-cookie";
+import { HOME_DOMAIN, linkConstructor } from "lib";
+import { FileX2 } from "lucide-react";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { ReactNode, useContext, useEffect, useState } from "react";
-import { Divider } from "@/components/shared/icons";
+import { Badge, LoadingSpinner, Logo, MaxWidthWrapper } from "ui";
 import Meta from "../meta";
+import NavTabs from "./nav-tabs";
+import ProBanner from "./pro-banner";
 import ProjectSelect from "./project-select";
 import UserDropdown from "./user-dropdown";
-import useProject from "#/lib/swr/use-project";
-import { Crisp } from "crisp-sdk-web";
-import { useSession } from "next-auth/react";
-import ProBanner from "./pro-banner";
-import Cookies from "js-cookie";
-import { ModalContext } from "#/ui/modal-provider";
-import { Badge } from "ui";
-import { linkConstructor } from "lib";
-import { HOME_DOMAIN } from "#/lib/constants";
-import { useAcceptInviteModal } from "@/components/app/modals/accept-invite-modal";
-import { MaxWidthWrapper } from "ui";
-import { LoadingSpinner, Logo } from "ui";
-import { FileX2 } from "lucide-react";
-import BlurImage from "#/ui/blur-image";
-import NavTabs from "./nav-tabs";
 
 export default function AppLayout({
   children,

@@ -1,4 +1,4 @@
-export default function TabSelect({
+export function TabSelect({
   options,
   selected,
   selectAction,

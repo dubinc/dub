@@ -1,14 +1,14 @@
+import { detectBot, getFinalUrl, parse } from "#/lib/middleware/utils";
+import { recordClick } from "#/lib/tinybird";
+import { ratelimit, redis } from "#/lib/upstash";
+import { ipAddress } from "@vercel/edge";
+import { DUB_HEADERS, LOCALHOST_GEO_DATA, LOCALHOST_IP } from "lib";
 import {
   NextFetchEvent,
   NextRequest,
   NextResponse,
   userAgent,
 } from "next/server";
-import { detectBot, getFinalUrl, parse } from "#/lib/middleware/utils";
-import { ratelimit, redis } from "#/lib/upstash";
-import { recordClick } from "#/lib/tinybird";
-import { DUB_HEADERS, LOCALHOST_GEO_DATA, LOCALHOST_IP } from "../constants";
-import { ipAddress } from "@vercel/edge";
 import { isBlacklistedReferrer } from "../edge-config";
 
 export default async function LinkMiddleware(

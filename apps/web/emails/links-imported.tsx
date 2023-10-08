@@ -1,21 +1,20 @@
 import {
   Body,
-  Link,
-  Container,
   Column,
-  Row,
+  Container,
   Head,
   Heading,
   Hr,
   Html,
   Img,
+  Link,
   Preview,
+  Row,
   Section,
   Tailwind,
   Text,
 } from "@react-email/components";
-import { linkConstructor, timeAgo } from "lib";
-import { DUB_LOGO } from "../lib/constants";
+import { DUB_LOGO, linkConstructor, timeAgo } from "lib";
 import Footer from "./components/footer";
 
 export default function LinksImported({

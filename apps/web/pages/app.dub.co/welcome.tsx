@@ -1,15 +1,15 @@
-import { useRouter } from "next/router";
-import { Background } from "ui";
-import Intro from "@/components/app/welcome/intro";
-import Interim from "@/components/app/welcome/interim";
-import { AnimatePresence } from "framer-motion";
-import { useEffect } from "react";
-import { useAddProjectModal } from "@/components/app/modals/add-project-modal";
 import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal";
+import { useAddProjectModal } from "@/components/app/modals/add-project-modal";
+import { useUpgradePlanModal } from "@/components/app/modals/upgrade-plan-modal";
+import Interim from "@/components/app/welcome/interim";
+import Intro from "@/components/app/welcome/intro";
 import Meta from "@/components/layout/meta";
 import va from "@vercel/analytics";
+import { AnimatePresence } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
-import { useUpgradePlanModal } from "@/components/app/modals/upgrade-plan-modal";
+import { useRouter } from "next/router";
+import { useEffect } from "react";
+import { Background } from "ui";
 
 export default function Welcome() {
   const { setShowAddProjectModal, AddProjectModal } = useAddProjectModal();

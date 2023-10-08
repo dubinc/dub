@@ -1,3 +1,8 @@
+import useProject from "#/lib/swr/use-project";
+import { BitlyGroupProps } from "#/lib/types";
+import { ModalContext } from "#/ui/modal-provider";
+import { HOME_DOMAIN, fetcher } from "lib";
+import { ArrowRight } from "lucide-react";
 import { NextRouter, useRouter } from "next/router";
 import {
   Dispatch,
@@ -8,17 +13,9 @@ import {
   useMemo,
   useState,
 } from "react";
-import Modal from "#/ui/modal";
-import useProject from "#/lib/swr/use-project";
-import { Button, Logo, LoadingSpinner, Switch } from "ui";
-import Tooltip from "#/ui/tooltip";
 import { toast } from "sonner";
-import { ArrowRight } from "lucide-react";
-import { ModalContext } from "#/ui/modal-provider";
 import useSWR, { mutate } from "swr";
-import { BitlyGroupProps } from "#/lib/types";
-import { fetcher } from "lib";
-import { HOME_DOMAIN } from "#/lib/constants";
+import { Button, LoadingSpinner, Logo, Modal, Switch, Tooltip } from "ui";
 
 function ImportBitlyModal({
   showImportBitlyModal,

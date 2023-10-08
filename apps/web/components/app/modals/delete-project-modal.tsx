@@ -1,3 +1,6 @@
+import useProject from "#/lib/swr/use-project";
+import { BlurImage } from "@/components/shared/blur-image";
+import { cn } from "lib";
 import { useRouter } from "next/router";
 import {
   Dispatch,
@@ -8,11 +11,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import BlurImage from "#/ui/blur-image";
-import Modal from "#/ui/modal";
-import useProject from "#/lib/swr/use-project";
-import { Button } from "ui";
-import { cn } from "lib";
+import { Button, Modal } from "ui";
 
 function DeleteProjectModal({
   showDeleteProjectModal,

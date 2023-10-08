@@ -1,17 +1,13 @@
-import { fetcher, timeAgo } from "lib";
-import { TokenAvatar } from "#/ui/avatar";
-import Form from "#/ui/form";
-import { LoadingSpinner } from "ui";
-import { Popover } from "ui";
 import { useDeleteTokenModal } from "@/components/app/modals/delete-token-modal";
 import { useTokenCreatedModal } from "@/components/app/modals/token-created-modal";
 import SettingsLayout from "@/components/layout/app/settings-layout";
-import IconMenu from "@/components/shared/icon-menu";
 import { Token } from "@prisma/client";
+import { fetcher, timeAgo } from "lib";
 import { FolderOpen, MoreVertical, Trash } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
+import { Form, IconMenu, LoadingSpinner, Popover, TokenAvatar } from "ui";
 
 export default function TokensPage() {
   const {

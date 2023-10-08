@@ -1,17 +1,17 @@
-import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
+import {
+  ApiMiddleware,
+  AppMiddleware,
+  LinkMiddleware,
+  RootMiddleware,
+} from "#/lib/middleware";
+import { parse } from "#/lib/middleware/utils";
 import {
   ADMIN_HOSTNAMES,
   API_HOSTNAMES,
   APP_HOSTNAMES,
   DEFAULT_REDIRECTS,
-} from "#/lib/constants";
-import {
-  AppMiddleware,
-  ApiMiddleware,
-  LinkMiddleware,
-  RootMiddleware,
-} from "#/lib/middleware";
-import { parse } from "#/lib/middleware/utils";
+} from "lib";
+import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 import AdminMiddleware from "./lib/middleware/admin";
 
 export const config = {

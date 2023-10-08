@@ -1,3 +1,8 @@
+import useProject from "#/lib/swr/use-project";
+import useSCIM from "#/lib/swr/use-scim";
+import { SAMLProviderProps } from "#/lib/types";
+import { BlurImage } from "@/components/shared/blur-image";
+import { SAML_PROVIDERS } from "lib";
 import {
   Dispatch,
   SetStateAction,
@@ -5,14 +10,8 @@ import {
   useMemo,
   useState,
 } from "react";
-import BlurImage from "#/ui/blur-image";
-import Modal from "#/ui/modal";
-import useProject from "#/lib/swr/use-project";
 import { toast } from "sonner";
-import { Button, Logo } from "ui";
-import useSCIM from "#/lib/swr/use-scim";
-import { SAML_PROVIDERS } from "#/lib/constants";
-import { SAMLProviderProps } from "#/lib/types";
+import { Button, Logo, Modal } from "ui";
 
 function RemoveSCIMModal({
   showRemoveSCIMModal,

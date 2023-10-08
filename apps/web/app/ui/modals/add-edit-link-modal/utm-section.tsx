@@ -1,15 +1,15 @@
-import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { type Link as LinkProps } from "@prisma/client";
 import { motion } from "framer-motion";
 import {
+  FADE_IN_ANIMATION_SETTINGS,
+  HOME_DOMAIN,
   constructURLFromUTMParams,
   getParamsFromURL,
-  paramsMetadata,
   getUrlWithoutUTMParams,
+  paramsMetadata,
 } from "lib";
-import { Switch } from "ui";
-import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "#/lib/constants";
-import { InfoTooltip, SimpleTooltipContent } from "#/ui/tooltip";
+import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
+import { InfoTooltip, SimpleTooltipContent, Switch } from "ui";
 
 export default function UTMSection({
   props,

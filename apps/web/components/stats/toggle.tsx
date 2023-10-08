@@ -1,21 +1,25 @@
-import { useRouter } from "next/router";
-import { useContext, useMemo, useState } from "react";
-import { Copy, Tick } from "@/components/shared/icons";
-import { Calendar, Share2, ChevronDown, Lock } from "lucide-react";
-import { ExpandingArrow, Tooltip, Switch } from "ui";
 import { INTERVALS } from "#/lib/stats";
-import useScroll from "#/lib/hooks/use-scroll";
-import { cn, linkConstructor } from "lib";
-import IconMenu from "@/components/shared/icon-menu";
-import { Popover } from "ui";
-import useSWR, { mutate } from "swr";
-import { fetcher } from "lib";
-import { toast } from "sonner";
-import { StatsContext } from ".";
 import useProject from "#/lib/swr/use-project";
-import { TooltipContent } from "#/ui/tooltip";
 import { ModalContext } from "#/ui/modal-provider";
+import { cn, fetcher, linkConstructor } from "lib";
+import { Calendar, ChevronDown, Lock, Share2 } from "lucide-react";
+import { useRouter } from "next/router";
 import punycode from "punycode/";
+import { useContext, useMemo, useState } from "react";
+import { toast } from "sonner";
+import useSWR, { mutate } from "swr";
+import {
+  Copy,
+  ExpandingArrow,
+  IconMenu,
+  Popover,
+  Switch,
+  Tick,
+  Tooltip,
+  TooltipContent,
+  useScroll,
+} from "ui";
+import { StatsContext } from ".";
 
 export default function Toggle() {
   const router = useRouter();

@@ -1,4 +1,33 @@
+import useDomains from "#/lib/swr/use-domains";
+import useProject from "#/lib/swr/use-project";
+import { ModalContext } from "#/ui/modal-provider";
+import AndroidSection from "#/ui/modals/add-edit-link-modal/android-section";
+import CommentsSection from "#/ui/modals/add-edit-link-modal/comments-section";
+import ExpirationSection from "#/ui/modals/add-edit-link-modal/expiration-section";
+import IOSSection from "#/ui/modals/add-edit-link-modal/ios-section";
+import OGSection from "#/ui/modals/add-edit-link-modal/og-section";
+import PasswordSection from "#/ui/modals/add-edit-link-modal/password-section";
+import Preview from "#/ui/modals/add-edit-link-modal/preview";
+import TagsSection from "#/ui/modals/add-edit-link-modal/tags-section";
+import UTMSection from "#/ui/modals/add-edit-link-modal/utm-section";
+import { BlurImage } from "@/components/shared/blur-image";
+import { AlertCircleFill, Lock, Random, X } from "@/components/shared/icons";
+import { type Link as LinkProps } from "@prisma/client";
+import va from "@vercel/analytics";
+import {
+  DEFAULT_LINK_PROPS,
+  GOOGLE_FAVICON_URL,
+  cn,
+  deepEqual,
+  getApexDomain,
+  getQueryString,
+  getUrlWithoutUTMParams,
+  isValidUrl,
+  linkConstructor,
+  truncate,
+} from "lib";
 import { useRouter } from "next/router";
+import punycode from "punycode/";
 import {
   Dispatch,
   SetStateAction,
@@ -10,42 +39,19 @@ import {
   useRef,
   useState,
 } from "react";
-import { mutate } from "swr";
-import { useDebounce } from "use-debounce";
-import BlurImage from "#/ui/blur-image";
-import { AlertCircleFill, Lock, Random, X } from "@/components/shared/icons";
-import Modal from "#/ui/modal";
-import Tooltip, { TooltipContent } from "#/ui/tooltip";
-import useProject from "#/lib/swr/use-project";
-import { type Link as LinkProps } from "@prisma/client";
-import {
-  cn,
-  deepEqual,
-  getApexDomain,
-  getQueryString,
-  getUrlWithoutUTMParams,
-  isValidUrl,
-  linkConstructor,
-  truncate,
-} from "lib";
-import { DEFAULT_LINK_PROPS, GOOGLE_FAVICON_URL } from "#/lib/constants";
-import useDomains from "#/lib/swr/use-domains";
 import { toast } from "sonner";
-import va from "@vercel/analytics";
-import punycode from "punycode/";
-import { Button, LoadingCircle, Logo } from "ui";
-import { ModalContext } from "#/ui/modal-provider";
-import TagsSection from "#/ui/modals/add-edit-link-modal/tags-section";
-import OGSection from "#/ui/modals/add-edit-link-modal/og-section";
-import UTMSection from "#/ui/modals/add-edit-link-modal/utm-section";
-import PasswordSection from "#/ui/modals/add-edit-link-modal/password-section";
-import ExpirationSection from "#/ui/modals/add-edit-link-modal/expiration-section";
-import IOSSection from "#/ui/modals/add-edit-link-modal/ios-section";
-import AndroidSection from "#/ui/modals/add-edit-link-modal/android-section";
-import Preview from "#/ui/modals/add-edit-link-modal/preview";
-import CommentsSection from "#/ui/modals/add-edit-link-modal/comments-section";
-import RewriteSection from "./rewrite-section";
+import { mutate } from "swr";
+import {
+  Button,
+  LoadingCircle,
+  Logo,
+  Modal,
+  Tooltip,
+  TooltipContent,
+} from "ui";
+import { useDebounce } from "use-debounce";
 import GeoSection from "./geo-section";
+import RewriteSection from "./rewrite-section";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
@@ -73,7 +79,7 @@ function AddEditLinkModal({
   const [data, setData] = useState<LinkProps>(
     props ||
       duplicateProps || {
-        ...DEFAULT_LINK_PROPS,
+        ...(DEFAULT_LINK_PROPS as LinkProps),
         domain:
           primaryDomain ||
           (domains && domains.length > 0 && domains[0].slug) ||
