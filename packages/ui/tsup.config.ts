@@ -10,7 +10,6 @@ export default defineConfig((options: Options) => ({
   },
   dts: true,
   minify: true,
-  clean: false,
   external: ["react"],
   ...options,
 }));
