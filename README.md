@@ -45,9 +45,9 @@ To develop Dub locally, you will need to clone this repository and set up all th
 Once that's done, you can use the following commands to run the app locally:
 
 ```
-yarn
-yarn build
-yarn dev
+pnpm i
+pnpm build
+pnpm dev
 ```
 
 We're planning to add a proper, well-documented self-hosting guide for Dub soon – stay tuned!
@@ -62,8 +62,9 @@ We're planning to add a proper, well-documented self-hosting guide for Dub soon 
 - [PlanetScale](https://planetscale.com/) – database
 - [NextAuth.js](https://next-auth.js.org/) – auth
 - [BoxyHQ](https://boxyhq.com/enterprise-sso) – SSO/SAML
-- [Vercel](https://vercel.com/) – hosting
+- [Turborepo](https://turbo.build/repo) – monorepo
 - [Stripe](https://stripe.com/) – payments
+- [Vercel](https://vercel.com/) – deployments
 
 ## Contributing
 
