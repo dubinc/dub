@@ -2,16 +2,13 @@
   "name": "@dub/ui",
   "description": "UI components for Dub.co",
   "version": "0.0.8",
-  "sideEffects": [
-    "**/*.css"
-  ],
+  "sideEffects": false,
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
-  "exports": {
-    ".": "./dist",
-    "./styles.css": "./dist/index.css"
-  },
+  "files": [
+    "dist/**"
+  ],
   "scripts": {
     "build": "tsup",
     "lint": "eslint src/",
