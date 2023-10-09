@@ -41,10 +41,10 @@ importers:
         specifier: workspace:*
         version: link:../../packages/tailwind-config
       '@dub/ui':
-        specifier: latest
+        specifier: workspace:*
         version: link:../../packages/ui
       '@dub/utils':
-        specifier: latest
+        specifier: workspace:*
         version: link:../../packages/utils
       '@next-auth/prisma-adapter':
         specifier: ^1.0.5
