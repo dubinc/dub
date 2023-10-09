@@ -1,0 +1,58 @@
+{
+  "name": "@dub/utils",
+  "description": "Utility functions and constants for Dub.co",
+  "version": "0.0.5",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist/**"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "lint": "eslint src/",
+    "dev": "tsup --watch",
+    "check-types": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "next": "13.5.4",
+    "react": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/ms": "^0.7.31",
+    "@types/node": "18.11.9",
+    "@types/react": "^18.2.5",
+    "next": "13.5.4",
+    "react": "^18.2.0",
+    "tsconfig": "workspace:*",
+    "tsup": "^6.1.3",
+    "typescript": "^5.1.6"
+  },
+  "dependencies": {
+    "@sindresorhus/slugify": "^2.2.1",
+    "clsx": "^1.2.1",
+    "ms": "^2.1.3",
+    "nanoid": "^5.0.1",
+    "tailwind-merge": "^1.13.2"
+  },
+  "author": "Steven Tey <stevensteel97@gmail.com>",
+  "homepage": "https://dub.co",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/steven-tey/dub.git"
+  },
+  "bugs": {
+    "url": "https://github.com/steven-tey/dub/issues"
+  },
+  "keywords": [
+    "dub",
+    "dub.co",
+    "utils",
+    "utility",
+    "functions"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

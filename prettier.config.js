@@ -5,16 +5,9 @@ module.exports = {
   trailingComma: "all",
   printWidth: 80,
   tabWidth: 2,
-  importOrder: [
-    "^(next/(.*)$)|^(next$)",
-    "^(react/(.*)$)|^(react$)",
-    "<THIRD_PARTY_MODULES>",
-    "^@/components/(.*)$|^components/(.*)$",
-    "^#/lib/(.*)$",
-    "^@/styles/(.*)$",
-    "^[./]",
+  plugins: [
+    // comment for better diff
+    "prettier-plugin-organize-imports",
+    "prettier-plugin-tailwindcss",
   ],
-  importOrderSeparation: false,
-  importOrderSortSpecifiers: true,
-  plugins: [require("prettier-plugin-tailwindcss")],
 };

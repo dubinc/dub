@@ -2,9 +2,10 @@
 
 # dependencies
 node_modules
+dist/
 
 # next.js
-/.next/
+.next/
 /out/
 
 # production
@@ -30,6 +31,9 @@ yarn-error.log*
 # tinybird
 venv
 .tinyb
+
+# turbo
+.turbo
 
 # typescript
 *.tsbuildinfo

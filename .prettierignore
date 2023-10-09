@@ -1,5 +1,5 @@
-/data/world-topo.json
-yarn.lock
 node_modules
+pnpm-lock.yaml
 .next
-.mailing
+.turbo
+dist
