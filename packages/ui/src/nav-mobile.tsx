@@ -4,7 +4,7 @@ import { APP_DOMAIN, cn } from "@dub/utils";
 import { ChevronDown, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FEATURES_LIST } from "./content";
 import { navItems } from "./nav";
 
@@ -12,13 +12,21 @@ export function NavMobile() {
   const { domain = "dub.co" } = useParams() as { domain: string };
   const [open, setOpen] = useState(false);
   const [openFeatures, setOpenFeatures] = useState(false);
+  // prevent body scroll when modal is open
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+  }, [open]);
 
   return (
     <>
       <button
         onClick={() => setOpen(!open)}
         className={cn(
-          "absolute right-3 top-3 z-40 rounded-full p-2 transition-colors duration-200 hover:bg-gray-200 focus:outline-none active:bg-gray-300 lg:hidden",
+          "fixed right-3 top-3 z-40 rounded-full p-2 transition-colors duration-200 hover:bg-gray-200 focus:outline-none active:bg-gray-300 lg:hidden",
           open && "hover:bg-gray-100 active:bg-gray-200",
         )}
       >
@@ -30,7 +38,7 @@ export function NavMobile() {
       </button>
       <nav
         className={cn(
-          "fixed inset-0 z-20 hidden w-full bg-white px-5 py-16",
+          "fixed inset-0 z-20 hidden w-full bg-white px-5 py-16 lg:hidden",
           open && "block",
         )}
       >
