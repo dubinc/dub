@@ -238,7 +238,7 @@ export async function addLink(link: LinkProps) {
     redis.set(
       `${domain}:${key}`,
       {
-        url: encodeURIComponent(url),
+        url,
         password: hasPassword,
         proxy,
         ...(rewrite && {
@@ -349,7 +349,7 @@ export async function editLink({
     redis.set(
       `${domain}:${key}`,
       {
-        url: encodeURIComponent(url),
+        url,
         password: hasPassword,
         proxy,
         ...(rewrite && {

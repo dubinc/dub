@@ -70,12 +70,6 @@ importers:
       '@stripe/stripe-js':
         specifier: ^1.44.1
         version: 1.44.1
-      '@tailwindcss/forms':
-        specifier: ^0.5.6
-        version: 0.5.6(tailwindcss@3.3.3)
-      '@tailwindcss/typography':
-        specifier: ^0.5.9
-        version: 0.5.9(tailwindcss@3.3.3)
       '@upstash/qstash':
         specifier: ^0.3.6
         version: 0.3.6
@@ -139,9 +133,6 @@ importers:
       crisp-sdk-web:
         specifier: ^1.0.19
         version: 1.0.19
-      focus-trap-react:
-        specifier: ^10.0.1
-        version: 10.0.1(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)
       framer-motion:
         specifier: ^10.12.12
         version: 10.12.12(react-dom@18.2.0)(react@18.2.0)
@@ -160,9 +151,6 @@ importers:
       lucide-react:
         specifier: ^0.269.0
         version: 0.269.0(react@18.2.0)
-      ms:
-        specifier: ^2.1.3
-        version: 2.1.3
       nanoid:
         specifier: ^5.0.1
         version: 5.0.1
@@ -250,12 +238,6 @@ importers:
       swr:
         specifier: ^2.1.5
         version: 2.1.5(react@18.2.0)
-      tailwind-scrollbar-hide:
-        specifier: ^1.1.7
-        version: 1.1.7
-      tailwindcss-radix:
-        specifier: ^2.8.0
-        version: 2.8.0
       topojson-client:
         specifier: ^3.1.0
         version: 3.1.0
@@ -8484,26 +8466,6 @@ packages:
     engines: {node: '>=0.4.0'}
     dev: false
 
-  /focus-trap-react@10.0.1(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-Av+O4JCT4/WnY25jnaOu1rysqhaD9aAhqAxxcrJbgKciZToIFmPng/WOrLJ1yHe6ntNmx1g0WhdeDfNCL1dmfA==}
-    peerDependencies:
-      prop-types: ^15.8.1
-      react: '>=16.3.0'
-      react-dom: '>=16.3.0'
-    dependencies:
-      focus-trap: 7.5.3
-      prop-types: 15.8.1
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
-      tabbable: 6.2.0
-    dev: false
-
-  /focus-trap@7.5.3:
-    resolution: {integrity: sha512-7UsT/eSJcTPF0aZp73u7hBRTABz26knRRTJfoTGFCQD5mUImLIIOwWWCrtoQdmWa7dykBi6H+Cp5i3S/kvsMeA==}
-    dependencies:
-      tabbable: 6.2.0
-    dev: false
-
   /follow-redirects@1.15.3:
     resolution: {integrity: sha512-1VzOtuEM8pC9SFU1E+8KfTjZyMztRsgEfwQl44z8A25uy13jSzTj6dyK2Df52iV0vgHCfBwLhDWevLn95w5v6Q==}
     engines: {node: '>=4.0'}
@@ -13275,10 +13237,6 @@ packages:
       client-only: 0.0.1
       react: 18.2.0
       use-sync-external-store: 1.2.0(react@18.2.0)
-    dev: false
-
-  /tabbable@6.2.0:
-    resolution: {integrity: sha512-Cat63mxsVJlzYvN51JmVXIgNoUokrIaT2zLclCXjRd8boZ0004U4KCs/sToJ75C6sdlByWxpYnb5Boif1VSFew==}
     dev: false
 
   /tailwind-merge@1.13.2:
