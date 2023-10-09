@@ -17,23 +17,24 @@
     "check-types": "tsc --noEmit"
   },
   "peerDependencies": {
-    "react": "^18.2.0",
+    "@vercel/analytics": "^1.0.0",
     "next": "13.5.4",
-    "@vercel/analytics": "^1.0.0"
+    "react": "^18.2.0"
   },
   "devDependencies": {
+    "@dub/tailwind-config": "workspace:*",
     "@types/react": "^18.2.5",
     "autoprefixer": "^10.4.16",
+    "next": "13.5.4",
     "postcss": "^8.4.31",
     "react": "^18.2.0",
-    "next": "13.5.4",
-    "@dub/tailwind-config": "workspace:*",
     "tailwindcss": "^3.3.3",
     "tsconfig": "workspace:*",
-    "tsup": "^6.1.3",
+    "tsup": "^7.2.0",
     "typescript": "^5.1.6"
   },
   "dependencies": {
+    "@dub/utils": "workspace:*",
     "@radix-ui/react-accordion": "^1.0.1",
     "@radix-ui/react-dialog": "1.0.3",
     "@radix-ui/react-navigation-menu": "^1.1.2",
@@ -41,7 +42,6 @@
     "@radix-ui/react-switch": "^1.0.1",
     "@radix-ui/react-tooltip": "^1.0.2",
     "class-variance-authority": "^0.7.0",
-    "@dub/utils": "workspace:*",
     "lucide-react": "^0.284.0",
     "sonner": "^0.5.0",
     "swr": "^2.1.5",
