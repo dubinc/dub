@@ -25,6 +25,7 @@ export function Avatar({
   return (
     <img
       alt={`Avatar for ${user?.name || user?.email}`}
+      referrerPolicy="no-referrer"
       src={
         user?.image ||
         `https://avatars.dicebear.com/api/micah/${user?.email}.svg`

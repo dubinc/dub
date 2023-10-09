@@ -61,13 +61,15 @@ export default function Stats({
   let {
     slug,
     domain: domainSlug,
-    key,
+    key, // might wanna set the defaule to "_root" here
   } = params as {
     slug?: string;
     domain?: string;
     key: string;
   };
-  if (staticKey) key = staticKey;
+  if (staticKey) {
+    key = staticKey;
+  }
 
   const interval = searchParams.get("interval") || "24h";
 
@@ -83,7 +85,10 @@ export default function Stats({
       return {
         basePath: `/${slug}/${domainSlug}/${key}`,
         domain: domainSlug,
-        endpoint: `/api/links/${key}/stats`,
+        endpoint:
+          key === "_root"
+            ? `/api/projects/${slug}/domains/${domainSlug}/stats`
+            : `/api/links/${key}/stats`,
       };
 
       // Generic Dub.co link page, e.g. app.dub.co/links/steven

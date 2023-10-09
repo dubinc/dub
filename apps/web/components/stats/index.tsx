@@ -54,7 +54,10 @@ export default function Stats({ staticDomain }: { staticDomain?: string }) {
           key === "_root" ? "" : `/${encodeURIComponent(key)}`
         }`,
         domain: domainSlug,
-        endpoint: `/api/links/${encodeURIComponent(key)}/stats`,
+        endpoint:
+          key === "_root"
+            ? `/api/projects/${slug}/domains/${domainSlug}/stats`
+            : `/api/links/${encodeURIComponent(key)}/stats`,
       };
 
       // Generic Dub.sh link page, e.g. app.dub.co/links/steven

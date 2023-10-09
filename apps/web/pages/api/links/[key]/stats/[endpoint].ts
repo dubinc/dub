@@ -26,7 +26,7 @@ export default withLinksAuth(
       });
 
       if (!response) {
-        return res.status(405).end(`Method ${req.method} Not Allowed`);
+        return res.status(404).end("Not Found");
       }
 
       return res.status(200).json(response);

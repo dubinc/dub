@@ -86,6 +86,7 @@ export default function ProjectSelect() {
           <div className="flex items-center space-x-3 pr-2">
             <img
               src={selected.image}
+              referrerPolicy="no-referrer"
               alt={selected.id || selected.name}
               className="h-8 w-8 flex-none overflow-hidden rounded-full"
             />
