@@ -8,7 +8,6 @@ export default defineConfig((options: Options) => ({
       js: '"use client"',
     };
   },
-  dts: true,
   minify: true,
   external: ["react"],
   ...options,
