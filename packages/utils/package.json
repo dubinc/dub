@@ -51,5 +51,8 @@
     "utils",
     "utility",
     "functions"
-  ]
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
 }

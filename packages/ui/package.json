@@ -60,5 +60,8 @@
     "dub",
     "dub.co",
     "ui"
-  ]
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
 }

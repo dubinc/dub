@@ -8,9 +8,9 @@
     "lint": "turbo lint",
     "clean": "turbo clean",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "publish-tw": "turbo build --filter='@dub/tailwind-config' && cd packages/tailwind-config && npm publish --access public && cd ../../",
-    "publish-ui": "turbo build --filter='@dub/ui' && cd packages/ui && npm publish --access public && cd ../../",
-    "publish-utils": "turbo build --filter='@dub/utils' && cd packages/utils && npm publish --access public && cd ../../"
+    "publish-tw": "turbo build --filter='@dub/tailwind-config' && cd packages/tailwind-config && npm publish && cd ../../",
+    "publish-ui": "turbo build --filter='@dub/ui' && cd packages/ui && npm publish && cd ../../",
+    "publish-utils": "turbo build --filter='@dub/utils' && cd packages/utils && npm publish && cd ../../"
   },
   "devDependencies": {
     "@dub/tailwind-config": "workspace:*",

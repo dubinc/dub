@@ -27,5 +27,8 @@
     "dub.co",
     "tailwind",
     "tailwindcss"
-  ]
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
 }
