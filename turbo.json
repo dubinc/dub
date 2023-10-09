@@ -6,6 +6,10 @@
       "dependsOn": ["^build"],
       "outputs": ["!.next/cache/**", ".next/**", "dist/**"]
     },
+    "@dub/ui#build": {
+      "dependsOn": ["@dub/utils#build"],
+      "outputs": []
+    },
     "dev": {
       "cache": false,
       "persistent": true
