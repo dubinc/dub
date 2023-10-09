@@ -52,7 +52,7 @@ export function Tooltip({
     );
   }
   return (
-    <TooltipPrimitive.Provider delayDuration={0}>
+    <TooltipPrimitive.Provider delayDuration={100}>
       <TooltipPrimitive.Root>
         <TooltipPrimitive.Trigger className="md:inline-flex" asChild>
           {children}

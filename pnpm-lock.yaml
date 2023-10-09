@@ -41,10 +41,10 @@ importers:
         specifier: workspace:*
         version: link:../../packages/tailwind-config
       '@dub/ui':
-        specifier: workspace:*
+        specifier: latest
         version: link:../../packages/ui
       '@dub/utils':
-        specifier: workspace:*
+        specifier: latest
         version: link:../../packages/utils
       '@next-auth/prisma-adapter':
         specifier: ^1.0.5
@@ -127,9 +127,6 @@ importers:
       cloudinary:
         specifier: ^1.40.0
         version: 1.40.0
-      clsx:
-        specifier: ^1.2.1
-        version: 1.2.1
       cmdk:
         specifier: ^0.2.0
         version: 0.2.0(@types/react@18.2.14)(react-dom@18.2.0)(react@18.2.0)
@@ -253,9 +250,6 @@ importers:
       swr:
         specifier: ^2.1.5
         version: 2.1.5(react@18.2.0)
-      tailwind-merge:
-        specifier: ^1.13.2
-        version: 1.13.2
       tailwind-scrollbar-hide:
         specifier: ^1.1.7
         version: 1.1.7
@@ -351,7 +345,7 @@ importers:
   packages/ui:
     dependencies:
       '@dub/utils':
-        specifier: workspace:*
+        specifier: latest
         version: link:../utils
       '@radix-ui/react-accordion':
         specifier: ^1.0.1

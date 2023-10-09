@@ -1,7 +1,7 @@
 {
   "name": "@dub/ui",
   "description": "UI components for Dub.co",
-  "version": "0.0.6",
+  "version": "0.0.8",
   "sideEffects": [
     "**/*.css"
   ],
@@ -41,7 +41,7 @@
     "@radix-ui/react-switch": "^1.0.1",
     "@radix-ui/react-tooltip": "^1.0.2",
     "class-variance-authority": "^0.7.0",
-    "@dub/utils": "workspace:*",
+    "@dub/utils": "latest",
     "lucide-react": "^0.284.0",
     "sonner": "^0.5.0",
     "swr": "^2.1.5",

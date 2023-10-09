@@ -7,7 +7,6 @@ import { Edit3, HelpCircle, MessageCircle, Settings } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-// import { allChangelogPosts } from "contentlayer/generated";
 import { Avatar } from "@dub/ui";
 import { HOME_DOMAIN } from "@dub/utils";
 
@@ -27,15 +26,13 @@ export default function UserDropdown() {
     });
   }, []);
 
-  const [unreadChangelogs, setUnreadChangelogs] = useState(3);
-  // useEffect(() => {
-  //   const lastReadChangelog =
-  //     Cookies.get("lastReadChangelog") || new Date("2023-08-13").toISOString();
-  //   const unreadChangelogs = allChangelogPosts.filter(
-  //     (post) => post.publishedAt > lastReadChangelog,
-  //   ).length;
-  //   setUnreadChangelogs(unreadChangelogs);
-  // }, []);
+  const [unreadChangelogs, setUnreadChangelogs] = useState(0);
+  useEffect(() => {
+    const lastReadChangelog = Cookies.get("lastReadChangelog");
+    if (!lastReadChangelog) {
+      setUnreadChangelogs(2);
+    }
+  }, []);
 
   return (
     <div className="relative inline-block">
