@@ -11,12 +11,6 @@ export const parse = (req: NextRequest) => {
   // path is the path of the URL (e.g. dub.co/stats/github -> /stats/github)
   let path = req.nextUrl.pathname;
 
-  // special case for dub.sh/___dub_check/ (for checking if dub.sh links are working)
-  if (path.startsWith("/___dub_check/")) {
-    domain = "dub.sh";
-    path = path.replace("/___dub_check/", "/");
-  }
-
   // fullPath is the full URL path (along with search params)
   const searchParams = req.nextUrl.searchParams.toString();
   const fullPath = `${path}${
