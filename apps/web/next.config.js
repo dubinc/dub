@@ -11,7 +11,6 @@ const REDIRECT_SEGMENTS = [
 /** @type {import('next').NextConfig} */
 module.exports = {
   reactStrictMode: false,
-  transpilePackages: ["@dub/ui", "@dub/utils"],
   experimental: {
     useDeploymentId: true,
     serverActions: true,
