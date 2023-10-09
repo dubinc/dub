@@ -5,6 +5,8 @@
   "sideEffects": [
     "**/*.css"
   ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": "./dist",
@@ -34,7 +36,7 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "@dub/utils": "*",
+    "@dub/utils": "^0.0.3",
     "@radix-ui/react-accordion": "^1.0.1",
     "@radix-ui/react-dialog": "1.0.3",
     "@radix-ui/react-navigation-menu": "^1.1.2",

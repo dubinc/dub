@@ -327,7 +327,7 @@ importers:
   packages/ui:
     dependencies:
       '@dub/utils':
-        specifier: '*'
+        specifier: ^0.0.3
         version: link:../utils
       '@radix-ui/react-accordion':
         specifier: ^1.0.1
