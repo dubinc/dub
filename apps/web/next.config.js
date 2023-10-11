@@ -39,7 +39,7 @@ module.exports = {
       "www.google.com",
       "avatar.vercel.sh",
       "faisalman.github.io",
-      "avatars.dicebear.com",
+      "api.dicebear.com",
       "res.cloudinary.com",
       "pbs.twimg.com",
       "d2vwwcvoksz7ty.cloudfront.net",

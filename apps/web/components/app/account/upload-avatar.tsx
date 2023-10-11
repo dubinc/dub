@@ -13,7 +13,7 @@ export default function UploadAvatar() {
     setImage(
       session?.user?.image ||
         (session?.user?.email
-          ? `https://avatars.dicebear.com/api/micah/${session?.user?.email}.svg`
+          ? `https://api.dicebear.com/7.x/micah/svg?seed=${session?.user?.email}`
           : null),
     );
   }, [session]);

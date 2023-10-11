@@ -28,7 +28,7 @@ export function Avatar({
       referrerPolicy="no-referrer"
       src={
         user?.image ||
-        `https://avatars.dicebear.com/api/micah/${user?.email}.svg`
+        `https://api.dicebear.com/7.x/micah/svg?seed=${user?.email}`
       }
       className={cn("h-10 w-10 rounded-full border border-gray-300", className)}
       draggable={false}

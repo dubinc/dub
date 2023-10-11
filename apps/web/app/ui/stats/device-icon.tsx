@@ -15,7 +15,7 @@ export default function DeviceIcon({
     return (
       <img
         alt={display}
-        src={`https://avatars.dicebear.com/api/bottts/dub.svg`}
+        src="https://api.dicebear.com/7.x/bottts/svg?seed=dub"
         className={className}
       />
     );
@@ -79,7 +79,7 @@ export default function DeviceIcon({
     return (
       <img
         alt={display}
-        src={`https://avatars.dicebear.com/api/bottts/${display}.svg`}
+        src={`https://api.dicebear.com/7.x/bottts/svg?seed=${display}`}
         className={className}
       />
     );

@@ -42,7 +42,7 @@ export default function ProjectSelect() {
         slug: "/",
         image:
           session?.user?.image ||
-          `https://avatars.dicebear.com/api/micah/${session?.user?.email}.svg`,
+          `https://api.dicebear.com/7.x/micah/svg?seed=${session?.user?.email}`,
         plan: "free",
       };
     }
