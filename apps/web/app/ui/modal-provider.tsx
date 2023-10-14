@@ -1,14 +1,14 @@
 "use client";
 
-import { useAddEditDomainModal } from "@/components/app/modals/add-edit-domain-modal";
-import { useAddEditLinkModal } from "@/components/app/modals/add-edit-link-modal";
-import { useAddProjectModal } from "@/components/app/modals/add-project-modal";
-import { useCompleteSetupModal } from "@/components/app/modals/complete-setup-modal";
-import { useImportBitlyModal } from "@/components/app/modals/import-bitly-modal";
-import { useImportShortModal } from "@/components/app/modals/import-short-modal";
-import { useUpgradePlanModal } from "@/components/app/modals/upgrade-plan-modal";
+import { useAddEditDomainModal } from "#/ui/modals/add-edit-domain-modal";
+import { useAddEditLinkModal } from "#/ui/modals/add-edit-link-modal";
+import { useAddProjectModal } from "#/ui/modals/add-project-modal";
+import { useCompleteSetupModal } from "#/ui/modals/complete-setup-modal";
+import { useImportBitlyModal } from "#/ui/modals/import-bitly-modal";
+import { useImportShortModal } from "#/ui/modals/import-short-modal";
+import { useUpgradePlanModal } from "#/ui/modals/upgrade-plan-modal";
 import { getQueryString } from "@dub/utils";
-import { useRouter } from "next/router";
+import { useParams, useSearchParams } from "next/navigation";
 import {
   Dispatch,
   ReactNode,
@@ -51,8 +51,9 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
   const { setShowImportBitlyModal, ImportBitlyModal } = useImportBitlyModal();
   const { setShowImportShortModal, ImportShortModal } = useImportShortModal();
 
-  const router = useRouter();
-  const { slug } = router.query;
+  const params = useParams() as { slug?: string };
+  const { slug } = params;
+  const searchParams = useSearchParams();
 
   // special link polling setup to poll links as they're being created (for bitly import)
   const [pollLinks, setPollLinks] = useState(false);
@@ -60,7 +61,12 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
     if (pollLinks) {
       // if pollLinks is true, start polling links endpoint every 500 ms (stop after 20 seconds)
       const pollingInterval = setInterval(() => {
-        mutate(`/api/links${getQueryString(router)}`);
+        mutate(
+          `/api/links${getQueryString({
+            params,
+            searchParams,
+          })}`,
+        );
         mutate(`/api/projects/${slug}/tags`);
         mutate(
           (key) =>

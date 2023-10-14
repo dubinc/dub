@@ -12,7 +12,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import punycode from "punycode/";
 import useSWR, { mutate } from "swr";
-import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
+import { useAddEditDomainModal } from "../../../app/ui/modals/add-edit-domain-modal";
 import DomainConfiguration from "./domain-configuration";
 
 export default function DomainCard({ props }: { props: DomainProps }) {

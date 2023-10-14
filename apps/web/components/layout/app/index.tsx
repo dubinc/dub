@@ -16,7 +16,7 @@ import Meta from "../meta";
 import NavTabs from "./nav-tabs";
 import ProBanner from "./pro-banner";
 import ProjectSelect from "./project-select";
-import UserDropdown from "./user-dropdown";
+import UserDropdown from "../../../app/ui/layout/user-dropdown";
 
 export default function AppLayout({
   children,

@@ -3,7 +3,7 @@ import useProject from "#/lib/swr/use-project";
 import DomainCard from "@/components/app/domains/domain-card";
 import DomainCardPlaceholder from "@/components/app/domains/domain-card-placeholder";
 import NoDomainsPlaceholder from "@/components/app/domains/no-domains-placeholder";
-import { useAddEditDomainModal } from "@/components/app/modals/add-edit-domain-modal";
+import { useAddEditDomainModal } from "#/ui/modals/add-edit-domain-modal";
 import { InfoTooltip, MaxWidthWrapper, TooltipContent } from "@dub/ui";
 import { HOME_DOMAIN } from "@dub/utils";
 import AppLayout from "components/layout/app";

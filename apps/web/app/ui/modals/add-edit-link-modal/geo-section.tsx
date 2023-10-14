@@ -1,4 +1,4 @@
-import useProject from "#/lib/swr-app/use-project";
+import useProject from "#/lib/swr/use-project";
 import { ModalContext } from "#/ui/modal-provider";
 import {
   InfoTooltip,

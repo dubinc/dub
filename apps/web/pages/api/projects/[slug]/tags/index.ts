@@ -1,6 +1,6 @@
 import { withProjectAuth } from "#/lib/auth";
 import prisma from "#/lib/prisma";
-import { randomBadgeColor } from "@/components/app/links/tag-badge";
+import { randomBadgeColor } from "#/ui/links/tag-badge";
 
 export default withProjectAuth(async (req, res, project) => {
   // GET /api/projects/[slug]/tags - get all tags for a project

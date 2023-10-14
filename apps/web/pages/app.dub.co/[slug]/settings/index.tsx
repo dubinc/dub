@@ -1,6 +1,6 @@
 import useProject from "#/lib/swr/use-project";
-import DeleteProject from "@/components/app/projects/delete-project";
-import UploadLogo from "@/components/app/projects/upload-logo";
+import DeleteProject from "#/ui/projects/delete-project";
+import UploadLogo from "#/ui/projects/upload-logo";
 import SettingsLayout from "@/components/layout/app/settings-layout";
 import { Form } from "@dub/ui";
 import { useRouter } from "next/router";

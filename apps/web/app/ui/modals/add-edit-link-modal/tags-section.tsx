@@ -1,11 +1,11 @@
-import useTags from "#/lib/swr/use-tags";
-import TagBadge from "@/components/app/links/tag-badge";
+import useTags from "#/lib/swr-app/use-tags";
+import TagBadge from "#/ui/links/tag-badge";
 import { LoadingCircle, SimpleTooltipContent, Tooltip } from "@dub/ui";
 import { HOME_DOMAIN } from "@dub/utils";
 import { type Link as LinkProps } from "@prisma/client";
 import { Command, useCommandState } from "cmdk";
 import { Check, ChevronDown, Tag, X } from "lucide-react";
-import { useRouter } from "next/router";
+import { useParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -24,8 +24,7 @@ export default function TagsSection({
   data: LinkProps;
   setData: Dispatch<SetStateAction<LinkProps>>;
 }) {
-  const router = useRouter();
-  const { slug } = router.query;
+  const { slug } = useParams() as { slug?: string };
   const { tagId } = data;
   const { tags } = useTags();
 
@@ -163,7 +162,7 @@ export default function TagsSection({
                 <button
                   type="button"
                   onClick={() => createTag(inputValue)}
-                  className="flex w-full cursor-pointer items-center rounded-md bg-gray-100 px-4 py-2 text-sm text-gray-900 hover:text-gray-900 aria-selected:bg-gray-100 aria-selected:text-gray-900"
+                  className="aria-selected:bg-gray-100 aria-selected:text-gray-900 flex w-full cursor-pointer items-center rounded-md bg-gray-100 px-4 py-2 text-sm text-gray-900 hover:text-gray-900"
                 >
                   Create tag{" "}
                   <span className="ml-1.5 rounded-md bg-gray-200 px-2 py-0.5 text-gray-800">
@@ -180,7 +179,7 @@ export default function TagsSection({
                   setData({ ...data, tagId: tag.id });
                   setOpenCommandList(false);
                 }}
-                className="group flex cursor-pointer items-center justify-between rounded-md px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 aria-selected:bg-gray-100 aria-selected:text-gray-900"
+                className="aria-selected:bg-gray-100 aria-selected:text-gray-900 group flex cursor-pointer items-center justify-between rounded-md px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200"
               >
                 <TagBadge {...tag} />
                 {selectedTag?.id === tag.id && (

@@ -1,26 +1,38 @@
 "use client";
 
 import { QRCodeSVG, getQRAsCanvas, getQRAsSVGDataUri } from "#/lib/qr";
-import useProject from "#/lib/swr-app/use-project";
+import useProject from "#/lib/swr/use-project";
 import { SimpleLinkProps } from "#/lib/types";
+import { ModalContext } from "#/ui/modal-provider";
 import { BlurImage } from "@/components/shared/blur-image";
 import { Clipboard, Download } from "@/components/shared/icons";
 import {
   IconMenu,
+  InfoTooltip,
   Logo,
   Modal,
   Photo,
   Popover,
+  SimpleTooltipContent,
   Switch,
   Tooltip,
   TooltipContent,
 } from "@dub/ui";
-import { GOOGLE_FAVICON_URL, getApexDomain, linkConstructor } from "@dub/utils";
+import {
+  APP_HOSTNAMES,
+  FADE_IN_ANIMATION_SETTINGS,
+  GOOGLE_FAVICON_URL,
+  HOME_DOMAIN,
+  getApexDomain,
+  linkConstructor,
+} from "@dub/utils";
+import { motion } from "framer-motion";
 import { Check, ChevronRight } from "lucide-react";
 import {
   Dispatch,
   SetStateAction,
   useCallback,
+  useContext,
   useMemo,
   useRef,
   useState,
@@ -28,6 +40,7 @@ import {
 import { HexColorInput, HexColorPicker } from "react-colorful";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
+import { useParams } from "next/navigation";
 
 function LinkQRModalHelper({
   showLinkQRModal,
@@ -40,14 +53,20 @@ function LinkQRModalHelper({
 }) {
   return (
     <Modal showModal={showLinkQRModal} setShowModal={setShowLinkQRModal}>
-      <QRCodePicker props={props} />
+      <QRCodePicker props={props} setShowLinkQRModal={setShowLinkQRModal} />
     </Modal>
   );
 }
 
-export function QRCodePicker({ props }: { props: SimpleLinkProps }) {
+export function QRCodePicker({
+  props,
+  setShowLinkQRModal,
+}: {
+  props: SimpleLinkProps;
+  setShowLinkQRModal: Dispatch<SetStateAction<boolean>>;
+}) {
   const anchorRef = useRef<HTMLAnchorElement>(null);
-  const { logo } = useProject();
+  const { logo, plan } = useProject();
   const { avatarUrl, apexDomain } = useMemo(() => {
     try {
       const apexDomain = getApexDomain(props.url);
@@ -64,11 +83,11 @@ export function QRCodePicker({ props }: { props: SimpleLinkProps }) {
   }, [props]);
 
   const qrLogoUrl = useMemo(() => {
-    if (logo) return logo;
+    if (logo && plan !== "free") return logo;
     return typeof window !== "undefined" && window.location.origin
       ? new URL("/_static/logo.svg", window.location.origin).href
       : "https://dub.sh/_static/logo.svg";
-  }, [logo]);
+  }, [logo, plan]);
 
   function download(url: string, extension: string) {
     if (!anchorRef.current) return;
@@ -163,12 +182,13 @@ export function QRCodePicker({ props }: { props: SimpleLinkProps }) {
           setFgColor={setFgColor}
           showLogo={showLogo}
           setShowLogo={setShowLogo}
+          setShowLinkQRModal={setShowLinkQRModal}
         />
 
         <div className="grid grid-cols-2 gap-2 px-4 sm:px-16">
           <button
             onClick={async () => {
-              toast.promise(copyToClipboard, {
+              toast.promise(copyToClipboard(), {
                 loading: "Copying QR code to clipboard...",
                 success: "Copied QR code to clipboard!",
                 error: "Failed to copy",
@@ -205,12 +225,23 @@ export function QRCodePicker({ props }: { props: SimpleLinkProps }) {
   );
 }
 
-function AdvancedSettings({ qrData, setFgColor, showLogo, setShowLogo }) {
-  const { plan } = useProject();
+function AdvancedSettings({
+  qrData,
+  setFgColor,
+  showLogo,
+  setShowLogo,
+  setShowLinkQRModal,
+}) {
+  const { slug } = useParams() as { slug?: string };
+  const { plan, logo } = useProject();
   const [expanded, setExpanded] = useState(false);
+
   const debouncedSetFgColor = useDebouncedCallback((color) => {
     setFgColor(color);
   }, 100);
+
+  const { setShowAddProjectModal, setShowUpgradePlanModal } =
+    useContext(ModalContext);
 
   return (
     <div>
@@ -229,13 +260,28 @@ function AdvancedSettings({ qrData, setFgColor, showLogo, setShowLogo }) {
         </button>
       </div>
       {expanded && (
-        <div className="mt-4 grid gap-5 border-b border-t border-gray-200 bg-white px-4 py-8 sm:px-16">
+        <motion.div
+          key="advanced-options"
+          {...FADE_IN_ANIMATION_SETTINGS}
+          className="mt-4 grid gap-5 border-b border-t border-gray-200 bg-white px-4 py-8 sm:px-16"
+        >
           <div>
             <label
               htmlFor="logo-toggle"
-              className="block text-sm font-medium text-gray-700"
+              className="flex items-center space-x-1"
             >
-              Logo
+              <p className="text-sm font-medium text-gray-700">Logo</p>
+              {plan && plan !== "free" && (
+                <InfoTooltip
+                  content={
+                    <SimpleTooltipContent
+                      title=""
+                      cta="How to update my QR Code logo?"
+                      href={`${HOME_DOMAIN}/help/article/custom-qr-codes`}
+                    />
+                  }
+                />
+              )}
             </label>
             {plan && plan !== "free" ? (
               <div className="mt-1 flex items-center space-x-2">
@@ -246,15 +292,28 @@ function AdvancedSettings({ qrData, setFgColor, showLogo, setShowLogo }) {
                   thumbDimensions="w-5 h-5"
                   thumbTranslate="translate-x-6"
                 />
-                <p className="text-sm text-gray-600">Show dub.co Logo</p>
+                <p className="text-sm text-gray-600">
+                  Show {!slug || (!logo && "Dub.co")} Logo
+                </p>
               </div>
             ) : (
               <Tooltip
                 content={
                   <TooltipContent
                     title="You need to be on the Pro plan to customize your QR Code logo."
-                    cta="Upgrade to Pro"
-                    href="/pricing"
+                    cta={slug ? "Upgrade to Pro" : "Create a project"}
+                    {...(APP_HOSTNAMES.has(window.location.hostname)
+                      ? {
+                          onClick: () => {
+                            setShowLinkQRModal(false);
+                            if (slug) {
+                              setShowUpgradePlanModal(true);
+                            } else {
+                              setShowAddProjectModal(true);
+                            }
+                          },
+                        }
+                      : { href: `${HOME_DOMAIN}/pricing` })}
                   />
                 }
               >
@@ -267,7 +326,7 @@ function AdvancedSettings({ qrData, setFgColor, showLogo, setShowLogo }) {
                     thumbTranslate="translate-x-6"
                     disabled={true}
                   />
-                  <p className="text-sm text-gray-600">Show dub.co Logo</p>
+                  <p className="text-sm text-gray-600">Show Dub.co Logo</p>
                 </div>
               </Tooltip>
             )}
@@ -309,7 +368,7 @@ function AdvancedSettings({ qrData, setFgColor, showLogo, setShowLogo }) {
               />
             </div>
           </div>
-        </div>
+        </motion.div>
       )}
     </div>
   );

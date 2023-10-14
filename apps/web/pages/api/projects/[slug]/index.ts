@@ -3,7 +3,7 @@ import { withProjectAuth } from "#/lib/auth";
 import prisma from "#/lib/prisma";
 
 export default withProjectAuth(
-  async (req, res, project, session) => {
+  async (req, res, project) => {
     // GET /api/projects/[slug] – get a specific project
     if (req.method === "GET") {
       return res.status(200).json(project);

@@ -5,7 +5,7 @@ import { useRemoveSAMLModal } from "@/components/app/modals/remove-saml-modal";
 import { useRemoveSCIMModal } from "@/components/app/modals/remove-scim-modal";
 import { useSAMLModal } from "@/components/app/modals/saml-modal";
 import { useSCIMModal } from "@/components/app/modals/scim-modal";
-import { useUpgradePlanModal } from "@/components/app/modals/upgrade-plan-modal";
+import { useUpgradePlanModal } from "#/ui/modals/upgrade-plan-modal";
 import SettingsLayout from "@/components/layout/app/settings-layout";
 import { ThreeDots } from "@/components/shared/icons";
 import { Button, IconMenu, Popover, TooltipContent } from "@dub/ui";

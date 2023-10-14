@@ -1,5 +1,5 @@
 import { INTERVALS } from "#/lib/stats";
-import useProject from "#/lib/swr-app/use-project";
+import useProject from "#/lib/swr/use-project";
 import {
   Copy,
   ExpandingArrow,

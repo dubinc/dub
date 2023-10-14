@@ -1,6 +1,6 @@
 import useProject from "#/lib/swr/use-project";
 import { ModalContext } from "#/ui/modal-provider";
-import PlanBadge from "@/components/app/projects/plan-badge";
+import PlanBadge from "#/ui/projects/plan-badge";
 import SettingsLayout from "@/components/layout/app/settings-layout";
 import { Divider, InfinityIcon } from "@/components/shared/icons";
 import { Button, InfoTooltip, NumberTooltip } from "@dub/ui";

@@ -1,0 +1,60 @@
+import { getAppSession } from "./auth";
+import prisma from "./prisma";
+import { ProjectWithDomainProps } from "./types";
+
+export async function getProjects() {
+  const session = await getAppSession();
+  if (!session) {
+    return null;
+  }
+  const projects = await prisma.project.findMany({
+    where: {
+      users: {
+        some: {
+          userId: session.user.id,
+        },
+      },
+    },
+    include: {
+      domains: true,
+    },
+  });
+
+  return projects.map((project) => ({
+    ...project,
+    primaryDomain:
+      project.domains.find((domain) => domain.primary) || project.domains[0],
+  })) as ProjectWithDomainProps[];
+}
+
+export async function getProject({ slug }: { slug: string }) {
+  const session = await getAppSession();
+  if (!session) {
+    return null;
+  }
+  return await prisma.project.findUnique({
+    where: {
+      slug,
+    },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      logo: true,
+      usage: true,
+      usageLimit: true,
+      plan: true,
+      stripeId: true,
+      billingCycleStart: true,
+      createdAt: true,
+      users: {
+        where: {
+          userId: session.user.id,
+        },
+        select: {
+          role: true,
+        },
+      },
+    },
+  });
+}

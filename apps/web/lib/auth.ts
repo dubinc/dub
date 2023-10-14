@@ -13,12 +13,17 @@ export interface Session {
     email: string;
     id: string;
     name: string;
+    image?: string;
   };
 }
 
 export async function getSession(req: NextApiRequest, res: NextApiResponse) {
   // @ts-ignore
   return (await getServerSession(req, res, authOptions)) as Session;
+}
+
+export async function getAppSession() {
+  return getServerSession(authOptions) as Promise<Session>;
 }
 
 export const hashToken = (

@@ -1,7 +1,7 @@
 "use client";
 
-import useDomains from "#/lib/swr-app/use-domains";
-import useProject from "#/lib/swr-app/use-project";
+import useDomains from "#/lib/swr/use-domains";
+import useProject from "#/lib/swr/use-project";
 import { ModalContext } from "#/ui/modal-provider";
 import { BlurImage } from "@/components/shared/blur-image";
 import { AlertCircleFill, Lock, Random, X } from "@/components/shared/icons";
@@ -16,9 +16,12 @@ import {
 import {
   DEFAULT_LINK_PROPS,
   GOOGLE_FAVICON_URL,
+  cn,
   deepEqual,
   getApexDomain,
+  getQueryString,
   getUrlWithoutUTMParams,
+  isValidUrl,
   linkConstructor,
   truncate,
 } from "@dub/utils";
@@ -40,6 +43,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { toast } from "sonner";
@@ -55,6 +59,7 @@ import PasswordSection from "./password-section";
 import Preview from "./preview";
 import RewriteSection from "./rewrite-section";
 import UTMSection from "./utm-section";
+import TagsSection from "./tags-section";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
@@ -69,7 +74,8 @@ function AddEditLinkModal({
   duplicateProps?: LinkProps;
   homepageDemo?: boolean;
 }) {
-  const { slug } = useParams() as { slug?: string };
+  const params = useParams() as { slug?: string };
+  const { slug } = params;
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -85,7 +91,10 @@ function AddEditLinkModal({
     props ||
       duplicateProps || {
         ...(DEFAULT_LINK_PROPS as LinkProps),
-        domain: primaryDomain || "",
+        domain:
+          primaryDomain ||
+          (domains && domains.length > 0 && domains[0].slug) ||
+          "",
         key: "",
         url: "",
       },
@@ -104,7 +113,8 @@ function AddEditLinkModal({
     if (
       showAddEditLinkModal &&
       debouncedKey.length > 0 &&
-      debouncedKey !== props?.key
+      debouncedKey !== props?.key &&
+      !keyError
     ) {
       fetch(
         `/api/links/${encodeURIComponent(debouncedKey)}/exists${
@@ -120,6 +130,7 @@ function AddEditLinkModal({
   }, [debouncedKey, domain]);
 
   const generateRandomKey = useCallback(async () => {
+    setKeyError(null);
     setGeneratingKey(true);
     const res = await fetch(
       `/api/links/_random${slug ? `?slug=${slug}&domain=${domain}` : ""}`,
@@ -128,6 +139,15 @@ function AddEditLinkModal({
     setData((prev) => ({ ...prev, key }));
     setGeneratingKey(false);
   }, []);
+
+  useEffect(() => {
+    // generate random key when someone pastes a URL and there's no key
+    if (showAddEditLinkModal && !key && url.length > 0) {
+      generateRandomKey();
+    }
+    // here, we're intentionally leaving out `key` from the dependency array
+    // because we don't want to generate a new key if the user is editing the key
+  }, [showAddEditLinkModal, url, generateRandomKey]);
 
   const [generatingMetatags, setGeneratingMetatags] = useState(
     props ? true : false,
@@ -149,8 +169,9 @@ function AddEditLinkModal({
      * Only generate metatags if:
      * - modal is open
      * - custom OG proxy is not enabled
+     * - url is not empty
      **/
-    if (showAddEditLinkModal && !proxy) {
+    if (showAddEditLinkModal && !proxy && debouncedUrl.length > 0) {
       setData((prev) => ({
         ...prev,
         title: null,
@@ -216,7 +237,7 @@ function AddEditLinkModal({
         url: `/api/links${slug ? `?slug=${slug}&domain=${domain}` : ""}`,
       };
     }
-  }, [props]);
+  }, [props, slug, domain]);
 
   const [atBottom, setAtBottom] = useState(false);
   const handleScroll = useCallback((event: UIEvent<HTMLDivElement>) => {
@@ -269,15 +290,24 @@ function AddEditLinkModal({
 
   const [lockKey, setLockKey] = useState(true);
 
+  const welcomeFlow = pathname === "/welcome";
+  const keyRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (key && key.endsWith("-copy")) {
+      keyRef.current?.select();
+    }
+  }, [key]);
+
   return (
     <Modal
       showModal={showAddEditLinkModal}
       setShowModal={setShowAddEditLinkModal}
       className="max-w-screen-lg"
       preventDefaultClose={homepageDemo ? false : true}
+      {...(welcomeFlow && { onClose: () => router.back() })}
     >
-      <div className="scrollbar-hide grid max-h-[80vh] divide-x divide-gray-100 overflow-scroll md:max-h-[min(906px,_90vh)] md:grid-cols-2">
-        {!homepageDemo && (
+      <div className="scrollbar-hide grid max-h-[90vh] w-full divide-x divide-gray-100 overflow-auto md:grid-cols-2 md:overflow-hidden">
+        {!welcomeFlow && !homepageDemo && (
           <button
             onClick={() => setShowAddEditLinkModal(false)}
             className="group absolute right-0 top-0 z-20 m-3 hidden rounded-full p-2 text-gray-500 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 md:block"
@@ -287,12 +317,12 @@ function AddEditLinkModal({
         )}
 
         <div
-          className="rounded-l-2xl md:max-h-[min(906px,_90vh)] md:overflow-scroll"
+          className="scrollbar-hide rounded-l-2xl md:max-h-[90vh] md:overflow-auto"
           onScroll={handleScroll}
         >
           <div className="z-10 flex flex-col items-center justify-center space-y-3 border-b border-gray-200 bg-white px-4 pb-8 pt-8 transition-all md:sticky md:top-0 md:px-16">
             {logo}
-            <h3 className="text-lg font-medium">
+            <h3 className="max-w-sm truncate text-lg font-medium">
               {props
                 ? `Edit ${linkConstructor({
                     key: props.key,
@@ -307,12 +337,14 @@ function AddEditLinkModal({
             onSubmit={async (e) => {
               e.preventDefault();
               setSaving(true);
+              // @ts-ignore – exclude the extra `user` attribute from `data` object before sending to API
+              const { user, ...rest } = data;
               fetch(endpoint.url, {
                 method: endpoint.method,
                 headers: {
                   "Content-Type": "application/json",
                 },
-                body: JSON.stringify(data),
+                body: JSON.stringify(rest),
               }).then(async (res) => {
                 if (res.status === 200) {
                   // track link creation event
@@ -322,9 +354,10 @@ function AddEditLinkModal({
                     });
                   await Promise.all([
                     mutate(
-                      `/api/links${
-                        searchParams ? `?${searchParams.toString()}` : ""
-                      }`,
+                      `/api/links${getQueryString({
+                        params,
+                        searchParams,
+                      })}`,
                     ),
                     mutate(
                       (key) =>
@@ -336,24 +369,23 @@ function AddEditLinkModal({
                   ]);
                   // for welcome page, redirect to links page after adding a link
                   if (pathname === "/welcome") {
-                    router.push("/links");
-                    setShowAddEditLinkModal(false);
-                  } else {
-                    // copy shortlink to clipboard when adding a new link
-                    if (!props) {
-                      navigator.clipboard
-                        .writeText(
-                          linkConstructor({
-                            key: data.key,
-                            domain,
-                          }),
-                        )
-                        .then(() => {
-                          toast.success("Copied shortlink to clipboard!");
-                        });
-                    }
+                    await router.push("/links");
                     setShowAddEditLinkModal(false);
                   }
+                  // copy shortlink to clipboard when adding a new link
+                  if (!props) {
+                    await navigator.clipboard.writeText(
+                      linkConstructor({
+                        // remove leading and trailing slashes
+                        key: data.key.replace(/^\/+|\/+$/g, ""),
+                        domain,
+                      }),
+                    );
+                    toast.success("Copied shortlink to clipboard!");
+                  } else {
+                    toast.success("Successfully updated shortlink!");
+                  }
+                  setShowAddEditLinkModal(false);
                 } else {
                   const error = await res.text();
                   if (error) {
@@ -393,9 +425,10 @@ function AddEditLinkModal({
                     id={`url-${randomIdx}`}
                     type="url"
                     required
-                    autoComplete="off"
                     placeholder="https://github.com/steven-tey/dub"
                     value={url}
+                    autoFocus={!key}
+                    autoComplete="off"
                     onChange={(e) => {
                       setUrlError(null);
                       setData({ ...data, url: e.target.value });
@@ -471,32 +504,39 @@ function AddEditLinkModal({
                       </option>
                     ))}
                   </select>
-                  {props && lockKey ? (
-                    <div className="block w-full cursor-not-allowed select-none rounded-r-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-500">
-                      {props.key}
-                    </div>
-                  ) : (
-                    <input
-                      type="text"
-                      name="key"
-                      id={`key-${randomIdx}`}
-                      required
-                      pattern="[\p{Letter}\p{Mark}\d-]+" // Unicode regex to match characters from all languages and numbers (and omit all symbols except for dashes)
-                      className={`${
-                        keyError
-                          ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                          : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
-                      } block w-full rounded-r-md focus:outline-none sm:text-sm`}
-                      placeholder="github"
-                      value={key}
-                      onChange={(e) => {
-                        setKeyError(null);
-                        setData({ ...data, key: e.target.value });
-                      }}
-                      aria-invalid="true"
-                      aria-describedby="key-error"
-                    />
-                  )}
+                  <input
+                    ref={keyRef}
+                    type="text"
+                    name="key"
+                    id={`key-${randomIdx}`}
+                    required
+                    pattern="[\p{L}\p{N}\p{Pd}\/]+"
+                    onInvalid={(e) => {
+                      e.currentTarget.setCustomValidity(
+                        "Only letters, numbers, '-', and '/' are allowed.",
+                      );
+                    }}
+                    disabled={props && lockKey}
+                    autoComplete="off"
+                    className={cn(
+                      "block w-full rounded-r-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
+                      {
+                        "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500":
+                          keyError,
+                        "cursor-not-allowed border border-gray-300 bg-gray-100 text-gray-500":
+                          props && lockKey,
+                      },
+                    )}
+                    placeholder="github"
+                    value={key}
+                    onChange={(e) => {
+                      setKeyError(null);
+                      e.currentTarget.setCustomValidity("");
+                      setData({ ...data, key: e.target.value });
+                    }}
+                    aria-invalid="true"
+                    aria-describedby="key-error"
+                  />
                   {keyError && (
                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                       <AlertCircleFill
@@ -508,14 +548,14 @@ function AddEditLinkModal({
                 </div>
                 {keyError && (
                   <p className="mt-2 text-sm text-red-600" id="key-error">
-                    Short link is already in use.
+                    {keyError}
                   </p>
                 )}
               </div>
             </div>
 
             {/* Divider */}
-            <div className="relative py-5">
+            <div className="relative pb-3 pt-5">
               <div
                 className="absolute inset-0 flex items-center px-4 md:px-16"
                 aria-hidden="true"
@@ -530,6 +570,7 @@ function AddEditLinkModal({
             </div>
 
             <div className="grid gap-5 px-4 md:px-16">
+              {slug && <TagsSection {...{ props, data, setData }} />}
               <CommentsSection {...{ props, data, setData }} />
               <OGSection
                 {...{ props, data, setData }}
@@ -547,7 +588,7 @@ function AddEditLinkModal({
             <div
               className={`${
                 atBottom ? "" : "md:shadow-[0_-20px_30px_-10px_rgba(0,0,0,0.1)]"
-              } z-10 bg-gray-50 px-4 py-8 transition-all md:sticky md:bottom-0 md:px-16`}
+              } z-10 bg-gray-50 px-4 py-8 transition-all md:sticky  md:bottom-0 md:px-16`}
             >
               {homepageDemo ? (
                 <Button
@@ -564,7 +605,7 @@ function AddEditLinkModal({
             </div>
           </form>
         </div>
-        <div className="rounded-r-2xl md:max-h-[min(906px,_90vh)] md:overflow-scroll">
+        <div className="scrollbar-hide rounded-r-2xl md:max-h-[90vh] md:overflow-auto">
           <Preview data={data} generatingMetatags={generatingMetatags} />
         </div>
       </div>
@@ -586,11 +627,13 @@ function AddEditLinkButton({
     const target = e.target as HTMLElement;
     const existingModalBackdrop = document.getElementById("modal-backdrop");
     // only open modal with keyboard shortcut if:
+    // - project has not exceeded usage limit
     // - c is pressed
     // - user is not pressing cmd/ctrl + c
     // - user is not typing in an input or textarea
     // - there is no existing modal backdrop (i.e. no other modal is open)
     if (
+      !exceededUsage &&
       e.key === "c" &&
       !e.metaKey &&
       !e.ctrlKey &&
@@ -598,13 +641,39 @@ function AddEditLinkButton({
       target.tagName !== "TEXTAREA" &&
       !existingModalBackdrop
     ) {
+      e.preventDefault(); // or else it'll show up in the input field since that's getting auto-selected
       setShowAddEditLinkModal(true);
     }
   }, []);
 
+  // listen to paste event, and if it's a URL, open the modal and input the URL
+  const handlePaste = (e: ClipboardEvent) => {
+    const pastedContent = e.clipboardData?.getData("text");
+    const target = e.target as HTMLElement;
+    const existingModalBackdrop = document.getElementById("modal-backdrop");
+
+    // make sure:
+    // - pasted content is a valid URL
+    // - user is not typing in an input or textarea
+    // - there is no existing modal backdrop (i.e. no other modal is open)
+    if (
+      pastedContent &&
+      isValidUrl(pastedContent) &&
+      target.tagName !== "INPUT" &&
+      target.tagName !== "TEXTAREA" &&
+      !existingModalBackdrop
+    ) {
+      setShowAddEditLinkModal(true);
+    }
+  };
+
   useEffect(() => {
     document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
+    document.addEventListener("paste", handlePaste);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown),
+        document.removeEventListener("paste", handlePaste);
+    };
   }, [onKeyDown]);
 
   return slug && exceededUsage ? ( // only show exceeded usage tooltip if user is on a project page
@@ -650,15 +719,13 @@ export function useAddEditLinkModal({
 
   const AddEditLinkModalCallback = useCallback(() => {
     return (
-      <Suspense>
-        <AddEditLinkModal
-          showAddEditLinkModal={showAddEditLinkModal}
-          setShowAddEditLinkModal={setShowAddEditLinkModal}
-          props={props}
-          duplicateProps={duplicateProps}
-          homepageDemo={homepageDemo}
-        />
-      </Suspense>
+      <AddEditLinkModal
+        showAddEditLinkModal={showAddEditLinkModal}
+        setShowAddEditLinkModal={setShowAddEditLinkModal}
+        props={props}
+        duplicateProps={duplicateProps}
+        homepageDemo={homepageDemo}
+      />
     );
   }, [showAddEditLinkModal, setShowAddEditLinkModal]);
 

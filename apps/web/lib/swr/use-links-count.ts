@@ -1,5 +1,5 @@
 import { fetcher, getQueryString } from "@dub/utils";
-import { useRouter } from "next/router";
+import { useParams, useSearchParams } from "next/navigation";
 import useSWR from "swr";
 
 export default function useLinksCount({
@@ -7,14 +7,15 @@ export default function useLinksCount({
 }: {
   groupBy?: "domain" | "tagId";
 } = {}) {
-  const router = useRouter();
+  const params = useParams() as { slug?: string };
+  const searchParams = useSearchParams();
 
   const { data, error } = useSWR<any>(
-    router.isReady &&
-      `/api/links/_count${getQueryString(
-        router,
-        groupBy ? { groupBy } : undefined,
-      )}`,
+    `/api/links/_count${getQueryString({
+      params,
+      searchParams,
+      ...(groupBy && { groupBy }),
+    })}`,
     fetcher,
     {
       dedupingInterval: 30000,

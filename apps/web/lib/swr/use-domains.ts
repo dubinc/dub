@@ -1,13 +1,11 @@
 import { DomainProps } from "#/lib/types";
 import { fetcher } from "@dub/utils";
-import { useRouter } from "next/router";
+import { useParams } from "next/navigation";
 import { useMemo } from "react";
 import useSWR from "swr";
 
 export default function useDomains({ domain }: { domain?: string } = {}) {
-  const router = useRouter();
-
-  let { slug } = router.query as {
+  const { slug } = useParams() as {
     slug: string;
   };
 
@@ -20,20 +18,18 @@ export default function useDomains({ domain }: { domain?: string } = {}) {
   );
 
   const domains = useMemo(() => {
-    if (router.isReady) {
-      return slug
-        ? data
-        : ([
-            {
-              slug: "dub.sh",
-              verified: true,
-              primary: true,
-              target: "https://dub.co",
-              type: "redirect",
-            },
-          ] as DomainProps[]);
-    }
-  }, [data, router.isReady]);
+    return slug
+      ? data
+      : ([
+          {
+            slug: "dub.sh",
+            verified: true,
+            primary: true,
+            target: "https://dub.co",
+            type: "redirect",
+          },
+        ] as DomainProps[]);
+  }, [data]);
 
   return {
     domains,
