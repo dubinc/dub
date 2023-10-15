@@ -40,7 +40,7 @@ Dub is an open-source link management tool for modern marketing teams to create,
 
 ## Local Development
 
-To develop Dub locally, you will need to clone this repository and set up all the env vars outlined in the [`.env.example` file](https://github.com/steven-tey/dub/blob/main/.env.example).
+To develop Dub locally, you will need to clone this repository and set up all the env vars outlined in the [`.env.example` file](https://github.com/steven-tey/dub/blob/main/apps/web/.env.example).
 
 Once that's done, you can use the following commands to run the app locally:
 
