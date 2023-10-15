@@ -38,8 +38,8 @@ export function Nav() {
 
   return (
     <div
-      className={cn(`sticky inset-x-0 top-0 z-30 w-full transition-all`, {
-        "border-b border-gray-200 bg-white/75 backdrop-blur-lg": scrolled,
+      className={cn(`sticky inset-x-0 top-0 z-30 w-full transition-all backdrop-blur-lg`, {
+        "border-b border-gray-200 bg-white/75": scrolled,
         "border-b border-gray-200 bg-white":
           selectedLayout && !SHOW_BACKGROUND_SEGMENTS.includes(selectedLayout),
       })}
