@@ -1,5 +1,10 @@
+import { Suspense } from "react";
 import ProjectBillingClient from "./page-client";
 
 export default function ProjectBilling() {
-  return <ProjectBillingClient />;
+  return (
+    <Suspense>
+      <ProjectBillingClient />
+    </Suspense>
+  );
 }

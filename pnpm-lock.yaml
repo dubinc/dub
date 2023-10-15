@@ -62,11 +62,11 @@ importers:
         specifier: ^2.2.1
         version: 2.2.1
       '@splinetool/react-spline':
-        specifier: ^2.2.3
-        version: 2.2.3(@splinetool/runtime@0.9.146)(react-dom@18.2.0)(react@18.2.0)
+        specifier: ^2.2.6
+        version: 2.2.6(@splinetool/runtime@0.9.481)(react-dom@18.2.0)(react@18.2.0)
       '@splinetool/runtime':
-        specifier: ^0.9.146
-        version: 0.9.146
+        specifier: ^0.9.481
+        version: 0.9.481
       '@stripe/stripe-js':
         specifier: ^1.44.1
         version: 1.44.1
@@ -5784,23 +5784,25 @@ packages:
       tslib: 2.6.2
     dev: false
 
-  /@splinetool/react-spline@2.2.3(@splinetool/runtime@0.9.146)(react-dom@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-KdvyP2cCLLG/PcHp0ObE147nhawY4R/iqI6733MSWBx4KSpeo4oD589rCPuXeGdgyr2lCtZqUQOkQj4QCnXxmw==}
+  /@splinetool/react-spline@2.2.6(@splinetool/runtime@0.9.481)(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-y9L2VEbnC6FNZZu8XMmWM9YTTTWal6kJVfP05Amf0QqDNzCSumKsJxZyGUODvuCmiAvy0PfIfEsiVKnSxvhsDw==}
     peerDependencies:
       '@splinetool/runtime': '*'
       react: '>=17.0.0'
       react-dom: '>=17.0.0'
     dependencies:
-      '@splinetool/runtime': 0.9.146
+      '@splinetool/runtime': 0.9.481
+      lodash.debounce: 4.0.8
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
-      react-merge-refs: 1.1.0
+      react-merge-refs: 2.1.1
     dev: false
 
-  /@splinetool/runtime@0.9.146:
-    resolution: {integrity: sha512-6yuBu7LN9OP60cZfZoLFTXXvIuwcXjXSDnf/c3nG0dCsChrlX2/zs/iAmdWBN8ugpO4MnaodLMX0HXGHQBMz0w==}
+  /@splinetool/runtime@0.9.481:
+    resolution: {integrity: sha512-qN/GpjP1Qe3WE+ikbtwqlAm1Rg3GqEDZeD5QgEkZFItzpNhEyhXoGTIwcqp9x6a67yFY1fuW1nMUJmVru44NRg==}
     dependencies:
       on-change: 4.0.2
+      semver-compare: 1.0.0
     dev: false
 
   /@sqltools/formatter@1.2.5:
@@ -12072,8 +12074,8 @@ packages:
       react-dom: 18.2.0(react@18.2.0)
     dev: false
 
-  /react-merge-refs@1.1.0:
-    resolution: {integrity: sha512-alTKsjEL0dKH/ru1Iyn7vliS2QRcBp9zZPGoWxUOvRGWPUYgjo+V01is7p04It6KhgrzhJGnIj9GgX8W4bZoCQ==}
+  /react-merge-refs@2.1.1:
+    resolution: {integrity: sha512-jLQXJ/URln51zskhgppGJ2ub7b2WFKGq3cl3NYKtlHoTG+dN2q7EzWrn3hN3EgPsTMvpR9tpq5ijdp7YwFZkag==}
     dev: false
 
   /react-native@0.72.5(@babel/core@7.23.0)(@babel/preset-env@7.22.20)(react@18.2.0):
@@ -12746,6 +12748,10 @@ packages:
     resolution: {integrity: sha512-DEL/RW/f4qLw/NrVg97xKaEBC8IpzIG2fvxnzCp3Z4yk4jQ3MXom+Imav9wApjxX2dfS3eW7x0DXafJr85i39A==}
     dependencies:
       parseley: 0.11.0
+    dev: false
+
+  /semver-compare@1.0.0:
+    resolution: {integrity: sha512-YM3/ITh2MJ5MtzaM429anh+x2jiLVjqILF4m4oyQB18W7Ggea7BfqdH/wGMK7dDiMghv/6WG7znWMwUDzJiXow==}
     dev: false
 
   /semver@5.7.2:

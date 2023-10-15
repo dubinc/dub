@@ -9,6 +9,7 @@ import LinkFilters from "./link-filters";
 import LinkPagination from "./link-pagination";
 import LinkSort from "./link-sort";
 import NoLinksPlaceholder from "./no-links-placeholder";
+import { Suspense } from "react";
 
 export default function LinksContainer({
   AddEditLinkButton,
@@ -24,18 +25,24 @@ export default function LinksContainer({
       <MaxWidthWrapper>
         <div className="my-5 flex h-10 w-full justify-center lg:justify-end">
           <LinkFiltersButton />
-          <LinkSort />
+          <Suspense>
+            <LinkSort />
+          </Suspense>
         </div>
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-7">
           <div className="scrollbar-hide sticky top-32 col-span-2 hidden max-h-[calc(100vh-150px)] self-start overflow-auto rounded-lg border border-gray-100 bg-white shadow lg:block">
-            <LinkFilters />
+            <Suspense>
+              <LinkFilters />
+            </Suspense>
           </div>
           <div className="col-span-1 auto-rows-min grid-cols-1 lg:col-span-5">
             <ul className="grid min-h-[66.5vh] auto-rows-min gap-3">
               {links && !isValidating ? (
                 links.length > 0 ? (
                   links.map((props) => (
-                    <LinkCard key={props.id} props={props} />
+                    <Suspense fallback={<LinkCardPlaceholder />}>
+                      <LinkCard key={props.id} props={props} />
+                    </Suspense>
                   ))
                 ) : (
                   <NoLinksPlaceholder AddEditLinkButton={AddEditLinkButton} />
@@ -46,7 +53,11 @@ export default function LinksContainer({
                 ))
               )}
             </ul>
-            {links && links.length > 0 && <LinkPagination />}
+            {links && links.length > 0 && (
+              <Suspense>
+                <LinkPagination />
+              </Suspense>
+            )}
           </div>
         </div>
       </MaxWidthWrapper>

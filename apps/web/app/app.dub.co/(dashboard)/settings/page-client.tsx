@@ -5,21 +5,9 @@ import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import UploadAvatar from "@/ui/account/upload-avatar";
 import DeleteAccountSection from "@/ui/account/delete-account";
-import { useSearchParams } from "next/navigation";
-import { useEffect } from "react";
 
 export default function SettingsPageClient() {
   const { data: session, update, status } = useSession();
-
-  const searchParams = useSearchParams();
-
-  useEffect(() => {
-    if (searchParams?.get("google") === "true") {
-      toast.success(
-        "Successfully connected your Google account! You can log in with Google from now on.",
-      );
-    }
-  }, [searchParams]);
 
   return (
     <>

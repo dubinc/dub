@@ -3,6 +3,7 @@ import { ChevronDown, Filter } from "lucide-react";
 import {
   Dispatch,
   SetStateAction,
+  Suspense,
   useCallback,
   useMemo,
   useState,
@@ -21,7 +22,9 @@ function LinkFiltersModal({
       showModal={showLinkFiltersModal}
       setShowModal={setShowLinkFiltersModal}
     >
-      <LinkFilters />
+      <Suspense>
+        <LinkFilters />
+      </Suspense>
     </Modal>
   );
 }
