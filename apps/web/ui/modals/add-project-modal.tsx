@@ -15,6 +15,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
+import { mutate } from "swr";
 
 function AddProjectModalHelper({
   showAddProjectModal,
@@ -111,7 +112,7 @@ function AddProjectModalHelper({
             if (res.status === 200) {
               // track project creation event
               va.track("Created Project");
-              router.refresh();
+              await Promise.all([mutate("/api/projects"), router.refresh()]);
               if (welcomeFlow) {
                 router.push(`/welcome?type=upgrade&slug=${slug}`);
               } else {

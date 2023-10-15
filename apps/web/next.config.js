@@ -15,7 +15,7 @@ module.exports = {
     useDeploymentId: true,
     serverActions: true,
     useDeploymentIdServerActions: true,
-    optimizePackageImports: ["lucide-react"],
+    optimizePackageImports: ["@dub/utils"],
   },
   webpack: (config, { webpack, isServer }) => {
     if (isServer) {
