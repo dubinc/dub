@@ -1,6 +1,6 @@
-import { withUserAuth } from "#/lib/auth";
-import { isReservedKey } from "#/lib/edge-config";
-import prisma from "#/lib/prisma";
+import { withUserAuth } from "@/lib/auth";
+import { isReservedKey } from "@/lib/edge-config";
+import prisma from "@/lib/prisma";
 import { DEFAULT_REDIRECTS } from "@dub/utils";
 import { NextApiRequest, NextApiResponse } from "next";
 

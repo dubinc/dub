@@ -1,6 +1,6 @@
-import { deleteProject } from "#/lib/api/project";
-import { withProjectAuth } from "#/lib/auth";
-import prisma from "#/lib/prisma";
+import { deleteProject } from "@/lib/api/project";
+import { withProjectAuth } from "@/lib/auth";
+import prisma from "@/lib/prisma";
 
 export default withProjectAuth(
   async (req, res, project) => {

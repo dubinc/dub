@@ -1,5 +1,5 @@
-import { domainExists } from "#/lib/api/domains";
-import { withUserAuth } from "#/lib/auth";
+import { domainExists } from "@/lib/api/domains";
+import { withUserAuth } from "@/lib/auth";
 
 export default withUserAuth(async (req, res) => {
   const { domain } = req.query as { domain: string };

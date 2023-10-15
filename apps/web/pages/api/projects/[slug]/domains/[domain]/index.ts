@@ -6,10 +6,10 @@ import {
   removeDomainFromVercel,
   setRootDomain,
   validateDomain,
-} from "#/lib/api/domains";
-import { withProjectAuth } from "#/lib/auth";
-import prisma from "#/lib/prisma";
-import { redis } from "#/lib/upstash";
+} from "@/lib/api/domains";
+import { withProjectAuth } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { redis } from "@/lib/upstash";
 
 export default withProjectAuth(
   async (req, res, project) => {

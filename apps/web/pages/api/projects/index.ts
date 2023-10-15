@@ -2,10 +2,10 @@ import {
   addDomainToVercel,
   domainExists,
   validateDomain,
-} from "#/lib/api/domains";
-import { Session, withUserAuth } from "#/lib/auth";
-import { isReservedKey } from "#/lib/edge-config";
-import prisma from "#/lib/prisma";
+} from "@/lib/api/domains";
+import { Session, withUserAuth } from "@/lib/auth";
+import { isReservedKey } from "@/lib/edge-config";
+import prisma from "@/lib/prisma";
 import { DEFAULT_REDIRECTS, validSlugRegex } from "@dub/utils";
 import { NextApiRequest, NextApiResponse } from "next";
 

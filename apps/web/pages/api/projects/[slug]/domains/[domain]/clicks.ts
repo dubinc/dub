@@ -1,5 +1,5 @@
-import { withProjectAuth } from "#/lib/auth";
-import { getStats } from "#/lib/stats";
+import { withProjectAuth } from "@/lib/auth";
+import { getStats } from "@/lib/stats";
 
 export default withProjectAuth(async (req, res) => {
   // GET /api/projects/[slug]/domains/[domain]/clicks - get # of clicks on root of domain (e.g. dub.sh, vercel.fyi)

@@ -58,3 +58,20 @@ export async function getProject({ slug }: { slug: string }) {
     },
   });
 }
+
+export async function getLink({
+  domain,
+  key,
+}: {
+  domain: string;
+  key: string;
+}) {
+  return await prisma.link.findUnique({
+    where: {
+      domain_key: {
+        domain,
+        key,
+      },
+    },
+  });
+}

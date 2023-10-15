@@ -1,4 +1,4 @@
-import { getLinkViaEdge } from "#/lib/planetscale";
+import { getLinkViaEdge } from "@/lib/planetscale";
 import {
   GOOGLE_FAVICON_URL,
   constructMetadata,

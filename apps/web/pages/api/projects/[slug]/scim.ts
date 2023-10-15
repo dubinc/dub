@@ -1,6 +1,6 @@
-import { withProjectAuth } from "#/lib/auth";
-import jackson from "#/lib/jackson";
-import { SAMLProviderProps } from "#/lib/types";
+import { withProjectAuth } from "@/lib/auth";
+import jackson from "@/lib/jackson";
+import { SAMLProviderProps } from "@/lib/types";
 
 export default withProjectAuth(
   async (req, res, project) => {
@@ -51,8 +51,9 @@ export default withProjectAuth(
         return res.status(400).end(`Missing SCIM directory ID`);
       }
 
-      const response =
-        await directorySyncController.directories.delete(directoryId);
+      const response = await directorySyncController.directories.delete(
+        directoryId,
+      );
 
       return res.status(200).json(response);
     } else {

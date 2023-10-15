@@ -4,7 +4,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { SessionProvider } from "next-auth/react";
 import { ReactNode } from "react";
 import { Toaster } from "sonner";
-import ModalProvider from "./ui/modals/provider";
+import ModalProvider from "@/ui/modals/provider";
 
 export default function Providers({ children }: { children: ReactNode }) {
   return (

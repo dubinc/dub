@@ -1,6 +1,6 @@
-import { isReservedKey } from "#/lib/edge-config";
-import prisma from "#/lib/prisma";
-import { redis } from "#/lib/upstash";
+import { isReservedKey } from "@/lib/edge-config";
+import prisma from "@/lib/prisma";
+import { redis } from "@/lib/upstash";
 import {
   DEFAULT_REDIRECTS,
   getParamsFromURL,

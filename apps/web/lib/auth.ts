@@ -1,5 +1,5 @@
-import prisma from "#/lib/prisma";
-import { PlanProps, ProjectProps, UserProps } from "#/lib/types";
+import prisma from "@/lib/prisma";
+import { PlanProps, ProjectProps, UserProps } from "@/lib/types";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { API_DOMAIN } from "@dub/utils";
 import { type Link as LinkProps } from "@prisma/client";

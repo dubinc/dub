@@ -1,6 +1,6 @@
-import { deleteUserLinks } from "#/lib/api/links";
-import { withUserAuth } from "#/lib/auth";
-import prisma from "#/lib/prisma";
+import { deleteUserLinks } from "@/lib/api/links";
+import { withUserAuth } from "@/lib/auth";
+import prisma from "@/lib/prisma";
 import cloudinary from "cloudinary";
 
 export const config = {

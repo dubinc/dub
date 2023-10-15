@@ -1,4 +1,4 @@
-import { TagProps } from "#/lib/types";
+import { TagProps } from "@/lib/types";
 import { fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
 import useSWR from "swr";

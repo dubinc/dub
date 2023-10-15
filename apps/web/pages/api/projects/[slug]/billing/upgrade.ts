@@ -1,5 +1,5 @@
-import { withProjectAuth } from "#/lib/auth";
-import { stripe } from "#/lib/stripe";
+import { withProjectAuth } from "@/lib/auth";
+import { stripe } from "@/lib/stripe";
 import { APP_DOMAIN } from "@dub/utils";
 
 export default withProjectAuth(async (req, res, project, session) => {

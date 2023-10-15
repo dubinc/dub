@@ -1,4 +1,4 @@
-import { parse } from "#/lib/middleware/utils";
+import { parse } from "@/lib/middleware/utils";
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
 import { conn } from "../planetscale";

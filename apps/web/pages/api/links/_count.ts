@@ -1,5 +1,5 @@
-import { getLinksCount } from "#/lib/api/links";
-import { withLinksAuth } from "#/lib/auth";
+import { getLinksCount } from "@/lib/api/links";
+import { withLinksAuth } from "@/lib/auth";
 import { DUB_PROJECT_ID } from "@dub/utils";
 
 export default withLinksAuth(async (req, res, session, project) => {

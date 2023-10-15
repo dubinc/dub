@@ -1,15 +1,15 @@
 import { constructMetadata } from "@dub/utils";
-import { Divider } from "#/ui/shared/icons";
+import { Divider } from "@/ui/shared/icons";
 import { Logo, MaxWidthWrapper } from "@dub/ui";
 import { HOME_DOMAIN } from "@dub/utils";
 import Link from "next/link";
 import { ReactNode, Suspense } from "react";
-import UserDropdown from "#/ui/layout/user-dropdown";
+import UserDropdown from "@/ui/layout/user-dropdown";
 import ProjectSelect, {
   ProjectSelectPlaceholder,
-} from "#/ui/layout/project-select.tsx";
-import NavTabs from "#/ui/layout/nav-tabs";
-import UpgradeBanner from "#/ui/layout/upgrade-banner";
+} from "@/ui/layout/project-select.tsx";
+import NavTabs from "@/ui/layout/nav-tabs";
+import UpgradeBanner from "@/ui/layout/upgrade-banner";
 
 export const metadata = constructMetadata();
 

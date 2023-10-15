@@ -1,7 +1,7 @@
-import { inviteUser } from "#/lib/api/users";
-import jackson from "#/lib/jackson";
-import prisma from "#/lib/prisma";
-import { ProjectProps } from "#/lib/types";
+import { inviteUser } from "@/lib/api/users";
+import jackson from "@/lib/jackson";
+import prisma from "@/lib/prisma";
+import { ProjectProps } from "@/lib/types";
 import type {
   DirectorySyncEvent,
   DirectorySyncRequest,

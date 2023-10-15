@@ -1,7 +1,7 @@
 import { ReactNode, Suspense } from "react";
-import { getProject } from "#/lib/fetchers";
-import LayoutLoader from "#/ui/layout/layout-loader";
-import ProjectNotFound from "#/ui/layout/project-not-found";
+import { getProject } from "@/lib/fetchers";
+import LayoutLoader from "@/ui/layout/layout-loader";
+import ProjectNotFound from "@/ui/layout/project-not-found";
 
 export default function ProjectLayout({
   params,

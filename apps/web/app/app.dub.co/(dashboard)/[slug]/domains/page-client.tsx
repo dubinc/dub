@@ -1,11 +1,11 @@
 "use client";
 
-import useDomains from "#/lib/swr/use-domains";
-import useProject from "#/lib/swr/use-project";
-import DomainCard from "#/ui/domains/domain-card";
-import DomainCardPlaceholder from "#/ui/domains/domain-card-placeholder";
-import NoDomainsPlaceholder from "#/ui/domains/no-domains-placeholder";
-import { useAddEditDomainModal } from "#/ui/modals/add-edit-domain-modal";
+import useDomains from "@/lib/swr/use-domains";
+import useProject from "@/lib/swr/use-project";
+import DomainCard from "@/ui/domains/domain-card";
+import DomainCardPlaceholder from "@/ui/domains/domain-card-placeholder";
+import NoDomainsPlaceholder from "@/ui/domains/no-domains-placeholder";
+import { useAddEditDomainModal } from "@/ui/modals/add-edit-domain-modal";
 import { InfoTooltip, MaxWidthWrapper, TooltipContent } from "@dub/ui";
 import { HOME_DOMAIN } from "@dub/utils";
 

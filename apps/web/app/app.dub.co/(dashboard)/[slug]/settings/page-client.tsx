@@ -1,8 +1,8 @@
 "use client";
 
-import useProject from "#/lib/swr/use-project";
-import DeleteProject from "#/ui/projects/delete-project";
-import UploadLogo from "#/ui/projects/upload-logo";
+import useProject from "@/lib/swr/use-project";
+import DeleteProject from "@/ui/projects/delete-project";
+import UploadLogo from "@/ui/projects/upload-logo";
 import { Form } from "@dub/ui";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";

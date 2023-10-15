@@ -1,4 +1,4 @@
-import { ratelimit } from "#/lib/upstash";
+import { ratelimit } from "@/lib/upstash";
 import FeedbackEmail from "emails/feedback-email";
 import { NextApiRequest, NextApiResponse } from "next";
 import { Resend } from "resend";

@@ -1,7 +1,7 @@
 "use client";
 
-import { useDeleteTokenModal } from "#/ui/modals/delete-token-modal";
-import { useTokenCreatedModal } from "#/ui/modals/token-created-modal";
+import { useDeleteTokenModal } from "@/ui/modals/delete-token-modal";
+import { useTokenCreatedModal } from "@/ui/modals/token-created-modal";
 import { Form, IconMenu, LoadingSpinner, Popover, TokenAvatar } from "@dub/ui";
 import { fetcher, timeAgo } from "@dub/utils";
 import { Token } from "@prisma/client";

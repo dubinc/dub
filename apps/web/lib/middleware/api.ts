@@ -1,4 +1,4 @@
-import { parse } from "#/lib/middleware/utils";
+import { parse } from "@/lib/middleware/utils";
 import { HOME_DOMAIN } from "@dub/utils";
 import { NextRequest, NextResponse } from "next/server";
 

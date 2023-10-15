@@ -1,8 +1,8 @@
-import { getProjects } from "#/lib/fetchers";
-import CreateProjectButton from "#/ui/projects/create-project-button";
-import NoProjectsPlaceholder from "#/ui/projects/no-projects-placeholder";
-import ProjectCard from "#/ui/projects/project-card";
-import ProjectCardPlaceholder from "#/ui/projects/project-card-placeholder";
+import { getProjects } from "@/lib/fetchers";
+import CreateProjectButton from "@/ui/projects/create-project-button";
+import NoProjectsPlaceholder from "@/ui/projects/no-projects-placeholder";
+import ProjectCard from "@/ui/projects/project-card";
+import ProjectCardPlaceholder from "@/ui/projects/project-card-placeholder";
 import { MaxWidthWrapper } from "@dub/ui";
 import { Suspense } from "react";
 

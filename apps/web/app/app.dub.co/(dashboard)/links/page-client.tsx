@@ -1,7 +1,7 @@
 "use client";
 
-import LinksContainer from "#/ui/links/links-container";
-import { useAddEditLinkModal } from "#/ui/modals/add-edit-link-modal";
+import LinksContainer from "@/ui/links/links-container";
+import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
 import { MaxWidthWrapper } from "@dub/ui";
 
 export default function DubLinksClient() {

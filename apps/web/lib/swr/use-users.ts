@@ -1,4 +1,4 @@
-import { UserProps } from "#/lib/types";
+import { UserProps } from "@/lib/types";
 import { fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
 import useSWR from "swr";

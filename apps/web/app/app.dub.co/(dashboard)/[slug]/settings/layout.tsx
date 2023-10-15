@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import SettingsLayout from "#/ui/layout/settings-layout";
+import SettingsLayout from "@/ui/layout/settings-layout";
 
 export default function ProjectSettingsLayout({
   children,

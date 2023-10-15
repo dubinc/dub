@@ -1,9 +1,9 @@
-import { addDomainToVercel } from "#/lib/api/domains";
-import { withProjectAuth } from "#/lib/auth";
-import { qstash } from "#/lib/cron";
-import prisma from "#/lib/prisma";
-import { ShortioDomainProps } from "#/lib/types";
-import { redis } from "#/lib/upstash";
+import { addDomainToVercel } from "@/lib/api/domains";
+import { withProjectAuth } from "@/lib/auth";
+import { qstash } from "@/lib/cron";
+import prisma from "@/lib/prisma";
+import { ShortioDomainProps } from "@/lib/types";
+import { redis } from "@/lib/upstash";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 
 export default withProjectAuth(async (req, res, project) => {

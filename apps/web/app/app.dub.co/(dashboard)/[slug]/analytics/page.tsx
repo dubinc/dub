@@ -1,7 +1,8 @@
-import { getProject } from "#/lib/fetchers";
-import LayoutLoader from "#/ui/layout/layout-loader";
-import ProjectExceededUsage from "#/ui/layout/project-exceeded-usage";
-import ProjectNotFound from "#/ui/layout/project-not-found";
+import { getProject } from "@/lib/fetchers";
+import LayoutLoader from "@/ui/layout/layout-loader";
+import ProjectExceededUsage from "@/ui/layout/project-exceeded-usage";
+import ProjectNotFound from "@/ui/layout/project-not-found";
+import Stats from "@/ui/stats";
 import { Suspense } from "react";
 
 export default function ProjectAnalytics({
@@ -12,7 +13,7 @@ export default function ProjectAnalytics({
   return (
     <Suspense fallback={<LayoutLoader />}>
       <AnalyticsAuth slug={params.slug}>
-        <div></div>
+        <Stats />
       </AnalyticsAuth>
     </Suspense>
   );

@@ -1,6 +1,6 @@
-import { detectBot, getFinalUrl, parse } from "#/lib/middleware/utils";
-import { recordClick } from "#/lib/tinybird";
-import { ratelimit, redis } from "#/lib/upstash";
+import { detectBot, getFinalUrl, parse } from "@/lib/middleware/utils";
+import { recordClick } from "@/lib/tinybird";
+import { ratelimit, redis } from "@/lib/upstash";
 import { DUB_HEADERS, LOCALHOST_GEO_DATA, LOCALHOST_IP } from "@dub/utils";
 import { ipAddress } from "@vercel/edge";
 import {

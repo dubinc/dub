@@ -2,9 +2,9 @@ import {
   addDomainToVercel,
   setRootDomain,
   validateDomain,
-} from "#/lib/api/domains";
-import { withProjectAuth } from "#/lib/auth";
-import prisma from "#/lib/prisma";
+} from "@/lib/api/domains";
+import { withProjectAuth } from "@/lib/auth";
+import prisma from "@/lib/prisma";
 
 export default withProjectAuth(async (req, res, project) => {
   // GET /api/projects/[slug]/domains – get all domains for a project

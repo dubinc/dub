@@ -1,4 +1,4 @@
-import { ProjectProps } from "#/lib/types";
+import { ProjectProps } from "@/lib/types";
 import { fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";

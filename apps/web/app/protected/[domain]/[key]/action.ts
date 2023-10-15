@@ -1,5 +1,5 @@
 "use server";
-import prisma from "#/lib/prisma";
+import prisma from "@/lib/prisma";
 
 export async function verifyPassword(data: FormData) {
   const domain = data.get("domain") as string;

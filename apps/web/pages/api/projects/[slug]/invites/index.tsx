@@ -1,6 +1,6 @@
-import { inviteUser } from "#/lib/api/users";
-import { withProjectAuth } from "#/lib/auth";
-import prisma from "#/lib/prisma";
+import { inviteUser } from "@/lib/api/users";
+import { withProjectAuth } from "@/lib/auth";
+import prisma from "@/lib/prisma";
 
 export default withProjectAuth(async (req, res, project, session) => {
   // GET /api/projects/[slug]/invites - Get all pending invites for a project

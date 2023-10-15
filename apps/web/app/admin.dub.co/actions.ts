@@ -1,8 +1,8 @@
 "use server";
-import { deleteUserLinks } from "#/lib/api/links";
-import { deleteProject } from "#/lib/api/project";
-import { hashToken } from "#/lib/auth";
-import prisma from "#/lib/prisma";
+import { deleteUserLinks } from "@/lib/api/links";
+import { deleteProject } from "@/lib/api/project";
+import { hashToken } from "@/lib/auth";
+import prisma from "@/lib/prisma";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { DUB_PROJECT_ID, getDomainWithoutWWW } from "@dub/utils";
 import { get } from "@vercel/edge-config";

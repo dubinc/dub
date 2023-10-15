@@ -1,5 +1,5 @@
-import { withProjectAuth } from "#/lib/auth";
-import jackson, { samlAudience } from "#/lib/jackson";
+import { withProjectAuth } from "@/lib/auth";
+import jackson, { samlAudience } from "@/lib/jackson";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 
 export default withProjectAuth(

@@ -1,4 +1,4 @@
-import prisma from "#/lib/prisma";
+import prisma from "@/lib/prisma";
 import { MetadataRoute } from "next";
 import { headers } from "next/headers";
 

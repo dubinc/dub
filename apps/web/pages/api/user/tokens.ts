@@ -1,5 +1,5 @@
-import { hashToken, withUserAuth } from "#/lib/auth";
-import prisma from "#/lib/prisma";
+import { hashToken, withUserAuth } from "@/lib/auth";
+import prisma from "@/lib/prisma";
 import { customAlphabet } from "nanoid";
 
 const generateToken = customAlphabet(
