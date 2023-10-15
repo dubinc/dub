@@ -388,9 +388,9 @@ export default function LinkCard({
               onClick={(e) => {
                 e.stopPropagation();
               }}
-              href={`/${
-                slug ? `${slug}/${domain}` : "links"
-              }/${encodeURIComponent(key)}`}
+              href={`${
+                slug ? `/${slug}` : ""
+              }/analytics?domain=${domain}&key=${key}`}
               className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 transition-all duration-75 hover:scale-105 active:scale-100"
             >
               <Chart className="h-4 w-4" />

@@ -22,15 +22,16 @@ export default function NavTabs() {
         { name: "Domains", href: `/${slug}/domains` },
         { name: "Settings", href: `/${slug}/settings` },
       ];
+    } else if (pathname === "/analytics") {
+      return [{ name: "← Back to all links", href: "/links" }];
     }
     // home page (e.g. app.dub.co, app.dub.co/settings)
     return [
       { name: "Projects", href: "/" },
       { name: "Dub.sh Links", href: "/links" },
-      { name: "Analytics", href: "/analytics" },
       { name: "Settings", href: "/settings" },
     ];
-  }, [slug]);
+  }, [slug, pathname]);
 
   const { verified, loading } = useDomains();
   const { data: count } = useLinksCount();
