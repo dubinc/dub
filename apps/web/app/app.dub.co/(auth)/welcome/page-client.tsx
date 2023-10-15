@@ -5,7 +5,6 @@ import { useAddProjectModal } from "#/ui/modals/add-project-modal";
 import { useUpgradePlanModal } from "#/ui/modals/upgrade-plan-modal";
 import Interim from "#/ui/welcome/interim";
 import Intro from "#/ui/welcome/intro";
-import Meta from "@/components/layout/meta";
 import { Background } from "@dub/ui";
 import va from "@vercel/analytics";
 import { AnimatePresence } from "framer-motion";
@@ -51,7 +50,6 @@ export default function WelcomePageClient() {
 
   return (
     <div className="flex h-screen flex-col items-center">
-      <Meta title="Welcome to Dub" />
       <Background />
       <AddProjectModal />
       <AddEditLinkModal />
