@@ -114,7 +114,11 @@ export default function LinksImported({
                       <Column align="left" className="text-sm font-medium">
                         {linkConstructor({ domain, key, pretty: true })}
                       </Column>
-                      <Column align="right" className="text-sm text-gray-600">
+                      <Column
+                        align="right"
+                        className="text-sm text-gray-600"
+                        suppressHydrationWarning
+                      >
                         {timeAgo(createdAt)}
                       </Column>
                     </Row>

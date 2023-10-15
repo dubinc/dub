@@ -8,7 +8,7 @@ export default function SettingsLayout({
 }: {
   tabs: {
     name: string;
-    segment: string;
+    segment: string | null;
   }[];
   children: ReactNode;
 }) {

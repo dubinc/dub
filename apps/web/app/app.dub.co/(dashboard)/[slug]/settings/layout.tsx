@@ -9,19 +9,19 @@ export default function ProjectSettingsLayout({
   const tabs = [
     {
       name: "General",
-      segment: "",
+      segment: null,
     },
     {
       name: "Billing",
-      segment: "/billing",
+      segment: "billing",
     },
     {
       name: "People",
-      segment: "/people",
+      segment: "people",
     },
     {
       name: "Security",
-      segment: "/security",
+      segment: "security",
     },
   ];
 

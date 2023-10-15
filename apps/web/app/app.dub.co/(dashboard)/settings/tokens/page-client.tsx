@@ -109,13 +109,16 @@ const TokenRow = (token: Token) => {
           <TokenAvatar id={token.id} />
           <div className="flex flex-col space-y-px">
             <p className="font-semibold text-gray-700">{token.name}</p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500" suppressHydrationWarning>
               Created {timeAgo(token.createdAt, { withAgo: true })}
             </p>
           </div>
         </div>
         <div className="font-mono text-sm">{token.partialKey}</div>
-        <div className="text-center text-sm text-gray-500">
+        <div
+          className="text-center text-sm text-gray-500"
+          suppressHydrationWarning
+        >
           {timeAgo(token.lastUsed)}
         </div>
         <Popover

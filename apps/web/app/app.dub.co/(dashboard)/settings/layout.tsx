@@ -9,11 +9,11 @@ export default function PersonalSettingsLayout({
   const tabs = [
     {
       name: "General",
-      segment: "",
+      segment: null,
     },
     // {
     //   name: "API Keys",
-    //   segment: "/tokens",
+    //   segment: "tokens",
     // },
   ];
 

@@ -15,6 +15,7 @@ module.exports = {
     useDeploymentId: true,
     serverActions: true,
     useDeploymentIdServerActions: true,
+    optimizePackageImports: ["lucide-react"],
   },
   webpack: (config, { webpack, isServer }) => {
     if (isServer) {

@@ -46,7 +46,7 @@ function DeleteTokenModal({
             <h3 className="line-clamp-1 w-48 font-semibold text-gray-700">
               {token.name}
             </h3>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500" suppressHydrationWarning>
               Last used {timeAgo(token.lastUsed, { withAgo: true })}
             </p>
           </div>

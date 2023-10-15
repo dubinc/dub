@@ -168,7 +168,7 @@ const UserCard = ({
               </select>
             )
           ) : (
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500" suppressHydrationWarning>
               Invited {timeAgo(createdAt)}
             </p>
           )}

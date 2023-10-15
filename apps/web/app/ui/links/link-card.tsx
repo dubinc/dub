@@ -347,7 +347,10 @@ export default function LinkCard({
                 </div>
               </Tooltip>
               <p>•</p>
-              <p className="whitespace-nowrap text-sm text-gray-500">
+              <p
+                className="whitespace-nowrap text-sm text-gray-500"
+                suppressHydrationWarning
+              >
                 {timeAgo(createdAt)}
               </p>
               <p className="xs:block hidden">•</p>

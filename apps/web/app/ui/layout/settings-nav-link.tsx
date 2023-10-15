@@ -2,22 +2,24 @@
 
 import { cn } from "@dub/utils";
 import Link from "next/link";
-import { useParams, usePathname } from "next/navigation";
+import { useParams, useSelectedLayoutSegment } from "next/navigation";
 import { ReactNode } from "react";
 
 export default function NavLink({
   segment,
   children,
 }: {
-  segment: string;
+  segment: string | null;
   children: ReactNode;
 }) {
-  const pathname = usePathname();
+  const selectedLayoutSegment = useSelectedLayoutSegment();
   const { slug } = useParams() as {
     slug?: string;
   };
 
-  const href = `${slug ? `/${slug}` : ""}/settings${segment}`;
+  const href = `${slug ? `/${slug}` : ""}/settings${
+    segment ? `/${segment}` : ""
+  }`;
 
   return (
     <Link
@@ -26,7 +28,7 @@ export default function NavLink({
       className={cn(
         "rounded-md p-2.5 text-sm transition-all duration-75 hover:bg-gray-100 active:bg-gray-200",
         {
-          "font-semibold text-black": pathname === href,
+          "font-semibold text-black": selectedLayoutSegment === segment,
         },
       )}
     >
