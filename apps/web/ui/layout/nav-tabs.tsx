@@ -2,6 +2,7 @@
 
 import useDomains from "@/lib/swr/use-domains";
 import useLinksCount from "@/lib/swr/use-links-count";
+import useProject from "@/lib/swr/use-project";
 import useUsers from "@/lib/swr/use-users";
 import { ModalContext } from "@/ui/modals/provider";
 import { Badge } from "@dub/ui";
@@ -13,6 +14,7 @@ import { useContext, useMemo } from "react";
 export default function NavTabs() {
   const pathname = usePathname();
   const { slug } = useParams() as { slug?: string };
+  const { error } = useProject();
 
   const tabs = useMemo(() => {
     if (slug) {
@@ -52,7 +54,7 @@ export default function NavTabs() {
           )}
         </Link>
       ))}
-      {slug && !loading && (!verified || count === 0) && (
+      {slug && !error && !loading && (!verified || count === 0) && (
         <OnboardingChecklist />
       )}
     </div>
