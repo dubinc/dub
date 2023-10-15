@@ -1,7 +1,7 @@
 "use client";
 
-import { ModalContext } from "#/ui/modal-provider";
-import { BlurImage } from "@/components/shared/blur-image";
+import { ModalContext } from "#/ui/modals/provider";
+import { BlurImage } from "#/ui/shared/blur-image";
 import Link from "next/link";
 import { useContext } from "react";
 

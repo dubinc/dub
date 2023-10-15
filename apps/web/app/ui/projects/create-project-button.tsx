@@ -1,6 +1,6 @@
 "use client";
 
-import { ModalContext } from "#/ui/modal-provider";
+import { ModalContext } from "#/ui/modals/provider";
 import { useContext } from "react";
 
 export default function CreateProjectButton() {

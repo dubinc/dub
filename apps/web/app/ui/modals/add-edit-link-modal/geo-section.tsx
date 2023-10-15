@@ -1,5 +1,5 @@
 import useProject from "#/lib/swr/use-project";
-import { ModalContext } from "#/ui/modal-provider";
+import { ModalContext } from "#/ui/modals/provider";
 import {
   InfoTooltip,
   SimpleTooltipContent,

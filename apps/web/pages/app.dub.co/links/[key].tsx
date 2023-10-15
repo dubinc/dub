@@ -1,5 +1,4 @@
 import useLink from "#/lib/swr/use-link";
-import AppLayout from "@/components/layout/app";
 import Stats from "@/components/stats";
 import ErrorPage from "next/error";
 
@@ -11,5 +10,5 @@ export default function StatsPage() {
     return <ErrorPage statusCode={404} />;
   }
 
-  return <AppLayout>{!loading && !error && <Stats />}</AppLayout>;
+  return !loading && !error && <Stats />;
 }

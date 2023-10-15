@@ -2,8 +2,8 @@
 
 import useDomains from "#/lib/swr/use-domains";
 import useLinksCount from "#/lib/swr/use-links-count";
-import useUsers from "#/lib/swr-app/use-users";
-import { ModalContext } from "#/ui/modal-provider";
+import useUsers from "#/lib/swr/use-users";
+import { ModalContext } from "#/ui/modals/provider";
 import { Badge } from "@dub/ui";
 import { motion } from "framer-motion";
 import Link from "next/link";

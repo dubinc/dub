@@ -1,4 +1,4 @@
-import { Eye, EyeOff } from "@/components/shared/icons";
+import { Eye, EyeOff } from "#/ui/shared/icons";
 import { InfoTooltip, SimpleTooltipContent, Switch } from "@dub/ui";
 import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "@dub/utils";
 import { type Link as LinkProps } from "@prisma/client";

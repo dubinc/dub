@@ -1,12 +1,10 @@
 import { fetcher } from "@dub/utils";
 import { type Link as LinkProps } from "@prisma/client";
-import { useRouter } from "next/router";
+import { useParams } from "next/navigation";
 import useSWR from "swr";
 
 export default function useLink() {
-  const router = useRouter();
-
-  const { key } = router.query as {
+  const { key } = useParams() as {
     key: string;
   };
 

@@ -1,5 +1,5 @@
 import useProject from "#/lib/swr/use-project";
-import { BlurImage } from "@/components/shared/blur-image";
+import { BlurImage } from "#/ui/shared/blur-image";
 import { Button, Modal } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useParams, useRouter } from "next/navigation";

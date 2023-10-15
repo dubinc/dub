@@ -3,9 +3,9 @@
 import { QRCodeSVG, getQRAsCanvas, getQRAsSVGDataUri } from "#/lib/qr";
 import useProject from "#/lib/swr/use-project";
 import { SimpleLinkProps } from "#/lib/types";
-import { ModalContext } from "#/ui/modal-provider";
-import { BlurImage } from "@/components/shared/blur-image";
-import { Clipboard, Download } from "@/components/shared/icons";
+import { ModalContext } from "#/ui/modals/provider";
+import { BlurImage } from "#/ui/shared/blur-image";
+import { Clipboard, Download } from "#/ui/shared/icons";
 import {
   IconMenu,
   InfoTooltip,

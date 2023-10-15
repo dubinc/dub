@@ -2,7 +2,7 @@
 
 import { Session } from "#/lib/auth";
 import { PlanProps, ProjectWithDomainProps } from "#/lib/types";
-import { ModalContext } from "#/ui/modal-provider";
+import { ModalContext } from "#/ui/modals/provider";
 import PlanBadge from "#/ui/projects/plan-badge";
 import { Avatar, Popover, Tick } from "@dub/ui";
 import { GOOGLE_FAVICON_URL } from "@dub/utils";

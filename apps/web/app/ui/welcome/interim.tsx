@@ -1,4 +1,4 @@
-import { BlurImage } from "@/components/shared/blur-image";
+import { BlurImage } from "#/ui/shared/blur-image";
 import { Logo } from "@dub/ui";
 import { STAGGER_CHILD_VARIANTS } from "@dub/utils";
 import { motion } from "framer-motion";

@@ -1,4 +1,4 @@
-import ModalProvider from "#/ui/modal-provider";
+import ModalProvider from "#/ui/modals/provider";
 import { inter, satoshi } from "@/styles/fonts";
 import "@/styles/globals.css";
 import { cn } from "@dub/utils";

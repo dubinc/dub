@@ -1,3 +1,5 @@
+"use client";
+
 import useProject from "#/lib/swr/use-project";
 import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";

@@ -1,4 +1,4 @@
-import { Chart } from "@/components/shared/icons";
+import { Chart } from "#/ui/shared/icons";
 import { NumberTooltip } from "@dub/ui";
 import { fetcher, nFormatter } from "@dub/utils";
 import { useContext } from "react";

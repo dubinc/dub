@@ -1,7 +1,6 @@
 import useProject from "#/lib/swr/use-project";
-import { ModalContext } from "#/ui/modal-provider";
-import AppLayout from "@/components/layout/app";
-import { BlurImage } from "@/components/shared/blur-image";
+import { ModalContext } from "#/ui/modals/provider";
+import { BlurImage } from "#/ui/shared/blur-image";
 import Stats from "@/components/stats";
 import { MaxWidthWrapper } from "@dub/ui";
 import { Lock } from "lucide-react";
@@ -12,7 +11,7 @@ export default function StatsPage() {
   const { setShowUpgradePlanModal } = useContext(ModalContext);
 
   return (
-    <AppLayout>
+    <>
       {exceededUsage && (
         <MaxWidthWrapper>
           <div className="my-10 flex flex-col items-center justify-center rounded-md border border-gray-200 bg-white py-12">
@@ -44,6 +43,6 @@ export default function StatsPage() {
         </MaxWidthWrapper>
       )}
       {slug && !exceededUsage && <Stats />}
-    </AppLayout>
+    </>
   );
 }

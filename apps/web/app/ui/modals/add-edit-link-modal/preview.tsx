@@ -1,4 +1,4 @@
-import { BlurImage } from "@/components/shared/blur-image";
+import { BlurImage } from "#/ui/shared/blur-image";
 import { Facebook, LinkedIn, LoadingCircle, Photo, Twitter } from "@dub/ui";
 import { getDomainWithoutWWW } from "@dub/utils";
 import { type Link as LinkProps } from "@prisma/client";

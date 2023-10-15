@@ -1,7 +1,7 @@
-import { ModalContext } from "#/ui/modal-provider";
+import { ModalContext } from "#/ui/modals/provider";
 import va from "@vercel/analytics";
 import Cookies from "js-cookie";
-import { useRouter } from "next/router";
+import { useParams } from "next/navigation";
 import { Dispatch, SetStateAction, useContext } from "react";
 
 export default function ProBanner({
@@ -9,8 +9,7 @@ export default function ProBanner({
 }: {
   setShowProBanner: Dispatch<SetStateAction<boolean>>;
 }) {
-  const router = useRouter();
-  const { slug } = router.query;
+  const { slug } = useParams() as { slug: string };
   const { setShowUpgradePlanModal } = useContext(ModalContext);
   return (
     <div className="fixed bottom-5 z-10 mx-5 flex flex-col space-y-3 rounded-lg border border-gray-200 bg-white p-5 shadow-lg sm:right-5 sm:mx-auto sm:max-w-sm">

@@ -1,15 +1,15 @@
 import useDomains from "#/lib/swr/use-domains";
 import useProject from "#/lib/swr/use-project";
-import useTags from "#/lib/swr-app/use-tags";
+import useTags from "#/lib/swr/use-tags";
 import { UserProps } from "#/lib/types";
-import { ModalContext } from "#/ui/modal-provider";
+import { ModalContext } from "#/ui/modals/provider";
 import TagBadge from "#/ui/links/tag-badge";
 import { useAddEditLinkModal } from "#/ui/modals/add-edit-link-modal";
 import { useArchiveLinkModal } from "#/ui/modals/archive-link-modal";
 import { useDeleteLinkModal } from "#/ui/modals/delete-link-modal";
 import { useLinkQRModal } from "#/ui/modals/link-qr-modal";
-import { BlurImage } from "@/components/shared/blur-image";
-import { Chart, Delete, ThreeDots } from "@/components/shared/icons";
+import { BlurImage } from "#/ui/shared/blur-image";
+import { Chart, Delete, ThreeDots } from "#/ui/shared/icons";
 import {
   Avatar,
   CopyButton,

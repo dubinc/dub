@@ -1,5 +1,5 @@
 import BarList from "#/ui/stats/bar-list";
-import { BlurImage } from "@/components/shared/blur-image";
+import { BlurImage } from "#/ui/shared/blur-image";
 import { LoadingCircle, Modal } from "@dub/ui";
 import { GOOGLE_FAVICON_URL, fetcher } from "@dub/utils";
 import { Link2, Maximize } from "lucide-react";

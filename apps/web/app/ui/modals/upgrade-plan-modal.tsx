@@ -1,6 +1,6 @@
 import { getStripe } from "#/lib/stripe/client";
 import { PLANS } from "#/lib/stripe/utils";
-import { CheckCircleFill } from "@/components/shared/icons";
+import { CheckCircleFill } from "#/ui/shared/icons";
 import { Badge, Button, Logo, Modal } from "@dub/ui";
 import { HOME_DOMAIN, STAGGER_CHILD_VARIANTS, capitalize } from "@dub/utils";
 import { motion } from "framer-motion";

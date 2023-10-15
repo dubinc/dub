@@ -1,6 +1,6 @@
 import { ReactNode, Suspense } from "react";
 import { getProject } from "#/lib/fetchers";
-import { BlurImage } from "@/components/shared/blur-image";
+import { BlurImage } from "#/ui/shared/blur-image";
 import { LoadingSpinner, MaxWidthWrapper } from "@dub/ui";
 import { FileX2 } from "lucide-react";
 import Link from "next/link";

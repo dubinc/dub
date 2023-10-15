@@ -1,3 +1,5 @@
+"use client";
+
 import useProject from "#/lib/swr/use-project";
 import { Button } from "@dub/ui";
 import { UploadCloud } from "lucide-react";

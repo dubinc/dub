@@ -1,4 +1,4 @@
-import useTags from "#/lib/swr-app/use-tags";
+import useTags from "#/lib/swr/use-tags";
 import TagBadge from "#/ui/links/tag-badge";
 import { LoadingCircle, SimpleTooltipContent, Tooltip } from "@dub/ui";
 import { HOME_DOMAIN } from "@dub/utils";

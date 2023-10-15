@@ -1,4 +1,4 @@
-import { BlurImage } from "@/components/shared/blur-image";
+import { BlurImage } from "#/ui/shared/blur-image";
 
 export default function NoLinksPlaceholder({
   AddEditLinkButton,

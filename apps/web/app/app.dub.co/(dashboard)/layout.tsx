@@ -1,5 +1,5 @@
 import { constructMetadata } from "@dub/utils";
-import { Divider } from "@/components/shared/icons";
+import { Divider } from "#/ui/shared/icons";
 import { Logo, MaxWidthWrapper } from "@dub/ui";
 import { HOME_DOMAIN } from "@dub/utils";
 import Link from "next/link";
@@ -9,6 +9,7 @@ import ProjectSelect, {
   ProjectSelectPlaceholder,
 } from "#/ui/layout/project-select.tsx";
 import NavTabs from "#/ui/layout/nav-tabs";
+import UpgradeBanner from "#/ui/layout/upgrade-banner";
 
 export const metadata = constructMetadata();
 
@@ -26,35 +27,7 @@ export default function Layout({ children }: { children: ReactNode }) {
               <Suspense fallback={<ProjectSelectPlaceholder />}>
                 <ProjectSelect />
               </Suspense>
-              {/*{!error && key && (
-                  <>
-                    <Divider className="h-8 w-8 text-gray-200 sm:mr-3" />
-                    <Link
-                      href={
-                        slug
-                          ? `/${slug}/${domain}/${encodeURIComponent(key)}`
-                          : `/links/${encodeURIComponent(key)}`
-                      }
-                      className="text-sm font-medium"
-                    >
-                      {linkConstructor({
-                        domain,
-                        key,
-                        pretty: true,
-                      })}
-                    </Link>
-                  </>
-                )}
-                {plan === "free" && showProBanner === false && (
-                  <button
-                    onClick={() => setShowUpgradePlanModal(true)}
-                    className="mb-1 ml-3 hidden sm:block"
-                  >
-                    <Badge variant="blue" className="px-3 py-1">
-                      Upgrade to Pro
-                    </Badge>
-                  </button>
-                )} */}
+              <UpgradeBanner />
             </div>
             <div className="flex items-center space-x-6">
               <a

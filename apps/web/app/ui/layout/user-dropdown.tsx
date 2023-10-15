@@ -1,6 +1,6 @@
 "use client";
 
-import { Logout } from "@/components/shared/icons";
+import { Logout } from "#/ui/shared/icons";
 import { Avatar, Badge, IconMenu, LoadingCircle, Popover } from "@dub/ui";
 import { HOME_DOMAIN } from "@dub/utils";
 import va from "@vercel/analytics";
@@ -15,6 +15,19 @@ export default function UserDropdown() {
   const { data: session } = useSession();
   const [openPopover, setOpenPopover] = useState(false);
   const [openingSupport, setOpeningSupport] = useState(false);
+
+  useEffect(() => {
+    Crisp.configure("2c09b1ee-14c2-46d1-bf72-1dbb998a19e0", {
+      autoload: false,
+    });
+  }, []);
+
+  useEffect(() => {
+    if (session?.user?.email) {
+      Crisp.user.setEmail(session.user.email);
+      Crisp.user.setNickname(session.user.name || session.user.email);
+    }
+  }, [session]);
 
   useEffect(() => {
     Crisp.chat.onChatOpened(() => {

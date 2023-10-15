@@ -1,6 +1,6 @@
 import { INTERVALS } from "#/lib/stats";
 import useProject from "#/lib/swr/use-project";
-import { ModalContext } from "#/ui/modal-provider";
+import { ModalContext } from "#/ui/modals/provider";
 import {
   Copy,
   ExpandingArrow,

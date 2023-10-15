@@ -1,6 +1,6 @@
 import useProject from "#/lib/swr/use-project";
 import { BitlyGroupProps } from "#/lib/types";
-import { ModalContext } from "#/ui/modal-provider";
+import { ModalContext } from "#/ui/modals/provider";
 import { Button, LoadingSpinner, Logo, Modal, Switch, Tooltip } from "@dub/ui";
 import { HOME_DOMAIN, fetcher } from "@dub/utils";
 import { ArrowRight } from "lucide-react";

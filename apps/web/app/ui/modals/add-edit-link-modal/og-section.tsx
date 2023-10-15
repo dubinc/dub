@@ -1,4 +1,4 @@
-import { UploadCloud } from "@/components/shared/icons";
+import { UploadCloud } from "#/ui/shared/icons";
 import {
   InfoTooltip,
   LoadingCircle,

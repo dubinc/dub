@@ -1,11 +1,11 @@
 import useDomains from "#/lib/swr/use-domains";
 import useLinks from "#/lib/swr/use-links";
 import useLinksCount from "#/lib/swr/use-links-count";
-import useTags from "#/lib/swr-app/use-tags";
+import useTags from "#/lib/swr/use-tags";
 import { TagProps } from "#/lib/types";
-import { ModalContext } from "#/ui/modal-provider";
+import { ModalContext } from "#/ui/modals/provider";
 import TagBadge, { COLORS_LIST } from "#/ui/links/tag-badge";
-import { ThreeDots } from "@/components/shared/icons";
+import { ThreeDots } from "#/ui/shared/icons";
 import {
   IconMenu,
   LoadingCircle,

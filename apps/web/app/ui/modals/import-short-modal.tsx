@@ -1,5 +1,5 @@
 import { ShortioDomainProps } from "#/lib/types";
-import { ModalContext } from "#/ui/modal-provider";
+import { ModalContext } from "#/ui/modals/provider";
 import {
   Button,
   InfoTooltip,

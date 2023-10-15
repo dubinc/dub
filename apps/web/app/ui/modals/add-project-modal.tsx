@@ -1,4 +1,4 @@
-import { AlertCircleFill } from "@/components/shared/icons";
+import { AlertCircleFill } from "#/ui/shared/icons";
 import { Button, InfoTooltip, Logo, Modal } from "@dub/ui";
 import { HOME_DOMAIN, generateDomainFromName } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";

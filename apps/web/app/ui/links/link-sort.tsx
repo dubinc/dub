@@ -1,4 +1,4 @@
-import { Sort } from "@/components/shared/icons";
+import { Sort } from "#/ui/shared/icons";
 import { IconMenu, Popover, Tick } from "@dub/ui";
 import { setQueryString } from "@dub/utils";
 import { ChevronDown, SortDesc } from "lucide-react";
