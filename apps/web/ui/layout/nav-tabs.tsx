@@ -14,7 +14,7 @@ import { useContext, useMemo } from "react";
 export default function NavTabs() {
   const pathname = usePathname();
   const { slug } = useParams() as { slug?: string };
-  const { error } = useProject();
+  const { loading, error } = useProject();
 
   const tabs = useMemo(() => {
     if (slug) {
@@ -35,8 +35,10 @@ export default function NavTabs() {
     ];
   }, [slug, pathname]);
 
-  const { verified, loading } = useDomains();
+  const { verified, loading: loadingDomains } = useDomains();
   const { data: count } = useLinksCount();
+
+  if (error) return null;
 
   return (
     <div className="scrollbar-hide mb-[-3px] flex h-12 items-center justify-start space-x-2 overflow-x-auto">
@@ -54,9 +56,11 @@ export default function NavTabs() {
           )}
         </Link>
       ))}
-      {slug && !error && !loading && (!verified || count === 0) && (
-        <OnboardingChecklist />
-      )}
+      {slug &&
+        !loading &&
+        !error &&
+        !loadingDomains &&
+        (!verified || count === 0) && <OnboardingChecklist />}
     </div>
   );
 }
