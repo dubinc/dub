@@ -81,6 +81,7 @@ const withProjectAuth =
         plan: true,
         stripeId: true,
         billingCycleStart: true,
+        monitoringId: true,
         createdAt: true,
         users: {
           where: {
