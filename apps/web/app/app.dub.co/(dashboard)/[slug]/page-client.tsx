@@ -2,11 +2,18 @@
 
 import LinksContainer from "@/ui/links/links-container";
 import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
-import { IconMenu, MaxWidthWrapper, Popover, Tooltip } from "@dub/ui";
+import {
+  IconMenu,
+  MaxWidthWrapper,
+  Popover,
+  Tooltip,
+  TooltipContent,
+} from "@dub/ui";
 import useProject from "@/lib/swr/use-project";
 import { ChevronDown, FilePlus2, Sheet } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { ModalContext } from "@/ui/modals/provider";
 
 export default function ProjectLinksClient() {
   const { AddEditLinkModal, AddEditLinkButton } = useAddEditLinkModal();
@@ -32,50 +39,107 @@ export default function ProjectLinksClient() {
 
 const AddLinkOptions = () => {
   const router = useRouter();
-  const { slug } = useProject();
+  const { slug, exceededUsage } = useProject();
   const [openPopover, setOpenPopover] = useState(false);
+  const { setShowUpgradePlanModal } = useContext(ModalContext);
 
   return (
     <Popover
       content={
         <div className="w-full divide-y divide-gray-200 md:w-52">
           <div className="p-2">
-            <button
-              onClick={() => {
-                setOpenPopover(false);
-                router.push(`/${slug}?import=bitly`);
-              }}
-              className="w-full rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
-            >
-              <IconMenu
-                text="Import from Bitly"
-                icon={
-                  <img
-                    src="/_static/icons/bitly.svg"
-                    alt="Bitly logo"
-                    className="h-4 w-4 rounded-full grayscale"
+            {slug && exceededUsage ? (
+              <Tooltip
+                content={
+                  <TooltipContent
+                    title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to edit them."
+                    cta="Upgrade to Pro"
+                    onClick={() => {
+                      setOpenPopover(false);
+                      setShowUpgradePlanModal(true);
+                    }}
                   />
                 }
-              />
-            </button>
-            <button
-              onClick={() => {
-                setOpenPopover(false);
-                router.push(`/${slug}?import=short`);
-              }}
-              className="w-full rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
-            >
-              <IconMenu
-                text="Import from Short.io"
-                icon={
-                  <img
-                    src="/_static/icons/short.svg"
-                    alt="Short.io logo"
-                    className="h-4 w-4 grayscale"
+              >
+                <div className="flex w-full cursor-not-allowed items-center justify-between space-x-2 rounded-md p-2 text-sm text-gray-400">
+                  <IconMenu
+                    text="Import from Bitly"
+                    icon={
+                      <img
+                        src="/_static/icons/bitly.svg"
+                        alt="Bitly logo"
+                        className="h-4 w-4 rounded-full grayscale"
+                      />
+                    }
+                  />
+                </div>
+              </Tooltip>
+            ) : (
+              <button
+                onClick={() => {
+                  setOpenPopover(false);
+                  router.push(`/${slug}?import=bitly`);
+                }}
+                className="w-full rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
+              >
+                <IconMenu
+                  text="Import from Bitly"
+                  icon={
+                    <img
+                      src="/_static/icons/bitly.svg"
+                      alt="Bitly logo"
+                      className="h-4 w-4 rounded-full grayscale"
+                    />
+                  }
+                />
+              </button>
+            )}
+            {slug && exceededUsage ? (
+              <Tooltip
+                content={
+                  <TooltipContent
+                    title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to edit them."
+                    cta="Upgrade to Pro"
+                    onClick={() => {
+                      setOpenPopover(false);
+                      setShowUpgradePlanModal(true);
+                    }}
                   />
                 }
-              />
-            </button>
+              >
+                <div className="flex w-full cursor-not-allowed items-center justify-between space-x-2 rounded-md p-2 text-sm text-gray-400">
+                  <IconMenu
+                    text="Import from Short.io"
+                    icon={
+                      <img
+                        src="/_static/icons/short.svg"
+                        alt="Short.io logo"
+                        className="h-4 w-4 grayscale"
+                      />
+                    }
+                  />
+                </div>
+              </Tooltip>
+            ) : (
+              <button
+                onClick={() => {
+                  setOpenPopover(false);
+                  router.push(`/${slug}?import=short`);
+                }}
+                className="w-full rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
+              >
+                <IconMenu
+                  text="Import from Short.io"
+                  icon={
+                    <img
+                      src="/_static/icons/short.svg"
+                      alt="Short.io logo"
+                      className="h-4 w-4 grayscale"
+                    />
+                  }
+                />
+              </button>
+            )}
             <Tooltip content="This feature is still in development – we'll let you know when it's ready!">
               <div className="flex w-full cursor-not-allowed items-center justify-between space-x-2 rounded-md p-2 text-sm text-gray-400">
                 <IconMenu

@@ -31,10 +31,10 @@ const rangeFormatter = (maxN: number): number => {
 };
 
 export default function BarChart() {
-  const { endpoint, queryString, interval } = useContext(StatsContext);
+  const { baseApiPath, getQueryString, interval } = useContext(StatsContext);
 
   const { data } = useSWR<{ start: Date; clicks: number }[]>(
-    `${endpoint}/timeseries${queryString}`,
+    `${baseApiPath}?${getQueryString({ endpoint: "timeseries" })}`,
     fetcher,
   );
 

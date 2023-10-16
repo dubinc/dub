@@ -5,7 +5,7 @@ import { conn } from "../planetscale";
 import { UserProps } from "../types";
 
 export default async function AppMiddleware(req: NextRequest) {
-  const { path } = parse(req);
+  const { path, fullPath } = parse(req);
   const session = (await getToken({
     req,
     secret: process.env.NEXTAUTH_SECRET,
@@ -22,7 +22,7 @@ export default async function AppMiddleware(req: NextRequest) {
   ) {
     return NextResponse.redirect(
       new URL(
-        `/login${path !== "/" ? `?next=${encodeURIComponent(path)}` : ""}`,
+        `/login${path === "/" ? "" : `?next=${encodeURIComponent(fullPath)}`}`,
         req.url,
       ),
     );
@@ -80,6 +80,6 @@ export default async function AppMiddleware(req: NextRequest) {
 
   // otherwise, rewrite the path to /app
   return NextResponse.rewrite(
-    new URL(`/app.dub.co${path === "/" ? "" : path}`, req.url),
+    new URL(`/app.dub.co${fullPath === "/" ? "" : fullPath}`, req.url),
   );
 }

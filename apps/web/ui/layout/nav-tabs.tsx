@@ -17,15 +17,17 @@ export default function NavTabs() {
   const { loading, error } = useProject();
 
   const tabs = useMemo(() => {
-    if (slug) {
+    if (pathname?.endsWith("/analytics")) {
+      return [
+        { name: "← Back to all links", href: slug ? `/${slug}` : "/links" },
+      ];
+    } else if (slug) {
       return [
         { name: "Links", href: `/${slug}` },
-        { name: "Analytics", href: `/${slug}/analytics` },
+        // { name: "Analytics", href: `/${slug}/analytics` },
         { name: "Domains", href: `/${slug}/domains` },
         { name: "Settings", href: `/${slug}/settings` },
       ];
-    } else if (pathname === "/analytics") {
-      return [{ name: "← Back to all links", href: "/links" }];
     }
     // home page (e.g. app.dub.co, app.dub.co/settings)
     return [

@@ -40,8 +40,8 @@ export default function LinksContainer({
               {links && !isValidating ? (
                 links.length > 0 ? (
                   links.map((props) => (
-                    <Suspense fallback={<LinkCardPlaceholder />}>
-                      <LinkCard key={props.id} props={props} />
+                    <Suspense key={props.id} fallback={<LinkCardPlaceholder />}>
+                      <LinkCard props={props} />
                     </Suspense>
                   ))
                 ) : (

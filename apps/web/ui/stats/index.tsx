@@ -22,23 +22,28 @@ import Locations from "./locations";
 import Referer from "./referer";
 import Toggle from "./toggle";
 import Feedback from "./feedback";
+import useSWR from "swr";
+import { fetcher } from "@dub/utils";
 
 export const StatsContext = createContext<{
   basePath: string;
-  endpoint: string;
-  queryString: string;
-  interval: string;
+  baseApiPath: string;
   domain: string;
   key: string;
+  getQueryString: (
+    opts: { endpoint?: string; interval?: string },
+    excludeSlug?: boolean,
+  ) => string;
+  interval: string;
+  totalClicks?: number;
   modal?: boolean;
 }>({
   basePath: "",
-  endpoint: "",
-  queryString: "",
-  interval: "",
+  baseApiPath: "",
   domain: "",
   key: "",
-  modal: false,
+  getQueryString: () => "",
+  interval: "",
 });
 
 export default function Stats({
@@ -52,59 +57,70 @@ export default function Stats({
   const pathname = usePathname();
   const router = useRouter();
 
-  // Note: interestingly, useParams() returns `key` as encoded, unlike useRouter().query
-  // so we don't need to do encodeURIComponent() here
-  const { slug } = useParams() as {
+  let { slug, key } = useParams() as {
     slug?: string;
+    key?: string;
   };
   const domainSlug = searchParams?.get("domain");
-  const key = searchParams?.get("key");
-
+  key = searchParams?.get("key") || key;
   const interval = searchParams?.get("interval") || "24h";
 
-  const queryString = `?${new URLSearchParams({
-    ...(slug && { slug }),
-    ...(interval && { interval }),
-    domain: staticDomain || domainSlug || "dub.sh",
-  }).toString()}`;
-
-  const { basePath, domain, endpoint } = useMemo(() => {
+  const { basePath, domain, baseApiPath } = useMemo(() => {
     // Project link analytics page, e.g. app.dub.co/dub/analytics?domain=dub.sh&key=github
     if (slug) {
       return {
-        basePath: `/${slug}/${domainSlug}/${key}`,
+        basePath: `/${slug}/analytics`,
+        baseApiPath: `/api/stats`,
         domain: domainSlug,
-        endpoint:
-          key === "_root"
-            ? `/api/projects/${slug}/domains/${domainSlug}/stats`
-            : `/api/links/${key}/stats`,
       };
       // Generic Dub.sh links analytics page, e.g. app.dub.co/analytics?domain=dub.sh&key=github
     } else if (pathname === "/analytics") {
       return {
-        basePath: `/links/${key}`,
+        basePath: `/analytics`,
+        baseApiPath: `/api/stats`,
         domain: "dub.sh",
-        endpoint: `/api/links/${key}/stats`,
       };
     }
 
     // Public stats page, e.g. dub.co/stats/github, stey.me/stats/weathergpt
     return {
       basePath: `/stats/${key}`,
+      baseApiPath: `/api/edge/stats`,
       domain: staticDomain,
-      endpoint: `/api/edge/links/${key}/stats`,
     };
   }, [slug, key, pathname]);
+
+  const getQueryString = (
+    opts: { endpoint?: string; interval?: string }, // query params to set
+    excludeSlug?: boolean, // whether or not to exclude the slug param
+  ) => {
+    let params = new URLSearchParams({
+      ...(slug && !excludeSlug && { slug }),
+      domain: domain!,
+      ...(key && { key }),
+      ...(interval && { interval }),
+    });
+    for (const [key, value] of Object.entries(opts)) {
+      params.set(key, value);
+    }
+    return params.toString();
+  };
+
+  const { data: totalClicks } = useSWR<number>(
+    `${baseApiPath}?${getQueryString({ endpoint: "clicks" })}`,
+    fetcher,
+  );
 
   return (
     <StatsContext.Provider
       value={{
         basePath, // basePath for the page (e.g. /stats/[key], /links/[key], /[slug]/[domain]/[key])
+        baseApiPath, // baseApiPath for the API (e.g. /api/edge/links/[key]/stats)
+        getQueryString,
         domain: domain!, // domain for the link (e.g. dub.sh, stey.me, etc.)
-        endpoint, // endpoint for the API (e.g. /api/edge/links/[key]/stats)
-        queryString, // query string for the API (e.g. ?interval=24h&domain=dub.sh, ?interval=24h, etc.)
-        interval, // time interval (e.g. 24h, 7d, 30d, etc.)
         key: key ? decodeURIComponent(key) : "", // link key (e.g. github, weathergpt, etc.)
+        interval, // time interval (e.g. 24h, 7d, 30d, etc.)
+        totalClicks, // total clicks for the link
         modal, // whether or not this is a modal
       }}
     >

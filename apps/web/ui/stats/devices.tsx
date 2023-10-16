@@ -11,18 +11,19 @@ import DeviceIcon from "./device-icon";
 export default function Devices() {
   const [tab, setTab] = useState<DeviceTabs>("device");
 
-  const { endpoint, queryString, modal } = useContext(StatsContext);
+  const { baseApiPath, getQueryString, totalClicks, modal } =
+    useContext(StatsContext);
 
   const { data } = useSWR<
     ({
       [key in DeviceTabs]: string;
     } & { clicks: number })[]
-  >(`${endpoint}/${tab}${queryString}`, fetcher);
-
-  const { data: totalClicks } = useSWR<number>(
-    `${endpoint}/clicks${queryString}`,
+  >(
+    // `${baseApiPath}?${new URLSearchParams(queryString).set("endpoint", tab)}`,
+    `${baseApiPath}?${getQueryString({ endpoint: tab })}`,
     fetcher,
   );
+
   const [showModal, setShowModal] = useState(false);
 
   const barList = (limit?: number) => (

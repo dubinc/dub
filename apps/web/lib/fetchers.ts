@@ -1,9 +1,9 @@
-import { getAppSession } from "./auth";
+import { getSession } from "./auth-app";
 import prisma from "./prisma";
 import { ProjectWithDomainProps } from "./types";
 
 export async function getProjects() {
-  const session = await getAppSession();
+  const session = await getSession();
   if (!session) {
     return null;
   }
@@ -28,7 +28,7 @@ export async function getProjects() {
 }
 
 export async function getProject({ slug }: { slug: string }) {
-  const session = await getAppSession();
+  const session = await getSession();
   if (!session) {
     return null;
   }

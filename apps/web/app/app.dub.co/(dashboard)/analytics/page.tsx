@@ -1,7 +1,7 @@
-import { getAppSession } from "@/lib/auth";
+import { getSession } from "@/lib/auth-app";
 import { getLink } from "@/lib/fetchers";
 import LayoutLoader from "@/ui/layout/layout-loader";
-import ProjectNotFound from "@/ui/layout/project-not-found";
+import LinkNotFound from "@/ui/links/link-not-found";
 import Stats from "@/ui/stats";
 import { Suspense } from "react";
 
@@ -10,6 +10,7 @@ export default function LinkAnalytics({
 }: {
   searchParams: { [key: string]: string | undefined };
 }) {
+  console.log({ searchParams });
   return (
     <Suspense fallback={<LayoutLoader />}>
       <AnalyticsAuth searchParams={searchParams}>
@@ -27,7 +28,7 @@ async function AnalyticsAuth({
   children: React.ReactNode;
 }) {
   const [session, link] = await Promise.all([
-    getAppSession(),
+    getSession(),
     getLink({
       domain: searchParams.domain || "dub.sh",
       key: searchParams.key || "github",
@@ -35,7 +36,7 @@ async function AnalyticsAuth({
   ]);
 
   if (session?.user?.id !== link?.userId) {
-    return <ProjectNotFound />;
+    return <LinkNotFound />;
   }
 
   return children as JSX.Element;

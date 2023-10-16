@@ -91,6 +91,7 @@ export default function LinkCard({
 
   const { data: clicks } = useSWR<number>(
     isVisible &&
+      !exceededUsage &&
       `/api/links/${encodeURIComponent(key)}/stats/clicks${
         slug ? `?slug=${slug}&domain=${domain}` : ""
       }`,

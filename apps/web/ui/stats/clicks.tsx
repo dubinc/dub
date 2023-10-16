@@ -1,18 +1,12 @@
 import { Chart } from "@/ui/shared/icons";
 import { NumberTooltip } from "@dub/ui";
-import { fetcher, nFormatter } from "@dub/utils";
+import { nFormatter } from "@dub/utils";
 import { useContext } from "react";
-import useSWR from "swr";
 import { StatsContext } from ".";
 import BarChart from "./bar-chart";
 
 export default function Clicks() {
-  const { endpoint, queryString } = useContext(StatsContext);
-
-  const { data: totalClicks } = useSWR<number>(
-    `${endpoint}/clicks${queryString}`,
-    fetcher,
-  );
+  const { totalClicks } = useContext(StatsContext);
 
   return (
     <div className="max-w-4xl border border-gray-200 bg-white p-5 sm:rounded-lg sm:border-gray-100 sm:p-10 sm:pr-20 sm:shadow-lg ">

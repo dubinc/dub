@@ -8,15 +8,15 @@ import { StatsContext } from ".";
 import BarList from "./bar-list";
 
 export default function Referer() {
-  const { endpoint, queryString, modal } = useContext(StatsContext);
+  const { baseApiPath, getQueryString, totalClicks, modal } =
+    useContext(StatsContext);
 
   const { data } = useSWR<{ referer: string; clicks: number }[]>(
-    `${endpoint}/referer${queryString}`,
-    fetcher,
-  );
-
-  const { data: totalClicks } = useSWR<number>(
-    `${endpoint}/clicks${queryString}`,
+    // `${baseApiPath}?${new URLSearchParams(queryString).set(
+    //   "endpoint",
+    //   "referer",
+    // )}`,
+    `${baseApiPath}?${getQueryString({ endpoint: "referer" })}`,
     fetcher,
   );
 

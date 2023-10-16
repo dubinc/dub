@@ -1,7 +1,7 @@
 import { getProject } from "@/lib/fetchers";
 import LayoutLoader from "@/ui/layout/layout-loader";
-import ProjectExceededUsage from "@/ui/layout/project-exceeded-usage";
-import ProjectNotFound from "@/ui/layout/project-not-found";
+import ProjectExceededUsage from "@/ui/projects/project-exceeded-usage";
+import ProjectNotFound from "@/ui/projects/project-not-found";
 import Stats from "@/ui/stats";
 import { Suspense } from "react";
 

@@ -22,10 +22,6 @@ export async function getSession(req: NextApiRequest, res: NextApiResponse) {
   return (await getServerSession(req, res, authOptions)) as Session;
 }
 
-export async function getAppSession() {
-  return getServerSession(authOptions) as Promise<Session>;
-}
-
 export const hashToken = (
   token: string,
   {
