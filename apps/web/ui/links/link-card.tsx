@@ -148,18 +148,26 @@ export default function LinkCard({
   }, [selected]);
 
   const handlClickOnLinkCard = (e: any) => {
-    // if clicked on linkRef, setSelected to true
-    // else setSelected to false
-    // do this via event listener
-    if (linkRef.current && !linkRef.current.contains(e.target)) {
-      setSelected(false);
-    } else {
+    // Check if the clicked element is a linkRef or one of its descendants
+    const isLinkCardClick =
+      linkRef.current && linkRef.current.contains(e.target);
+
+    // Check if the clicked element is an <a> or <button> element
+    const isExcludedElement =
+      e.target.tagName.toLowerCase() === "a" ||
+      e.target.tagName.toLowerCase() === "button";
+
+    if (isLinkCardClick && !isExcludedElement) {
       setSelected(!selected);
+    } else {
+      setSelected(false);
     }
   };
 
   useEffect(() => {
-    document.addEventListener("click", handlClickOnLinkCard);
+    if (isVisible) {
+      document.addEventListener("click", handlClickOnLinkCard);
+    }
     return () => {
       document.removeEventListener("click", handlClickOnLinkCard);
     };
@@ -265,9 +273,6 @@ export default function LinkCard({
                 </Tooltip>
               ) : (
                 <a
-                  onClick={(e) => {
-                    e.stopPropagation(); // to avoid selecting the link card
-                  }}
                   className={cn(
                     "w-full max-w-[140px] truncate text-sm font-semibold text-blue-800 sm:max-w-[300px] sm:text-base md:max-w-[360px] xl:max-w-[500px]",
                     {
@@ -295,8 +300,7 @@ export default function LinkCard({
                   }
                 >
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
+                    onClick={() => {
                       setShowAddEditLinkModal(true);
                     }}
                     className="group rounded-full bg-gray-100 p-1.5 transition-all duration-75 hover:scale-105 active:scale-95"
@@ -307,8 +311,7 @@ export default function LinkCard({
               )}
               {tag?.color && (
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
+                  onClick={() => {
                     setQueryString({
                       router,
                       pathname,
@@ -369,9 +372,6 @@ export default function LinkCard({
                 </Tooltip>
               )}
               <a
-                onClick={(e) => {
-                  e.stopPropagation(); // to avoid selecting the link card
-                }}
                 href={url}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -386,9 +386,6 @@ export default function LinkCard({
         <div className="flex items-center space-x-2">
           <NumberTooltip value={clicks} lastClicked={lastClicked}>
             <Link
-              onClick={(e) => {
-                e.stopPropagation();
-              }}
               href={`${
                 slug ? `/${slug}` : ""
               }/analytics?domain=${domain}&key=${key}`}
@@ -537,8 +534,7 @@ export default function LinkCard({
           >
             <button
               type="button"
-              onClick={(e) => {
-                e.stopPropagation();
+              onClick={() => {
                 setOpenPopover(!openPopover);
               }}
               className="rounded-md px-1 py-2 transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
