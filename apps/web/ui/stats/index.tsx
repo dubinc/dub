@@ -24,6 +24,7 @@ import Toggle from "./toggle";
 import Feedback from "./feedback";
 import useSWR from "swr";
 import { fetcher } from "@dub/utils";
+import useDomains from "@/lib/swr/use-domains";
 
 export const StatsContext = createContext<{
   basePath: string;
@@ -57,7 +58,7 @@ export default function Stats({
   const pathname = usePathname();
   const router = useRouter();
 
-  let { slug, key } = useParams() as {
+  let { slug, key = "_root" } = useParams() as {
     slug?: string;
     key?: string;
   };

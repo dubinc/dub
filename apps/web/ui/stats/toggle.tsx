@@ -56,7 +56,7 @@ export default function Toggle() {
         >
           {linkConstructor({
             key,
-            domain: punycode.toUnicode(domain),
+            domain: domain ? punycode.toUnicode(domain) : undefined,
             pretty: true,
           })}
           <ExpandingArrow className="h-5 w-5" />
