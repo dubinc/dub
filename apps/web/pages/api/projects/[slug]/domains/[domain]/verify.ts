@@ -32,6 +32,20 @@ export default withProjectAuth(async (req, res) => {
     }
 
     /**
+     * Domain has DNS conflicts
+     */
+    if (configJson?.conflicts.length > 0) {
+      status = "Conflicting DNS Records";
+      return res.status(200).json({
+        status,
+        response: {
+          configJson,
+          domainJson,
+        },
+      });
+    }
+
+    /**
      * If domain is not verified, we try to verify now
      */
     if (!domainJson.verified) {

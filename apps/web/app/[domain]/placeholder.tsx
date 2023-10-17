@@ -1,6 +1,6 @@
 "use client";
 
-import { InlineSnippet } from "@/components/app/domains/domain-configuration";
+import { InlineSnippet } from "@dub/ui";
 import { STAGGER_CHILD_VARIANTS } from "@dub/utils";
 import Spline from "@splinetool/react-spline";
 import va from "@vercel/analytics";
