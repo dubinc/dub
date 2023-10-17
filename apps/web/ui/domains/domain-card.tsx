@@ -60,7 +60,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
             </a>
             <NumberTooltip value={clicks}>
               <Link
-                href={`/${slug}/analytics?domain=${domain}`}
+                href={`/${slug}/analytics?domain=${domain}&key=_root`}
                 className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 transition-all duration-75 hover:scale-105 active:scale-100"
               >
                 <Chart className="h-4 w-4" />

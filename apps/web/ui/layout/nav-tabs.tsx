@@ -8,20 +8,27 @@ import { ModalContext } from "@/ui/modals/provider";
 import { Badge } from "@dub/ui";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { useParams, usePathname } from "next/navigation";
+import { useParams, usePathname, useSearchParams } from "next/navigation";
 import { useContext, useMemo } from "react";
 
 export default function NavTabs() {
   const pathname = usePathname();
   const { slug } = useParams() as { slug?: string };
+  const searchParams = useSearchParams();
   const { loading, error } = useProject();
 
   const tabs = useMemo(() => {
-    if (pathname?.endsWith("/analytics")) {
-      return [
-        { name: "← Back to all links", href: slug ? `/${slug}` : "/links" },
-      ];
-    } else if (slug) {
+    const isDomainAnalytics = searchParams?.get("key") === "_root";
+
+    if (slug) {
+      if (pathname?.endsWith("/analytics")) {
+        return [
+          {
+            name: `← Back to all ${isDomainAnalytics ? "domains" : "links"}`,
+            href: isDomainAnalytics ? `/${slug}/domains` : `/${slug}`,
+          },
+        ];
+      }
       return [
         { name: "Links", href: `/${slug}` },
         // { name: "Analytics", href: `/${slug}/analytics` },
@@ -30,12 +37,15 @@ export default function NavTabs() {
       ];
     }
     // home page (e.g. app.dub.co, app.dub.co/settings)
+    if (pathname?.endsWith("/analytics")) {
+      return [{ name: "← Back to all links", href: "/links" }];
+    }
     return [
       { name: "Projects", href: "/" },
       { name: "Dub.sh Links", href: "/links" },
       { name: "Settings", href: "/settings" },
     ];
-  }, [slug, pathname]);
+  }, [pathname, slug, searchParams]);
 
   const { verified, loading: loadingDomains } = useDomains();
   const { data: count } = useLinksCount();

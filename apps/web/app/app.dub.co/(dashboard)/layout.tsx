@@ -46,7 +46,9 @@ export default function Layout({ children }: { children: ReactNode }) {
               <UserDropdown />
             </div>
           </div>
-          <NavTabs />
+          <Suspense fallback={<div className="h-12 w-full" />}>
+            <NavTabs />
+          </Suspense>
         </MaxWidthWrapper>
       </div>
       {children}
