@@ -106,6 +106,7 @@ export async function POST(req: Request) {
                   link: linkConstructor({
                     domain: error.domain,
                     key: error.key,
+                    pretty: true,
                   }),
                 })),
               }),
