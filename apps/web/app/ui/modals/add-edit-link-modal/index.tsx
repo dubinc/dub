@@ -136,6 +136,7 @@ function AddEditLinkModal({
   useEffect(() => {
     // if there's a password, no need to generate metatags
     if (password) {
+      setGeneratingMetatags(false);
       setData((prev) => ({
         ...prev,
         title: "Password Required",
