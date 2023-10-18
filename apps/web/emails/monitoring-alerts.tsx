@@ -72,7 +72,7 @@ export default function MonitoringAlerts({
                   Link
                 </Column>
                 <Column align="right" className="text-sm text-gray-500">
-                  Status
+                  Status Code
                 </Column>
               </Row>
               {errorLinks.map(({ link, status, error }, index) => (

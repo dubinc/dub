@@ -95,7 +95,7 @@ export async function POST(req: Request) {
         emails.map((email) => {
           limiter.schedule(() =>
             sendEmail({
-              subject: `Your 30-day Dub summary for ${project.name}`,
+              subject: `Dub Monitoring Alert for ${project.name}`,
               email,
               react: MonitoringAlerts({
                 email,
