@@ -10,6 +10,7 @@ import {
   userAgent,
 } from "next/server";
 import { isBlacklistedReferrer } from "../edge-config";
+import { getLinkViaEdge } from "../planetscale";
 
 export default async function LinkMiddleware(
   req: NextRequest,
@@ -74,16 +75,26 @@ export default async function LinkMiddleware(
       );
     }
 
-    // special case for link health monitoring with planetfall.io :)
-    if (!req.headers.get("dub-no-track")) {
-      ev.waitUntil(recordClick(domain, req, key)); // track the click only if there is no `dub-no-track` header
+    if (password) {
+      const pw = req.nextUrl.searchParams.get("pw");
+
+      // rewrite to auth page (/protected/[domain]/[key]) if:
+      // - no `pw` param is provided
+      // - the `pw` param is incorrect
+      // this will also ensure that no clicks are tracked unless the password is correct
+      if (!pw || (await getLinkViaEdge(domain, key))?.password !== pw) {
+        return NextResponse.rewrite(
+          new URL(`/protected/${domain}/${encodeURIComponent(key)}`, req.url),
+        );
+      } else if (pw) {
+        // strip it from the URL if it's correct
+        req.nextUrl.searchParams.delete("pw");
+      }
     }
 
-    if (password) {
-      // rewrite to auth page (/protected/[domain]/[key]) if the link is password protected
-      return NextResponse.rewrite(
-        new URL(`/protected/${domain}/${encodeURIComponent(key)}`, req.url),
-      );
+    // only track the click when there is no `dub-no-track` header
+    if (!req.headers.get("dub-no-track")) {
+      ev.waitUntil(recordClick(domain, req, key));
     }
 
     const isBot = detectBot(req);

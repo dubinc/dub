@@ -2,7 +2,7 @@
 
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { Button } from "@dub/ui";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useState } from "react";
 import { experimental_useFormStatus as useFormStatus } from "react-dom";
 import { toast } from "sonner";
@@ -13,19 +13,16 @@ export default function PasswordForm() {
     domain: string;
     key: string;
   };
-  const router = useRouter();
-
   const [error, setError] = useState(false);
 
   return (
     <form
+      data-testid="password-form"
       action={(data) =>
         verifyPassword(data).then((res) => {
           if (res.error) {
             setError(true);
             toast.error(res.error);
-          } else {
-            router.push(res.url!);
           }
         })
       }

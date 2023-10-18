@@ -1,5 +1,7 @@
 "use server";
 import prisma from "@/lib/prisma";
+import { linkConstructor } from "@dub/utils";
+import { redirect } from "next/navigation";
 
 export async function verifyPassword(data: FormData) {
   const domain = data.get("domain") as string;
@@ -14,12 +16,18 @@ export async function verifyPassword(data: FormData) {
   if (!link) {
     return { error: "Link not found" };
   }
-  const { url, password: realPassword } = link;
+  const { password: realPassword } = link;
 
   const validPassword = password === realPassword;
 
   if (validPassword) {
-    return { url };
+    // if the password is valid, redirect to the link with the password in the query string
+    redirect(
+      `${linkConstructor({
+        domain,
+        key: rawKey,
+      })}?pw=${password}`,
+    );
   } else {
     return { error: "Invalid password" };
   }
