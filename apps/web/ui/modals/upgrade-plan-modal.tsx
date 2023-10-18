@@ -49,7 +49,7 @@ function UpgradePlanModal({
       "Unlimited tags",
       "Redirect your root domain",
       "Custom QR Code logo",
-      "API Access (ETA Sep 2023)",
+      "API Access",
       ...(plan === "Enterprise" ? ["SSO/SAML", "Priority support"] : []),
     ];
   }, [plan]);
