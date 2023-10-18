@@ -73,5 +73,5 @@ export default function PasswordForm() {
 
 const FormButton = () => {
   const { pending } = useFormStatus();
-  return <Button text="Authenticate" loading={pending} />;
+  return <Button text="Log in" loading={pending} />;
 };
