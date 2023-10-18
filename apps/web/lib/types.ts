@@ -60,6 +60,7 @@ export interface UserProps {
 export type DomainVerificationStatusProps =
   | "Valid Configuration"
   | "Invalid Configuration"
+  | "Conflicting DNS Records"
   | "Pending Verification"
   | "Domain Not Found"
   | "Unknown Error";
