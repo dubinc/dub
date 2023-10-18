@@ -231,22 +231,29 @@ const BarChart = ({ screenWidth }: { screenWidth?: number }) => {
               left={tooltipLeft}
               className={styles.tooltip}
             >
-              <div className="text-center">
-                <h3 className="my-1 text-black">
-                  <span className="text-2xl font-semibold">
-                    {nFormatter(tooltipData.clicks)}
-                  </span>{" "}
-                  click{tooltipData.clicks === 1 ? "" : "s"}
-                </h3>
-                <p className="text-xs text-gray-600">
-                  {formatTimestamp(tooltipData.start)} -{" "}
-                  {interval === "24h"
-                    ? new Date(tooltipData.end).toLocaleTimeString("en-us", {
-                        hour: "numeric",
-                      })
-                    : formatTimestamp(tooltipData.end)}
-                </p>
-              </div>
+              {
+                (
+                  <div className="text-center">
+                    <h3 className="my-1 text-black">
+                      <span className="text-2xl font-semibold">
+                        {nFormatter(tooltipData.clicks)}
+                      </span>{" "}
+                      click{tooltipData.clicks === 1 ? "" : "s"}
+                    </h3>
+                    <p className="text-xs text-gray-600">
+                      {formatTimestamp(tooltipData.start)} -{" "}
+                      {interval === "24h"
+                        ? new Date(tooltipData.end).toLocaleTimeString(
+                            "en-us",
+                            {
+                              hour: "numeric",
+                            },
+                          )
+                        : formatTimestamp(tooltipData.end)}
+                    </p>
+                  </div>
+                ) as any
+              }
             </TooltipInPortal>
           )}
         </>
