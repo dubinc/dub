@@ -43,7 +43,7 @@ export default function PasswordSection({
               <SimpleTooltipContent
                 title="Restrict access to your short links by encrypting it with a password."
                 cta="Learn more."
-                href={`${HOME_DOMAIN}/help/article/how-to-create-link#password-protection`}
+                href={`${HOME_DOMAIN}/help/article/password-protected-links`}
               />
             }
           />
