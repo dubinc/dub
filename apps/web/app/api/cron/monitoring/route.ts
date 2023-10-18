@@ -1,8 +1,10 @@
-import { receiver } from "#/lib/cron";
-import { log } from "@dub/utils";
+import { limiter, receiver } from "#/lib/cron";
+import { linkConstructor, log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import prisma from "#/lib/prisma";
-import { checkLink } from "./utils";
+import { checkLink, recordCheck } from "./utils";
+import { sendEmail } from "emails";
+import MonitoringAlerts from "emails/monitoring-alerts";
 
 export async function POST(req: Request) {
   const body = await req.json();
@@ -22,6 +24,21 @@ export async function POST(req: Request) {
       where: {
         id: projectId,
       },
+      include: {
+        users: {
+          where: {
+            role: "owner",
+          },
+          select: {
+            user: {
+              select: {
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+      },
     });
     if (!project) {
       return NextResponse.json({ error: "Project not found" });
@@ -31,40 +48,73 @@ export async function POST(req: Request) {
       where: {
         projectId: project.id,
       },
-      //   orderBy: {
-      //     lastChecked: "asc",
-      //   },
+      select: {
+        id: true,
+        domain: true,
+        key: true,
+        url: true,
+        lastChecked: true,
+      },
+      orderBy: {
+        lastChecked: "asc",
+      },
       take: 100,
     });
 
     const results = await Promise.all(
       links.map(async (link) => {
-        const { status, error } = await checkLink(link.url);
+        const { status, error, duration } = await checkLink(link.url);
         return {
-          projectId: project.id,
+          project_id: project.id,
           domain: link.domain,
           key: link.key,
           url: link.url,
           status,
+          duration,
           error,
         };
       }),
     );
 
-    // console.log(results);
+    const errors = results.filter(({ status }) => status !== 200);
+    const emails = project.users.map(({ user }) => user.email) as string[];
 
-    // await prisma.link.updateMany({
-    //   where: {
-    //     id: {
-    //       in: links.map(({ id }) => id),
-    //     },
-    //   },
-    //   data: {
-    //     lastChecked: new Date(),
-    //   },
-    // });
+    const response = await Promise.all([
+      recordCheck(results),
+      await prisma.link.updateMany({
+        where: {
+          id: {
+            in: links.map(({ id }) => id),
+          },
+        },
+        data: {
+          lastChecked: new Date(),
+        },
+      }),
+      errors.length > 0 &&
+        emails.map((email) => {
+          limiter.schedule(() =>
+            sendEmail({
+              subject: `Your 30-day Dub summary for ${project.name}`,
+              email,
+              react: MonitoringAlerts({
+                email,
+                projectName: project.name,
+                projectSlug: project.slug,
+                errorLinks: errors.map((error) => ({
+                  ...error,
+                  link: linkConstructor({
+                    domain: error.domain,
+                    key: error.key,
+                  }),
+                })),
+              }),
+            }),
+          );
+        }),
+    ]);
 
-    return NextResponse.json(results);
+    return NextResponse.json(response);
   } catch (error) {
     await log({
       message: "Monitoring cron failed. Error: " + error.message,
