@@ -37,10 +37,8 @@ export default function ProjectSettingsClient() {
             body: JSON.stringify(updateData),
           }).then(async (res) => {
             if (res.status === 200) {
-              await Promise.all([
-                mutate("/api/projects"),
-                mutate(`/api/projects/${slug}`),
-              ]);
+              router.refresh();
+              await mutate(`/api/projects/${slug}`);
               toast.success("Successfully updated project name!");
             } else if (res.status === 422) {
               toast.error("Project slug already exists");
@@ -76,6 +74,7 @@ export default function ProjectSettingsClient() {
           }).then(async (res) => {
             if (res.status === 200) {
               const { slug: newSlug } = await res.json();
+              router.refresh();
               await mutate("/api/projects");
               router.push(`/${newSlug}/settings`);
               toast.success("Successfully updated project slug!");
