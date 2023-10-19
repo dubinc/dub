@@ -86,14 +86,16 @@ export default function Stats({
       baseApiPath: `/api/edge/stats`,
       domain: staticDomain,
     };
-  }, [slug, key, pathname]);
+  }, [slug, pathname, staticDomain, domainSlug, key]);
 
-  const queryString = new URLSearchParams({
-    ...(slug && { slug }),
-    domain: domain!,
-    ...(key && { key }),
-    ...(interval && { interval }),
-  }).toString();
+  const queryString = useMemo(() => {
+    return new URLSearchParams({
+      ...(slug && { slug }),
+      domain: domain!,
+      ...(key && { key }),
+      ...(interval && { interval }),
+    }).toString();
+  }, [slug, domain, key, interval]);
 
   const { data: totalClicks } = useSWR<number>(
     `${baseApiPath}/clicks?${queryString}`,

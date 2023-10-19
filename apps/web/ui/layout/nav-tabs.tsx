@@ -18,7 +18,8 @@ export default function NavTabs() {
   const { loading, error } = useProject();
 
   const tabs = useMemo(() => {
-    const isDomainAnalytics = searchParams?.get("key") === "_root";
+    const isDomainAnalytics =
+      searchParams?.get("domain") && !searchParams?.get("key");
 
     if (slug) {
       if (pathname?.endsWith("/analytics")) {

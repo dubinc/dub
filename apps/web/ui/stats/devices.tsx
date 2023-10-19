@@ -1,5 +1,5 @@
 import { DeviceTabs, uaToBot } from "@/lib/stats";
-import { LoadingCircle, Modal, TabSelect } from "@dub/ui";
+import { LoadingSpinner, Modal, TabSelect } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { Maximize } from "lucide-react";
 import { useContext, useState } from "react";
@@ -76,7 +76,7 @@ export default function Devices() {
           )
         ) : (
           <div className="flex h-[300px] items-center justify-center">
-            <LoadingCircle />
+            <LoadingSpinner />
           </div>
         )}
         {!modal && data && data.length > 9 && (

@@ -5,10 +5,10 @@ import LayoutLoader from "@/ui/layout/layout-loader";
 
 export default function ProjectAnalytics() {
   return (
-    <AnalyticsAuth>
-      <Suspense fallback={<LayoutLoader />}>
+    <Suspense fallback={<LayoutLoader />}>
+      <AnalyticsAuth>
         <Stats />
-      </Suspense>
-    </AnalyticsAuth>
+      </AnalyticsAuth>
+    </Suspense>
   );
 }

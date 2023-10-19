@@ -1,4 +1,4 @@
-import { LoadingCircle, useMediaQuery } from "@dub/ui";
+import { LoadingSpinner, useMediaQuery } from "@dub/ui";
 import { fetcher, nFormatter } from "@dub/utils";
 import { AxisBottom, AxisLeft } from "@visx/axis";
 import { localPoint } from "@visx/event";
@@ -251,7 +251,7 @@ export default function BarChart() {
           )}
         </>
       ) : (
-        <LoadingCircle />
+        <LoadingSpinner />
       )}
     </figure>
   );

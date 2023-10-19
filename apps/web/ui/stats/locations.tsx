@@ -1,5 +1,5 @@
 import { LocationTabs } from "@/lib/stats";
-import { LoadingCircle, Modal, TabSelect } from "@dub/ui";
+import { LoadingSpinner, Modal, TabSelect } from "@dub/ui";
 import { COUNTRIES, fetcher } from "@dub/utils";
 import { Maximize } from "lucide-react";
 import { useContext, useState } from "react";
@@ -74,7 +74,7 @@ export default function Locations() {
           )
         ) : (
           <div className="flex h-[300px] items-center justify-center">
-            <LoadingCircle />
+            <LoadingSpinner />
           </div>
         )}
         {!modal && data && data.length > 9 && (

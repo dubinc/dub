@@ -1,6 +1,6 @@
-import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
+import { Link as LinkProps } from "@prisma/client";
 import { PlanProps, ProjectProps } from "./types";
 import { getServerSession } from "next-auth/next";
 
@@ -35,24 +35,24 @@ interface WithAuthHandler {
     searchParams,
     session,
     project,
+    link,
   }: {
     req: Request;
     params: Record<string, string>;
     searchParams: Record<string, string>;
     session: Session;
     project?: ProjectProps;
+    link?: LinkProps;
   }): Promise<Response>;
 }
 const withAuth =
   (
     handler: WithAuthHandler,
     {
-      excludeGet, // if the action doesn't need to be gated for GET requests
       requiredPlan = ["free", "pro", "enterprise"], // if the action needs a specific plan
       requiredRole = ["owner", "member"],
       needNotExceededUsage, // if the action needs the user to not have exceeded their usage
     }: {
-      excludeGet?: boolean;
       requiredPlan?: Array<PlanProps>;
       requiredRole?: Array<"owner" | "member">;
       needNotExceededUsage?: boolean;
@@ -65,74 +65,95 @@ const withAuth =
     }
 
     const searchParams = getSearchParams(req.url);
-    const { slug } = searchParams;
+    const { slug, domain, key } = searchParams;
+
+    const [project, link] = (await Promise.all([
+      slug &&
+        (await prisma.project.findUnique({
+          where: {
+            slug,
+          },
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            logo: true,
+            usage: true,
+            usageLimit: true,
+            plan: true,
+            stripeId: true,
+            billingCycleStart: true,
+            createdAt: true,
+            domains: true,
+            users: {
+              where: {
+                userId: session.user.id,
+              },
+              select: {
+                role: true,
+              },
+            },
+          },
+        })),
+      domain &&
+        key &&
+        prisma.link.findUnique({
+          where: {
+            domain_key: {
+              domain,
+              key,
+            },
+          },
+        }),
+    ])) as [ProjectProps | undefined, LinkProps | undefined];
 
     // it's a project
     if (slug) {
-      const project = (await prisma.project.findUnique({
-        where: {
-          slug,
-        },
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          logo: true,
-          usage: true,
-          usageLimit: true,
-          plan: true,
-          stripeId: true,
-          billingCycleStart: true,
-          createdAt: true,
-          users: {
-            where: {
-              userId: session.user.id,
-            },
-            select: {
-              role: true,
-            },
-          },
-        },
-      })) as ProjectProps;
-
-      if (project && project.users) {
-        // project exists but user is not part of it
-        if (project.users.length === 0) {
-          const pendingInvites = await prisma.projectInvite.findUnique({
-            where: {
-              email_projectId: {
-                email: session.user.email,
-                projectId: project.id,
-              },
-            },
-            select: {
-              expires: true,
-            },
-          });
-          if (!pendingInvites) {
-            return new Response("Project not found.", {
-              status: 404,
-            });
-          } else if (pendingInvites.expires < new Date()) {
-            return new Response("Project invite expired.", {
-              status: 410,
-            });
-          } else {
-            return new Response("Project invite pending.", {
-              status: 409,
-            });
-          }
-        }
-      } else {
+      if (!project || !project.users) {
         // project doesn't exist
         return new Response("Project not found.", {
           status: 404,
         });
       }
 
-      // if the action doesn't need to be gated for GET requests, return handler now
-      if (req.method === "GET" && excludeGet) {
-        return handler({ req, params, searchParams, session, project });
+      if (domain && !project.domains!.find((d) => d.slug === domain)) {
+        return new Response("Unauthorized: Invalid domain.", {
+          status: 401,
+        });
+      }
+
+      if (link && link.projectId !== project.id) {
+        return new Response("Unauthorized: Invalid link.", {
+          status: 401,
+        });
+      }
+
+      // project exists but user is not part of it
+      if (project.users.length === 0) {
+        const pendingInvites = await prisma.projectInvite.findUnique({
+          where: {
+            email_projectId: {
+              email: session.user.email,
+              projectId: project.id,
+            },
+          },
+          select: {
+            expires: true,
+          },
+        });
+        if (!pendingInvites) {
+          return new Response("Project not found.", {
+            status: 404,
+          });
+        } else if (pendingInvites.expires < new Date()) {
+          return new Response("Project invite expired.", {
+            status: 410,
+          });
+        } else {
+          return new Response("Project invite pending.", {
+            status: 409,
+          });
+        }
       }
 
       if (
@@ -161,11 +182,16 @@ const withAuth =
           status: 403,
         });
       }
-
-      return handler({ req, params, searchParams, session, project });
     }
 
-    return handler({ req, params, searchParams, session });
+    // check for Dub.sh links
+    if (domain === "dub.sh" && link && link.userId !== session.user.id) {
+      return new Response("Unauthorized: Invalid link.", {
+        status: 401,
+      });
+    }
+
+    return handler({ req, params, searchParams, session, project, link });
   };
 
 export { withAuth };

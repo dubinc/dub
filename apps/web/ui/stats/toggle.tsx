@@ -49,19 +49,23 @@ export default function Toggle() {
       })}
     >
       <div className="mx-auto flex h-20 max-w-4xl flex-col items-center justify-between space-y-3 px-2.5 md:h-10 md:flex-row md:space-y-0 lg:px-0">
-        <a
-          className="group flex text-lg font-semibold text-gray-800 md:text-xl"
-          href={linkConstructor({ key, domain })}
-          target="_blank"
-          rel="noreferrer"
-        >
-          {linkConstructor({
-            key,
-            domain: domain ? punycode.toUnicode(domain) : undefined,
-            pretty: true,
-          })}
-          <ExpandingArrow className="h-5 w-5" />
-        </a>
+        {domain ? (
+          <a
+            className="group flex text-lg font-semibold text-gray-800 md:text-xl"
+            href={linkConstructor({ key, domain })}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {linkConstructor({
+              key,
+              domain: punycode.toUnicode(domain),
+              pretty: true,
+            })}
+            <ExpandingArrow className="h-5 w-5" />
+          </a>
+        ) : (
+          <div />
+        )}
         <div className="flex items-center">
           {!isPublicStatsPage && key && key !== "_root" && <SharePopover />}
           <Popover
@@ -110,7 +114,7 @@ export default function Toggle() {
                           ? `interval=${value}`
                           : `${new URLSearchParams({
                               domain: domain!,
-                              ...(key && { key }),
+                              ...(key && key !== "_root" && { key }),
                               interval: value,
                             }).toString()}`
                       }`}

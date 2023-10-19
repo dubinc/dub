@@ -32,7 +32,6 @@ export interface ProjectProps {
   stripeId?: string;
   billingCycleStart?: number;
   createdAt?: Date;
-
   domains?: {
     slug: string;
   }[];
