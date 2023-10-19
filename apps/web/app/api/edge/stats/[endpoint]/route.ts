@@ -1,4 +1,4 @@
-import { getParams } from "@/lib/auth-app";
+import { getSearchParams } from "@/lib/auth-app";
 import { isBlacklistedReferrer } from "@/lib/edge-config";
 import { getLinkViaEdge } from "@/lib/planetscale";
 import { getStats } from "@/lib/stats";
@@ -10,8 +10,12 @@ import { NextResponse, type NextRequest } from "next/server";
 // TODO: switch to 'edge' after https://github.com/vercel/next.js/issues/48295 is fixed
 export const runtime = "nodejs";
 
-export const GET = async (req: NextRequest) => {
-  const { domain, key, endpoint, interval } = getParams(req.url);
+export const GET = async (
+  req: NextRequest,
+  { params }: { params: Record<string, string> },
+) => {
+  const { endpoint } = params;
+  const { domain, key, interval } = getSearchParams(req.url);
 
   // demo link (dub.sh/github)
   if (domain === "dub.sh" && key === "github") {

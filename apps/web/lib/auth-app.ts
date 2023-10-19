@@ -17,7 +17,7 @@ export async function getSession() {
   return getServerSession(authOptions) as Promise<Session>;
 }
 
-export function getParams(url: string) {
+export function getSearchParams(url: string) {
   // Create a params object
   let params = {} as any;
 
@@ -29,7 +29,19 @@ export function getParams(url: string) {
 }
 
 interface WithAuthHandler {
-  (req: NextRequest, session: Session, project?: ProjectProps): any;
+  ({
+    req,
+    params,
+    searchParams,
+    session,
+    project,
+  }: {
+    req: Request;
+    params: Record<string, string>;
+    searchParams: Record<string, string>;
+    session: Session;
+    project?: ProjectProps;
+  }): Promise<Response>;
 }
 const withAuth =
   (
@@ -46,13 +58,14 @@ const withAuth =
       needNotExceededUsage?: boolean;
     } = {},
   ) =>
-  async (req: NextRequest) => {
+  async (req: Request, { params }: { params: Record<string, string> }) => {
     const session = await getSession();
     if (!session?.user.id) {
       return new Response("Unauthorized: Login required.", { status: 401 });
     }
 
-    const { slug } = getParams(req.url);
+    const searchParams = getSearchParams(req.url);
+    const { slug } = searchParams;
 
     // it's a project
     if (slug) {
@@ -119,7 +132,7 @@ const withAuth =
 
       // if the action doesn't need to be gated for GET requests, return handler now
       if (req.method === "GET" && excludeGet) {
-        return handler(req, session, project);
+        return handler({ req, params, searchParams, session, project });
       }
 
       if (
@@ -149,10 +162,10 @@ const withAuth =
         });
       }
 
-      return handler(req, session, project);
+      return handler({ req, params, searchParams, session, project });
     }
 
-    return handler(req, session);
+    return handler({ req, params, searchParams, session });
   };
 
 export { withAuth };

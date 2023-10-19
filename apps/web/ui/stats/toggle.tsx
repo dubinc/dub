@@ -19,14 +19,15 @@ import punycode from "punycode/";
 import { useContext, useMemo, useState } from "react";
 import { StatsContext } from ".";
 import { ModalContext } from "../modals/provider";
+import useSWR, { mutate } from "swr";
+import { toast } from "sonner";
 
 export default function Toggle() {
   const { slug } = useParams() as { slug?: string };
   const { setShowUpgradePlanModal, setShowAddProjectModal } =
     useContext(ModalContext);
 
-  const { basePath, domain, key, getQueryString, interval, modal } =
-    useContext(StatsContext);
+  const { basePath, domain, key, interval, modal } = useContext(StatsContext);
 
   const [openDatePopover, setOpenDatePopover] = useState(false);
 
@@ -62,9 +63,7 @@ export default function Toggle() {
           <ExpandingArrow className="h-5 w-5" />
         </a>
         <div className="flex items-center">
-          {/* {!isPublicStatsPage && key !== "_root" && (
-            <SharePopover />
-          )} */}
+          {!isPublicStatsPage && key && key !== "_root" && <SharePopover />}
           <Popover
             content={
               <div className="grid w-full p-2 md:w-48">
@@ -109,7 +108,11 @@ export default function Toggle() {
                       href={`${basePath}?${
                         isPublicStatsPage
                           ? `interval=${value}`
-                          : getQueryString({ interval: value }, true)
+                          : `${new URLSearchParams({
+                              domain: domain!,
+                              ...(key && { key }),
+                              interval: value,
+                            }).toString()}`
                       }`}
                       replace
                       className="flex w-full items-center justify-between space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
@@ -147,115 +150,115 @@ export default function Toggle() {
   );
 }
 
-// const SharePopover = () => {
-//   const [openSharePopover, setopenSharePopoverPopover] = useState(false);
+const SharePopover = () => {
+  const [openSharePopover, setopenSharePopoverPopover] = useState(false);
 
-//   const { endpoint, domain, key, queryString } = useContext(StatsContext);
+  const { baseApiPath, queryString, domain, key } = useContext(StatsContext);
 
-//   const { data: { publicStats } = {} } = useSWR<{ publicStats: boolean }>(
-//     `${endpoint}${queryString}`,
-//     fetcher,
-//   );
+  const { data: { publicStats } = {} } = useSWR<{ publicStats: boolean }>(
+    `${baseApiPath}?${queryString}`,
+    fetcher,
+  );
 
-//   const [updating, setUpdating] = useState(false);
+  const [updating, setUpdating] = useState(false);
 
-//   const handleChange = async () => {
-//     toast.promise(
-//       new Promise<void>(async (resolve) => {
-//         setUpdating(true);
-//         const res = await fetch(`${endpoint}${queryString}`, {
-//           method: "PUT",
-//           headers: {
-//             "Content-Type": "application/json",
-//           },
-//           body: JSON.stringify({
-//             publicStats: !publicStats,
-//           }),
-//         });
-//         if (res.status === 200) {
-//           await mutate(`${endpoint}${queryString}`);
-//           !publicStats &&
-//             navigator.clipboard.writeText(
-//               `https://${domain}/stats/${encodeURIComponent(key)}`,
-//             );
-//         }
-//         setUpdating(false);
-//         resolve();
-//       }),
-//       {
-//         loading: "Updating...",
-//         success: `Stats page is now ${
-//           publicStats ? "private." : "public. Link copied to clipboard."
-//         }`,
-//         error: "Something went wrong",
-//       },
-//     );
-//   };
-//   const [copied, setCopied] = useState(false);
+  const handleChange = async () => {
+    toast.promise(
+      new Promise<void>(async (resolve) => {
+        setUpdating(true);
+        const res = await fetch(`${baseApiPath}?${queryString}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            publicStats: !publicStats,
+          }),
+        });
+        if (res.status === 200) {
+          await mutate(`${baseApiPath}?${queryString}`);
+          !publicStats &&
+            navigator.clipboard.writeText(
+              `https://${domain}/stats/${encodeURIComponent(key)}`,
+            );
+        }
+        setUpdating(false);
+        resolve();
+      }),
+      {
+        loading: "Updating...",
+        success: `Stats page is now ${
+          publicStats ? "private." : "public. Link copied to clipboard."
+        }`,
+        error: "Something went wrong",
+      },
+    );
+  };
+  const [copied, setCopied] = useState(false);
 
-//   return (
-//     <Popover
-//       content={
-//         <div className="w-full divide-y divide-gray-200 text-sm md:w-60">
-//           <div className="p-4">
-//             <p className="text-gray-500">Share stats for</p>
-//             <p className="truncate font-semibold text-gray-800">
-//               {linkConstructor({ key, domain, pretty: true })}
-//             </p>
-//           </div>
-//           <div className="p-4">
-//             <div className="mb-2 flex items-center justify-between">
-//               <p className="font-semibold text-gray-800">Public Stats Page</p>
-//               <Switch
-//                 checked={publicStats}
-//                 fn={handleChange}
-//                 disabled={updating}
-//               />
-//             </div>
-//             <p className="text-gray-500">
-//               Making stats public will allow anyone with the link to see the
-//               stats for this short link.
-//             </p>
-//           </div>
-//           <div className="p-4">
-//             <p className="font-semibold text-gray-800">Share Link</p>
-//             <div className="divide-x-200 mt-2 flex items-center justify-between divide-x overflow-hidden rounded-md border border-gray-200 bg-gray-100">
-//               <div className="scrollbar-hide overflow-scroll pl-2">
-//                 <p className="whitespace-nowrap text-gray-600">
-//                   https://{domain}/stats/{encodeURIComponent(key)}
-//                 </p>
-//               </div>
-//               <button
-//                 className="h-8 flex-none border-l bg-white px-2 hover:bg-gray-50 active:bg-gray-100"
-//                 onClick={() => {
-//                   navigator.clipboard.writeText(
-//                     `https://${domain}/stats/${encodeURIComponent(key)}`,
-//                   );
-//                   setCopied(true);
-//                   toast.success("Copied to clipboard");
-//                   setTimeout(() => setCopied(false), 3000);
-//                 }}
-//               >
-//                 {copied ? (
-//                   <Tick className="h-4 w-4 text-gray-500" />
-//                 ) : (
-//                   <Copy className="h-4 w-4 text-gray-500" />
-//                 )}
-//               </button>
-//             </div>
-//           </div>
-//         </div>
-//       }
-//       align="end"
-//       openPopover={openSharePopover}
-//       setOpenPopover={setopenSharePopoverPopover}
-//     >
-//       <button
-//         onClick={() => setopenSharePopoverPopover(!openSharePopover)}
-//         className="mr-2 flex w-24 items-center justify-center space-x-2 rounded-md bg-white px-3 py-2.5 shadow transition-all duration-75 hover:shadow-md active:scale-95"
-//       >
-//         <IconMenu text="Share" icon={<Share2 className="h-4 w-4" />} />
-//       </button>
-//     </Popover>
-//   );
-// };
+  return (
+    <Popover
+      content={
+        <div className="w-full divide-y divide-gray-200 text-sm md:w-60">
+          <div className="p-4">
+            <p className="text-gray-500">Share stats for</p>
+            <p className="truncate font-semibold text-gray-800">
+              {linkConstructor({ key, domain, pretty: true })}
+            </p>
+          </div>
+          <div className="p-4">
+            <div className="mb-2 flex items-center justify-between">
+              <p className="font-semibold text-gray-800">Public Stats Page</p>
+              <Switch
+                checked={publicStats}
+                fn={handleChange}
+                disabled={updating}
+              />
+            </div>
+            <p className="text-gray-500">
+              Making stats public will allow anyone with the link to see the
+              stats for this short link.
+            </p>
+          </div>
+          <div className="p-4">
+            <p className="font-semibold text-gray-800">Share Link</p>
+            <div className="divide-x-200 mt-2 flex items-center justify-between divide-x overflow-hidden rounded-md border border-gray-200 bg-gray-100">
+              <div className="scrollbar-hide overflow-scroll pl-2">
+                <p className="whitespace-nowrap text-gray-600">
+                  https://{domain}/stats/{encodeURIComponent(key)}
+                </p>
+              </div>
+              <button
+                className="h-8 flex-none border-l bg-white px-2 hover:bg-gray-50 active:bg-gray-100"
+                onClick={() => {
+                  navigator.clipboard.writeText(
+                    `https://${domain}/stats/${encodeURIComponent(key)}`,
+                  );
+                  setCopied(true);
+                  toast.success("Copied to clipboard");
+                  setTimeout(() => setCopied(false), 3000);
+                }}
+              >
+                {copied ? (
+                  <Tick className="h-4 w-4 text-gray-500" />
+                ) : (
+                  <Copy className="h-4 w-4 text-gray-500" />
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+      align="end"
+      openPopover={openSharePopover}
+      setOpenPopover={setopenSharePopoverPopover}
+    >
+      <button
+        onClick={() => setopenSharePopoverPopover(!openSharePopover)}
+        className="mr-2 flex w-24 items-center justify-center space-x-2 rounded-md bg-white px-3 py-2.5 shadow transition-all duration-75 hover:shadow-md active:scale-95"
+      >
+        <IconMenu text="Share" icon={<Share2 className="h-4 w-4" />} />
+      </button>
+    </Popover>
+  );
+};

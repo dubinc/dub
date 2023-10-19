@@ -10,11 +10,11 @@ import BarList from "./bar-list";
 export default function Locations() {
   const [tab, setTab] = useState<LocationTabs>("country");
 
-  const { baseApiPath, getQueryString, totalClicks, modal } =
+  const { baseApiPath, queryString, totalClicks, modal } =
     useContext(StatsContext);
 
   const { data } = useSWR<{ country: string; city: string; clicks: number }[]>(
-    `${baseApiPath}?${getQueryString({ endpoint: tab })}`,
+    `${baseApiPath}/${tab}?${queryString}`,
     fetcher,
   );
 

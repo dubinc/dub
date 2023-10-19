@@ -63,6 +63,9 @@ export default function NavTabs() {
             (href.endsWith("/settings") && pathname?.startsWith(href))) && (
             <motion.div
               layoutId="indicator"
+              transition={{
+                duration: 0.25,
+              }}
               className="absolute bottom-0 h-0.5 w-full bg-black"
             />
           )}

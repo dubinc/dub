@@ -31,10 +31,7 @@ export const StatsContext = createContext<{
   baseApiPath: string;
   domain: string;
   key: string;
-  getQueryString: (
-    opts: { endpoint?: string; interval?: string },
-    excludeSlug?: boolean,
-  ) => string;
+  queryString: string;
   interval: string;
   totalClicks?: number;
   modal?: boolean;
@@ -43,7 +40,7 @@ export const StatsContext = createContext<{
   baseApiPath: "",
   domain: "",
   key: "",
-  getQueryString: () => "",
+  queryString: "",
   interval: "",
 });
 
@@ -91,24 +88,15 @@ export default function Stats({
     };
   }, [slug, key, pathname]);
 
-  const getQueryString = (
-    opts: { endpoint?: string; interval?: string }, // query params to set
-    excludeSlug?: boolean, // whether or not to exclude the slug param
-  ) => {
-    let params = new URLSearchParams({
-      ...(slug && !excludeSlug && { slug }),
-      domain: domain!,
-      ...(key && { key }),
-      ...(interval && { interval }),
-    });
-    for (const [key, value] of Object.entries(opts)) {
-      params.set(key, value);
-    }
-    return params.toString();
-  };
+  const queryString = new URLSearchParams({
+    ...(slug && { slug }),
+    domain: domain!,
+    ...(key && { key }),
+    ...(interval && { interval }),
+  }).toString();
 
   const { data: totalClicks } = useSWR<number>(
-    `${baseApiPath}?${getQueryString({ endpoint: "clicks" })}`,
+    `${baseApiPath}/clicks?${queryString}`,
     fetcher,
   );
 
@@ -117,7 +105,7 @@ export default function Stats({
       value={{
         basePath, // basePath for the page (e.g. /stats/[key], /links/[key], /[slug]/[domain]/[key])
         baseApiPath, // baseApiPath for the API (e.g. /api/edge/links/[key]/stats)
-        getQueryString,
+        queryString,
         domain: domain!, // domain for the link (e.g. dub.sh, stey.me, etc.)
         key: key ? decodeURIComponent(key) : "", // link key (e.g. github, weathergpt, etc.)
         interval, // time interval (e.g. 24h, 7d, 30d, etc.)

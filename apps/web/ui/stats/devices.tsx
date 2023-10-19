@@ -11,18 +11,14 @@ import DeviceIcon from "./device-icon";
 export default function Devices() {
   const [tab, setTab] = useState<DeviceTabs>("device");
 
-  const { baseApiPath, getQueryString, totalClicks, modal } =
+  const { baseApiPath, queryString, totalClicks, modal } =
     useContext(StatsContext);
 
   const { data } = useSWR<
     ({
       [key in DeviceTabs]: string;
     } & { clicks: number })[]
-  >(
-    // `${baseApiPath}?${new URLSearchParams(queryString).set("endpoint", tab)}`,
-    `${baseApiPath}?${getQueryString({ endpoint: tab })}`,
-    fetcher,
-  );
+  >(`${baseApiPath}/${tab}?${queryString}`, fetcher);
 
   const [showModal, setShowModal] = useState(false);
 
