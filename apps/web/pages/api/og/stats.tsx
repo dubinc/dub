@@ -1,6 +1,6 @@
 import { ImageResponse, NextRequest } from "next/server";
-import { getLinkViaEdge } from "#/lib/planetscale";
-import { getStats } from "#/lib/stats";
+import { getLinkViaEdge } from "@/lib/planetscale";
+import { getStats } from "@/lib/stats";
 import { DUB_LOGO, nFormatter, truncate } from "@dub/utils";
 
 export const runtime = "edge";
