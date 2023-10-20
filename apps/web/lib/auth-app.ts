@@ -182,13 +182,14 @@ const withAuth =
           status: 403,
         });
       }
-    }
-
-    // check for Dub.sh links
-    if (domain === "dub.sh" && link && link.userId !== session.user.id) {
-      return new Response("Unauthorized: Invalid link.", {
-        status: 401,
-      });
+    } else {
+      // no slug means it's a generic Dub.sh link
+      // thus, we need to make sure the user is the owner of the link
+      if (link && link.userId !== session.user.id) {
+        return new Response("Unauthorized: Invalid link.", {
+          status: 401,
+        });
+      }
     }
 
     return handler({ req, params, searchParams, session, project, link });
