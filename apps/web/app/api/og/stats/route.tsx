@@ -4,7 +4,6 @@ import { getStats } from "@/lib/stats";
 import { DUB_LOGO, nFormatter, truncate } from "@dub/utils";
 
 export const runtime = "edge";
-export const contentType = "image/png";
 
 const satoshiBLack = fetch(
   new URL("@/styles/Satoshi-Black.ttf", import.meta.url),
