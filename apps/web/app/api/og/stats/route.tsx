@@ -14,7 +14,7 @@ const satoshiBold = fetch(
   new URL("@/styles/Satoshi-Bold.ttf", import.meta.url),
 ).then((res) => res.arrayBuffer());
 
-export default async function handler(req: NextRequest) {
+export async function GET(req: NextRequest) {
   const [satoshiBlackData, satoshiBoldData] = await Promise.all([
     satoshiBLack,
     satoshiBold,

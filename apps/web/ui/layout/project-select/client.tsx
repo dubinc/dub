@@ -1,6 +1,5 @@
 "use client";
 
-import { Session } from "@/lib/auth";
 import { PlanProps, ProjectWithDomainProps } from "@/lib/types";
 import { ModalContext } from "@/ui/modals/provider";
 import PlanBadge from "@/ui/projects/plan-badge";
@@ -14,11 +13,10 @@ import { useCallback, useContext, useMemo, useState } from "react";
 
 export default function ProjectSelectClient({
   projects,
-  session,
 }: {
   projects: ProjectWithDomainProps[];
-  session: Session;
 }) {
+  const { data: session } = useSession();
   const { slug, key } = useParams() as {
     slug?: string;
     key?: string;
