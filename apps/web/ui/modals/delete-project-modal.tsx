@@ -40,10 +40,10 @@ function DeleteProjectModal({
           router.push("/");
           resolve(null);
         } else {
+          setDeleting(false);
           const error = await res.text();
           reject(error);
         }
-        setDeleting(false);
       });
     });
   }

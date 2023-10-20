@@ -14,6 +14,7 @@ export default function AnalyticsAuth({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { primaryDomain } = useDomains();
   const searchParams = useSearchParams();
+  // TODO: remove this after we support project level analytics
   useEffect(() => {
     if (!searchParams?.get("domain")) {
       router.replace(`/${slug}/analytics?domain=${primaryDomain}`);

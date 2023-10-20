@@ -33,7 +33,7 @@ export default function TokensPageClient() {
           placeholder: "Jetpack API Key",
           maxLength: 140,
         }}
-        helpText="Note: We do not display or store your API keys again after you generate them."
+        helpText="<a href='https://dub.co/docs' target='_blank'>Learn more about Dub's API.</a>"
         buttonText="Submit"
         handleSubmit={(data) =>
           fetch("/api/user/tokens", {
