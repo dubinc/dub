@@ -10,13 +10,14 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { useCallback, useContext, useMemo, useState } from "react";
+import ProjectSelectPlaceholder from "./placeholder";
 
 export default function ProjectSelectClient({
   projects,
 }: {
   projects: ProjectWithDomainProps[];
 }) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const { slug, key } = useParams() as {
     slug?: string;
     key?: string;
@@ -53,6 +54,10 @@ export default function ProjectSelectClient({
   };
 
   const [openPopover, setOpenPopover] = useState(false);
+
+  if (status === "loading") {
+    return <ProjectSelectPlaceholder />;
+  }
 
   return (
     <div>
