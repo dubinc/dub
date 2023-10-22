@@ -12,7 +12,7 @@ export default function Referer() {
     useContext(StatsContext);
 
   const { data } = useSWR<{ referer: string; clicks: number }[]>(
-    `${baseApiPath}/refererr?${queryString}`,
+    `${baseApiPath}/referer?${queryString}`,
     fetcher,
   );
 
