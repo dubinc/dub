@@ -1,4 +1,4 @@
-import { getSearchParams, withAuth } from "@/lib/auth-app";
+import { withAuth } from "@/lib/auth-app";
 import { getStats } from "@/lib/stats";
 import { NextResponse } from "next/server";
 

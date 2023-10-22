@@ -36,7 +36,7 @@ function DeleteProjectModal({
         },
       }).then(async (res) => {
         if (res.ok) {
-          await Promise.all([mutate("/api/projects"), router.refresh()]);
+          router.refresh();
           router.push("/");
           resolve(null);
         } else {

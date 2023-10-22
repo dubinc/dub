@@ -112,7 +112,7 @@ function AddProjectModalHelper({
             if (res.status === 200) {
               // track project creation event
               va.track("Created Project");
-              await Promise.all([mutate("/api/projects"), router.refresh()]);
+              router.refresh();
               if (welcomeFlow) {
                 router.push(`/welcome?type=upgrade&slug=${slug}`);
               } else {

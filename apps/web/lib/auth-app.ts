@@ -182,10 +182,10 @@ const withAuth =
           status: 403,
         });
       }
-    } else {
+    } else if (link) {
       // no slug means it's a generic Dub.sh link
       // thus, we need to make sure the user is the owner of the link
-      if (link && link.userId !== session.user.id) {
+      if (link.userId !== session.user.id) {
         return new Response("Unauthorized: Invalid link.", {
           status: 401,
         });

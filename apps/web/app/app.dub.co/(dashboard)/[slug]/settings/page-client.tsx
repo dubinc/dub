@@ -75,7 +75,6 @@ export default function ProjectSettingsClient() {
             if (res.status === 200) {
               const { slug: newSlug } = await res.json();
               router.refresh();
-              await mutate("/api/projects");
               router.push(`/${newSlug}/settings`);
               toast.success("Successfully updated project slug!");
             } else if (res.status === 422) {
