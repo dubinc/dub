@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { getSession } from "./auth-app";
+import { getSession } from "./auth";
 import prisma from "./prisma";
 import { ProjectWithDomainProps } from "./types";
 

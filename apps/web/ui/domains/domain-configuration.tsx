@@ -157,26 +157,34 @@ const DnsRecord = ({
         <div>
           <p className="text-sm font-bold">Type</p>
           {records.map((record) => (
-            <p className="mt-2 font-mono text-sm">{record.type}</p>
+            <p key={record.type} className="mt-2 font-mono text-sm">
+              {record.type}
+            </p>
           ))}
         </div>
         <div>
           <p className="text-sm font-bold">Name</p>
           {records.map((record) => (
-            <p className="mt-2 font-mono text-sm">{record.name}</p>
+            <p key={record.name} className="mt-2 font-mono text-sm">
+              {record.name}
+            </p>
           ))}
         </div>
         <div>
           <p className="text-sm font-bold">Value</p>
           {records.map((record) => (
-            <p className="mt-2 font-mono text-sm">{record.value}</p>
+            <p key={record.value} className="mt-2 font-mono text-sm">
+              {record.value}
+            </p>
           ))}
         </div>
         {hasTtl && (
           <div>
             <p className="text-sm font-bold">TTL</p>
             {records.map((record) => (
-              <p className="mt-2 font-mono text-sm">{record.ttl}</p>
+              <p key={record.ttl} className="mt-2 font-mono text-sm">
+                {record.ttl}
+              </p>
             ))}
           </div>
         )}

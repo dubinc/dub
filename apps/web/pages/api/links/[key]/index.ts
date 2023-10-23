@@ -1,5 +1,5 @@
 import { deleteLink, editLink, processKey } from "@/lib/api/links";
-import { withLinksAuth } from "@/lib/auth";
+import { withLinksAuth } from "@/lib/auth-links";
 import { isBlacklistedDomain, isBlacklistedKey } from "@/lib/edge-config";
 import { GOOGLE_FAVICON_URL, getApexDomain, log } from "@dub/utils";
 

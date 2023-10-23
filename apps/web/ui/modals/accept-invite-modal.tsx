@@ -2,7 +2,7 @@ import useProject from "@/lib/swr/use-project";
 import { LoadingDots, Logo, Modal } from "@dub/ui";
 import va from "@vercel/analytics";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -20,6 +20,7 @@ function AcceptInviteModal({
   showAcceptInviteModal: boolean;
   setShowAcceptInviteModal: Dispatch<SetStateAction<boolean>>;
 }) {
+  const router = useRouter();
   const { slug } = useParams() as { slug: string };
   const [accepting, setAccepting] = useState(false);
   const { error } = useProject();
@@ -54,13 +55,12 @@ function AcceptInviteModal({
                   va.track("User accepted project invite", {
                     project: slug,
                   });
-                  await mutate(
-                    (key) =>
-                      typeof key === "string" &&
-                      key.startsWith(`/api/projects`),
-                    undefined,
-                    { revalidate: true },
-                  );
+                  await Promise.all([
+                    mutate(`/api/projects/${slug}`),
+                    mutate(`/api/projects/${slug}/domains`),
+                    router.refresh(),
+                  ]);
+                  setShowAcceptInviteModal(false);
                   toast.success("You now are a part of this project!");
                 });
               }}

@@ -29,7 +29,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
   });
 
   const { data: clicks } = useSWR<number>(
-    slug && `/api/projects/${slug}/domains/${domain}/stats/clicks`,
+    slug && `/api/projects/${slug}/stats/clicks?domain=${domain}&key=_root`,
     fetcher,
     {
       dedupingInterval: 15000,

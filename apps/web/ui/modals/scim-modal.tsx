@@ -101,6 +101,7 @@ function SCIMModal({
               setSubmitting(false);
             });
           }}
+          className="flex flex-col space-y-4"
         >
           <div>
             <div className="flex items-center space-x-1">
@@ -144,17 +145,16 @@ function SCIMModal({
                 </option>
               ))}
             </select>
+            {currentProvider && (
+              <a
+                href={`${HOME_DOMAIN}/help/article/${currentProvider.saml}-scim`}
+                target="_blank"
+                className="ml-2 mt-2 block text-sm text-gray-500 underline"
+              >
+                Read the guide on {currentProvider.name} SCIM
+              </a>
+            )}
           </div>
-
-          {currentProvider && (
-            <a
-              href={`${HOME_DOMAIN}/help/article/${currentProvider.saml}-scim`}
-              target="_blank"
-              className="ml-2 mt-2 block text-sm text-gray-500 underline"
-            >
-              Read the guide on {currentProvider.name} SCIM
-            </a>
-          )}
 
           {currentProvider && selectedProvider === provider && (
             <div className="mt-4 flex flex-col space-y-4">
@@ -258,7 +258,6 @@ function SCIMModal({
             </div>
           )}
           <Button
-            className="mt-4"
             text="Save changes"
             loading={submitting}
             disabled={!currentProvider || currentProvider.scim === provider}

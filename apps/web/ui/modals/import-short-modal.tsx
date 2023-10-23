@@ -124,9 +124,9 @@ function ImportShortModal({
                     router.push(`/${slug}`);
                     setPollLinks(true);
                   } else {
+                    setImporting(false);
                     throw new Error();
                   }
-                  setImporting(false);
                 }),
                 {
                   loading: "Adding links to import queue...",

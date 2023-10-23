@@ -49,14 +49,12 @@ function AddEditDomainModal({
   const [debouncedDomain] = useDebounce(domain, 500);
   useEffect(() => {
     if (debouncedDomain.length > 0 && debouncedDomain !== props?.slug) {
-      fetch(`/api/projects/${slug}/domains/${debouncedDomain}/exists`).then(
-        async (res) => {
-          if (res.status === 200) {
-            const exists = await res.json();
-            setDomainError(exists === 1 ? "Domain is already in use." : null);
-          }
-        },
-      );
+      fetch(`/api/domains/${debouncedDomain}/exists`).then(async (res) => {
+        if (res.status === 200) {
+          const exists = await res.json();
+          setDomainError(exists === 1 ? "Domain is already in use." : null);
+        }
+      });
     }
   }, [debouncedDomain]);
 

@@ -446,7 +446,9 @@ const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
   };
 
   return processing ? (
-    <LoadingCircle />
+    <div className="flex h-6 items-center justify-center">
+      <LoadingCircle />
+    </div>
   ) : (
     <Popover
       content={

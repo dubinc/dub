@@ -85,6 +85,7 @@ function RemoveTeammateModal({
         <Button
           text="Confirm"
           variant="danger"
+          autoFocus
           loading={removing}
           onClick={() => {
             setRemoving(true);

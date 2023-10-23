@@ -67,7 +67,7 @@ export default function Stats({
     if (slug) {
       return {
         basePath: `/${slug}/analytics`,
-        baseApiPath: `/api/stats`,
+        baseApiPath: `/api/projects/${slug}/stats`,
         domain: domainSlug,
       };
       // Generic Dub.sh links analytics page, e.g. app.dub.co/analytics?domain=dub.sh&key=github
@@ -89,7 +89,6 @@ export default function Stats({
 
   const queryString = useMemo(() => {
     return new URLSearchParams({
-      ...(slug && { slug }),
       domain: domain!,
       ...(key && { key }),
       ...(interval && { interval }),

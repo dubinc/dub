@@ -4,7 +4,7 @@ import {
   domainExists,
   validateDomain,
 } from "@/lib/api/domains";
-import { withAuth } from "@/lib/auth-app";
+import { withAuth } from "@/lib/auth";
 import { isReservedKey } from "@/lib/edge-config";
 import prisma from "@/lib/prisma";
 import { DEFAULT_REDIRECTS, validSlugRegex } from "@dub/utils";
