@@ -17,7 +17,7 @@ const relevantEvents = new Set([
 // POST /api/callback/stripe – listen to Stripe webhooks
 export const POST = async (req: Request) => {
   const buf = await req.text();
-  const sig = req.headers["stripe-signature"];
+  const sig = req.headers.get("Stripe-Signature") as string;
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
   let event: Stripe.Event;
   try {
