@@ -4,13 +4,14 @@ import { redirect } from "next/navigation";
 export async function POST(req: Request) {
   const { oauthController } = await jackson();
 
-  const body = await req.json();
+  const formData = await req.formData();
 
-  const { RelayState, SAMLResponse } = body;
+  const RelayState = formData.get("RelayState");
+  const SAMLResponse = formData.get("SAMLResponse");
 
   const { redirect_url } = await oauthController.samlResponse({
-    RelayState,
-    SAMLResponse,
+    RelayState: RelayState as string,
+    SAMLResponse: SAMLResponse as string,
   });
 
   if (!redirect_url) {
