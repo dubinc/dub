@@ -20,7 +20,7 @@ export default function ProjectBillingClient() {
   const { slug, plan, usage, usageLimit, billingCycleStart } = useProject();
 
   const { data: links } = useSWR<number>(
-    `/api/links/_count?slug=${slug}`,
+    `/api/projects/${slug}/links/count`,
     fetcher,
   );
   const [clicked, setClicked] = useState(false);

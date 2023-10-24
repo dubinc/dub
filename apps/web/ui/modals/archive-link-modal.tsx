@@ -74,9 +74,9 @@ function ArchiveLinkModal({
             e.preventDefault();
             setArchiving(true);
             fetch(
-              `/api/links/${encodeURIComponent(props.key)}/archive${
-                slug ? `?slug=${slug}&domain=${domain}` : ""
-              }`,
+              `/api${slug ? `/projects/${slug}/links` : "/links-app"}/${
+                props.id
+              }/archive`,
               {
                 method: archived ? "POST" : "DELETE",
                 headers: {
@@ -87,15 +87,20 @@ function ArchiveLinkModal({
               if (res.status === 200) {
                 await Promise.all([
                   mutate(
-                    `/api/links${getQueryString({
-                      params,
-                      searchParams,
-                    })}`,
+                    (key) =>
+                      typeof key === "string" &&
+                      key.startsWith(
+                        `/api${
+                          slug ? `/projects/${slug}/links` : "/links-app"
+                        }`,
+                      ),
                   ),
                   mutate(
                     (key) =>
                       typeof key === "string" &&
-                      key.startsWith(`/api/links/_count`),
+                      key.startsWith(
+                        `/api${slug ? `/projects/${slug}` : ""}/links/count`,
+                      ),
                     undefined,
                     { revalidate: true },
                   ),

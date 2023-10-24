@@ -37,7 +37,6 @@ import punycode from "punycode/";
 import {
   Dispatch,
   SetStateAction,
-  Suspense,
   UIEvent,
   useCallback,
   useContext,
@@ -117,9 +116,9 @@ function AddEditLinkModal({
       !keyError
     ) {
       fetch(
-        `/api/links/${encodeURIComponent(debouncedKey)}/exists${
-          slug ? `?slug=${slug}&domain=${domain}` : ""
-        }`,
+        `/api${
+          slug ? `/projects/${slug}` : ""
+        }/links/exists?domain=${domain}&key=${debouncedKey}`,
       ).then(async (res) => {
         if (res.status === 200) {
           const exists = await res.json();
@@ -133,7 +132,7 @@ function AddEditLinkModal({
     setKeyError(null);
     setGeneratingKey(true);
     const res = await fetch(
-      `/api/links/_random${slug ? `?slug=${slug}&domain=${domain}` : ""}`,
+      `/api${slug ? `/projects/${slug}` : ""}/links/random?domain=${domain}`,
     );
     const key = await res.json();
     setData((prev) => ({ ...prev, key }));
@@ -228,14 +227,14 @@ function AddEditLinkModal({
     if (props?.key) {
       return {
         method: "PUT",
-        url: `/api/links/${encodeURIComponent(props.key)}${
-          slug ? `?slug=${slug}&domain=${props.domain}` : ""
+        url: `/api${slug ? `/projects/${slug}/links` : "/links-app"}/${
+          props.id
         }`,
       };
     } else {
       return {
         method: "POST",
-        url: `/api/links${slug ? `?slug=${slug}&domain=${domain}` : ""}`,
+        url: `/api${slug ? `/projects/${slug}/links` : "/links-app"}`,
       };
     }
   }, [props, slug, domain]);
@@ -355,15 +354,20 @@ function AddEditLinkModal({
                     });
                   await Promise.all([
                     mutate(
-                      `/api/links${getQueryString({
-                        params,
-                        searchParams,
-                      })}`,
+                      (key) =>
+                        typeof key === "string" &&
+                        key.startsWith(
+                          `/api${
+                            slug ? `/projects/${slug}/links` : "/links-app"
+                          }`,
+                        ),
                     ),
                     mutate(
                       (key) =>
                         typeof key === "string" &&
-                        key.startsWith(`/api/links/_count`),
+                        key.startsWith(
+                          `/api${slug ? `/projects/${slug}` : ""}/links/count`,
+                        ),
                       undefined,
                       { revalidate: true },
                     ),

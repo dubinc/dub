@@ -111,7 +111,9 @@ function AddEditDomainModal({
         await Promise.all([
           mutate(`/api/projects/${slug}/domains`),
           mutate(
-            (key) => typeof key === "string" && key.startsWith(`/api/links`),
+            (key) =>
+              typeof key === "string" &&
+              key.startsWith(`/api/projects/${slug}/links`),
             undefined,
             { revalidate: true },
           ),

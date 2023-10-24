@@ -344,19 +344,13 @@ export const getDomainWithoutWWW = (url: string) => {
 };
 
 export const getQueryString = ({
-  params,
   searchParams,
   groupBy,
 }: {
-  params: Record<string, string>;
   searchParams: URLSearchParams | ReadonlyURLSearchParams | null;
   groupBy?: "domain" | "tagId";
 }) => {
-  const { slug } = params;
   const newSearchParams = new URLSearchParams(searchParams?.toString());
-  if (slug) {
-    newSearchParams.set("slug", slug);
-  }
   if (groupBy) {
     newSearchParams.set("groupBy", groupBy);
   }

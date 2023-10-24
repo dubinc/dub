@@ -4,6 +4,8 @@ import { Link as LinkProps } from "@prisma/client";
 import { PlanProps, ProjectProps } from "./types";
 import { getServerSession } from "next-auth/next";
 import { createHash } from "crypto";
+import { API_DOMAIN } from "@dub/utils";
+import { ratelimit } from "./upstash";
 
 export interface Session {
   user: {
@@ -47,6 +49,7 @@ interface WithAuthHandler {
     req,
     params,
     searchParams,
+    headers,
     session,
     project,
     domain,
@@ -55,6 +58,7 @@ interface WithAuthHandler {
     req: Request;
     params: Record<string, string>;
     searchParams: Record<string, string>;
+    headers?: Record<string, string>;
     session: Session;
     project: ProjectProps;
     domain: string;
@@ -78,16 +82,106 @@ export const withAuth =
     req: Request,
     { params }: { params: Record<string, string> | undefined },
   ) => {
-    const session = await getSession();
-    if (!session?.user.id) {
-      return new Response("Unauthorized: Login required.", { status: 401 });
-    }
-
     const searchParams = getSearchParams(req.url);
-    const { key } = searchParams;
-    const { slug } = params || {};
-    // domain can either be a path param or a query param
-    const domain = params?.domain || searchParams?.domain;
+    const { slug, domain, linkId } = params || {};
+
+    let session: Session | undefined;
+    let headers = {};
+
+    const authorizationHeader = req.headers.get("Authorization");
+    if (authorizationHeader) {
+      if (!authorizationHeader.includes("Bearer ")) {
+        return new Response(
+          "Misconfigured authorization header. Did you forget to add 'Bearer '? Learn more: https://dub.sh/auth ",
+          {
+            status: 400,
+          },
+        );
+      }
+      const apiKey = authorizationHeader.replace("Bearer ", "");
+      // if there is no slug, it's the default dub.sh link
+      if (!slug) {
+        return new Response(
+          "Unauthorized: API is not supported for dub.sh links yet.",
+          {
+            status: 403,
+          },
+        );
+      }
+
+      const url = new URL(req.url || "", API_DOMAIN);
+
+      if (url.pathname.includes("/stats/")) {
+        return new Response("Unauthorized: Invalid route.", {
+          status: 403,
+        });
+      }
+
+      const hashedKey = hashToken(apiKey, {
+        noSecret: true,
+      });
+
+      const user = await prisma.user.findFirst({
+        where: {
+          tokens: {
+            some: {
+              hashedKey,
+            },
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      });
+      if (!user) {
+        return new Response("Unauthorized: Invalid API key.", {
+          status: 401,
+        });
+      }
+
+      const { success, limit, reset, remaining } = await ratelimit(
+        10,
+        "1 s",
+      ).limit(apiKey);
+
+      headers = {
+        "Retry-After": reset.toString(),
+        "X-RateLimit-Limit": limit.toString(),
+        "X-RateLimit-Remaining": remaining.toString(),
+        "X-RateLimit-Reset": reset.toString(),
+      };
+
+      if (!success) {
+        return new Response("Too many requests.", {
+          status: 429,
+          headers,
+        });
+      }
+      await prisma.token.update({
+        where: {
+          hashedKey,
+        },
+        data: {
+          lastUsed: new Date(),
+        },
+      });
+      session = {
+        user: {
+          id: user.id,
+          name: user.name || "",
+          email: user.email || "",
+        },
+      };
+    } else {
+      session = await getSession();
+      if (!session?.user.id) {
+        return new Response("Unauthorized: Login required.", {
+          status: 401,
+        });
+      }
+    }
 
     const [project, link] = (await Promise.all([
       slug &&
@@ -116,19 +210,15 @@ export const withAuth =
             },
           },
         }),
-      domain &&
-        key &&
+      linkId &&
         prisma.link.findUnique({
           where: {
-            domain_key: {
-              domain,
-              key,
-            },
+            id: linkId,
           },
         }),
     ])) as [ProjectProps | undefined, LinkProps | undefined];
 
-    // it's a project
+    // project checks
     if (slug) {
       if (!project || !project.users) {
         // project doesn't exist
@@ -215,10 +305,18 @@ export const withAuth =
           status: 403,
         });
       }
-    } else if (link) {
-      // no slug means it's a generic Dub.sh link
-      // thus, we need to make sure the user is the owner of the link
-      if (link.userId !== session.user.id) {
+    }
+
+    // link checks
+    if (linkId) {
+      if (!link) {
+        return new Response("Link not found.", {
+          status: 404,
+        });
+      }
+
+      // if it's the default dub.sh link, we need to make sure the user is the owner of the link
+      if (link.domain === "dub.sh" && link.userId !== session.user.id) {
         return new Response("Unauthorized: Invalid link.", {
           status: 401,
         });
@@ -229,6 +327,7 @@ export const withAuth =
       req,
       params: params || {},
       searchParams,
+      headers,
       session,
       project: project as ProjectProps,
       domain,

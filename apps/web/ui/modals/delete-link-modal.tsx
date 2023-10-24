@@ -68,8 +68,8 @@ function DeleteLinkModal({
           e.preventDefault();
           setDeleting(true);
           fetch(
-            `/api/links/${encodeURIComponent(props.key)}${
-              slug ? `?slug=${slug}&domain=${domain}` : ""
+            `/api${slug ? `/projects/${slug}/links` : "/links-app"}/${
+              props.id
             }`,
             {
               method: "DELETE",
@@ -80,11 +80,19 @@ function DeleteLinkModal({
           ).then(async (res) => {
             if (res.status === 200) {
               await Promise.all([
-                mutate(`/api/links${getQueryString({ params, searchParams })}`),
                 mutate(
                   (key) =>
                     typeof key === "string" &&
-                    key.startsWith(`/api/links/_count`),
+                    key.startsWith(
+                      `/api${slug ? `/projects/${slug}/links` : "/links-app"}`,
+                    ),
+                ),
+                mutate(
+                  (key) =>
+                    typeof key === "string" &&
+                    key.startsWith(
+                      `/api${slug ? `/projects/${slug}` : ""}/links/count`,
+                    ),
                   undefined,
                   { revalidate: true },
                 ),

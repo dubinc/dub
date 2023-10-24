@@ -25,7 +25,7 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
       },
     ],
     paths: {
-      "/links": {
+      "/projects/{slug}/links": {
         get: {
           description:
             "Retrieve a list of links for the authenticated user or project. The list will be paginated and the provided query parameters allow filtering the returned links.",
@@ -40,24 +40,24 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
             {
               name: "slug",
               description:
-                "The slug for the project to retrieve links for. E.g. for app.dub.co/vercel, the slug is 'vercel'.",
-              in: "query",
+                "The slug for the project to retrieve links for. E.g. for app.dub.co/acme, the slug is 'acme'.",
+              in: "path",
               required: true,
               schema: {
                 description:
-                  "The slug for the project to retrieve links for. E.g. for app.dub.co/vercel, the slug is 'vercel'.",
+                  "The slug for the project to retrieve links for. E.g. for app.dub.co/acme, the slug is 'acme'.",
                 type: "string",
               },
             },
             {
               name: "domain",
               description:
-                "The domain to filter the links by. E.g. 'vercel.fyi' or 'stey.me'. If not provided, all links for the project will be returned.",
+                "The domain to filter the links by. E.g. 'ac.me'. If not provided, all links for the project will be returned.",
               in: "query",
               required: false,
               schema: {
                 description:
-                  "The domain to filter the links by. E.g. 'vercel.fyi' or 'stey.me'. If not provided, all links for the project will be returned.",
+                  "The domain to filter the links by. E.g. 'ac.me'. If not provided, all links for the project will be returned.",
                 type: "string",
               },
             },
@@ -163,12 +163,12 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
             {
               name: "slug",
               description:
-                "The slug for the project to create links for. E.g. for app.dub.co/vercel, the slug is 'vercel'.",
-              in: "query",
+                "The slug for the project to retrieve links for. E.g. for app.dub.co/acme, the slug is 'acme'.",
+              in: "path",
               required: true,
               schema: {
                 description:
-                  "The slug for the project to create links for. E.g. for app.dub.co/vercel, the slug is 'vercel'.",
+                  "The slug for the project to retrieve links for. E.g. for app.dub.co/acme, the slug is 'acme'.",
                 type: "string",
               },
             },
@@ -199,10 +199,11 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
           },
         },
       },
-      "/links/{key}": {
+      "/projects/{slug}/links/info": {
         get: {
-          description: "Retrieve a link for the authenticated user or project.",
-          operationId: "getLink",
+          description:
+            "Retrieve the info for a link from their domain and key.",
+          operationId: "getLinkInfo",
           security: [
             {
               bearerToken: [],
@@ -211,14 +212,14 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
           summary: "Retrieve a link",
           parameters: [
             {
-              name: "key",
+              name: "slug",
               description:
-                "The key of the link to retrieve. E.g. for dub.sh/github, the key is 'github'.",
+                "The slug for the project to retrieve links for. E.g. for app.dub.co/acme, the slug is 'acme'.",
               in: "path",
               required: true,
               schema: {
                 description:
-                  "The key of the link to retrieve. E.g. for dub.sh/github, the key is 'github'.",
+                  "The slug for the project to retrieve links for. E.g. for app.dub.co/acme, the slug is 'acme'.",
                 type: "string",
               },
             },
@@ -235,14 +236,14 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
               },
             },
             {
-              name: "slug",
+              name: "key",
               description:
-                "The project slug of the link to retrieve. E.g. for app.dub.co/vercel, the slug is 'vercel'.",
+                "The key of the link to retrieve. E.g. for dub.sh/github, the key is 'github'.",
               in: "query",
               required: true,
               schema: {
                 description:
-                  "The project slug of the link to retrieve. E.g. for app.dub.co/vercel, the slug is 'vercel'.",
+                  "The key of the link to retrieve. E.g. for dub.sh/github, the key is 'github'.",
                 type: "string",
               },
             },
@@ -260,6 +261,8 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
             },
           },
         },
+      },
+      "/projects/{slug}/links/{linkId}": {
         put: {
           description: "Edit link for the authenticated user or project.",
           operationId: "editLink",
@@ -271,38 +274,26 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
           summary: "Edit a link",
           parameters: [
             {
-              name: "key",
+              name: "slug",
               description:
-                "The key of the link to edit. E.g. for dub.sh/github, the key is 'github'.",
+                "The slug for the project to retrieve links for. E.g. for app.dub.co/acme, the slug is 'acme'.",
               in: "path",
               required: true,
               schema: {
                 description:
-                  "The key of the link to edit. E.g. for dub.sh/github, the key is 'github'.",
+                  "The slug for the project to retrieve links for. E.g. for app.dub.co/acme, the slug is 'acme'.",
                 type: "string",
               },
             },
             {
-              name: "domain",
+              name: "linkId",
               description:
-                "The domain of the link to edit. E.g. for dub.sh/github, the domain is 'dub.sh'.",
-              in: "query",
+                "The id of the link to edit. You can get this via the getLinkInfo endpoint.",
+              in: "path",
               required: true,
               schema: {
                 description:
-                  "The domain of the link to edit. E.g. for dub.sh/github, the domain is 'dub.sh'.",
-                type: "string",
-              },
-            },
-            {
-              name: "slug",
-              description:
-                "The project slug of the link to edit. E.g. for app.dub.co/vercel, the slug is 'vercel'.",
-              in: "query",
-              required: true,
-              schema: {
-                description:
-                  "The project slug of the link to edit. E.g. for app.dub.co/vercel, the slug is 'vercel'.",
+                  "The id of the link to edit. You can get this via the getLinkInfo endpoint.",
                 type: "string",
               },
             },
@@ -342,38 +333,26 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
           summary: "Delete a link",
           parameters: [
             {
-              name: "key",
+              name: "slug",
               description:
-                "The key of the link to delete. E.g. for dub.sh/github, the key is 'github'.",
+                "The slug for the project to retrieve links for. E.g. for app.dub.co/acme, the slug is 'acme'.",
               in: "path",
               required: true,
               schema: {
                 description:
-                  "The key of the link to delete. E.g. for dub.sh/github, the key is 'github'.",
+                  "The slug for the project to retrieve links for. E.g. for app.dub.co/acme, the slug is 'acme'.",
                 type: "string",
               },
             },
             {
-              name: "domain",
+              name: "linkId",
               description:
-                "The domain of the link to delete. E.g. for dub.sh/github, the domain is 'dub.sh'.",
-              in: "query",
+                "The id of the link to delete. You can get this via the `getLinkInfo` endpoint.",
+              in: "path",
               required: true,
               schema: {
                 description:
-                  "The domain of the link to delete. E.g. for dub.sh/github, the domain is 'dub.sh'.",
-                type: "string",
-              },
-            },
-            {
-              name: "slug",
-              description:
-                "The project slug of the link to delete. E.g. for app.dub.co/vercel, the slug is 'vercel'.",
-              in: "query",
-              required: true,
-              schema: {
-                description:
-                  "The project slug of the link to delete. E.g. for app.dub.co/vercel, the slug is 'vercel'.",
+                  "The id of the link to delete. You can get this via the `getLinkInfo` endpoint.",
                 type: "string",
               },
             },

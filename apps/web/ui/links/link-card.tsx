@@ -92,12 +92,13 @@ export default function LinkCard({
   const { data: clicks } = useSWR<number>(
     isVisible &&
       !exceededUsage &&
-      `/api/links/${encodeURIComponent(key)}/stats/clicks${
-        slug ? `?slug=${slug}&domain=${domain}` : ""
-      }`,
+      `/api${
+        slug ? `/projects/${slug}` : ""
+      }/stats/clicks?domain=${domain}&key=${key}`,
     fetcher,
     {
       fallbackData: props.clicks,
+      dedupingInterval: 60000,
     },
   );
 

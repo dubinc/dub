@@ -7,12 +7,11 @@ export default function useLinksCount({
 }: {
   groupBy?: "domain" | "tagId";
 } = {}) {
-  const params = useParams() as { slug?: string };
+  const { slug } = useParams() as { slug?: string };
   const searchParams = useSearchParams();
 
   const { data, error } = useSWR<any>(
-    `/api/links/_count${getQueryString({
-      params,
+    `/api${slug ? `/projects/${slug}` : ""}/links/count${getQueryString({
       searchParams,
       ...(groupBy && { groupBy }),
     })}`,
