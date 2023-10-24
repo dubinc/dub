@@ -7,7 +7,9 @@ export async function GET(req: Request) {
   const authHeader = req.headers.get("Authorization");
 
   if (!authHeader) {
-    throw new Error("Unauthorized");
+    return new Response("Unauthorized", {
+      status: 401,
+    });
   }
 
   const token = authHeader.split(" ")[1];

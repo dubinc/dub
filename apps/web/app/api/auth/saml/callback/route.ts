@@ -15,7 +15,9 @@ export async function POST(req: Request) {
   });
 
   if (!redirect_url) {
-    throw new Error("No redirect URL found.");
+    return new Response("No redirect URL found.", {
+      status: 400,
+    });
   }
 
   return NextResponse.redirect(redirect_url, {

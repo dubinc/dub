@@ -178,7 +178,9 @@ export const POST = async (req: Request) => {
           }),
         ]);
       } else {
-        throw new Error("Unhandled relevant event!");
+        return new Response(`Unhandled relevant event: ${event.type}`, {
+          status: 400,
+        });
       }
     } catch (error) {
       await log({
