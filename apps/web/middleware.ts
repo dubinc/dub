@@ -3,8 +3,8 @@ import {
   AppMiddleware,
   LinkMiddleware,
   RootMiddleware,
-} from "#/lib/middleware";
-import { parse } from "#/lib/middleware/utils";
+} from "@/lib/middleware";
+import { parse } from "@/lib/middleware/utils";
 import {
   ADMIN_HOSTNAMES,
   API_HOSTNAMES,

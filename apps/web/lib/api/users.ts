@@ -1,6 +1,6 @@
-import { Session, hashToken } from "#/lib/auth";
-import prisma from "#/lib/prisma";
-import { ProjectProps } from "#/lib/types";
+import { Session, hashToken } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { ProjectProps } from "@/lib/types";
 import { randomBytes } from "crypto";
 import { sendEmail } from "emails";
 import ProjectInvite from "emails/project-invite";

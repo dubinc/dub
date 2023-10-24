@@ -93,6 +93,7 @@ model Project {
   plan               String          @default("free")
   stripeId           String?         @unique // Stripe subscription ID
   billingCycleStart  Int?            // day of the month when the billing cycle starts
+  monitoringId       String?       @unique // cron job ID for monitoring
   
   sentEmails         SentEmail[]
   domains            Domain[]
@@ -211,6 +212,7 @@ model Link {
   publicStats Boolean  @default(false) // whether to show public stats or not
   clicks      Int      @default(0) // number of clicks
   lastClicked DateTime? // when the link was last clicked
+  lastChecked DateTime? // when the link was last checked for 404s
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -232,6 +234,7 @@ model Link {
   @@index(createdAt(sort: Desc))
   @@index(clicks(sort: Desc))
   @@index(lastClicked)
+  @@index(lastChecked)
   @@index(userId)
   @@fulltext([key, url])
 }
@@ -260,12 +263,15 @@ model jackson_index {
 }
 
 model jackson_store {
-  key        String    @id @db.VarChar(250)
-  value      String    @db.Text
-  iv         String?   @db.VarChar(64)
-  tag        String?   @db.VarChar(64)
-  createdAt  DateTime  @default(now()) @db.Timestamp(0)
-  modifiedAt DateTime? @db.Timestamp(0)
+  key               String    @id @db.VarChar(250)
+  value             String    @db.Text
+  iv                String?   @db.VarChar(64)
+  tag               String?   @db.VarChar(64)
+  namespace         String?   @db.VarChar(64)
+  createdAt         DateTime  @default(now()) @db.Timestamp(0)
+  modifiedAt        DateTime? @db.Timestamp(0)
+
+  @@index([namespace], map: "_jackson_store_namespace")
 }
 
 model jackson_ttl {

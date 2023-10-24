@@ -1,5 +1,5 @@
-import { recordClick } from "#/lib/tinybird";
-import { redis } from "#/lib/upstash";
+import { recordClick } from "@/lib/tinybird";
+import { redis } from "@/lib/upstash";
 import { DUB_HEADERS } from "@dub/utils";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 import { parse } from "./utils";

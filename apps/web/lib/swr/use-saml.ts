@@ -1,13 +1,12 @@
 import type { SAMLSSORecord } from "@boxyhq/saml-jackson";
 import { fetcher } from "@dub/utils";
-import { useRouter } from "next/router";
+import { useParams } from "next/navigation";
 import { useMemo } from "react";
 import useSWR from "swr";
 
 export default function useSAML() {
-  const router = useRouter();
-  const { slug } = router.query as {
-    slug: string;
+  const { slug } = useParams() as {
+    slug?: string;
   };
 
   const { data, isLoading, mutate } = useSWR<{ connections: SAMLSSORecord[] }>(

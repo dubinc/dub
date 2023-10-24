@@ -1,6 +1,6 @@
-import { isReservedKey } from "#/lib/edge-config";
-import prisma from "#/lib/prisma";
-import { redis } from "#/lib/upstash";
+import { isReservedKey } from "@/lib/edge-config";
+import prisma from "@/lib/prisma";
+import { redis } from "@/lib/upstash";
 import {
   DEFAULT_REDIRECTS,
   getParamsFromURL,
@@ -64,15 +64,15 @@ export async function getLinksForProject({
 }
 
 export async function getLinksCount({
-  req,
+  searchParams,
   projectId,
   userId,
 }: {
-  req: NextApiRequest;
+  searchParams: Record<string, string>;
   projectId: string;
   userId?: string | null;
 }) {
-  let { groupBy, search, domain, tagId, showArchived } = req.query as {
+  let { groupBy, search, domain, tagId, showArchived } = searchParams as {
     groupBy?: "domain" | "tagId";
     search?: string;
     domain?: string;

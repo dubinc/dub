@@ -1,15 +1,14 @@
-import { UserProps } from "#/lib/types";
+import { UserProps } from "@/lib/types";
 import { fetcher } from "@dub/utils";
-import { useRouter } from "next/router";
+import { useParams } from "next/navigation";
 import useSWR from "swr";
 
 export default function useUsers({ invites }: { invites?: boolean } = {}) {
-  const router = useRouter();
-  const { slug } = router.query as {
+  const { slug } = useParams() as {
     slug: string;
   };
 
-  const { data: users } = useSWR<UserProps[]>(
+  const { data: users, error } = useSWR<UserProps[]>(
     slug &&
       (invites
         ? `/api/projects/${slug}/invites`
@@ -19,5 +18,6 @@ export default function useUsers({ invites }: { invites?: boolean } = {}) {
 
   return {
     users,
+    loading: !error && !users,
   };
 }

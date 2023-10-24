@@ -1,5 +1,5 @@
-import { getLinkViaEdge } from "#/lib/planetscale";
-import Stats from "#/ui/stats";
+import { getLinkViaEdge } from "@/lib/planetscale";
+import Stats from "@/ui/stats";
 import { constructMetadata } from "@dub/utils";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";

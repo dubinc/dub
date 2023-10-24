@@ -1,4 +1,4 @@
-import { receiver } from "#/lib/cron";
+import { receiver } from "@/lib/cron";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { updateUsage } from "./utils";

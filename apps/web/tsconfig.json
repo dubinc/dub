@@ -7,11 +7,10 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@/components/*": ["components/*"],
       "@/pages/*": ["pages/*"],
       "@/styles/*": ["styles/*"],
-      "#/ui/*": ["app/ui/*"],
-      "#/lib/*": ["lib/*"]
+      "@/ui/*": ["ui/*"],
+      "@/lib/*": ["lib/*"]
     },
     "downlevelIteration": true,
     "forceConsistentCasingInFileNames": true,

@@ -1,5 +1,5 @@
 "use server";
-import prisma from "#/lib/prisma";
+import prisma from "@/lib/prisma";
 import { linkConstructor } from "@dub/utils";
 import { redirect } from "next/navigation";
 

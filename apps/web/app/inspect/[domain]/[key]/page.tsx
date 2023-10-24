@@ -1,4 +1,4 @@
-import { getLinkViaEdge } from "#/lib/planetscale";
+import { getLinkViaEdge } from "@/lib/planetscale";
 import { Background, Footer, LinkPreview, Nav } from "@dub/ui";
 import { HOME_DOMAIN, constructMetadata } from "@dub/utils";
 import { notFound } from "next/navigation";

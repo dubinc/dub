@@ -1,10 +1,13 @@
-import { LoadingSpinner } from "@dub/ui";
+import { Suspense } from "react";
 import SAMLIDPForm from "./form";
+import { LoadingSpinner } from "@dub/ui";
 
 export default function SAMLPage() {
   return (
     <div>
-      <SAMLIDPForm />
+      <Suspense>
+        <SAMLIDPForm />
+      </Suspense>
       <div className="flex h-screen flex-col items-center justify-center space-y-6 text-center">
         <h1 className="font-display text-4xl font-bold">Authenticating</h1>
         <p className="text-lg text-gray-600">
