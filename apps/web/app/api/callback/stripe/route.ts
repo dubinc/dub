@@ -98,7 +98,7 @@ export const POST = async (req: Request) => {
         if (!data) {
           await log({
             message:
-              "Project not found in Stripe webhook `customer.subscription.created` callback",
+              "Project not found in Stripe webhook `customer.subscription.updated` callback",
             type: "cron",
             mention: true,
           });

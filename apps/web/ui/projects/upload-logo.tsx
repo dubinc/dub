@@ -6,6 +6,7 @@ import { UploadCloud } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { mutate } from "swr";
 
 export default function UploadLogo() {
   const router = useRouter();
@@ -55,6 +56,7 @@ export default function UploadLogo() {
         }).then(async (res) => {
           if (res.status === 200) {
             router.refresh();
+            await mutate(`/api/projects/${slug}`);
             toast.success("Succesfully uploaded project logo!");
           } else if (res.status === 413) {
             toast.error("File size too big (max 2MB)");
