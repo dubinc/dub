@@ -1,5 +1,5 @@
 import jackson from "@/lib/jackson";
-import { redirect } from "next/navigation";
+import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   const { oauthController } = await jackson();
@@ -18,5 +18,7 @@ export async function POST(req: Request) {
     throw new Error("No redirect URL found.");
   }
 
-  redirect(redirect_url);
+  return NextResponse.redirect(redirect_url, {
+    status: 302,
+  });
 }

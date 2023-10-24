@@ -1,6 +1,6 @@
 import jackson from "@/lib/jackson";
 import { getSearchParams } from "@/lib/auth";
-import { redirect } from "next/navigation";
+import { NextResponse } from "next/server";
 
 const handler = async (req: Request) => {
   const { oauthController } = await jackson();
@@ -13,7 +13,9 @@ const handler = async (req: Request) => {
   );
 
   if (redirect_url) {
-    redirect(redirect_url);
+    return NextResponse.redirect(redirect_url, {
+      status: 302,
+    });
   } else {
     return new Response(authorize_form, {
       headers: {
