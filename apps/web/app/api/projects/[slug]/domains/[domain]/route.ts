@@ -16,12 +16,11 @@ import { NextResponse } from "next/server";
 export const PUT = withAuth(async ({ req, project, domain }) => {
   const { slug: newDomain, target, type, primary } = await req.json();
 
-  const validDomain = await validateDomain(newDomain);
-  if (validDomain !== true) {
-    return new Response(validDomain, { status: 422 });
-  }
-
   if (newDomain !== domain) {
+    const validDomain = await validateDomain(newDomain);
+    if (validDomain !== true) {
+      return new Response(validDomain, { status: 422 });
+    }
     const vercelResponse = await addDomainToVercel(newDomain);
     if (vercelResponse.error) {
       return new Response(vercelResponse.error.message, { status: 422 });
