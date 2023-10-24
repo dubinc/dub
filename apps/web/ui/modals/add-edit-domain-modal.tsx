@@ -165,15 +165,12 @@ function AddEditDomainModal({
               if (!props) {
                 router.push(`/${slug}/domains`);
               }
-            } else if (res.status === 422) {
-              const { domainError: domainErrorResponse } = await res.json();
-              if (domainErrorResponse) {
-                setDomainError(domainErrorResponse);
-                toast.error(domainErrorResponse);
-              }
             } else {
-              const error = await res.text();
-              toast.error(error);
+              const errorMessage = await res.text();
+              toast.error(errorMessage);
+              if (res.status === 422) {
+                setDomainError(errorMessage);
+              }
             }
             setSaving(false);
           });

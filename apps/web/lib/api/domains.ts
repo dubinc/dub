@@ -36,10 +36,7 @@ export const domainExists = async (domain: string) => {
       slug: true,
     },
   });
-  if (response) {
-    return true;
-  }
-  return false;
+  return !!response;
 };
 
 interface CustomResponse extends Response {
