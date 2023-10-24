@@ -11,7 +11,7 @@
     "start": "next start"
   },
   "dependencies": {
-    "@boxyhq/saml-jackson": "^1.11.3",
+    "@boxyhq/saml-jackson": "^1.14.2",
     "@dub/tailwind-config": "workspace:*",
     "@dub/ui": "workspace:*",
     "@dub/utils": "workspace:*",
