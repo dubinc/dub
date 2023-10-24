@@ -1,11 +1,11 @@
+import { authOptions } from "./options";
 import prisma from "@/lib/prisma";
-import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { Link as LinkProps } from "@prisma/client";
-import { PlanProps, ProjectProps } from "./types";
+import { PlanProps, ProjectProps } from "../types";
 import { getServerSession } from "next-auth/next";
 import { createHash } from "crypto";
 import { API_DOMAIN } from "@dub/utils";
-import { ratelimit } from "./upstash";
+import { ratelimit } from "../upstash";
 
 export interface Session {
   user: {

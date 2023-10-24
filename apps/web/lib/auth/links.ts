@@ -1,12 +1,12 @@
+import { authOptions } from "./options";
 import { NextApiRequest, NextApiResponse } from "next";
 import { API_DOMAIN } from "@dub/utils";
-import { ratelimit } from "./upstash";
-import { Session, hashToken } from "./auth";
+import { ratelimit } from "../upstash";
+import { Session, hashToken } from ".";
 import { Link as LinkProps } from "@prisma/client";
-import { PlanProps, ProjectProps } from "./types";
+import { PlanProps, ProjectProps } from "../types";
 import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/pages/api/auth/[...nextauth]";
 
 interface WithLinksAuthNextApiHandler {
   (

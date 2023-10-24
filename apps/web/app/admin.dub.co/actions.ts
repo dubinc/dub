@@ -1,16 +1,14 @@
 "use server";
 import { deleteUserLinks } from "@/lib/api/links";
 import { deleteProject } from "@/lib/api/project";
-import { hashToken } from "@/lib/auth";
+import { getSession, hashToken } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { DUB_PROJECT_ID, getDomainWithoutWWW } from "@dub/utils";
 import { get } from "@vercel/edge-config";
 import { randomBytes } from "crypto";
-import { getServerSession } from "next-auth";
 
 async function isAdmin() {
-  const session = await getServerSession(authOptions);
+  const session = await getSession();
   if (!session?.user) return false;
   const response = await prisma.projectUsers.findUnique({
     where: {
