@@ -263,12 +263,15 @@ model jackson_index {
 }
 
 model jackson_store {
-  key        String    @id @db.VarChar(250)
-  value      String    @db.Text
-  iv         String?   @db.VarChar(64)
-  tag        String?   @db.VarChar(64)
-  createdAt  DateTime  @default(now()) @db.Timestamp(0)
-  modifiedAt DateTime? @db.Timestamp(0)
+  key               String    @id @db.VarChar(250)
+  value             String    @db.Text
+  iv                String?   @db.VarChar(64)
+  tag               String?   @db.VarChar(64)
+  namespace         String?   @db.VarChar(64)
+  createdAt         DateTime  @default(now()) @db.Timestamp(0)
+  modifiedAt        DateTime? @db.Timestamp(0)
+
+  @@index([namespace], map: "_jackson_store_namespace")
 }
 
 model jackson_ttl {

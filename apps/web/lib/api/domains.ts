@@ -1,5 +1,5 @@
-import prisma from "#/lib/prisma";
-import { redis } from "#/lib/upstash";
+import prisma from "@/lib/prisma";
+import { redis } from "@/lib/upstash";
 import {
   getApexDomain,
   getDomainWithoutWWW,
@@ -8,10 +8,7 @@ import {
 import cloudinary from "cloudinary";
 import { isIframeable } from "../middleware/utils";
 
-export const validateDomain = async (
-  domain: string,
-  projectId?: string | null,
-) => {
+export const validateDomain = async (domain: string) => {
   if (!domain || typeof domain !== "string") {
     return "Missing domain";
   }
@@ -23,45 +20,23 @@ export const validateDomain = async (
   if (!validDomain) {
     return "Invalid domain";
   }
-  const exists = await domainExists(domain, projectId);
+  const exists = await domainExists(domain);
   if (exists) {
     return "Domain is already in use.";
   }
   return true;
 };
 
-export const domainExists = async (
-  domain: string,
-  projectId?: string | null,
-) => {
-  const apexDomain = getApexDomain(`https://${domain}`);
-  const response = await prisma.domain.findFirst({
+export const domainExists = async (domain: string) => {
+  const response = await prisma.domain.findUnique({
     where: {
-      OR: [
-        // if someone tries to add "sub.domain.com" but "domain.com" is already in use
-        {
-          slug: apexDomain,
-        },
-        // if someone tries to add "domain.com" but "sub.domain.com" is already in use
-        {
-          slug: {
-            endsWith: `.${apexDomain}`,
-          },
-        },
-      ],
+      slug: domain,
     },
     select: {
       slug: true,
-      ...(projectId && { projectId: true }),
     },
   });
-  if (response) {
-    if (projectId && response.projectId === projectId) {
-      return false;
-    }
-    return true;
-  }
-  return false;
+  return !!response;
 };
 
 interface CustomResponse extends Response {

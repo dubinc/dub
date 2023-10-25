@@ -1,6 +1,6 @@
 import { Background, Logo } from "@dub/ui";
 import { constructMetadata } from "@dub/utils";
-import prisma from "#/lib/prisma";
+import prisma from "@/lib/prisma";
 import PasswordForm from "./form";
 import { notFound, redirect } from "next/navigation";
 

@@ -1,7 +1,7 @@
-import { limiter } from "#/lib/cron";
-import prisma from "#/lib/prisma";
-import { getTopLinks } from "#/lib/tinybird";
-import { ProjectProps } from "#/lib/types";
+import { limiter } from "@/lib/cron";
+import prisma from "@/lib/prisma";
+import { getTopLinks } from "@/lib/tinybird";
+import { ProjectProps } from "@/lib/types";
 import { getAdjustedBillingCycleStart, log } from "@dub/utils";
 import { sendEmail } from "emails";
 import ClicksSummary from "emails/clicks-summary";

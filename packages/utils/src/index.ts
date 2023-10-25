@@ -3,7 +3,8 @@ import { clsx, type ClassValue } from "clsx";
 import ms from "ms";
 import { customAlphabet } from "nanoid";
 import { Metadata } from "next";
-import { NextRouter } from "next/router";
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import { ReadonlyURLSearchParams } from "next/navigation";
 import { twMerge } from "tailwind-merge";
 import {
   HOME_DOMAIN,
@@ -342,43 +343,43 @@ export const getDomainWithoutWWW = (url: string) => {
   }
 };
 
-export const getQueryString = (
-  router: NextRouter,
-  opts?: Record<string, string>,
-) => {
-  const queryString = new URLSearchParams({
-    ...(router.query as Record<string, string>),
-    ...opts,
-  }).toString();
-  return `${queryString ? "?" : ""}${queryString}`;
+export const getQueryString = ({
+  searchParams,
+  groupBy,
+}: {
+  searchParams: URLSearchParams | ReadonlyURLSearchParams | null;
+  groupBy?: "domain" | "tagId";
+}) => {
+  const newSearchParams = new URLSearchParams(searchParams?.toString());
+  if (groupBy) {
+    newSearchParams.set("groupBy", groupBy);
+  }
+  const queryString = newSearchParams.toString();
+  return queryString.length > 0 ? `?${queryString}` : "";
 };
 
 export const setQueryString = ({
   router,
-  param,
+  pathname,
+  searchParams,
+  key,
   value,
 }: {
-  router: NextRouter;
-  param: string;
+  router: AppRouterInstance;
+  pathname: string | null;
+  searchParams: URLSearchParams | ReadonlyURLSearchParams | null;
+  key: string;
   value: string;
 }) => {
-  if (param !== "page") delete router.query.page;
-  let newQuery;
+  const params = new URLSearchParams(searchParams?.toString());
+  if (key !== "page") params.delete("page");
   if (value.length > 0) {
-    newQuery = {
-      ...router.query,
-      [param]: value,
-    };
+    params.set(key, value);
   } else {
-    delete router.query[param];
-    newQuery = { ...router.query };
+    params.delete(key);
   }
-  // here, we omit the slug from the query string as well
-  const { slug, ...finalQuery } = newQuery;
-  router.replace({
-    pathname: `/${router.query.slug || "links"}`,
-    query: finalQuery,
-  });
+  const queryString = params.toString();
+  router.replace(`${pathname}?${queryString.length > 0 ? queryString : ""}`);
 };
 
 export const truncate = (str: string | null, length: number) => {

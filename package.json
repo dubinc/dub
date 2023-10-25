@@ -10,7 +10,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "publish-tw": "turbo build --filter='@dub/tailwind-config' && cd packages/tailwind-config && npm publish && cd ../../",
     "publish-ui": "turbo build --filter='@dub/ui' && cd packages/ui && npm publish && cd ../../",
-    "publish-utils": "turbo build --filter='@dub/utils' && cd packages/utils && npm publish && cd ../../"
+    "publish-utils": "turbo build --filter='@dub/utils' && cd packages/utils && npm publish && cd ../../",
+    "script": "echo 'Run this script in apps/web'"
   },
   "devDependencies": {
     "@dub/tailwind-config": "workspace:*",

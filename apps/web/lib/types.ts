@@ -33,7 +33,6 @@ export interface ProjectProps {
   billingCycleStart?: number;
   monitoringId?: string;
   createdAt?: Date;
-
   domains?: {
     slug: string;
   }[];

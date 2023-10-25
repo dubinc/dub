@@ -1,4 +1,4 @@
-import prisma from "#/lib/prisma";
+import prisma from "@/lib/prisma";
 import { Background } from "@dub/ui";
 import { constructMetadata } from "@dub/utils";
 import PlaceholderContent from "./placeholder";

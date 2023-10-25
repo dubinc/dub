@@ -1,6 +1,6 @@
-import { deleteDomainAndLinks } from "#/lib/api/domains";
-import prisma from "#/lib/prisma";
-import { cancelSubscription } from "#/lib/stripe";
+import { deleteDomainAndLinks } from "@/lib/api/domains";
+import prisma from "@/lib/prisma";
+import { cancelSubscription } from "@/lib/stripe";
 import cloudinary from "cloudinary";
 import { ProjectProps } from "../types";
 
