@@ -50,6 +50,7 @@ export async function POST(req: Request) {
         slug: true,
         verified: true,
         primary: true,
+        clicks: true,
         createdAt: true,
         projectId: true,
         _count: {
@@ -107,6 +108,7 @@ export async function POST(req: Request) {
           verified: newVerified,
           primary,
           changed,
+          clicks: domain.clicks,
           linksCount: _count.links,
         });
 
