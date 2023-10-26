@@ -36,7 +36,7 @@ Dub is an open-source link management tool for modern marketing teams to create,
 - [Branded Links](https://dub.co/features/branded-links)
 - [QR Codes](https://dub.co/features/qr-codes)
 - [Personalization](https://dub.co/features/personalization)
-- [Team Collabration](https://dub.co/features/collaboration)
+- [Team Collaboration](https://dub.co/features/collaboration)
 
 ## Local Development
 
@@ -56,7 +56,7 @@ We're planning to add a proper, well-documented self-hosting guide for Dub soon 
 
 - [Next.js](https://nextjs.org/) – framework
 - [Typescript](https://www.typescriptlang.org/) – language
-- [Tailwind](https://tailwindcss.com/) – CSS
+- [Tailwind CSS](https://tailwindcss.com/) – CSS
 - [Upstash](https://upstash.com/) – redis
 - [Tinybird](https://tinybird.com/) – analytics
 - [PlanetScale](https://planetscale.com/) – database
