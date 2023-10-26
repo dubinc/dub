@@ -10,11 +10,15 @@ if (!command) {
 
 const scriptPath = `./scripts/${command}.ts`;
 
-exec(`tsx ${scriptPath}`, (error, stdout, stderr) => {
-  if (error) {
-    console.error(`Error executing script: ${error.message}`);
-    return;
-  }
-  console.log(stdout);
-  console.error(stderr);
-});
+exec(
+  `tsx ${scriptPath}`,
+  { maxBuffer: 1024 * 5000 },
+  (error, stdout, stderr) => {
+    if (error) {
+      console.error(`Error executing script: ${error.message}`);
+      return;
+    }
+    console.log(stdout);
+    console.error(stderr);
+  },
+);

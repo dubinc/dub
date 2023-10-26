@@ -94,7 +94,7 @@ export default async function LinkMiddleware(
 
     // only track the click when there is no `dub-no-track` header
     if (!req.headers.get("dub-no-track")) {
-      ev.waitUntil(recordClick(domain, req, key));
+      ev.waitUntil(recordClick({ domain, req, key }));
     }
 
     const isBot = detectBot(req);

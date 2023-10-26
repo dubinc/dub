@@ -129,14 +129,18 @@ export const getStats = async ({
 
   // get all-time clicks count if:
   // 1. endpoint is /clicks
-  // 2. key is not _root
-  // 3. interval is not defined
-  // 4. there's a connection to MySQL
-  if (endpoint === "clicks" && key !== "_root" && !interval && conn) {
-    const response = await conn.execute(
-      "SELECT clicks FROM Link WHERE domain = ? AND `key` = ?",
-      [domain, decodeURIComponent(key)],
-    );
+  // 2. interval is not defined
+  // 3. there's a connection to MySQL
+  if (endpoint === "clicks" && !interval && conn) {
+    const response =
+      key === "_root"
+        ? await conn.execute("SELECT clicks FROM Domain WHERE slug = ?", [
+            domain,
+          ])
+        : await conn.execute(
+            "SELECT clicks FROM Link WHERE domain = ? AND `key` = ?",
+            [domain, decodeURIComponent(key)],
+          );
     try {
       const clicks = response.rows[0]["clicks"];
       return clicks || "0";

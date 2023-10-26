@@ -70,6 +70,7 @@ export interface DomainProps {
   primary: boolean;
   target?: string;
   type: "redirect" | "rewrite";
+  clicks: number;
 }
 
 export interface BitlyGroupProps {

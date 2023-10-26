@@ -41,6 +41,7 @@ function AddEditDomainModal({
       primary: false,
       target: "",
       type: "redirect",
+      clicks: 0,
     },
   );
 

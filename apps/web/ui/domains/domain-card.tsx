@@ -32,6 +32,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
     slug && `/api/projects/${slug}/stats/clicks?domain=${domain}&key=_root`,
     fetcher,
     {
+      fallbackData: props.clicks,
       dedupingInterval: 15000,
     },
   );
