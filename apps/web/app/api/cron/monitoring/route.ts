@@ -1,7 +1,7 @@
-import { limiter, receiver } from "#/lib/cron";
+import { limiter, receiver } from "@/lib/cron";
 import { linkConstructor, log } from "@dub/utils";
 import { NextResponse } from "next/server";
-import prisma from "#/lib/prisma";
+import prisma from "@/lib/prisma";
 import { checkLink, recordCheck } from "./utils";
 import { sendEmail } from "emails";
 import MonitoringAlerts from "emails/monitoring-alerts";
