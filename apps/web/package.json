@@ -98,6 +98,7 @@
     "array-to-ndjson": "^1.0.1",
     "autoprefixer": "^10.4.16",
     "dotenv-flow": "^4.0.0",
+    "papaparse": "^5.4.1",
     "postcss": "^8.4.31",
     "postcss-import": "^15.1.0",
     "prettier": "^2.8.0",
