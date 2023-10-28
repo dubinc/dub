@@ -15,7 +15,7 @@ export function BlurImage(props: ImageProps) {
       src={src}
       alt={props.alt}
       className={cn(loading ? "blur-[2px]" : "blur-0", props.className)}
-      onLoadingComplete={async () => {
+      onLoad={async () => {
         setLoading(false);
       }}
       onError={() => {
