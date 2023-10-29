@@ -139,6 +139,9 @@ importers:
       fuse.js:
         specifier: ^6.6.2
         version: 6.6.2
+      geist:
+        specifier: ^1.0.0
+        version: 1.0.0
       github-slugger:
         specifier: ^2.0.0
         version: 2.0.0
@@ -4068,6 +4071,10 @@ packages:
 
   /@next/env@14.0.0:
     resolution: {integrity: sha512-cIKhxkfVELB6hFjYsbtEeTus2mwrTC+JissfZYM0n+8Fv+g8ucUfOlm3VEDtwtwydZ0Nuauv3bl0qF82nnCAqA==}
+    dev: false
+
+  /@next/font@13.5.6:
+    resolution: {integrity: sha512-urmUq05uCVJsBqAAJEV+xK5OTTodrSxdiG+351SOSjlWctywdBM6qX+K9pIe3K48RxjfnxlBbXjGyOJAji+pfw==}
     dev: false
 
   /@next/swc-android-arm-eabi@13.1.6:
@@ -9654,6 +9661,12 @@ packages:
     transitivePeerDependencies:
       - encoding
       - supports-color
+    dev: false
+
+  /geist@1.0.0:
+    resolution: {integrity: sha512-7hqXZqIdSiFbXjlMZ8Ag0fBAW8RzUjIXPkh160rT4m4ECMtsKdFX+06e0mK28oRCpU+lOB1C5Es8qxzvv7H2Hg==}
+    dependencies:
+      '@next/font': 13.5.6
     dev: false
 
   /generate-function@2.3.1:

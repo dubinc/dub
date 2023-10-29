@@ -114,9 +114,9 @@ export default function DomainConfiguration({
       <DnsRecord
         instructions={`To configure your ${
           recordType === "A" ? "apex domain" : "subdomain"
-        } <code>
-                ${recordType === "A" ? domainJson.apexName : domainJson.name}
-              </code>, set the following ${recordType} record on your DNS provider to
+        } <code>${
+          recordType === "A" ? domainJson.apexName : domainJson.name
+        }</code>, set the following ${recordType} record on your DNS provider to
               continue:`}
         records={[
           {

@@ -60,7 +60,9 @@ export default function ProjectBillingClient() {
     <>
       <div className="rounded-lg border border-gray-200 bg-white">
         <div className="flex flex-col space-y-3 p-10">
-          <h2 className="text-xl font-medium">Plan &amp; Usage</h2>
+          <h2 className="text-xl font-medium tracking-tighter">
+            Plan &amp; Usage
+          </h2>
           <p className="text-sm text-gray-500">
             You are currently on the{" "}
             {plan ? (

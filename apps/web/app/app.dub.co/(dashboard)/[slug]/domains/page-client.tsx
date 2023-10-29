@@ -22,7 +22,7 @@ export default function ProjectDomainsClient() {
         <MaxWidthWrapper>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <h1 className="text-2xl text-gray-600">Domains</h1>
+              <h1 className="text-2xl font-medium tracking-tighter">Domains</h1>
               <InfoTooltip
                 content={
                   <TooltipContent

@@ -39,7 +39,7 @@ export function Form({
     >
       <div className="relative flex flex-col space-y-6 p-5 sm:p-10">
         <div className="flex flex-col space-y-3">
-          <h2 className="text-xl font-medium">{title}</h2>
+          <h2 className="text-xl font-medium tracking-tighter">{title}</h2>
           <p className="text-sm text-gray-500">{description}</p>
         </div>
         {typeof inputData.defaultValue === "string" ? (

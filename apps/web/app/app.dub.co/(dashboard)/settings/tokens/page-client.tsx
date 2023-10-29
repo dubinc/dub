@@ -58,7 +58,9 @@ export default function TokensPageClient() {
       />
       <div className="rounded-lg border border-gray-200 bg-white">
         <div className="flex flex-col space-y-3 p-5 sm:p-10">
-          <h2 className="text-xl font-medium">Your API Keys</h2>
+          <h2 className="text-xl font-medium tracking-tighter">
+            Your API Keys
+          </h2>
           <p className="text-sm text-gray-500">
             These API keys allow other apps to access your account. Use it with
             caution – do not share your API key with others, or expose it in the

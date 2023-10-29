@@ -77,7 +77,9 @@ const SAMLSection = ({
       <div className="rounded-lg border border-gray-200 bg-white">
         <div className="relative flex flex-col space-y-6 p-5 sm:p-10">
           <div className="flex flex-col space-y-3">
-            <h2 className="text-xl font-medium">SAML Single Sign-On</h2>
+            <h2 className="text-xl font-medium tracking-tighter">
+              SAML Single Sign-On
+            </h2>
             <p className="text-sm text-gray-500">
               Set up SAML Single Sign-On (SSO) to allow your team to sign in to
               Dub with your identity provider.
@@ -225,7 +227,9 @@ const SCIMSection = ({
       <div className="rounded-lg border border-gray-200 bg-white">
         <div className="relative flex flex-col space-y-6 p-5 sm:p-10">
           <div className="flex flex-col space-y-3">
-            <h2 className="text-xl font-medium">Directory Sync</h2>
+            <h2 className="text-xl font-medium tracking-tighter">
+              Directory Sync
+            </h2>
             <p className="text-sm text-gray-500">
               Automatically provision and deprovision users from your identity
               provider.

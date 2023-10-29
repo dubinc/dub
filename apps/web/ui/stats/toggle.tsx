@@ -51,7 +51,7 @@ export default function Toggle() {
       <div className="mx-auto flex h-20 max-w-4xl flex-col items-center justify-between space-y-3 px-2.5 md:h-10 md:flex-row md:space-y-0 lg:px-0">
         {domain ? (
           <a
-            className="group flex text-lg font-semibold text-gray-800 md:text-xl"
+            className="group flex text-lg font-semibold tracking-tighter text-gray-800 md:text-xl"
             href={linkConstructor({ key, domain })}
             target="_blank"
             rel="noreferrer"

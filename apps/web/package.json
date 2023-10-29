@@ -47,6 +47,7 @@
     "crisp-sdk-web": "^1.0.19",
     "framer-motion": "^10.12.12",
     "fuse.js": "^6.6.2",
+    "geist": "^1.0.0",
     "github-slugger": "^2.0.0",
     "html-escaper": "^3.0.3",
     "js-cookie": "^3.0.5",

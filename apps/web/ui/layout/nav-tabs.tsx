@@ -58,7 +58,7 @@ export default function NavTabs() {
       {tabs.map(({ name, href }) => (
         <Link key={href} href={href} className="relative p-1">
           <div className="rounded-md px-3 py-2 transition-all duration-75 hover:bg-gray-100 active:bg-gray-200">
-            <p className="text-sm text-gray-600 hover:text-black">{name}</p>
+            <p className="text-sm text-gray-700 hover:text-black">{name}</p>
           </div>
           {(pathname === href ||
             (href.endsWith("/settings") && pathname?.startsWith(href))) && (
