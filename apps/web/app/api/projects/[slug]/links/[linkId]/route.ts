@@ -1,1 +1,1 @@
-export * from "../../../../links-app/[linkId]/route";
+export * from "../../../../links/[linkId]/route";
