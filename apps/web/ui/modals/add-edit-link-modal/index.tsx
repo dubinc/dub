@@ -324,7 +324,9 @@ function AddEditLinkModal({
               {props
                 ? `Edit ${linkConstructor({
                     key: props.key,
-                    domain: punycode.toUnicode(props.domain || ""),
+                    domain: props.domain
+                      ? punycode.toUnicode(props.domain)
+                      : undefined,
                     pretty: true,
                   })}`
                 : "Create a new link"}
