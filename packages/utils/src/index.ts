@@ -53,7 +53,6 @@ export function constructMetadata({
     },
     icons,
     metadataBase: new URL(HOME_DOMAIN),
-    themeColor: "#FFF",
     ...(noIndex && {
       robots: {
         index: false,
