@@ -27,7 +27,7 @@ export const GET = async (
       const ip = ipAddress(req) || LOCALHOST_IP;
       const { success } = await ratelimit(
         15,
-        endpoint !== "clicks" ? "1 h" : "10 s",
+        endpoint === "clicks" ? "10 s" : "1 h",
       ).limit(`${ip}:${domain}:${key}:${endpoint}`);
 
       if (!success) {
