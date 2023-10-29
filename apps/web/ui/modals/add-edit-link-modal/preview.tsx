@@ -62,7 +62,7 @@ export default function Preview({
   return (
     <div>
       <div className="z-10 flex items-center justify-center border-b border-gray-200 bg-white px-5 py-10 sm:sticky sm:top-0">
-        <h2 className="text-lg font-medium">Social Previews</h2>
+        <h2 className="text-lg font-medium tracking-tight">Social Previews</h2>
       </div>
       <div className="grid gap-5 p-5">
         {/* Twitter */}

@@ -13,7 +13,7 @@ export default function Feedback() {
   return (
     <div className="scrollbar-hide relative z-0 h-[400px] overflow-scroll border border-gray-200 bg-white px-7 py-5 sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
       <div className="mb-5 flex">
-        <h1 className="text-xl font-semibold">Feedback</h1>
+        <h1 className="text-xl font-semibold tracking-tight">Feedback</h1>
       </div>
       <AnimatePresence>
         {submitted ? (

@@ -21,7 +21,9 @@ export default function RegisterPage() {
         <a href={HOME_DOMAIN}>
           <Logo className="h-10 w-10" />
         </a>
-        <h3 className="text-xl font-semibold">Create your Dub account</h3>
+        <h3 className="text-xl font-semibold tracking-tight">
+          Create your Dub account
+        </h3>
         <p className="text-sm text-gray-500">
           Get started for free. No credit card required.
         </p>

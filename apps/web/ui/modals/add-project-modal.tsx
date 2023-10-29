@@ -15,7 +15,6 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
-import { mutate } from "swr";
 
 function AddProjectModalHelper({
   showAddProjectModal,
@@ -87,7 +86,9 @@ function AddProjectModalHelper({
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
         <Logo />
-        <h3 className="text-lg font-medium">Create a new project</h3>
+        <h3 className="text-lg font-medium tracking-tight">
+          Create a new project
+        </h3>
         <a
           href={`${HOME_DOMAIN}/help/article/what-is-a-project`}
           target="_blank"

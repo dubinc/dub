@@ -61,7 +61,7 @@ function DeleteProjectModal({
           width={20}
           height={20}
         />
-        <h3 className="text-lg font-medium">Delete Project</h3>
+        <h3 className="text-lg font-medium tracking-tight">Delete Project</h3>
         <p className="text-center text-sm text-gray-500">
           Warning: This will permanently delete your project, custom domain, and
           all associated links and their respective stats.

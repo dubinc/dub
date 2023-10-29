@@ -322,7 +322,7 @@ function AddEditLinkModal({
         >
           <div className="z-10 flex flex-col items-center justify-center space-y-3 border-b border-gray-200 bg-white px-4 pb-8 pt-8 transition-all md:sticky md:top-0 md:px-16">
             {logo}
-            <h3 className="max-w-sm truncate text-lg font-medium">
+            <h3 className="max-w-sm truncate text-lg font-medium tracking-tight">
               {props
                 ? `Edit ${linkConstructor({
                     key: props.key,

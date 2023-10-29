@@ -46,7 +46,9 @@ function RemoveSCIMModal({
         ) : (
           <Logo />
         )}
-        <h3 className="text-lg font-medium">Remove SCIM Directory</h3>
+        <h3 className="text-lg font-medium tracking-tight">
+          Remove SCIM Directory
+        </h3>
         <p className="text-center text-sm text-gray-500">
           This will remove the currently configured SCIM directory from your
           project. Are you sure you want to continue?

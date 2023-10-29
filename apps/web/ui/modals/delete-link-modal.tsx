@@ -56,7 +56,9 @@ function DeleteLinkModal({
           width={20}
           height={20}
         />
-        <h3 className="text-lg font-medium">Delete {shortlink}</h3>
+        <h3 className="text-lg font-medium tracking-tight">
+          Delete {shortlink}
+        </h3>
         <p className="text-sm text-gray-500">
           Warning: Deleting this link will remove all of its stats. This action
           cannot be undone.

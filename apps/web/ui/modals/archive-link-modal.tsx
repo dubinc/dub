@@ -58,7 +58,7 @@ function ArchiveLinkModal({
           width={20}
           height={20}
         />
-        <h3 className="text-lg font-medium">
+        <h3 className="text-lg font-medium tracking-tight">
           {archived ? "Archive" : "Unarchive"} {shortlink}
         </h3>
         <p className="text-sm text-gray-500">

@@ -53,7 +53,7 @@ function DeleteAccountModal({
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
         <Avatar user={session?.user} />
-        <h3 className="text-lg font-medium">Delete Account</h3>
+        <h3 className="text-lg font-medium tracking-tight">Delete Account</h3>
         <p className="text-center text-sm text-gray-500">
           Warning: This will permanently delete your account and all your Dub.sh
           links and their respective stats.

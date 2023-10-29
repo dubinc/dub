@@ -50,13 +50,13 @@ export default function Locations() {
         className="max-w-lg"
       >
         <div className="border-b border-gray-200 px-6 py-4">
-          <h1 className="text-xl font-semibold">Locations</h1>
+          <h1 className="text-xl font-semibold tracking-tight">Locations</h1>
         </div>
         {barList()}
       </Modal>
       <div className="scrollbar-hide relative z-0 h-[400px] overflow-scroll border border-gray-200 bg-white px-7 py-5  sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
         <div className="mb-5 flex justify-between">
-          <h1 className="text-xl font-semibold">Locations</h1>
+          <h1 className="text-xl font-semibold tracking-tight">Locations</h1>
           <TabSelect
             options={["country", "city"]}
             selected={tab}

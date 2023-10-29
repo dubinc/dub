@@ -150,7 +150,7 @@ export function QRCodePicker({
         ) : (
           <Logo />
         )}
-        <h3 className="text-lg font-medium">Download QR Code</h3>
+        <h3 className="text-lg font-medium tracking-tight">Download QR Code</h3>
       </div>
 
       <div className="flex flex-col space-y-6 bg-gray-50 py-6 text-left sm:rounded-b-2xl">

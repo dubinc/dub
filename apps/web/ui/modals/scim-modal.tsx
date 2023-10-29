@@ -62,7 +62,7 @@ function SCIMModal({
           </div>
         )}
 
-        <h3 className="text-lg font-medium">
+        <h3 className="text-lg font-medium tracking-tight">
           {currentProvider
             ? `${currentProvider.name} SCIM`
             : "Configure Directory Sync"}

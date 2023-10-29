@@ -41,7 +41,7 @@ function SAMLModal({
         <div className="rounded-full border border-gray-200 p-3">
           <Lock className="h-5 w-5 text-gray-600" />
         </div>
-        <h3 className="text-lg font-medium">Configure SAML</h3>
+        <h3 className="text-lg font-medium tracking-tight">Configure SAML</h3>
         <p className="text-center text-sm text-gray-500">
           Select a provider to configure SAML for your Dub project.
         </p>

@@ -54,7 +54,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
               rel="noreferrer"
               className="flex items-center space-x-2"
             >
-              <p className="flex items-center text-xl font-semibold">
+              <p className="flex items-center text-xl font-semibold tracking-tight">
                 {punycode.toUnicode(domain)}
               </p>
               <ExternalLink className="h-5 w-5" />

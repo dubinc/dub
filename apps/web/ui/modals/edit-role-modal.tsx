@@ -43,7 +43,9 @@ function EditRoleModal({
         ) : (
           <Logo />
         )}
-        <h3 className="text-lg font-medium">Change Teammate Role</h3>
+        <h3 className="text-lg font-medium tracking-tight">
+          Change Teammate Role
+        </h3>
         <p className="text-center text-sm text-gray-500">
           This will change <b className="text-gray-800">{name || email}</b>'s
           role in <b className="text-gray-800">{projectName}</b> to{" "}

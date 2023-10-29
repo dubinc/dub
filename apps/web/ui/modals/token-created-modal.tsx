@@ -23,7 +23,7 @@ function TokenCreatedModal({
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
         <Logo />
-        <h3 className="text-lg font-medium">API Key Created</h3>
+        <h3 className="text-lg font-medium tracking-tight">API Key Created</h3>
         <p className="text-center text-sm text-gray-500">
           For security reasons, we will only show you the key once. Please copy
           and store it somewhere safe.

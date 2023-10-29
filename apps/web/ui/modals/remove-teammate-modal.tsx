@@ -49,7 +49,7 @@ function RemoveTeammateModal({
         ) : (
           <Logo />
         )}
-        <h3 className="text-lg font-medium">
+        <h3 className="text-lg font-medium tracking-tight">
           {invite
             ? "Revoke Invitation"
             : session?.user?.email === email

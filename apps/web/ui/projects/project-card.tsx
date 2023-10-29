@@ -40,7 +40,9 @@ export default function ProjectCard({
             height={48}
           />
           <div>
-            <h2 className="text-lg font-medium text-gray-700">{name}</h2>
+            <h2 className="text-lg font-medium tracking-tight text-gray-700">
+              {name}
+            </h2>
             <div className="flex items-center">
               <p className="text-gray-500">{primaryDomain?.slug}</p>
               <Tooltip

@@ -10,7 +10,7 @@ export default function LinkNotFound() {
         <div className="rounded-full bg-gray-100 p-3">
           <FileX2 className="h-6 w-6 text-gray-600" />
         </div>
-        <h1 className="my-3 text-xl font-semibold text-gray-700">
+        <h1 className="my-3 text-xl font-semibold tracking-tight text-gray-700">
           Link Not Found
         </h1>
         <p className="z-10 max-w-sm text-center text-sm text-gray-600">

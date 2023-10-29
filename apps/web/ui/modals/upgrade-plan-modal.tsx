@@ -79,7 +79,7 @@ function UpgradePlanModal({
           <Logo />
         </motion.div>
         <motion.h3
-          className="text-lg font-medium"
+          className="text-lg font-medium tracking-tight"
           variants={STAGGER_CHILD_VARIANTS}
         >
           Upgrade to {plan}

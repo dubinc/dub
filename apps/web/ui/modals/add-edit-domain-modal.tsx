@@ -145,7 +145,9 @@ function AddEditDomainModal({
         ) : (
           <Logo />
         )}
-        <h3 className="text-lg font-medium">{props ? "Edit" : "Add"} Domain</h3>
+        <h3 className="text-lg font-medium tracking-tight">
+          {props ? "Edit" : "Add"} Domain
+        </h3>
       </div>
 
       <form

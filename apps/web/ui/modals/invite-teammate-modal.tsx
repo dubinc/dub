@@ -42,7 +42,7 @@ function InviteTeammateModal({
         ) : (
           <Logo />
         )}
-        <h3 className="text-lg font-medium">Invite Teammate</h3>
+        <h3 className="text-lg font-medium tracking-tight">Invite Teammate</h3>
         <p className="text-center text-sm text-gray-500">
           Invite a teammate to join your project. Invitations will be valid for
           14 days.
