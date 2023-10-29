@@ -65,9 +65,7 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
       // if pollLinks is true, start polling links endpoint every 500 ms (stop after 20 seconds)
       const pollingInterval = setInterval(() => {
         mutate(
-          `/api${
-            slug ? `/projects/${slug}/links` : "/links-app"
-          }${getQueryString({
+          `/api${slug ? `/projects/${slug}` : ""}/links${getQueryString({
             searchParams,
           })}`,
         );

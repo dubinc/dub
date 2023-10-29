@@ -11,10 +11,10 @@ export default function PersonalSettingsLayout({
       name: "General",
       segment: null,
     },
-    // {
-    //   name: "API Keys",
-    //   segment: "tokens",
-    // },
+    {
+      name: "API Keys",
+      segment: "tokens",
+    },
   ];
 
   return <SettingsLayout tabs={tabs}>{children}</SettingsLayout>;
