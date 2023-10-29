@@ -68,9 +68,7 @@ function DeleteLinkModal({
           e.preventDefault();
           setDeleting(true);
           fetch(
-            `/api${slug ? `/projects/${slug}/links` : "/links-app"}/${
-              props.id
-            }`,
+            `/api${slug ? `/projects/${slug}/links` : "/links"}/${props.id}`,
             {
               method: "DELETE",
               headers: {
@@ -84,7 +82,7 @@ function DeleteLinkModal({
                   (key) =>
                     typeof key === "string" &&
                     key.startsWith(
-                      `/api${slug ? `/projects/${slug}/links` : "/links-app"}`,
+                      `/api${slug ? `/projects/${slug}` : ""}/links`,
                     ),
                 ),
                 mutate(

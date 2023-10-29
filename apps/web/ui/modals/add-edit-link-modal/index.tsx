@@ -227,14 +227,12 @@ function AddEditLinkModal({
     if (props?.key) {
       return {
         method: "PUT",
-        url: `/api${slug ? `/projects/${slug}/links` : "/links-app"}/${
-          props.id
-        }`,
+        url: `/api${slug ? `/projects/${slug}` : ""}/links/${props.id}`,
       };
     } else {
       return {
         method: "POST",
-        url: `/api${slug ? `/projects/${slug}/links` : "/links-app"}`,
+        url: `/api${slug ? `/projects/${slug}` : ""}/links`,
       };
     }
   }, [props, slug, domain]);
@@ -357,9 +355,7 @@ function AddEditLinkModal({
                       (key) =>
                         typeof key === "string" &&
                         key.startsWith(
-                          `/api${
-                            slug ? `/projects/${slug}/links` : "/links-app"
-                          }`,
+                          `/api${slug ? `/projects/${slug}` : ""}/links`,
                         ),
                     ),
                     mutate(

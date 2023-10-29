@@ -74,7 +74,7 @@ function ArchiveLinkModal({
             e.preventDefault();
             setArchiving(true);
             fetch(
-              `/api${slug ? `/projects/${slug}/links` : "/links-app"}/${
+              `/api${slug ? `/projects/${slug}` : ""}/links/${
                 props.id
               }/archive`,
               {
@@ -90,9 +90,7 @@ function ArchiveLinkModal({
                     (key) =>
                       typeof key === "string" &&
                       key.startsWith(
-                        `/api${
-                          slug ? `/projects/${slug}/links` : "/links-app"
-                        }`,
+                        `/api${slug ? `/projects/${slug}/links` : "/links"}`,
                       ),
                   ),
                   mutate(

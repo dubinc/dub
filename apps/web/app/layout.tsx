@@ -11,8 +11,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={cn(satoshi.variable, inter.variable)}>
+    <html lang="en" className={cn(satoshi.variable, inter.variable)}>
+      <body>
         <Providers>{children}</Providers>
       </body>
     </html>
