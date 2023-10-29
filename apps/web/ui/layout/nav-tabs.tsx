@@ -34,6 +34,7 @@ export default function NavTabs() {
         { name: "Links", href: `/${slug}` },
         // { name: "Analytics", href: `/${slug}/analytics` },
         { name: "Domains", href: `/${slug}/domains` },
+        { name: "Alerts", href: `/${slug}/alerts` },
         { name: "Settings", href: `/${slug}/settings` },
       ];
     }
