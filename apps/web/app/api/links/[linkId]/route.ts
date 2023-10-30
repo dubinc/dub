@@ -22,6 +22,16 @@ export const PUT = withAuth(
       ...body,
     };
 
+    if (updatedLink.projectId !== link?.projectId) {
+      return new Response(
+        "Transferring links to another project is not yet supported.",
+        {
+          status: 403,
+          headers,
+        },
+      );
+    }
+
     let { key, url, rewrite } = updatedLink;
 
     // for default dub.sh links (not part of a project)
