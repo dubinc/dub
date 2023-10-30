@@ -11,15 +11,6 @@ export default function DeviceIcon({
   tab: DeviceTabs;
   className: string;
 }) {
-  if (display === "Bot") {
-    return (
-      <img
-        alt={display}
-        src="https://api.dicebear.com/7.x/bottts/svg?seed=dub"
-        className={className}
-      />
-    );
-  }
   if (tab === "device") {
     return (
       <BlurImage
@@ -75,14 +66,6 @@ export default function DeviceIcon({
         />
       );
     }
-  } else if (tab === "bot") {
-    return (
-      <img
-        alt={display}
-        src={`https://api.dicebear.com/7.x/bottts/svg?seed=${display}`}
-        className={className}
-      />
-    );
   } else {
     return (
       <BlurImage

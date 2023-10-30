@@ -15,7 +15,7 @@ export default async function RootMiddleware(
   }
 
   // record clicks on root page
-  ev.waitUntil(recordClick({ domain, req }));
+  ev.waitUntil(recordClick({ req, domain }));
 
   const response = await redis.get<{
     target: string;
