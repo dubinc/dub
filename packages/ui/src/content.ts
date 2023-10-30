@@ -1,34 +1,40 @@
-import { Airplay, BarChart, Link2, QrCode, Users } from "lucide-react";
+import { Airplay, BarChart, Link2, QrCode, Users, Webhook } from "lucide-react";
 
 export const FEATURES_LIST = [
   {
     title: "Powerful Analytics For The Modern Marketer",
     shortTitle: "Advanced Analytics",
     icon: BarChart,
-    slug: "analytics",
+    slug: "features/analytics",
   },
   {
     title: "Branded Links That Stand Out",
     shortTitle: "Branded Links",
     icon: Airplay,
-    slug: "branded-links",
+    slug: "features/branded-links",
   },
   {
     title: "Free QR Code Generator",
     shortTitle: "QR Codes",
     icon: QrCode,
-    slug: "qr-codes",
+    slug: "features/qr-codes",
   },
   {
     title: "Personalize Your Short Links",
     shortTitle: "Personalization",
     icon: Link2,
-    slug: "personalization",
+    slug: "features/personalization",
   },
   {
     title: "Collaborate With Your Team",
     shortTitle: "Team Collaboration",
     icon: Users,
-    slug: "collaboration",
+    slug: "features/collaboration",
+  },
+  {
+    title: "Programmatic Link Creation",
+    shortTitle: "API",
+    icon: Webhook,
+    slug: "docs",
   },
 ];

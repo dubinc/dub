@@ -63,8 +63,8 @@ export function NavMobile() {
                     key={slug}
                     href={
                       domain === "dub.co"
-                        ? `/features/${slug}`
-                        : `https://dub.co/features/${slug}?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`
+                        ? `/${slug}`
+                        : `https://dub.co/${slug}`
                     }
                     onClick={() => setOpen(false)}
                     className="flex w-full space-x-2"
@@ -80,9 +80,7 @@ export function NavMobile() {
             <li key={slug} className="py-3">
               <Link
                 href={
-                  domain === "dub.co"
-                    ? `/${slug}`
-                    : `https://dub.co/${slug}?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`
+                  domain === "dub.co" ? `/${slug}` : `https://dub.co/${slug}`
                 }
                 onClick={() => setOpen(false)}
                 className="flex w-full font-semibold capitalize"

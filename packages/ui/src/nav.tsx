@@ -103,14 +103,14 @@ export function Nav() {
                               key={slug}
                               href={
                                 domain === "dub.co"
-                                  ? `/features/${slug}`
-                                  : `https://dub.co/features/${slug}`
+                                  ? `/${slug}`
+                                  : `https://dub.co/${slug}`
                               }
                               {...(domain !== "dub.co" && {
                                 onClick: () => {
                                   va.track("Referred from custom domain", {
                                     domain,
-                                    medium: `navbar item (features/${slug})`,
+                                    medium: `navbar item (/${slug})`,
                                   });
                                 },
                               })}
