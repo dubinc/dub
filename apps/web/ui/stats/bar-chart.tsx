@@ -6,7 +6,7 @@ import { GridRows } from "@visx/grid";
 import { scaleBand, scaleLinear } from "@visx/scale";
 import { useTooltip, useTooltipInPortal } from "@visx/tooltip";
 import { motion } from "framer-motion";
-import { ReactNode, useCallback, useContext, useMemo } from "react";
+import { useCallback, useContext, useMemo } from "react";
 import useSWR from "swr";
 import { StatsContext } from ".";
 import styles from "./bar-chart.module.css";

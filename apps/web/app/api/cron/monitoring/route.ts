@@ -47,6 +47,7 @@ export async function POST(req: Request) {
     const links = await prisma.link.findMany({
       where: {
         projectId: project.id,
+        checkDisabled: false,
       },
       select: {
         id: true,
@@ -97,6 +98,7 @@ export async function POST(req: Request) {
             sendEmail({
               subject: `Dub Monitoring Alert for ${project.name}`,
               email,
+              test: true,
               react: MonitoringAlerts({
                 email,
                 projectName: project.name,
