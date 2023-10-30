@@ -11,7 +11,7 @@ import { MaxWidthWrapper } from "./max-width-wrapper";
 const navigation = {
   features: FEATURES_LIST.map(({ shortTitle, slug }) => ({
     name: shortTitle,
-    href: `/features/${slug}`,
+    href: `/${slug}`,
   })),
   product: [
     { name: "Blog", href: "/blog" },
