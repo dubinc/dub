@@ -83,7 +83,8 @@ export const withAuth =
     { params }: { params: Record<string, string> | undefined },
   ) => {
     const searchParams = getSearchParams(req.url);
-    const { slug, domain, linkId } = params || {};
+    const { slug, linkId } = params || {};
+    const domain = params?.domain || searchParams.domain;
 
     let session: Session | undefined;
     let headers = {};
@@ -179,6 +180,7 @@ export const withAuth =
       if (!session?.user.id) {
         return new Response("Unauthorized: Login required.", {
           status: 401,
+          headers,
         });
       }
     }
@@ -224,6 +226,7 @@ export const withAuth =
         // project doesn't exist
         return new Response("Project not found.", {
           status: 404,
+          headers,
         });
       }
 
@@ -240,6 +243,7 @@ export const withAuth =
         if (domainProjectId?.projectId !== project.id) {
           return new Response("Domain not found.", {
             status: 404,
+            headers,
           });
         }
       }
@@ -247,6 +251,7 @@ export const withAuth =
       if (link && link.projectId !== project.id) {
         return new Response("Unauthorized: Invalid link.", {
           status: 401,
+          headers,
         });
       }
 
@@ -266,14 +271,17 @@ export const withAuth =
         if (!pendingInvites) {
           return new Response("Project not found.", {
             status: 404,
+            headers,
           });
         } else if (pendingInvites.expires < new Date()) {
           return new Response("Project invite expired.", {
             status: 410,
+            headers,
           });
         } else {
           return new Response("Project invite pending.", {
             status: 409,
+            headers,
           });
         }
       }
@@ -290,12 +298,14 @@ export const withAuth =
       ) {
         return new Response("Unauthorized: Insufficient permissions.", {
           status: 403,
+          headers,
         });
       }
 
       if (needNotExceededUsage && project.usage > project.usageLimit) {
         return new Response("Unauthorized: Usage limits exceeded.", {
           status: 403,
+          headers,
         });
       }
 
@@ -303,6 +313,15 @@ export const withAuth =
         // return res.status(403).end("Unauthorized: Need higher plan.");
         return new Response("Unauthorized: Need higher plan.", {
           status: 403,
+          headers,
+        });
+      }
+      // for generic dub.sh links / stats
+    } else {
+      if (domain && domain !== "dub.sh") {
+        return new Response("Domain not found.", {
+          status: 404,
+          headers,
         });
       }
     }
@@ -312,6 +331,7 @@ export const withAuth =
       if (!link) {
         return new Response("Link not found.", {
           status: 404,
+          headers,
         });
       }
 
@@ -319,6 +339,7 @@ export const withAuth =
       if (link.domain === "dub.sh" && link.userId !== session.user.id) {
         return new Response("Unauthorized: Invalid link.", {
           status: 401,
+          headers,
         });
       }
     }
