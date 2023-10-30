@@ -1,4 +1,4 @@
-import { DeviceTabs, uaToBot } from "@/lib/stats";
+import { DeviceTabs } from "@/lib/stats";
 import { LoadingSpinner, Modal, TabSelect } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { Maximize } from "lucide-react";
@@ -27,14 +27,8 @@ export default function Devices() {
       tab={tab}
       data={
         data?.map((d) => ({
-          icon: (
-            <DeviceIcon
-              display={tab === "bot" ? uaToBot(d.ua) : d[tab]}
-              tab={tab}
-              className="h-4 w-4"
-            />
-          ),
-          title: tab === "bot" ? uaToBot(d.ua) : d[tab],
+          icon: <DeviceIcon display={d[tab]} tab={tab} className="h-4 w-4" />,
+          title: d[tab],
           clicks: d.clicks,
         })) || []
       }
@@ -60,7 +54,7 @@ export default function Devices() {
         <div className="mb-5 flex justify-between">
           <h1 className="text-xl font-semibold">Devices</h1>
           <TabSelect
-            options={["device", "browser", "os", "bot"]}
+            options={["device", "browser", "os"]}
             selected={tab}
             // @ts-ignore
             selectAction={setTab}

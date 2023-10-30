@@ -59,40 +59,7 @@ export const intervalData = {
 
 export type LocationTabs = "country" | "city" | "region";
 
-export type DeviceTabs = "device" | "browser" | "os" | "bot" | "ua";
-
-export const uaToBot = (ua: string): string => {
-  if (!ua) return "Unknown Bot";
-  if (ua.includes("curl")) {
-    return "Curl Request";
-  } else if (ua.includes("Slackbot")) {
-    return "Slack Bot";
-  } else if (ua.includes("Twitterbot")) {
-    return "Twitter Bot";
-  } else if (ua.includes("facebookexternalhit")) {
-    return "Facebook Bot";
-  } else if (ua.includes("LinkedInBot")) {
-    return "LinkedIn Bot";
-  } else if (ua.includes("WhatsApp")) {
-    return "WhatsApp Bot";
-  } else if (ua.includes("TelegramBot")) {
-    return "Telegram Bot";
-  } else if (ua.includes("Discordbot")) {
-    return "Discord Bot";
-  } else if (ua.includes("Googlebot")) {
-    return "Google Bot";
-  } else if (ua.includes("Baiduspider")) {
-    return "Baidu Bot";
-  } else if (ua.includes("bingbot")) {
-    return "Bing Bot";
-  } else if (ua.includes("YandexBot")) {
-    return "Yandex Bot";
-  } else if (ua.includes("DuckDuckBot")) {
-    return "DuckDuckGo Bot";
-  } else {
-    return "Unknown Bot";
-  }
-};
+export type DeviceTabs = "device" | "browser" | "os" | "ua";
 
 const VALID_TINYBIRD_ENDPOINTS = new Set([
   "timeseries",
@@ -102,7 +69,6 @@ const VALID_TINYBIRD_ENDPOINTS = new Set([
   "device",
   "browser",
   "os",
-  "bot",
   "referer",
 ]);
 

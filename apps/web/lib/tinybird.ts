@@ -8,20 +8,25 @@ import { ipAddress } from "@vercel/edge";
 import { NextRequest, userAgent } from "next/server";
 import { conn } from "./planetscale";
 import { ratelimit } from "./upstash";
+import { detectBot } from "./middleware/utils";
 
 /**
  * Recording clicks with geo, ua, referer and timestamp data
  * If key is not specified, record click as the root click ("_root", e.g. dub.sh, vercel.fyi)
  **/
 export async function recordClick({
-  domain,
   req,
+  domain,
   key,
 }: {
-  domain: string;
   req: NextRequest;
+  domain: string;
   key?: string;
 }) {
+  const isBot = detectBot(req);
+  if (isBot) {
+    return null;
+  }
   const geo = process.env.VERCEL === "1" ? req.geo : LOCALHOST_GEO_DATA;
   const ua = userAgent(req);
   const referer = req.headers.get("referer");
