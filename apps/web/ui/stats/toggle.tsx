@@ -118,7 +118,6 @@ export default function Toggle() {
                               interval: value,
                             }).toString()}`
                       }`}
-                      replace
                       scroll={false}
                       className="flex w-full items-center justify-between space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
                     >

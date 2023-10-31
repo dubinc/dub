@@ -6,13 +6,14 @@ import { motion } from "framer-motion";
 import Fuse from "fuse.js";
 import { Search } from "lucide-react";
 import Link from "next/link";
-import { ReactNode, useMemo, useState } from "react";
+import { Dispatch, ReactNode, SetStateAction, useMemo, useState } from "react";
 
 export default function BarList({
   tab,
   data,
   barBackground,
   totalClicks,
+  setShowModal,
   limit,
 }: {
   tab: string;
@@ -24,6 +25,7 @@ export default function BarList({
   }[];
   totalClicks: number;
   barBackground: string;
+  setShowModal: Dispatch<SetStateAction<boolean>>;
   limit?: number;
 }) {
   const [search, setSearch] = useState("");
@@ -83,7 +85,12 @@ export default function BarList({
 
         if (href) {
           return (
-            <Link key={idx} href={href} replace scroll={false}>
+            <Link
+              key={idx}
+              href={href}
+              scroll={false}
+              onClick={() => setShowModal(false)}
+            >
               {bar}
             </Link>
           );

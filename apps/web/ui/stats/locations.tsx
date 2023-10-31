@@ -38,6 +38,7 @@ export default function Locations() {
       }
       totalClicks={totalClicks || 0}
       barBackground="bg-orange-100"
+      setShowModal={setShowModal}
       {...(limit && { limit })}
     />
   );

@@ -38,6 +38,7 @@ export default function TopLinks() {
       }
       totalClicks={totalClicks || 0}
       barBackground="bg-blue-100"
+      setShowModal={setShowModal}
       {...(limit && { limit })}
     />
   );

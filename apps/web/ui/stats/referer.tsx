@@ -41,6 +41,7 @@ export default function Referer() {
       }
       totalClicks={totalClicks || 0}
       barBackground="bg-red-100"
+      setShowModal={setShowModal}
       {...(limit && { limit })}
     />
   );

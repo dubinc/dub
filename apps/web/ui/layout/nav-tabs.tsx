@@ -18,28 +18,13 @@ export default function NavTabs() {
   const { loading, error } = useProject();
 
   const tabs = useMemo(() => {
-    const isDomainAnalytics =
-      searchParams?.get("domain") && !searchParams?.get("key");
-
     if (slug) {
-      if (pathname?.endsWith("/analytics")) {
-        return [
-          {
-            name: `← Back to all ${isDomainAnalytics ? "domains" : "links"}`,
-            href: isDomainAnalytics ? `/${slug}/domains` : `/${slug}`,
-          },
-        ];
-      }
       return [
         { name: "Links", href: `/${slug}` },
-        // { name: "Analytics", href: `/${slug}/analytics` },
+        { name: "Analytics", href: `/${slug}/analytics` },
         { name: "Domains", href: `/${slug}/domains` },
         { name: "Settings", href: `/${slug}/settings` },
       ];
-    }
-    // home page (e.g. app.dub.co, app.dub.co/settings)
-    if (pathname?.endsWith("/analytics")) {
-      return [{ name: "← Back to all links", href: "/links" }];
     }
     return [
       { name: "Projects", href: "/" },

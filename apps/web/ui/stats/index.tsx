@@ -55,11 +55,12 @@ export default function Stats({
   const pathname = usePathname();
   const router = useRouter();
 
-  let { slug, key = "_root" } = useParams() as {
+  let { slug, key } = useParams() as {
     slug?: string;
     key?: string;
   };
   const domainSlug = searchParams?.get("domain");
+  // key can be a path param (public stats pages) or a query param (stats pages in app)
   key = searchParams?.get("key") || key;
   const interval = searchParams?.get("interval") || "24h";
 

@@ -120,7 +120,9 @@ export const getStats = async ({
     `https://api.us-east.tinybird.co/v0/pipes/${endpoint}_new.json`,
   );
   url.searchParams.append("domain", domain);
-  url.searchParams.append("key", decodeURIComponent(key));
+  if (key) {
+    url.searchParams.append("key", decodeURIComponent(key));
+  }
 
   if (interval) {
     url.searchParams.append(

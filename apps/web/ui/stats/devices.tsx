@@ -34,6 +34,7 @@ export default function Devices() {
       }
       totalClicks={totalClicks || 0}
       barBackground="bg-green-100"
+      setShowModal={setShowModal}
       {...(limit && { limit })}
     />
   );
