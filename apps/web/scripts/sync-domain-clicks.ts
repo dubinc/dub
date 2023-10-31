@@ -3,6 +3,7 @@ import * as Papa from "papaparse";
 import * as fs from "fs";
 import prisma from "@/lib/prisma";
 
+const index = 1000;
 const domainClicks: { domain: string; clicks: string }[] = [];
 
 async function main() {
@@ -12,11 +13,29 @@ async function main() {
       domainClicks.push(result.data);
     },
     complete: async () => {
+      const domainWithClicks = await prisma.domain.findMany({
+        where: {
+          clicks: {
+            gt: 0,
+          },
+        },
+        select: {
+          slug: true,
+        },
+      });
       console.table(domainClicks.slice(0, 50));
-      domainClicks.forEach(async (domainClick) => {
-        const { domain, clicks } = domainClick;
-        try {
-          await prisma.domain.update({
+      const domainClickToUpdate = domainClicks
+        .filter((domainClick) => {
+          const { domain } = domainClick;
+          return domainWithClicks.find(({ slug }) => slug === domain);
+        })
+        .slice(index, index + 1000);
+
+      await Promise.all(
+        domainClickToUpdate.map(async (domainClick) => {
+          const { domain, clicks } = domainClick;
+          console.log(`Updating ${domain} with ${clicks} clicks.`);
+          return prisma.domain.update({
             where: {
               slug: domain,
             },
@@ -24,11 +43,13 @@ async function main() {
               clicks: parseInt(clicks),
             },
           });
-          console.log(`Updated ${domain} with ${clicks} clicks.`);
-        } catch (e) {
-          console.log(`${domain} doesn't exist, skipping.`);
-        }
-      });
+        }),
+      );
+      console.log(
+        `Done updating ${index} to ${
+          index + domainClickToUpdate.length
+        } domains.`,
+      );
     },
   });
 }
