@@ -13,12 +13,9 @@ export default function AnalyticsAuth({ children }: { children: ReactNode }) {
     return <ProjectExceededUsage />;
   }
   const router = useRouter();
-  const { domains, primaryDomain } = useDomains();
+  const { domains, primaryDomain, loading } = useDomains();
   const searchParams = useSearchParams();
   const domain = searchParams?.get("domain");
-  if (domain && !domains?.find((d) => d.slug === domain)) {
-    return <LinkNotFound />;
-  }
 
   // TODO: remove this after we support project level analytics
   useEffect(() => {
@@ -27,5 +24,8 @@ export default function AnalyticsAuth({ children }: { children: ReactNode }) {
     }
   }, [primaryDomain, router, domain]);
 
+  if (!loading && domain && !domains?.find((d) => d.slug === domain)) {
+    return <LinkNotFound />;
+  }
   return children;
 }
