@@ -13,8 +13,17 @@ async function main() {
     },
     complete: async () => {
       console.table(domainClicks.slice(0, 50));
-      domainClicks.forEach(async (domainClick) => {
-        const { domain, clicks } = domainClick;
+      const missedDomains = await prisma.domain.findMany({
+        where: {
+          verified: true,
+          clicks: 0,
+        },
+        select: { slug: true, clicks: true },
+      });
+      missedDomains.forEach(async (missedDomain) => {
+        const { domain, clicks } = domainClicks.find(
+          (d) => d.domain === missedDomain.slug,
+        ) || { domain: missedDomain.slug, clicks: "0" };
         try {
           await prisma.domain.update({
             where: {
@@ -29,6 +38,7 @@ async function main() {
           console.log(`${domain} doesn't exist, skipping.`);
         }
       });
+      console.table(missedDomains);
     },
   });
 }
