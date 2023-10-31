@@ -41,3 +41,9 @@ next-env.d.ts
 .react-email
 .contentlayer
 .vscode
+
+# Tests
+test-results
+playwright-report
+playwright/.cache/
+**/playwright/.cache/

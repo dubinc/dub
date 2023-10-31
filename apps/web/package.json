@@ -8,8 +8,11 @@
     "format:write": "prettier --write \"**/*.{css,js,json,jsx,ts,tsx}\"",
     "format": "prettier \"**/*.{css,js,json,jsx,ts,tsx}\"",
     "lint": "next lint",
-    "start": "next start",
-    "script": "tsx ./scripts/run.ts"
+    "playwright:install-browsers": "playwright install --with-deps",
+    "playwright:test": "playwright test",
+    "playwright:test-ui": "playwright test --ui",
+    "playwright:show-report": "playwright show-report",
+    "start": "next start"
   },
   "dependencies": {
     "@boxyhq/saml-jackson": "^1.14.2",
@@ -86,6 +89,7 @@
     "vaul": "^0.6.8"
   },
   "devDependencies": {
+    "@playwright/test": "^1.39.0",
     "@trivago/prettier-plugin-sort-imports": "^4.0.0",
     "@types/dotenv-flow": "^3.3.2",
     "@types/html-escaper": "^3.0.0",
