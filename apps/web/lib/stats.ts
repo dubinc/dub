@@ -64,6 +64,7 @@ export type DeviceTabs = "device" | "browser" | "os" | "ua";
 const VALID_TINYBIRD_ENDPOINTS = new Set([
   "timeseries",
   "clicks",
+  "top_links",
   "country",
   "city",
   "device",
@@ -116,7 +117,7 @@ export const getStats = async ({
   }
 
   let url = new URL(
-    `https://api.us-east.tinybird.co/v0/pipes/${endpoint}.json`,
+    `https://api.us-east.tinybird.co/v0/pipes/${endpoint}_new.json`,
   );
   url.searchParams.append("domain", domain);
   url.searchParams.append("key", decodeURIComponent(key));

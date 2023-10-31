@@ -5,6 +5,7 @@ import { cn, nFormatter } from "@dub/utils";
 import { motion } from "framer-motion";
 import Fuse from "fuse.js";
 import { Search } from "lucide-react";
+import Link from "next/link";
 import { ReactNode, useMemo, useState } from "react";
 
 export default function BarList({
@@ -16,8 +17,9 @@ export default function BarList({
 }: {
   tab: string;
   data: {
-    icon: ReactNode;
+    icon?: ReactNode;
     title: string;
+    href?: string;
     clicks: number;
   }[];
   totalClicks: number;
@@ -45,28 +47,50 @@ export default function BarList({
 
   const bars = (
     <div className="grid gap-4">
-      {filteredData.map(({ icon, title, clicks }, idx) => (
-        <div key={idx} className="flex items-center justify-between">
-          <div className="relative z-10 flex w-full max-w-[calc(100%-3rem)] items-center">
-            <span className="z-10 flex items-center space-x-2 px-2">
-              {icon}
-              <p className="text-sm text-gray-800">{title}</p>
-            </span>
-            <motion.div
-              style={{
-                width: `${(clicks / (totalClicks || 0)) * 100}%`,
-              }}
-              className={cn("absolute h-8 origin-left", barBackground)}
-              transition={{ ease: "easeOut", duration: 0.3 }}
-              initial={{ transform: "scaleX(0)" }}
-              animate={{ transform: "scaleX(1)" }}
-            />
+      {filteredData.map(({ icon, title, href, clicks }, idx) => {
+        const bar = (
+          <div key={idx} className="group flex items-center justify-between">
+            <div className="relative z-10 flex w-full max-w-[calc(100%-3rem)] items-center">
+              <span className="z-10 flex items-center space-x-2 px-2">
+                {icon}
+                <p
+                  className={cn(
+                    "text-sm text-gray-800",
+                    href && "underline-offset-4 group-hover:underline",
+                  )}
+                >
+                  {title}
+                </p>
+              </span>
+              <motion.div
+                style={{
+                  width: `${(clicks / (totalClicks || 0)) * 100}%`,
+                }}
+                className={cn(
+                  "absolute h-8 origin-left rounded-sm",
+                  barBackground,
+                )}
+                transition={{ ease: "easeOut", duration: 0.3 }}
+                initial={{ transform: "scaleX(0)" }}
+                animate={{ transform: "scaleX(1)" }}
+              />
+            </div>
+            <NumberTooltip value={clicks}>
+              <p className="z-10 text-sm text-gray-600">{nFormatter(clicks)}</p>
+            </NumberTooltip>
           </div>
-          <NumberTooltip value={clicks}>
-            <p className="z-10 text-sm text-gray-600">{nFormatter(clicks)}</p>
-          </NumberTooltip>
-        </div>
-      ))}
+        );
+
+        if (href) {
+          return (
+            <Link key={idx} href={href} replace scroll={false}>
+              {bar}
+            </Link>
+          );
+        }
+
+        return bar;
+      })}
     </div>
   );
 

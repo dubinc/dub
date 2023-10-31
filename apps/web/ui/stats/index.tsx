@@ -17,6 +17,7 @@ import {
 } from "next/navigation";
 import { createContext, useMemo } from "react";
 import Clicks from "./clicks";
+import TopLinks from "./top-links";
 import Devices from "./devices";
 import Locations from "./locations";
 import Referer from "./referer";
@@ -28,8 +29,8 @@ import { fetcher } from "@dub/utils";
 export const StatsContext = createContext<{
   basePath: string;
   baseApiPath: string;
-  domain: string;
-  key: string;
+  domain?: string;
+  key?: string;
   queryString: string;
   interval: string;
   totalClicks?: number;
@@ -89,7 +90,7 @@ export default function Stats({
 
   const queryString = useMemo(() => {
     return new URLSearchParams({
-      domain: domain!,
+      ...(domain && { domain }),
       ...(key && { key }),
       ...(interval && { interval }),
     }).toString();
@@ -100,14 +101,16 @@ export default function Stats({
     fetcher,
   );
 
+  const isPublicStatsPage = basePath.startsWith("/stats");
+
   return (
     <StatsContext.Provider
       value={{
         basePath, // basePath for the page (e.g. /stats/[key], /links/[key], /[slug]/[domain]/[key])
         baseApiPath, // baseApiPath for the API (e.g. /api/edge/links/[key]/stats)
         queryString,
-        domain: domain!, // domain for the link (e.g. dub.sh, stey.me, etc.)
-        key: key ? decodeURIComponent(key) : "", // link key (e.g. github, weathergpt, etc.)
+        domain: domain || undefined, // domain for the link (e.g. dub.sh, stey.me, etc.)
+        key: key ? decodeURIComponent(key) : undefined, // link key (e.g. github, weathergpt, etc.)
         interval, // time interval (e.g. 24h, 7d, 30d, etc.)
         totalClicks, // total clicks for the link
         modal, // whether or not this is a modal
@@ -128,9 +131,10 @@ export default function Stats({
           <Clicks />
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <Locations />
+            {!isPublicStatsPage && <TopLinks />}
             <Devices />
             <Referer />
-            <Feedback />
+            {isPublicStatsPage && <Feedback />}
           </div>
         </div>
       </div>

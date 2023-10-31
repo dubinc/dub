@@ -42,23 +42,23 @@ export default function Toggle() {
 
   return (
     <div
-      className={cn("sticky top-[6.9rem] z-10 mb-5 bg-gray-50 py-3 md:py-5", {
+      className={cn("sticky top-[6.85rem] z-10 mb-5 bg-gray-50 py-3 md:py-5", {
         "top-14": isPublicStatsPage,
         "top-6 md:top-0": modal,
         "shadow-md": scrolled && !modal,
       })}
     >
       <div className="mx-auto flex h-20 max-w-4xl flex-col items-center justify-between space-y-3 px-2.5 md:h-10 md:flex-row md:space-y-0 lg:px-0">
-        {domain ? (
+        {domain && key ? (
           <a
             className="group flex text-lg font-semibold text-gray-800 md:text-xl"
-            href={linkConstructor({ key, domain })}
+            href={linkConstructor({ domain, key })}
             target="_blank"
             rel="noreferrer"
           >
             {linkConstructor({
-              key,
               domain: punycode.toUnicode(domain),
+              key,
               pretty: true,
             })}
             <ExpandingArrow className="h-5 w-5" />
@@ -113,12 +113,13 @@ export default function Toggle() {
                         isPublicStatsPage
                           ? `interval=${value}`
                           : `${new URLSearchParams({
-                              domain: domain!,
+                              ...(domain && { domain }),
                               ...(key && key !== "_root" && { key }),
                               interval: value,
                             }).toString()}`
                       }`}
                       replace
+                      scroll={false}
                       className="flex w-full items-center justify-between space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
                     >
                       <p className="text-sm">{display}</p>
@@ -157,7 +158,14 @@ export default function Toggle() {
 const SharePopover = () => {
   const [openSharePopover, setopenSharePopoverPopover] = useState(false);
 
-  const { baseApiPath, queryString, domain, key } = useContext(StatsContext);
+  const { baseApiPath, queryString, domain, key } = useContext(
+    StatsContext,
+  ) as {
+    baseApiPath: string;
+    queryString: string;
+    domain: string;
+    key: string; // coerce to string since <SharePopover is not shown if key is undefined)
+  };
 
   const { data: { publicStats } = {} } = useSWR<{ publicStats: boolean }>(
     `${baseApiPath}?${queryString}`,

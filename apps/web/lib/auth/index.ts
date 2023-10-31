@@ -210,6 +210,11 @@ export const withAuth =
                 role: true,
               },
             },
+            domains: {
+              select: {
+                slug: true,
+              },
+            },
           },
         }),
       linkId &&
@@ -232,15 +237,7 @@ export const withAuth =
 
       // prevent unauthorized access to domains that don't belong to the project
       if (domain) {
-        const domainProjectId = await prisma.domain.findUnique({
-          where: {
-            slug: domain,
-          },
-          select: {
-            projectId: true,
-          },
-        });
-        if (domainProjectId?.projectId !== project.id) {
+        if (!project.domains?.find((d) => d.slug === domain)) {
           return new Response("Domain not found.", {
             status: 404,
             headers,
