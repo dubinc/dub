@@ -100,15 +100,6 @@ export const withAuth =
         );
       }
       const apiKey = authorizationHeader.replace("Bearer ", "");
-      // if there is no slug, it's the default dub.sh link
-      if (!slug) {
-        return new Response(
-          "Unauthorized: API is not supported for dub.sh links yet.",
-          {
-            status: 403,
-          },
-        );
-      }
 
       const url = new URL(req.url || "", API_DOMAIN);
 
