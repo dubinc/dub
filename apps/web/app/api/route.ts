@@ -163,12 +163,12 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
             {
               name: "slug",
               description:
-                "The slug for the project to retrieve links for. E.g. for app.dub.co/acme, the slug is 'acme'.",
+                "The slug for the project to create links for. E.g. for app.dub.co/acme, the slug is 'acme'.",
               in: "path",
               required: true,
               schema: {
                 description:
-                  "The slug for the project to retrieve links for. E.g. for app.dub.co/acme, the slug is 'acme'.",
+                  "The slug for the project to create links for. E.g. for app.dub.co/acme, the slug is 'acme'.",
                 type: "string",
               },
             },
@@ -214,12 +214,12 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
             {
               name: "slug",
               description:
-                "The slug for the project to retrieve links for. E.g. for app.dub.co/acme, the slug is 'acme'.",
+                "The slug for the project that the link belongs to. E.g. for app.dub.co/acme, the slug is 'acme'.",
               in: "path",
               required: true,
               schema: {
                 description:
-                  "The slug for the project to retrieve links for. E.g. for app.dub.co/acme, the slug is 'acme'.",
+                  "The slug for the project that the link belongs to. E.g. for app.dub.co/acme, the slug is 'acme'.",
                 type: "string",
               },
             },
@@ -276,12 +276,12 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
             {
               name: "slug",
               description:
-                "The slug for the project to retrieve links for. E.g. for app.dub.co/acme, the slug is 'acme'.",
+                "The slug for the project that the link belongs to. E.g. for app.dub.co/acme, the slug is 'acme'.",
               in: "path",
               required: true,
               schema: {
                 description:
-                  "The slug for the project to retrieve links for. E.g. for app.dub.co/acme, the slug is 'acme'.",
+                  "The slug for the project that the link belongs to. E.g. for app.dub.co/acme, the slug is 'acme'.",
                 type: "string",
               },
             },
@@ -335,12 +335,12 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
             {
               name: "slug",
               description:
-                "The slug for the project to retrieve links for. E.g. for app.dub.co/acme, the slug is 'acme'.",
+                "The slug for the project that the link belongs to. E.g. for app.dub.co/acme, the slug is 'acme'.",
               in: "path",
               required: true,
               schema: {
                 description:
-                  "The slug for the project to retrieve links for. E.g. for app.dub.co/acme, the slug is 'acme'.",
+                  "The slug for the project that the link belongs to. E.g. for app.dub.co/acme, the slug is 'acme'.",
                 type: "string",
               },
             },

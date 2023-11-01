@@ -9,6 +9,20 @@ import { isReservedKey } from "@/lib/edge-config";
 import prisma from "@/lib/prisma";
 import { DEFAULT_REDIRECTS, validSlugRegex } from "@dub/utils";
 
+// GET /api/projects - get all projects for the current user
+export const GET = withAuth(async ({ session }) => {
+  const projects = await prisma.project.findMany({
+    where: {
+      users: {
+        some: {
+          userId: session.user.id,
+        },
+      },
+    },
+  });
+  return NextResponse.json(projects);
+});
+
 export const POST = withAuth(async ({ req, session }) => {
   const { name, slug, domain } = await req.json();
   if (!name || !slug || !domain) {

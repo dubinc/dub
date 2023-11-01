@@ -13,7 +13,7 @@ export default function ApiMiddleware(req: NextRequest) {
   } else if (path === "/metatags") {
     const url = req.nextUrl.searchParams.get("url");
     if (!url) {
-      return NextResponse.redirect(`${HOME_DOMAIN}/metatags`, {
+      return NextResponse.redirect(`${HOME_DOMAIN}/tools/metatags`, {
         status: 301,
       });
     }
