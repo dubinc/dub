@@ -1,8 +1,8 @@
 import { limiter } from "@/lib/cron";
 import prisma from "@/lib/prisma";
-import { getTopLinks } from "@/lib/tinybird";
+import { getStats } from "@/lib/stats";
 import { ProjectProps } from "@/lib/types";
-import { getAdjustedBillingCycleStart, log } from "@dub/utils";
+import { getAdjustedBillingCycleStart, linkConstructor, log } from "@dub/utils";
 import { sendEmail } from "emails";
 import ClicksSummary from "emails/clicks-summary";
 import UsageExceeded from "emails/usage-exceeded";
@@ -114,7 +114,28 @@ export const updateUsage = async () => {
               },
             },
           }),
-          getTopLinks(project.domains.map((domain) => domain.slug)),
+          getStats({
+            domain: project.domains.map((domain) => domain.slug).join(","),
+            endpoint: "top_links",
+            interval: "30d",
+          }).then((data) =>
+            data
+              .slice(0, 5)
+              .map(
+                ({
+                  domain,
+                  key,
+                  clicks,
+                }: {
+                  domain: string;
+                  key: string;
+                  clicks: number;
+                }) => ({
+                  link: linkConstructor({ domain, key, pretty: true }),
+                  clicks,
+                }),
+              ),
+          ),
         ]);
 
         const emails = project.users.map((user) => user.user.email) as string[];

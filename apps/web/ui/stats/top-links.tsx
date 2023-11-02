@@ -7,8 +7,7 @@ import { StatsContext } from ".";
 import BarList from "./bar-list";
 
 export default function TopLinks() {
-  const { basePath, baseApiPath, queryString, totalClicks, interval, modal } =
-    useContext(StatsContext);
+  const { baseApiPath, queryString, modal } = useContext(StatsContext);
 
   const { data } = useSWR<{ domain: string; key: string; clicks: number }[]>(
     `${baseApiPath}/top_links?${queryString}`,

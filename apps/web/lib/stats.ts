@@ -90,7 +90,7 @@ export const getStats = async ({
   ...rest
 }: {
   domain: string;
-  key: string;
+  key?: string;
   endpoint: string;
   interval?: string;
 } & {
@@ -110,7 +110,7 @@ export const getStats = async ({
   // 1. endpoint is /clicks
   // 2. interval is not defined
   // 3. there's a connection to MySQL
-  if (endpoint === "clicks" && !interval && conn) {
+  if (endpoint === "clicks" && key && !interval && conn) {
     const response =
       key === "_root"
         ? await conn.execute("SELECT clicks FROM Domain WHERE slug = ?", [
