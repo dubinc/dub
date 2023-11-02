@@ -1,4 +1,4 @@
-import { getSearchParams } from "@/lib/auth";
+import { getSearchParams } from "@dub/utils";
 import { isBlacklistedReferrer } from "@/lib/edge-config";
 import { getLinkViaEdge } from "@/lib/planetscale";
 import { getStats } from "@/lib/stats";

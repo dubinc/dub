@@ -198,10 +198,10 @@ export default function Toggle() {
 }
 
 const DomainsFilterTooltip = ({ domains }: { domains: DomainProps[] }) => {
+  const domain = useSearchParams()?.get("domain");
   const { editQueryParam } = useRouterStuff();
   return (
-    <div className="flex w-full flex-col items-start space-y-2 p-4 md:w-60">
-      <p className="text-sm text-gray-500">Filter by domain</p>
+    <div className="flex w-full flex-col items-start space-y-2 divide-y divide-gray-200 p-2 md:w-48">
       <div className="flex w-full flex-col">
         {domains.map(({ slug, target }) => (
           <button
@@ -214,7 +214,7 @@ const DomainsFilterTooltip = ({ domains }: { domains: DomainProps[] }) => {
                 del: "key",
               });
             }}
-            className="group flex items-center justify-between rounded-md p-2 transition-all hover:bg-gray-100 active:bg-gray-200"
+            className="group flex items-center justify-between rounded-md p-2 text-gray-500 transition-all hover:bg-gray-100 active:bg-gray-200"
           >
             <div className="flex items-center space-x-2">
               {target ? (
@@ -230,7 +230,7 @@ const DomainsFilterTooltip = ({ domains }: { domains: DomainProps[] }) => {
               )}
               <p className="text-sm font-semibold text-gray-500">{slug}</p>
             </div>
-            <Filter className="h-4 w-4 text-gray-500 md:invisible md:group-hover:visible" />
+            {domain === slug && <Tick className="h-4 w-4" />}
           </button>
         ))}
       </div>
