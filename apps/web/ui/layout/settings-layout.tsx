@@ -21,8 +21,8 @@ export default function SettingsLayout({
           </div>
         </MaxWidthWrapper>
       </div>
-      <MaxWidthWrapper className="grid items-start gap-5 py-10 md:grid-cols-5">
-        <div className="sticky top-36 flex gap-1 md:grid">
+      <MaxWidthWrapper className="grid items-start gap-5 pb-10 pt-2 md:grid-cols-5">
+        <div className="sticky top-[calc(7rem-2px)] pt-8 bg-white flex gap-1 md:grid z-20">
           {tabs.map(({ name, segment }) => (
             <NavLink segment={segment}>{name}</NavLink>
           ))}
