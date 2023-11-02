@@ -11,8 +11,7 @@ import DeviceIcon from "./device-icon";
 export default function Devices() {
   const [tab, setTab] = useState<DeviceTabs>("device");
 
-  const { baseApiPath, queryString, totalClicks, modal } =
-    useContext(StatsContext);
+  const { baseApiPath, queryString, modal } = useContext(StatsContext);
 
   const { data } = useSWR<
     ({
@@ -32,7 +31,7 @@ export default function Devices() {
           clicks: d.clicks,
         })) || []
       }
-      totalClicks={totalClicks || 0}
+      maxClicks={data?.[0]?.clicks || 0}
       barBackground="bg-green-100"
       setShowModal={setShowModal}
       {...(limit && { limit })}
@@ -47,13 +46,13 @@ export default function Devices() {
         className="max-w-lg"
       >
         <div className="border-b border-gray-200 px-6 py-4">
-          <h1 className="text-xl font-semibold">Devices</h1>
+          <h1 className="text-lg font-semibold">Devices</h1>
         </div>
         {barList()}
       </Modal>
       <div className="scrollbar-hide relative z-0 h-[400px] overflow-scroll border border-gray-200 bg-white px-7 py-5  sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
         <div className="mb-5 flex justify-between">
-          <h1 className="text-xl font-semibold">Devices</h1>
+          <h1 className="text-lg font-semibold">Devices</h1>
           <TabSelect
             options={["device", "browser", "os"]}
             selected={tab}

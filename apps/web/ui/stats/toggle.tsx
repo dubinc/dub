@@ -1,6 +1,7 @@
 import { INTERVALS } from "@/lib/stats";
 import useProject from "@/lib/swr/use-project";
 import {
+  Badge,
   Copy,
   ExpandingArrow,
   IconMenu,
@@ -9,18 +10,38 @@ import {
   Tick,
   Tooltip,
   TooltipContent,
+  useRouterStuff,
   useScroll,
 } from "@dub/ui";
-import { APP_DOMAIN, cn, fetcher, linkConstructor } from "@dub/utils";
-import { Calendar, ChevronDown, Lock, Share2 } from "lucide-react";
+import {
+  APP_DOMAIN,
+  DUB_LOGO,
+  GOOGLE_FAVICON_URL,
+  cn,
+  fetcher,
+  getApexDomain,
+  linkConstructor,
+} from "@dub/utils";
+import {
+  Calendar,
+  ChevronDown,
+  Filter,
+  Globe,
+  Lock,
+  Share2,
+  X,
+} from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import punycode from "punycode/";
 import { useContext, useMemo, useState } from "react";
 import { StatsContext } from ".";
 import { ModalContext } from "../modals/provider";
 import useSWR, { mutate } from "swr";
 import { toast } from "sonner";
+import { BlurImage } from "../shared/blur-image";
+import useDomains from "@/lib/swr/use-domains";
+import { DomainProps } from "@/lib/types";
 
 export default function Toggle() {
   const { slug } = useParams() as { slug?: string };
@@ -36,7 +57,8 @@ export default function Toggle() {
   }, [interval]);
 
   const scrolled = useScroll(80);
-  const { plan } = useProject();
+  const { name, plan, logo } = useProject();
+  const { domains, primaryDomain } = useDomains();
 
   const isPublicStatsPage = basePath.startsWith("/stats");
 
@@ -49,7 +71,30 @@ export default function Toggle() {
       })}
     >
       <div className="mx-auto flex h-20 max-w-4xl flex-col items-center justify-between space-y-3 px-2.5 md:h-10 md:flex-row md:space-y-0 lg:px-0">
-        {domain && key ? (
+        {slug ? (
+          <div className="flex items-center space-x-2">
+            <BlurImage
+              alt={name || "Project Logo"}
+              src={logo || DUB_LOGO}
+              className="h-6 w-6 flex-shrink-0 overflow-hidden rounded-full"
+              width={48}
+              height={48}
+            />
+            <h2 className="text-lg font-semibold text-gray-800">
+              {primaryDomain}
+            </h2>
+            {domains && domains?.length > 1 && (
+              <Tooltip
+                content={<DomainsFilterTooltip domains={domains} />}
+                side="bottom"
+              >
+                <div className="cursor-pointer">
+                  <Badge variant="gray">+{domains.length - 1}</Badge>
+                </div>
+              </Tooltip>
+            )}
+          </div>
+        ) : domain && key ? (
           <a
             className="group flex text-lg font-semibold text-gray-800 md:text-xl"
             href={linkConstructor({ domain, key })}
@@ -63,9 +108,7 @@ export default function Toggle() {
             })}
             <ExpandingArrow className="h-5 w-5" />
           </a>
-        ) : (
-          <div />
-        )}
+        ) : null}
         <div className="flex items-center">
           {!isPublicStatsPage && key && key !== "_root" && <SharePopover />}
           <Popover
@@ -154,6 +197,47 @@ export default function Toggle() {
   );
 }
 
+const DomainsFilterTooltip = ({ domains }: { domains: DomainProps[] }) => {
+  const { editQueryParam } = useRouterStuff();
+  return (
+    <div className="flex w-full flex-col items-start space-y-2 p-4 md:w-60">
+      <p className="text-sm text-gray-500">Filter by domain</p>
+      <div className="flex w-full flex-col">
+        {domains.map(({ slug, target }) => (
+          <button
+            key={slug}
+            onClick={() => {
+              editQueryParam({
+                set: {
+                  domain: slug,
+                },
+                del: "key",
+              });
+            }}
+            className="group flex items-center justify-between rounded-md p-2 transition-all hover:bg-gray-100 active:bg-gray-200"
+          >
+            <div className="flex items-center space-x-2">
+              {target ? (
+                <BlurImage
+                  src={`${GOOGLE_FAVICON_URL}${getApexDomain(target)}`}
+                  alt={slug}
+                  className="h-5 w-5 rounded-full"
+                  width={20}
+                  height={20}
+                />
+              ) : (
+                <Globe className="h-5 w-5" />
+              )}
+              <p className="text-sm font-semibold text-gray-500">{slug}</p>
+            </div>
+            <Filter className="h-4 w-4 text-gray-500 md:invisible md:group-hover:visible" />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const SharePopover = () => {
   const [openSharePopover, setopenSharePopoverPopover] = useState(false);
 
@@ -166,7 +250,7 @@ const SharePopover = () => {
     key: string; // coerce to string since <SharePopover is not shown if key is undefined)
   };
 
-  const { data: { publicStats } = {} } = useSWR<{ publicStats: boolean }>(
+  const { data } = useSWR<{ publicStats: boolean }>(
     `${baseApiPath}?${queryString}`,
     fetcher,
   );
@@ -183,12 +267,12 @@ const SharePopover = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            publicStats: !publicStats,
+            publicStats: !data?.publicStats,
           }),
         });
         if (res.status === 200) {
           await mutate(`${baseApiPath}?${queryString}`);
-          !publicStats &&
+          !data?.publicStats &&
             navigator.clipboard.writeText(
               `https://${domain}/stats/${encodeURIComponent(key)}`,
             );
@@ -199,13 +283,15 @@ const SharePopover = () => {
       {
         loading: "Updating...",
         success: `Stats page is now ${
-          publicStats ? "private." : "public. Link copied to clipboard."
+          data?.publicStats ? "private." : "public. Link copied to clipboard."
         }`,
         error: "Something went wrong",
       },
     );
   };
   const [copied, setCopied] = useState(false);
+
+  if (!data) return null;
 
   return (
     <Popover
@@ -221,7 +307,7 @@ const SharePopover = () => {
             <div className="mb-2 flex items-center justify-between">
               <p className="font-semibold text-gray-800">Public Stats Page</p>
               <Switch
-                checked={publicStats}
+                checked={data?.publicStats}
                 fn={handleChange}
                 disabled={updating}
               />

@@ -1,7 +1,6 @@
-import { BlurImage } from "@/ui/shared/blur-image";
 import { LoadingSpinner, Modal } from "@dub/ui";
-import { GOOGLE_FAVICON_URL, fetcher, linkConstructor } from "@dub/utils";
-import { Link2, Maximize } from "lucide-react";
+import { fetcher, linkConstructor } from "@dub/utils";
+import { Maximize } from "lucide-react";
 import { useContext, useState } from "react";
 import useSWR from "swr";
 import { StatsContext } from ".";
@@ -36,7 +35,7 @@ export default function TopLinks() {
           clicks: d.clicks,
         })) || []
       }
-      totalClicks={totalClicks || 0}
+      maxClicks={data?.[0]?.clicks || 0}
       barBackground="bg-blue-100"
       setShowModal={setShowModal}
       {...(limit && { limit })}
@@ -51,13 +50,13 @@ export default function TopLinks() {
         className="max-w-lg"
       >
         <div className="border-b border-gray-200 px-6 py-4">
-          <h1 className="text-xl font-semibold">Top Links</h1>
+          <h1 className="text-lg font-semibold">Top Links</h1>
         </div>
         {barList()}
       </Modal>
       <div className="scrollbar-hide relative z-0 h-[400px] overflow-scroll border border-gray-200 bg-white px-7 py-5 sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
         <div className="mb-5 flex">
-          <h1 className="text-xl font-semibold">Top Links</h1>
+          <h1 className="text-lg font-semibold">Top Links</h1>
         </div>
         {data ? (
           data.length > 0 ? (

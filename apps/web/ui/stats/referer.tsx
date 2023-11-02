@@ -39,7 +39,7 @@ export default function Referer() {
           clicks: d.clicks,
         })) || []
       }
-      totalClicks={totalClicks || 0}
+      maxClicks={data?.[0]?.clicks || 0}
       barBackground="bg-red-100"
       setShowModal={setShowModal}
       {...(limit && { limit })}
@@ -54,13 +54,13 @@ export default function Referer() {
         className="max-w-lg"
       >
         <div className="border-b border-gray-200 px-6 py-4">
-          <h1 className="text-xl font-semibold">Referrers</h1>
+          <h1 className="text-lg font-semibold">Referrers</h1>
         </div>
         {barList()}
       </Modal>
       <div className="scrollbar-hide relative z-0 h-[400px] overflow-scroll border border-gray-200 bg-white px-7 py-5 sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
         <div className="mb-5 flex">
-          <h1 className="text-xl font-semibold">Referrers</h1>
+          <h1 className="text-lg font-semibold">Referrers</h1>
         </div>
         {data ? (
           data.length > 0 ? (

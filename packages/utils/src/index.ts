@@ -3,7 +3,6 @@ import { clsx, type ClassValue } from "clsx";
 import ms from "ms";
 import { customAlphabet } from "nanoid";
 import { Metadata } from "next";
-import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { ReadonlyURLSearchParams } from "next/navigation";
 import { twMerge } from "tailwind-merge";
 import {
@@ -342,6 +341,17 @@ export const getDomainWithoutWWW = (url: string) => {
   }
 };
 
+export const getSearchParams = (url: string) => {
+  // Create a params object
+  let params = {} as Record<string, string>;
+
+  new URL(url).searchParams.forEach(function (val, key) {
+    params[key] = val;
+  });
+
+  return params;
+};
+
 export const getQueryString = ({
   searchParams,
   groupBy,
@@ -355,30 +365,6 @@ export const getQueryString = ({
   }
   const queryString = newSearchParams.toString();
   return queryString.length > 0 ? `?${queryString}` : "";
-};
-
-export const setQueryString = ({
-  router,
-  pathname,
-  searchParams,
-  key,
-  value,
-}: {
-  router: AppRouterInstance;
-  pathname: string | null;
-  searchParams: URLSearchParams | ReadonlyURLSearchParams | null;
-  key: string;
-  value: string;
-}) => {
-  const params = new URLSearchParams(searchParams?.toString());
-  if (key !== "page") params.delete("page");
-  if (value.length > 0) {
-    params.set(key, value);
-  } else {
-    params.delete(key);
-  }
-  const queryString = params.toString();
-  router.replace(`${pathname}?${queryString.length > 0 ? queryString : ""}`);
 };
 
 export const truncate = (str: string | null, length: number) => {

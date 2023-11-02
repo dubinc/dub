@@ -1,5 +1,5 @@
 import { fetcher, getQueryString } from "@dub/utils";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, usePathname, useSearchParams } from "next/navigation";
 import useSWR from "swr";
 
 export default function useLinksCount({
@@ -7,14 +7,20 @@ export default function useLinksCount({
 }: {
   groupBy?: "domain" | "tagId";
 } = {}) {
+  const pathname = usePathname();
   const { slug } = useParams() as { slug?: string };
   const searchParams = useSearchParams();
 
   const { data, error } = useSWR<any>(
-    `/api${slug ? `/projects/${slug}` : ""}/links/count${getQueryString({
-      searchParams,
-      ...(groupBy && { groupBy }),
-    })}`,
+    `/api${slug ? `/projects/${slug}` : ""}/links/count${
+      // only include query params if we're on the project links page
+      pathname === `/${slug}` || pathname === "/links"
+        ? getQueryString({
+            searchParams,
+            ...(groupBy && { groupBy }),
+          })
+        : ""
+    }`,
     fetcher,
     {
       dedupingInterval: 30000,

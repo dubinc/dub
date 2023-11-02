@@ -11,10 +11,12 @@ import { useMediaQuery } from "./hooks";
 export function Tooltip({
   children,
   content,
+  side = "top",
   fullWidth,
 }: {
   children: ReactNode;
   content: ReactNode | string;
+  side?: "top" | "bottom" | "left" | "right";
   fullWidth?: boolean;
 }) {
   const { isMobile } = useMediaQuery();
@@ -63,7 +65,7 @@ export function Tooltip({
         */}
         <TooltipPrimitive.Content
           sideOffset={8}
-          side="top"
+          side={side}
           className="animate-slide-up-fade z-[99] items-center overflow-hidden rounded-md border border-gray-200 bg-white shadow-md md:block"
         >
           {typeof content === "string" ? (

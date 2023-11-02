@@ -1,8 +1,3 @@
-.bar {
-  transform-origin: bottom !important;
-  fill: #2563eb;
-}
-
 .tooltip {
   z-index: 40;
   width: 200px;

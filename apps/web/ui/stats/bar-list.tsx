@@ -3,7 +3,6 @@
 import { NumberTooltip } from "@dub/ui";
 import { cn, nFormatter } from "@dub/utils";
 import { motion } from "framer-motion";
-import Fuse from "fuse.js";
 import { Search } from "lucide-react";
 import Link from "next/link";
 import { Dispatch, ReactNode, SetStateAction, useMemo, useState } from "react";
@@ -12,7 +11,7 @@ export default function BarList({
   tab,
   data,
   barBackground,
-  totalClicks,
+  maxClicks,
   setShowModal,
   limit,
 }: {
@@ -23,36 +22,31 @@ export default function BarList({
     href?: string;
     clicks: number;
   }[];
-  totalClicks: number;
+  maxClicks: number;
   barBackground: string;
   setShowModal: Dispatch<SetStateAction<boolean>>;
   limit?: number;
 }) {
   const [search, setSearch] = useState("");
 
-  const fuse = useMemo(() => {
-    if (limit) {
-      return null;
-    }
-    return new Fuse(data, {
-      keys: ["title"],
-    });
-  }, [limit, data]);
-
   const filteredData = useMemo(() => {
     if (limit) {
       return data.slice(0, limit);
     } else {
-      return search ? fuse!.search(search).map((r) => r.item) : data;
+      return search
+        ? data.filter((d) =>
+            d.title.toLowerCase().includes(search.toLowerCase()),
+          )
+        : data;
     }
-  }, [data, limit, search, fuse]);
+  }, [data, limit, search]);
 
   const bars = (
     <div className="grid gap-4">
       {filteredData.map(({ icon, title, href, clicks }, idx) => {
         const bar = (
           <div key={idx} className="group flex items-center justify-between">
-            <div className="relative z-10 flex w-full max-w-[calc(100%-3rem)] items-center">
+            <div className="relative z-10 flex w-full max-w-[calc(100%-2rem)] items-center">
               <span className="z-10 flex items-center space-x-2 px-2">
                 {icon}
                 <p
@@ -66,7 +60,7 @@ export default function BarList({
               </span>
               <motion.div
                 style={{
-                  width: `${(clicks / (totalClicks || 0)) * 100}%`,
+                  width: `${(clicks / (maxClicks || 0)) * 100}%`,
                 }}
                 className={cn(
                   "absolute h-8 origin-left rounded-sm",

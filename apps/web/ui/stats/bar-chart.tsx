@@ -181,7 +181,7 @@ export default function BarChart() {
                 <motion.rect
                   key={`bar-${interval}-${start}`}
                   transition={{ ease: "easeOut", duration: 0.3 }}
-                  className={styles.bar} // to override transformOrigin
+                  className="!origin-bottom fill-[#2563eb]"
                   initial={{ transform: "scaleY(0)" }}
                   animate={{ transform: "scaleY(1)" }}
                   x={barX}

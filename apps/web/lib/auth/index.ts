@@ -4,7 +4,7 @@ import { Link as LinkProps } from "@prisma/client";
 import { PlanProps, ProjectProps } from "../types";
 import { getServerSession } from "next-auth/next";
 import { createHash } from "crypto";
-import { API_DOMAIN } from "@dub/utils";
+import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { ratelimit } from "../upstash";
 
 export interface Session {
@@ -19,17 +19,6 @@ export interface Session {
 export const getSession = async () => {
   return getServerSession(authOptions) as Promise<Session>;
 };
-
-export function getSearchParams(url: string) {
-  // Create a params object
-  let params = {} as Record<string, string>;
-
-  new URL(url).searchParams.forEach(function (val, key) {
-    params[key] = val;
-  });
-
-  return params;
-}
 
 export const hashToken = (
   token: string,

@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 // PUT /api/projects/[slug]/tags/[id] – update a tag for a project
-export const PUT = withAuth(async ({ req, params, project }) => {
+export const PUT = withAuth(async ({ req, params }) => {
   const { id } = params;
   const { name, color } = await req.json();
   const response = await prisma.tag.update({

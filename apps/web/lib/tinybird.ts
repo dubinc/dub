@@ -106,10 +106,9 @@ export async function deleteClickData({
   if (!domain || !key) {
     return null;
   }
-  // const deleteCondition = `domain='${domain}' AND key='${key}'`;
-  const deleteCondition = `domain='pris.ly' AND key='accelerate-blog'`;
+  const deleteCondition = `domain='${domain}' AND key='${key}'`;
   const response = await fetch(
-    "https://api.tinybird.co/v0/datasources/monitoring_events/delete",
+    "https://api.tinybird.co/v0/datasources/click_events/delete",
     {
       method: "POST",
       headers: {

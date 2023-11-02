@@ -1,8 +1,7 @@
 import { Sort } from "@/ui/shared/icons";
-import { IconMenu, Popover, Tick } from "@dub/ui";
-import { setQueryString } from "@dub/utils";
+import { IconMenu, Popover, Tick, useRouterStuff } from "@dub/ui";
 import { ChevronDown, SortDesc } from "lucide-react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
 const sortOptions = [
@@ -22,10 +21,9 @@ const sortOptions = [
 
 export default function LinkSort() {
   const [openPopover, setOpenPopover] = useState(false);
-  const pathname = usePathname();
   const searchParams = useSearchParams();
   const sort = searchParams?.get("sort");
-  const router = useRouter();
+  const { editQueryParam } = useRouterStuff();
 
   const selectedSort = useMemo(() => {
     return sortOptions.find((s) => s.slug === sort) || sortOptions[0];
@@ -39,12 +37,10 @@ export default function LinkSort() {
             <button
               key={slug}
               onClick={() => {
-                setQueryString({
-                  router,
-                  pathname,
-                  searchParams,
-                  key: "sort",
-                  value: slug,
+                editQueryParam({
+                  set: {
+                    sort: slug,
+                  },
                 });
                 setOpenPopover(false);
               }}
