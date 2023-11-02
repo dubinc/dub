@@ -14,6 +14,7 @@ export const GET = withAuth(
       key,
       endpoint,
       interval,
+      ...searchParams,
     });
     return NextResponse.json(response);
   },

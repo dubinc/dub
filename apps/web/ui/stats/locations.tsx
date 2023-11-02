@@ -1,5 +1,5 @@
 import { LocationTabs } from "@/lib/stats";
-import { LoadingSpinner, Modal, TabSelect } from "@dub/ui";
+import { LoadingSpinner, Modal, TabSelect, useRouterStuff } from "@dub/ui";
 import { COUNTRIES, fetcher } from "@dub/utils";
 import { Maximize } from "lucide-react";
 import { useContext, useState } from "react";
@@ -10,14 +10,14 @@ import BarList from "./bar-list";
 export default function Locations() {
   const [tab, setTab] = useState<LocationTabs>("country");
 
-  const { baseApiPath, queryString, totalClicks, modal } =
-    useContext(StatsContext);
+  const { baseApiPath, queryString, modal } = useContext(StatsContext);
 
   const { data } = useSWR<{ country: string; city: string; clicks: number }[]>(
     `${baseApiPath}/${tab}?${queryString}`,
     fetcher,
   );
 
+  const { editQueryParam } = useRouterStuff();
   const [showModal, setShowModal] = useState(false);
 
   const barList = (limit?: number) => (
@@ -33,6 +33,12 @@ export default function Locations() {
             />
           ),
           title: tab === "country" ? COUNTRIES[d.country] : d.city,
+          href: editQueryParam({
+            set: {
+              [tab]: d[tab],
+            },
+            getNewPath: true,
+          }),
           clicks: d.clicks,
         })) || []
       }

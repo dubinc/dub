@@ -61,7 +61,7 @@ export type LocationTabs = "country" | "city" | "region";
 
 export type DeviceTabs = "device" | "browser" | "os" | "ua";
 
-const VALID_TINYBIRD_ENDPOINTS = new Set([
+const VALID_TINYBIRD_ENDPOINTS = [
   "timeseries",
   "clicks",
   "top_links",
@@ -71,25 +71,37 @@ const VALID_TINYBIRD_ENDPOINTS = new Set([
   "browser",
   "os",
   "referer",
-]);
+];
+
+export const VALID_STATS_FILTERS = [
+  "country",
+  "city",
+  "device",
+  "browser",
+  "os",
+  "referer",
+];
 
 export const getStats = async ({
   domain,
   key,
   endpoint,
   interval,
+  ...rest
 }: {
   domain: string;
   key: string;
   endpoint: string;
-  interval?: string | null;
+  interval?: string;
+} & {
+  [key in typeof VALID_STATS_FILTERS[number]]: string;
 }) => {
   // Note: we're using decodeURIComponent in this function because that's how we store it in MySQL and Tinybird
 
   if (
     !conn ||
     !process.env.TINYBIRD_API_KEY ||
-    !VALID_TINYBIRD_ENDPOINTS.has(endpoint)
+    !VALID_TINYBIRD_ENDPOINTS.includes(endpoint)
   ) {
     return [];
   }
@@ -123,7 +135,6 @@ export const getStats = async ({
   if (key) {
     url.searchParams.append("key", decodeURIComponent(key));
   }
-
   if (interval) {
     url.searchParams.append(
       "start",
@@ -139,6 +150,12 @@ export const getStats = async ({
 
     url.searchParams.append("granularity", intervalData[interval].granularity);
   }
+
+  VALID_STATS_FILTERS.forEach((filter) => {
+    if (rest[filter]) {
+      url.searchParams.append(filter, rest[filter]);
+    }
+  });
 
   return await fetch(url.toString(), {
     headers: {

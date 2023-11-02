@@ -1,5 +1,5 @@
 import { BlurImage } from "@/ui/shared/blur-image";
-import { LoadingSpinner, Modal } from "@dub/ui";
+import { LoadingSpinner, Modal, useRouterStuff } from "@dub/ui";
 import { GOOGLE_FAVICON_URL, fetcher } from "@dub/utils";
 import { Link2, Maximize } from "lucide-react";
 import { useContext, useState } from "react";
@@ -16,6 +16,7 @@ export default function Referer() {
     fetcher,
   );
 
+  const { editQueryParam } = useRouterStuff();
   const [showModal, setShowModal] = useState(false);
 
   const barList = (limit?: number) => (
@@ -36,6 +37,12 @@ export default function Referer() {
               />
             ),
           title: d.referer,
+          href: editQueryParam({
+            set: {
+              referer: d.referer,
+            },
+            getNewPath: true,
+          }),
           clicks: d.clicks,
         })) || []
       }

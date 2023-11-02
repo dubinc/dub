@@ -15,7 +15,8 @@ export const GET = async (
   { params }: { params: Record<string, string> },
 ) => {
   const { endpoint } = params;
-  const { domain, key, interval } = getSearchParams(req.url);
+  const searchParams = getSearchParams(req.url);
+  const { domain, key, interval } = searchParams;
 
   // demo link (dub.sh/github)
   if (domain === "dub.sh" && key === "github") {
@@ -55,6 +56,7 @@ export const GET = async (
     key,
     endpoint,
     interval,
+    ...searchParams,
   });
 
   return NextResponse.json(response);

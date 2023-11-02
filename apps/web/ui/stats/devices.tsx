@@ -1,5 +1,5 @@
 import { DeviceTabs } from "@/lib/stats";
-import { LoadingSpinner, Modal, TabSelect } from "@dub/ui";
+import { LoadingSpinner, Modal, TabSelect, useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { Maximize } from "lucide-react";
 import { useContext, useState } from "react";
@@ -19,6 +19,7 @@ export default function Devices() {
     } & { clicks: number })[]
   >(`${baseApiPath}/${tab}?${queryString}`, fetcher);
 
+  const { editQueryParam } = useRouterStuff();
   const [showModal, setShowModal] = useState(false);
 
   const barList = (limit?: number) => (
@@ -28,6 +29,12 @@ export default function Devices() {
         data?.map((d) => ({
           icon: <DeviceIcon display={d[tab]} tab={tab} className="h-4 w-4" />,
           title: d[tab],
+          href: editQueryParam({
+            set: {
+              [tab]: d[tab],
+            },
+            getNewPath: true,
+          }),
           clicks: d.clicks,
         })) || []
       }

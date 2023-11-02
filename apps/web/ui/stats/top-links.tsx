@@ -1,4 +1,4 @@
-import { LoadingSpinner, Modal } from "@dub/ui";
+import { LoadingSpinner, Modal, useRouterStuff } from "@dub/ui";
 import { fetcher, linkConstructor } from "@dub/utils";
 import { Maximize } from "lucide-react";
 import { useContext, useState } from "react";
@@ -15,6 +15,7 @@ export default function TopLinks() {
     fetcher,
   );
 
+  const { editQueryParam } = useRouterStuff();
   const [showModal, setShowModal] = useState(false);
 
   const barList = (limit?: number) => (
@@ -27,11 +28,13 @@ export default function TopLinks() {
             key: d.key,
             pretty: true,
           }),
-          href: `${basePath}?${new URLSearchParams({
-            domain: d.domain,
-            key: d.key,
-            interval,
-          }).toString()}`,
+          href: editQueryParam({
+            set: {
+              domain: d.domain,
+              key: d.key,
+            },
+            getNewPath: true,
+          }),
           clicks: d.clicks,
         })) || []
       }

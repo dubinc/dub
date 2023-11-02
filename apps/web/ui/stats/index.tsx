@@ -62,6 +62,12 @@ export default function Stats({
   const domainSlug = searchParams?.get("domain");
   // key can be a path param (public stats pages) or a query param (stats pages in app)
   key = searchParams?.get("key") || key;
+  const country = searchParams?.get("country");
+  const city = searchParams?.get("city");
+  const device = searchParams?.get("device");
+  const browser = searchParams?.get("browser");
+  const os = searchParams?.get("os");
+  const referer = searchParams?.get("referer");
   const interval = searchParams?.get("interval") || "24h";
 
   const { basePath, domain, baseApiPath } = useMemo(() => {
@@ -93,9 +99,15 @@ export default function Stats({
     return new URLSearchParams({
       ...(domain && { domain }),
       ...(key && { key }),
+      ...(country && { country }),
+      ...(city && { city }),
+      ...(device && { device }),
+      ...(browser && { browser }),
+      ...(os && { os }),
+      ...(referer && { referer }),
       ...(interval && { interval }),
     }).toString();
-  }, [slug, domain, key, interval]);
+  }, [domain, key, country, city, device, browser, os, referer, interval]);
 
   const { data: totalClicks } = useSWR<number>(
     `${baseApiPath}/clicks?${queryString}`,
