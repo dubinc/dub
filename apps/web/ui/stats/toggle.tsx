@@ -199,7 +199,7 @@ export default function Toggle() {
 
 const DomainsFilterTooltip = ({ domains }: { domains: DomainProps[] }) => {
   const domain = useSearchParams()?.get("domain");
-  const { editQueryParam } = useRouterStuff();
+  const { queryParams } = useRouterStuff();
   return (
     <div className="flex w-full flex-col items-start space-y-2 divide-y divide-gray-200 p-2 md:w-48">
       <div className="flex w-full flex-col">
@@ -207,7 +207,7 @@ const DomainsFilterTooltip = ({ domains }: { domains: DomainProps[] }) => {
           <button
             key={slug}
             onClick={() => {
-              editQueryParam({
+              queryParams({
                 set: {
                   domain: slug,
                 },

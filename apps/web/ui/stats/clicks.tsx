@@ -14,7 +14,7 @@ export default function Clicks() {
   const searchParams = useSearchParams();
   const domain = searchParams?.get("domain");
   const key = searchParams?.get("key");
-  const { editQueryParam } = useRouterStuff();
+  const { queryParams } = useRouterStuff();
 
   return (
     <div className="max-w-4xl border border-gray-200 bg-white p-5 sm:rounded-lg sm:border-gray-100 sm:p-10 sm:shadow-lg">
@@ -42,7 +42,7 @@ export default function Clicks() {
             (key ? (
               <button
                 onClick={() => {
-                  editQueryParam({
+                  queryParams({
                     del: ["domain", "key"],
                   });
                 }}
@@ -57,7 +57,7 @@ export default function Clicks() {
             ) : (
               <button
                 onClick={() => {
-                  editQueryParam({
+                  queryParams({
                     del: "domain",
                   });
                 }}
@@ -74,7 +74,7 @@ export default function Clicks() {
             return (
               <button
                 onClick={() => {
-                  editQueryParam({
+                  queryParams({
                     del: filter,
                   });
                 }}

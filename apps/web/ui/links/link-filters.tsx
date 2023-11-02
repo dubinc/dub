@@ -52,12 +52,12 @@ export default function LinkFilters() {
 
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { editQueryParam } = useRouterStuff();
+  const { queryParams } = useRouterStuff();
   const searchInputRef = useRef(); // this is a hack to clear the search input when the clear button is clicked
 
   useEffect(() => {
     if (searchParams?.has("search")) {
-      editQueryParam({
+      queryParams({
         set: { showArchived: "true" },
       });
     }
@@ -121,9 +121,9 @@ const ClearButton = ({ searchInputRef }) => {
 
 const SearchBox = ({ searchInputRef }) => {
   const searchParams = useSearchParams();
-  const { editQueryParam } = useRouterStuff();
+  const { queryParams } = useRouterStuff();
   const debounced = useDebouncedCallback((value) => {
-    editQueryParam({
+    queryParams({
       set: {
         search: value,
       },
@@ -178,7 +178,7 @@ const SearchBox = ({ searchInputRef }) => {
 const DomainsFilter = ({ domains, primaryDomain }) => {
   const { slug } = useParams() as { slug?: string };
   const searchParams = useSearchParams();
-  const { editQueryParam } = useRouterStuff();
+  const { queryParams } = useRouterStuff();
 
   const [collapsed, setCollapsed] = useState(false);
 
@@ -247,7 +247,7 @@ const DomainsFilter = ({ domains, primaryDomain }) => {
                     searchParams?.get("domain") === value || domains.length <= 1
                   }
                   onChange={() => {
-                    editQueryParam({
+                    queryParams({
                       set: {
                         domain: value,
                       },
@@ -283,7 +283,7 @@ const TagsFilter = ({
   tagsCount: { tagId: string; _count: number }[];
 }) => {
   const searchParams = useSearchParams();
-  const { editQueryParam } = useRouterStuff();
+  const { queryParams } = useRouterStuff();
   const [collapsed, setCollapsed] = useState(tags.length === 0 ? true : false);
   const [search, setSearch] = useState("");
   const [showMore, setShowMore] = useState(false);
@@ -359,7 +359,7 @@ const TagsFilter = ({
                     name={id}
                     checked={searchParams?.get("tagId") === id}
                     onChange={() => {
-                      editQueryParam({
+                      queryParams({
                         set: {
                           tagId: id,
                         },
@@ -536,7 +536,7 @@ const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
 
 const MyLinksFilter = () => {
   const searchParams = useSearchParams();
-  const { editQueryParam } = useRouterStuff();
+  const { queryParams } = useRouterStuff();
   const userId = searchParams?.get("userId");
   const { data: session } = useSession();
 
@@ -547,7 +547,7 @@ const MyLinksFilter = () => {
       </label>
       <Switch
         fn={() =>
-          editQueryParam(
+          queryParams(
             userId
               ? { del: "userId" }
               : {
@@ -566,7 +566,7 @@ const MyLinksFilter = () => {
 
 const ArchiveFilter = () => {
   const searchParams = useSearchParams();
-  const { editQueryParam } = useRouterStuff();
+  const { queryParams } = useRouterStuff();
   const showArchived = searchParams?.get("showArchived");
   return (
     <div className="flex items-center justify-between py-6">
@@ -575,7 +575,7 @@ const ArchiveFilter = () => {
       </label>
       <Switch
         fn={() =>
-          editQueryParam(
+          queryParams(
             showArchived
               ? { del: "showArchived" }
               : {

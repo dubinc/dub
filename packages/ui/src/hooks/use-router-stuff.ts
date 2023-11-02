@@ -6,7 +6,7 @@ export default function useRouterStuff() {
   const searchParams = useSearchParams();
   const searchParamsObj = Object.fromEntries(searchParams);
 
-  const editQueryParam = ({
+  const queryParams = ({
     set,
     del,
     replace,
@@ -45,6 +45,6 @@ export default function useRouterStuff() {
     router,
     searchParams,
     searchParamsObj,
-    editQueryParam,
+    queryParams,
   };
 }

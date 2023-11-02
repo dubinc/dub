@@ -17,7 +17,7 @@ export default function Locations() {
     fetcher,
   );
 
-  const { editQueryParam } = useRouterStuff();
+  const { queryParams } = useRouterStuff();
   const [showModal, setShowModal] = useState(false);
 
   const barList = (limit?: number) => (
@@ -33,7 +33,7 @@ export default function Locations() {
             />
           ),
           title: tab === "country" ? COUNTRIES[d.country] : d.city,
-          href: editQueryParam({
+          href: queryParams({
             set: {
               [tab]: d[tab],
             },

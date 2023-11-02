@@ -15,7 +15,7 @@ export default function TopLinks() {
     fetcher,
   );
 
-  const { editQueryParam } = useRouterStuff();
+  const { queryParams } = useRouterStuff();
   const [showModal, setShowModal] = useState(false);
 
   const barList = (limit?: number) => (
@@ -28,7 +28,7 @@ export default function TopLinks() {
             key: d.key,
             pretty: true,
           }),
-          href: editQueryParam({
+          href: queryParams({
             set: {
               domain: d.domain,
               key: d.key,

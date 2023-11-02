@@ -16,7 +16,7 @@ export default function Referer() {
     fetcher,
   );
 
-  const { editQueryParam } = useRouterStuff();
+  const { queryParams } = useRouterStuff();
   const [showModal, setShowModal] = useState(false);
 
   const barList = (limit?: number) => (
@@ -37,7 +37,7 @@ export default function Referer() {
               />
             ),
           title: d.referer,
-          href: editQueryParam({
+          href: queryParams({
             set: {
               referer: d.referer,
             },

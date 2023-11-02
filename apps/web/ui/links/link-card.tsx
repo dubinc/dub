@@ -78,7 +78,7 @@ export default function LinkCard({
 
   const params = useParams() as { slug?: string };
   const { slug } = params;
-  const { editQueryParam } = useRouterStuff();
+  const { queryParams } = useRouterStuff();
 
   const { exceededUsage } = useProject();
   const { verified, loading } = useDomains({ domain });
@@ -310,7 +310,7 @@ export default function LinkCard({
               {tag?.color && (
                 <button
                   onClick={() => {
-                    editQueryParam({
+                    queryParams({
                       set: {
                         tagId: tag.id,
                       },

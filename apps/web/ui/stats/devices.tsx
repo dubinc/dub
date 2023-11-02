@@ -19,7 +19,7 @@ export default function Devices() {
     } & { clicks: number })[]
   >(`${baseApiPath}/${tab}?${queryString}`, fetcher);
 
-  const { editQueryParam } = useRouterStuff();
+  const { queryParams } = useRouterStuff();
   const [showModal, setShowModal] = useState(false);
 
   const barList = (limit?: number) => (
@@ -29,7 +29,7 @@ export default function Devices() {
         data?.map((d) => ({
           icon: <DeviceIcon display={d[tab]} tab={tab} className="h-4 w-4" />,
           title: d[tab],
-          href: editQueryParam({
+          href: queryParams({
             set: {
               [tab]: d[tab],
             },

@@ -23,7 +23,7 @@ export default function LinkSort() {
   const [openPopover, setOpenPopover] = useState(false);
   const searchParams = useSearchParams();
   const sort = searchParams?.get("sort");
-  const { editQueryParam } = useRouterStuff();
+  const { queryParams } = useRouterStuff();
 
   const selectedSort = useMemo(() => {
     return sortOptions.find((s) => s.slug === sort) || sortOptions[0];
@@ -37,7 +37,7 @@ export default function LinkSort() {
             <button
               key={slug}
               onClick={() => {
-                editQueryParam({
+                queryParams({
                   set: {
                     sort: slug,
                   },

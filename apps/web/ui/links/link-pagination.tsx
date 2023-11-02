@@ -7,7 +7,7 @@ import { useSearchParams } from "next/navigation";
 export default function LinkPagination() {
   const searchParams = useSearchParams();
   const currentPage = parseInt(searchParams?.get("page") || "1");
-  const { editQueryParam } = useRouterStuff();
+  const { queryParams } = useRouterStuff();
 
   const { data: count } = useLinksCount();
 
@@ -22,7 +22,7 @@ export default function LinkPagination() {
         {currentPage > 1 && paginatedCount > 5 && (
           <button
             onClick={() => {
-              editQueryParam({
+              queryParams({
                 set: {
                   page: (currentPage - 1).toString(),
                 },
@@ -67,7 +67,7 @@ export default function LinkPagination() {
         {currentPage < paginatedCount && paginatedCount > 5 && (
           <button
             onClick={() => {
-              editQueryParam({
+              queryParams({
                 set: {
                   page: (currentPage + 1).toString(),
                 },
@@ -98,7 +98,7 @@ const Divider = () => {
 const AnchorLink = ({ value }: { value: number }) => {
   const searchParams = useSearchParams();
   const currentPage = parseInt(searchParams?.get("page") || "1");
-  const { editQueryParam } = useRouterStuff();
+  const { queryParams } = useRouterStuff();
 
   return (
     <button
@@ -106,7 +106,7 @@ const AnchorLink = ({ value }: { value: number }) => {
         value === currentPage ? "text-black" : "text-gray-400"
       } flex min-w-[1.5rem] items-center justify-center rounded-md bg-white p-1 font-semibold transition-all hover:bg-gray-100`}
       onClick={() => {
-        editQueryParam({
+        queryParams({
           set: {
             page: value.toString(),
           },
