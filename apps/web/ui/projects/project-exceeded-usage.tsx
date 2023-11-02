@@ -20,7 +20,7 @@ export default function ProjectExceededUsage() {
         </h1>
         <p className="z-10 max-w-sm text-center text-sm text-gray-600">
           Your project has exceeded your usage limits. We're still collecting
-          data on your link, but you need to upgrade to view them.
+          data on your links, but you need to upgrade to view them.
         </p>
         <BlurImage
           src="/_static/illustrations/video-park.svg"

@@ -96,6 +96,7 @@ export async function recordClick({
   ]);
 }
 
+// WIP, still needs testing
 export async function deleteClickData({
   domain,
   key,
