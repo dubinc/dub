@@ -34,7 +34,7 @@ export default function Devices() {
               [tab]: d[tab],
             },
             getNewPath: true,
-          }),
+          }) as string,
           clicks: d.clicks,
         })) || []
       }

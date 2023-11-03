@@ -13,7 +13,7 @@ export default function useLinks() {
       user: UserProps;
     })[]
   >(
-    `/api${slug ? `/projects/${slug}/links` : "/links"}${getQueryString({
+    `/api${slug ? `/projects/${slug}` : ""}/links${getQueryString({
       searchParams,
     })}`,
     fetcher,

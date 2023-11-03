@@ -25,6 +25,7 @@ import Toggle from "./toggle";
 import Feedback from "./feedback";
 import useSWR from "swr";
 import { fetcher } from "@dub/utils";
+import { VALID_STATS_FILTERS } from "@/lib/stats";
 
 export const StatsContext = createContext<{
   basePath: string;
@@ -62,12 +63,6 @@ export default function Stats({
   const domainSlug = searchParams?.get("domain");
   // key can be a path param (public stats pages) or a query param (stats pages in app)
   key = searchParams?.get("key") || key;
-  const country = searchParams?.get("country");
-  const city = searchParams?.get("city");
-  const device = searchParams?.get("device");
-  const browser = searchParams?.get("browser");
-  const os = searchParams?.get("os");
-  const referer = searchParams?.get("referer");
   const interval = searchParams?.get("interval") || "24h";
 
   const { basePath, domain, baseApiPath } = useMemo(() => {
@@ -96,18 +91,22 @@ export default function Stats({
   }, [slug, pathname, staticDomain, domainSlug, key]);
 
   const queryString = useMemo(() => {
+    const availableFilterParams = VALID_STATS_FILTERS.reduce(
+      (acc, filter) => ({
+        ...acc,
+        ...(searchParams?.get(filter) && {
+          [filter]: searchParams.get(filter),
+        }),
+      }),
+      {},
+    );
     return new URLSearchParams({
       ...(domain && { domain }),
       ...(key && { key }),
-      ...(country && { country }),
-      ...(city && { city }),
-      ...(device && { device }),
-      ...(browser && { browser }),
-      ...(os && { os }),
-      ...(referer && { referer }),
+      ...availableFilterParams,
       ...(interval && { interval }),
     }).toString();
-  }, [domain, key, country, city, device, browser, os, referer, interval]);
+  }, [slug, domain, key, searchParams, interval]);
 
   const { data: totalClicks } = useSWR<number>(
     `${baseApiPath}/clicks?${queryString}`,

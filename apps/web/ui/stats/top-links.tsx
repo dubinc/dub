@@ -33,7 +33,7 @@ export default function TopLinks() {
               key: d.key,
             },
             getNewPath: true,
-          }),
+          }) as string,
           clicks: d.clicks,
         })) || []
       }

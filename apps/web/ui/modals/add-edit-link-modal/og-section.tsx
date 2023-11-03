@@ -70,8 +70,16 @@ export default function OGSection({
     }
   }, [proxy]);
 
+  const [cooldown, setCooldown] = useState(false);
   const [openPopover, setOpenPopover] = useState(false);
-
+  function handleSet() {
+    if (cooldown) return;
+    setOpenPopover(!openPopover);
+    setCooldown(true);
+    setTimeout(() => {
+      setCooldown(false);
+    }, 200);
+  }
   return (
     <div className="relative grid gap-5 border-b border-gray-200 pb-5">
       <div className="flex items-center justify-between">
@@ -127,14 +135,14 @@ export default function OGSection({
                     content={
                       <UnsplashSearch
                         setData={setData}
-                        setOpenPopover={setOpenPopover}
+                        setOpenPopover={handleSet}
                       />
                     }
                     openPopover={openPopover}
-                    setOpenPopover={setOpenPopover}
+                    setOpenPopover={handleSet}
                   >
                     <div
-                      onClick={() => setOpenPopover(true)}
+                      onClick={handleSet}
                       className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-md transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200"
                     >
                       <Unsplash className="h-3 w-3 text-gray-500" />

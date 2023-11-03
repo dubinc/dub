@@ -42,12 +42,7 @@ import {
   QrCode,
 } from "lucide-react";
 import Link from "next/link";
-import {
-  useParams,
-  usePathname,
-  useRouter,
-  useSearchParams,
-} from "next/navigation";
+import { useParams } from "next/navigation";
 import punycode from "punycode/";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import useSWR from "swr";

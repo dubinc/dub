@@ -38,7 +38,7 @@ export default function Locations() {
               [tab]: d[tab],
             },
             getNewPath: true,
-          }),
+          }) as string,
           clicks: d.clicks,
         })) || []
       }

@@ -12,6 +12,30 @@ import {
 } from "@/lib/api/domains";
 import { NextResponse } from "next/server";
 
+// GET /api/projects/[slug]/domains/[domain] – get a project's domain
+export const GET = withAuth(async ({ domain }) => {
+  const data = await prisma.domain.findUnique({
+    where: {
+      slug: domain,
+    },
+    select: {
+      slug: true,
+      verified: true,
+      primary: true,
+      target: true,
+      type: true,
+      clicks: true,
+    },
+  });
+  if (!data) {
+    return new Response("Domain not found", { status: 404 });
+  }
+  return NextResponse.json({
+    ...data,
+    url: data.target,
+  });
+});
+
 // PUT /api/projects/[slug]/domains/[domain] – edit a project's domain
 export const PUT = withAuth(async ({ req, project, domain }) => {
   const { slug: newDomain, target, type, primary } = await req.json();

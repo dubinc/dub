@@ -59,23 +59,21 @@ export function Tooltip({
         <TooltipPrimitive.Trigger className="md:inline-flex" asChild>
           {children}
         </TooltipPrimitive.Trigger>
-        {/* 
-            We don't use TooltipPrimitive.Portal here because for some reason it 
-            prevents you from selecting the contents of a tooltip when used inside a modal 
-        */}
-        <TooltipPrimitive.Content
-          sideOffset={8}
-          side={side}
-          className="animate-slide-up-fade z-[99] items-center overflow-hidden rounded-md border border-gray-200 bg-white shadow-md md:block"
-        >
-          {typeof content === "string" ? (
-            <div className="block max-w-xs px-4 py-2 text-center text-sm text-gray-700">
-              {content}
-            </div>
-          ) : (
-            content
-          )}
-        </TooltipPrimitive.Content>
+        <TooltipPrimitive.Portal>
+          <TooltipPrimitive.Content
+            sideOffset={8}
+            side={side}
+            className="animate-slide-up-fade z-[99] items-center overflow-hidden rounded-md border border-gray-200 bg-white shadow-md md:block"
+          >
+            {typeof content === "string" ? (
+              <div className="block max-w-xs px-4 py-2 text-center text-sm text-gray-700">
+                {content}
+              </div>
+            ) : (
+              content
+            )}
+          </TooltipPrimitive.Content>
+        </TooltipPrimitive.Portal>
       </TooltipPrimitive.Root>
     </TooltipPrimitive.Provider>
   );

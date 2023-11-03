@@ -42,7 +42,7 @@ export default function Referer() {
               referer: d.referer,
             },
             getNewPath: true,
-          }),
+          }) as string,
           clicks: d.clicks,
         })) || []
       }
