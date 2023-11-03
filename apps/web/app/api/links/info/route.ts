@@ -12,6 +12,9 @@ export const GET = withAuth(async ({ headers, searchParams }) => {
         key,
       },
     },
+    include: {
+      user: true,
+    },
   });
   return NextResponse.json(response, {
     headers,

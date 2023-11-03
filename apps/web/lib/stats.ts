@@ -61,34 +61,47 @@ export type LocationTabs = "country" | "city" | "region";
 
 export type DeviceTabs = "device" | "browser" | "os" | "ua";
 
-const VALID_TINYBIRD_ENDPOINTS = new Set([
+const VALID_TINYBIRD_ENDPOINTS = [
   "timeseries",
   "clicks",
+  "top_links",
   "country",
   "city",
   "device",
   "browser",
   "os",
   "referer",
-]);
+];
+
+export const VALID_STATS_FILTERS = [
+  "country",
+  "city",
+  "device",
+  "browser",
+  "os",
+  "referer",
+];
 
 export const getStats = async ({
   domain,
   key,
   endpoint,
   interval,
+  ...rest
 }: {
   domain: string;
-  key: string;
+  key?: string;
   endpoint: string;
-  interval?: string | null;
+  interval?: string;
+} & {
+  [key in typeof VALID_STATS_FILTERS[number]]: string;
 }) => {
   // Note: we're using decodeURIComponent in this function because that's how we store it in MySQL and Tinybird
 
   if (
     !conn ||
     !process.env.TINYBIRD_API_KEY ||
-    !VALID_TINYBIRD_ENDPOINTS.has(endpoint)
+    !VALID_TINYBIRD_ENDPOINTS.includes(endpoint)
   ) {
     return [];
   }
@@ -97,7 +110,7 @@ export const getStats = async ({
   // 1. endpoint is /clicks
   // 2. interval is not defined
   // 3. there's a connection to MySQL
-  if (endpoint === "clicks" && !interval && conn) {
+  if (endpoint === "clicks" && key && !interval && conn) {
     const response =
       key === "_root"
         ? await conn.execute("SELECT clicks FROM Domain WHERE slug = ?", [
@@ -116,11 +129,12 @@ export const getStats = async ({
   }
 
   let url = new URL(
-    `https://api.us-east.tinybird.co/v0/pipes/${endpoint}.json`,
+    `https://api.us-east.tinybird.co/v0/pipes/${endpoint}_new.json`,
   );
   url.searchParams.append("domain", domain);
-  url.searchParams.append("key", decodeURIComponent(key));
-
+  if (key) {
+    url.searchParams.append("key", decodeURIComponent(key));
+  }
   if (interval) {
     url.searchParams.append(
       "start",
@@ -136,6 +150,12 @@ export const getStats = async ({
 
     url.searchParams.append("granularity", intervalData[interval].granularity);
   }
+
+  VALID_STATS_FILTERS.forEach((filter) => {
+    if (rest[filter]) {
+      url.searchParams.append(filter, rest[filter]);
+    }
+  });
 
   return await fetch(url.toString(), {
     headers: {

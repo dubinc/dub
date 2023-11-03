@@ -1,7 +1,7 @@
 {
   "name": "@dub/ui",
   "description": "UI components for Dub.co",
-  "version": "0.0.16",
+  "version": "0.0.18",
   "sideEffects": false,
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -35,11 +35,11 @@
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.0.1",
-    "@radix-ui/react-dialog": "1.0.3",
+    "@radix-ui/react-dialog": "1.0.5",
     "@radix-ui/react-navigation-menu": "^1.1.2",
-    "@radix-ui/react-popover": "1.0.5",
+    "@radix-ui/react-popover": "1.0.7",
     "@radix-ui/react-switch": "^1.0.1",
-    "@radix-ui/react-tooltip": "^1.0.2",
+    "@radix-ui/react-tooltip": "^1.0.7",
     "class-variance-authority": "^0.7.0",
     "lucide-react": "^0.284.0",
     "sonner": "^0.5.0",

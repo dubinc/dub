@@ -20,6 +20,7 @@ import {
   Tooltip,
   TooltipContent,
   useIntersectionObserver,
+  useRouterStuff,
 } from "@dub/ui";
 import {
   GOOGLE_FAVICON_URL,
@@ -29,7 +30,6 @@ import {
   getApexDomain,
   linkConstructor,
   nFormatter,
-  setQueryString,
   timeAgo,
 } from "@dub/utils";
 import { type Link as LinkProps } from "@prisma/client";
@@ -42,12 +42,7 @@ import {
   QrCode,
 } from "lucide-react";
 import Link from "next/link";
-import {
-  useParams,
-  usePathname,
-  useRouter,
-  useSearchParams,
-} from "next/navigation";
+import { useParams } from "next/navigation";
 import punycode from "punycode/";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import useSWR from "swr";
@@ -76,11 +71,9 @@ export default function LinkCard({
 
   const apexDomain = getApexDomain(url);
 
-  const router = useRouter();
   const params = useParams() as { slug?: string };
   const { slug } = params;
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const { queryParams } = useRouterStuff();
 
   const { exceededUsage } = useProject();
   const { verified, loading } = useDomains({ domain });
@@ -243,7 +236,6 @@ export default function LinkCard({
               src={`${GOOGLE_FAVICON_URL}${apexDomain}`}
               alt={apexDomain}
               className="h-8 w-8 rounded-full sm:h-10 sm:w-10"
-              unoptimized
               width={20}
               height={20}
             />
@@ -304,7 +296,7 @@ export default function LinkCard({
                     onClick={() => {
                       setShowAddEditLinkModal(true);
                     }}
-                    className="group rounded-full bg-gray-100 p-1.5 transition-all duration-75 hover:scale-105 active:scale-95"
+                    className="group rounded-full bg-gray-100 p-1.5 transition-all duration-75 hover:scale-105 active:scale-100"
                   >
                     <MessageCircle className="h-3.5 w-3.5 text-gray-700" />
                   </button>
@@ -313,12 +305,10 @@ export default function LinkCard({
               {tag?.color && (
                 <button
                   onClick={() => {
-                    setQueryString({
-                      router,
-                      pathname,
-                      searchParams,
-                      key: "tagId",
-                      value: tag.id,
+                    queryParams({
+                      set: {
+                        tagId: tag.id,
+                      },
                     });
                   }}
                   className="transition-all duration-75 hover:scale-105 active:scale-100"

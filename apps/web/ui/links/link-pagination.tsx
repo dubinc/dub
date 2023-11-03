@@ -1,14 +1,13 @@
 import useLinksCount from "@/lib/swr/use-links-count";
-import { NumberTooltip } from "@dub/ui";
-import { PAGINATION_LIMIT, nFormatter, setQueryString } from "@dub/utils";
+import { NumberTooltip, useRouterStuff } from "@dub/ui";
+import { PAGINATION_LIMIT, nFormatter } from "@dub/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 export default function LinkPagination() {
-  const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
   const currentPage = parseInt(searchParams?.get("page") || "1");
+  const { queryParams } = useRouterStuff();
 
   const { data: count } = useLinksCount();
 
@@ -23,12 +22,10 @@ export default function LinkPagination() {
         {currentPage > 1 && paginatedCount > 5 && (
           <button
             onClick={() => {
-              setQueryString({
-                router,
-                pathname,
-                searchParams,
-                key: "page",
-                value: (currentPage - 1).toString(),
+              queryParams({
+                set: {
+                  page: (currentPage - 1).toString(),
+                },
               });
             }}
             className="flex min-w-[1.5rem] items-center justify-center rounded-md bg-white p-1 transition-all hover:bg-gray-100"
@@ -70,12 +67,10 @@ export default function LinkPagination() {
         {currentPage < paginatedCount && paginatedCount > 5 && (
           <button
             onClick={() => {
-              setQueryString({
-                router,
-                pathname,
-                searchParams,
-                key: "page",
-                value: (currentPage + 1).toString(),
+              queryParams({
+                set: {
+                  page: (currentPage + 1).toString(),
+                },
               });
             }}
             className="flex min-w-[1.5rem] items-center justify-center rounded-md bg-white p-1 transition-all hover:bg-gray-100"
@@ -101,10 +96,9 @@ const Divider = () => {
 };
 
 const AnchorLink = ({ value }: { value: number }) => {
-  const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
   const currentPage = parseInt(searchParams?.get("page") || "1");
+  const { queryParams } = useRouterStuff();
 
   return (
     <button
@@ -112,12 +106,10 @@ const AnchorLink = ({ value }: { value: number }) => {
         value === currentPage ? "text-black" : "text-gray-400"
       } flex min-w-[1.5rem] items-center justify-center rounded-md bg-white p-1 font-semibold transition-all hover:bg-gray-100`}
       onClick={() => {
-        setQueryString({
-          router,
-          pathname,
-          searchParams,
-          key: "page",
-          value: value.toString(),
+        queryParams({
+          set: {
+            page: value.toString(),
+          },
         });
       }}
     >

@@ -17,6 +17,7 @@ import {
 } from "next/navigation";
 import { createContext, useMemo } from "react";
 import Clicks from "./clicks";
+import TopLinks from "./top-links";
 import Devices from "./devices";
 import Locations from "./locations";
 import Referer from "./referer";
@@ -24,12 +25,13 @@ import Toggle from "./toggle";
 import Feedback from "./feedback";
 import useSWR from "swr";
 import { fetcher } from "@dub/utils";
+import { VALID_STATS_FILTERS } from "@/lib/stats";
 
 export const StatsContext = createContext<{
   basePath: string;
   baseApiPath: string;
-  domain: string;
-  key: string;
+  domain?: string;
+  key?: string;
   queryString: string;
   interval: string;
   totalClicks?: number;
@@ -54,11 +56,12 @@ export default function Stats({
   const pathname = usePathname();
   const router = useRouter();
 
-  let { slug, key = "_root" } = useParams() as {
+  let { slug, key } = useParams() as {
     slug?: string;
     key?: string;
   };
   const domainSlug = searchParams?.get("domain");
+  // key can be a path param (public stats pages) or a query param (stats pages in app)
   key = searchParams?.get("key") || key;
   const interval = searchParams?.get("interval") || "24h";
 
@@ -88,12 +91,22 @@ export default function Stats({
   }, [slug, pathname, staticDomain, domainSlug, key]);
 
   const queryString = useMemo(() => {
+    const availableFilterParams = VALID_STATS_FILTERS.reduce(
+      (acc, filter) => ({
+        ...acc,
+        ...(searchParams?.get(filter) && {
+          [filter]: searchParams.get(filter),
+        }),
+      }),
+      {},
+    );
     return new URLSearchParams({
-      domain: domain!,
+      ...(domain && { domain }),
       ...(key && { key }),
+      ...availableFilterParams,
       ...(interval && { interval }),
     }).toString();
-  }, [slug, domain, key, interval]);
+  }, [slug, domain, key, searchParams, interval]);
 
   const { data: totalClicks } = useSWR<number>(
     `${baseApiPath}/clicks?${queryString}`,
@@ -106,8 +119,8 @@ export default function Stats({
         basePath, // basePath for the page (e.g. /stats/[key], /links/[key], /[slug]/[domain]/[key])
         baseApiPath, // baseApiPath for the API (e.g. /api/edge/links/[key]/stats)
         queryString,
-        domain: domain!, // domain for the link (e.g. dub.sh, stey.me, etc.)
-        key: key ? decodeURIComponent(key) : "", // link key (e.g. github, weathergpt, etc.)
+        domain: domain || undefined, // domain for the link (e.g. dub.sh, stey.me, etc.)
+        key: key ? decodeURIComponent(key) : undefined, // link key (e.g. github, weathergpt, etc.)
         interval, // time interval (e.g. 24h, 7d, 30d, etc.)
         totalClicks, // total clicks for the link
         modal, // whether or not this is a modal
@@ -128,9 +141,10 @@ export default function Stats({
           <Clicks />
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <Locations />
+            {slug && <TopLinks />}
             <Devices />
             <Referer />
-            <Feedback />
+            {!slug && <Feedback />}
           </div>
         </div>
       </div>

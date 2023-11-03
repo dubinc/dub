@@ -1,5 +1,5 @@
 import { BlurImage } from "@/ui/shared/blur-image";
-import { LoadingSpinner, Modal } from "@dub/ui";
+import { LoadingSpinner, Modal, useRouterStuff } from "@dub/ui";
 import { GOOGLE_FAVICON_URL, fetcher } from "@dub/utils";
 import { Link2, Maximize } from "lucide-react";
 import { useContext, useState } from "react";
@@ -16,6 +16,7 @@ export default function Referer() {
     fetcher,
   );
 
+  const { queryParams } = useRouterStuff();
   const [showModal, setShowModal] = useState(false);
 
   const barList = (limit?: number) => (
@@ -36,11 +37,18 @@ export default function Referer() {
               />
             ),
           title: d.referer,
+          href: queryParams({
+            set: {
+              referer: d.referer,
+            },
+            getNewPath: true,
+          }) as string,
           clicks: d.clicks,
         })) || []
       }
-      totalClicks={totalClicks || 0}
+      maxClicks={data?.[0]?.clicks || 0}
       barBackground="bg-red-100"
+      setShowModal={setShowModal}
       {...(limit && { limit })}
     />
   );
@@ -53,13 +61,13 @@ export default function Referer() {
         className="max-w-lg"
       >
         <div className="border-b border-gray-200 px-6 py-4">
-          <h1 className="text-xl font-semibold">Referrers</h1>
+          <h1 className="text-lg font-semibold">Referrers</h1>
         </div>
         {barList()}
       </Modal>
       <div className="scrollbar-hide relative z-0 h-[400px] overflow-scroll border border-gray-200 bg-white px-7 py-5 sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
         <div className="mb-5 flex">
-          <h1 className="text-xl font-semibold">Referrers</h1>
+          <h1 className="text-lg font-semibold">Referrers</h1>
         </div>
         {data ? (
           data.length > 0 ? (
@@ -77,7 +85,7 @@ export default function Referer() {
         {!modal && data && data.length > 9 && (
           <button
             onClick={() => setShowModal(true)}
-            className="absolute inset-x-0 bottom-4 z-10 mx-auto flex max-w-fit items-center space-x-2 rounded-md bg-white px-4 py-1.5 text-gray-500 transition-all hover:text-gray-800 active:scale-95"
+            className="absolute inset-x-0 bottom-4 z-10 mx-auto flex w-full items-center justify-center space-x-2 rounded-md bg-gradient-to-b from-transparent to-white py-2 text-gray-500 transition-all hover:text-gray-800 active:scale-95"
           >
             <Maximize className="h-4 w-4" />
             <p className="text-xs font-semibold uppercase">View all</p>

@@ -10,8 +10,8 @@ import {
 } from "@dub/utils";
 import { type Link as LinkProps } from "@prisma/client";
 import cloudinary from "cloudinary";
-import { NextApiRequest } from "next";
 import { isIframeable } from "../middleware/utils";
+import { deleteClickData } from "../tinybird";
 
 export async function getLinksForProject({
   projectId,
@@ -409,6 +409,10 @@ export async function deleteLink({
     cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
       invalidate: true,
     }),
+    // deleteClickData({
+    //   domain,
+    //   key,
+    // }),
     redis.del(`${domain}:${key}`),
   ]);
 }

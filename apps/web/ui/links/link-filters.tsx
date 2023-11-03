@@ -13,11 +13,11 @@ import {
   NumberTooltip,
   Popover,
   Switch,
+  useRouterStuff,
 } from "@dub/ui";
 import {
   SWIPE_REVEAL_ANIMATION_SETTINGS,
   nFormatter,
-  setQueryString,
   truncate,
 } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
@@ -50,19 +50,15 @@ export default function LinkFilters() {
   const { tags } = useTags();
   const { data: tagsCount } = useLinksCount({ groupBy: "tagId" });
 
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { queryParams } = useRouterStuff();
   const searchInputRef = useRef(); // this is a hack to clear the search input when the clear button is clicked
 
   useEffect(() => {
     if (searchParams?.has("search")) {
-      setQueryString({
-        router,
-        pathname,
-        searchParams,
-        key: "showArchived",
-        value: "true",
+      queryParams({
+        set: { showArchived: "true" },
       });
     }
   }, [pathname, searchParams]);
@@ -124,16 +120,14 @@ const ClearButton = ({ searchInputRef }) => {
 };
 
 const SearchBox = ({ searchInputRef }) => {
-  const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { queryParams } = useRouterStuff();
   const debounced = useDebouncedCallback((value) => {
-    setQueryString({
-      router,
-      pathname,
-      searchParams,
-      key: "search",
-      value,
+    queryParams({
+      set: {
+        search: value,
+      },
+      del: "page",
     });
   }, 500);
   const { isValidating } = useLinks();
@@ -182,10 +176,9 @@ const SearchBox = ({ searchInputRef }) => {
 };
 
 const DomainsFilter = ({ domains, primaryDomain }) => {
-  const router = useRouter();
   const { slug } = useParams() as { slug?: string };
-  const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { queryParams } = useRouterStuff();
 
   const [collapsed, setCollapsed] = useState(false);
 
@@ -254,12 +247,11 @@ const DomainsFilter = ({ domains, primaryDomain }) => {
                     searchParams?.get("domain") === value || domains.length <= 1
                   }
                   onChange={() => {
-                    setQueryString({
-                      router,
-                      pathname,
-                      searchParams,
-                      key: "domain",
-                      value,
+                    queryParams({
+                      set: {
+                        domain: value,
+                      },
+                      del: "page",
                     });
                   }}
                   type="radio"
@@ -290,9 +282,8 @@ const TagsFilter = ({
   tags: TagProps[];
   tagsCount: { tagId: string; _count: number }[];
 }) => {
-  const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { queryParams } = useRouterStuff();
   const [collapsed, setCollapsed] = useState(tags.length === 0 ? true : false);
   const [search, setSearch] = useState("");
   const [showMore, setShowMore] = useState(false);
@@ -368,12 +359,11 @@ const TagsFilter = ({
                     name={id}
                     checked={searchParams?.get("tagId") === id}
                     onChange={() => {
-                      setQueryString({
-                        router,
-                        pathname,
-                        searchParams,
-                        key: "tagId",
-                        value: id,
+                      queryParams({
+                        set: {
+                          tagId: id,
+                        },
+                        del: "page",
                       });
                     }}
                     type="radio"
@@ -545,9 +535,8 @@ const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
 };
 
 const MyLinksFilter = () => {
-  const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { queryParams } = useRouterStuff();
   const userId = searchParams?.get("userId");
   const { data: session } = useSession();
 
@@ -558,14 +547,16 @@ const MyLinksFilter = () => {
       </label>
       <Switch
         fn={() =>
-          setQueryString({
-            router,
-            pathname,
-            searchParams,
-            key: "userId",
-            // @ts-ignore
-            value: userId ? "" : session?.user?.id,
-          })
+          queryParams(
+            userId
+              ? { del: "userId" }
+              : {
+                  set: {
+                    // @ts-ignore
+                    userId: session?.user?.id,
+                  },
+                },
+          )
         }
         checked={userId ? true : false}
       />
@@ -574,9 +565,8 @@ const MyLinksFilter = () => {
 };
 
 const ArchiveFilter = () => {
-  const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { queryParams } = useRouterStuff();
   const showArchived = searchParams?.get("showArchived");
   return (
     <div className="flex items-center justify-between py-6">
@@ -585,13 +575,15 @@ const ArchiveFilter = () => {
       </label>
       <Switch
         fn={() =>
-          setQueryString({
-            router,
-            pathname,
-            searchParams,
-            key: "showArchived",
-            value: showArchived ? "" : "true",
-          })
+          queryParams(
+            showArchived
+              ? { del: "showArchived" }
+              : {
+                  set: {
+                    showArchived: "true",
+                  },
+                },
+          )
         }
         checked={showArchived ? true : false}
       />

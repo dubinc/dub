@@ -1,4 +1,4 @@
-import { getSearchParams } from "@/lib/auth";
+import { getSearchParams } from "@dub/utils";
 import { isBlacklistedReferrer } from "@/lib/edge-config";
 import { getLinkViaEdge } from "@/lib/planetscale";
 import { getStats } from "@/lib/stats";
@@ -15,7 +15,8 @@ export const GET = async (
   { params }: { params: Record<string, string> },
 ) => {
   const { endpoint } = params;
-  const { domain, key, interval } = getSearchParams(req.url);
+  const searchParams = getSearchParams(req.url);
+  const { domain, key, interval } = searchParams;
 
   // demo link (dub.sh/github)
   if (domain === "dub.sh" && key === "github") {
@@ -55,6 +56,7 @@ export const GET = async (
     key,
     endpoint,
     interval,
+    ...searchParams,
   });
 
   return NextResponse.json(response);
