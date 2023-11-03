@@ -129,7 +129,7 @@ export const getStats = async ({
   }
 
   let url = new URL(
-    `https://api.us-east.tinybird.co/v0/pipes/${endpoint}_new.json`,
+    `https://api.us-east.tinybird.co/v0/pipes/${endpoint}.json`,
   );
   url.searchParams.append("domain", domain);
   if (key) {
