@@ -12,16 +12,18 @@ export function Tooltip({
   children,
   content,
   side = "top",
+  desktopOnly,
   fullWidth,
 }: {
   children: ReactNode;
   content: ReactNode | string;
   side?: "top" | "bottom" | "left" | "right";
+  desktopOnly?: boolean;
   fullWidth?: boolean;
 }) {
   const { isMobile } = useMediaQuery();
 
-  if (isMobile) {
+  if (isMobile && !desktopOnly) {
     return (
       <Drawer.Root>
         <Drawer.Trigger
