@@ -26,6 +26,9 @@ export default function NavTabs() {
         { name: "Settings", href: `/${slug}/settings` },
       ];
     }
+    if (pathname === "/analytics") {
+      return [{ name: "← Back to all links", href: "/links" }];
+    }
     return [
       { name: "Projects", href: "/" },
       { name: "Dub.sh Links", href: "/links" },
