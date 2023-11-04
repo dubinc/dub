@@ -11,7 +11,7 @@ export const PUT = withAuth(
     try {
       body = await req.json();
     } catch (error) {
-      return new Response("Missing body.", { status: 400, headers });
+      return new Response("Missing or invalid body.", { status: 400, headers });
     }
     if (Object.keys(body).length === 0) {
       return new Response("No fields to update.", { status: 304, headers });
@@ -32,7 +32,7 @@ export const PUT = withAuth(
       );
     }
 
-    let { key, url, rewrite } = updatedLink;
+    let { domain, key, url, rewrite } = updatedLink;
 
     // for default dub.sh links (not part of a project)
     if (!project) {
@@ -61,6 +61,13 @@ export const PUT = withAuth(
     key = processKey(key);
     if (!key) {
       return new Response("Invalid key.", { status: 422, headers });
+    }
+
+    if (!project.domains?.find((d) => d.slug === domain)) {
+      return new Response("Domain does not belong to project.", {
+        status: 403,
+        headers,
+      });
     }
 
     const [response, invalidFavicon] = await Promise.allSettled([

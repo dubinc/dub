@@ -218,8 +218,8 @@ export const withAuth =
       // prevent unauthorized access to domains that don't belong to the project
       if (domain) {
         if (!project.domains?.find((d) => d.slug === domain)) {
-          return new Response("Domain not found.", {
-            status: 404,
+          return new Response("Domain does not belong to project.", {
+            status: 403,
             headers,
           });
         }
@@ -227,7 +227,7 @@ export const withAuth =
 
       if (link && link.projectId !== project.id) {
         return new Response("Unauthorized: Invalid link.", {
-          status: 401,
+          status: 403,
           headers,
         });
       }
@@ -315,7 +315,7 @@ export const withAuth =
       // if it's the default dub.sh link, we need to make sure the user is the owner of the link
       if (link.domain === "dub.sh" && link.userId !== session.user.id) {
         return new Response("Unauthorized: Invalid link.", {
-          status: 401,
+          status: 403,
           headers,
         });
       }

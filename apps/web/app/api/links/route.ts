@@ -46,7 +46,13 @@ export const GET = withAuth(
 // POST /api/links – create a new link
 export const POST = withAuth(
   async ({ req, headers, session, project }) => {
-    const body = await req.json();
+    let body;
+    try {
+      body = await req.json();
+    } catch (error) {
+      return new Response("Missing or invalid body.", { status: 400, headers });
+    }
+
     let { domain, key, url, rewrite, geo } = body;
 
     if (!url) {
@@ -100,6 +106,13 @@ export const POST = withAuth(
     key = processKey(key);
     if (!key) {
       return new Response("Invalid key.", { status: 422, headers });
+    }
+
+    if (!project.domains?.find((d) => d.slug === domain)) {
+      return new Response("Domain does not belong to project.", {
+        status: 403,
+        headers,
+      });
     }
 
     const [response, invalidFavicon] = await Promise.allSettled([
