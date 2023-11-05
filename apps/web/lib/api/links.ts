@@ -7,6 +7,7 @@ import prisma from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import {
   DEFAULT_REDIRECTS,
+  DUB_PROJECT_ID,
   getParamsFromURL,
   nanoid,
   truncate,
@@ -15,6 +16,7 @@ import {
 import cloudinary from "cloudinary";
 import { isIframeable } from "../middleware/utils";
 import { LinkProps, ProjectProps } from "../types";
+import { Session } from "../auth";
 
 export async function getLinksForProject({
   projectId,
@@ -199,22 +201,26 @@ export function processKey(key: string) {
 export async function processLink({
   payload,
   project,
+  session,
+  bulk = false,
 }: {
   payload: LinkProps;
   project: ProjectProps | null;
+  session?: Session;
+  bulk?: boolean;
 }) {
-  let { domain, key, url, rewrite, geo } = payload;
+  let { domain, key, url, image, rewrite, geo } = payload;
 
   if (!url) {
     return {
-      link: null,
+      link: payload,
       error: "Missing destination url.",
       status: 400,
     };
   }
   if (!domain) {
     return {
-      link: null,
+      link: payload,
       error: "Missing short link domain.",
       status: 400,
     };
@@ -223,7 +229,7 @@ export async function processLink({
   if (project) {
     if (!project.domains?.find((d) => d.slug === domain)) {
       return {
-        link: null,
+        link: payload,
         error: "Domain does not belong to project.",
         status: 403,
       };
@@ -232,14 +238,14 @@ export async function processLink({
   } else {
     if (domain !== "dub.sh") {
       return {
-        link: null,
+        link: payload,
         error: "Invalid domain",
         status: 403,
       };
     }
     if (key.includes("/")) {
       return {
-        link: null,
+        link: payload,
         error:
           "Key cannot contain '/'. You can only use this with a custom domain.",
         status: 422,
@@ -248,7 +254,7 @@ export async function processLink({
     const keyBlacklisted = await isBlacklistedKey(key);
     if (keyBlacklisted) {
       return {
-        link: null,
+        link: payload,
         error: "Invalid key.",
         status: 422,
       };
@@ -256,14 +262,14 @@ export async function processLink({
     const domainBlacklisted = await isBlacklistedDomain(url);
     if (domainBlacklisted) {
       return {
-        link: null,
+        link: payload,
         error: "Invalid url.",
         status: 422,
       };
     }
     if (rewrite) {
       return {
-        link: null,
+        link: payload,
         error: "You can only use link cloaking on a custom domain.",
         status: 403,
       };
@@ -271,11 +277,11 @@ export async function processLink({
   }
 
   // free plan restrictions
-  if ((!project || project.plan === "free") && geo) {
+  if (!project || project.plan === "free") {
     if (geo) {
       return {
-        link: null,
-        error: "You can only use geo targeting on a Pro plan.",
+        link: payload,
+        error: "You can only use geo targeting on a Pro plan and above.",
         status: 403,
       };
     }
@@ -285,10 +291,41 @@ export async function processLink({
     key = await getRandomKey(domain);
   }
 
+  if (bulk) {
+    if (image) {
+      return {
+        link: payload,
+        error: "You cannot set custom social cards with bulk link creation.",
+        status: 422,
+      };
+    }
+    if (rewrite) {
+      return {
+        link: payload,
+        error: "You cannot use link cloaking with bulk link creation.",
+        status: 422,
+      };
+    }
+    const exists = await checkIfKeyExists(domain, key);
+    if (exists) {
+      return {
+        link: payload,
+        error: `Link already exists.`,
+        status: 409,
+      };
+    }
+  }
+
   return {
     link: {
       ...payload,
       key,
+      // make sure projectId is set to the current project (or Dub's if there's no project)
+      projectId: project?.id || DUB_PROJECT_ID,
+      // if session is passed, set userId to the current user's id (we don't change the userId if it's already set, e.g. when editing a link)
+      ...(session && {
+        userId: session.user.id,
+      }),
     },
     error: null,
     status: 200,
@@ -375,6 +412,63 @@ export async function addLink(link: LinkProps) {
     });
   }
   return response;
+}
+
+export async function bulkCreateLinks(links: LinkProps[]) {
+  const pipeline = redis.pipeline();
+  links.forEach(({ domain, key, url, expiresAt, password }) => {
+    const hasPassword = password && password.length > 0 ? true : false;
+    const exat = expiresAt ? new Date(expiresAt).getTime() / 1000 : null;
+    pipeline.set(
+      `${domain}:${key}`,
+      {
+        url: encodeURIComponent(url),
+        password: hasPassword,
+      },
+      {
+        nx: true,
+        ...(exat && { exat: exat as any }),
+      },
+    );
+  });
+
+  await Promise.all([
+    prisma.link.createMany({
+      data: links.map((link) => {
+        const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
+          getParamsFromURL(link.url);
+        return {
+          ...link,
+          title: truncate(link.title, 120),
+          description: truncate(link.description, 240),
+          utm_source,
+          utm_medium,
+          utm_campaign,
+          utm_term,
+          utm_content,
+          geo: link.geo || undefined,
+        };
+      }),
+      skipDuplicates: true,
+    }),
+    pipeline.exec(),
+  ]);
+
+  const createdLinks = await Promise.all(
+    links.map(async (link) => {
+      const { key, domain } = link;
+      return await prisma.link.findUnique({
+        where: {
+          domain_key: {
+            domain,
+            key,
+          },
+        },
+      });
+    }),
+  );
+
+  return createdLinks;
 }
 
 export async function editLink({

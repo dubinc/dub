@@ -1,12 +1,5 @@
-import {
-  addLink,
-  getLinksForProject,
-  getRandomKey,
-  processKey,
-  processLink,
-} from "@/lib/api/links";
+import { addLink, getLinksForProject, processLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
-import { isBlacklistedDomain, isBlacklistedKey } from "@/lib/edge-config";
 import {
   DUB_PROJECT_ID,
   GOOGLE_FAVICON_URL,
@@ -57,6 +50,7 @@ export const POST = withAuth(
     const { link, error, status } = await processLink({
       payload: body,
       project,
+      session,
     });
 
     if (!link) {
@@ -64,11 +58,7 @@ export const POST = withAuth(
     }
 
     const [response, invalidFavicon] = await Promise.allSettled([
-      addLink({
-        ...link,
-        projectId: project?.id || DUB_PROJECT_ID,
-        userId: session.user.id,
-      }),
+      addLink(link),
       ...(!project
         ? [
             fetch(`${GOOGLE_FAVICON_URL}${getApexDomain(link.url)}`).then(
