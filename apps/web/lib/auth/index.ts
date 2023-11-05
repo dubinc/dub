@@ -90,10 +90,19 @@ export const withAuth =
       }
       const apiKey = authorizationHeader.replace("Bearer ", "");
 
+      if (!slug) {
+        return new Response(
+          "API access is only available for projects with custom domains.",
+          {
+            status: 403,
+          },
+        );
+      }
+
       const url = new URL(req.url || "", API_DOMAIN);
 
       if (url.pathname.includes("/stats/")) {
-        return new Response("Unauthorized: Invalid route.", {
+        return new Response("API access is not available for stats yet.", {
           status: 403,
         });
       }

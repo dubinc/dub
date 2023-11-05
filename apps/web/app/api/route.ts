@@ -477,7 +477,8 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
             },
             geo: {
               type: "object",
-              description: "Geo targeting information for the short link.",
+              description:
+                'Geo targeting information for the short link in JSON format {[COUNTRY]: "https://example.com" }. Learn more: https://dub.sh/geo',
               additionalProperties: {
                 type: "string",
                 format: "uri",

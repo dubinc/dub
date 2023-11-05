@@ -1,4 +1,8 @@
-import { isReservedKey } from "@/lib/edge-config";
+import {
+  isBlacklistedDomain,
+  isBlacklistedKey,
+  isReservedKey,
+} from "@/lib/edge-config";
 import prisma from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import {
@@ -8,10 +12,9 @@ import {
   truncate,
   validKeyRegex,
 } from "@dub/utils";
-import { type Link as LinkProps } from "@prisma/client";
 import cloudinary from "cloudinary";
 import { isIframeable } from "../middleware/utils";
-import { deleteClickData } from "../tinybird";
+import { LinkProps, ProjectProps } from "../types";
 
 export async function getLinksForProject({
   projectId,
@@ -191,6 +194,105 @@ export function processKey(key: string) {
     return null;
   }
   return key;
+}
+
+export async function processLink({
+  payload,
+  project,
+}: {
+  payload: LinkProps;
+  project: ProjectProps | null;
+}) {
+  let { domain, key, url, rewrite, geo } = payload;
+
+  if (!url) {
+    return {
+      link: null,
+      error: "Missing destination url.",
+      status: 400,
+    };
+  }
+  if (!domain) {
+    return {
+      link: null,
+      error: "Missing short link domain.",
+      status: 400,
+    };
+  }
+
+  if (project) {
+    if (!project.domains?.find((d) => d.slug === domain)) {
+      return {
+        link: null,
+        error: "Domain does not belong to project.",
+        status: 403,
+      };
+    }
+    // if it's not a custom project, do some filtering
+  } else {
+    if (domain !== "dub.sh") {
+      return {
+        link: null,
+        error: "Invalid domain",
+        status: 403,
+      };
+    }
+    if (key.includes("/")) {
+      return {
+        link: null,
+        error:
+          "Key cannot contain '/'. You can only use this with a custom domain.",
+        status: 422,
+      };
+    }
+    const keyBlacklisted = await isBlacklistedKey(key);
+    if (keyBlacklisted) {
+      return {
+        link: null,
+        error: "Invalid key.",
+        status: 422,
+      };
+    }
+    const domainBlacklisted = await isBlacklistedDomain(url);
+    if (domainBlacklisted) {
+      return {
+        link: null,
+        error: "Invalid url.",
+        status: 422,
+      };
+    }
+    if (rewrite) {
+      return {
+        link: null,
+        error: "You can only use link cloaking on a custom domain.",
+        status: 403,
+      };
+    }
+  }
+
+  // free plan restrictions
+  if ((!project || project.plan === "free") && geo) {
+    if (geo) {
+      return {
+        link: null,
+        error: "You can only use geo targeting on a Pro plan.",
+        status: 403,
+      };
+    }
+  }
+
+  if (!key) {
+    key = await getRandomKey(domain);
+  }
+
+  return {
+    link: {
+      ...payload,
+      key,
+    },
+    error: null,
+    status: 200,
+  };
 }
 
 export async function addLink(link: LinkProps) {

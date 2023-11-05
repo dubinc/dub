@@ -3,6 +3,7 @@ import {
   getLinksForProject,
   getRandomKey,
   processKey,
+  processLink,
 } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
 import { isBlacklistedDomain, isBlacklistedKey } from "@/lib/edge-config";
@@ -53,85 +54,24 @@ export const POST = withAuth(
       return new Response("Missing or invalid body.", { status: 400, headers });
     }
 
-    let { domain, key, url, rewrite, geo } = body;
+    const { link, error, status } = await processLink({
+      payload: body,
+      project,
+    });
 
-    if (!url) {
-      return new Response("Missing destination url.", { status: 400, headers });
-    }
-    if (!domain) {
-      return new Response("Missing short link domain.", {
-        status: 400,
-        headers,
-      });
-    }
-
-    if (!key) {
-      key = await getRandomKey(domain);
-    }
-
-    // if it's a custom project
-    if (project) {
-      if (!project.domains?.find((d) => d.slug === domain)) {
-        return new Response("Domain does not belong to project.", {
-          status: 403,
-          headers,
-        });
-      }
-      // if it's not a custom project, do some filtering
-    } else {
-      if (domain !== "dub.sh") {
-        return new Response("Invalid domain", {
-          status: 403,
-          headers,
-        });
-      }
-      if (key.includes("/")) {
-        return new Response("Key cannot contain '/'.", {
-          status: 422,
-          headers,
-        });
-      }
-      const keyBlacklisted = await isBlacklistedKey(key);
-      if (keyBlacklisted) {
-        return new Response("Invalid key.", { status: 422, headers });
-      }
-      const domainBlacklisted = await isBlacklistedDomain(url);
-      if (domainBlacklisted) {
-        return new Response("Invalid url.", { status: 422, headers });
-      }
-      if (rewrite) {
-        return new Response(
-          "You can only use link cloaking on a custom domain.",
-          { status: 403, headers },
-        );
-      }
-    }
-
-    // free plan restrictions
-    if (!project || project.plan === "free") {
-      if (geo) {
-        return new Response("You can only use geo targeting on a Pro plan.", {
-          status: 403,
-          headers,
-        });
-      }
-    }
-
-    key = processKey(key);
-    if (!key) {
-      return new Response("Invalid key.", { status: 422, headers });
+    if (!link) {
+      return new Response(error, { status, headers });
     }
 
     const [response, invalidFavicon] = await Promise.allSettled([
       addLink({
-        ...body,
-        key,
+        ...link,
         projectId: project?.id || DUB_PROJECT_ID,
         userId: session.user.id,
       }),
       ...(!project
         ? [
-            fetch(`${GOOGLE_FAVICON_URL}${getApexDomain(url)}`).then(
+            fetch(`${GOOGLE_FAVICON_URL}${getApexDomain(link.url)}`).then(
               (res) => !res.ok,
             ),
           ]
@@ -148,9 +88,9 @@ export const POST = withAuth(
 
     if (!project && invalidFavicon) {
       await log({
-        message: `*${
-          session.user.email
-        }* created a new link (dub.sh/${key}) for ${url} ${
+        message: `*${session.user.email}* created a new link (dub.sh/${
+          link.key
+        }) for ${link.url} ${
           invalidFavicon ? " but it has an invalid favicon :thinking_face:" : ""
         }`,
         type: "links",

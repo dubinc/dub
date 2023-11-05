@@ -1,5 +1,5 @@
 import { withAuth } from "@/lib/auth";
-import { deleteLink, editLink, processKey } from "@/lib/api/links";
+import { deleteLink, editLink, processKey, processLink } from "@/lib/api/links";
 import { NextResponse } from "next/server";
 import { isBlacklistedDomain, isBlacklistedKey } from "@/lib/edge-config";
 import { GOOGLE_FAVICON_URL, getApexDomain, log } from "@dub/utils";
@@ -32,49 +32,17 @@ export const PUT = withAuth(
       );
     }
 
-    let { domain, key, url, rewrite } = updatedLink;
+    const {
+      link: processedLink,
+      error,
+      status,
+    } = await processLink({
+      payload: updatedLink,
+      project,
+    });
 
-    // if it's a custom project
-    if (project) {
-      if (project.domains?.find((d) => d.slug === domain)) {
-        return new Response("Domain does not belong to project.", {
-          status: 403,
-          headers,
-        });
-      }
-      // if it's not a custom project, do some filtering
-    } else {
-      if (domain !== "dub.sh") {
-        return new Response("Invalid domain", {
-          status: 403,
-          headers,
-        });
-      }
-      if (key.includes("/")) {
-        return new Response("Key cannot contain '/'.", {
-          status: 422,
-          headers,
-        });
-      }
-      const keyBlacklisted = await isBlacklistedKey(key);
-      if (keyBlacklisted) {
-        return new Response("Invalid key.", { status: 422, headers });
-      }
-      const domainBlacklisted = await isBlacklistedDomain(url);
-      if (domainBlacklisted) {
-        return new Response("Invalid url.", { status: 422, headers });
-      }
-      if (rewrite) {
-        return new Response(
-          "You can only use link cloaking on a custom domain.",
-          { status: 403, headers },
-        );
-      }
-    }
-
-    key = processKey(key);
-    if (!key) {
-      return new Response("Invalid key.", { status: 422, headers });
+    if (!processedLink) {
+      return new Response(error, { status, headers });
     }
 
     const [response, invalidFavicon] = await Promise.allSettled([
@@ -82,13 +50,13 @@ export const PUT = withAuth(
         // link is guaranteed to exist because if not we will return 404
         domain: link!.domain,
         key: link!.key,
-        updatedLink,
+        updatedLink: processedLink,
       }),
-      ...(!project && url
+      ...(!project && processedLink.url
         ? [
-            fetch(`${GOOGLE_FAVICON_URL}${getApexDomain(url)}`).then(
-              (res) => !res.ok,
-            ),
+            fetch(
+              `${GOOGLE_FAVICON_URL}${getApexDomain(processedLink.url)}`,
+            ).then((res) => !res.ok),
           ]
         : []),
       // @ts-ignore
@@ -100,9 +68,9 @@ export const PUT = withAuth(
 
     if (!project && invalidFavicon) {
       await log({
-        message: `*${
-          session.user.email
-        }* edited a link (dub.sh/${key}) to the ${url} ${
+        message: `*${session.user.email}* edited a link (dub.sh/${
+          processedLink.key
+        }) to the ${processedLink.url} ${
           invalidFavicon ? " but it has an invalid favicon :thinking_face:" : ""
         }`,
         type: "links",
