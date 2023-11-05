@@ -90,21 +90,21 @@ export const withAuth =
       }
       const apiKey = authorizationHeader.replace("Bearer ", "");
 
-      if (!slug) {
-        return new Response(
-          "API access is only available for projects with custom domains.",
-          {
-            status: 403,
-          },
-        );
-      }
-
       const url = new URL(req.url || "", API_DOMAIN);
 
       if (url.pathname.includes("/stats/")) {
         return new Response("API access is not available for stats yet.", {
           status: 403,
         });
+      }
+
+      if (!slug && url.pathname.includes("/links/")) {
+        return new Response(
+          "API access is only available for projects with custom domains.",
+          {
+            status: 403,
+          },
+        );
       }
 
       const hashedKey = hashToken(apiKey, {

@@ -1,7 +1,6 @@
 import { withAuth } from "@/lib/auth";
-import { deleteLink, editLink, processKey, processLink } from "@/lib/api/links";
+import { deleteLink, editLink, processLink } from "@/lib/api/links";
 import { NextResponse } from "next/server";
-import { isBlacklistedDomain, isBlacklistedKey } from "@/lib/edge-config";
 import { GOOGLE_FAVICON_URL, getApexDomain, log } from "@dub/utils";
 
 // PUT /api/projects/[slug]/links/[linkId] – update a link
