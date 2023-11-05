@@ -34,8 +34,22 @@ export const PUT = withAuth(
 
     let { domain, key, url, rewrite } = updatedLink;
 
-    // for default dub.sh links (not part of a project)
-    if (!project) {
+    // if it's a custom project
+    if (project) {
+      if (project.domains?.find((d) => d.slug === domain)) {
+        return new Response("Domain does not belong to project.", {
+          status: 403,
+          headers,
+        });
+      }
+      // if it's not a custom project, do some filtering
+    } else {
+      if (domain !== "dub.sh") {
+        return new Response("Invalid domain", {
+          status: 403,
+          headers,
+        });
+      }
       if (key.includes("/")) {
         return new Response("Key cannot contain '/'.", {
           status: 422,
@@ -61,13 +75,6 @@ export const PUT = withAuth(
     key = processKey(key);
     if (!key) {
       return new Response("Invalid key.", { status: 422, headers });
-    }
-
-    if (!project.domains?.find((d) => d.slug === domain)) {
-      return new Response("Domain does not belong to project.", {
-        status: 403,
-        headers,
-      });
     }
 
     const [response, invalidFavicon] = await Promise.allSettled([
