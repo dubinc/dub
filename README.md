@@ -42,6 +42,19 @@ Dub is an open-source link management tool for modern marketing teams to create,
 
 To develop Dub locally, you will need to clone this repository and set up all the env vars outlined in the [`.env.example` file](https://github.com/steven-tey/dub/blob/main/apps/web/.env.example).
 
+Note:- use "sslaccept=strict" if you are using Planetscale MySQL Database.
+
+After that move to the directory of apps/web/prisma for creating the tables mentioned in the schema.prisma file if you are connecting first time to your 
+Planetscale db or else it will throw 'table not found' exception during the build process.
+Run the following command:-
+```
+npx prisma db push
+```
+Make sure you have installed "mintlify" as it is required to build apps/docs using the following command:-
+```
+npm i -g mintlify
+```
+
 Once that's done, you can use the following commands to run the app locally:
 
 ```

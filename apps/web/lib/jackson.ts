@@ -24,7 +24,7 @@ const opts: JacksonOption = {
     type: "mysql",
     url: process.env.DATABASE_URL as string,
     ssl: {
-      rejectUnauthorized: false,
+      rejectUnauthorized: true,
     },
   },
   idpEnabled: true, // to allow folks to SSO directly from their IDP
