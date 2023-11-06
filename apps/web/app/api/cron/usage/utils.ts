@@ -114,28 +114,31 @@ export const updateUsage = async () => {
               },
             },
           }),
-          getStats({
-            domain: project.domains.map((domain) => domain.slug).join(","),
-            endpoint: "top_links",
-            interval: "30d",
-          }).then((data) =>
-            data
-              .slice(0, 5)
-              .map(
-                ({
-                  domain,
-                  key,
-                  clicks,
-                }: {
-                  domain: string;
-                  key: string;
-                  clicks: number;
-                }) => ({
-                  link: linkConstructor({ domain, key, pretty: true }),
-                  clicks,
-                }),
-              ),
-          ),
+          // only fetch top links stats if the project had usage
+          project.usage > 0
+            ? getStats({
+                domain: project.domains.map((domain) => domain.slug).join(","),
+                endpoint: "top_links",
+                interval: "30d",
+              }).then((data) =>
+                data
+                  .slice(0, 5)
+                  .map(
+                    ({
+                      domain,
+                      key,
+                      clicks,
+                    }: {
+                      domain: string;
+                      key: string;
+                      clicks: number;
+                    }) => ({
+                      link: linkConstructor({ domain, key, pretty: true }),
+                      clicks,
+                    }),
+                  ),
+              )
+            : [],
         ]);
 
         const emails = project.users.map((user) => user.user.email) as string[];
