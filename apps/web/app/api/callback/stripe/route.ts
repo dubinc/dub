@@ -124,9 +124,10 @@ export const POST = async (req: Request) => {
         if (!project) {
           await log({
             message:
-              "Project not found in Stripe webhook `customer.subscription.updated` callback",
+              "Project with Stripe ID `" +
+              stripeId +
+              "` not found in Stripe webhook `customer.subscription.updated` callback",
             type: "cron",
-            mention: true,
           });
           return;
         }
@@ -200,9 +201,10 @@ export const POST = async (req: Request) => {
         if (!project) {
           await log({
             message:
-              "Project not found in Stripe webhook `customer.subscription.deleted` callback",
+              "Project with Stripe ID `" +
+              stripeId +
+              "` not found in Stripe webhook `customer.subscription.deleted` callback",
             type: "cron",
-            mention: true,
           });
           return;
         }
