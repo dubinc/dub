@@ -8,7 +8,9 @@ if (!command) {
   process.exit(1);
 }
 
-const scriptPath = `./scripts/${command}.ts`;
+const scriptPath = `./scripts/${command}.${
+  command === "send-emails" ? "tsx" : "ts"
+}`;
 
 exec(
   `tsx ${scriptPath}`,
