@@ -1,3 +1,4 @@
+import { limiter } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { getPlanFromPriceId, isNewCustomer } from "@/lib/stripe/utils";
@@ -46,44 +47,29 @@ export const POST = async (req: Request) => {
           return;
         }
 
+        const stripeId = checkoutSession.customer.toString();
+        const subscription = await stripe.subscriptions.retrieve(
+          checkoutSession.subscription as string,
+        );
+        const plan = getPlanFromPriceId(subscription.items.data[0].price.id);
+        const usageLimit = plan.quota;
+
         // when the project subscribes to a plan, set their stripe customer ID
         // in the database for easy identification in future webhook events
         // also update the billingCycleStart to today's date
 
-        await prisma.project.update({
+        const project = await prisma.project.update({
           where: {
             id: checkoutSession.client_reference_id,
           },
           data: {
-            stripeId: checkoutSession.customer.toString(),
-            billingCycleStart: new Date().getDate(),
-          },
-        });
-
-        // for subscription updates
-      } else if (event.type === "customer.subscription.updated") {
-        const subscriptionUpdated = event.data.object as Stripe.Subscription;
-        const priceId = subscriptionUpdated.items.data[0].price.id;
-        const newCustomer = isNewCustomer(event.data.previous_attributes);
-
-        const plan = getPlanFromPriceId(priceId);
-        const usageLimit = plan.quota;
-        const stripeId = subscriptionUpdated.customer.toString();
-
-        // If a project upgrades/downgrades their subscription, update their usage limit in the database.
-        const data = await prisma.project.update({
-          where: {
             stripeId,
-          },
-          data: {
+            billingCycleStart: new Date().getDate(),
             usageLimit,
             plan: plan.slug,
           },
           select: {
             users: {
-              where: {
-                role: "owner",
-              },
               select: {
                 user: {
                   select: {
@@ -95,7 +81,50 @@ export const POST = async (req: Request) => {
             },
           },
         });
-        if (!data) {
+
+        const users = project.users.map(({ user }) => ({
+          name: user.name,
+          email: user.email,
+        }));
+
+        await Promise.allSettled(
+          users.map((user) => {
+            limiter.schedule(() =>
+              sendEmail({
+                email: user.email as string,
+                subject: `Thank you for upgrading to Dub ${plan.name}!`,
+                react: UpgradeEmail({
+                  name: user.name,
+                  email: user.email as string,
+                  plan: plan.name,
+                }),
+                marketing: true,
+              }),
+            );
+          }),
+        );
+      }
+
+      // for subscription updates
+      if (event.type === "customer.subscription.updated") {
+        const subscriptionUpdated = event.data.object as Stripe.Subscription;
+        const priceId = subscriptionUpdated.items.data[0].price.id;
+        const newCustomer = isNewCustomer(event.data.previous_attributes);
+
+        // skipping cause this is handled in the checkout.session.completed event
+        if (newCustomer) return;
+
+        const plan = getPlanFromPriceId(priceId);
+        const usageLimit = plan.quota;
+        const stripeId = subscriptionUpdated.customer.toString();
+
+        const project = await prisma.project.findUnique({
+          where: {
+            stripeId,
+          },
+        });
+
+        if (!project) {
           await log({
             message:
               "Project not found in Stripe webhook `customer.subscription.updated` callback",
@@ -105,24 +134,32 @@ export const POST = async (req: Request) => {
           return;
         }
 
-        // Send thank you email to project owner if they are a new customer
-        if (newCustomer) {
-          const owner = data.users[0].user;
+        // If a project upgrades/downgrades their subscription, update their usage limit in the database.
+        await prisma.project.update({
+          where: {
+            stripeId,
+          },
+          data: {
+            usageLimit,
+            plan: plan.slug,
+          },
+          select: {
+            users: {
+              select: {
+                user: {
+                  select: {
+                    name: true,
+                    email: true,
+                  },
+                },
+              },
+            },
+          },
+        });
+      }
 
-          await sendEmail({
-            email: owner.email as string,
-            subject: `Thank you for upgrading to Dub ${plan.name}!`,
-            react: UpgradeEmail({
-              name: owner.name,
-              email: owner.email as string,
-              plan: plan.name,
-            }),
-            marketing: true,
-          });
-        }
-
-        // If project cancels their subscription
-      } else if (event.type === "customer.subscription.deleted") {
+      // If project cancels their subscription
+      if (event.type === "customer.subscription.deleted") {
         const subscriptionDeleted = event.data.object as Stripe.Subscription;
 
         const stripeId = subscriptionDeleted.customer.toString();
@@ -177,10 +214,6 @@ export const POST = async (req: Request) => {
             mention: true,
           }),
         ]);
-      } else {
-        return new Response(`Unhandled relevant event: ${event.type}`, {
-          status: 400,
-        });
       }
     } catch (error) {
       await log({
