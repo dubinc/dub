@@ -111,9 +111,6 @@ export const POST = async (req: Request) => {
         const priceId = subscriptionUpdated.items.data[0].price.id;
         const newCustomer = isNewCustomer(event.data.previous_attributes);
 
-        // skipping cause this is handled in the checkout.session.completed event
-        if (newCustomer) return;
-
         const plan = getPlanFromPriceId(priceId);
         const usageLimit = plan.quota;
         const stripeId = subscriptionUpdated.customer.toString();
@@ -135,7 +132,7 @@ export const POST = async (req: Request) => {
         }
 
         // If a project upgrades/downgrades their subscription, update their usage limit in the database.
-        await prisma.project.update({
+        const updatedProject = await prisma.project.update({
           where: {
             stripeId,
           },
@@ -156,6 +153,30 @@ export const POST = async (req: Request) => {
             },
           },
         });
+
+        if (newCustomer) {
+          const users = updatedProject.users.map(({ user }) => ({
+            name: user.name,
+            email: user.email,
+          }));
+
+          await Promise.allSettled(
+            users.map((user) => {
+              limiter.schedule(() =>
+                sendEmail({
+                  email: user.email as string,
+                  subject: `Thank you for upgrading to Dub ${plan.name}!`,
+                  react: UpgradeEmail({
+                    name: user.name,
+                    email: user.email as string,
+                    plan: plan.name,
+                  }),
+                  marketing: true,
+                }),
+              );
+            }),
+          );
+        }
       }
 
       // If project cancels their subscription
