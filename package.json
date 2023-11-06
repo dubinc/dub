@@ -13,9 +13,6 @@
     "publish-utils": "turbo build --filter='@dub/utils' && cd packages/utils && npm publish && cd ../../",
     "script": "echo 'Run this script in apps/web'"
   },
-  "resolutions": {
-    "@react-email/render": "^0.0.9"
-  },
   "devDependencies": {
     "@dub/tailwind-config": "workspace:*",
     "eslint": "^8.48.0",
