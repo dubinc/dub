@@ -41,3 +41,4 @@ next-env.d.ts
 .react-email
 .contentlayer
 .vscode
+*.csv
