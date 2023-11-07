@@ -23,7 +23,7 @@ model User {
   sessions       Session[]
   projects       ProjectUsers[]
   links          Link[]
-  tokens        Token[]
+  tokens         Token[]
   createdAt      DateTime       @default(now())
 }
 
