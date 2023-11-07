@@ -1,27 +1,7 @@
 import "dotenv-flow/config";
 import prisma from "@/lib/prisma";
 import { getStats } from "@/lib/stats";
-
-function linkConstructor({
-  key,
-  domain = "dub.sh",
-  localhost,
-  pretty,
-  noDomain,
-}: {
-  key: string;
-  domain?: string;
-  localhost?: boolean;
-  pretty?: boolean;
-  noDomain?: boolean;
-}) {
-  const link = `${
-    localhost ? "http://home.localhost:8888" : `https://${domain}`
-  }${key !== "_root" ? `/${key}` : ""}`;
-
-  if (noDomain) return `/${key}`;
-  return pretty ? link.replace(/^https?:\/\//, "") : link;
-}
+import { linkConstructor } from "./utils";
 
 async function main() {
   const project = await prisma.project.findUnique({

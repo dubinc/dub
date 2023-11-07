@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/schema.json",
-  "name": "Docs",
+  "name": "Dub.co Docs",
   "logo": {
     "dark": "/logos/logotype-dark.svg",
     "light": "/logos/logotype.svg",
@@ -59,7 +59,22 @@
         "api-reference/endpoint/retrieve-a-link",
         "api-reference/endpoint/edit-a-link",
         "api-reference/endpoint/delete-a-link",
-        "api-reference/endpoint/retrieve-a-list-of-links"
+        "api-reference/endpoint/retrieve-a-list-of-links",
+        "api-reference/endpoint/bulk-create-links"
+      ]
+    },
+    {
+      "group": "Projects",
+      "pages": [
+        "api-reference/endpoint/retrieve-a-project",
+        "api-reference/endpoint/retrieve-a-list-of-projects"
+      ]
+    },
+    {
+      "group": "Tags",
+      "pages": [
+        "api-reference/endpoint/create-a-new-tag",
+        "api-reference/endpoint/retrieve-a-list-of-tags"
       ]
     },
     {

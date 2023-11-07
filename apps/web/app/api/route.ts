@@ -25,10 +25,76 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
       },
     ],
     paths: {
+      "/projects": {
+        get: {
+          description:
+            "Retrieve a list of projects for the authenticated user.",
+          operationId: "getProjects",
+          security: [
+            {
+              bearerToken: [],
+            },
+          ],
+          summary: "Retrieve a list of projects",
+          responses: {
+            "200": {
+              description: "A list of projects",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "array",
+                    items: {
+                      $ref: "#/components/schemas/Project",
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      "/projects/{slug}": {
+        get: {
+          description: "Retrieve a project for the authenticated user.",
+          operationId: "getProject",
+          security: [
+            {
+              bearerToken: [],
+            },
+          ],
+          summary: "Retrieve a project",
+          parameters: [
+            {
+              name: "slug",
+              description:
+                "The slug for the project to retrieve. E.g. for app.dub.co/acme, the slug is 'acme'.",
+              in: "path",
+              required: true,
+              schema: {
+                description:
+                  "The slug for the project to retrieve. E.g. for app.dub.co/acme, the slug is 'acme'.",
+                type: "string",
+              },
+            },
+          ],
+          responses: {
+            "200": {
+              description: "The retrieved project",
+              content: {
+                "application/json": {
+                  schema: {
+                    $ref: "#/components/schemas/ProjectDetails",
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
       "/projects/{slug}/links": {
         get: {
           description:
-            "Retrieve a list of links for the authenticated user or project. The list will be paginated and the provided query parameters allow filtering the returned links.",
+            "Retrieve a list of links for the authenticated project. The list will be paginated and the provided query parameters allow filtering the returned links.",
           operationId: "getLinks",
           security: [
             {
@@ -150,8 +216,7 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
           },
         },
         post: {
-          description:
-            "Create a new link for the authenticated user or project.",
+          description: "Create a new link for the authenticated project.",
           operationId: "createLink",
           security: [
             {
@@ -264,7 +329,7 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
       },
       "/projects/{slug}/links/{linkId}": {
         put: {
-          description: "Edit link for the authenticated user or project.",
+          description: "Edit link for the authenticated project.",
           operationId: "editLink",
           security: [
             {
@@ -323,7 +388,7 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
           },
         },
         delete: {
-          description: "Delete a link for the authenticated user or project.",
+          description: "Delete a link for the authenticated project.",
           operationId: "deleteLink",
           security: [
             {
@@ -364,6 +429,156 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
                 "application/json": {
                   schema: {
                     $ref: "#/components/schemas/Link",
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      "/projects/{slug}/links/bulk": {
+        post: {
+          description:
+            "Bulk create up to 100 links for the authenticated project.",
+          operationId: "bulkCreateLinks",
+          security: [
+            {
+              bearerToken: [],
+            },
+          ],
+          summary: "Bulk create links",
+          parameters: [
+            {
+              name: "slug",
+              description:
+                "The slug for the project to create links for. E.g. for app.dub.co/acme, the slug is 'acme'.",
+              in: "path",
+              required: true,
+              schema: {
+                description:
+                  "The slug for the project to create links for. E.g. for app.dub.co/acme, the slug is 'acme'.",
+                type: "string",
+              },
+            },
+          ],
+          requestBody: {
+            description: "Details of the links to create.",
+            required: true,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "array",
+                  items: {
+                    $ref: "#/components/schemas/LinkBody",
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            "200": {
+              description: "The created links",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "array",
+                    items: {
+                      $ref: "#/components/schemas/Link",
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      "/projects/{slug}/tags": {
+        get: {
+          description: "Retrieve a list of tags for the authenticated project.",
+          operationId: "getTags",
+          security: [
+            {
+              bearerToken: [],
+            },
+          ],
+          summary: "Retrieve a list of tags",
+          parameters: [
+            {
+              name: "slug",
+              description:
+                "The slug for the project to retrieve tags for. E.g. for app.dub.co/acme, the slug is 'acme'.",
+              in: "path",
+              required: true,
+              schema: {
+                description:
+                  "The slug for the project to retrieve tags for. E.g. for app.dub.co/acme, the slug is 'acme'.",
+                type: "string",
+              },
+            },
+          ],
+          responses: {
+            "200": {
+              description: "A list of tags",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "array",
+                    items: {
+                      $ref: "#/components/schemas/Tag",
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        post: {
+          description: "Create a new tag for the authenticated project.",
+          operationId: "createTag",
+          security: [
+            {
+              bearerToken: [],
+            },
+          ],
+          summary: "Create a new tag",
+          parameters: [
+            {
+              name: "slug",
+              description:
+                "The slug for the project to create tags for. E.g. for app.dub.co/acme, the slug is 'acme'.",
+              in: "path",
+              required: true,
+              schema: {
+                description:
+                  "The slug for the project to create tags for. E.g. for app.dub.co/acme, the slug is 'acme'.",
+                type: "string",
+              },
+            },
+          ],
+          requestBody: {
+            description: "Details of the tag to create.",
+            required: true,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    tag: {
+                      type: "string",
+                      description: "The name of the tag to create.",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            "200": {
+              description: "The created tag",
+              content: {
+                "application/json": {
+                  schema: {
+                    $ref: "#/components/schemas/Tag",
                   },
                 },
               },
@@ -578,6 +793,130 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
               description:
                 "The date and time when the short link was last updated.",
               readOnly: true,
+            },
+          },
+        },
+        Project: {
+          type: "object",
+          properties: {
+            id: {
+              type: "string",
+              format: "cuid",
+              description: "The unique ID of the project.",
+            },
+            name: {
+              type: "string",
+              description: "The name of the project.",
+            },
+            slug: {
+              type: "string",
+              description: "The slug of the project.",
+            },
+            logo: {
+              type: "string",
+              description: "The logo of the project.",
+              default: null,
+              nullable: true,
+            },
+            usage: {
+              type: "number",
+              description: "The usage of the project.",
+              default: 0,
+              readOnly: true,
+            },
+            usageLimit: {
+              type: "number",
+              description: "The usage limit of the project.",
+              default: 0,
+              readOnly: true,
+            },
+            plan: {
+              type: "string",
+              description: "The plan of the project.",
+              default: "free",
+              readOnly: true,
+            },
+            stripeId: {
+              type: "string",
+              description: "The Stripe ID of the project.",
+              default: null,
+              nullable: true,
+              readOnly: true,
+            },
+            billingCycleStart: {
+              type: "number",
+              description:
+                "The date and time when the billing cycle starts for the project.",
+              default: null,
+              nullable: true,
+              readOnly: true,
+            },
+            createdAt: {
+              type: "string",
+              format: "date-time",
+              description: "The date and time when the project was created.",
+              readOnly: true,
+            },
+          },
+        },
+        ProjectDetails: {
+          allOf: [
+            {
+              $ref: "#/components/schemas/Project",
+            },
+            {
+              type: "object",
+              properties: {
+                users: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      role: {
+                        type: "string",
+                        description:
+                          "The role of the authenticated user in the project.",
+                      },
+                    },
+                    description:
+                      "The role of the authenticated user in the project.",
+                  },
+                  description:
+                    "The role of the authenticated user in the project.",
+                },
+                domains: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      slug: {
+                        type: "string",
+                        description: "The domain of the project.",
+                      },
+                    },
+                    description: "The domains of the project.",
+                  },
+                  description: "The domains of the project.",
+                },
+              },
+            },
+          ],
+        },
+        Tag: {
+          type: "object",
+          properties: {
+            id: {
+              type: "string",
+              format: "cuid",
+              description: "The unique ID of the tag.",
+            },
+            name: {
+              type: "string",
+              description: "The name of the tag.",
+            },
+            color: {
+              type: "string",
+              description: "The color of the tag.",
             },
           },
         },

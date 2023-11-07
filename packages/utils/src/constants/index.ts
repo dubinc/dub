@@ -87,7 +87,6 @@ export const DEFAULT_REDIRECTS = {
   settings: "https://app.dub.co/settings",
   welcome: "https://app.dub.co/welcome",
   discord: "https://twitter.com/dubdotco", // placeholder for now
-  tags: "https://dub.co/help/how-to-use-tags",
 };
 
 export const DUB_HEADERS = {
