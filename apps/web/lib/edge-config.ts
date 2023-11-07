@@ -71,7 +71,7 @@ export const isReservedKey = async (key: string) => {
       "metatags",
       "terms",
       "privacy",
-    ];
+    ].includes(key);
   }
   let reservedKey;
   try {

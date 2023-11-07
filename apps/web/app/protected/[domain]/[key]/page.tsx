@@ -9,12 +9,47 @@ const description =
   "This link is password protected. Please enter the password to view it.";
 const image = "https://dub.co/_static/password-protected.png";
 
-export const metadata = constructMetadata({
-  title,
-  description,
-  image,
-  noIndex: true,
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: { domain: string; key: string };
+}) {
+  const domain = params.domain;
+  const key = decodeURIComponent(params.key);
+
+  const link = await prisma.link.findUnique({
+    where: {
+      domain_key: {
+        domain,
+        key,
+      },
+    },
+    select: {
+      project: {
+        select: {
+          logo: true,
+          plan: true,
+        },
+      },
+    },
+  });
+
+  if (!link) {
+    notFound();
+  }
+
+  return constructMetadata({
+    title,
+    description,
+    image,
+    ...(domain !== "dub.sh" &&
+      link.project?.plan !== "free" &&
+      link.project?.logo && {
+        icons: link.project.logo,
+      }),
+    noIndex: true,
+  });
+}
 
 export async function generateStaticParams() {
   const passwordProtectedLinks = await prisma.link.findMany({
