@@ -1,7 +1,7 @@
 import { limiter } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
-import { getPlanFromPriceId, isNewCustomer } from "@/lib/stripe/utils";
+import { getPlanFromPriceId, isUpgrade } from "@/lib/stripe/utils";
 import { redis } from "@/lib/upstash";
 import { log } from "@dub/utils";
 import { sendEmail } from "emails";
@@ -109,7 +109,7 @@ export const POST = async (req: Request) => {
       if (event.type === "customer.subscription.updated") {
         const subscriptionUpdated = event.data.object as Stripe.Subscription;
         const priceId = subscriptionUpdated.items.data[0].price.id;
-        const newCustomer = isNewCustomer(event.data.previous_attributes);
+        const upgraded = isUpgrade(event.data.previous_attributes);
 
         const plan = getPlanFromPriceId(priceId);
         const usageLimit = plan.quota;
@@ -129,7 +129,7 @@ export const POST = async (req: Request) => {
               "`* not found in Stripe webhook `customer.subscription.updated` callback",
             type: "cron",
           });
-          return;
+          return NextResponse.json({ received: true });
         }
 
         // If a project upgrades/downgrades their subscription, update their usage limit in the database.
@@ -155,7 +155,7 @@ export const POST = async (req: Request) => {
           },
         });
 
-        if (newCustomer) {
+        if (upgraded) {
           const users = updatedProject.users.map(({ user }) => ({
             name: user.name,
             email: user.email,
@@ -206,7 +206,7 @@ export const POST = async (req: Request) => {
               "`* not found in Stripe webhook `customer.subscription.deleted` callback",
             type: "cron",
           });
-          return;
+          return NextResponse.json({ received: true });
         }
 
         const projectDomains = project.domains.map((domain) => domain.slug);
