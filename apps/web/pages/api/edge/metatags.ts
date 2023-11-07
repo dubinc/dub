@@ -4,6 +4,7 @@ import { ipAddress } from "@vercel/edge";
 import { getToken } from "next-auth/jwt";
 import { NextFetchEvent, NextRequest } from "next/server";
 import { parse } from "node-html-parser";
+import he from "he";
 
 export const config = {
   runtime: "edge",
@@ -123,7 +124,7 @@ export const getMetaTags = async (url: string, ev?: NextFetchEvent) => {
   for (let k in metaTags) {
     let { property, content } = metaTags[k];
 
-    property && (object[property] = content);
+    property && (object[property] = he.decode(content));
   }
 
   for (let m in linkTags) {

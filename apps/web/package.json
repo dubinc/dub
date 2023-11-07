@@ -48,6 +48,7 @@
     "framer-motion": "^10.12.12",
     "fuse.js": "^6.6.2",
     "github-slugger": "^2.0.0",
+    "he": "^1.2.0",
     "html-escaper": "^3.0.3",
     "js-cookie": "^3.0.5",
     "lucide-react": "^0.269.0",
@@ -88,6 +89,7 @@
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^4.0.0",
     "@types/dotenv-flow": "^3.3.2",
+    "@types/he": "^1.2.3",
     "@types/html-escaper": "^3.0.0",
     "@types/ms": "^0.7.31",
     "@types/node": "18.11.9",
