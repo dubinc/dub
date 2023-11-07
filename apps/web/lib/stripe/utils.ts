@@ -9,7 +9,7 @@ export function getPlanFromPriceId(priceId: string) {
 }
 
 // custom type coercion because Stripe's types are wrong
-export function isNewCustomer(
+export function isUpgrade(
   previousAttributes:
     | {
         default_payment_method?: string;
@@ -23,26 +23,12 @@ export function isNewCustomer(
       }
     | undefined,
 ) {
-  let isNewCustomer = false;
-  try {
-    if (
-      // if the project is upgrading from free to pro
-      previousAttributes?.default_payment_method === null
-    ) {
-      isNewCustomer = true;
-    } else {
-      // if the project is upgrading from pro to enterprise
-      const oldPriceId =
-        previousAttributes?.items?.data &&
-        previousAttributes?.items?.data[0].price.id;
-      if (oldPriceId && getPlanFromPriceId(oldPriceId).slug === "pro") {
-        isNewCustomer = true;
-      }
-    }
-  } catch (error) {
-    console.error("An error occurred:", error);
-  }
-  return isNewCustomer;
+  const oldPriceId =
+    previousAttributes?.items?.data &&
+    previousAttributes?.items?.data[0].price.id;
+
+  //
+  return oldPriceId && getPlanFromPriceId(oldPriceId).slug === "pro";
 }
 
 export const PLANS = [
