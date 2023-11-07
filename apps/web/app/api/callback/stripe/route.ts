@@ -155,6 +155,7 @@ export const POST = async (req: Request) => {
           },
         });
 
+        // if it's an upgrade from Pro to Enterprise
         if (upgraded) {
           const users = updatedProject.users.map(({ user }) => ({
             name: user.name,
