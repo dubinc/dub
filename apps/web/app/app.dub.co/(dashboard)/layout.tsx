@@ -6,10 +6,11 @@ import Link from "next/link";
 import { ReactNode, Suspense } from "react";
 import UserDropdown from "@/ui/layout/user-dropdown";
 import ProjectSelect from "@/ui/layout/project-select";
-import ProjectSelectPlaceholder from "@/ui/layout/project-select/placeholder";
 import NavTabs from "@/ui/layout/nav-tabs";
 import UpgradeBanner from "@/ui/layout/upgrade-banner";
 
+export const dynamic = "error";
+export const dynamicParams = true;
 export const metadata = constructMetadata();
 
 export default function Layout({ children }: { children: ReactNode }) {
@@ -23,9 +24,7 @@ export default function Layout({ children }: { children: ReactNode }) {
                 <Logo className="h-8 w-8 transition-all duration-75 active:scale-95" />
               </Link>
               <Divider className="h-8 w-8 text-gray-200 sm:ml-3" />
-              <Suspense fallback={<ProjectSelectPlaceholder />}>
-                <ProjectSelect />
-              </Suspense>
+              <ProjectSelect />
               <UpgradeBanner />
             </div>
             <div className="flex items-center space-x-6">

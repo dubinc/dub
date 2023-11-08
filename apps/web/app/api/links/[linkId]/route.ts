@@ -3,7 +3,7 @@ import { deleteLink, editLink, processLink } from "@/lib/api/links";
 import { NextResponse } from "next/server";
 import { GOOGLE_FAVICON_URL, getApexDomain, log } from "@dub/utils";
 
-// PUT /api/projects/[slug]/links/[linkId] – update a link
+// PUT /api/links/[linkId] – update a link
 export const PUT = withAuth(
   async ({ req, headers, project, link, session }) => {
     let body;
@@ -86,7 +86,7 @@ export const PUT = withAuth(
   },
 );
 
-// DELETE /api/projects/[slug]/links/[linkId] – delete a link
+// DELETE /api/links/[linkId] – delete a link
 export const DELETE = withAuth(async ({ headers, link }) => {
   // link is guaranteed to exist because if not we will return 404
   const response = await deleteLink({

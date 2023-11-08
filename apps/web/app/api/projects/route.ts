@@ -19,6 +19,9 @@ export const GET = withAuth(async ({ session }) => {
         },
       },
     },
+    include: {
+      domains: true,
+    },
   });
   return NextResponse.json(projects);
 });
