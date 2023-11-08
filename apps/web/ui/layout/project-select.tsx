@@ -10,13 +10,10 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { useCallback, useContext, useMemo, useState } from "react";
-import ProjectSelectPlaceholder from "./placeholder";
+import useProjects from "@/lib/swr/use-projects";
 
-export default function ProjectSelectClient({
-  projects,
-}: {
-  projects: ProjectWithDomainProps[];
-}) {
+export default function ProjectSelect() {
+  const { projects } = useProjects();
   const { data: session, status } = useSession();
   const { slug, key } = useParams() as {
     slug?: string;
@@ -55,7 +52,7 @@ export default function ProjectSelectClient({
 
   const [openPopover, setOpenPopover] = useState(false);
 
-  if (status === "loading") {
+  if (!projects || status === "loading") {
     return <ProjectSelectPlaceholder />;
   }
 
@@ -202,6 +199,16 @@ function ProjectList({
         <PlusCircle className="h-6 w-6 text-gray-500" />
         <span className="block truncate">Add a new project</span>
       </button>
+    </div>
+  );
+}
+
+function ProjectSelectPlaceholder() {
+  return (
+    <div className="flex animate-pulse items-center space-x-1.5 rounded-lg px-1.5 py-2 sm:w-60">
+      <div className="h-8 w-8 animate-pulse rounded-full bg-gray-200" />
+      <div className="hidden h-8 w-28 animate-pulse rounded-md bg-gray-200 sm:block sm:w-40" />
+      <ChevronsUpDown className="h-4 w-4 text-gray-400" aria-hidden="true" />
     </div>
   );
 }
