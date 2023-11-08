@@ -3,7 +3,6 @@ import { clsx, type ClassValue } from "clsx";
 import ms from "ms";
 import { customAlphabet } from "nanoid";
 import { Metadata } from "next";
-import { ReadonlyURLSearchParams } from "next/navigation";
 import { twMerge } from "tailwind-merge";
 import {
   HOME_DOMAIN,
@@ -350,21 +349,6 @@ export const getSearchParams = (url: string) => {
   });
 
   return params;
-};
-
-export const getQueryString = ({
-  searchParams,
-  groupBy,
-}: {
-  searchParams: URLSearchParams | ReadonlyURLSearchParams | null;
-  groupBy?: "domain" | "tagId";
-}) => {
-  const newSearchParams = new URLSearchParams(searchParams?.toString());
-  if (groupBy) {
-    newSearchParams.set("groupBy", groupBy);
-  }
-  const queryString = newSearchParams.toString();
-  return queryString.length > 0 ? `?${queryString}` : "";
 };
 
 export const truncate = (str: string | null, length: number) => {

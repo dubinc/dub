@@ -9,8 +9,7 @@ import { useImportBitlyModal } from "@/ui/modals/import-bitly-modal";
 import { useImportShortModal } from "@/ui/modals/import-short-modal";
 import { useUpgradePlanModal } from "@/ui/modals/upgrade-plan-modal";
 import { useAcceptInviteModal } from "@/ui/modals/accept-invite-modal";
-import { getQueryString } from "@dub/utils";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import {
   Dispatch,
   ReactNode,
@@ -56,7 +55,6 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
 
   const params = useParams() as { slug?: string };
   const { slug } = params;
-  const searchParams = useSearchParams();
 
   // special link polling setup to poll links as they're being created (for bitly import)
   const [pollLinks, setPollLinks] = useState(false);
@@ -65,20 +63,11 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
       // if pollLinks is true, start polling links endpoint every 500 ms (stop after 20 seconds)
       const pollingInterval = setInterval(() => {
         mutate(
-          `/api${slug ? `/projects/${slug}` : ""}/links${getQueryString({
-            searchParams,
-          })}`,
-        );
-        mutate(`/api/projects/${slug}/tags`);
-        mutate(
-          (key) =>
-            typeof key === "string" &&
-            key.startsWith(
-              `/api${slug ? `/projects/${slug}` : ""}/links/count`,
-            ),
+          (key) => typeof key === "string" && key.startsWith("/api/links"),
           undefined,
           { revalidate: true },
         );
+        mutate(`/api/projects/${slug}/tags`);
       }, 500);
       setTimeout(() => {
         setPollLinks(false);
