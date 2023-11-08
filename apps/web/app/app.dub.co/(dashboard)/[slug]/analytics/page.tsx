@@ -1,14 +1,14 @@
 import Stats from "@/ui/stats";
-import AnalyticsAuth from "./auth";
+import AnalyticsClient from "./client";
 import { Suspense } from "react";
 import LayoutLoader from "@/ui/layout/layout-loader";
 
 export default function ProjectAnalytics() {
   return (
     <Suspense fallback={<LayoutLoader />}>
-      <AnalyticsAuth>
+      <AnalyticsClient>
         <Stats />
-      </AnalyticsAuth>
+      </AnalyticsClient>
     </Suspense>
   );
 }
