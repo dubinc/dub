@@ -9,8 +9,7 @@ import ProjectSelect from "@/ui/layout/project-select";
 import NavTabs from "@/ui/layout/nav-tabs";
 import UpgradeBanner from "@/ui/layout/upgrade-banner";
 
-export const dynamic = "error";
-export const dynamicParams = true;
+export const dynamic = "force-static";
 export const metadata = constructMetadata();
 
 export default function Layout({ children }: { children: ReactNode }) {
