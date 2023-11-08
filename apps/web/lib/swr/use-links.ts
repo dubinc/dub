@@ -1,21 +1,20 @@
-import { fetcher, getQueryString } from "@dub/utils";
+import { fetcher } from "@dub/utils";
+import { useRouterStuff } from "@dub/ui";
 import { type Link as LinkProps } from "@prisma/client";
 import useSWR from "swr";
 import { UserProps } from "../types";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 
 export default function useLinks() {
   const { slug } = useParams() as { slug?: string };
-  const searchParams = useSearchParams();
+  const { getQueryString } = useRouterStuff();
 
   const { data: links, isValidating } = useSWR<
     (LinkProps & {
       user: UserProps;
     })[]
   >(
-    `/api${slug ? `/projects/${slug}` : ""}/links${getQueryString({
-      searchParams,
-    })}`,
+    `/api/links${getQueryString(slug ? { projectSlug: slug } : undefined)}`,
     fetcher,
     {
       dedupingInterval: 20000,

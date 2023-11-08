@@ -1,5 +1,5 @@
 ---
-openapi: post /projects/{slug}/links/bulk
+openapi: post /links/bulk
 ---
 
 <Note>
@@ -17,7 +17,7 @@ openapi: post /projects/{slug}/links/bulk
 <RequestExample>
 ```bash cURL
 curl --request POST \
-  --url https://api.dub.co/projects/{slug}/links/bulk \
+  --url https://api.dub.co/links/bulk?projectSlug={YOUR_PROJECT_SLUG} \
   --header 'Authorization: Bearer {YOUR_TOKEN}' \
   --header 'Content-Type: application/json' \
   --data '[

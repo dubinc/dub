@@ -19,7 +19,6 @@ import {
   cn,
   deepEqual,
   getApexDomain,
-  getQueryString,
   getUrlWithoutUTMParams,
   isValidUrl,
   linkConstructor,
@@ -116,9 +115,9 @@ function AddEditLinkModal({
       !keyError
     ) {
       fetch(
-        `/api${
-          slug ? `/projects/${slug}` : ""
-        }/links/exists?domain=${domain}&key=${debouncedKey}`,
+        `/api/links/exists?domain=${domain}&key=${debouncedKey}${
+          slug ? `&projectSlug=${slug}` : ""
+        }`,
       ).then(async (res) => {
         if (res.status === 200) {
           const exists = await res.json();
@@ -132,7 +131,7 @@ function AddEditLinkModal({
     setKeyError(null);
     setGeneratingKey(true);
     const res = await fetch(
-      `/api${slug ? `/projects/${slug}` : ""}/links/random?domain=${domain}`,
+      `/api/links/random?domain=${domain}${slug ? `&projectSlug=${slug}` : ""}`,
     );
     const key = await res.json();
     setData((prev) => ({ ...prev, key }));
@@ -227,12 +226,12 @@ function AddEditLinkModal({
     if (props?.key) {
       return {
         method: "PUT",
-        url: `/api${slug ? `/projects/${slug}` : ""}/links/${props.id}`,
+        url: `/api/links/${props.id}${slug ? `?projectSlug=${slug}` : ""}`,
       };
     } else {
       return {
         method: "POST",
-        url: `/api${slug ? `/projects/${slug}` : ""}/links`,
+        url: `/api/links${slug ? `?projectSlug=${slug}` : ""}`,
       };
     }
   }, [props, slug, domain]);
@@ -352,24 +351,12 @@ function AddEditLinkModal({
                     va.track("Created Link", {
                       type: slug ? "Custom Domain" : "Default Domain",
                     });
-                  await Promise.all([
-                    mutate(
-                      (key) =>
-                        typeof key === "string" &&
-                        key.startsWith(
-                          `/api${slug ? `/projects/${slug}` : ""}/links`,
-                        ),
-                    ),
-                    mutate(
-                      (key) =>
-                        typeof key === "string" &&
-                        key.startsWith(
-                          `/api${slug ? `/projects/${slug}` : ""}/links/count`,
-                        ),
-                      undefined,
-                      { revalidate: true },
-                    ),
-                  ]);
+                  await mutate(
+                    (key) =>
+                      typeof key === "string" && key.startsWith("/api/links"),
+                    undefined,
+                    { revalidate: true },
+                  );
                   // for welcome page, redirect to links page after adding a link
                   if (pathname === "/welcome") {
                     await router.push("/links");
