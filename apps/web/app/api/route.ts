@@ -454,7 +454,7 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
           },
         },
       },
-      "/projects/{slug}": {
+      "/projects/{projectSlug}": {
         get: {
           description: "Retrieve a project for the authenticated user.",
           operationId: "getProject",
@@ -466,7 +466,7 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
           summary: "Retrieve a project",
           parameters: [
             {
-              name: "slug",
+              name: "projectSlug",
               description:
                 "The slug for the project to retrieve. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
               in: "path",
@@ -492,7 +492,7 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
           },
         },
       },
-      "/projects/{slug}/tags": {
+      "/projects/{projectSlug}/tags": {
         get: {
           description: "Retrieve a list of tags for the authenticated project.",
           operationId: "getTags",
@@ -504,7 +504,7 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
           summary: "Retrieve a list of tags",
           parameters: [
             {
-              name: "slug",
+              name: "projectSlug",
               description:
                 "The slug for the project to retrieve tags for. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
               in: "path",
@@ -543,7 +543,7 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
           summary: "Create a new tag",
           parameters: [
             {
-              name: "slug",
+              name: "projectSlug",
               description:
                 "The slug for the project to create tags for. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
               in: "path",
