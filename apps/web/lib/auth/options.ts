@@ -298,15 +298,32 @@ export const authOptions: NextAuthOptions = {
           user?.createdAt &&
           new Date(user.createdAt).getTime() > Date.now() - 10000
         ) {
-          sendEmail({
-            subject: "Welcome to Dub.co!",
-            email,
-            react: WelcomeEmail({
+          await Promise.allSettled([
+            fetch(
+              `https://api.resend.com/audiences/${process.env.RESEND_AUDIENCE_ID}/contacts`,
+              {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  email,
+                  first_name: user.name?.split(" ")[0] || null,
+                  last_name: user.name?.split(" ")[1] || null,
+                }),
+              },
+            ),
+            sendEmail({
+              subject: "Welcome to Dub.co!",
               email,
-              name: user.name || null,
+              react: WelcomeEmail({
+                email,
+                name: user.name || null,
+              }),
+              marketing: true,
             }),
-            marketing: true,
-          });
+          ]);
         }
       }
     },

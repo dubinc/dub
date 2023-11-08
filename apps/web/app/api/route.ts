@@ -25,73 +25,7 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
       },
     ],
     paths: {
-      "/projects": {
-        get: {
-          description:
-            "Retrieve a list of projects for the authenticated user.",
-          operationId: "getProjects",
-          security: [
-            {
-              bearerToken: [],
-            },
-          ],
-          summary: "Retrieve a list of projects",
-          responses: {
-            "200": {
-              description: "A list of projects",
-              content: {
-                "application/json": {
-                  schema: {
-                    type: "array",
-                    items: {
-                      $ref: "#/components/schemas/Project",
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-      "/projects/{slug}": {
-        get: {
-          description: "Retrieve a project for the authenticated user.",
-          operationId: "getProject",
-          security: [
-            {
-              bearerToken: [],
-            },
-          ],
-          summary: "Retrieve a project",
-          parameters: [
-            {
-              name: "slug",
-              description:
-                "The slug for the project to retrieve. E.g. for app.dub.co/acme, the slug is 'acme'.",
-              in: "path",
-              required: true,
-              schema: {
-                description:
-                  "The slug for the project to retrieve. E.g. for app.dub.co/acme, the slug is 'acme'.",
-                type: "string",
-              },
-            },
-          ],
-          responses: {
-            "200": {
-              description: "The retrieved project",
-              content: {
-                "application/json": {
-                  schema: {
-                    $ref: "#/components/schemas/ProjectDetails",
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-      "/projects/{slug}/links": {
+      "/links": {
         get: {
           description:
             "Retrieve a list of links for the authenticated project. The list will be paginated and the provided query parameters allow filtering the returned links.",
@@ -104,14 +38,14 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
           summary: "Retrieve a list of links",
           parameters: [
             {
-              name: "slug",
+              name: "projectSlug",
               description:
-                "The slug for the project to retrieve links for. E.g. for app.dub.co/acme, the slug is 'acme'.",
-              in: "path",
+                "The slug for the project to retrieve links for. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
+              in: "query",
               required: true,
               schema: {
                 description:
-                  "The slug for the project to retrieve links for. E.g. for app.dub.co/acme, the slug is 'acme'.",
+                  "The slug for the project to retrieve links for. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
                 type: "string",
               },
             },
@@ -226,14 +160,14 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
           summary: "Create a new link",
           parameters: [
             {
-              name: "slug",
+              name: "projectSlug",
               description:
-                "The slug for the project to create links for. E.g. for app.dub.co/acme, the slug is 'acme'.",
-              in: "path",
+                "The slug for the project to create links for. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
+              in: "query",
               required: true,
               schema: {
                 description:
-                  "The slug for the project to create links for. E.g. for app.dub.co/acme, the slug is 'acme'.",
+                  "The slug for the project to create links for. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
                 type: "string",
               },
             },
@@ -264,7 +198,7 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
           },
         },
       },
-      "/projects/{slug}/links/info": {
+      "/links/info": {
         get: {
           description:
             "Retrieve the info for a link from their domain and key.",
@@ -277,14 +211,14 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
           summary: "Retrieve a link",
           parameters: [
             {
-              name: "slug",
+              name: "projectSlug",
               description:
-                "The slug for the project that the link belongs to. E.g. for app.dub.co/acme, the slug is 'acme'.",
-              in: "path",
+                "The slug for the project that the link belongs to. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
+              in: "query",
               required: true,
               schema: {
                 description:
-                  "The slug for the project that the link belongs to. E.g. for app.dub.co/acme, the slug is 'acme'.",
+                  "The slug for the project that the link belongs to. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
                 type: "string",
               },
             },
@@ -327,7 +261,7 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
           },
         },
       },
-      "/projects/{slug}/links/{linkId}": {
+      "/links/{linkId}": {
         put: {
           description: "Edit link for the authenticated project.",
           operationId: "editLink",
@@ -339,14 +273,14 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
           summary: "Edit a link",
           parameters: [
             {
-              name: "slug",
+              name: "projectSlug",
               description:
-                "The slug for the project that the link belongs to. E.g. for app.dub.co/acme, the slug is 'acme'.",
-              in: "path",
+                "The slug for the project that the link belongs to. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
+              in: "query",
               required: true,
               schema: {
                 description:
-                  "The slug for the project that the link belongs to. E.g. for app.dub.co/acme, the slug is 'acme'.",
+                  "The slug for the project that the link belongs to. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
                 type: "string",
               },
             },
@@ -398,14 +332,14 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
           summary: "Delete a link",
           parameters: [
             {
-              name: "slug",
+              name: "projectSlug",
               description:
-                "The slug for the project that the link belongs to. E.g. for app.dub.co/acme, the slug is 'acme'.",
-              in: "path",
+                "The slug for the project that the link belongs to. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
+              in: "query",
               required: true,
               schema: {
                 description:
-                  "The slug for the project that the link belongs to. E.g. for app.dub.co/acme, the slug is 'acme'.",
+                  "The slug for the project that the link belongs to. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
                 type: "string",
               },
             },
@@ -436,7 +370,7 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
           },
         },
       },
-      "/projects/{slug}/links/bulk": {
+      "/links/bulk": {
         post: {
           description:
             "Bulk create up to 100 links for the authenticated project.",
@@ -449,14 +383,14 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
           summary: "Bulk create links",
           parameters: [
             {
-              name: "slug",
+              name: "projectSlug",
               description:
-                "The slug for the project to create links for. E.g. for app.dub.co/acme, the slug is 'acme'.",
-              in: "path",
+                "The slug for the project to create links for. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
+              in: "query",
               required: true,
               schema: {
                 description:
-                  "The slug for the project to create links for. E.g. for app.dub.co/acme, the slug is 'acme'.",
+                  "The slug for the project to create links for. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
                 type: "string",
               },
             },
@@ -492,6 +426,72 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
           },
         },
       },
+      "/projects": {
+        get: {
+          description:
+            "Retrieve a list of projects for the authenticated user.",
+          operationId: "getProjects",
+          security: [
+            {
+              bearerToken: [],
+            },
+          ],
+          summary: "Retrieve a list of projects",
+          responses: {
+            "200": {
+              description: "A list of projects",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "array",
+                    items: {
+                      $ref: "#/components/schemas/Project",
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      "/projects/{slug}": {
+        get: {
+          description: "Retrieve a project for the authenticated user.",
+          operationId: "getProject",
+          security: [
+            {
+              bearerToken: [],
+            },
+          ],
+          summary: "Retrieve a project",
+          parameters: [
+            {
+              name: "slug",
+              description:
+                "The slug for the project to retrieve. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
+              in: "path",
+              required: true,
+              schema: {
+                description:
+                  "The slug for the project to retrieve. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
+                type: "string",
+              },
+            },
+          ],
+          responses: {
+            "200": {
+              description: "The retrieved project",
+              content: {
+                "application/json": {
+                  schema: {
+                    $ref: "#/components/schemas/ProjectDetails",
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
       "/projects/{slug}/tags": {
         get: {
           description: "Retrieve a list of tags for the authenticated project.",
@@ -506,12 +506,12 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
             {
               name: "slug",
               description:
-                "The slug for the project to retrieve tags for. E.g. for app.dub.co/acme, the slug is 'acme'.",
+                "The slug for the project to retrieve tags for. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
               in: "path",
               required: true,
               schema: {
                 description:
-                  "The slug for the project to retrieve tags for. E.g. for app.dub.co/acme, the slug is 'acme'.",
+                  "The slug for the project to retrieve tags for. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
                 type: "string",
               },
             },
@@ -545,12 +545,12 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
             {
               name: "slug",
               description:
-                "The slug for the project to create tags for. E.g. for app.dub.co/acme, the slug is 'acme'.",
+                "The slug for the project to create tags for. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
               in: "path",
               required: true,
               schema: {
                 description:
-                  "The slug for the project to create tags for. E.g. for app.dub.co/acme, the slug is 'acme'.",
+                  "The slug for the project to create tags for. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
                 type: "string",
               },
             },

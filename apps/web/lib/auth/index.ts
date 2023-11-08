@@ -72,7 +72,8 @@ export const withAuth =
     { params }: { params: Record<string, string> | undefined },
   ) => {
     const searchParams = getSearchParams(req.url);
-    const { slug, linkId } = params || {};
+    const { linkId } = params || {};
+    const slug = params?.slug || searchParams.projectSlug;
     const domain = params?.domain || searchParams.domain;
 
     let session: Session | undefined;
@@ -98,9 +99,9 @@ export const withAuth =
         });
       }
 
-      if (!slug && url.pathname.includes("/links/")) {
+      if (!slug && url.pathname.includes("/links")) {
         return new Response(
-          "API access is only available for projects with custom domains.",
+          "API access is only available for projects with custom domains. Did you forget to include a `projectSlug` query parameter?",
           {
             status: 403,
           },

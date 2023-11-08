@@ -97,7 +97,7 @@ export default function UpgradeEmail({
               ◆ Unlimited tags
             </Text>
             <Text className="ml-1 text-sm leading-4 text-black">
-              ◆ API access (coming soon)
+              ◆ API access
             </Text>
             {plan === "Enterprise" && (
               <Text className="ml-1 text-sm leading-4 text-black">
