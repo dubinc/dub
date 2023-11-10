@@ -4,7 +4,7 @@ import { randomBadgeColor } from "@/ui/links/tag-badge";
 import { NextResponse } from "next/server";
 
 // GET /api/projects/[slug]/tags - get all tags for a project
-export const GET = withAuth(async ({ project }) => {
+export const GET = withAuth(async ({ project, headers }) => {
   const tags = await prisma.tag.findMany({
     where: {
       projectId: project.id,
@@ -18,11 +18,11 @@ export const GET = withAuth(async ({ project }) => {
       name: "asc",
     },
   });
-  return NextResponse.json(tags);
+  return NextResponse.json(tags, { headers });
 });
 
 // POST /api/projects/[slug]/tags - create a tag for a project
-export const POST = withAuth(async ({ req, project }) => {
+export const POST = withAuth(async ({ req, project, headers }) => {
   const tagsCount = await prisma.tag.count({
     where: {
       projectId: project.id,
@@ -44,5 +44,5 @@ export const POST = withAuth(async ({ req, project }) => {
       projectId: project.id,
     },
   });
-  return NextResponse.json(response);
+  return NextResponse.json(response, { headers });
 });
