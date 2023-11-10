@@ -119,6 +119,7 @@ export const SHOW_BACKGROUND_SEGMENTS = [
 
 export const ALL_TOOLS = [
   { name: "Metatags API", slug: "metatags" },
+  { name: "QR Code Generator", slug: "qr-code" },
   { name: "Link Inspector", slug: "inspector" },
 ];
 
