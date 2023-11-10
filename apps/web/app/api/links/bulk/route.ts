@@ -50,7 +50,7 @@ export const POST = withAuth(
     const validLinksResponse =
       validLinks.length > 0 ? await bulkCreateLinks(validLinks) : [];
 
-    return NextResponse.json([...validLinksResponse, ...errors]);
+    return NextResponse.json([...validLinksResponse, ...errors], { headers });
   },
   {
     requiredPlan: ["pro", "enterprise"],

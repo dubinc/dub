@@ -19,6 +19,7 @@ export const GET = withAuth(async ({ headers, searchParams }) => {
   if (!response) {
     return new Response("Link not found.", {
       status: 404,
+      headers,
     });
   }
   return NextResponse.json(response, {
