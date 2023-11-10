@@ -108,6 +108,7 @@ export const SHOW_BACKGROUND_SEGMENTS = [
   "pricing",
   "help",
   "features",
+  "compare",
   "customers",
   "blog",
   "(blog-post)",
