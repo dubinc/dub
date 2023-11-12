@@ -492,7 +492,10 @@ function AddEditLinkModal({
                   >
                     {domains
                       // temporarily remove chatg.pt from the list of domains
-                      ?.filter(({ slug }) => slug !== "chatg.pt")
+                      ?.filter(
+                        ({ slug: domainSlug }) =>
+                          slug || domainSlug !== "chatg.pt",
+                      )
                       .map(({ slug }) => (
                         <option key={slug} value={slug}>
                           {punycode.toUnicode(slug || "")}
