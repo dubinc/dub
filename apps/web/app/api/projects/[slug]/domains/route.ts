@@ -19,6 +19,7 @@ export const GET = withAuth(async ({ project }) => {
       primary: true,
       target: true,
       type: true,
+      placeholder: true,
       clicks: true,
     },
   });

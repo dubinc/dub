@@ -1,8 +1,10 @@
 import { addLink, getLinksForProject, processLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
+import { ratelimit } from "@/lib/upstash";
 import {
   DUB_PROJECT_ID,
   GOOGLE_FAVICON_URL,
+  LOCALHOST_IP,
   getApexDomain,
   log,
 } from "@dub/utils";
@@ -57,6 +59,18 @@ export const POST = withAuth(
       return new Response(error, { status, headers });
     }
 
+    if (!session) {
+      const ip = req.headers.get("x-forwarded-for") || LOCALHOST_IP;
+      const { success } = await ratelimit(10, "1 d").limit(ip);
+
+      if (!success) {
+        return new Response(
+          "Rate limited – you can only create up to 10 links per day without an account.",
+          { status: 429 },
+        );
+      }
+    }
+
     const [response, invalidFavicon] = await Promise.allSettled([
       addLink(link),
       ...(!project
@@ -78,9 +92,9 @@ export const POST = withAuth(
 
     if (!project && invalidFavicon) {
       await log({
-        message: `*${session.user.email}* created a new link (dub.sh/${
-          link.key
-        }) for ${link.url} ${
+        message: `*${
+          session?.user?.email || "Anonymous User"
+        }* created a new link (${link.domain}/${link.key}) for ${link.url} ${
           invalidFavicon ? " but it has an invalid favicon :thinking_face:" : ""
         }`,
         type: "links",
@@ -92,5 +106,6 @@ export const POST = withAuth(
   },
   {
     needNotExceededUsage: true,
+    allowAnonymous: true,
   },
 );

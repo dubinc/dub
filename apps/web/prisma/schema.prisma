@@ -23,7 +23,7 @@ model User {
   sessions       Session[]
   projects       ProjectUsers[]
   links          Link[]
-  tokens         Token[]
+  tokens        Token[]
   createdAt      DateTime       @default(now())
 }
 
@@ -157,6 +157,7 @@ model Domain {
   verified    Boolean  @default(false)
   target      String?
   type        String   @default("redirect")
+  placeholder String   @default("https://dub.co/help/article/what-is-dub")
   description String?
   project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId   String?
@@ -171,7 +172,7 @@ model Domain {
   @@index(projectId)
   @@index(clicks(sort: Desc))
   @@index(lastClicked)
-  @@index(lastChecked)
+  @@index(lastChecked(sort: Asc))
 }
 
 model Link {
@@ -213,12 +214,13 @@ model Link {
   // Relational reference to the project domain
   projectDomain Domain?  @relation(fields: [domain], references: [slug], onUpdate: Cascade, onDelete: Cascade)
 
-  publicStats Boolean  @default(false) // whether to show public stats or not
-  clicks      Int      @default(0) // number of clicks
-  lastClicked DateTime? // when the link was last clicked
-  lastChecked DateTime? // when the link was last checked for 404s
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  publicStats   Boolean  @default(false) // whether to show public stats or not
+  clicks        Int      @default(0) // number of clicks
+  lastClicked   DateTime? // when the link was last clicked
+  checkDisabled Boolean  @default(false) // disable 404 checking
+  lastChecked   DateTime? // when the link was last checked for 404s
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   // Link tags
   tag   Tag?    @relation(fields: [tagId], references: [id])
@@ -238,7 +240,8 @@ model Link {
   @@index(createdAt(sort: Desc))
   @@index(clicks(sort: Desc))
   @@index(lastClicked)
-  @@index(lastChecked)
+  @@index(checkDisabled)
+  @@index(lastChecked(sort: Asc))
   @@index(userId)
   @@fulltext([key, url])
 }

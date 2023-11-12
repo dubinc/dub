@@ -5,10 +5,13 @@ import { NextResponse } from "next/server";
 // GET /api/links/info – get the info for a link
 export const GET = withAuth(async ({ headers, searchParams }) => {
   const { domain, key } = searchParams;
+  if (!domain || !key) {
+    return new Response("Missing domain or key", { status: 400 });
+  }
   const response = await prisma.link.findUnique({
     where: {
       domain_key: {
-        domain: domain || "dub.sh",
+        domain,
         key,
       },
     },

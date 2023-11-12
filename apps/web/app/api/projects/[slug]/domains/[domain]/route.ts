@@ -24,6 +24,7 @@ export const GET = withAuth(async ({ domain }) => {
       primary: true,
       target: true,
       type: true,
+      placeholder: true,
       clicks: true,
     },
   });
@@ -38,7 +39,13 @@ export const GET = withAuth(async ({ domain }) => {
 
 // PUT /api/projects/[slug]/domains/[domain] – edit a project's domain
 export const PUT = withAuth(async ({ req, project, domain }) => {
-  const { slug: newDomain, target, type, primary } = await req.json();
+  const {
+    slug: newDomain,
+    target,
+    type,
+    placeholder,
+    primary,
+  } = await req.json();
 
   if (newDomain !== domain) {
     const validDomain = await validateDomain(newDomain);
@@ -113,6 +120,7 @@ export const PUT = withAuth(async ({ req, project, domain }) => {
                 target: null,
               })),
         type,
+        placeholder,
         primary,
       },
     }),

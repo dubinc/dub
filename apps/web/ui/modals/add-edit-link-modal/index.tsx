@@ -74,7 +74,6 @@ function AddEditLinkModal({
 }) {
   const params = useParams() as { slug?: string };
   const { slug } = params;
-  const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -111,8 +110,7 @@ function AddEditLinkModal({
     if (
       showAddEditLinkModal &&
       debouncedKey.length > 0 &&
-      debouncedKey !== props?.key &&
-      !keyError
+      debouncedKey !== props?.key
     ) {
       fetch(
         `/api/links/exists?domain=${domain}&key=${debouncedKey}${
@@ -136,7 +134,7 @@ function AddEditLinkModal({
     const key = await res.json();
     setData((prev) => ({ ...prev, key }));
     setGeneratingKey(false);
-  }, []);
+  }, [domain, slug]);
 
   useEffect(() => {
     // generate random key when someone pastes a URL and there's no key
@@ -415,7 +413,11 @@ function AddEditLinkModal({
                     id={`url-${randomIdx}`}
                     type="url"
                     required
-                    placeholder="https://github.com/steven-tey/dub"
+                    placeholder={
+                      domains?.find(({ slug }) => slug === domain)
+                        ?.placeholder ||
+                      "https://dub.co/help/article/what-is-dub"
+                    }
                     value={url}
                     autoFocus={!key}
                     autoComplete="off"
@@ -488,11 +490,17 @@ function AddEditLinkModal({
                       props && lockKey ? "cursor-not-allowed" : ""
                     } w-40 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-5 text-sm text-gray-500 focus:border-gray-300 focus:outline-none focus:ring-0`}
                   >
-                    {domains?.map(({ slug }) => (
-                      <option key={slug} value={slug}>
-                        {punycode.toUnicode(slug || "")}
-                      </option>
-                    ))}
+                    {domains
+                      // temporarily remove chatg.pt from the list of domains
+                      ?.filter(
+                        ({ slug: domainSlug }) =>
+                          slug || domainSlug !== "chatg.pt",
+                      )
+                      .map(({ slug }) => (
+                        <option key={slug} value={slug}>
+                          {punycode.toUnicode(slug || "")}
+                        </option>
+                      ))}
                   </select>
                   <input
                     ref={keyRef}

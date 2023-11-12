@@ -73,12 +73,12 @@ export default function Stats({
         baseApiPath: `/api/projects/${slug}/stats`,
         domain: domainSlug,
       };
-      // Generic Dub.sh links analytics page, e.g. app.dub.co/analytics?domain=dub.sh&key=github
+      // Generic links analytics page, e.g. app.dub.co/analytics?domain=dub.sh&key=github
     } else if (pathname === "/analytics") {
       return {
         basePath: `/analytics`,
         baseApiPath: `/api/stats`,
-        domain: "dub.sh",
+        domain: domainSlug,
       };
     }
 
