@@ -490,11 +490,14 @@ function AddEditLinkModal({
                       props && lockKey ? "cursor-not-allowed" : ""
                     } w-40 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-5 text-sm text-gray-500 focus:border-gray-300 focus:outline-none focus:ring-0`}
                   >
-                    {domains?.map(({ slug }) => (
-                      <option key={slug} value={slug}>
-                        {punycode.toUnicode(slug || "")}
-                      </option>
-                    ))}
+                    {domains
+                      // temporarily remove chatg.pt from the list of domains
+                      ?.filter(({ slug }) => slug !== "chatg.pt")
+                      .map(({ slug }) => (
+                        <option key={slug} value={slug}>
+                          {punycode.toUnicode(slug || "")}
+                        </option>
+                      ))}
                   </select>
                   <input
                     ref={keyRef}
