@@ -7,7 +7,9 @@ import prisma from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import {
   DEFAULT_REDIRECTS,
+  DUB_DOMAINS,
   DUB_PROJECT_ID,
+  getDomainWithoutWWW,
   getParamsFromURL,
   nanoid,
   truncate,
@@ -234,15 +236,8 @@ export async function processLink({
         status: 403,
       };
     }
-    // if it's not a custom project, do some filtering
   } else {
-    if (domain !== "dub.sh") {
-      return {
-        link: payload,
-        error: "Invalid domain",
-        status: 403,
-      };
-    }
+    // if it's not a custom project, do some filtering
     if (key.includes("/")) {
       return {
         link: payload,
@@ -251,26 +246,47 @@ export async function processLink({
         status: 422,
       };
     }
-    const keyBlacklisted = await isBlacklistedKey(key);
-    if (keyBlacklisted) {
-      return {
-        link: payload,
-        error: "Invalid key.",
-        status: 422,
-      };
-    }
-    const domainBlacklisted = await isBlacklistedDomain(url);
-    if (domainBlacklisted) {
-      return {
-        link: payload,
-        error: "Invalid url.",
-        status: 422,
-      };
-    }
     if (rewrite) {
       return {
         link: payload,
         error: "You can only use link cloaking on a custom domain.",
+        status: 403,
+      };
+    }
+    if (domain === "dub.sh") {
+      const keyBlacklisted = await isBlacklistedKey(key);
+      if (keyBlacklisted) {
+        return {
+          link: payload,
+          error: "Invalid key.",
+          status: 422,
+        };
+      }
+      const domainBlacklisted = await isBlacklistedDomain(url);
+      if (domainBlacklisted) {
+        return {
+          link: payload,
+          error: "Invalid url.",
+          status: 422,
+        };
+      }
+    } else if (DUB_DOMAINS.find((d) => d.slug === domain)) {
+      // coerce type with ! cause we already checked if it exists
+      const { allowedHostnames } = DUB_DOMAINS.find((d) => d.slug === domain)!;
+      const urlDomain = getDomainWithoutWWW(url) || "";
+      if (!allowedHostnames.includes(urlDomain)) {
+        return {
+          link: payload,
+          error: `Invalid url. You can only use ${domain} short links for URLs starting with ${allowedHostnames
+            .map((d) => `\`${d}\``)
+            .join(", ")}.`,
+          status: 422,
+        };
+      }
+    } else {
+      return {
+        link: payload,
+        error: "Invalid domain",
         status: 403,
       };
     }

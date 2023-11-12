@@ -117,6 +117,29 @@ export const SHOW_BACKGROUND_SEGMENTS = [
   "auth",
 ];
 
+export const DUB_DOMAINS = [
+  {
+    slug: "dub.sh",
+    verified: true,
+    primary: true,
+    target: "https://dub.co",
+    type: "redirect",
+    placeholder: "https://dub.co/help/article/what-is-dub",
+    clicks: 0,
+    allowedHostnames: [],
+  },
+  {
+    slug: "chatg.pt",
+    verified: true,
+    primary: false,
+    target: "https://dub.co/tools/chatgpt-link-shortener",
+    type: "redirect",
+    placeholder: "https://chat.openai.com/g/g-UGjKKONEe-domainsgpt",
+    clicks: 0,
+    allowedHostnames: ["chat.openai.com"],
+  },
+];
+
 export const ALL_TOOLS = [
   { name: "Metatags API", slug: "metatags" },
   { name: "QR Code Generator", slug: "qr-code" },

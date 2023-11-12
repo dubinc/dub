@@ -2,7 +2,7 @@
 
 import LayoutLoader from "@/ui/layout/layout-loader";
 import LinkNotFound from "@/ui/links/link-not-found";
-import { fetcher } from "@dub/utils";
+import { DUB_DOMAINS, fetcher } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { useParams, useSearchParams } from "next/navigation";
 import { ReactNode } from "react";
@@ -13,7 +13,7 @@ export default function AnalyticsClient({ children }: { children: ReactNode }) {
   const domain = searchParams?.get("domain");
   const key = searchParams?.get("key");
 
-  if (domain !== "dub.sh" || !key) {
+  if (!domain || !DUB_DOMAINS.find((d) => d.slug === domain) || !key) {
     return <LinkNotFound />;
   }
 

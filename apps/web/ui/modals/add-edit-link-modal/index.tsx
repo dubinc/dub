@@ -74,7 +74,6 @@ function AddEditLinkModal({
 }) {
   const params = useParams() as { slug?: string };
   const { slug } = params;
-  const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -415,7 +414,10 @@ function AddEditLinkModal({
                     id={`url-${randomIdx}`}
                     type="url"
                     required
-                    placeholder="https://github.com/steven-tey/dub"
+                    placeholder={
+                      domains?.find(({ slug }) => slug === domain)
+                        ?.placeholder || "https://dub.co/help/article/what-is-dub"
+                    }
                     value={url}
                     autoFocus={!key}
                     autoComplete="off"

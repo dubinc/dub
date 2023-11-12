@@ -1,5 +1,5 @@
-import DubLinksClient from "./page-client";
+import LinksClient from "./page-client";
 
-export default function DubLinks() {
-  return <DubLinksClient />;
+export default function Links() {
+  return <LinksClient />;
 }

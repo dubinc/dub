@@ -1,5 +1,5 @@
 import { DomainProps } from "@/lib/types";
-import { fetcher } from "@dub/utils";
+import { DUB_DOMAINS, fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
 import useSWR from "swr";
@@ -18,18 +18,8 @@ export default function useDomains({ domain }: { domain?: string } = {}) {
   );
 
   const domains = useMemo(() => {
-    return slug
-      ? data
-      : ([
-          {
-            slug: "dub.sh",
-            verified: true,
-            primary: true,
-            target: "https://dub.co",
-            type: "redirect",
-          },
-        ] as DomainProps[]);
-  }, [data]);
+    return slug ? data : DUB_DOMAINS;
+  }, [slug, data]) as DomainProps[];
 
   return {
     domains,

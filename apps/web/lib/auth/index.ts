@@ -4,7 +4,7 @@ import { Link as LinkProps } from "@prisma/client";
 import { PlanProps, ProjectProps } from "../types";
 import { getServerSession } from "next-auth/next";
 import { createHash } from "crypto";
-import { API_DOMAIN, getSearchParams } from "@dub/utils";
+import { API_DOMAIN, DUB_DOMAINS, getSearchParams } from "@dub/utils";
 import { ratelimit } from "../upstash";
 
 export interface Session {
@@ -303,9 +303,9 @@ export const withAuth =
           headers,
         });
       }
-      // for generic dub.sh links / stats
+      // for generic DUB_DOMAINS links / stats
     } else {
-      if (domain && domain !== "dub.sh") {
+      if (domain && !DUB_DOMAINS.find((d) => d.slug === domain)) {
         return new Response("Domain not found.", {
           status: 404,
           headers,
@@ -322,8 +322,11 @@ export const withAuth =
         });
       }
 
-      // if it's the default dub.sh link, we need to make sure the user is the owner of the link
-      if (link.domain === "dub.sh" && link.userId !== session.user.id) {
+      // if it's generic DUB_DOMAINS links, we need to make sure the user is the owner of the link
+      if (
+        DUB_DOMAINS.find((d) => d.slug === link.domain) &&
+        link.userId !== session.user.id
+      ) {
         return new Response("Unauthorized: Invalid link.", {
           status: 403,
           headers,

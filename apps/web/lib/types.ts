@@ -71,6 +71,7 @@ export interface DomainProps {
   primary: boolean;
   target?: string;
   type: "redirect" | "rewrite";
+  placeholder?: string;
   clicks: number;
 }
 
