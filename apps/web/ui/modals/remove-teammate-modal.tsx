@@ -103,7 +103,7 @@ function RemoveTeammateModal({
                   `/api/projects/${slug}/${invite ? "invites" : "users"}`,
                 );
                 if (session?.user?.email === email) {
-                  router.refresh();
+                  await mutate("/api/projects");
                   router.push("/");
                 } else {
                   setShowRemoveTeammateModal(false);
