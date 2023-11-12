@@ -233,7 +233,7 @@ export const withAuth =
               id: linkId,
             },
           })
-        : domain && key
+        : domain && key && key !== "_root"
         ? prisma.link.findUnique({
             where: {
               domain_key: {
@@ -340,7 +340,7 @@ export const withAuth =
     }
 
     // link checks (if linkId or domain and key are provided)
-    if (linkId || (domain && key)) {
+    if (linkId || (domain && key && key !== "_root")) {
       // if link doesn't exist
       if (!link) {
         return new Response("Link not found.", {
