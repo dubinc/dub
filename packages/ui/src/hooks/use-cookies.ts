@@ -34,7 +34,7 @@ export default function useCookies<T>(
     // Save state
     setStoredValue(value);
     // Save to Cookies
-    Cookies.set(key, JSON.stringify(value));
+    Cookies.set(key, JSON.stringify(value), opts);
   };
 
   return [storedValue, setValue];
