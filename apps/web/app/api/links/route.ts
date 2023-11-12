@@ -1,8 +1,10 @@
 import { addLink, getLinksForProject, processLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
+import { ratelimit } from "@/lib/upstash";
 import {
   DUB_PROJECT_ID,
   GOOGLE_FAVICON_URL,
+  LOCALHOST_IP,
   getApexDomain,
   log,
 } from "@dub/utils";
@@ -45,6 +47,18 @@ export const POST = withAuth(
       body = await req.json();
     } catch (error) {
       return new Response("Missing or invalid body.", { status: 400, headers });
+    }
+
+    if (!session) {
+      const ip = req.headers.get("x-forwarded-for") || LOCALHOST_IP;
+      const { success } = await ratelimit(10, "1 d").limit(ip);
+
+      if (!success) {
+        return new Response(
+          "Rate limited – you can only create up to 10 links per day without an account.",
+          { status: 429 },
+        );
+      }
     }
 
     const { link, error, status } = await processLink({
@@ -92,5 +106,6 @@ export const POST = withAuth(
   },
   {
     needNotExceededUsage: true,
+    allowAnonymous: true,
   },
 );

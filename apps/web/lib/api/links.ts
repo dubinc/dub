@@ -242,7 +242,7 @@ export async function processLink({
     }
   } else {
     // if it's not a custom project, do some filtering
-    if (key.includes("/")) {
+    if (key?.includes("/")) {
       return {
         link: payload,
         error:

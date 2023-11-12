@@ -323,7 +323,7 @@ export default function LinkCard({
                   <div className="w-full p-4">
                     <Avatar user={user} className="h-10 w-10" />
                     <p className="mt-2 text-sm font-semibold text-gray-700">
-                      {user?.name || user?.email}
+                      {user?.name || user?.email || "Anonymous User"}
                     </p>
                     <p className="mt-1 text-xs text-gray-500">
                       Created{" "}

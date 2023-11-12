@@ -67,10 +67,12 @@ export const withAuth =
       requiredPlan = ["free", "pro", "enterprise"], // if the action needs a specific plan
       requiredRole = ["owner", "member"],
       needNotExceededUsage, // if the action needs the user to not have exceeded their usage
+      allowAnonymous, // special case for /api/links (POST /api/links) – allow no session
     }: {
       requiredPlan?: Array<PlanProps>;
       requiredRole?: Array<"owner" | "member">;
       needNotExceededUsage?: boolean;
+      allowAnonymous?: boolean;
     } = {},
   ) =>
   async (
@@ -175,6 +177,17 @@ export const withAuth =
     } else {
       session = await getSession();
       if (!session?.user.id) {
+        // for demo links, we allow anonymous link creation
+        if (allowAnonymous) {
+          // @ts-expect-error
+          return handler({
+            req,
+            params: params || {},
+            searchParams,
+            headers,
+          });
+        }
+
         return new Response("Unauthorized: Login required.", {
           status: 401,
           headers,

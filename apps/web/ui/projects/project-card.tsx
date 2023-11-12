@@ -81,13 +81,13 @@ export default function ProjectCard({
         <PlanBadge plan={plan} />
       </div>
       <div className="flex items-center space-x-4">
-        <div className="flex items-center space-x-2 text-gray-500">
+        <div className="flex items-center space-x-1 text-gray-500">
           <Globe className="h-4 w-4" />
           <h2 className="whitespace-nowrap text-sm">
             {nFormatter(domains.length)} domain{domains.length > 1 && "s"}
           </h2>
         </div>
-        <div className="flex items-center space-x-2 text-gray-500">
+        <div className="flex items-center space-x-1 text-gray-500">
           <Link2 className="h-4 w-4" />
           {count || count === 0 ? (
             <NumberTooltip value={count} unit="links">
@@ -99,7 +99,7 @@ export default function ProjectCard({
             <div className="h-4 w-8 animate-pulse rounded-md bg-gray-200" />
           )}
         </div>
-        <div className="flex items-center space-x-2 text-gray-500">
+        <div className="flex items-center space-x-1 text-gray-500">
           <BarChart2 className="h-4 w-4" />
           <NumberTooltip value={usage}>
             <h2 className="whitespace-nowrap text-sm">
