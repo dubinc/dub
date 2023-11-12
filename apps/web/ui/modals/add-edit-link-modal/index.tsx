@@ -110,8 +110,7 @@ function AddEditLinkModal({
     if (
       showAddEditLinkModal &&
       debouncedKey.length > 0 &&
-      debouncedKey !== props?.key &&
-      !keyError
+      debouncedKey !== props?.key
     ) {
       fetch(
         `/api/links/exists?domain=${domain}&key=${debouncedKey}${
@@ -135,7 +134,7 @@ function AddEditLinkModal({
     const key = await res.json();
     setData((prev) => ({ ...prev, key }));
     setGeneratingKey(false);
-  }, []);
+  }, [domain, slug]);
 
   useEffect(() => {
     // generate random key when someone pastes a URL and there's no key
@@ -416,7 +415,8 @@ function AddEditLinkModal({
                     required
                     placeholder={
                       domains?.find(({ slug }) => slug === domain)
-                        ?.placeholder || "https://dub.co/help/article/what-is-dub"
+                        ?.placeholder ||
+                      "https://dub.co/help/article/what-is-dub"
                     }
                     value={url}
                     autoFocus={!key}

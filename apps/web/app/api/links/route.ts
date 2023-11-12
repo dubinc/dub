@@ -78,7 +78,7 @@ export const POST = withAuth(
 
     if (!project && invalidFavicon) {
       await log({
-        message: `*${session.user.email}* created a new link (dub.sh/${
+        message: `*${session.user.email}* created a new link (${link.domain}/${
           link.key
         }) for ${link.url} ${
           invalidFavicon ? " but it has an invalid favicon :thinking_face:" : ""

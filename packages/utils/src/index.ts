@@ -5,6 +5,7 @@ import { customAlphabet } from "nanoid";
 import { Metadata } from "next";
 import { twMerge } from "tailwind-merge";
 import {
+  DUB_DOMAINS,
   HOME_DOMAIN,
   SECOND_LEVEL_DOMAINS,
   SPECIAL_APEX_DOMAINS,
@@ -338,6 +339,10 @@ export const getDomainWithoutWWW = (url: string) => {
   } catch (e) {
     return null;
   }
+};
+
+export const isDubDomain = (domain: string) => {
+  return DUB_DOMAINS.some((d) => d.slug === domain);
 };
 
 export const getSearchParams = (url: string) => {

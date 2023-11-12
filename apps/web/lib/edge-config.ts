@@ -73,11 +73,21 @@ export const isReservedKey = async (key: string) => {
       "privacy",
     ].includes(key);
   }
-  let reservedKey;
+  let reservedKeys;
   try {
-    reservedKey = await get("reserved");
+    reservedKeys = await get("reserved");
   } catch (e) {
-    reservedKey = [];
+    reservedKeys = [];
   }
-  return reservedKey.includes(key);
+  return reservedKeys.includes(key);
+};
+
+export const isReservedUsername = async (key: string) => {
+  let reservedUsernames;
+  try {
+    reservedUsernames = await get("reservedUsernames");
+  } catch (e) {
+    reservedUsernames = [];
+  }
+  return reservedUsernames.includes(key);
 };

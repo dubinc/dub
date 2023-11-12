@@ -2,6 +2,7 @@ import {
   isBlacklistedDomain,
   isBlacklistedKey,
   isReservedKey,
+  isReservedUsername,
 } from "@/lib/edge-config";
 import prisma from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
@@ -11,6 +12,7 @@ import {
   DUB_PROJECT_ID,
   getDomainWithoutWWW,
   getParamsFromURL,
+  isDubDomain,
   nanoid,
   truncate,
   validKeyRegex,
@@ -171,11 +173,13 @@ export async function getRandomKey(domain: string): Promise<string> {
 }
 
 export async function checkIfKeyExists(domain: string, key: string) {
-  if (
-    domain === "dub.sh" &&
-    ((await isReservedKey(key)) || DEFAULT_REDIRECTS[key])
-  ) {
-    return true; // reserved keys for dub.sh
+  // reserved keys for dub.sh
+  if (domain === "dub.sh") {
+    return (await isReservedKey(key)) || DEFAULT_REDIRECTS[key];
+
+    // if it's a default Dub domain, check if the key is a reserved key
+  } else if (isDubDomain(domain)) {
+    return await isReservedUsername(key);
   }
   const link = await prisma.link.findUnique({
     where: {
@@ -270,7 +274,7 @@ export async function processLink({
           status: 422,
         };
       }
-    } else if (DUB_DOMAINS.find((d) => d.slug === domain)) {
+    } else if (isDubDomain(domain)) {
       // coerce type with ! cause we already checked if it exists
       const { allowedHostnames } = DUB_DOMAINS.find((d) => d.slug === domain)!;
       const urlDomain = getDomainWithoutWWW(url) || "";

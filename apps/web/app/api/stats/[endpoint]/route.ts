@@ -8,9 +8,19 @@ export const GET = withAuth(
     const { endpoint } = params;
     const { domain, key, interval } = searchParams;
 
+    const constructedDomain =
+      domain || project?.domains?.map((d) => d.slug).join(",");
+
+    if (!constructedDomain) {
+      return new Response("Missing link domain.", { status: 400 });
+    }
+
+    if (!project && !key) {
+      return new Response("Missing link key.", { status: 400 });
+    }
+
     const response = await getStats({
-      domain:
-        domain || project?.domains?.map((d) => d.slug).join(",") || "dub.sh",
+      domain: constructedDomain,
       key,
       endpoint,
       interval,
