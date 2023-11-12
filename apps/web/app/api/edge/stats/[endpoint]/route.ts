@@ -38,9 +38,7 @@ export const GET = async (
   } else {
     const data = await getLinkViaEdge(domain, key);
     // if the link is explicitly private (publicStats === false)
-    // or if the link doesn't exist in database (data === undefined) and is not a dub.sh link
-    // (we need to exclude dub.sh public demo links here)
-    if (data?.publicStats === 0 || (domain !== "dub.sh" && !data)) {
+    if (data?.publicStats === 0) {
       return new Response(`Stats for this link are not public`, {
         status: 403,
       });

@@ -49,6 +49,16 @@ export const POST = withAuth(
       return new Response("Missing or invalid body.", { status: 400, headers });
     }
 
+    const { link, error, status } = await processLink({
+      payload: body,
+      project,
+      session,
+    });
+
+    if (error) {
+      return new Response(error, { status, headers });
+    }
+
     if (!session) {
       const ip = req.headers.get("x-forwarded-for") || LOCALHOST_IP;
       const { success } = await ratelimit(10, "1 d").limit(ip);
@@ -59,16 +69,6 @@ export const POST = withAuth(
           { status: 429 },
         );
       }
-    }
-
-    const { link, error, status } = await processLink({
-      payload: body,
-      project,
-      session,
-    });
-
-    if (error) {
-      return new Response(error, { status, headers });
     }
 
     const [response, invalidFavicon] = await Promise.allSettled([
