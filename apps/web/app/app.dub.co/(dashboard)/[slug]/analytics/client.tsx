@@ -20,8 +20,10 @@ export default function AnalyticsClient({ children }: { children: ReactNode }) {
   if (loading || loadingDomains) {
     return <LayoutLoader />;
   }
-
-  if (domain && !domains?.find((d) => d.slug === domain)) {
+  if (
+    domains.length === 0 ||
+    (domain && !domains?.find((d) => d.slug === domain))
+  ) {
     return <LinkNotFound />;
   }
 
