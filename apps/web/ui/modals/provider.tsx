@@ -19,6 +19,9 @@ import {
   useState,
 } from "react";
 import { mutate } from "swr";
+import { useCookies } from "@dub/ui";
+import { SimpleLinkProps } from "@/lib/types";
+import { toast } from "sonner";
 
 export const ModalContext = createContext<{
   setShowAddProjectModal: Dispatch<SetStateAction<boolean>>;
@@ -55,6 +58,30 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
 
   const params = useParams() as { slug?: string };
   const { slug } = params;
+
+  const [hashes, setHashes] = useCookies<SimpleLinkProps[]>("hashes__dub", []);
+
+  useEffect(() => {
+    if (hashes.length > 0) {
+      fetch("/api/links/sync", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(hashes),
+      }).then(async (res) => {
+        if (res.status === 200) {
+          await mutate(
+            (key) => typeof key === "string" && key.startsWith("/api/links"),
+            undefined,
+            { revalidate: true },
+          );
+          toast.success("Links imported successfully!");
+        }
+        setHashes([]);
+      });
+    }
+  }, [hashes]);
 
   // special link polling setup to poll links as they're being created (for bitly import)
   const [pollLinks, setPollLinks] = useState(false);

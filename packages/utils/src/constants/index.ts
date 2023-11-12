@@ -141,6 +141,7 @@ export const DUB_DOMAINS = [
 ];
 
 export const ALL_TOOLS = [
+  { name: "ChatGPT Link Shortener", slug: "chatgpt-link-shortener" },
   { name: "Metatags API", slug: "metatags" },
   { name: "QR Code Generator", slug: "qr-code" },
   { name: "Link Inspector", slug: "inspector" },

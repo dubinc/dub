@@ -1,3 +1,4 @@
+export { default as useCookies } from "./use-cookies";
 export { default as useCurrentAnchor } from "./use-current-anchor";
 export { default as useIntersectionObserver } from "./use-intersection-observer";
 export { default as useLocalStorage } from "./use-local-storage";
