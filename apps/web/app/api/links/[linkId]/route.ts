@@ -40,7 +40,7 @@ export const PUT = withAuth(
       project,
     });
 
-    if (!processedLink) {
+    if (error) {
       return new Response(error, { status, headers });
     }
 

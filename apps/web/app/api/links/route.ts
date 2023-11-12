@@ -53,7 +53,7 @@ export const POST = withAuth(
       session,
     });
 
-    if (!link) {
+    if (error) {
       return new Response(error, { status, headers });
     }
 
