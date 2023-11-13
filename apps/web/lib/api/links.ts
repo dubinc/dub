@@ -290,6 +290,22 @@ export async function processLink({
           status: 422,
         };
       }
+      // we can do it here because we only pass session when creating a link (and not editing it)
+      if (session) {
+        const count = await prisma.link.count({
+          where: {
+            domain,
+            userId: session?.user.id,
+          },
+        });
+        if (count > 25) {
+          return {
+            link: payload,
+            error: `You can only create 25 ${domain} short links.`,
+            status: 403,
+          };
+        }
+      }
     } else {
       return {
         link: payload,
