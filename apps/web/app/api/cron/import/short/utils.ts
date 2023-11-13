@@ -1,5 +1,7 @@
+import { qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { sendEmail } from "emails";
 import LinksImported from "emails/links-imported";
 
@@ -9,17 +11,17 @@ export const importLinksFromShort = async ({
   userId,
   domainId,
   domain,
-  shortApiKey,
   pageToken = null,
   count = 0,
+  shortApiKey,
 }: {
   projectId: string;
   userId: string;
   domainId: number;
   domain: string;
-  shortApiKey: string;
   pageToken?: string | null;
   count?: number;
+  shortApiKey: string;
 }) => {
   const data = await fetch(
     `https://api.short.io/api/links?domain_id=${domainId}&limit=150${
@@ -38,8 +40,8 @@ export const importLinksFromShort = async ({
 
   // convert links to format that can be imported into database
   const importedLinks = links
-    .map((link) => {
-      const {
+    .map(
+      ({
         originalURL,
         path,
         title,
@@ -47,35 +49,36 @@ export const importLinksFromShort = async ({
         androidURL,
         archived,
         createdAt,
-      } = link;
-      // skip the root domain
-      if (path.length === 0) {
-        return null;
-      }
-      pipeline.set(
-        `${domain}:${path}`,
-        {
-          url: encodeURIComponent(originalURL),
-          ...(iphoneURL && { ios: encodeURIComponent(iphoneURL) }),
-          ...(androidURL && { android: encodeURIComponent(androidURL) }),
-        },
-        {
-          nx: true,
-        },
-      );
-      return {
-        projectId,
-        userId,
-        domain,
-        key: path,
-        url: originalURL,
-        title,
-        ios: iphoneURL,
-        android: androidURL,
-        archived,
-        createdAt,
-      };
-    })
+      }) => {
+        // skip the root domain
+        if (path.length === 0) {
+          return null;
+        }
+        pipeline.set(
+          `${domain}:${path}`,
+          {
+            url: encodeURIComponent(originalURL),
+            ...(iphoneURL && { ios: encodeURIComponent(iphoneURL) }),
+            ...(androidURL && { android: encodeURIComponent(androidURL) }),
+          },
+          {
+            nx: true,
+          },
+        );
+        return {
+          projectId,
+          userId,
+          domain,
+          key: path,
+          url: originalURL,
+          title,
+          ios: iphoneURL,
+          android: androidURL,
+          archived,
+          createdAt,
+        };
+      },
+    )
     .filter(Boolean);
 
   // import links into database
@@ -158,14 +161,17 @@ export const importLinksFromShort = async ({
     ]);
     return count;
   } else {
-    return await importLinksFromShort({
-      projectId,
-      userId,
-      domainId,
-      domain,
-      shortApiKey,
-      pageToken: nextPageToken,
-      count,
+    // recursively call this function via qstash until nextPageToken is null
+    return await qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/short`,
+      body: {
+        projectId,
+        userId,
+        domainId,
+        domain,
+        pageToken: nextPageToken,
+        count,
+      },
     });
   }
 };
