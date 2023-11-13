@@ -43,6 +43,7 @@ export const POST = withAuth(
       },
       data: {
         userId: session.user.id,
+        publicStats: false,
       },
     });
 

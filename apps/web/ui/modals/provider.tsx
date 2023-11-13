@@ -80,7 +80,6 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
           );
           toast.success("Links imported successfully!");
         }
-        console.log("resetting hashes");
         setHashes([]);
       });
     }
