@@ -6,6 +6,7 @@ import LinksImported from "emails/links-imported";
 // recursive function to check if nextPageToken is not null, else break
 export const importLinksFromShort = async ({
   projectId,
+  userId,
   domainId,
   domain,
   shortApiKey,
@@ -13,6 +14,7 @@ export const importLinksFromShort = async ({
   count = 0,
 }: {
   projectId: string;
+  userId: string;
   domainId: number;
   domain: string;
   shortApiKey: string;
@@ -63,6 +65,7 @@ export const importLinksFromShort = async ({
       );
       return {
         projectId,
+        userId,
         domain,
         key: path,
         url: originalURL,
@@ -157,6 +160,7 @@ export const importLinksFromShort = async ({
   } else {
     return await importLinksFromShort({
       projectId,
+      userId,
       domainId,
       domain,
       shortApiKey,

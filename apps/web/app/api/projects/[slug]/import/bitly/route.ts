@@ -49,7 +49,7 @@ export const GET = withAuth(async ({ project }) => {
 });
 
 // POST /api/projects/[slug]/import/bitly - create job to import links from bitly
-export const POST = withAuth(async ({ req, project }) => {
+export const POST = withAuth(async ({ req, project, session }) => {
   const { selectedDomains, selectedGroupTags } = await req.json();
 
   // check if there are domains that are not in the project
@@ -97,6 +97,7 @@ export const POST = withAuth(async ({ req, project }) => {
           url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/bitly`,
           body: {
             projectId: project.id,
+            userId: session?.user?.id,
             bitlyGroup,
             domains,
             keepTags,

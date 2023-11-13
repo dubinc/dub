@@ -55,7 +55,7 @@ export const PUT = withAuth(async ({ req, project }) => {
 });
 
 // POST /api/projects/[slug]/import/short - create job to import links from Short.io
-export const POST = withAuth(async ({ req, project }) => {
+export const POST = withAuth(async ({ req, project, session }) => {
   const { selectedDomains } = await req.json();
 
   // check if there are domains that are not in the project
@@ -85,6 +85,7 @@ export const POST = withAuth(async ({ req, project }) => {
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/short`,
         body: {
           projectId: project.id,
+          userId: session?.user?.id,
           domainId: id,
           domain,
         },

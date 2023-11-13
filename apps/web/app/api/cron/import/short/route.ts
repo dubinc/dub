@@ -19,12 +19,13 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { projectId, domainId, domain } = body;
+    const { projectId, userId, domainId, domain } = body;
     const shortApiKey = (await redis.get(
       `import:short:${projectId}`,
     )) as string;
     await importLinksFromShort({
       projectId,
+      userId,
       domainId,
       domain,
       shortApiKey,

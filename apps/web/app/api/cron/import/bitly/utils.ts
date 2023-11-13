@@ -7,6 +7,7 @@ import LinksImported from "emails/links-imported";
 // rate limit for /groups/{group_guid}/bitlinks is 1500 per hour or 150 per minute
 export const importLinksFromBitly = async ({
   projectId,
+  userId,
   bitlyGroup,
   domains,
   tagsToId,
@@ -15,6 +16,7 @@ export const importLinksFromBitly = async ({
   count = 0,
 }: {
   projectId: string;
+  userId: string;
   bitlyGroup: string;
   domains: string[];
   tagsToId?: Record<string, string>;
@@ -54,6 +56,7 @@ export const importLinksFromBitly = async ({
       const tagId = tagsToId ? tagsToId[tags[0]] : null;
       return {
         projectId,
+        userId,
         domain,
         key,
         url,
@@ -159,6 +162,7 @@ export const importLinksFromBitly = async ({
   } else {
     return await importLinksFromBitly({
       projectId,
+      userId,
       domains,
       bitlyGroup,
       bitlyApiKey,
