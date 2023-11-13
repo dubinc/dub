@@ -60,10 +60,7 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
   const { slug } = params;
 
   const [hashes, setHashes] = useCookies<SimpleLinkProps[]>("hashes__dub", [], {
-    httpOnly: true,
-    sameSite: "lax",
     domain: !!process.env.NEXT_PUBLIC_VERCEL_URL ? ".dub.co" : undefined,
-    secure: !!process.env.NEXT_PUBLIC_VERCEL_URL,
   });
 
   useEffect(() => {
@@ -83,6 +80,7 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
           );
           toast.success("Links imported successfully!");
         }
+        console.log("resetting hashes");
         setHashes([]);
       });
     }
