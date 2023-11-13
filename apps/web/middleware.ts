@@ -42,7 +42,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
     return ApiMiddleware(req);
   }
 
-  // for public stats pages (e.g. vercel.fyi/stats/roomGPT)
+  // for public stats pages (e.g. dub.co/stats/github)
   if (key === "stats") {
     return NextResponse.rewrite(new URL(`/${domain}${path}`, req.url));
   }
@@ -56,7 +56,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
     return AdminMiddleware(req);
   }
 
-  // for root pages (e.g. dub.co, vercel.fyi, etc.)
+  // for root pages (e.g. dub.sh, chatg.pt, etc.)
   if (key.length === 0) {
     return RootMiddleware(req, ev);
   }
