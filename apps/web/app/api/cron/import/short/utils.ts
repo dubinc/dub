@@ -41,7 +41,6 @@ export const importLinksFromShort = async ({
         originalURL,
         path,
         title,
-        expiresAt,
         iphoneURL,
         androidURL,
         archived,
@@ -51,7 +50,6 @@ export const importLinksFromShort = async ({
       if (path.length === 0) {
         return null;
       }
-      const exat = expiresAt ? new Date(expiresAt).getTime() / 1000 : null;
       pipeline.set(
         `${domain}:${path}`,
         {
@@ -61,8 +59,6 @@ export const importLinksFromShort = async ({
         },
         {
           nx: true,
-          // if the key has an expiry, set exat (type any cause there's a type error in the @types)
-          ...(exat && { exat: exat as any }),
         },
       );
       return {
@@ -71,8 +67,6 @@ export const importLinksFromShort = async ({
         key: path,
         url: originalURL,
         title,
-        // convert unix timestamp in milliseconds to DateTime toISOString
-        expiresAt: expiresAt ? new Date(expiresAt).toISOString() : null,
         ios: iphoneURL,
         android: androidURL,
         archived,
