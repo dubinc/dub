@@ -31,7 +31,6 @@ export const ModalContext = createContext<{
   setShowUpgradePlanModal: Dispatch<SetStateAction<boolean>>;
   setShowImportBitlyModal: Dispatch<SetStateAction<boolean>>;
   setShowImportShortModal: Dispatch<SetStateAction<boolean>>;
-  setPollLinks: Dispatch<SetStateAction<boolean>>;
 }>({
   setShowAddProjectModal: () => {},
   setShowCompleteSetupModal: () => {},
@@ -40,7 +39,6 @@ export const ModalContext = createContext<{
   setShowUpgradePlanModal: () => {},
   setShowImportBitlyModal: () => {},
   setShowImportShortModal: () => {},
-  setPollLinks: () => {},
 });
 
 export default function ModalProvider({ children }: { children: ReactNode }) {
@@ -85,26 +83,6 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
     }
   }, [hashes]);
 
-  // special link polling setup to poll links as they're being created (for bitly import)
-  const [pollLinks, setPollLinks] = useState(false);
-  useEffect(() => {
-    if (pollLinks) {
-      // if pollLinks is true, start polling links endpoint every 500 ms (stop after 20 seconds)
-      const pollingInterval = setInterval(() => {
-        mutate(
-          (key) => typeof key === "string" && key.startsWith("/api/links"),
-          undefined,
-          { revalidate: true },
-        );
-        mutate(`/api/projects/${slug}/tags`);
-      }, 500);
-      setTimeout(() => {
-        setPollLinks(false);
-        clearInterval(pollingInterval);
-      }, 20000);
-    }
-  }, [pollLinks]);
-
   const { error } = useProject();
 
   // handle invite and oauth modals
@@ -124,7 +102,6 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
         setShowUpgradePlanModal,
         setShowImportBitlyModal,
         setShowImportShortModal,
-        setPollLinks,
       }}
     >
       <AddProjectModal />

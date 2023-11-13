@@ -58,7 +58,6 @@ function ImportBitlyModal({
   const [selectedGroupTags, setSelectedGroupTags] = useState<string[]>([]);
 
   const [importing, setImporting] = useState(false);
-  const { setPollLinks } = useContext(ModalContext);
 
   useEffect(() => {
     if (searchParams?.get("import") === "bitly") {
@@ -123,7 +122,6 @@ function ImportBitlyModal({
                   if (res.ok) {
                     await mutate(`/api/projects/${slug}/domains`);
                     router.push(`/${slug}`);
-                    setPollLinks(true);
                   } else {
                     setImporting(false);
                     throw new Error();
