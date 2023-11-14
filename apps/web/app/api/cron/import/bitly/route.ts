@@ -23,28 +23,35 @@ export async function POST(req: Request) {
   try {
     const { projectId, bitlyGroup, keepTags } = body;
     const bitlyApiKey = await redis.get(`import:bitly:${projectId}`);
-    let tagsToId;
-    if (keepTags === true) {
-      const tags = await fetch(
-        `https://api-ssl.bitly.com/v4/groups/${bitlyGroup}/tags`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${bitlyApiKey}`,
-          },
-        },
-      )
-        .then((r) => r.json())
-        .then((r) => r.tags);
 
-      await prisma.tag.createMany({
-        data: tags.map((tag) => ({
-          name: tag,
-          color: randomBadgeColor(),
-          projectId,
-        })),
-        skipDuplicates: true,
-      });
+    let tagsToId: Record<string, string> | null = null;
+    if (keepTags === true) {
+      const tagsImported = await redis.get(`import:bitly:${projectId}:tags`);
+
+      if (!tagsImported) {
+        const tags = (await fetch(
+          `https://api-ssl.bitly.com/v4/groups/${bitlyGroup}/tags`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${bitlyApiKey}`,
+            },
+          },
+        )
+          .then((r) => r.json())
+          .then((r) => r.tags)) as string[];
+
+        await prisma.tag.createMany({
+          data: tags.map((tag) => ({
+            name: tag,
+            color: randomBadgeColor(),
+            projectId,
+          })),
+          skipDuplicates: true,
+        });
+        await redis.set(`import:bitly:${projectId}:tags`, "true");
+      }
+
       tagsToId = await prisma.tag
         .findMany({
           where: {
