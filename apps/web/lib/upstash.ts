@@ -31,7 +31,7 @@ export const ratelimit = (
     }),
     limiter: Ratelimit.slidingWindow(requests, seconds),
     analytics: true,
-    prefix: "",
+    prefix: "dub",
   });
 };
 
