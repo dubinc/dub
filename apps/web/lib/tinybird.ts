@@ -33,7 +33,7 @@ export async function recordClick({
   const ip = ipAddress(req) || LOCALHOST_IP;
   // deduplicate clicks from the same IP, domain and key – only record 1 click per hour
   const { success } = await ratelimit(2, "1 h").limit(
-    `recordClick:${ip}:${domain}:${key}`,
+    `recordClick:${ip}:${domain}:${key || "_root"}`,
   );
   if (!success) {
     return null;
