@@ -2,7 +2,7 @@
 
 import LayoutLoader from "@/ui/layout/layout-loader";
 import LinkNotFound from "@/ui/links/link-not-found";
-import { DUB_DOMAINS, fetcher, isDubDomain } from "@dub/utils";
+import { fetcher, isDubDomain } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { useParams, useSearchParams } from "next/navigation";
 import { ReactNode } from "react";
