@@ -13,22 +13,24 @@ export default function AnalyticsClient({ children }: { children: ReactNode }) {
   const domain = searchParams?.get("domain");
   const key = searchParams?.get("key");
 
-  if (searchParams && (!domain || !key || !isDubDomain(domain))) {
-    return <LinkNotFound />;
-  }
-
   const { slug } = useParams() as { slug?: string };
   const { data: session, status } = useSession();
   const { data: link, isLoading } = useSWR(
-    `/api/links/info?domain=${domain}&key=${key}${
-      slug ? `&projectSlug=${slug}` : ""
-    }`,
+    domain &&
+      key &&
+      `/api/links/info?domain=${domain}&key=${key}${
+        slug ? `&projectSlug=${slug}` : ""
+      }`,
     fetcher,
     { dedupingInterval: 30000 },
   );
 
   if (status === "loading" || isLoading) {
     return <LayoutLoader />;
+  }
+
+  if (!domain || !key || !isDubDomain(domain)) {
+    return <LinkNotFound />;
   }
 
   // @ts-expect-error
