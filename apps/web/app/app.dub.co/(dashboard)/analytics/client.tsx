@@ -13,7 +13,7 @@ export default function AnalyticsClient({ children }: { children: ReactNode }) {
   const domain = searchParams?.get("domain");
   const key = searchParams?.get("key");
 
-  if (!domain || !isDubDomain(domain) || !key) {
+  if (searchParams && (!domain || !key || !isDubDomain(domain))) {
     return <LinkNotFound />;
   }
 
