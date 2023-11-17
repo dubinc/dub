@@ -79,18 +79,20 @@ export async function recordClick({
     ...(conn
       ? [
           key
-            ? conn.execute(
-                "UPDATE Link SET clicks = clicks + 1, lastClicked = NOW() WHERE domain = ? AND `key` = ?",
-                [domain, key],
-              )
+            ? [
+                conn.execute(
+                  "UPDATE Link SET clicks = clicks + 1, lastClicked = NOW() WHERE domain = ? AND `key` = ?",
+                  [domain, key],
+                ),
+                conn.execute(
+                  "UPDATE Project p JOIN Domain d ON p.id = d.projectId SET p.usage = p.usage + 1 WHERE d.slug = ?",
+                  [domain],
+                ),
+              ]
             : conn.execute(
                 "UPDATE Domain SET clicks = clicks + 1, lastClicked = NOW() WHERE slug = ?",
                 [domain],
               ),
-          conn.execute(
-            "UPDATE Project p JOIN Domain d ON p.id = d.projectId SET p.usage = p.usage + 1 WHERE d.slug = ?",
-            [domain],
-          ),
         ]
       : []),
   ]);
