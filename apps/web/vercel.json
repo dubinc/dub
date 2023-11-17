@@ -5,7 +5,7 @@
       "schedule": "0 */3 * * *"
     },
     {
-      "path": "/api/cron/domains",
+      "path": "/api/cron/usage",
       "schedule": "0 14 * * *"
     }
   ]
