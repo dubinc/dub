@@ -21,6 +21,7 @@ import cloudinary from "cloudinary";
 import { isIframeable } from "../middleware/utils";
 import { LinkProps, ProjectProps } from "../types";
 import { Session } from "../auth";
+import { SetCommandOptions } from "@upstash/redis";
 
 export async function getLinksForProject({
   projectId,
@@ -234,6 +235,25 @@ export async function processLink({
       status: 400,
     };
   }
+  if (payload.expiresAt) {
+    // check if expiresAt is a valid
+    const date = new Date(payload.expiresAt);
+    if (isNaN(date.getTime())) {
+      return {
+        link: payload,
+        error: "Invalid expiry date. Expiry date must be in ISO-8601 format.",
+        status: 422,
+      };
+    }
+    // check if expiresAt is in the future
+    if (new Date(payload.expiresAt) < new Date()) {
+      return {
+        link: payload,
+        error: "Expiry date must be in the future.",
+        status: 422,
+      };
+    }
+  }
 
   if (project) {
     if (!project.domains?.find((d) => d.slug === domain)) {
@@ -388,7 +408,6 @@ export async function addLink(link: LinkProps) {
     geo,
   } = link;
   const hasPassword = password && password.length > 0 ? true : false;
-  const exat = expiresAt ? new Date(expiresAt).getTime() / 1000 : null;
   const uploadedImage = image && image.startsWith("data:image") ? true : false;
 
   const exists = await checkIfKeyExists(domain, key);
@@ -410,6 +429,7 @@ export async function addLink(link: LinkProps) {
         utm_campaign,
         utm_term,
         utm_content,
+        expiresAt: expiresAt ? new Date(expiresAt) : null,
         geo: geo || undefined,
       },
     }),
@@ -429,11 +449,11 @@ export async function addLink(link: LinkProps) {
       },
       {
         nx: true,
-        // if the key has an expiry, set exat (type any cause there's a type error in the @types)
-        ...(exat && { exat: exat as any }),
-      },
+        ...(expiresAt && { exat: new Date(expiresAt).getTime() / 1000 }),
+      } as SetCommandOptions,
     ),
   ]);
+
   if (proxy && image) {
     const { secure_url } = await cloudinary.v2.uploader.upload(image, {
       public_id: key,
@@ -457,7 +477,6 @@ export async function bulkCreateLinks(links: LinkProps[]) {
   const pipeline = redis.pipeline();
   links.forEach(({ domain, key, url, expiresAt, password }) => {
     const hasPassword = password && password.length > 0 ? true : false;
-    const exat = expiresAt ? new Date(expiresAt).getTime() / 1000 : null;
     pipeline.set(
       `${domain}:${key}`,
       {
@@ -466,8 +485,8 @@ export async function bulkCreateLinks(links: LinkProps[]) {
       },
       {
         nx: true,
-        ...(exat && { exat: exat as any }),
-      },
+        ...(expiresAt && { exat: new Date(expiresAt).getTime() / 1000 }),
+      } as SetCommandOptions,
     );
   });
 
@@ -485,6 +504,7 @@ export async function bulkCreateLinks(links: LinkProps[]) {
           utm_campaign,
           utm_term,
           utm_content,
+          expiresAt: link.expiresAt ? new Date(link.expiresAt) : null,
           geo: link.geo || undefined,
         };
       }),
@@ -536,7 +556,6 @@ export async function editLink({
     geo,
   } = updatedLink;
   const hasPassword = password && password.length > 0 ? true : false;
-  const exat = expiresAt ? new Date(expiresAt).getTime() : null;
   const changedKey = key !== oldKey;
   const changedDomain = domain !== oldDomain;
   const uploadedImage = image && image.startsWith("data:image") ? true : false;
@@ -567,6 +586,7 @@ export async function editLink({
         utm_campaign,
         utm_term,
         utm_content,
+        expiresAt: expiresAt ? new Date(expiresAt) : null,
         geo: geo || undefined,
       },
     }),
@@ -595,7 +615,9 @@ export async function editLink({
         ...(android && { android }),
         ...(geo && { geo }),
       },
-      exat ? { exat } : {},
+      {
+        ...(expiresAt && { exat: new Date(expiresAt).getTime() / 1000 }),
+      } as SetCommandOptions,
     ),
     // if key is changed: rename resource in Cloudinary, delete the old key in Redis and change the clicks key name
     ...(changedDomain || changedKey

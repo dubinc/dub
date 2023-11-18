@@ -633,7 +633,8 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
             expiresAt: {
               type: "string",
               format: "date-time",
-              description: "The date and time when the short link will expire.",
+              description:
+                "The date and time when the short link will expire in ISO-8601 format. Must be in the future.",
               default: null,
               nullable: true,
             },

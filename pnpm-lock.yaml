@@ -77,8 +77,8 @@ importers:
         specifier: ^0.3.6
         version: 0.3.6(@babel/core@7.17.8)(react-dom@18.2.0)
       '@upstash/redis':
-        specifier: ^1.18.0
-        version: 1.18.0
+        specifier: ^1.25.1
+        version: 1.25.1
       '@vercel/analytics':
         specifier: ^1.0.0
         version: 1.0.0(react@18.2.0)
@@ -381,8 +381,8 @@ importers:
         specifier: ^0.3.6
         version: 0.3.6(@babel/core@7.23.0)(react-dom@18.2.0)
       '@upstash/redis':
-        specifier: ^1.18.0
-        version: 1.22.1
+        specifier: ^1.25.1
+        version: 1.25.1
       '@vercel/analytics':
         specifier: ^1.0.0
         version: 1.0.0(react@18.2.0)
@@ -7362,14 +7362,13 @@ packages:
     resolution: {integrity: sha512-81kK0rCpNunSJOhr37mTufqbNE3JhssA2RQsSjNxzq2nR/FCPK3RZWvQxuZoJrfO4vPl2FfytZAy02jTyUVpjg==}
     engines: {node: '>=16.0.0'}
     dependencies:
-      '@upstash/redis': 1.22.1
+      '@upstash/redis': 1.25.1
       next: 13.1.6(@babel/core@7.17.8)(react-dom@18.2.0)(react@18.2.0)
       react: 18.2.0
       zod: 3.22.3
     transitivePeerDependencies:
       - '@babel/core'
       - babel-plugin-macros
-      - encoding
       - fibers
       - node-sass
       - react-dom
@@ -7380,14 +7379,13 @@ packages:
     resolution: {integrity: sha512-81kK0rCpNunSJOhr37mTufqbNE3JhssA2RQsSjNxzq2nR/FCPK3RZWvQxuZoJrfO4vPl2FfytZAy02jTyUVpjg==}
     engines: {node: '>=16.0.0'}
     dependencies:
-      '@upstash/redis': 1.22.1
+      '@upstash/redis': 1.25.1
       next: 13.1.6(@babel/core@7.23.0)(react-dom@18.2.0)(react@18.2.0)
       react: 18.2.0
       zod: 3.22.3
     transitivePeerDependencies:
       - '@babel/core'
       - babel-plugin-macros
-      - encoding
       - fibers
       - node-sass
       - react-dom
@@ -7407,7 +7405,6 @@ packages:
     transitivePeerDependencies:
       - '@babel/core'
       - babel-plugin-macros
-      - encoding
       - fibers
       - node-sass
       - react-dom
@@ -7421,27 +7418,16 @@ packages:
     transitivePeerDependencies:
       - '@babel/core'
       - babel-plugin-macros
-      - encoding
       - fibers
       - node-sass
       - react-dom
       - sass
     dev: false
 
-  /@upstash/redis@1.18.0:
-    resolution: {integrity: sha512-BBYz0X5EghFttYIk0vePW3/clQoAfxmPxwqc3UXem3Qp9iGFRwLN/HKvxuJQxkt18RyNPQ3fN4Eg0MG4lyu7Hw==}
+  /@upstash/redis@1.25.1:
+    resolution: {integrity: sha512-ACj0GhJ4qrQyBshwFgPod6XufVEfKX2wcaihsEvSdLYnY+m+pa13kGt1RXm/yTHKf4TQi/Dy2A8z/y6WUEOmlg==}
     dependencies:
-      isomorphic-fetch: 3.0.0
-    transitivePeerDependencies:
-      - encoding
-    dev: false
-
-  /@upstash/redis@1.22.1:
-    resolution: {integrity: sha512-7ec2eCMkVxZzuHNb+hPKonX4b/Pu0BdDeSBsEy+jKIqiweXzCs5Dpu9642vJgf57YnEsfwgXnQMVEataarvyeQ==}
-    dependencies:
-      isomorphic-fetch: 3.0.0
-    transitivePeerDependencies:
-      - encoding
+      crypto-js: 4.2.0
     dev: false
 
   /@vercel/analytics@1.0.0(react@18.2.0):
@@ -8777,6 +8763,10 @@ packages:
       path-key: 3.1.1
       shebang-command: 2.0.0
       which: 2.0.2
+
+  /crypto-js@4.2.0:
+    resolution: {integrity: sha512-KALDyEYgpY+Rlob/iriUtjV6d5Eq+Y191A5g4UqLAi8CyGP9N1+FdVbkc1SxKc2r4YAYqG8JzO2KGL+AizD70Q==}
+    dev: false
 
   /css-background-parser@0.1.0:
     resolution: {integrity: sha512-2EZLisiZQ+7m4wwur/qiYJRniHX4K5Tc9w93MT3AS0WS1u5kaZ4FKXlOTBhOjc+CgEgPiGY+fX1yWD8UwpEqUA==}
@@ -11138,15 +11128,6 @@ packages:
   /isobject@3.0.1:
     resolution: {integrity: sha512-WhB9zCku7EGTj/HQQRz5aUQEUeoQZH2bWcltRErOpymJ4boYE6wL9Tbr23krRPSZ+C5zqNSrSw+Cc7sZZ4b7vg==}
     engines: {node: '>=0.10.0'}
-    dev: false
-
-  /isomorphic-fetch@3.0.0:
-    resolution: {integrity: sha512-qvUtwJ3j6qwsF3jLxkZ72qCgjMysPzDfeV240JHiGZsANBYd+EEuu35v7dfrJ9Up0Ak07D7GGSkGhCHTqg/5wA==}
-    dependencies:
-      node-fetch: 2.7.0(encoding@0.1.13)
-      whatwg-fetch: 3.6.19
-    transitivePeerDependencies:
-      - encoding
     dev: false
 
   /iterator.prototype@1.1.2:
