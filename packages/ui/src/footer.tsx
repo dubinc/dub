@@ -20,15 +20,15 @@ const navigation = {
     { name: "Help Center", href: "/help" },
     { name: "Pricing", href: "/pricing" },
   ],
-  tools: ALL_TOOLS.map(({ name, slug }) => ({
-    name,
-    href: `/tools/${slug}`,
-  })),
   legal: [
     { name: "Privacy", href: "/privacy" },
     { name: "Terms", href: "/terms" },
     { name: "Abuse", href: "/abuse" },
   ],
+  tools: ALL_TOOLS.map(({ name, slug }) => ({
+    name,
+    href: `/tools/${slug}`,
+  })),
 };
 
 export function Footer() {
@@ -93,7 +93,7 @@ export function Footer() {
             </div>
           </div>
           <div className="mt-16 grid grid-cols-2 gap-8 xl:col-span-2 xl:mt-0">
-            <div className="md:grid md:grid-cols-2 md:gap-8">
+            <div className="md:grid md:grid-cols-2">
               <div>
                 <h3 className="text-sm font-semibold text-gray-900">
                   Features
@@ -143,11 +143,11 @@ export function Footer() {
                 </ul>
               </div>
             </div>
-            <div className="md:grid md:grid-cols-2 md:gap-8">
+            <div className="md:grid md:grid-cols-2">
               <div>
-                <h3 className="text-sm font-semibold text-gray-600">Tools</h3>
+                <h3 className="text-sm font-semibold text-gray-600">Legal</h3>
                 <ul role="list" className="mt-4 space-y-4">
-                  {navigation.tools.map((item) => (
+                  {navigation.legal.map((item) => (
                     <li key={item.name}>
                       <Link
                         href={createHref(item.href)}
@@ -167,10 +167,11 @@ export function Footer() {
                   ))}
                 </ul>
               </div>
+
               <div className="mt-10 md:mt-0">
-                <h3 className="text-sm font-semibold text-gray-600">Legal</h3>
+                <h3 className="text-sm font-semibold text-gray-600">Tools</h3>
                 <ul role="list" className="mt-4 space-y-4">
-                  {navigation.legal.map((item) => (
+                  {navigation.tools.map((item) => (
                     <li key={item.name}>
                       <Link
                         href={createHref(item.href)}
