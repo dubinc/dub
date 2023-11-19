@@ -138,10 +138,32 @@ export const DUB_DOMAINS = [
     clicks: 0,
     allowedHostnames: ["chat.openai.com"],
   },
+  {
+    slug: "amzn.id",
+    verified: true,
+    primary: false,
+    target: "https://dub.co/tools/amazon-link-shortener",
+    type: "redirect",
+    placeholder: "https://www.amazon.com/dp/B0BW4SWNC8",
+    clicks: 0,
+    allowedHostnames: ["amazon.com", "amazon.co.uk", "amazon.ca"],
+  },
+  {
+    slug: "spti.fi",
+    verified: true,
+    primary: false,
+    target: "https://dub.co/tools/spotify-link-shortener",
+    type: "redirect",
+    placeholder: "https://open.spotify.com/album/1SCyi9a5pOasikidToUY5y",
+    clicks: 0,
+    allowedHostnames: ["open.spotify.com"],
+  },
 ];
 
 export const ALL_TOOLS = [
   { name: "ChatGPT Link Shortener", slug: "chatgpt-link-shortener" },
+  { name: "Amazon Link Shortener", slug: "amazon-link-shortener" },
+  { name: "Spotify Link Shortener", slug: "spotify-link-shortener" },
   { name: "Metatags API", slug: "metatags" },
   { name: "QR Code Generator", slug: "qr-code" },
   { name: "Link Inspector", slug: "inspector" },
