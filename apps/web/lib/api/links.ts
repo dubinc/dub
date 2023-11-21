@@ -474,6 +474,7 @@ export async function addLink(link: LinkProps) {
 }
 
 export async function bulkCreateLinks(links: LinkProps[]) {
+  if (links.length === 0) return [];
   const pipeline = redis.pipeline();
   links.forEach(({ domain, key, url, expiresAt, password }) => {
     const hasPassword = password && password.length > 0 ? true : false;
