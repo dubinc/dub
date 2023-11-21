@@ -2,7 +2,6 @@ import { addDomainToVercel } from "@/lib/api/domains";
 import { withAuth } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
-import { ShortioDomainProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";

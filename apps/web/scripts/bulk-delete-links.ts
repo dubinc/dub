@@ -2,10 +2,12 @@ import "dotenv-flow/config";
 import prisma from "@/lib/prisma";
 import { redis } from "./utils";
 
+const domain = "steven.blue";
+
 async function main() {
   const links = await prisma.link.findMany({
     where: {
-      domain: "steven.blue",
+      domain,
     },
   });
 
@@ -18,7 +20,7 @@ async function main() {
     pipeline.exec(),
     prisma.link.deleteMany({
       where: {
-        domain: "steven.blue",
+        domain,
       },
     }),
   ]);

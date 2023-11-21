@@ -1,106 +1,50 @@
+import { bulkCreateLinks, getRandomKey } from "@/lib/api/links";
 import { qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
+import { LinkProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { sendEmail } from "emails";
 import LinksImported from "emails/links-imported";
 
-export const importLinksFromShort = async ({
+export const importLinksFromCSV = async ({
   projectId,
   userId,
-  domainId,
   domain,
-  pageToken = null,
   count = 0,
-  shortApiKey,
 }: {
   projectId: string;
   userId: string;
-  domainId: number;
   domain: string;
-  pageToken?: string | null;
   count?: number;
-  shortApiKey: string;
 }) => {
-  const data = await fetch(
-    `https://api.short.io/api/links?domain_id=${domainId}&limit=150${
-      pageToken ? `&pageToken=${pageToken}` : ""
-    }`,
-    {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: shortApiKey,
-      },
-    },
-  ).then((res) => res.json());
-  const { links, nextPageToken } = data;
-
-  const pipeline = redis.pipeline();
-
-  // convert links to format that can be imported into database
-  const importedLinks = links
-    .map(
-      ({
-        originalURL,
-        path,
-        title,
-        iphoneURL,
-        androidURL,
-        archived,
-        createdAt,
-      }) => {
-        // skip the root domain
-        if (path.length === 0) {
-          return null;
-        }
-        pipeline.set(
-          `${domain}:${path}`,
-          {
-            url: encodeURIComponent(originalURL),
-            ...(iphoneURL && { ios: encodeURIComponent(iphoneURL) }),
-            ...(androidURL && { android: encodeURIComponent(androidURL) }),
-          },
-          {
-            nx: true,
-          },
-        );
-        return {
-          projectId,
-          userId,
-          domain,
-          key: path,
-          url: originalURL,
-          title,
-          ios: iphoneURL,
-          android: androidURL,
-          archived,
-          createdAt,
-        };
-      },
-    )
-    .filter(Boolean);
-
-  // import links into database
-  await Promise.all([
-    prisma.link.createMany({
-      data: importedLinks,
-      skipDuplicates: true,
-    }),
-    pipeline.exec(),
+  const [links, totalCount] = await Promise.all([
+    redis.lrange<LinkProps>(`import:csv:${projectId}`, count, count + 100),
+    redis.llen(`import:csv:${projectId}`),
   ]);
+
+  const processedLinks = await Promise.all(
+    links.map(async (link) => ({
+      ...link,
+      key: link.key || (await getRandomKey(domain)),
+      projectId,
+      userId,
+    })),
+  );
+
+  const importedLinks = await bulkCreateLinks(processedLinks);
 
   count += importedLinks.length;
 
   console.log({
     importedLinksLength: importedLinks.length,
     count,
-    nextPageToken,
   });
 
   // wait 500 ms before making another request
   await new Promise((resolve) => setTimeout(resolve, 500));
 
-  if (!nextPageToken) {
+  if (count >= totalCount) {
     const project = await prisma.project.findUnique({
       where: {
         id: projectId,
@@ -141,15 +85,15 @@ export const importLinksFromShort = async ({
 
     await Promise.all([
       // delete key from redis
-      redis.del(`import:short:${projectId}`),
+      redis.del(`import:csv:${projectId}`),
 
       // send email to user
       sendEmail({
-        subject: `Your Short.io links have been imported!`,
+        subject: `Your CSV links have been imported!`,
         email: ownerEmail,
         react: LinksImported({
           email: ownerEmail,
-          provider: "Short.io",
+          provider: "CSV",
           count,
           links,
           domains: [domain],
@@ -162,13 +106,11 @@ export const importLinksFromShort = async ({
   } else {
     // recursively call this function via qstash until nextPageToken is null
     return await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/short`,
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/csv`,
       body: {
         projectId,
         userId,
-        domainId,
         domain,
-        pageToken: nextPageToken,
         count,
       },
     });

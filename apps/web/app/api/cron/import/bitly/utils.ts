@@ -5,8 +5,7 @@ import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { sendEmail } from "emails";
 import LinksImported from "emails/links-imported";
 
-// recursive function to check if pagination.searchAfter is not an empty string, else break
-// rate limit for /groups/{group_guid}/bitlinks is 1500 per hour or 150 per minute
+// Note: rate limit for /groups/{group_guid}/bitlinks is 1500 per hour or 150 per minute
 export const importLinksFromBitly = async ({
   projectId,
   userId,
