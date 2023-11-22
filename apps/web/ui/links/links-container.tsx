@@ -55,11 +55,11 @@ export default function LinksContainer({
                 ))
               )}
             </ul>
-            {count && count > 0 && (
+            {count && count > 0 ? (
               <Suspense>
                 <LinkPagination />
               </Suspense>
-            )}
+            ) : null}
           </div>
         </div>
       </MaxWidthWrapper>
