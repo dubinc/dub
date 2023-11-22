@@ -10,6 +10,7 @@ import LinkPagination from "./link-pagination";
 import LinkSort from "./link-sort";
 import NoLinksPlaceholder from "./no-links-placeholder";
 import { Suspense } from "react";
+import useLinksCount from "@/lib/swr/use-links-count";
 
 export default function LinksContainer({
   AddEditLinkButton,
@@ -17,6 +18,7 @@ export default function LinksContainer({
   AddEditLinkButton: () => JSX.Element;
 }) {
   const { links, isValidating } = useLinks();
+  const { data: count } = useLinksCount();
   const { LinkFiltersButton, LinkFiltersModal } = useLinkFiltersModal();
 
   return (
@@ -53,7 +55,7 @@ export default function LinksContainer({
                 ))
               )}
             </ul>
-            {links && links.length > 0 && (
+            {count && count > 0 && (
               <Suspense>
                 <LinkPagination />
               </Suspense>
