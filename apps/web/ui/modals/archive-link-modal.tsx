@@ -2,7 +2,7 @@ import { BlurImage } from "@/ui/shared/blur-image";
 import { Button, Modal } from "@dub/ui";
 import { GOOGLE_FAVICON_URL, getApexDomain, linkConstructor } from "@dub/utils";
 import { type Link as LinkProps } from "@prisma/client";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -12,6 +12,25 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
+
+const sendArchiveRequest = (archived: boolean, id: string, slug?: string) => {
+  const baseUrl = `/api/links/${id}/archive`;
+  const queryString = slug ? `?projectSlug=${slug}` : "";
+  return fetch(`${baseUrl}${queryString}`, {
+    method: archived ? "POST" : "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+};
+
+const revalidateLinks = () => {
+  return mutate(
+    (key) => typeof key === "string" && key.startsWith("/api/links"),
+    undefined,
+    { revalidate: true },
+  );
+};
 
 function ArchiveLinkModal({
   showArchiveLinkModal,
@@ -39,6 +58,43 @@ function ArchiveLinkModal({
     });
   }, [key, domain]);
 
+  const handleArchiveRequest = async (event: MouseEvent) => {
+    event.preventDefault();
+
+    setArchiving(true);
+    const res = await sendArchiveRequest(archived, props.id, slug);
+    setArchiving(false);
+
+    if (!res.ok) {
+      toast.error(res.statusText);
+      return;
+    }
+
+    revalidateLinks();
+    setShowArchiveLinkModal(false);
+    toast.success(
+      `Successfully ${archived ? "archived" : "unarchived"} link!`,
+      {
+        action: {
+          label: "Undo",
+          onClick: undoAction,
+        },
+        duration: 5000,
+      },
+    );
+  };
+
+  const undoAction = () => {
+    toast.promise(sendArchiveRequest(!archived, props.id, slug), {
+      loading: "Undo in progress...",
+      error: "Failed to roll back changes. An error occurred.",
+      success: async () => {
+        revalidateLinks();
+        return "Undo successful! Changes reverted.";
+      },
+    });
+  };
+
   return (
     <Modal
       showModal={showArchiveLinkModal}
@@ -64,37 +120,7 @@ function ArchiveLinkModal({
 
       <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16">
         <Button
-          onClick={async (e) => {
-            e.preventDefault();
-            setArchiving(true);
-            fetch(
-              `/api/links/${props.id}/archive${
-                slug ? `?projectSlug=${slug}` : ""
-              }`,
-              {
-                method: archived ? "POST" : "DELETE",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-              },
-            ).then(async (res) => {
-              if (res.status === 200) {
-                await mutate(
-                  (key) =>
-                    typeof key === "string" && key.startsWith("/api/links"),
-                  undefined,
-                  { revalidate: true },
-                );
-                setShowArchiveLinkModal(false);
-                toast.success(
-                  `Successfully ${archived ? "archived" : "unarchived"} link!`,
-                );
-              } else {
-                toast.error(res.statusText);
-              }
-              setArchiving(false);
-            });
-          }}
+          onClick={handleArchiveRequest}
           autoFocus
           loading={archiving}
           text={`Confirm ${archived ? "archive" : "unarchive"}`}
