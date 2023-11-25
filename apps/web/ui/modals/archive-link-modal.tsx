@@ -1,10 +1,11 @@
 import { BlurImage } from "@/ui/shared/blur-image";
-import { Button, Modal } from "@dub/ui";
+import { Button, Modal, useToastWithUndo } from "@dub/ui";
 import { GOOGLE_FAVICON_URL, getApexDomain, linkConstructor } from "@dub/utils";
 import { type Link as LinkProps } from "@prisma/client";
 import { useParams } from "next/navigation";
 import {
   Dispatch,
+  MouseEvent,
   SetStateAction,
   useCallback,
   useMemo,
@@ -43,6 +44,8 @@ function ArchiveLinkModal({
   props: LinkProps;
   archived: boolean;
 }) {
+  const toastWithUndo = useToastWithUndo();
+
   const params = useParams() as { slug?: string };
   const { slug } = params;
   const [archiving, setArchiving] = useState(false);
@@ -58,7 +61,7 @@ function ArchiveLinkModal({
     });
   }, [key, domain]);
 
-  const handleArchiveRequest = async (event: MouseEvent) => {
+  const handleArchiveRequest = async (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
 
     setArchiving(true);
@@ -72,23 +75,19 @@ function ArchiveLinkModal({
 
     revalidateLinks();
     setShowArchiveLinkModal(false);
-    toast.success(
-      `Successfully ${archived ? "archived" : "unarchived"} link!`,
-      {
-        action: {
-          label: "Undo",
-          onClick: undoAction,
-        },
-        duration: 5000,
-      },
-    );
+    toastWithUndo({
+      id: "link-archive-undo-toast",
+      message: `Successfully ${archived ? "archived" : "unarchived"} link!`,
+      undo: undoAction,
+      duration: 5000,
+    });
   };
 
   const undoAction = () => {
     toast.promise(sendArchiveRequest(!archived, props.id, slug), {
       loading: "Undo in progress...",
       error: "Failed to roll back changes. An error occurred.",
-      success: async () => {
+      success: () => {
         revalidateLinks();
         return "Undo successful! Changes reverted.";
       },
