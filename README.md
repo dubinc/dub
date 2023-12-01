@@ -55,7 +55,7 @@ We're planning to add a proper, well-documented self-hosting guide for Dub soon 
 ## Tech Stack
 
 - [Next.js](https://nextjs.org/) – framework
-- [Typescript](https://www.typescriptlang.org/) – language
+- [TypeScript](https://www.typescriptlang.org/) – language
 - [Tailwind](https://tailwindcss.com/) – CSS
 - [Upstash](https://upstash.com/) – redis
 - [Tinybird](https://tinybird.com/) – analytics
