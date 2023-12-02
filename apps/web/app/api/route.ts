@@ -263,7 +263,7 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
       },
       "/links/{linkId}": {
         put: {
-          description: "Edit link for the authenticated project.",
+          description: "Edit a link for the authenticated project.",
           operationId: "editLink",
           security: [
             {
