@@ -4,7 +4,7 @@ import { stripe } from "@/lib/stripe";
 import { getPlanFromPriceId, isUpgrade } from "@/lib/stripe/utils";
 import { redis } from "@/lib/upstash";
 import { log } from "@dub/utils";
-import { sendEmail } from "emails";
+import { resend, sendEmail } from "emails";
 import UpgradeEmail from "emails/upgrade-email";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
@@ -196,6 +196,15 @@ export const POST = async (req: Request) => {
           select: {
             slug: true,
             domains: true,
+            users: {
+              select: {
+                user: {
+                  select: {
+                    email: true,
+                  },
+                },
+              },
+            },
           },
         });
 
@@ -210,6 +219,9 @@ export const POST = async (req: Request) => {
           return NextResponse.json({ received: true });
         }
 
+        const projectUsers = project.users.map(
+          ({ user }) => user.email as string,
+        );
         const projectDomains = project.domains.map((domain) => domain.slug);
 
         const pipeline = redis.pipeline();
@@ -218,7 +230,7 @@ export const POST = async (req: Request) => {
           pipeline.del(`root:${domain}`);
         });
 
-        await Promise.all([
+        await Promise.allSettled([
           prisma.project.update({
             where: {
               stripeId,
@@ -236,6 +248,12 @@ export const POST = async (req: Request) => {
               "`* deleted their subscription",
             type: "cron",
             mention: true,
+          }),
+          resend.emails.send({
+            from: "Steven from Dub.co <steven@dub.co>",
+            to: projectUsers,
+            subject: "Feedback on your Dub.co experience?",
+            text: "Hey!\n\nI noticed you recently cancelled your Dub.co subscription – we're sorry to see you go!\n\nI'd love to hear your feedback on your experience with Dub – what could we have done better?\n\nThanks!\n\nSteven Tey\nFounder, Dub.co",
           }),
         ]);
       }
