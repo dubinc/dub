@@ -1,4 +1,4 @@
-import { nanoid } from "@dub/utils";
+import { getDomainWithoutWWW, nanoid } from "@dub/utils";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
@@ -6,6 +6,17 @@ import { Redis } from "@upstash/redis";
 export const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL || "",
   token: process.env.UPSTASH_REDIS_REST_TOKEN || "",
+});
+
+export const ratelimitRedis = new Redis({
+  url:
+    process.env.RATELIMIT_UPSTASH_REDIS_REST_URL ||
+    process.env.UPSTASH_REDIS_REST_URL ||
+    "",
+  token:
+    process.env.RATELIMIT_UPSTASH_REDIS_REST_TOKEN ||
+    process.env.UPSTASH_REDIS_REST_TOKEN ||
+    "",
 });
 
 // Create a new ratelimiter, that allows 10 requests per 10 seconds by default
@@ -19,16 +30,7 @@ export const ratelimit = (
     | `${number} d` = "10 s",
 ) => {
   return new Ratelimit({
-    redis: new Redis({
-      url:
-        process.env.RATELIMIT_UPSTASH_REDIS_REST_URL ||
-        process.env.UPSTASH_REDIS_REST_URL ||
-        "",
-      token:
-        process.env.RATELIMIT_UPSTASH_REDIS_REST_TOKEN ||
-        process.env.UPSTASH_REDIS_REST_TOKEN ||
-        "",
-    }),
+    redis: ratelimitRedis,
     limiter: Ratelimit.slidingWindow(requests, seconds),
     analytics: true,
     prefix: "dub",
@@ -67,9 +69,12 @@ export async function recordMetatags(url: string, error: boolean) {
   if (url === "https://github.com/steven-tey/dub") {
     // don't log metatag generation for default URL
     return null;
-  } else {
-    return await redis.lpush(error ? "metatags-errors" : "metatags", {
-      url,
-    });
   }
+
+  if (error) {
+    return await ratelimitRedis.zincrby("metatags-error-zset", 1, url);
+  }
+
+  const domain = getDomainWithoutWWW(url);
+  return await ratelimitRedis.zincrby("metatags-zset", 1, domain);
 }

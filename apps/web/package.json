@@ -52,7 +52,7 @@
     "js-cookie": "^3.0.5",
     "lucide-react": "^0.269.0",
     "nanoid": "^5.0.1",
-    "next": "14.0.3-canary.8",
+    "next": "14.0.4-canary.39",
     "next-auth": "^4.24.4",
     "node-html-parser": "^6.1.4",
     "nodemailer": "^6.9.3",

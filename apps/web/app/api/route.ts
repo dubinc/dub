@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { OpenAPIV3 } from "openapi-types";
 
-// TODO: switch to 'edge' after https://github.com/vercel/next.js/issues/48295 is fixed
-// export const runtime = "edge";
+export const runtime = "edge";
 
 export function GET(): NextResponse<OpenAPIV3.Document> {
   return NextResponse.json({
