@@ -1,11 +1,6 @@
 import { BlurImage } from "@/ui/shared/blur-image";
 import { Button, Modal } from "@dub/ui";
-import {
-  GOOGLE_FAVICON_URL,
-  getApexDomain,
-  getQueryString,
-  linkConstructor,
-} from "@dub/utils";
+import { GOOGLE_FAVICON_URL, getApexDomain, linkConstructor } from "@dub/utils";
 import { type Link as LinkProps } from "@prisma/client";
 import { useParams, useSearchParams } from "next/navigation";
 import {
@@ -31,7 +26,6 @@ function ArchiveLinkModal({
 }) {
   const params = useParams() as { slug?: string };
   const { slug } = params;
-  const searchParams = useSearchParams();
   const [archiving, setArchiving] = useState(false);
   const apexDomain = getApexDomain(props.url);
 
@@ -74,9 +68,9 @@ function ArchiveLinkModal({
             e.preventDefault();
             setArchiving(true);
             fetch(
-              `/api${slug ? `/projects/${slug}` : ""}/links/${
-                props.id
-              }/archive`,
+              `/api/links/${props.id}/archive${
+                slug ? `?projectSlug=${slug}` : ""
+              }`,
               {
                 method: archived ? "POST" : "DELETE",
                 headers: {
@@ -85,24 +79,12 @@ function ArchiveLinkModal({
               },
             ).then(async (res) => {
               if (res.status === 200) {
-                await Promise.all([
-                  mutate(
-                    (key) =>
-                      typeof key === "string" &&
-                      key.startsWith(
-                        `/api${slug ? `/projects/${slug}/links` : "/links"}`,
-                      ),
-                  ),
-                  mutate(
-                    (key) =>
-                      typeof key === "string" &&
-                      key.startsWith(
-                        `/api${slug ? `/projects/${slug}` : ""}/links/count`,
-                      ),
-                    undefined,
-                    { revalidate: true },
-                  ),
-                ]);
+                await mutate(
+                  (key) =>
+                    typeof key === "string" && key.startsWith("/api/links"),
+                  undefined,
+                  { revalidate: true },
+                );
                 setShowArchiveLinkModal(false);
                 toast.success(
                   `Successfully ${archived ? "archived" : "unarchived"} link!`,

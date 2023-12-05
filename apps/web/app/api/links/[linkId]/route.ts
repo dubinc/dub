@@ -3,7 +3,15 @@ import { deleteLink, editLink, processLink } from "@/lib/api/links";
 import { NextResponse } from "next/server";
 import { GOOGLE_FAVICON_URL, getApexDomain, log } from "@dub/utils";
 
-// PUT /api/projects/[slug]/links/[linkId] – update a link
+// GET /api/links/[linkId] – get a link
+export const GET = withAuth(async ({ headers, link }) => {
+  // link is guaranteed to exist because if not we will return 404
+  return NextResponse.json(link!, {
+    headers,
+  });
+});
+
+// PUT /api/links/[linkId] – update a link
 export const PUT = withAuth(
   async ({ req, headers, project, link, session }) => {
     let body;
@@ -40,7 +48,7 @@ export const PUT = withAuth(
       project,
     });
 
-    if (!processedLink) {
+    if (error) {
       return new Response(error, { status, headers });
     }
 
@@ -67,9 +75,9 @@ export const PUT = withAuth(
 
     if (!project && invalidFavicon) {
       await log({
-        message: `*${session.user.email}* edited a link (dub.sh/${
-          processedLink.key
-        }) to the ${processedLink.url} ${
+        message: `*${session.user.email}* edited a link (${
+          processedLink.domain
+        }/${processedLink.key}) to the ${processedLink.url} ${
           invalidFavicon ? " but it has an invalid favicon :thinking_face:" : ""
         }`,
         type: "links",
@@ -86,7 +94,7 @@ export const PUT = withAuth(
   },
 );
 
-// DELETE /api/projects/[slug]/links/[linkId] – delete a link
+// DELETE /api/links/[linkId] – delete a link
 export const DELETE = withAuth(async ({ headers, link }) => {
   // link is guaranteed to exist because if not we will return 404
   const response = await deleteLink({

@@ -2,7 +2,7 @@ import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 
 export { type Link as LinkProps } from "@prisma/client";
 export interface SimpleLinkProps {
-  domain?: string;
+  domain: string;
   key: string;
   url: string;
 }
@@ -71,6 +71,7 @@ export interface DomainProps {
   primary: boolean;
   target?: string;
   type: "redirect" | "rewrite";
+  placeholder?: string;
   clicks: number;
 }
 

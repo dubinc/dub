@@ -1,11 +1,6 @@
 import { BlurImage } from "@/ui/shared/blur-image";
 import { Button, Modal } from "@dub/ui";
-import {
-  GOOGLE_FAVICON_URL,
-  getApexDomain,
-  getQueryString,
-  linkConstructor,
-} from "@dub/utils";
+import { GOOGLE_FAVICON_URL, getApexDomain, linkConstructor } from "@dub/utils";
 import { type Link as LinkProps } from "@prisma/client";
 import { useParams, useSearchParams } from "next/navigation";
 import {
@@ -67,34 +62,19 @@ function DeleteLinkModal({
         onSubmit={async (e) => {
           e.preventDefault();
           setDeleting(true);
-          fetch(
-            `/api${slug ? `/projects/${slug}/links` : "/links"}/${props.id}`,
-            {
-              method: "DELETE",
-              headers: {
-                "Content-Type": "application/json",
-              },
+          fetch(`/api/links/${props.id}${slug ? `?projectSlug=${slug}` : ""}`, {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
             },
-          ).then(async (res) => {
+          }).then(async (res) => {
             if (res.status === 200) {
-              await Promise.all([
-                mutate(
-                  (key) =>
-                    typeof key === "string" &&
-                    key.startsWith(
-                      `/api${slug ? `/projects/${slug}` : ""}/links`,
-                    ),
-                ),
-                mutate(
-                  (key) =>
-                    typeof key === "string" &&
-                    key.startsWith(
-                      `/api${slug ? `/projects/${slug}` : ""}/links/count`,
-                    ),
-                  undefined,
-                  { revalidate: true },
-                ),
-              ]);
+              await mutate(
+                (key) =>
+                  typeof key === "string" && key.startsWith("/api/links"),
+                undefined,
+                { revalidate: true },
+              );
               setShowDeleteLinkModal(false);
               toast.success("Successfully deleted shortlink!");
             } else {

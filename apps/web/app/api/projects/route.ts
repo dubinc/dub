@@ -10,7 +10,7 @@ import prisma from "@/lib/prisma";
 import { DEFAULT_REDIRECTS, validSlugRegex } from "@dub/utils";
 
 // GET /api/projects - get all projects for the current user
-export const GET = withAuth(async ({ session }) => {
+export const GET = withAuth(async ({ session, headers }) => {
   const projects = await prisma.project.findMany({
     where: {
       users: {
@@ -19,8 +19,11 @@ export const GET = withAuth(async ({ session }) => {
         },
       },
     },
+    include: {
+      domains: true,
+    },
   });
-  return NextResponse.json(projects);
+  return NextResponse.json(projects, { headers });
 });
 
 export const POST = withAuth(async ({ req, session }) => {

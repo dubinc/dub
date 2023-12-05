@@ -1,12 +1,14 @@
+import { qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { sendEmail } from "emails";
 import LinksImported from "emails/links-imported";
 
-// recursive function to check if pagination.searchAfter is not an empty string, else break
-// rate limit for /groups/{group_guid}/bitlinks is 1500 per hour or 150 per minute
+// Note: rate limit for /groups/{group_guid}/bitlinks is 1500 per hour or 150 per minute
 export const importLinksFromBitly = async ({
   projectId,
+  userId,
   bitlyGroup,
   domains,
   tagsToId,
@@ -15,6 +17,7 @@ export const importLinksFromBitly = async ({
   count = 0,
 }: {
   projectId: string;
+  userId: string;
   bitlyGroup: string;
   domains: string[];
   tagsToId?: Record<string, string>;
@@ -40,8 +43,7 @@ export const importLinksFromBitly = async ({
 
   // convert links to format that can be imported into database
   const importedLinks = links
-    .map((link) => {
-      const { id, long_url: url, title, archived, created_at, tags } = link;
+    .map(({ id, long_url: url, title, archived, created_at, tags }) => {
       const [domain, key] = id.split("/");
       // if domain is not in project domains, skip (could be a bit.ly link or old short domain)
       if (!domains.includes(domain)) {
@@ -54,6 +56,7 @@ export const importLinksFromBitly = async ({
       const tagId = tagsToId ? tagsToId[tags[0]] : null;
       return {
         projectId,
+        userId,
         domain,
         key,
         url,
@@ -127,8 +130,9 @@ export const importLinksFromBitly = async ({
     const links = project?.links ?? [];
 
     await Promise.all([
-      // delete key from redis
+      // delete keys from redis
       redis.del(`import:bitly:${projectId}`),
+      redis.del(`import:bitly:${projectId}:tags`),
 
       // delete tags that have no links
       prisma.tag.deleteMany({
@@ -157,13 +161,17 @@ export const importLinksFromBitly = async ({
     ]);
     return count;
   } else {
-    return await importLinksFromBitly({
-      projectId,
-      domains,
-      bitlyGroup,
-      bitlyApiKey,
-      searchAfter: nextSearchAfter,
-      count,
+    return await qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/bitly`,
+      body: {
+        projectId,
+        userId,
+        bitlyGroup,
+        domains,
+        keepTags: tagsToId ? true : false,
+        searchAfter: nextSearchAfter,
+        count,
+      },
     });
   }
 };

@@ -112,7 +112,7 @@ export default async function LinkMiddleware(
     } else if (rewrite) {
       if (iframeable) {
         return NextResponse.rewrite(
-          new URL(`/rewrite/${encodeURIComponent(target)}`, req.url),
+          new URL(`/rewrite/${target}`, req.url),
           DUB_HEADERS,
         );
       } else {

@@ -13,7 +13,7 @@ const scriptPath = `./scripts/${command}.${
 }`;
 
 exec(
-  `tsx ${scriptPath}`,
+  `tsx  --stack-size=5120000 ${scriptPath}`,
   { maxBuffer: 1024 * 5000 },
   (error, stdout, stderr) => {
     if (error) {

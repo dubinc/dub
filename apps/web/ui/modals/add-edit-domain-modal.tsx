@@ -3,7 +3,16 @@ import { DomainProps } from "@/lib/types";
 import { ModalContext } from "@/ui/modals/provider";
 import { BlurImage } from "@/ui/shared/blur-image";
 import { AlertCircleFill, Lock } from "@/ui/shared/icons";
-import { Button, Logo, Modal, Switch, Tooltip, TooltipContent } from "@dub/ui";
+import {
+  Button,
+  InfoTooltip,
+  Logo,
+  Modal,
+  SimpleTooltipContent,
+  Switch,
+  Tooltip,
+  TooltipContent,
+} from "@dub/ui";
 import { SWIPE_REVEAL_ANIMATION_SETTINGS } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";
@@ -45,7 +54,7 @@ function AddEditDomainModal({
     },
   );
 
-  const { slug: domain, primary, target, type } = data;
+  const { slug: domain, primary, target, type, placeholder } = data;
 
   const [debouncedDomain] = useDebounce(domain, 500);
   useEffect(() => {
@@ -145,7 +154,7 @@ function AddEditDomainModal({
         ) : (
           <Logo />
         )}
-        <h3 className="text-lg font-medium">{props ? "Edit" : "Add"} Domain</h3>
+        <h1 className="text-lg font-medium">{props ? "Edit" : "Add"} Domain</h1>
       </div>
 
       <form
@@ -180,11 +189,8 @@ function AddEditDomainModal({
       >
         <div>
           <div className="flex items-center justify-between">
-            <label
-              htmlFor="domain"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Domain
+            <label htmlFor="domain">
+              <h2 className="text-sm font-medium text-gray-700">Domain</h2>
             </label>
             {props && lockDomain && (
               <button
@@ -259,11 +265,9 @@ function AddEditDomainModal({
         </div>
 
         <div>
-          <label
-            htmlFor="target"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Landing Page
+          <label htmlFor="target" className="flex items-center space-x-2">
+            <h2 className="text-sm font-medium text-gray-900">Landing Page</h2>
+            <InfoTooltip content="The page your users will get redirected to when they visit your domain." />
           </label>
           {plan !== "free" ? (
             <div className="relative mt-1 rounded-md shadow-sm">
@@ -324,8 +328,35 @@ function AddEditDomainModal({
           )}
         </AnimatePresence>
 
+        <div>
+          <label htmlFor="placeholder" className="flex items-center space-x-2">
+            <h2 className="text-sm font-medium text-gray-900">
+              Input Placeholder URL
+            </h2>
+            <InfoTooltip content="Provide context to your teammates in the link creation modal by showing them an example of a link to be shortened." />
+          </label>
+          <div className="relative mt-1 rounded-md shadow-sm">
+            <input
+              type="url"
+              name="placeholder"
+              id="placeholder"
+              className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+              placeholder="https://dub.co/help/article/what-is-dub"
+              value={placeholder}
+              onChange={(e) =>
+                setData({ ...data, placeholder: e.target.value })
+              }
+            />
+          </div>
+        </div>
+
         <div className="flex items-center justify-between bg-gray-50">
-          <p className="text-sm font-medium text-gray-900">Primary Domain</p>
+          <div className="flex items-center space-x-2">
+            <h2 className="text-sm font-medium text-gray-900">
+              Primary Domain
+            </h2>
+            <InfoTooltip content="The default domain used in the link creation modal. You can only have one primary domain at a time." />
+          </div>
           <Switch
             fn={() => setData((prev) => ({ ...prev, primary: !primary }))}
             checked={primary}

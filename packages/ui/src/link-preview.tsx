@@ -109,3 +109,31 @@ export function LinkPreview({ defaultUrl }: { defaultUrl?: string }) {
     </>
   );
 }
+
+export function LinkPreviewPlaceholder({
+  defaultUrl,
+}: {
+  defaultUrl?: string;
+}) {
+  return (
+    <>
+      <div className="relative flex items-center">
+        <Link2 className="absolute inset-y-0 left-0 my-2 ml-3 w-5 text-gray-400" />
+        <input
+          name="url"
+          id="url"
+          type="url"
+          disabled
+          className="block w-full rounded-md border-gray-200 pl-10 text-sm text-gray-900 placeholder-gray-400 shadow-lg focus:border-gray-500 focus:outline-none focus:ring-gray-500"
+          placeholder="Enter your URL"
+          defaultValue={defaultUrl || "https://github.com/steven-tey/dub"}
+        />
+      </div>
+      <div className="relative overflow-hidden rounded-md border border-gray-300 bg-gray-50">
+        <div className="absolute flex h-[250px] w-full flex-col items-center justify-center space-y-4 border-b border-gray-300 bg-gray-50">
+          <LoadingCircle />
+        </div>
+      </div>
+    </>
+  );
+}

@@ -30,9 +30,9 @@ export default function LinkPreviewTooltip({
     }
   >(
     key
-      ? `/api${
-          slug ? `/projects/${slug}` : ""
-        }/links/info?domain=${domain}&key=${key}`
+      ? `/api/links/info?domain=${domain}&key=${key}${
+          slug ? `&projectSlug=${slug}` : ""
+        }`
       : `/api/projects/${slug}/domains/${domain}`,
     fetcher,
     {

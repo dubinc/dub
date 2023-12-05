@@ -1,8 +1,15 @@
 import { getLinkViaEdge } from "@/lib/planetscale";
-import { Background, Footer, LinkPreview, Nav } from "@dub/ui";
+import {
+  Background,
+  Footer,
+  LinkPreview,
+  LinkPreviewPlaceholder,
+  Nav,
+} from "@dub/ui";
 import { HOME_DOMAIN, constructMetadata } from "@dub/utils";
 import { notFound } from "next/navigation";
 import LinkInspectorCard from "./card";
+import { Suspense } from "react";
 
 export const runtime = "edge";
 
@@ -58,7 +65,9 @@ export default async function InspectPage({
           </h2>
 
           <LinkInspectorCard domain={domain} _key={key} url={data.url} />
-          <LinkPreview defaultUrl={data.url} />
+          <Suspense fallback={<LinkPreviewPlaceholder />}>
+            <LinkPreview defaultUrl={data.url} />
+          </Suspense>
           <a
             href={`${HOME_DOMAIN}/tools/inspector`}
             rel="noreferrer"

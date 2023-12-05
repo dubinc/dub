@@ -60,7 +60,6 @@ function ImportShortModal({
   );
 
   const [importing, setImporting] = useState(false);
-  const { setPollLinks } = useContext(ModalContext);
 
   useEffect(() => {
     if (searchParams?.get("import") === "short") {
@@ -122,7 +121,6 @@ function ImportShortModal({
                   if (res.ok) {
                     await mutate(`/api/projects/${slug}/domains`);
                     router.push(`/${slug}`);
-                    setPollLinks(true);
                   } else {
                     setImporting(false);
                     throw new Error();

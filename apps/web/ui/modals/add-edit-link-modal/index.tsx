@@ -19,7 +19,6 @@ import {
   cn,
   deepEqual,
   getApexDomain,
-  getQueryString,
   getUrlWithoutUTMParams,
   isValidUrl,
   linkConstructor,
@@ -75,7 +74,6 @@ function AddEditLinkModal({
 }) {
   const params = useParams() as { slug?: string };
   const { slug } = params;
-  const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -112,13 +110,12 @@ function AddEditLinkModal({
     if (
       showAddEditLinkModal &&
       debouncedKey.length > 0 &&
-      debouncedKey !== props?.key &&
-      !keyError
+      debouncedKey !== props?.key
     ) {
       fetch(
-        `/api${
-          slug ? `/projects/${slug}` : ""
-        }/links/exists?domain=${domain}&key=${debouncedKey}`,
+        `/api/links/exists?domain=${domain}&key=${debouncedKey}${
+          slug ? `&projectSlug=${slug}` : ""
+        }`,
       ).then(async (res) => {
         if (res.status === 200) {
           const exists = await res.json();
@@ -132,12 +129,12 @@ function AddEditLinkModal({
     setKeyError(null);
     setGeneratingKey(true);
     const res = await fetch(
-      `/api${slug ? `/projects/${slug}` : ""}/links/random?domain=${domain}`,
+      `/api/links/random?domain=${domain}${slug ? `&projectSlug=${slug}` : ""}`,
     );
     const key = await res.json();
     setData((prev) => ({ ...prev, key }));
     setGeneratingKey(false);
-  }, []);
+  }, [domain, slug]);
 
   useEffect(() => {
     // generate random key when someone pastes a URL and there's no key
@@ -227,12 +224,12 @@ function AddEditLinkModal({
     if (props?.key) {
       return {
         method: "PUT",
-        url: `/api${slug ? `/projects/${slug}` : ""}/links/${props.id}`,
+        url: `/api/links/${props.id}${slug ? `?projectSlug=${slug}` : ""}`,
       };
     } else {
       return {
         method: "POST",
-        url: `/api${slug ? `/projects/${slug}` : ""}/links`,
+        url: `/api/links${slug ? `?projectSlug=${slug}` : ""}`,
       };
     }
   }, [props, slug, domain]);
@@ -352,24 +349,12 @@ function AddEditLinkModal({
                     va.track("Created Link", {
                       type: slug ? "Custom Domain" : "Default Domain",
                     });
-                  await Promise.all([
-                    mutate(
-                      (key) =>
-                        typeof key === "string" &&
-                        key.startsWith(
-                          `/api${slug ? `/projects/${slug}` : ""}/links`,
-                        ),
-                    ),
-                    mutate(
-                      (key) =>
-                        typeof key === "string" &&
-                        key.startsWith(
-                          `/api${slug ? `/projects/${slug}` : ""}/links/count`,
-                        ),
-                      undefined,
-                      { revalidate: true },
-                    ),
-                  ]);
+                  await mutate(
+                    (key) =>
+                      typeof key === "string" && key.startsWith("/api/links"),
+                    undefined,
+                    { revalidate: true },
+                  );
                   // for welcome page, redirect to links page after adding a link
                   if (pathname === "/welcome") {
                     await router.push("/links");
@@ -428,7 +413,11 @@ function AddEditLinkModal({
                     id={`url-${randomIdx}`}
                     type="url"
                     required
-                    placeholder="https://github.com/steven-tey/dub"
+                    placeholder={
+                      domains?.find(({ slug }) => slug === domain)
+                        ?.placeholder ||
+                      "https://dub.co/help/article/what-is-dub"
+                    }
                     value={url}
                     autoFocus={!key}
                     autoComplete="off"
@@ -549,11 +538,15 @@ function AddEditLinkModal({
                     </div>
                   )}
                 </div>
-                {keyError && (
+                {keyError ? (
                   <p className="mt-2 text-sm text-red-600" id="key-error">
                     {keyError}
                   </p>
-                )}
+                ) : domain === "chatg.pt" ? (
+                  <p className="mt-2 text-sm text-gray-500">
+                    You can only create up to 25 links with this domain.
+                  </p>
+                ) : null}
               </div>
             </div>
 

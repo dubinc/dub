@@ -101,18 +101,6 @@ module.exports = {
         permanent: true,
         statusCode: 301,
       },
-      {
-        source: "/",
-        has: [
-          {
-            type: "host",
-            value: "dub.sh",
-          },
-        ],
-        destination: "https://dub.co",
-        permanent: true,
-        statusCode: 301,
-      },
       ...REDIRECT_SEGMENTS.map(
         (segment) => (
           {

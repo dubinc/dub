@@ -16,3 +16,20 @@ export const receiver = new Receiver({
 export const qstash = new Client({
   token: process.env.QSTASH_TOKEN || "",
 });
+
+export const verifySignature = async (req: Request) => {
+  const authHeader = req.headers.get("authorization");
+
+  // if we're on Vercel and:
+  //  1. there's no CRON_SECRET env var
+  //  2. request doesn't have the correct auth header,
+  // then return false
+  if (
+    process.env.VERCEL === "1" &&
+    (!process.env.CRON_SECRET ||
+      authHeader !== `Bearer ${process.env.CRON_SECRET}`)
+  ) {
+    return false;
+  }
+  return true;
+};

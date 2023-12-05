@@ -4,7 +4,13 @@ import { Link as LinkProps } from "@prisma/client";
 import { PlanProps, ProjectProps } from "../types";
 import { getServerSession } from "next-auth/next";
 import { createHash } from "crypto";
-import { API_DOMAIN, getSearchParams } from "@dub/utils";
+import {
+  API_DOMAIN,
+  DUB_DOMAINS,
+  DUB_PROJECT_ID,
+  getSearchParams,
+  isDubDomain,
+} from "@dub/utils";
 import { ratelimit } from "../upstash";
 
 export interface Session {
@@ -61,10 +67,12 @@ export const withAuth =
       requiredPlan = ["free", "pro", "enterprise"], // if the action needs a specific plan
       requiredRole = ["owner", "member"],
       needNotExceededUsage, // if the action needs the user to not have exceeded their usage
+      allowAnonymous, // special case for /api/links (POST /api/links) – allow no session
     }: {
       requiredPlan?: Array<PlanProps>;
       requiredRole?: Array<"owner" | "member">;
       needNotExceededUsage?: boolean;
+      allowAnonymous?: boolean;
     } = {},
   ) =>
   async (
@@ -72,8 +80,10 @@ export const withAuth =
     { params }: { params: Record<string, string> | undefined },
   ) => {
     const searchParams = getSearchParams(req.url);
-    const { slug, linkId } = params || {};
+    const { linkId } = params || {};
+    const slug = params?.slug || searchParams.projectSlug;
     const domain = params?.domain || searchParams.domain;
+    const key = searchParams.key;
 
     let session: Session | undefined;
     let headers = {};
@@ -92,15 +102,15 @@ export const withAuth =
 
       const url = new URL(req.url || "", API_DOMAIN);
 
-      if (url.pathname.includes("/stats/")) {
+      if (url.pathname.includes("/stats")) {
         return new Response("API access is not available for stats yet.", {
           status: 403,
         });
       }
 
-      if (!slug && url.pathname.includes("/links/")) {
+      if (!slug && url.pathname.includes("/links")) {
         return new Response(
-          "API access is only available for projects with custom domains.",
+          "API access is only available for projects with custom domains. Did you forget to include a `projectSlug` query parameter?",
           {
             status: 403,
           },
@@ -167,6 +177,17 @@ export const withAuth =
     } else {
       session = await getSession();
       if (!session?.user.id) {
+        // for demo links, we allow anonymous link creation
+        if (allowAnonymous) {
+          // @ts-expect-error
+          return handler({
+            req,
+            params: params || {},
+            searchParams,
+            headers,
+          });
+        }
+
         return new Response("Unauthorized: Login required.", {
           status: 401,
           headers,
@@ -206,12 +227,22 @@ export const withAuth =
             },
           },
         }),
-      linkId &&
-        prisma.link.findUnique({
-          where: {
-            id: linkId,
-          },
-        }),
+      linkId
+        ? prisma.link.findUnique({
+            where: {
+              id: linkId,
+            },
+          })
+        : domain && key && key !== "_root"
+        ? prisma.link.findUnique({
+            where: {
+              domain_key: {
+                domain,
+                key,
+              },
+            },
+          })
+        : undefined,
     ])) as [ProjectProps | undefined, LinkProps | undefined];
 
     // project checks
@@ -232,13 +263,6 @@ export const withAuth =
             headers,
           });
         }
-      }
-
-      if (link && link.projectId !== project.id) {
-        return new Response("Unauthorized: Invalid link.", {
-          status: 403,
-          headers,
-        });
       }
 
       // project exists but user is not part of it
@@ -272,6 +296,7 @@ export const withAuth =
         }
       }
 
+      // project role checks (enterprise only)
       if (
         requiredRole &&
         project.plan === "enterprise" &&
@@ -288,6 +313,7 @@ export const withAuth =
         });
       }
 
+      // usage overage checks
       if (needNotExceededUsage && project.usage > project.usageLimit) {
         return new Response("Unauthorized: Usage limits exceeded.", {
           status: 403,
@@ -295,6 +321,7 @@ export const withAuth =
         });
       }
 
+      // plan checks
       if (!requiredPlan.includes(project.plan)) {
         // return res.status(403).end("Unauthorized: Need higher plan.");
         return new Response("Unauthorized: Need higher plan.", {
@@ -302,9 +329,9 @@ export const withAuth =
           headers,
         });
       }
-      // for generic dub.sh links / stats
+      // for generic DUB_DOMAINS links / stats
     } else {
-      if (domain && domain !== "dub.sh") {
+      if (domain && !isDubDomain(domain)) {
         return new Response("Domain not found.", {
           status: 404,
           headers,
@@ -312,8 +339,9 @@ export const withAuth =
       }
     }
 
-    // link checks
-    if (linkId) {
+    // link checks (if linkId or domain and key are provided)
+    if (linkId || (domain && key && key !== "_root")) {
+      // if link doesn't exist
       if (!link) {
         return new Response("Link not found.", {
           status: 404,
@@ -321,10 +349,31 @@ export const withAuth =
         });
       }
 
-      // if it's the default dub.sh link, we need to make sure the user is the owner of the link
-      if (link.domain === "dub.sh" && link.userId !== session.user.id) {
-        return new Response("Unauthorized: Invalid link.", {
-          status: 403,
+      // if it's a custom project link, we need to make sure the link is owned by the project
+      if (slug) {
+        if (link.projectId !== project?.id) {
+          return new Response("Link not found.", {
+            status: 404,
+            headers,
+          });
+        }
+
+        // if it's generic DUB_DOMAINS links, we need to make sure the user is the owner of the link
+      } else if (isDubDomain(link.domain)) {
+        if (
+          link.projectId !== DUB_PROJECT_ID ||
+          link.userId !== session.user.id
+        ) {
+          return new Response("Link not found.", {
+            status: 404,
+            headers,
+          });
+        }
+
+        // if the domain is not part of DUB_DOMAINS
+      } else {
+        return new Response("Link not found.", {
+          status: 404,
           headers,
         });
       }

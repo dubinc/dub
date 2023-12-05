@@ -55,8 +55,10 @@ export default function UploadLogo() {
           body: JSON.stringify({ image }),
         }).then(async (res) => {
           if (res.status === 200) {
-            router.refresh();
-            await mutate(`/api/projects/${slug}`);
+            await Promise.all([
+              mutate("/api/projects"),
+              mutate(`/api/projects/${slug}`),
+            ]);
             toast.success("Succesfully uploaded project logo!");
           } else if (res.status === 413) {
             toast.error("File size too big (max 2MB)");

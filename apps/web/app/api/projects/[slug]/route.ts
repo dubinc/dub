@@ -4,8 +4,8 @@ import prisma from "@/lib/prisma";
 import { deleteProject } from "@/lib/api/project";
 
 // GET /api/projects/[slug] – get a specific project
-export const GET = withAuth(async ({ project }) => {
-  return NextResponse.json(project);
+export const GET = withAuth(async ({ project, headers }) => {
+  return NextResponse.json(project, { headers });
 });
 
 // PUT /api/projects/[slug] – update a specific project

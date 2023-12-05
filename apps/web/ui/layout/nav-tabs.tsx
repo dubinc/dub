@@ -31,7 +31,7 @@ export default function NavTabs() {
     }
     return [
       { name: "Projects", href: "/" },
-      { name: "Dub.sh Links", href: "/links" },
+      { name: "Links", href: "/links" },
       { name: "Settings", href: "/settings" },
     ];
   }, [pathname, slug, searchParams]);

@@ -3,7 +3,7 @@ import {
   getDomainResponse,
   verifyDomain,
 } from "@/lib/api/domains";
-import { receiver } from "@/lib/cron";
+import { receiver, verifySignature } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -17,16 +17,10 @@ import { handleDomainUpdates } from "./utils";
  **/
 // Runs every 3 hours (0 */3 * * *)
 
-export async function POST(req: Request) {
-  const body = await req.json();
-  if (process.env.VERCEL === "1") {
-    const isValid = await receiver.verify({
-      signature: req.headers.get("Upstash-Signature") || "",
-      body: JSON.stringify(body),
-    });
-    if (!isValid) {
-      return new Response("Unauthorized", { status: 401 });
-    }
+export async function GET(req: Request) {
+  const validSignature = await verifySignature(req);
+  if (!validSignature) {
+    return new Response("Unauthorized", { status: 401 });
   }
 
   try {

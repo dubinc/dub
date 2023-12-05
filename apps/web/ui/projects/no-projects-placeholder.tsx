@@ -30,7 +30,7 @@ export default function NoProjectsPlaceholder() {
         href="/links"
         className="mt-3 text-sm font-medium text-gray-500 transition-all hover:text-gray-800 active:scale-95"
       >
-        Add a Dub.sh link instead
+        Create a short link instead
       </Link>
     </div>
   );

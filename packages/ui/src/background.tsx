@@ -1,23 +1,11 @@
-"use client";
-
-import { SHOW_BACKGROUND_SEGMENTS } from "@dub/utils";
-import { useSelectedLayoutSegment } from "next/navigation";
-
 export function Background() {
-  let segment;
-  try {
-    segment = useSelectedLayoutSegment();
-  } catch (e) {
-    // this is for /welcome which is still on /pages router
-  }
-
-  return !segment || SHOW_BACKGROUND_SEGMENTS.includes(segment) ? (
+  return (
     <div style={styles.backgroundMain}>
       <div style={styles.backgroundMainBefore} />
       <div style={styles.backgroundMainAfter} />
       <div style={styles.backgroundContent} />
     </div>
-  ) : null;
+  );
 }
 
 const styles: { [key: string]: React.CSSProperties } = {
