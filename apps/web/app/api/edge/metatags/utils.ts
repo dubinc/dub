@@ -1,7 +1,7 @@
 import { parse } from "node-html-parser";
+import he from "he";
 import { recordMetatags } from "@/lib/upstash";
 import { isValidUrl } from "@dub/utils";
-import { NextFetchEvent } from "next/server";
 import { internal_runWithWaitUntil as waitUntil } from "next/dist/server/web/internal-edge-wait-until";
 
 export const getHtml = async (url: string) => {
@@ -77,7 +77,7 @@ export const getMetaTags = async (url: string) => {
   for (let k in metaTags) {
     let { property, content } = metaTags[k];
 
-    property && (object[property] = content);
+    property && (object[property] = he.decode(content));
   }
 
   for (let m in linkTags) {
