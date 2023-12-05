@@ -36,7 +36,7 @@ Dub is an open-source link management tool for modern marketing teams to create,
 - [Branded Links](https://dub.co/features/branded-links)
 - [QR Codes](https://dub.co/features/qr-codes)
 - [Personalization](https://dub.co/features/personalization)
-- [Team Collabration](https://dub.co/features/collaboration)
+- [Team Collaboration](https://dub.co/features/collaboration)
 
 ## Local Development
 
