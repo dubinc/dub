@@ -2,6 +2,7 @@ import { parse } from "node-html-parser";
 import { recordMetatags } from "@/lib/upstash";
 import { isValidUrl } from "@dub/utils";
 import { NextFetchEvent } from "next/server";
+import { internal_runWithWaitUntil as waitUntil } from "next/dist/server/web/internal-edge-wait-until";
 
 export const getHtml = async (url: string) => {
   try {
@@ -60,7 +61,7 @@ export const getRelativeUrl = (url: string, imageUrl: string) => {
   return new URL(imageUrl, baseURL).toString();
 };
 
-export const getMetaTags = async (url: string, ev?: NextFetchEvent) => {
+export const getMetaTags = async (url: string) => {
   const html = await getHtml(url);
   if (!html) {
     return {
@@ -99,9 +100,9 @@ export const getMetaTags = async (url: string, ev?: NextFetchEvent) => {
     object["icon"] ||
     object["shortcut icon"];
 
-  ev?.waitUntil(
-    recordMetatags(url, title && description && image ? false : true),
-  );
+  waitUntil(async () => {
+    await recordMetatags(url, title && description && image ? false : true);
+  });
 
   return {
     title: title || url,
