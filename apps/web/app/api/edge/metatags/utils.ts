@@ -1,56 +1,10 @@
-import { ratelimit, recordMetatags } from "@/lib/upstash";
-import { LOCALHOST_IP, isValidUrl } from "@dub/utils";
-import { ipAddress } from "@vercel/edge";
-import { getToken } from "next-auth/jwt";
-import { NextFetchEvent, NextRequest } from "next/server";
 import { parse } from "node-html-parser";
+import he from "he";
+import { recordMetatags } from "@/lib/upstash";
+import { isValidUrl } from "@dub/utils";
+import { internal_runWithWaitUntil as waitUntil } from "next/dist/server/web/internal-edge-wait-until";
 
-export const config = {
-  runtime: "edge",
-};
-
-export default async function handler(req: NextRequest, ev: NextFetchEvent) {
-  if (req.method === "GET") {
-    const url = req.nextUrl.searchParams.get("url");
-    if (!url || !isValidUrl(url)) {
-      return new Response("Invalid URL", { status: 400 });
-    }
-
-    // Rate limit if user is not logged in
-    const session = await getToken({
-      req,
-      secret: process.env.NEXTAUTH_SECRET,
-    });
-    if (!session?.email) {
-      const ip = ipAddress(req) || LOCALHOST_IP;
-      const { success } = await ratelimit().limit(ip);
-      if (!success) {
-        return new Response("Don't DDoS me pls 🥺", { status: 429 });
-      }
-    }
-
-    const metatags = await getMetaTags(url, ev);
-    return new Response(JSON.stringify(metatags), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      },
-    });
-  } else if (req.method === "OPTIONS") {
-    return new Response(null, {
-      status: 204,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, OPTIONS",
-      },
-    });
-  } else {
-    return new Response(`Method ${req.method} Not Allowed`, { status: 405 });
-  }
-}
-
-const getHtml = async (url: string) => {
+export const getHtml = async (url: string) => {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000); // timeout if it takes longer than 5 seconds
@@ -74,7 +28,7 @@ const getHtml = async (url: string) => {
   }
 };
 
-const getHeadChildNodes = (html) => {
+export const getHeadChildNodes = (html) => {
   const ast = parse(html); // parse the html into AST format with node-html-parser
   const metaTags = ast.querySelectorAll("meta").map(({ attributes }) => {
     const property = attributes.property || attributes.name || attributes.href;
@@ -95,7 +49,7 @@ const getHeadChildNodes = (html) => {
   return { metaTags, title, linkTags };
 };
 
-const getRelativeUrl = (url: string, imageUrl: string) => {
+export const getRelativeUrl = (url: string, imageUrl: string) => {
   if (!imageUrl) {
     return null;
   }
@@ -107,7 +61,7 @@ const getRelativeUrl = (url: string, imageUrl: string) => {
   return new URL(imageUrl, baseURL).toString();
 };
 
-export const getMetaTags = async (url: string, ev?: NextFetchEvent) => {
+export const getMetaTags = async (url: string) => {
   const html = await getHtml(url);
   if (!html) {
     return {
@@ -123,7 +77,7 @@ export const getMetaTags = async (url: string, ev?: NextFetchEvent) => {
   for (let k in metaTags) {
     let { property, content } = metaTags[k];
 
-    property && (object[property] = content);
+    property && (object[property] = he.decode(content));
   }
 
   for (let m in linkTags) {
@@ -146,9 +100,9 @@ export const getMetaTags = async (url: string, ev?: NextFetchEvent) => {
     object["icon"] ||
     object["shortcut icon"];
 
-  ev?.waitUntil(
-    recordMetatags(url, title && description && image ? false : true),
-  );
+  waitUntil(async () => {
+    await recordMetatags(url, title && description && image ? false : true);
+  });
 
   return {
     title: title || url,

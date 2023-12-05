@@ -7,8 +7,7 @@ import { LOCALHOST_IP } from "@dub/utils";
 import { ipAddress } from "@vercel/edge";
 import { NextResponse, type NextRequest } from "next/server";
 
-// TODO: switch to 'edge' after https://github.com/vercel/next.js/issues/48295 is fixed
-// export const runtime = "edge";
+export const runtime = "edge";
 
 export const GET = async (
   req: NextRequest,

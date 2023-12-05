@@ -75,7 +75,6 @@ export async function recordClick({
     ).then((res) => res.json()),
     // increment the click count for the link if key is specified (not root click)
     // also increment the usage count for the project, and then we have a cron that will reset it at the start of new billing cycle
-    // TODO: might wanna include root clicks in the usage count as well?
     ...(conn
       ? [
           key
