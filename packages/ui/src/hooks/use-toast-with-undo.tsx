@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { toast } from "sonner";
-import CheckCircle from "../icons/check-circle";
+import Success from "../icons/success";
 
 function ToastWithUndo({
   id,
@@ -30,7 +30,7 @@ function ToastWithUndo({
   return (
     <div className="flex w-full items-center justify-between">
       <div className="flex items-center space-x-2">
-        <CheckCircle />
+        <Success />
         <p className="font-medium">{message}</p>
       </div>
       <button
