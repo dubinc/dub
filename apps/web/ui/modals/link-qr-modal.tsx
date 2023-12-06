@@ -86,7 +86,7 @@ export function QRCodePicker({
     if (logo && plan !== "free") return logo;
     return typeof window !== "undefined" && window.location.origin
       ? new URL("/_static/logo.svg", window.location.origin).href
-      : "https://dub.sh/_static/logo.svg";
+      : "https://dub.co/_static/logo.svg";
   }, [logo, plan]);
 
   function download(url: string, extension: string) {
@@ -188,7 +188,7 @@ export function QRCodePicker({
         <div className="grid grid-cols-2 gap-2 px-4 sm:px-16">
           <button
             onClick={async () => {
-              toast.promise(copyToClipboard(), {
+              toast.promise(copyToClipboard, {
                 loading: "Copying QR code to clipboard...",
                 success: "Copied QR code to clipboard!",
                 error: "Failed to copy",
