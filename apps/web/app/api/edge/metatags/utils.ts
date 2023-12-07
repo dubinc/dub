@@ -77,7 +77,7 @@ export const getMetaTags = async (url: string) => {
   for (let k in metaTags) {
     let { property, content } = metaTags[k];
 
-    property && (object[property] = he.decode(content));
+    property && (object[property] = content && he.decode(content));
   }
 
   for (let m in linkTags) {
