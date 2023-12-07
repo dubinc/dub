@@ -12,6 +12,7 @@ import {
   DUB_PROJECT_ID,
   getDomainWithoutWWW,
   getParamsFromURL,
+  getUrlFromString,
   isDubDomain,
   nanoid,
   truncate,
@@ -221,6 +222,7 @@ export async function processLink({
 }) {
   let { domain, key, url, image, rewrite, geo } = payload;
 
+  // url checks
   if (!url) {
     return {
       link: payload,
@@ -228,6 +230,16 @@ export async function processLink({
       status: 400,
     };
   }
+  const processedUrl = getUrlFromString(url);
+  if (!processedUrl) {
+    return {
+      link: payload,
+      error: "Invalid destination url.",
+      status: 422,
+    };
+  }
+
+  // domain checks
   if (!domain) {
     return {
       link: payload,
@@ -235,8 +247,9 @@ export async function processLink({
       status: 400,
     };
   }
+
+  // expire date checks
   if (payload.expiresAt) {
-    // check if expiresAt is a valid
     const date = new Date(payload.expiresAt);
     if (isNaN(date.getTime())) {
       return {
@@ -379,6 +392,7 @@ export async function processLink({
     link: {
       ...payload,
       key,
+      url: processedUrl,
       // make sure projectId is set to the current project (or Dub's if there's no project)
       projectId: project?.id || DUB_PROJECT_ID,
       // if session is passed, set userId to the current user's id (we don't change the userId if it's already set, e.g. when editing a link)

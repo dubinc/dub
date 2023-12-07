@@ -6,7 +6,6 @@ import { getServerSession } from "next-auth/next";
 import { createHash } from "crypto";
 import {
   API_DOMAIN,
-  DUB_DOMAINS,
   DUB_PROJECT_ID,
   getSearchParams,
   isDubDomain,
