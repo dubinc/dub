@@ -31,6 +31,7 @@
     "@vercel/edge": "^0.3.1",
     "@vercel/edge-config": "^0.4.1",
     "@vercel/og": "^0.0.21",
+    "@vercel/speed-insights": "^1.0.1",
     "@visx/axis": "^2.14.0",
     "@visx/event": "^2.6.0",
     "@visx/geo": "^2.10.0",
