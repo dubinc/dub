@@ -1,5 +1,5 @@
 "use server";
-import { deleteUserLinks } from "@/lib/api/links";
+import { deleteLink, deleteUserLinks } from "@/lib/api/links";
 import { deleteProject } from "@/lib/api/project";
 import { getSession, hashToken } from "@/lib/auth";
 import prisma from "@/lib/prisma";
@@ -283,6 +283,88 @@ export async function banUser(data: FormData) {
     JSON.stringify(
       {
         ban,
+        response,
+      },
+      null,
+      2,
+    ),
+  );
+
+  return true;
+}
+
+export async function getLinkByKey(data: FormData) {
+  const key = data.get("key") as string;
+
+  if (!(await isAdmin())) {
+    return {
+      error: "Unauthorized",
+    };
+  }
+
+  const link = await prisma.link.findUnique({
+    where: {
+      domain_key: {
+        domain: "dub.sh",
+        key,
+      },
+    },
+    select: {
+      key: true,
+      url: true,
+    },
+  });
+  if (!link) {
+    return {
+      error: "No link found",
+    };
+  }
+
+  return {
+    key: link?.key as string,
+    url: link?.url as string,
+    domain: getDomainWithoutWWW(link?.url as string),
+  };
+}
+
+export async function deleteAndBlacklistLink(data: FormData) {
+  const key = data.get("key") as string;
+  const hostnames = data.getAll("hostname") as string[];
+
+  if (!(await isAdmin())) {
+    return {
+      error: "Unauthorized",
+    };
+  }
+
+  const blacklistedDomains = (await get("domains")) as string[];
+
+  const response = await Promise.allSettled([
+    deleteLink({ key }),
+    fetch(
+      `https://api.vercel.com/v1/edge-config/${process.env.EDGE_CONFIG_ID}/items?teamId=${process.env.TEAM_ID_VERCEL}`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          items: [
+            {
+              operation: "update",
+              key: "domains",
+              value: [...blacklistedDomains, ...hostnames],
+            },
+          ],
+        }),
+      },
+    ),
+  ]);
+
+  console.log(
+    JSON.stringify(
+      {
         response,
       },
       null,
