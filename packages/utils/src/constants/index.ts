@@ -118,7 +118,7 @@ export const SHOW_BACKGROUND_SEGMENTS = [
 
 export const DUB_DOMAINS = [
   {
-    slug: process.env.NEXT_PUBLIC_APP_SHORT_DOMAIN,
+    slug: process.env.NEXT_PUBLIC_APP_SHORT_DOMAIN || "dub.sh",
     verified: true,
     primary: true,
     target: `https://${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
