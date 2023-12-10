@@ -9,15 +9,57 @@ Self-hosting Dub gives you extra control over your data and design.
 Before you begin, make sure you have the following:
 
 - A [GitHub](https://github.com/) account
-- A [Vercel](https://vercel.com/) account
 - A [Tinybird](https://www.tinybird.co/) account
 - An [Upstash](https://upstash.com/) account
 - A [Planetscale](https://planetscale.com/) account
+- A [Vercel](https://vercel.com/) account
 
-## Step 1: Fork the repository
+## Step 1: Clone the repository
 
 First, clone the [Dub repo](https://dub.sh/github) into a public GitHub repository. If you are planning to distribute the code, make sure to keep the source code public to comply with our [AGPLv3 license](https://dub.sh/license).
 
 ```bash
 git clone https://github.com/steven-tey/dub.git
 ```
+
+## Step 2. Publish Tinybird endpoints
+
+Next, you'll need to publish the Tinybird endpoints:
+
+1. In your [Tinybrd](https://tinybird.co/) account, create a new Workspace.
+2. Copy your `admin` [Auth Token](https://www.tinybird.co/docs/concepts/auth-tokens.html). You'll need this in step 5, and also for the `TINYBIRD_API_KEY` environment variable in later steps.
+3. In your cloned Dub repo, navigate to the `packages/tinybird` directory.
+4. Install the Tinybird CLI with `pip install tinybird-cli` (requires Python >= 3.8).
+5. Run `tb auth` and paste your `admin` Auth Token.
+6. Run `tb push` to publish the datasource and endpoints in the `packages/tinybird` directory. You should see the following output (truncated for brevity):
+
+```bash
+$ tb push
+
+** Processing ./datasources/click_events.datasource
+** Processing ./endpoints/clicks.pipe
+...
+** Building dependencies
+** Running 'click_events'
+** 'click_events' created
+** Running 'device'
+** => Test endpoint at https://api.us-east.tinybird.co/v0/pipes/device.json
+** Token device_endpoint_read_8888 not found, creating one
+** => Test endpoint with:
+** $ curl https://api.us-east.tinybird.co/v0/pipes/device.json?token=p.ey...NWeaoTLM
+** 'device' created
+...
+```
+
+## Step 3. Set up Upstash Redis database
+
+Next, you'll need to set up the Upstash Redis database:
+
+1. In your [Upstash](https://upstash.com/) account, create a new database.
+2. For better performance & read times, we recommend setting up a global database with several read regions.
+
+![Upstash Redis database](/images/upstash-create-db.png)
+
+3. Once your database is created, copy the `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` from the **REST API** section. You'll need these tokens in later steps.
+
+![Upstash copy tokens](/images/upstash-copy-tokens.png)
