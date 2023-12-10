@@ -20,6 +20,7 @@ import {
   deepEqual,
   getApexDomain,
   getUrlWithoutUTMParams,
+  isDubDomain,
   isValidUrl,
   linkConstructor,
   truncate,
@@ -542,7 +543,7 @@ function AddEditLinkModal({
                   <p className="mt-2 text-sm text-red-600" id="key-error">
                     {keyError}
                   </p>
-                ) : domain === "chatg.pt" ? (
+                ) : domain !== "dub.sh" && isDubDomain(domain) ? (
                   <p className="mt-2 text-sm text-gray-500">
                     You can only create up to 25 links with this domain.
                   </p>

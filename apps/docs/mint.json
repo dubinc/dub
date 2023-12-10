@@ -30,7 +30,18 @@
     "url": "https://app.dub.co"
   },
   "openapi": "https://api.dub.sh",
+  "tabs": [
+    {
+      "name": "API Reference",
+      "url": "api-reference"
+    }
+  ],
   "anchors": [
+    {
+      "name": "Changelog",
+      "icon": "bell",
+      "url": "https://dub.co/changelog"
+    },
     {
       "name": "Help Center",
       "icon": "question",
@@ -48,6 +59,23 @@
     }
   ],
   "navigation": [
+    {
+      "group": "Getting Started",
+      "pages": ["introduction"]
+    },
+    {
+      "group": "Self-Hosting",
+      "pages": ["self-hosting/guide"]
+    },
+    {
+      "group": "Integrations",
+      "pages": [
+        "integrations/zapier",
+        "integrations/pipedream",
+        "integrations/make",
+        "integrations/raycast"
+      ]
+    },
     {
       "group": "API Reference",
       "pages": ["api-reference/introduction", "api-reference/rate-limits"]
@@ -75,15 +103,6 @@
       "pages": [
         "api-reference/endpoint/create-a-new-tag",
         "api-reference/endpoint/retrieve-a-list-of-tags"
-      ]
-    },
-    {
-      "group": "Integrations",
-      "pages": [
-        "integrations/zapier",
-        "integrations/pipedream",
-        "integrations/make",
-        "integrations/raycast"
       ]
     }
   ],

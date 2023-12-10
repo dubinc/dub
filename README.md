@@ -28,7 +28,7 @@
 
 ## Introduction
 
-Dub is an open-source link management tool for modern marketing teams to create, share, and track short links.
+Dub.co is the open-source link management infrastructure for modern marketing teams.
 
 ## Features
 
@@ -64,6 +64,7 @@ We're planning to add a proper, well-documented self-hosting guide for Dub soon 
 - [BoxyHQ](https://boxyhq.com/enterprise-sso) – SSO/SAML
 - [Turborepo](https://turbo.build/repo) – monorepo
 - [Stripe](https://stripe.com/) – payments
+- [Resend](https://resend.com/) – emails
 - [Vercel](https://vercel.com/) – deployments
 
 ## Contributing
