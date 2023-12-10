@@ -1,0 +1,29 @@
+TOKEN "os_endpoint_read_7161" READ
+
+NODE os_node
+DESCRIPTION >
+    undefined
+
+SQL >
+
+    %
+    SELECT os, COUNT(os) as clicks
+    FROM click_events
+    WHERE
+        domain IN {{ Array(domain, 'String', default='stey.me') }}
+        {% if defined(key) %}
+            AND key IN {{ Array(key, 'String', default='twitter') }}
+        {% end %}
+        {% if defined(country) %} AND country = {{ country }} {% end %}
+        {% if defined(city) %} AND city = {{ city }} {% end %}
+        {% if defined(device) %} AND device = {{ device }} {% end %}
+        {% if defined(browser) %} AND browser = {{ browser }} {% end %}
+        {% if defined(os) %} AND os = {{ os }} {% end %}
+        AND  os != 'Unknown'
+        {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+        {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
+        {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
+    GROUP BY os
+    ORDER BY clicks DESC
+
+

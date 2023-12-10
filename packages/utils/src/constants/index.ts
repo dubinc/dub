@@ -33,44 +33,43 @@ export const FADE_IN_ANIMATION_SETTINGS = {
 
 export const PAGINATION_LIMIT = 100;
 
-export const HOME_DOMAIN = "https://dub.co";
+export const HOME_DOMAIN = `https://${process.env.NEXT_PUBLIC_APP_DOMAIN}`;
 
 export const APP_HOSTNAMES = new Set([
-  "app.dub.co",
-  "preview.dub.co",
+  `app.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
+  `preview.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
   "localhost:8888",
   "localhost",
 ]);
 
 export const APP_DOMAIN =
   process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-    ? "https://app.dub.co"
+    ? `https://app.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
-    ? "https://preview.dub.co"
+    ? `https://preview.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
     : "http://localhost:8888";
 
 export const APP_DOMAIN_WITH_NGROK =
   process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-    ? "https://app.dub.co"
+    ? `https://app.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
-    ? "https://preview.dub.co"
+    ? `https://preview.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
     : process.env.NGROK_URL;
 
 export const API_HOSTNAMES = new Set([
-  "api.dub.co",
-  "api.dub.sh",
+  `api.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
   "api.localhost:8888",
 ]);
 
 export const API_DOMAIN =
   process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-    ? "https://api.dub.co"
+    ? `https://api.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
-    ? "https://api.dub.sh"
+    ? `https://api.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
     : "http://api.localhost:8888";
 
 export const ADMIN_HOSTNAMES = new Set([
-  "admin.dub.co",
+  `admin.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
   "admin.localhost:8888",
 ]);
 
@@ -119,45 +118,49 @@ export const SHOW_BACKGROUND_SEGMENTS = [
 
 export const DUB_DOMAINS = [
   {
-    slug: "dub.sh",
+    slug: process.env.NEXT_PUBLIC_APP_SHORT_DOMAIN,
     verified: true,
     primary: true,
-    target: "https://dub.co",
+    target: `https://${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
     type: "redirect",
     placeholder: "https://dub.co/help/article/what-is-dub",
     clicks: 0,
     allowedHostnames: [],
   },
-  {
-    slug: "chatg.pt",
-    verified: true,
-    primary: false,
-    target: "https://dub.co/tools/chatgpt-link-shortener",
-    type: "redirect",
-    placeholder: "https://chat.openai.com/g/g-UGjKKONEe-domainsgpt",
-    clicks: 0,
-    allowedHostnames: ["chat.openai.com"],
-  },
-  {
-    slug: "amzn.id",
-    verified: true,
-    primary: false,
-    target: "https://dub.co/tools/amazon-link-shortener",
-    type: "redirect",
-    placeholder: "https://www.amazon.com/dp/B0BW4SWNC8",
-    clicks: 0,
-    allowedHostnames: ["amazon.com", "amazon.co.uk", "amazon.ca"],
-  },
-  {
-    slug: "spti.fi",
-    verified: true,
-    primary: false,
-    target: "https://dub.co/tools/spotify-link-shortener",
-    type: "redirect",
-    placeholder: "https://open.spotify.com/album/1SCyi9a5pOasikidToUY5y",
-    clicks: 0,
-    allowedHostnames: ["open.spotify.com"],
-  },
+  ...(process.env.NEXT_PUBLIC_IS_DUB
+    ? [
+        {
+          slug: "chatg.pt",
+          verified: true,
+          primary: false,
+          target: "https://dub.co/tools/chatgpt-link-shortener",
+          type: "redirect",
+          placeholder: "https://chat.openai.com/g/g-UGjKKONEe-domainsgpt",
+          clicks: 0,
+          allowedHostnames: ["chat.openai.com"],
+        },
+        {
+          slug: "amzn.id",
+          verified: true,
+          primary: false,
+          target: "https://dub.co/tools/amazon-link-shortener",
+          type: "redirect",
+          placeholder: "https://www.amazon.com/dp/B0BW4SWNC8",
+          clicks: 0,
+          allowedHostnames: ["amazon.com", "amazon.co.uk", "amazon.ca"],
+        },
+        {
+          slug: "spti.fi",
+          verified: true,
+          primary: false,
+          target: "https://dub.co/tools/spotify-link-shortener",
+          type: "redirect",
+          placeholder: "https://open.spotify.com/album/1SCyi9a5pOasikidToUY5y",
+          clicks: 0,
+          allowedHostnames: ["open.spotify.com"],
+        },
+      ]
+    : []),
 ];
 
 export const ALL_TOOLS = [
