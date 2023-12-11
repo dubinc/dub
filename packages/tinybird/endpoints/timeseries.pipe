@@ -1,3 +1,19 @@
+NODE month_intervals
+SQL >
+
+    %
+    SELECT  
+        toStartOfMonth(toDateTime64({{ DateTime64(start, '2023-02-23 20:45:02.959') }}, 3)) as interval
+    ORDER BY interval ASC
+    WITH FILL
+    FROM
+        toStartOfMonth(toDateTime64({{ DateTime64(start, '2023-02-23 20:45:02.959') }}, 3))
+    TO 
+        toStartOfMonth(addMonths(toDateTime64({{ DateTime64(end, '2023-06-06 20:45:02.959') }}, 3), 1))
+    STEP interval 1 month
+
+
+
 NODE day_intervals
 SQL >
 
@@ -76,21 +92,3 @@ SQL >
         {% else %} day_intervals
         {% end %}
     LEFT JOIN timeseries_data USING interval
-
-
-
-NODE month_intervals
-SQL >
-
-    %
-    SELECT  
-        toStartOfMonth(toDateTime64({{ DateTime64(start, '2023-02-23 20:45:02.959') }}, 3)) as interval
-    ORDER BY interval ASC
-    WITH FILL
-    FROM
-        toStartOfMonth(toDateTime64({{ DateTime64(start, '2023-02-23 20:45:02.959') }}, 3))
-    TO 
-        toStartOfMonth(addMonths(toDateTime64({{ DateTime64(end, '2023-06-06 20:45:02.959') }}, 3), 1))
-    STEP interval 1 month
-
-
