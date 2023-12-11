@@ -248,6 +248,15 @@ export async function processLink({
     };
   }
 
+  // custom social media image checks
+  if (image && !process.env.CLOUDINARY_URL) {
+    return {
+      link: payload,
+      error: "Missing Cloudinary environment variable.",
+      status: 400,
+    };
+  }
+
   // expire date checks
   if (payload.expiresAt) {
     const date = new Date(payload.expiresAt);

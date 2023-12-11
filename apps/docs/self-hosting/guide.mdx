@@ -42,6 +42,10 @@ Convert the `.env.example` file to `.env`. You can start filling in the first fe
 NEXT_PUBLIC_APP_DOMAIN=
 # The short domain that your app will be using (could be the same as the above)
 NEXT_PUBLIC_APP_SHORT_DOMAIN=
+# The ID of the Vercel team that your app will be deployed to: https://vercel.com/docs/accounts/create-a-team#find-your-team-id
+TEAM_ID_VERCEL=
+# The unique access token for your Vercel account: https://vercel.com/guides/how-do-i-use-a-vercel-api-access-token
+AUTH_BEARER_TOKEN=
 ```
 
 You will fill in the remaining environment variables in the following steps.
@@ -125,9 +129,33 @@ Next, you'll need to set up Resend for transactional emails (e.g. magic link ema
 ![Resend API key](/images/resend-api-key.png)
 
 2. Copy the API key into your `.env` file as the `RESEND_API_KEY` environment variable.
+3. You'll then need to set up MX records for your domain to start working. You can follow this guide to learn [how to set up MX records with Resend](https://resend.com/docs/dashboard/domains/introduction).
 
-## Step 6: Deploy to Vercel
+## Step 6: Set up Cloudinary & Unsplash (optional)
 
-Once you've set up all the databases, you can deploy your app to Vercel:
+If you want to enable the [Custom Social Media Cards](https://dub.co/help/article/how-to-create-link#custom-social-media-cards) feature, you'll need to set up Cloudinary and Unsplash:
 
-1. In your [Vercel account](https://vercel.com/), create a new project.
+- [How to set up `CLOUDINARY_URL` env var](https://cloudinary.com/documentation/node_quickstart#set_your_api_environment_variable)
+- [How to set up `UNSPLASH_ACCESS_KEY` env var](https://unsplash.com/documentation#creating-a-developer-account)
+
+## Step 7: Deploy to Vercel
+
+Once you've set up all of the above services, you can now deploy your app to Vercel:
+
+1. If you haven't already, push up your cloned repository to GitHub.
+
+```bash
+git add .
+git commit -m "Initial commit"
+git push origin main
+```
+
+2. In your [Vercel account](https://vercel.com/), create a new project.
+3. Select your GitHub repository and click **Import**.
+4. In the **Environment Variables** section, add all of the environment variables from your `.env` file by copying all of them and pasting it into the first input field. A few notes:
+   - Remove the `PROJECT_ID_VERCEL` environment variable for now since we will only get the project ID after deploying the project.
+   - Replace the `NEXTAUTH_URL` environment variable with the app domain that you will be using (e.g. `https://app.yourdomain.com`).
+5. Click **Deploy**.
+6. Once the project deploys, [retrieve your Vercel project ID](https://vercel.com/docs/projects/overview#project-id) and add it as the `PROJECT_ID_VERCEL` environment variable – both in your `.env` file and in your newly created Vercel project's settings (under **Settings** > **Environment Variables**).
+7. Go back to the **Deployments** page and redeploy your project.
+8. Add both the `NEXT_PUBLIC_APP_DOMAIN` and `NEXT_PUBLIC_APP_SHORT_DOMAIN` as domains in your Vercel project's settings (under **Settings** > **Domains**). You can follow this guide to learn [how to set up a custom domain on Vercel](https://vercel.com/docs/projects/domains/add-a-domain).
