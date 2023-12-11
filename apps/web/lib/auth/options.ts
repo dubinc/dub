@@ -22,7 +22,7 @@ export const authOptions: NextAuthOptions = {
         } else {
           sendEmail({
             email: identifier,
-            subject: "Your Dub Login Link",
+            subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
             react: LoginLink({ url, email: identifier }),
           });
         }
@@ -163,7 +163,9 @@ export const authOptions: NextAuthOptions = {
         sameSite: "lax",
         path: "/",
         // When working on localhost, the cookie domain must be omitted entirely (https://stackoverflow.com/a/1188145)
-        domain: VERCEL_DEPLOYMENT ? ".dub.co" : undefined,
+        domain: VERCEL_DEPLOYMENT
+          ? `.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
+          : undefined,
         secure: VERCEL_DEPLOYMENT,
       },
     },

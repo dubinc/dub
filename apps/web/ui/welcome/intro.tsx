@@ -50,13 +50,14 @@ export default function Intro() {
             className="font-display text-4xl font-bold text-gray-800 transition-colors sm:text-5xl"
             variants={STAGGER_CHILD_VARIANTS}
           >
-            Welcome to Dub
+            Welcome to {process.env.NEXT_PUBLIC_APP_NAME}
           </motion.h1>
           <motion.p
             className="max-w-md text-gray-600 transition-colors sm:text-lg"
             variants={STAGGER_CHILD_VARIANTS}
           >
-            Dub gives you marketing superpowers with short links that stand out.
+            {process.env.NEXT_PUBLIC_APP_NAME} gives you marketing superpowers
+            with short links that stand out.
           </motion.p>
           <motion.button
             variants={STAGGER_CHILD_VARIANTS}

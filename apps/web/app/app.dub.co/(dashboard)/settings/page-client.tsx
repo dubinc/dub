@@ -13,7 +13,7 @@ export default function SettingsPageClient() {
     <>
       <Form
         title="Your Name"
-        description="This will be your display name on Dub."
+        description={`This will be your display name on ${process.env.NEXT_PUBLIC_APP_NAME}.`}
         inputData={{
           name: "name",
           defaultValue:
@@ -42,7 +42,7 @@ export default function SettingsPageClient() {
       />
       <Form
         title="Your Email"
-        description="This will be the email you use to log in to Dub and receive notifications."
+        description={`This will be the email you use to log in to ${process.env.NEXT_PUBLIC_APP_NAME} and receive notifications.`}
         inputData={{
           name: "email",
           defaultValue: session?.user?.email || undefined,

@@ -195,7 +195,8 @@ function UpgradePlanModal({
                 }}
                 className="text-center text-xs text-gray-500 underline-offset-4 transition-all hover:text-gray-800 hover:underline"
               >
-                Dub {plan === "Pro" ? "Enterprise" : "Pro"}
+                {process.env.NEXT_PUBLIC_APP_NAME}{" "}
+                {plan === "Pro" ? "Enterprise" : "Pro"}
               </button>
               <p className="text-gray-500">•</p>
               <a

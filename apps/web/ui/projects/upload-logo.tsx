@@ -73,7 +73,7 @@ export default function UploadLogo() {
       <div className="flex flex-col space-y-3 p-5 sm:p-10">
         <h2 className="text-xl font-medium">Project Logo</h2>
         <p className="text-sm text-gray-500">
-          This is your project's logo on Dub
+          This is your project's logo on {process.env.NEXT_PUBLIC_APP_NAME}
         </p>
         <div>
           <label

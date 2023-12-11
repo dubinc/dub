@@ -293,7 +293,8 @@ function AdvancedSettings({
                   thumbTranslate="translate-x-6"
                 />
                 <p className="text-sm text-gray-600">
-                  Show {!slug || (!logo && "Dub.co")} Logo
+                  Show {!slug || (!logo && process.env.NEXT_PUBLIC_APP_NAME)}{" "}
+                  Logo
                 </p>
               </div>
             ) : (
@@ -326,7 +327,9 @@ function AdvancedSettings({
                     thumbTranslate="translate-x-6"
                     disabled={true}
                   />
-                  <p className="text-sm text-gray-600">Show Dub.co Logo</p>
+                  <p className="text-sm text-gray-600">
+                    Show {process.env.NEXT_PUBLIC_APP_NAME} Logo
+                  </p>
                 </div>
               </Tooltip>
             )}
