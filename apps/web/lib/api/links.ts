@@ -287,7 +287,8 @@ export async function processLink({
         status: 403,
       };
     }
-  } else {
+    // internal Dub.co checks
+  } else if (process.env.NEXT_PUBLIC_IS_DUB) {
     // if it's not a custom project, do some filtering
     if (key?.includes("/")) {
       return {

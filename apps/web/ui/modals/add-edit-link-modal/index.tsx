@@ -16,7 +16,6 @@ import {
 import {
   DEFAULT_LINK_PROPS,
   GOOGLE_FAVICON_URL,
-  SHORT_DOMAIN,
   cn,
   deepEqual,
   getApexDomain,
@@ -28,12 +27,7 @@ import {
 } from "@dub/utils";
 import { type Link as LinkProps } from "@prisma/client";
 import va from "@vercel/analytics";
-import {
-  useParams,
-  usePathname,
-  useRouter,
-  useSearchParams,
-} from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import punycode from "punycode/";
 import {
   Dispatch,
@@ -544,7 +538,7 @@ function AddEditLinkModal({
                   <p className="mt-2 text-sm text-red-600" id="key-error">
                     {keyError}
                   </p>
-                ) : domain !== SHORT_DOMAIN && isDubDomain(domain) ? (
+                ) : process.env.NEXT_PUBLIC_IS_DUB && isDubDomain(domain) ? (
                   <p className="mt-2 text-sm text-gray-500">
                     You can only create up to 25 links with this domain.
                   </p>
