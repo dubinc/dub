@@ -28,7 +28,7 @@ export const sendEmail = async ({
       ? "Steven from Dub.co <steven@ship.dub.co>"
       : process.env.NEXT_PUBLIC_IS_DUB
       ? "Dub.co <system@dub.co>"
-      : `<system@${process.env.NEXT_PUBLIC_APP_DOMAIN}>`,
+      : `system@${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
     to: test ? "delivered@resend.dev" : email,
     subject,
     react,
