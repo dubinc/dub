@@ -5,7 +5,7 @@ export const parse = (req: NextRequest) => {
   domain = domain.replace("www.", ""); // remove www. from domain
   if (domain === "dub.localhost:8888" || domain.endsWith(".vercel.app")) {
     // for local development and preview URLs
-    domain = "apwr.dev";
+    domain = "dub.sh";
   }
 
   // path is the path of the URL (e.g. dub.co/stats/github -> /stats/github)
