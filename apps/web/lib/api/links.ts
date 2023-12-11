@@ -250,7 +250,8 @@ export async function processLink({
   }
 
   // custom social media image checks
-  if (image && !process.env.CLOUDINARY_URL) {
+  const uploadedImage = image && image.startsWith("data:image") ? true : false;
+  if (uploadedImage && !process.env.CLOUDINARY_URL) {
     return {
       link: payload,
       error: "Missing Cloudinary environment variable.",
