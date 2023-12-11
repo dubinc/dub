@@ -67,11 +67,13 @@ export const withAuth =
       requiredRole = ["owner", "member"],
       needNotExceededUsage, // if the action needs the user to not have exceeded their usage
       allowAnonymous, // special case for /api/links (POST /api/links) – allow no session
+      allowSelf, // special case for removing yourself from a project
     }: {
       requiredPlan?: Array<PlanProps>;
       requiredRole?: Array<"owner" | "member">;
       needNotExceededUsage?: boolean;
       allowAnonymous?: boolean;
+      allowSelf?: boolean;
     } = {},
   ) =>
   async (
@@ -300,11 +302,7 @@ export const withAuth =
         requiredRole &&
         project.plan === "enterprise" &&
         !requiredRole.includes(project.users[0].role) &&
-        // removing self from project should be allowed (DELETE /api/projects/[slug]/users?userId=...)
-        !(
-          req.url === `/api/projects/${slug}/users?userId=${session.user.id}` &&
-          req.method === "DELETE"
-        )
+        !(allowSelf && searchParams.userId === session.user.id)
       ) {
         return new Response("Unauthorized: Insufficient permissions.", {
           status: 403,
