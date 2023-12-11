@@ -16,6 +16,7 @@ import {
 import {
   DEFAULT_LINK_PROPS,
   GOOGLE_FAVICON_URL,
+  SHORT_DOMAIN,
   cn,
   deepEqual,
   getApexDomain,
@@ -543,7 +544,7 @@ function AddEditLinkModal({
                   <p className="mt-2 text-sm text-red-600" id="key-error">
                     {keyError}
                   </p>
-                ) : domain !== "dub.sh" && isDubDomain(domain) ? (
+                ) : domain !== SHORT_DOMAIN && isDubDomain(domain) ? (
                   <p className="mt-2 text-sm text-gray-500">
                     You can only create up to 25 links with this domain.
                   </p>

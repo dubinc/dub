@@ -342,9 +342,7 @@ export const getDomainWithoutWWW = (url: string) => {
 };
 
 export const isDubDomain = (domain: string) => {
-  return (
-    process.env.NEXT_PUBLIC_IS_DUB && DUB_DOMAINS.some((d) => d.slug === domain)
-  );
+  return DUB_DOMAINS.some((d) => d.slug === domain);
 };
 
 export const getSearchParams = (url: string) => {

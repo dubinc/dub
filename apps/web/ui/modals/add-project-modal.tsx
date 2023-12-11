@@ -1,6 +1,6 @@
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { Button, InfoTooltip, Logo, Modal } from "@dub/ui";
-import { HOME_DOMAIN, generateDomainFromName } from "@dub/utils";
+import { HOME_DOMAIN, SHORT_DOMAIN, generateDomainFromName } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import va from "@vercel/analytics";
 import { usePathname, useRouter } from "next/navigation";
@@ -239,7 +239,7 @@ function AddProjectModalHelper({
                   ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                   : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
               } block w-full rounded-md focus:outline-none sm:text-sm`}
-              placeholder={process.env.NEXT_PUBLIC_APP_SHORT_DOMAIN}
+              placeholder={SHORT_DOMAIN}
               value={domain}
               onChange={(e) => {
                 setDomainError(null);

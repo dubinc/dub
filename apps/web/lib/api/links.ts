@@ -10,6 +10,7 @@ import {
   DEFAULT_REDIRECTS,
   DUB_DOMAINS,
   DUB_PROJECT_ID,
+  SHORT_DOMAIN,
   getDomainWithoutWWW,
   getParamsFromURL,
   getUrlFromString,
@@ -555,7 +556,7 @@ export async function bulkCreateLinks(links: LinkProps[]) {
 }
 
 export async function editLink({
-  domain: oldDomain = "dub.sh",
+  domain: oldDomain = SHORT_DOMAIN,
   key: oldKey,
   updatedLink,
 }: {
@@ -672,7 +673,7 @@ export async function editLink({
 }
 
 export async function deleteLink({
-  domain = "dub.sh",
+  domain = SHORT_DOMAIN,
   key,
 }: {
   domain?: string;
@@ -721,7 +722,7 @@ export async function deleteUserLinks(userId: string) {
   const links = await prisma.link.findMany({
     where: {
       userId,
-      domain: "dub.sh",
+      domain: SHORT_DOMAIN,
     },
     select: {
       key: true,
@@ -746,7 +747,7 @@ export async function deleteUserLinks(userId: string) {
       prisma.link.deleteMany({
         where: {
           userId,
-          domain: "dub.sh",
+          domain: SHORT_DOMAIN,
         },
       }),
     ]);
