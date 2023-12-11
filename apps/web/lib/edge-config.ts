@@ -51,6 +51,9 @@ export const isWhitelistedEmail = async (email: string) => {
 };
 
 export const isBlacklistedEmail = async (email: string) => {
+  if (!process.env.NEXT_PUBLIC_IS_DUB) {
+    return false;
+  }
   let blacklistedEmails;
   try {
     blacklistedEmails = await get("emails");

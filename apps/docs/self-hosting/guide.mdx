@@ -12,9 +12,10 @@ Before you begin, make sure you have the following:
 - A [Tinybird](https://www.tinybird.co/) account
 - An [Upstash](https://upstash.com/) account
 - A [Planetscale](https://planetscale.com/) account
+- A [Resend](https://resend.com/) account
 - A [Vercel](https://vercel.com/) account
 
-## Step 1: Clone the repository
+## Step 1: Local setup
 
 First, clone the [Dub repo](https://dub.sh/github) into a public GitHub repository. If you are planning to distribute the code, make sure to keep the source code public to comply with our [AGPLv3 license](https://dub.sh/license).
 
@@ -22,12 +23,35 @@ First, clone the [Dub repo](https://dub.sh/github) into a public GitHub reposito
 git clone https://github.com/steven-tey/dub.git
 ```
 
-## Step 2. Publish Tinybird endpoints
+Run the following command to install the dependencies:
+
+```bash
+pnpm i
+```
+
+Delete the `apps/docs` directory since it's not needed for self-hosting:
+
+```bash
+rm -rf apps/docs
+```
+
+Convert the `.env.example` file to `.env`. You can start filling in the first few environment variables:
+
+```bash
+# The domain that your app will be hosted on
+NEXT_PUBLIC_APP_DOMAIN=
+# The short domain that your app will be using (could be the same as the above)
+NEXT_PUBLIC_APP_SHORT_DOMAIN=
+```
+
+You will fill in the remaining environment variables in the following steps.
+
+## Step 2: Publish Tinybird endpoints
 
 Next, you'll need to publish the Tinybird endpoints:
 
 1. In your [Tinybrd](https://tinybird.co/) account, create a new Workspace.
-2. Copy your `admin` [Auth Token](https://www.tinybird.co/docs/concepts/auth-tokens.html). You'll need this in step 5, and also for the `TINYBIRD_API_KEY` environment variable in later steps.
+2. Copy your `admin` [Auth Token](https://www.tinybird.co/docs/concepts/auth-tokens.html). Paste this token as the `TINYBIRD_API_KEY` environment variable in your `.env` file.
 3. In your cloned Dub repo, navigate to the `packages/tinybird` directory.
 4. Install the Tinybird CLI with `pip install tinybird-cli` (requires Python >= 3.8).
 5. Run `tb auth` and paste your `admin` Auth Token.
@@ -51,15 +75,59 @@ $ tb push
 ...
 ```
 
-## Step 3. Set up Upstash Redis database
+## Step 3: Set up Upstash Redis database
 
 Next, you'll need to set up the Upstash Redis database:
 
-1. In your [Upstash](https://upstash.com/) account, create a new database.
+1. In your [Upstash account](https://console.upstash.com/), create a new database.
 2. For better performance & read times, we recommend setting up a global database with several read regions.
 
 ![Upstash Redis database](/images/upstash-create-db.png)
 
-3. Once your database is created, copy the `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` from the **REST API** section. You'll need these tokens in later steps.
+3. Once your database is created, copy the `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` from the **REST API** section into your `.env` file.
 
-![Upstash copy tokens](/images/upstash-copy-tokens.png)
+![Upstash Redis tokens](/images/upstash-redis-tokens.png)
+
+4. Navigate to the [QStash tab](https://console.upstash.com/qstash) and copy the `QSTASH_URL`, `QSTASH_CURRENT_SIGNING_KEY`, and `QSTASH_NEXT_SIGNING_KEY` from the **Request Builder** section into your `.env` file.
+
+![Upstash QStash tokens](/images/upstash-qstash-tokens.png)
+
+## Step 4: Set up Planetscale database
+
+In your [Planetscale account](https://app.planetscale.com/), create a new database. You can use the free tier for this project.
+
+Once your database is created, you'll be prompted to select your language or Framework. Select **Prisma**.
+
+![Planetscale choose framework](/images/planetscale-choose-framework.png)
+
+Then, you'll have to create a new password for your database. Once the password is created, scroll down to the **Add credentials to .env** section and copy the `DATABASE_URL` into your `.env` file.
+
+![Planetscale add credentials](/images/planetscale-add-credentials.png)
+
+Going back to your terminal, navigate to the `apps/web` directory and run the following command to generate the Prisma client:
+
+```bash
+npx prisma generate
+```
+
+Then, create the database tables with the following command:
+
+```bash
+npx prisma db push
+```
+
+## Step 5: Set up Resend
+
+Next, you'll need to set up Resend for transactional emails (e.g. magic link emails):
+
+1. In your [Resend account](https://resend.com/overview), create a new API key.
+
+![Resend API key](/images/resend-api-key.png)
+
+2. Copy the API key into your `.env` file as the `RESEND_API_KEY` environment variable.
+
+## Step 6: Deploy to Vercel
+
+Once you've set up all the databases, you can deploy your app to Vercel:
+
+1. In your [Vercel account](https://vercel.com/), create a new project.

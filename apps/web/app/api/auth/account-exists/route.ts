@@ -22,6 +22,10 @@ export async function POST(req: NextRequest) {
     });
   }
 
+  if (!process.env.NEXT_PUBLIC_IS_DUB) {
+    return NextResponse.json({ exists: true });
+  }
+
   const user = await conn
     .execute("SELECT email FROM User WHERE email = ?", [email])
     .then((res) => res.rows[0]);

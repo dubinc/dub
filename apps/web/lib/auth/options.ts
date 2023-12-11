@@ -296,7 +296,8 @@ export const authOptions: NextAuthOptions = {
         // (this is a workaround because the `isNewUser` flag is triggered when a user does `dangerousEmailAccountLinking`)
         if (
           user?.createdAt &&
-          new Date(user.createdAt).getTime() > Date.now() - 10000
+          new Date(user.createdAt).getTime() > Date.now() - 10000 &&
+          process.env.NEXT_PUBLIC_IS_DUB
         ) {
           await Promise.allSettled([
             fetch(
