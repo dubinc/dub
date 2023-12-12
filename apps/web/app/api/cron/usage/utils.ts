@@ -146,10 +146,12 @@ export const updateUsage = async () => {
           emails.map((email) => {
             limiter.schedule(() =>
               sendEmail({
-                subject: `Your 30-day Dub summary for ${project.name}`,
+                subject: `Your 30-day ${process.env.NEXT_PUBLIC_APP_NAME} summary for ${project.name}`,
                 email,
                 react: ClicksSummary({
                   email,
+                  appName: process.env.NEXT_PUBLIC_APP_NAME as string,
+                  appDomain: process.env.NEXT_PUBLIC_APP_DOMAIN as string,
                   projectName: project.name,
                   projectSlug: project.slug,
                   totalClicks: project.usage,
@@ -201,7 +203,7 @@ const sendUsageLimitEmail = async (
     emails.map((email) => {
       limiter.schedule(() =>
         sendEmail({
-          subject: `You have exceeded your Dub usage limit`,
+          subject: `You have exceeded your ${process.env.NEXT_PUBLIC_APP_NAME} usage limit`,
           email,
           react: UsageExceeded({
             email,

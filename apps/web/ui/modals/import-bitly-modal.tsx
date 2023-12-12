@@ -92,8 +92,8 @@ function ImportBitlyModal({
         </div>
         <h3 className="text-lg font-medium">Import Your Bitly Links</h3>
         <p className="text-center text-sm text-gray-500">
-          Easily import all your existing Bitly links into Dub with just a few
-          clicks.
+          Easily import all your existing Bitly links into{" "}
+          {process.env.NEXT_PUBLIC_APP_NAME} with just a few clicks.
         </p>
       </div>
 

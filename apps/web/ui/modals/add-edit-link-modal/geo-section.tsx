@@ -77,7 +77,7 @@ export default function GeoSection({
             ? {
                 disabledTooltip: (
                   <TooltipContent
-                    title="Geo targeting is only available on Dub's Pro plan. Upgrade to Pro to use this feature."
+                    title={`Geo targeting is only available on ${process.env.NEXT_PUBLIC_APP_NAME}'s Pro plan. Upgrade to Pro to use this feature.`}
                     cta="Upgrade to Pro"
                     {...(plan === "free"
                       ? {

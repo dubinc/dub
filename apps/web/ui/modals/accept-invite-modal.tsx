@@ -41,7 +41,7 @@ function AcceptInviteModal({
               <span className="font-mono text-purple-600">
                 {slug || "......"}
               </span>{" "}
-              project on Dub
+              project on {process.env.NEXT_PUBLIC_APP_NAME}
             </p>
           </div>
           <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16">

@@ -26,7 +26,7 @@ dist/
 .vercel
 
 # tinybird
-venv
+.venv
 .tinyb
 
 # turbo

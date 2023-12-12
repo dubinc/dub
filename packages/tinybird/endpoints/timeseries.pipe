@@ -1,0 +1,94 @@
+NODE month_intervals
+SQL >
+
+    %
+    SELECT  
+        toStartOfMonth(toDateTime64({{ DateTime64(start, '2023-02-23 20:45:02.959') }}, 3)) as interval
+    ORDER BY interval ASC
+    WITH FILL
+    FROM
+        toStartOfMonth(toDateTime64({{ DateTime64(start, '2023-02-23 20:45:02.959') }}, 3))
+    TO 
+        toStartOfMonth(addMonths(toDateTime64({{ DateTime64(end, '2023-06-06 20:45:02.959') }}, 3), 1))
+    STEP interval 1 month
+
+
+
+NODE day_intervals
+SQL >
+
+    %
+    WITH
+        toStartOfDay(toDateTime64({{ DateTime64(start, '2022-09-25 00:00:00.000') }}, 3)) AS start,
+        toStartOfDay(toDateTime64({{ DateTime64(end, '2022-12-20 00:00:00.000') }}, 3)) AS end
+    SELECT arrayJoin(arrayMap(x -> toDateTime64(x, 3), range(toUInt32(start + 86400), toUInt32(end + 86400), 86400))) as interval
+
+
+
+NODE hour_intervals
+SQL >
+
+    %
+    WITH
+        toStartOfHour(toDateTime64({{ DateTime64(start, '2022-12-19 00:00:00.000') }}, 3)) AS start,
+        toStartOfHour(toDateTime64({{ DateTime64(end, '2022-12-20 00:00:00.000') }}, 3)) AS end
+    SELECT arrayJoin(arrayMap(x -> toDateTime64(x, 3), range(toUInt32(start + 3600), toUInt32(end + 3600), 3600))) as interval
+
+
+
+NODE minute_intervals
+SQL >
+
+    %
+    WITH
+        toStartOfMinute(toDateTime64({{ DateTime64(start, '2022-12-20 15:08:57.000') }}, 3)) AS start,
+        toStartOfMinute(toDateTime64({{ DateTime64(end, '2022-12-20 16:08:57.000') }}, 3)) AS end
+    SELECT arrayJoin(arrayMap(x -> toDateTime64(x, 3), range(toUInt32(start + 60), toUInt32(end + 60), 60))) as interval
+
+
+
+NODE timeseries_data
+DESCRIPTION >
+    undefined
+
+SQL >
+
+    %
+    SELECT
+        {% if granularity == "minute" %} toStartOfMinute(timestamp)
+        {% elif granularity == "hour" %} toStartOfHour(timestamp)
+        {% elif granularity == "month" %} toDateTime(toStartOfMonth(timestamp))
+        {% else %} toDateTime(toStartOfDay(timestamp))
+        {% end %} AS interval,
+        uniq(*) as clicks
+    FROM click_events
+    WHERE
+        domain IN {{ Array(domain, 'String', default='stey.me,steven.yt') }}
+        {% if defined(key) %}
+            AND key IN {{ Array(key, 'String', default='twitter') }}
+        {% end %}
+        {% if defined(country) %} AND country = {{ country }} {% end %}
+        {% if defined(city) %} AND city = {{ city }} {% end %}
+        {% if defined(device) %} AND device = {{ device }} {% end %}
+        {% if defined(browser) %} AND browser = {{ browser }} {% end %}
+        {% if defined(os) %} AND os = {{ os }} {% end %}
+        {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+        AND timestamp >= {{ DateTime64(start, '2023-06-25 00:00:00.000') }}
+        AND timestamp < {{ DateTime64(end, '2023-10-20 00:00:00.000') }}
+    GROUP BY interval
+    ORDER BY interval
+
+
+
+NODE timeseries_node
+SQL >
+
+    %
+    SELECT formatDateTime(interval, '%FT%T.000Z') as start, clicks
+    FROM 
+        {% if granularity == "minute" %} minute_intervals
+        {% elif granularity == "hour" %} hour_intervals
+        {% elif granularity == "month" %} month_intervals
+        {% else %} day_intervals
+        {% end %}
+    LEFT JOIN timeseries_data USING interval

@@ -13,7 +13,7 @@ import {
   Tooltip,
   TooltipContent,
 } from "@dub/ui";
-import { SWIPE_REVEAL_ANIMATION_SETTINGS } from "@dub/utils";
+import { SHORT_DOMAIN, SWIPE_REVEAL_ANIMATION_SETTINGS } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -226,7 +226,7 @@ function AddEditDomainModal({
                     ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                     : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
                 } block w-full rounded-md focus:outline-none sm:text-sm`}
-                placeholder="dub.sh"
+                placeholder={SHORT_DOMAIN}
                 value={domain}
                 onChange={(e) => {
                   setDomainError(null);

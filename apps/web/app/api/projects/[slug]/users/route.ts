@@ -91,5 +91,6 @@ export const DELETE = withAuth(
   },
   {
     requiredRole: ["owner"],
+    allowSelf: true,
   },
 );

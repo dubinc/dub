@@ -1,0 +1,24 @@
+TOKEN "clicks_endpoint_read_1555" READ
+
+NODE clicks_node
+DESCRIPTION >
+    undefined
+
+SQL >
+
+    %
+    SELECT COUNT(*)
+    FROM click_events
+    WHERE
+        domain IN {{ Array(domain, 'String', default='stey.me,steven.yt,steven.blue') }}
+        {% if defined(key) %} AND key IN {{ Array(key, 'String', default='twitter') }}  {% end %} 
+        {% if defined(country) %} AND country = {{ country }} {% end %}
+        {% if defined(city) %} AND city = {{city}} {% end %}
+        {% if defined(device) %} AND device = {{device}} {% end %}
+        {% if defined(browser) %} AND browser = {{browser}} {% end %}
+        {% if defined(os) %} AND os = {{os}} {% end %}
+        {% if defined(referer) %} AND referer = {{referer}} {% end %}
+        {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
+        {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
+
+

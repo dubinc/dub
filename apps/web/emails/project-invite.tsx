@@ -16,12 +16,14 @@ import Footer from "./components/footer";
 
 export default function ProjectInvite({
   email = "panicking@thedis.co",
+  appName = "Dub.co",
   url = "http://localhost:8888/api/auth/callback/email?callbackUrl=http%3A%2F%2Fapp.localhost%3A3000%2Flogin&token=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&email=youremail@gmail.com",
   projectName = "Acme",
   projectUser = "Brendon Urie",
   projectUserEmail = "panic@thedis.co",
 }: {
   email: string;
+  appName: string;
   url: string;
   projectName: string;
   projectUser: string | null;
@@ -30,7 +32,9 @@ export default function ProjectInvite({
   return (
     <Html>
       <Head />
-      <Preview>Join {projectName} on Dub</Preview>
+      <Preview>
+        Join {projectName} on {appName}
+      </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
@@ -39,12 +43,12 @@ export default function ProjectInvite({
                 src={DUB_LOGO}
                 width="40"
                 height="40"
-                alt="Dub"
+                alt={appName}
                 className="mx-auto my-0"
               />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-center text-xl font-semibold text-black">
-              Join {projectName} on Dub
+              Join {projectName} on {appName}
             </Heading>
             {projectUser && projectUserEmail ? (
               <Text className="text-sm leading-6 text-black">
@@ -56,12 +60,12 @@ export default function ProjectInvite({
                   {projectUserEmail}
                 </Link>
                 ) has invited you to join the <strong>{projectName}</strong>{" "}
-                project on Dub!
+                project on {appName}!
               </Text>
             ) : (
               <Text className="text-sm leading-6 text-black">
                 You have been invited to join the <strong>{projectName}</strong>{" "}
-                project on Dub!
+                project on {appName}!
               </Text>
             )}
             <Section className="mb-8 text-center">

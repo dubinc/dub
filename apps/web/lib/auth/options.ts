@@ -22,7 +22,7 @@ export const authOptions: NextAuthOptions = {
         } else {
           sendEmail({
             email: identifier,
-            subject: "Your Dub Login Link",
+            subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
             react: LoginLink({ url, email: identifier }),
           });
         }
@@ -163,7 +163,9 @@ export const authOptions: NextAuthOptions = {
         sameSite: "lax",
         path: "/",
         // When working on localhost, the cookie domain must be omitted entirely (https://stackoverflow.com/a/1188145)
-        domain: VERCEL_DEPLOYMENT ? ".dub.co" : undefined,
+        domain: VERCEL_DEPLOYMENT
+          ? `.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
+          : undefined,
         secure: VERCEL_DEPLOYMENT,
       },
     },
@@ -296,7 +298,8 @@ export const authOptions: NextAuthOptions = {
         // (this is a workaround because the `isNewUser` flag is triggered when a user does `dangerousEmailAccountLinking`)
         if (
           user?.createdAt &&
-          new Date(user.createdAt).getTime() > Date.now() - 10000
+          new Date(user.createdAt).getTime() > Date.now() - 10000 &&
+          process.env.NEXT_PUBLIC_IS_DUB
         ) {
           await Promise.allSettled([
             fetch(

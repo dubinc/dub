@@ -10,6 +10,7 @@ import {
   DEFAULT_REDIRECTS,
   DUB_DOMAINS,
   DUB_PROJECT_ID,
+  SHORT_DOMAIN,
   getDomainWithoutWWW,
   getParamsFromURL,
   getUrlFromString,
@@ -248,6 +249,16 @@ export async function processLink({
     };
   }
 
+  // custom social media image checks
+  const uploadedImage = image && image.startsWith("data:image") ? true : false;
+  if (uploadedImage && !process.env.CLOUDINARY_URL) {
+    return {
+      link: payload,
+      error: "Missing Cloudinary environment variable.",
+      status: 400,
+    };
+  }
+
   // expire date checks
   if (payload.expiresAt) {
     const date = new Date(payload.expiresAt);
@@ -276,7 +287,8 @@ export async function processLink({
         status: 403,
       };
     }
-  } else {
+    // internal Dub.co checks
+  } else if (process.env.NEXT_PUBLIC_IS_DUB) {
     // if it's not a custom project, do some filtering
     if (key?.includes("/")) {
       return {
@@ -546,7 +558,7 @@ export async function bulkCreateLinks(links: LinkProps[]) {
 }
 
 export async function editLink({
-  domain: oldDomain = "dub.sh",
+  domain: oldDomain = SHORT_DOMAIN,
   key: oldKey,
   updatedLink,
 }: {
@@ -663,7 +675,7 @@ export async function editLink({
 }
 
 export async function deleteLink({
-  domain = "dub.sh",
+  domain = SHORT_DOMAIN,
   key,
 }: {
   domain?: string;
@@ -712,7 +724,7 @@ export async function deleteUserLinks(userId: string) {
   const links = await prisma.link.findMany({
     where: {
       userId,
-      domain: "dub.sh",
+      domain: SHORT_DOMAIN,
     },
     select: {
       key: true,
@@ -737,7 +749,7 @@ export async function deleteUserLinks(userId: string) {
       prisma.link.deleteMany({
         where: {
           userId,
-          domain: "dub.sh",
+          domain: SHORT_DOMAIN,
         },
       }),
     ]);

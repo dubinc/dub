@@ -20,7 +20,7 @@
 <p align="center">
   <a href="#introduction"><strong>Introduction</strong></a> ·
   <a href="#features"><strong>Features</strong></a> ·
-  <a href="#local-development"><strong>Local Development</strong></a> ·
+  <a href="#self-hosting"><strong>Self-hosting</strong></a> ·
   <a href="#tech-stack"><strong>Tech Stack</strong></a> ·
   <a href="#contributing"><strong>Contributing</strong></a>
 </p>
@@ -28,7 +28,7 @@
 
 ## Introduction
 
-Dub is an open-source link management tool for modern marketing teams to create, share, and track short links.
+Dub.co is the open-source link management infrastructure for modern marketing teams.
 
 ## Features
 
@@ -40,17 +40,7 @@ Dub is an open-source link management tool for modern marketing teams to create,
 
 ## Local Development
 
-To develop Dub locally, you will need to clone this repository and set up all the env vars outlined in the [`.env.example` file](https://github.com/steven-tey/dub/blob/main/apps/web/.env.example).
-
-Once that's done, you can use the following commands to run the app locally:
-
-```
-pnpm i
-pnpm build
-pnpm dev
-```
-
-We're planning to add a proper, well-documented self-hosting guide for Dub soon – stay tuned!
+You can self-host Dub.co for greater control over your data and design. [Read this guide](https://dub.co/docs/self-hosting/guide) to learn more.
 
 ## Tech Stack
 
@@ -64,6 +54,7 @@ We're planning to add a proper, well-documented self-hosting guide for Dub soon 
 - [BoxyHQ](https://boxyhq.com/enterprise-sso) – SSO/SAML
 - [Turborepo](https://turbo.build/repo) – monorepo
 - [Stripe](https://stripe.com/) – payments
+- [Resend](https://resend.com/) – emails
 - [Vercel](https://vercel.com/) – deployments
 
 ## Contributing
