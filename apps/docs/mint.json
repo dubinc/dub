@@ -61,11 +61,7 @@
   "navigation": [
     {
       "group": "Getting Started",
-      "pages": ["introduction"]
-    },
-    {
-      "group": "Self-Hosting",
-      "pages": ["self-hosting/guide"]
+      "pages": ["introduction", "self-hosting/guide"]
     },
     {
       "group": "Integrations",
