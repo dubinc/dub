@@ -74,7 +74,7 @@ export function Footer() {
               </a>
               <div className="h-8 border-l border-gray-200" />
               <a
-                href="https://github.com/steven-tey/dub"
+                href="https://github.com/dubinc/dub"
                 target="_blank"
                 rel="noreferrer"
                 className="rounded-md p-2 transition-colors hover:bg-gray-100 active:bg-gray-200"

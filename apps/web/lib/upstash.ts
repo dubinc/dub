@@ -66,7 +66,7 @@ export async function setRandomKey(
  * If there's an error, it will be logged to a separate redis list for debugging
  **/
 export async function recordMetatags(url: string, error: boolean) {
-  if (url === "https://github.com/steven-tey/dub") {
+  if (url === "https://github.com/dubinc/dub") {
     // don't log metatag generation for default URL
     return null;
   }
