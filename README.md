@@ -38,7 +38,7 @@ Dub.co is the open-source link management infrastructure for modern marketing te
 - [Personalization](https://dub.co/features/personalization)
 - [Team Collaboration](https://dub.co/features/collaboration)
 
-## Local Development
+## Self-Hosting
 
 You can self-host Dub.co for greater control over your data and design. [Read this guide](https://dub.co/docs/self-hosting/guide) to learn more.
 
