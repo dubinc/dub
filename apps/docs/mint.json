@@ -38,9 +38,14 @@
   ],
   "anchors": [
     {
-      "name": "Changelog",
-      "icon": "bell",
-      "url": "https://dub.co/changelog"
+      "name": "Documentation",
+      "icon": "book-open-cover",
+      "url": "introduction"
+    },
+    {
+      "name": "API Reference",
+      "icon": "rectangle-terminal",
+      "url": "api-reference"
     },
     {
       "name": "Help Center",
@@ -48,14 +53,9 @@
       "url": "https://dub.co/help"
     },
     {
-      "name": "Blog",
-      "icon": "newspaper",
-      "url": "https://dub.co/blog"
-    },
-    {
       "name": "GitHub",
       "icon": "github",
-      "url": "https://dub.sh/github"
+      "url": "https://github.com/dubinc/dub"
     }
   ],
   "navigation": [
