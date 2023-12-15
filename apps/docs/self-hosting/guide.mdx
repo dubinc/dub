@@ -1,5 +1,4 @@
 ---
-title: "Self-hosting Dub.co"
 description: "An end-to-end guide on how to self-host Dub.co – the open-source link management platform."
 ---
 
@@ -166,3 +165,19 @@ git push origin main
 6. Once the project deploys, [retrieve your Vercel project ID](https://vercel.com/docs/projects/overview#project-id) and add it as the `PROJECT_ID_VERCEL` environment variable – both in your `.env` file and in your newly created Vercel project's settings (under **Settings** > **Environment Variables**).
 7. Add both the `NEXT_PUBLIC_APP_DOMAIN` and `NEXT_PUBLIC_APP_SHORT_DOMAIN` as domains in your Vercel project's settings (under **Settings** > **Domains**). You can follow this guide to learn [how to set up a custom domain on Vercel](https://vercel.com/docs/projects/domains/add-a-domain).
 8. Go back to the **Deployments** page and redeploy your project.
+9. Visit your app domain (e.g. `https://app.yourdomain.com`) and, voila, you should see the following login page:
+
+![Whitelabeled Login](/images/whitelabeled-login.png)
+
+## Caveats
+
+This guide is meant to be a starting point for self-hosting Dub.co. It currently depends on the following services to work:
+
+- [Tinybird](https://www.tinybird.co/) for the analytics database
+- [Upstash](https://upstash.com/) for the Redis database
+- [Planetscale](https://planetscale.com/) for the MySQL database
+- [Vercel](https://vercel.com/) for hosting & [Edge Middleware](https://vercel.com/docs/functions/edge-middleware)
+
+In the future, we plan to make it easier to self-host Dub.co by making these dependencies optional by swapping them out for native databases (e.g. mysql, redis, clickhouse, [GeoLite2](https://github.com/GitSquared/node-geolite2-redist) etc.)
+
+Also, Docker is currently not supported, but we have a few [open](https://github.com/dubinc/dub/issues/25) [issues](https://github.com/dubinc/dub/issues/378) and [PRs](https://github.com/dubinc/dub/pull/391) for it.
