@@ -68,7 +68,9 @@ export async function recordClick({
           device_model: ua.device.model || "Unknown",
           cpu_architecture: ua.cpu?.architecture || "Unknown",
           bot: ua.isBot,
-          referer: referer ? getDomainWithoutWWW(referer) : "(direct)",
+          referer: referer
+            ? getDomainWithoutWWW(referer) || "(direct)"
+            : "(direct)",
           referer_url: referer || "(direct)",
         }),
       },
