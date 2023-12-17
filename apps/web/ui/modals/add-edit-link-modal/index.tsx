@@ -106,7 +106,7 @@ function AddEditLinkModal({
     if (
       showAddEditLinkModal &&
       debouncedKey.length > 0 &&
-      debouncedKey !== props?.key
+      debouncedKey.toLowerCase() !== props?.key.toLowerCase()
     ) {
       fetch(
         `/api/links/exists?domain=${domain}&key=${debouncedKey}${

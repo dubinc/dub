@@ -583,7 +583,7 @@ export async function editLink({
     geo,
   } = updatedLink;
   const hasPassword = password && password.length > 0 ? true : false;
-  const changedKey = key !== oldKey;
+  const changedKey = key.toLowerCase() !== oldKey.toLowerCase();
   const changedDomain = domain !== oldDomain;
   const uploadedImage = image && image.startsWith("data:image") ? true : false;
 
