@@ -23,9 +23,9 @@ export const config = {
      * 3. /_proxy/ (special page for OG tags proxying)
      * 4. /_static (inside /public)
      * 5. /_vercel (Vercel internals)
-     * 6. /favicon.ico, /sitemap.xml, /robots.txt (static files)
+     * 6. Static files (e.g. /favicon.ico, /sitemap.xml, /robots.txt, etc.)
      */
-    "/((?!api/|_next/|_proxy/|_static|_vercel|favicon.ico|sitemap.xml|robots.txt).*)",
+    "/((?!api/|_next/|_proxy/|_static|_vercel|[\\w-]+\\.\\w+).*)",
   ],
 };
 
