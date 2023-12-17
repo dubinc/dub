@@ -46,7 +46,7 @@ import { useParams } from "next/navigation";
 import punycode from "punycode/";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import useSWR from "swr";
-import LinkifyText from "@/ui/links/linkifyText";
+import LinkifyText from "@/ui/links/linkify-comments";
 
 export default function LinkCard({
   props,
@@ -289,7 +289,9 @@ export default function LinkCard({
                 <Tooltip
                   content={
                     <div className="block max-w-sm px-4 py-2 text-center text-sm text-gray-700">
-                     <LinkifyText text={comments}></LinkifyText> 
+                    <LinkifyText>
+                    {comments}
+                    </LinkifyText>
                     </div>
                   }
                 >
