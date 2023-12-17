@@ -1,5 +1,5 @@
 <a href="https://dub.co">
-  <img alt="Dub – an open-source link management tool for modern marketing teams to create, share, and track short links." src="https://github.com/steven-tey/dub/assets/28986134/8f70a87f-4f13-426a-9785-a47f77433edd">
+  <img alt="Dub – an open-source link management tool for modern marketing teams to create, share, and track short links." src="https://github.com/dubinc/dub/assets/28986134/8f70a87f-4f13-426a-9785-a47f77433edd">
   <h1 align="center">Dub</h1>
 </a>
 
@@ -12,8 +12,8 @@
     <img src="https://img.shields.io/twitter/follow/dubdotco?style=flat&label=%40dubdotco&logo=twitter&color=0bf&logoColor=fff" alt="Twitter" />
   </a>
   <a href="https://news.ycombinator.com/item?id=32939407"><img src="https://img.shields.io/badge/Hacker%20News-255-%23FF6600" alt="Hacker News"></a>
-  <a href="https://github.com/steven-tey/dub/blob/main/LICENSE">
-    <img src="https://img.shields.io/github/license/steven-tey/dub?label=license&logo=github&color=f80&logoColor=fff" alt="License" />
+  <a href="https://github.com/dubinc/dub/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/dubinc/dub?label=license&logo=github&color=f80&logoColor=fff" alt="License" />
   </a>
 </p>
 
@@ -61,11 +61,11 @@ You can self-host Dub.co for greater control over your data and design. [Read th
 
 We love our contributors! Here's how you can contribute:
 
-- [Open an issue](https://github.com/steven-tey/dub/issues) if you believe you've encountered a bug.
-- Make a [pull request](https://github.com/steven-tey/dub/pull) to add new features/make quality-of-life improvements/fix bugs.
+- [Open an issue](https://github.com/dubinc/dub/issues) if you believe you've encountered a bug.
+- Make a [pull request](https://github.com/dubinc/dub/pull) to add new features/make quality-of-life improvements/fix bugs.
 
-<a href="https://github.com/steven-tey/dub/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=steven-tey/dub" />
+<a href="https://github.com/dubinc/dub/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=dubinc/dub" />
 </a>
 
 ## Repo Activity
@@ -74,4 +74,4 @@ We love our contributors! Here's how you can contribute:
 
 ## License
 
-Inspired by [Plausible](https://plausible.io/), Dub is open-source under the GNU Affero General Public License Version 3 (AGPLv3) or any later version. You can [find it here](https://github.com/steven-tey/dub/blob/main/LICENSE.md).
+Inspired by [Plausible](https://plausible.io/), Dub is open-source under the GNU Affero General Public License Version 3 (AGPLv3) or any later version. You can [find it here](https://github.com/dubinc/dub/blob/main/LICENSE.md).
