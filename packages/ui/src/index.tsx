@@ -11,6 +11,7 @@ export * from "./modal";
 export * from "./popover";
 export * from "./switch";
 export * from "./tooltip";
+export * from "./linkify-comments"
 
 // hooks
 export * from "./hooks";
@@ -34,3 +35,4 @@ export * from "./icon-menu";
 export * from "./inline-snippet";
 export * from "./link-preview";
 export * from "./tab-select";
+
