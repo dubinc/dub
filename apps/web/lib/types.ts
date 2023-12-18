@@ -81,7 +81,7 @@ export interface BitlyGroupProps {
   tags: string[];
 }
 
-export interface ShortioDomainProps {
+export interface ImportedDomainCountProps {
   id: number;
   domain: string;
   links: number;

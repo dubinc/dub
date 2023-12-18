@@ -16,12 +16,12 @@ import {
   SetStateAction,
   createContext,
   useEffect,
-  useState,
 } from "react";
 import { mutate } from "swr";
 import { useCookies } from "@dub/ui";
 import { SimpleLinkProps } from "@/lib/types";
 import { toast } from "sonner";
+import { useImportRebrandlyModal } from "./import-rebrandly-modal";
 
 export const ModalContext = createContext<{
   setShowAddProjectModal: Dispatch<SetStateAction<boolean>>;
@@ -31,6 +31,7 @@ export const ModalContext = createContext<{
   setShowUpgradePlanModal: Dispatch<SetStateAction<boolean>>;
   setShowImportBitlyModal: Dispatch<SetStateAction<boolean>>;
   setShowImportShortModal: Dispatch<SetStateAction<boolean>>;
+  setShowImportRebrandlyModal: Dispatch<SetStateAction<boolean>>;
 }>({
   setShowAddProjectModal: () => {},
   setShowCompleteSetupModal: () => {},
@@ -39,6 +40,7 @@ export const ModalContext = createContext<{
   setShowUpgradePlanModal: () => {},
   setShowImportBitlyModal: () => {},
   setShowImportShortModal: () => {},
+  setShowImportRebrandlyModal: () => {},
 });
 
 export default function ModalProvider({ children }: { children: ReactNode }) {
@@ -53,6 +55,8 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
   const { setShowUpgradePlanModal, UpgradePlanModal } = useUpgradePlanModal();
   const { setShowImportBitlyModal, ImportBitlyModal } = useImportBitlyModal();
   const { setShowImportShortModal, ImportShortModal } = useImportShortModal();
+  const { setShowImportRebrandlyModal, ImportRebrandlyModal } =
+    useImportRebrandlyModal();
 
   const params = useParams() as { slug?: string };
   const { slug } = params;
@@ -102,6 +106,7 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
         setShowUpgradePlanModal,
         setShowImportBitlyModal,
         setShowImportShortModal,
+        setShowImportRebrandlyModal,
       }}
     >
       <AddProjectModal />
@@ -112,6 +117,7 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
       <UpgradePlanModal />
       <ImportBitlyModal />
       <ImportShortModal />
+      <ImportRebrandlyModal />
       {children}
     </ModalContext.Provider>
   );
