@@ -109,52 +109,6 @@ const AddLinkOptions = () => {
               >
                 <div className="flex w-full cursor-not-allowed items-center justify-between space-x-2 rounded-md p-2 text-sm text-gray-400">
                   <IconMenu
-                    text="Import from Short.io"
-                    icon={
-                      <img
-                        src="/_static/icons/short.svg"
-                        alt="Short.io logo"
-                        className="h-4 w-4 grayscale"
-                      />
-                    }
-                  />
-                </div>
-              </Tooltip>
-            ) : (
-              <button
-                onClick={() => {
-                  setOpenPopover(false);
-                  router.push(`/${slug}?import=short`);
-                }}
-                className="w-full rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
-              >
-                <IconMenu
-                  text="Import from Short.io"
-                  icon={
-                    <img
-                      src="/_static/icons/short.svg"
-                      alt="Short.io logo"
-                      className="h-4 w-4"
-                    />
-                  }
-                />
-              </button>
-            )}
-            {slug && exceededUsage ? (
-              <Tooltip
-                content={
-                  <TooltipContent
-                    title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
-                    cta="Upgrade to Pro"
-                    onClick={() => {
-                      setOpenPopover(false);
-                      setShowUpgradePlanModal(true);
-                    }}
-                  />
-                }
-              >
-                <div className="flex w-full cursor-not-allowed items-center justify-between space-x-2 rounded-md p-2 text-sm text-gray-400">
-                  <IconMenu
                     text="Import from Rebrandly"
                     icon={
                       <img
@@ -181,6 +135,52 @@ const AddLinkOptions = () => {
                       src="/_static/icons/rebrandly.svg"
                       alt="Rebrandly logo"
                       className="h-5 w-5"
+                    />
+                  }
+                />
+              </button>
+            )}
+            {slug && exceededUsage ? (
+              <Tooltip
+                content={
+                  <TooltipContent
+                    title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
+                    cta="Upgrade to Pro"
+                    onClick={() => {
+                      setOpenPopover(false);
+                      setShowUpgradePlanModal(true);
+                    }}
+                  />
+                }
+              >
+                <div className="flex w-full cursor-not-allowed items-center justify-between space-x-2 rounded-md p-2 text-sm text-gray-400">
+                  <IconMenu
+                    text="Import from Short.io"
+                    icon={
+                      <img
+                        src="/_static/icons/short.svg"
+                        alt="Short.io logo"
+                        className="h-4 w-4 grayscale"
+                      />
+                    }
+                  />
+                </div>
+              </Tooltip>
+            ) : (
+              <button
+                onClick={() => {
+                  setOpenPopover(false);
+                  router.push(`/${slug}?import=short`);
+                }}
+                className="w-full rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
+              >
+                <IconMenu
+                  text="Import from Short.io"
+                  icon={
+                    <img
+                      src="/_static/icons/short.svg"
+                      alt="Short.io logo"
+                      className="h-4 w-4"
                     />
                   }
                 />
