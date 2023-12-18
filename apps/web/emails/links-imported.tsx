@@ -53,7 +53,7 @@ export default function LinksImported({
   domains = ["ac.me"],
 }: {
   email: string;
-  provider: "Bitly" | "Short.io" | "CSV";
+  provider: "Bitly" | "Short.io" | "Rebrandly" | "CSV";
   count: number;
   links: {
     domain: string;

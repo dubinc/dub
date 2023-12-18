@@ -211,7 +211,7 @@ export const importLinksFromBitly = async ({
         userId,
         bitlyGroup,
         domains,
-        keepTags: tagsToId ? true : false,
+        importTags: tagsToId ? true : false,
         searchAfter: nextSearchAfter,
         count,
       },

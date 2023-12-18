@@ -1,10 +1,9 @@
 import { receiver } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
-import { randomBadgeColor } from "@/ui/links/tag-badge";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
-import { importLinksFromBitly } from "./utils";
+import { importLinksFromRebrandly, importTagsFromRebrandly } from "./utils";
 
 export const maxDuration = 300;
 
@@ -21,35 +20,28 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { projectId, bitlyGroup, importTags } = body;
-    const bitlyApiKey = await redis.get(`import:bitly:${projectId}`);
+    const { projectId, importTags } = body;
+    const rebrandlyApiKey = await redis.get<string>(
+      `import:rebrandly:${projectId}`,
+    );
+
+    if (!rebrandlyApiKey) {
+      throw new Error("No Rebrandly API key found");
+    }
 
     let tagsToId: Record<string, string> | null = null;
     if (importTags === true) {
-      const tagsImported = await redis.get(`import:bitly:${projectId}:tags`);
+      const tagsImported = await redis.get(
+        `import:rebrandly:${projectId}:tags`,
+      );
 
       if (!tagsImported) {
-        const tags = (await fetch(
-          `https://api-ssl.bitly.com/v4/groups/${bitlyGroup}/tags`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${bitlyApiKey}`,
-            },
-          },
-        )
-          .then((r) => r.json())
-          .then((r) => r.tags)) as string[];
-
-        await prisma.tag.createMany({
-          data: tags.map((tag) => ({
-            name: tag,
-            color: randomBadgeColor(),
-            projectId,
-          })),
-          skipDuplicates: true,
+        await importTagsFromRebrandly({
+          projectId,
+          rebrandlyApiKey,
         });
-        await redis.set(`import:bitly:${projectId}:tags`, "true");
+
+        await redis.set(`import:rebrandly:${projectId}:tags`, "true");
       }
 
       tagsToId = await prisma.tag
@@ -69,17 +61,17 @@ export async function POST(req: Request) {
           }, {}),
         );
     }
-    await importLinksFromBitly({
+    await importLinksFromRebrandly({
       ...body,
       tagsToId,
-      bitlyApiKey,
+      rebrandlyApiKey,
     });
     return NextResponse.json({
       response: "success",
     });
   } catch (error) {
     await log({
-      message: "Import Bitly cron failed. Error: " + error.message,
+      message: "Import Rebrandly cron failed. Error: " + error.message,
       type: "cron",
       mention: true,
     });
