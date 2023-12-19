@@ -1,22 +1,27 @@
 
+import * as linkify from "linkifyjs";
 //to convert links in comments clickable
 export function LinkifyComments({ children }:{children:string}) {
-  const urlPattern = /(\bhttps?:\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])/gi;
 
-  const renderText = (text:string) => {
-    const parts = text.split(urlPattern);
-    return parts.map((part, index) => {
-      if (part.match(urlPattern)) {
-        return <a href={part} key={index} target="_blank" rel="noopener noreferrer nofollow" className="hover:underline">{part}</a>;
-      } else {
-        return part;
-      }
-    });
-  };
+  function renderText(comment: string) {
+    console.log({comment})
+    const extractedLinks = linkify.find(comment);
+    const final = comment.split(/\s+/).flatMap((part, index) => {
+
+        const foundLink = extractedLinks.find((link) => { return link.value === part })
+        if (foundLink) {
+            return [<a href={foundLink.href} key={index} target="_blank" rel="noopener noreferrer nofollow" className="hover:underline">{part}</a>, " "];
+        }
+        else {
+            return [part, " "]
+        }
+    })
+    return final
+}
 
   return (
     <div>
-      {renderText(children)}
+    {renderText(children)}
     </div>
   );
 }
