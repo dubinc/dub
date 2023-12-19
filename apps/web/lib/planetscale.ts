@@ -1,30 +1,28 @@
 import { connect } from "@planetscale/database";
 
 export const pscale_config = {
-  url: process.env.DATABASE_URL || "mysql://user:pass@host",
+  url: process.env.DATABASE_URL,
 };
 
-export const conn = process.env.DATABASE_URL ? connect(pscale_config) : null;
+export const conn = connect(pscale_config);
 
 // custom cached connection that sets next.revalidate to 900s
-export const cachedConn = process.env.DATABASE_URL
-  ? connect({
-      ...pscale_config,
-      fetch: (url, init) => {
-        // set next.revalidate
-        return fetch(url, {
-          ...init,
-          cache: undefined,
-          next: {
-            revalidate: 900,
-          },
-        });
+export const cachedConn = connect({
+  ...pscale_config,
+  fetch: (url, init) => {
+    // set next.revalidate
+    return fetch(url, {
+      ...init,
+      cache: undefined,
+      next: {
+        revalidate: 900,
       },
-    })
-  : null;
+    });
+  },
+});
 
 export const getLinkViaEdge = async (domain: string, key: string) => {
-  if (!conn) return null;
+  if (!process.env.DATABASE_URL) return null;
 
   const { rows } =
     (await conn.execute(
