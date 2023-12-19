@@ -33,7 +33,9 @@ export async function recordClick({
   const ip = ipAddress(req) || LOCALHOST_IP;
   // deduplicate clicks from the same IP, domain and key – only record 1 click per hour
   const { success } = await ratelimit(2, "1 h").limit(
-    `recordClick:${ip}:${domain}:${key || "_root"}`,
+    `recordClick:${ip}:${domain.toLowerCase()}:${
+      key?.toLowerCase() || "_root"
+    }`,
   );
   if (!success) {
     return null;
@@ -75,27 +77,24 @@ export async function recordClick({
         }),
       },
     ).then((res) => res.json()),
+
     // increment the click count for the link if key is specified (not root click)
     // also increment the usage count for the project, and then we have a cron that will reset it at the start of new billing cycle
-    ...(conn
+    key
       ? [
-          key
-            ? [
-                conn.execute(
-                  "UPDATE Link SET clicks = clicks + 1, lastClicked = NOW() WHERE domain = ? AND `key` = ?",
-                  [domain, key],
-                ),
-                conn.execute(
-                  "UPDATE Project p JOIN Domain d ON p.id = d.projectId SET p.usage = p.usage + 1 WHERE d.slug = ?",
-                  [domain],
-                ),
-              ]
-            : conn.execute(
-                "UPDATE Domain SET clicks = clicks + 1, lastClicked = NOW() WHERE slug = ?",
-                [domain],
-              ),
+          conn.execute(
+            "UPDATE Link SET clicks = clicks + 1, lastClicked = NOW() WHERE domain = ? AND `key` = ?",
+            [domain, key],
+          ),
+          conn.execute(
+            "UPDATE Project p JOIN Domain d ON p.id = d.projectId SET p.usage = p.usage + 1 WHERE d.slug = ?",
+            [domain],
+          ),
         ]
-      : []),
+      : conn.execute(
+          "UPDATE Domain SET clicks = clicks + 1, lastClicked = NOW() WHERE slug = ?",
+          [domain],
+        ),
   ]);
 }
 
