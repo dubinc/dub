@@ -82,7 +82,7 @@ export const POST = withAuth(async ({ req, project, session }) => {
       result.push({
         bitlyGroup,
         domains: [domain],
-        keepTags: selectedGroupTags.includes(bitlyGroup),
+        importTags: selectedGroupTags.includes(bitlyGroup),
       });
     }
     return result;
@@ -92,7 +92,7 @@ export const POST = withAuth(async ({ req, project, session }) => {
     groups
       // only add groups that have at least 1 domain selected for import
       .filter(({ domains }) => domains.length > 0)
-      .map(({ bitlyGroup, domains, keepTags }) =>
+      .map(({ bitlyGroup, domains, importTags }) =>
         qstash.publishJSON({
           url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/bitly`,
           body: {
@@ -100,7 +100,7 @@ export const POST = withAuth(async ({ req, project, session }) => {
             userId: session?.user?.id,
             bitlyGroup,
             domains,
-            keepTags,
+            importTags,
           },
         }),
       ),

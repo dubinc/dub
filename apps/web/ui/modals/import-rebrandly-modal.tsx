@@ -8,7 +8,7 @@ import {
   SimpleTooltipContent,
   Switch,
 } from "@dub/ui";
-import { HOME_DOMAIN, fetcher, nFormatter } from "@dub/utils";
+import { fetcher, nFormatter } from "@dub/utils";
 import { ArrowRight } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
@@ -22,19 +22,30 @@ import {
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
 
-function ImportShortModal({
-  showImportShortModal,
-  setShowImportShortModal,
+function ImportRebrandlyModal({
+  showImportRebrandlyModal,
+  setShowImportRebrandlyModal,
 }: {
-  showImportShortModal: boolean;
-  setShowImportShortModal: Dispatch<SetStateAction<boolean>>;
+  showImportRebrandlyModal: boolean;
+  setShowImportRebrandlyModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const router = useRouter();
   const { slug } = useParams() as { slug?: string };
   const searchParams = useSearchParams();
 
-  const { data: domains, isLoading } = useSWR<ImportedDomainCountProps[]>(
-    slug && showImportShortModal && `/api/projects/${slug}/import/short`,
+  const {
+    data: { domains, tagsCount } = {
+      domains: null,
+      tagsCount: null,
+    },
+    isLoading,
+  } = useSWR<{
+    domains: ImportedDomainCountProps[] | null;
+    tagsCount: number | null;
+  }>(
+    slug &&
+      showImportRebrandlyModal &&
+      `/api/projects/${slug}/import/rebrandly`,
     fetcher,
     {
       revalidateOnFocus: false,
@@ -44,7 +55,7 @@ function ImportShortModal({
       refreshWhenHidden: false,
       refreshInterval: 0,
       onError: (err) => {
-        if (err.message !== "No Short.io access token found") {
+        if (err.message !== "No Rebrandly access token found") {
           toast.error(err.message);
         }
       },
@@ -56,15 +67,16 @@ function ImportShortModal({
   const [selectedDomains, setSelectedDomains] = useState<
     ImportedDomainCountProps[]
   >([]);
+  const [importTags, setImportTags] = useState<boolean>(false);
 
   const [importing, setImporting] = useState(false);
 
   useEffect(() => {
-    if (searchParams?.get("import") === "short") {
-      mutate(`/api/projects/${slug}/import/short`);
-      setShowImportShortModal(true);
+    if (searchParams?.get("import") === "rebrandly") {
+      mutate(`/api/projects/${slug}/import/rebrandly`);
+      setShowImportRebrandlyModal(true);
     } else {
-      setShowImportShortModal(false);
+      setShowImportRebrandlyModal(false);
     }
   }, [searchParams]);
 
@@ -74,23 +86,23 @@ function ImportShortModal({
 
   return (
     <Modal
-      showModal={showImportShortModal}
-      setShowModal={setShowImportShortModal}
+      showModal={showImportRebrandlyModal}
+      setShowModal={setShowImportRebrandlyModal}
       onClose={() => router.push(`/${slug}`)}
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-8 sm:px-16">
         <div className="flex items-center space-x-3 py-4">
           <img
-            src="/_static/icons/short.svg"
-            alt="Short.io logo"
-            className="h-10 w-10"
+            src="/_static/icons/rebrandly.svg"
+            alt="Rebrandly logo"
+            className="h-12 w-12"
           />
           <ArrowRight className="h-5 w-5 text-gray-600" />
           <Logo />
         </div>
-        <h3 className="text-lg font-medium">Import Your Short.io Links</h3>
+        <h3 className="text-lg font-medium">Import Your Rebrandly Links</h3>
         <p className="text-center text-sm text-gray-500">
-          Easily import all your existing Short.io links into{" "}
+          Easily import all your existing Rebrandly links into{" "}
           {process.env.NEXT_PUBLIC_APP_NAME} with just a few clicks.
         </p>
       </div>
@@ -99,7 +111,7 @@ function ImportShortModal({
         {isLoading ? (
           <button className="flex flex-col items-center justify-center space-y-4 bg-none">
             <LoadingSpinner />
-            <p className="text-sm text-gray-500">Connecting to Short.io</p>
+            <p className="text-sm text-gray-500">Connecting to Rebrandly</p>
           </button>
         ) : domains ? (
           <form
@@ -107,13 +119,14 @@ function ImportShortModal({
               e.preventDefault();
               setImporting(true);
               toast.promise(
-                fetch(`/api/projects/${slug}/import/short`, {
+                fetch(`/api/projects/${slug}/import/rebrandly`, {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",
                   },
                   body: JSON.stringify({
                     selectedDomains,
+                    importTags,
                   }),
                 }).then(async (res) => {
                   if (res.ok) {
@@ -127,7 +140,7 @@ function ImportShortModal({
                 {
                   loading: "Adding links to import queue...",
                   success:
-                    "Successfully added links to import queue! You can now safely navigate from this tab – we will send you an email when your links have been fully imported.",
+                    "Successfully added links to import queue! You can now safely navigate from this tab – we will send you an email when your links have been fully imported.",
                   error: "Error adding links to import queue",
                 },
               );
@@ -168,6 +181,17 @@ function ImportShortModal({
                   />
                 </div>
               ))}
+              {tagsCount && (
+                <div className="flex items-center justify-between space-x-2 rounded-md py-1 pl-2 pr-4">
+                  <p className="text-xs text-gray-500">
+                    {tagsCount} tags found. Import all?
+                  </p>
+                  <Switch
+                    fn={() => setImportTags(!importTags)}
+                    checked={importTags}
+                  />
+                </div>
+              )}
             </div>
             <Button
               text="Confirm import"
@@ -181,7 +205,7 @@ function ImportShortModal({
             onSubmit={async (e) => {
               e.preventDefault();
               setSubmitting(true);
-              fetch(`/api/projects/${slug}/import/short`, {
+              fetch(`/api/projects/${slug}/import/rebrandly`, {
                 method: "PUT",
                 headers: {
                   "Content-Type": "application/json",
@@ -191,7 +215,7 @@ function ImportShortModal({
                 }),
               }).then(async (res) => {
                 if (res.ok) {
-                  await mutate(`/api/projects/${slug}/import/short`);
+                  await mutate(`/api/projects/${slug}/import/rebrandly`);
                   toast.success("Successfully added API key");
                 } else {
                   toast.error("Error adding API key");
@@ -204,14 +228,14 @@ function ImportShortModal({
             <div>
               <div className="flex items-center space-x-2">
                 <h2 className="text-sm font-medium text-gray-900">
-                  Short.io API Key
+                  Rebrandly API Key
                 </h2>
                 <InfoTooltip
                   content={
                     <SimpleTooltipContent
-                      title={`Your Short.io API Key can be found in your Short.io account under "Integrations & API".`}
-                      cta="Read the guide."
-                      href={`${HOME_DOMAIN}/help/article/migrating-from-short`}
+                      title={`Your Rebrandly API Key can be found in your Rebrandly account under`}
+                      cta="Account > API"
+                      href="https://app.rebrandly.com/account/api"
                     />
                   }
                 />
@@ -221,7 +245,7 @@ function ImportShortModal({
                 name="apiKey"
                 autoFocus
                 type="text"
-                placeholder="sk_xxxxxxxxxxxxxxxx"
+                placeholder="93467061146a64622df83c12bcc0bffb"
                 autoComplete="off"
                 required
                 className="mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
@@ -235,23 +259,24 @@ function ImportShortModal({
   );
 }
 
-export function useImportShortModal() {
-  const [showImportShortModal, setShowImportShortModal] = useState(false);
+export function useImportRebrandlyModal() {
+  const [showImportRebrandlyModal, setShowImportRebrandlyModal] =
+    useState(false);
 
-  const ImportShortModalCallback = useCallback(() => {
+  const ImportRebrandlyModalCallback = useCallback(() => {
     return (
-      <ImportShortModal
-        showImportShortModal={showImportShortModal}
-        setShowImportShortModal={setShowImportShortModal}
+      <ImportRebrandlyModal
+        showImportRebrandlyModal={showImportRebrandlyModal}
+        setShowImportRebrandlyModal={setShowImportRebrandlyModal}
       />
     );
-  }, [showImportShortModal, setShowImportShortModal]);
+  }, [showImportRebrandlyModal, setShowImportRebrandlyModal]);
 
   return useMemo(
     () => ({
-      setShowImportShortModal,
-      ImportShortModal: ImportShortModalCallback,
+      setShowImportRebrandlyModal,
+      ImportRebrandlyModal: ImportRebrandlyModalCallback,
     }),
-    [setShowImportShortModal, ImportShortModalCallback],
+    [setShowImportRebrandlyModal, ImportRebrandlyModalCallback],
   );
 }

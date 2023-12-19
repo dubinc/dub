@@ -52,7 +52,7 @@ const AddLinkOptions = () => {
               <Tooltip
                 content={
                   <TooltipContent
-                    title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to edit them."
+                    title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
                     cta="Upgrade to Pro"
                     onClick={() => {
                       setOpenPopover(false);
@@ -88,7 +88,7 @@ const AddLinkOptions = () => {
                     <img
                       src="/_static/icons/bitly.svg"
                       alt="Bitly logo"
-                      className="h-4 w-4 rounded-full grayscale"
+                      className="h-4 w-4 rounded-full"
                     />
                   }
                 />
@@ -98,7 +98,53 @@ const AddLinkOptions = () => {
               <Tooltip
                 content={
                   <TooltipContent
-                    title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to edit them."
+                    title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
+                    cta="Upgrade to Pro"
+                    onClick={() => {
+                      setOpenPopover(false);
+                      setShowUpgradePlanModal(true);
+                    }}
+                  />
+                }
+              >
+                <div className="flex w-full cursor-not-allowed items-center justify-between space-x-2 rounded-md p-2 text-sm text-gray-400">
+                  <IconMenu
+                    text="Import from Rebrandly"
+                    icon={
+                      <img
+                        src="/_static/icons/rebrandly.svg"
+                        alt="Rebrandly logo"
+                        className="h-4 w-4 grayscale"
+                      />
+                    }
+                  />
+                </div>
+              </Tooltip>
+            ) : (
+              <button
+                onClick={() => {
+                  setOpenPopover(false);
+                  router.push(`/${slug}?import=rebrandly`);
+                }}
+                className="w-full rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
+              >
+                <IconMenu
+                  text="Import from Rebrandly"
+                  icon={
+                    <img
+                      src="/_static/icons/rebrandly.svg"
+                      alt="Rebrandly logo"
+                      className="h-5 w-5"
+                    />
+                  }
+                />
+              </button>
+            )}
+            {slug && exceededUsage ? (
+              <Tooltip
+                content={
+                  <TooltipContent
+                    title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
                     cta="Upgrade to Pro"
                     onClick={() => {
                       setOpenPopover(false);
@@ -134,7 +180,7 @@ const AddLinkOptions = () => {
                     <img
                       src="/_static/icons/short.svg"
                       alt="Short.io logo"
-                      className="h-4 w-4 grayscale"
+                      className="h-4 w-4"
                     />
                   }
                 />
