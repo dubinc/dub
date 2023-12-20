@@ -71,8 +71,8 @@ importers:
         specifier: ^1.44.1
         version: 1.44.1
       '@upstash/qstash':
-        specifier: ^0.3.6
-        version: 0.3.6
+        specifier: ^2.3.0
+        version: 2.3.0
       '@upstash/ratelimit':
         specifier: ^0.3.6
         version: 0.3.6(@babel/core@7.17.8)(react-dom@18.2.0)
@@ -8009,6 +8009,13 @@ packages:
     resolution: {integrity: sha512-NKN4jbPhB5lfHoSIaU7AuQ3F+yGS20e/FBRiUuPetcKoi354wHhKj9AJFfkFT5SSeLq0XEsXRNynm8gqCS4HjQ==}
     dependencies:
       '@deno/shim-crypto': 0.3.1
+    dev: false
+
+  /@upstash/qstash@2.3.0:
+    resolution: {integrity: sha512-p4L1n5/OWk8UUJJ6S5iInx+1YXm1LseTXthuFhJ7dY08NSKkGGJqipjH4/2jTxxhXMiXARRng+SQyF71NTnnBA==}
+    dependencies:
+      crypto-js: 4.2.0
+      jose: 4.15.4
     dev: false
 
   /@upstash/ratelimit@0.3.6(@babel/core@7.17.8)(react-dom@18.2.0):
