@@ -278,6 +278,14 @@ export async function processLink({
         status: 422,
       };
     }
+    // check if expiresAt is more than 30 days in the future
+    if (new Date(payload.expiresAt) > new Date(Date.now() + 2592000000)) {
+      return {
+        link: payload,
+        error: "Expiry date cannot be more than 30 days in the future.",
+        status: 422,
+      };
+    }
   }
 
   if (project) {
