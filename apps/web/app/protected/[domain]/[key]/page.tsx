@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma";
 import PasswordForm from "./form";
 import { notFound, redirect } from "next/navigation";
 
-const title = "Password Required";
+const title = "Password Required – Dub.co";
 const description =
   "This link is password protected. Please enter the password to view it.";
 const image = "https://dub.co/_static/password-protected.png";

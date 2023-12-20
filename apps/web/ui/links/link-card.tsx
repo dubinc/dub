@@ -40,6 +40,7 @@ import {
   EyeOff,
   MessageCircle,
   QrCode,
+  TimerOff,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -59,6 +60,7 @@ export default function LinkCard({
     domain,
     url,
     rewrite,
+    expiresAt,
     createdAt,
     lastClicked,
     archived,
@@ -122,6 +124,8 @@ export default function LinkCard({
       clicks: 0,
     },
   });
+
+  const expired = expiresAt && new Date(expiresAt) < new Date();
 
   const { setShowArchiveLinkModal, ArchiveLinkModal } = useArchiveLinkModal({
     props,
@@ -225,10 +229,20 @@ export default function LinkCard({
       )}
       <div className="relative flex items-center justify-between">
         <div className="relative flex shrink items-center">
-          {archived ? (
-            <Tooltip content="This link is archived. It will still work, but won't be shown in your dashboard.">
+          {archived || expired ? (
+            <Tooltip
+              content={
+                archived
+                  ? "This link is archived. It will still work, but won't be shown in your dashboard."
+                  : "This link has expired. It will still show up in your dashboard, but users will get an 'Expired' page when they click on it."
+              }
+            >
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-300 px-0 sm:h-10 sm:w-10">
-                <Archive className="h-4 w-4 text-gray-500 sm:h-5 sm:w-5" />
+                {archived ? (
+                  <Archive className="h-4 w-4 text-gray-500 sm:h-5 sm:w-5" />
+                ) : (
+                  <TimerOff className="h-4 w-4 text-gray-500 sm:h-5 sm:w-5" />
+                )}
               </div>
             </Tooltip>
           ) : (
@@ -269,7 +283,7 @@ export default function LinkCard({
                   className={cn(
                     "w-full max-w-[140px] truncate text-sm font-semibold text-blue-800 sm:max-w-[300px] sm:text-base md:max-w-[360px] xl:max-w-[500px]",
                     {
-                      "text-gray-500": archived,
+                      "text-gray-500": archived || expired,
                     },
                   )}
                   href={linkConstructor({ key, domain })}
