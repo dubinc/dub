@@ -509,7 +509,7 @@ export async function addLink(link: LinkProps) {
   if (expiresAt && new Date(expiresAt) > new Date()) {
     await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/callback/expire`,
-      delay: new Date(expiresAt).getTime() - new Date().getTime(),
+      delay: (new Date(expiresAt).getTime() - new Date().getTime()) / 1000,
       body: {
         linkId: response.id,
       },
@@ -663,7 +663,8 @@ export async function editLink({
       ? [
           qstash.publishJSON({
             url: `${APP_DOMAIN_WITH_NGROK}/api/callback/expire`,
-            delay: new Date(expiresAt).getTime() - new Date().getTime(),
+            delay:
+              (new Date(expiresAt).getTime() - new Date().getTime()) / 1000,
             body: {
               linkId: id,
             },

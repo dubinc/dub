@@ -19,8 +19,6 @@ export async function POST(req: Request) {
     return new Response("Missing link ID", { status: 200 });
   }
 
-  console.log({ linkId });
-
   const link = await prisma.link.findUnique({
     where: {
       id: linkId,
@@ -36,8 +34,11 @@ export async function POST(req: Request) {
     return new Response("Link not found", { status: 200 });
   }
 
-  if (!link.expiresAt || link.expiresAt < new Date()) {
-    return new Response("Link already expired", { status: 200 });
+  if (!link.expiresAt || link.expiresAt > new Date()) {
+    return new Response(
+      "Link is not expired or does not have an expiration date",
+      { status: 200 },
+    );
   }
 
   const { domain, key } = link;
