@@ -48,6 +48,7 @@ export default async function LinkMiddleware(
     proxy?: boolean;
     rewrite?: boolean;
     iframeable?: boolean;
+    expired?: boolean;
     ios?: string;
     android?: string;
     geo?: object;
@@ -62,19 +63,21 @@ export default async function LinkMiddleware(
     proxy,
     rewrite,
     iframeable,
+    expired,
     ios,
     android,
     geo,
   } = response || {};
 
   if (target) {
-    // only show inspect model if the link is not password protected
+    // only show inspect modal if the link is not password protected
     if (inspectMode && !password) {
       return NextResponse.rewrite(
         new URL(`/inspect/${domain}/${encodeURIComponent(key)}`, req.url),
       );
     }
 
+    // if the link is password protected
     if (password) {
       const pw = req.nextUrl.searchParams.get("pw");
 
@@ -90,6 +93,13 @@ export default async function LinkMiddleware(
         // strip it from the URL if it's correct
         req.nextUrl.searchParams.delete("pw");
       }
+    }
+
+    // if the link has expired
+    if (expired) {
+      return NextResponse.rewrite(
+        new URL(`/expired/${domain}/${encodeURIComponent(key)}`, req.url),
+      );
     }
 
     // only track the click when there is no `dub-no-track` header

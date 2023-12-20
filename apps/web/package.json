@@ -24,7 +24,7 @@
     "@splinetool/react-spline": "^2.2.6",
     "@splinetool/runtime": "^0.9.481",
     "@stripe/stripe-js": "^1.44.1",
-    "@upstash/qstash": "^0.3.6",
+    "@upstash/qstash": "^2.3.0",
     "@upstash/ratelimit": "^0.3.6",
     "@upstash/redis": "^1.25.1",
     "@vercel/analytics": "^1.0.0",
