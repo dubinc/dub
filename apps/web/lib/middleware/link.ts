@@ -52,6 +52,7 @@ export default async function LinkMiddleware(
     ios?: string;
     android?: string;
     geo?: object;
+    banned?: boolean;
   }>(
     // if inspect mode is enabled, remove the trailing `+` from the key
     `${domain}:${inspectMode ? key.slice(0, -1) : key}`,
@@ -67,6 +68,7 @@ export default async function LinkMiddleware(
     ios,
     android,
     geo,
+    banned,
   } = response || {};
 
   if (target) {
@@ -95,10 +97,15 @@ export default async function LinkMiddleware(
       }
     }
 
-    // if the link has expired
-    if (expired) {
+    // if the link has expired or is banned
+    if (expired || banned) {
       return NextResponse.rewrite(
-        new URL(`/expired/${domain}/${encodeURIComponent(key)}`, req.url),
+        new URL(
+          `/${banned ? "banned" : "expired"}/${domain}/${encodeURIComponent(
+            key,
+          )}`,
+          req.url,
+        ),
       );
     }
 

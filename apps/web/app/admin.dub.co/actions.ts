@@ -1,9 +1,15 @@
 "use server";
-import { deleteLink, deleteUserLinks } from "@/lib/api/links";
+import { reassignUserLinks } from "@/lib/api/links";
 import { deleteProject } from "@/lib/api/project";
 import { getSession, hashToken } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { DUB_PROJECT_ID, getDomainWithoutWWW } from "@dub/utils";
+import { redis } from "@/lib/upstash";
+import {
+  DUB_PROJECT_ID,
+  LEGAL_USER_ID,
+  SHORT_DOMAIN,
+  getDomainWithoutWWW,
+} from "@dub/utils";
 import { get } from "@vercel/edge-config";
 import { randomBytes } from "crypto";
 
@@ -238,7 +244,7 @@ export async function banUser(data: FormData) {
   const blacklistedEmails = (await get("emails")) as string[];
 
   const ban = await Promise.allSettled([
-    deleteUserLinks(user.id),
+    reassignUserLinks(user.id),
     fetch(
       `https://api.vercel.com/v1/edge-config/${process.env.EDGE_CONFIG_ID}/items?teamId=${process.env.TEAM_ID_VERCEL}`,
       {
@@ -329,6 +335,7 @@ export async function getLinkByKey(data: FormData) {
 
 export async function deleteAndBlacklistLink(data: FormData) {
   const key = data.get("key") as string;
+  const url = data.get("url") as string;
   const hostnames = data.getAll("hostname") as string[];
 
   if (!(await isAdmin())) {
@@ -340,7 +347,21 @@ export async function deleteAndBlacklistLink(data: FormData) {
   const blacklistedDomains = (await get("domains")) as string[];
 
   const response = await Promise.allSettled([
-    deleteLink({ key }),
+    redis.set(`${SHORT_DOMAIN}:${key}`, {
+      url: encodeURIComponent(url),
+      banned: true,
+    }),
+    prisma.link.update({
+      where: {
+        domain_key: {
+          domain: SHORT_DOMAIN,
+          key,
+        },
+      },
+      data: {
+        userId: LEGAL_USER_ID,
+      },
+    }),
     fetch(
       `https://api.vercel.com/v1/edge-config/${process.env.EDGE_CONFIG_ID}/items?teamId=${process.env.TEAM_ID_VERCEL}`,
       {

@@ -11,6 +11,7 @@ import {
   DEFAULT_REDIRECTS,
   DUB_DOMAINS,
   DUB_PROJECT_ID,
+  LEGAL_USER_ID,
   SHORT_DOMAIN,
   getDomainWithoutWWW,
   getParamsFromURL,
@@ -22,7 +23,7 @@ import {
 } from "@dub/utils";
 import cloudinary from "cloudinary";
 import { isIframeable } from "../middleware/utils";
-import { LinkProps, ProjectProps } from "../types";
+import { LinkProps, ProjectProps, SimpleLinkProps } from "../types";
 import { Session } from "../auth";
 import { qstash } from "../cron";
 
@@ -791,4 +792,44 @@ export async function deleteUserLinks(userId: string) {
     deleteCloudinary,
     deletePrisma,
   };
+}
+
+/* Reassign user links to another user when a user is deleted */
+export async function reassignUserLinks(userId: string) {
+  const links = await prisma.link.findMany({
+    where: {
+      userId,
+      domain: SHORT_DOMAIN,
+    },
+    select: {
+      domain: true,
+      key: true,
+    },
+  });
+
+  const redisLinks = await redis.mget<SimpleLinkProps[]>(
+    ...links.map(({ domain, key }) => `${domain}:${key}`),
+  );
+
+  const pipeline = redis.pipeline();
+  redisLinks.forEach((link, index) => {
+    const { domain, key } = links[index];
+    pipeline.set(`${domain}:${key}`, {
+      ...link,
+      banned: true,
+    });
+  });
+
+  await Promise.all([
+    pipeline.exec(),
+    prisma.link.updateMany({
+      where: {
+        userId,
+        domain: SHORT_DOMAIN,
+      },
+      data: {
+        userId: LEGAL_USER_ID,
+      },
+    }),
+  ]);
 }
