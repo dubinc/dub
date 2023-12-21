@@ -35,6 +35,6 @@ export const FEATURES_LIST = [
     title: "Programmatic Link Creation",
     shortTitle: "API",
     icon: Webhook,
-    slug: "docs",
+    slug: "docs/api-reference/introduction",
   },
 ];
