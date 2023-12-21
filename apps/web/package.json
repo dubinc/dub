@@ -52,7 +52,7 @@
     "he": "^1.2.0",
     "html-escaper": "^3.0.3",
     "js-cookie": "^3.0.5",
-    "lucide-react": "^0.269.0",
+    "lucide-react": "^0.299.0",
     "nanoid": "^5.0.1",
     "next": "14.0.4-canary.39",
     "next-auth": "^4.24.4",

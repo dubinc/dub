@@ -234,7 +234,7 @@ export default function LinkCard({
               content={
                 archived
                   ? "This link is archived. It will still work, but won't be shown in your dashboard."
-                  : "This link has expired. It will still show up in your dashboard, but users will get an 'Expired' page when they click on it."
+                  : "This link has expired. It will still show up in your dashboard, but users will get an 'Expired Link' page when they click on it."
               }
             >
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-300 px-0 sm:h-10 sm:w-10">
