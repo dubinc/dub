@@ -79,10 +79,9 @@ export default function ProjectSettingsClient() {
               await mutate("/api/projects");
               router.push(`/${newSlug}/settings`);
               toast.success("Successfully updated project slug!");
-            } else if (res.status === 422) {
-              toast.error("Project slug already exists");
             } else {
-              toast.error("Something went wrong");
+              const error = await res.text();
+              toast.error(error || "Something went wrong");
             }
           })
         }
