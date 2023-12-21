@@ -306,6 +306,7 @@ export default function LinkCard({
                       <Linkify
                         as="p"
                         options={{
+                          target: "_blank",
                           rel: "noopener noreferrer nofollow",
                           className:
                             "underline underline-offset-4 text-gray-400 hover:text-gray-700",
