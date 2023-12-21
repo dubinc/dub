@@ -6,6 +6,19 @@ export interface SimpleLinkProps {
   key: string;
   url: string;
 }
+export interface RedisLinkProps {
+  url: string;
+  password?: boolean;
+  proxy?: boolean;
+  rewrite?: boolean;
+  iframeable?: boolean;
+  expiresAt?: string;
+  ios?: string;
+  android?: string;
+  geo?: object;
+  banned?: boolean;
+}
+
 export interface TagProps {
   id: string;
   name: string;

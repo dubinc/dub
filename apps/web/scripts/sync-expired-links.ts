@@ -1,15 +1,13 @@
 import "dotenv-flow/config";
 import prisma from "@/lib/prisma";
-import { redis } from "./utils";
-import { qstash } from "@/lib/cron";
-
-const anchor = 2250;
+import { redis, chunk } from "./utils";
+import { RedisLinkProps } from "@/lib/types";
 
 async function main() {
-  const expiredLinks = await prisma.link.findMany({
+  const allExpiredLinks = await prisma.link.findMany({
     where: {
-      expiresAt: {
-        gt: new Date("2023-12-20T02:10:00.000Z"),
+      NOT: {
+        expiresAt: null,
       },
     },
     select: {
@@ -21,39 +19,34 @@ async function main() {
     orderBy: {
       expiresAt: "asc",
     },
-    skip: anchor,
+    skip: 2000,
   });
 
-  const pipeline = redis.pipeline();
-  //   redisLinks.forEach((link, idx) => {
-  //     const { domain, key } = expiredLinks[idx];
-  //     console.log({ domain, key });
-  //     pipeline.set(`${domain}:${key}`, {
-  //       ...link,
-  //       expired: true,
-  //     });
-  //   });
+  let count = 0;
+  const chunks = chunk(allExpiredLinks, 100);
 
-  //   await Promise.all(
-  //     expiredLinks.map((link) => {
-  //       const { domain, key } = link;
-  //       pipeline.persist(`${domain}:${key}`);
-  //       qstash.publishJSON({
-  //         url: "https://app.dub.co/api/callback/expire",
-  //         delay:
-  //           (new Date(link.expiresAt!).getTime() - new Date().getTime()) / 1000,
-  //         body: {
-  //           linkId: link.id,
-  //         },
-  //       });
-  //     }),
-  //   );
+  for (const chunk of chunks) {
+    const redisLinks = await redis.mget<RedisLinkProps[]>(
+      chunk.map((link) => `${link.domain}:${link.key}`),
+    );
 
-  //   await pipeline.exec();
+    const pipeline = redis.pipeline();
+    redisLinks.forEach((link, idx) => {
+      const { domain, key, expiresAt } = chunk[idx];
+      // @ts-ignore (old version)
+      const { expired, ...rest } = link || {};
+      pipeline.set(`${domain}:${key}`, {
+        ...rest,
+        expiresAt,
+      });
+    });
 
-  console.log(`Synced ${expiredLinks.length} links`);
-  // table log the last 10 links
-  console.table(expiredLinks.slice(-10));
+    await pipeline.exec();
+
+    count += chunk.length;
+
+    console.log(`Synced ${count} expired links...`);
+  }
 }
 
 main();
