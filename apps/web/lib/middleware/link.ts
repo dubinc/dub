@@ -11,6 +11,7 @@ import {
 } from "next/server";
 import { isBlacklistedReferrer } from "../edge-config";
 import { getLinkViaEdge } from "../planetscale";
+import { RedisLinkProps } from "../types";
 
 export default async function LinkMiddleware(
   req: NextRequest,
@@ -42,18 +43,7 @@ export default async function LinkMiddleware(
 
   const inspectMode = key.endsWith("+");
 
-  const response = await redis.get<{
-    url: string;
-    password?: boolean;
-    proxy?: boolean;
-    rewrite?: boolean;
-    iframeable?: boolean;
-    expired?: boolean;
-    ios?: string;
-    android?: string;
-    geo?: object;
-    banned?: boolean;
-  }>(
+  const response = await redis.get<RedisLinkProps>(
     // if inspect mode is enabled, remove the trailing `+` from the key
     `${domain}:${inspectMode ? key.slice(0, -1) : key}`,
   );
@@ -64,7 +54,7 @@ export default async function LinkMiddleware(
     proxy,
     rewrite,
     iframeable,
-    expired,
+    expiresAt,
     ios,
     android,
     geo,
@@ -97,15 +87,17 @@ export default async function LinkMiddleware(
       }
     }
 
-    // if the link has expired or is banned
-    if (expired || banned) {
+    // if the link is banned
+    if (banned) {
       return NextResponse.rewrite(
-        new URL(
-          `/${banned ? "banned" : "expired"}/${domain}/${encodeURIComponent(
-            key,
-          )}`,
-          req.url,
-        ),
+        new URL(`/banned/${domain}/${encodeURIComponent(key)}`, req.url),
+      );
+    }
+
+    // if the link has expired
+    if (expiresAt && new Date(expiresAt) < new Date()) {
+      return NextResponse.rewrite(
+        new URL(`/expired/${domain}/${encodeURIComponent(key)}`, req.url),
       );
     }
 
