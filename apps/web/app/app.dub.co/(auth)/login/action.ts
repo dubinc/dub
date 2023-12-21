@@ -15,7 +15,7 @@ export async function accountExists(data: FormData) {
       error: "Missing email",
     };
   }
-  if (!conn) {
+  if (!process.env.DATABASE_URL) {
     return {
       error: "Database connection not established",
     };

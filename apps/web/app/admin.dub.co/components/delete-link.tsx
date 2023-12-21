@@ -51,9 +51,14 @@ export default function DeleteLink() {
               readOnly
               className="max-w-fit rounded-md border-gray-300 text-sm text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500"
             />
-            <div className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900">
-              {data.url}
-            </div>
+            <input
+              type="url"
+              name="url"
+              id={data.url}
+              value={data.url}
+              readOnly
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500"
+            />
           </div>
           <div key={data.domain} className="space-x-2">
             <input

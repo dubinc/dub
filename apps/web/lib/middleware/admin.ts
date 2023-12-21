@@ -19,7 +19,7 @@ export default async function AdminMiddleware(req: NextRequest) {
   };
 
   const response = await conn
-    ?.execute("SELECT projectId FROM ProjectUsers WHERE userId = ?", [
+    .execute("SELECT projectId FROM ProjectUsers WHERE userId = ?", [
       session?.user?.id,
     ])
     .then((res) => res.rows[0] as { projectId: string } | undefined);

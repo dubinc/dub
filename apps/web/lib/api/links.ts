@@ -7,9 +7,11 @@ import {
 import prisma from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import {
+  APP_DOMAIN_WITH_NGROK,
   DEFAULT_REDIRECTS,
   DUB_DOMAINS,
   DUB_PROJECT_ID,
+  LEGAL_USER_ID,
   SHORT_DOMAIN,
   getDomainWithoutWWW,
   getParamsFromURL,
@@ -21,9 +23,9 @@ import {
 } from "@dub/utils";
 import cloudinary from "cloudinary";
 import { isIframeable } from "../middleware/utils";
-import { LinkProps, ProjectProps } from "../types";
+import { LinkProps, ProjectProps, SimpleLinkProps } from "../types";
 import { Session } from "../auth";
-import { SetCommandOptions } from "@upstash/redis";
+import { qstash } from "../cron";
 
 export async function getLinksForProject({
   projectId,
@@ -221,7 +223,7 @@ export async function processLink({
   session?: Session;
   bulk?: boolean;
 }) {
-  let { domain, key, url, image, rewrite, geo } = payload;
+  let { domain, key, url, image, rewrite, expiresAt, geo } = payload;
 
   // url checks
   if (!url) {
@@ -274,6 +276,14 @@ export async function processLink({
       return {
         link: payload,
         error: "Expiry date must be in the future.",
+        status: 422,
+      };
+    }
+    // check if expiresAt is more than 30 days in the future
+    if (new Date(payload.expiresAt) > new Date(Date.now() + 2592000000)) {
+      return {
+        link: payload,
+        error: "Expiry date cannot be more than 30 days in the future.",
         status: 422,
       };
     }
@@ -390,6 +400,13 @@ export async function processLink({
         status: 422,
       };
     }
+    if (expiresAt) {
+      return {
+        link: payload,
+        error: "You cannot set expiry dates with bulk link creation.",
+        status: 422,
+      };
+    }
     const exists = await checkIfKeyExists(domain, key);
     if (exists) {
       return {
@@ -469,14 +486,14 @@ export async function addLink(link: LinkProps) {
           rewrite: true,
           iframeable: await isIframeable({ url, requestDomain: domain }),
         }),
+        expired: expiresAt && new Date(expiresAt) < new Date(),
         ...(ios && { ios }),
         ...(android && { android }),
         ...(geo && { geo }),
       },
       {
         nx: true,
-        ...(expiresAt && { exat: new Date(expiresAt).getTime() / 1000 }),
-      } as SetCommandOptions,
+      },
     ),
   ]);
 
@@ -496,13 +513,24 @@ export async function addLink(link: LinkProps) {
       },
     });
   }
+
+  // if link expires, schedule a job to expire it
+  if (expiresAt && new Date(expiresAt) > new Date()) {
+    await qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/callback/expire`,
+      delay: (new Date(expiresAt).getTime() - new Date().getTime()) / 1000,
+      body: {
+        linkId: response.id,
+      },
+    });
+  }
   return response;
 }
 
 export async function bulkCreateLinks(links: LinkProps[]) {
   if (links.length === 0) return [];
   const pipeline = redis.pipeline();
-  links.forEach(({ domain, key, url, expiresAt, password }) => {
+  links.forEach(({ domain, key, url, password }) => {
     const hasPassword = password && password.length > 0 ? true : false;
     pipeline.set(
       `${domain}:${key}`,
@@ -512,8 +540,7 @@ export async function bulkCreateLinks(links: LinkProps[]) {
       },
       {
         nx: true,
-        ...(expiresAt && { exat: new Date(expiresAt).getTime() / 1000 }),
-      } as SetCommandOptions,
+      },
     );
   });
 
@@ -628,24 +655,31 @@ export async function editLink({
       : cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
           invalidate: true,
         }),
-    redis.set(
-      `${domain}:${key}`,
-      {
-        url: encodeURIComponent(url),
-        password: hasPassword,
-        proxy,
-        ...(rewrite && {
-          rewrite: true,
-          iframeable: await isIframeable({ url, requestDomain: domain }),
-        }),
-        ...(ios && { ios }),
-        ...(android && { android }),
-        ...(geo && { geo }),
-      },
-      {
-        ...(expiresAt && { exat: new Date(expiresAt).getTime() / 1000 }),
-      } as SetCommandOptions,
-    ),
+    redis.set(`${domain}:${key}`, {
+      url: encodeURIComponent(url),
+      password: hasPassword,
+      proxy,
+      ...(rewrite && {
+        rewrite: true,
+        iframeable: await isIframeable({ url, requestDomain: domain }),
+      }),
+      expired: expiresAt && new Date(expiresAt) < new Date(),
+      ...(ios && { ios }),
+      ...(android && { android }),
+      ...(geo && { geo }),
+    }),
+    ...(expiresAt && new Date(expiresAt) > new Date()
+      ? [
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/callback/expire`,
+            delay:
+              (new Date(expiresAt).getTime() - new Date().getTime()) / 1000,
+            body: {
+              linkId: id,
+            },
+          }),
+        ]
+      : []),
     // if key is changed: rename resource in Cloudinary, delete the old key in Redis and change the clicks key name
     ...(changedDomain || changedKey
       ? [
@@ -758,4 +792,44 @@ export async function deleteUserLinks(userId: string) {
     deleteCloudinary,
     deletePrisma,
   };
+}
+
+/* Reassign user links to another user when a user is deleted */
+export async function reassignUserLinks(userId: string) {
+  const links = await prisma.link.findMany({
+    where: {
+      userId,
+      domain: SHORT_DOMAIN,
+    },
+    select: {
+      domain: true,
+      key: true,
+    },
+  });
+
+  const redisLinks = await redis.mget<SimpleLinkProps[]>(
+    ...links.map(({ domain, key }) => `${domain}:${key}`),
+  );
+
+  const pipeline = redis.pipeline();
+  redisLinks.forEach((link, index) => {
+    const { domain, key } = links[index];
+    pipeline.set(`${domain}:${key}`, {
+      ...link,
+      banned: true,
+    });
+  });
+
+  await Promise.all([
+    pipeline.exec(),
+    prisma.link.updateMany({
+      where: {
+        userId,
+        domain: SHORT_DOMAIN,
+      },
+      data: {
+        userId: LEGAL_USER_ID,
+      },
+    }),
+  ]);
 }
