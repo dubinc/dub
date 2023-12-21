@@ -44,10 +44,10 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import Linkify from "linkify-react";
 import punycode from "punycode/";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import useSWR from "swr";
-import { LinkifyComments } from "@dub/ui"
 
 export default function LinkCard({
   props,
@@ -303,9 +303,16 @@ export default function LinkCard({
                 <Tooltip
                   content={
                     <div className="block max-w-sm px-4 py-2 text-center text-sm text-gray-700">
-                    <LinkifyComments>
-                    {comments}
-                    </LinkifyComments>
+                      <Linkify
+                        as="p"
+                        options={{
+                          rel: "noopener noreferrer nofollow",
+                          className:
+                            "underline underline-offset-4 text-gray-400 hover:text-gray-700",
+                        }}
+                      >
+                        {comments}
+                      </Linkify>
                     </div>
                   }
                 >
