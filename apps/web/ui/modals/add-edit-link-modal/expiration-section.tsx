@@ -56,9 +56,6 @@ export default function ExpirationSection({
             id="expiresAt"
             name="expiresAt"
             min={getDateTimeLocal()}
-            max={getDateTimeLocal(
-              new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-            )}
             value={expiresAt ? getDateTimeLocal(expiresAt) : ""}
             step="60" // need to add step to prevent weird date bug (https://stackoverflow.com/q/19284193/10639526)
             onChange={(e) => {

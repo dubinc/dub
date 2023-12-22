@@ -7,7 +7,6 @@ import {
 import prisma from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import {
-  APP_DOMAIN_WITH_NGROK,
   DEFAULT_REDIRECTS,
   DUB_DOMAINS,
   DUB_PROJECT_ID,
@@ -25,7 +24,6 @@ import cloudinary from "cloudinary";
 import { isIframeable } from "../middleware/utils";
 import { LinkProps, ProjectProps, SimpleLinkProps } from "../types";
 import { Session } from "../auth";
-import { qstash } from "../cron";
 
 export async function getLinksForProject({
   projectId,
@@ -262,8 +260,8 @@ export async function processLink({
   }
 
   // expire date checks
-  if (payload.expiresAt) {
-    const date = new Date(payload.expiresAt);
+  if (expiresAt) {
+    const date = new Date(expiresAt);
     if (isNaN(date.getTime())) {
       return {
         link: payload,
@@ -272,18 +270,10 @@ export async function processLink({
       };
     }
     // check if expiresAt is in the future
-    if (new Date(payload.expiresAt) < new Date()) {
+    if (new Date(expiresAt) < new Date()) {
       return {
         link: payload,
         error: "Expiry date must be in the future.",
-        status: 422,
-      };
-    }
-    // check if expiresAt is more than 30 days in the future
-    if (new Date(payload.expiresAt) > new Date(Date.now() + 2592000000)) {
-      return {
-        link: payload,
-        error: "Expiry date cannot be more than 30 days in the future.",
         status: 422,
       };
     }
@@ -400,13 +390,6 @@ export async function processLink({
         status: 422,
       };
     }
-    if (expiresAt) {
-      return {
-        link: payload,
-        error: "You cannot set expiry dates with bulk link creation.",
-        status: 422,
-      };
-    }
     const exists = await checkIfKeyExists(domain, key);
     if (exists) {
       return {
@@ -486,7 +469,7 @@ export async function addLink(link: LinkProps) {
           rewrite: true,
           iframeable: await isIframeable({ url, requestDomain: domain }),
         }),
-        expired: expiresAt && new Date(expiresAt) < new Date(),
+        ...(expiresAt && { expiresAt }),
         ...(ios && { ios }),
         ...(android && { android }),
         ...(geo && { geo }),
@@ -513,30 +496,20 @@ export async function addLink(link: LinkProps) {
       },
     });
   }
-
-  // if link expires, schedule a job to expire it
-  if (expiresAt && new Date(expiresAt) > new Date()) {
-    await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/callback/expire`,
-      delay: (new Date(expiresAt).getTime() - new Date().getTime()) / 1000,
-      body: {
-        linkId: response.id,
-      },
-    });
-  }
   return response;
 }
 
 export async function bulkCreateLinks(links: LinkProps[]) {
   if (links.length === 0) return [];
   const pipeline = redis.pipeline();
-  links.forEach(({ domain, key, url, password }) => {
+  links.forEach(({ domain, key, url, password, expiresAt }) => {
     const hasPassword = password && password.length > 0 ? true : false;
     pipeline.set(
       `${domain}:${key}`,
       {
         url: encodeURIComponent(url),
         password: hasPassword,
+        ...(expiresAt && { expiresAt }),
       },
       {
         nx: true,
@@ -663,23 +636,11 @@ export async function editLink({
         rewrite: true,
         iframeable: await isIframeable({ url, requestDomain: domain }),
       }),
-      expired: expiresAt && new Date(expiresAt) < new Date(),
+      ...(expiresAt && { expiresAt }),
       ...(ios && { ios }),
       ...(android && { android }),
       ...(geo && { geo }),
     }),
-    ...(expiresAt && new Date(expiresAt) > new Date()
-      ? [
-          qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/callback/expire`,
-            delay:
-              (new Date(expiresAt).getTime() - new Date().getTime()) / 1000,
-            body: {
-              linkId: id,
-            },
-          }),
-        ]
-      : []),
     // if key is changed: rename resource in Cloudinary, delete the old key in Redis and change the clicks key name
     ...(changedDomain || changedKey
       ? [
