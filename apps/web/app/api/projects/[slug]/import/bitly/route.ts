@@ -43,7 +43,7 @@ export const GET = withAuth(async ({ project }) => {
         .then((r) => r.json())
         .then((r) => r.tags),
     })),
-  );
+  ).then((g) => g.filter(({ bsds }) => bsds.length > 0));
 
   return NextResponse.json(groupsWithTags);
 });

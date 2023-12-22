@@ -2,7 +2,7 @@ import useProject from "@/lib/swr/use-project";
 import { BitlyGroupProps } from "@/lib/types";
 import { Button, LoadingSpinner, Logo, Modal, Switch, Tooltip } from "@dub/ui";
 import { HOME_DOMAIN, fetcher } from "@dub/utils";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ServerOff } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   Dispatch,
@@ -136,62 +136,74 @@ function ImportBitlyModal({
             className="flex flex-col space-y-4"
           >
             <div className="divide-y divide-gray-200">
-              {groups.map(({ guid, bsds, tags }) => (
-                <div key={guid} className="flex flex-col space-y-2">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-gray-700">Domains</p>
-                    <Tooltip content="Your Bitly group ID">
-                      <p className="cursor-default text-xs uppercase text-gray-400 transition-colors hover:text-gray-700">
-                        {guid}
+              {groups.length > 0 ? (
+                groups.map(({ guid, bsds, tags }) => (
+                  <div key={guid} className="flex flex-col space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium text-gray-700">
+                        Domains
                       </p>
-                    </Tooltip>
-                  </div>
-                  {bsds.map((bsd) => (
-                    <div
-                      key={bsd}
-                      className="flex items-center justify-between space-x-2 rounded-md border border-gray-200 bg-white px-4 py-2"
-                    >
-                      <p className="font-medium text-gray-800">{bsd}</p>
+                      <Tooltip content="Your Bitly group ID">
+                        <p className="cursor-default text-xs uppercase text-gray-400 transition-colors hover:text-gray-700">
+                          {guid}
+                        </p>
+                      </Tooltip>
+                    </div>
+                    {bsds.map((bsd) => (
+                      <div
+                        key={bsd}
+                        className="flex items-center justify-between space-x-2 rounded-md border border-gray-200 bg-white px-4 py-2"
+                      >
+                        <p className="font-medium text-gray-800">{bsd}</p>
+                        <Switch
+                          fn={() => {
+                            const selected = isSelected(bsd);
+                            if (selected) {
+                              setSelectedDomains((prev) =>
+                                prev.filter((d) => d.domain !== bsd),
+                              );
+                            } else {
+                              setSelectedDomains((prev) => [
+                                ...prev,
+                                {
+                                  domain: bsd,
+                                  bitlyGroup: guid,
+                                },
+                              ]);
+                            }
+                          }}
+                          checked={isSelected(bsd)}
+                        />
+                      </div>
+                    ))}
+                    <div className="flex items-center justify-between space-x-2 rounded-md py-1 pl-2 pr-4">
+                      <p className="text-xs text-gray-500">
+                        {tags.length} tags found. Import all?
+                      </p>
                       <Switch
                         fn={() => {
-                          const selected = isSelected(bsd);
-                          if (selected) {
-                            setSelectedDomains((prev) =>
-                              prev.filter((d) => d.domain !== bsd),
+                          if (selectedGroupTags.includes(guid)) {
+                            setSelectedGroupTags((prev) =>
+                              prev.filter((g) => g !== guid),
                             );
                           } else {
-                            setSelectedDomains((prev) => [
-                              ...prev,
-                              {
-                                domain: bsd,
-                                bitlyGroup: guid,
-                              },
-                            ]);
+                            setSelectedGroupTags((prev) => [...prev, guid]);
                           }
                         }}
-                        checked={isSelected(bsd)}
+                        checked={selectedGroupTags.includes(guid)}
                       />
                     </div>
-                  ))}
-                  <div className="flex items-center justify-between space-x-2 rounded-md py-1 pl-2 pr-4">
-                    <p className="text-xs text-gray-500">
-                      {tags.length} tags found. Import all?
-                    </p>
-                    <Switch
-                      fn={() => {
-                        if (selectedGroupTags.includes(guid)) {
-                          setSelectedGroupTags((prev) =>
-                            prev.filter((g) => g !== guid),
-                          );
-                        } else {
-                          setSelectedGroupTags((prev) => [...prev, guid]);
-                        }
-                      }}
-                      checked={selectedGroupTags.includes(guid)}
-                    />
                   </div>
+                ))
+              ) : (
+                <div className="flex flex-col items-center justify-center space-y-2 pb-2">
+                  <ServerOff className="h-6 w-6 text-gray-500" />
+                  <p className="text-center text-sm text-gray-500">
+                    It looks like you don't have any Bitly groups with custom
+                    domains (non bit.ly domains).
+                  </p>
                 </div>
-              ))}
+              )}
             </div>
             <Button
               text="Confirm import"
