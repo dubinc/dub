@@ -19,6 +19,11 @@ export const GET = withAuth(
       return new Response("Missing link key.", { status: 400 });
     }
 
+    // return 403 if interval is 90d or all
+    if (project.plan === "free" && (interval === "all" || interval === "90d")) {
+      return new Response(`Require higher plan`, { status: 403 });
+    }
+
     const response = await getStats({
       domain: constructedDomain,
       key,
