@@ -42,6 +42,12 @@ Delete the `apps/docs` directory since it's not needed for self-hosting:
 rm -rf apps/docs
 ```
 
+Delete the `apps/web/vercel.json` file since cron jobs are not required for the self-hosted version:
+
+```bash
+rm apps/web/vercel.json
+```
+
 Convert the `.env.example` file to `.env`. You can start filling in the first few environment variables:
 
 ```bash
