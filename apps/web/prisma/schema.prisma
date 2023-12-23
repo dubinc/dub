@@ -134,16 +134,9 @@ model ProjectUsers {
   @@index([projectId])
 }
 
-enum EmailType {
-  firstDomainInvalidEmail
-  secondDomainInvalidEmail
-  firstUsageLimitEmail
-  secondUsageLimitEmail
-}
-
 model SentEmail {
   id        String    @id @default(cuid())
-  type      EmailType
+  type      String
   createdAt DateTime  @default(now())
   project   Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId String?

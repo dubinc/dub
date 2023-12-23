@@ -1,13 +1,20 @@
-import { limiter } from "@/lib/cron";
+import { limiter, qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { getStats } from "@/lib/stats";
 import { ProjectProps } from "@/lib/types";
-import { getAdjustedBillingCycleStart, linkConstructor, log } from "@dub/utils";
+import {
+  APP_DOMAIN_WITH_NGROK,
+  getAdjustedBillingCycleStart,
+  linkConstructor,
+  log,
+} from "@dub/utils";
 import { sendEmail } from "emails";
 import ClicksSummary from "emails/clicks-summary";
 import UsageExceeded from "emails/usage-exceeded";
 
-export const updateUsage = async () => {
+const limit = 250;
+
+export const updateUsage = async (skip?: number) => {
   const projects = await prisma.project.findMany({
     where: {
       domains: {
@@ -37,7 +44,14 @@ export const updateUsage = async () => {
       sentEmails: true,
       createdAt: true,
     },
+    skip: skip || 0,
+    take: limit,
   });
+
+  // if no projects left, meaning cron is complete
+  if (projects.length === 0) {
+    return;
+  }
 
   // Reset billing cycles for projects that:
   // - Are not on the free plan
@@ -56,7 +70,7 @@ export const updateUsage = async () => {
   );
 
   // Send email to notify overages
-  const notifyOveragesResponse = await Promise.allSettled(
+  await Promise.allSettled(
     exceedingUsage.map(async (project) => {
       const { name, usage, usageLimit, users, sentEmails } = project;
       const emails = users.map((user) => user.user.email) as string[];
@@ -95,7 +109,7 @@ export const updateUsage = async () => {
 
   // Reset usage for projects that have billingCycleStart today
   // also delete sentEmails for those projects
-  const resetBillingResponse = await Promise.allSettled(
+  await Promise.allSettled(
     billingReset.map(async (project) => {
       // Only send the 30-day summary email if the project was created more than 30 days ago
       if (
@@ -186,12 +200,12 @@ export const updateUsage = async () => {
     }),
   );
 
-  return {
-    billingReset,
-    exceedingUsage,
-    notifyOveragesResponse,
-    resetBillingResponse,
-  };
+  return await qstash.publishJSON({
+    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/usage?skip=${
+      skip ? skip + limit : limit
+    }`,
+    method: "GET",
+  });
 };
 
 const sendUsageLimitEmail = async (

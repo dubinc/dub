@@ -3,7 +3,7 @@ import {
   getDomainResponse,
   verifyDomain,
 } from "@/lib/api/domains";
-import { receiver, verifySignature } from "@/lib/cron";
+import { verifySignature } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -30,12 +30,13 @@ export async function GET(req: Request) {
           // exclude domains that belong to us
           notIn: [
             "dub.sh",
+            "chatg.pt",
+            "amzn.id",
+            "spti.fi",
             "stey.me",
             "steven.yt",
-            "vercel.fyi",
-            "vercel.link",
+            "steven.blue",
             "owd.li",
-            "chatg.pt",
             "elegance.ai",
           ],
         },
