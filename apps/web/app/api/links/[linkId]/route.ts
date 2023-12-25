@@ -1,7 +1,13 @@
 import { withAuth } from "@/lib/auth";
 import { deleteLink, editLink, processLink } from "@/lib/api/links";
 import { NextResponse } from "next/server";
-import { GOOGLE_FAVICON_URL, getApexDomain, log } from "@dub/utils";
+import {
+  APP_DOMAIN_WITH_NGROK,
+  GOOGLE_FAVICON_URL,
+  getApexDomain,
+  log,
+} from "@dub/utils";
+import { qstash } from "@/lib/cron";
 
 // GET /api/links/[linkId] – get a link
 export const GET = withAuth(async ({ headers, link }) => {
@@ -52,36 +58,32 @@ export const PUT = withAuth(
       return new Response(error, { status, headers });
     }
 
-    const [response, invalidFavicon] = await Promise.allSettled([
+    const [response, _] = await Promise.allSettled([
       editLink({
         // link is guaranteed to exist because if not we will return 404
         domain: link!.domain,
         key: link!.key,
         updatedLink: processedLink,
       }),
-      ...(!project && processedLink.url
+      ...(link &&
+      processedLink.domain === "dub.sh" &&
+      processedLink.url !== link.url
         ? [
-            fetch(
-              `${GOOGLE_FAVICON_URL}${getApexDomain(processedLink.url)}`,
-            ).then((res) => !res.ok),
+            qstash.publishJSON({
+              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/verify`,
+              body: {
+                linkId: link.id,
+              },
+            }),
           ]
         : []),
       // @ts-ignore
     ]).then((results) => results.map((result) => result.value));
 
     if (response === null) {
-      return new Response("Key already exists.", { status: 409, headers });
-    }
-
-    if (!project && invalidFavicon) {
-      await log({
-        message: `*${session.user.email}* edited a link (${
-          processedLink.domain
-        }/${processedLink.key}) to the ${processedLink.url} ${
-          invalidFavicon ? " but it has an invalid favicon :thinking_face:" : ""
-        }`,
-        type: "links",
-        mention: true,
+      return new Response("Duplicate key: This short link already exists.", {
+        status: 409,
+        headers,
       });
     }
 

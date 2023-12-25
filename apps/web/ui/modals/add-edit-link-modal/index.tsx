@@ -115,7 +115,9 @@ function AddEditLinkModal({
       ).then(async (res) => {
         if (res.status === 200) {
           const exists = await res.json();
-          setKeyError(exists ? "Key already exists" : null);
+          setKeyError(
+            exists ? "Duplicate key: This short link already exists." : null,
+          );
         }
       });
     }
@@ -340,11 +342,6 @@ function AddEditLinkModal({
                 body: JSON.stringify(rest),
               }).then(async (res) => {
                 if (res.status === 200) {
-                  // track link creation event
-                  endpoint.method === "POST" &&
-                    va.track("Created Link", {
-                      type: slug ? "Custom Domain" : "Default Domain",
-                    });
                   await mutate(
                     (key) =>
                       typeof key === "string" && key.startsWith("/api/links"),
@@ -353,7 +350,7 @@ function AddEditLinkModal({
                   );
                   // for welcome page, redirect to links page after adding a link
                   if (pathname === "/welcome") {
-                    await router.push("/links");
+                    router.push("/links");
                     setShowAddEditLinkModal(false);
                   }
                   // copy shortlink to clipboard when adding a new link

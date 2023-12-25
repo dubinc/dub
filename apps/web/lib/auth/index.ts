@@ -68,12 +68,14 @@ export const withAuth =
       needNotExceededUsage, // if the action needs the user to not have exceeded their usage
       allowAnonymous, // special case for /api/links (POST /api/links) – allow no session
       allowSelf, // special case for removing yourself from a project
+      skipLinkChecks, // special case for /api/links/exists – skip link checks
     }: {
       requiredPlan?: Array<PlanProps>;
       requiredRole?: Array<"owner" | "member">;
       needNotExceededUsage?: boolean;
       allowAnonymous?: boolean;
       allowSelf?: boolean;
+      skipLinkChecks?: boolean;
     } = {},
   ) =>
   async (
@@ -337,7 +339,7 @@ export const withAuth =
     }
 
     // link checks (if linkId or domain and key are provided)
-    if (linkId || (domain && key && key !== "_root")) {
+    if ((linkId || (domain && key && key !== "_root")) && !skipLinkChecks) {
       // if link doesn't exist
       if (!link) {
         return new Response("Link not found.", {
