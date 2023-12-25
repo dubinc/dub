@@ -1,7 +1,9 @@
 import { addLink, getLinksForProject, processLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
+import { qstash } from "@/lib/cron";
 import { ratelimit } from "@/lib/upstash";
 import {
+  APP_DOMAIN_WITH_NGROK,
   DUB_PROJECT_ID,
   GOOGLE_FAVICON_URL,
   LOCALHOST_IP,
@@ -71,34 +73,21 @@ export const POST = withAuth(
       }
     }
 
-    const [response, invalidFavicon] = await Promise.allSettled([
-      addLink(link),
-      ...(!project
-        ? [
-            fetch(`${GOOGLE_FAVICON_URL}${getApexDomain(link.url)}`).then(
-              (res) => !res.ok,
-            ),
-          ]
-        : []),
-      // @ts-ignore
-    ]).then((results) => results.map((result) => result.value));
+    const response = await addLink(link);
 
     if (response === null) {
-      return new Response("Duplicate key: this short link already exists.", {
+      return new Response("Duplicate key: This short link already exists.", {
         status: 409,
         headers,
       });
     }
 
-    if (!project && invalidFavicon) {
-      await log({
-        message: `*${
-          session?.user?.email || "Anonymous User"
-        }* created a new link (${link.domain}/${link.key}) for ${link.url} ${
-          invalidFavicon ? " but it has an invalid favicon :thinking_face:" : ""
-        }`,
-        type: "links",
-        mention: true,
+    if (link.domain === "dub.sh") {
+      await qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/verify`,
+        body: {
+          linkId: response.id,
+        },
       });
     }
 
