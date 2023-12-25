@@ -12,6 +12,7 @@ import {
   DUB_PROJECT_ID,
   LEGAL_USER_ID,
   SHORT_DOMAIN,
+  getBillingStartDate,
   getDomainWithoutWWW,
   getParamsFromURL,
   getUrlFromString,
@@ -284,6 +285,23 @@ export async function processLink({
       return {
         link: payload,
         error: "Domain does not belong to project.",
+        status: 403,
+      };
+    }
+    const linksUsage = await prisma.link.count({
+      where: {
+        projectId: project.id,
+        createdAt: {
+          gte: getBillingStartDate(project.billingCycleStart),
+        },
+      },
+    });
+    if (linksUsage >= project.linksLimit) {
+      return {
+        link: payload,
+        error: `You can only create ${
+          project.linksLimit
+        } short links on the ${project.plan.toUpperCase()} plan. Upgrade to create more links.`,
         status: 403,
       };
     }

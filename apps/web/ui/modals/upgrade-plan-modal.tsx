@@ -1,5 +1,5 @@
 import { getStripe } from "@/lib/stripe/client";
-import { PLANS } from "@/lib/stripe/utils";
+import { PRO_PLAN } from "@/lib/stripe/utils";
 import { CheckCircleFill } from "@/ui/shared/icons";
 import { Badge, Button, Logo, Modal } from "@dub/ui";
 import { HOME_DOMAIN, STAGGER_CHILD_VARIANTS, capitalize } from "@dub/utils";
@@ -104,13 +104,14 @@ function UpgradePlanModal({
                 <h4 className="font-medium text-gray-900">
                   {plan} {capitalize(period)}
                 </h4>
-                <Badge
-                  variant="neutral"
-                  className="text-sm font-normal normal-case"
-                >
-                  ${PLANS.find((p) => p.name === plan)!.price[period].amount}/
-                  {period.replace("ly", "")}
-                </Badge>
+                {plan === "Pro" && (
+                  <Badge
+                    variant="neutral"
+                    className="text-sm font-normal normal-case"
+                  >
+                    ${PRO_PLAN[period].amount}/{period.replace("ly", "")}
+                  </Badge>
+                )}
               </div>
               <Confetti
                 active={period === "yearly"}
@@ -158,7 +159,7 @@ function UpgradePlanModal({
               setClicked(true);
               fetch(
                 `/api/projects/${slug}/billing/upgrade?priceId=${
-                  PLANS.find((p) => p.name === plan)!.price[period].priceIds[
+                  PRO_PLAN[period].priceIds[
                     process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
                       ? "production"
                       : "test"

@@ -260,6 +260,23 @@ export const getAdjustedBillingCycleStart = (billingCycleStart: number) => {
   }
 };
 
+export const getBillingStartDate = (billingCycleStart: number) => {
+  const today = new Date();
+  const currentDay = today.getDate();
+  const currentMonth = today.getMonth();
+  const currentYear = today.getFullYear();
+  const adjustedBillingCycleStart =
+    getAdjustedBillingCycleStart(billingCycleStart);
+  if (currentDay <= adjustedBillingCycleStart) {
+    // if the current day is less than the billing cycle start, we need to go back a month
+    const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1; // if the current month is January, we need to go back to December
+    const lastYear = currentMonth === 0 ? currentYear - 1 : currentYear; // if the current month is January, we need to go back a year
+    return new Date(lastYear, lastMonth, adjustedBillingCycleStart);
+  } else {
+    return new Date(currentYear, currentMonth, adjustedBillingCycleStart);
+  }
+};
+
 export const generateDomainFromName = (name: string) => {
   const normalizedName = slugify(name, { separator: "" });
   if (normalizedName.length < 3) {

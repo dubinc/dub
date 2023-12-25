@@ -43,9 +43,10 @@ export interface ProjectProps {
   logo?: string;
   usage: number;
   usageLimit: number;
+  linksLimit: number;
   plan: PlanProps;
   stripeId?: string;
-  billingCycleStart?: number;
+  billingCycleStart: number;
   createdAt?: Date;
   domains?: {
     slug: string;

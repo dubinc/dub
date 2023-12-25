@@ -179,7 +179,6 @@ export default function LinkCard({
     // - the key pressed is one of the shortcuts
     // - there is no existing modal backdrop
     if (
-      !exceededUsage &&
       (selected || openPopover) &&
       ["e", "d", "q", "a", "x"].includes(e.key)
     ) {
@@ -417,86 +416,33 @@ export default function LinkCard({
           <Popover
             content={
               <div className="grid w-full gap-px p-2 sm:w-48">
-                {slug && exceededUsage ? (
-                  <Tooltip
-                    content={
-                      <TooltipContent
-                        title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to edit them."
-                        cta="Upgrade to Pro"
-                        onClick={() => {
-                          setOpenPopover(false);
-                          setShowUpgradePlanModal(true);
-                        }}
-                      />
-                    }
-                  >
-                    <div className="flex w-full cursor-not-allowed items-center justify-between p-2 text-left text-sm font-medium text-gray-300 transition-all duration-75">
-                      <IconMenu
-                        text="Edit"
-                        icon={<Edit3 className="h-4 w-4" />}
-                      />
-                      <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-300 transition-all duration-75 sm:inline-block">
-                        E
-                      </kbd>
-                    </div>
-                  </Tooltip>
-                ) : (
-                  <button
-                    onClick={() => {
-                      setOpenPopover(false);
-                      setShowAddEditLinkModal(true);
-                    }}
-                    className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
-                  >
-                    <IconMenu
-                      text="Edit"
-                      icon={<Edit3 className="h-4 w-4" />}
-                    />
-                    <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 transition-all duration-75 group-hover:bg-gray-200 sm:inline-block">
-                      E
-                    </kbd>
-                  </button>
-                )}
-                {slug && exceededUsage ? (
-                  <Tooltip
-                    content={
-                      <TooltipContent
-                        title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to create a new link."
-                        cta="Upgrade to Pro"
-                        onClick={() => {
-                          setOpenPopover(false);
-                          setShowUpgradePlanModal(true);
-                        }}
-                      />
-                    }
-                  >
-                    <div className="flex w-full cursor-not-allowed items-center justify-between p-2 text-left text-sm font-medium text-gray-300 transition-all duration-75">
-                      <IconMenu
-                        text="Duplicate"
-                        icon={<CopyPlus className="h-4 w-4" />}
-                      />
-                      <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-300 transition-all duration-75 sm:inline-block">
-                        D
-                      </kbd>
-                    </div>
-                  </Tooltip>
-                ) : (
-                  <button
-                    onClick={() => {
-                      setOpenPopover(false);
-                      setShowDuplicateLinkModal(true);
-                    }}
-                    className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
-                  >
-                    <IconMenu
-                      text="Duplicate"
-                      icon={<CopyPlus className="h-4 w-4" />}
-                    />
-                    <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 transition-all duration-75 group-hover:bg-gray-200 sm:inline-block">
-                      D
-                    </kbd>
-                  </button>
-                )}
+                <button
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setShowAddEditLinkModal(true);
+                  }}
+                  className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
+                >
+                  <IconMenu text="Edit" icon={<Edit3 className="h-4 w-4" />} />
+                  <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 transition-all duration-75 group-hover:bg-gray-200 sm:inline-block">
+                    E
+                  </kbd>
+                </button>
+                <button
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setShowDuplicateLinkModal(true);
+                  }}
+                  className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
+                >
+                  <IconMenu
+                    text="Duplicate"
+                    icon={<CopyPlus className="h-4 w-4" />}
+                  />
+                  <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 transition-all duration-75 group-hover:bg-gray-200 sm:inline-block">
+                    D
+                  </kbd>
+                </button>
                 <button
                   onClick={() => {
                     setOpenPopover(false);

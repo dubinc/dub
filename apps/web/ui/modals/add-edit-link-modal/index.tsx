@@ -612,11 +612,6 @@ function AddEditLinkButton({
 }: {
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { slug } = useParams() as { slug?: string };
-
-  const { exceededUsage } = useProject();
-  const { setShowUpgradePlanModal } = useContext(ModalContext);
-
   const onKeyDown = useCallback((e: KeyboardEvent) => {
     const target = e.target as HTMLElement;
     const existingModalBackdrop = document.getElementById("modal-backdrop");
@@ -627,7 +622,6 @@ function AddEditLinkButton({
     // - user is not typing in an input or textarea
     // - there is no existing modal backdrop (i.e. no other modal is open)
     if (
-      !exceededUsage &&
       e.key === "c" &&
       !e.metaKey &&
       !e.ctrlKey &&
@@ -670,24 +664,7 @@ function AddEditLinkButton({
     };
   }, [onKeyDown]);
 
-  return slug && exceededUsage ? ( // only show exceeded usage tooltip if user is on a project page
-    <Tooltip
-      content={
-        <TooltipContent
-          title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
-          cta="Upgrade to Pro"
-          onClick={() => setShowUpgradePlanModal(true)}
-        />
-      }
-    >
-      <div className="flex cursor-not-allowed items-center space-x-3 rounded-md border border-gray-200 px-3 py-2 text-sm font-medium text-gray-300">
-        <p>Create link</p>
-        <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-300 md:inline-block">
-          C
-        </kbd>
-      </div>
-    </Tooltip>
-  ) : (
+  return (
     <button
       onClick={() => setShowAddEditLinkModal(true)}
       className="group flex items-center space-x-3 rounded-md border border-black bg-black px-3 py-2 text-sm font-medium text-white transition-all duration-75 hover:bg-white hover:text-black active:scale-95"

@@ -209,6 +209,7 @@ export const withAuth =
             logo: true,
             usage: true,
             usageLimit: true,
+            linksLimit: true,
             plan: true,
             stripeId: true,
             billingCycleStart: true,
