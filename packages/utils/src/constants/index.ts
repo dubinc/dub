@@ -105,18 +105,12 @@ export const DUB_LOGO = "https://d2vwwcvoksz7ty.cloudfront.net/logo.png";
 export const DUB_THUMBNAIL =
   "https://d2vwwcvoksz7ty.cloudfront.net/thumbnail.png";
 
-export const SHOW_BACKGROUND_SEGMENTS = [
-  "tools",
-  "pricing",
-  "help",
-  "features",
-  "compare",
-  "customers",
-  "blog",
-  "(blog-post)",
-  "login",
-  "register",
-  "auth",
+export const HIDE_BACKGROUND_SEGMENTS = [
+  "stats",
+  "changelog",
+  "terms",
+  "privacy",
+  "abuse",
 ];
 
 export const DUB_DOMAINS = [
