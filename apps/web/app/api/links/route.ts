@@ -67,7 +67,7 @@ export const POST = withAuth(
 
       if (!success) {
         return new Response(
-          "Rate limited – you can only create up to 10 links per day without an account.",
+          "Rate limited – you can only create up to 10 links per day without an account.",
           { status: 429 },
         );
       }
@@ -82,14 +82,25 @@ export const POST = withAuth(
       });
     }
 
-    if (link.domain === "dub.sh") {
-      await qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/verify`,
-        body: {
-          linkId: response.id,
-        },
-      });
-    }
+    await Promise.all([
+      link.domain === "dub.sh" &&
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/verify`,
+          body: {
+            linkId: response.id,
+          },
+        }),
+      // for public links, delete after 30 mins (if not claimed)
+      !link.userId &&
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/delete`,
+          // delete after 30 mins
+          delay: 30 * 60 * 1000,
+          body: {
+            linkId: response.id,
+          },
+        }),
+    ]);
 
     return NextResponse.json(response, { headers });
   },

@@ -222,7 +222,18 @@ export async function processLink({
   session?: Session;
   bulk?: boolean;
 }) {
-  let { domain, key, url, image, rewrite, expiresAt, geo } = payload;
+  let {
+    domain,
+    key,
+    url,
+    image,
+    proxy,
+    rewrite,
+    expiresAt,
+    ios,
+    android,
+    geo,
+  } = payload;
 
   // url checks
   if (!url) {
@@ -248,36 +259,6 @@ export async function processLink({
       error: "Missing short link domain.",
       status: 400,
     };
-  }
-
-  // custom social media image checks
-  const uploadedImage = image && image.startsWith("data:image") ? true : false;
-  if (uploadedImage && !process.env.CLOUDINARY_URL) {
-    return {
-      link: payload,
-      error: "Missing Cloudinary environment variable.",
-      status: 400,
-    };
-  }
-
-  // expire date checks
-  if (expiresAt) {
-    const date = new Date(expiresAt);
-    if (isNaN(date.getTime())) {
-      return {
-        link: payload,
-        error: "Invalid expiry date. Expiry date must be in ISO-8601 format.",
-        status: 422,
-      };
-    }
-    // check if expiresAt is in the future
-    if (new Date(expiresAt) < new Date()) {
-      return {
-        link: payload,
-        error: "Expiry date must be in the future.",
-        status: 422,
-      };
-    }
   }
 
   if (project) {
@@ -314,13 +295,6 @@ export async function processLink({
         error:
           "Key cannot contain '/'. You can only use this with a custom domain.",
         status: 422,
-      };
-    }
-    if (rewrite) {
-      return {
-        link: payload,
-        error: "You can only use link cloaking on a custom domain.",
-        status: 403,
       };
     }
     if (domain === "dub.sh") {
@@ -380,10 +354,11 @@ export async function processLink({
 
   // free plan restrictions
   if (!project || project.plan === "free") {
-    if (geo) {
+    if (proxy || rewrite || expiresAt || ios || android || geo) {
       return {
         link: payload,
-        error: "You can only use geo targeting on a Pro plan and above.",
+        error:
+          "You can only use link cloaking, custom social media cards, link expiration, device and geo targeting on a Pro plan and above. Upgrade to Pro to use these features.",
         status: 403,
       };
     }
@@ -414,6 +389,36 @@ export async function processLink({
         link: payload,
         error: `Link already exists.`,
         status: 409,
+      };
+    }
+  }
+
+  // custom social media image checks
+  const uploadedImage = image && image.startsWith("data:image") ? true : false;
+  if (uploadedImage && !process.env.CLOUDINARY_URL) {
+    return {
+      link: payload,
+      error: "Missing Cloudinary environment variable.",
+      status: 400,
+    };
+  }
+
+  // expire date checks
+  if (expiresAt) {
+    const date = new Date(expiresAt);
+    if (isNaN(date.getTime())) {
+      return {
+        link: payload,
+        error: "Invalid expiry date. Expiry date must be in ISO-8601 format.",
+        status: 422,
+      };
+    }
+    // check if expiresAt is in the future
+    if (new Date(expiresAt) < new Date()) {
+      return {
+        link: payload,
+        error: "Expiry date must be in the future.",
+        status: 422,
       };
     }
   }
@@ -706,10 +711,6 @@ export async function deleteLink({
     cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
       invalidate: true,
     }),
-    // deleteClickData({
-    //   domain,
-    //   key,
-    // }),
     redis.del(`${domain}:${key}`),
   ]);
 }

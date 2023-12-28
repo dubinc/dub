@@ -25,16 +25,22 @@ async function main() {
     take: 100,
   });
   console.table(
-    projects.map((project) => ({
-      ...project,
-      domains: `${
-        project.domains
-          .slice(0, 2)
-          .map((domain) => domain.slug)
-          .join(", ") +
-        (project.domains.length > 2 ? `... ${project._count.domains - 2}+` : "")
-      }`,
-    })),
+    // sort by links count
+    projects
+      // .sort((a, b) => b._count.links - a._count.links)
+      .map((project) => ({
+        ...project,
+        domains: `${
+          project.domains
+            .slice(0, 2)
+            .map((domain) => domain.slug)
+            .join(", ") +
+          (project.domains.length > 2
+            ? `... ${project._count.domains - 2}+`
+            : "")
+        }`,
+      })),
+    ["slug", "plan", "usage", "_count"],
   );
 }
 
