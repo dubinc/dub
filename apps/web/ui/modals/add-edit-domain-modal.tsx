@@ -293,7 +293,6 @@ function AddEditDomainModal({
                   }}
                 />
               }
-              fullWidth
             >
               <div className="mt-1 w-full cursor-not-allowed rounded-md border border-gray-300 px-3 py-2 text-left text-sm text-gray-300 sm:max-w-md">
                 https://yourdomain.com
