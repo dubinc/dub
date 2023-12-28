@@ -1,7 +1,7 @@
 {
   "name": "@dub/ui",
   "description": "UI components for Dub.co",
-  "version": "0.0.37",
+  "version": "0.0.40",
   "sideEffects": false,
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -47,7 +47,7 @@
     "sonner": "^0.5.0",
     "swr": "^2.1.5",
     "use-debounce": "^8.0.4",
-    "vaul": "^0.6.8"
+    "vaul": "^0.8.0"
   },
   "author": "Steven Tey <stevensteel97@gmail.com>",
   "homepage": "https://dub.co",
