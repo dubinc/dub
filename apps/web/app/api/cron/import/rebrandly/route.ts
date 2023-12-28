@@ -5,7 +5,7 @@ import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { importLinksFromRebrandly, importTagsFromRebrandly } from "./utils";
 
-export const maxDuration = 300;
+export const maxDuration = process.env.NEXT_PUBLIC_IS_DUB ? 300 : 10
 
 export async function POST(req: Request) {
   const body = await req.json();
