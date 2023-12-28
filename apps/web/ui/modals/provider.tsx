@@ -22,7 +22,6 @@ import { useCookies } from "@dub/ui";
 import { SimpleLinkProps } from "@/lib/types";
 import { toast } from "sonner";
 import { useImportRebrandlyModal } from "./import-rebrandly-modal";
-import { TooltipProvider } from "@dub/ui/src/tooltip";
 
 export const ModalContext = createContext<{
   setShowAddProjectModal: Dispatch<SetStateAction<boolean>>;
@@ -97,30 +96,28 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
   }, [error]);
 
   return (
-    <TooltipProvider>
-      <ModalContext.Provider
-        value={{
-          setShowAddProjectModal,
-          setShowCompleteSetupModal,
-          setShowAddEditDomainModal,
-          setShowAddEditLinkModal,
-          setShowUpgradePlanModal,
-          setShowImportBitlyModal,
-          setShowImportShortModal,
-          setShowImportRebrandlyModal,
-        }}
-      >
-        <AddProjectModal />
-        <AcceptInviteModal />
-        <CompleteSetupModal />
-        <AddEditDomainModal />
-        <AddEditLinkModal />
-        <UpgradePlanModal />
-        <ImportBitlyModal />
-        <ImportShortModal />
-        <ImportRebrandlyModal />
-        {children}
-      </ModalContext.Provider>
-    </TooltipProvider>
+    <ModalContext.Provider
+      value={{
+        setShowAddProjectModal,
+        setShowCompleteSetupModal,
+        setShowAddEditDomainModal,
+        setShowAddEditLinkModal,
+        setShowUpgradePlanModal,
+        setShowImportBitlyModal,
+        setShowImportShortModal,
+        setShowImportRebrandlyModal,
+      }}
+    >
+      <AddProjectModal />
+      <AcceptInviteModal />
+      <CompleteSetupModal />
+      <AddEditDomainModal />
+      <AddEditLinkModal />
+      <UpgradePlanModal />
+      <ImportBitlyModal />
+      <ImportShortModal />
+      <ImportRebrandlyModal />
+      {children}
+    </ModalContext.Provider>
   );
 }
