@@ -2,8 +2,7 @@ import { Button, Logo } from "@dub/ui";
 import { HOME_DOMAIN, constructMetadata } from "@dub/utils";
 import { Suspense } from "react";
 import RegisterForm from "./form";
-import Image from "next/image";
-import Link from "next/link";
+import { BlurImage } from "@/ui/shared/blur-image";
 
 export const metadata = constructMetadata({
   title: `Create your ${process.env.NEXT_PUBLIC_APP_NAME} account`,
@@ -60,7 +59,7 @@ export default function RegisterPage() {
           target="_blank"
           className="ml-12 h-1/2 w-[150%] rounded-xl border border-gray-200 bg-white/90 p-4 shadow-xl"
         >
-          <Image
+          <BlurImage
             alt="Dub.co Analytics"
             src="https://d2vwwcvoksz7ty.cloudfront.net/features/analytics.png"
             width={1735}
@@ -74,7 +73,7 @@ export default function RegisterPage() {
           className="animate-infinite-scroll flex items-center space-x-4"
         >
           {logos.map((logo, idx) => (
-            <Image
+            <BlurImage
               alt={`${logo} logo`}
               key={idx}
               src={`${HOME_DOMAIN}/_static/clients/${logo}.svg`}
