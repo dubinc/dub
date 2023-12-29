@@ -26,7 +26,7 @@ export default async function LinkMiddleware(
   if (
     process.env.NODE_ENV !== "development" &&
     domain === "dub.sh" &&
-    key === "github"
+    key === "try"
   ) {
     if (await isBlacklistedReferrer(req.headers.get("referer"))) {
       return new Response("Don't DDoS me pls 🥺", { status: 429 });
