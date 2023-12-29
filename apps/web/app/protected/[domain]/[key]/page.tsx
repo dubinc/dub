@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma";
 import PasswordForm from "./form";
 import { notFound, redirect } from "next/navigation";
 
-const title = "Password Required – Dub.co";
+const title = "Password Required";
 const description =
   "This link is password protected. Please enter the password to view it.";
 const image = "https://dub.co/_static/password-protected.png";
@@ -39,7 +39,7 @@ export async function generateMetadata({
   }
 
   return constructMetadata({
-    title,
+    title: isDubDomain(domain) || link.project?.plan === "free" ? `${title} - Dub.co` : title,
     description,
     image,
     ...(!isDubDomain(domain) &&
@@ -126,7 +126,9 @@ export default async function PasswordProtectedLinkPage({
               <Logo />
             </a>
           )}
-          <h3 className="text-xl font-semibold">{title}</h3>
+          <h3 className="text-xl font-semibold">
+            {title}
+          </h3>
           <p className="text-sm text-gray-500">{description}</p>
         </div>
         <PasswordForm />

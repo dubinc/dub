@@ -42,16 +42,34 @@ module.exports = {
     return config;
   },
   images: {
-    domains: [
-      "www.google.com",
-      "avatar.vercel.sh",
-      "faisalman.github.io",
-      "api.dicebear.com",
-      "res.cloudinary.com",
-      "pbs.twimg.com",
-      "d2vwwcvoksz7ty.cloudfront.net",
-      "lh3.googleusercontent.com",
-      "media.cleanshot.cloud", // only for staging purposes
+    remotePatterns: [
+      {
+        hostname: "www.google.com",
+      },
+      {
+        hostname: "avatar.vercel.sh",
+      },
+      {
+        hostname: "faisalman.github.io",
+      },
+      {
+        hostname: "api.dicebear.com",
+      },
+      {
+        hostname: "res.cloudinary.com",
+      },
+      {
+        hostname: "pbs.twimg.com",
+      },
+      {
+        hostname: "d2vwwcvoksz7ty.cloudfront.net",
+      },
+      {
+        hostname: "lh3.googleusercontent.com",
+      },
+      {
+        hostname: "media.cleanshot.cloud", // only for staging purposes
+      },
     ],
   },
   async headers() {

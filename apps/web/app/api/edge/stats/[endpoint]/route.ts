@@ -17,8 +17,8 @@ export const GET = async (
   const searchParams = getSearchParams(req.url);
   const { domain, key, interval } = searchParams;
 
-  // demo link (dub.sh/github)
-  if (domain === "dub.sh" && key === "github") {
+  // demo link (dub.sh/try)
+  if (domain === "dub.sh" && key === "try") {
     // Rate limit in production
     if (process.env.NODE_ENV !== "development") {
       if (await isBlacklistedReferrer(req.headers.get("referer"))) {
