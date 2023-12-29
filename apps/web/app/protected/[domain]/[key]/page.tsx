@@ -127,7 +127,7 @@ export default async function PasswordProtectedLinkPage({
             </a>
           )}
           <h3 className="text-xl font-semibold">
-            {isDubDomain(domain) || link.project?.plan === "free" ? `${title} - Dub.co` : title}
+            {title}
           </h3>
           <p className="text-sm text-gray-500">{description}</p>
         </div>
