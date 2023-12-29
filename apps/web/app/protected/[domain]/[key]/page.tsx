@@ -39,7 +39,7 @@ export async function generateMetadata({
   }
 
   return constructMetadata({
-    title: link.project?.plan === "free" ? `${title} - Dub.co` : title,
+    title: isDubDomain(domain) || link.project?.plan === "free" ? `${title} - Dub.co` : title,
     description,
     image,
     ...(!isDubDomain(domain) &&
@@ -127,7 +127,7 @@ export default async function PasswordProtectedLinkPage({
             </a>
           )}
           <h3 className="text-xl font-semibold">
-            {link.project?.plan === "free" ? `${title} - Dub.co` : title}
+            {isDubDomain(domain) || link.project?.plan === "free" ? `${title} - Dub.co` : title}
           </h3>
           <p className="text-sm text-gray-500">{description}</p>
         </div>
