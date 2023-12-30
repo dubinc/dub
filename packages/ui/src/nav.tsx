@@ -18,16 +18,20 @@ export const navItems = [
     slug: "customers",
   },
   {
-    name: "Changelog",
-    slug: "changelog",
-  },
-  {
-    name: "Help",
-    slug: "help",
-  },
-  {
     name: "Pricing",
     slug: "pricing",
+  },
+  {
+    name: "Enterprise",
+    slug: "enterprise",
+  },
+  {
+    name: "Blog",
+    slug: "blog",
+  },
+  {
+    name: "Changelog",
+    slug: "changelog",
   },
 ];
 
