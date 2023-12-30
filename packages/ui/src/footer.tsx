@@ -17,8 +17,9 @@ const navigation = {
     { name: "Blog", href: "/blog" },
     { name: "Changelog", href: "/changelog" },
     { name: "Customer Stories", href: "/customers" },
-    { name: "Help Center", href: "/help" },
     { name: "Pricing", href: "/pricing" },
+    { name: "Enterprise", href: "/enterprise" },
+    { name: "Help Center", href: "/help" },
   ],
   legal: [
     { name: "Privacy", href: "/privacy" },
