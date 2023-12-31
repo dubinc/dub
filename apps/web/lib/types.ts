@@ -34,7 +34,7 @@ export type TagColorProps =
   | "pink"
   | "brown";
 
-export type PlanProps = "free" | "pro" | "enterprise";
+export type PlanProps = "free" | "pro" | "business" | "enterprise";
 
 export interface ProjectProps {
   id: string;
@@ -43,6 +43,7 @@ export interface ProjectProps {
   logo?: string;
   usage: number;
   usageLimit: number;
+  linksUsage: number;
   linksLimit: number;
   plan: PlanProps;
   stripeId?: string;

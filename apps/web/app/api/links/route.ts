@@ -105,7 +105,7 @@ export const POST = withAuth(
     return NextResponse.json(response, { headers });
   },
   {
-    needNotExceededUsage: true,
+    needNotExceededLinks: true,
     allowAnonymous: true,
   },
 );

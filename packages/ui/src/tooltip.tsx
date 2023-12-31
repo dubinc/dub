@@ -110,7 +110,6 @@ export function SimpleTooltipContent({
       <a
         href={href}
         target="_blank"
-        rel="noopener noreferrer"
         className="inline-flex text-gray-500 underline underline-offset-4 hover:text-gray-800"
       >
         {cta}

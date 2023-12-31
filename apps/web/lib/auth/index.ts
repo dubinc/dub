@@ -63,16 +63,18 @@ export const withAuth =
   (
     handler: WithAuthHandler,
     {
-      requiredPlan = ["free", "pro", "enterprise"], // if the action needs a specific plan
+      requiredPlan = ["free", "pro", "business", "enterprise"], // if the action needs a specific plan
       requiredRole = ["owner", "member"],
-      needNotExceededUsage, // if the action needs the user to not have exceeded their usage
+      needNotExceededClicks, // if the action needs the user to not have exceeded their clicks usage
+      needNotExceededLinks, // if the action needs the user to not have exceeded their links usage
       allowAnonymous, // special case for /api/links (POST /api/links) – allow no session
       allowSelf, // special case for removing yourself from a project
       skipLinkChecks, // special case for /api/links/exists – skip link checks
     }: {
       requiredPlan?: Array<PlanProps>;
       requiredRole?: Array<"owner" | "member">;
-      needNotExceededUsage?: boolean;
+      needNotExceededClicks?: boolean;
+      needNotExceededLinks?: boolean;
       allowAnonymous?: boolean;
       allowSelf?: boolean;
       skipLinkChecks?: boolean;
@@ -211,6 +213,7 @@ export const withAuth =
             logo: true,
             usage: true,
             usageLimit: true,
+            linksUsage: true,
             linksLimit: true,
             plan: true,
             stripeId: true,
@@ -313,12 +316,26 @@ export const withAuth =
         });
       }
 
-      // usage overage checks
-      if (needNotExceededUsage && project.usage > project.usageLimit) {
-        return new Response("Unauthorized: Usage limits exceeded.", {
-          status: 403,
-          headers,
-        });
+      // clicks usage overage checks
+      if (needNotExceededClicks && project.usage > project.usageLimit) {
+        return new Response(
+          "Unauthorized: Clicks limits exceeded. Upgrade to get more clicks.",
+          {
+            status: 403,
+            headers,
+          },
+        );
+      }
+
+      // links usage overage checks
+      if (needNotExceededLinks && project.linksUsage > project.linksLimit) {
+        return new Response(
+          "Unauthorized: Links limits exceeded. Upgrade to get more links.",
+          {
+            status: 403,
+            headers,
+          },
+        );
       }
 
       // plan checks

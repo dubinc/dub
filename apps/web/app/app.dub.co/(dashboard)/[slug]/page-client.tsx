@@ -14,8 +14,13 @@ import { ChevronDown, FilePlus2, Sheet } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
 import { ModalContext } from "@/ui/modals/provider";
+import Link from "next/link";
+import { NumberTooltip } from "@dub/ui/src/tooltip";
+import { nFormatter } from "@dub/utils";
 
 export default function ProjectLinksClient() {
+  const { slug, linksUsage, linksLimit } = useProject();
+
   const { AddEditLinkModal, AddEditLinkButton } = useAddEditLinkModal();
 
   return (
@@ -24,7 +29,24 @@ export default function ProjectLinksClient() {
       <div className="flex h-36 items-center border-b border-gray-200 bg-white">
         <MaxWidthWrapper>
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl text-gray-600">Links</h1>
+            <div className="flex items-end space-x-2">
+              <h1 className="text-2xl text-gray-600">Links</h1>
+              <Link
+                href={`/${slug}/settings/billing`}
+                className="flex items-center space-x-2 rounded-lg px-2 py-1 transition-all hover:bg-gray-50"
+              >
+                {linksUsage !== undefined && linksLimit ? (
+                  <p className="text-sm text-gray-600">
+                    <NumberTooltip value={linksUsage}>
+                      <span>{nFormatter(linksUsage)} </span>
+                    </NumberTooltip>
+                    / {nFormatter(linksLimit, { full: true })}
+                  </p>
+                ) : (
+                  <div className="h-5 w-32 animate-pulse rounded-md bg-gray-200" />
+                )}
+              </Link>
+            </div>
             <div className="flex">
               <AddEditLinkButton />
               <AddLinkOptions />
@@ -39,7 +61,7 @@ export default function ProjectLinksClient() {
 
 const AddLinkOptions = () => {
   const router = useRouter();
-  const { slug, exceededUsage } = useProject();
+  const { slug, exceededLinks } = useProject();
   const [openPopover, setOpenPopover] = useState(false);
   const { setShowUpgradePlanModal } = useContext(ModalContext);
 
@@ -48,11 +70,11 @@ const AddLinkOptions = () => {
       content={
         <div className="w-full divide-y divide-gray-200 md:w-52">
           <div className="p-2">
-            {slug && exceededUsage ? (
+            {slug && exceededLinks ? (
               <Tooltip
                 content={
                   <TooltipContent
-                    title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
+                    title="Your project has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
                     cta="Upgrade to Pro"
                     onClick={() => {
                       setOpenPopover(false);
@@ -88,17 +110,17 @@ const AddLinkOptions = () => {
                     <img
                       src="/_static/icons/bitly.svg"
                       alt="Bitly logo"
-                      className="h-4 w-4 rounded-full"
+                      className="h-4 w-4"
                     />
                   }
                 />
               </button>
             )}
-            {slug && exceededUsage ? (
+            {slug && exceededLinks ? (
               <Tooltip
                 content={
                   <TooltipContent
-                    title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
+                    title="Your project has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
                     cta="Upgrade to Pro"
                     onClick={() => {
                       setOpenPopover(false);
@@ -134,17 +156,17 @@ const AddLinkOptions = () => {
                     <img
                       src="/_static/icons/rebrandly.svg"
                       alt="Rebrandly logo"
-                      className="h-5 w-5"
+                      className="h-4 w-4"
                     />
                   }
                 />
               </button>
             )}
-            {slug && exceededUsage ? (
+            {slug && exceededLinks ? (
               <Tooltip
                 content={
                   <TooltipContent
-                    title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
+                    title="Your project has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
                     cta="Upgrade to Pro"
                     onClick={() => {
                       setOpenPopover(false);

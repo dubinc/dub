@@ -1,9 +1,8 @@
 import { limiter } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
-import { PRO_PLAN } from "@/lib/stripe/utils";
 import { redis } from "@/lib/upstash";
-import { log } from "@dub/utils";
+import { getPlanFromPriceId, log } from "@dub/utils";
 import { resend, sendEmail } from "emails";
 import UpgradeEmail from "emails/upgrade-email";
 import { NextResponse } from "next/server";
@@ -51,9 +50,14 @@ export const POST = async (req: Request) => {
           checkoutSession.subscription as string,
         );
         const priceId = subscription.items.data[0].price.id;
+        const plan = getPlanFromPriceId(priceId);
 
-        // we only process webhooks for pro plan
-        if (!PRO_PLAN.priceIds.includes(priceId)) {
+        if (!plan) {
+          await log({
+            message: "Invalid price ID",
+            type: "cron",
+            mention: true,
+          });
           return;
         }
 
@@ -70,9 +74,9 @@ export const POST = async (req: Request) => {
           data: {
             stripeId,
             billingCycleStart: new Date().getDate(),
-            usageLimit: PRO_PLAN.usageLimit,
-            linksLimit: PRO_PLAN.linksLimit,
-            plan: "pro",
+            usageLimit: plan.limits.clicks!,
+            linksLimit: plan.limits.links!,
+            plan: plan.name.toLowerCase(),
           },
           select: {
             users: {
@@ -98,11 +102,11 @@ export const POST = async (req: Request) => {
             limiter.schedule(() =>
               sendEmail({
                 email: user.email as string,
-                subject: `Thank you for upgrading to Dub.co Pro!`,
+                subject: `Thank you for upgrading to Dub.co ${plan.name}!`,
                 react: UpgradeEmail({
                   name: user.name,
                   email: user.email as string,
-                  plan: "pro",
+                  plan: plan.name.toLowerCase(),
                 }),
                 marketing: true,
               }),
@@ -116,8 +120,14 @@ export const POST = async (req: Request) => {
         const subscriptionUpdated = event.data.object as Stripe.Subscription;
         const priceId = subscriptionUpdated.items.data[0].price.id;
 
-        // we only process webhooks for pro plan
-        if (!PRO_PLAN.priceIds.includes(priceId)) {
+        const plan = getPlanFromPriceId(priceId);
+
+        if (!plan) {
+          await log({
+            message: "Invalid price ID",
+            type: "cron",
+            mention: true,
+          });
           return;
         }
 
@@ -146,9 +156,9 @@ export const POST = async (req: Request) => {
             stripeId,
           },
           data: {
-            usageLimit: PRO_PLAN.usageLimit,
-            linksLimit: PRO_PLAN.linksLimit,
-            plan: "pro",
+            usageLimit: plan.limits.clicks!,
+            linksLimit: plan.limits.links!,
+            plan: plan.name.toLowerCase(),
           },
           select: {
             users: {
@@ -221,6 +231,7 @@ export const POST = async (req: Request) => {
             },
             data: {
               usageLimit: 1000,
+              linksLimit: 25,
               plan: "free",
             },
           }),

@@ -78,7 +78,7 @@ export default function LinkCard({
   const { slug } = params;
   const { queryParams } = useRouterStuff();
 
-  const { exceededUsage } = useProject();
+  const { exceededClicks } = useProject();
   const { verified, loading } = useDomains({ domain });
 
   const linkRef = useRef<any>();
@@ -87,7 +87,7 @@ export default function LinkCard({
 
   const { data: clicks } = useSWR<number>(
     isVisible &&
-      !exceededUsage &&
+      !exceededClicks &&
       `/api${
         slug ? `/projects/${slug}` : ""
       }/stats/clicks?domain=${domain}&key=${key}`,

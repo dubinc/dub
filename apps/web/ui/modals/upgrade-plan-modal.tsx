@@ -1,8 +1,12 @@
 import { getStripe } from "@/lib/stripe/client";
-import { PRO_PLAN } from "@/lib/stripe/utils";
 import { CheckCircleFill } from "@/ui/shared/icons";
 import { Badge, Button, Logo, Modal } from "@dub/ui";
-import { HOME_DOMAIN, STAGGER_CHILD_VARIANTS, capitalize } from "@dub/utils";
+import {
+  HOME_DOMAIN,
+  PLANS,
+  STAGGER_CHILD_VARIANTS,
+  capitalize,
+} from "@dub/utils";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import {
@@ -27,7 +31,7 @@ function UpgradePlanModal({
 }: {
   showUpgradePlanModal: boolean;
   setShowUpgradePlanModal: Dispatch<SetStateAction<boolean>>;
-  defaultPlan: "Pro" | "Enterprise";
+  defaultPlan: "Pro" | "Business";
 }) {
   const router = useRouter();
   const params = useParams() as { slug: string };
@@ -36,23 +40,10 @@ function UpgradePlanModal({
   const welcomeFlow = pathname === "/welcome";
   const slug = welcomeFlow ? searchParams?.get("slug") : params.slug;
 
-  const [plan, setPlan] = useState<"Pro" | "Enterprise">(defaultPlan);
+  const [plan, setPlan] = useState<"Pro" | "Business">(defaultPlan);
   const [period, setPeriod] = useState<"monthly" | "yearly">("yearly");
-  const features = useMemo(() => {
-    return [
-      `Track ${
-        plan === "Enterprise" ? "unlimited" : "50x more"
-      } link clicks per month`,
-      "Unlimited custom domains",
-      "Unlimited team members",
-      "Unlimited link history",
-      "Unlimited tags",
-      "Redirect your root domain",
-      "Custom QR Code logo",
-      "API Access",
-      ...(plan === "Enterprise" ? ["SSO/SAML", "Priority support"] : []),
-    ];
-  }, [plan]);
+  const currentPlan = PLANS.find((p) => p.name === plan) ?? PLANS[0];
+  const features = PLANS.find((p) => p.name === plan)?.features ?? [];
   const [clicked, setClicked] = useState(false);
 
   return (
@@ -109,7 +100,8 @@ function UpgradePlanModal({
                     variant="neutral"
                     className="text-sm font-normal normal-case"
                   >
-                    ${PRO_PLAN[period].amount}/{period.replace("ly", "")}
+                    ${currentPlan.price[period].toString()}/
+                    {period.replace("ly", "")}
                   </Badge>
                 )}
               </div>
@@ -124,7 +116,7 @@ function UpgradePlanModal({
                 className="text-xs text-gray-500 underline underline-offset-4 transition-colors hover:text-gray-800"
               >
                 {period === "monthly"
-                  ? "Get 2 months free 🎁"
+                  ? "Save 20% with yearly billing"
                   : "Switch to monthly"}
               </button>
             </div>
@@ -140,14 +132,14 @@ function UpgradePlanModal({
               animate="show"
               className="flex flex-col space-y-2"
             >
-              {features.map((feature, i) => (
+              {features.map(({ text }, i) => (
                 <motion.div
                   key={i}
                   variants={STAGGER_CHILD_VARIANTS}
                   className="flex items-center space-x-2 text-sm text-gray-500"
                 >
                   <CheckCircleFill className="h-5 w-5 text-green-500" />
-                  <span>{feature}</span>
+                  <span>{text}</span>
                 </motion.div>
               ))}
             </motion.div>
@@ -158,13 +150,7 @@ function UpgradePlanModal({
             onClick={() => {
               setClicked(true);
               fetch(
-                `/api/projects/${slug}/billing/upgrade?priceId=${
-                  PRO_PLAN[period].priceIds[
-                    process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-                      ? "production"
-                      : "test"
-                  ]
-                }`,
+                `/api/projects/${slug}/billing/upgrade?price=${plan.toLowerCase()}_${period}`,
                 {
                   method: "POST",
                 },
@@ -192,7 +178,7 @@ function UpgradePlanModal({
             <div className="flex items-center justify-center space-x-2">
               <button
                 onClick={() => {
-                  setPlan(plan === "Pro" ? "Enterprise" : "Pro");
+                  setPlan(plan === "Pro" ? "Business" : "Pro");
                 }}
                 className="text-center text-xs text-gray-500 underline-offset-4 transition-all hover:text-gray-800 hover:underline"
               >
@@ -218,7 +204,7 @@ function UpgradePlanModal({
 
 export function useUpgradePlanModal(
   { defaultPlan } = { defaultPlan: "Pro" } as {
-    defaultPlan: "Pro" | "Enterprise";
+    defaultPlan: "Pro" | "Business";
   },
 ) {
   const [showUpgradePlanModal, setShowUpgradePlanModal] = useState(false);

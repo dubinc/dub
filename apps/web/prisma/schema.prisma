@@ -88,12 +88,13 @@ model Project {
 
   users              ProjectUsers[]
   invites            ProjectInvite[]
-  usage              Int             @default(0)
-  usageLimit         Int             @default(1000)
-  linksLimit         Int             @default(100)
   plan               String          @default("free")
   stripeId           String?         @unique // Stripe subscription ID
   billingCycleStart  Int             // day of the month when the billing cycle starts
+  usage              Int             @default(0)
+  usageLimit         Int             @default(1000)
+  linksUsage         Int             @default(0)
+  linksLimit         Int             @default(25)
   monitoringId       String?         @unique // cron job ID for monitoring
   
   sentEmails         SentEmail[]

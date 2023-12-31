@@ -39,6 +39,6 @@ export const GET = withAuth(
     return NextResponse.json(response);
   },
   {
-    needNotExceededUsage: true,
+    needNotExceededClicks: true,
   },
 );

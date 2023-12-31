@@ -1,3 +1,7 @@
+export { default as ccTLDs } from "./cctlds";
+export { default as COUNTRIES } from "./countries";
+export { PLANS } from "./pricing";
+
 export const LOCALHOST_GEO_DATA = {
   city: "San Francisco",
   region: "CA",
@@ -168,9 +172,6 @@ export const ALL_TOOLS = [
   { name: "QR Code Generator", slug: "qr-code" },
   { name: "Link Inspector", slug: "inspector" },
 ];
-
-export { default as ccTLDs } from "./cctlds";
-export { default as COUNTRIES } from "./countries";
 
 export const SECOND_LEVEL_DOMAINS = new Set([
   "com",

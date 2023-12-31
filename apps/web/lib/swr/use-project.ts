@@ -14,17 +14,11 @@ export default function useProject() {
       dedupingInterval: 30000,
     },
   );
-
-  const exceededUsage = useMemo(() => {
-    if (project) {
-      return project.usage > project.usageLimit;
-    }
-  }, [project]);
-
   return {
     ...project,
     isOwner: project?.users && project.users[0].role === "owner",
-    exceededUsage,
+    exceededClicks: project && project.usage > project.usageLimit,
+    exceededLinks: project && project.linksUsage > project.linksLimit,
     error,
     loading: slug && !project && !error,
   };

@@ -3,26 +3,30 @@
 import useProject from "@/lib/swr/use-project";
 import { ModalContext } from "@/ui/modals/provider";
 import PlanBadge from "@/ui/projects/plan-badge";
-import { Divider, InfinityIcon } from "@/ui/shared/icons";
+import ProgressBar from "@/ui/shared/progress-bar";
 import { Button, InfoTooltip, NumberTooltip } from "@dub/ui";
-import { fetcher, getFirstAndLastDay, nFormatter } from "@dub/utils";
+import { HOME_DOMAIN, getFirstAndLastDay, nFormatter } from "@dub/utils";
 import va from "@vercel/analytics";
 import { motion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import useSWR, { mutate } from "swr";
+import { mutate } from "swr";
 
 export default function ProjectBillingClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const { slug, plan, usage, usageLimit, billingCycleStart } = useProject();
+  const {
+    slug,
+    plan,
+    usage,
+    usageLimit,
+    linksUsage,
+    linksLimit,
+    billingCycleStart,
+  } = useProject();
 
-  const { data: links } = useSWR<number>(
-    `/api/projects/${slug}/links/count`,
-    fetcher,
-  );
   const [clicked, setClicked] = useState(false);
 
   const [billingStart, billingEnd] = useMemo(() => {
@@ -87,73 +91,42 @@ export default function ProjectBillingClient() {
         <div className="grid grid-cols-1 divide-y divide-gray-200 sm:grid-cols-2 sm:divide-x sm:divide-y-0">
           <div className="p-10">
             <div className="flex items-center space-x-2">
-              <h3 className="font-medium">Total Link Clicks</h3>
-              <InfoTooltip content="Number of billable link clicks across all your projects." />
+              <h3 className="font-medium">Link Clicks</h3>
+              <InfoTooltip content="Number of billable link clicks for your current billing cycle." />
             </div>
-            {plan === "enterprise" ? (
-              <div className="mt-4 flex items-center">
-                {usage || usage === 0 ? (
+            <div className="mt-2 flex flex-col space-y-2">
+              {usage !== undefined && usageLimit ? (
+                <p className="text-sm text-gray-600">
                   <NumberTooltip value={usage}>
-                    <p className="text-2xl font-semibold text-black">
-                      {nFormatter(usage)}
-                    </p>
+                    <span>{nFormatter(usage)} </span>
                   </NumberTooltip>
-                ) : (
-                  <div className="h-8 w-8 animate-pulse rounded-md bg-gray-200" />
-                )}
-                <Divider className="h-8 w-8 text-gray-500" />
-                <InfinityIcon className="h-8 w-8 text-gray-500" />
-              </div>
-            ) : (
-              <div className="mt-2 flex flex-col space-y-2">
-                {usage !== undefined && usageLimit ? (
-                  <p className="text-sm text-gray-600">
-                    <NumberTooltip value={usage}>
-                      <span>{nFormatter(usage)} </span>
-                    </NumberTooltip>
-                    / {nFormatter(usageLimit)} clicks (
-                    {((usage / usageLimit) * 100).toFixed(1)}%)
-                  </p>
-                ) : (
-                  <div className="h-5 w-32 animate-pulse rounded-md bg-gray-200" />
-                )}
-                <div className="h-3 w-full overflow-hidden rounded-full bg-gray-200">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{
-                      width:
-                        usage !== undefined && usageLimit
-                          ? (usage / usageLimit) * 100 + "%"
-                          : "0%",
-                    }}
-                    transition={{ duration: 0.5, type: "spring" }}
-                    className={`${
-                      usage && usageLimit && usage > usageLimit
-                        ? "bg-red-500"
-                        : "bg-blue-500"
-                    } h-3 rounded-full`}
-                  />
-                </div>
-              </div>
-            )}
+                  / {nFormatter(usageLimit)} clicks (
+                  {((usage / usageLimit) * 100).toFixed(1)}%)
+                </p>
+              ) : (
+                <div className="h-5 w-32 animate-pulse rounded-md bg-gray-200" />
+              )}
+              <ProgressBar value={usage} max={usageLimit} />
+            </div>
           </div>
           <div className="p-10">
             <div className="flex items-center space-x-2">
-              <h3 className="font-medium">Number of Links</h3>
-              <InfoTooltip content="Number of short links in your project." />
+              <h3 className="font-medium">Created Links</h3>
+              <InfoTooltip content="Number of short links created in the current billing cycle." />
             </div>
-            <div className="mt-4 flex items-center">
-              {links || links === 0 ? (
-                <NumberTooltip value={links} unit="links">
-                  <p className="text-2xl font-semibold text-black">
-                    {nFormatter(links)}
-                  </p>
-                </NumberTooltip>
+            <div className="mt-2 flex flex-col space-y-2">
+              {linksUsage !== undefined && linksLimit ? (
+                <p className="text-sm text-gray-600">
+                  <NumberTooltip value={linksUsage}>
+                    <span>{nFormatter(linksUsage)} </span>
+                  </NumberTooltip>
+                  / {nFormatter(linksLimit)} links (
+                  {((linksUsage / linksLimit) * 100).toFixed(1)}%)
+                </p>
               ) : (
-                <div className="h-8 w-8 animate-pulse rounded-md bg-gray-200" />
+                <div className="h-5 w-32 animate-pulse rounded-md bg-gray-200" />
               )}
-              <Divider className="h-8 w-8 text-gray-500" />
-              <InfinityIcon className="h-8 w-8 text-gray-500" />
+              <ProgressBar value={linksUsage} max={linksLimit} />
             </div>
           </div>
         </div>
@@ -162,9 +135,11 @@ export default function ProjectBillingClient() {
           {plan ? (
             <p className="text-sm text-gray-500">
               {plan === "enterprise"
-                ? "On the Enterprise plan, the sky's the limit! Thank you for your support."
+                ? "You're on the Enterprise plan."
+                : plan === "business"
+                ? "Need more clicks or links? Contact us for an Enterprise quote."
                 : `For higher limits, upgrade to the ${
-                    plan === "free" ? "Pro" : "Enterprise"
+                    plan === "free" ? "Pro" : "Business"
                   } plan.`}
             </p>
           ) : (
@@ -178,6 +153,14 @@ export default function ProjectBillingClient() {
                   onClick={() => setShowUpgradePlanModal(true)}
                   variant="success"
                 />
+              ) : plan === "business" ? (
+                <a
+                  href={`${HOME_DOMAIN}/enterprise`}
+                  target="_blank"
+                  className="inline-flex items-center justify-center rounded-md border border-violet-600 bg-violet-600 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-white hover:text-violet-600 focus:outline-none"
+                >
+                  Contact Sales
+                </a>
               ) : (
                 <Button
                   text="Manage Subscription"

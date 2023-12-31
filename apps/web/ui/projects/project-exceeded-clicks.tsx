@@ -6,7 +6,7 @@ import { Lock } from "lucide-react";
 import { useContext } from "react";
 import { ModalContext } from "../modals/provider";
 
-export default function ProjectExceededUsage() {
+export default function ProjectExceededClicks() {
   const { setShowUpgradePlanModal } = useContext(ModalContext);
 
   return (

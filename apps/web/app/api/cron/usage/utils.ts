@@ -29,6 +29,8 @@ export const updateUsage = async (skip?: number) => {
       slug: true,
       usage: true,
       usageLimit: true,
+      linksUsage: true,
+      linksLimit: true,
       plan: true,
       billingCycleStart: true,
       users: {
@@ -116,20 +118,9 @@ export const updateUsage = async (skip?: number) => {
         project.createdAt.getTime() <
         new Date().getTime() - 30 * 24 * 60 * 60 * 1000
       ) {
-        const [createdLinks, topLinks] = await Promise.allSettled([
-          prisma.link.count({
-            where: {
-              project: {
-                id: project.id,
-              },
-              createdAt: {
-                // in the last 30 days
-                gte: new Date(new Date().setDate(new Date().getDate() - 30)),
-              },
-            },
-          }),
+        const topLinks =
           project.usage > 0
-            ? getStats({
+            ? await getStats({
                 domain: project.domains.map((domain) => domain.slug).join(","),
                 endpoint: "top_links",
                 interval: "30d",
@@ -151,8 +142,7 @@ export const updateUsage = async (skip?: number) => {
                     }),
                   ),
               )
-            : [],
-        ]);
+            : [];
 
         const emails = project.users.map((user) => user.user.email) as string[];
 
@@ -169,12 +159,8 @@ export const updateUsage = async (skip?: number) => {
                   projectName: project.name,
                   projectSlug: project.slug,
                   totalClicks: project.usage,
-                  createdLinks:
-                    createdLinks.status === "fulfilled"
-                      ? createdLinks.value
-                      : 0,
-                  topLinks:
-                    topLinks.status === "fulfilled" ? topLinks.value : [],
+                  createdLinks: project.linksUsage,
+                  topLinks,
                 }),
               }),
             );

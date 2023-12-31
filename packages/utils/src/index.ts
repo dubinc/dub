@@ -7,6 +7,7 @@ import { twMerge } from "tailwind-merge";
 import {
   DUB_DOMAINS,
   HOME_DOMAIN,
+  PLANS,
   SECOND_LEVEL_DOMAINS,
   SPECIAL_APEX_DOMAINS,
   ccTLDs,
@@ -275,6 +276,10 @@ export const getBillingStartDate = (billingCycleStart: number) => {
   } else {
     return new Date(currentYear, currentMonth, adjustedBillingCycleStart);
   }
+};
+
+export const getPlanFromPriceId = (priceId: string) => {
+  return PLANS.find((plan) => plan.price.ids?.includes(priceId)) || null;
 };
 
 export const generateDomainFromName = (name: string) => {

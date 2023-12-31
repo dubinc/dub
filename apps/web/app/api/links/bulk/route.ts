@@ -2,7 +2,7 @@ import { bulkCreateLinks, processLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { getBillingStartDate } from "@dub/utils";
+import { capitalize, getBillingStartDate } from "@dub/utils";
 
 // POST /api/links/bulk – bulk create up to 100 links
 export const POST = withAuth(
@@ -31,19 +31,13 @@ export const POST = withAuth(
         headers,
       });
     }
-    const linksUsage = await prisma.link.count({
-      where: {
-        projectId: project.id,
-        createdAt: {
-          gte: getBillingStartDate(project.billingCycleStart),
-        },
-      },
-    });
-    if (linksUsage + links.length > project.linksLimit) {
+    if (project.linksUsage + links.length > project.linksLimit) {
       return new Response(
         `You can only create ${
           project.linksLimit
-        } short links on the ${project.plan.toUpperCase()} plan. Upgrade to create more links.`,
+        }/month short links on the ${capitalize(
+          project.plan,
+        )} plan. Upgrade to create more links.`,
         { status: 403, headers },
       );
     }
@@ -71,6 +65,7 @@ export const POST = withAuth(
     return NextResponse.json([...validLinksResponse, ...errors], { headers });
   },
   {
-    requiredPlan: ["pro", "enterprise"],
+    needNotExceededLinks: true,
+    requiredPlan: ["pro", "business", "enterprise"],
   },
 );
