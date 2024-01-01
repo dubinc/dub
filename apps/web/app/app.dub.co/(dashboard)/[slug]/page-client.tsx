@@ -3,6 +3,7 @@
 import LinksContainer from "@/ui/links/links-container";
 import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
 import {
+  Button,
   IconMenu,
   MaxWidthWrapper,
   Popover,
@@ -30,43 +31,7 @@ export default function ProjectLinksClient() {
       <div className="flex h-36 items-center border-b border-gray-200 bg-white">
         <MaxWidthWrapper>
           <div className="flex flex-col items-center justify-between sm:flex-row">
-            {/* <div>
-              <div className="flex items-end space-x-8">
-                <h1 className="text-2xl text-gray-600">Links</h1>
-                <Link
-                  href={`/${slug}/settings/billing`}
-                  className="rounded-lg px-2 py-1 transition-all hover:bg-gray-50"
-                >
-                  {linksUsage !== undefined && linksLimit ? (
-                    <p className="text-sm text-gray-500">
-                      <NumberTooltip value={linksUsage}>
-                        <span className="text-xl font-semibold text-black">
-                          {nFormatter(linksUsage)}{" "}
-                        </span>
-                      </NumberTooltip>
-                      / {nFormatter(linksLimit, { full: true })}
-                    </p>
-                  ) : (
-                    <div className="h-5 w-32 animate-pulse rounded-md bg-gray-200" />
-                  )}
-                </Link>
-              </div>
-              <ProgressBar
-                value={linksUsage}
-                max={linksLimit}
-                className="mt-2 h-2"
-              />
-            </div> */}
-            <div className="flex flex-col space-y-1">
-              <h1 className="text-2xl text-gray-600">Links</h1>
-              <p className="text-sm text-gray-500">
-                Your plan includes{" "}
-                <span className="font-medium text-black">
-                  {nFormatter(linksLimit, { full: true })}
-                </span>{" "}
-                links per month. Upgrade to add more.
-              </p>
-            </div>
+            <h1 className="text-2xl text-gray-600">Links</h1>
             <div className="flex">
               <AddEditLinkButton />
               <AddLinkOptions />

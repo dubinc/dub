@@ -55,15 +55,12 @@ export const updateUsage = async (skip?: number) => {
     return;
   }
 
-  // Reset billing cycles for projects that:
-  // - Are not on the free plan
-  // - Are on the free plan but have not exceeded usage
-  // - Have adjustedBillingCycleStart that matches today's date
+  // Reset billing cycles for projects that have
+  // adjustedBillingCycleStart that matches today's date
   const billingReset = projects.filter(
-    ({ usage, usageLimit, plan, billingCycleStart }) =>
-      !(plan === "free" && usage > usageLimit) &&
+    ({ billingCycleStart }) =>
       getAdjustedBillingCycleStart(billingCycleStart as number) ===
-        new Date().getDate(),
+      new Date().getDate(),
   );
 
   // Get all projects that have exceeded usage
@@ -168,12 +165,18 @@ export const updateUsage = async (skip?: number) => {
         );
       }
 
+      const { plan, usage, usageLimit } = project;
+
       return await prisma.project.update({
         where: {
           id: project.id,
         },
         data: {
-          usage: 0,
+          // only reset usage if plan is not free or usage is not over usageLimit
+          ...((plan !== "free" || usage <= usageLimit) && {
+            usage: 0,
+          }),
+          linksUsage: 0,
           sentEmails: {
             deleteMany: {
               type: {

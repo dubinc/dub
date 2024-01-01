@@ -609,22 +609,26 @@ function AddEditLinkButton({
 }: {
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
 }) {
+  const { slug, exceededLinks } = useProject();
+  const { setShowUpgradePlanModal } = useContext(ModalContext);
+
   const onKeyDown = useCallback((e: KeyboardEvent) => {
     const target = e.target as HTMLElement;
     const existingModalBackdrop = document.getElementById("modal-backdrop");
     // only open modal with keyboard shortcut if:
-    // - project has not exceeded usage limit
     // - c is pressed
     // - user is not pressing cmd/ctrl + c
     // - user is not typing in an input or textarea
     // - there is no existing modal backdrop (i.e. no other modal is open)
+    // - project has not exceeded links limit
     if (
       e.key === "c" &&
       !e.metaKey &&
       !e.ctrlKey &&
       target.tagName !== "INPUT" &&
       target.tagName !== "TEXTAREA" &&
-      !existingModalBackdrop
+      !existingModalBackdrop &&
+      !(slug && exceededLinks)
     ) {
       e.preventDefault(); // or else it'll show up in the input field since that's getting auto-selected
       setShowAddEditLinkModal(true);
@@ -641,12 +645,14 @@ function AddEditLinkButton({
     // - pasted content is a valid URL
     // - user is not typing in an input or textarea
     // - there is no existing modal backdrop (i.e. no other modal is open)
+    // - project has not exceeded links limit
     if (
       pastedContent &&
       isValidUrl(pastedContent) &&
       target.tagName !== "INPUT" &&
       target.tagName !== "TEXTAREA" &&
-      !existingModalBackdrop
+      !existingModalBackdrop &&
+      !(slug && exceededLinks)
     ) {
       setShowAddEditLinkModal(true);
     }
@@ -662,15 +668,22 @@ function AddEditLinkButton({
   }, [onKeyDown]);
 
   return (
-    <button
+    <Button
+      text="Create link"
+      shortcut="C"
+      disabledTooltip={
+        slug && exceededLinks ? (
+          <TooltipContent
+            title="Your project has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
+            cta="Upgrade to Pro"
+            onClick={() => {
+              setShowUpgradePlanModal(true);
+            }}
+          />
+        ) : undefined
+      }
       onClick={() => setShowAddEditLinkModal(true)}
-      className="group flex items-center space-x-3 rounded-md border border-black bg-black px-3 py-2 text-sm font-medium text-white transition-all duration-75 hover:bg-white hover:text-black active:scale-95"
-    >
-      <p>Create link</p>
-      <kbd className="hidden rounded bg-zinc-700 px-2 py-0.5 text-xs font-light text-gray-400 transition-all duration-75 group-hover:bg-gray-100 group-hover:text-gray-500 md:inline-block">
-        C
-      </kbd>
-    </button>
+    />
   );
 }
 

@@ -7,9 +7,10 @@ import { Tooltip } from "./tooltip";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   text: string;
-  variant?: "primary" | "secondary" | "success" | "danger";
+  variant?: "primary" | "secondary" | "outline" | "success" | "danger";
   loading?: boolean;
   icon?: ReactNode;
+  shortcut?: string;
   disabledTooltip?: string | ReactNode;
 }
 
@@ -18,14 +19,20 @@ export function Button({
   variant = "primary",
   loading,
   icon,
+  shortcut,
   disabledTooltip,
   ...props
 }: ButtonProps) {
   if (disabledTooltip) {
     return (
       <Tooltip content={disabledTooltip}>
-        <div className="flex h-10 w-full cursor-not-allowed items-center justify-center rounded-md border border-gray-200 bg-gray-100 px-4 text-sm text-gray-400 transition-all focus:outline-none">
+        <div className="flex h-10 w-full cursor-not-allowed items-center justify-center space-x-2 rounded-md border border-gray-200 bg-gray-100 px-4 text-sm text-gray-400 transition-all focus:outline-none">
           <p>{text}</p>
+          {shortcut && (
+            <kbd className="hidden rounded bg-zinc-200 px-2 py-0.5 text-xs font-light text-gray-400 md:inline-block">
+              {shortcut}
+            </kbd>
+          )}
         </div>
       </Tooltip>
     );
@@ -35,7 +42,7 @@ export function Button({
       // if onClick is passed, it's a "button" type, otherwise it's being used in a form, hence "submit"
       type={props.onClick ? "button" : "submit"}
       className={cn(
-        "flex h-10 w-full items-center justify-center space-x-2 rounded-md border px-4 text-sm transition-all focus:outline-none",
+        "group flex h-10 w-full items-center justify-center space-x-2 rounded-md border px-4 text-sm transition-all focus:outline-none",
         props.disabled || loading
           ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
           : {
@@ -43,6 +50,8 @@ export function Button({
                 variant === "primary",
               "border-gray-200 bg-white text-gray-500 hover:border-black hover:text-black":
                 variant === "secondary",
+              "border-transparent text-gray-500 transition-all duration-75 hover:bg-gray-100":
+                variant === "outline",
               "border-blue-500 bg-blue-500 text-white hover:bg-white hover:text-blue-500":
                 variant === "success",
               "border-red-500 bg-red-500 text-white hover:bg-white hover:text-red-500":
@@ -55,6 +64,11 @@ export function Button({
     >
       {loading ? <LoadingSpinner /> : icon ? icon : null}
       <p>{text}</p>
+      {shortcut && (
+        <kbd className="hidden rounded bg-zinc-700 px-2 py-0.5 text-xs font-light text-gray-400 transition-all duration-75 group-hover:bg-gray-100 group-hover:text-gray-500 md:inline-block">
+          {shortcut}
+        </kbd>
+      )}
     </button>
   );
 }
