@@ -15,19 +15,22 @@ export const PUT = withAuth(
   async ({ req, project }) => {
     const { name, slug } = await req.json();
 
-    // check if slug is too long
-    if (slug.length > 48) {
-      return new Response("Slug must be less than 48 characters", {
-        status: 400,
-      });
+    // if slug is defined, do some checks
+    if (slug) {
+      // check if slug is too long
+      if (slug.length > 48) {
+        return new Response("Slug must be less than 48 characters", {
+          status: 400,
+        });
 
-      // check if slug is valid
-    } else if (!validSlugRegex.test(slug)) {
-      return new Response("Invalid slug", { status: 400 });
+        // check if slug is valid
+      } else if (!validSlugRegex.test(slug)) {
+        return new Response("Invalid slug", { status: 400 });
 
-      // check if slug is reserved
-    } else if ((await isReservedKey(slug)) || DEFAULT_REDIRECTS[slug]) {
-      return new Response("Cannot use reserved slugs", { status: 422 });
+        // check if slug is reserved
+      } else if ((await isReservedKey(slug)) || DEFAULT_REDIRECTS[slug]) {
+        return new Response("Cannot use reserved slugs", { status: 422 });
+      }
     }
 
     try {
