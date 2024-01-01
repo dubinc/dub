@@ -46,7 +46,7 @@
     "cobe": "^0.6.3",
     "concurrently": "^8.0.1",
     "crisp-sdk-web": "^1.0.19",
-    "framer-motion": "^10.12.12",
+    "framer-motion": "^10.16.16",
     "fuse.js": "^6.6.2",
     "github-slugger": "^2.0.0",
     "he": "^1.2.0",
