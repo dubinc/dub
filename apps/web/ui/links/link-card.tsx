@@ -229,6 +229,9 @@ export default function LinkCard({
         </>
       )}
       <div className="relative flex items-center justify-between">
+        <Link href={`${
+                slug ? `/${slug}` : ""
+              }/analytics?domain=${domain}&key=${key}`} className="absolute inset-0" aria-hidden="true"/>
         <div className="relative flex shrink items-center">
           {archived || expired ? (
             <Tooltip
