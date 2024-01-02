@@ -9,7 +9,6 @@ import { useImportBitlyModal } from "@/ui/modals/import-bitly-modal";
 import { useImportShortModal } from "@/ui/modals/import-short-modal";
 import { useUpgradePlanModal } from "@/ui/modals/upgrade-plan-modal";
 import { useAcceptInviteModal } from "@/ui/modals/accept-invite-modal";
-import { useParams } from "next/navigation";
 import {
   Dispatch,
   ReactNode,
@@ -57,8 +56,6 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
   const { setShowImportShortModal, ImportShortModal } = useImportShortModal();
   const { setShowImportRebrandlyModal, ImportRebrandlyModal } =
     useImportRebrandlyModal();
-
-  const params = useParams() as { slug?: string };
 
   const [hashes, setHashes] = useCookies<SimpleLinkProps[]>("hashes__dub", [], {
     domain: !!process.env.NEXT_PUBLIC_VERCEL_URL ? ".dub.co" : undefined,

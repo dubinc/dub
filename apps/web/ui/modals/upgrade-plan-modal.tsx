@@ -1,6 +1,6 @@
 import { getStripe } from "@/lib/stripe/client";
 import { CheckCircleFill } from "@/ui/shared/icons";
-import { Badge, Button, Logo, Modal } from "@dub/ui";
+import { Badge, Button, Logo, Modal, useRouterStuff } from "@dub/ui";
 import {
   HOME_DOMAIN,
   PLANS,
@@ -19,6 +19,7 @@ import {
   Dispatch,
   SetStateAction,
   useCallback,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -45,6 +46,7 @@ function UpgradePlanModal({
   const currentPlan = PLANS.find((p) => p.name === plan) ?? PLANS[0];
   const features = PLANS.find((p) => p.name === plan)?.features ?? [];
   const [clicked, setClicked] = useState(false);
+  const { queryParams } = useRouterStuff();
 
   return (
     <Modal
@@ -52,7 +54,15 @@ function UpgradePlanModal({
       setShowModal={setShowUpgradePlanModal}
       className="max-w-lg"
       preventDefaultClose={welcomeFlow}
-      {...(welcomeFlow && { onClose: () => router.back() })}
+      onClose={() => {
+        if (welcomeFlow) {
+          router.back();
+        } else {
+          queryParams({
+            del: "upgrade",
+          });
+        }
+      }}
     >
       <motion.div
         variants={{
@@ -79,7 +89,7 @@ function UpgradePlanModal({
           className="text-center text-sm text-gray-500"
           variants={STAGGER_CHILD_VARIANTS}
         >
-          Enjoy higher limits and extra features with our {plan} plan.
+          Enjoy higher limits and extra features with Dub.co {plan}
         </motion.p>
       </motion.div>
       <div className="bg-gray-50 px-4 py-8 text-left sm:px-16">
@@ -95,15 +105,17 @@ function UpgradePlanModal({
                 <h4 className="font-medium text-gray-900">
                   {plan} {capitalize(period)}
                 </h4>
-                {plan === "Pro" && (
-                  <Badge
-                    variant="neutral"
-                    className="text-sm font-normal normal-case"
-                  >
-                    ${currentPlan.price[period].toString()}/
-                    {period.replace("ly", "")}
-                  </Badge>
-                )}
+                <Badge
+                  variant="neutral"
+                  className="text-sm font-normal normal-case"
+                >
+                  $
+                  {(period === "yearly"
+                    ? currentPlan.price[period]! * 12
+                    : currentPlan.price[period]!
+                  ).toString()}
+                  /{period.replace("ly", "")}
+                </Badge>
               </div>
               <Confetti
                 active={period === "yearly"}
@@ -116,7 +128,7 @@ function UpgradePlanModal({
                 className="text-xs text-gray-500 underline underline-offset-4 transition-colors hover:text-gray-800"
               >
                 {period === "monthly"
-                  ? "Save 20% with yearly billing"
+                  ? "🎁 Save 20% with yearly"
                   : "Switch to monthly"}
               </button>
             </div>
@@ -150,7 +162,7 @@ function UpgradePlanModal({
             onClick={() => {
               setClicked(true);
               fetch(
-                `/api/projects/${slug}/billing/upgrade?price=${plan.toLowerCase()}_${period}`,
+                `/api/projects/${slug}/billing/upgrade?plan=${plan.toLowerCase()}_${period}`,
                 {
                   method: "POST",
                 },
@@ -183,7 +195,7 @@ function UpgradePlanModal({
                 className="text-center text-xs text-gray-500 underline-offset-4 transition-all hover:text-gray-800 hover:underline"
               >
                 {process.env.NEXT_PUBLIC_APP_NAME}{" "}
-                {plan === "Pro" ? "Enterprise" : "Pro"}
+                {plan === "Pro" ? "Business" : "Pro"}
               </button>
               <p className="text-gray-500">•</p>
               <a
@@ -208,13 +220,22 @@ export function useUpgradePlanModal(
   },
 ) {
   const [showUpgradePlanModal, setShowUpgradePlanModal] = useState(false);
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    if (searchParams?.get("upgrade")) {
+      setShowUpgradePlanModal(true);
+    }
+  }, [searchParams]);
 
   const UpgradePlanModalCallback = useCallback(() => {
     return (
       <UpgradePlanModal
         showUpgradePlanModal={showUpgradePlanModal}
         setShowUpgradePlanModal={setShowUpgradePlanModal}
-        defaultPlan={defaultPlan}
+        defaultPlan={
+          (capitalize(searchParams?.get("upgrade")) as "Pro" | "Business") ||
+          defaultPlan
+        }
       />
     );
   }, [showUpgradePlanModal, setShowUpgradePlanModal, defaultPlan]);

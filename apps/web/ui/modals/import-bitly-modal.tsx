@@ -1,6 +1,14 @@
 import useProject from "@/lib/swr/use-project";
 import { BitlyGroupProps } from "@/lib/types";
-import { Button, LoadingSpinner, Logo, Modal, Switch, Tooltip } from "@dub/ui";
+import {
+  Button,
+  LoadingSpinner,
+  Logo,
+  Modal,
+  Switch,
+  Tooltip,
+  useRouterStuff,
+} from "@dub/ui";
 import { HOME_DOMAIN, fetcher } from "@dub/utils";
 import { ArrowRight, ServerOff } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
@@ -72,11 +80,17 @@ function ImportBitlyModal({
     return selectedDomains.find((d) => d.domain === domain) ? true : false;
   };
 
+  const { queryParams } = useRouterStuff();
+
   return (
     <Modal
       showModal={showImportBitlyModal}
       setShowModal={setShowImportBitlyModal}
-      onClose={() => router.push(`/${slug}`)}
+      onClose={() =>
+        queryParams({
+          del: "import",
+        })
+      }
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-8 sm:px-16">
         <div className="flex items-center space-x-3 py-4">

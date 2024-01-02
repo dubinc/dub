@@ -4,7 +4,7 @@ import useProject from "@/lib/swr/use-project";
 import { ModalContext } from "@/ui/modals/provider";
 import PlanBadge from "@/ui/projects/plan-badge";
 import ProgressBar from "@/ui/shared/progress-bar";
-import { Button, InfoTooltip, NumberTooltip } from "@dub/ui";
+import { Button, InfoTooltip, NumberTooltip, useRouterStuff } from "@dub/ui";
 import { HOME_DOMAIN, getFirstAndLastDay, nFormatter } from "@dub/utils";
 import va from "@vercel/analytics";
 import { motion } from "framer-motion";
@@ -45,7 +45,7 @@ export default function ProjectBillingClient() {
     return [];
   }, [billingCycleStart]);
 
-  const { setShowUpgradePlanModal } = useContext(ModalContext);
+  const { queryParams } = useRouterStuff();
 
   useEffect(() => {
     if (searchParams?.get("success")) {
@@ -150,7 +150,13 @@ export default function ProjectBillingClient() {
               plan === "free" ? (
                 <Button
                   text="Upgrade"
-                  onClick={() => setShowUpgradePlanModal(true)}
+                  onClick={() =>
+                    queryParams({
+                      set: {
+                        upgrade: "pro",
+                      },
+                    })
+                  }
                   variant="success"
                 />
               ) : plan === "business" ? (

@@ -17,6 +17,7 @@ import {
   Switch,
   Tooltip,
   TooltipContent,
+  useRouterStuff,
 } from "@dub/ui";
 import {
   APP_HOSTNAMES,
@@ -240,8 +241,9 @@ function AdvancedSettings({
     setFgColor(color);
   }, 100);
 
-  const { setShowAddProjectModal, setShowUpgradePlanModal } =
-    useContext(ModalContext);
+  const { setShowAddProjectModal } = useContext(ModalContext);
+
+  const { queryParams } = useRouterStuff();
 
   return (
     <div>
@@ -308,7 +310,11 @@ function AdvancedSettings({
                           onClick: () => {
                             setShowLinkQRModal(false);
                             if (slug) {
-                              setShowUpgradePlanModal(true);
+                              queryParams({
+                                set: {
+                                  upgrade: "pro",
+                                },
+                              });
                             } else {
                               setShowAddProjectModal(true);
                             }

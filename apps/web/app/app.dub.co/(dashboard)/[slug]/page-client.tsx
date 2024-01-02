@@ -9,20 +9,14 @@ import {
   Popover,
   Tooltip,
   TooltipContent,
+  useRouterStuff,
 } from "@dub/ui";
 import useProject from "@/lib/swr/use-project";
 import { ChevronDown, FilePlus2, Sheet } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useContext, useState } from "react";
-import { ModalContext } from "@/ui/modals/provider";
-import Link from "next/link";
-import { NumberTooltip } from "@dub/ui/src/tooltip";
-import { nFormatter } from "@dub/utils";
-import ProgressBar from "@/ui/shared/progress-bar";
+import { useState } from "react";
 
 export default function ProjectLinksClient() {
-  const { slug, linksUsage, linksLimit } = useProject();
-
   const { AddEditLinkModal, AddEditLinkButton } = useAddEditLinkModal();
 
   return (
@@ -46,9 +40,9 @@ export default function ProjectLinksClient() {
 
 const AddLinkOptions = () => {
   const router = useRouter();
-  const { slug, exceededLinks } = useProject();
+  const { slug, plan, exceededLinks } = useProject();
   const [openPopover, setOpenPopover] = useState(false);
-  const { setShowUpgradePlanModal } = useContext(ModalContext);
+  const { queryParams } = useRouterStuff();
 
   return (
     <Popover
@@ -60,10 +54,14 @@ const AddLinkOptions = () => {
                 content={
                   <TooltipContent
                     title="Your project has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
-                    cta="Upgrade to Pro"
+                    cta="Upgrade"
                     onClick={() => {
                       setOpenPopover(false);
-                      setShowUpgradePlanModal(true);
+                      queryParams({
+                        set: {
+                          upgrade: plan === "free" ? "pro" : "business",
+                        },
+                      });
                     }}
                   />
                 }
@@ -109,7 +107,11 @@ const AddLinkOptions = () => {
                     cta="Upgrade to Pro"
                     onClick={() => {
                       setOpenPopover(false);
-                      setShowUpgradePlanModal(true);
+                      queryParams({
+                        set: {
+                          upgrade: plan === "free" ? "pro" : "business",
+                        },
+                      });
                     }}
                   />
                 }
@@ -155,7 +157,11 @@ const AddLinkOptions = () => {
                     cta="Upgrade to Pro"
                     onClick={() => {
                       setOpenPopover(false);
-                      setShowUpgradePlanModal(true);
+                      queryParams({
+                        set: {
+                          upgrade: plan === "free" ? "pro" : "business",
+                        },
+                      });
                     }}
                   />
                 }

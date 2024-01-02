@@ -5,12 +5,8 @@ export const PLANS = [
     name: "Free",
     tagline: "For hobby & side projects",
     price: {
-      monthly: {
-        amount: 0,
-      },
-      yearly: {
-        amount: 0,
-      },
+      monthly: 0,
+      yearly: 0,
     },
     limits: {
       links: 25,
@@ -149,12 +145,8 @@ export const PLANS = [
   {
     name: "Enterprise",
     price: {
-      monthly: {
-        amount: null,
-      },
-      yearly: {
-        amount: null,
-      },
+      monthly: null,
+      yearly: null,
     },
     limits: {
       links: null,

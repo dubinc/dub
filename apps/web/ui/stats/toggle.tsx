@@ -45,8 +45,8 @@ import { DomainProps } from "@/lib/types";
 
 export default function Toggle() {
   const { slug } = useParams() as { slug?: string };
-  const { setShowUpgradePlanModal, setShowAddProjectModal } =
-    useContext(ModalContext);
+  const { queryParams } = useRouterStuff();
+  const { setShowAddProjectModal } = useContext(ModalContext);
 
   const { basePath, domain, key, interval, modal } = useContext(StatsContext);
 
@@ -135,7 +135,12 @@ export default function Toggle() {
                                 onClick: () => {
                                   setOpenDatePopover(false);
                                   if (slug) {
-                                    setShowUpgradePlanModal(true);
+                                    queryParams({
+                                      set: {
+                                        upgrade:
+                                          plan === "free" ? "pro" : "business",
+                                      },
+                                    });
                                   } else {
                                     setShowAddProjectModal(true);
                                   }
@@ -198,7 +203,7 @@ export default function Toggle() {
 }
 
 const DomainsFilterTooltip = ({ domains }: { domains: DomainProps[] }) => {
-  const searchParams = useSearchParams()
+  const searchParams = useSearchParams();
   const domain = searchParams?.get("domain");
   const key = searchParams?.get("key");
   const { queryParams } = useRouterStuff();

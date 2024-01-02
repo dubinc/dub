@@ -6,6 +6,7 @@ import {
   SimpleTooltipContent,
   Switch,
   Unsplash,
+  useRouterStuff,
 } from "@dub/ui";
 import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "@dub/utils";
 import { type Link as LinkProps } from "@prisma/client";
@@ -20,6 +21,8 @@ import {
 } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import UnsplashSearch from "./unsplash-search";
+import useProject from "@/lib/swr/use-project";
+import { TooltipContent } from "@dub/ui/src/tooltip";
 
 export default function OGSection({
   props,
@@ -32,6 +35,9 @@ export default function OGSection({
   setData: Dispatch<SetStateAction<LinkProps>>;
   generatingMetatags: boolean;
 }) {
+  const { plan } = useProject();
+  const { queryParams } = useRouterStuff();
+
   const { title, description, image, proxy } = data;
 
   const [fileError, setFileError] = useState<string | null>(null);
@@ -100,6 +106,29 @@ export default function OGSection({
         <Switch
           fn={() => setData((prev) => ({ ...prev, proxy: !proxy }))}
           checked={proxy}
+          // custom social media cards is only available on Dub's Pro plan
+          {...(!plan || plan === "free"
+            ? {
+                disabledTooltip: (
+                  <TooltipContent
+                    title={`Custom Social Media Cards is only available on ${process.env.NEXT_PUBLIC_APP_NAME}'s Pro plan. Upgrade to Pro to use this feature.`}
+                    cta="Upgrade to Pro"
+                    {...(plan === "free"
+                      ? {
+                          onClick: () =>
+                            queryParams({
+                              set: {
+                                upgrade: "pro",
+                              },
+                            }),
+                        }
+                      : {
+                          href: `${HOME_DOMAIN}/pricing`,
+                        })}
+                  />
+                ),
+              }
+            : {})}
         />
       </div>
 

@@ -15,24 +15,16 @@ import { FolderSync, Lock, ShieldOff } from "lucide-react";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 
 export default function ProjectSecurityClient() {
-  const { setShowUpgradePlanModal, UpgradePlanModal } = useUpgradePlanModal({
-    defaultPlan: "Enterprise",
-  });
   return (
     <>
-      <UpgradePlanModal />
-      <SAMLSection setShowUpgradePlanModal={setShowUpgradePlanModal} />
-      <SCIMSection setShowUpgradePlanModal={setShowUpgradePlanModal} />
+      <SAMLSection />
+      <SCIMSection />
     </>
   );
 }
 
-const SAMLSection = ({
-  setShowUpgradePlanModal,
-}: {
-  setShowUpgradePlanModal: Dispatch<SetStateAction<boolean>>;
-}) => {
-  const { plan, isOwner } = useProject();
+const SAMLSection = () => {
+  const { plan } = useProject();
   const { SAMLModal, setShowSAMLModal } = useSAMLModal();
   const { RemoveSAMLModal, setShowRemoveSAMLModal } = useRemoveSAMLModal();
   const { provider, configured, loading } = useSAML();
@@ -145,11 +137,11 @@ const SAMLSection = ({
                   disabled={plan !== "enterprise"}
                   {...(plan !== "enterprise" && {
                     disabledTooltip: (
-                      // "SAML SSO is only available on Enterprise plans.",
                       <TooltipContent
                         title="SAML SSO is only available on Enterprise plans. Upgrade to get started."
-                        cta="Upgrade to Enterprise"
-                        onClick={() => setShowUpgradePlanModal(true)}
+                        cta="Contact sales"
+                        href={`${HOME_DOMAIN}/enterprise`}
+                        target="_blank"
                       />
                     ),
                   })}
@@ -174,11 +166,7 @@ const SAMLSection = ({
   );
 };
 
-const SCIMSection = ({
-  setShowUpgradePlanModal,
-}: {
-  setShowUpgradePlanModal: Dispatch<SetStateAction<boolean>>;
-}) => {
+const SCIMSection = () => {
   const { plan } = useProject();
   const { SCIMModal, setShowSCIMModal } = useSCIMModal();
   const { RemoveSCIMModal, setShowRemoveSCIMModal } = useRemoveSCIMModal();
@@ -307,8 +295,9 @@ const SCIMSection = ({
                     disabledTooltip: (
                       <TooltipContent
                         title="SCIM Directory Sync is only available on Enterprise plans. Upgrade to get started."
-                        cta="Upgrade to Enterprise"
-                        onClick={() => setShowUpgradePlanModal(true)}
+                        cta="Contact sales"
+                        href={`${HOME_DOMAIN}/enterprise`}
+                        target="_blank"
                       />
                     ),
                   })}

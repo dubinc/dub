@@ -1,6 +1,5 @@
 import useProject from "@/lib/swr/use-project";
 import { DomainProps } from "@/lib/types";
-import { ModalContext } from "@/ui/modals/provider";
 import { BlurImage } from "@/ui/shared/blur-image";
 import { AlertCircleFill, Lock } from "@/ui/shared/icons";
 import {
@@ -8,10 +7,10 @@ import {
   InfoTooltip,
   Logo,
   Modal,
-  SimpleTooltipContent,
   Switch,
   Tooltip,
   TooltipContent,
+  useRouterStuff,
 } from "@dub/ui";
 import { SHORT_DOMAIN, SWIPE_REVEAL_ANIMATION_SETTINGS } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
@@ -20,7 +19,6 @@ import {
   Dispatch,
   SetStateAction,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useState,
@@ -41,7 +39,7 @@ function AddEditDomainModal({
   const router = useRouter();
   const { slug } = useParams() as { slug: string };
   const { logo, plan } = useProject();
-  const { setShowUpgradePlanModal } = useContext(ModalContext);
+  const { queryParams } = useRouterStuff();
 
   const [data, setData] = useState<DomainProps>(
     props || {
@@ -289,7 +287,11 @@ function AddEditDomainModal({
                   cta="Upgrade to Pro"
                   onClick={() => {
                     setShowAddEditDomainModal(false);
-                    setShowUpgradePlanModal(true);
+                    queryParams({
+                      set: {
+                        upgrade: "pro",
+                      },
+                    });
                   }}
                 />
               }

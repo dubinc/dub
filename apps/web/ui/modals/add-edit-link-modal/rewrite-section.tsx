@@ -1,20 +1,14 @@
 import useProject from "@/lib/swr/use-project";
-import { ModalContext } from "@/ui/modals/provider";
 import {
   InfoTooltip,
   SimpleTooltipContent,
   Switch,
   TooltipContent,
+  useRouterStuff,
 } from "@dub/ui";
 import { HOME_DOMAIN } from "@dub/utils";
 import { type Link as LinkProps } from "@prisma/client";
-import {
-  Dispatch,
-  SetStateAction,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 export default function RewriteSection({
   data,
@@ -24,7 +18,7 @@ export default function RewriteSection({
   setData: Dispatch<SetStateAction<LinkProps>>;
 }) {
   const { plan } = useProject();
-  const { setShowUpgradePlanModal } = useContext(ModalContext);
+  const { queryParams } = useRouterStuff();
 
   const { rewrite } = data;
   const [enabled, setEnabled] = useState(rewrite);
@@ -68,7 +62,12 @@ export default function RewriteSection({
                     cta="Upgrade to Pro"
                     {...(plan === "free"
                       ? {
-                          onClick: () => setShowUpgradePlanModal(true),
+                          onClick: () =>
+                            queryParams({
+                              set: {
+                                upgrade: "pro",
+                              },
+                            }),
                         }
                       : {
                           href: `${HOME_DOMAIN}/pricing`,

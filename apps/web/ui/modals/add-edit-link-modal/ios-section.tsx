@@ -1,21 +1,15 @@
 import useProject from "@/lib/swr/use-project";
-import { ModalContext } from "@/ui/modals/provider";
 import {
   InfoTooltip,
   SimpleTooltipContent,
   Switch,
   TooltipContent,
+  useRouterStuff,
 } from "@dub/ui";
 import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "@dub/utils";
 import { type Link as LinkProps } from "@prisma/client";
 import { motion } from "framer-motion";
-import {
-  Dispatch,
-  SetStateAction,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 export default function IOSSection({
   props,
@@ -27,7 +21,7 @@ export default function IOSSection({
   setData: Dispatch<SetStateAction<LinkProps>>;
 }) {
   const { plan } = useProject();
-  const { setShowUpgradePlanModal } = useContext(ModalContext);
+  const { queryParams } = useRouterStuff();
   const { ios } = data;
   const [enabled, setEnabled] = useState(!!ios);
   useEffect(() => {
@@ -70,7 +64,12 @@ export default function IOSSection({
                     cta="Upgrade to Pro"
                     {...(plan === "free"
                       ? {
-                          onClick: () => setShowUpgradePlanModal(true),
+                          onClick: () =>
+                            queryParams({
+                              set: {
+                                upgrade: "pro",
+                              },
+                            }),
                         }
                       : {
                           href: `${HOME_DOMAIN}/pricing`,

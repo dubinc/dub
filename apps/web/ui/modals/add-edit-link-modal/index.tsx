@@ -2,7 +2,6 @@
 
 import useDomains from "@/lib/swr/use-domains";
 import useProject from "@/lib/swr/use-project";
-import { ModalContext } from "@/ui/modals/provider";
 import { BlurImage } from "@/ui/shared/blur-image";
 import { AlertCircleFill, Lock, Random, X } from "@/ui/shared/icons";
 import {
@@ -10,8 +9,8 @@ import {
   LoadingCircle,
   Logo,
   Modal,
-  Tooltip,
   TooltipContent,
+  useRouterStuff,
 } from "@dub/ui";
 import {
   DEFAULT_LINK_PROPS,
@@ -26,7 +25,6 @@ import {
   truncate,
 } from "@dub/utils";
 import { type Link as LinkProps } from "@prisma/client";
-import va from "@vercel/analytics";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import punycode from "punycode/";
 import {
@@ -34,7 +32,6 @@ import {
   SetStateAction,
   UIEvent,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -563,11 +560,11 @@ function AddEditLinkModal({
             <div className="grid gap-5 px-4 md:px-16">
               {slug && <TagsSection {...{ props, data, setData }} />}
               <CommentsSection {...{ props, data, setData }} />
+              <UTMSection {...{ props, data, setData }} />
               <OGSection
                 {...{ props, data, setData }}
                 generatingMetatags={generatingMetatags}
               />
-              <UTMSection {...{ props, data, setData }} />
               <RewriteSection {...{ data, setData }} />
               <PasswordSection {...{ props, data, setData }} />
               <ExpirationSection {...{ props, data, setData }} />
@@ -609,8 +606,8 @@ function AddEditLinkButton({
 }: {
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { slug, exceededLinks } = useProject();
-  const { setShowUpgradePlanModal } = useContext(ModalContext);
+  const { slug, plan, exceededLinks } = useProject();
+  const { queryParams } = useRouterStuff();
 
   const onKeyDown = useCallback((e: KeyboardEvent) => {
     const target = e.target as HTMLElement;
@@ -675,9 +672,13 @@ function AddEditLinkButton({
         slug && exceededLinks ? (
           <TooltipContent
             title="Your project has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
-            cta="Upgrade to Pro"
+            cta="Upgrade"
             onClick={() => {
-              setShowUpgradePlanModal(true);
+              queryParams({
+                set: {
+                  upgrade: plan === "free" ? "pro" : "business",
+                },
+              });
             }}
           />
         ) : undefined
