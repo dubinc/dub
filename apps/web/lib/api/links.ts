@@ -338,6 +338,7 @@ export async function processLink({
         }
       }
     } else {
+      // domain is not dub.sh or a Dub domain
       return {
         link: payload,
         error: "Invalid domain",

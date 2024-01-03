@@ -1,15 +1,16 @@
 "use client";
 
 import useProject from "@/lib/swr/use-project";
-import { ModalContext } from "@/ui/modals/provider";
+import useTags from "@/lib/swr/use-tags";
+import useUsers from "@/lib/swr/use-users";
 import PlanBadge from "@/ui/projects/plan-badge";
+import { Divider } from "@/ui/shared/icons";
 import ProgressBar from "@/ui/shared/progress-bar";
 import { Button, InfoTooltip, NumberTooltip, useRouterStuff } from "@dub/ui";
 import { HOME_DOMAIN, getFirstAndLastDay, nFormatter } from "@dub/utils";
 import va from "@vercel/analytics";
-import { motion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
@@ -24,8 +25,15 @@ export default function ProjectBillingClient() {
     usageLimit,
     linksUsage,
     linksLimit,
+    domains,
+    domainsLimit,
+    tagsLimit,
+    usersLimit,
     billingCycleStart,
   } = useProject();
+
+  const { tags } = useTags();
+  const { users } = useUsers();
 
   const [clicked, setClicked] = useState(false);
 
@@ -87,50 +95,50 @@ export default function ProjectBillingClient() {
             )}
           </p>
         </div>
-        <div className="border-b border-gray-200" />
-        <div className="grid grid-cols-1 divide-y divide-gray-200 sm:grid-cols-2 sm:divide-x sm:divide-y-0">
-          <div className="p-10">
-            <div className="flex items-center space-x-2">
-              <h3 className="font-medium">Link Clicks</h3>
-              <InfoTooltip content="Number of billable link clicks for your current billing cycle." />
-            </div>
-            <div className="mt-2 flex flex-col space-y-2">
-              {usage !== undefined && usageLimit ? (
-                <p className="text-sm text-gray-600">
-                  <NumberTooltip value={usage}>
-                    <span>{nFormatter(usage)} </span>
-                  </NumberTooltip>
-                  / {nFormatter(usageLimit)} clicks (
-                  {((usage / usageLimit) * 100).toFixed(1)}%)
-                </p>
-              ) : (
-                <div className="h-5 w-32 animate-pulse rounded-md bg-gray-200" />
-              )}
-              <ProgressBar value={usage} max={usageLimit} />
-            </div>
+        <div className="grid divide-y divide-gray-200 border-y border-gray-200">
+          <UsageCategory
+            title="Link Clicks"
+            unit="clicks"
+            tooltip="Number of billable link clicks for your current billing cycle."
+            usage={usage}
+            usageLimit={usageLimit}
+          />
+          <div className="grid grid-cols-1 divide-y divide-gray-200 sm:grid-cols-2 sm:divide-y-0 sm:divide-x">
+            <UsageCategory
+              title="Created Links"
+              unit="links"
+              tooltip="Number of short links created in the current billing cycle."
+              usage={linksUsage}
+              usageLimit={linksLimit}
+            />
+            <UsageCategory
+              title="Custom Domains"
+              unit="domains"
+              tooltip="Number of custom domains added to your project."
+              usage={domains?.length}
+              usageLimit={domainsLimit}
+              numberOnly
+            />
           </div>
-          <div className="p-10">
-            <div className="flex items-center space-x-2">
-              <h3 className="font-medium">Created Links</h3>
-              <InfoTooltip content="Number of short links created in the current billing cycle." />
-            </div>
-            <div className="mt-2 flex flex-col space-y-2">
-              {linksUsage !== undefined && linksLimit ? (
-                <p className="text-sm text-gray-600">
-                  <NumberTooltip value={linksUsage}>
-                    <span>{nFormatter(linksUsage)} </span>
-                  </NumberTooltip>
-                  / {nFormatter(linksLimit)} links (
-                  {((linksUsage / linksLimit) * 100).toFixed(1)}%)
-                </p>
-              ) : (
-                <div className="h-5 w-32 animate-pulse rounded-md bg-gray-200" />
-              )}
-              <ProgressBar value={linksUsage} max={linksLimit} />
-            </div>
+          <div className="grid grid-cols-1 divide-y divide-gray-200 sm:grid-cols-2 sm:divide-y-0 sm:divide-x">
+            <UsageCategory
+              title="Tags"
+              unit="tags"
+              tooltip="Number of tags added to your project."
+              usage={tags?.length}
+              usageLimit={tagsLimit}
+              numberOnly
+            />
+            <UsageCategory
+              title="Teammates"
+              unit="users"
+              tooltip="Number of users added to your project."
+              usage={users?.length}
+              usageLimit={usersLimit}
+              numberOnly
+            />
           </div>
         </div>
-        <div className="border-b border-gray-200" />
         <div className="flex flex-col items-center justify-between space-y-3 px-10 py-4 text-center sm:flex-row sm:space-y-0 sm:text-left">
           {plan ? (
             <p className="text-sm text-gray-500">
@@ -194,5 +202,60 @@ export default function ProjectBillingClient() {
         </div>
       </div>
     </>
+  );
+}
+
+function UsageCategory({
+  title,
+  unit,
+  tooltip,
+  usage,
+  usageLimit,
+  numberOnly,
+}: {
+  title: string;
+  unit: string;
+  tooltip: string;
+  usage?: number;
+  usageLimit?: number;
+  numberOnly?: boolean;
+}) {
+  return (
+    <div className="p-10">
+      <div className="flex items-center space-x-2">
+        <h3 className="font-medium">{title}</h3>
+        <InfoTooltip content={tooltip} />
+      </div>
+      {numberOnly ? (
+        <div className="mt-4 flex items-center">
+          {usage || usage === 0 ? (
+            <p className="text-2xl font-semibold text-black">
+              {nFormatter(usage, { full: true })}
+            </p>
+          ) : (
+            <div className="h-8 w-8 animate-pulse rounded-md bg-gray-200" />
+          )}
+          <Divider className="h-8 w-8 text-gray-500" />
+          <p className="text-2xl font-semibold text-gray-400">
+            {nFormatter(usageLimit, { full: true })}
+          </p>
+        </div>
+      ) : (
+        <div className="mt-2 flex flex-col space-y-2">
+          {usage !== undefined && usageLimit ? (
+            <p className="text-sm text-gray-600">
+              <NumberTooltip value={usage}>
+                <span>{nFormatter(usage)} </span>
+              </NumberTooltip>
+              / {nFormatter(usageLimit)} {unit} (
+              {((usage / usageLimit) * 100).toFixed(1)}%)
+            </p>
+          ) : (
+            <div className="h-5 w-32 animate-pulse rounded-md bg-gray-200" />
+          )}
+          <ProgressBar value={usage} max={usageLimit} />
+        </div>
+      )}
+    </div>
   );
 }
