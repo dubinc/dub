@@ -3,6 +3,7 @@ import { withAuth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { capitalize, getBillingStartDate } from "@dub/utils";
+import { exceededLimitError } from "@/lib/api/errors";
 
 // POST /api/links/bulk – bulk create up to 100 links
 export const POST = withAuth(
@@ -33,11 +34,11 @@ export const POST = withAuth(
     }
     if (project.linksUsage + links.length > project.linksLimit) {
       return new Response(
-        `You can only create ${
-          project.linksLimit
-        }/month short links on the ${capitalize(
-          project.plan,
-        )} plan. Upgrade to create more links.`,
+        exceededLimitError({
+          plan: project.plan,
+          limit: project.linksLimit,
+          type: "links",
+        }),
         { status: 403, headers },
       );
     }

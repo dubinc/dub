@@ -86,8 +86,6 @@ model Project {
   slug               String          @unique
   logo               String?
 
-  users              ProjectUsers[]
-  invites            ProjectInvite[]
   plan               String          @default("free")
   stripeId           String?         @unique // Stripe subscription ID
   billingCycleStart  Int             // day of the month when the billing cycle starts
@@ -96,11 +94,15 @@ model Project {
   linksUsage         Int             @default(0)
   linksLimit         Int             @default(25)
   domainsLimit       Int             @default(1)
+  tagsLimit          Int             @default(3)
+  usersLimit         Int             @default(1)
   monitoringId       String?         @unique // cron job ID for monitoring
   
+  users              ProjectUsers[]
+  invites            ProjectInvite[]
   sentEmails         SentEmail[]
-  domains            Domain[]
   links              Link[]
+  domains            Domain[]
   tags               Tag[]
 
   createdAt          DateTime        @default(now())

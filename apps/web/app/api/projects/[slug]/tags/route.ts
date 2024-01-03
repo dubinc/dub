@@ -1,3 +1,4 @@
+import { exceededLimitError } from "@/lib/api/errors";
 import { withAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { randomBadgeColor } from "@/ui/links/tag-badge";
@@ -28,9 +29,13 @@ export const POST = withAuth(async ({ req, project, headers }) => {
       projectId: project.id,
     },
   });
-  if (project.plan === "free" && tagsCount >= 3) {
+  if (tagsCount >= project.tagsLimit) {
     return new Response(
-      "You can only create 3 tags in the Free plan. Upgrade to Pro to create unlimited tags.",
+      exceededLimitError({
+        plan: project.plan,
+        limit: project.tagsLimit,
+        type: "tags",
+      }),
       {
         status: 403,
       },

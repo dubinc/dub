@@ -1,5 +1,3 @@
-import { APP_DOMAIN, HOME_DOMAIN } from ".";
-
 export const PLANS = [
   {
     name: "Free",
@@ -11,6 +9,7 @@ export const PLANS = [
     limits: {
       links: 25,
       clicks: 1000,
+      domains: 1,
     },
     colors: {
       bg: "bg-black",
@@ -18,7 +17,7 @@ export const PLANS = [
     },
     cta: {
       text: "Start for free",
-      href: APP_DOMAIN,
+      href: "https://app.dub.co/register",
       color: "bg-black border-black hover:text-black",
     },
     featureTitle: "What's included:",
@@ -39,7 +38,7 @@ export const PLANS = [
         footnote: {
           title: "Programatically manage your links using our REST API.",
           cta: "Learn more.",
-          href: `${HOME_DOMAIN}/docs/api-reference/introduction`,
+          href: "https://dub.co/docs/api-reference/introduction",
         },
       },
     ],
@@ -58,6 +57,7 @@ export const PLANS = [
     limits: {
       links: 250,
       clicks: 25000,
+      domains: 10,
     },
     colors: {
       bg: "bg-blue-500",
@@ -66,7 +66,7 @@ export const PLANS = [
     cta: {
       text: "Get started with Pro",
       shortText: "Get started",
-      href: APP_DOMAIN,
+      href: "https://app.dub.co/register",
       color: "bg-blue-500 border-blue-500 hover:text-blue-500",
     },
     featureTitle: "Everything in Free, plus:",
@@ -85,7 +85,7 @@ export const PLANS = [
           title:
             "Redirect vistors that land on the root of your domain (e.g. yourdomain.com) to a page of your choice.",
           cta: "Learn more.",
-          href: `${HOME_DOMAIN}/help/article/how-to-redirect-root-domain`,
+          href: "https://dub.co/help/article/how-to-redirect-root-domain",
         },
       },
       {
@@ -106,6 +106,7 @@ export const PLANS = [
     limits: {
       links: 1000,
       clicks: 100000,
+      domains: 20,
     },
     colors: {
       bg: "bg-sky-900",
@@ -114,7 +115,7 @@ export const PLANS = [
     cta: {
       text: "Get started with Business",
       shortText: "Get started",
-      href: APP_DOMAIN,
+      href: "https://app.dub.co/register",
       color: "bg-sky-900 border-sky-900 hover:text-sky-900",
     },
     featureTitle: "Everything in Pro, plus:",
@@ -133,7 +134,7 @@ export const PLANS = [
           title:
             "Set custom QR code logos, password-protected links logos, and more.",
           cta: "Learn more.",
-          href: `${HOME_DOMAIN}/help/article/custom-qr-codes`,
+          href: "https://dub.co/help/article/custom-qr-codes",
         },
       },
       {
@@ -151,6 +152,7 @@ export const PLANS = [
     limits: {
       links: null,
       clicks: null,
+      domains: null,
     },
     colors: {
       bg: "bg-violet-600",

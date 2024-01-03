@@ -2,7 +2,7 @@ import { limiter } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { redis } from "@/lib/upstash";
-import { getPlanFromPriceId, log } from "@dub/utils";
+import { PLANS, getPlanFromPriceId, log } from "@dub/utils";
 import { resend, sendEmail } from "emails";
 import UpgradeEmail from "emails/upgrade-email";
 import { NextResponse } from "next/server";
@@ -76,6 +76,7 @@ export const POST = async (req: Request) => {
             billingCycleStart: new Date().getDate(),
             usageLimit: plan.limits.clicks!,
             linksLimit: plan.limits.links!,
+            domainsLimit: plan.limits.domains!,
             plan: plan.name.toLowerCase(),
           },
           select: {
@@ -158,6 +159,7 @@ export const POST = async (req: Request) => {
           data: {
             usageLimit: plan.limits.clicks!,
             linksLimit: plan.limits.links!,
+            domainsLimit: plan.limits.domains!,
             plan: plan.name.toLowerCase(),
           },
           select: {
@@ -224,15 +226,18 @@ export const POST = async (req: Request) => {
           pipeline.del(`root:${domain}`);
         });
 
+        const FREE_PLAN = PLANS.find((plan) => plan.name === "free")!;
+
         await Promise.allSettled([
           prisma.project.update({
             where: {
               stripeId,
             },
             data: {
-              usageLimit: 1000,
-              linksLimit: 25,
               plan: "free",
+              usageLimit: FREE_PLAN.limits.clicks!,
+              linksLimit: FREE_PLAN.limits.links!,
+              domainsLimit: FREE_PLAN.limits.domains!,
             },
           }),
           pipeline.exec(),

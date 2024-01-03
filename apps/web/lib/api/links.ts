@@ -12,8 +12,6 @@ import {
   DUB_PROJECT_ID,
   LEGAL_USER_ID,
   SHORT_DOMAIN,
-  capitalize,
-  getBillingStartDate,
   getDomainWithoutWWW,
   getParamsFromURL,
   getUrlFromString,
@@ -26,6 +24,7 @@ import cloudinary from "cloudinary";
 import { isIframeable } from "../middleware/utils";
 import { LinkProps, ProjectProps, SimpleLinkProps } from "../types";
 import { Session } from "../auth";
+import { exceededLimitError } from "./errors";
 
 export async function getLinksForProject({
   projectId,
@@ -273,11 +272,11 @@ export async function processLink({
     if (project.linksUsage >= project.linksLimit) {
       return {
         link: payload,
-        error: `You can only create ${
-          project.linksLimit
-        }/month short links on the ${capitalize(
-          project.plan,
-        )} plan. Upgrade to create more links.`,
+        error: exceededLimitError({
+          plan: project.plan,
+          limit: project.linksLimit,
+          type: "links",
+        }),
         status: 403,
       };
     }
