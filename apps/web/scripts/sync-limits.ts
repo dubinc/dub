@@ -9,6 +9,8 @@ async function main() {
     data: {
       linksLimit: 250,
       domainsLimit: 10,
+      tagsLimit: 25,
+      usersLimit: 5,
     },
   });
 

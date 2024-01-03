@@ -138,7 +138,7 @@ export const PLANS = [
         },
       },
       {
-        text: "Event callbacks",
+        text: "Event callbacks (Beta)",
         footnote: "Get notified when someone clicks on your links.",
       },
     ],
