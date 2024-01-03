@@ -176,7 +176,6 @@ const SearchBox = ({ searchInputRef }) => {
 };
 
 const DomainsFilter = ({ domains, primaryDomain }) => {
-  const { slug } = useParams() as { slug?: string };
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
 
@@ -196,9 +195,6 @@ const DomainsFilter = ({ domains, primaryDomain }) => {
         }));
   }, [domains, primaryDomain]);
 
-  const { setShowAddEditDomainModal, setShowAddProjectModal } =
-    useContext(ModalContext);
-
   return (
     <fieldset className="overflow-hidden py-6">
       <div className="flex h-8 items-center justify-between">
@@ -212,21 +208,6 @@ const DomainsFilter = ({ domains, primaryDomain }) => {
             className={`${collapsed ? "" : "rotate-90"} h-5 w-5 transition-all`}
           />
           <h4 className="font-medium text-gray-900">Domains</h4>
-        </button>
-        <button
-          onClick={() => {
-            if (slug) {
-              setShowAddEditDomainModal(true);
-            } else {
-              setShowAddProjectModal(true);
-              toast.error(
-                "You can only add a domain to a custom project. Please create a new project or navigate to an existing one.",
-              );
-            }
-          }}
-          className="rounded-md border border-gray-200 px-3 py-1 transition-all hover:border-gray-600 active:bg-gray-100"
-        >
-          <p className="text-sm text-gray-500">Add</p>
         </button>
       </div>
       <AnimatePresence initial={false}>

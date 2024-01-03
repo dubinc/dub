@@ -215,6 +215,7 @@ export const withAuth =
             usageLimit: true,
             linksUsage: true,
             linksLimit: true,
+            domainsLimit: true,
             plan: true,
             stripeId: true,
             billingCycleStart: true,

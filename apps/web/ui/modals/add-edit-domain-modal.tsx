@@ -12,7 +12,11 @@ import {
   TooltipContent,
   useRouterStuff,
 } from "@dub/ui";
-import { SHORT_DOMAIN, SWIPE_REVEAL_ANIMATION_SETTINGS } from "@dub/utils";
+import {
+  SHORT_DOMAIN,
+  SWIPE_REVEAL_ANIMATION_SETTINGS,
+  capitalize,
+} from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -400,13 +404,33 @@ function AddEditDomainButton({
 }: {
   setShowAddEditDomainModal: Dispatch<SetStateAction<boolean>>;
 }) {
+  const { plan, domainsLimit, exceededDomains } = useProject();
+  const { queryParams } = useRouterStuff();
+
   return (
-    <button
-      onClick={() => setShowAddEditDomainModal(true)}
-      className="rounded-md border border-black bg-black px-5 py-2 text-sm font-medium text-white transition-all duration-75 hover:bg-white hover:text-black active:scale-95"
-    >
-      Add Domain
-    </button>
+    <div>
+      <Button
+        text="Add Domain"
+        disabledTooltip={
+          exceededDomains ? (
+            <TooltipContent
+              title={`You can only add up to ${domainsLimit} domains on the ${capitalize(
+                plan,
+              )} plan. Upgrade to add more domains`}
+              cta="Upgrade"
+              onClick={() => {
+                queryParams({
+                  set: {
+                    upgrade: plan === "free" ? "pro" : "business",
+                  },
+                });
+              }}
+            />
+          ) : undefined
+        }
+        onClick={() => setShowAddEditDomainModal(true)}
+      />
+    </div>
   );
 }
 

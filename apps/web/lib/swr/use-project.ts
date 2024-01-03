@@ -18,7 +18,8 @@ export default function useProject() {
     isOwner: project?.users && project.users[0].role === "owner",
     exceededClicks: project && project.usage >= project.usageLimit,
     exceededLinks: project && project.linksUsage >= project.linksLimit,
-    // exceededDomains: project?.domains && project.domains.length >=
+    exceededDomains:
+      project?.domains && project.domains.length >= project.domainsLimit,
     error,
     loading: slug && !project && !error,
   };

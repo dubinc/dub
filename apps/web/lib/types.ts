@@ -45,6 +45,7 @@ export interface ProjectProps {
   usageLimit: number;
   linksUsage: number;
   linksLimit: number;
+  domainsLimit: number;
   plan: PlanProps;
   stripeId?: string;
   billingCycleStart: number;
