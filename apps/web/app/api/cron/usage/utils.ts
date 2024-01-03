@@ -176,6 +176,7 @@ export const updateUsage = async (skip?: number) => {
           ...((plan !== "free" || usage <= usageLimit) && {
             usage: 0,
           }),
+          // always reset linksUsage since folks can never create more links than their limit
           linksUsage: 0,
           sentEmails: {
             deleteMany: {

@@ -71,7 +71,7 @@ const SAMLSection = () => {
           <div className="flex flex-col space-y-3">
             <h2 className="text-xl font-medium">SAML Single Sign-On</h2>
             <p className="text-sm text-gray-500">
-              Set up SAML Single Sign-On (SSO) to allow your team to sign in to
+              Set up SAML Single Sign-On (SSO) to allow your team to sign in to{" "}
               {process.env.NEXT_PUBLIC_APP_NAME} with your identity provider.
             </p>
           </div>

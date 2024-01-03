@@ -1,7 +1,6 @@
 import { ProjectProps } from "@/lib/types";
 import { fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
-import { useMemo } from "react";
 import useSWR from "swr";
 
 export default function useProject() {
@@ -17,8 +16,9 @@ export default function useProject() {
   return {
     ...project,
     isOwner: project?.users && project.users[0].role === "owner",
-    exceededClicks: project && project.usage > project.usageLimit,
-    exceededLinks: project && project.linksUsage > project.linksLimit,
+    exceededClicks: project && project.usage >= project.usageLimit,
+    exceededLinks: project && project.linksUsage >= project.linksLimit,
+    // exceededDomains: project?.domains && project.domains.length >=
     error,
     loading: slug && !project && !error,
   };

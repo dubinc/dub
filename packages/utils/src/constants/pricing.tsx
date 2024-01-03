@@ -175,3 +175,7 @@ export const PLANS = [
     ],
   },
 ];
+
+export const SELF_SERVE_PAID_PLANS = PLANS.filter(
+  (p) => p.name === "Pro" || p.name === "Business",
+);

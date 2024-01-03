@@ -1,6 +1,6 @@
 export { default as ccTLDs } from "./cctlds";
 export { default as COUNTRIES } from "./countries";
-export { PLANS } from "./pricing";
+export * from "./pricing";
 
 export const LOCALHOST_GEO_DATA = {
   city: "San Francisco",
