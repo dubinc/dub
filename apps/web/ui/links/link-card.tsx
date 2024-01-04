@@ -316,7 +316,7 @@ export default function LinkCard({
                   })}
                 </a>
               )}
-              <CopyButton value={shortLink} />
+              <CopyButton value={shortLink} className="hidden sm:block" />
               {comments && (
                 <Tooltip
                   content={
@@ -432,6 +432,7 @@ export default function LinkCard({
                     setOpenPopover(false);
                     copyShortLinkToClipboard();
                   }}
+                  className="sm:hidden"
                 />
                 {slug && exceededUsage ? (
                   <DisabledPopoverItem
