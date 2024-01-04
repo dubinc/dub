@@ -1,8 +1,8 @@
 "use client";
 
 import { cn } from "@dub/utils";
-import { useState } from "react";
 import { toast } from "sonner";
+import { useCopyToClipboard } from "./hooks";
 import { Copy, Tick } from "./icons";
 
 export function CopyButton({
@@ -12,16 +12,17 @@ export function CopyButton({
   value: string;
   className?: string;
 }) {
-  const [copied, setCopied] = useState(false);
+  const [copied, copyToClipboard] = useCopyToClipboard();
+
   return (
     <button
       onClick={(e) => {
         e.stopPropagation();
-        setCopied(true);
-        navigator.clipboard.writeText(value).then(() => {
-          toast.success("Copied to clipboard!");
+        toast.promise(copyToClipboard(value), {
+          loading: "Copying to clipboard...",
+          success: "Copied to clipboard!",
+          error: "Failed to copy",
         });
-        setTimeout(() => setCopied(false), 3000);
       }}
       className={cn(
         "group rounded-full bg-gray-100 p-1.5 transition-all duration-75 hover:scale-105 hover:bg-blue-100 active:scale-95",
