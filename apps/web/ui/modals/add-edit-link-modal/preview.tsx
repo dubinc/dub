@@ -85,7 +85,9 @@ export default function Preview({
             {previewImage}
             {title && (
               <div className="absolute bottom-2 left-2 rounded-md bg-[#414142] py-px px-1.5">
-                <h3 className="truncate text-sm text-white">{title}</h3>
+                <h3 className="max-w-sm truncate text-sm text-white">
+                  {title}
+                </h3>
               </div>
             )}
           </div>
