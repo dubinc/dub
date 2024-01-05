@@ -2,7 +2,6 @@
 
 import { QRCodeSVG, getQRAsCanvas, getQRAsSVGDataUri } from "@/lib/qr";
 import useProject from "@/lib/swr/use-project";
-import { SimpleLinkProps } from "@/lib/types";
 import { ModalContext } from "@/ui/modals/provider";
 import { BlurImage } from "@/ui/shared/blur-image";
 import { Clipboard, Download } from "@/ui/shared/icons";
@@ -41,6 +40,7 @@ import { HexColorInput, HexColorPicker } from "react-colorful";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
 import { useParams } from "next/navigation";
+import { QRLinkProps } from "@/lib/types";
 
 function LinkQRModalHelper({
   showLinkQRModal,
@@ -49,7 +49,7 @@ function LinkQRModalHelper({
 }: {
   showLinkQRModal: boolean;
   setShowLinkQRModal: Dispatch<SetStateAction<boolean>>;
-  props: SimpleLinkProps;
+  props: QRLinkProps;
 }) {
   return (
     <Modal showModal={showLinkQRModal} setShowModal={setShowLinkQRModal}>
@@ -62,13 +62,14 @@ export function QRCodePicker({
   props,
   setShowLinkQRModal,
 }: {
-  props: SimpleLinkProps;
+  props: QRLinkProps;
   setShowLinkQRModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const anchorRef = useRef<HTMLAnchorElement>(null);
   const { logo, plan } = useProject();
   const { avatarUrl, apexDomain } = useMemo(() => {
     try {
+      if (!props.url) return { avatarUrl: null, apexDomain: null };
       const apexDomain = getApexDomain(props.url);
       return {
         avatarUrl: `${GOOGLE_FAVICON_URL}${apexDomain}`,
@@ -435,7 +436,7 @@ function QrDropdown({ download, qrData, showLogo, logo }) {
   );
 }
 
-export function useLinkQRModal({ props }: { props: SimpleLinkProps }) {
+export function useLinkQRModal({ props }: { props: QRLinkProps }) {
   const [showLinkQRModal, setShowLinkQRModal] = useState(false);
 
   const LinkQRModal = useCallback(() => {

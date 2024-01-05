@@ -14,19 +14,34 @@ import punycode from "punycode/";
 import useSWR, { mutate } from "swr";
 import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
 import DomainConfiguration from "./domain-configuration";
+import { useLinkQRModal } from "../modals/link-qr-modal";
+import { QrCode } from "lucide-react";
 
 export default function DomainCard({ props }: { props: DomainProps }) {
   const { slug } = useParams() as { slug: string };
 
   const { slug: domain, primary, target, type } = props || {};
 
+  const { showLinkQRModal, setShowLinkQRModal, LinkQRModal } = useLinkQRModal({
+    props: {
+      domain,
+      url: target,
+    },
+  });
+
   const { data, isValidating } = useSWR<{
     status: DomainVerificationStatusProps;
     response: any;
-  }>(slug && `/api/projects/${slug}/domains/${domain}/verify`, fetcher, {
-    revalidateOnMount: true,
-    refreshInterval: 5000,
-  });
+  }>(
+    slug &&
+      !showLinkQRModal && // Don't fetch if QR modal is open – it'll cause it to re-render
+      `/api/projects/${slug}/domains/${domain}/verify`,
+    fetcher,
+    {
+      revalidateOnMount: true,
+      refreshInterval: 5000,
+    },
+  );
 
   const { data: clicks } = useSWR<number>(
     slug && `/api/projects/${slug}/stats/clicks?domain=${domain}&key=_root`,
@@ -45,6 +60,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
   return (
     <>
       <AddEditDomainModal />
+      <LinkQRModal />
       <div className="flex flex-col space-y-3 rounded-lg border border-gray-200 bg-white px-5 py-8 sm:px-10">
         <div className="flex flex-col justify-between space-y-4 sm:flex-row sm:space-x-4">
           <div className="flex items-center space-x-2">
@@ -59,6 +75,13 @@ export default function DomainCard({ props }: { props: DomainProps }) {
               </p>
               <ExternalLink className="h-5 w-5" />
             </a>
+            <button
+              onClick={() => setShowLinkQRModal(true)}
+              className="group rounded-full bg-gray-100 p-1.5 transition-all duration-75 hover:scale-105 hover:bg-blue-100 active:scale-95"
+            >
+              <span className="sr-only">QR Code</span>
+              <QrCode className="h-4 w-4 text-gray-700 transition-all group-hover:text-blue-800" />
+            </button>
             <NumberTooltip value={clicks}>
               <Link
                 href={`/${slug}/analytics?domain=${domain}&key=_root`}
