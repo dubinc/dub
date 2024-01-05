@@ -11,24 +11,25 @@ import { MaxWidthWrapper } from "./max-width-wrapper";
 const navigation = {
   features: FEATURES_LIST.map(({ shortTitle, slug }) => ({
     name: shortTitle,
-    href: `/features/${slug}`,
+    href: `/${slug}`,
   })),
   product: [
     { name: "Blog", href: "/blog" },
     { name: "Changelog", href: "/changelog" },
     { name: "Customer Stories", href: "/customers" },
-    { name: "Help Center", href: "/help" },
     { name: "Pricing", href: "/pricing" },
+    { name: "Enterprise", href: "/enterprise" },
+    { name: "Help Center", href: "/help" },
   ],
-  tools: ALL_TOOLS.map(({ name, slug }) => ({
-    name,
-    href: `/tools/${slug}`,
-  })),
   legal: [
     { name: "Privacy", href: "/privacy" },
     { name: "Terms", href: "/terms" },
     { name: "Abuse", href: "/abuse" },
   ],
+  tools: ALL_TOOLS.map(({ name, slug }) => ({
+    name,
+    href: `/tools/${slug}`,
+  })),
 };
 
 export function Footer() {
@@ -40,8 +41,8 @@ export function Footer() {
   return (
     <footer className="z-10 border-t border-gray-200 bg-white/50 py-8 backdrop-blur-lg">
       <MaxWidthWrapper className="pt-10">
-        <div className="xl:grid xl:grid-cols-5 xl:gap-8">
-          <div className="space-y-8 xl:col-span-2">
+        <div className="xl:grid xl:grid-cols-3 xl:gap-8">
+          <div className="space-y-8">
             <Link
               href={createHref("/")}
               {...(domain !== "dub.co" && {
@@ -53,7 +54,9 @@ export function Footer() {
                 },
               })}
             >
-              <span className="sr-only">Dub.co Logo</span>
+              <span className="sr-only">
+                {process.env.NEXT_PUBLIC_APP_NAME} Logo
+              </span>
               <LogoType className="h-7 text-gray-600" />
             </Link>
             <p className="max-w-xs text-sm text-gray-500">
@@ -72,7 +75,7 @@ export function Footer() {
               </a>
               <div className="h-8 border-l border-gray-200" />
               <a
-                href="https://github.com/steven-tey/dub"
+                href="https://github.com/dubinc/dub"
                 target="_blank"
                 rel="noreferrer"
                 className="rounded-md p-2 transition-colors hover:bg-gray-100 active:bg-gray-200"
@@ -92,8 +95,8 @@ export function Footer() {
               </a>
             </div>
           </div>
-          <div className="mt-16 grid grid-cols-2 gap-8 xl:col-span-3 xl:mt-0">
-            <div className="md:grid md:grid-cols-2 md:gap-8">
+          <div className="mt-16 grid grid-cols-2 gap-4 xl:col-span-2 xl:mt-0">
+            <div className="md:grid md:grid-cols-2">
               <div>
                 <h3 className="text-sm font-semibold text-gray-900">
                   Features
@@ -143,11 +146,11 @@ export function Footer() {
                 </ul>
               </div>
             </div>
-            <div className="md:grid md:grid-cols-2 md:gap-8">
+            <div className="md:grid md:grid-cols-2">
               <div>
-                <h3 className="text-sm font-semibold text-gray-600">Tools</h3>
+                <h3 className="text-sm font-semibold text-gray-600">Legal</h3>
                 <ul role="list" className="mt-4 space-y-4">
-                  {navigation.tools.map((item) => (
+                  {navigation.legal.map((item) => (
                     <li key={item.name}>
                       <Link
                         href={createHref(item.href)}
@@ -167,10 +170,11 @@ export function Footer() {
                   ))}
                 </ul>
               </div>
+
               <div className="mt-10 md:mt-0">
-                <h3 className="text-sm font-semibold text-gray-600">Legal</h3>
+                <h3 className="text-sm font-semibold text-gray-600">Tools</h3>
                 <ul role="list" className="mt-4 space-y-4">
-                  {navigation.legal.map((item) => (
+                  {navigation.tools.map((item) => (
                     <li key={item.name}>
                       <Link
                         href={createHref(item.href)}
@@ -195,7 +199,7 @@ export function Footer() {
         </div>
         <div className="mt-16 border-t border-gray-900/10 pt-8 sm:mt-20 lg:mt-24">
           <p className="text-sm leading-5 text-gray-500">
-            © {new Date().getFullYear()} Dub.co
+            © {new Date().getFullYear()} {process.env.NEXT_PUBLIC_APP_NAME}
           </p>
         </div>
       </MaxWidthWrapper>

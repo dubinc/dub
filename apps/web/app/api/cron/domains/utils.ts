@@ -1,6 +1,6 @@
-import { deleteDomainAndLinks } from "#/lib/api/domains";
-import { limiter } from "#/lib/cron";
-import prisma from "#/lib/prisma";
+import { deleteDomainAndLinks } from "@/lib/api/domains";
+import { limiter } from "@/lib/cron";
+import prisma from "@/lib/prisma";
 import { log } from "@dub/utils";
 import { sendEmail } from "emails";
 import DomainDeleted from "emails/domain-deleted";
@@ -12,6 +12,7 @@ export const handleDomainUpdates = async ({
   verified,
   primary,
   changed,
+  clicks,
   linksCount,
 }: {
   domain: string;
@@ -19,6 +20,7 @@ export const handleDomainUpdates = async ({
   verified: boolean;
   primary: boolean;
   changed: boolean;
+  clicks: number;
   linksCount: number;
 }) => {
   if (changed) {
@@ -77,10 +79,15 @@ export const handleDomainUpdates = async ({
 
   // if domain is invalid for more than 30 days, check if we can delete it
   if (invalidDays >= 30) {
-    // if there are still links associated with the domain,
-    // and those links have clicks associated with them,
-    // don't delete the domain (manual inspection required)
-    if (linksCount > 0) {
+    // Don't delete the domain (manual inspection required) if:
+    // - the domain has clicks
+    // - there are still links associated with the domain and those links have clicks
+    if (clicks > 0) {
+      return await log({
+        message: `Domain *${domain}* has been invalid for > 30 days but has clicks, skipping.`,
+        type: "cron",
+      });
+    } else if (linksCount > 0) {
       const linksClicks = await prisma.link.aggregate({
         _sum: {
           clicks: true,
@@ -91,7 +98,7 @@ export const handleDomainUpdates = async ({
       });
       if (linksClicks._sum?.clicks) {
         return await log({
-          message: `Domain *${domain}* has been invalid for > 30 days and has links with clicks, skipping.`,
+          message: `Domain *${domain}* has been invalid for > 30 days but has links with clicks, skipping.`,
           type: "cron",
         });
       }
@@ -154,7 +161,7 @@ export const handleDomainUpdates = async ({
 
   if (invalidDays >= 28) {
     const sentSecondDomainInvalidEmail = sentEmails.includes(
-      "secondDomainInvalidEmail",
+      `secondDomainInvalidEmail:${domain}`,
     );
     if (!sentSecondDomainInvalidEmail) {
       return sendDomainInvalidEmail({
@@ -169,7 +176,7 @@ export const handleDomainUpdates = async ({
 
   if (invalidDays >= 14) {
     const sentFirstDomainInvalidEmail = sentEmails.includes(
-      "firstDomainInvalidEmail",
+      `firstDomainInvalidEmail:${domain}`,
     );
     if (!sentFirstDomainInvalidEmail) {
       return sendDomainInvalidEmail({
@@ -223,7 +230,7 @@ const sendDomainInvalidEmail = async ({
             slug: projectSlug,
           },
         },
-        type: `${type}DomainInvalidEmail`,
+        type: `${type}DomainInvalidEmail:${domain}`,
       },
     }),
   ]);

@@ -33,45 +33,47 @@ export const FADE_IN_ANIMATION_SETTINGS = {
 
 export const PAGINATION_LIMIT = 100;
 
-export const HOME_DOMAIN = "https://dub.co";
+export const SHORT_DOMAIN =
+  process.env.NEXT_PUBLIC_APP_SHORT_DOMAIN || "dub.sh";
+
+export const HOME_DOMAIN = `https://${process.env.NEXT_PUBLIC_APP_DOMAIN}`;
 
 export const APP_HOSTNAMES = new Set([
-  "app.dub.co",
-  "preview.dub.co",
+  `app.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
+  `preview.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
   "localhost:8888",
   "localhost",
 ]);
 
 export const APP_DOMAIN =
   process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-    ? "https://app.dub.co"
+    ? `https://app.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
-    ? // ? "https://preview.dub.co"
-      "https://app.dub.co"
+    ? `https://preview.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
     : "http://localhost:8888";
 
 export const APP_DOMAIN_WITH_NGROK =
   process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-    ? "https://app.dub.co"
+    ? `https://app.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
-    ? "https://preview.dub.co"
-    : process.env.NGROK_URL;
+    ? `https://preview.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
+    : process.env.NGROK_URL || "http://localhost:8888";
 
 export const API_HOSTNAMES = new Set([
-  "api.dub.co",
-  "api.dub.sh",
+  `api.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
+  `api.${SHORT_DOMAIN}`,
   "api.localhost:8888",
 ]);
 
 export const API_DOMAIN =
   process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-    ? "https://api.dub.co"
+    ? `https://api.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
-    ? "https://api.dub.sh"
+    ? `https://api.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
     : "http://api.localhost:8888";
 
 export const ADMIN_HOSTNAMES = new Set([
-  "admin.dub.co",
+  `admin.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
   "admin.localhost:8888",
 ]);
 
@@ -88,7 +90,6 @@ export const DEFAULT_REDIRECTS = {
   settings: "https://app.dub.co/settings",
   welcome: "https://app.dub.co/welcome",
   discord: "https://twitter.com/dubdotco", // placeholder for now
-  tags: "https://dub.co/help/how-to-use-tags",
 };
 
 export const DUB_HEADERS = {
@@ -97,7 +98,6 @@ export const DUB_HEADERS = {
   },
 };
 
-export const FAVICON_FOLDER = "/_static/favicons";
 export const GOOGLE_FAVICON_URL =
   "https://www.google.com/s2/favicons?sz=64&domain_url=";
 
@@ -105,21 +105,67 @@ export const DUB_LOGO = "https://d2vwwcvoksz7ty.cloudfront.net/logo.png";
 export const DUB_THUMBNAIL =
   "https://d2vwwcvoksz7ty.cloudfront.net/thumbnail.png";
 
-export const SHOW_BACKGROUND_SEGMENTS = [
-  "tools",
-  "pricing",
-  "help",
-  "features",
-  "customers",
-  "blog",
-  "(blog-post)",
-  "login",
-  "register",
-  "auth",
+export const HIDE_BACKGROUND_SEGMENTS = [
+  "stats",
+  "changelog",
+  "terms",
+  "privacy",
+  "abuse",
+];
+
+export const DUB_DOMAINS = [
+  {
+    slug: SHORT_DOMAIN,
+    verified: true,
+    primary: true,
+    target: `https://${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
+    type: "redirect",
+    placeholder: "https://dub.co/help/article/what-is-dub",
+    clicks: 0,
+    allowedHostnames: [],
+  },
+  ...(process.env.NEXT_PUBLIC_IS_DUB
+    ? [
+        {
+          slug: "chatg.pt",
+          verified: true,
+          primary: false,
+          target: "https://dub.co/tools/chatgpt-link-shortener",
+          type: "redirect",
+          placeholder: "https://chat.openai.com/g/g-UGjKKONEe-domainsgpt",
+          clicks: 0,
+          allowedHostnames: ["chat.openai.com"],
+        },
+        {
+          slug: "amzn.id",
+          verified: true,
+          primary: false,
+          target: "https://dub.co/tools/amazon-link-shortener",
+          type: "redirect",
+          placeholder: "https://www.amazon.com/dp/B0BW4SWNC8",
+          clicks: 0,
+          allowedHostnames: ["amazon.com", "amazon.co.uk", "amazon.ca"],
+        },
+        {
+          slug: "spti.fi",
+          verified: true,
+          primary: false,
+          target: "https://dub.co/tools/spotify-link-shortener",
+          type: "redirect",
+          placeholder: "https://open.spotify.com/album/1SCyi9a5pOasikidToUY5y",
+          clicks: 0,
+          allowedHostnames: ["open.spotify.com"],
+        },
+      ]
+    : []),
 ];
 
 export const ALL_TOOLS = [
+  { name: "ChatGPT Link Shortener", slug: "chatgpt-link-shortener" },
+  { name: "Amazon Link Shortener", slug: "amazon-link-shortener" },
+  { name: "Spotify Link Shortener", slug: "spotify-link-shortener" },
   { name: "Metatags API", slug: "metatags" },
+  { name: "QR Code Generator", slug: "qr-code" },
   { name: "Link Inspector", slug: "inspector" },
 ];
 
@@ -170,6 +216,7 @@ export const DEFAULT_LINK_PROPS = {
 };
 
 export const DUB_PROJECT_ID = "cl7pj5kq4006835rbjlt2ofka";
+export const LEGAL_USER_ID = "clqei1lgc0000vsnzi01pbf47";
 
 export const SAML_PROVIDERS = [
   {

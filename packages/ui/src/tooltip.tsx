@@ -4,78 +4,56 @@ import { nFormatter, timeAgo } from "@dub/utils";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { HelpCircle } from "lucide-react";
 import Link from "next/link";
-import { ReactNode } from "react";
-import { Drawer } from "vaul";
-import { useMediaQuery } from "./hooks";
+import { ReactNode, useState } from "react";
+
+export function TooltipProvider({ children }: { children: ReactNode }) {
+  return (
+    <TooltipPrimitive.Provider delayDuration={0}>
+      {children}
+    </TooltipPrimitive.Provider>
+  );
+}
 
 export function Tooltip({
   children,
   content,
-  fullWidth,
+  side = "top",
 }: {
   children: ReactNode;
   content: ReactNode | string;
-  fullWidth?: boolean;
+  side?: "top" | "bottom" | "left" | "right";
 }) {
-  const { isMobile } = useMediaQuery();
+  const [open, setOpen] = useState(false);
 
-  if (isMobile) {
-    return (
-      <Drawer.Root>
-        <Drawer.Trigger
-          className={`${fullWidth ? "w-full" : "inline-flex"} md:hidden`}
-          onClick={(e) => {
-            e.stopPropagation();
-          }}
-        >
-          {children}
-        </Drawer.Trigger>
-        <Drawer.Overlay className="fixed inset-0 z-40 bg-gray-100 bg-opacity-10 backdrop-blur" />
-        <Drawer.Portal>
-          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 mt-24 rounded-t-[10px] border-t border-gray-200 bg-white">
-            <div className="sticky top-0 z-20 flex w-full items-center justify-center rounded-t-[10px] bg-inherit">
-              <div className="my-3 h-1 w-12 rounded-full bg-gray-300" />
-            </div>
-            <div className="flex min-h-[150px] w-full items-center justify-center overflow-hidden bg-white align-middle shadow-xl">
-              {typeof content === "string" ? (
-                <span className="block text-center text-sm text-gray-700">
-                  {content}
-                </span>
-              ) : (
-                content
-              )}
-            </div>
-          </Drawer.Content>
-          <Drawer.Overlay />
-        </Drawer.Portal>
-      </Drawer.Root>
-    );
-  }
   return (
-    <TooltipPrimitive.Provider delayDuration={100}>
-      <TooltipPrimitive.Root>
-        <TooltipPrimitive.Trigger className="md:inline-flex" asChild>
-          {children}
-        </TooltipPrimitive.Trigger>
-        {/* 
-            We don't use TooltipPrimitive.Portal here because for some reason it 
-            prevents you from selecting the contents of a tooltip when used inside a modal 
-        */}
+    <TooltipPrimitive.Root open={open} onOpenChange={setOpen}>
+      <TooltipPrimitive.Trigger
+        asChild
+        onClick={() => {
+          setOpen(true);
+        }}
+        onBlur={() => {
+          setOpen(false);
+        }}
+      >
+        {children}
+      </TooltipPrimitive.Trigger>
+      <TooltipPrimitive.Portal>
         <TooltipPrimitive.Content
           sideOffset={8}
-          side="top"
-          className="animate-slide-up-fade z-[99] items-center overflow-hidden rounded-md border border-gray-200 bg-white shadow-md md:block"
+          side={side}
+          className="animate-slide-up-fade z-[99] items-center overflow-hidden rounded-md border border-gray-200 bg-white shadow-md"
         >
           {typeof content === "string" ? (
-            <div className="block max-w-xs px-4 py-2 text-center text-sm text-gray-700">
+            <span className="block max-w-xs px-4 py-2 text-center text-sm text-gray-700">
               {content}
-            </div>
+            </span>
           ) : (
             content
           )}
         </TooltipPrimitive.Content>
-      </TooltipPrimitive.Root>
-    </TooltipPrimitive.Provider>
+      </TooltipPrimitive.Portal>
+    </TooltipPrimitive.Root>
   );
 }
 
@@ -93,7 +71,7 @@ export function TooltipContent({
   onClick?: () => void;
 }) {
   return (
-    <div className="flex flex-col items-center space-y-3 p-4 text-center md:max-w-xs">
+    <div className="flex max-w-xs flex-col items-center space-y-3 p-4 text-center">
       <p className="text-sm text-gray-700">{title}</p>
       {cta &&
         (href ? (
@@ -171,7 +149,7 @@ export function NumberTooltip({
             {nFormatter(value || 0, { full: true })} {unit}
           </p>
           {lastClicked && (
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-gray-500" suppressHydrationWarning>
               Last clicked {timeAgo(lastClicked, { withAgo: true })}
             </p>
           )}

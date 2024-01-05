@@ -1,5 +1,5 @@
-import { recordClick } from "#/lib/tinybird";
-import { redis } from "#/lib/upstash";
+import { recordClick } from "@/lib/tinybird";
+import { redis } from "@/lib/upstash";
 import { DUB_HEADERS } from "@dub/utils";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 import { parse } from "./utils";
@@ -15,7 +15,7 @@ export default async function RootMiddleware(
   }
 
   // record clicks on root page
-  ev.waitUntil(recordClick(domain, req));
+  ev.waitUntil(recordClick({ req, domain }));
 
   const response = await redis.get<{
     target: string;

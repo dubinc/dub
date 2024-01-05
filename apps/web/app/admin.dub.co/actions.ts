@@ -1,16 +1,20 @@
 "use server";
-import { deleteUserLinks } from "#/lib/api/links";
-import { deleteProject } from "#/lib/api/project";
-import { hashToken } from "#/lib/auth";
-import prisma from "#/lib/prisma";
-import { authOptions } from "@/pages/api/auth/[...nextauth]";
-import { DUB_PROJECT_ID, getDomainWithoutWWW } from "@dub/utils";
+import { reassignUserLinks } from "@/lib/api/links";
+import { deleteProject } from "@/lib/api/project";
+import { getSession, hashToken } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { redis } from "@/lib/upstash";
+import {
+  DUB_PROJECT_ID,
+  LEGAL_USER_ID,
+  SHORT_DOMAIN,
+  getDomainWithoutWWW,
+} from "@dub/utils";
 import { get } from "@vercel/edge-config";
 import { randomBytes } from "crypto";
-import { getServerSession } from "next-auth";
 
 async function isAdmin() {
-  const session = await getServerSession(authOptions);
+  const session = await getSession();
   if (!session?.user) return false;
   const response = await prisma.projectUsers.findUnique({
     where: {
@@ -240,7 +244,7 @@ export async function banUser(data: FormData) {
   const blacklistedEmails = (await get("emails")) as string[];
 
   const ban = await Promise.allSettled([
-    deleteUserLinks(user.id),
+    reassignUserLinks(user.id),
     fetch(
       `https://api.vercel.com/v1/edge-config/${process.env.EDGE_CONFIG_ID}/items?teamId=${process.env.TEAM_ID_VERCEL}`,
       {
@@ -285,6 +289,103 @@ export async function banUser(data: FormData) {
     JSON.stringify(
       {
         ban,
+        response,
+      },
+      null,
+      2,
+    ),
+  );
+
+  return true;
+}
+
+export async function getLinkByKey(data: FormData) {
+  const key = data.get("key") as string;
+
+  if (!(await isAdmin())) {
+    return {
+      error: "Unauthorized",
+    };
+  }
+
+  const link = await prisma.link.findUnique({
+    where: {
+      domain_key: {
+        domain: "dub.sh",
+        key,
+      },
+    },
+    select: {
+      key: true,
+      url: true,
+    },
+  });
+  if (!link) {
+    return {
+      error: "No link found",
+    };
+  }
+
+  return {
+    key: link?.key as string,
+    url: link?.url as string,
+    domain: getDomainWithoutWWW(link?.url as string),
+  };
+}
+
+export async function deleteAndBlacklistLink(data: FormData) {
+  const key = data.get("key") as string;
+  const url = data.get("url") as string;
+  const hostnames = data.getAll("hostname") as string[];
+
+  if (!(await isAdmin())) {
+    return {
+      error: "Unauthorized",
+    };
+  }
+
+  const blacklistedDomains = (await get("domains")) as string[];
+
+  const response = await Promise.allSettled([
+    redis.set(`${SHORT_DOMAIN}:${key}`, {
+      url: encodeURIComponent(url),
+      banned: true,
+    }),
+    prisma.link.update({
+      where: {
+        domain_key: {
+          domain: SHORT_DOMAIN,
+          key,
+        },
+      },
+      data: {
+        userId: LEGAL_USER_ID,
+      },
+    }),
+    fetch(
+      `https://api.vercel.com/v1/edge-config/${process.env.EDGE_CONFIG_ID}/items?teamId=${process.env.TEAM_ID_VERCEL}`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          items: [
+            {
+              operation: "update",
+              key: "domains",
+              value: [...blacklistedDomains, ...hostnames],
+            },
+          ],
+        }),
+      },
+    ),
+  ]);
+
+  console.log(
+    JSON.stringify(
+      {
         response,
       },
       null,

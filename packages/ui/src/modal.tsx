@@ -10,18 +10,18 @@ import { useMediaQuery } from "./hooks";
 export function Modal({
   children,
   className,
-  dialogOnly,
   showModal,
   setShowModal,
   onClose,
+  desktopOnly,
   preventDefaultClose,
 }: {
   children: React.ReactNode;
   className?: string;
-  dialogOnly?: boolean;
   showModal?: boolean;
   setShowModal?: Dispatch<SetStateAction<boolean>>;
   onClose?: () => void;
+  desktopOnly?: boolean;
   preventDefaultClose?: boolean;
 }) {
   const router = useRouter();
@@ -43,7 +43,7 @@ export function Modal({
   };
   const { isMobile } = useMediaQuery();
 
-  if (isMobile && !dialogOnly) {
+  if (isMobile && !desktopOnly) {
     return (
       <Drawer.Root
         open={setShowModal ? showModal : true}

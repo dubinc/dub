@@ -51,6 +51,9 @@ export const isWhitelistedEmail = async (email: string) => {
 };
 
 export const isBlacklistedEmail = async (email: string) => {
+  if (!process.env.NEXT_PUBLIC_IS_DUB) {
+    return false;
+  }
   let blacklistedEmails;
   try {
     blacklistedEmails = await get("emails");
@@ -61,23 +64,27 @@ export const isBlacklistedEmail = async (email: string) => {
 };
 
 export const isReservedKey = async (key: string) => {
-  if (!process.env.EDGE_CONFIG) {
-    // If EDGE_CONFIG is not set, these are the default reserved keys
-    return [
-      "blog",
-      "help",
-      "pricing",
-      "changelog",
-      "metatags",
-      "terms",
-      "privacy",
-    ];
+  if (!process.env.NEXT_PUBLIC_IS_DUB) {
+    return false;
   }
-  let reservedKey;
+  let reservedKeys;
   try {
-    reservedKey = await get("reserved");
+    reservedKeys = await get("reserved");
   } catch (e) {
-    reservedKey = [];
+    reservedKeys = [];
   }
-  return reservedKey.includes(key);
+  return reservedKeys.includes(key);
+};
+
+export const isReservedUsername = async (key: string) => {
+  if (!process.env.NEXT_PUBLIC_IS_DUB) {
+    return false;
+  }
+  let reservedUsernames;
+  try {
+    reservedUsernames = await get("reservedUsernames");
+  } catch (e) {
+    reservedUsernames = [];
+  }
+  return reservedUsernames.includes(key);
 };

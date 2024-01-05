@@ -53,7 +53,7 @@ export default function LinksImported({
   domains = ["ac.me"],
 }: {
   email: string;
-  provider: "Bitly" | "Short.io";
+  provider: "Bitly" | "Short.io" | "Rebrandly" | "CSV";
   count: number;
   links: {
     domain: string;
@@ -114,7 +114,11 @@ export default function LinksImported({
                       <Column align="left" className="text-sm font-medium">
                         {linkConstructor({ domain, key, pretty: true })}
                       </Column>
-                      <Column align="right" className="text-sm text-gray-600">
+                      <Column
+                        align="right"
+                        className="text-sm text-gray-600"
+                        suppressHydrationWarning
+                      >
                         {timeAgo(createdAt)}
                       </Column>
                     </Row>

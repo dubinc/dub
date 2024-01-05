@@ -1,4 +1,4 @@
-import { parse } from "#/lib/middleware/utils";
+import { parse } from "@/lib/middleware/utils";
 import { DUB_PROJECT_ID } from "@dub/utils";
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
@@ -19,7 +19,7 @@ export default async function AdminMiddleware(req: NextRequest) {
   };
 
   const response = await conn
-    ?.execute("SELECT projectId FROM ProjectUsers WHERE userId = ?", [
+    .execute("SELECT projectId FROM ProjectUsers WHERE userId = ?", [
       session?.user?.id,
     ])
     .then((res) => res.rows[0] as { projectId: string } | undefined);
@@ -34,5 +34,7 @@ export default async function AdminMiddleware(req: NextRequest) {
     return NextResponse.redirect(new URL(`/login`, req.url));
   }
 
-  return NextResponse.rewrite(new URL(`/admin.dub.co${path}`, req.url));
+  return NextResponse.rewrite(
+    new URL(`/admin.dub.co${path === "/" ? "" : path}`, req.url),
+  );
 }

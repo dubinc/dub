@@ -1,7 +1,7 @@
-import { receiver } from "#/lib/cron";
-import prisma from "#/lib/prisma";
-import { redis } from "#/lib/upstash";
-import { randomBadgeColor } from "@/components/app/links/tag-badge";
+import { receiver } from "@/lib/cron";
+import prisma from "@/lib/prisma";
+import { redis } from "@/lib/upstash";
+import { randomBadgeColor } from "@/ui/links/tag-badge";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { importLinksFromBitly } from "./utils";
@@ -19,30 +19,37 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { projectId, bitlyGroup, keepTags } = body;
+    const { projectId, bitlyGroup, importTags } = body;
     const bitlyApiKey = await redis.get(`import:bitly:${projectId}`);
-    let tagsToId;
-    if (keepTags === true) {
-      const tags = await fetch(
-        `https://api-ssl.bitly.com/v4/groups/${bitlyGroup}/tags`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${bitlyApiKey}`,
-          },
-        },
-      )
-        .then((r) => r.json())
-        .then((r) => r.tags);
 
-      await prisma.tag.createMany({
-        data: tags.map((tag) => ({
-          name: tag,
-          color: randomBadgeColor(),
-          projectId,
-        })),
-        skipDuplicates: true,
-      });
+    let tagsToId: Record<string, string> | null = null;
+    if (importTags === true) {
+      const tagsImported = await redis.get(`import:bitly:${projectId}:tags`);
+
+      if (!tagsImported) {
+        const tags = (await fetch(
+          `https://api-ssl.bitly.com/v4/groups/${bitlyGroup}/tags`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${bitlyApiKey}`,
+            },
+          },
+        )
+          .then((r) => r.json())
+          .then((r) => r.tags)) as string[];
+
+        await prisma.tag.createMany({
+          data: tags.map((tag) => ({
+            name: tag,
+            color: randomBadgeColor(),
+            projectId,
+          })),
+          skipDuplicates: true,
+        });
+        await redis.set(`import:bitly:${projectId}:tags`, "true");
+      }
+
       tagsToId = await prisma.tag
         .findMany({
           where: {

@@ -1,17 +1,29 @@
-import { isReservedKey } from "#/lib/edge-config";
-import prisma from "#/lib/prisma";
-import { redis } from "#/lib/upstash";
+import {
+  isBlacklistedDomain,
+  isBlacklistedKey,
+  isReservedKey,
+  isReservedUsername,
+} from "@/lib/edge-config";
+import prisma from "@/lib/prisma";
+import { redis } from "@/lib/upstash";
 import {
   DEFAULT_REDIRECTS,
+  DUB_DOMAINS,
+  DUB_PROJECT_ID,
+  LEGAL_USER_ID,
+  SHORT_DOMAIN,
+  getDomainWithoutWWW,
   getParamsFromURL,
+  getUrlFromString,
+  isDubDomain,
   nanoid,
   truncate,
   validKeyRegex,
 } from "@dub/utils";
-import { type Link as LinkProps } from "@prisma/client";
 import cloudinary from "cloudinary";
-import { NextApiRequest } from "next";
 import { isIframeable } from "../middleware/utils";
+import { LinkProps, ProjectProps, SimpleLinkProps } from "../types";
+import { Session } from "../auth";
 
 export async function getLinksForProject({
   projectId,
@@ -64,15 +76,15 @@ export async function getLinksForProject({
 }
 
 export async function getLinksCount({
-  req,
+  searchParams,
   projectId,
   userId,
 }: {
-  req: NextApiRequest;
+  searchParams: Record<string, string>;
   projectId: string;
   userId?: string | null;
 }) {
-  let { groupBy, search, domain, tagId, showArchived } = req.query as {
+  let { groupBy, search, domain, tagId, showArchived } = searchParams as {
     groupBy?: "domain" | "tagId";
     search?: string;
     domain?: string;
@@ -164,11 +176,16 @@ export async function getRandomKey(domain: string): Promise<string> {
 }
 
 export async function checkIfKeyExists(domain: string, key: string) {
-  if (
-    domain === "dub.sh" &&
-    ((await isReservedKey(key)) || DEFAULT_REDIRECTS[key])
-  ) {
-    return true; // reserved keys for dub.sh
+  // reserved keys for dub.sh
+  if (domain === "dub.sh") {
+    if ((await isReservedKey(key)) || DEFAULT_REDIRECTS[key]) {
+      return true;
+    }
+    // if it's a default Dub domain, check if the key is a reserved key
+  } else if (isDubDomain(domain)) {
+    if (await isReservedUsername(key)) {
+      return true;
+    }
   }
   const link = await prisma.link.findUnique({
     where: {
@@ -193,6 +210,213 @@ export function processKey(key: string) {
   return key;
 }
 
+export async function processLink({
+  payload,
+  project,
+  session,
+  bulk = false,
+}: {
+  payload: LinkProps;
+  project: ProjectProps | null;
+  session?: Session;
+  bulk?: boolean;
+}) {
+  let { domain, key, url, image, rewrite, expiresAt, geo } = payload;
+
+  // url checks
+  if (!url) {
+    return {
+      link: payload,
+      error: "Missing destination url.",
+      status: 400,
+    };
+  }
+  const processedUrl = getUrlFromString(url);
+  if (!processedUrl) {
+    return {
+      link: payload,
+      error: "Invalid destination url.",
+      status: 422,
+    };
+  }
+
+  // domain checks
+  if (!domain) {
+    return {
+      link: payload,
+      error: "Missing short link domain.",
+      status: 400,
+    };
+  }
+
+  // custom social media image checks
+  const uploadedImage = image && image.startsWith("data:image") ? true : false;
+  if (uploadedImage && !process.env.CLOUDINARY_URL) {
+    return {
+      link: payload,
+      error: "Missing Cloudinary environment variable.",
+      status: 400,
+    };
+  }
+
+  // expire date checks
+  if (expiresAt) {
+    const date = new Date(expiresAt);
+    if (isNaN(date.getTime())) {
+      return {
+        link: payload,
+        error: "Invalid expiry date. Expiry date must be in ISO-8601 format.",
+        status: 422,
+      };
+    }
+    // check if expiresAt is in the future
+    if (new Date(expiresAt) < new Date()) {
+      return {
+        link: payload,
+        error: "Expiry date must be in the future.",
+        status: 422,
+      };
+    }
+  }
+
+  if (project) {
+    if (!project.domains?.find((d) => d.slug === domain)) {
+      return {
+        link: payload,
+        error: "Domain does not belong to project.",
+        status: 403,
+      };
+    }
+    // internal Dub.co checks
+  } else if (process.env.NEXT_PUBLIC_IS_DUB) {
+    // if it's not a custom project, do some filtering
+    if (key?.includes("/")) {
+      return {
+        link: payload,
+        error:
+          "Key cannot contain '/'. You can only use this with a custom domain.",
+        status: 422,
+      };
+    }
+    if (rewrite) {
+      return {
+        link: payload,
+        error: "You can only use link cloaking on a custom domain.",
+        status: 403,
+      };
+    }
+    if (domain === "dub.sh") {
+      const keyBlacklisted = await isBlacklistedKey(key);
+      if (keyBlacklisted) {
+        return {
+          link: payload,
+          error: "Invalid key.",
+          status: 422,
+        };
+      }
+      const domainBlacklisted = await isBlacklistedDomain(url);
+      if (domainBlacklisted) {
+        return {
+          link: payload,
+          error: "Invalid url.",
+          status: 422,
+        };
+      }
+    } else if (isDubDomain(domain)) {
+      // coerce type with ! cause we already checked if it exists
+      const { allowedHostnames } = DUB_DOMAINS.find((d) => d.slug === domain)!;
+      const urlDomain = getDomainWithoutWWW(url) || "";
+      if (!allowedHostnames.includes(urlDomain)) {
+        return {
+          link: payload,
+          error: `Invalid url. You can only use ${domain} short links for URLs starting with ${allowedHostnames
+            .map((d) => `\`${d}\``)
+            .join(", ")}.`,
+          status: 422,
+        };
+      }
+      // we can do it here because we only pass session when creating a link (and not editing it)
+      if (session) {
+        const count = await prisma.link.count({
+          where: {
+            domain,
+            userId: session?.user.id,
+          },
+        });
+        if (count > 25) {
+          return {
+            link: payload,
+            error: `You can only create 25 ${domain} short links.`,
+            status: 403,
+          };
+        }
+      }
+    } else {
+      return {
+        link: payload,
+        error: "Invalid domain",
+        status: 403,
+      };
+    }
+  }
+
+  // free plan restrictions
+  if (!project || project.plan === "free") {
+    if (geo) {
+      return {
+        link: payload,
+        error: "You can only use geo targeting on a Pro plan and above.",
+        status: 403,
+      };
+    }
+  }
+
+  if (!key) {
+    key = await getRandomKey(domain);
+  }
+
+  if (bulk) {
+    if (image) {
+      return {
+        link: payload,
+        error: "You cannot set custom social cards with bulk link creation.",
+        status: 422,
+      };
+    }
+    if (rewrite) {
+      return {
+        link: payload,
+        error: "You cannot use link cloaking with bulk link creation.",
+        status: 422,
+      };
+    }
+    const exists = await checkIfKeyExists(domain, key);
+    if (exists) {
+      return {
+        link: payload,
+        error: `Link already exists.`,
+        status: 409,
+      };
+    }
+  }
+
+  return {
+    link: {
+      ...payload,
+      key,
+      url: processedUrl,
+      // make sure projectId is set to the current project (or Dub's if there's no project)
+      projectId: project?.id || DUB_PROJECT_ID,
+      // if session is passed, set userId to the current user's id (we don't change the userId if it's already set, e.g. when editing a link)
+      ...(session && {
+        userId: session.user.id,
+      }),
+    },
+    error: null,
+    status: 200,
+  };
+}
+
 export async function addLink(link: LinkProps) {
   const {
     domain,
@@ -210,7 +434,6 @@ export async function addLink(link: LinkProps) {
     geo,
   } = link;
   const hasPassword = password && password.length > 0 ? true : false;
-  const exat = expiresAt ? new Date(expiresAt).getTime() / 1000 : null;
   const uploadedImage = image && image.startsWith("data:image") ? true : false;
 
   const exists = await checkIfKeyExists(domain, key);
@@ -232,6 +455,7 @@ export async function addLink(link: LinkProps) {
         utm_campaign,
         utm_term,
         utm_content,
+        expiresAt: expiresAt ? new Date(expiresAt) : null,
         geo: geo || undefined,
       },
     }),
@@ -245,17 +469,17 @@ export async function addLink(link: LinkProps) {
           rewrite: true,
           iframeable: await isIframeable({ url, requestDomain: domain }),
         }),
+        ...(expiresAt && { expiresAt }),
         ...(ios && { ios }),
         ...(android && { android }),
         ...(geo && { geo }),
       },
       {
         nx: true,
-        // if the key has an expiry, set exat (type any cause there's a type error in the @types)
-        ...(exat && { exat: exat as any }),
       },
     ),
   ]);
+
   if (proxy && image) {
     const { secure_url } = await cloudinary.v2.uploader.upload(image, {
       public_id: key,
@@ -275,8 +499,66 @@ export async function addLink(link: LinkProps) {
   return response;
 }
 
+export async function bulkCreateLinks(links: LinkProps[]) {
+  if (links.length === 0) return [];
+  const pipeline = redis.pipeline();
+  links.forEach(({ domain, key, url, password, expiresAt }) => {
+    const hasPassword = password && password.length > 0 ? true : false;
+    pipeline.set(
+      `${domain}:${key}`,
+      {
+        url: encodeURIComponent(url),
+        password: hasPassword,
+        ...(expiresAt && { expiresAt }),
+      },
+      {
+        nx: true,
+      },
+    );
+  });
+
+  await Promise.all([
+    prisma.link.createMany({
+      data: links.map((link) => {
+        const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
+          getParamsFromURL(link.url);
+        return {
+          ...link,
+          title: truncate(link.title, 120),
+          description: truncate(link.description, 240),
+          utm_source,
+          utm_medium,
+          utm_campaign,
+          utm_term,
+          utm_content,
+          expiresAt: link.expiresAt ? new Date(link.expiresAt) : null,
+          geo: link.geo || undefined,
+        };
+      }),
+      skipDuplicates: true,
+    }),
+    pipeline.exec(),
+  ]);
+
+  const createdLinks = await Promise.all(
+    links.map(async (link) => {
+      const { key, domain } = link;
+      return await prisma.link.findUnique({
+        where: {
+          domain_key: {
+            domain,
+            key,
+          },
+        },
+      });
+    }),
+  );
+
+  return createdLinks;
+}
+
 export async function editLink({
-  domain: oldDomain = "dub.sh",
+  domain: oldDomain = SHORT_DOMAIN,
   key: oldKey,
   updatedLink,
 }: {
@@ -301,8 +583,7 @@ export async function editLink({
     geo,
   } = updatedLink;
   const hasPassword = password && password.length > 0 ? true : false;
-  const exat = expiresAt ? new Date(expiresAt).getTime() : null;
-  const changedKey = key !== oldKey;
+  const changedKey = key.toLowerCase() !== oldKey.toLowerCase();
   const changedDomain = domain !== oldDomain;
   const uploadedImage = image && image.startsWith("data:image") ? true : false;
 
@@ -332,6 +613,7 @@ export async function editLink({
         utm_campaign,
         utm_term,
         utm_content,
+        expiresAt: expiresAt ? new Date(expiresAt) : null,
         geo: geo || undefined,
       },
     }),
@@ -346,22 +628,19 @@ export async function editLink({
       : cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
           invalidate: true,
         }),
-    redis.set(
-      `${domain}:${key}`,
-      {
-        url: encodeURIComponent(url),
-        password: hasPassword,
-        proxy,
-        ...(rewrite && {
-          rewrite: true,
-          iframeable: await isIframeable({ url, requestDomain: domain }),
-        }),
-        ...(ios && { ios }),
-        ...(android && { android }),
-        ...(geo && { geo }),
-      },
-      exat ? { exat } : {},
-    ),
+    redis.set(`${domain}:${key}`, {
+      url: encodeURIComponent(url),
+      password: hasPassword,
+      proxy,
+      ...(rewrite && {
+        rewrite: true,
+        iframeable: await isIframeable({ url, requestDomain: domain }),
+      }),
+      ...(expiresAt && { expiresAt }),
+      ...(ios && { ios }),
+      ...(android && { android }),
+      ...(geo && { geo }),
+    }),
     // if key is changed: rename resource in Cloudinary, delete the old key in Redis and change the clicks key name
     ...(changedDomain || changedKey
       ? [
@@ -391,7 +670,7 @@ export async function editLink({
 }
 
 export async function deleteLink({
-  domain = "dub.sh",
+  domain = SHORT_DOMAIN,
   key,
 }: {
   domain?: string;
@@ -409,6 +688,10 @@ export async function deleteLink({
     cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
       invalidate: true,
     }),
+    // deleteClickData({
+    //   domain,
+    //   key,
+    // }),
     redis.del(`${domain}:${key}`),
   ]);
 }
@@ -436,7 +719,7 @@ export async function deleteUserLinks(userId: string) {
   const links = await prisma.link.findMany({
     where: {
       userId,
-      domain: "dub.sh",
+      domain: SHORT_DOMAIN,
     },
     select: {
       key: true,
@@ -461,7 +744,7 @@ export async function deleteUserLinks(userId: string) {
       prisma.link.deleteMany({
         where: {
           userId,
-          domain: "dub.sh",
+          domain: SHORT_DOMAIN,
         },
       }),
     ]);
@@ -470,4 +753,44 @@ export async function deleteUserLinks(userId: string) {
     deleteCloudinary,
     deletePrisma,
   };
+}
+
+/* Reassign user links to another user when a user is deleted */
+export async function reassignUserLinks(userId: string) {
+  const links = await prisma.link.findMany({
+    where: {
+      userId,
+      domain: SHORT_DOMAIN,
+    },
+    select: {
+      domain: true,
+      key: true,
+    },
+  });
+
+  const redisLinks = await redis.mget<SimpleLinkProps[]>(
+    ...links.map(({ domain, key }) => `${domain}:${key}`),
+  );
+
+  const pipeline = redis.pipeline();
+  redisLinks.forEach((link, index) => {
+    const { domain, key } = links[index];
+    pipeline.set(`${domain}:${key}`, {
+      ...link,
+      banned: true,
+    });
+  });
+
+  await Promise.all([
+    pipeline.exec(),
+    prisma.link.updateMany({
+      where: {
+        userId,
+        domain: SHORT_DOMAIN,
+      },
+      data: {
+        userId: LEGAL_USER_ID,
+      },
+    }),
+  ]);
 }

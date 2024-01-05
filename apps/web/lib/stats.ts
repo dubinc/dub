@@ -5,27 +5,27 @@ export type IntervalProps = "1h" | "24h" | "7d" | "30d" | "90d" | "all";
 export const INTERVALS = [
   {
     display: "Last hour",
-    slug: "1h",
+    value: "1h",
   },
   {
     display: "Last 24 hours",
-    slug: "24h",
+    value: "24h",
   },
   {
     display: "Last 7 days",
-    slug: "7d",
+    value: "7d",
   },
   {
     display: "Last 30 days",
-    slug: "30d",
+    value: "30d",
   },
   {
     display: "Last 3 months",
-    slug: "90d",
+    value: "90d",
   },
   {
     display: "All Time",
-    slug: "all",
+    value: "all",
   },
 ];
 
@@ -59,84 +59,66 @@ export const intervalData = {
 
 export type LocationTabs = "country" | "city" | "region";
 
-export type DeviceTabs = "device" | "browser" | "os" | "bot" | "ua";
+export type DeviceTabs = "device" | "browser" | "os" | "ua";
 
-export const uaToBot = (ua: string): string => {
-  if (!ua) return "Unknown Bot";
-  if (ua.includes("curl")) {
-    return "Curl Request";
-  } else if (ua.includes("Slackbot")) {
-    return "Slack Bot";
-  } else if (ua.includes("Twitterbot")) {
-    return "Twitter Bot";
-  } else if (ua.includes("facebookexternalhit")) {
-    return "Facebook Bot";
-  } else if (ua.includes("LinkedInBot")) {
-    return "LinkedIn Bot";
-  } else if (ua.includes("WhatsApp")) {
-    return "WhatsApp Bot";
-  } else if (ua.includes("TelegramBot")) {
-    return "Telegram Bot";
-  } else if (ua.includes("Discordbot")) {
-    return "Discord Bot";
-  } else if (ua.includes("Googlebot")) {
-    return "Google Bot";
-  } else if (ua.includes("Baiduspider")) {
-    return "Baidu Bot";
-  } else if (ua.includes("bingbot")) {
-    return "Bing Bot";
-  } else if (ua.includes("YandexBot")) {
-    return "Yandex Bot";
-  } else if (ua.includes("DuckDuckBot")) {
-    return "DuckDuckGo Bot";
-  } else {
-    return "Unknown Bot";
-  }
-};
-
-const VALID_TINYBIRD_ENDPOINTS = new Set([
+const VALID_TINYBIRD_ENDPOINTS = [
   "timeseries",
   "clicks",
+  "top_links",
   "country",
   "city",
   "device",
   "browser",
   "os",
-  "bot",
   "referer",
-]);
+];
+
+export const VALID_STATS_FILTERS = [
+  "country",
+  "city",
+  "device",
+  "browser",
+  "os",
+  "referer",
+];
 
 export const getStats = async ({
   domain,
   key,
   endpoint,
   interval,
+  ...rest
 }: {
   domain: string;
-  key: string;
+  key?: string;
   endpoint: string;
-  interval?: string | null;
+  interval?: string;
+} & {
+  [key in typeof VALID_STATS_FILTERS[number]]: string;
 }) => {
   // Note: we're using decodeURIComponent in this function because that's how we store it in MySQL and Tinybird
 
   if (
-    !conn ||
+    !process.env.DATABASE_URL ||
     !process.env.TINYBIRD_API_KEY ||
-    !VALID_TINYBIRD_ENDPOINTS.has(endpoint)
+    !VALID_TINYBIRD_ENDPOINTS.includes(endpoint)
   ) {
     return [];
   }
 
   // get all-time clicks count if:
   // 1. endpoint is /clicks
-  // 2. key is not _root
-  // 3. interval is not defined
-  // 4. there's a connection to MySQL
-  if (endpoint === "clicks" && key !== "_root" && !interval && conn) {
-    const response = await conn.execute(
-      "SELECT clicks FROM Link WHERE domain = ? AND `key` = ?",
-      [domain, decodeURIComponent(key)],
-    );
+  // 2. interval is not defined
+  if (endpoint === "clicks" && key && !interval) {
+    const response =
+      key === "_root"
+        ? await conn.execute("SELECT clicks FROM Domain WHERE slug = ?", [
+            domain,
+          ])
+        : await conn.execute(
+            "SELECT clicks FROM Link WHERE domain = ? AND `key` = ?",
+            [domain, decodeURIComponent(key)],
+          );
     try {
       const clicks = response.rows[0]["clicks"];
       return clicks || "0";
@@ -149,8 +131,9 @@ export const getStats = async ({
     `https://api.us-east.tinybird.co/v0/pipes/${endpoint}.json`,
   );
   url.searchParams.append("domain", domain);
-  url.searchParams.append("key", decodeURIComponent(key));
-
+  if (key) {
+    url.searchParams.append("key", decodeURIComponent(key));
+  }
   if (interval) {
     url.searchParams.append(
       "start",
@@ -166,6 +149,12 @@ export const getStats = async ({
 
     url.searchParams.append("granularity", intervalData[interval].granularity);
   }
+
+  VALID_STATS_FILTERS.forEach((filter) => {
+    if (rest[filter]) {
+      url.searchParams.append(filter, rest[filter]);
+    }
+  });
 
   return await fetch(url.toString(), {
     headers: {

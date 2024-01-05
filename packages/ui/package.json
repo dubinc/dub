@@ -1,7 +1,7 @@
 {
   "name": "@dub/ui",
   "description": "UI components for Dub.co",
-  "version": "0.0.12",
+  "version": "0.0.41",
   "sideEffects": false,
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -23,6 +23,7 @@
   "devDependencies": {
     "@dub/tailwind-config": "workspace:*",
     "@dub/utils": "workspace:*",
+    "@types/js-cookie": "^3.0.6",
     "@types/react": "^18.2.5",
     "autoprefixer": "^10.4.16",
     "next": "13.5.4",
@@ -35,17 +36,18 @@
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.0.1",
-    "@radix-ui/react-dialog": "1.0.3",
+    "@radix-ui/react-dialog": "1.0.5",
     "@radix-ui/react-navigation-menu": "^1.1.2",
-    "@radix-ui/react-popover": "1.0.5",
+    "@radix-ui/react-popover": "1.0.7",
     "@radix-ui/react-switch": "^1.0.1",
-    "@radix-ui/react-tooltip": "^1.0.2",
+    "@radix-ui/react-tooltip": "^1.0.7",
     "class-variance-authority": "^0.7.0",
+    "js-cookie": "^3.0.5",
     "lucide-react": "^0.284.0",
     "sonner": "^0.5.0",
     "swr": "^2.1.5",
     "use-debounce": "^8.0.4",
-    "vaul": "^0.6.8"
+    "vaul": "^0.8.0"
   },
   "author": "Steven Tey <stevensteel97@gmail.com>",
   "homepage": "https://dub.co",

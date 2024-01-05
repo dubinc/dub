@@ -4,8 +4,8 @@
 // to use next-auth signIn in a server action yet
 // will revisit this when that's possible
 
-import { isWhitelistedEmail } from "#/lib/edge-config";
-import { conn } from "#/lib/planetscale";
+import { isWhitelistedEmail } from "@/lib/edge-config";
+import { conn } from "@/lib/planetscale";
 
 export async function accountExists(data: FormData) {
   const email = data.get("email") as string | undefined;
@@ -15,7 +15,7 @@ export async function accountExists(data: FormData) {
       error: "Missing email",
     };
   }
-  if (!conn) {
+  if (!process.env.DATABASE_URL) {
     return {
       error: "Database connection not established",
     };

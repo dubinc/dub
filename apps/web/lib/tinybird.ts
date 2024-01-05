@@ -2,28 +2,53 @@ import {
   LOCALHOST_GEO_DATA,
   capitalize,
   getDomainWithoutWWW,
+  LOCALHOST_IP,
 } from "@dub/utils";
+import { ipAddress } from "@vercel/edge";
 import { NextRequest, userAgent } from "next/server";
 import { conn } from "./planetscale";
+import { ratelimit } from "./upstash";
+import { detectBot } from "./middleware/utils";
 
 /**
  * Recording clicks with geo, ua, referer and timestamp data
  * If key is not specified, record click as the root click ("_root", e.g. dub.sh, vercel.fyi)
  **/
-export async function recordClick(
-  domain: string,
-  req: NextRequest,
-  key?: string,
-) {
+export async function recordClick({
+  req,
+  domain,
+  key,
+}: {
+  req: NextRequest;
+  domain: string;
+  key?: string;
+}) {
+  const isBot = detectBot(req);
+  if (isBot) {
+    return null;
+  }
   const geo = process.env.VERCEL === "1" ? req.geo : LOCALHOST_GEO_DATA;
   const ua = userAgent(req);
   const referer = req.headers.get("referer");
+  const ip = ipAddress(req) || LOCALHOST_IP;
+  // deduplicate clicks from the same IP, domain and key – only record 1 click per hour
+  const { success } = await ratelimit(2, "1 h").limit(
+    `recordClick:${ip}:${domain.toLowerCase()}:${
+      key?.toLowerCase() || "_root"
+    }`,
+  );
+  if (!success) {
+    return null;
+  }
 
   return await Promise.allSettled([
     fetch(
       "https://api.us-east.tinybird.co/v0/events?name=click_events&wait=true",
       {
         method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
+        },
         body: JSON.stringify({
           timestamp: new Date(Date.now()).toISOString(),
           domain,
@@ -45,18 +70,17 @@ export async function recordClick(
           device_model: ua.device.model || "Unknown",
           cpu_architecture: ua.cpu?.architecture || "Unknown",
           bot: ua.isBot,
-          referer: referer ? getDomainWithoutWWW(referer) : "(direct)",
+          referer: referer
+            ? getDomainWithoutWWW(referer) || "(direct)"
+            : "(direct)",
           referer_url: referer || "(direct)",
         }),
-        headers: {
-          Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
-        },
       },
     ).then((res) => res.json()),
+
     // increment the click count for the link if key is specified (not root click)
     // also increment the usage count for the project, and then we have a cron that will reset it at the start of new billing cycle
-    // TODO: might wanna include root clicks in the usage count as well?
-    ...(key && conn
+    key
       ? [
           conn.execute(
             "UPDATE Link SET clicks = clicks + 1, lastClicked = NOW() WHERE domain = ? AND `key` = ?",
@@ -67,26 +91,36 @@ export async function recordClick(
             [domain],
           ),
         ]
-      : []),
+      : conn.execute(
+          "UPDATE Domain SET clicks = clicks + 1, lastClicked = NOW() WHERE slug = ?",
+          [domain],
+        ),
   ]);
 }
 
-export async function getTopLinks(domains: string[]) {
-  return await fetch(
-    `https://api.us-east.tinybird.co/v0/pipes/top_links.json?domains=${domains.join(
-      ",",
-    )}`,
+// WIP, still needs testing
+export async function deleteClickData({
+  domain,
+  key,
+}: {
+  domain: string;
+  key: string;
+}) {
+  if (!domain || !key) {
+    return null;
+  }
+  const deleteCondition = `domain='${domain}' AND key='${key}'`;
+  const response = await fetch(
+    "https://api.tinybird.co/v0/datasources/click_events/delete",
     {
+      method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
+        "Content-Type": "application/x-www-form-urlencoded",
       },
+      body: `delete_condition=${encodeURIComponent(deleteCondition)}`,
     },
-  )
-    .then((res) => res.json())
-    .then(({ data }) =>
-      data.map((link: { domain: string; key: string; clicks: number }) => ({
-        link: `${link.domain}/${link.key}`,
-        clicks: link.clicks,
-      })),
-    );
+  ).then((res) => res.json());
+  console.log({ response });
+  return response;
 }

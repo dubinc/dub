@@ -1,4 +1,4 @@
-import { ratelimit } from "#/lib/upstash";
+import { ratelimit } from "@/lib/upstash";
 import { LOCALHOST_IP } from "@dub/utils";
 import { ipAddress } from "@vercel/edge";
 import { NextResponse } from "next/server";
@@ -10,7 +10,13 @@ export async function GET(req: Request) {
   const searchParams = new URL(req.url).searchParams;
   const query = searchParams.get("query");
 
-  if (!query) return new Response("Missing query", { status: 400 });
+  if (!query) {
+    return new Response("Missing query", { status: 400 });
+  }
+
+  if (!process.env.UNSPLASH_ACCESS_KEY) {
+    return new Response("Unsplash API key not found", { status: 400 });
+  }
 
   const ip = ipAddress(req) || LOCALHOST_IP;
   const { success } = await ratelimit(10, "10 s").limit(ip);

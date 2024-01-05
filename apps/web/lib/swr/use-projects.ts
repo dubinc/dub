@@ -1,9 +1,9 @@
-import { ProjectWithDomainProps } from "#/lib/types";
+import { ProjectWithDomainProps } from "@/lib/types";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 
 export default function useProjects() {
-  const { data: projects } = useSWR<ProjectWithDomainProps[]>(
+  const { data: projects, error } = useSWR<ProjectWithDomainProps[]>(
     "/api/projects",
     fetcher,
     {
@@ -17,5 +17,7 @@ export default function useProjects() {
       primaryDomain:
         project.domains.find((domain) => domain.primary) || project.domains[0],
     })),
+    error,
+    loading: !projects && !error,
   };
 }

@@ -93,6 +93,7 @@ model Project {
   plan               String          @default("free")
   stripeId           String?         @unique // Stripe subscription ID
   billingCycleStart  Int?            // day of the month when the billing cycle starts
+  monitoringId       String?       @unique // cron job ID for monitoring
   
   sentEmails         SentEmail[]
   domains            Domain[]
@@ -133,16 +134,9 @@ model ProjectUsers {
   @@index([projectId])
 }
 
-enum EmailType {
-  firstDomainInvalidEmail
-  secondDomainInvalidEmail
-  firstUsageLimitEmail
-  secondUsageLimitEmail
-}
-
 model SentEmail {
   id        String    @id @default(cuid())
-  type      EmailType
+  type      String
   createdAt DateTime  @default(now())
   project   Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId String?
@@ -156,30 +150,35 @@ model Domain {
   verified    Boolean  @default(false)
   target      String?
   type        String   @default("redirect")
+  placeholder String   @default("https://dub.co/help/article/what-is-dub")
   description String?
   project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId   String?
   primary     Boolean  @default(false)
   links       Link[]
+  clicks      Int      @default(0)
+  lastClicked DateTime? // when the link was last clicked
   lastChecked DateTime @default(now())
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index(projectId)
-  @@index(lastChecked)
+  @@index(clicks(sort: Desc))
+  @@index(lastClicked)
+  @@index(lastChecked(sort: Asc))
 }
 
 model Link {
   id        String    @id @default(cuid())
   domain    String // domain of the link (e.g. dub.sh) – also stored on Redis
   key       String // key of the link (e.g. /github) – also stored on Redis
-  url       String    @db.LongText // target url (e.g. https://github.com/steven-tey/dub) – also stored on Redis
+  url       String    @db.LongText // target url (e.g. https://github.com/dubinc/dub) – also stored on Redis
   archived  Boolean   @default(false) // whether the link is archived or not
   expiresAt DateTime? // when the link expires – stored on Redis via ttl
-  password  String? // password to access the link – also stored on Redis
+  password  String? // password to access the link
 
   proxy       Boolean @default(false) // Proxy to use custom OG tags (stored on redis) – if false, will use OG tags from target url
-  title       String? // OG title for the link (e.g. Dub - Open-Source Bitly Alternative)
+  title       String? // OG title for the link (e.g. Dub.co - Open-Source Link Management Infrastructure)
   description String? @db.VarChar(280) // OG description for the link (e.g. An open-source link management tool for modern marketing teams to create, share, and track short links.)
   image       String? @db.LongText // OG image for the link (e.g. https://dub.sh/og-image.png)
 
@@ -208,11 +207,13 @@ model Link {
   // Relational reference to the project domain
   projectDomain Domain?  @relation(fields: [domain], references: [slug], onUpdate: Cascade, onDelete: Cascade)
 
-  publicStats Boolean  @default(false) // whether to show public stats or not
-  clicks      Int      @default(0) // number of clicks
-  lastClicked DateTime? // when the link was last clicked
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  publicStats   Boolean  @default(false) // whether to show public stats or not
+  clicks        Int      @default(0) // number of clicks
+  lastClicked   DateTime? // when the link was last clicked
+  checkDisabled Boolean  @default(false) // disable 404 checking
+  lastChecked   DateTime? // when the link was last checked for 404s
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   // Link tags
   tag   Tag?    @relation(fields: [tagId], references: [id])
@@ -232,6 +233,8 @@ model Link {
   @@index(createdAt(sort: Desc))
   @@index(clicks(sort: Desc))
   @@index(lastClicked)
+  @@index(checkDisabled)
+  @@index(lastChecked(sort: Asc))
   @@index(userId)
   @@fulltext([key, url])
 }
@@ -260,12 +263,15 @@ model jackson_index {
 }
 
 model jackson_store {
-  key        String    @id @db.VarChar(250)
-  value      String    @db.Text
-  iv         String?   @db.VarChar(64)
-  tag        String?   @db.VarChar(64)
-  createdAt  DateTime  @default(now()) @db.Timestamp(0)
-  modifiedAt DateTime? @db.Timestamp(0)
+  key               String    @id @db.VarChar(250)
+  value             String    @db.Text
+  iv                String?   @db.VarChar(64)
+  tag               String?   @db.VarChar(64)
+  namespace         String?   @db.VarChar(64)
+  createdAt         DateTime  @default(now()) @db.Timestamp(0)
+  modifiedAt        DateTime? @db.Timestamp(0)
+
+  @@index([namespace], map: "_jackson_store_namespace")
 }
 
 model jackson_ttl {

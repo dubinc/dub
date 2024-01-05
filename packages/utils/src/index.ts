@@ -3,9 +3,9 @@ import { clsx, type ClassValue } from "clsx";
 import ms from "ms";
 import { customAlphabet } from "nanoid";
 import { Metadata } from "next";
-import { NextRouter } from "next/router";
 import { twMerge } from "tailwind-merge";
 import {
+  DUB_DOMAINS,
   HOME_DOMAIN,
   SECOND_LEVEL_DOMAINS,
   SPECIAL_APEX_DOMAINS,
@@ -19,16 +19,34 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function constructMetadata({
-  title = "Dub - Link Management for Modern Marketing Teams",
-  description = "Dub is an open-source link management tool for modern marketing teams to create, share, and track short links.",
+  title = `${process.env.NEXT_PUBLIC_APP_NAME} - Link Management for Modern Marketing Teams`,
+  description = `${process.env.NEXT_PUBLIC_APP_NAME} is the open-source link management infrastructure for modern marketing teams to create, share, and track short links.`,
   image = "https://dub.co/_static/thumbnail.png",
-  icons = "/favicon.ico",
+  icons = [
+    {
+      rel: "apple-touch-icon",
+      sizes: "32x32",
+      url: "/apple-touch-icon.png",
+    },
+    {
+      rel: "icon",
+      type: "image/png",
+      sizes: "32x32",
+      url: "/favicon-32x32.png",
+    },
+    {
+      rel: "icon",
+      type: "image/png",
+      sizes: "16x16",
+      url: "/favicon-16x16.png",
+    },
+  ],
   noIndex = false,
 }: {
   title?: string;
   description?: string;
   image?: string;
-  icons?: string;
+  icons?: Metadata["icons"];
   noIndex?: boolean;
 } = {}): Metadata {
   return {
@@ -52,7 +70,6 @@ export function constructMetadata({
     },
     icons,
     metadataBase: new URL(HOME_DOMAIN),
-    themeColor: "#FFF",
     ...(noIndex && {
       robots: {
         index: false,
@@ -138,21 +155,21 @@ export const chunk = <T>(array: T[], chunk_size: number): T[][] => {
 };
 
 export function linkConstructor({
-  key,
   domain = "dub.sh",
+  key,
   localhost,
   pretty,
   noDomain,
 }: {
-  key: string;
   domain?: string;
+  key?: string;
   localhost?: boolean;
   pretty?: boolean;
   noDomain?: boolean;
 }) {
   const link = `${
     localhost ? "http://home.localhost:8888" : `https://${domain}`
-  }${key !== "_root" ? `/${key}` : ""}`;
+  }${key && key !== "_root" ? `/${key}` : ""}`;
 
   if (noDomain) return `/${key}`;
   return pretty ? link.replace(/^https?:\/\//, "") : link;
@@ -319,7 +336,7 @@ export const isValidUrl = (url: string) => {
 };
 
 export const getUrlFromString = (str: string) => {
-  if (isValidUrl(str)) return str;
+  if (isValidUrl(str)) return new URL(str).toString();
   try {
     if (str.includes(".") && !str.includes(" ")) {
       return new URL(`https://${str}`).toString();
@@ -342,43 +359,19 @@ export const getDomainWithoutWWW = (url: string) => {
   }
 };
 
-export const getQueryString = (
-  router: NextRouter,
-  opts?: Record<string, string>,
-) => {
-  const queryString = new URLSearchParams({
-    ...(router.query as Record<string, string>),
-    ...opts,
-  }).toString();
-  return `${queryString ? "?" : ""}${queryString}`;
+export const isDubDomain = (domain: string) => {
+  return DUB_DOMAINS.some((d) => d.slug === domain);
 };
 
-export const setQueryString = ({
-  router,
-  param,
-  value,
-}: {
-  router: NextRouter;
-  param: string;
-  value: string;
-}) => {
-  if (param !== "page") delete router.query.page;
-  let newQuery;
-  if (value.length > 0) {
-    newQuery = {
-      ...router.query,
-      [param]: value,
-    };
-  } else {
-    delete router.query[param];
-    newQuery = { ...router.query };
-  }
-  // here, we omit the slug from the query string as well
-  const { slug, ...finalQuery } = newQuery;
-  router.replace({
-    pathname: `/${router.query.slug || "links"}`,
-    query: finalQuery,
+export const getSearchParams = (url: string) => {
+  // Create a params object
+  let params = {} as Record<string, string>;
+
+  new URL(url).searchParams.forEach(function (val, key) {
+    params[key] = val;
   });
+
+  return params;
 };
 
 export const truncate = (str: string | null, length: number) => {

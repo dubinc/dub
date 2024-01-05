@@ -1,10 +1,11 @@
 "use client";
 
-import { APP_DOMAIN, cn } from "@dub/utils";
+import { APP_DOMAIN, cn, fetcher } from "@dub/utils";
 import { ChevronDown, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import useSWR from "swr";
 import { FEATURES_LIST } from "./content";
 import { navItems } from "./nav";
 
@@ -20,6 +21,14 @@ export function NavMobile() {
       document.body.style.overflow = "auto";
     }
   }, [open]);
+
+  const { data: session, isLoading } = useSWR(
+    domain === "dub.co" && "/api/auth/session",
+    fetcher,
+    {
+      dedupingInterval: 60000,
+    },
+  );
 
   return (
     <>
@@ -63,8 +72,8 @@ export function NavMobile() {
                     key={slug}
                     href={
                       domain === "dub.co"
-                        ? `/features/${slug}`
-                        : `https://dub.co/features/${slug}?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`
+                        ? `/${slug}`
+                        : `https://dub.co/${slug}`
                     }
                     onClick={() => setOpen(false)}
                     className="flex w-full space-x-2"
@@ -80,9 +89,7 @@ export function NavMobile() {
             <li key={slug} className="py-3">
               <Link
                 href={
-                  domain === "dub.co"
-                    ? `/${slug}`
-                    : `https://dub.co/${slug}?utm_source=${domain}&utm_medium=referral&utm_campaign=custom-domain`
+                  domain === "dub.co" ? `/${slug}` : `https://dub.co/${slug}`
                 }
                 onClick={() => setOpen(false)}
                 className="flex w-full font-semibold capitalize"
@@ -92,23 +99,36 @@ export function NavMobile() {
             </li>
           ))}
 
-          <li className="py-3">
-            <Link
-              href={`${APP_DOMAIN}/login`}
-              className="flex w-full font-semibold capitalize"
-            >
-              Log in
-            </Link>
-          </li>
+          {session && Object.keys(session).length > 0 ? (
+            <li className="py-3">
+              <Link
+                href={APP_DOMAIN}
+                className="flex w-full font-semibold capitalize"
+              >
+                Dashboard
+              </Link>
+            </li>
+          ) : (
+            <>
+              <li className="py-3">
+                <Link
+                  href={`${APP_DOMAIN}/login`}
+                  className="flex w-full font-semibold capitalize"
+                >
+                  Log in
+                </Link>
+              </li>
 
-          <li className="py-3">
-            <Link
-              href={`${APP_DOMAIN}/register`}
-              className="flex w-full font-semibold capitalize"
-            >
-              Sign Up
-            </Link>
-          </li>
+              <li className="py-3">
+                <Link
+                  href={`${APP_DOMAIN}/register`}
+                  className="flex w-full font-semibold capitalize"
+                >
+                  Sign Up
+                </Link>
+              </li>
+            </>
+          )}
         </ul>
       </nav>
     </>

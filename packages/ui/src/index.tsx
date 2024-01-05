@@ -31,5 +31,6 @@ export * from "./content";
 // misc
 export * from "./copy-button";
 export * from "./icon-menu";
+export * from "./inline-snippet";
 export * from "./link-preview";
 export * from "./tab-select";

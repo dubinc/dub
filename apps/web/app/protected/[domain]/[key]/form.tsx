@@ -1,10 +1,10 @@
 "use client";
 
-import { AlertCircleFill } from "@/components/shared/icons";
+import { AlertCircleFill } from "@/ui/shared/icons";
 import { Button } from "@dub/ui";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useState } from "react";
-import { experimental_useFormStatus as useFormStatus } from "react-dom";
+import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
 import { verifyPassword } from "./action";
 
@@ -13,19 +13,16 @@ export default function PasswordForm() {
     domain: string;
     key: string;
   };
-  const router = useRouter();
-
   const [error, setError] = useState(false);
 
   return (
     <form
+      data-testid="password-form"
       action={(data) =>
         verifyPassword(data).then((res) => {
           if (res.error) {
             setError(true);
             toast.error(res.error);
-          } else {
-            router.push(res.url!);
           }
         })
       }
@@ -76,5 +73,5 @@ export default function PasswordForm() {
 
 const FormButton = () => {
   const { pending } = useFormStatus();
-  return <Button text="Authenticate" loading={pending} />;
+  return <Button text="Log in" loading={pending} />;
 };

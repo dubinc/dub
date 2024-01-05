@@ -1,0 +1,32 @@
+DESCRIPTION >
+	This is used for the 30-day summary email
+
+
+TOKEN "usage_endpoint_read_8241" READ
+
+NODE top_links_node
+DESCRIPTION >
+    undefined
+
+SQL >
+
+    %
+    SELECT domain, key, COUNT(*) AS clicks
+    FROM click_events
+    WHERE
+        domain IN {{ Array(domain, 'String', default='stey.me') }}
+        {% if defined(key) %}
+            AND key IN {{ Array(key, 'String', default='twitter') }}
+        {% end %}
+        {% if defined(country) %} AND country = {{ country }} {% end %}
+        {% if defined(city) %} AND city = {{ city }} {% end %}
+        {% if defined(device) %} AND device = {{ device }} {% end %}
+        {% if defined(browser) %} AND browser = {{ browser }} {% end %}
+        {% if defined(os) %} AND os = {{ os }} {% end %}
+        {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+        {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
+        {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
+    GROUP BY domain, key
+    ORDER BY clicks DESC
+
+

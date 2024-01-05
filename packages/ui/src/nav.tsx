@@ -1,11 +1,12 @@
 "use client";
 
-import { APP_DOMAIN, SHOW_BACKGROUND_SEGMENTS, cn } from "@dub/utils";
+import { APP_DOMAIN, HIDE_BACKGROUND_SEGMENTS, cn, fetcher } from "@dub/utils";
 import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu";
 import va from "@vercel/analytics";
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { useParams, useSelectedLayoutSegment } from "next/navigation";
+import useSWR from "swr";
 import { FEATURES_LIST } from "./content";
 import { useScroll } from "./hooks";
 import { LogoType } from "./icons";
@@ -17,16 +18,20 @@ export const navItems = [
     slug: "customers",
   },
   {
-    name: "Changelog",
-    slug: "changelog",
-  },
-  {
-    name: "Help",
-    slug: "help",
-  },
-  {
     name: "Pricing",
     slug: "pricing",
+  },
+  {
+    name: "Enterprise",
+    slug: "enterprise",
+  },
+  {
+    name: "Blog",
+    slug: "blog",
+  },
+  {
+    name: "Changelog",
+    slug: "changelog",
   },
 ];
 
@@ -35,13 +40,20 @@ export function Nav() {
   const scrolled = useScroll(80);
   const selectedLayout = useSelectedLayoutSegment();
   const helpCenter = selectedLayout === "help";
+  const { data: session, isLoading } = useSWR(
+    domain === "dub.co" && "/api/auth/session",
+    fetcher,
+    {
+      dedupingInterval: 60000,
+    },
+  );
 
   return (
     <div
       className={cn(`sticky inset-x-0 top-0 z-30 w-full transition-all backdrop-blur-lg`, {
         "border-b border-gray-200 bg-white/75": scrolled,
         "border-b border-gray-200 bg-white":
-          selectedLayout && !SHOW_BACKGROUND_SEGMENTS.includes(selectedLayout),
+          selectedLayout && HIDE_BACKGROUND_SEGMENTS.includes(selectedLayout),
       })}
     >
       <MaxWidthWrapper
@@ -103,14 +115,14 @@ export function Nav() {
                               key={slug}
                               href={
                                 domain === "dub.co"
-                                  ? `/features/${slug}`
-                                  : `https://dub.co/features/${slug}`
+                                  ? `/${slug}`
+                                  : `https://dub.co/${slug}`
                               }
                               {...(domain !== "dub.co" && {
                                 onClick: () => {
                                   va.track("Referred from custom domain", {
                                     domain,
-                                    medium: `navbar item (features/${slug})`,
+                                    medium: `navbar item (/${slug})`,
                                   });
                                 },
                               })}
@@ -169,34 +181,45 @@ export function Nav() {
           </div>
 
           <div className="hidden lg:block">
-            <Link
-              href={`${APP_DOMAIN}/login`}
-              {...(domain !== "dub.co" && {
-                onClick: () => {
-                  va.track("Referred from custom domain", {
-                    domain,
-                    medium: `navbar item (login)`,
-                  });
-                },
-              })}
-              className="animate-fade-in rounded-full px-4 py-1.5 text-sm font-medium text-gray-500 transition-colors ease-out hover:text-black"
-            >
-              Log in
-            </Link>
-            <Link
-              href={`${APP_DOMAIN}/register`}
-              {...(domain !== "dub.co" && {
-                onClick: () => {
-                  va.track("Referred from custom domain", {
-                    domain,
-                    medium: `navbar item (signup)`,
-                  });
-                },
-              })}
-              className="animate-fade-in rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
-            >
-              Sign Up
-            </Link>
+            {session && Object.keys(session).length > 0 ? (
+              <Link
+                href={APP_DOMAIN}
+                className="animate-fade-in rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
+              >
+                Dashboard
+              </Link>
+            ) : !isLoading ? (
+              <>
+                <Link
+                  href={`${APP_DOMAIN}/login`}
+                  {...(domain !== "dub.co" && {
+                    onClick: () => {
+                      va.track("Referred from custom domain", {
+                        domain,
+                        medium: `navbar item (login)`,
+                      });
+                    },
+                  })}
+                  className="animate-fade-in rounded-full px-4 py-1.5 text-sm font-medium text-gray-500 transition-colors ease-out hover:text-black"
+                >
+                  Log in
+                </Link>
+                <Link
+                  href={`${APP_DOMAIN}/register`}
+                  {...(domain !== "dub.co" && {
+                    onClick: () => {
+                      va.track("Referred from custom domain", {
+                        domain,
+                        medium: `navbar item (signup)`,
+                      });
+                    },
+                  })}
+                  className="animate-fade-in rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
+                >
+                  Sign Up
+                </Link>
+              </>
+            ) : null}
           </div>
         </div>
       </MaxWidthWrapper>

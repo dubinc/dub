@@ -4,7 +4,7 @@ import { Button, Copy, LoadingSpinner, Tick } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { experimental_useFormStatus as useFormStatus } from "react-dom";
+import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
 import { banUser, getUserByKey } from "../actions";
 
@@ -18,8 +18,6 @@ export default function BanUser() {
   } | null>(null);
   const [copied, setCopied] = useState(false);
   const router = useRouter();
-
-  console.log(data?.proProjectSlugs);
 
   return (
     <div className="flex flex-col space-y-5">
@@ -144,7 +142,6 @@ const Form = () => {
         name="key"
         id="key"
         type="text"
-        autoFocus
         required
         disabled={pending}
         autoComplete="off"

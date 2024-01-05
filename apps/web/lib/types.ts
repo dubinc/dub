@@ -1,9 +1,31 @@
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
+
+export { type Link as LinkProps } from "@prisma/client";
 export interface SimpleLinkProps {
-  domain?: string;
+  domain: string;
   key: string;
   url: string;
 }
+
+export interface QRLinkProps {
+  domain: string;
+  key?: string;
+  url?: string;
+}
+
+export interface RedisLinkProps {
+  url: string;
+  password?: boolean;
+  proxy?: boolean;
+  rewrite?: boolean;
+  iframeable?: boolean;
+  expiresAt?: string;
+  ios?: string;
+  android?: string;
+  geo?: object;
+  banned?: boolean;
+}
+
 export interface TagProps {
   id: string;
   name: string;
@@ -32,7 +54,6 @@ export interface ProjectProps {
   stripeId?: string;
   billingCycleStart?: number;
   createdAt?: Date;
-
   domains?: {
     slug: string;
   }[];
@@ -59,6 +80,7 @@ export interface UserProps {
 export type DomainVerificationStatusProps =
   | "Valid Configuration"
   | "Invalid Configuration"
+  | "Conflicting DNS Records"
   | "Pending Verification"
   | "Domain Not Found"
   | "Unknown Error";
@@ -69,6 +91,8 @@ export interface DomainProps {
   primary: boolean;
   target?: string;
   type: "redirect" | "rewrite";
+  placeholder?: string;
+  clicks: number;
 }
 
 export interface BitlyGroupProps {
@@ -77,7 +101,7 @@ export interface BitlyGroupProps {
   tags: string[];
 }
 
-export interface ShortioDomainProps {
+export interface ImportedDomainCountProps {
   id: number;
   domain: string;
   links: number;

@@ -1,0 +1,28 @@
+
+SCHEMA >
+    `timestamp` DateTime64(3) `json:$.timestamp`,
+    `domain` String `json:$.domain`,
+    `key` String `json:$.key`,
+    `country` LowCardinality(String) `json:$.country`,
+    `city` String `json:$.city`,
+    `device` LowCardinality(String) `json:$.device`,
+    `browser` LowCardinality(String) `json:$.browser`,
+    `os` LowCardinality(String) `json:$.os`,
+    `bot` UInt8 `json:$.bot`,
+    `referer` String `json:$.referer`,
+    `browser_version` String `json:$.browser_version`,
+    `engine` LowCardinality(String) `json:$.engine`,
+    `engine_version` String `json:$.engine_version`,
+    `latitude` String `json:$.latitude`,
+    `longitude` String `json:$.longitude`,
+    `os_version` String `json:$.os_version`,
+    `region` String `json:$.region`,
+    `ua` String `json:$.ua`,
+    `device_model` LowCardinality(String) `json:$.device_model`,
+    `device_vendor` LowCardinality(String) `json:$.device_vendor`,
+    `cpu_architecture` LowCardinality(String) `json:$.cpu_architecture`,
+    `referer_url` String `json:$.referer_url`
+
+ENGINE "MergeTree"
+ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
+ENGINE_SORTING_KEY "domain, key, timestamp"

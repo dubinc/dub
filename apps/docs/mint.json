@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/schema.json",
-  "name": "Docs",
+  "name": "Dub.co Docs",
   "logo": {
     "dark": "/logos/logotype-dark.svg",
     "light": "/logos/logotype.svg",
@@ -30,24 +30,48 @@
     "url": "https://app.dub.co"
   },
   "openapi": "https://api.dub.sh",
+  "tabs": [
+    {
+      "name": "API Reference",
+      "url": "api-reference"
+    }
+  ],
   "anchors": [
+    {
+      "name": "Documentation",
+      "icon": "book-open-cover",
+      "url": "introduction"
+    },
+    {
+      "name": "API Reference",
+      "icon": "rectangle-terminal",
+      "url": "api-reference"
+    },
     {
       "name": "Help Center",
       "icon": "question",
       "url": "https://dub.co/help"
     },
     {
-      "name": "Blog",
-      "icon": "newspaper",
-      "url": "https://dub.co/blog"
-    },
-    {
       "name": "GitHub",
       "icon": "github",
-      "url": "https://dub.sh/github"
+      "url": "https://github.com/dubinc/dub"
     }
   ],
   "navigation": [
+    {
+      "group": "Getting Started",
+      "pages": ["introduction", "self-hosting/guide"]
+    },
+    {
+      "group": "Integrations",
+      "pages": [
+        "integrations/zapier",
+        "integrations/pipedream",
+        "integrations/make",
+        "integrations/raycast"
+      ]
+    },
     {
       "group": "API Reference",
       "pages": ["api-reference/introduction", "api-reference/rate-limits"]
@@ -59,16 +83,22 @@
         "api-reference/endpoint/retrieve-a-link",
         "api-reference/endpoint/edit-a-link",
         "api-reference/endpoint/delete-a-link",
-        "api-reference/endpoint/retrieve-a-list-of-links"
+        "api-reference/endpoint/retrieve-a-list-of-links",
+        "api-reference/endpoint/bulk-create-links"
       ]
     },
     {
-      "group": "Integrations",
+      "group": "Projects",
       "pages": [
-        "integrations/zapier",
-        "integrations/pipedream",
-        "integrations/make",
-        "integrations/raycast"
+        "api-reference/endpoint/retrieve-a-project",
+        "api-reference/endpoint/retrieve-a-list-of-projects"
+      ]
+    },
+    {
+      "group": "Tags",
+      "pages": [
+        "api-reference/endpoint/create-a-new-tag",
+        "api-reference/endpoint/retrieve-a-list-of-tags"
       ]
     }
   ],

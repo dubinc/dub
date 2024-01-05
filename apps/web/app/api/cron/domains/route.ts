@@ -2,9 +2,9 @@ import {
   getConfigResponse,
   getDomainResponse,
   verifyDomain,
-} from "#/lib/api/domains";
-import { receiver } from "#/lib/cron";
-import prisma from "#/lib/prisma";
+} from "@/lib/api/domains";
+import { verifySignature } from "@/lib/cron";
+import prisma from "@/lib/prisma";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { handleDomainUpdates } from "./utils";
@@ -17,16 +17,10 @@ import { handleDomainUpdates } from "./utils";
  **/
 // Runs every 3 hours (0 */3 * * *)
 
-export async function POST(req: Request) {
-  const body = await req.json();
-  if (process.env.VERCEL === "1") {
-    const isValid = await receiver.verify({
-      signature: req.headers.get("Upstash-Signature") || "",
-      body: JSON.stringify(body),
-    });
-    if (!isValid) {
-      return new Response("Unauthorized", { status: 401 });
-    }
+export async function GET(req: Request) {
+  const validSignature = await verifySignature(req);
+  if (!validSignature) {
+    return new Response("Unauthorized", { status: 401 });
   }
 
   try {
@@ -36,12 +30,13 @@ export async function POST(req: Request) {
           // exclude domains that belong to us
           notIn: [
             "dub.sh",
+            "chatg.pt",
+            "amzn.id",
+            "spti.fi",
             "stey.me",
             "steven.yt",
-            "vercel.fyi",
-            "vercel.link",
+            "steven.blue",
             "owd.li",
-            "chatg.pt",
             "elegance.ai",
           ],
         },
@@ -50,6 +45,7 @@ export async function POST(req: Request) {
         slug: true,
         verified: true,
         primary: true,
+        clicks: true,
         createdAt: true,
         projectId: true,
         _count: {
@@ -107,6 +103,7 @@ export async function POST(req: Request) {
           verified: newVerified,
           primary,
           changed,
+          clicks: domain.clicks,
           linksCount: _count.links,
         });
 

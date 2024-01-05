@@ -1,0 +1,57 @@
+---
+openapi: post /links/bulk
+description: Bulk create up to 100 links for the authenticated project.
+---
+
+<Note>
+  Bulk link creation is only available on the [Pro plan](https://dub.sh/pro) and
+  above.
+</Note>
+
+<Warning>
+  Bulk link creation does not support the following features: [Link
+  cloaking](https://dub.co/help/article/how-to-create-link#link-cloaking),
+  [Custom social media cards](https://dub.co/help/article/how-to-create-link#custom-social-media-cards)
+</Warning>
+
+<RequestExample>
+```bash cURL
+curl --request POST \
+  --url https://api.dub.co/links/bulk?projectSlug={YOUR_PROJECT_SLUG} \
+  --header 'Authorization: Bearer {YOUR_TOKEN}' \
+  --header 'Content-Type: application/json' \
+  --data '[
+    {
+      "domain": "yourdomain.com",
+      "url": "https://www.youtube.com/"
+    },
+    {
+      "domain": "yourdomain.com",
+      "url": "https://www.google.com/"
+    }
+    ...
+  ]'
+```
+```javascript JavaScript
+const options = {
+  method: 'POST',
+  headers: {Authorization: 'Bearer {YOUR_TOKEN}', 'Content-Type': 'application/json'},
+  body: JSON.stringify([
+    {
+      "domain": "yourdomain.com",
+      "url": "https://www.youtube.com/"
+    },
+    {
+      "domain": "yourdomain.com",
+      "url": "https://www.google.com/"
+    },
+    ...
+  ])
+};
+
+fetch('https://api.dub.co/projects/steven/links/bulk', options)
+  .then(response => response.json())
+  .then(response => console.log(response))
+  .catch(err => console.error(err));
+```
+</RequestExample>
