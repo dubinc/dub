@@ -37,7 +37,7 @@ export const GET = async (
   } else {
     const data = await getLinkViaEdge(domain, key);
     // if the link is explicitly private (publicStats === false)
-    if (data?.publicStats === 0) {
+    if (!data?.publicStats) {
       return new Response(`Stats for this link are not public`, {
         status: 403,
       });
