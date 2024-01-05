@@ -43,25 +43,30 @@ export default async function LinkMiddleware(
 
   const inspectMode = key.endsWith("+");
 
-  const response = await redis.get<RedisLinkProps>(
-    // if inspect mode is enabled, remove the trailing `+` from the key
-    `${domain}:${inspectMode ? key.slice(0, -1) : key}`,
+  // const response = await redis.get<RedisLinkProps>(
+  //   // if inspect mode is enabled, remove the trailing `+` from the key
+  //   `${domain}:${inspectMode ? key.slice(0, -1) : key}`,
+  // );
+
+  const response = await getLinkViaEdge(
+    domain,
+    inspectMode ? key.slice(0, -1) : key,
   );
 
   const {
-    url: target,
+    url,
     password,
     proxy,
     rewrite,
-    iframeable,
+    // iframeable,
     expiresAt,
     ios,
     android,
     geo,
-    banned,
+    // banned,
   } = response || {};
 
-  if (target) {
+  if (url) {
     // only show inspect modal if the link is not password protected
     if (inspectMode && !password) {
       return NextResponse.rewrite(
@@ -88,11 +93,11 @@ export default async function LinkMiddleware(
     }
 
     // if the link is banned
-    if (banned) {
-      return NextResponse.rewrite(
-        new URL(`/banned/${domain}/${encodeURIComponent(key)}`, req.url),
-      );
-    }
+    // if (banned) {
+    //   return NextResponse.rewrite(
+    //     new URL(`/banned/${domain}/${encodeURIComponent(key)}`, req.url),
+    //   );
+    // }
 
     // if the link has expired
     if (expiresAt && new Date(expiresAt) < new Date()) {
@@ -119,15 +124,21 @@ export default async function LinkMiddleware(
 
       // rewrite to target URL if link cloaking is enabled
     } else if (rewrite) {
-      if (iframeable) {
-        return NextResponse.rewrite(
-          new URL(`/rewrite/${target}`, req.url),
-          DUB_HEADERS,
-        );
-      } else {
-        // if link is not iframeable, use Next.js rewrite instead
-        return NextResponse.rewrite(decodeURIComponent(target), DUB_HEADERS);
-      }
+      // if (iframeable) {
+      //   return NextResponse.rewrite(
+      //     new URL(`/rewrite/${target}`, req.url),
+      //     DUB_HEADERS,
+      //   );
+      // } else {
+      //   // if link is not iframeable, use Next.js rewrite instead
+      //   return NextResponse.rewrite(decodeURIComponent(target), DUB_HEADERS);
+      // }
+
+      // return NextResponse.rewrite(
+      //   new URL(`/rewrite/${encodeURIComponent(url)}`, req.url),
+      //   DUB_HEADERS,
+      // );
+      return NextResponse.rewrite(url, DUB_HEADERS);
 
       // redirect to iOS link if it is specified and the user is on an iOS device
     } else if (ios && userAgent(req).os?.name === "iOS") {
@@ -138,7 +149,7 @@ export default async function LinkMiddleware(
       return NextResponse.redirect(getFinalUrl(android, { req }), DUB_HEADERS);
 
       // redirect to geo-specific link if it is specified and the user is in the specified country
-    } else if (geo && country && country in geo) {
+    } else if (geo && typeof geo === "object" && country && country in geo) {
       return NextResponse.redirect(
         getFinalUrl(geo[country], { req }),
         DUB_HEADERS,
@@ -146,7 +157,7 @@ export default async function LinkMiddleware(
 
       // regular redirect
     } else {
-      return NextResponse.redirect(getFinalUrl(target, { req }), DUB_HEADERS);
+      return NextResponse.redirect(getFinalUrl(url, { req }), DUB_HEADERS);
     }
   } else {
     // short link not found, redirect to root
