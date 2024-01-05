@@ -5,7 +5,10 @@ import { customAlphabet } from "nanoid";
 import { Metadata } from "next";
 import { twMerge } from "tailwind-merge";
 import {
+  DUB_DESCRIPTION,
   DUB_DOMAINS,
+  DUB_THUMBNAIL,
+  DUB_TITLE,
   HOME_DOMAIN,
   SECOND_LEVEL_DOMAINS,
   SPECIAL_APEX_DOMAINS,
@@ -19,9 +22,9 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function constructMetadata({
-  title = `${process.env.NEXT_PUBLIC_APP_NAME} - Link Management for Modern Marketing Teams`,
-  description = `${process.env.NEXT_PUBLIC_APP_NAME} is the open-source link management infrastructure for modern marketing teams to create, share, and track short links.`,
-  image = "https://dub.co/_static/thumbnail.png",
+  title = DUB_TITLE,
+  description = DUB_DESCRIPTION,
+  image = DUB_THUMBNAIL,
   icons = [
     {
       rel: "apple-touch-icon",

@@ -1,37 +1,11 @@
-export const LOCALHOST_GEO_DATA = {
-  city: "San Francisco",
-  region: "CA",
-  country: "US",
-  latitude: "37.7695",
-  longitude: "-122.385",
-};
-export const LOCALHOST_IP = "63.141.57.109";
+export { default as ccTLDs } from "./cctlds";
+export { default as COUNTRIES } from "./countries";
 
-export const FRAMER_MOTION_LIST_ITEM_VARIANTS = {
-  hidden: { scale: 0.8, opacity: 0 },
-  show: { scale: 1, opacity: 1, transition: { type: "spring" } },
-};
-
-export const STAGGER_CHILD_VARIANTS = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.4, type: "spring" } },
-};
-
-export const SWIPE_REVEAL_ANIMATION_SETTINGS = {
-  initial: { height: 0 },
-  animate: { height: "auto" },
-  exit: { height: 0 },
-  transition: { duration: 0.15, ease: "easeOut" },
-};
-
-export const FADE_IN_ANIMATION_SETTINGS = {
-  initial: { opacity: 0 },
-  animate: { opacity: 1 },
-  exit: { opacity: 0 },
-  transition: { duration: 0.2 },
-};
-
-export const PAGINATION_LIMIT = 100;
+export const DUB_TITLE = `${process.env.NEXT_PUBLIC_APP_NAME} - Link Management for Modern Marketing Teams`;
+export const DUB_DESCRIPTION = `${process.env.NEXT_PUBLIC_APP_NAME} is the open-source link management infrastructure for modern marketing teams to create, share, and track short links.`;
+export const DUB_LOGO = "https://d2vwwcvoksz7ty.cloudfront.net/logo.png";
+export const DUB_THUMBNAIL =
+  "https://d2vwwcvoksz7ty.cloudfront.net/thumbnail.png";
 
 export const SHORT_DOMAIN =
   process.env.NEXT_PUBLIC_APP_SHORT_DOMAIN || "dub.sh";
@@ -101,10 +75,6 @@ export const DUB_HEADERS = {
 export const GOOGLE_FAVICON_URL =
   "https://www.google.com/s2/favicons?sz=64&domain_url=";
 
-export const DUB_LOGO = "https://d2vwwcvoksz7ty.cloudfront.net/logo.png";
-export const DUB_THUMBNAIL =
-  "https://d2vwwcvoksz7ty.cloudfront.net/thumbnail.png";
-
 export const HIDE_BACKGROUND_SEGMENTS = [
   "stats",
   "changelog",
@@ -169,8 +139,40 @@ export const ALL_TOOLS = [
   { name: "Link Inspector", slug: "inspector" },
 ];
 
-export { default as ccTLDs } from "./cctlds";
-export { default as COUNTRIES } from "./countries";
+export const LOCALHOST_GEO_DATA = {
+  city: "San Francisco",
+  region: "CA",
+  country: "US",
+  latitude: "37.7695",
+  longitude: "-122.385",
+};
+export const LOCALHOST_IP = "63.141.57.109";
+
+export const FRAMER_MOTION_LIST_ITEM_VARIANTS = {
+  hidden: { scale: 0.8, opacity: 0 },
+  show: { scale: 1, opacity: 1, transition: { type: "spring" } },
+};
+
+export const STAGGER_CHILD_VARIANTS = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.4, type: "spring" } },
+};
+
+export const SWIPE_REVEAL_ANIMATION_SETTINGS = {
+  initial: { height: 0 },
+  animate: { height: "auto" },
+  exit: { height: 0 },
+  transition: { duration: 0.15, ease: "easeOut" },
+};
+
+export const FADE_IN_ANIMATION_SETTINGS = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  exit: { opacity: 0 },
+  transition: { duration: 0.2 },
+};
+
+export const PAGINATION_LIMIT = 100;
 
 export const SECOND_LEVEL_DOMAINS = new Set([
   "com",

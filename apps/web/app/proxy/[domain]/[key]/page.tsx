@@ -1,5 +1,8 @@
 import { getLinkViaEdge } from "@/lib/planetscale";
 import {
+  DUB_DESCRIPTION,
+  DUB_THUMBNAIL,
+  DUB_TITLE,
   GOOGLE_FAVICON_URL,
   constructMetadata,
   getApexDomain,
@@ -19,16 +22,22 @@ export async function generateMetadata({
 
   const data = await getLinkViaEdge(domain, key);
 
-  if (!data || data.proxy === 0) {
+  if (!data?.proxy) {
     return;
   }
 
   const apexDomain = getApexDomain(data.url);
 
+  const title = data.title ? unescape(data.title) : DUB_TITLE;
+  const description = data.description
+    ? unescape(data.description)
+    : DUB_DESCRIPTION;
+  const image = data.image ? unescape(data.image) : DUB_THUMBNAIL;
+
   return constructMetadata({
-    title: unescape(data.title),
-    description: unescape(data.description),
-    image: unescape(data.image),
+    title,
+    description,
+    image,
     icons: `${GOOGLE_FAVICON_URL}${unescape(apexDomain)}`,
     noIndex: true,
   });
@@ -49,31 +58,31 @@ export default async function ProxyPage({
     notFound();
 
     // if the link does not have proxy enabled, redirect to the original URL
-  } else if (data.proxy === 0) {
+  } else if (data.proxy === false) {
     redirect(data.url);
   }
 
   const apexDomain = getApexDomain(data.url);
 
+  const title = data.title ? unescape(data.title) : DUB_TITLE;
+  const description = data.description
+    ? unescape(data.description)
+    : DUB_DESCRIPTION;
+  const image = data.image ? unescape(data.image) : DUB_THUMBNAIL;
+
   return (
     <main className="flex h-screen w-screen items-center justify-center">
       <div className="mx-5 w-full max-w-lg overflow-hidden rounded-lg border border-gray-200 sm:mx-0">
-        <img
-          src={unescape(data.image)}
-          alt={unescape(data.title)}
-          className="w-full object-cover"
-        />
+        <img src={image} alt={title} className="w-full object-cover" />
         <div className="flex space-x-3 bg-gray-100 p-5">
           <img
             src={`${GOOGLE_FAVICON_URL}${unescape(apexDomain)}`}
-            alt={unescape(data.title)}
+            alt={title}
             className="mt-1 h-6 w-6"
           />
           <div className="flex flex-col space-y-3">
-            <h1 className="font-bold text-gray-700">{unescape(data.title)}</h1>
-            <p className="text-sm text-gray-500">
-              {unescape(data.description)}
-            </p>
+            <h1 className="font-bold text-gray-700">{title}</h1>
+            <p className="text-sm text-gray-500">{description}</p>
           </div>
         </div>
       </div>
