@@ -6,6 +6,13 @@ export interface SimpleLinkProps {
   key: string;
   url: string;
 }
+
+export interface QRLinkProps {
+  domain: string;
+  key?: string;
+  url?: string;
+}
+
 export interface RedisLinkProps {
   url: string;
   password?: boolean;
