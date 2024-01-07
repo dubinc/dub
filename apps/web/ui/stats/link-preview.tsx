@@ -1,5 +1,5 @@
 import { UserProps } from "@/lib/types";
-import { Avatar, CopyButton } from "@dub/ui";
+import { Avatar, CopyButton } from "@dub/ui/src";
 import {
   GOOGLE_FAVICON_URL,
   cn,

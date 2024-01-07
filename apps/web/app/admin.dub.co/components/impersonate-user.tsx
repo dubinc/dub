@@ -1,6 +1,6 @@
 "use client";
 
-import { Copy, LoadingSpinner, Tick } from "@dub/ui";
+import { Copy, LoadingSpinner, Tick } from "@dub/ui/src";
 import { cn } from "@dub/utils";
 import { useState } from "react";
 import { useFormStatus } from "react-dom";

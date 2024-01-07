@@ -2,7 +2,7 @@
 
 import LinksContainer from "@/ui/links/links-container";
 import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
-import { MaxWidthWrapper } from "@dub/ui";
+import { MaxWidthWrapper } from "@dub/ui/src";
 
 export default function LinksClient() {
   const { AddEditLinkModal, AddEditLinkButton } = useAddEditLinkModal();

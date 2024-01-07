@@ -2,7 +2,7 @@
 
 import { useDeleteTokenModal } from "@/ui/modals/delete-token-modal";
 import { useTokenCreatedModal } from "@/ui/modals/token-created-modal";
-import { Form, IconMenu, LoadingSpinner, Popover, TokenAvatar } from "@dub/ui";
+import { Form, IconMenu, LoadingSpinner, Popover, TokenAvatar } from "@dub/ui/src";
 import { fetcher, timeAgo } from "@dub/utils";
 import { Token } from "@prisma/client";
 import { FolderOpen, MoreVertical, Trash } from "lucide-react";

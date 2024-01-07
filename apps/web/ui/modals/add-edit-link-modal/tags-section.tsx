@@ -1,6 +1,6 @@
 import useTags from "@/lib/swr/use-tags";
 import TagBadge from "@/ui/links/tag-badge";
-import { LoadingCircle, SimpleTooltipContent, Tooltip } from "@dub/ui";
+import { LoadingCircle, SimpleTooltipContent, Tooltip } from "@dub/ui/src";
 import { HOME_DOMAIN } from "@dub/utils";
 import { type Link as LinkProps } from "@prisma/client";
 import { Command, useCommandState } from "cmdk";

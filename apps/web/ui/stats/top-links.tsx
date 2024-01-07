@@ -1,4 +1,4 @@
-import { LoadingSpinner, Modal, useRouterStuff } from "@dub/ui";
+import { LoadingSpinner, Modal, useRouterStuff } from "@dub/ui/src";
 import { fetcher, linkConstructor } from "@dub/utils";
 import { Maximize } from "lucide-react";
 import { useContext, useState } from "react";

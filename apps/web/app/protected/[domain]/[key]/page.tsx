@@ -1,4 +1,4 @@
-import { Background, Logo } from "@dub/ui";
+import { Background, Logo } from "@dub/ui/src";
 import { constructMetadata, isDubDomain } from "@dub/utils";
 import prisma from "@/lib/prisma";
 import PasswordForm from "./form";

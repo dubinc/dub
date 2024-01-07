@@ -1,7 +1,7 @@
 "use client";
 
 import { Logout } from "@/ui/shared/icons";
-import { Avatar, Badge, IconMenu, LoadingCircle, Popover } from "@dub/ui";
+import { Avatar, Badge, IconMenu, LoadingCircle, Popover } from "@dub/ui/src";
 import { HOME_DOMAIN } from "@dub/utils";
 import va from "@vercel/analytics";
 import { Crisp } from "crisp-sdk-web";

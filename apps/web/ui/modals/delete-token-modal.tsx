@@ -1,4 +1,4 @@
-import { Badge, Button, Logo, Modal, TokenAvatar } from "@dub/ui";
+import { Badge, Button, Logo, Modal, TokenAvatar } from "@dub/ui/src";
 import { timeAgo } from "@dub/utils";
 import { Token } from "@prisma/client";
 import {

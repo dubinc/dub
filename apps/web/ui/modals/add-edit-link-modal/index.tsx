@@ -12,7 +12,7 @@ import {
   Modal,
   Tooltip,
   TooltipContent,
-} from "@dub/ui";
+} from "@dub/ui/src";
 import {
   DEFAULT_LINK_PROPS,
   GOOGLE_FAVICON_URL,

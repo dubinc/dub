@@ -1,5 +1,5 @@
 import { BlurImage } from "@/ui/shared/blur-image";
-import { CopyButton } from "@dub/ui";
+import { CopyButton } from "@dub/ui/src";
 import { GOOGLE_FAVICON_URL, getApexDomain, linkConstructor } from "@dub/utils";
 import Script from "next/script";
 import ReportButton from "./report";

@@ -1,7 +1,7 @@
 import useProject from "@/lib/swr/use-project";
 import useSAML from "@/lib/swr/use-saml";
 import { SAMLProviderProps } from "@/lib/types";
-import { Button, InfoTooltip, Modal, SimpleTooltipContent } from "@dub/ui";
+import { Button, InfoTooltip, Modal, SimpleTooltipContent } from "@dub/ui/src";
 import { HOME_DOMAIN, SAML_PROVIDERS } from "@dub/utils";
 import { Check, Lock, UploadCloud } from "lucide-react";
 import {

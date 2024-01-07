@@ -1,4 +1,4 @@
-import { IconMenu, Modal } from "@dub/ui";
+import { IconMenu, Modal } from "@dub/ui/src";
 import { ChevronDown, Filter } from "lucide-react";
 import {
   Dispatch,

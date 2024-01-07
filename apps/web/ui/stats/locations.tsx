@@ -1,5 +1,5 @@
 import { LocationTabs } from "@/lib/stats";
-import { LoadingSpinner, Modal, TabSelect, useRouterStuff } from "@dub/ui";
+import { LoadingSpinner, Modal, TabSelect, useRouterStuff } from "@dub/ui/src";
 import { COUNTRIES, fetcher } from "@dub/utils";
 import { Maximize } from "lucide-react";
 import { useContext, useState } from "react";

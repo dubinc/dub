@@ -1,6 +1,6 @@
 import { constructMetadata } from "@dub/utils";
 import { Divider } from "@/ui/shared/icons";
-import { Logo, MaxWidthWrapper } from "@dub/ui";
+import { Logo, MaxWidthWrapper } from "@dub/ui/src";
 import { HOME_DOMAIN } from "@dub/utils";
 import Link from "next/link";
 import { ReactNode, Suspense } from "react";

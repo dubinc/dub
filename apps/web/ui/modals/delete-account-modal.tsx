@@ -1,4 +1,4 @@
-import { Avatar, Button, Modal } from "@dub/ui";
+import { Avatar, Button, Modal } from "@dub/ui/src";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {

@@ -8,7 +8,7 @@ import {
   Popover,
   Tooltip,
   TooltipContent,
-} from "@dub/ui";
+} from "@dub/ui/src";
 import useProject from "@/lib/swr/use-project";
 import { ChevronDown, FilePlus2, Sheet } from "lucide-react";
 import { useRouter } from "next/navigation";

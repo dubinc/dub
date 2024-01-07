@@ -12,7 +12,7 @@ import {
   Switch,
   Tooltip,
   TooltipContent,
-} from "@dub/ui";
+} from "@dub/ui/src";
 import { SHORT_DOMAIN, SWIPE_REVEAL_ANIMATION_SETTINGS } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";

@@ -1,6 +1,6 @@
 import useProject from "@/lib/swr/use-project";
 import { BitlyGroupProps } from "@/lib/types";
-import { Button, LoadingSpinner, Logo, Modal, Switch, Tooltip } from "@dub/ui";
+import { Button, LoadingSpinner, Logo, Modal, Switch, Tooltip } from "@dub/ui/src";
 import { HOME_DOMAIN, fetcher } from "@dub/utils";
 import { ArrowRight, ServerOff } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";

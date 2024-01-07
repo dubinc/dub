@@ -18,7 +18,7 @@ import {
   useEffect,
 } from "react";
 import { mutate } from "swr";
-import { useCookies } from "@dub/ui";
+import { useCookies } from "@dub/ui/src";
 import { SimpleLinkProps } from "@/lib/types";
 import { toast } from "sonner";
 import { useImportRebrandlyModal } from "./import-rebrandly-modal";

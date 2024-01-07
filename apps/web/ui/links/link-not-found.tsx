@@ -1,5 +1,5 @@
 import { BlurImage } from "@/ui/shared/blur-image";
-import { MaxWidthWrapper } from "@dub/ui";
+import { MaxWidthWrapper } from "@dub/ui/src";
 import { FileX2 } from "lucide-react";
 import Link from "next/link";
 

@@ -1,4 +1,4 @@
-import { Button, Google, Logo, Modal } from "@dub/ui";
+import { Button, Google, Logo, Modal } from "@dub/ui/src";
 import { HOME_DOMAIN } from "@dub/utils";
 import Cookies from "js-cookie";
 import { signIn } from "next-auth/react";

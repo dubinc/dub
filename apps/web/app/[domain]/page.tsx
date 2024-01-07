@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import { Background } from "@dub/ui";
+import { Background } from "@dub/ui/src";
 import { constructMetadata } from "@dub/utils";
 import PlaceholderContent from "./placeholder";
 

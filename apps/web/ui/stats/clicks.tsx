@@ -1,5 +1,5 @@
 import { Chart } from "@/ui/shared/icons";
-import { NumberTooltip, useRouterStuff } from "@dub/ui";
+import { NumberTooltip, useRouterStuff } from "@dub/ui/src";
 import { COUNTRIES, capitalize, linkConstructor, nFormatter } from "@dub/utils";
 import { useContext } from "react";
 import { StatsContext } from ".";

@@ -5,7 +5,7 @@ import {
   SimpleTooltipContent,
   Switch,
   TooltipContent,
-} from "@dub/ui";
+} from "@dub/ui/src";
 import { COUNTRIES, FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "@dub/utils";
 import { type Link as LinkProps } from "@prisma/client";
 import { motion } from "framer-motion";

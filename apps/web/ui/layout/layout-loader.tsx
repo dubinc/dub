@@ -1,4 +1,4 @@
-import { LoadingSpinner } from "@dub/ui";
+import { LoadingSpinner } from "@dub/ui/src";
 
 export default function LayoutLoader() {
   return (

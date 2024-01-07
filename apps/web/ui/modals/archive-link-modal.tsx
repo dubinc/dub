@@ -1,5 +1,5 @@
 import { BlurImage } from "@/ui/shared/blur-image";
-import { Button, Modal, useToastWithUndo } from "@dub/ui";
+import { Button, Modal, useToastWithUndo } from "@dub/ui/src";
 import { GOOGLE_FAVICON_URL, getApexDomain, linkConstructor } from "@dub/utils";
 import { type Link as LinkProps } from "@prisma/client";
 import { useParams } from "next/navigation";

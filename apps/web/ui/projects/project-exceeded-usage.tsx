@@ -1,7 +1,7 @@
 "use client";
 
 import { BlurImage } from "@/ui/shared/blur-image";
-import { MaxWidthWrapper } from "@dub/ui";
+import { MaxWidthWrapper } from "@dub/ui/src";
 import { Lock } from "lucide-react";
 import { useContext } from "react";
 import { ModalContext } from "../modals/provider";

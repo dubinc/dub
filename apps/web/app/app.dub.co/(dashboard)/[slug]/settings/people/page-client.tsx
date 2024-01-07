@@ -7,7 +7,7 @@ import { useEditRoleModal } from "@/ui/modals/edit-role-modal";
 import { useRemoveTeammateModal } from "@/ui/modals/remove-teammate-modal";
 import { BlurImage } from "@/ui/shared/blur-image";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Avatar, Badge, IconMenu, Popover } from "@dub/ui";
+import { Avatar, Badge, IconMenu, Popover } from "@dub/ui/src";
 import { cn, timeAgo } from "@dub/utils";
 import { UserMinus } from "lucide-react";
 import { useSession } from "next-auth/react";

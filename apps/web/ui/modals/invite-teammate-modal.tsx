@@ -1,6 +1,6 @@
 import useProject from "@/lib/swr/use-project";
 import { BlurImage } from "@/ui/shared/blur-image";
-import { Button, Logo, Modal } from "@dub/ui";
+import { Button, Logo, Modal } from "@dub/ui/src";
 import va from "@vercel/analytics";
 import { useParams } from "next/navigation";
 import {

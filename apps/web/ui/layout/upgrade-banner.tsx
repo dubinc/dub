@@ -7,7 +7,7 @@ import { useContext, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { ModalContext } from "../modals/provider";
 import ProBanner from "../projects/pro-banner";
-import { Badge } from "@dub/ui";
+import { Badge } from "@dub/ui/src";
 
 export default function UpgradeBanner() {
   const { slug } = useParams() as { slug?: string };

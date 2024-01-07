@@ -1,4 +1,4 @@
-import { LoadingSpinner, useMediaQuery } from "@dub/ui";
+import { LoadingSpinner, useMediaQuery } from "@dub/ui/src";
 import { fetcher, nFormatter } from "@dub/utils";
 import { AxisBottom, AxisLeft } from "@visx/axis";
 import { localPoint } from "@visx/event";

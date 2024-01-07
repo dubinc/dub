@@ -1,4 +1,4 @@
-import { InfoTooltip, SimpleTooltipContent, Switch } from "@dub/ui";
+import { InfoTooltip, SimpleTooltipContent, Switch } from "@dub/ui/src";
 import { HOME_DOMAIN } from "@dub/utils";
 import { type Link as LinkProps } from "@prisma/client";
 import { useParams } from "next/navigation";

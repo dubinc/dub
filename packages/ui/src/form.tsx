@@ -1,3 +1,5 @@
+"use client";
+
 import { cn } from "@dub/utils";
 import { InputHTMLAttributes, ReactNode, useMemo, useState } from "react";
 import { Button } from "./button";

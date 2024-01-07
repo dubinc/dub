@@ -1,5 +1,5 @@
 import CreateProjectButton from "@/ui/projects/create-project-button";
-import { MaxWidthWrapper } from "@dub/ui";
+import { MaxWidthWrapper } from "@dub/ui/src";
 import ProjectList from "@/ui/projects/project-list";
 
 export default function App() {

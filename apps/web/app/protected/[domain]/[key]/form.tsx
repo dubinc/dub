@@ -1,7 +1,7 @@
 "use client";
 
 import { AlertCircleFill } from "@/ui/shared/icons";
-import { Button } from "@dub/ui";
+import { Button } from "@dub/ui/src";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { useFormStatus } from "react-dom";

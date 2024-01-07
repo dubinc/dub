@@ -1,5 +1,5 @@
 import { getLinkViaEdge } from "@/lib/planetscale";
-import { Background, Footer, Nav } from "@dub/ui";
+import { Background, Footer, Nav } from "@dub/ui/src";
 import { constructMetadata } from "@dub/utils";
 import { ShieldBan } from "lucide-react";
 import { notFound } from "next/navigation";

@@ -4,7 +4,7 @@ import useProject from "@/lib/swr/use-project";
 import { ModalContext } from "@/ui/modals/provider";
 import PlanBadge from "@/ui/projects/plan-badge";
 import { Divider, InfinityIcon } from "@/ui/shared/icons";
-import { Button, InfoTooltip, NumberTooltip } from "@dub/ui";
+import { Button, InfoTooltip, NumberTooltip } from "@dub/ui/src";
 import { fetcher, getFirstAndLastDay, nFormatter } from "@dub/utils";
 import va from "@vercel/analytics";
 import { motion } from "framer-motion";

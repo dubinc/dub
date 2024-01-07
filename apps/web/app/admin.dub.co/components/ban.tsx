@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Copy, LoadingSpinner, Tick } from "@dub/ui";
+import { Button, Copy, LoadingSpinner, Tick } from "@dub/ui/src";
 import { cn } from "@dub/utils";
 import { useRouter } from "next/navigation";
 import { useState } from "react";

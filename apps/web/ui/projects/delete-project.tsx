@@ -1,7 +1,7 @@
 "use client";
 
 import useProject from "@/lib/swr/use-project";
-import { Button } from "@dub/ui";
+import { Button } from "@dub/ui/src";
 import { cn } from "@dub/utils";
 import { useDeleteProjectModal } from "@/ui/modals/delete-project-modal";
 

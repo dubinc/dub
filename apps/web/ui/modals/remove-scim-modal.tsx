@@ -2,7 +2,7 @@ import useProject from "@/lib/swr/use-project";
 import useSCIM from "@/lib/swr/use-scim";
 import { SAMLProviderProps } from "@/lib/types";
 import { BlurImage } from "@/ui/shared/blur-image";
-import { Button, Logo, Modal } from "@dub/ui";
+import { Button, Logo, Modal } from "@dub/ui/src";
 import { SAML_PROVIDERS } from "@dub/utils";
 import {
   Dispatch,

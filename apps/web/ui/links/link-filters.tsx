@@ -14,7 +14,7 @@ import {
   Popover,
   Switch,
   useRouterStuff,
-} from "@dub/ui";
+} from "@dub/ui/src";
 import {
   SWIPE_REVEAL_ANIMATION_SETTINGS,
   nFormatter,

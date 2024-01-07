@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Google } from "@dub/ui";
+import { Button, Google } from "@dub/ui/src";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";

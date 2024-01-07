@@ -1,4 +1,4 @@
-import { LoadingSpinner } from "@dub/ui";
+import { LoadingSpinner } from "@dub/ui/src";
 import { fetcher } from "@dub/utils";
 import { type Link as LinkProps } from "@prisma/client";
 import { Dispatch, SetStateAction, useState } from "react";

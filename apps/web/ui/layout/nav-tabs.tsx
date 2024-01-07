@@ -5,7 +5,7 @@ import useLinksCount from "@/lib/swr/use-links-count";
 import useProject from "@/lib/swr/use-project";
 import useUsers from "@/lib/swr/use-users";
 import { ModalContext } from "@/ui/modals/provider";
-import { Badge } from "@dub/ui";
+import { Badge } from "@dub/ui/src";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useParams, usePathname, useSearchParams } from "next/navigation";

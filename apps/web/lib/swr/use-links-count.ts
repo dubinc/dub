@@ -1,5 +1,5 @@
 import { fetcher } from "@dub/utils";
-import { useRouterStuff } from "@dub/ui";
+import { useRouterStuff } from "@dub/ui/src";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 

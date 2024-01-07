@@ -1,6 +1,6 @@
 "use client";
 import { useDeleteAccountModal } from "@/ui/modals/delete-account-modal";
-import { Button } from "@dub/ui";
+import { Button } from "@dub/ui/src";
 
 export default function DeleteAccountSection() {
   const { setShowDeleteAccountModal, DeleteAccountModal } =

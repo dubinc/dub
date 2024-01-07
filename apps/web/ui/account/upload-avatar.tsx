@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@dub/ui";
+import { Button } from "@dub/ui/src";
 import { UploadCloud } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useState } from "react";

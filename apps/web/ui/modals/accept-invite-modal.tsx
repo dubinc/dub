@@ -1,5 +1,5 @@
 import useProject from "@/lib/swr/use-project";
-import { LoadingDots, Logo, Modal } from "@dub/ui";
+import { LoadingDots, Logo, Modal } from "@dub/ui/src";
 import va from "@vercel/analytics";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";

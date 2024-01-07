@@ -1,7 +1,7 @@
 "use client";
 
 import useLinks from "@/lib/swr/use-links";
-import { MaxWidthWrapper } from "@dub/ui";
+import { MaxWidthWrapper } from "@dub/ui/src";
 import { useLinkFiltersModal } from "../modals/link-filters-modal";
 import LinkCard from "./link-card";
 import LinkCardPlaceholder from "./link-card-placeholder";

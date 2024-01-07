@@ -21,7 +21,7 @@ import {
   TooltipContent,
   useIntersectionObserver,
   useRouterStuff,
-} from "@dub/ui";
+} from "@dub/ui/src";
 import {
   GOOGLE_FAVICON_URL,
   HOME_DOMAIN,

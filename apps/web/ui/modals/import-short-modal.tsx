@@ -7,7 +7,7 @@ import {
   Modal,
   SimpleTooltipContent,
   Switch,
-} from "@dub/ui";
+} from "@dub/ui/src";
 import { HOME_DOMAIN, fetcher, nFormatter } from "@dub/utils";
 import { ArrowRight } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";

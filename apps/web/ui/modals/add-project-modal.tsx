@@ -1,5 +1,5 @@
 import { AlertCircleFill } from "@/ui/shared/icons";
-import { Button, InfoTooltip, Logo, Modal } from "@dub/ui";
+import { Button, InfoTooltip, Logo, Modal } from "@dub/ui/src";
 import { HOME_DOMAIN, SHORT_DOMAIN, generateDomainFromName } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import va from "@vercel/analytics";

@@ -1,5 +1,5 @@
 import { BlurImage } from "@/ui/shared/blur-image";
-import { Facebook, LinkedIn, LoadingCircle, Photo, Twitter } from "@dub/ui";
+import { Facebook, LinkedIn, LoadingCircle, Photo, Twitter } from "@dub/ui/src";
 import { getDomainWithoutWWW } from "@dub/utils";
 import { type Link as LinkProps } from "@prisma/client";
 import { useMemo } from "react";

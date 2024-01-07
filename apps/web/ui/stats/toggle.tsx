@@ -12,7 +12,7 @@ import {
   TooltipContent,
   useRouterStuff,
   useScroll,
-} from "@dub/ui";
+} from "@dub/ui/src";
 import {
   APP_DOMAIN,
   DUB_LOGO,

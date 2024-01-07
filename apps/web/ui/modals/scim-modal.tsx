@@ -9,7 +9,7 @@ import {
   Modal,
   SimpleTooltipContent,
   Tick,
-} from "@dub/ui";
+} from "@dub/ui/src";
 import { HOME_DOMAIN, SAML_PROVIDERS } from "@dub/utils";
 import { Eye, EyeOff, FolderSync, RefreshCcw } from "lucide-react";
 import {

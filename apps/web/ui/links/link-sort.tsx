@@ -1,5 +1,5 @@
 import { Sort } from "@/ui/shared/icons";
-import { IconMenu, Popover, Tick, useRouterStuff } from "@dub/ui";
+import { IconMenu, Popover, Tick, useRouterStuff } from "@dub/ui/src";
 import { ChevronDown, SortDesc } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";

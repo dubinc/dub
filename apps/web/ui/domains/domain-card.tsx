@@ -6,7 +6,7 @@ import {
   ExternalLink,
   XCircleFill,
 } from "@/ui/shared/icons";
-import { Button, LoadingCircle, LoadingDots, NumberTooltip } from "@dub/ui";
+import { Button, LoadingCircle, LoadingDots, NumberTooltip } from "@dub/ui/src";
 import { capitalize, fetcher, nFormatter, truncate } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";

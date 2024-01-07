@@ -16,7 +16,7 @@ import {
   Switch,
   Tooltip,
   TooltipContent,
-} from "@dub/ui";
+} from "@dub/ui/src";
 import {
   APP_HOSTNAMES,
   FADE_IN_ANIMATION_SETTINGS,

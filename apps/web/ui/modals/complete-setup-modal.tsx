@@ -3,7 +3,7 @@ import useLinksCount from "@/lib/swr/use-links-count";
 import useUsers from "@/lib/swr/use-users";
 import { ModalContext } from "@/ui/modals/provider";
 import { CheckCircleFill } from "@/ui/shared/icons";
-import { ExpandingArrow, Logo, Modal } from "@dub/ui";
+import { ExpandingArrow, Logo, Modal } from "@dub/ui/src";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {

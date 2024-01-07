@@ -5,7 +5,7 @@ import {
   LinkPreview,
   LinkPreviewPlaceholder,
   Nav,
-} from "@dub/ui";
+} from "@dub/ui/src";
 import { HOME_DOMAIN, constructMetadata } from "@dub/utils";
 import { notFound } from "next/navigation";
 import LinkInspectorCard from "./card";

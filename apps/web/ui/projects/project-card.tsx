@@ -3,7 +3,7 @@
 import { DomainProps, ProjectWithDomainProps } from "@/lib/types";
 import { BlurImage } from "@/ui/shared/blur-image";
 import { CheckCircleFill, XCircleFill } from "@/ui/shared/icons";
-import { Badge, NumberTooltip, Tooltip } from "@dub/ui";
+import { Badge, NumberTooltip, Tooltip } from "@dub/ui/src";
 import { GOOGLE_FAVICON_URL, fetcher, nFormatter } from "@dub/utils";
 import { BarChart2, ExternalLink, Globe, Link2 } from "lucide-react";
 import Link from "next/link";

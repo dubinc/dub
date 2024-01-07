@@ -1,6 +1,6 @@
 "use client";
 
-import { Form } from "@dub/ui";
+import { Form } from "@dub/ui/src";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import UploadAvatar from "@/ui/account/upload-avatar";
