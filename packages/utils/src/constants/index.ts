@@ -215,6 +215,7 @@ export const DEFAULT_LINK_PROPS = {
   proxy: false,
 };
 
+export const DEMO_LINK_ID = "clqo10sum0006js08vutzfxt3";
 export const DUB_PROJECT_ID = "cl7pj5kq4006835rbjlt2ofka";
 export const LEGAL_USER_ID = "clqei1lgc0000vsnzi01pbf47";
 

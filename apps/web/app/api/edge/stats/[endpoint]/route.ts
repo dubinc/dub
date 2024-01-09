@@ -1,4 +1,4 @@
-import { getSearchParams } from "@dub/utils";
+import { DEMO_LINK_ID, DUB_PROJECT_ID, getSearchParams } from "@dub/utils";
 import { isBlacklistedReferrer } from "@/lib/edge-config";
 import { getLinkViaEdge } from "@/lib/planetscale";
 import { getStats } from "@/lib/stats";
@@ -17,6 +17,8 @@ export const GET = async (
   const searchParams = getSearchParams(req.url);
   const { domain, key, interval } = searchParams;
 
+  let link;
+
   // demo link (dub.sh/try)
   if (domain === "dub.sh" && key === "try") {
     // Rate limit in production
@@ -34,10 +36,15 @@ export const GET = async (
         return new Response("Don't DDoS me pls 🥺", { status: 429 });
       }
     }
+
+    link = {
+      id: DEMO_LINK_ID,
+      projectId: DUB_PROJECT_ID,
+    };
   } else {
-    const data = await getLinkViaEdge(domain, key);
+    link = await getLinkViaEdge(domain, key);
     // if the link is explicitly private (publicStats === false)
-    if (data?.publicStats === 0) {
+    if (!link?.publicStats) {
       return new Response(`Stats for this link are not public`, {
         status: 403,
       });
@@ -49,8 +56,8 @@ export const GET = async (
   }
 
   const response = await getStats({
-    domain,
-    key,
+    projectId: link.projectId,
+    linkId: link.id,
     endpoint,
     interval,
     ...searchParams,

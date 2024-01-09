@@ -73,21 +73,14 @@ export default function Stats({
         baseApiPath: `/api/projects/${slug}/stats`,
         domain: domainSlug,
       };
-      // Generic links analytics page, e.g. app.dub.co/analytics?domain=dub.sh&key=github
-    } else if (pathname === "/analytics") {
+    } else {
+      // Public stats page, e.g. dub.co/stats/github, stey.me/stats/weathergpt
       return {
-        basePath: `/analytics`,
-        baseApiPath: `/api/stats`,
-        domain: domainSlug,
+        basePath: `/stats/${key}`,
+        baseApiPath: `/api/edge/stats`,
+        domain: staticDomain,
       };
     }
-
-    // Public stats page, e.g. dub.co/stats/github, stey.me/stats/weathergpt
-    return {
-      basePath: `/stats/${key}`,
-      baseApiPath: `/api/edge/stats`,
-      domain: staticDomain,
-    };
   }, [slug, pathname, staticDomain, domainSlug, key]);
 
   const queryString = useMemo(() => {
@@ -141,10 +134,9 @@ export default function Stats({
           <Clicks />
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <Locations />
-            {slug && <TopLinks />}
+            <TopLinks />
             <Devices />
             <Referer />
-            {!slug && <Feedback />}
           </div>
         </div>
       </div>
