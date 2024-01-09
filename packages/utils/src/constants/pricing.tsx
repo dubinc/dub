@@ -10,6 +10,8 @@ export const PLANS = [
       links: 25,
       clicks: 1000,
       domains: 1,
+      tags: 10,
+      users: 1,
     },
     colors: {
       bg: "bg-black",
@@ -56,8 +58,10 @@ export const PLANS = [
     },
     limits: {
       links: 250,
-      clicks: 25000,
+      clicks: 50000,
       domains: 10,
+      tags: 25,
+      users: 5,
     },
     colors: {
       bg: "bg-blue-500",
@@ -73,7 +77,7 @@ export const PLANS = [
     features: [
       { text: " 250 links/mo" },
       {
-        text: " 25K tracked clicks/mo",
+        text: "50K tracked clicks/mo",
       },
       { text: "1-year analytics retention" },
       { text: "10 custom domains" },
@@ -105,8 +109,10 @@ export const PLANS = [
     },
     limits: {
       links: 1000,
-      clicks: 100000,
+      clicks: 250000,
       domains: 20,
+      tags: 150,
+      users: 15,
     },
     colors: {
       bg: "bg-sky-900",
@@ -122,7 +128,7 @@ export const PLANS = [
     features: [
       { text: " 1,000 links/mo" },
       {
-        text: " 100K tracked clicks/mo",
+        text: "250K tracked clicks/mo",
       },
       { text: "2-year analytics retention" },
       { text: "20 custom domains" },

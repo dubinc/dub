@@ -58,11 +58,12 @@ export interface ProjectProps {
   plan: PlanProps;
   stripeId?: string;
   billingCycleStart: number;
-  createdAt?: Date;
-  domains?: {
+  createdAt: Date;
+  domains: {
     slug: string;
+    primary: boolean;
   }[];
-  users?: {
+  users: {
     role: "owner" | "member";
   }[];
 }

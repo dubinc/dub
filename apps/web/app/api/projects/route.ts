@@ -4,13 +4,13 @@ import {
   domainExists,
   validateDomain,
 } from "@/lib/api/domains";
-import { withAuth } from "@/lib/auth";
+import { withAuth, withSession } from "@/lib/auth";
 import { isReservedKey } from "@/lib/edge-config";
 import prisma from "@/lib/prisma";
 import { DEFAULT_REDIRECTS, validSlugRegex } from "@dub/utils";
 
 // GET /api/projects - get all projects for the current user
-export const GET = withAuth(async ({ session, headers }) => {
+export const GET = withSession(async ({ session }) => {
   const projects = await prisma.project.findMany({
     where: {
       users: {
@@ -23,7 +23,7 @@ export const GET = withAuth(async ({ session, headers }) => {
       domains: true,
     },
   });
-  return NextResponse.json(projects, { headers });
+  return NextResponse.json(projects);
 });
 
 export const POST = withAuth(async ({ req, session }) => {

@@ -8,7 +8,7 @@ export const exceededLimitError = ({
 }: {
   plan: PlanProps;
   limit: number;
-  type: "links" | "domains" | "tags" | "users";
+  type: "clicks" | "links" | "domains" | "tags" | "users";
 }) => {
   return `You've reached your ${
     type === "links" ? "monthly" : ""

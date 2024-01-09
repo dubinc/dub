@@ -77,6 +77,8 @@ export const POST = async (req: Request) => {
             usageLimit: plan.limits.clicks!,
             linksLimit: plan.limits.links!,
             domainsLimit: plan.limits.domains!,
+            tagsLimit: plan.limits.tags!,
+            usersLimit: plan.limits.users!,
             plan: plan.name.toLowerCase(),
           },
           select: {
@@ -160,6 +162,8 @@ export const POST = async (req: Request) => {
             usageLimit: plan.limits.clicks!,
             linksLimit: plan.limits.links!,
             domainsLimit: plan.limits.domains!,
+            tagsLimit: plan.limits.tags!,
+            usersLimit: plan.limits.users!,
             plan: plan.name.toLowerCase(),
           },
           select: {
@@ -238,6 +242,8 @@ export const POST = async (req: Request) => {
               usageLimit: FREE_PLAN.limits.clicks!,
               linksLimit: FREE_PLAN.limits.links!,
               domainsLimit: FREE_PLAN.limits.domains!,
+              tagsLimit: FREE_PLAN.limits.tags!,
+              usersLimit: FREE_PLAN.limits.users!,
             },
           }),
           pipeline.exec(),

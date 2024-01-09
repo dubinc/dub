@@ -218,7 +218,7 @@ export async function processLink({
   bulk = false,
 }: {
   payload: LinkProps;
-  project: ProjectProps | null;
+  project: ProjectProps;
   session?: Session;
   bulk?: boolean;
 }) {
@@ -252,45 +252,34 @@ export async function processLink({
     };
   }
 
-  // domain checks
-  if (!domain) {
-    return {
-      link: payload,
-      error: "Missing short link domain.",
-      status: 400,
-    };
-  }
-
-  if (project) {
-    if (!project.domains?.find((d) => d.slug === domain)) {
+  // free plan restrictions
+  if (project.plan === "free") {
+    if (proxy || rewrite || expiresAt || ios || android || geo) {
       return {
         link: payload,
-        error: "Domain does not belong to project.",
+        error:
+          "You can only use link cloaking, custom social media cards, link expiration, device and geo targeting on a Pro plan and above. Upgrade to Pro to use these features.",
         status: 403,
       };
     }
-    if (project.linksUsage >= project.linksLimit) {
-      return {
-        link: payload,
-        error: exceededLimitError({
-          plan: project.plan,
-          limit: project.linksLimit,
-          type: "links",
-        }),
-        status: 403,
-      };
-    }
-    // internal Dub.co checks
-  } else if (process.env.NEXT_PUBLIC_IS_DUB) {
-    // if it's not a custom project, do some filtering
+    // can't use `/` in key on free plan
     if (key?.includes("/")) {
       return {
         link: payload,
         error:
-          "Key cannot contain '/'. You can only use this with a custom domain.",
+          "Key cannot contain '/'. You can only use this on a Pro plan and above. Upgrade to Pro to use this feature.",
         status: 422,
       };
     }
+  }
+
+  // if domain is not defined, use the project's primary domain
+  if (!domain) {
+    domain = project.domains?.find((d) => d.primary)?.slug || SHORT_DOMAIN;
+
+    // if domain is defined, do some checks
+  } else {
+    // checks for dub.sh domain
     if (domain === "dub.sh") {
       const keyBlacklisted = await isBlacklistedKey(key);
       if (keyBlacklisted) {
@@ -308,6 +297,8 @@ export async function processLink({
           status: 422,
         };
       }
+
+      // checks for other Dub-owned domains (chatg.pt, spti.fi, etc.)
     } else if (isDubDomain(domain)) {
       // coerce type with ! cause we already checked if it exists
       const { allowedHostnames } = DUB_DOMAINS.find((d) => d.slug === domain)!;
@@ -321,39 +312,12 @@ export async function processLink({
           status: 422,
         };
       }
-      // we can do it here because we only pass session when creating a link (and not editing it)
-      if (session) {
-        const count = await prisma.link.count({
-          where: {
-            domain,
-            userId: session?.user.id,
-          },
-        });
-        if (count > 25) {
-          return {
-            link: payload,
-            error: `You can only create 25 ${domain} short links.`,
-            status: 403,
-          };
-        }
-      }
-    } else {
-      // domain is not dub.sh or a Dub domain
-      return {
-        link: payload,
-        error: "Invalid domain",
-        status: 403,
-      };
-    }
-  }
 
-  // free plan restrictions
-  if (!project || project.plan === "free") {
-    if (proxy || rewrite || expiresAt || ios || android || geo) {
+      // else, check if it belongs to the project
+    } else if (!project.domains?.find((d) => d.slug === domain)) {
       return {
         link: payload,
-        error:
-          "You can only use link cloaking, custom social media cards, link expiration, device and geo targeting on a Pro plan and above. Upgrade to Pro to use these features.",
+        error: "Domain does not belong to project.",
         status: 403,
       };
     }

@@ -528,17 +528,11 @@ function AddEditLinkModal({
                     </div>
                   )}
                 </div>
-                {keyError ? (
+                {keyError && (
                   <p className="mt-2 text-sm text-red-600" id="key-error">
                     {keyError}
                   </p>
-                ) : process.env.NEXT_PUBLIC_IS_DUB &&
-                  isDubDomain(domain) &&
-                  domain !== "dub.sh" ? (
-                  <p className="mt-2 text-sm text-gray-500">
-                    You can only create up to 25 links with this domain.
-                  </p>
-                ) : null}
+                )}
               </div>
             </div>
 
