@@ -130,7 +130,7 @@ export const updateUsage = async (skip?: number) => {
           }),
           project.usage > 0
             ? getStats({
-                domain: project.domains.map((domain) => domain.slug).join(","),
+                projectId: project.id,
                 endpoint: "top_links",
                 interval: "30d",
               }).then((data) =>
