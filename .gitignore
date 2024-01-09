@@ -42,3 +42,4 @@ next-env.d.ts
 .contentlayer
 .vscode
 *.csv
+*.ndjson
