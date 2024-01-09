@@ -2,6 +2,7 @@
 
 import { nFormatter, timeAgo } from "@dub/utils";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
+import Linkify from "linkify-react";
 import { HelpCircle } from "lucide-react";
 import Link from "next/link";
 import { ReactNode, useState } from "react";
@@ -111,10 +112,29 @@ export function SimpleTooltipContent({
         href={href}
         target="_blank"
         rel="noopener noreferrer"
+        onClick={(e) => e.stopPropagation()}
         className="inline-flex text-gray-500 underline underline-offset-4 hover:text-gray-800"
       >
         {cta}
       </a>
+    </div>
+  );
+}
+
+export function LinkifyTooltipContent({ children }: { children: ReactNode }) {
+  return (
+    <div className="block max-w-md whitespace-pre-wrap px-4 py-2 text-center text-sm text-gray-700">
+      <Linkify
+        as="p"
+        options={{
+          target: "_blank",
+          rel: "noopener noreferrer nofollow",
+          className:
+            "underline underline-offset-4 text-gray-400 hover:text-gray-700",
+        }}
+      >
+        {children}
+      </Linkify>
     </div>
   );
 }

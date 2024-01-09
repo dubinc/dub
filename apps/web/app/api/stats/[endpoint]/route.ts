@@ -1,25 +1,13 @@
 import { withAuth } from "@/lib/auth";
+import { getDomainViaEdge, getLinkViaEdge } from "@/lib/planetscale";
 import { getStats } from "@/lib/stats";
 import { NextResponse } from "next/server";
 
 // GET /api/stats/[endpoint] – get stats for a specific endpoint
 export const GET = withAuth(
-  async ({ params, searchParams, project }) => {
+  async ({ params, searchParams, project, link }) => {
     const { endpoint } = params;
-    const { domain, key, interval } = searchParams;
-
-    const constructedDomain =
-      domain || project?.domains?.map((d) => d.slug).join(",");
-
-    if (!constructedDomain) {
-      return new Response("Missing link domain.", { status: 400 });
-    }
-
-    // if there's no key and it's not a project, return 400
-    // this is because projects can show stats for all links
-    if (!key && !project) {
-      return new Response("Missing link key.", { status: 400 });
-    }
+    let { domain, key, interval } = searchParams;
 
     // return 403 if project is on the free plan and interval is 90d or all
     if (
@@ -29,11 +17,18 @@ export const GET = withAuth(
       return new Response(`Require higher plan`, { status: 403 });
     }
 
+    const linkId = link
+      ? link.id
+      : domain && key === "_root"
+      ? await getDomainViaEdge(domain).then((d) => d?.id)
+      : null;
+
     const response = await getStats({
-      domain: constructedDomain,
-      key,
+      projectId: project.id,
+      domain,
       endpoint,
       interval,
+      ...(linkId && { linkId }),
       ...searchParams,
     });
     return NextResponse.json(response);

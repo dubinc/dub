@@ -58,13 +58,15 @@ export const intervalData = {
 };
 
 export type LocationTabs = "country" | "city" | "region";
-
+export type TopLinksTabs = "link" | "url" | "alias";
 export type DeviceTabs = "device" | "browser" | "os" | "ua";
 
 const VALID_TINYBIRD_ENDPOINTS = [
   "timeseries",
   "clicks",
   "top_links",
+  "top_urls",
+  "top_aliases",
   "country",
   "city",
   "device",
@@ -76,6 +78,8 @@ const VALID_TINYBIRD_ENDPOINTS = [
 export const VALID_STATS_FILTERS = [
   "country",
   "city",
+  "url",
+  "alias",
   "device",
   "browser",
   "os",
@@ -83,14 +87,16 @@ export const VALID_STATS_FILTERS = [
 ];
 
 export const getStats = async ({
+  projectId,
+  linkId,
   domain,
-  key,
   endpoint,
   interval,
   ...rest
 }: {
-  domain: string;
-  key?: string;
+  projectId: string;
+  linkId?: string;
+  domain?: string;
   endpoint: string;
   interval?: string;
 } & {
@@ -109,16 +115,12 @@ export const getStats = async ({
   // get all-time clicks count if:
   // 1. endpoint is /clicks
   // 2. interval is not defined
-  if (endpoint === "clicks" && key && !interval) {
-    const response =
-      key === "_root"
-        ? await conn.execute("SELECT clicks FROM Domain WHERE slug = ?", [
-            domain,
-          ])
-        : await conn.execute(
-            "SELECT clicks FROM Link WHERE domain = ? AND `key` = ?",
-            [domain, decodeURIComponent(key)],
-          );
+  if (endpoint === "clicks" && !interval) {
+    const response = linkId
+      ? await conn.execute("SELECT clicks FROM Link WHERE `id` = ?", [linkId])
+      : await conn.execute("SELECT clicks FROM Domain WHERE slug = ?", [
+          domain,
+        ]);
     try {
       const clicks = response.rows[0]["clicks"];
       return clicks || "0";
@@ -128,11 +130,13 @@ export const getStats = async ({
   }
 
   let url = new URL(
-    `https://api.us-east.tinybird.co/v0/pipes/${endpoint}.json`,
+    `https://api.us-east.tinybird.co/v0/pipes/${endpoint}_new.json`,
   );
-  url.searchParams.append("domain", domain);
-  if (key) {
-    url.searchParams.append("key", decodeURIComponent(key));
+  url.searchParams.append("projectId", projectId);
+  if (linkId) {
+    url.searchParams.append("linkId", linkId);
+  } else if (domain) {
+    url.searchParams.append("domain", domain);
   }
   if (interval) {
     url.searchParams.append(
@@ -161,7 +165,13 @@ export const getStats = async ({
       Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
     },
   })
-    .then((res) => res.json())
+    .then(async (res) => {
+      if (res.ok) {
+        return res.json();
+      }
+      const error = await res.text();
+      console.error(error);
+    })
     .then(({ data }) => {
       if (endpoint === "clicks") {
         try {

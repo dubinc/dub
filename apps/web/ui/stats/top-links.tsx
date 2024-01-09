@@ -1,37 +1,49 @@
-import { LoadingSpinner, Modal, useRouterStuff } from "@dub/ui";
-import { fetcher, linkConstructor } from "@dub/utils";
+import { LoadingSpinner, Modal, TabSelect, useRouterStuff } from "@dub/ui";
+import { capitalize, fetcher, linkConstructor, truncate } from "@dub/utils";
 import { Maximize } from "lucide-react";
 import { useContext, useState } from "react";
 import useSWR from "swr";
 import { StatsContext } from ".";
 import BarList from "./bar-list";
+import { TopLinksTabs } from "@/lib/stats";
 
 export default function TopLinks() {
+  const [tab, setTab] = useState<TopLinksTabs>("link");
+
   const { baseApiPath, queryString, modal } = useContext(StatsContext);
 
-  const { data } = useSWR<{ domain: string; key: string; clicks: number }[]>(
-    `${baseApiPath}/top_links?${queryString}`,
-    fetcher,
-  );
+  const { data } = useSWR<
+    ({ domain: string; key: string } & {
+      [key in TopLinksTabs]: string;
+    } & { clicks: number })[]
+  >(`${baseApiPath}/top_${tab}s?${queryString}`, fetcher);
 
   const { queryParams } = useRouterStuff();
   const [showModal, setShowModal] = useState(false);
 
   const barList = (limit?: number) => (
     <BarList
-      tab="Top Links"
+      tab={tab}
       data={
         data?.map((d) => ({
-          title: linkConstructor({
-            domain: d.domain,
-            key: d.key,
-            pretty: true,
-          }),
+          title:
+            tab === "link"
+              ? linkConstructor({
+                  domain: d.domain,
+                  key: d.key,
+                  pretty: true,
+                })
+              : d[tab],
           href: queryParams({
-            set: {
-              domain: d.domain,
-              key: d.key,
-            },
+            set:
+              tab === "link"
+                ? {
+                    domain: d.domain,
+                    key: d.key,
+                  }
+                : {
+                    [tab]: d[tab],
+                  },
             getNewPath: true,
           }) as string,
           clicks: d.clicks,
@@ -57,8 +69,14 @@ export default function TopLinks() {
         {barList()}
       </Modal>
       <div className="scrollbar-hide relative z-0 h-[400px] overflow-scroll border border-gray-200 bg-white px-7 py-5 sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
-        <div className="mb-5 flex">
-          <h1 className="text-lg font-semibold">Top Links</h1>
+        <div className="mb-5 flex justify-between">
+          <h1 className="text-lg font-semibold capitalize">Top Links</h1>
+          <TabSelect
+            options={["link", "url", "alias"]}
+            selected={tab}
+            // @ts-ignore
+            selectAction={setTab}
+          />
         </div>
         {data ? (
           data.length > 0 ? (

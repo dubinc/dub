@@ -1,12 +1,13 @@
 "use client";
 
 import { NumberTooltip, Tooltip } from "@dub/ui";
-import { cn, nFormatter } from "@dub/utils";
+import { cn, nFormatter, truncate } from "@dub/utils";
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
 import Link from "next/link";
 import { Dispatch, ReactNode, SetStateAction, useMemo, useState } from "react";
 import LinkPreviewTooltip from "./link-preview";
+import { LinkifyTooltipContent } from "@dub/ui/src/tooltip";
 
 export default function BarList({
   tab,
@@ -50,11 +51,11 @@ export default function BarList({
             {icon}
             <p
               className={cn(
-                "text-sm text-gray-800",
+                "truncate text-sm text-gray-800",
                 href && "underline-offset-4 group-hover:underline",
               )}
             >
-              {title}
+              {truncate(title, 48)}
             </p>
           </div>
         );
@@ -68,8 +69,16 @@ export default function BarList({
           >
             <div key={idx} className="group flex items-center justify-between">
               <div className="relative z-10 flex w-full max-w-[calc(100%-2rem)] items-center">
-                {tab === "Top Links" ? (
+                {tab === "link" ? (
                   <Tooltip content={<LinkPreviewTooltip link={title} />}>
+                    {lineItem}
+                  </Tooltip>
+                ) : tab === "url" ? (
+                  <Tooltip
+                    content={
+                      <LinkifyTooltipContent>{title}</LinkifyTooltipContent>
+                    }
+                  >
                     {lineItem}
                   </Tooltip>
                 ) : (

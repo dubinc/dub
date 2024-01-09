@@ -45,12 +45,14 @@ function AddEditDomainModal({
 
   const [data, setData] = useState<DomainProps>(
     props || {
+      id: "",
       slug: "",
       verified: false,
       primary: false,
       target: "",
       type: "redirect",
       clicks: 0,
+      projectId: "",
     },
   );
 

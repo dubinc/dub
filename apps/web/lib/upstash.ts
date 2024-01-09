@@ -1,6 +1,7 @@
 import { getDomainWithoutWWW, nanoid } from "@dub/utils";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
+import { RedisLinkProps } from "./types";
 
 // Initiate Redis instance by connecting to REST URL
 export const redis = new Redis({
@@ -78,3 +79,34 @@ export async function recordMetatags(url: string, error: boolean) {
   const domain = getDomainWithoutWWW(url);
   return await ratelimitRedis.zincrby("metatags-zset", 1, domain);
 }
+
+/**
+ * Update Redis data for a given link
+ */
+
+export const updateRedisLink = async ({
+  domain,
+  key,
+  data,
+}: {
+  domain: string;
+  key?: string;
+  data: Partial<RedisLinkProps>;
+}) => {
+  const redisKey = key ? `${domain}:${key}` : `root:${domain}`;
+
+  // RedisLinkProps is technically not the right type since
+  // root:{domain} has a slightly different type, but it works
+  const currentData = await redis.get<RedisLinkProps>(redisKey);
+  if (!currentData) return null;
+
+  // filter out properties that are false (e.g. password: false, proxy: false)
+  Object.keys(currentData).forEach((key) => {
+    if (!currentData[key as keyof RedisLinkProps]) {
+      delete currentData[key as keyof RedisLinkProps];
+    }
+  });
+
+  const newData = { ...currentData, ...data };
+  return await redis.set<RedisLinkProps>(redisKey, newData);
+};

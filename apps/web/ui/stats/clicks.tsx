@@ -1,6 +1,12 @@
 import { Chart } from "@/ui/shared/icons";
 import { NumberTooltip, useRouterStuff } from "@dub/ui";
-import { COUNTRIES, capitalize, linkConstructor, nFormatter } from "@dub/utils";
+import {
+  COUNTRIES,
+  capitalize,
+  linkConstructor,
+  nFormatter,
+  truncate,
+} from "@dub/utils";
 import { useContext } from "react";
 import { StatsContext } from ".";
 import BarChart from "./bar-chart";
@@ -37,8 +43,7 @@ export default function Clicks() {
           </p>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-2">
-          {slug &&
-            domain &&
+          {domain &&
             (key ? (
               <button
                 onClick={() => {
@@ -82,7 +87,9 @@ export default function Clicks() {
               >
                 <p>{capitalize(filter)}</p>
                 <strong className="text-gray-800">
-                  {filter === "country" ? COUNTRIES[value] : value}
+                  {filter === "country"
+                    ? COUNTRIES[value]
+                    : truncate(value, 24)}
                 </strong>
                 <X className="h-4 w-4" />
               </button>

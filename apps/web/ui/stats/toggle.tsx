@@ -157,7 +157,7 @@ export default function Toggle() {
                           ? `interval=${value}`
                           : `${new URLSearchParams({
                               ...(domain && { domain }),
-                              ...(key && key !== "_root" && { key }),
+                              ...(key && { key }),
                               interval: value,
                             }).toString()}`
                       }`}
@@ -198,7 +198,7 @@ export default function Toggle() {
 }
 
 const DomainsFilterTooltip = ({ domains }: { domains: DomainProps[] }) => {
-  const searchParams = useSearchParams()
+  const searchParams = useSearchParams();
   const domain = searchParams?.get("domain");
   const key = searchParams?.get("key");
   const { queryParams } = useRouterStuff();

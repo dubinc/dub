@@ -463,8 +463,8 @@ export async function addLink(link: LinkProps) {
       `${domain}:${key}`,
       {
         url: encodeURIComponent(url),
-        password: hasPassword,
-        proxy,
+        ...(hasPassword && { password: true }),
+        ...(proxy && { proxy: true }),
         ...(rewrite && {
           rewrite: true,
           iframeable: await isIframeable({ url, requestDomain: domain }),
@@ -508,7 +508,7 @@ export async function bulkCreateLinks(links: LinkProps[]) {
       `${domain}:${key}`,
       {
         url: encodeURIComponent(url),
-        password: hasPassword,
+        ...(hasPassword && { password: true }),
         ...(expiresAt && { expiresAt }),
       },
       {
@@ -630,8 +630,8 @@ export async function editLink({
         }),
     redis.set(`${domain}:${key}`, {
       url: encodeURIComponent(url),
-      password: hasPassword,
-      proxy,
+      ...(hasPassword && { password: true }),
+      ...(proxy && { proxy: true }),
       ...(rewrite && {
         rewrite: true,
         iframeable: await isIframeable({ url, requestDomain: domain }),

@@ -2,7 +2,7 @@ import { recordClick } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { DUB_HEADERS } from "@dub/utils";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
-import { parse } from "./utils";
+import { getFinalUrl, parse } from "./utils";
 
 export default async function RootMiddleware(
   req: NextRequest,
@@ -14,16 +14,36 @@ export default async function RootMiddleware(
     return NextResponse.next();
   }
 
-  // record clicks on root page
-  ev.waitUntil(recordClick({ req, domain }));
-
   const response = await redis.get<{
-    target: string;
+    id?: string;
+    target?: string;
     rewrite?: boolean;
     iframeable?: boolean;
+    projectId?: string;
   }>(`root:${domain}`);
 
-  const { target, rewrite, iframeable } = response || {};
+  const { id, target, rewrite, iframeable, projectId } = response || {};
+
+  const searchParams = req.nextUrl.searchParams;
+  // only track the click when:
+  // - the `dub-no-track` header is not set
+  // - the `__dub_no_track` query param is not set
+  if (
+    !(
+      req.headers.get("dub-no-track") ||
+      searchParams.get("__dub_no_track") === "1"
+    )
+  ) {
+    ev.waitUntil(
+      recordClick({
+        req,
+        domain,
+        url: target ? getFinalUrl(target, { req }) : undefined,
+        id,
+        projectId,
+      }),
+    );
+  }
 
   if (target) {
     if (rewrite) {

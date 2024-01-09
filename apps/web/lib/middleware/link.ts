@@ -49,7 +49,8 @@ export default async function LinkMiddleware(
   );
 
   const {
-    url: target,
+    id,
+    url,
     password,
     proxy,
     rewrite,
@@ -58,10 +59,11 @@ export default async function LinkMiddleware(
     ios,
     android,
     geo,
+    projectId,
     banned,
   } = response || {};
 
-  if (target) {
+  if (url) {
     // only show inspect modal if the link is not password protected
     if (inspectMode && !password) {
       return NextResponse.rewrite(
@@ -101,9 +103,26 @@ export default async function LinkMiddleware(
       );
     }
 
-    // only track the click when there is no `dub-no-track` header
-    if (!req.headers.get("dub-no-track")) {
-      ev.waitUntil(recordClick({ req, domain, key }));
+    const searchParams = req.nextUrl.searchParams;
+    // only track the click when:
+    // - the `dub-no-track` header is not set
+    // - the `__dub_no_track` query param is not set
+    if (
+      !(
+        req.headers.get("dub-no-track") ||
+        searchParams.get("__dub_no_track") === "1"
+      )
+    ) {
+      ev.waitUntil(
+        recordClick({
+          req,
+          domain,
+          key,
+          url: getFinalUrl(url, { req }),
+          id,
+          projectId,
+        }),
+      );
     }
 
     const isBot = detectBot(req);
@@ -117,16 +136,16 @@ export default async function LinkMiddleware(
         new URL(`/proxy/${domain}/${encodeURIComponent(key)}`, req.url),
       );
 
-      // rewrite to target URL if link cloaking is enabled
+      // rewrite to destination URL if link cloaking is enabled
     } else if (rewrite) {
       if (iframeable) {
         return NextResponse.rewrite(
-          new URL(`/rewrite/${target}`, req.url),
+          new URL(`/rewrite/${url}`, req.url),
           DUB_HEADERS,
         );
       } else {
         // if link is not iframeable, use Next.js rewrite instead
-        return NextResponse.rewrite(decodeURIComponent(target), DUB_HEADERS);
+        return NextResponse.rewrite(decodeURIComponent(url), DUB_HEADERS);
       }
 
       // redirect to iOS link if it is specified and the user is on an iOS device
@@ -146,7 +165,7 @@ export default async function LinkMiddleware(
 
       // regular redirect
     } else {
-      return NextResponse.redirect(getFinalUrl(target, { req }), DUB_HEADERS);
+      return NextResponse.redirect(getFinalUrl(url, { req }), DUB_HEADERS);
     }
   } else {
     // short link not found, redirect to root
