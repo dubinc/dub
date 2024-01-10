@@ -31,8 +31,8 @@ export async function GET(req: NextRequest) {
   }
 
   const timeseries = await getStats({
-    domain,
-    key,
+    projectId: data.projectId as string,
+    linkId: data.id,
     endpoint: "timeseries",
     interval: "30d",
   });
