@@ -4,11 +4,9 @@ import * as fs from "fs";
 import { linkConstructor } from "./utils";
 import { getStats } from "@/lib/stats";
 
-const domain = "xxx";
-
 async function main() {
   const topLinks = await getStats({
-    domain,
+    projectId: "xxx",
     endpoint: "top_links",
   });
 
