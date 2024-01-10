@@ -1,5 +1,5 @@
 import { connect } from "@planetscale/database";
-import { DomainProps, LinkProps } from "./types";
+import { DomainProps, EdgeLinkProps } from "./types";
 
 export const pscale_config = {
   url: process.env.DATABASE_URL,
@@ -17,7 +17,7 @@ export const getLinkViaEdge = async (domain: string, key: string) => {
     )) || {};
 
   return rows && Array.isArray(rows) && rows.length > 0
-    ? (rows[0] as LinkProps)
+    ? (rows[0] as EdgeLinkProps)
     : null;
 };
 
