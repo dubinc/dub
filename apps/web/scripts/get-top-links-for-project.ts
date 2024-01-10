@@ -35,7 +35,7 @@ async function main() {
     return;
   }
   const topLinks = await getStats({
-    domain: project.domains.map((domain) => domain.slug).join(","),
+    projectId: project.id,
     endpoint: "top_links",
     interval: "30d",
   }).then((data) =>
