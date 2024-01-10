@@ -13,11 +13,13 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import {
+  FADE_IN_ANIMATION_SETTINGS,
   SHORT_DOMAIN,
   SWIPE_REVEAL_ANIMATION_SETTINGS,
   capitalize,
 } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
+import { ChevronRight } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import {
   Dispatch,
@@ -138,6 +140,8 @@ function AddEditDomainModal({
       setDeleting(false);
     });
   }
+
+  const [expanded, setExpanded] = useState(false);
 
   return (
     <Modal
@@ -306,7 +310,6 @@ function AddEditDomainModal({
             </Tooltip>
           )}
         </div>
-
         <AnimatePresence initial={false}>
           {target && (
             <motion.div key="type" {...SWIPE_REVEAL_ANIMATION_SETTINGS}>
@@ -333,41 +336,63 @@ function AddEditDomainModal({
           )}
         </AnimatePresence>
 
-        <div>
-          <label htmlFor="placeholder" className="flex items-center space-x-2">
-            <h2 className="text-sm font-medium text-gray-900">
-              Input Placeholder URL
-            </h2>
-            <InfoTooltip content="Provide context to your teammates in the link creation modal by showing them an example of a link to be shortened." />
-          </label>
-          <div className="relative mt-1 rounded-md shadow-sm">
-            <input
-              type="url"
-              name="placeholder"
-              id="placeholder"
-              className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-              placeholder="https://dub.co/help/article/what-is-dub"
-              value={placeholder}
-              onChange={(e) =>
-                setData({ ...data, placeholder: e.target.value })
-              }
-            />
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between bg-gray-50">
-          <div className="flex items-center space-x-2">
-            <h2 className="text-sm font-medium text-gray-900">
-              Primary Domain
-            </h2>
-            <InfoTooltip content="The default domain used in the link creation modal. You can only have one primary domain at a time." />
-          </div>
-          <Switch
-            fn={() => setData((prev) => ({ ...prev, primary: !primary }))}
-            checked={primary}
-            disabled={props?.primary}
+        <button
+          type="button"
+          className="flex items-center"
+          onClick={() => setExpanded(!expanded)}
+        >
+          <ChevronRight
+            className={`h-5 w-5 text-gray-600 ${
+              expanded ? "rotate-90" : ""
+            } transition-all`}
           />
-        </div>
+          <p className="text-sm text-gray-600">Advanced options</p>
+        </button>
+        {expanded && (
+          <motion.div
+            {...FADE_IN_ANIMATION_SETTINGS}
+            className="flex flex-col space-y-6"
+          >
+            <div className="flex items-center justify-between bg-gray-50">
+              <div className="flex items-center space-x-2">
+                <h2 className="text-sm font-medium text-gray-900">
+                  Primary Domain
+                </h2>
+                <InfoTooltip content="The default domain used in the link creation modal. You can only have one primary domain at a time." />
+              </div>
+              <Switch
+                fn={() => setData((prev) => ({ ...prev, primary: !primary }))}
+                checked={primary}
+                disabled={props?.primary}
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="placeholder"
+                className="flex items-center space-x-2"
+              >
+                <h2 className="text-sm font-medium text-gray-900">
+                  Input Placeholder URL
+                </h2>
+                <InfoTooltip content="Provide context to your teammates in the link creation modal by showing them an example of a link to be shortened." />
+              </label>
+              <div className="relative mt-1 rounded-md shadow-sm">
+                <input
+                  type="url"
+                  name="placeholder"
+                  id="placeholder"
+                  className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                  placeholder="https://dub.co/help/article/what-is-dub"
+                  value={placeholder}
+                  onChange={(e) =>
+                    setData({ ...data, placeholder: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         <div className="grid gap-2">
           <Button
@@ -375,24 +400,18 @@ function AddEditDomainModal({
             disabled={saveDisabled}
             loading={saving}
           />
-          {props &&
-            (props.primary ? (
-              <Button
-                disabledTooltip="You can't delete your primary domain."
-                text="Delete domain"
-              />
-            ) : (
-              <Button
-                variant="danger"
-                text="Delete domain"
-                onClick={() => {
-                  window.confirm(
-                    "Warning: Deleting your project's domain will delete all existing short links using the domain. Are you sure you want to continue?",
-                  ) && deleteDomain();
-                }}
-                loading={deleting}
-              />
-            ))}
+          {props && (
+            <Button
+              variant="danger"
+              text="Delete domain"
+              onClick={() => {
+                window.confirm(
+                  "Warning: Deleting your project's domain will delete all existing short links using the domain. Are you sure you want to continue?",
+                ) && deleteDomain();
+              }}
+              loading={deleting}
+            />
+          )}
         </div>
       </form>
     </Modal>

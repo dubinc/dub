@@ -10,7 +10,7 @@ export const PLANS = [
       links: 25,
       clicks: 1000,
       domains: 1,
-      tags: 10,
+      tags: 5,
       users: 1,
     },
     colors: {

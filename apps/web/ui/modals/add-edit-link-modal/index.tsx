@@ -19,7 +19,6 @@ import {
   deepEqual,
   getApexDomain,
   getUrlWithoutUTMParams,
-  isDubDomain,
   isValidUrl,
   linkConstructor,
   truncate,

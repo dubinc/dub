@@ -8,38 +8,25 @@ import { ModalContext } from "@/ui/modals/provider";
 import { Badge } from "@dub/ui";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { useParams, usePathname, useSearchParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import { useContext, useMemo } from "react";
 
 export default function NavTabs() {
   const pathname = usePathname();
   const { slug } = useParams() as { slug?: string };
-  const searchParams = useSearchParams();
   const { loading, error } = useProject();
 
-  const tabs = useMemo(() => {
-    if (slug) {
-      return [
-        { name: "Links", href: `/${slug}` },
-        { name: "Analytics", href: `/${slug}/analytics` },
-        { name: "Domains", href: `/${slug}/domains` },
-        { name: "Settings", href: `/${slug}/settings` },
-      ];
-    }
-    if (pathname === "/analytics") {
-      return [{ name: "← Back to all links", href: "/links" }];
-    }
-    return [
-      { name: "Projects", href: "/" },
-      { name: "Links", href: "/links" },
-      { name: "Settings", href: "/settings" },
-    ];
-  }, [pathname, slug, searchParams]);
+  const tabs = [
+    { name: "Links", href: `/${slug}` },
+    { name: "Analytics", href: `/${slug}/analytics` },
+    { name: "Domains", href: `/${slug}/domains` },
+    { name: "Settings", href: `/${slug}/settings` },
+  ];
 
   const { verified, loading: loadingDomains } = useDomains();
   const { data: count } = useLinksCount();
 
-  if (error) return null;
+  if (!slug || error) return null;
 
   return (
     <div className="scrollbar-hide mb-[-3px] flex h-12 items-center justify-start space-x-2 overflow-x-auto">

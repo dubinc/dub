@@ -135,30 +135,7 @@ function ProjectList({
 
   return (
     <div className="relative mt-1 max-h-72 w-full space-y-0.5 overflow-auto rounded-md bg-white p-2 text-base sm:w-60 sm:text-sm sm:shadow-lg">
-      <div className="p-2 text-xs text-gray-500">Personal Account</div>
-      <Link
-        key="personal"
-        className={`relative flex w-full items-center space-x-2 rounded-md px-2 py-1.5 hover:bg-gray-100 active:bg-gray-200 ${
-          selected.slug === "/" ? "font-medium" : ""
-        } transition-all duration-75`}
-        href="/links"
-        onClick={() => setOpenPopover(false)}
-      >
-        <Avatar user={session?.user} className="h-7 w-7" />
-        <span
-          className={`block truncate pr-8 text-sm ${
-            selected.slug === "/" ? "font-medium" : "font-normal"
-          }`}
-        >
-          {session?.user?.name || session?.user?.email}
-        </span>
-        {selected.slug === "/" ? (
-          <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-black">
-            <Tick className="h-5 w-5" aria-hidden="true" />
-          </span>
-        ) : null}
-      </Link>
-      <div className="p-2 text-xs text-gray-500">Custom Projects</div>
+      <div className="p-2 text-xs text-gray-500">My Projects</div>
       {projects.map(({ id, name, slug, logo, primaryDomain }) => (
         <Link
           key={slug}
