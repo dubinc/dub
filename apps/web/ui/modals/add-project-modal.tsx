@@ -176,7 +176,7 @@ function AddProjectModalHelper({
               Project Slug
             </p>
             <InfoTooltip
-              content={`This is your project's unique slug on {process.env.NEXT_PUBLIC_APP_NAME}.`}
+              content={`This is your project's unique slug on ${process.env.NEXT_PUBLIC_APP_NAME}.`}
             />
           </label>
           <div className="relative mt-1 flex rounded-md shadow-sm">
