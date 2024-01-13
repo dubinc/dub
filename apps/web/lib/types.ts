@@ -67,7 +67,7 @@ export interface ProjectProps {
     role: "owner" | "member";
   }[];
   metadata?: {
-    defaultDomains: string[];
+    defaultDomains?: string[];
   };
 }
 
