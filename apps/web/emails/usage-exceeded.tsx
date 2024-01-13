@@ -28,7 +28,7 @@ export default function UsageExceeded({
   type = "first",
 }: {
   email: string;
-  project: ProjectProps;
+  project: Partial<ProjectProps>;
   type: "first" | "second";
 }) {
   const { slug, name, usage, usageLimit, plan } = project;
