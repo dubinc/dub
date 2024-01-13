@@ -10,13 +10,10 @@ import { toast } from "sonner";
 export default function LoginForm() {
   const searchParams = useSearchParams();
   const next = searchParams?.get("next");
-  const [showEmailOption, setShowEmailOption] = useState(false);
-  const [showSSOOption, setShowSSOOption] = useState(false);
+
   const [noSuchAccount, setNoSuchAccount] = useState(false);
   const [email, setEmail] = useState("");
-  const [clickedGoogle, setClickedGoogle] = useState(false);
   const [clickedEmail, setClickedEmail] = useState(false);
-  const [clickedSSO, setClickedSSO] = useState(false);
 
   useEffect(() => {
     const error = searchParams?.get("error");
@@ -25,18 +22,6 @@ export default function LoginForm() {
 
   return (
     <>
-      <Button
-        text="Continue with Google"
-        onClick={() => {
-          setClickedGoogle(true);
-          signIn("google", {
-            ...(next && next.length > 0 ? { callbackUrl: next } : {}),
-          });
-        }}
-        loading={clickedGoogle}
-        disabled={clickedEmail || clickedSSO}
-        icon={<Google className="h-4 w-4" />}
-      />
       <form
         onSubmit={async (e) => {
           e.preventDefault();
@@ -75,7 +60,6 @@ export default function LoginForm() {
         }}
         className="flex flex-col space-y-3"
       >
-        {showEmailOption && (
           <div>
             <div className="mb-4 mt-1 border-t border-gray-300" />
             <input
@@ -94,80 +78,10 @@ export default function LoginForm() {
               className="mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
             />
           </div>
-        )}
         <Button
           text="Continue with Email"
-          variant="secondary"
-          {...(!showEmailOption && {
-            type: "button",
-            onClick: (e) => {
-              e.preventDefault();
-              setShowSSOOption(false);
-              setShowEmailOption(true);
-            },
-          })}
+          variant="primary"
           loading={clickedEmail}
-          disabled={clickedGoogle || clickedSSO}
-        />
-      </form>
-      <form
-        onSubmit={async (e) => {
-          e.preventDefault();
-          setClickedSSO(true);
-          fetch("/api/auth/saml/verify", {
-            method: "POST",
-            body: JSON.stringify({ slug: e.currentTarget.slug.value }),
-          }).then(async (res) => {
-            const { data, error } = await res.json();
-            if (error) {
-              toast.error(error);
-              setClickedSSO(false);
-              return;
-            }
-            await signIn("saml", undefined, {
-              tenant: data.projectId,
-              product: "Dub",
-            });
-          });
-        }}
-        className="flex flex-col space-y-3"
-      >
-        {showSSOOption && (
-          <div>
-            <div className="mb-4 mt-1 border-t border-gray-300" />
-            <div className="flex items-center space-x-2">
-              <h2 className="text-sm font-medium text-gray-900">
-                Project Slug
-              </h2>
-              <InfoTooltip
-                content={`This is your project's unique identifier on ${process.env.NEXT_PUBLIC_APP_NAME}. E.g. app.dub.co/acme is "acme".`}
-              />
-            </div>
-            <input
-              id="slug"
-              name="slug"
-              autoFocus
-              type="text"
-              placeholder="my-team"
-              autoComplete="off"
-              required
-              className="mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
-            />
-          </div>
-        )}
-        <Button
-          text="Continue with SAML SSO"
-          variant="secondary"
-          {...(!showSSOOption && {
-            type: "button",
-            onClick: (e) => {
-              e.preventDefault();
-              setShowEmailOption(false);
-              setShowSSOOption(true);
-            },
-          })}
-          loading={clickedSSO}
-          disabled={clickedGoogle || clickedEmail}
         />
       </form>
       {noSuchAccount ? (

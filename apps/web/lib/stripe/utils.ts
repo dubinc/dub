@@ -1,10 +1,9 @@
 export function getPlanFromPriceId(priceId: string) {
-  const env =
-    process.env.NEXT_PUBLIC_VERCEL_ENV === "production" ? "production" : "test";
+
   return PLANS.find(
     (plan) =>
-      plan.price.monthly.priceIds[env] === priceId ||
-      plan.price.yearly.priceIds[env] === priceId,
+      plan.price.monthly.priceIds.production === priceId ||
+      plan.price.yearly.priceIds.production === priceId,
   )!;
 }
 

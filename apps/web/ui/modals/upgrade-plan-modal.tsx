@@ -157,22 +157,14 @@ function UpgradePlanModal({
             onClick={() => {
               setClicked(true);
               fetch(
-                `/api/projects/${slug}/billing/upgrade?priceId=${
-                  PLANS.find((p) => p.name === plan)!.price[period].priceIds[
-                    process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-                      ? "production"
-                      : "test"
-                  ]
-                }`,
-                {
+                `/api/callback/stripe`, {
                   method: "POST",
-                },
+                  body:JSON.stringify({projectId:slug})},
               )
                 .then(async (res) => {
                   const data = await res.json();
-                  const { id: sessionId } = data;
-                  const stripe = await getStripe();
-                  stripe?.redirectToCheckout({ sessionId });
+                  console.log(data);
+
                 })
                 .catch((err) => {
                   alert(err);
