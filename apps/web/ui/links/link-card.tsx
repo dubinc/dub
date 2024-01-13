@@ -87,9 +87,7 @@ export default function LinkCard({
   const { data: clicks } = useSWR<number>(
     isVisible &&
       !exceededClicks &&
-      `/api${
-        slug ? `/projects/${slug}` : ""
-      }/stats/clicks?domain=${domain}&key=${key}`,
+      `/api/projects/${slug}/stats/clicks?domain=${domain}&key=${key}`,
     fetcher,
     {
       fallbackData: props.clicks,
@@ -399,9 +397,7 @@ export default function LinkCard({
         <div className="flex items-center space-x-2">
           <NumberTooltip value={clicks} lastClicked={lastClicked}>
             <Link
-              href={`${
-                slug ? `/${slug}` : ""
-              }/analytics?domain=${domain}&key=${key}`}
+              href={`/${slug}/analytics?domain=${domain}&key=${key}`}
               className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 transition-all duration-75 hover:scale-105 active:scale-100"
             >
               <Chart className="h-4 w-4" />

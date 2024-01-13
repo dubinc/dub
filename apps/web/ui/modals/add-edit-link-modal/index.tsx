@@ -105,9 +105,7 @@ function AddEditLinkModal({
       debouncedKey.toLowerCase() !== props?.key.toLowerCase()
     ) {
       fetch(
-        `/api/links/exists?domain=${domain}&key=${debouncedKey}${
-          slug ? `&projectSlug=${slug}` : ""
-        }`,
+        `/api/links/exists?domain=${domain}&key=${debouncedKey}&projectSlug=${slug}`,
       ).then(async (res) => {
         if (res.status === 200) {
           const exists = await res.json();
@@ -123,7 +121,7 @@ function AddEditLinkModal({
     setKeyError(null);
     setGeneratingKey(true);
     const res = await fetch(
-      `/api/links/random?domain=${domain}${slug ? `&projectSlug=${slug}` : ""}`,
+      `/api/links/random?domain=${domain}&projectSlug=${slug}`,
     );
     const key = await res.json();
     setData((prev) => ({ ...prev, key }));
@@ -218,12 +216,12 @@ function AddEditLinkModal({
     if (props?.key) {
       return {
         method: "PUT",
-        url: `/api/links/${props.id}${slug ? `?projectSlug=${slug}` : ""}`,
+        url: `/api/links/${props.id}?projectSlug=${slug}`,
       };
     } else {
       return {
         method: "POST",
-        url: `/api/links${slug ? `?projectSlug=${slug}` : ""}`,
+        url: `/api/links?projectSlug=${slug}`,
       };
     }
   }, [props, slug, domain]);

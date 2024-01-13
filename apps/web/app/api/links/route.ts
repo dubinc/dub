@@ -10,33 +10,31 @@ import {
 import { NextResponse } from "next/server";
 
 // GET /api/links – get all user links
-export const GET = withAuth(
-  async ({ headers, searchParams, project, session }) => {
-    const { domain, tagId, search, sort, page, userId, showArchived } =
-      searchParams as {
-        domain?: string;
-        tagId?: string;
-        search?: string;
-        sort?: "createdAt" | "clicks" | "lastClicked";
-        page?: string;
-        userId?: string;
-        showArchived?: string;
-      };
-    const response = await getLinksForProject({
-      projectId: project?.id || DUB_PROJECT_ID,
-      domain,
-      tagId,
-      search,
-      sort,
-      page,
-      userId: project?.id ? userId : session.user.id,
-      showArchived: showArchived === "true" ? true : false,
-    });
-    return NextResponse.json(response, {
-      headers,
-    });
-  },
-);
+export const GET = withAuth(async ({ headers, searchParams, project }) => {
+  const { domain, tagId, search, sort, page, userId, showArchived } =
+    searchParams as {
+      domain?: string;
+      tagId?: string;
+      search?: string;
+      sort?: "createdAt" | "clicks" | "lastClicked";
+      page?: string;
+      userId?: string;
+      showArchived?: string;
+    };
+  const response = await getLinksForProject({
+    projectId: project.id,
+    domain,
+    tagId,
+    search,
+    sort,
+    page,
+    userId,
+    showArchived: showArchived === "true" ? true : false,
+  });
+  return NextResponse.json(response, {
+    headers,
+  });
+});
 
 // POST /api/links – create a new link
 export const POST = withAuth(

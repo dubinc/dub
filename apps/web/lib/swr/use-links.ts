@@ -14,9 +14,13 @@ export default function useLinks() {
       user: UserProps;
     })[]
   >(
-    `/api/links${getQueryString(slug ? { projectSlug: slug } : undefined, {
-      ignore: ["import", "upgrade"],
-    })}`,
+    slug &&
+      `/api/links${getQueryString(
+        { projectSlug: slug },
+        {
+          ignore: ["import", "upgrade"],
+        },
+      )}`,
     fetcher,
     {
       dedupingInterval: 20000,
