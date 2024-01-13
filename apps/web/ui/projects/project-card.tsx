@@ -28,7 +28,7 @@ export default function ProjectCard({
     <Link
       key={slug}
       href={`/${slug}`}
-      className="flex flex-col space-y-10 rounded-lg border border-gray-100 bg-white p-6 shadow transition-all hover:shadow-lg"
+      className="flex flex-col justify-between space-y-10 rounded-lg border border-gray-100 bg-white p-6 shadow transition-all hover:shadow-lg"
     >
       <div className="flex items-start justify-between">
         <div className="flex items-center space-x-3">
@@ -70,9 +70,9 @@ export default function ProjectCard({
                     <Badge variant="gray">+{domains.length - 1}</Badge>
                   ) : primaryDomain?.verified ? (
                     <CheckCircleFill className="h-5 w-5 text-blue-500" />
-                  ) : (
+                  ) : primaryDomain?.verified === false ? (
                     <XCircleFill className="h-5 w-5 text-gray-300" />
-                  )}
+                  ) : null}
                 </div>
               </Tooltip>
             </div>
@@ -84,7 +84,7 @@ export default function ProjectCard({
         <div className="flex items-center space-x-1 text-gray-500">
           <Globe className="h-4 w-4" />
           <h2 className="whitespace-nowrap text-sm">
-            {nFormatter(domains.length)} domain{domains.length > 1 && "s"}
+            {nFormatter(domains.length)} domain{domains.length != 1 && "s"}
           </h2>
         </div>
         <div className="flex items-center space-x-1 text-gray-500">

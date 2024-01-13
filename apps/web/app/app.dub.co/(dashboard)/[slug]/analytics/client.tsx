@@ -21,7 +21,7 @@ export default function AnalyticsClient({ children }: { children: ReactNode }) {
     return <LayoutLoader />;
   }
   if (
-    domains.length === 0 ||
+    domains?.length === 0 ||
     (domain && !domains?.find((d) => d.slug === domain))
   ) {
     return <LinkNotFound />;

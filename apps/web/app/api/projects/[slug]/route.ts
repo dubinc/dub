@@ -13,7 +13,7 @@ export const GET = withAuth(async ({ project, headers }) => {
 // PUT /api/projects/[slug] – update a specific project
 export const PUT = withAuth(
   async ({ req, project }) => {
-    const { name, slug } = await req.json();
+    const { name, slug, defaultDomains } = await req.json();
 
     // if slug is defined, do some checks
     if (slug) {
@@ -41,6 +41,12 @@ export const PUT = withAuth(
         data: {
           ...(name && { name }),
           ...(slug && { slug }),
+          ...(defaultDomains && {
+            metadata: {
+              ...project.metadata,
+              defaultDomains,
+            },
+          }),
         },
       });
       return NextResponse.json(response);

@@ -107,6 +107,7 @@ model Project {
 
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
+  metadata           Json?           @default("{\"defaultDomains\":[\"dub.sh\",\"chatg.pt\",\"spti.fi\",\"amzn.id\"]}")
 }
 
 model ProjectInvite {
@@ -150,22 +151,22 @@ model SentEmail {
 }
 
 model Domain {
-  id          String   @id @default(cuid())
-  slug        String   @unique
-  verified    Boolean  @default(false)
-  target      String?
-  type        String   @default("redirect")
-  placeholder String   @default("https://dub.co/help/article/what-is-dub")
-  description String?
-  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  projectId   String?
-  primary     Boolean  @default(false)
-  links       Link[]
-  clicks      Int      @default(0)
-  lastClicked DateTime? // when the link was last clicked
-  lastChecked DateTime @default(now())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                  String   @id @default(cuid())
+  slug                String   @unique
+  verified            Boolean  @default(false)
+  target              String?
+  type                String   @default("redirect")
+  placeholder         String   @default("https://dub.co/help/article/what-is-dub")
+  description         String?
+  project             Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId           String?
+  primary             Boolean  @default(false)
+  links               Link[]
+  clicks              Int      @default(0)
+  lastClicked         DateTime? // when the link was last clicked
+  lastChecked         DateTime @default(now())
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
   @@index(projectId)
   @@index(clicks(sort: Desc))

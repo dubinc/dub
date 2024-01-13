@@ -66,6 +66,9 @@ export interface ProjectProps {
   users: {
     role: "owner" | "member";
   }[];
+  metadata?: {
+    defaultDomains: string[];
+  };
 }
 
 export interface ProjectWithDomainProps extends ProjectProps {

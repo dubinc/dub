@@ -4,10 +4,10 @@ import {
   domainExists,
   validateDomain,
 } from "@/lib/api/domains";
-import { withAuth, withSession } from "@/lib/auth";
+import { withSession } from "@/lib/auth";
 import { isReservedKey } from "@/lib/edge-config";
 import prisma from "@/lib/prisma";
-import { DEFAULT_REDIRECTS, validSlugRegex } from "@dub/utils";
+import { DEFAULT_REDIRECTS, DUB_DOMAINS, validSlugRegex } from "@dub/utils";
 
 // GET /api/projects - get all projects for the current user
 export const GET = withSession(async ({ session }) => {
@@ -26,10 +26,11 @@ export const GET = withSession(async ({ session }) => {
   return NextResponse.json(projects);
 });
 
-export const POST = withAuth(async ({ req, session }) => {
+export const POST = withSession(async ({ req, session }) => {
   const { name, slug, domain } = await req.json();
-  if (!name || !slug || !domain) {
-    return new Response("Missing name or slug or domain", { status: 422 });
+
+  if (!name || !slug) {
+    return new Response("Missing name or slug", { status: 422 });
   }
   let slugError: string | null = null;
 
@@ -46,16 +47,19 @@ export const POST = withAuth(async ({ req, session }) => {
     slugError = "Cannot use reserved slugs";
   }
 
-  const validDomain = await validateDomain(domain);
-  if (slugError || validDomain !== true) {
-    return NextResponse.json(
-      {
-        slugError,
-        domainError: validDomain === true ? null : validDomain,
-      },
-      { status: 422 },
-    );
+  if (domain) {
+    const validDomain = await validateDomain(domain);
+    if (slugError || validDomain !== true) {
+      return NextResponse.json(
+        {
+          slugError,
+          domainError: validDomain === true ? null : validDomain,
+        },
+        { status: 422 },
+      );
+    }
   }
+
   const [slugExist, domainExist] = await Promise.all([
     prisma.project.findUnique({
       where: {
@@ -94,6 +98,9 @@ export const POST = withAuth(async ({ req, session }) => {
           },
         },
         billingCycleStart: new Date().getDate(),
+        metadata: {
+          defaultDomains: DUB_DOMAINS.map((d) => d.slug),
+        },
       },
     }),
     addDomainToVercel(domain),

@@ -237,6 +237,7 @@ export const withAuth =
               primary: true,
             },
           },
+          metadata: true,
         },
       }),
       linkId
@@ -266,13 +267,15 @@ export const withAuth =
     }
 
     // prevent unauthorized access to domains that don't belong to the project
-    if (domain) {
-      if (!project.domains?.find((d) => d.slug === domain)) {
-        return new Response("Domain does not belong to project.", {
-          status: 403,
-          headers,
-        });
-      }
+    if (
+      domain &&
+      !isDubDomain(domain) &&
+      !project.domains.find((d) => d.slug === domain)
+    ) {
+      return new Response("Domain does not belong to project.", {
+        status: 403,
+        headers,
+      });
     }
 
     // project exists but user is not part of it

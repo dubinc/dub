@@ -1,37 +1,45 @@
 import { DomainProps } from "@/lib/types";
 import { DUB_DOMAINS, fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
-import { useMemo } from "react";
 import useSWR from "swr";
+import useProject from "./use-project";
 
 export default function useDomains({ domain }: { domain?: string } = {}) {
   const { slug } = useParams() as {
     slug: string;
   };
 
-  const { data, error } = useSWR<DomainProps[]>(
-    slug && `/api/projects/${slug}/domains`,
-    fetcher,
-    {
-      dedupingInterval: 60000,
-    },
-  );
+  const {
+    data: projectDomains,
+    error,
+    mutate,
+  } = useSWR<DomainProps[]>(slug && `/api/projects/${slug}/domains`, fetcher, {
+    dedupingInterval: 60000,
+  });
 
-  const domains = useMemo(() => {
-    return slug ? data : DUB_DOMAINS;
-  }, [slug, data]) as DomainProps[];
+  const { defaultDomains: projectDefaultDomains } = useProject();
+
+  const defaultDomains =
+    (projectDefaultDomains &&
+      DUB_DOMAINS.filter((d) => projectDefaultDomains?.includes(d.slug))) ||
+    DUB_DOMAINS;
+
+  const allDomains = [...(projectDomains || []), ...defaultDomains];
 
   return {
-    domains,
+    domains: projectDomains,
+    defaultDomains,
+    allDomains,
     primaryDomain:
-      domains?.find((domain) => domain.primary)?.slug ||
-      (domains && domains.length > 0 && domains[0].slug),
+      projectDomains?.find((domain) => domain.primary)?.slug ||
+      defaultDomains.find((domain) => domain.primary)?.slug,
     verified: domain
       ? // If a domain is passed, check if it's verified
-        domains?.find((d) => d.slug === domain)?.verified
+        allDomains.find((d) => d.slug === domain)?.verified
       : // If no domain is passed, check if any of the domains are verified
-        domains?.some((d) => d.verified),
-    loading: !domains && !error,
+        allDomains.some((d) => d.verified),
+    loading: !projectDomains && !error,
+    mutate,
     error,
   };
 }

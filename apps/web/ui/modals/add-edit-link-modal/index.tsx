@@ -74,7 +74,7 @@ function AddEditLinkModal({
   const [generatingKey, setGeneratingKey] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const { domains, primaryDomain } = useDomains();
+  const { allDomains: domains, primaryDomain } = useDomains();
 
   const [data, setData] = useState<LinkProps>(
     props ||
@@ -618,7 +618,7 @@ function AddEditLinkButton({
       target.tagName !== "INPUT" &&
       target.tagName !== "TEXTAREA" &&
       !existingModalBackdrop &&
-      !(slug && exceededLinks)
+      !exceededLinks
     ) {
       e.preventDefault(); // or else it'll show up in the input field since that's getting auto-selected
       setShowAddEditLinkModal(true);
@@ -642,7 +642,7 @@ function AddEditLinkButton({
       target.tagName !== "INPUT" &&
       target.tagName !== "TEXTAREA" &&
       !existingModalBackdrop &&
-      !(slug && exceededLinks)
+      !exceededLinks
     ) {
       setShowAddEditLinkModal(true);
     }

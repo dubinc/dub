@@ -6,7 +6,6 @@ import {
   setRootDomain,
   validateDomain,
 } from "@/lib/api/domains";
-import { capitalize } from "@dub/utils";
 import { exceededLimitError } from "@/lib/api/errors";
 
 // GET /api/projects/[slug]/domains – get all domains for a project

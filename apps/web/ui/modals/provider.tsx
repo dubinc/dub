@@ -61,29 +61,35 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
     domain: !!process.env.NEXT_PUBLIC_VERCEL_URL ? ".dub.co" : undefined,
   });
 
-  useEffect(() => {
-    if (hashes.length > 0) {
-      fetch("/api/links/sync", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(hashes),
-      }).then(async (res) => {
-        if (res.status === 200) {
-          await mutate(
-            (key) => typeof key === "string" && key.startsWith("/api/links"),
-            undefined,
-            { revalidate: true },
-          );
-          toast.success("Links imported successfully!");
-        }
-        setHashes([]);
-      });
-    }
-  }, [hashes]);
+  const { slug, error } = useProject();
 
-  const { error } = useProject();
+  useEffect(() => {
+    if (hashes.length > 0 && slug) {
+      toast.promise(
+        fetch(`/api/links/sync?projectSlug?=${slug}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(hashes),
+        }).then(async (res) => {
+          if (res.status === 200) {
+            await mutate(
+              (key) => typeof key === "string" && key.startsWith("/api/links"),
+              undefined,
+              { revalidate: true },
+            );
+          }
+          setHashes([]);
+        }),
+        {
+          loading: "Importing links...",
+          success: "Links imported successfully!",
+          error: "Something went wrong while importing links.",
+        },
+      );
+    }
+  }, [hashes, slug]);
 
   // handle invite and oauth modals
   useEffect(() => {

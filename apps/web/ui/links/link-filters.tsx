@@ -44,7 +44,6 @@ import { useDebouncedCallback } from "use-debounce";
 
 export default function LinkFilters() {
   const { slug } = useParams() as { slug?: string };
-  const { primaryDomain } = useDomains();
   const { data: domains } = useLinksCount({ groupBy: "domain" });
 
   const { tags } = useTags();
@@ -84,7 +83,7 @@ export default function LinkFilters() {
         </div>
         <SearchBox searchInputRef={searchInputRef} />
       </div>
-      <DomainsFilter domains={domains} primaryDomain={primaryDomain} />
+      <DomainsFilter />
       {slug && (
         <>
           <TagsFilter tags={tags} tagsCount={tagsCount} />
@@ -175,9 +174,11 @@ const SearchBox = ({ searchInputRef }) => {
   );
 };
 
-const DomainsFilter = ({ domains, primaryDomain }) => {
+const DomainsFilter = () => {
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
+  const { data: domains } = useLinksCount({ groupBy: "domain" });
+  const { primaryDomain, defaultDomains } = useDomains();
 
   const [collapsed, setCollapsed] = useState(false);
 
@@ -185,7 +186,7 @@ const DomainsFilter = ({ domains, primaryDomain }) => {
     return domains.length === 0
       ? [
           {
-            value: primaryDomain || "",
+            value: primaryDomain || defaultDomains[0].slug || "",
             count: 0,
           },
         ]
@@ -193,7 +194,7 @@ const DomainsFilter = ({ domains, primaryDomain }) => {
           value: domain,
           count: _count,
         }));
-  }, [domains, primaryDomain]);
+  }, [domains, primaryDomain, defaultDomains]);
 
   return (
     <fieldset className="overflow-hidden py-6">
