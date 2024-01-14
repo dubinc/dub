@@ -1,5 +1,6 @@
 import { withAuth } from "@/lib/auth";
 import { getStats } from "@/lib/stats";
+import { DUB_PROJECT_ID, isDubDomain } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/stats/[endpoint] – get stats for a specific endpoint
@@ -7,6 +8,13 @@ export const GET = withAuth(
   async ({ params, searchParams, project }) => {
     const { endpoint } = params;
     const { domain, key, interval } = searchParams;
+
+    // TODO: remove this after #545 merges
+    if (isDubDomain(domain) && !key && project.id !== DUB_PROJECT_ID) {
+      return new Response("Domain does not belong to project.", {
+        status: 403,
+      });
+    }
 
     const constructedDomain =
       domain || project?.domains?.map((d) => d.slug).join(",");

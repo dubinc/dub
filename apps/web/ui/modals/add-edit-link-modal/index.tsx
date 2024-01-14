@@ -18,6 +18,7 @@ import {
   cn,
   deepEqual,
   getApexDomain,
+  getDomainWithoutWWW,
   getUrlWithoutUTMParams,
   isValidUrl,
   linkConstructor,
@@ -74,16 +75,17 @@ function AddEditLinkModal({
   const [generatingKey, setGeneratingKey] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const { allDomains: domains, primaryDomain } = useDomains();
+  const {
+    allActiveDomains: domains,
+    primaryDomain,
+    defaultDomains,
+  } = useDomains();
 
   const [data, setData] = useState<LinkProps>(
     props ||
       duplicateProps || {
         ...(DEFAULT_LINK_PROPS as LinkProps),
-        domain:
-          primaryDomain ||
-          (domains && domains.length > 0 && domains[0].slug) ||
-          "",
+        domain: primaryDomain,
         key: "",
         url: "",
       },
@@ -129,13 +131,25 @@ function AddEditLinkModal({
   }, [domain, slug]);
 
   useEffect(() => {
-    // generate random key when someone pastes a URL and there's no key
-    if (showAddEditLinkModal && !key && url.length > 0) {
-      generateRandomKey();
+    // when someone pastes a URL
+    if (showAddEditLinkModal && url.length > 0) {
+      // if it's a new link and there are matching default domains, set it as the domain
+      if (!props && defaultDomains) {
+        const urlDomain = getDomainWithoutWWW(url) || "";
+        const defaultDomain = defaultDomains.find(({ allowedHostnames }) =>
+          allowedHostnames.includes(urlDomain),
+        );
+        if (defaultDomain) {
+          setData((prev) => ({ ...prev, domain: defaultDomain.slug }));
+        }
+      }
+
+      // if there's no key, generate a random key
+      if (!key) {
+        generateRandomKey();
+      }
     }
-    // here, we're intentionally leaving out `key` from the dependency array
-    // because we don't want to generate a new key if the user is editing the key
-  }, [showAddEditLinkModal, url, generateRandomKey]);
+  }, [showAddEditLinkModal, url]);
 
   const [generatingMetatags, setGeneratingMetatags] = useState(
     props ? true : false,

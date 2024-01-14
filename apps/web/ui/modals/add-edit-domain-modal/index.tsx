@@ -46,13 +46,14 @@ function AddEditDomainModal({
       slug: "",
       verified: false,
       primary: false,
+      archived: false,
       target: "",
       type: "redirect",
       clicks: 0,
     },
   );
 
-  const { slug: domain, primary, target, type, placeholder } = data;
+  const { slug: domain, primary, archived, target, type, placeholder } = data;
 
   const [lockDomain, setLockDomain] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -297,6 +298,18 @@ function AddEditDomainModal({
                 fn={() => setData((prev) => ({ ...prev, primary: !primary }))}
                 checked={primary}
                 disabled={props?.primary}
+              />
+            </div>
+
+            <div className="flex items-center justify-between bg-gray-50">
+              <div className="flex items-center space-x-2">
+                <h2 className="text-sm font-medium text-gray-900">Archived</h2>
+                <InfoTooltip content="Archived domains will still work, but they won't show up in the link creation modal." />
+              </div>
+              <Switch
+                fn={() => setData((prev) => ({ ...prev, archived: !archived }))}
+                checked={archived}
+                disabled={props?.archived}
               />
             </div>
 

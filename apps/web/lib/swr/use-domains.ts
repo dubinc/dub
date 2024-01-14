@@ -1,5 +1,5 @@
 import { DomainProps } from "@/lib/types";
-import { DUB_DOMAINS, fetcher } from "@dub/utils";
+import { DUB_DOMAINS, SHORT_DOMAIN, fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 import useProject from "./use-project";
@@ -9,13 +9,16 @@ export default function useDomains({ domain }: { domain?: string } = {}) {
     slug: string;
   };
 
-  const {
-    data: projectDomains,
-    error,
-    mutate,
-  } = useSWR<DomainProps[]>(slug && `/api/projects/${slug}/domains`, fetcher, {
-    dedupingInterval: 60000,
-  });
+  const { data, error, mutate } = useSWR<DomainProps[]>(
+    slug && `/api/projects/${slug}/domains`,
+    fetcher,
+    {
+      dedupingInterval: 60000,
+    },
+  );
+
+  const projectDomains = data?.filter((domain) => !domain.archived);
+  const archivedProjectDomains = data?.filter((domain) => domain.archived);
 
   const { defaultDomains: projectDefaultDomains } = useProject();
 
@@ -24,21 +27,27 @@ export default function useDomains({ domain }: { domain?: string } = {}) {
       DUB_DOMAINS.filter((d) => projectDefaultDomains?.includes(d.slug))) ||
     DUB_DOMAINS;
 
-  const allDomains = [...(projectDomains || []), ...defaultDomains];
+  const allActiveDomains = [...(projectDomains || []), ...defaultDomains];
+
+  const primaryDomain =
+    projectDomains?.find((domain) => domain.primary)?.slug ||
+    defaultDomains.find((domain) => domain.primary)?.slug ||
+    SHORT_DOMAIN;
+
+  const verified = domain
+    ? // If a domain is passed, check if it's verified (using `allActiveDomains` cause it could be `dub.sh`)
+      allActiveDomains.find((d) => d.slug === domain)?.verified
+    : // If no domain is passed, check if any of the project domains are verified
+      projectDomains?.some((d) => d.verified);
 
   return {
-    domains: projectDomains,
+    projectDomains,
+    archivedProjectDomains,
     defaultDomains,
-    allDomains,
-    primaryDomain:
-      projectDomains?.find((domain) => domain.primary)?.slug ||
-      defaultDomains.find((domain) => domain.primary)?.slug,
-    verified: domain
-      ? // If a domain is passed, check if it's verified
-        allDomains.find((d) => d.slug === domain)?.verified
-      : // If no domain is passed, check if any of the domains are verified
-        allDomains.some((d) => d.verified),
-    loading: !projectDomains && !error,
+    allActiveDomains,
+    primaryDomain,
+    verified,
+    loading: !data && !error,
     mutate,
     error,
   };

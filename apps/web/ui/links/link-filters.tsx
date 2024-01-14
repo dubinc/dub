@@ -178,7 +178,7 @@ const DomainsFilter = () => {
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
   const { data: domains } = useLinksCount({ groupBy: "domain" });
-  const { primaryDomain, defaultDomains } = useDomains();
+  const { primaryDomain } = useDomains();
 
   const [collapsed, setCollapsed] = useState(false);
 
@@ -186,7 +186,7 @@ const DomainsFilter = () => {
     return domains.length === 0
       ? [
           {
-            value: primaryDomain || defaultDomains[0].slug || "",
+            value: primaryDomain,
             count: 0,
           },
         ]
@@ -194,7 +194,7 @@ const DomainsFilter = () => {
           value: domain,
           count: _count,
         }));
-  }, [domains, primaryDomain, defaultDomains]);
+  }, [domains, primaryDomain]);
 
   return (
     <fieldset className="overflow-hidden py-6">

@@ -7,6 +7,7 @@ import DomainCardPlaceholder from "@/ui/domains/domain-card-placeholder";
 import NoDomainsPlaceholder from "@/ui/domains/no-domains-placeholder";
 import { useAddEditDomainModal } from "@/ui/modals/add-edit-domain-modal";
 import {
+  Button,
   Checkbox,
   InfoTooltip,
   Label,
@@ -17,13 +18,13 @@ import {
 import { DUB_DOMAINS, HOME_DOMAIN } from "@dub/utils";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
-import { mutate } from "swr";
 
 export default function ProjectDomainsClient() {
   const { id: projectId } = useProject();
 
   const { AddEditDomainModal, AddEditDomainButton } = useAddEditDomainModal();
-  const { domains } = useDomains();
+  const { projectDomains, archivedProjectDomains } = useDomains();
+  const [showArchivedDomains, setShowArchivedDomains] = useState(false);
 
   return (
     <>
@@ -52,10 +53,10 @@ export default function ProjectDomainsClient() {
         </MaxWidthWrapper>
       </div>
       <MaxWidthWrapper className="py-10">
-        {domains ? (
-          domains.length > 0 ? (
+        {projectDomains ? (
+          projectDomains.length > 0 ? (
             <ul className="grid grid-cols-1 gap-3">
-              {domains.map((domain) => (
+              {projectDomains.map((domain) => (
                 <li key={domain.slug}>
                   <DomainCard props={domain} />
                 </li>
@@ -66,6 +67,23 @@ export default function ProjectDomainsClient() {
           )
         ) : (
           <DomainCardPlaceholder />
+        )}
+        {archivedProjectDomains && archivedProjectDomains.length > 0 && (
+          <ul className="mt-3 grid grid-cols-1 gap-3">
+            {showArchivedDomains &&
+              archivedProjectDomains?.map((domain) => (
+                <li key={domain.slug}>
+                  <DomainCard props={domain} />
+                </li>
+              ))}
+            <Button
+              text={`${showArchivedDomains ? "Hide" : "Show"} ${
+                archivedProjectDomains.length
+              } archived domains`}
+              variant="secondary"
+              onClick={() => setShowArchivedDomains(!showArchivedDomains)}
+            />
+          </ul>
         )}
       </MaxWidthWrapper>
     </>

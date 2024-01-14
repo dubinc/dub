@@ -3,7 +3,6 @@ import useProject from "@/lib/swr/use-project";
 import {
   Badge,
   Copy,
-  ExpandingArrow,
   IconMenu,
   Popover,
   Switch,
@@ -22,21 +21,11 @@ import {
   getApexDomain,
   linkConstructor,
 } from "@dub/utils";
-import {
-  Calendar,
-  ChevronDown,
-  Filter,
-  Globe,
-  Lock,
-  Share2,
-  X,
-} from "lucide-react";
+import { Calendar, ChevronDown, Globe, Lock, Share2, X } from "lucide-react";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
-import punycode from "punycode/";
 import { useContext, useMemo, useState } from "react";
 import { StatsContext } from ".";
-import { ModalContext } from "../modals/provider";
 import useSWR, { mutate } from "swr";
 import { toast } from "sonner";
 import { BlurImage } from "../shared/blur-image";
@@ -46,7 +35,6 @@ import { DomainProps } from "@/lib/types";
 export default function Toggle() {
   const { slug } = useParams() as { slug?: string };
   const { queryParams } = useRouterStuff();
-  const { setShowAddProjectModal } = useContext(ModalContext);
 
   const { basePath, domain, key, interval, modal } = useContext(StatsContext);
 
@@ -58,7 +46,7 @@ export default function Toggle() {
 
   const scrolled = useScroll(80);
   const { name, plan, logo } = useProject();
-  const { domains, primaryDomain } = useDomains();
+  const { projectDomains, primaryDomain } = useDomains();
 
   const isPublicStatsPage = basePath.startsWith("/stats");
 
@@ -82,13 +70,13 @@ export default function Toggle() {
           <h2 className="text-lg font-semibold text-gray-800">
             {primaryDomain}
           </h2>
-          {domains && domains?.length > 1 && (
+          {projectDomains && projectDomains.length > 0 && (
             <Tooltip
-              content={<DomainsFilterTooltip domains={domains} />}
+              content={<DomainsFilterTooltip domains={projectDomains} />}
               side="bottom"
             >
               <div className="cursor-pointer">
-                <Badge variant="gray">+{domains.length - 1}</Badge>
+                <Badge variant="gray">+{projectDomains.length - 1}</Badge>
               </div>
             </Tooltip>
           )}

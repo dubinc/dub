@@ -18,6 +18,7 @@ export const GET = withAuth(async ({ project }) => {
       slug: true,
       verified: true,
       primary: true,
+      archived: true,
       target: true,
       type: true,
       placeholder: true,
@@ -29,7 +30,7 @@ export const GET = withAuth(async ({ project }) => {
 
 // POST /api/projects/[slug]/domains - add a domain
 export const POST = withAuth(async ({ req, project }) => {
-  const { slug: domain, primary, target, type } = await req.json();
+  const { slug: domain, primary, archived, target, type } = await req.json();
 
   if (project.domains && project.domains?.length >= project.domainsLimit) {
     return new Response(
@@ -81,6 +82,7 @@ export const POST = withAuth(async ({ req, project }) => {
         type,
         projectId: project.id,
         primary,
+        archived,
       },
     }),
   ]);

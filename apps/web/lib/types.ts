@@ -98,8 +98,9 @@ export interface DomainProps {
   slug: string;
   verified: boolean;
   primary: boolean;
+  archived: boolean;
   target?: string;
-  type: "redirect" | "rewrite";
+  type: string;
   placeholder?: string;
   clicks: number;
 }

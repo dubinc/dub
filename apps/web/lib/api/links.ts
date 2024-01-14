@@ -10,7 +10,6 @@ import {
   DEFAULT_REDIRECTS,
   DUB_DOMAINS,
   DUB_PROJECT_ID,
-  LEGAL_USER_ID,
   SHORT_DOMAIN,
   getDomainWithoutWWW,
   getParamsFromURL,
@@ -24,7 +23,6 @@ import cloudinary from "cloudinary";
 import { isIframeable } from "../middleware/utils";
 import { LinkProps, ProjectProps, SimpleLinkProps } from "../types";
 import { Session } from "../auth";
-import { exceededLimitError } from "./errors";
 
 export async function getLinksForProject({
   projectId,
