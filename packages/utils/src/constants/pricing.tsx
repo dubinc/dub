@@ -24,9 +24,9 @@ export const PLANS = [
     },
     featureTitle: "What's included:",
     features: [
-      { text: " 25 links/mo" },
+      { text: "25 links/mo" },
       {
-        text: " 1K tracked clicks/mo",
+        text: "1K tracked clicks/mo",
       },
       { text: "30-day analytics retention" },
       { text: "1 custom domain" },
@@ -54,6 +54,10 @@ export const PLANS = [
       ids: [
         "price_1LodNLAlJJEpqkPVQSrt33Lc", // old monthly
         "price_1LodNLAlJJEpqkPVRxUyCQgZ", // old yearly
+        "price_1OTcQBAlJJEpqkPViGtGEsbb", // new monthly (test)
+        "price_1OYJeBAlJJEpqkPVLjTsjX0E", // new monthly (prod)
+        "price_1OTcQBAlJJEpqkPVYlCMqdLL", // new yearly (test)
+        "price_1OYJeBAlJJEpqkPVnPGEZeb0", // new yearly
       ],
     },
     limits: {
@@ -75,7 +79,7 @@ export const PLANS = [
     },
     featureTitle: "Everything in Free, plus:",
     features: [
-      { text: " 250 links/mo" },
+      { text: "250 links/mo" },
       {
         text: "50K tracked clicks/mo",
       },
@@ -105,7 +109,13 @@ export const PLANS = [
     price: {
       monthly: 49,
       yearly: 39,
-      ids: [],
+      ids: [
+        "price_1LodLoAlJJEpqkPVJdwv5zrG", // old yearly
+        "price_1LoyrCAlJJEpqkPVZ32BV3wm", // new monthly (test)
+        "price_1LodLoAlJJEpqkPV9rD0rlNL", // old (no change) & new monthly (prod)
+        "price_1OTcRzAlJJEpqkPV6G9iP0Tb", // new yearly (test)
+        "price_xxx", // new yearly (prod)
+      ],
     },
     limits: {
       links: 1000,
@@ -126,7 +136,7 @@ export const PLANS = [
     },
     featureTitle: "Everything in Pro, plus:",
     features: [
-      { text: " 1,000 links/mo" },
+      { text: "1,000 links/mo" },
       {
         text: "250K tracked clicks/mo",
       },

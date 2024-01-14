@@ -151,7 +151,7 @@ export default function DomainInput({
                 className="flex flex-1 cursor-pointer items-center justify-between space-x-1 p-3 pl-0"
               >
                 <p className="text-gray-600">This is our website's domain</p>
-                <InfoTooltip content="If you're using this domain for your main website or app, you should add a subdomain for your short links instead (e.g. go.acme.com)." />
+                <InfoTooltip content="If you're using this domain for your main website or app, you should be using a subdomain for your short links instead (e.g. go.acme.com)." />
               </Label>
             </div>
           </RadioGroup>

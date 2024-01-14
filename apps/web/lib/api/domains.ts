@@ -237,7 +237,7 @@ export async function changeDomainForImages(domain: string, newDomain: string) {
   }
 }
 
-/* Delete a domain and all links & images associated with with */
+/* Delete a domain and all links & images associated with it */
 export async function deleteDomainAndLinks(
   domain: string,
   {

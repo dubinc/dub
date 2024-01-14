@@ -50,11 +50,12 @@ export const POST = async (req: Request) => {
           checkoutSession.subscription as string,
         );
         const priceId = subscription.items.data[0].price.id;
+
         const plan = getPlanFromPriceId(priceId);
 
         if (!plan) {
           await log({
-            message: "Invalid price ID",
+            message: "Invalid price ID in checkout.session.completed event",
             type: "cron",
             mention: true,
           });
@@ -109,7 +110,7 @@ export const POST = async (req: Request) => {
                 react: UpgradeEmail({
                   name: user.name,
                   email: user.email as string,
-                  plan: plan.name.toLowerCase(),
+                  plan: plan.name,
                 }),
                 marketing: true,
               }),
@@ -127,7 +128,7 @@ export const POST = async (req: Request) => {
 
         if (!plan) {
           await log({
-            message: "Invalid price ID",
+            message: "Invalid price ID in customer.subscription.updated event",
             type: "cron",
             mention: true,
           });

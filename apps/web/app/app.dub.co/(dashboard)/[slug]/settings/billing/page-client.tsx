@@ -11,6 +11,7 @@ import { HOME_DOMAIN, getFirstAndLastDay, nFormatter } from "@dub/utils";
 import va from "@vercel/analytics";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import Confetti from "react-dom-confetti";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
@@ -54,22 +55,26 @@ export default function ProjectBillingClient() {
   }, [billingCycleStart]);
 
   const { queryParams } = useRouterStuff();
+  const [confetti, setConfetti] = useState(false);
 
   useEffect(() => {
     if (searchParams?.get("success")) {
       toast.success("Upgrade success!");
+      setConfetti(true);
       setTimeout(() => {
         mutate(`/api/projects/${slug}`);
-        // track upgrade to pro event
-        va.track("Upgraded Plan", {
-          plan: "pro",
-        });
+        // track upgrade event
+        plan &&
+          va.track("Upgraded Plan", {
+            plan,
+          });
       }, 1000);
     }
-  }, [searchParams]);
+  }, [searchParams, plan]);
 
   return (
     <>
+      <Confetti active={confetti} config={{ elementCount: 200, spread: 90 }} />
       <div className="rounded-lg border border-gray-200 bg-white">
         <div className="flex flex-col space-y-3 p-10">
           <h2 className="text-xl font-medium">Plan &amp; Usage</h2>

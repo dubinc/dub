@@ -1,4 +1,3 @@
-import { deleteUserLinks } from "@/lib/api/links";
 import { withSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import cloudinary from "cloudinary";
@@ -51,28 +50,26 @@ export const DELETE = withSession(async ({ session }) => {
       { status: 422 },
     );
   } else {
-    const [deleteLinks, _] = await Promise.allSettled([
-      deleteUserLinks(session.user.id),
+    const response = await Promise.allSettled([
+      prisma.user.delete({
+        where: {
+          id: session.user.id,
+        },
+      }),
       cloudinary.v2.uploader.destroy(`avatars/${session?.user?.id}`, {
         invalidate: true,
       }),
-      // Disabling this until there's a way to delete audience by email using Resend API
-      // fetch(
-      //   `https://api.resend.com/audiences/${process.env.RESEND_AUDIENCE_ID}/contacts`,
-      //   {
-      //     method: "DELETE",
-      //     headers: {
-      //       Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-      //       "Content-Type": "application/json",
-      //     },
-      //   },
-      // )
+      fetch(
+        `https://api.resend.com/audiences/${process.env.RESEND_AUDIENCE_ID}/contacts/${session?.user?.email}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+        },
+      ),
     ]);
-    const response = await prisma.user.delete({
-      where: {
-        id: session.user.id,
-      },
-    });
-    return NextResponse.json({ deleteLinks, response });
+    return NextResponse.json(response);
   }
 });
