@@ -7,8 +7,10 @@ export * from "./avatar";
 export * from "./badge";
 export * from "./button";
 export * from "./form";
+export * from "./label";
 export * from "./modal";
 export * from "./popover";
+export * from "./radio-group";
 export * from "./switch";
 export * from "./tooltip";
 

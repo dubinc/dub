@@ -1,33 +1,31 @@
 import useProject from "@/lib/swr/use-project";
 import { DomainProps } from "@/lib/types";
-import { ModalContext } from "@/ui/modals/provider";
 import { BlurImage } from "@/ui/shared/blur-image";
-import { AlertCircleFill, Lock } from "@/ui/shared/icons";
+import { Lock } from "@/ui/shared/icons";
 import {
   Button,
   InfoTooltip,
   Logo,
   Modal,
-  SimpleTooltipContent,
   Switch,
   Tooltip,
   TooltipContent,
+  useRouterStuff,
 } from "@dub/ui";
-import { SHORT_DOMAIN, SWIPE_REVEAL_ANIMATION_SETTINGS } from "@dub/utils";
-import { AnimatePresence, motion } from "framer-motion";
+import { FADE_IN_ANIMATION_SETTINGS, capitalize } from "@dub/utils";
+import { motion } from "framer-motion";
+import { ChevronRight } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
   useCallback,
-  useContext,
-  useEffect,
   useMemo,
   useState,
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { useDebounce } from "use-debounce";
+import DomainInput from "./domain-input";
 
 function AddEditDomainModal({
   showAddEditDomainModal,
@@ -41,7 +39,7 @@ function AddEditDomainModal({
   const router = useRouter();
   const { slug } = useParams() as { slug: string };
   const { logo, plan } = useProject();
-  const { setShowUpgradePlanModal } = useContext(ModalContext);
+  const { queryParams } = useRouterStuff();
 
   const [data, setData] = useState<DomainProps>(
     props || {
@@ -55,18 +53,6 @@ function AddEditDomainModal({
   );
 
   const { slug: domain, primary, target, type, placeholder } = data;
-
-  const [debouncedDomain] = useDebounce(domain, 500);
-  useEffect(() => {
-    if (debouncedDomain.length > 0 && debouncedDomain !== props?.slug) {
-      fetch(`/api/domains/${debouncedDomain}/exists`).then(async (res) => {
-        if (res.status === 200) {
-          const exists = await res.json();
-          setDomainError(exists === 1 ? "Domain is already in use." : null);
-        }
-      });
-    }
-  }, [debouncedDomain]);
 
   const [lockDomain, setLockDomain] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -118,16 +104,11 @@ function AddEditDomainModal({
       method: "DELETE",
     }).then(async (res) => {
       if (res.status === 200) {
-        await Promise.all([
-          mutate(`/api/projects/${slug}/domains`),
-          mutate(
-            (key) =>
-              typeof key === "string" &&
-              key.startsWith(`/api/projects/${slug}/links`),
-            undefined,
-            { revalidate: true },
-          ),
-        ]);
+        await mutate(
+          (key) => typeof key === "string" && key.startsWith(`/api/projects`),
+          undefined,
+          { revalidate: true },
+        );
         setShowAddEditDomainModal(false);
         toast.success("Successfully deleted domain!");
       } else {
@@ -136,6 +117,8 @@ function AddEditDomainModal({
       setDeleting(false);
     });
   }
+
+  const [expanded, setExpanded] = useState(false);
 
   return (
     <Modal
@@ -208,60 +191,18 @@ function AddEditDomainModal({
             )}
           </div>
           {props && lockDomain ? (
-            <div className="mt-1 cursor-not-allowed rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-500 shadow-sm">
+            <div className="mt-2 cursor-not-allowed rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-500 shadow-sm">
               {domain}
             </div>
           ) : (
-            <div className="relative mt-1 rounded-md shadow-sm">
-              <input
-                type="text"
-                name="domain"
-                id="domain"
-                required
-                autoFocus
-                autoComplete="off"
-                pattern="[[\p{Letter}\p{Mark}\d-.]+"
-                className={`${
-                  domainError
-                    ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                    : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
-                } block w-full rounded-md focus:outline-none sm:text-sm`}
-                placeholder={SHORT_DOMAIN}
-                value={domain}
-                onChange={(e) => {
-                  setDomainError(null);
-                  setData({ ...data, slug: e.target.value });
-                }}
-                aria-invalid="true"
-                aria-describedby="domain-error"
-              />
-              {domainError && (
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                  <AlertCircleFill
-                    className="h-5 w-5 text-red-500"
-                    aria-hidden="true"
-                  />
-                </div>
-              )}
-            </div>
+            <DomainInput
+              identifier="slug"
+              data={data}
+              setData={setData}
+              domainError={domainError}
+              setDomainError={setDomainError}
+            />
           )}
-          {domainError &&
-            (domainError === "Domain is already in use." ? (
-              <p className="mt-2 text-sm text-red-600" id="domain-error">
-                Domain is already in use.{" "}
-                <a
-                  className="underline"
-                  href="mailto:support@dub.co?subject=My Domain Is Already In Use"
-                >
-                  Contact us
-                </a>{" "}
-                if you'd like to use this domain for your project.
-              </p>
-            ) : (
-              <p className="mt-2 text-sm text-red-600" id="domain-error">
-                {domainError}
-              </p>
-            ))}
         </div>
 
         <div>
@@ -270,7 +211,7 @@ function AddEditDomainModal({
             <InfoTooltip content="The page your users will get redirected to when they visit your domain." />
           </label>
           {plan !== "free" ? (
-            <div className="relative mt-1 rounded-md shadow-sm">
+            <div className="relative mt-2 rounded-md shadow-sm">
               <input
                 type="url"
                 name="target"
@@ -289,79 +230,102 @@ function AddEditDomainModal({
                   cta="Upgrade to Pro"
                   onClick={() => {
                     setShowAddEditDomainModal(false);
-                    setShowUpgradePlanModal(true);
+                    queryParams({
+                      set: {
+                        upgrade: "pro",
+                      },
+                    });
                   }}
                 />
               }
             >
-              <div className="mt-1 w-full cursor-not-allowed rounded-md border border-gray-300 px-3 py-2 text-left text-sm text-gray-300 sm:max-w-md">
+              <div className="mt-2 w-full cursor-not-allowed rounded-md border border-gray-300 px-3 py-2 text-left text-sm text-gray-300 sm:max-w-md">
                 https://yourdomain.com
               </div>
             </Tooltip>
           )}
         </div>
-
-        <AnimatePresence initial={false}>
-          {target && (
-            <motion.div key="type" {...SWIPE_REVEAL_ANIMATION_SETTINGS}>
-              <label
-                htmlFor="type"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Behavior
-              </label>
-              <select
-                value={type}
-                onChange={(e) =>
-                  setData({
-                    ...data,
-                    type: e.target.value as "redirect" | "rewrite",
-                  })
-                }
-                className="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-500 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-              >
-                <option value="redirect">Redirect</option>
-                <option value="rewrite">Rewrite (Link Cloaking)</option>
-              </select>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <div>
-          <label htmlFor="placeholder" className="flex items-center space-x-2">
-            <h2 className="text-sm font-medium text-gray-900">
-              Input Placeholder URL
-            </h2>
-            <InfoTooltip content="Provide context to your teammates in the link creation modal by showing them an example of a link to be shortened." />
-          </label>
-          <div className="relative mt-1 rounded-md shadow-sm">
-            <input
-              type="url"
-              name="placeholder"
-              id="placeholder"
-              className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-              placeholder="https://dub.co/help/article/what-is-dub"
-              value={placeholder}
+        {target && (
+          <motion.div key="type" {...FADE_IN_ANIMATION_SETTINGS}>
+            <label
+              htmlFor="type"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Behavior
+            </label>
+            <select
+              value={type}
               onChange={(e) =>
-                setData({ ...data, placeholder: e.target.value })
+                setData({
+                  ...data,
+                  type: e.target.value as "redirect" | "rewrite",
+                })
               }
-            />
-          </div>
-        </div>
+              className="mt-2 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-500 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+            >
+              <option value="redirect">Redirect</option>
+              <option value="rewrite">Rewrite (Link Cloaking)</option>
+            </select>
+          </motion.div>
+        )}
 
-        <div className="flex items-center justify-between bg-gray-50">
-          <div className="flex items-center space-x-2">
-            <h2 className="text-sm font-medium text-gray-900">
-              Primary Domain
-            </h2>
-            <InfoTooltip content="The default domain used in the link creation modal. You can only have one primary domain at a time." />
-          </div>
-          <Switch
-            fn={() => setData((prev) => ({ ...prev, primary: !primary }))}
-            checked={primary}
-            disabled={props?.primary}
+        <button
+          type="button"
+          className="flex items-center"
+          onClick={() => setExpanded(!expanded)}
+        >
+          <ChevronRight
+            className={`h-5 w-5 text-gray-600 ${
+              expanded ? "rotate-90" : ""
+            } transition-all`}
           />
-        </div>
+          <p className="text-sm text-gray-600">Advanced options</p>
+        </button>
+        {expanded && (
+          <motion.div
+            {...FADE_IN_ANIMATION_SETTINGS}
+            className="flex flex-col space-y-6"
+          >
+            <div className="flex items-center justify-between bg-gray-50">
+              <div className="flex items-center space-x-2">
+                <h2 className="text-sm font-medium text-gray-900">
+                  Primary Domain
+                </h2>
+                <InfoTooltip content="The default domain used in the link creation modal. You can only have one primary domain at a time." />
+              </div>
+              <Switch
+                fn={() => setData((prev) => ({ ...prev, primary: !primary }))}
+                checked={primary}
+                disabled={props?.primary}
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="placeholder"
+                className="flex items-center space-x-2"
+              >
+                <h2 className="text-sm font-medium text-gray-900">
+                  Input Placeholder URL
+                </h2>
+                <InfoTooltip content="Provide context to your teammates in the link creation modal by showing them an example of a link to be shortened." />
+              </label>
+              <div className="relative mt-2 rounded-md shadow-sm">
+                <input
+                  type="url"
+                  name="placeholder"
+                  id="placeholder"
+                  className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                  placeholder="https://dub.co/help/article/what-is-dub"
+                  value={placeholder}
+                  onChange={(e) =>
+                    setData({ ...data, placeholder: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         <div className="grid gap-2">
           <Button
@@ -369,24 +333,18 @@ function AddEditDomainModal({
             disabled={saveDisabled}
             loading={saving}
           />
-          {props &&
-            (props.primary ? (
-              <Button
-                disabledTooltip="You can't delete your primary domain."
-                text="Delete domain"
-              />
-            ) : (
-              <Button
-                variant="danger"
-                text="Delete domain"
-                onClick={() => {
-                  window.confirm(
-                    "Warning: Deleting your project's domain will delete all existing short links using the domain. Are you sure you want to continue?",
-                  ) && deleteDomain();
-                }}
-                loading={deleting}
-              />
-            ))}
+          {props && (
+            <Button
+              variant="danger"
+              text="Delete domain"
+              onClick={() => {
+                window.confirm(
+                  "Warning: Deleting your project's domain will delete all existing short links using the domain. Are you sure you want to continue?",
+                ) && deleteDomain();
+              }}
+              loading={deleting}
+            />
+          )}
         </div>
       </form>
     </Modal>
@@ -399,12 +357,12 @@ function AddEditDomainButton({
   setShowAddEditDomainModal: Dispatch<SetStateAction<boolean>>;
 }) {
   return (
-    <button
-      onClick={() => setShowAddEditDomainModal(true)}
-      className="rounded-md border border-black bg-black px-5 py-2 text-sm font-medium text-white transition-all duration-75 hover:bg-white hover:text-black active:scale-95"
-    >
-      Add Domain
-    </button>
+    <div>
+      <Button
+        text="Add Domain"
+        onClick={() => setShowAddEditDomainModal(true)}
+      />
+    </div>
   );
 }
 
