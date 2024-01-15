@@ -150,7 +150,7 @@ function AddProjectModalHelper({
                 toast.error(domainErrorResponse);
               }
             } else {
-              toast.error(res.statusText);
+              toast.error(await res.text());
             }
             setSaving(false);
           });

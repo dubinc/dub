@@ -10,7 +10,7 @@ import {
   SHORT_DOMAIN,
   getDomainWithoutWWW,
 } from "@dub/utils";
-import { LEGAL_PROJECT_ID } from "@dub/utils/dist/constants";
+import { DUB_DOMAINS, LEGAL_PROJECT_ID } from "@dub/utils/dist/constants";
 import { get } from "@vercel/edge-config";
 import { randomBytes } from "crypto";
 
@@ -248,7 +248,9 @@ export async function banUser(data: FormData) {
     prisma.link.updateMany({
       where: {
         userId: user.id,
-        domain: SHORT_DOMAIN,
+        domain: {
+          in: DUB_DOMAINS.map((domain) => domain.slug),
+        },
       },
       data: {
         userId: LEGAL_USER_ID,

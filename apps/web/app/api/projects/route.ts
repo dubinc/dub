@@ -60,6 +60,24 @@ export const POST = withSession(async ({ req, session }) => {
     }
   }
 
+  const freeProjects = await prisma.project.count({
+    where: {
+      users: {
+        some: {
+          userId: session.user.id,
+          role: "owner",
+        },
+      },
+    },
+  });
+
+  if (freeProjects >= 1) {
+    return new Response(
+      "You can only create one free project on Dub.co. Additional projects require a paid plan.",
+      { status: 403 },
+    );
+  }
+
   const [slugExist, domainExist] = await Promise.all([
     prisma.project.findUnique({
       where: {

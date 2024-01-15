@@ -46,7 +46,7 @@ export default function Toggle() {
 
   const scrolled = useScroll(80);
   const { name, plan, logo } = useProject();
-  const { projectDomains, primaryDomain } = useDomains();
+  const { allActiveDomains, primaryDomain } = useDomains();
 
   const isPublicStatsPage = basePath.startsWith("/stats");
 
@@ -70,13 +70,13 @@ export default function Toggle() {
           <h2 className="text-lg font-semibold text-gray-800">
             {primaryDomain}
           </h2>
-          {projectDomains && projectDomains.length > 0 && (
+          {allActiveDomains && allActiveDomains.length > 1 && (
             <Tooltip
-              content={<DomainsFilterTooltip domains={projectDomains} />}
+              content={<DomainsFilterTooltip domains={allActiveDomains} />}
               side="bottom"
             >
               <div className="cursor-pointer">
-                <Badge variant="gray">+{projectDomains.length - 1}</Badge>
+                <Badge variant="gray">+{allActiveDomains.length - 1}</Badge>
               </div>
             </Tooltip>
           )}

@@ -16,9 +16,8 @@ export default function ProBanner({
     <div className="fixed bottom-5 z-10 mx-5 flex flex-col space-y-3 rounded-lg border border-gray-200 bg-white p-5 shadow-lg sm:right-5 sm:mx-auto sm:max-w-sm">
       <h3 className="text-lg font-semibold">Upgrade to Pro</h3>
       <p className="text-sm text-gray-500">
-        It looks like you're currently on our free plan. Consider upgrading to
-        Pro to enjoy higher limits, extra features, and support our open-source
-        company.
+        It looks like you're currently on our Free plan. Please consider
+        upgrading to Pro to enjoy higher limits and extra features.
       </p>
       <div className="flex space-x-5">
         <button

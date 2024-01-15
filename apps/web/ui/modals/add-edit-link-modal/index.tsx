@@ -385,7 +385,7 @@ function AddEditLinkModal({
                       setUrlError(error);
                     }
                   } else {
-                    toast.error(res.statusText);
+                    toast.error(await res.text());
                   }
                 }
                 setSaving(false);
