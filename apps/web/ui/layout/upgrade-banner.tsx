@@ -38,6 +38,8 @@ export default function UpgradeBanner() {
       } else {
         setShowProBanner(false);
       }
+    } else {
+      setShowProBanner(false);
     }
   }, [plan, id, name, slug, stripeId, createdAt]);
 

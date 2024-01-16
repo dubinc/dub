@@ -7,7 +7,7 @@ import {
 import { withSession } from "@/lib/auth";
 import { isReservedKey } from "@/lib/edge-config";
 import prisma from "@/lib/prisma";
-import { DEFAULT_REDIRECTS, DUB_DOMAINS, validSlugRegex } from "@dub/utils";
+import { DEFAULT_REDIRECTS, validSlugRegex } from "@dub/utils";
 
 // GET /api/projects - get all projects for the current user
 export const GET = withSession(async ({ session }) => {
@@ -21,6 +21,14 @@ export const GET = withSession(async ({ session }) => {
     },
     include: {
       domains: true,
+      users: {
+        where: {
+          userId: session.user.id,
+        },
+        select: {
+          role: true,
+        },
+      },
     },
   });
   return NextResponse.json(projects);
@@ -116,9 +124,6 @@ export const POST = withSession(async ({ req, session }) => {
           },
         },
         billingCycleStart: new Date().getDate(),
-        metadata: {
-          defaultDomains: DUB_DOMAINS.map((d) => d.slug),
-        },
       },
     }),
     addDomainToVercel(domain),

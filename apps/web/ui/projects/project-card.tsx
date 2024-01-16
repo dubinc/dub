@@ -4,7 +4,13 @@ import { DomainProps, ProjectWithDomainProps } from "@/lib/types";
 import { BlurImage } from "@/ui/shared/blur-image";
 import { CheckCircleFill, XCircleFill } from "@/ui/shared/icons";
 import { Badge, NumberTooltip, Tooltip } from "@dub/ui";
-import { GOOGLE_FAVICON_URL, fetcher, nFormatter } from "@dub/utils";
+import {
+  DUB_DOMAINS,
+  GOOGLE_FAVICON_URL,
+  SHORT_DOMAIN,
+  fetcher,
+  nFormatter,
+} from "@dub/utils";
 import { BarChart2, ExternalLink, Globe, Link2 } from "lucide-react";
 import Link from "next/link";
 import useSWR from "swr";
@@ -17,13 +23,23 @@ export default function ProjectCard({
   logo,
   usage,
   plan,
-  domains,
-  primaryDomain,
+  domains: projectDomains,
+  metadata,
+  primaryDomain: projectPrimaryDomain,
 }: ProjectWithDomainProps) {
   const { data: count } = useSWR<number>(
     `/api/links/count?projectSlug=${slug}`,
     fetcher,
   );
+
+  const defaultDomains = metadata?.defaultDomains
+    ? DUB_DOMAINS.filter((d) => metadata?.defaultDomains?.includes(d.slug))
+    : DUB_DOMAINS;
+
+  const domains = projectDomains.length > 0 ? projectDomains : defaultDomains;
+
+  const primaryDomain = projectPrimaryDomain || defaultDomains[0];
+
   return (
     <Link
       key={slug}
@@ -48,18 +64,14 @@ export default function ProjectCard({
                   <DomainsTooltip
                     domains={domains}
                     title={
-                      domains.length > 1
-                        ? "Here are all the domains for this project."
-                        : primaryDomain?.verified
-                        ? "Your domain is verified. You can start adding links."
-                        : "Please verify your domain to start adding links."
+                      primaryDomain?.verified === false
+                        ? "Please verify your domain to start adding links."
+                        : "Here are all the domains for this project."
                     }
                     cta={
-                      domains.length > 1
-                        ? "Manage Domains"
-                        : primaryDomain?.verified
-                        ? "Manage Domain"
-                        : "Verify Domain"
+                      primaryDomain?.verified === false
+                        ? "Verify Domain"
+                        : "Manage Domain"
                     }
                     href={`/${slug}/domains`}
                   />

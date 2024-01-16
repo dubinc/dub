@@ -317,6 +317,8 @@ export function useUpgradePlanModal() {
   useEffect(() => {
     if (searchParams?.get("upgrade")) {
       setShowUpgradePlanModal(true);
+    } else {
+      setShowUpgradePlanModal(false);
     }
   }, [searchParams]);
 

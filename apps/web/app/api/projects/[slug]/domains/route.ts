@@ -32,7 +32,7 @@ export const GET = withAuth(async ({ project }) => {
 export const POST = withAuth(async ({ req, project }) => {
   const { slug: domain, primary, archived, target, type } = await req.json();
 
-  if (project.domains && project.domains?.length >= project.domainsLimit) {
+  if (project.domains.length >= project.domainsLimit) {
     return new Response(
       exceededLimitError({
         plan: project.plan,

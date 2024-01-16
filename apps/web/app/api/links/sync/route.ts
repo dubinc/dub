@@ -57,11 +57,6 @@ export const POST = withAuth(
           linksUsage: {
             increment: unclaimedLinks.length,
           },
-          metadata: {
-            defaultDomains: Array.from(
-              new Set(links.map((link) => link.domain)),
-            ),
-          },
         },
       }),
     ]);
