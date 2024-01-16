@@ -5,10 +5,7 @@ import { ratelimit } from "@/lib/upstash";
 import {
   APP_DOMAIN_WITH_NGROK,
   DUB_PROJECT_ID,
-  GOOGLE_FAVICON_URL,
   LOCALHOST_IP,
-  getApexDomain,
-  log,
 } from "@dub/utils";
 import { NextResponse } from "next/server";
 
