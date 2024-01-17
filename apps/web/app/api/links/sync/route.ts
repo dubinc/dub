@@ -24,11 +24,10 @@ export const POST = withAuth(
               domain: link.domain,
               key: link.key,
             },
+            userId: null,
           },
         });
       }),
-    ).then((links) =>
-      links.filter((link) => link && !link.userId),
     )) as LinkProps[];
 
     if (unclaimedLinks.length === 0) {

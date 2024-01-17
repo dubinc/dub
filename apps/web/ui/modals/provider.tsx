@@ -66,7 +66,7 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (hashes.length > 0 && slug) {
       toast.promise(
-        fetch(`/api/links/sync?projectSlug?=${slug}`, {
+        fetch(`/api/links/sync?projectSlug=${slug}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
