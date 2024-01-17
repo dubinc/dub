@@ -70,6 +70,7 @@ export const POST = withSession(async ({ req, session }) => {
 
   const freeProjects = await prisma.project.count({
     where: {
+      plan: "free",
       users: {
         some: {
           userId: session.user.id,
