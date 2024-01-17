@@ -18,7 +18,7 @@ export default function CreateProjectButton() {
         disabledTooltip={
           exceedingFreeProjects ? (
             <TooltipContent
-              title="You can only create one free project on Dub.co. Additional projects require a paid plan."
+              title="You can only create one free project. Additional projects require a paid plan."
               cta="Upgrade to Pro"
               href={
                 freeProjects
