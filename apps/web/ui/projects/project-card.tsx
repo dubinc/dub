@@ -62,7 +62,7 @@ export default function ProjectCard({
               migrated to a custom project.
             </p>
             <a
-              href={`${HOME_DOMAIN}/changelog/projects`}
+              href={`${HOME_DOMAIN}/changelog/dub-links-updates`}
               target="_blank"
               className="mt-1 block text-gray-500 underline underline-offset-4 hover:text-gray-800"
             >

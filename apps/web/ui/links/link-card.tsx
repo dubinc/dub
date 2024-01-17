@@ -256,7 +256,7 @@ export default function LinkCard({
           */}
           <div className="ml-2 sm:ml-4">
             <div className="flex max-w-fit items-center space-x-2">
-              {slug && !verified && !loading ? (
+              {!verified && !loading ? (
                 <Tooltip
                   content={
                     <TooltipContent

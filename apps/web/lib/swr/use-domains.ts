@@ -35,8 +35,10 @@ export default function useDomains({ domain }: { domain?: string } = {}) {
     SHORT_DOMAIN;
 
   const verified = domain
-    ? // If a domain is passed, check if it's verified (using `allActiveDomains` cause it could be `dub.sh`)
-      allActiveDomains.find((d) => d.slug === domain)?.verified
+    ? // If a domain is passed, check if it's verified
+      [...allActiveDomains, ...(archivedProjectDomains || [])].find(
+        (d) => d.slug === domain,
+      )?.verified
     : // If no domain is passed, check if any of the project domains are verified
       projectDomains?.some((d) => d.verified);
 
