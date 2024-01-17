@@ -114,7 +114,7 @@ export const PLANS = [
         "price_1LoyrCAlJJEpqkPVZ32BV3wm", // new monthly (test)
         "price_1LodLoAlJJEpqkPV9rD0rlNL", // old & new monthly (prod, no change)
         "price_1OTcRzAlJJEpqkPV6G9iP0Tb", // new yearly (test)
-        "price_1OZSQDAlJJEpqkPVLru8sut3", // new yearly (prod)
+        "price_1OZgmnAlJJEpqkPVOj4kV64R", // new yearly (prod)
       ],
     },
     limits: {
