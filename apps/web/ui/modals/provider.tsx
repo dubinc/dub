@@ -79,8 +79,8 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
               undefined,
               { revalidate: true },
             );
+            setHashes([]);
           }
-          setHashes([]);
         }),
         {
           loading: "Importing links...",
