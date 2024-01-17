@@ -96,7 +96,7 @@ export const POST = withSession(async ({ req, session }) => {
         slug: true,
       },
     }),
-    domainExists(domain),
+    domain ? domainExists(domain) : false,
   ]);
   if (slugExist || domainExist) {
     return NextResponse.json(
