@@ -167,13 +167,26 @@ export const updateUsage = async (skip?: number) => {
 
       const { plan, usage, usageLimit } = project;
 
+      // only reset clicks usage if it's not over usageLimit by:
+      // 2x for free plan (2K clicks)
+      // 1.5x for pro plan (75K clicks)
+      // 1.2x for business plan (300K clicks)
+
+      const resetUsage =
+        plan === "free"
+          ? usage < usageLimit * 2
+          : plan === "pro"
+          ? usage < usageLimit * 1.5
+          : plan === "business"
+          ? usage < usageLimit * 1.2
+          : true;
+
       return await prisma.project.update({
         where: {
           id: project.id,
         },
         data: {
-          // only reset usage if plan is not free or usage is not over usageLimit
-          ...((plan !== "free" || usage <= usageLimit) && {
+          ...(resetUsage && {
             usage: 0,
           }),
           // always reset linksUsage since folks can never create more links than their limit
