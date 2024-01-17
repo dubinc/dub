@@ -181,27 +181,25 @@ export const withAuth =
           email: user.email || "",
         },
       };
+      // for demo links, we allow anonymous link creation
+    } else if (allowAnonymous) {
+      const project = await prisma.project.findUnique({
+        where: {
+          id: DUB_PROJECT_ID,
+        },
+      });
+
+      return handler({
+        req,
+        params: params || {},
+        searchParams,
+        headers,
+        // @ts-expect-error
+        project,
+      });
     } else {
       session = await getSession();
       if (!session?.user?.id) {
-        // for demo links, we allow anonymous link creation
-        if (allowAnonymous) {
-          const project = await prisma.project.findUnique({
-            where: {
-              id: DUB_PROJECT_ID,
-            },
-          });
-
-          return handler({
-            req,
-            params: params || {},
-            searchParams,
-            headers,
-            // @ts-expect-error
-            project,
-          });
-        }
-
         return new Response("Unauthorized: Login required.", {
           status: 401,
           headers,
