@@ -4,7 +4,7 @@ import { PlanProps, ProjectWithDomainProps } from "@/lib/types";
 import { ModalContext } from "@/ui/modals/provider";
 import PlanBadge from "@/ui/projects/plan-badge";
 import { Popover, Tick } from "@dub/ui";
-import { GOOGLE_FAVICON_URL } from "@dub/utils";
+import { GOOGLE_FAVICON_URL, SHORT_DOMAIN } from "@dub/utils";
 import { ChevronsUpDown, PlusCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -28,7 +28,9 @@ export default function ProjectSelect() {
         ...selectedProject,
         image:
           selectedProject?.logo ||
-          `${GOOGLE_FAVICON_URL}${selectedProject?.primaryDomain?.slug}`,
+          `${GOOGLE_FAVICON_URL}${
+            selectedProject?.primaryDomain?.slug || SHORT_DOMAIN
+          }`,
       };
 
       // return personal account selector if there's no project or error (user doesn't have access to project)
@@ -115,7 +117,6 @@ function ProjectList({
   projects: ProjectWithDomainProps[];
   setOpenPopover: (open: boolean) => void;
 }) {
-  const { data: session } = useSession();
   const { setShowAddProjectModal } = useContext(ModalContext);
   const { domain, key } = useParams() as { domain?: string; key?: string };
   const pathname = usePathname();
@@ -136,35 +137,40 @@ function ProjectList({
   return (
     <div className="relative mt-1 max-h-72 w-full space-y-0.5 overflow-auto rounded-md bg-white p-2 text-base sm:w-60 sm:text-sm sm:shadow-lg">
       <div className="p-2 text-xs text-gray-500">My Projects</div>
-      {projects.map(({ id, name, slug, logo, primaryDomain }) => (
-        <Link
-          key={slug}
-          className={`relative flex w-full items-center space-x-2 rounded-md px-2 py-1.5 hover:bg-gray-100 active:bg-gray-200 ${
-            selected.slug === slug ? "font-medium" : ""
-          } transition-all duration-75`}
-          href={href(slug)}
-          shallow={false}
-          onClick={() => setOpenPopover(false)}
-        >
-          <img
-            src={logo || `${GOOGLE_FAVICON_URL}${primaryDomain?.slug}`}
-            alt={id}
-            className="h-7 w-7 overflow-hidden rounded-full"
-          />
-          <span
-            className={`block truncate text-sm ${
-              selected.slug === slug ? "font-medium" : "font-normal"
-            }`}
+      {projects.map(({ id, name, slug, logo, primaryDomain, metadata }) => {
+        return (
+          <Link
+            key={slug}
+            className={`relative flex w-full items-center space-x-2 rounded-md px-2 py-1.5 hover:bg-gray-100 active:bg-gray-200 ${
+              selected.slug === slug ? "font-medium" : ""
+            } transition-all duration-75`}
+            href={href(slug)}
+            shallow={false}
+            onClick={() => setOpenPopover(false)}
           >
-            {name}
-          </span>
-          {selected.slug === slug ? (
-            <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-black">
-              <Tick className="h-5 w-5" aria-hidden="true" />
+            <img
+              src={
+                logo ||
+                `${GOOGLE_FAVICON_URL}${primaryDomain?.slug || SHORT_DOMAIN}`
+              }
+              alt={id}
+              className="h-7 w-7 overflow-hidden rounded-full"
+            />
+            <span
+              className={`block truncate text-sm ${
+                selected.slug === slug ? "font-medium" : "font-normal"
+              }`}
+            >
+              {name}
             </span>
-          ) : null}
-        </Link>
-      ))}
+            {selected.slug === slug ? (
+              <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-black">
+                <Tick className="h-5 w-5" aria-hidden="true" />
+              </span>
+            ) : null}
+          </Link>
+        );
+      })}
       <button
         key="add"
         onClick={() => {

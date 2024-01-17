@@ -1,7 +1,21 @@
 import { withSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { redis } from "@/lib/upstash";
 import cloudinary from "cloudinary";
 import { NextResponse } from "next/server";
+
+// GET /api/user – get a specific user
+export const GET = withSession(async ({ session }) => {
+  const migratedProject = await redis.hget(
+    "migrated_links_users",
+    session.user.id,
+  );
+
+  return NextResponse.json({
+    ...session.user,
+    migratedProject,
+  });
+});
 
 // PUT /api/user – edit a specific user
 export const PUT = withSession(async ({ req, session }) => {
