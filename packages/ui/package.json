@@ -1,7 +1,7 @@
 {
   "name": "@dub/ui",
   "description": "UI components for Dub.co",
-  "version": "0.0.41",
+  "version": "0.0.43",
   "sideEffects": false,
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -24,7 +24,7 @@
     "@dub/tailwind-config": "workspace:*",
     "@dub/utils": "workspace:*",
     "@types/js-cookie": "^3.0.6",
-    "@types/react": "^18.2.5",
+    "@types/react": "^18.2.47",
     "autoprefixer": "^10.4.16",
     "next": "13.5.4",
     "postcss": "^8.4.31",
@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.0.1",
+    "@radix-ui/react-checkbox": "^1.0.4",
     "@radix-ui/react-dialog": "1.0.5",
     "@radix-ui/react-label": "^2.0.2",
     "@radix-ui/react-navigation-menu": "^1.1.2",

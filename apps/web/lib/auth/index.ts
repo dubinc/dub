@@ -4,13 +4,9 @@ import { Link as LinkProps } from "@prisma/client";
 import { PlanProps, ProjectProps } from "../types";
 import { getServerSession } from "next-auth/next";
 import { createHash } from "crypto";
-import {
-  API_DOMAIN,
-  DUB_PROJECT_ID,
-  getSearchParams,
-  isDubDomain,
-} from "@dub/utils";
+import { API_DOMAIN, getSearchParams, isDubDomain } from "@dub/utils";
 import { ratelimit } from "../upstash";
+import { exceededLimitError } from "../api/errors";
 
 export interface Session {
   user: {
@@ -63,16 +59,18 @@ export const withAuth =
   (
     handler: WithAuthHandler,
     {
-      requiredPlan = ["free", "pro", "enterprise"], // if the action needs a specific plan
+      requiredPlan = ["free", "pro", "business", "enterprise"], // if the action needs a specific plan
       requiredRole = ["owner", "member"],
-      needNotExceededUsage, // if the action needs the user to not have exceeded their usage
+      needNotExceededClicks, // if the action needs the user to not have exceeded their clicks usage
+      needNotExceededLinks, // if the action needs the user to not have exceeded their links usage
       allowAnonymous, // special case for /api/links (POST /api/links) – allow no session
       allowSelf, // special case for removing yourself from a project
       skipLinkChecks, // special case for /api/links/exists – skip link checks
     }: {
       requiredPlan?: Array<PlanProps>;
       requiredRole?: Array<"owner" | "member">;
-      needNotExceededUsage?: boolean;
+      needNotExceededClicks?: boolean;
+      needNotExceededLinks?: boolean;
       allowAnonymous?: boolean;
       allowSelf?: boolean;
       skipLinkChecks?: boolean;
@@ -85,6 +83,16 @@ export const withAuth =
     const searchParams = getSearchParams(req.url);
     const { linkId } = params || {};
     const slug = params?.slug || searchParams.projectSlug;
+
+    if (!slug) {
+      return new Response(
+        "Project slug not found. Did you forget to include a `projectSlug` query parameter?",
+        {
+          status: 400,
+        },
+      );
+    }
+
     const domain = params?.domain || searchParams.domain;
     const key = searchParams.key;
 
@@ -109,15 +117,6 @@ export const withAuth =
         return new Response("API access is not available for stats yet.", {
           status: 403,
         });
-      }
-
-      if (!slug && url.pathname.includes("/links")) {
-        return new Response(
-          "API access is only available for projects with custom domains. Did you forget to include a `projectSlug` query parameter?",
-          {
-            status: 403,
-          },
-        );
       }
 
       const hashedKey = hashToken(apiKey, {
@@ -199,37 +198,43 @@ export const withAuth =
     }
 
     const [project, link] = (await Promise.all([
-      slug &&
-        prisma.project.findUnique({
-          where: {
-            slug,
-          },
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            logo: true,
-            usage: true,
-            usageLimit: true,
-            plan: true,
-            stripeId: true,
-            billingCycleStart: true,
-            createdAt: true,
-            users: {
-              where: {
-                userId: session.user.id,
-              },
-              select: {
-                role: true,
-              },
+      prisma.project.findUnique({
+        where: {
+          slug,
+        },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          logo: true,
+          usage: true,
+          usageLimit: true,
+          linksUsage: true,
+          linksLimit: true,
+          domainsLimit: true,
+          tagsLimit: true,
+          usersLimit: true,
+          plan: true,
+          stripeId: true,
+          billingCycleStart: true,
+          createdAt: true,
+          users: {
+            where: {
+              userId: session.user.id,
             },
-            domains: {
-              select: {
-                slug: true,
-              },
+            select: {
+              role: true,
             },
           },
-        }),
+          domains: {
+            select: {
+              slug: true,
+              primary: true,
+            },
+          },
+          metadata: true,
+        },
+      }),
       linkId
         ? prisma.link.findUnique({
             where: {
@@ -246,96 +251,109 @@ export const withAuth =
             },
           })
         : undefined,
-    ])) as [ProjectProps | undefined, LinkProps | undefined];
+    ])) as [ProjectProps, LinkProps | undefined];
 
-    // project checks
-    if (slug) {
-      if (!project || !project.users) {
-        // project doesn't exist
+    if (!project || !project.users) {
+      // project doesn't exist
+      return new Response("Project not found.", {
+        status: 404,
+        headers,
+      });
+    }
+
+    // prevent unauthorized access to domains that don't belong to the project
+    if (
+      domain &&
+      !isDubDomain(domain) &&
+      !project.domains.find((d) => d.slug === domain)
+    ) {
+      return new Response("Domain does not belong to project.", {
+        status: 403,
+        headers,
+      });
+    }
+
+    // project exists but user is not part of it
+    if (project.users.length === 0) {
+      const pendingInvites = await prisma.projectInvite.findUnique({
+        where: {
+          email_projectId: {
+            email: session.user.email,
+            projectId: project.id,
+          },
+        },
+        select: {
+          expires: true,
+        },
+      });
+      if (!pendingInvites) {
         return new Response("Project not found.", {
           status: 404,
           headers,
         });
-      }
-
-      // prevent unauthorized access to domains that don't belong to the project
-      if (domain) {
-        if (!project.domains?.find((d) => d.slug === domain)) {
-          return new Response("Domain does not belong to project.", {
-            status: 403,
-            headers,
-          });
-        }
-      }
-
-      // project exists but user is not part of it
-      if (project.users.length === 0) {
-        const pendingInvites = await prisma.projectInvite.findUnique({
-          where: {
-            email_projectId: {
-              email: session.user.email,
-              projectId: project.id,
-            },
-          },
-          select: {
-            expires: true,
-          },
+      } else if (pendingInvites.expires < new Date()) {
+        return new Response("Project invite expired.", {
+          status: 410,
+          headers,
         });
-        if (!pendingInvites) {
-          return new Response("Project not found.", {
-            status: 404,
-            headers,
-          });
-        } else if (pendingInvites.expires < new Date()) {
-          return new Response("Project invite expired.", {
-            status: 410,
-            headers,
-          });
-        } else {
-          return new Response("Project invite pending.", {
-            status: 409,
-            headers,
-          });
-        }
+      } else {
+        return new Response("Project invite pending.", {
+          status: 409,
+          headers,
+        });
       }
+    }
 
-      // project role checks (enterprise only)
-      if (
-        requiredRole &&
-        project.plan === "enterprise" &&
-        !requiredRole.includes(project.users[0].role) &&
-        !(allowSelf && searchParams.userId === session.user.id)
-      ) {
-        return new Response("Unauthorized: Insufficient permissions.", {
+    // project role checks (enterprise only)
+    if (
+      requiredRole &&
+      project.plan === "enterprise" &&
+      !requiredRole.includes(project.users[0].role) &&
+      !(allowSelf && searchParams.userId === session.user.id)
+    ) {
+      return new Response("Unauthorized: Insufficient permissions.", {
+        status: 403,
+        headers,
+      });
+    }
+
+    // clicks usage overage checks
+    if (needNotExceededClicks && project.usage > project.usageLimit) {
+      return new Response(
+        exceededLimitError({
+          plan: project.plan,
+          limit: project.usageLimit,
+          type: "clicks",
+        }),
+        {
           status: 403,
           headers,
-        });
-      }
+        },
+      );
+    }
 
-      // usage overage checks
-      if (needNotExceededUsage && project.usage > project.usageLimit) {
-        return new Response("Unauthorized: Usage limits exceeded.", {
+    // links usage overage checks
+    if (needNotExceededLinks && project.linksUsage > project.linksLimit) {
+      return new Response(
+        exceededLimitError({
+          plan: project.plan,
+          limit: project.linksLimit,
+          type: "links",
+        }),
+        {
           status: 403,
           headers,
-        });
-      }
+        },
+      );
+    }
 
-      // plan checks
-      if (!requiredPlan.includes(project.plan)) {
-        // return res.status(403).end("Unauthorized: Need higher plan.");
-        return new Response("Unauthorized: Need higher plan.", {
-          status: 403,
-          headers,
-        });
-      }
-      // for generic DUB_DOMAINS links / stats
-    } else {
-      if (domain && !isDubDomain(domain)) {
-        return new Response("Domain not found.", {
-          status: 404,
-          headers,
-        });
-      }
+    // plan checks
+    if (!requiredPlan.includes(project.plan)) {
+      // return res.status(403).end("Unauthorized: Need higher plan.");
+      return new Response("Unauthorized: Need higher plan.", {
+        status: 403,
+        headers,
+      });
     }
 
     // link checks (if linkId or domain and key are provided)
@@ -348,29 +366,8 @@ export const withAuth =
         });
       }
 
-      // if it's a custom project link, we need to make sure the link is owned by the project
-      if (slug) {
-        if (link.projectId !== project?.id) {
-          return new Response("Link not found.", {
-            status: 404,
-            headers,
-          });
-        }
-
-        // if it's generic DUB_DOMAINS links, we need to make sure the user is the owner of the link
-      } else if (isDubDomain(link.domain)) {
-        if (
-          link.projectId !== DUB_PROJECT_ID ||
-          link.userId !== session.user.id
-        ) {
-          return new Response("Link not found.", {
-            status: 404,
-            headers,
-          });
-        }
-
-        // if the domain is not part of DUB_DOMAINS
-      } else {
+      // make sure the link is owned by the project
+      if (link.projectId !== project?.id) {
         return new Response("Link not found.", {
           status: 404,
           headers,
@@ -384,7 +381,7 @@ export const withAuth =
       searchParams,
       headers,
       session,
-      project: project as ProjectProps,
+      project,
       domain,
       link,
     });

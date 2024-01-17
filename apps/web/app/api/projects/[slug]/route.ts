@@ -1,7 +1,7 @@
 import { withAuth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { deleteProject } from "@/lib/api/project";
+import { deleteProject } from "@/lib/api/projects";
 import { DEFAULT_REDIRECTS, validSlugRegex } from "@dub/utils";
 import { isReservedKey } from "@/lib/edge-config";
 
@@ -13,7 +13,7 @@ export const GET = withAuth(async ({ project, headers }) => {
 // PUT /api/projects/[slug] – update a specific project
 export const PUT = withAuth(
   async ({ req, project }) => {
-    const { name, slug } = await req.json();
+    const { name, slug, defaultDomains } = await req.json();
 
     // if slug is defined, do some checks
     if (slug) {
@@ -41,6 +41,12 @@ export const PUT = withAuth(
         data: {
           ...(name && { name }),
           ...(slug && { slug }),
+          ...(defaultDomains && {
+            metadata: {
+              ...project.metadata,
+              defaultDomains,
+            },
+          }),
         },
       });
       return NextResponse.json(response);

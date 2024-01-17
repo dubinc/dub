@@ -1,4 +1,11 @@
-import { InfoTooltip, SimpleTooltipContent, Switch } from "@dub/ui";
+import useProject from "@/lib/swr/use-project";
+import {
+  InfoTooltip,
+  SimpleTooltipContent,
+  Switch,
+  TooltipContent,
+  useRouterStuff,
+} from "@dub/ui";
 import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "@dub/utils";
 import { type Link as LinkProps } from "@prisma/client";
 import { motion } from "framer-motion";
@@ -13,6 +20,8 @@ export default function IOSSection({
   data: LinkProps;
   setData: Dispatch<SetStateAction<LinkProps>>;
 }) {
+  const { plan } = useProject();
+  const { queryParams } = useRouterStuff();
   const { ios } = data;
   const [enabled, setEnabled] = useState(!!ios);
   useEffect(() => {
@@ -43,7 +52,33 @@ export default function IOSSection({
             }
           />
         </div>
-        <Switch fn={() => setEnabled(!enabled)} checked={enabled} />
+        <Switch
+          fn={() => setEnabled(!enabled)}
+          checked={enabled}
+          // iOS targeting is only available on Dub's Pro plan
+          {...(!plan || plan === "free"
+            ? {
+                disabledTooltip: (
+                  <TooltipContent
+                    title={`iOS targeting is only available on ${process.env.NEXT_PUBLIC_APP_NAME}'s Pro plan. Upgrade to Pro to use this feature.`}
+                    cta="Upgrade to Pro"
+                    {...(plan === "free"
+                      ? {
+                          onClick: () =>
+                            queryParams({
+                              set: {
+                                upgrade: "pro",
+                              },
+                            }),
+                        }
+                      : {
+                          href: `${HOME_DOMAIN}/pricing`,
+                        })}
+                  />
+                ),
+              }
+            : {})}
+        />
       </div>
       {enabled && (
         <motion.div

@@ -3,7 +3,6 @@ import useProject from "@/lib/swr/use-project";
 import {
   Badge,
   Copy,
-  ExpandingArrow,
   IconMenu,
   Popover,
   Switch,
@@ -22,21 +21,11 @@ import {
   getApexDomain,
   linkConstructor,
 } from "@dub/utils";
-import {
-  Calendar,
-  ChevronDown,
-  Filter,
-  Globe,
-  Lock,
-  Share2,
-  X,
-} from "lucide-react";
+import { Calendar, ChevronDown, Globe, Lock, Share2, X } from "lucide-react";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
-import punycode from "punycode/";
 import { useContext, useMemo, useState } from "react";
 import { StatsContext } from ".";
-import { ModalContext } from "../modals/provider";
 import useSWR, { mutate } from "swr";
 import { toast } from "sonner";
 import { BlurImage } from "../shared/blur-image";
@@ -45,8 +34,7 @@ import { DomainProps } from "@/lib/types";
 
 export default function Toggle() {
   const { slug } = useParams() as { slug?: string };
-  const { setShowUpgradePlanModal, setShowAddProjectModal } =
-    useContext(ModalContext);
+  const { queryParams } = useRouterStuff();
 
   const { basePath, domain, key, interval, modal } = useContext(StatsContext);
 
@@ -58,7 +46,7 @@ export default function Toggle() {
 
   const scrolled = useScroll(80);
   const { name, plan, logo } = useProject();
-  const { domains, primaryDomain } = useDomains();
+  const { allActiveDomains, primaryDomain } = useDomains();
 
   const isPublicStatsPage = basePath.startsWith("/stats");
 
@@ -71,44 +59,28 @@ export default function Toggle() {
       })}
     >
       <div className="mx-auto flex h-20 max-w-4xl flex-col items-center justify-between space-y-3 px-2.5 md:h-10 md:flex-row md:space-y-0 lg:px-0">
-        {slug ? (
-          <div className="flex items-center space-x-2">
-            <BlurImage
-              alt={name || "Project Logo"}
-              src={logo || DUB_LOGO}
-              className="h-6 w-6 flex-shrink-0 overflow-hidden rounded-full"
-              width={48}
-              height={48}
-            />
-            <h2 className="text-lg font-semibold text-gray-800">
-              {primaryDomain}
-            </h2>
-            {domains && domains?.length > 1 && (
-              <Tooltip
-                content={<DomainsFilterTooltip domains={domains} />}
-                side="bottom"
-              >
-                <div className="cursor-pointer">
-                  <Badge variant="gray">+{domains.length - 1}</Badge>
-                </div>
-              </Tooltip>
-            )}
-          </div>
-        ) : domain && key ? (
-          <a
-            className="group flex text-lg font-semibold text-gray-800 md:text-xl"
-            href={linkConstructor({ domain, key })}
-            target="_blank"
-            rel="noreferrer"
-          >
-            {linkConstructor({
-              domain: punycode.toUnicode(domain),
-              key,
-              pretty: true,
-            })}
-            <ExpandingArrow className="h-5 w-5" />
-          </a>
-        ) : null}
+        <div className="flex items-center space-x-2">
+          <BlurImage
+            alt={name || "Project Logo"}
+            src={logo || DUB_LOGO}
+            className="h-6 w-6 flex-shrink-0 overflow-hidden rounded-full"
+            width={48}
+            height={48}
+          />
+          <h2 className="text-lg font-semibold text-gray-800">
+            {primaryDomain}
+          </h2>
+          {allActiveDomains && allActiveDomains.length > 1 && (
+            <Tooltip
+              content={<DomainsFilterTooltip domains={allActiveDomains} />}
+              side="bottom"
+            >
+              <div className="cursor-pointer">
+                <Badge variant="gray">+{allActiveDomains.length - 1}</Badge>
+              </div>
+            </Tooltip>
+          )}
+        </div>
         <div className="flex items-center">
           {!isPublicStatsPage && key && key !== "_root" && <SharePopover />}
           <Popover
@@ -126,7 +98,7 @@ export default function Toggle() {
                               ? `${display} stats can only be viewed on a Pro plan or higher. Upgrade now to view all-time stats.`
                               : `${display} stats can only be viewed on a project with a Pro plan or higher. Create a project or navigate to an existing project to upgrade.`
                           }
-                          cta={slug ? "Upgrade to Pro" : "Create Project"}
+                          cta="Upgrade to Pro"
                           {...(isPublicStatsPage
                             ? {
                                 href: APP_DOMAIN,
@@ -134,11 +106,12 @@ export default function Toggle() {
                             : {
                                 onClick: () => {
                                   setOpenDatePopover(false);
-                                  if (slug) {
-                                    setShowUpgradePlanModal(true);
-                                  } else {
-                                    setShowAddProjectModal(true);
-                                  }
+                                  queryParams({
+                                    set: {
+                                      upgrade:
+                                        plan === "free" ? "pro" : "business",
+                                    },
+                                  });
                                 },
                               })}
                         />
@@ -198,7 +171,7 @@ export default function Toggle() {
 }
 
 const DomainsFilterTooltip = ({ domains }: { domains: DomainProps[] }) => {
-  const searchParams = useSearchParams()
+  const searchParams = useSearchParams();
   const domain = searchParams?.get("domain");
   const key = searchParams?.get("key");
   const { queryParams } = useRouterStuff();

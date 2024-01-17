@@ -12,10 +12,16 @@ export default function useLinksCount({
   const { getQueryString } = useRouterStuff();
 
   const { data, error } = useSWR<any>(
-    `/api/links/count${getQueryString({
-      ...(slug && { projectSlug: slug }),
-      ...(groupBy && { groupBy }),
-    })}`,
+    slug &&
+      `/api/links/count${getQueryString(
+        {
+          projectSlug: slug,
+          ...(groupBy && { groupBy }),
+        },
+        {
+          ignore: ["import", "upgrade"],
+        },
+      )}`,
     fetcher,
     {
       dedupingInterval: 30000,

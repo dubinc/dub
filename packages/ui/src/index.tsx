@@ -6,6 +6,7 @@ export * from "./accordion";
 export * from "./avatar";
 export * from "./badge";
 export * from "./button";
+export * from "./checkbox";
 export * from "./form";
 export * from "./label";
 export * from "./modal";

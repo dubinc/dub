@@ -44,7 +44,6 @@ import { useDebouncedCallback } from "use-debounce";
 
 export default function LinkFilters() {
   const { slug } = useParams() as { slug?: string };
-  const { primaryDomain } = useDomains();
   const { data: domains } = useLinksCount({ groupBy: "domain" });
 
   const { tags } = useTags();
@@ -84,7 +83,7 @@ export default function LinkFilters() {
         </div>
         <SearchBox searchInputRef={searchInputRef} />
       </div>
-      <DomainsFilter domains={domains} primaryDomain={primaryDomain} />
+      <DomainsFilter />
       {slug && (
         <>
           <TagsFilter tags={tags} tagsCount={tagsCount} />
@@ -175,10 +174,11 @@ const SearchBox = ({ searchInputRef }) => {
   );
 };
 
-const DomainsFilter = ({ domains, primaryDomain }) => {
-  const { slug } = useParams() as { slug?: string };
+const DomainsFilter = () => {
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
+  const { data: domains } = useLinksCount({ groupBy: "domain" });
+  const { primaryDomain } = useDomains();
 
   const [collapsed, setCollapsed] = useState(false);
 
@@ -186,7 +186,7 @@ const DomainsFilter = ({ domains, primaryDomain }) => {
     return domains.length === 0
       ? [
           {
-            value: primaryDomain || "",
+            value: primaryDomain,
             count: 0,
           },
         ]
@@ -195,9 +195,6 @@ const DomainsFilter = ({ domains, primaryDomain }) => {
           count: _count,
         }));
   }, [domains, primaryDomain]);
-
-  const { setShowAddEditDomainModal, setShowAddProjectModal } =
-    useContext(ModalContext);
 
   return (
     <fieldset className="overflow-hidden py-6">
@@ -212,21 +209,6 @@ const DomainsFilter = ({ domains, primaryDomain }) => {
             className={`${collapsed ? "" : "rotate-90"} h-5 w-5 transition-all`}
           />
           <h4 className="font-medium text-gray-900">Domains</h4>
-        </button>
-        <button
-          onClick={() => {
-            if (slug) {
-              setShowAddEditDomainModal(true);
-            } else {
-              setShowAddProjectModal(true);
-              toast.error(
-                "You can only add a domain to a custom project. Please create a new project or navigate to an existing one.",
-              );
-            }
-          }}
-          className="rounded-md border border-gray-200 px-3 py-1 transition-all hover:border-gray-600 active:bg-gray-100"
-        >
-          <p className="text-sm text-gray-500">Add</p>
         </button>
       </div>
       <AnimatePresence initial={false}>

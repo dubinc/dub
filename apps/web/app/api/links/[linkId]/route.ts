@@ -1,12 +1,7 @@
 import { withAuth } from "@/lib/auth";
 import { deleteLink, editLink, processLink } from "@/lib/api/links";
 import { NextResponse } from "next/server";
-import {
-  APP_DOMAIN_WITH_NGROK,
-  GOOGLE_FAVICON_URL,
-  getApexDomain,
-  log,
-} from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { qstash } from "@/lib/cron";
 
 // GET /api/links/[linkId] – get a link
@@ -90,9 +85,6 @@ export const PUT = withAuth(
     return NextResponse.json(response, {
       headers,
     });
-  },
-  {
-    needNotExceededUsage: true,
   },
 );
 

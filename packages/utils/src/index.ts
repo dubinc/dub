@@ -7,6 +7,7 @@ import { twMerge } from "tailwind-merge";
 import {
   DUB_DOMAINS,
   HOME_DOMAIN,
+  PLANS,
   SECOND_LEVEL_DOMAINS,
   SPECIAL_APEX_DOMAINS,
   ccTLDs,
@@ -135,7 +136,7 @@ export function nFormatter(
     : "0";
 }
 
-export function capitalize(str: string) {
+export function capitalize(str?: string | null) {
   if (!str || typeof str !== "string") return str;
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
@@ -258,6 +259,27 @@ export const getAdjustedBillingCycleStart = (billingCycleStart: number) => {
   } else {
     return billingCycleStart;
   }
+};
+
+export const getBillingStartDate = (billingCycleStart: number) => {
+  const today = new Date();
+  const currentDay = today.getDate();
+  const currentMonth = today.getMonth();
+  const currentYear = today.getFullYear();
+  const adjustedBillingCycleStart =
+    getAdjustedBillingCycleStart(billingCycleStart);
+  if (currentDay <= adjustedBillingCycleStart) {
+    // if the current day is less than the billing cycle start, we need to go back a month
+    const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1; // if the current month is January, we need to go back to December
+    const lastYear = currentMonth === 0 ? currentYear - 1 : currentYear; // if the current month is January, we need to go back a year
+    return new Date(lastYear, lastMonth, adjustedBillingCycleStart);
+  } else {
+    return new Date(currentYear, currentMonth, adjustedBillingCycleStart);
+  }
+};
+
+export const getPlanFromPriceId = (priceId: string) => {
+  return PLANS.find((plan) => plan.price.ids?.includes(priceId)) || null;
 };
 
 export const generateDomainFromName = (name: string) => {

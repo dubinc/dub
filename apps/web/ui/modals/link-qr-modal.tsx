@@ -2,7 +2,6 @@
 
 import { QRCodeSVG, getQRAsCanvas, getQRAsSVGDataUri } from "@/lib/qr";
 import useProject from "@/lib/swr/use-project";
-import { ModalContext } from "@/ui/modals/provider";
 import { BlurImage } from "@/ui/shared/blur-image";
 import { Clipboard, Download } from "@/ui/shared/icons";
 import {
@@ -16,6 +15,7 @@ import {
   Switch,
   Tooltip,
   TooltipContent,
+  useRouterStuff,
 } from "@dub/ui";
 import {
   APP_HOSTNAMES,
@@ -31,7 +31,6 @@ import {
   Dispatch,
   SetStateAction,
   useCallback,
-  useContext,
   useMemo,
   useRef,
   useState,
@@ -241,8 +240,7 @@ function AdvancedSettings({
     setFgColor(color);
   }, 100);
 
-  const { setShowAddProjectModal, setShowUpgradePlanModal } =
-    useContext(ModalContext);
+  const { queryParams } = useRouterStuff();
 
   return (
     <div>
@@ -272,7 +270,7 @@ function AdvancedSettings({
               className="flex items-center space-x-1"
             >
               <p className="text-sm font-medium text-gray-700">Logo</p>
-              {plan && plan !== "free" && (
+              {plan !== "free" && (
                 <InfoTooltip
                   content={
                     <SimpleTooltipContent
@@ -284,7 +282,7 @@ function AdvancedSettings({
                 />
               )}
             </label>
-            {plan && plan !== "free" ? (
+            {plan !== "free" ? (
               <div className="mt-1 flex items-center space-x-2">
                 <Switch
                   fn={setShowLogo}
@@ -302,17 +300,17 @@ function AdvancedSettings({
               <Tooltip
                 content={
                   <TooltipContent
-                    title="You need to be on the Pro plan to customize your QR Code logo."
-                    cta={slug ? "Upgrade to Pro" : "Create a project"}
+                    title="You need to be on the Pro plan and above to customize your QR Code logo."
+                    cta="Upgrade to Pro"
                     {...(APP_HOSTNAMES.has(window.location.hostname)
                       ? {
                           onClick: () => {
                             setShowLinkQRModal(false);
-                            if (slug) {
-                              setShowUpgradePlanModal(true);
-                            } else {
-                              setShowAddProjectModal(true);
-                            }
+                            queryParams({
+                              set: {
+                                upgrade: "pro",
+                              },
+                            });
                           },
                         }
                       : { href: `${HOME_DOMAIN}/pricing` })}

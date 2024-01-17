@@ -85,7 +85,7 @@ export function Footer() {
               </a>
               <div className="h-8 border-l border-gray-200" />
               <a
-                href="https://www.linkedin.com/company/dubhq/"
+                href="https://www.linkedin.com/company/dubinc/"
                 target="_blank"
                 rel="noreferrer"
                 className="rounded-md p-2 transition-colors hover:bg-gray-100 active:bg-gray-200"
@@ -199,7 +199,8 @@ export function Footer() {
         </div>
         <div className="mt-16 border-t border-gray-900/10 pt-8 sm:mt-20 lg:mt-24">
           <p className="text-sm leading-5 text-gray-500">
-            © {new Date().getFullYear()} {process.env.NEXT_PUBLIC_APP_NAME}
+            © {new Date().getFullYear()} {process.env.NEXT_PUBLIC_APP_NAME},
+            Inc.
           </p>
         </div>
       </MaxWidthWrapper>

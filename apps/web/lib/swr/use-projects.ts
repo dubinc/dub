@@ -11,12 +11,21 @@ export default function useProjects() {
     },
   );
 
+  const userProjects = projects?.map((project) => ({
+    ...project,
+    isOwner: project?.users && project.users[0].role === "owner",
+    primaryDomain:
+      project.domains.find((domain) => domain.primary) || project.domains[0],
+  }));
+
+  const freeProjects = userProjects?.filter(
+    (project) => project.plan === "free" && project.isOwner,
+  );
+
   return {
-    projects: projects?.map((project) => ({
-      ...project,
-      primaryDomain:
-        project.domains.find((domain) => domain.primary) || project.domains[0],
-    })),
+    projects: userProjects,
+    freeProjects,
+    exceedingFreeProjects: freeProjects && freeProjects.length > 1,
     error,
     loading: !projects && !error,
   };

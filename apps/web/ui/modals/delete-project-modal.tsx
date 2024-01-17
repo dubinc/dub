@@ -1,7 +1,7 @@
 import useProject from "@/lib/swr/use-project";
 import { BlurImage } from "@/ui/shared/blur-image";
-import { Button, Modal } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { Button, Logo, Modal } from "@dub/ui";
+import { GOOGLE_FAVICON_URL, cn } from "@dub/utils";
 import { useParams, useRouter } from "next/navigation";
 import {
   Dispatch,
@@ -54,13 +54,7 @@ function DeleteProjectModal({
       setShowModal={setShowDeleteProjectModal}
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
-        <BlurImage
-          src={logo || `https://avatar.vercel.sh/${id}`}
-          alt={id || "Delete Project"}
-          className="h-10 w-10 rounded-full border border-gray-200"
-          width={20}
-          height={20}
-        />
+        <Logo />
         <h3 className="text-lg font-medium">Delete Project</h3>
         <p className="text-center text-sm text-gray-500">
           Warning: This will permanently delete your project, custom domain, and

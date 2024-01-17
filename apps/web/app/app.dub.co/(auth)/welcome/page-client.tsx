@@ -1,6 +1,5 @@
 "use client";
 
-import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
 import { useAddProjectModal } from "@/ui/modals/add-project-modal";
 import { useUpgradePlanModal } from "@/ui/modals/upgrade-plan-modal";
 import Interim from "@/ui/welcome/interim";
@@ -14,7 +13,6 @@ import { useEffect } from "react";
 
 export default function WelcomePageClient() {
   const { setShowAddProjectModal, AddProjectModal } = useAddProjectModal();
-  const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal();
   const { setShowUpgradePlanModal, UpgradePlanModal } = useUpgradePlanModal();
 
   const router = useRouter();
@@ -32,13 +30,6 @@ export default function WelcomePageClient() {
     } else {
       setShowAddProjectModal(false);
     }
-    if (searchParams?.get("type") === "link") {
-      setTimeout(() => {
-        setShowAddEditLinkModal(true);
-      }, 200);
-    } else {
-      setShowAddEditLinkModal(false);
-    }
     if (searchParams?.get("type") === "upgrade") {
       setTimeout(() => {
         setShowUpgradePlanModal(true);
@@ -52,7 +43,6 @@ export default function WelcomePageClient() {
     <div className="flex h-screen flex-col items-center">
       <Background />
       <AddProjectModal />
-      <AddEditLinkModal />
       <UpgradePlanModal />
       <AnimatePresence mode="wait">
         {!searchParams?.get("type") && <Intro key="intro" />}

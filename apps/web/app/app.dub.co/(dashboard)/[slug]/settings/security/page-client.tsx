@@ -7,32 +7,23 @@ import { useRemoveSAMLModal } from "@/ui/modals/remove-saml-modal";
 import { useRemoveSCIMModal } from "@/ui/modals/remove-scim-modal";
 import { useSAMLModal } from "@/ui/modals/saml-modal";
 import { useSCIMModal } from "@/ui/modals/scim-modal";
-import { useUpgradePlanModal } from "@/ui/modals/upgrade-plan-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Button, IconMenu, Popover, TooltipContent } from "@dub/ui";
 import { HOME_DOMAIN, SAML_PROVIDERS } from "@dub/utils";
 import { FolderSync, Lock, ShieldOff } from "lucide-react";
-import { Dispatch, SetStateAction, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 export default function ProjectSecurityClient() {
-  const { setShowUpgradePlanModal, UpgradePlanModal } = useUpgradePlanModal({
-    defaultPlan: "Enterprise",
-  });
   return (
     <>
-      <UpgradePlanModal />
-      <SAMLSection setShowUpgradePlanModal={setShowUpgradePlanModal} />
-      <SCIMSection setShowUpgradePlanModal={setShowUpgradePlanModal} />
+      <SAMLSection />
+      <SCIMSection />
     </>
   );
 }
 
-const SAMLSection = ({
-  setShowUpgradePlanModal,
-}: {
-  setShowUpgradePlanModal: Dispatch<SetStateAction<boolean>>;
-}) => {
-  const { plan, isOwner } = useProject();
+const SAMLSection = () => {
+  const { plan } = useProject();
   const { SAMLModal, setShowSAMLModal } = useSAMLModal();
   const { RemoveSAMLModal, setShowRemoveSAMLModal } = useRemoveSAMLModal();
   const { provider, configured, loading } = useSAML();
@@ -79,7 +70,7 @@ const SAMLSection = ({
           <div className="flex flex-col space-y-3">
             <h2 className="text-xl font-medium">SAML Single Sign-On</h2>
             <p className="text-sm text-gray-500">
-              Set up SAML Single Sign-On (SSO) to allow your team to sign in to
+              Set up SAML Single Sign-On (SSO) to allow your team to sign in to{" "}
               {process.env.NEXT_PUBLIC_APP_NAME} with your identity provider.
             </p>
           </div>
@@ -145,11 +136,11 @@ const SAMLSection = ({
                   disabled={plan !== "enterprise"}
                   {...(plan !== "enterprise" && {
                     disabledTooltip: (
-                      // "SAML SSO is only available on Enterprise plans.",
                       <TooltipContent
                         title="SAML SSO is only available on Enterprise plans. Upgrade to get started."
-                        cta="Upgrade to Enterprise"
-                        onClick={() => setShowUpgradePlanModal(true)}
+                        cta="Contact sales"
+                        href={`${HOME_DOMAIN}/enterprise`}
+                        target="_blank"
                       />
                     ),
                   })}
@@ -174,11 +165,7 @@ const SAMLSection = ({
   );
 };
 
-const SCIMSection = ({
-  setShowUpgradePlanModal,
-}: {
-  setShowUpgradePlanModal: Dispatch<SetStateAction<boolean>>;
-}) => {
+const SCIMSection = () => {
   const { plan } = useProject();
   const { SCIMModal, setShowSCIMModal } = useSCIMModal();
   const { RemoveSCIMModal, setShowRemoveSCIMModal } = useRemoveSCIMModal();
@@ -307,8 +294,9 @@ const SCIMSection = ({
                     disabledTooltip: (
                       <TooltipContent
                         title="SCIM Directory Sync is only available on Enterprise plans. Upgrade to get started."
-                        cta="Upgrade to Enterprise"
-                        onClick={() => setShowUpgradePlanModal(true)}
+                        cta="Contact sales"
+                        href={`${HOME_DOMAIN}/enterprise`}
+                        target="_blank"
                       />
                     ),
                   })}

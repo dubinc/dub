@@ -5,7 +5,7 @@ import { LinkProps, SimpleLinkProps } from "@/lib/types";
 
 // POST /api/links/sync – sync user's publicly created links to their accounts
 export const POST = withAuth(
-  async ({ req, session }) => {
+  async ({ req, session, project }) => {
     let links: SimpleLinkProps[] = [];
     try {
       links = await req.json();
@@ -35,17 +35,31 @@ export const POST = withAuth(
       return new Response("No links created.", { status: 400 });
     }
 
-    const response = await prisma.link.updateMany({
-      where: {
-        id: {
-          in: unclaimedLinks.map((link) => link.id),
+    const response = await Promise.all([
+      prisma.link.updateMany({
+        where: {
+          id: {
+            in: unclaimedLinks.map((link) => link.id),
+          },
         },
-      },
-      data: {
-        userId: session.user.id,
-        publicStats: false,
-      },
-    });
+        data: {
+          userId: session.user.id,
+          projectId: project.id,
+          publicStats: false,
+        },
+      }),
+      prisma.project.update({
+        where: {
+          id: project.id,
+        },
+        data: {
+          // TODO: sync clicks usage as well
+          linksUsage: {
+            increment: unclaimedLinks.length,
+          },
+        },
+      }),
+    ]);
 
     return NextResponse.json(response);
   },

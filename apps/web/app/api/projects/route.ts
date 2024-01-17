@@ -4,13 +4,13 @@ import {
   domainExists,
   validateDomain,
 } from "@/lib/api/domains";
-import { withAuth } from "@/lib/auth";
+import { withSession } from "@/lib/auth";
 import { isReservedKey } from "@/lib/edge-config";
 import prisma from "@/lib/prisma";
 import { DEFAULT_REDIRECTS, validSlugRegex } from "@dub/utils";
 
 // GET /api/projects - get all projects for the current user
-export const GET = withAuth(async ({ session, headers }) => {
+export const GET = withSession(async ({ session }) => {
   const projects = await prisma.project.findMany({
     where: {
       users: {
@@ -21,15 +21,24 @@ export const GET = withAuth(async ({ session, headers }) => {
     },
     include: {
       domains: true,
+      users: {
+        where: {
+          userId: session.user.id,
+        },
+        select: {
+          role: true,
+        },
+      },
     },
   });
-  return NextResponse.json(projects, { headers });
+  return NextResponse.json(projects);
 });
 
-export const POST = withAuth(async ({ req, session }) => {
+export const POST = withSession(async ({ req, session }) => {
   const { name, slug, domain } = await req.json();
-  if (!name || !slug || !domain) {
-    return new Response("Missing name or slug or domain", { status: 422 });
+
+  if (!name || !slug) {
+    return new Response("Missing name or slug", { status: 422 });
   }
   let slugError: string | null = null;
 
@@ -46,16 +55,38 @@ export const POST = withAuth(async ({ req, session }) => {
     slugError = "Cannot use reserved slugs";
   }
 
-  const validDomain = await validateDomain(domain);
-  if (slugError || validDomain !== true) {
-    return NextResponse.json(
-      {
-        slugError,
-        domainError: validDomain === true ? null : validDomain,
+  if (domain) {
+    const validDomain = await validateDomain(domain);
+    if (slugError || validDomain !== true) {
+      return NextResponse.json(
+        {
+          slugError,
+          domainError: validDomain === true ? null : validDomain,
+        },
+        { status: 422 },
+      );
+    }
+  }
+
+  const freeProjects = await prisma.project.count({
+    where: {
+      plan: "free",
+      users: {
+        some: {
+          userId: session.user.id,
+          role: "owner",
+        },
       },
-      { status: 422 },
+    },
+  });
+
+  if (freeProjects >= 1) {
+    return new Response(
+      "You can only create one free project. Additional projects require a paid plan.",
+      { status: 403 },
     );
   }
+
   const [slugExist, domainExist] = await Promise.all([
     prisma.project.findUnique({
       where: {
