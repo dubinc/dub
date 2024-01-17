@@ -379,9 +379,9 @@ function AddEditDomainButton({
         disabledTooltip={
           exceededDomains ? (
             <TooltipContent
-              title={`You can only add up to ${domainsLimit} domains on the ${capitalize(
-                plan,
-              )} plan. Upgrade to add more domains`}
+              title={`You can only add up to ${domainsLimit} domain${
+                domainsLimit === 1 ? "" : "s"
+              } on the ${capitalize(plan)} plan. Upgrade to add more domains`}
               cta="Upgrade"
               onClick={() => {
                 queryParams({
