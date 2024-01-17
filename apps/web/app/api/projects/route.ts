@@ -118,12 +118,14 @@ export const POST = withSession(async ({ req, session }) => {
             role: "owner",
           },
         },
-        domains: {
-          create: {
-            slug: domain,
-            primary: true,
+        ...(domain && {
+          domains: {
+            create: {
+              slug: domain,
+              primary: true,
+            },
           },
-        },
+        }),
         billingCycleStart: new Date().getDate(),
       },
     }),
