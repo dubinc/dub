@@ -9,7 +9,7 @@ export const PLANS = [
     limits: {
       links: 25,
       clicks: 1000,
-      domains: 1,
+      domains: 3,
       tags: 5,
       users: 1,
     },
@@ -29,7 +29,7 @@ export const PLANS = [
         text: "1K tracked clicks/mo",
       },
       { text: "30-day analytics retention" },
-      { text: "1 custom domain" },
+      { text: "3 custom domains" },
       { text: "1 user" },
       {
         text: "Community support",
@@ -61,7 +61,7 @@ export const PLANS = [
       ],
     },
     limits: {
-      links: 250,
+      links: 1000,
       clicks: 50000,
       domains: 10,
       tags: 25,
@@ -79,7 +79,7 @@ export const PLANS = [
     },
     featureTitle: "Everything in Free, plus:",
     features: [
-      { text: "250 links/mo" },
+      { text: "1,000 links/mo" },
       {
         text: "50K tracked clicks/mo",
       },
@@ -118,7 +118,7 @@ export const PLANS = [
       ],
     },
     limits: {
-      links: 1000,
+      links: 5000,
       clicks: 250000,
       domains: 20,
       tags: 150,
@@ -136,7 +136,7 @@ export const PLANS = [
     },
     featureTitle: "Everything in Pro, plus:",
     features: [
-      { text: "1,000 links/mo" },
+      { text: "5,000 links/mo" },
       {
         text: "250K tracked clicks/mo",
       },

@@ -93,7 +93,7 @@ model Project {
   usageLimit         Int             @default(1000)
   linksUsage         Int             @default(0)
   linksLimit         Int             @default(25)
-  domainsLimit       Int             @default(1)
+  domainsLimit       Int             @default(3)
   tagsLimit          Int             @default(5)
   usersLimit         Int             @default(1)
   monitoringId       String?         @unique // cron job ID for monitoring
