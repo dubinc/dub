@@ -7,12 +7,11 @@ import { useRemoveSAMLModal } from "@/ui/modals/remove-saml-modal";
 import { useRemoveSCIMModal } from "@/ui/modals/remove-scim-modal";
 import { useSAMLModal } from "@/ui/modals/saml-modal";
 import { useSCIMModal } from "@/ui/modals/scim-modal";
-import { useUpgradePlanModal } from "@/ui/modals/upgrade-plan-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Button, IconMenu, Popover, TooltipContent } from "@dub/ui";
 import { HOME_DOMAIN, SAML_PROVIDERS } from "@dub/utils";
 import { FolderSync, Lock, ShieldOff } from "lucide-react";
-import { Dispatch, SetStateAction, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 export default function ProjectSecurityClient() {
   return (

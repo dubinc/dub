@@ -2,11 +2,7 @@ import { addLink, getLinksForProject, processLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { ratelimit } from "@/lib/upstash";
-import {
-  APP_DOMAIN_WITH_NGROK,
-  DUB_PROJECT_ID,
-  LOCALHOST_IP,
-} from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, LOCALHOST_IP } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/links – get all user links
