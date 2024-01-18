@@ -78,8 +78,6 @@ export default function ProjectSelect() {
         >
           <div className="flex items-center space-x-3 pr-2">
             <BlurImage
-              height={20}
-              width={20}
               src={selected.image}
               referrerPolicy="no-referrer"
               alt={selected.id || selected.name}
