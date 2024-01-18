@@ -382,6 +382,7 @@ export async function processLink({
   return {
     link: {
       ...payload,
+      domain,
       key,
       url: processedUrl,
       // make sure projectId is set to the current project
