@@ -663,9 +663,11 @@ export async function editLink({
 export async function deleteLink({
   domain = SHORT_DOMAIN,
   key,
+  projectId,
 }: {
   domain?: string;
   key: string;
+  projectId?: string;
 }) {
   return await Promise.all([
     prisma.link.delete({
@@ -680,6 +682,17 @@ export async function deleteLink({
       invalidate: true,
     }),
     redis.del(`${domain}:${key}`),
+    projectId &&
+      prisma.project.update({
+        where: {
+          id: projectId,
+        },
+        data: {
+          linksUsage: {
+            decrement: 1,
+          },
+        },
+      }),
   ]);
 }
 

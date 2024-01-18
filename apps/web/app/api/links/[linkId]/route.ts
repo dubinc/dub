@@ -89,11 +89,12 @@ export const PUT = withAuth(
 );
 
 // DELETE /api/links/[linkId] – delete a link
-export const DELETE = withAuth(async ({ headers, link }) => {
+export const DELETE = withAuth(async ({ headers, link, project }) => {
   // link is guaranteed to exist because if not we will return 404
   const response = await deleteLink({
     domain: link!.domain,
     key: link!.key,
+    projectId: project.id,
   });
   return NextResponse.json(response[0], {
     headers,
