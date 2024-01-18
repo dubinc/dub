@@ -3,7 +3,6 @@ import useLinks from "@/lib/swr/use-links";
 import useLinksCount from "@/lib/swr/use-links-count";
 import useTags from "@/lib/swr/use-tags";
 import { TagProps } from "@/lib/types";
-import { ModalContext } from "@/ui/modals/provider";
 import TagBadge, { COLORS_LIST } from "@/ui/links/tag-badge";
 import { ThreeDots } from "@/ui/shared/icons";
 import {
@@ -30,20 +29,12 @@ import {
   useSearchParams,
 } from "next/navigation";
 import punycode from "punycode/";
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { useDebouncedCallback } from "use-debounce";
 
 export default function LinkFilters() {
-  const { slug } = useParams() as { slug?: string };
   const { data: domains } = useLinksCount({ groupBy: "domain" });
 
   const { tags } = useTags();
@@ -74,7 +65,7 @@ export default function LinkFilters() {
     ].some((param) => searchParams?.has(param));
   }, [searchParams]);
 
-  return domains && tags && tagsCount ? (
+  return domains ? (
     <div className="grid w-full rounded-md bg-white px-5 lg:divide-y lg:divide-gray-300">
       <div className="grid gap-3 py-6">
         <div className="flex items-center justify-between">
@@ -84,7 +75,7 @@ export default function LinkFilters() {
         <SearchBox searchInputRef={searchInputRef} />
       </div>
       <DomainsFilter />
-      {slug && (
+      {tags && tagsCount && (
         <>
           <TagsFilter tags={tags} tagsCount={tagsCount} />
           <MyLinksFilter />
@@ -183,14 +174,14 @@ const DomainsFilter = () => {
   const [collapsed, setCollapsed] = useState(false);
 
   const options = useMemo(() => {
-    return domains.length === 0
+    return domains?.length === 0
       ? [
           {
             value: primaryDomain,
             count: 0,
           },
         ]
-      : domains.map(({ domain, _count }) => ({
+      : domains?.map(({ domain, _count }) => ({
           value: domain,
           count: _count,
         }));
@@ -226,7 +217,8 @@ const DomainsFilter = () => {
                   id={value}
                   name={value}
                   checked={
-                    searchParams?.get("domain") === value || domains.length <= 1
+                    searchParams?.get("domain") === value ||
+                    domains?.length <= 1
                   }
                   onChange={() => {
                     queryParams({

@@ -7,6 +7,7 @@ import { createHash } from "crypto";
 import { API_DOMAIN, getSearchParams, isDubDomain } from "@dub/utils";
 import { ratelimit } from "../upstash";
 import { exceededLimitError } from "../api/errors";
+import { isAdmin } from "app/admin.dub.co/actions";
 
 export interface Session {
   user: {
@@ -411,4 +412,28 @@ export const withSession =
 
     const searchParams = getSearchParams(req.url);
     return handler({ req, params, searchParams, session });
+  };
+
+// Internal use only (for admin portal)
+interface WithAdminHandler {
+  ({
+    req,
+    params,
+    searchParams,
+  }: {
+    req: Request;
+    params: Record<string, string>;
+    searchParams: Record<string, string>;
+  }): Promise<Response>;
+}
+
+export const withAdmin =
+  (handler: WithAdminHandler) =>
+  async (req: Request, { params }: { params: Record<string, string> }) => {
+    if (!(await isAdmin())) {
+      return new Response("Unauthorized: Not an admin.", { status: 401 });
+    }
+
+    const searchParams = getSearchParams(req.url);
+    return handler({ req, params, searchParams });
   };
