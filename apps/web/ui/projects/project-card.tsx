@@ -55,8 +55,8 @@ export default function ProjectCard({
       {isMigratedProject && (
         <>
           <div className="absolute -inset-1 rounded-lg bg-gradient-to-r from-red-600 to-violet-600 opacity-25 blur-lg transition duration-1000 group-hover:opacity-75 group-hover:duration-200" />
-          <ProjectArrow className="absolute -bottom-20 right-0 z-10 text-violet-600" />
-          <div className="absolute -bottom-28 -right-56 z-10 w-full max-w-[16rem] rounded-lg border border-gray-200 bg-white p-3 text-center text-sm shadow">
+          <ProjectArrow className="absolute -bottom-20 right-56 lg:right-0 z-10 text-violet-600" />
+          <div className="absolute -bottom-28 right-0 lg:-right-56 z-10 w-full max-w-[16rem] rounded-lg border border-gray-200 bg-white p-3 text-center text-sm shadow">
             <p>
               Your <InlineSnippet>dub.sh</InlineSnippet> links have been
               migrated to a custom project.
