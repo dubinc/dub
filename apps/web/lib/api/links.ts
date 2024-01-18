@@ -458,6 +458,17 @@ export async function addLink(link: LinkProps) {
         nx: true,
       },
     ),
+    link.projectId &&
+      prisma.project.update({
+        where: {
+          id: link.projectId,
+        },
+        data: {
+          linksUsage: {
+            increment: 1,
+          },
+        },
+      }),
   ]);
 
   if (proxy && image) {
