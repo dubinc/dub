@@ -68,7 +68,9 @@ export default function Interim() {
           <p>I have a domain</p>
         </button>
         <button
-          onClick={() => router.push("/welcome?type=link")}
+          onClick={() =>
+            router.push("/welcome?type=project&useDefaultDomain=true")
+          }
           className="flex flex-col items-center justify-center overflow-hidden p-5 transition-colors hover:bg-gray-50 md:p-10"
         >
           <BlurImage

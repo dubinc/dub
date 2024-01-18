@@ -1,13 +1,13 @@
 "use client";
 
 import { BlurImage } from "@/ui/shared/blur-image";
-import { MaxWidthWrapper } from "@dub/ui";
+import { MaxWidthWrapper, useRouterStuff } from "@dub/ui";
 import { Lock } from "lucide-react";
-import { useContext } from "react";
-import { ModalContext } from "../modals/provider";
+import useProject from "@/lib/swr/use-project";
 
-export default function ProjectExceededUsage() {
-  const { setShowUpgradePlanModal } = useContext(ModalContext);
+export default function ProjectExceededClicks() {
+  const { plan } = useProject();
+  const { queryParams } = useRouterStuff();
 
   return (
     <MaxWidthWrapper>
@@ -19,8 +19,8 @@ export default function ProjectExceededUsage() {
           Stats Locked
         </h1>
         <p className="z-10 max-w-sm text-center text-sm text-gray-600">
-          Your project has exceeded your usage limits. We're still collecting
-          data on your links, but you need to upgrade to view them.
+          Your project has exceeded your monthly clicks limits. We're still
+          collecting data on your links, but you need to upgrade to view them.
         </p>
         <BlurImage
           src="/_static/illustrations/video-park.svg"
@@ -30,7 +30,13 @@ export default function ProjectExceededUsage() {
           className="-my-8"
         />
         <button
-          onClick={() => setShowUpgradePlanModal(true)}
+          onClick={() =>
+            queryParams({
+              set: {
+                upgrade: plan === "free" ? "pro" : "business",
+              },
+            })
+          }
           className="z-10 rounded-md border border-black bg-black px-10 py-2 text-sm font-medium text-white transition-all duration-75 hover:bg-white hover:text-black"
         >
           Upgrade now

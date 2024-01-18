@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 export default function ApiMiddleware(req: NextRequest) {
   const { path, fullPath, domain } = parse(req);
   if (fullPath === "/" && domain === "api.dub.co") {
-    return NextResponse.redirect(`${HOME_DOMAIN}/help/article/dub-api`, {
+    return NextResponse.redirect(`${HOME_DOMAIN}/docs/api-reference/introduction`, {
       status: 307,
     });
 

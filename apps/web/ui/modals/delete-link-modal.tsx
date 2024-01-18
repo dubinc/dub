@@ -62,7 +62,7 @@ function DeleteLinkModal({
         onSubmit={async (e) => {
           e.preventDefault();
           setDeleting(true);
-          fetch(`/api/links/${props.id}${slug ? `?projectSlug=${slug}` : ""}`, {
+          fetch(`/api/links/${props.id}?projectSlug=${slug}`, {
             method: "DELETE",
             headers: {
               "Content-Type": "application/json",

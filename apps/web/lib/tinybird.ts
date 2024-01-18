@@ -87,8 +87,8 @@ export async function recordClick({
             [domain, key],
           ),
           conn.execute(
-            "UPDATE Project p JOIN Domain d ON p.id = d.projectId SET p.usage = p.usage + 1 WHERE d.slug = ?",
-            [domain],
+            "UPDATE Project p JOIN Link l ON p.id = l.projectId SET p.usage = p.usage + 1 WHERE domain = ? AND `key` = ?",
+            [domain, key],
           ),
         ]
       : conn.execute(

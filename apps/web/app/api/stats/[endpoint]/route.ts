@@ -1,5 +1,6 @@
 import { withAuth } from "@/lib/auth";
 import { getStats } from "@/lib/stats";
+import { DUB_PROJECT_ID, isDubDomain } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/stats/[endpoint] – get stats for a specific endpoint
@@ -8,17 +9,16 @@ export const GET = withAuth(
     const { endpoint } = params;
     const { domain, key, interval } = searchParams;
 
-    const constructedDomain =
-      domain || project?.domains?.map((d) => d.slug).join(",");
+    let filteredDomain = "";
 
-    if (!constructedDomain) {
-      return new Response("Missing link domain.", { status: 400 });
-    }
-
-    // if there's no key and it's not a project, return 400
-    // this is because projects can show stats for all links
-    if (!key && !project) {
-      return new Response("Missing link key.", { status: 400 });
+    // TODO: remove this logic after #545 merges
+    if (
+      domain &&
+      (!isDubDomain(domain) || key || project.id === DUB_PROJECT_ID)
+    ) {
+      filteredDomain = domain;
+    } else if (project.domains.length > 0) {
+      filteredDomain = project.domains.map((d) => d.slug).join(",");
     }
 
     // return 403 if project is on the free plan and interval is 90d or all
@@ -30,7 +30,7 @@ export const GET = withAuth(
     }
 
     const response = await getStats({
-      domain: constructedDomain,
+      domain: filteredDomain,
       key,
       endpoint,
       interval,
@@ -39,6 +39,6 @@ export const GET = withAuth(
     return NextResponse.json(response);
   },
   {
-    needNotExceededUsage: true,
+    needNotExceededClicks: true,
   },
 );

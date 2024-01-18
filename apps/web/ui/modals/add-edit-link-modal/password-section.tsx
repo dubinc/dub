@@ -1,5 +1,12 @@
+import useProject from "@/lib/swr/use-project";
 import { Eye, EyeOff } from "@/ui/shared/icons";
-import { InfoTooltip, SimpleTooltipContent, Switch } from "@dub/ui";
+import {
+  InfoTooltip,
+  SimpleTooltipContent,
+  Switch,
+  useRouterStuff,
+} from "@dub/ui";
+import { TooltipContent } from "@dub/ui/src/tooltip";
 import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "@dub/utils";
 import { type Link as LinkProps } from "@prisma/client";
 import { motion } from "framer-motion";
@@ -14,6 +21,9 @@ export default function PasswordSection({
   data: LinkProps;
   setData: Dispatch<SetStateAction<LinkProps>>;
 }) {
+  const { plan } = useProject();
+  const { queryParams } = useRouterStuff();
+
   const { password } = data;
   const [enabled, setEnabled] = useState(!!password);
   useEffect(() => {
@@ -48,7 +58,33 @@ export default function PasswordSection({
             }
           />
         </div>
-        <Switch fn={() => setEnabled(!enabled)} checked={enabled} />
+        <Switch
+          fn={() => setEnabled(!enabled)}
+          checked={enabled}
+          // password protection is only available on Dub's Pro plan
+          {...(!plan || plan === "free"
+            ? {
+                disabledTooltip: (
+                  <TooltipContent
+                    title={`Password protection is only available on ${process.env.NEXT_PUBLIC_APP_NAME}'s Pro plan. Upgrade to Pro to use this feature.`}
+                    cta="Upgrade to Pro"
+                    {...(plan === "free"
+                      ? {
+                          onClick: () =>
+                            queryParams({
+                              set: {
+                                upgrade: "pro",
+                              },
+                            }),
+                        }
+                      : {
+                          href: `${HOME_DOMAIN}/pricing`,
+                        })}
+                  />
+                ),
+              }
+            : {})}
+        />
       </div>
       {enabled && (
         <motion.div

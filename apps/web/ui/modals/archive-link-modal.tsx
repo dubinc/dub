@@ -16,8 +16,7 @@ import { mutate } from "swr";
 
 const sendArchiveRequest = (archived: boolean, id: string, slug?: string) => {
   const baseUrl = `/api/links/${id}/archive`;
-  const queryString = slug ? `?projectSlug=${slug}` : "";
-  return fetch(`${baseUrl}${queryString}`, {
+  return fetch(`${baseUrl}?projectSlug=${slug}`, {
     method: archived ? "POST" : "DELETE",
     headers: {
       "Content-Type": "application/json",
@@ -69,7 +68,7 @@ function ArchiveLinkModal({
     setArchiving(false);
 
     if (!res.ok) {
-      toast.error(res.statusText);
+      toast.error(await res.text());
       return;
     }
 

@@ -1,6 +1,6 @@
 "use server";
-import { reassignUserLinks } from "@/lib/api/links";
-import { deleteProject } from "@/lib/api/project";
+
+import { deleteProject } from "@/lib/api/projects";
 import { getSession, hashToken } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
@@ -10,10 +10,11 @@ import {
   SHORT_DOMAIN,
   getDomainWithoutWWW,
 } from "@dub/utils";
+import { DUB_DOMAINS, LEGAL_PROJECT_ID } from "@dub/utils/dist/constants";
 import { get } from "@vercel/edge-config";
 import { randomBytes } from "crypto";
 
-async function isAdmin() {
+export async function isAdmin() {
   const session = await getSession();
   if (!session?.user) return false;
   const response = await prisma.projectUsers.findUnique({
@@ -244,7 +245,18 @@ export async function banUser(data: FormData) {
   const blacklistedEmails = (await get("emails")) as string[];
 
   const ban = await Promise.allSettled([
-    reassignUserLinks(user.id),
+    prisma.link.updateMany({
+      where: {
+        userId: user.id,
+        domain: {
+          in: DUB_DOMAINS.map((domain) => domain.slug),
+        },
+      },
+      data: {
+        userId: LEGAL_USER_ID,
+        projectId: LEGAL_PROJECT_ID,
+      },
+    }),
     fetch(
       `https://api.vercel.com/v1/edge-config/${process.env.EDGE_CONFIG_ID}/items?teamId=${process.env.TEAM_ID_VERCEL}`,
       {

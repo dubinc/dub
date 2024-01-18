@@ -1,12 +1,7 @@
 import { withAuth } from "@/lib/auth";
 import { deleteLink, editLink, processLink } from "@/lib/api/links";
 import { NextResponse } from "next/server";
-import {
-  APP_DOMAIN_WITH_NGROK,
-  GOOGLE_FAVICON_URL,
-  getApexDomain,
-  log,
-} from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { qstash } from "@/lib/cron";
 
 // GET /api/links/[linkId] – get a link
@@ -91,17 +86,15 @@ export const PUT = withAuth(
       headers,
     });
   },
-  {
-    needNotExceededUsage: true,
-  },
 );
 
 // DELETE /api/links/[linkId] – delete a link
-export const DELETE = withAuth(async ({ headers, link }) => {
+export const DELETE = withAuth(async ({ headers, link, project }) => {
   // link is guaranteed to exist because if not we will return 404
   const response = await deleteLink({
     domain: link!.domain,
     key: link!.key,
+    projectId: project.id,
   });
   return NextResponse.json(response[0], {
     headers,

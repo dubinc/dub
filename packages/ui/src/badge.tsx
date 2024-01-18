@@ -9,9 +9,12 @@ const badgeVariants = cva(
         default: "border-gray-400 text-gray-500",
         violet: "border-violet-600 bg-violet-600 text-white",
         blue: "border-blue-500 bg-blue-500 text-white",
+        sky: "border-sky-900 bg-sky-900 text-white",
         black: "border-black bg-black text-white",
         gray: "border-gray-200 bg-gray-200 text-gray-800",
         neutral: "border-gray-400 text-gray-500",
+        rainbow:
+          "bg-gradient-to-r from-violet-600 to-pink-600 text-white border-transparent",
       },
     },
     defaultVariants: {

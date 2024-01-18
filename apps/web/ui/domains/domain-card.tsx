@@ -20,7 +20,7 @@ import { QrCode } from "lucide-react";
 export default function DomainCard({ props }: { props: DomainProps }) {
   const { slug } = useParams() as { slug: string };
 
-  const { slug: domain, primary, target, type } = props || {};
+  const { slug: domain, primary, target, type, verified } = props || {};
 
   const { showLinkQRModal, setShowLinkQRModal, LinkQRModal } = useLinkQRModal({
     props: {
@@ -39,7 +39,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
     fetcher,
     {
       revalidateOnMount: true,
-      refreshInterval: 5000,
+      refreshInterval: verified ? 0 : 5000, // Don't need to constantly refresh if domain is verified
     },
   );
 
@@ -152,7 +152,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                   href={target}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-sm font-medium text-gray-600"
+                  className="text-sm font-medium text-gray-600 underline-offset-4 hover:underline"
                 >
                   {truncate(
                     target.replace(/^(?:https?:\/\/)?(?:www\.)?/i, ""),

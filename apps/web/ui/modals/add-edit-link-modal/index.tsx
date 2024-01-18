@@ -2,7 +2,6 @@
 
 import useDomains from "@/lib/swr/use-domains";
 import useProject from "@/lib/swr/use-project";
-import { ModalContext } from "@/ui/modals/provider";
 import { BlurImage } from "@/ui/shared/blur-image";
 import { AlertCircleFill, Lock, Random, X } from "@/ui/shared/icons";
 import {
@@ -10,8 +9,8 @@ import {
   LoadingCircle,
   Logo,
   Modal,
-  Tooltip,
   TooltipContent,
+  useRouterStuff,
 } from "@dub/ui";
 import {
   DEFAULT_LINK_PROPS,
@@ -19,14 +18,13 @@ import {
   cn,
   deepEqual,
   getApexDomain,
+  getDomainWithoutWWW,
   getUrlWithoutUTMParams,
-  isDubDomain,
   isValidUrl,
   linkConstructor,
   truncate,
 } from "@dub/utils";
 import { type Link as LinkProps } from "@prisma/client";
-import va from "@vercel/analytics";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import punycode from "punycode/";
 import {
@@ -34,7 +32,6 @@ import {
   SetStateAction,
   UIEvent,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -78,16 +75,17 @@ function AddEditLinkModal({
   const [generatingKey, setGeneratingKey] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const { domains, primaryDomain } = useDomains();
+  const {
+    allActiveDomains: domains,
+    primaryDomain,
+    defaultDomains,
+  } = useDomains();
 
   const [data, setData] = useState<LinkProps>(
     props ||
       duplicateProps || {
         ...(DEFAULT_LINK_PROPS as LinkProps),
-        domain:
-          primaryDomain ||
-          (domains && domains.length > 0 && domains[0].slug) ||
-          "",
+        domain: primaryDomain,
         key: "",
         url: "",
       },
@@ -109,9 +107,7 @@ function AddEditLinkModal({
       debouncedKey.toLowerCase() !== props?.key.toLowerCase()
     ) {
       fetch(
-        `/api/links/exists?domain=${domain}&key=${debouncedKey}${
-          slug ? `&projectSlug=${slug}` : ""
-        }`,
+        `/api/links/exists?domain=${domain}&key=${debouncedKey}&projectSlug=${slug}`,
       ).then(async (res) => {
         if (res.status === 200) {
           const exists = await res.json();
@@ -127,7 +123,7 @@ function AddEditLinkModal({
     setKeyError(null);
     setGeneratingKey(true);
     const res = await fetch(
-      `/api/links/random?domain=${domain}${slug ? `&projectSlug=${slug}` : ""}`,
+      `/api/links/random?domain=${domain}&projectSlug=${slug}`,
     );
     const key = await res.json();
     setData((prev) => ({ ...prev, key }));
@@ -135,13 +131,25 @@ function AddEditLinkModal({
   }, [domain, slug]);
 
   useEffect(() => {
-    // generate random key when someone pastes a URL and there's no key
-    if (showAddEditLinkModal && !key && url.length > 0) {
-      generateRandomKey();
+    // when someone pastes a URL
+    if (showAddEditLinkModal && url.length > 0) {
+      // if it's a new link and there are matching default domains, set it as the domain
+      if (!props && defaultDomains) {
+        const urlDomain = getDomainWithoutWWW(url) || "";
+        const defaultDomain = defaultDomains.find(({ allowedHostnames }) =>
+          allowedHostnames.includes(urlDomain),
+        );
+        if (defaultDomain) {
+          setData((prev) => ({ ...prev, domain: defaultDomain.slug }));
+        }
+      }
+
+      // if there's no key, generate a random key
+      if (!key) {
+        generateRandomKey();
+      }
     }
-    // here, we're intentionally leaving out `key` from the dependency array
-    // because we don't want to generate a new key if the user is editing the key
-  }, [showAddEditLinkModal, url, generateRandomKey]);
+  }, [showAddEditLinkModal, url]);
 
   const [generatingMetatags, setGeneratingMetatags] = useState(
     props ? true : false,
@@ -222,12 +230,12 @@ function AddEditLinkModal({
     if (props?.key) {
       return {
         method: "PUT",
-        url: `/api/links/${props.id}${slug ? `?projectSlug=${slug}` : ""}`,
+        url: `/api/links/${props.id}?projectSlug=${slug}`,
       };
     } else {
       return {
         method: "POST",
-        url: `/api/links${slug ? `?projectSlug=${slug}` : ""}`,
+        url: `/api/links?projectSlug=${slug}`,
       };
     }
   }, [props, slug, domain]);
@@ -377,7 +385,7 @@ function AddEditLinkModal({
                       setUrlError(error);
                     }
                   } else {
-                    toast.error(res.statusText);
+                    toast.error(await res.text());
                   }
                 }
                 setSaving(false);
@@ -531,17 +539,11 @@ function AddEditLinkModal({
                     </div>
                   )}
                 </div>
-                {keyError ? (
+                {keyError && (
                   <p className="mt-2 text-sm text-red-600" id="key-error">
                     {keyError}
                   </p>
-                ) : process.env.NEXT_PUBLIC_IS_DUB &&
-                  isDubDomain(domain) &&
-                  domain !== "dub.sh" ? (
-                  <p className="mt-2 text-sm text-gray-500">
-                    You can only create up to 25 links with this domain.
-                  </p>
-                ) : null}
+                )}
               </div>
             </div>
 
@@ -563,11 +565,11 @@ function AddEditLinkModal({
             <div className="grid gap-5 px-4 md:px-16">
               {slug && <TagsSection {...{ props, data, setData }} />}
               <CommentsSection {...{ props, data, setData }} />
+              <UTMSection {...{ props, data, setData }} />
               <OGSection
                 {...{ props, data, setData }}
                 generatingMetatags={generatingMetatags}
               />
-              <UTMSection {...{ props, data, setData }} />
               <RewriteSection {...{ data, setData }} />
               <PasswordSection {...{ props, data, setData }} />
               <ExpirationSection {...{ props, data, setData }} />
@@ -609,28 +611,26 @@ function AddEditLinkButton({
 }: {
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { slug } = useParams() as { slug?: string };
-
-  const { exceededUsage } = useProject();
-  const { setShowUpgradePlanModal } = useContext(ModalContext);
+  const { slug, plan, exceededLinks } = useProject();
+  const { queryParams } = useRouterStuff();
 
   const onKeyDown = useCallback((e: KeyboardEvent) => {
     const target = e.target as HTMLElement;
     const existingModalBackdrop = document.getElementById("modal-backdrop");
     // only open modal with keyboard shortcut if:
-    // - project has not exceeded usage limit
     // - c is pressed
     // - user is not pressing cmd/ctrl + c
     // - user is not typing in an input or textarea
     // - there is no existing modal backdrop (i.e. no other modal is open)
+    // - project has not exceeded links limit
     if (
-      !exceededUsage &&
       e.key === "c" &&
       !e.metaKey &&
       !e.ctrlKey &&
       target.tagName !== "INPUT" &&
       target.tagName !== "TEXTAREA" &&
-      !existingModalBackdrop
+      !existingModalBackdrop &&
+      !exceededLinks
     ) {
       e.preventDefault(); // or else it'll show up in the input field since that's getting auto-selected
       setShowAddEditLinkModal(true);
@@ -647,12 +647,14 @@ function AddEditLinkButton({
     // - pasted content is a valid URL
     // - user is not typing in an input or textarea
     // - there is no existing modal backdrop (i.e. no other modal is open)
+    // - project has not exceeded links limit
     if (
       pastedContent &&
       isValidUrl(pastedContent) &&
       target.tagName !== "INPUT" &&
       target.tagName !== "TEXTAREA" &&
-      !existingModalBackdrop
+      !existingModalBackdrop &&
+      !exceededLinks
     ) {
       setShowAddEditLinkModal(true);
     }
@@ -667,33 +669,27 @@ function AddEditLinkButton({
     };
   }, [onKeyDown]);
 
-  return slug && exceededUsage ? ( // only show exceeded usage tooltip if user is on a project page
-    <Tooltip
-      content={
-        <TooltipContent
-          title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
-          cta="Upgrade to Pro"
-          onClick={() => setShowUpgradePlanModal(true)}
-        />
+  return (
+    <Button
+      text="Create link"
+      shortcut="C"
+      disabledTooltip={
+        slug && exceededLinks ? (
+          <TooltipContent
+            title="Your project has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
+            cta="Upgrade"
+            onClick={() => {
+              queryParams({
+                set: {
+                  upgrade: plan === "free" ? "pro" : "business",
+                },
+              });
+            }}
+          />
+        ) : undefined
       }
-    >
-      <div className="flex cursor-not-allowed items-center space-x-3 rounded-md border border-gray-200 px-3 py-2 text-sm font-medium text-gray-300">
-        <p>Create link</p>
-        <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-300 md:inline-block">
-          C
-        </kbd>
-      </div>
-    </Tooltip>
-  ) : (
-    <button
       onClick={() => setShowAddEditLinkModal(true)}
-      className="group flex items-center space-x-3 rounded-md border border-black bg-black px-3 py-2 text-sm font-medium text-white transition-all duration-75 hover:bg-white hover:text-black active:scale-95"
-    >
-      <p>Create link</p>
-      <kbd className="hidden rounded bg-zinc-700 px-2 py-0.5 text-xs font-light text-gray-400 transition-all duration-75 group-hover:bg-gray-100 group-hover:text-gray-500 md:inline-block">
-        C
-      </kbd>
-    </button>
+    />
   );
 }
 
