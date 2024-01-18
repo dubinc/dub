@@ -86,7 +86,7 @@ export const POST = withAuth(
         qstash.publishJSON({
           url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/delete`,
           // delete after 30 mins
-          delay: 30 * 60 * 1000,
+          delay: 30 * 60,
           body: {
             linkId: response.id,
           },
