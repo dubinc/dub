@@ -14,7 +14,7 @@ import { DUB_DOMAINS, LEGAL_PROJECT_ID } from "@dub/utils/dist/constants";
 import { get } from "@vercel/edge-config";
 import { randomBytes } from "crypto";
 
-async function isAdmin() {
+export async function isAdmin() {
   const session = await getSession();
   if (!session?.user) return false;
   const response = await prisma.projectUsers.findUnique({
