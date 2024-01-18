@@ -24,6 +24,8 @@ export default function LinkInspectorCard({
             src={`${GOOGLE_FAVICON_URL}${apexDomain}`}
             alt={apexDomain}
             className="pointer-events-none h-10 w-10 rounded-full"
+            width={20}
+            height={20}
           />
           <div>
             <div className="flex items-center space-x-1 sm:space-x-2">

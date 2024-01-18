@@ -80,6 +80,8 @@ export default function ProjectSelect() {
             <BlurImage
               src={selected.image}
               referrerPolicy="no-referrer"
+              width={20}
+              height={20}
               alt={selected.id || selected.name}
               className="h-8 w-8 flex-none overflow-hidden rounded-full"
             />
@@ -149,11 +151,13 @@ function ProjectList({
             shallow={false}
             onClick={() => setOpenPopover(false)}
           >
-            <img
+            <BlurImage
               src={
                 logo ||
                 `${GOOGLE_FAVICON_URL}${primaryDomain?.slug || SHORT_DOMAIN}`
               }
+              width={20}
+              height={20}
               alt={id}
               className="h-7 w-7 overflow-hidden rounded-full"
             />

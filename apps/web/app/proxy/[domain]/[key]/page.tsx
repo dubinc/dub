@@ -1,4 +1,5 @@
 import { getLinkViaEdge } from "@/lib/planetscale";
+import { BlurImage } from "@/ui/shared/blur-image";
 import {
   GOOGLE_FAVICON_URL,
   constructMetadata,
@@ -64,7 +65,9 @@ export default async function ProxyPage({
           className="w-full object-cover"
         />
         <div className="flex space-x-3 bg-gray-100 p-5">
-          <img
+          <BlurImage
+            width={20}
+            height={20}
             src={`${GOOGLE_FAVICON_URL}${unescape(apexDomain)}`}
             alt={unescape(data.title)}
             className="mt-1 h-6 w-6"
