@@ -149,13 +149,11 @@ function ProjectList({
             shallow={false}
             onClick={() => setOpenPopover(false)}
           >
-            <BlurImage
+            <img
               src={
                 logo ||
                 `${GOOGLE_FAVICON_URL}${primaryDomain?.slug || SHORT_DOMAIN}`
               }
-              width={40}
-              height={40}
               alt={id}
               className="h-7 w-7 overflow-hidden rounded-full"
             />
