@@ -4,12 +4,7 @@ import { Link as LinkProps } from "@prisma/client";
 import { PlanProps, ProjectProps } from "../types";
 import { getServerSession } from "next-auth/next";
 import { createHash } from "crypto";
-import {
-  API_DOMAIN,
-  DUB_PROJECT_ID,
-  getSearchParams,
-  isDubDomain,
-} from "@dub/utils";
+import { API_DOMAIN, getSearchParams, isDubDomain } from "@dub/utils";
 import { ratelimit } from "../upstash";
 import { exceededLimitError } from "../api/errors";
 
@@ -89,20 +84,31 @@ export const withAuth =
     const { linkId } = params || {};
     const slug = params?.slug || searchParams.projectSlug;
 
-    if (!slug && !allowAnonymous) {
-      return new Response(
-        "Project slug not found. Did you forget to include a `projectSlug` query parameter?",
-        {
-          status: 400,
-        },
-      );
-    }
-
     const domain = params?.domain || searchParams.domain;
     const key = searchParams.key;
 
     let session: Session | undefined;
     let headers = {};
+
+    // if there's no projectSlug defined
+    if (!slug) {
+      if (allowAnonymous) {
+        // @ts-expect-error
+        return handler({
+          req,
+          params: params || {},
+          searchParams,
+          headers,
+        });
+      } else {
+        return new Response(
+          "Project slug not found. Did you forget to include a `projectSlug` query parameter?",
+          {
+            status: 400,
+          },
+        );
+      }
+    }
 
     const authorizationHeader = req.headers.get("Authorization");
     if (authorizationHeader) {
@@ -181,27 +187,9 @@ export const withAuth =
           email: user.email || "",
         },
       };
-      // for demo links, we allow anonymous link creation
     } else {
       session = await getSession();
       if (!session?.user?.id) {
-        if (allowAnonymous) {
-          const project = await prisma.project.findUnique({
-            where: {
-              id: DUB_PROJECT_ID,
-            },
-          });
-
-          return handler({
-            req,
-            params: params || {},
-            searchParams,
-            headers,
-            // @ts-expect-error
-            project,
-          });
-        }
-
         return new Response("Unauthorized: Login required.", {
           status: 401,
           headers,

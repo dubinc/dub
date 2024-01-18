@@ -9,7 +9,6 @@ import { redis } from "@/lib/upstash";
 import {
   DEFAULT_REDIRECTS,
   DUB_DOMAINS,
-  DUB_PROJECT_ID,
   SHORT_DOMAIN,
   getDomainWithoutWWW,
   getParamsFromURL,
@@ -21,7 +20,7 @@ import {
 } from "@dub/utils";
 import cloudinary from "cloudinary";
 import { isIframeable } from "../middleware/utils";
-import { LinkProps, ProjectProps, SimpleLinkProps } from "../types";
+import { LinkProps, ProjectProps } from "../types";
 import { Session } from "../auth";
 
 export async function getLinksForProject({
@@ -216,7 +215,7 @@ export async function processLink({
   bulk = false,
 }: {
   payload: LinkProps;
-  project: ProjectProps;
+  project?: ProjectProps;
   session?: Session;
   bulk?: boolean;
 }) {
@@ -251,7 +250,7 @@ export async function processLink({
   }
 
   // free plan restrictions
-  if (project.plan === "free") {
+  if (!project || project.plan === "free") {
     if (proxy || rewrite || expiresAt || ios || android || geo) {
       return {
         link: payload,
@@ -273,7 +272,7 @@ export async function processLink({
 
   // if domain is not defined, use the project's primary domain
   if (!domain) {
-    domain = project.domains?.find((d) => d.primary)?.slug || SHORT_DOMAIN;
+    domain = project?.domains?.find((d) => d.primary)?.slug || SHORT_DOMAIN;
 
     // if domain is defined, do some checks
   } else {
@@ -311,8 +310,8 @@ export async function processLink({
         };
       }
 
-      // else, check if it belongs to the project
-    } else if (!project.domains?.find((d) => d.slug === domain)) {
+      // else, check if the domain belongs to the project
+    } else if (!project?.domains?.find((d) => d.slug === domain)) {
       return {
         link: payload,
         error: "Domain does not belong to project.",
@@ -385,8 +384,8 @@ export async function processLink({
       ...payload,
       key,
       url: processedUrl,
-      // make sure projectId is set to the current project (or Dub's if there's no project)
-      projectId: project?.id || DUB_PROJECT_ID,
+      // make sure projectId is set to the current project
+      projectId: project?.id || null,
       // if session is passed, set userId to the current user's id (we don't change the userId if it's already set, e.g. when editing a link)
       ...(session && {
         userId: session.user.id,
