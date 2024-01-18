@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Google, InfoTooltip } from "@dub/ui";
+import { Button, Github, Google, InfoTooltip } from "@dub/ui";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -15,6 +15,7 @@ export default function LoginForm() {
   const [noSuchAccount, setNoSuchAccount] = useState(false);
   const [email, setEmail] = useState("");
   const [clickedGoogle, setClickedGoogle] = useState(false);
+  const [clickedGitub, setClickedGithub] = useState(false);
   const [clickedEmail, setClickedEmail] = useState(false);
   const [clickedSSO, setClickedSSO] = useState(false);
 
@@ -36,6 +37,18 @@ export default function LoginForm() {
         loading={clickedGoogle}
         disabled={clickedEmail || clickedSSO}
         icon={<Google className="h-4 w-4" />}
+      />
+      <Button
+        text="Continue with GitHub"
+        onClick={() => {
+          setClickedGithub(true);
+          signIn("github", {
+            ...(next && next.length > 0 ? { callbackUrl: next } : {}),
+          });
+        }}
+        loading={clickedGitub}
+        disabled={clickedEmail || clickedSSO}
+        icon={<Github className="h-4 w-4" />}
       />
       <form
         onSubmit={async (e) => {
