@@ -75,3 +75,97 @@ We love our contributors! Here's how you can contribute:
 ## License
 
 Inspired by [Plausible](https://plausible.io/), Dub is open-source under the GNU Affero General Public License Version 3 (AGPLv3) or any later version. You can [find it here](https://github.com/dubinc/dub/blob/main/LICENSE.md).
+
+# Old
+```
+Route (app)                                       Size     First Load JS
+┌ ○ /_not-found                                   893 B          85.4 kB
+├ ● /[domain]                                     3.49 kB         713 kB
+├ ℇ /[domain]/stats/[key]                         1.69 kB         269 kB
+├ ○ /admin.dub.co                                 3.59 kB         157 kB
+├ ○ /admin.dub.co/links                           200 B           296 kB
+├ ○ /admin.dub.co/login                           1.71 kB         198 kB
+├ ○ /app.dub.co                                   5.89 kB         298 kB
+├ ○ /app.dub.co/[slug]                            201 B           296 kB
+├ λ /app.dub.co/[slug]/[domain]/[[...key]]        160 B          84.7 kB
+├ ○ /app.dub.co/[slug]/analytics                  1.52 kB         301 kB
+├ ○ /app.dub.co/[slug]/domains                    12.4 kB         250 kB
+├ ○ /app.dub.co/[slug]/settings                   7.68 kB         179 kB
+├ ○ /app.dub.co/[slug]/settings/billing           8.94 kB         202 kB
+├ ○ /app.dub.co/[slug]/settings/people            9.29 kB         200 kB
+├ ○ /app.dub.co/[slug]/settings/security          9.97 kB         191 kB
+├ λ /app.dub.co/analytics                         160 B          84.7 kB
+├ ℇ /app.dub.co/auth/saml                         399 B           196 kB
+├ λ /app.dub.co/links                             160 B          84.7 kB
+├ λ /app.dub.co/links/[key]                       160 B          84.7 kB
+├ ℇ /app.dub.co/login                             1.71 kB         198 kB
+├ ℇ /app.dub.co/register                          894 B           224 kB
+├ ○ /app.dub.co/settings                          6.6 kB          161 kB
+├ ○ /app.dub.co/settings/tokens                   4.82 kB         182 kB
+├ ○ /app.dub.co/welcome                           12.1 kB         727 kB
+├ ℇ /banned/[domain]/[key]                        239 B           187 kB
+├ ℇ /expired/[domain]/[key]                       238 B           187 kB
+├ ℇ /inspect/[domain]/[key]                       3.86 kB         217 kB
+├ ● /protected/[domain]/[key]                     1.09 kB         190 kB
+├ ℇ /proxy/[domain]/[key]                         193 B          84.7 kB
+├ ℇ /rewrite/[url]                                160 B          84.7 kB
++ First Load JS shared by all                     84.5 kB
+  ├ chunks/046fd414-c22de0896b393186.js           53.3 kB
+  ├ chunks/4237-adea44edabf2faaa.js               29 kB
+  └ other shared chunks (total)                   2.18 kB
+
+
+ƒ Middleware                                      133 kB
+
+○  (Static)        prerendered as static content
+●  (SSG)           prerendered as static HTML (uses getStaticProps)
+λ  (Dynamic)       server-rendered on demand using Node.js
+ℇ  (Edge Runtime)  server-rendered on demand using the Edge Runtime
+```
+
+# New
+```
+Route (app)                                       Size     First Load JS
+┌ ○ /_not-found                                   893 B          85.5 kB
+├ ● /[domain]                                     1.35 kB         718 kB
+├ ℇ /[domain]/stats/[key]                         1.57 kB         249 kB
+├ ○ /admin.dub.co                                 3.8 kB          139 kB
+├ ○ /admin.dub.co/links                           189 B           276 kB
+├ ○ /admin.dub.co/login                           2.08 kB         197 kB
+├ ○ /app.dub.co                                   6.07 kB         277 kB
+├ ○ /app.dub.co/[slug]                            189 B           276 kB
+├ λ /app.dub.co/[slug]/[domain]/[[...key]]        160 B          84.7 kB
+├ ○ /app.dub.co/[slug]/analytics                  1.63 kB         279 kB
+├ ○ /app.dub.co/[slug]/domains                    8.31 kB         231 kB
+├ ○ /app.dub.co/[slug]/settings                   6.86 kB         159 kB
+├ ○ /app.dub.co/[slug]/settings/billing           7.37 kB         182 kB
+├ ○ /app.dub.co/[slug]/settings/people            8.49 kB         180 kB
+├ ○ /app.dub.co/[slug]/settings/security          9.13 kB         179 kB
+├ λ /app.dub.co/analytics                         160 B          84.7 kB
+├ ℇ /app.dub.co/auth/saml                         506 B           195 kB
+├ λ /app.dub.co/links                             160 B          84.7 kB
+├ λ /app.dub.co/links/[key]                       160 B          84.7 kB
+├ ℇ /app.dub.co/login                             2.08 kB         197 kB
+├ ℇ /app.dub.co/register                          1.25 kB         201 kB
+├ ○ /app.dub.co/settings                          5.79 kB         163 kB
+├ ○ /app.dub.co/settings/tokens                   7.49 kB         162 kB
+├ ○ /app.dub.co/welcome                           6.94 kB         740 kB
+├ ℇ /banned/[domain]/[key]                        356 B           186 kB
+├ ℇ /expired/[domain]/[key]                       356 B           186 kB
+├ ℇ /inspect/[domain]/[key]                       3.98 kB         195 kB
+├ ● /protected/[domain]/[key]                     1.23 kB         189 kB
+├ ℇ /proxy/[domain]/[key]                         193 B          84.8 kB
+├ ℇ /rewrite/[url]                                160 B          84.7 kB
++ First Load JS shared by all                     84.6 kB
+  ├ chunks/046fd414-c22de0896b393186.js           53.3 kB
+  ├ chunks/4237-adea44edabf2faaa.js               29 kB
+  └ other shared chunks (total)                   2.21 kB
+
+
+ƒ Middleware                                      133 kB
+
+○  (Static)        prerendered as static content
+●  (SSG)           prerendered as static HTML (uses getStaticProps)
+λ  (Dynamic)       server-rendered on demand using Node.js
+ℇ  (Edge Runtime)  server-rendered on demand using the Edge Runtime
+```

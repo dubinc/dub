@@ -3,14 +3,9 @@
   "description": "UI components for Dub.co",
   "version": "0.0.43",
   "sideEffects": false,
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
-  "files": [
-    "dist/**"
-  ],
+  "main": "./src/index.tsx",
+  "types": "./src/index.tsx",
   "scripts": {
-    "build": "tsup",
     "lint": "eslint src/",
     "dev": "tsup --watch",
     "check-types": "tsc --noEmit"
