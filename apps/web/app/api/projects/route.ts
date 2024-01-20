@@ -82,7 +82,7 @@ export const POST = withSession(async ({ req, session }) => {
 
   if (freeProjects >= 1) {
     return new Response(
-      "You can only create one free project. Additional projects require a paid plan.",
+      "You can only create up to 2 free projects. Additional projects require a paid plan.",
       { status: 403 },
     );
   }

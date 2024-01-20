@@ -405,9 +405,83 @@ interface WithSessionHandler {
 export const withSession =
   (handler: WithSessionHandler) =>
   async (req: Request, { params }: { params: Record<string, string> }) => {
-    const session = await getSession();
-    if (!session?.user.id) {
-      return new Response("Unauthorized: Login required.", { status: 401 });
+    let session: Session | undefined;
+    let headers = {};
+
+    const authorizationHeader = req.headers.get("Authorization");
+    if (authorizationHeader) {
+      if (!authorizationHeader.includes("Bearer ")) {
+        return new Response(
+          "Misconfigured authorization header. Did you forget to add 'Bearer '? Learn more: https://dub.sh/auth ",
+          {
+            status: 400,
+          },
+        );
+      }
+      const apiKey = authorizationHeader.replace("Bearer ", "");
+
+      const hashedKey = hashToken(apiKey, {
+        noSecret: true,
+      });
+
+      const user = await prisma.user.findFirst({
+        where: {
+          tokens: {
+            some: {
+              hashedKey,
+            },
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      });
+      if (!user) {
+        return new Response("Unauthorized: Invalid API key.", {
+          status: 401,
+        });
+      }
+
+      const { success, limit, reset, remaining } = await ratelimit(
+        10,
+        "1 s",
+      ).limit(apiKey);
+
+      headers = {
+        "Retry-After": reset.toString(),
+        "X-RateLimit-Limit": limit.toString(),
+        "X-RateLimit-Remaining": remaining.toString(),
+        "X-RateLimit-Reset": reset.toString(),
+      };
+
+      if (!success) {
+        return new Response("Too many requests.", {
+          status: 429,
+          headers,
+        });
+      }
+      await prisma.token.update({
+        where: {
+          hashedKey,
+        },
+        data: {
+          lastUsed: new Date(),
+        },
+      });
+      session = {
+        user: {
+          id: user.id,
+          name: user.name || "",
+          email: user.email || "",
+        },
+      };
+    } else {
+      session = await getSession();
+      if (!session?.user.id) {
+        return new Response("Unauthorized: Login required.", { status: 401 });
+      }
     }
 
     const searchParams = getSearchParams(req.url);
