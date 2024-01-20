@@ -727,6 +727,12 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
         LinkResponse: {
           type: "object",
           properties: {
+            shortLink: {
+              type: "string",
+              description:
+                "The full URL of the short link, including the https protocol (e.g. https://dub.sh/try).",
+              readOnly: true,
+            },
             utm_source: {
               type: "string",
               description: "The UTM source of the short link.",

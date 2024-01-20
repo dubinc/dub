@@ -14,6 +14,7 @@ import {
   getParamsFromURL,
   getUrlFromString,
   isDubDomain,
+  linkConstructor,
   nanoid,
   truncate,
   validKeyRegex,
@@ -42,7 +43,7 @@ export async function getLinksForProject({
   userId?: string | null;
   showArchived?: boolean;
 }): Promise<LinkProps[]> {
-  return await prisma.link.findMany({
+  const links = await prisma.link.findMany({
     where: {
       projectId,
       archived: showArchived ? undefined : false,
@@ -71,6 +72,14 @@ export async function getLinksForProject({
       skip: (parseInt(page) - 1) * 100,
     }),
   });
+
+  return links.map((link) => ({
+    ...link,
+    shortLink: linkConstructor({
+      domain: link.domain,
+      key: link.key,
+    }),
+  }));
 }
 
 export async function getLinksCount({
@@ -379,6 +388,9 @@ export async function processLink({
     }
   }
 
+  // remove shortLink attribute from payload since it's a polyfill
+  delete payload["shortLink"];
+
   return {
     link: {
       ...payload,
@@ -487,7 +499,13 @@ export async function addLink(link: LinkProps) {
       },
     });
   }
-  return response;
+  return {
+    ...response,
+    shortLink: linkConstructor({
+      domain: response.domain,
+      key: response.key,
+    }),
+  };
 }
 
 export async function bulkCreateLinks(links: LinkProps[]) {
@@ -545,7 +563,13 @@ export async function bulkCreateLinks(links: LinkProps[]) {
     }),
   );
 
-  return createdLinks;
+  return createdLinks.map((link) => ({
+    ...link,
+    shortLink: linkConstructor({
+      domain: link?.domain,
+      key: link?.key,
+    }),
+  }));
 }
 
 export async function editLink({
@@ -657,7 +681,13 @@ export async function editLink({
     });
   }
 
-  return response;
+  return {
+    ...response,
+    shortLink: linkConstructor({
+      domain: response.domain,
+      key: response.key,
+    }),
+  };
 }
 
 export async function deleteLink({

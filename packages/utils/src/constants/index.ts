@@ -1,5 +1,5 @@
-export { default as ccTLDs } from "./cctlds";
-export { default as COUNTRIES } from "./countries";
+export * from "./cctlds";
+export * from "./countries";
 export * from "./pricing";
 
 export const LOCALHOST_GEO_DATA = {

@@ -1,4 +1,4 @@
-const COUNTRIES: { [key: string]: string } = {
+export const COUNTRIES: { [key: string]: string } = {
   AF: "Afghanistan",
   AL: "Albania",
   DZ: "Algeria",
@@ -250,5 +250,3 @@ const COUNTRIES: { [key: string]: string } = {
   SS: "South Sudan",
   XK: "Kosovo",
 };
-
-export default COUNTRIES;
