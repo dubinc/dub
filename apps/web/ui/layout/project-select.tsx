@@ -157,7 +157,7 @@ function ProjectList({
               className="h-7 w-7 shrink-0 overflow-hidden rounded-full"
             />
             <span
-              className={`block truncate text-sm sm:w-[140px] ${
+              className={`block truncate text-sm sm:max-w-[140px] ${
                 selected.slug === slug ? "font-medium" : "font-normal"
               }`}
             >
