@@ -1,31 +1,17 @@
 import { parse } from "node-html-parser";
 import he from "he";
 import { recordMetatags } from "@/lib/upstash";
-import { isValidUrl } from "@dub/utils";
+import { fetchWithTimeout, isValidUrl } from "@dub/utils";
 import { internal_runWithWaitUntil as waitUntil } from "next/dist/server/web/internal-edge-wait-until";
 
 export const getHtml = async (url: string) => {
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000); // timeout if it takes longer than 5 seconds
-    const response = await fetch(url, {
-      signal: controller.signal,
-      headers: {
-        "User-Agent": "dub-bot/1.0",
-      },
-    });
-    clearTimeout(timeoutId);
-    return await response.text();
-  } catch (error) {
-    if (error.name === "AbortError") {
-      // Handle fetch request abort (e.g., due to timeout)
-      console.error("Fetch request aborted due to timeout.");
-    } else {
-      // Handle other fetch errors
-      console.error("Fetch request failed:", error);
-    }
-    return null;
-  }
+  return await fetchWithTimeout(url, {
+    headers: {
+      "User-Agent": "dub-bot/1.0",
+    },
+  })
+    .then((r) => r.text())
+    .catch(() => null);
 };
 
 export const getHeadChildNodes = (html) => {

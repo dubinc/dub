@@ -1,4 +1,4 @@
-const ccTLDs = new Set([
+export const ccTLDs = new Set([
   "af",
   "ax",
   "al",
@@ -272,5 +272,3 @@ const ccTLDs = new Set([
   "zm",
   "zw",
 ]);
-
-export default ccTLDs;
