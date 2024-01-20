@@ -1,5 +1,6 @@
 import { withAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { linkConstructor } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/links/info – get the info for a link
@@ -25,7 +26,16 @@ export const GET = withAuth(async ({ headers, searchParams }) => {
       headers,
     });
   }
-  return NextResponse.json(response, {
-    headers,
-  });
+  return NextResponse.json(
+    {
+      ...response,
+      shortLink: linkConstructor({
+        domain: response.domain,
+        key: response.key,
+      }),
+    },
+    {
+      headers,
+    },
+  );
 });
