@@ -43,7 +43,6 @@ export const POST = withAuth(
     }
 
     if (!session) {
-      console.log("ratelimiting");
       const ip = req.headers.get("x-forwarded-for") || LOCALHOST_IP;
       const { success } = await ratelimit(10, "1 d").limit(ip);
 
