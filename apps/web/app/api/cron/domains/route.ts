@@ -121,8 +121,7 @@ export async function GET(req: Request) {
   } catch (error) {
     await log({
       message: "Domains cron failed. Error: " + error.message,
-      type: "cron",
-      mention: true,
+      type: "errors",
     });
     return NextResponse.json({ error: error.message });
   }

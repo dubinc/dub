@@ -59,18 +59,13 @@ export const PUT = withAuth(async ({ req, headers, project, link }) => {
       key: link!.key,
       updatedLink: processedLink,
     }),
-    ...(link &&
-    processedLink.domain === "dub.sh" &&
-    processedLink.url !== link.url
-      ? [
-          qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/verify`,
-            body: {
-              linkId: link.id,
-            },
-          }),
-        ]
-      : []),
+    qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/event`,
+      body: {
+        linkId: link!.id,
+        type: "edit",
+      },
+    }),
     // @ts-ignore
   ]).then((results) => results.map((result) => result.value));
 
