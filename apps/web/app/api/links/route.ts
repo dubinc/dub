@@ -42,17 +42,8 @@ export const POST = withAuth(
       return new Response("Missing or invalid body.", { status: 400, headers });
     }
 
-    const { link, error, status } = await processLink({
-      payload: body,
-      project,
-      session,
-    });
-
-    if (error) {
-      return new Response(error, { status, headers });
-    }
-
     if (!session) {
+      console.log("ratelimiting");
       const ip = req.headers.get("x-forwarded-for") || LOCALHOST_IP;
       const { success } = await ratelimit(10, "1 d").limit(ip);
 
@@ -64,6 +55,16 @@ export const POST = withAuth(
       }
     }
 
+    const { link, error, status } = await processLink({
+      payload: body,
+      project,
+      session,
+    });
+
+    if (error) {
+      return new Response(error, { status, headers });
+    }
+
     const response = await addLink(link);
 
     if (response === null) {
@@ -73,25 +74,13 @@ export const POST = withAuth(
       });
     }
 
-    await Promise.all([
-      link.domain === "dub.sh" &&
-        qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/verify`,
-          body: {
-            linkId: response.id,
-          },
-        }),
-      // for public links, delete after 30 mins (if not claimed)
-      !link.userId &&
-        qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/delete`,
-          // delete after 30 mins
-          delay: 30 * 60,
-          body: {
-            linkId: response.id,
-          },
-        }),
-    ]);
+    await qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/event`,
+      body: {
+        linkId: response.id,
+        type: "create",
+      },
+    });
 
     return NextResponse.json(response, { headers });
   },

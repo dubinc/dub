@@ -23,6 +23,7 @@ import cloudinary from "cloudinary";
 import { isIframeable } from "../middleware/utils";
 import { LinkProps, ProjectProps } from "../types";
 import { Session } from "../auth";
+import { getLinkViaEdge } from "../planetscale";
 
 export async function getLinksForProject({
   projectId,
@@ -194,14 +195,7 @@ export async function checkIfKeyExists(domain: string, key: string) {
       return true;
     }
   }
-  const link = await prisma.link.findUnique({
-    where: {
-      domain_key: {
-        domain,
-        key,
-      },
-    },
-  });
+  const link = await getLinkViaEdge(domain, key);
   return !!link;
 }
 
@@ -470,17 +464,6 @@ export async function addLink(link: LinkProps) {
         nx: true,
       },
     ),
-    link.projectId &&
-      prisma.project.update({
-        where: {
-          id: link.projectId,
-        },
-        data: {
-          linksUsage: {
-            increment: 1,
-          },
-        },
-      }),
   ]);
 
   if (proxy && image) {

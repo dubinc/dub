@@ -1,1 +1,1 @@
-export { POST } from "../links/verify/route";
+export { POST } from "../links/event/route";
