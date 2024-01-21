@@ -1,11 +1,14 @@
-import { qstash, receiver } from "@/lib/cron";
+import { limiter, qstash, receiver } from "@/lib/cron";
 import prisma from "@/lib/prisma";
+import { ProjectProps } from "@/lib/types";
 import {
   APP_DOMAIN_WITH_NGROK,
   GOOGLE_FAVICON_URL,
   getApexDomain,
   log,
 } from "@dub/utils";
+import { sendEmail } from "emails";
+import LinksLimitAlert from "emails/links-limit";
 
 export async function POST(req: Request) {
   const body = await req.json();
@@ -65,7 +68,7 @@ export async function POST(req: Request) {
 
   // increment links usage
   if (type === "create" && link.projectId) {
-    const updatedProject = await prisma.project.update({
+    const project = await prisma.project.update({
       where: {
         id: link.projectId,
       },
@@ -75,9 +78,43 @@ export async function POST(req: Request) {
         },
       },
     });
-    console.log({ updatedProject });
-    if (updatedProject.linksUsage > updatedProject.linksLimit) {
-      // send email
+
+    const percentage = Math.round(
+      (project.linksUsage / project.linksLimit) * 100,
+    );
+
+    if (percentage === 50 || percentage === 75 || percentage === 100) {
+      const users = await prisma.user.findMany({
+        where: {
+          projects: {
+            some: {
+              id: project.id,
+            },
+          },
+        },
+        select: {
+          email: true,
+        },
+      });
+
+      const emails = users.map(({ email }) => email) as string[];
+
+      await Promise.allSettled([
+        emails.map((email) => {
+          limiter.schedule(() =>
+            sendEmail({
+              subject: `${process.env.NEXT_PUBLIC_APP_NAME} Alert: ${
+                project.name
+              } has used ${percentage.toString()}% of its links limit for the month.`,
+              email,
+              react: LinksLimitAlert({
+                email,
+                project: project as Partial<ProjectProps>,
+              }),
+            }),
+          );
+        }),
+      ]);
     }
   }
 

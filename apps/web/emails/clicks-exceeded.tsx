@@ -15,7 +15,7 @@ import {
 import { ProjectProps } from "../lib/types";
 import Footer from "./components/footer";
 
-export default function UsageExceeded({
+export default function ClicksExceeded({
   email = "panic@thedis.co",
   project = {
     id: "ckqf1q3xw0000gk5u2q1q2q1q",
@@ -35,7 +35,11 @@ export default function UsageExceeded({
   return (
     <Html>
       <Head />
-      <Preview>Usage Limit Exceeded</Preview>
+      <Preview>
+        Your Dub.co project, {name || ""} has exceeded the{" "}
+        {capitalize(plan) || ""} Plan limit of {nFormatter(usageLimit)} link
+        clicks/month.
+      </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
@@ -49,25 +53,28 @@ export default function UsageExceeded({
               />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-center text-xl font-semibold text-black">
-              Usage Limit Exceeded
+              Clicks Limit Exceeded
             </Heading>
             <Text className="text-sm leading-6 text-black">
-              Your Dub project, <strong> {name} </strong> has exceeded the
+              Your Dub.co project, <strong> {name} </strong> has exceeded the
               <strong> {capitalize(plan)} Plan </strong>
-              limit of <strong>{nFormatter(usageLimit)} link clicks</strong>.
-              You have used{" "}
+              limit of{" "}
+              <strong>{nFormatter(usageLimit)} link clicks/month</strong>. You
+              have used{" "}
               <strong>{nFormatter(usage, { digits: 2 })} link clicks</strong>{" "}
-              across all your projects in your current billing cycle.
+              across all your links in your current billing cycle.
             </Text>
             <Text className="text-sm leading-6 text-black">
               All your existing links will continue to work, and we are still
               collecting data on them, but you'll need to upgrade to view their
-              stats, edit them, or add more links.
+              stats.
             </Text>
             <Section className="my-8 text-center">
               <Link
                 className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                href={`https://app.dub.co/${slug}/settings/billing`}
+                href={`https://app.dub.co/${slug}?upgrade=${
+                  plan === "free" ? "pro" : "business"
+                }}`}
               >
                 Upgrade my plan
               </Link>
