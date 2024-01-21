@@ -37,8 +37,6 @@ export async function POST(req: Request) {
     return new Response("Link not found", { status: 200 });
   }
 
-  console.log(`Received ${type} event for link ${linkId}`);
-
   // if the link is a dub.sh link, do some checks
   if (link.domain === "dub.sh") {
     const invalidFavicon = await fetch(
@@ -66,7 +64,7 @@ export async function POST(req: Request) {
     });
   }
 
-  // increment links usage
+  // increment links usage and send alert if needed
   if (type === "create" && link.projectId) {
     const project = await prisma.project.update({
       where: {
