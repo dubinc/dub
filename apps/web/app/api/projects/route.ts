@@ -7,7 +7,11 @@ import {
 import { withSession } from "@/lib/auth";
 import { isReservedKey } from "@/lib/edge-config";
 import prisma from "@/lib/prisma";
-import { DEFAULT_REDIRECTS, validSlugRegex } from "@dub/utils";
+import {
+  DEFAULT_REDIRECTS,
+  FREE_PROJECTS_LIMIT,
+  validSlugRegex,
+} from "@dub/utils";
 
 // GET /api/projects - get all projects for the current user
 export const GET = withSession(async ({ session }) => {
@@ -80,9 +84,9 @@ export const POST = withSession(async ({ req, session }) => {
     },
   });
 
-  if (freeProjects >= 1) {
+  if (freeProjects >= FREE_PROJECTS_LIMIT) {
     return new Response(
-      "You can only create up to 2 free projects. Additional projects require a paid plan.",
+      `You can only create up to ${FREE_PROJECTS_LIMIT} free projects. Additional projects require a paid plan.`,
       { status: 403 },
     );
   }
