@@ -50,6 +50,8 @@ All of the code for the web app is located in here: [`main`/apps/web/app/app.dub
 
 There's also the API server, which is located in here: [`main`/apps/web/app/api](https://github.com/dubinc/dub/tree/main/apps/web/app/api)
 
+When you run `pnpm dev` to start the development server, the app will be available at [http://localhost:8888](http://localhost:8888). The reason we use `localhost:8888` and not `app.localhost:8888` is because Google OAuth doesn't allow you to use localhost subdomains.
+
 ## How link redirects work on Dub
 
 Link redirects on Dub are powered by [Next.js Middleware](https://nextjs.org/docs/app/building-your-application/routing/middleware).
