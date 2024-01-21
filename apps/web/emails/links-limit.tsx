@@ -60,10 +60,16 @@ export default function LinksLimitAlert({
               Dub.co Links Limit Alert
             </Heading>
             <Text className="text-sm leading-6 text-black">
-              Your Dub.co project, <strong> {name} </strong> has used{" "}
-              <strong>{percentage.toString()}%</strong> of the monthly links
-              limit included in the {capitalize(plan)} plan. You have created a
-              total of{" "}
+              Your Dub.co project,{" "}
+              <Link
+                href={`https://app.dub.co/${slug}`}
+                className="text-black underline"
+              >
+                <strong>{name}</strong>
+              </Link>{" "}
+              has used <strong>{percentage.toString()}%</strong> of the monthly
+              links limit included in the {capitalize(plan)} plan. You have
+              created a total of{" "}
               <strong>{nFormatter(linksUsage, { full: true })} links</strong>{" "}
               (out of a maximum of {nFormatter(linksLimit, { full: true })}{" "}
               links) in your current billing cycle.

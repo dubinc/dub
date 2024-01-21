@@ -56,7 +56,14 @@ export default function ClicksExceeded({
               Clicks Limit Exceeded
             </Heading>
             <Text className="text-sm leading-6 text-black">
-              Your Dub.co project, <strong> {name} </strong> has exceeded the
+              Your Dub.co project,{" "}
+              <Link
+                href={`https://app.dub.co/${slug}`}
+                className="text-black underline"
+              >
+                <strong>{name}</strong>
+              </Link>{" "}
+              has exceeded the
               <strong> {capitalize(plan)} Plan </strong>
               limit of{" "}
               <strong>{nFormatter(usageLimit)} link clicks/month</strong>. You

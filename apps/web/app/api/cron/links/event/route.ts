@@ -88,7 +88,7 @@ export async function POST(req: Request) {
         where: {
           projects: {
             some: {
-              id: project.id,
+              projectId: project.id,
             },
           },
         },
