@@ -21,7 +21,7 @@ export default function LinksLimitAlert({
     id: "ckqf1q3xw0000gk5u2q1q2q1q",
     name: "Acme",
     slug: "acme",
-    linksUsage: 500,
+    linksUsage: 800,
     linksLimit: 1000,
     plan: "pro",
   },
@@ -57,36 +57,32 @@ export default function LinksLimitAlert({
               />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-center text-xl font-semibold text-black">
-              Links Limit Alert
+              Dub.co Links Limit Alert
             </Heading>
             <Text className="text-sm leading-6 text-black">
-              Your Dub.co project, <strong> {name} </strong> has reached{" "}
-              <strong>{percentage.toString()}%</strong> of the
-              <strong> {capitalize(plan)} Plan </strong>
-              limit of{" "}
-              <strong>
-                {nFormatter(linksLimit, { full: true })} links/month
-              </strong>
-              . You have created a total of{" "}
-              <strong>{nFormatter(linksUsage, { full: true })} links</strong> in
-              your current billing cycle.
+              Your Dub.co project, <strong> {name} </strong> has used{" "}
+              <strong>{percentage.toString()}%</strong> of the monthly links
+              limit included in the {capitalize(plan)} plan. You have created a
+              total of{" "}
+              <strong>{nFormatter(linksUsage, { full: true })} links</strong>{" "}
+              (out of a maximum of {nFormatter(linksLimit, { full: true })}{" "}
+              links) in your current billing cycle.
             </Text>
             <Text className="text-sm leading-6 text-black">
-              All your existing links will continue to work, and we are still
-              collecting data on them, but you'll need to upgrade to view their
-              stats.
-            </Text>
-            <Text className="text-sm leading-6 text-black">
-              All your existing links will continue to work, and we are still
-              collecting data on them, but you'll need to upgrade to add more
-              links.
+              {percentage === 100
+                ? `All your existing links will continue to work, and we are still collecting data on them, but you'll need to upgrade the ${
+                    plan === "free" ? "Pro" : "Business"
+                  } plan to add more links.`
+                : `Once you hit your limit, you'll need to upgrade to the ${
+                    plan === "free" ? "Pro" : "Business"
+                  } plan to add more links.`}
             </Text>
             <Section className="mb-8 text-center">
               <Link
                 className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
                 href={`https://app.dub.co/${slug}?upgrade=${
                   plan === "free" ? "pro" : "business"
-                }}`}
+                }`}
               >
                 Upgrade my plan
               </Link>

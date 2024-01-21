@@ -83,7 +83,7 @@ export async function POST(req: Request) {
       (project.linksUsage / project.linksLimit) * 100,
     );
 
-    if (percentage === 50 || percentage === 75 || percentage === 100) {
+    if (percentage === 80 || percentage === 100) {
       const users = await prisma.user.findMany({
         where: {
           projects: {
