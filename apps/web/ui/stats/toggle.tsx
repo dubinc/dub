@@ -16,10 +16,12 @@ import {
   APP_DOMAIN,
   DUB_LOGO,
   GOOGLE_FAVICON_URL,
+  SHORT_DOMAIN,
   cn,
   fetcher,
   getApexDomain,
   linkConstructor,
+  truncate,
 } from "@dub/utils";
 import { Calendar, ChevronDown, Globe, Lock, Share2, X } from "lucide-react";
 import Link from "next/link";
@@ -46,7 +48,7 @@ export default function Toggle() {
 
   const scrolled = useScroll(80);
   const { name, plan, logo } = useProject();
-  const { allActiveDomains, primaryDomain } = useDomains();
+  const { allDomains, primaryDomain } = useDomains();
 
   const isPublicStatsPage = basePath.startsWith("/stats");
 
@@ -70,13 +72,13 @@ export default function Toggle() {
           <h2 className="text-lg font-semibold text-gray-800">
             {primaryDomain}
           </h2>
-          {allActiveDomains && allActiveDomains.length > 1 && (
+          {allDomains && allDomains.length > 1 && (
             <Tooltip
-              content={<DomainsFilterTooltip domains={allActiveDomains} />}
+              content={<DomainsFilterTooltip domains={allDomains} />}
               side="bottom"
             >
               <div className="cursor-pointer">
-                <Badge variant="gray">+{allActiveDomains.length - 1}</Badge>
+                <Badge variant="gray">+{allDomains.length - 1}</Badge>
               </div>
             </Tooltip>
           )}
@@ -189,21 +191,21 @@ const DomainsFilterTooltip = ({ domains }: { domains: DomainProps[] }) => {
                 del: "key",
               });
             }}
-            className="group flex items-center justify-between rounded-md p-2 text-gray-500 transition-all hover:bg-gray-100 active:bg-gray-200"
+            className="group flex items-center justify-between space-x-2 rounded-md p-2 text-gray-500 transition-all hover:bg-gray-100 active:bg-gray-200"
           >
             <div className="flex items-center space-x-2">
-              {target ? (
-                <BlurImage
-                  src={`${GOOGLE_FAVICON_URL}${getApexDomain(target)}`}
-                  alt={slug}
-                  className="h-5 w-5 rounded-full"
-                  width={20}
-                  height={20}
-                />
-              ) : (
-                <Globe className="h-5 w-5" />
-              )}
-              <p className="text-sm font-semibold text-gray-500">{slug}</p>
+              <BlurImage
+                src={`${GOOGLE_FAVICON_URL}${
+                  target ? getApexDomain(target) : SHORT_DOMAIN
+                }`}
+                alt={slug}
+                className="h-5 w-5 rounded-full"
+                width={20}
+                height={20}
+              />
+              <p className="w-32 truncate text-left text-sm font-semibold text-gray-500">
+                {slug}
+              </p>
             </div>
             {domain === slug && !key && <Tick className="h-4 w-4" />}
           </button>

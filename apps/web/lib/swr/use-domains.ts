@@ -27,7 +27,14 @@ export default function useDomains({ domain }: { domain?: string } = {}) {
       DUB_DOMAINS.filter((d) => projectDefaultDomains?.includes(d.slug))) ||
     DUB_DOMAINS;
 
-  const allActiveDomains = [...(projectDomains || []), ...defaultDomains];
+  const allDomains = [
+    ...(data || []),
+    ...(slug !== "dub" ? defaultDomains : []),
+  ];
+  const allActiveDomains = [
+    ...(projectDomains || []),
+    ...(slug !== "dub" ? defaultDomains : []),
+  ];
 
   const primaryDomain =
     projectDomains?.find((domain) => domain.primary)?.slug ||
@@ -46,6 +53,7 @@ export default function useDomains({ domain }: { domain?: string } = {}) {
     projectDomains,
     archivedProjectDomains,
     defaultDomains,
+    allDomains,
     allActiveDomains,
     primaryDomain,
     verified,
