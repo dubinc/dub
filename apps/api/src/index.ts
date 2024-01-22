@@ -3,6 +3,7 @@ import { cors } from "hono/cors";
 
 import { handleZodError } from "./lib/error";
 import { createLinkApi } from "./routes/create-link";
+import { getProjectApi } from "./routes/get-project";
 
 const app = new OpenAPIHono({
   defaultHook: handleZodError,
@@ -19,6 +20,7 @@ app.get("/", (c) => {
 });
 
 createLinkApi(app);
+getProjectApi(app);
 
 app.doc("/doc", {
   openapi: "3.0.0",
