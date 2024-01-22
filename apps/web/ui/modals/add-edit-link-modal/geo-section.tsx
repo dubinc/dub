@@ -1,22 +1,16 @@
 import useProject from "@/lib/swr/use-project";
-import { ModalContext } from "@/ui/modals/provider";
 import {
   InfoTooltip,
   SimpleTooltipContent,
   Switch,
   TooltipContent,
+  useRouterStuff,
 } from "@dub/ui";
 import { COUNTRIES, FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "@dub/utils";
 import { type Link as LinkProps } from "@prisma/client";
 import { motion } from "framer-motion";
 import { Trash } from "lucide-react";
-import {
-  Dispatch,
-  SetStateAction,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 export default function GeoSection({
   props,
@@ -28,7 +22,7 @@ export default function GeoSection({
   setData: Dispatch<SetStateAction<LinkProps>>;
 }) {
   const { plan } = useProject();
-  const { setShowUpgradePlanModal } = useContext(ModalContext);
+  const { queryParams } = useRouterStuff();
   const { geo } = data;
   const [enabled, setEnabled] = useState(!!geo);
 
@@ -81,7 +75,12 @@ export default function GeoSection({
                     cta="Upgrade to Pro"
                     {...(plan === "free"
                       ? {
-                          onClick: () => setShowUpgradePlanModal(true),
+                          onClick: () =>
+                            queryParams({
+                              set: {
+                                upgrade: "pro",
+                              },
+                            }),
                         }
                       : {
                           href: `${HOME_DOMAIN}/pricing`,

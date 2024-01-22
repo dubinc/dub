@@ -3,7 +3,7 @@ import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 
 export default function useProjects() {
-  const { data: projects, error } = useSWR<ProjectWithDomainProps[]>(
+  const { data, error } = useSWR<ProjectWithDomainProps[]>(
     "/api/projects",
     fetcher,
     {
@@ -11,12 +11,21 @@ export default function useProjects() {
     },
   );
 
+  const projects = data?.map((project) => ({
+    ...project,
+    isOwner: project?.users && project.users[0].role === "owner",
+    primaryDomain:
+      project.domains.find((domain) => domain.primary) || project.domains[0],
+  }));
+
+  const freeProjects = projects?.filter(
+    (project) => project.plan === "free" && project.isOwner,
+  );
+
   return {
-    projects: projects?.map((project) => ({
-      ...project,
-      primaryDomain:
-        project.domains.find((domain) => domain.primary) || project.domains[0],
-    })),
+    projects,
+    freeProjects,
+    exceedingFreeProjects: freeProjects && freeProjects.length >= 2,
     error,
     loading: !projects && !error,
   };

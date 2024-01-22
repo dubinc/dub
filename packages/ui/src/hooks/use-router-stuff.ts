@@ -6,10 +6,18 @@ export default function useRouterStuff() {
   const searchParams = useSearchParams();
   const searchParamsObj = Object.fromEntries(searchParams);
 
-  const getQueryString = (kv?: Record<string, string>) => {
+  const getQueryString = (
+    kv?: Record<string, string>,
+    opts?: {
+      ignore?: string[];
+    },
+  ) => {
     const newParams = new URLSearchParams(searchParams);
     if (kv) {
       Object.entries(kv).forEach(([k, v]) => newParams.set(k, v));
+    }
+    if (opts?.ignore) {
+      opts.ignore.forEach((k) => newParams.delete(k));
     }
     const queryString = newParams.toString();
     return queryString.length > 0 ? `?${queryString}` : "";

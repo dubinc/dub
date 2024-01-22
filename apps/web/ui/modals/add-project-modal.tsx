@@ -79,6 +79,17 @@ function AddProjectModalHelper({
 
   const welcomeFlow = pathname === "/welcome";
 
+  const searchParams = useSearchParams();
+  const { queryParams } = useRouterStuff();
+  const [useDefaultDomain, setUseDefaultDomain] = useState<boolean>(false);
+  useEffect(() => {
+    if (searchParams.has("useDefaultDomain")) {
+      setUseDefaultDomain(true);
+    } else {
+      setUseDefaultDomain(false);
+    }
+  }, [searchParams]);
+
   return (
     <Modal
       showModal={showAddProjectModal}
@@ -108,7 +119,10 @@ function AddProjectModalHelper({
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify(data),
+            body: JSON.stringify({
+              ...data,
+              domain: useDefaultDomain ? undefined : domain,
+            }),
           }).then(async (res) => {
             if (res.status === 200) {
               // track project creation event
@@ -228,15 +242,39 @@ function AddProjectModalHelper({
               </p>
               <InfoTooltip content="This is the domain that your short links will be hosted on. E.g. yourbrand.com/link" />
             </label>
-          </div>
-          <motion.div {...FADE_IN_ANIMATION_SETTINGS}>
-            <DomainInput
-              data={data}
-              setData={setData}
-              domainError={domainError}
-              setDomainError={setDomainError}
+            <Switch
+              fn={() => {
+                if (welcomeFlow) {
+                  if (useDefaultDomain) {
+                    queryParams({
+                      del: ["useDefaultDomain"],
+                      replace: true,
+                    });
+                  } else {
+                    queryParams({
+                      set: {
+                        useDefaultDomain: "true",
+                      },
+                      replace: true,
+                    });
+                  }
+                } else {
+                  setUseDefaultDomain(!useDefaultDomain);
+                }
+              }}
+              checked={!useDefaultDomain}
             />
-          </motion.div>
+          </div>
+          {!useDefaultDomain && (
+            <motion.div {...FADE_IN_ANIMATION_SETTINGS}>
+              <DomainInput
+                data={data}
+                setData={setData}
+                domainError={domainError}
+                setDomainError={setDomainError}
+              />
+            </motion.div>
+          )}
         </div>
 
         <Button

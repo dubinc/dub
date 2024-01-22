@@ -43,3 +43,8 @@ export const chunk = <T>(array: T[], chunk_size: number): T[][] => {
     return resultArray;
   }, [] as T[][]);
 };
+
+export function capitalize(str?: string | null) {
+  if (!str || typeof str !== "string") return str;
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}

@@ -1,6 +1,7 @@
 import { withAuth } from "@/lib/auth";
 import { getDomainViaEdge, getLinkViaEdge } from "@/lib/planetscale";
 import { getStats } from "@/lib/stats";
+import { DUB_PROJECT_ID, isDubDomain } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/stats/[endpoint] – get stats for a specific endpoint
@@ -34,6 +35,6 @@ export const GET = withAuth(
     return NextResponse.json(response);
   },
   {
-    needNotExceededUsage: true,
+    needNotExceededClicks: true,
   },
 );

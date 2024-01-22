@@ -4,13 +4,17 @@ import {
   domainExists,
   validateDomain,
 } from "@/lib/api/domains";
-import { withAuth } from "@/lib/auth";
+import { withSession } from "@/lib/auth";
 import { isReservedKey } from "@/lib/edge-config";
 import prisma from "@/lib/prisma";
-import { DEFAULT_REDIRECTS, validSlugRegex } from "@dub/utils";
+import {
+  DEFAULT_REDIRECTS,
+  FREE_PROJECTS_LIMIT,
+  validSlugRegex,
+} from "@dub/utils";
 
 // GET /api/projects - get all projects for the current user
-export const GET = withAuth(async ({ session, headers }) => {
+export const GET = withSession(async ({ session }) => {
   const projects = await prisma.project.findMany({
     where: {
       users: {
@@ -21,15 +25,24 @@ export const GET = withAuth(async ({ session, headers }) => {
     },
     include: {
       domains: true,
+      users: {
+        where: {
+          userId: session.user.id,
+        },
+        select: {
+          role: true,
+        },
+      },
     },
   });
-  return NextResponse.json(projects, { headers });
+  return NextResponse.json(projects);
 });
 
-export const POST = withAuth(async ({ req, session }) => {
+export const POST = withSession(async ({ req, session }) => {
   const { name, slug, domain } = await req.json();
-  if (!name || !slug || !domain) {
-    return new Response("Missing name or slug or domain", { status: 422 });
+
+  if (!name || !slug) {
+    return new Response("Missing name or slug", { status: 422 });
   }
   let slugError: string | null = null;
 
@@ -46,16 +59,38 @@ export const POST = withAuth(async ({ req, session }) => {
     slugError = "Cannot use reserved slugs";
   }
 
-  const validDomain = await validateDomain(domain);
-  if (slugError || validDomain !== true) {
-    return NextResponse.json(
-      {
-        slugError,
-        domainError: validDomain === true ? null : validDomain,
+  if (domain) {
+    const validDomain = await validateDomain(domain);
+    if (slugError || validDomain !== true) {
+      return NextResponse.json(
+        {
+          slugError,
+          domainError: validDomain === true ? null : validDomain,
+        },
+        { status: 422 },
+      );
+    }
+  }
+
+  const freeProjects = await prisma.project.count({
+    where: {
+      plan: "free",
+      users: {
+        some: {
+          userId: session.user.id,
+          role: "owner",
+        },
       },
-      { status: 422 },
+    },
+  });
+
+  if (freeProjects >= FREE_PROJECTS_LIMIT) {
+    return new Response(
+      `You can only create up to ${FREE_PROJECTS_LIMIT} free projects. Additional projects require a paid plan.`,
+      { status: 403 },
     );
   }
+
   const [slugExist, domainExist] = await Promise.all([
     prisma.project.findUnique({
       where: {
@@ -65,7 +100,7 @@ export const POST = withAuth(async ({ req, session }) => {
         slug: true,
       },
     }),
-    domainExists(domain),
+    domain ? domainExists(domain) : false,
   ]);
   if (slugExist || domainExist) {
     return NextResponse.json(
@@ -87,12 +122,14 @@ export const POST = withAuth(async ({ req, session }) => {
             role: "owner",
           },
         },
-        domains: {
-          create: {
-            slug: domain,
-            primary: true,
+        ...(domain && {
+          domains: {
+            create: {
+              slug: domain,
+              primary: true,
+            },
           },
-        },
+        }),
         billingCycleStart: new Date().getDate(),
       },
     }),

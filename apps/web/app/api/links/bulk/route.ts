@@ -1,6 +1,7 @@
 import { bulkCreateLinks, processLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
 import { NextResponse } from "next/server";
+import { exceededLimitError } from "@/lib/api/errors";
 
 // POST /api/links/bulk – bulk create up to 100 links
 export const POST = withAuth(
@@ -29,6 +30,16 @@ export const POST = withAuth(
         headers,
       });
     }
+    if (project.linksUsage + links.length > project.linksLimit) {
+      return new Response(
+        exceededLimitError({
+          plan: project.plan,
+          limit: project.linksLimit,
+          type: "links",
+        }),
+        { status: 403, headers },
+      );
+    }
 
     const processedLinks = await Promise.all(
       links.map(async (link) =>
@@ -53,6 +64,7 @@ export const POST = withAuth(
     return NextResponse.json([...validLinksResponse, ...errors], { headers });
   },
   {
-    requiredPlan: ["pro", "enterprise"],
+    needNotExceededLinks: true,
+    requiredPlan: ["pro", "business", "enterprise"],
   },
 );

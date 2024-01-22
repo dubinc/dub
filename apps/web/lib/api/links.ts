@@ -9,21 +9,21 @@ import { redis } from "@/lib/upstash";
 import {
   DEFAULT_REDIRECTS,
   DUB_DOMAINS,
-  DUB_PROJECT_ID,
-  LEGAL_USER_ID,
   SHORT_DOMAIN,
   getDomainWithoutWWW,
   getParamsFromURL,
   getUrlFromString,
   isDubDomain,
+  linkConstructor,
   nanoid,
   truncate,
   validKeyRegex,
 } from "@dub/utils";
 import cloudinary from "cloudinary";
 import { isIframeable } from "../middleware/utils";
-import { LinkProps, ProjectProps, SimpleLinkProps } from "../types";
+import { LinkProps, ProjectProps } from "../types";
 import { Session } from "../auth";
+import { getLinkViaEdge } from "../planetscale";
 
 export async function getLinksForProject({
   projectId,
@@ -44,7 +44,7 @@ export async function getLinksForProject({
   userId?: string | null;
   showArchived?: boolean;
 }): Promise<LinkProps[]> {
-  return await prisma.link.findMany({
+  const links = await prisma.link.findMany({
     where: {
       projectId,
       archived: showArchived ? undefined : false,
@@ -73,6 +73,14 @@ export async function getLinksForProject({
       skip: (parseInt(page) - 1) * 100,
     }),
   });
+
+  return links.map((link) => ({
+    ...link,
+    shortLink: linkConstructor({
+      domain: link.domain,
+      key: link.key,
+    }),
+  }));
 }
 
 export async function getLinksCount({
@@ -187,14 +195,7 @@ export async function checkIfKeyExists(domain: string, key: string) {
       return true;
     }
   }
-  const link = await prisma.link.findUnique({
-    where: {
-      domain_key: {
-        domain,
-        key,
-      },
-    },
-  });
+  const link = await getLinkViaEdge(domain, key);
   return !!link;
 }
 
@@ -217,11 +218,22 @@ export async function processLink({
   bulk = false,
 }: {
   payload: LinkProps;
-  project: ProjectProps | null;
+  project?: ProjectProps;
   session?: Session;
   bulk?: boolean;
 }) {
-  let { domain, key, url, image, rewrite, expiresAt, geo } = payload;
+  let {
+    domain,
+    key,
+    url,
+    image,
+    proxy,
+    rewrite,
+    expiresAt,
+    ios,
+    android,
+    geo,
+  } = payload;
 
   // url checks
   if (!url) {
@@ -240,71 +252,34 @@ export async function processLink({
     };
   }
 
-  // domain checks
-  if (!domain) {
-    return {
-      link: payload,
-      error: "Missing short link domain.",
-      status: 400,
-    };
-  }
-
-  // custom social media image checks
-  const uploadedImage = image && image.startsWith("data:image") ? true : false;
-  if (uploadedImage && !process.env.CLOUDINARY_URL) {
-    return {
-      link: payload,
-      error: "Missing Cloudinary environment variable.",
-      status: 400,
-    };
-  }
-
-  // expire date checks
-  if (expiresAt) {
-    const date = new Date(expiresAt);
-    if (isNaN(date.getTime())) {
+  // free plan restrictions
+  if (!project || project.plan === "free") {
+    if (proxy || rewrite || expiresAt || ios || android || geo) {
       return {
         link: payload,
-        error: "Invalid expiry date. Expiry date must be in ISO-8601 format.",
-        status: 422,
-      };
-    }
-    // check if expiresAt is in the future
-    if (new Date(expiresAt) < new Date()) {
-      return {
-        link: payload,
-        error: "Expiry date must be in the future.",
-        status: 422,
-      };
-    }
-  }
-
-  if (project) {
-    if (!project.domains?.find((d) => d.slug === domain)) {
-      return {
-        link: payload,
-        error: "Domain does not belong to project.",
+        error:
+          "You can only use link cloaking, custom social media cards, link expiration, device and geo targeting on a Pro plan and above. Upgrade to Pro to use these features.",
         status: 403,
       };
     }
-    // internal Dub.co checks
-  } else if (process.env.NEXT_PUBLIC_IS_DUB) {
-    // if it's not a custom project, do some filtering
+    // can't use `/` in key on free plan
     if (key?.includes("/")) {
       return {
         link: payload,
         error:
-          "Key cannot contain '/'. You can only use this with a custom domain.",
+          "Key cannot contain '/'. You can only use this on a Pro plan and above. Upgrade to Pro to use this feature.",
         status: 422,
       };
     }
-    if (rewrite) {
-      return {
-        link: payload,
-        error: "You can only use link cloaking on a custom domain.",
-        status: 403,
-      };
-    }
+  }
+
+  // if domain is not defined, use the project's primary domain
+  if (!domain) {
+    domain = project?.domains?.find((d) => d.primary)?.slug || SHORT_DOMAIN;
+
+    // if domain is defined, do some checks
+  } else {
+    // checks for dub.sh domain
     if (domain === "dub.sh") {
       const keyBlacklisted = await isBlacklistedKey(key);
       if (keyBlacklisted) {
@@ -322,6 +297,8 @@ export async function processLink({
           status: 422,
         };
       }
+
+      // checks for other Dub-owned domains (chatg.pt, spti.fi, etc.)
     } else if (isDubDomain(domain)) {
       // coerce type with ! cause we already checked if it exists
       const { allowedHostnames } = DUB_DOMAINS.find((d) => d.slug === domain)!;
@@ -335,37 +312,12 @@ export async function processLink({
           status: 422,
         };
       }
-      // we can do it here because we only pass session when creating a link (and not editing it)
-      if (session) {
-        const count = await prisma.link.count({
-          where: {
-            domain,
-            userId: session?.user.id,
-          },
-        });
-        if (count > 25) {
-          return {
-            link: payload,
-            error: `You can only create 25 ${domain} short links.`,
-            status: 403,
-          };
-        }
-      }
-    } else {
-      return {
-        link: payload,
-        error: "Invalid domain",
-        status: 403,
-      };
-    }
-  }
 
-  // free plan restrictions
-  if (!project || project.plan === "free") {
-    if (geo) {
+      // else, check if the domain belongs to the project
+    } else if (!project?.domains?.find((d) => d.slug === domain)) {
       return {
         link: payload,
-        error: "You can only use geo targeting on a Pro plan and above.",
+        error: "Domain does not belong to project.",
         status: 403,
       };
     }
@@ -400,13 +352,47 @@ export async function processLink({
     }
   }
 
+  // custom social media image checks
+  const uploadedImage = image && image.startsWith("data:image") ? true : false;
+  if (uploadedImage && !process.env.CLOUDINARY_URL) {
+    return {
+      link: payload,
+      error: "Missing Cloudinary environment variable.",
+      status: 400,
+    };
+  }
+
+  // expire date checks
+  if (expiresAt) {
+    const date = new Date(expiresAt);
+    if (isNaN(date.getTime())) {
+      return {
+        link: payload,
+        error: "Invalid expiry date. Expiry date must be in ISO-8601 format.",
+        status: 422,
+      };
+    }
+    // check if expiresAt is in the future
+    if (new Date(expiresAt) < new Date()) {
+      return {
+        link: payload,
+        error: "Expiry date must be in the future.",
+        status: 422,
+      };
+    }
+  }
+
+  // remove shortLink attribute from payload since it's a polyfill
+  delete payload["shortLink"];
+
   return {
     link: {
       ...payload,
+      domain,
       key,
       url: processedUrl,
-      // make sure projectId is set to the current project (or Dub's if there's no project)
-      projectId: project?.id || DUB_PROJECT_ID,
+      // make sure projectId is set to the current project
+      projectId: project?.id || null,
       // if session is passed, set userId to the current user's id (we don't change the userId if it's already set, e.g. when editing a link)
       ...(session && {
         userId: session.user.id,
@@ -496,7 +482,13 @@ export async function addLink(link: LinkProps) {
       },
     });
   }
-  return response;
+  return {
+    ...response,
+    shortLink: linkConstructor({
+      domain: response.domain,
+      key: response.key,
+    }),
+  };
 }
 
 export async function bulkCreateLinks(links: LinkProps[]) {
@@ -554,7 +546,13 @@ export async function bulkCreateLinks(links: LinkProps[]) {
     }),
   );
 
-  return createdLinks;
+  return createdLinks.map((link) => ({
+    ...link,
+    shortLink: linkConstructor({
+      domain: link?.domain,
+      key: link?.key,
+    }),
+  }));
 }
 
 export async function editLink({
@@ -666,15 +664,23 @@ export async function editLink({
     });
   }
 
-  return response;
+  return {
+    ...response,
+    shortLink: linkConstructor({
+      domain: response.domain,
+      key: response.key,
+    }),
+  };
 }
 
 export async function deleteLink({
   domain = SHORT_DOMAIN,
   key,
+  projectId,
 }: {
   domain?: string;
   key: string;
+  projectId?: string;
 }) {
   return await Promise.all([
     prisma.link.delete({
@@ -688,11 +694,18 @@ export async function deleteLink({
     cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
       invalidate: true,
     }),
-    // deleteClickData({
-    //   domain,
-    //   key,
-    // }),
     redis.del(`${domain}:${key}`),
+    projectId &&
+      prisma.project.update({
+        where: {
+          id: projectId,
+        },
+        data: {
+          linksUsage: {
+            decrement: 1,
+          },
+        },
+      }),
   ]);
 }
 
@@ -712,85 +725,4 @@ export async function archiveLink(
       archived,
     },
   });
-}
-
-/* Delete all dub.sh links associated with a user when it's deleted */
-export async function deleteUserLinks(userId: string) {
-  const links = await prisma.link.findMany({
-    where: {
-      userId,
-      domain: SHORT_DOMAIN,
-    },
-    select: {
-      key: true,
-      proxy: true,
-    },
-  });
-  const pipeline = redis.pipeline();
-  links.forEach(({ key }) => {
-    pipeline.del(`dub.sh:${key}`);
-  });
-  const [deleteRedis, deleteCloudinary, deletePrisma] =
-    await Promise.allSettled([
-      pipeline.exec(), // delete all links from redis
-      // remove all images from cloudinary
-      ...links.map(({ key, proxy }) =>
-        proxy
-          ? cloudinary.v2.uploader.destroy(`dub.sh/${key}`, {
-              invalidate: true,
-            })
-          : Promise.resolve(),
-      ),
-      prisma.link.deleteMany({
-        where: {
-          userId,
-          domain: SHORT_DOMAIN,
-        },
-      }),
-    ]);
-  return {
-    deleteRedis,
-    deleteCloudinary,
-    deletePrisma,
-  };
-}
-
-/* Reassign user links to another user when a user is deleted */
-export async function reassignUserLinks(userId: string) {
-  const links = await prisma.link.findMany({
-    where: {
-      userId,
-      domain: SHORT_DOMAIN,
-    },
-    select: {
-      domain: true,
-      key: true,
-    },
-  });
-
-  const redisLinks = await redis.mget<SimpleLinkProps[]>(
-    ...links.map(({ domain, key }) => `${domain}:${key}`),
-  );
-
-  const pipeline = redis.pipeline();
-  redisLinks.forEach((link, index) => {
-    const { domain, key } = links[index];
-    pipeline.set(`${domain}:${key}`, {
-      ...link,
-      banned: true,
-    });
-  });
-
-  await Promise.all([
-    pipeline.exec(),
-    prisma.link.updateMany({
-      where: {
-        userId,
-        domain: SHORT_DOMAIN,
-      },
-      data: {
-        userId: LEGAL_USER_ID,
-      },
-    }),
-  ]);
 }

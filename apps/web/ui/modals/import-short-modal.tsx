@@ -7,6 +7,7 @@ import {
   Modal,
   SimpleTooltipContent,
   Switch,
+  useRouterStuff,
 } from "@dub/ui";
 import { HOME_DOMAIN, fetcher, nFormatter } from "@dub/utils";
 import { ArrowRight } from "lucide-react";
@@ -72,11 +73,17 @@ function ImportShortModal({
     return selectedDomains.find((d) => d.domain === domain) ? true : false;
   };
 
+  const { queryParams } = useRouterStuff();
+
   return (
     <Modal
       showModal={showImportShortModal}
       setShowModal={setShowImportShortModal}
-      onClose={() => router.push(`/${slug}`)}
+      onClose={() =>
+        queryParams({
+          del: "import",
+        })
+      }
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-8 sm:px-16">
         <div className="flex items-center space-x-3 py-4">

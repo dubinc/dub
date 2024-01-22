@@ -6,6 +6,7 @@ import {
   setRootDomain,
   validateDomain,
 } from "@/lib/api/domains";
+import { exceededLimitError } from "@/lib/api/errors";
 
 // GET /api/projects/[slug]/domains – get all domains for a project
 export const GET = withAuth(async ({ project }) => {
@@ -17,6 +18,7 @@ export const GET = withAuth(async ({ project }) => {
       slug: true,
       verified: true,
       primary: true,
+      archived: true,
       target: true,
       type: true,
       placeholder: true,
@@ -28,7 +30,19 @@ export const GET = withAuth(async ({ project }) => {
 
 // POST /api/projects/[slug]/domains - add a domain
 export const POST = withAuth(async ({ req, project }) => {
-  const { slug: domain, primary, target, type } = await req.json();
+  const { slug: domain, primary, archived, target, type } = await req.json();
+
+  if (project.domains.length >= project.domainsLimit) {
+    return new Response(
+      exceededLimitError({
+        plan: project.plan,
+        limit: project.domainsLimit,
+        type: "domains",
+      }),
+      { status: 403 },
+    );
+  }
+
   const validDomain = await validateDomain(domain);
   if (validDomain !== true) {
     return new Response(validDomain, { status: 422 });
@@ -68,6 +82,7 @@ export const POST = withAuth(async ({ req, project }) => {
         type,
         projectId: project.id,
         primary,
+        archived,
       },
     }),
   ]);

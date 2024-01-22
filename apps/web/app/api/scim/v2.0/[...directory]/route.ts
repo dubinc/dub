@@ -62,7 +62,7 @@ const handleEvents = async (event: DirectorySyncEvent) => {
     where: {
       id: projectId,
     },
-  })) as ProjectProps;
+  })) as unknown as ProjectProps;
 
   if (!project || project.plan !== "enterprise" || !("email" in data)) {
     return;

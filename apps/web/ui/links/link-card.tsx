@@ -2,7 +2,6 @@ import useDomains from "@/lib/swr/use-domains";
 import useProject from "@/lib/swr/use-project";
 import useTags from "@/lib/swr/use-tags";
 import { UserProps } from "@/lib/types";
-import { ModalContext } from "@/ui/modals/provider";
 import TagBadge from "@/ui/links/tag-badge";
 import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
 import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
@@ -45,7 +44,7 @@ import {
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import punycode from "punycode/";
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import useSWR from "swr";
 import { LinkifyTooltipContent } from "@dub/ui/src/tooltip";
 
@@ -78,7 +77,7 @@ export default function LinkCard({
   const { slug } = params;
   const { queryParams } = useRouterStuff();
 
-  const { exceededUsage } = useProject();
+  const { exceededClicks } = useProject();
   const { verified, loading } = useDomains({ domain });
 
   const linkRef = useRef<any>();
@@ -87,10 +86,8 @@ export default function LinkCard({
 
   const { data: clicks } = useSWR<number>(
     isVisible &&
-      !exceededUsage &&
-      `/api${
-        slug ? `/projects/${slug}` : ""
-      }/stats/clicks?domain=${domain}&key=${key}`,
+      !exceededClicks &&
+      `/api/projects/${slug}/stats/clicks?domain=${domain}&key=${key}`,
     fetcher,
     {
       fallbackData: props.clicks,
@@ -104,7 +101,6 @@ export default function LinkCard({
   const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal({
     props,
   });
-  const { setShowUpgradePlanModal } = useContext(ModalContext);
 
   // Duplicate link Modal
   const {
@@ -179,7 +175,6 @@ export default function LinkCard({
     // - the key pressed is one of the shortcuts
     // - there is no existing modal backdrop
     if (
-      !exceededUsage &&
       (selected || openPopover) &&
       ["e", "d", "q", "a", "x"].includes(e.key)
     ) {
@@ -261,7 +256,7 @@ export default function LinkCard({
           */}
           <div className="ml-2 sm:ml-4">
             <div className="flex max-w-fit items-center space-x-2">
-              {slug && !verified && !loading ? (
+              {!verified && !loading ? (
                 <Tooltip
                   content={
                     <TooltipContent
@@ -390,9 +385,7 @@ export default function LinkCard({
         <div className="flex items-center space-x-2">
           <NumberTooltip value={clicks} lastClicked={lastClicked}>
             <Link
-              href={`${
-                slug ? `/${slug}` : ""
-              }/analytics?domain=${domain}&key=${key}`}
+              href={`/${slug}/analytics?domain=${domain}&key=${key}`}
               className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 transition-all duration-75 hover:scale-105 active:scale-100"
             >
               <Chart className="h-4 w-4" />
@@ -405,86 +398,33 @@ export default function LinkCard({
           <Popover
             content={
               <div className="grid w-full gap-px p-2 sm:w-48">
-                {slug && exceededUsage ? (
-                  <Tooltip
-                    content={
-                      <TooltipContent
-                        title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to edit them."
-                        cta="Upgrade to Pro"
-                        onClick={() => {
-                          setOpenPopover(false);
-                          setShowUpgradePlanModal(true);
-                        }}
-                      />
-                    }
-                  >
-                    <div className="flex w-full cursor-not-allowed items-center justify-between p-2 text-left text-sm font-medium text-gray-300 transition-all duration-75">
-                      <IconMenu
-                        text="Edit"
-                        icon={<Edit3 className="h-4 w-4" />}
-                      />
-                      <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-300 transition-all duration-75 sm:inline-block">
-                        E
-                      </kbd>
-                    </div>
-                  </Tooltip>
-                ) : (
-                  <button
-                    onClick={() => {
-                      setOpenPopover(false);
-                      setShowAddEditLinkModal(true);
-                    }}
-                    className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
-                  >
-                    <IconMenu
-                      text="Edit"
-                      icon={<Edit3 className="h-4 w-4" />}
-                    />
-                    <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 transition-all duration-75 group-hover:bg-gray-200 sm:inline-block">
-                      E
-                    </kbd>
-                  </button>
-                )}
-                {slug && exceededUsage ? (
-                  <Tooltip
-                    content={
-                      <TooltipContent
-                        title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to create a new link."
-                        cta="Upgrade to Pro"
-                        onClick={() => {
-                          setOpenPopover(false);
-                          setShowUpgradePlanModal(true);
-                        }}
-                      />
-                    }
-                  >
-                    <div className="flex w-full cursor-not-allowed items-center justify-between p-2 text-left text-sm font-medium text-gray-300 transition-all duration-75">
-                      <IconMenu
-                        text="Duplicate"
-                        icon={<CopyPlus className="h-4 w-4" />}
-                      />
-                      <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-300 transition-all duration-75 sm:inline-block">
-                        D
-                      </kbd>
-                    </div>
-                  </Tooltip>
-                ) : (
-                  <button
-                    onClick={() => {
-                      setOpenPopover(false);
-                      setShowDuplicateLinkModal(true);
-                    }}
-                    className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
-                  >
-                    <IconMenu
-                      text="Duplicate"
-                      icon={<CopyPlus className="h-4 w-4" />}
-                    />
-                    <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 transition-all duration-75 group-hover:bg-gray-200 sm:inline-block">
-                      D
-                    </kbd>
-                  </button>
-                )}
+                <button
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setShowAddEditLinkModal(true);
+                  }}
+                  className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
+                >
+                  <IconMenu text="Edit" icon={<Edit3 className="h-4 w-4" />} />
+                  <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 transition-all duration-75 group-hover:bg-gray-200 sm:inline-block">
+                    E
+                  </kbd>
+                </button>
+                <button
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setShowDuplicateLinkModal(true);
+                  }}
+                  className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
+                >
+                  <IconMenu
+                    text="Duplicate"
+                    icon={<CopyPlus className="h-4 w-4" />}
+                  />
+                  <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 transition-all duration-75 group-hover:bg-gray-200 sm:inline-block">
+                    D
+                  </kbd>
+                </button>
                 <button
                   onClick={() => {
                     setOpenPopover(false);

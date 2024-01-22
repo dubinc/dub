@@ -1,3 +1,7 @@
+export * from "./cctlds";
+export * from "./countries";
+export * from "./pricing";
+
 export const LOCALHOST_GEO_DATA = {
   city: "San Francisco",
   region: "CA",
@@ -118,6 +122,7 @@ export const DUB_DOMAINS = [
     slug: SHORT_DOMAIN,
     verified: true,
     primary: true,
+    archived: false,
     target: `https://${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
     type: "redirect",
     placeholder: "https://dub.co/help/article/what-is-dub",
@@ -130,6 +135,7 @@ export const DUB_DOMAINS = [
           slug: "chatg.pt",
           verified: true,
           primary: false,
+          archived: false,
           target: "https://dub.co/tools/chatgpt-link-shortener",
           type: "redirect",
           placeholder: "https://chat.openai.com/g/g-UGjKKONEe-domainsgpt",
@@ -140,6 +146,7 @@ export const DUB_DOMAINS = [
           slug: "amzn.id",
           verified: true,
           primary: false,
+          archived: false,
           target: "https://dub.co/tools/amazon-link-shortener",
           type: "redirect",
           placeholder: "https://www.amazon.com/dp/B0BW4SWNC8",
@@ -150,6 +157,7 @@ export const DUB_DOMAINS = [
           slug: "spti.fi",
           verified: true,
           primary: false,
+          archived: false,
           target: "https://dub.co/tools/spotify-link-shortener",
           type: "redirect",
           placeholder: "https://open.spotify.com/album/1SCyi9a5pOasikidToUY5y",
@@ -168,9 +176,6 @@ export const ALL_TOOLS = [
   { name: "QR Code Generator", slug: "qr-code" },
   { name: "Link Inspector", slug: "inspector" },
 ];
-
-export { default as ccTLDs } from "./cctlds";
-export { default as COUNTRIES } from "./countries";
 
 export const SECOND_LEVEL_DOMAINS = new Set([
   "com",
@@ -217,6 +222,7 @@ export const DEFAULT_LINK_PROPS = {
 
 export const DEMO_LINK_ID = "clqo10sum0006js08vutzfxt3";
 export const DUB_PROJECT_ID = "cl7pj5kq4006835rbjlt2ofka";
+export const LEGAL_PROJECT_ID = "clrflia0j0000vs7sqfhz9c7q";
 export const LEGAL_USER_ID = "clqei1lgc0000vsnzi01pbf47";
 
 export const SAML_PROVIDERS = [

@@ -59,7 +59,7 @@ export type TagColorProps =
   | "pink"
   | "brown";
 
-export type PlanProps = "free" | "pro" | "enterprise";
+export type PlanProps = "free" | "pro" | "business" | "enterprise";
 
 export interface ProjectProps {
   id: string;
@@ -68,16 +68,25 @@ export interface ProjectProps {
   logo?: string;
   usage: number;
   usageLimit: number;
+  linksUsage: number;
+  linksLimit: number;
+  domainsLimit: number;
+  tagsLimit: number;
+  usersLimit: number;
   plan: PlanProps;
   stripeId?: string;
-  billingCycleStart?: number;
-  createdAt?: Date;
-  domains?: {
+  billingCycleStart: number;
+  createdAt: Date;
+  domains: {
     slug: string;
+    primary: boolean;
   }[];
-  users?: {
+  users: {
     role: "owner" | "member";
   }[];
+  metadata?: {
+    defaultDomains?: string[];
+  };
 }
 
 export interface ProjectWithDomainProps extends ProjectProps {
@@ -108,8 +117,9 @@ export interface DomainProps {
   slug: string;
   verified: boolean;
   primary: boolean;
+  archived: boolean;
   target?: string;
-  type: "redirect" | "rewrite";
+  type: string;
   placeholder?: string;
   clicks: number;
   projectId: string;

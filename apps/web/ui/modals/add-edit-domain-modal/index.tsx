@@ -47,6 +47,7 @@ function AddEditDomainModal({
       slug: "",
       verified: false,
       primary: false,
+      archived: false,
       target: "",
       type: "redirect",
       clicks: 0,
@@ -54,7 +55,7 @@ function AddEditDomainModal({
     },
   );
 
-  const { slug: domain, primary, target, type, placeholder } = data;
+  const { slug: domain, primary, archived, target, type, placeholder } = data;
 
   const [lockDomain, setLockDomain] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -302,6 +303,18 @@ function AddEditDomainModal({
               />
             </div>
 
+            <div className="flex items-center justify-between bg-gray-50">
+              <div className="flex items-center space-x-2">
+                <h2 className="text-sm font-medium text-gray-900">Archived</h2>
+                <InfoTooltip content="Archived domains will still work, but they won't show up in the link creation modal." />
+              </div>
+              <Switch
+                fn={() => setData((prev) => ({ ...prev, archived: !archived }))}
+                checked={archived}
+                disabled={props?.archived}
+              />
+            </div>
+
             <div>
               <label
                 htmlFor="placeholder"
@@ -358,10 +371,30 @@ function AddEditDomainButton({
 }: {
   setShowAddEditDomainModal: Dispatch<SetStateAction<boolean>>;
 }) {
+  const { plan, domainsLimit, exceededDomains } = useProject();
+  const { queryParams } = useRouterStuff();
+
   return (
     <div>
       <Button
         text="Add Domain"
+        disabledTooltip={
+          exceededDomains ? (
+            <TooltipContent
+              title={`You can only add up to ${domainsLimit} domain${
+                domainsLimit === 1 ? "" : "s"
+              } on the ${capitalize(plan)} plan. Upgrade to add more domains`}
+              cta="Upgrade"
+              onClick={() => {
+                queryParams({
+                  set: {
+                    upgrade: plan === "free" ? "pro" : "business",
+                  },
+                });
+              }}
+            />
+          ) : undefined
+        }
         onClick={() => setShowAddEditDomainModal(true)}
       />
     </div>

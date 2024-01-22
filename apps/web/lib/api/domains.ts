@@ -237,7 +237,7 @@ export async function changeDomainForImages(domain: string, newDomain: string) {
   }
 }
 
-/* Delete a domain and all links & images associated with with */
+/* Delete a domain and all links & images associated with it */
 export async function deleteDomainAndLinks(
   domain: string,
   {
@@ -250,11 +250,13 @@ export async function deleteDomainAndLinks(
       domain,
     },
   });
+
   const pipeline = redis.pipeline();
   links.forEach(({ key }) => {
     pipeline.del(`${domain}:${key}`);
   });
   pipeline.del(`root:${domain}`);
+
   return await Promise.allSettled([
     pipeline.exec(), // delete all links from redis
     // remove all images from cloudinary

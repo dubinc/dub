@@ -10,7 +10,7 @@ import {
 } from "@dub/utils";
 import { sendEmail } from "emails";
 import ClicksSummary from "emails/clicks-summary";
-import UsageExceeded from "emails/usage-exceeded";
+import ClicksExceeded from "emails/clicks-exceeded";
 
 const limit = 250;
 
@@ -29,6 +29,8 @@ export const updateUsage = async (skip?: number) => {
       slug: true,
       usage: true,
       usageLimit: true,
+      linksUsage: true,
+      linksLimit: true,
       plan: true,
       billingCycleStart: true,
       users: {
@@ -53,15 +55,12 @@ export const updateUsage = async (skip?: number) => {
     return;
   }
 
-  // Reset billing cycles for projects that:
-  // - Are not on the free plan
-  // - Are on the free plan but have not exceeded usage
-  // - Have adjustedBillingCycleStart that matches today's date
+  // Reset billing cycles for projects that have
+  // adjustedBillingCycleStart that matches today's date
   const billingReset = projects.filter(
-    ({ usage, usageLimit, plan, billingCycleStart }) =>
-      !(plan === "free" && usage > usageLimit) &&
+    ({ billingCycleStart }) =>
       getAdjustedBillingCycleStart(billingCycleStart as number) ===
-        new Date().getDate(),
+      new Date().getDate(),
   );
 
   // Get all projects that have exceeded usage
@@ -116,20 +115,9 @@ export const updateUsage = async (skip?: number) => {
         project.createdAt.getTime() <
         new Date().getTime() - 30 * 24 * 60 * 60 * 1000
       ) {
-        const [createdLinks, topLinks] = await Promise.allSettled([
-          prisma.link.count({
-            where: {
-              project: {
-                id: project.id,
-              },
-              createdAt: {
-                // in the last 30 days
-                gte: new Date(new Date().setDate(new Date().getDate() - 30)),
-              },
-            },
-          }),
+        const topLinks =
           project.usage > 0
-            ? getStats({
+            ? await getStats({
                 projectId: project.id,
                 endpoint: "top_links",
                 interval: "30d",
@@ -151,8 +139,7 @@ export const updateUsage = async (skip?: number) => {
                     }),
                   ),
               )
-            : [],
-        ]);
+            : [];
 
         const emails = project.users.map((user) => user.user.email) as string[];
 
@@ -169,12 +156,8 @@ export const updateUsage = async (skip?: number) => {
                   projectName: project.name,
                   projectSlug: project.slug,
                   totalClicks: project.usage,
-                  createdLinks:
-                    createdLinks.status === "fulfilled"
-                      ? createdLinks.value
-                      : 0,
-                  topLinks:
-                    topLinks.status === "fulfilled" ? topLinks.value : [],
+                  createdLinks: project.linksUsage,
+                  topLinks,
                 }),
               }),
             );
@@ -182,12 +165,32 @@ export const updateUsage = async (skip?: number) => {
         );
       }
 
+      const { plan, usage, usageLimit } = project;
+
+      // only reset clicks usage if it's not over usageLimit by:
+      // 2x for free plan (2K clicks)
+      // 1.5x for pro plan (75K clicks)
+      // 1.2x for business plan (300K clicks)
+
+      const resetUsage =
+        plan === "free"
+          ? usage < usageLimit * 2
+          : plan === "pro"
+          ? usage < usageLimit * 1.5
+          : plan === "business"
+          ? usage < usageLimit * 1.2
+          : true;
+
       return await prisma.project.update({
         where: {
           id: project.id,
         },
         data: {
-          usage: 0,
+          ...(resetUsage && {
+            usage: 0,
+          }),
+          // always reset linksUsage since folks can never create more links than their limit
+          linksUsage: 0,
           sentEmails: {
             deleteMany: {
               type: {
@@ -217,9 +220,9 @@ const sendUsageLimitEmail = async (
     emails.map((email) => {
       limiter.schedule(() =>
         sendEmail({
-          subject: `You have exceeded your ${process.env.NEXT_PUBLIC_APP_NAME} usage limit`,
+          subject: `${process.env.NEXT_PUBLIC_APP_NAME} Alert: Clicks Limit Exceeded`,
           email,
-          react: UsageExceeded({
+          react: ClicksExceeded({
             email,
             project,
             type,
