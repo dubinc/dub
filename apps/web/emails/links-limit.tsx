@@ -75,7 +75,9 @@ export default function LinksLimitAlert({
               links) in your current billing cycle.
             </Text>
             <Text className="text-sm leading-6 text-black">
-              {percentage === 100
+              {plan === "business" || plan === "enterprise"
+                ? "Since you're on the Business plan, you will still be able to create links even after you hit your limit. We're planning to introduce on-demand billing for overages in the future, but for now, you can continue to create links without any interruption."
+                : percentage === 100
                 ? `All your existing links will continue to work, and we are still collecting data on them, but you'll need to upgrade the ${
                     plan === "free" ? "Pro" : "Business"
                   } plan to add more links.`
