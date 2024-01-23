@@ -1,10 +1,7 @@
 import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
 
 import { prisma } from "@dub/database";
-
-const ParamSchema = z.object({
-  projectSlug: z.string().openapi({ description: "Project slug" }),
-});
+import { ProjectParamSchema } from "../lib/schema";
 
 const ResponseSchema = z.object({
   id: z.string().openapi({ description: "The unique ID of the project." }),
@@ -42,7 +39,7 @@ const route = createRoute({
   path: "/api/v1/projects/{projectSlug}",
   security: [{ bearerAuth: [] }],
   request: {
-    params: ParamSchema,
+    params: ProjectParamSchema,
   },
   responses: {
     200: {

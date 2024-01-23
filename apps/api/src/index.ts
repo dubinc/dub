@@ -6,6 +6,7 @@ import { logger } from "hono/logger";
 import { handleError, handleZodError } from "./lib/error";
 import { getProjectApi } from "./routes/get-project";
 import { healthCheckApi } from "./routes/health";
+import { getLinkApi } from "./routes/get-link";
 
 const port = 4000;
 
@@ -21,6 +22,7 @@ app.use("*", logger());
 // Register routes
 healthCheckApi(app);
 getProjectApi(app);
+getLinkApi(app);
 
 // OpenAPI spec endpoint
 app.doc("/openapi.json", {

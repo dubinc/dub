@@ -35,6 +35,9 @@ importers:
       '@dub/database':
         specifier: workspace:*
         version: link:../../packages/database
+      '@dub/utils':
+        specifier: workspace:*
+        version: link:../../packages/utils
       '@hono/node-server':
         specifier: ^1.4.1
         version: 1.4.1
