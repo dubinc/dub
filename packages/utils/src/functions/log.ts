@@ -39,7 +39,7 @@ export const log = async ({
             text: {
               type: "mrkdwn",
               // prettier-ignore
-              text: `${mention && "<@U0404G6J3NJ> "}${(type === "alerts" || type === "errors") && ":alert: "}${message}`,
+              text: `${mention ? "<@U0404G6J3NJ> " : ""}${(type === "alerts" || type === "errors") ? ":alert: " : ""}${message}`,
             },
           },
         ],
