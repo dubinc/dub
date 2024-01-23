@@ -91,7 +91,7 @@ export const getStats = async ({
   interval,
   ...rest
 }: {
-  projectId: string;
+  projectId?: string;
   domain: string;
   key?: string;
   endpoint: string;

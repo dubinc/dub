@@ -121,6 +121,7 @@ export const updateUsage = async (skip?: number) => {
         const topLinks =
           project.usage > 0
             ? await getStats({
+                projectId: project.id,
                 domain: project.domains.map((domain) => domain.slug).join(","),
                 endpoint: "top_links",
                 interval: "30d",
