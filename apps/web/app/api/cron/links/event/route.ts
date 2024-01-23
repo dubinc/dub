@@ -112,6 +112,13 @@ export async function POST(req: Request) {
             }),
           );
         }),
+        log({
+          message: `*${
+            project.slug
+          }* has used ${percentage.toString()}% of its links limit for the month.`,
+          type: project.plan === "free" ? "cron" : "alerts",
+          mention: project.plan !== "free",
+        }),
       ]);
     }
   }

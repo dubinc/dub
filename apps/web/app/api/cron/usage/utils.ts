@@ -4,6 +4,7 @@ import { getStats } from "@/lib/stats";
 import { ProjectProps } from "@/lib/types";
 import {
   APP_DOMAIN_WITH_NGROK,
+  capitalize,
   getAdjustedBillingCycleStart,
   linkConstructor,
   log,
@@ -71,15 +72,17 @@ export const updateUsage = async (skip?: number) => {
   // Send email to notify overages
   await Promise.allSettled(
     exceedingUsage.map(async (project) => {
-      const { name, usage, usageLimit, users, sentEmails } = project;
+      const { slug, plan, usage, usageLimit, users, sentEmails } = project;
       const emails = users.map((user) => user.user.email) as string[];
 
       await log({
-        message: `${name} is over usage limit. Usage: ${usage}, Limit: ${usageLimit}, Email: ${emails.join(
+        message: `*${slug}* is over their *${capitalize(
+          plan,
+        )} Plan* usage limit. Usage: ${usage}, Limit: ${usageLimit}, Email: ${emails.join(
           ", ",
         )}`,
-        type: "cron",
-        mention: true,
+        type: plan === "free" ? "cron" : "alerts",
+        mention: plan !== "free",
       });
       const sentFirstUsageLimitEmail = sentEmails.some(
         (email) => email.type === "firstUsageLimitEmail",
