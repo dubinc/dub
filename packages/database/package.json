@@ -1,0 +1,17 @@
+{
+  "name": "@dub/database",
+  "version": "0.0.0",
+  "dependencies": {
+    "@prisma/client": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "18.11.9",
+    "prisma": "latest"
+  },
+  "scripts": {
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push --skip-generate"
+  },
+  "main": "./index.ts",
+  "types": "./index.ts"
+}

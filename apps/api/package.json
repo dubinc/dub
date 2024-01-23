@@ -3,17 +3,17 @@
   "private": true,
   "license": "AGPL-3.0-or-later",
   "scripts": {
-    "dev": "wrangler dev src/index.ts --port 4000",
-    "deploy": "wrangler deploy --minify src/index.ts"
+    "dev": "tsx watch src/index.ts"
   },
   "dependencies": {
+    "@hono/node-server": "^1.4.1",
     "@hono/zod-openapi": "^0.9.5",
     "hono": "^3.12.6",
     "zod": "^3.22.4",
-    "zod-error": "^1.5.0"
+    "zod-error": "^1.5.0",
+    "@dub/database": "workspace:*"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20231218.0",
-    "wrangler": "^3.22.0"
+    "tsx": "^3.12.2"
   }
 }

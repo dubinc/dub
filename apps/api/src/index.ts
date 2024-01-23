@@ -1,33 +1,45 @@
+import { serve } from "@hono/node-server";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { cors } from "hono/cors";
+import { logger } from "hono/logger";
 
-import { handleZodError } from "./lib/error";
-import { createLinkApi } from "./routes/create-link";
+import { handleError, handleZodError } from "./lib/error";
 import { getProjectApi } from "./routes/get-project";
+import { healthCheckApi } from "./routes/health";
+
+const port = 4000;
 
 const app = new OpenAPIHono({
   defaultHook: handleZodError,
 });
 
-// app.use("*", async (c, next) => {
-//   await next();
-// });
+app.onError(handleError)
 
 app.use("*", cors());
+app.use("*", logger());
 
-app.get("/", (c) => {
-  return c.text("Hello Hono! Kiran");
-});
-
-createLinkApi(app);
+// Register routes
+healthCheckApi(app);
 getProjectApi(app);
 
-app.doc("/doc", {
+// OpenAPI spec endpoint
+app.doc("/openapi.json", {
   openapi: "3.0.0",
   info: {
     version: "1.0.0",
-    title: "My API",
+    title: "Dub.co API",
   },
+  servers: [
+    {
+      url: "https://api.dub.co",
+      description: "Production",
+    },
+  ],
 });
 
-export default app;
+console.log(`API server is running on port ${port}`);
+
+serve({
+  fetch: app.fetch,
+  port,
+});

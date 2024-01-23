@@ -1,9 +1,21 @@
+import { Prisma } from "@dub/database";
 import { z } from "@hono/zod-openapi";
 import { Context } from "hono";
 import { ZodError } from "zod";
 import { generateErrorMessage } from "zod-error";
 
-const ErrorCode = z.enum(["invalid_request"]);
+const ErrorCode = z.enum([
+  "invalid_request",
+  "not_found",
+  "internal_server_error",
+]);
+
+const prismaErrorMapping: Record<
+  Prisma.PrismaClientKnownRequestError["code"],
+  ErrorResponse["error"]["code"]
+> = {
+  P2025: "not_found",
+};
 
 const ErrorSchema = z.object({
   error: z.object({
@@ -23,6 +35,7 @@ const ErrorSchema = z.object({
 
 type ErrorResponse = z.infer<typeof ErrorSchema>;
 
+// Convert ZodError to JSON Error response format
 export function handleZodError(
   result:
     | {
@@ -65,4 +78,31 @@ export function handleZodError(
       { status: 400 },
     );
   }
+}
+
+// Handle other errors to JSON Error response format
+export function handleError(error: Error, c: Context): Response {
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    return c.json<ErrorResponse>(
+      {
+        error: {
+          code: prismaErrorMapping[error.code] ?? "internal_server_error",
+          doc_url: "https://dub.co/docs/api-reference",
+          message: error.message,
+        },
+      },
+      { status: 400 },
+    );
+  }
+
+  return c.json<ErrorResponse>(
+    {
+      error: {
+        code: "internal_server_error",
+        doc_url: "https://dub.co/docs/api-reference",
+        message: "Something went wrong. Please try again.",
+      },
+    },
+    { status: 500 },
+  );
 }
