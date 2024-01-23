@@ -1,3 +1,4 @@
+import { DUB_PROJECT_ID, isDubDomain } from "@dub/utils";
 import { conn } from "./planetscale";
 
 export type IntervalProps = "1h" | "24h" | "7d" | "30d" | "90d" | "all";
@@ -83,12 +84,14 @@ export const VALID_STATS_FILTERS = [
 ];
 
 export const getStats = async ({
+  projectId,
   domain,
   key,
   endpoint,
   interval,
   ...rest
 }: {
+  projectId: string;
   domain: string;
   key?: string;
   endpoint: string;
@@ -130,7 +133,13 @@ export const getStats = async ({
   let url = new URL(
     `https://api.us-east.tinybird.co/v0/pipes/${endpoint}.json`,
   );
-  url.searchParams.append("domain", domain);
+
+  // TODO: remove this logic after #545 merges
+  url.searchParams.append(
+    "domain",
+    isDubDomain(domain) && !key && projectId !== DUB_PROJECT_ID ? "" : domain,
+  );
+
   if (key) {
     url.searchParams.append("key", decodeURIComponent(key));
   }
