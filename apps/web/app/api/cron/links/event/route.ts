@@ -1,6 +1,7 @@
 import { limiter, qstash, receiver } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { ProjectProps } from "@/lib/types";
+import { getRedisLink, redis } from "@/lib/upstash";
 import {
   APP_DOMAIN_WITH_NGROK,
   GOOGLE_FAVICON_URL,
@@ -66,16 +67,22 @@ export async function POST(req: Request) {
 
   // increment links usage and send alert if needed
   if (type === "create" && link.projectId) {
-    const project = await prisma.project.update({
-      where: {
-        id: link.projectId,
-      },
-      data: {
-        linksUsage: {
-          increment: 1,
+    const [project, _redisLink] = await Promise.all([
+      prisma.project.update({
+        where: {
+          id: link.projectId,
         },
-      },
-    });
+        data: {
+          linksUsage: {
+            increment: 1,
+          },
+        },
+      }),
+      // set the index in redis again cause we don't have the linkId the first time
+      redis.hset(link.domain, {
+        [link.key.toLowerCase()]: await getRedisLink(link),
+      }),
+    ]);
 
     const percentage = Math.round(
       (project.linksUsage / project.linksLimit) * 100,

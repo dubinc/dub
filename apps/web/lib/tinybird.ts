@@ -16,10 +16,12 @@ import { detectBot } from "./middleware/utils";
  **/
 export async function recordClick({
   req,
+  id,
   domain,
   key,
 }: {
   req: NextRequest;
+  id?: string;
   domain: string;
   key?: string;
 }) {

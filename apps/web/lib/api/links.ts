@@ -5,7 +5,7 @@ import {
   isReservedUsername,
 } from "@/lib/edge-config";
 import prisma from "@/lib/prisma";
-import { redis } from "@/lib/upstash";
+import { getRedisLink, redis } from "@/lib/upstash";
 import {
   DEFAULT_REDIRECTS,
   DUB_DOMAINS,
@@ -14,14 +14,14 @@ import {
   getParamsFromURL,
   getUrlFromString,
   isDubDomain,
+  isIframeable,
   linkConstructor,
   nanoid,
   truncate,
   validKeyRegex,
 } from "@dub/utils";
 import cloudinary from "cloudinary";
-import { isIframeable } from "../middleware/utils";
-import { LinkProps, ProjectProps } from "../types";
+import { LinkProps, ProjectProps, RedisLinkProps } from "../types";
 import { Session } from "../auth";
 import { getLinkViaEdge } from "../planetscale";
 
@@ -436,25 +436,7 @@ export async function addLink(link: LinkProps) {
         geo: geo || undefined,
       },
     }),
-    redis.set(
-      `${domain}:${key}`,
-      {
-        url: encodeURIComponent(url),
-        password: hasPassword,
-        proxy,
-        ...(rewrite && {
-          rewrite: true,
-          iframeable: await isIframeable({ url, requestDomain: domain }),
-        }),
-        ...(expiresAt && { expiresAt }),
-        ...(ios && { ios }),
-        ...(android && { android }),
-        ...(geo && { geo }),
-      },
-      {
-        nx: true,
-      },
-    ),
+    redis.hsetnx(domain, key.toLowerCase(), await getRedisLink(link)),
   ]);
 
   if (proxy && image) {
@@ -484,20 +466,23 @@ export async function addLink(link: LinkProps) {
 
 export async function bulkCreateLinks(links: LinkProps[]) {
   if (links.length === 0) return [];
+
+  // split links into domains
+  const linksByDomain: Record<string, Record<string, RedisLinkProps>> = {};
+  links.forEach(async (link) => {
+    const { domain, key } = link;
+
+    if (!linksByDomain[domain]) {
+      linksByDomain[domain] = {};
+    }
+    // this technically will be a synchronous function since isIframeable won't be run for bulk link creation
+    linksByDomain[domain][key.toLowerCase()] = await getRedisLink(link);
+  });
+
   const pipeline = redis.pipeline();
-  links.forEach(({ domain, key, url, password, expiresAt }) => {
-    const hasPassword = password && password.length > 0 ? true : false;
-    pipeline.set(
-      `${domain}:${key}`,
-      {
-        url: encodeURIComponent(url),
-        password: hasPassword,
-        ...(expiresAt && { expiresAt }),
-      },
-      {
-        nx: true,
-      },
-    );
+
+  Object.entries(linksByDomain).forEach(([domain, links]) => {
+    pipeline.hset(domain, links);
   });
 
   await Promise.all([
@@ -617,18 +602,8 @@ export async function editLink({
       : cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
           invalidate: true,
         }),
-    redis.set(`${domain}:${key}`, {
-      url: encodeURIComponent(url),
-      password: hasPassword,
-      proxy,
-      ...(rewrite && {
-        rewrite: true,
-        iframeable: await isIframeable({ url, requestDomain: domain }),
-      }),
-      ...(expiresAt && { expiresAt }),
-      ...(ios && { ios }),
-      ...(android && { android }),
-      ...(geo && { geo }),
+    redis.hset(domain, {
+      [key.toLowerCase()]: await getRedisLink(updatedLink),
     }),
     // if key is changed: rename resource in Cloudinary, delete the old key in Redis and change the clicks key name
     ...(changedDomain || changedKey

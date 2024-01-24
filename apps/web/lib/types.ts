@@ -13,7 +13,13 @@ export interface QRLinkProps {
   url?: string;
 }
 
+export interface RedisDomainMetadataProps {
+  projectId: string;
+  redirectRules?: Record<string, string>;
+}
+
 export interface RedisLinkProps {
+  id: string;
   url: string;
   password?: boolean;
   proxy?: boolean;
@@ -23,7 +29,6 @@ export interface RedisLinkProps {
   ios?: string;
   android?: string;
   geo?: object;
-  banned?: boolean;
 }
 
 export interface TagProps {
