@@ -13,7 +13,7 @@ const app = newHonoApp();
 healthCheckApi(app);
 getProjectApi(app);
 getProjectsApi(app);
-getLinkApi(app);
+// getLinkApi(app);
 
 console.log(`API server is running on port ${port}`);
 

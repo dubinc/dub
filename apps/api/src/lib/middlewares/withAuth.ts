@@ -2,7 +2,7 @@ import { Context } from "hono";
 
 import { prisma } from "@dub/database";
 import { API_DOMAIN, hashToken } from "@dub/utils";
-import { DubApiError } from "../error";
+import { DubApiError } from "../errors";
 
 // Check if the request is authenticated with a valid API key
 export const withAuth = async (c: Context, next: () => Promise<void>) => {
@@ -70,37 +70,6 @@ export const withAuth = async (c: Context, next: () => Promise<void>) => {
       lastUsed: new Date(),
     },
   });
-
-  // TODO: Improve this
-  const path = url.pathname.split("/").filter(Boolean);
-  const projectSlug = c.req.param("projectSlug") || path[3];
-
-  if (projectSlug) {
-    const project = await prisma.project.findUniqueOrThrow({
-      where: {
-        slug: projectSlug,
-      },
-      include: {
-        users: {
-          where: {
-            userId: user.id,
-          },
-          select: {
-            role: true,
-          },
-        },
-        domains: {
-          select: {
-            slug: true,
-            primary: true,
-          },
-        },
-      },
-    });
-
-    // console.log("projectSlug", projectSlug);
-    // console.log("project", project);
-  }
 
   c.set("user", user);
 

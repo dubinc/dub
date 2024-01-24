@@ -1,5 +1,6 @@
-import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
+import { createRoute, z } from "@hono/zod-openapi";
 import { HonoApp } from "../lib/hono";
+import { openApiErrorResponses } from "../lib/schemas/openapi";
 
 const HealthSchema = z.object({
   status: z.string(),
@@ -19,6 +20,7 @@ const route = createRoute({
       },
     },
   },
+  ...openApiErrorResponses,
 });
 
 export const healthCheckApi = (app: HonoApp) => {

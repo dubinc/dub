@@ -4,8 +4,8 @@ import { logger } from "hono/logger";
 import { prettyJSON } from "hono/pretty-json";
 
 import { User } from "@dub/database";
-import { handleError, handleZodError } from "./error";
-import { withAuth } from "./middlewares/authenticate";
+import { handleError, handleZodError } from "./errors";
+import { withAuth } from "./middlewares/withAuth";
 
 export type HonoEnv = {
   Variables: {
@@ -20,6 +20,11 @@ export function newHonoApp() {
 
   app.onError(handleError);
 
+  app.use(prettyJSON());
+  app.use("*", cors());
+  app.use("*", logger());
+  app.use("/api/v1/*", withAuth);
+
   app.doc("/openapi.json", {
     openapi: "3.0.0",
     info: {
@@ -32,17 +37,18 @@ export function newHonoApp() {
         description: "Production",
       },
     ],
+    security: [
+      {
+        bearerAuth: [],
+      },
+    ],
   });
 
-  app.use(prettyJSON());
-  app.use("*", cors());
-  app.use("*", logger());
-  app.use("*", withAuth);
-
-  // app.use("/api/v1/projects/:projectSlug/*", async (c, next) => {
-  //   const projectSlug = c.req.param("projectSlug");
-  //   await withAuth(c, next, { projectSlug });
-  // });
+  app.openAPIRegistry.registerComponent("securitySchemes", "bearerAuth", {
+    bearerFormat: "API Token",
+    scheme: "bearer",
+    type: "http",
+  });
 
   return app;
 }

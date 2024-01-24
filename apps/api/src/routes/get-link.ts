@@ -3,7 +3,8 @@ import { createRoute, z } from "@hono/zod-openapi";
 import { prisma } from "@dub/database";
 import { linkConstructor } from "@dub/utils";
 import { HonoApp } from "../lib/hono";
-import { ProjectParamSchema } from "../lib/schemas";
+import { ProjectParamSchema } from "../lib/schemas/dub";
+import { openApiErrorResponses } from "../lib/schemas/openapi";
 
 const QuerySchema = z.object({
   domain: z.string().min(1).openapi({
@@ -42,6 +43,7 @@ const route = createRoute({
         },
       },
     },
+    ...openApiErrorResponses,
   },
 });
 

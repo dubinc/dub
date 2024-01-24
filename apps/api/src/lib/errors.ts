@@ -44,6 +44,25 @@ const ErrorSchema = z.object({
   }),
 });
 
+export const toOpenAPIErrorSchema = (code: z.infer<typeof ErrorCode>) => {
+  return z.object({
+    error: z.object({
+      code: ErrorCode.openapi({
+        description: "A machine readable error code.",
+        example: code
+      }),
+      message: z.string().openapi({
+        description: "A human readable error message.",
+      }),
+      doc_url: z.string().optional().openapi({
+        description:
+          "A link to our doc with more details about this error code",
+        example: "https://dub.co/docs/api-reference",
+      }),
+    }),
+  });
+};
+
 export type ErrorResponse = z.infer<typeof ErrorSchema>;
 
 // Convert ZodError to JSON Error response format

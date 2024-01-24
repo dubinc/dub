@@ -2,7 +2,8 @@ import { createRoute, z } from "@hono/zod-openapi";
 
 import { prisma } from "@dub/database";
 import { HonoApp } from "../lib/hono";
-import { ProjectSchema } from "../lib/schemas";
+import { ProjectSchema } from "../lib/schemas/dub";
+import { openApiErrorResponses } from "../lib/schemas/openapi";
 
 // Get a specific project
 const route = createRoute({
@@ -19,6 +20,7 @@ const route = createRoute({
       },
     },
   },
+  ...openApiErrorResponses,
 });
 
 export const getProjectsApi = (app: HonoApp) => {
