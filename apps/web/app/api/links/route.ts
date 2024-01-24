@@ -1,43 +1,36 @@
 import { addLink, getLinksForProject, processLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
+import { qstash } from "@/lib/cron";
 import { ratelimit } from "@/lib/upstash";
-import {
-  DUB_PROJECT_ID,
-  GOOGLE_FAVICON_URL,
-  LOCALHOST_IP,
-  getApexDomain,
-  log,
-} from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, LOCALHOST_IP } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/links – get all user links
-export const GET = withAuth(
-  async ({ headers, searchParams, project, session }) => {
-    const { domain, tagId, search, sort, page, userId, showArchived } =
-      searchParams as {
-        domain?: string;
-        tagId?: string;
-        search?: string;
-        sort?: "createdAt" | "clicks" | "lastClicked";
-        page?: string;
-        userId?: string;
-        showArchived?: string;
-      };
-    const response = await getLinksForProject({
-      projectId: project?.id || DUB_PROJECT_ID,
-      domain,
-      tagId,
-      search,
-      sort,
-      page,
-      userId: project?.id ? userId : session.user.id,
-      showArchived: showArchived === "true" ? true : false,
-    });
-    return NextResponse.json(response, {
-      headers,
-    });
-  },
-);
+export const GET = withAuth(async ({ headers, searchParams, project }) => {
+  const { domain, tagId, search, sort, page, userId, showArchived } =
+    searchParams as {
+      domain?: string;
+      tagId?: string;
+      search?: string;
+      sort?: "createdAt" | "clicks" | "lastClicked";
+      page?: string;
+      userId?: string;
+      showArchived?: string;
+    };
+  const response = await getLinksForProject({
+    projectId: project.id,
+    domain,
+    tagId,
+    search,
+    sort,
+    page,
+    userId,
+    showArchived: showArchived === "true" ? true : false,
+  });
+  return NextResponse.json(response, {
+    headers,
+  });
+});
 
 // POST /api/links – create a new link
 export const POST = withAuth(
@@ -65,47 +58,45 @@ export const POST = withAuth(
 
       if (!success) {
         return new Response(
-          "Rate limited – you can only create up to 10 links per day without an account.",
+          "Rate limited – you can only create up to 10 links per day without an account.",
           { status: 429 },
         );
       }
     }
 
-    const [response, invalidFavicon] = await Promise.allSettled([
-      addLink(link),
-      ...(!project
-        ? [
-            fetch(`${GOOGLE_FAVICON_URL}${getApexDomain(link.url)}`).then(
-              (res) => !res.ok,
-            ),
-          ]
-        : []),
-      // @ts-ignore
-    ]).then((results) => results.map((result) => result.value));
+    const response = await addLink(link);
 
     if (response === null) {
-      return new Response("Duplicate key: this short link already exists.", {
+      return new Response("Duplicate key: This short link already exists.", {
         status: 409,
         headers,
       });
     }
 
-    if (!project && invalidFavicon) {
-      await log({
-        message: `*${
-          session?.user?.email || "Anonymous User"
-        }* created a new link (${link.domain}/${link.key}) for ${link.url} ${
-          invalidFavicon ? " but it has an invalid favicon :thinking_face:" : ""
-        }`,
-        type: "links",
-        mention: true,
-      });
-    }
+    await Promise.all([
+      link.domain === "dub.sh" &&
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/verify`,
+          body: {
+            linkId: response.id,
+          },
+        }),
+      // for public links, delete after 30 mins (if not claimed)
+      !link.userId &&
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/delete`,
+          // delete after 30 mins
+          delay: 30 * 60,
+          body: {
+            linkId: response.id,
+          },
+        }),
+    ]);
 
     return NextResponse.json(response, { headers });
   },
   {
-    needNotExceededUsage: true,
+    needNotExceededLinks: true,
     allowAnonymous: true,
   },
 );

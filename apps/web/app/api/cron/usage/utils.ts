@@ -1,13 +1,20 @@
-import { limiter } from "@/lib/cron";
+import { limiter, qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { getStats } from "@/lib/stats";
 import { ProjectProps } from "@/lib/types";
-import { getAdjustedBillingCycleStart, linkConstructor, log } from "@dub/utils";
+import {
+  APP_DOMAIN_WITH_NGROK,
+  getAdjustedBillingCycleStart,
+  linkConstructor,
+  log,
+} from "@dub/utils";
 import { sendEmail } from "emails";
 import ClicksSummary from "emails/clicks-summary";
 import UsageExceeded from "emails/usage-exceeded";
 
-export const updateUsage = async () => {
+const limit = 250;
+
+export const updateUsage = async (skip?: number) => {
   const projects = await prisma.project.findMany({
     where: {
       domains: {
@@ -22,6 +29,8 @@ export const updateUsage = async () => {
       slug: true,
       usage: true,
       usageLimit: true,
+      linksUsage: true,
+      linksLimit: true,
       plan: true,
       billingCycleStart: true,
       users: {
@@ -37,17 +46,21 @@ export const updateUsage = async () => {
       sentEmails: true,
       createdAt: true,
     },
+    skip: skip || 0,
+    take: limit,
   });
 
-  // Reset billing cycles for projects that:
-  // - Are not on the free plan
-  // - Are on the free plan but have not exceeded usage
-  // - Have adjustedBillingCycleStart that matches today's date
+  // if no projects left, meaning cron is complete
+  if (projects.length === 0) {
+    return;
+  }
+
+  // Reset billing cycles for projects that have
+  // adjustedBillingCycleStart that matches today's date
   const billingReset = projects.filter(
-    ({ usage, usageLimit, plan, billingCycleStart }) =>
-      !(plan === "free" && usage > usageLimit) &&
+    ({ billingCycleStart }) =>
       getAdjustedBillingCycleStart(billingCycleStart as number) ===
-        new Date().getDate(),
+      new Date().getDate(),
   );
 
   // Get all projects that have exceeded usage
@@ -56,7 +69,7 @@ export const updateUsage = async () => {
   );
 
   // Send email to notify overages
-  const notifyOveragesResponse = await Promise.allSettled(
+  await Promise.allSettled(
     exceedingUsage.map(async (project) => {
       const { name, usage, usageLimit, users, sentEmails } = project;
       const emails = users.map((user) => user.user.email) as string[];
@@ -95,27 +108,16 @@ export const updateUsage = async () => {
 
   // Reset usage for projects that have billingCycleStart today
   // also delete sentEmails for those projects
-  const resetBillingResponse = await Promise.allSettled(
+  await Promise.allSettled(
     billingReset.map(async (project) => {
       // Only send the 30-day summary email if the project was created more than 30 days ago
       if (
         project.createdAt.getTime() <
         new Date().getTime() - 30 * 24 * 60 * 60 * 1000
       ) {
-        const [createdLinks, topLinks] = await Promise.allSettled([
-          prisma.link.count({
-            where: {
-              project: {
-                id: project.id,
-              },
-              createdAt: {
-                // in the last 30 days
-                gte: new Date(new Date().setDate(new Date().getDate() - 30)),
-              },
-            },
-          }),
+        const topLinks =
           project.usage > 0
-            ? getStats({
+            ? await getStats({
                 domain: project.domains.map((domain) => domain.slug).join(","),
                 endpoint: "top_links",
                 interval: "30d",
@@ -137,8 +139,7 @@ export const updateUsage = async () => {
                     }),
                   ),
               )
-            : [],
-        ]);
+            : [];
 
         const emails = project.users.map((user) => user.user.email) as string[];
 
@@ -146,19 +147,17 @@ export const updateUsage = async () => {
           emails.map((email) => {
             limiter.schedule(() =>
               sendEmail({
-                subject: `Your 30-day Dub summary for ${project.name}`,
+                subject: `Your 30-day ${process.env.NEXT_PUBLIC_APP_NAME} summary for ${project.name}`,
                 email,
                 react: ClicksSummary({
                   email,
+                  appName: process.env.NEXT_PUBLIC_APP_NAME as string,
+                  appDomain: process.env.NEXT_PUBLIC_APP_DOMAIN as string,
                   projectName: project.name,
                   projectSlug: project.slug,
                   totalClicks: project.usage,
-                  createdLinks:
-                    createdLinks.status === "fulfilled"
-                      ? createdLinks.value
-                      : 0,
-                  topLinks:
-                    topLinks.status === "fulfilled" ? topLinks.value : [],
+                  createdLinks: project.linksUsage,
+                  topLinks,
                 }),
               }),
             );
@@ -166,12 +165,32 @@ export const updateUsage = async () => {
         );
       }
 
+      const { plan, usage, usageLimit } = project;
+
+      // only reset clicks usage if it's not over usageLimit by:
+      // 2x for free plan (2K clicks)
+      // 1.5x for pro plan (75K clicks)
+      // 1.2x for business plan (300K clicks)
+
+      const resetUsage =
+        plan === "free"
+          ? usage < usageLimit * 2
+          : plan === "pro"
+          ? usage < usageLimit * 1.5
+          : plan === "business"
+          ? usage < usageLimit * 1.2
+          : true;
+
       return await prisma.project.update({
         where: {
           id: project.id,
         },
         data: {
-          usage: 0,
+          ...(resetUsage && {
+            usage: 0,
+          }),
+          // always reset linksUsage since folks can never create more links than their limit
+          linksUsage: 0,
           sentEmails: {
             deleteMany: {
               type: {
@@ -184,12 +203,12 @@ export const updateUsage = async () => {
     }),
   );
 
-  return {
-    billingReset,
-    exceedingUsage,
-    notifyOveragesResponse,
-    resetBillingResponse,
-  };
+  return await qstash.publishJSON({
+    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/usage?skip=${
+      skip ? skip + limit : limit
+    }`,
+    method: "GET",
+  });
 };
 
 const sendUsageLimitEmail = async (
@@ -201,7 +220,7 @@ const sendUsageLimitEmail = async (
     emails.map((email) => {
       limiter.schedule(() =>
         sendEmail({
-          subject: `You have exceeded your Dub usage limit`,
+          subject: `You have exceeded your ${process.env.NEXT_PUBLIC_APP_NAME} usage limit`,
           email,
           react: UsageExceeded({
             email,

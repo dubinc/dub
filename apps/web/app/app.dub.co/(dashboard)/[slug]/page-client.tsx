@@ -8,12 +8,12 @@ import {
   Popover,
   Tooltip,
   TooltipContent,
+  useRouterStuff,
 } from "@dub/ui";
 import useProject from "@/lib/swr/use-project";
 import { ChevronDown, FilePlus2, Sheet } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useContext, useState } from "react";
-import { ModalContext } from "@/ui/modals/provider";
+import { useState } from "react";
 
 export default function ProjectLinksClient() {
   const { AddEditLinkModal, AddEditLinkButton } = useAddEditLinkModal();
@@ -39,24 +39,28 @@ export default function ProjectLinksClient() {
 
 const AddLinkOptions = () => {
   const router = useRouter();
-  const { slug, exceededUsage } = useProject();
+  const { slug, plan, exceededLinks } = useProject();
   const [openPopover, setOpenPopover] = useState(false);
-  const { setShowUpgradePlanModal } = useContext(ModalContext);
+  const { queryParams } = useRouterStuff();
 
   return (
     <Popover
       content={
         <div className="w-full divide-y divide-gray-200 md:w-52">
           <div className="p-2">
-            {slug && exceededUsage ? (
+            {slug && exceededLinks ? (
               <Tooltip
                 content={
                   <TooltipContent
-                    title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to edit them."
-                    cta="Upgrade to Pro"
+                    title="Your project has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
+                    cta="Upgrade"
                     onClick={() => {
                       setOpenPopover(false);
-                      setShowUpgradePlanModal(true);
+                      queryParams({
+                        set: {
+                          upgrade: plan === "free" ? "pro" : "business",
+                        },
+                      });
                     }}
                   />
                 }
@@ -88,21 +92,75 @@ const AddLinkOptions = () => {
                     <img
                       src="/_static/icons/bitly.svg"
                       alt="Bitly logo"
-                      className="h-4 w-4 rounded-full grayscale"
+                      className="h-4 w-4"
                     />
                   }
                 />
               </button>
             )}
-            {slug && exceededUsage ? (
+            {slug && exceededLinks ? (
               <Tooltip
                 content={
                   <TooltipContent
-                    title="Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to edit them."
+                    title="Your project has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
                     cta="Upgrade to Pro"
                     onClick={() => {
                       setOpenPopover(false);
-                      setShowUpgradePlanModal(true);
+                      queryParams({
+                        set: {
+                          upgrade: plan === "free" ? "pro" : "business",
+                        },
+                      });
+                    }}
+                  />
+                }
+              >
+                <div className="flex w-full cursor-not-allowed items-center justify-between space-x-2 rounded-md p-2 text-sm text-gray-400">
+                  <IconMenu
+                    text="Import from Rebrandly"
+                    icon={
+                      <img
+                        src="/_static/icons/rebrandly.svg"
+                        alt="Rebrandly logo"
+                        className="h-4 w-4 grayscale"
+                      />
+                    }
+                  />
+                </div>
+              </Tooltip>
+            ) : (
+              <button
+                onClick={() => {
+                  setOpenPopover(false);
+                  router.push(`/${slug}?import=rebrandly`);
+                }}
+                className="w-full rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
+              >
+                <IconMenu
+                  text="Import from Rebrandly"
+                  icon={
+                    <img
+                      src="/_static/icons/rebrandly.svg"
+                      alt="Rebrandly logo"
+                      className="h-4 w-4"
+                    />
+                  }
+                />
+              </button>
+            )}
+            {slug && exceededLinks ? (
+              <Tooltip
+                content={
+                  <TooltipContent
+                    title="Your project has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
+                    cta="Upgrade to Pro"
+                    onClick={() => {
+                      setOpenPopover(false);
+                      queryParams({
+                        set: {
+                          upgrade: plan === "free" ? "pro" : "business",
+                        },
+                      });
                     }}
                   />
                 }
@@ -134,7 +192,7 @@ const AddLinkOptions = () => {
                     <img
                       src="/_static/icons/short.svg"
                       alt="Short.io logo"
-                      className="h-4 w-4 grayscale"
+                      className="h-4 w-4"
                     />
                   }
                 />

@@ -3,12 +3,22 @@
 import { DomainProps, ProjectWithDomainProps } from "@/lib/types";
 import { BlurImage } from "@/ui/shared/blur-image";
 import { CheckCircleFill, XCircleFill } from "@/ui/shared/icons";
-import { Badge, NumberTooltip, Tooltip } from "@dub/ui";
-import { GOOGLE_FAVICON_URL, fetcher, nFormatter } from "@dub/utils";
+import { Badge, InlineSnippet, NumberTooltip, Tooltip } from "@dub/ui";
+import {
+  DUB_DOMAINS,
+  GOOGLE_FAVICON_URL,
+  HOME_DOMAIN,
+  cn,
+  fetcher,
+  nFormatter,
+} from "@dub/utils";
 import { BarChart2, ExternalLink, Globe, Link2 } from "lucide-react";
 import Link from "next/link";
 import useSWR from "swr";
+import useSWRImmutable from "swr/immutable";
 import PlanBadge from "./plan-badge";
+import { Session } from "@/lib/auth";
+import ProjectArrow from "./project-arrow";
 
 export default function ProjectCard({
   id,
@@ -17,98 +27,136 @@ export default function ProjectCard({
   logo,
   usage,
   plan,
-  domains,
-  primaryDomain,
+  domains: projectDomains,
+  primaryDomain: projectPrimaryDomain,
+  metadata,
 }: ProjectWithDomainProps) {
   const { data: count } = useSWR<number>(
     `/api/links/count?projectSlug=${slug}`,
     fetcher,
   );
+
+  const { data: user } = useSWRImmutable<
+    Session["user"] & { migratedProject: string | null }
+  >(`/api/user`, fetcher);
+
+  const isMigratedProject = user?.migratedProject === id;
+
+  const defaultDomains = metadata?.defaultDomains
+    ? DUB_DOMAINS.filter((d) => metadata?.defaultDomains?.includes(d.slug))
+    : DUB_DOMAINS;
+
+  const domains = projectDomains.length > 0 ? projectDomains : defaultDomains;
+
+  const primaryDomain = projectPrimaryDomain || defaultDomains[0];
+
   return (
-    <Link
-      key={slug}
-      href={`/${slug}`}
-      className="flex flex-col space-y-10 rounded-lg border border-gray-100 bg-white p-6 shadow transition-all hover:shadow-lg"
-    >
-      <div className="flex items-start justify-between">
-        <div className="flex items-center space-x-3">
-          <BlurImage
-            src={logo || `${GOOGLE_FAVICON_URL}${primaryDomain?.slug}`}
-            alt={id}
-            className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full"
-            width={48}
-            height={48}
-          />
-          <div>
-            <h2 className="text-lg font-medium text-gray-700">{name}</h2>
-            <div className="flex items-center">
-              <p className="text-gray-500">{primaryDomain?.slug}</p>
-              <Tooltip
-                content={
-                  <DomainsTooltip
-                    domains={domains}
-                    title={
-                      domains.length > 1
-                        ? "Here are all the domains for this project."
-                        : primaryDomain?.verified
-                        ? "Your domain is verified. You can start adding links."
-                        : "Please verify your domain to start adding links."
-                    }
-                    cta={
-                      domains.length > 1
-                        ? "Manage Domains"
-                        : primaryDomain?.verified
-                        ? "Manage Domain"
-                        : "Verify Domain"
-                    }
-                    href={`/${slug}/domains`}
-                  />
-                }
-              >
-                <div className="ml-1 flex items-center">
-                  {domains.length > 1 ? (
-                    <Badge variant="gray">+{domains.length - 1}</Badge>
-                  ) : primaryDomain?.verified ? (
-                    <CheckCircleFill className="h-5 w-5 text-blue-500" />
-                  ) : (
-                    <XCircleFill className="h-5 w-5 text-gray-300" />
-                  )}
-                </div>
-              </Tooltip>
+    <div className="group relative">
+      {isMigratedProject && (
+        <>
+          <div className="absolute -inset-1 rounded-lg bg-gradient-to-r from-red-600 to-violet-600 opacity-25 blur-lg transition duration-1000 group-hover:opacity-75 group-hover:duration-200" />
+          <ProjectArrow className="absolute -bottom-20 right-56 lg:right-0 z-10 text-violet-600" />
+          <div className="absolute -bottom-28 right-0 lg:-right-56 z-10 w-full max-w-[16rem] rounded-lg border border-gray-200 bg-white p-3 text-center text-sm shadow">
+            <p>
+              Your <InlineSnippet>dub.sh</InlineSnippet> links have been
+              migrated to a custom project.
+            </p>
+            <a
+              href={`${HOME_DOMAIN}/changelog/dub-links-updates`}
+              target="_blank"
+              className="mt-1 block text-gray-500 underline underline-offset-4 hover:text-gray-800"
+            >
+              Read the changelog.
+            </a>
+          </div>
+        </>
+      )}
+      <Link
+        key={slug}
+        href={`/${slug}`}
+        className={cn(
+          "relative flex flex-col justify-between space-y-10 rounded-lg border border-gray-100 bg-white p-6 shadow transition-all hover:shadow-lg",
+          {
+            "border-violet-600": isMigratedProject,
+          },
+        )}
+      >
+        <div className="flex items-start justify-between">
+          <div className="flex items-center space-x-3">
+            <BlurImage
+              src={logo || `${GOOGLE_FAVICON_URL}${primaryDomain?.slug}`}
+              alt={id}
+              className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full"
+              width={48}
+              height={48}
+            />
+            <div>
+              <h2 className="text-lg font-medium text-gray-700">{name}</h2>
+              <div className="flex items-center">
+                <p className="text-gray-500">{primaryDomain?.slug}</p>
+                <Tooltip
+                  content={
+                    <DomainsTooltip
+                      domains={domains}
+                      title={
+                        primaryDomain?.verified === false
+                          ? "Please verify your domain to start adding links."
+                          : "Here are all the domains for this project."
+                      }
+                      cta={
+                        primaryDomain?.verified === false
+                          ? "Verify Domain"
+                          : "Manage Domain"
+                      }
+                      href={`/${slug}/domains`}
+                    />
+                  }
+                >
+                  <div className="ml-1 flex items-center">
+                    {domains.length > 1 ? (
+                      <Badge variant="gray">+{domains.length - 1}</Badge>
+                    ) : primaryDomain?.verified ? (
+                      <CheckCircleFill className="h-5 w-5 text-blue-500" />
+                    ) : primaryDomain?.verified === false ? (
+                      <XCircleFill className="h-5 w-5 text-gray-300" />
+                    ) : null}
+                  </div>
+                </Tooltip>
+              </div>
             </div>
           </div>
+          <PlanBadge plan={plan} />
         </div>
-        <PlanBadge plan={plan} />
-      </div>
-      <div className="flex items-center space-x-4">
-        <div className="flex items-center space-x-1 text-gray-500">
-          <Globe className="h-4 w-4" />
-          <h2 className="whitespace-nowrap text-sm">
-            {nFormatter(domains.length)} domain{domains.length > 1 && "s"}
-          </h2>
-        </div>
-        <div className="flex items-center space-x-1 text-gray-500">
-          <Link2 className="h-4 w-4" />
-          {count || count === 0 ? (
-            <NumberTooltip value={count} unit="links">
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-1 text-gray-500">
+            <Globe className="h-4 w-4" />
+            <h2 className="whitespace-nowrap text-sm">
+              {nFormatter(domains.length)} domain{domains.length != 1 && "s"}
+            </h2>
+          </div>
+          <div className="flex items-center space-x-1 text-gray-500">
+            <Link2 className="h-4 w-4" />
+            {count || count === 0 ? (
+              <NumberTooltip value={count} unit="links">
+                <h2 className="whitespace-nowrap text-sm">
+                  {nFormatter(count)} link{count != 1 && "s"}
+                </h2>
+              </NumberTooltip>
+            ) : (
+              <div className="h-4 w-8 animate-pulse rounded-md bg-gray-200" />
+            )}
+          </div>
+          <div className="flex items-center space-x-1 text-gray-500">
+            <BarChart2 className="h-4 w-4" />
+            <NumberTooltip value={usage}>
               <h2 className="whitespace-nowrap text-sm">
-                {nFormatter(count)} link{count != 1 && "s"}
+                {nFormatter(usage)} click{usage != 1 && "s"}
               </h2>
             </NumberTooltip>
-          ) : (
-            <div className="h-4 w-8 animate-pulse rounded-md bg-gray-200" />
-          )}
+          </div>
         </div>
-        <div className="flex items-center space-x-1 text-gray-500">
-          <BarChart2 className="h-4 w-4" />
-          <NumberTooltip value={usage}>
-            <h2 className="whitespace-nowrap text-sm">
-              {nFormatter(usage)} click{usage != 1 && "s"}
-            </h2>
-          </NumberTooltip>
-        </div>
-      </div>
-    </Link>
+      </Link>
+    </div>
   );
 }
 

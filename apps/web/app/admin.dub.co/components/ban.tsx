@@ -19,8 +19,6 @@ export default function BanUser() {
   const [copied, setCopied] = useState(false);
   const router = useRouter();
 
-  console.log(data?.proProjectSlugs);
-
   return (
     <div className="flex flex-col space-y-5">
       <form
@@ -144,7 +142,6 @@ const Form = () => {
         name="key"
         id="key"
         type="text"
-        autoFocus
         required
         disabled={pending}
         autoComplete="off"

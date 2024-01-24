@@ -1,17 +1,17 @@
 ---
 title: "Introduction"
-description: "Fundamental concepts of the Dub API."
+description: "Fundamental concepts of Dub.co's API."
 ---
 
 <Info>
-  Dub's API is currently in beta. If you have any questions or feedback, please
-  reach out to us at
-  [support@dub.co](mailto:support@dub.co?subject=Dub%20API%20Feedback).
+  Dub.co's API is currently in beta. If you have any questions or feedback,
+  please reach out to us at
+  [support@dub.co](mailto:support@dub.co?subject=Dub.co%20API%20Feedback).
 </Info>
 
 ## Base URL
 
-Dub's API is built on REST principles and is served over HTTPS. To ensure data privacy, unencrypted HTTP is not supported.
+Dub.co's API is built on REST principles and is served over HTTPS. To ensure data privacy, unencrypted HTTP is not supported.
 
 The Base URL for all API endpoints is:
 
@@ -21,13 +21,13 @@ https://api.dub.co
 
 ## Authentication
 
-Authentication to the Dub API is performed via the Authorization header with a Bearer token. To authenticate, you need to include the Authorization header with the word `Bearer` followed by your token in your API requests like so:
+Authentication to Dub.co's API is performed via the Authorization header with a Bearer token. To authenticate, you need to include the Authorization header with the word `Bearer` followed by your token in your API requests like so:
 
 ```
 Authorization: Bearer <Your-Token>
 ```
 
-You can get your token under your [Dub Account Settings](https://app.dub.co/settings/tokens).
+You can get your token under your [Dub.co Account Settings](https://app.dub.co/settings/tokens).
 
 ## Response Codes
 
@@ -45,7 +45,5 @@ The API returns standard HTTP response codes to indicate the success or failure 
 
 ## Caveats
 
-- Dub's API is currently in beta and is subject to change. However, we will do our best to keep breaking changes to a minimum.
-- The API does not support `PUT` requests at this time. One workaround would be to
-  `DELETE` the resource and `POST` a new one.
-- The API does not support generic shortlinks (`dub.sh`, `chatg.pt`) at this time.
+- Dub's API is currently in public beta and is subject to change. However, we will do our best to keep breaking changes to a minimum.
+- The API does not support generic shortlinks (`dub.sh`, `chatg.pt`) at this time – you can only use it with a [Dub.co project](https://dub.co/help/article/what-is-a-project) with a [custom domain](https://dub.co/help/article/how-to-add-custom-domain) for now.

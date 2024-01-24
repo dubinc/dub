@@ -16,10 +16,14 @@ export async function POST(req: NextRequest) {
 
   const { email } = (await req.json()) as { email: string };
 
-  if (!conn) {
+  if (!process.env.DATABASE_URL) {
     return new Response("Database connection not established", {
       status: 500,
     });
+  }
+
+  if (!process.env.NEXT_PUBLIC_IS_DUB) {
+    return NextResponse.json({ exists: true });
   }
 
   const user = await conn

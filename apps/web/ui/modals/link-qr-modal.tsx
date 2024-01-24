@@ -2,8 +2,6 @@
 
 import { QRCodeSVG, getQRAsCanvas, getQRAsSVGDataUri } from "@/lib/qr";
 import useProject from "@/lib/swr/use-project";
-import { SimpleLinkProps } from "@/lib/types";
-import { ModalContext } from "@/ui/modals/provider";
 import { BlurImage } from "@/ui/shared/blur-image";
 import { Clipboard, Download } from "@/ui/shared/icons";
 import {
@@ -17,6 +15,7 @@ import {
   Switch,
   Tooltip,
   TooltipContent,
+  useRouterStuff,
 } from "@dub/ui";
 import {
   APP_HOSTNAMES,
@@ -32,7 +31,6 @@ import {
   Dispatch,
   SetStateAction,
   useCallback,
-  useContext,
   useMemo,
   useRef,
   useState,
@@ -41,6 +39,7 @@ import { HexColorInput, HexColorPicker } from "react-colorful";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
 import { useParams } from "next/navigation";
+import { QRLinkProps } from "@/lib/types";
 
 function LinkQRModalHelper({
   showLinkQRModal,
@@ -49,7 +48,7 @@ function LinkQRModalHelper({
 }: {
   showLinkQRModal: boolean;
   setShowLinkQRModal: Dispatch<SetStateAction<boolean>>;
-  props: SimpleLinkProps;
+  props: QRLinkProps;
 }) {
   return (
     <Modal showModal={showLinkQRModal} setShowModal={setShowLinkQRModal}>
@@ -62,13 +61,14 @@ export function QRCodePicker({
   props,
   setShowLinkQRModal,
 }: {
-  props: SimpleLinkProps;
+  props: QRLinkProps;
   setShowLinkQRModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const anchorRef = useRef<HTMLAnchorElement>(null);
   const { logo, plan } = useProject();
   const { avatarUrl, apexDomain } = useMemo(() => {
     try {
+      if (!props.url) return { avatarUrl: null, apexDomain: null };
       const apexDomain = getApexDomain(props.url);
       return {
         avatarUrl: `${GOOGLE_FAVICON_URL}${apexDomain}`,
@@ -240,8 +240,7 @@ function AdvancedSettings({
     setFgColor(color);
   }, 100);
 
-  const { setShowAddProjectModal, setShowUpgradePlanModal } =
-    useContext(ModalContext);
+  const { queryParams } = useRouterStuff();
 
   return (
     <div>
@@ -271,7 +270,7 @@ function AdvancedSettings({
               className="flex items-center space-x-1"
             >
               <p className="text-sm font-medium text-gray-700">Logo</p>
-              {plan && plan !== "free" && (
+              {plan !== "free" && (
                 <InfoTooltip
                   content={
                     <SimpleTooltipContent
@@ -283,7 +282,7 @@ function AdvancedSettings({
                 />
               )}
             </label>
-            {plan && plan !== "free" ? (
+            {plan !== "free" ? (
               <div className="mt-1 flex items-center space-x-2">
                 <Switch
                   fn={setShowLogo}
@@ -293,24 +292,25 @@ function AdvancedSettings({
                   thumbTranslate="translate-x-6"
                 />
                 <p className="text-sm text-gray-600">
-                  Show {!slug || (!logo && "Dub.co")} Logo
+                  Show {!slug || (!logo && process.env.NEXT_PUBLIC_APP_NAME)}{" "}
+                  Logo
                 </p>
               </div>
             ) : (
               <Tooltip
                 content={
                   <TooltipContent
-                    title="You need to be on the Pro plan to customize your QR Code logo."
-                    cta={slug ? "Upgrade to Pro" : "Create a project"}
+                    title="You need to be on the Pro plan and above to customize your QR Code logo."
+                    cta="Upgrade to Pro"
                     {...(APP_HOSTNAMES.has(window.location.hostname)
                       ? {
                           onClick: () => {
                             setShowLinkQRModal(false);
-                            if (slug) {
-                              setShowUpgradePlanModal(true);
-                            } else {
-                              setShowAddProjectModal(true);
-                            }
+                            queryParams({
+                              set: {
+                                upgrade: "pro",
+                              },
+                            });
                           },
                         }
                       : { href: `${HOME_DOMAIN}/pricing` })}
@@ -326,7 +326,9 @@ function AdvancedSettings({
                     thumbTranslate="translate-x-6"
                     disabled={true}
                   />
-                  <p className="text-sm text-gray-600">Show Dub.co Logo</p>
+                  <p className="text-sm text-gray-600">
+                    Show {process.env.NEXT_PUBLIC_APP_NAME} Logo
+                  </p>
                 </div>
               </Tooltip>
             )}
@@ -432,7 +434,7 @@ function QrDropdown({ download, qrData, showLogo, logo }) {
   );
 }
 
-export function useLinkQRModal({ props }: { props: SimpleLinkProps }) {
+export function useLinkQRModal({ props }: { props: QRLinkProps }) {
   const [showLinkQRModal, setShowLinkQRModal] = useState(false);
 
   const LinkQRModal = useCallback(() => {

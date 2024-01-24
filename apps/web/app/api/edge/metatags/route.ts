@@ -7,7 +7,6 @@ import { getMetaTags } from "./utils";
 
 export const runtime = "edge";
 
-// TODO: waitUntil() is not supported in App Router yet: https://vercel.com/docs/functions/edge-functions/edge-functions-api#waituntil
 export async function GET(req: NextRequest) {
   const url = req.nextUrl.searchParams.get("url");
   if (!url || !isValidUrl(url)) {

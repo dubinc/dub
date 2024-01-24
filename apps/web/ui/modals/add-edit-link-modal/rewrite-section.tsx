@@ -1,7 +1,13 @@
-import { InfoTooltip, SimpleTooltipContent, Switch } from "@dub/ui";
+import useProject from "@/lib/swr/use-project";
+import {
+  InfoTooltip,
+  SimpleTooltipContent,
+  Switch,
+  TooltipContent,
+  useRouterStuff,
+} from "@dub/ui";
 import { HOME_DOMAIN } from "@dub/utils";
 import { type Link as LinkProps } from "@prisma/client";
-import { useParams } from "next/navigation";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 export default function RewriteSection({
@@ -11,7 +17,8 @@ export default function RewriteSection({
   data: LinkProps;
   setData: Dispatch<SetStateAction<LinkProps>>;
 }) {
-  const { slug } = useParams() as { slug: string };
+  const { plan } = useProject();
+  const { queryParams } = useRouterStuff();
 
   const { rewrite } = data;
   const [enabled, setEnabled] = useState(rewrite);
@@ -46,18 +53,29 @@ export default function RewriteSection({
         <Switch
           fn={() => setEnabled(!enabled)}
           checked={enabled}
-          // link cloaking is only available on custom domains
-          {...(slug
-            ? {}
-            : {
+          // link cloaking is only available on Dub's Pro plan
+          {...(!plan || plan === "free"
+            ? {
                 disabledTooltip: (
-                  <SimpleTooltipContent
-                    title="You can only use link cloaking on a project with a custom domain."
-                    cta="Learn more."
-                    href={`${HOME_DOMAIN}/help/article/how-to-create-link#dubsh-links-vs-custom-domain-links`}
+                  <TooltipContent
+                    title={`Link cloaking is only available on ${process.env.NEXT_PUBLIC_APP_NAME}'s Pro plan. Upgrade to Pro to use this feature.`}
+                    cta="Upgrade to Pro"
+                    {...(plan === "free"
+                      ? {
+                          onClick: () =>
+                            queryParams({
+                              set: {
+                                upgrade: "pro",
+                              },
+                            }),
+                        }
+                      : {
+                          href: `${HOME_DOMAIN}/pricing`,
+                        })}
                   />
                 ),
-              })}
+              }
+            : {})}
         />
       </div>
     </div>

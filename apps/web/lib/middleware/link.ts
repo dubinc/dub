@@ -11,6 +11,7 @@ import {
 } from "next/server";
 import { isBlacklistedReferrer } from "../edge-config";
 import { getLinkViaEdge } from "../planetscale";
+import { RedisLinkProps } from "../types";
 
 export default async function LinkMiddleware(
   req: NextRequest,
@@ -25,7 +26,7 @@ export default async function LinkMiddleware(
   if (
     process.env.NODE_ENV !== "development" &&
     domain === "dub.sh" &&
-    key === "github"
+    key === "try"
   ) {
     if (await isBlacklistedReferrer(req.headers.get("referer"))) {
       return new Response("Don't DDoS me pls 🥺", { status: 429 });
@@ -42,16 +43,7 @@ export default async function LinkMiddleware(
 
   const inspectMode = key.endsWith("+");
 
-  const response = await redis.get<{
-    url: string;
-    password?: boolean;
-    proxy?: boolean;
-    rewrite?: boolean;
-    iframeable?: boolean;
-    ios?: string;
-    android?: string;
-    geo?: object;
-  }>(
+  const response = await redis.get<RedisLinkProps>(
     // if inspect mode is enabled, remove the trailing `+` from the key
     `${domain}:${inspectMode ? key.slice(0, -1) : key}`,
   );
@@ -62,19 +54,22 @@ export default async function LinkMiddleware(
     proxy,
     rewrite,
     iframeable,
+    expiresAt,
     ios,
     android,
     geo,
+    banned,
   } = response || {};
 
   if (target) {
-    // only show inspect model if the link is not password protected
+    // only show inspect modal if the link is not password protected
     if (inspectMode && !password) {
       return NextResponse.rewrite(
         new URL(`/inspect/${domain}/${encodeURIComponent(key)}`, req.url),
       );
     }
 
+    // if the link is password protected
     if (password) {
       const pw = req.nextUrl.searchParams.get("pw");
 
@@ -90,6 +85,20 @@ export default async function LinkMiddleware(
         // strip it from the URL if it's correct
         req.nextUrl.searchParams.delete("pw");
       }
+    }
+
+    // if the link is banned
+    if (banned) {
+      return NextResponse.rewrite(
+        new URL(`/banned/${domain}/${encodeURIComponent(key)}`, req.url),
+      );
+    }
+
+    // if the link has expired
+    if (expiresAt && new Date(expiresAt) < new Date()) {
+      return NextResponse.rewrite(
+        new URL(`/expired/${domain}/${encodeURIComponent(key)}`, req.url),
+      );
     }
 
     // only track the click when there is no `dub-no-track` header

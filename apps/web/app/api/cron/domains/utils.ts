@@ -161,7 +161,7 @@ export const handleDomainUpdates = async ({
 
   if (invalidDays >= 28) {
     const sentSecondDomainInvalidEmail = sentEmails.includes(
-      "secondDomainInvalidEmail",
+      `secondDomainInvalidEmail:${domain}`,
     );
     if (!sentSecondDomainInvalidEmail) {
       return sendDomainInvalidEmail({
@@ -176,7 +176,7 @@ export const handleDomainUpdates = async ({
 
   if (invalidDays >= 14) {
     const sentFirstDomainInvalidEmail = sentEmails.includes(
-      "firstDomainInvalidEmail",
+      `firstDomainInvalidEmail:${domain}`,
     );
     if (!sentFirstDomainInvalidEmail) {
       return sendDomainInvalidEmail({
@@ -230,7 +230,7 @@ const sendDomainInvalidEmail = async ({
             slug: projectSlug,
           },
         },
-        type: `${type}DomainInvalidEmail`,
+        type: `${type}DomainInvalidEmail:${domain}`,
       },
     }),
   ]);

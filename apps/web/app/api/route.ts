@@ -178,7 +178,7 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
               "application/json": {
                 schema: {
                   $ref: "#/components/schemas/LinkBody",
-                  required: ["domain", "url"],
+                  required: ["url"],
                 },
               },
             },
@@ -613,7 +613,8 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
           properties: {
             domain: {
               type: "string",
-              description: "The domain of the short link.",
+              description:
+                "The domain of the short link. If not provided, the primary domain for the project will be used (or `dub.sh` if the project has no domains).",
             },
             key: {
               type: "string",

@@ -18,6 +18,7 @@ export const getProjects = cache(async () => {
     },
     include: {
       domains: true,
+      users: true,
     },
   });
 

@@ -16,7 +16,7 @@ export default function ProjectSettingsClient() {
     <>
       <Form
         title="Project Name"
-        description="This is the name of your project on Dub."
+        description={`This is the name of your project on ${process.env.NEXT_PUBLIC_APP_NAME}.`}
         inputData={{
           name: "name",
           defaultValue: name,
@@ -53,7 +53,7 @@ export default function ProjectSettingsClient() {
       />
       <Form
         title="Project Slug"
-        description="This is your project's unique slug on Dub."
+        description={`This is your project's unique slug on ${process.env.NEXT_PUBLIC_APP_NAME}.`}
         inputData={{
           name: "slug",
           defaultValue: slug,
@@ -79,10 +79,9 @@ export default function ProjectSettingsClient() {
               await mutate("/api/projects");
               router.push(`/${newSlug}/settings`);
               toast.success("Successfully updated project slug!");
-            } else if (res.status === 422) {
-              toast.error("Project slug already exists");
             } else {
-              toast.error("Something went wrong");
+              const error = await res.text();
+              toast.error(error || "Something went wrong");
             }
           })
         }

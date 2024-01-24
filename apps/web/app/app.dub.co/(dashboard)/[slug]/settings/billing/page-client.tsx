@@ -1,28 +1,41 @@
 "use client";
 
 import useProject from "@/lib/swr/use-project";
-import { ModalContext } from "@/ui/modals/provider";
+import useTags from "@/lib/swr/use-tags";
+import useUsers from "@/lib/swr/use-users";
 import PlanBadge from "@/ui/projects/plan-badge";
-import { Divider, InfinityIcon } from "@/ui/shared/icons";
-import { Button, InfoTooltip, NumberTooltip } from "@dub/ui";
-import { fetcher, getFirstAndLastDay, nFormatter } from "@dub/utils";
+import { Divider } from "@/ui/shared/icons";
+import ProgressBar from "@/ui/shared/progress-bar";
+import { Button, InfoTooltip, NumberTooltip, useRouterStuff } from "@dub/ui";
+import { HOME_DOMAIN, getFirstAndLastDay, nFormatter } from "@dub/utils";
 import va from "@vercel/analytics";
-import { motion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import Confetti from "react-dom-confetti";
 import { toast } from "sonner";
-import useSWR, { mutate } from "swr";
+import { mutate } from "swr";
 
 export default function ProjectBillingClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const { slug, plan, usage, usageLimit, billingCycleStart } = useProject();
+  const {
+    slug,
+    plan,
+    usage,
+    usageLimit,
+    linksUsage,
+    linksLimit,
+    domains,
+    domainsLimit,
+    tagsLimit,
+    usersLimit,
+    billingCycleStart,
+  } = useProject();
 
-  const { data: links } = useSWR<number>(
-    `/api/projects/${slug}/links/count`,
-    fetcher,
-  );
+  const { tags } = useTags();
+  const { users } = useUsers();
+
   const [clicked, setClicked] = useState(false);
 
   const [billingStart, billingEnd] = useMemo(() => {
@@ -41,23 +54,27 @@ export default function ProjectBillingClient() {
     return [];
   }, [billingCycleStart]);
 
-  const { setShowUpgradePlanModal } = useContext(ModalContext);
+  const { queryParams } = useRouterStuff();
+  const [confetti, setConfetti] = useState(false);
 
   useEffect(() => {
     if (searchParams?.get("success")) {
       toast.success("Upgrade success!");
+      setConfetti(true);
       setTimeout(() => {
         mutate(`/api/projects/${slug}`);
-        // track upgrade to pro event
-        va.track("Upgraded Plan", {
-          plan: "pro",
-        });
+        // track upgrade event
+        plan &&
+          va.track("Upgraded Plan", {
+            plan,
+          });
       }, 1000);
     }
-  }, [searchParams]);
+  }, [searchParams, plan]);
 
   return (
     <>
+      <Confetti active={confetti} config={{ elementCount: 200, spread: 90 }} />
       <div className="rounded-lg border border-gray-200 bg-white">
         <div className="flex flex-col space-y-3 p-10">
           <h2 className="text-xl font-medium">Plan &amp; Usage</h2>
@@ -83,88 +100,59 @@ export default function ProjectBillingClient() {
             )}
           </p>
         </div>
-        <div className="border-b border-gray-200" />
-        <div className="grid grid-cols-1 divide-y divide-gray-200 sm:grid-cols-2 sm:divide-x sm:divide-y-0">
-          <div className="p-10">
-            <div className="flex items-center space-x-2">
-              <h3 className="font-medium">Total Link Clicks</h3>
-              <InfoTooltip content="Number of billable link clicks across all your projects." />
-            </div>
-            {plan === "enterprise" ? (
-              <div className="mt-4 flex items-center">
-                {usage || usage === 0 ? (
-                  <NumberTooltip value={usage}>
-                    <p className="text-2xl font-semibold text-black">
-                      {nFormatter(usage)}
-                    </p>
-                  </NumberTooltip>
-                ) : (
-                  <div className="h-8 w-8 animate-pulse rounded-md bg-gray-200" />
-                )}
-                <Divider className="h-8 w-8 text-gray-500" />
-                <InfinityIcon className="h-8 w-8 text-gray-500" />
-              </div>
-            ) : (
-              <div className="mt-2 flex flex-col space-y-2">
-                {usage !== undefined && usageLimit ? (
-                  <p className="text-sm text-gray-600">
-                    <NumberTooltip value={usage}>
-                      <span>{nFormatter(usage)} </span>
-                    </NumberTooltip>
-                    / {nFormatter(usageLimit)} clicks (
-                    {((usage / usageLimit) * 100).toFixed(1)}%)
-                  </p>
-                ) : (
-                  <div className="h-5 w-32 animate-pulse rounded-md bg-gray-200" />
-                )}
-                <div className="h-3 w-full overflow-hidden rounded-full bg-gray-200">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{
-                      width:
-                        usage !== undefined && usageLimit
-                          ? (usage / usageLimit) * 100 + "%"
-                          : "0%",
-                    }}
-                    transition={{ duration: 0.5, type: "spring" }}
-                    className={`${
-                      usage && usageLimit && usage > usageLimit
-                        ? "bg-red-500"
-                        : "bg-blue-500"
-                    } h-3 rounded-full`}
-                  />
-                </div>
-              </div>
-            )}
+        <div className="grid divide-y divide-gray-200 border-y border-gray-200">
+          <UsageCategory
+            title="Link Clicks"
+            unit="clicks"
+            tooltip="Number of billable link clicks for your current billing cycle."
+            usage={usage}
+            usageLimit={usageLimit}
+          />
+          <div className="grid grid-cols-1 divide-y divide-gray-200 sm:grid-cols-2 sm:divide-y-0 sm:divide-x">
+            <UsageCategory
+              title="Created Links"
+              unit="links"
+              tooltip="Number of short links created in the current billing cycle."
+              usage={linksUsage}
+              usageLimit={linksLimit}
+            />
+            <UsageCategory
+              title="Custom Domains"
+              unit="domains"
+              tooltip="Number of custom domains added to your project."
+              usage={domains?.length}
+              usageLimit={domainsLimit}
+              numberOnly
+            />
           </div>
-          <div className="p-10">
-            <div className="flex items-center space-x-2">
-              <h3 className="font-medium">Number of Links</h3>
-              <InfoTooltip content="Number of short links in your project." />
-            </div>
-            <div className="mt-4 flex items-center">
-              {links || links === 0 ? (
-                <NumberTooltip value={links} unit="links">
-                  <p className="text-2xl font-semibold text-black">
-                    {nFormatter(links)}
-                  </p>
-                </NumberTooltip>
-              ) : (
-                <div className="h-8 w-8 animate-pulse rounded-md bg-gray-200" />
-              )}
-              <Divider className="h-8 w-8 text-gray-500" />
-              <InfinityIcon className="h-8 w-8 text-gray-500" />
-            </div>
+          <div className="grid grid-cols-1 divide-y divide-gray-200 sm:grid-cols-2 sm:divide-y-0 sm:divide-x">
+            <UsageCategory
+              title="Tags"
+              unit="tags"
+              tooltip="Number of tags added to your project."
+              usage={tags?.length}
+              usageLimit={tagsLimit}
+              numberOnly
+            />
+            <UsageCategory
+              title="Teammates"
+              unit="users"
+              tooltip="Number of users added to your project."
+              usage={users?.length}
+              usageLimit={usersLimit}
+              numberOnly
+            />
           </div>
         </div>
-        <div className="border-b border-gray-200" />
         <div className="flex flex-col items-center justify-between space-y-3 px-10 py-4 text-center sm:flex-row sm:space-y-0 sm:text-left">
           {plan ? (
             <p className="text-sm text-gray-500">
               {plan === "enterprise"
-                ? "On the Enterprise plan, the sky's the limit! Thank you for your support."
+                ? "You're on the Enterprise plan."
+                : plan === "business"
+                ? "Need more clicks or links? Contact us for an Enterprise quote."
                 : `For higher limits, upgrade to the ${
-                    plan === "free" ? "Pro" : "Enterprise"
+                    plan === "free" ? "Pro" : "Business"
                   } plan.`}
             </p>
           ) : (
@@ -175,9 +163,23 @@ export default function ProjectBillingClient() {
               plan === "free" ? (
                 <Button
                   text="Upgrade"
-                  onClick={() => setShowUpgradePlanModal(true)}
+                  onClick={() =>
+                    queryParams({
+                      set: {
+                        upgrade: "pro",
+                      },
+                    })
+                  }
                   variant="success"
                 />
+              ) : plan === "business" ? (
+                <a
+                  href={`${HOME_DOMAIN}/enterprise`}
+                  target="_blank"
+                  className="inline-flex items-center justify-center rounded-md border border-violet-600 bg-violet-600 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-white hover:text-violet-600 focus:outline-none"
+                >
+                  Contact Sales
+                </a>
               ) : (
                 <Button
                   text="Manage Subscription"
@@ -205,5 +207,60 @@ export default function ProjectBillingClient() {
         </div>
       </div>
     </>
+  );
+}
+
+function UsageCategory({
+  title,
+  unit,
+  tooltip,
+  usage,
+  usageLimit,
+  numberOnly,
+}: {
+  title: string;
+  unit: string;
+  tooltip: string;
+  usage?: number;
+  usageLimit?: number;
+  numberOnly?: boolean;
+}) {
+  return (
+    <div className="p-10">
+      <div className="flex items-center space-x-2">
+        <h3 className="font-medium">{title}</h3>
+        <InfoTooltip content={tooltip} />
+      </div>
+      {numberOnly ? (
+        <div className="mt-4 flex items-center">
+          {usage || usage === 0 ? (
+            <p className="text-2xl font-semibold text-black">
+              {nFormatter(usage, { full: true })}
+            </p>
+          ) : (
+            <div className="h-8 w-8 animate-pulse rounded-md bg-gray-200" />
+          )}
+          <Divider className="h-8 w-8 text-gray-500" />
+          <p className="text-2xl font-semibold text-gray-400">
+            {nFormatter(usageLimit, { full: true })}
+          </p>
+        </div>
+      ) : (
+        <div className="mt-2 flex flex-col space-y-2">
+          {usage !== undefined && usageLimit ? (
+            <p className="text-sm text-gray-600">
+              <NumberTooltip value={usage}>
+                <span>{nFormatter(usage)} </span>
+              </NumberTooltip>
+              / {nFormatter(usageLimit)} {unit} (
+              {((usage / usageLimit) * 100).toFixed(1)}%)
+            </p>
+          ) : (
+            <div className="h-5 w-32 animate-pulse rounded-md bg-gray-200" />
+          )}
+          <ProgressBar value={usage} max={usageLimit} />
+        </div>
+      )}
+    </div>
   );
 }

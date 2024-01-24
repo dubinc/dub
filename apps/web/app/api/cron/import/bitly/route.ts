@@ -6,8 +6,6 @@ import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { importLinksFromBitly } from "./utils";
 
-export const maxDuration = 300;
-
 export async function POST(req: Request) {
   const body = await req.json();
   if (process.env.VERCEL === "1") {
@@ -21,11 +19,11 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { projectId, bitlyGroup, keepTags } = body;
+    const { projectId, bitlyGroup, importTags } = body;
     const bitlyApiKey = await redis.get(`import:bitly:${projectId}`);
 
     let tagsToId: Record<string, string> | null = null;
-    if (keepTags === true) {
+    if (importTags === true) {
       const tagsImported = await redis.get(`import:bitly:${projectId}:tags`);
 
       if (!tagsImported) {

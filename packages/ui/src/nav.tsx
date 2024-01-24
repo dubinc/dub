@@ -1,6 +1,6 @@
 "use client";
 
-import { APP_DOMAIN, SHOW_BACKGROUND_SEGMENTS, cn, fetcher } from "@dub/utils";
+import { APP_DOMAIN, HIDE_BACKGROUND_SEGMENTS, cn, fetcher } from "@dub/utils";
 import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu";
 import va from "@vercel/analytics";
 import { ChevronDown } from "lucide-react";
@@ -18,16 +18,20 @@ export const navItems = [
     slug: "customers",
   },
   {
-    name: "Changelog",
-    slug: "changelog",
-  },
-  {
-    name: "Help",
-    slug: "help",
-  },
-  {
     name: "Pricing",
     slug: "pricing",
+  },
+  {
+    name: "Enterprise",
+    slug: "enterprise",
+  },
+  {
+    name: "Blog",
+    slug: "blog",
+  },
+  {
+    name: "Changelog",
+    slug: "changelog",
   },
 ];
 
@@ -49,7 +53,7 @@ export function Nav() {
       className={cn(`sticky inset-x-0 top-0 z-30 w-full transition-all`, {
         "border-b border-gray-200 bg-white/75 backdrop-blur-lg": scrolled,
         "border-b border-gray-200 bg-white":
-          selectedLayout && !SHOW_BACKGROUND_SEGMENTS.includes(selectedLayout),
+          selectedLayout && HIDE_BACKGROUND_SEGMENTS.includes(selectedLayout),
       })}
     >
       <MaxWidthWrapper

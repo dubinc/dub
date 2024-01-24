@@ -4,8 +4,6 @@ import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { importLinksFromShort } from "./utils";
 
-export const maxDuration = 300;
-
 export async function POST(req: Request) {
   const body = await req.json();
   if (process.env.VERCEL === "1") {

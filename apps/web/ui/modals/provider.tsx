@@ -9,19 +9,18 @@ import { useImportBitlyModal } from "@/ui/modals/import-bitly-modal";
 import { useImportShortModal } from "@/ui/modals/import-short-modal";
 import { useUpgradePlanModal } from "@/ui/modals/upgrade-plan-modal";
 import { useAcceptInviteModal } from "@/ui/modals/accept-invite-modal";
-import { useParams } from "next/navigation";
 import {
   Dispatch,
   ReactNode,
   SetStateAction,
   createContext,
   useEffect,
-  useState,
 } from "react";
 import { mutate } from "swr";
 import { useCookies } from "@dub/ui";
 import { SimpleLinkProps } from "@/lib/types";
 import { toast } from "sonner";
+import { useImportRebrandlyModal } from "./import-rebrandly-modal";
 
 export const ModalContext = createContext<{
   setShowAddProjectModal: Dispatch<SetStateAction<boolean>>;
@@ -31,6 +30,7 @@ export const ModalContext = createContext<{
   setShowUpgradePlanModal: Dispatch<SetStateAction<boolean>>;
   setShowImportBitlyModal: Dispatch<SetStateAction<boolean>>;
   setShowImportShortModal: Dispatch<SetStateAction<boolean>>;
+  setShowImportRebrandlyModal: Dispatch<SetStateAction<boolean>>;
 }>({
   setShowAddProjectModal: () => {},
   setShowCompleteSetupModal: () => {},
@@ -39,6 +39,7 @@ export const ModalContext = createContext<{
   setShowUpgradePlanModal: () => {},
   setShowImportBitlyModal: () => {},
   setShowImportShortModal: () => {},
+  setShowImportRebrandlyModal: () => {},
 });
 
 export default function ModalProvider({ children }: { children: ReactNode }) {
@@ -53,37 +54,42 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
   const { setShowUpgradePlanModal, UpgradePlanModal } = useUpgradePlanModal();
   const { setShowImportBitlyModal, ImportBitlyModal } = useImportBitlyModal();
   const { setShowImportShortModal, ImportShortModal } = useImportShortModal();
-
-  const params = useParams() as { slug?: string };
-  const { slug } = params;
+  const { setShowImportRebrandlyModal, ImportRebrandlyModal } =
+    useImportRebrandlyModal();
 
   const [hashes, setHashes] = useCookies<SimpleLinkProps[]>("hashes__dub", [], {
     domain: !!process.env.NEXT_PUBLIC_VERCEL_URL ? ".dub.co" : undefined,
   });
 
-  useEffect(() => {
-    if (hashes.length > 0) {
-      fetch("/api/links/sync", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(hashes),
-      }).then(async (res) => {
-        if (res.status === 200) {
-          await mutate(
-            (key) => typeof key === "string" && key.startsWith("/api/links"),
-            undefined,
-            { revalidate: true },
-          );
-          toast.success("Links imported successfully!");
-        }
-        setHashes([]);
-      });
-    }
-  }, [hashes]);
+  const { slug, error } = useProject();
 
-  const { error } = useProject();
+  useEffect(() => {
+    if (hashes.length > 0 && slug) {
+      toast.promise(
+        fetch(`/api/links/sync?projectSlug=${slug}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(hashes),
+        }).then(async (res) => {
+          if (res.status === 200) {
+            await mutate(
+              (key) => typeof key === "string" && key.startsWith("/api/links"),
+              undefined,
+              { revalidate: true },
+            );
+            setHashes([]);
+          }
+        }),
+        {
+          loading: "Importing links...",
+          success: "Links imported successfully!",
+          error: "Something went wrong while importing links.",
+        },
+      );
+    }
+  }, [hashes, slug]);
 
   // handle invite and oauth modals
   useEffect(() => {
@@ -102,6 +108,7 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
         setShowUpgradePlanModal,
         setShowImportBitlyModal,
         setShowImportShortModal,
+        setShowImportRebrandlyModal,
       }}
     >
       <AddProjectModal />
@@ -112,6 +119,7 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
       <UpgradePlanModal />
       <ImportBitlyModal />
       <ImportShortModal />
+      <ImportRebrandlyModal />
       {children}
     </ModalContext.Provider>
   );

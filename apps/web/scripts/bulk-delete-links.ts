@@ -2,7 +2,7 @@ import "dotenv-flow/config";
 import prisma from "@/lib/prisma";
 import { redis } from "./utils";
 
-const domain = "steven.blue";
+const domain = "song.fyi";
 
 async function main() {
   const links = await prisma.link.findMany({

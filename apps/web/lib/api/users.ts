@@ -53,10 +53,11 @@ export async function inviteUser({
   const url = `${process.env.NEXTAUTH_URL}/api/auth/callback/email?${params}`;
 
   return await sendEmail({
-    subject: "You've been invited to join a project on Dub",
+    subject: `You've been invited to join a project on ${process.env.NEXT_PUBLIC_APP_NAME}`,
     email,
     react: ProjectInvite({
       email,
+      appName: process.env.NEXT_PUBLIC_APP_NAME as string,
       url,
       projectName: project.name,
       projectUser: session?.user.name || null,

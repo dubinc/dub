@@ -1,5 +1,4 @@
-import { ShortioDomainProps } from "@/lib/types";
-import { ModalContext } from "@/ui/modals/provider";
+import { ImportedDomainCountProps } from "@/lib/types";
 import {
   Button,
   InfoTooltip,
@@ -8,6 +7,7 @@ import {
   Modal,
   SimpleTooltipContent,
   Switch,
+  useRouterStuff,
 } from "@dub/ui";
 import { HOME_DOMAIN, fetcher, nFormatter } from "@dub/utils";
 import { ArrowRight } from "lucide-react";
@@ -16,7 +16,6 @@ import {
   Dispatch,
   SetStateAction,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useState,
@@ -35,7 +34,7 @@ function ImportShortModal({
   const { slug } = useParams() as { slug?: string };
   const searchParams = useSearchParams();
 
-  const { data: domains, isLoading } = useSWR<ShortioDomainProps[]>(
+  const { data: domains, isLoading } = useSWR<ImportedDomainCountProps[]>(
     slug && showImportShortModal && `/api/projects/${slug}/import/short`,
     fetcher,
     {
@@ -55,9 +54,9 @@ function ImportShortModal({
 
   const [submitting, setSubmitting] = useState(false);
 
-  const [selectedDomains, setSelectedDomains] = useState<ShortioDomainProps[]>(
-    [],
-  );
+  const [selectedDomains, setSelectedDomains] = useState<
+    ImportedDomainCountProps[]
+  >([]);
 
   const [importing, setImporting] = useState(false);
 
@@ -74,11 +73,17 @@ function ImportShortModal({
     return selectedDomains.find((d) => d.domain === domain) ? true : false;
   };
 
+  const { queryParams } = useRouterStuff();
+
   return (
     <Modal
       showModal={showImportShortModal}
       setShowModal={setShowImportShortModal}
-      onClose={() => router.push(`/${slug}`)}
+      onClose={() =>
+        queryParams({
+          del: "import",
+        })
+      }
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-8 sm:px-16">
         <div className="flex items-center space-x-3 py-4">
@@ -92,8 +97,8 @@ function ImportShortModal({
         </div>
         <h3 className="text-lg font-medium">Import Your Short.io Links</h3>
         <p className="text-center text-sm text-gray-500">
-          Easily import all your existing Short.io links into Dub with just a
-          few clicks.
+          Easily import all your existing Short.io links into{" "}
+          {process.env.NEXT_PUBLIC_APP_NAME} with just a few clicks.
         </p>
       </div>
 

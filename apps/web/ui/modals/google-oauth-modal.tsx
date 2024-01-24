@@ -28,7 +28,8 @@ function GoogleOauthModal({
         <Logo />
         <h3 className="text-lg font-medium">Connect your Google Account</h3>
         <p className="text-center text-sm text-gray-500">
-          This allows you to sign in to your Dub account with Google.{" "}
+          This allows you to sign in to your {process.env.NEXT_PUBLIC_APP_NAME}{" "}
+          account with Google.{" "}
           <a
             className="underline underline-offset-4 transition-colors hover:text-black"
             href={`${HOME_DOMAIN}/changelog/sign-in-with-google`}

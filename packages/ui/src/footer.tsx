@@ -17,8 +17,9 @@ const navigation = {
     { name: "Blog", href: "/blog" },
     { name: "Changelog", href: "/changelog" },
     { name: "Customer Stories", href: "/customers" },
-    { name: "Help Center", href: "/help" },
     { name: "Pricing", href: "/pricing" },
+    { name: "Enterprise", href: "/enterprise" },
+    { name: "Help Center", href: "/help" },
   ],
   legal: [
     { name: "Privacy", href: "/privacy" },
@@ -53,7 +54,9 @@ export function Footer() {
                 },
               })}
             >
-              <span className="sr-only">Dub.co Logo</span>
+              <span className="sr-only">
+                {process.env.NEXT_PUBLIC_APP_NAME} Logo
+              </span>
               <LogoType className="h-7 text-gray-600" />
             </Link>
             <p className="max-w-xs text-sm text-gray-500">
@@ -72,7 +75,7 @@ export function Footer() {
               </a>
               <div className="h-8 border-l border-gray-200" />
               <a
-                href="https://github.com/steven-tey/dub"
+                href="https://github.com/dubinc/dub"
                 target="_blank"
                 rel="noreferrer"
                 className="rounded-md p-2 transition-colors hover:bg-gray-100 active:bg-gray-200"
@@ -82,7 +85,7 @@ export function Footer() {
               </a>
               <div className="h-8 border-l border-gray-200" />
               <a
-                href="https://www.linkedin.com/company/dubhq/"
+                href="https://www.linkedin.com/company/dubinc/"
                 target="_blank"
                 rel="noreferrer"
                 className="rounded-md p-2 transition-colors hover:bg-gray-100 active:bg-gray-200"
@@ -196,7 +199,8 @@ export function Footer() {
         </div>
         <div className="mt-16 border-t border-gray-900/10 pt-8 sm:mt-20 lg:mt-24">
           <p className="text-sm leading-5 text-gray-500">
-            © {new Date().getFullYear()} Dub.co
+            © {new Date().getFullYear()} {process.env.NEXT_PUBLIC_APP_NAME},
+            Inc.
           </p>
         </div>
       </MaxWidthWrapper>

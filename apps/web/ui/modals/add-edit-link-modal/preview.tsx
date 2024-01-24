@@ -22,7 +22,7 @@ export default function Preview({
   const previewImage = useMemo(() => {
     if (generatingMetatags) {
       return (
-        <div className="flex h-[250px] w-full flex-col items-center justify-center space-y-4 border-b border-gray-300 bg-gray-100">
+        <div className="flex h-[250px] w-full flex-col items-center justify-center space-y-4 bg-gray-100">
           <LoadingCircle />
         </div>
       );
@@ -35,7 +35,7 @@ export default function Preview({
             alt="Preview"
             width={1200}
             height={627}
-            className="h-[250px] w-full border-b border-gray-300 object-cover"
+            className="h-[250px] w-full object-cover"
           />
         );
       } else {
@@ -43,13 +43,13 @@ export default function Preview({
           <img
             src={image}
             alt="Preview"
-            className="h-[250px] w-full border-b border-gray-300 object-cover"
+            className="h-[250px] w-full object-cover"
           />
         );
       }
     } else {
       return (
-        <div className="flex h-[250px] w-full flex-col items-center justify-center space-y-4 border-b border-gray-300 bg-gray-100">
+        <div className="flex h-[250px] w-full flex-col items-center justify-center space-y-4 bg-gray-100">
           <Photo className="h-8 w-8 text-gray-400" />
           <p className="text-sm text-gray-400">
             Enter a link to generate a preview.
@@ -81,30 +81,15 @@ export default function Preview({
               </div>
             </div>
           </div>
-          <div className="overflow-hidden rounded-md border border-gray-300">
+          <div className="relative overflow-hidden rounded-2xl border border-gray-300">
             {previewImage}
-            <div className="grid gap-1 p-3">
-              {hostname ? (
-                <p className="text-sm text-[#536471]">{hostname}</p>
-              ) : (
-                <div className="mb-1 h-4 w-24 rounded-md bg-gray-100" />
-              )}
-              {title ? (
-                <h3 className="truncate text-sm text-[#0f1419]">{title}</h3>
-              ) : (
-                <div className="mb-1 h-4 w-full rounded-md bg-gray-100" />
-              )}
-              {description ? (
-                <p className="line-clamp-2 text-sm text-[#536471]">
-                  {description}
-                </p>
-              ) : (
-                <div className="grid gap-2">
-                  <div className="h-4 w-full rounded-md bg-gray-100" />
-                  <div className="h-4 w-48 rounded-md bg-gray-100" />
-                </div>
-              )}
-            </div>
+            {title && (
+              <div className="absolute bottom-2 left-2 rounded-md bg-[#414142] py-px px-1.5">
+                <h3 className="max-w-sm truncate text-sm text-white">
+                  {title}
+                </h3>
+              </div>
+            )}
           </div>
         </div>
 
@@ -126,7 +111,7 @@ export default function Preview({
           </div>
           <div className="border border-gray-300">
             {previewImage}
-            <div className="grid gap-1 bg-[#f2f3f5] p-3">
+            <div className="grid gap-1 border-t border-gray-300 bg-[#f2f3f5] p-3">
               {hostname ? (
                 <p className="text-[0.8rem] uppercase text-[#606770]">
                   {hostname}
@@ -173,7 +158,7 @@ export default function Preview({
           </div>
           <div className="overflow-hidden rounded-[2px] shadow-[0_0_0_1px_rgba(0,0,0,0.15),0_2px_3px_rgba(0,0,0,0.2)]">
             {previewImage}
-            <div className="grid gap-1 bg-white p-3">
+            <div className="grid gap-1 border-t border-gray-300 bg-white p-3">
               {title ? (
                 <h3 className="truncate font-semibold text-[#000000E6]">
                   {title}

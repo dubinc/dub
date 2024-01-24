@@ -99,7 +99,7 @@ export const getStats = async ({
   // Note: we're using decodeURIComponent in this function because that's how we store it in MySQL and Tinybird
 
   if (
-    !conn ||
+    !process.env.DATABASE_URL ||
     !process.env.TINYBIRD_API_KEY ||
     !VALID_TINYBIRD_ENDPOINTS.includes(endpoint)
   ) {
@@ -109,8 +109,7 @@ export const getStats = async ({
   // get all-time clicks count if:
   // 1. endpoint is /clicks
   // 2. interval is not defined
-  // 3. there's a connection to MySQL
-  if (endpoint === "clicks" && key && !interval && conn) {
+  if (endpoint === "clicks" && key && !interval) {
     const response =
       key === "_root"
         ? await conn.execute("SELECT clicks FROM Domain WHERE slug = ?", [

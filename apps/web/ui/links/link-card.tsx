@@ -2,7 +2,6 @@ import useDomains from "@/lib/swr/use-domains";
 import useProject from "@/lib/swr/use-project";
 import useTags from "@/lib/swr/use-tags";
 import { UserProps } from "@/lib/types";
-import { ModalContext } from "@/ui/modals/provider";
 import TagBadge from "@/ui/links/tag-badge";
 import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
 import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
@@ -42,14 +41,15 @@ import {
   EyeOff,
   MessageCircle,
   QrCode,
+  TimerOff,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import Linkify from "linkify-react";
 import punycode from "punycode/";
 import {
   ReactNode,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -70,6 +70,7 @@ export default function LinkCard({
     domain,
     url,
     rewrite,
+    expiresAt,
     createdAt,
     lastClicked,
     archived,
@@ -86,7 +87,7 @@ export default function LinkCard({
   const { slug } = params;
   const { queryParams } = useRouterStuff();
 
-  const { exceededUsage } = useProject();
+  const { exceededClicks } = useProject();
   const { verified, loading } = useDomains({ domain });
 
   const linkRef = useRef<any>();
@@ -95,10 +96,8 @@ export default function LinkCard({
 
   const { data: clicks } = useSWR<number>(
     isVisible &&
-      !exceededUsage &&
-      `/api${
-        slug ? `/projects/${slug}` : ""
-      }/stats/clicks?domain=${domain}&key=${key}`,
+      !exceededClicks &&
+      `/api/projects/${slug}/stats/clicks?domain=${domain}&key=${key}`,
     fetcher,
     {
       fallbackData: props.clicks,
@@ -112,7 +111,6 @@ export default function LinkCard({
   const { setShowAddEditLinkModal, AddEditLinkModal } = useAddEditLinkModal({
     props,
   });
-  const { setShowUpgradePlanModal } = useContext(ModalContext);
 
   // Duplicate link Modal
   const {
@@ -134,6 +132,8 @@ export default function LinkCard({
     },
   });
 
+  const expired = expiresAt && new Date(expiresAt) < new Date();
+
   const { setShowArchiveLinkModal, ArchiveLinkModal } = useArchiveLinkModal({
     props,
     archived: !archived,
@@ -146,15 +146,6 @@ export default function LinkCard({
 
   const shortLink = linkConstructor({ key, domain });
   const [_copied, copyToClipboard] = useCopyToClipboard();
-
-  const projectUsageExceededTooltip = {
-    cta: "Upgrade to Pro",
-    text: "Your project has exceeded its usage limit. We're still collecting data on your existing links, but you need to upgrade to edit them.",
-    onClick: () => {
-      setOpenPopover(false);
-      setShowUpgradePlanModal(true);
-    },
-  };
 
   const copyShortLinkToClipboard = useCallback(() => {
     toast.promise(copyToClipboard(shortLink), {
@@ -200,12 +191,11 @@ export default function LinkCard({
 
   const onKeyDown = (ev: Event) => {
     // only run shortcut logic if:
-    // - usage is not exceeded
     // - link is selected or the 3 dots menu is open
     // - the key pressed is one of the shortcuts
     // - there is no existing modal backdrop
+
     if (!(ev instanceof KeyboardEvent)) return;
-    if (exceededUsage) return;
     if (!selected && !openPopover) return;
     if (!["e", "d", "q", "a", "x"].includes(ev.key)) return;
 
@@ -258,10 +248,20 @@ export default function LinkCard({
       )}
       <div className="relative flex items-center justify-between">
         <div className="relative flex shrink items-center">
-          {archived ? (
-            <Tooltip content="This link is archived. It will still work, but won't be shown in your dashboard.">
+          {archived || expired ? (
+            <Tooltip
+              content={
+                archived
+                  ? "This link is archived. It will still work, but won't be shown in your dashboard."
+                  : "This link has expired. It will still show up in your dashboard, but users will get an 'Expired Link' page when they click on it."
+              }
+            >
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-300 px-0 sm:h-10 sm:w-10">
-                <Archive className="h-4 w-4 text-gray-500 sm:h-5 sm:w-5" />
+                {archived ? (
+                  <Archive className="h-4 w-4 text-gray-500 sm:h-5 sm:w-5" />
+                ) : (
+                  <TimerOff className="h-4 w-4 text-gray-500 sm:h-5 sm:w-5" />
+                )}
               </div>
             </Tooltip>
           ) : (
@@ -279,7 +279,7 @@ export default function LinkCard({
           */}
           <div className="ml-2 sm:ml-4">
             <div className="flex max-w-fit items-center space-x-2">
-              {slug && !verified && !loading ? (
+              {!verified && !loading ? (
                 <Tooltip
                   content={
                     <TooltipContent
@@ -302,7 +302,7 @@ export default function LinkCard({
                   className={cn(
                     "w-full max-w-[140px] truncate text-sm font-semibold text-blue-800 sm:max-w-[300px] sm:text-base md:max-w-[360px] xl:max-w-[500px]",
                     {
-                      "text-gray-500": archived,
+                      "text-gray-500": archived || expired,
                     },
                   )}
                   href={shortLink}
@@ -321,7 +321,17 @@ export default function LinkCard({
                 <Tooltip
                   content={
                     <div className="block max-w-sm px-4 py-2 text-center text-sm text-gray-700">
-                      {comments}
+                      <Linkify
+                        as="p"
+                        options={{
+                          target: "_blank",
+                          rel: "noopener noreferrer nofollow",
+                          className:
+                            "underline underline-offset-4 text-gray-400 hover:text-gray-700",
+                        }}
+                      >
+                        {comments}
+                      </Linkify>
                     </div>
                   }
                 >
@@ -410,9 +420,7 @@ export default function LinkCard({
         <div className="flex items-center space-x-2">
           <NumberTooltip value={clicks} lastClicked={lastClicked}>
             <Link
-              href={`${
-                slug ? `/${slug}` : ""
-              }/analytics?domain=${domain}&key=${key}`}
+              href={`/${slug}/analytics?domain=${domain}&key=${key}`}
               className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-0.5 transition-all duration-75 hover:scale-105 active:scale-100"
             >
               <Chart className="h-4 w-4" />
@@ -434,42 +442,24 @@ export default function LinkCard({
                   }}
                   className="sm:hidden"
                 />
-                {slug && exceededUsage ? (
-                  <DisabledPopoverItem
-                    text="Edit"
-                    kbd="E"
-                    icon={<Edit3 className="h-4 w-4" />}
-                    tooltip={projectUsageExceededTooltip}
-                  />
-                ) : (
-                  <PopoverItem
-                    text="Edit"
-                    kbd="E"
-                    icon={<Edit3 className="h-4 w-4" />}
-                    onClick={() => {
-                      setOpenPopover(false);
-                      setShowAddEditLinkModal(true);
-                    }}
-                  />
-                )}
-                {slug && exceededUsage ? (
-                  <DisabledPopoverItem
-                    text="Duplicate"
-                    kbd="D"
-                    icon={<CopyPlus className="h-4 w-4" />}
-                    tooltip={projectUsageExceededTooltip}
-                  />
-                ) : (
-                  <PopoverItem
-                    text="Duplicate"
-                    kbd="D"
-                    icon={<CopyPlus className="h-4 w-4" />}
-                    onClick={() => {
-                      setOpenPopover(false);
-                      setShowDuplicateLinkModal(true);
-                    }}
-                  />
-                )}
+                <PopoverItem
+                  text="Edit"
+                  kbd="E"
+                  icon={<Edit3 className="h-4 w-4" />}
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setShowAddEditLinkModal(true);
+                  }}
+                />
+                <PopoverItem
+                  text="Duplicate"
+                  kbd="D"
+                  icon={<CopyPlus className="h-4 w-4" />}
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setShowDuplicateLinkModal(true);
+                  }}
+                />
                 <PopoverItem
                   text="QR Code"
                   kbd="Q"
@@ -571,54 +561,5 @@ function PopoverItem({
         </kbd>
       )}
     </button>
-  );
-}
-
-function DisabledPopoverItem({
-  tooltip,
-  text,
-  icon,
-  kbd,
-}: {
-  tooltip: {
-    text: string;
-    cta: string;
-    onClick: () => void;
-  };
-  text: string;
-  icon: ReactNode;
-  kbd?: string;
-}) {
-  return (
-    <Tooltip
-      content={
-        <TooltipContent
-          title={tooltip.text}
-          cta={tooltip.cta}
-          onClick={tooltip.onClick}
-        />
-      }
-    >
-      <div
-        className={cn(
-          "flex w-full cursor-not-allowed items-center justify-between rounded-md p-2",
-          "text-left text-sm font-medium text-gray-300",
-          "transition-all duration-75",
-        )}
-      >
-        <IconMenu text={text} icon={icon} />
-        {!!kbd && (
-          <kbd
-            className={cn(
-              "hidden rounded px-2 py-0.5 sm:inline-block",
-              "bg-gray-100 text-xs font-light text-gray-300",
-              "transition-all duration-75",
-            )}
-          >
-            {kbd}
-          </kbd>
-        )}
-      </div>
-    </Tooltip>
   );
 }

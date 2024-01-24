@@ -2,6 +2,7 @@ import { withAuth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import { inviteUser } from "@/lib/api/users";
 import prisma from "@/lib/prisma";
+import { exceededLimitError } from "@/lib/api/errors";
 
 // GET /api/projects/[slug]/invites – get invites for a specific project
 export const GET = withAuth(async ({ project }) => {
@@ -35,25 +36,27 @@ export const POST = withAuth(
       });
     }
 
-    if (project.plan === "free") {
-      const users = await prisma.projectUsers.count({
-        where: {
-          projectId: project.id,
+    const users = await prisma.projectUsers.count({
+      where: {
+        projectId: project.id,
+      },
+    });
+    const invites = await prisma.projectInvite.count({
+      where: {
+        projectId: project.id,
+      },
+    });
+    if (users + invites >= project.usersLimit) {
+      return new Response(
+        exceededLimitError({
+          plan: project.plan,
+          limit: project.usersLimit,
+          type: "users",
+        }),
+        {
+          status: 403,
         },
-      });
-      const invites = await prisma.projectInvite.count({
-        where: {
-          projectId: project.id,
-        },
-      });
-      if (users + invites >= 3) {
-        return new Response(
-          "You've reached the maximum number of users for the free plan.",
-          {
-            status: 400,
-          },
-        );
-      }
+      );
     }
 
     try {

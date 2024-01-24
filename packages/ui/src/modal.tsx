@@ -71,6 +71,7 @@ export function Modal({
       </Drawer.Root>
     );
   }
+
   return (
     <Dialog.Root
       open={setShowModal ? showModal : true}
@@ -90,7 +91,7 @@ export function Modal({
           onOpenAutoFocus={(e) => e.preventDefault()}
           onCloseAutoFocus={(e) => e.preventDefault()}
           className={cn(
-            "animate-scale-in fixed inset-0 z-40 m-auto max-h-fit w-full max-w-md overflow-hidden border border-gray-200 bg-white p-0 shadow-xl md:rounded-2xl",
+            "animate-scale-in fixed inset-0 z-40 m-auto max-h-fit w-full max-w-md overflow-hidden border border-gray-200 bg-white p-0 shadow-xl sm:rounded-2xl",
             className,
           )}
         >

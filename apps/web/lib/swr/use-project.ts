@@ -1,31 +1,29 @@
 import { ProjectProps } from "@/lib/types";
 import { fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
-import { useMemo } from "react";
 import useSWR from "swr";
 
 export default function useProject() {
   const { slug } = useParams() as { slug?: string };
 
-  const { data: project, error } = useSWR<ProjectProps>(
-    slug && `/api/projects/${slug}`,
-    fetcher,
-    {
-      dedupingInterval: 30000,
-    },
-  );
-
-  const exceededUsage = useMemo(() => {
-    if (project) {
-      return project.usage > project.usageLimit;
-    }
-  }, [project]);
+  const {
+    data: project,
+    error,
+    mutate,
+  } = useSWR<ProjectProps>(slug && `/api/projects/${slug}`, fetcher, {
+    dedupingInterval: 30000,
+  });
 
   return {
     ...project,
+    defaultDomains: project?.metadata?.defaultDomains || [],
     isOwner: project?.users && project.users[0].role === "owner",
-    exceededUsage,
+    exceededClicks: project && project.usage >= project.usageLimit,
+    exceededLinks: project && project.linksUsage >= project.linksLimit,
+    exceededDomains:
+      project?.domains && project.domains.length >= project.domainsLimit,
     error,
-    loading: slug && !project && !error,
+    mutate,
+    loading: slug && !project && !error ? true : false,
   };
 }

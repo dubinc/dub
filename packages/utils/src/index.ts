@@ -7,6 +7,7 @@ import { twMerge } from "tailwind-merge";
 import {
   DUB_DOMAINS,
   HOME_DOMAIN,
+  PLANS,
   SECOND_LEVEL_DOMAINS,
   SPECIAL_APEX_DOMAINS,
   ccTLDs,
@@ -19,16 +20,34 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function constructMetadata({
-  title = "Dub - Link Management for Modern Marketing Teams",
-  description = "Dub is an open-source link management tool for modern marketing teams to create, share, and track short links.",
+  title = `${process.env.NEXT_PUBLIC_APP_NAME} - Link Management for Modern Marketing Teams`,
+  description = `${process.env.NEXT_PUBLIC_APP_NAME} is the open-source link management infrastructure for modern marketing teams to create, share, and track short links.`,
   image = "https://dub.co/_static/thumbnail.png",
-  icons = "/favicon.ico",
+  icons = [
+    {
+      rel: "apple-touch-icon",
+      sizes: "32x32",
+      url: "/apple-touch-icon.png",
+    },
+    {
+      rel: "icon",
+      type: "image/png",
+      sizes: "32x32",
+      url: "/favicon-32x32.png",
+    },
+    {
+      rel: "icon",
+      type: "image/png",
+      sizes: "16x16",
+      url: "/favicon-16x16.png",
+    },
+  ],
   noIndex = false,
 }: {
   title?: string;
   description?: string;
   image?: string;
-  icons?: string;
+  icons?: Metadata["icons"];
   noIndex?: boolean;
 } = {}): Metadata {
   return {
@@ -117,7 +136,7 @@ export function nFormatter(
     : "0";
 }
 
-export function capitalize(str: string) {
+export function capitalize(str?: string | null) {
   if (!str || typeof str !== "string") return str;
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
@@ -242,6 +261,27 @@ export const getAdjustedBillingCycleStart = (billingCycleStart: number) => {
   }
 };
 
+export const getBillingStartDate = (billingCycleStart: number) => {
+  const today = new Date();
+  const currentDay = today.getDate();
+  const currentMonth = today.getMonth();
+  const currentYear = today.getFullYear();
+  const adjustedBillingCycleStart =
+    getAdjustedBillingCycleStart(billingCycleStart);
+  if (currentDay <= adjustedBillingCycleStart) {
+    // if the current day is less than the billing cycle start, we need to go back a month
+    const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1; // if the current month is January, we need to go back to December
+    const lastYear = currentMonth === 0 ? currentYear - 1 : currentYear; // if the current month is January, we need to go back a year
+    return new Date(lastYear, lastMonth, adjustedBillingCycleStart);
+  } else {
+    return new Date(currentYear, currentMonth, adjustedBillingCycleStart);
+  }
+};
+
+export const getPlanFromPriceId = (priceId: string) => {
+  return PLANS.find((plan) => plan.price.ids?.includes(priceId)) || null;
+};
+
 export const generateDomainFromName = (name: string) => {
   const normalizedName = slugify(name, { separator: "" });
   if (normalizedName.length < 3) {
@@ -318,7 +358,7 @@ export const isValidUrl = (url: string) => {
 };
 
 export const getUrlFromString = (str: string) => {
-  if (isValidUrl(str)) return str;
+  if (isValidUrl(str)) return new URL(str).toString();
   try {
     if (str.includes(".") && !str.includes(" ")) {
       return new URL(`https://${str}`).toString();
