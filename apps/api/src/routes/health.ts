@@ -1,4 +1,5 @@
 import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
+import { HonoApp } from "../lib/hono";
 
 const HealthSchema = z.object({
   status: z.string(),
@@ -20,7 +21,7 @@ const route = createRoute({
   },
 });
 
-export const healthCheckApi = (app: OpenAPIHono) => {
+export const healthCheckApi = (app: HonoApp) => {
   app.openapi(route, async (c) => {
     return c.json({
       status: "ok",

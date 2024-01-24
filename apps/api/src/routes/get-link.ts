@@ -1,11 +1,12 @@
-import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
+import { createRoute, z } from "@hono/zod-openapi";
 
 import { prisma } from "@dub/database";
 import { linkConstructor } from "@dub/utils";
-import { ProjectParamSchema } from "../lib/schema";
+import { HonoApp } from "../lib/hono";
+import { ProjectParamSchema } from "../lib/schemas";
 
 const QuerySchema = z.object({
-  domain: z.string().openapi({
+  domain: z.string().min(1).openapi({
     description:
       "The domain of the link to retrieve. E.g. for dub.sh/github, the domain is 'dub.sh'.",
   }),
@@ -44,9 +45,12 @@ const route = createRoute({
   },
 });
 
-export const getLinkApi = (app: OpenAPIHono) => {
+export const getLinkApi = (app: HonoApp) => {
   app.openapi(route, async (c) => {
     const { key, domain } = c.req.query();
+
+    // const p = c.get("project");
+    // console.log({ p });
 
     const response = await prisma.link.findUniqueOrThrow({
       where: {
