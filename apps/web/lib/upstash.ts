@@ -1,4 +1,4 @@
-import { getDomainWithoutWWW, isIframeable } from "@dub/utils";
+import { getDomainWithoutWWW, isDubDomain, isIframeable } from "@dub/utils";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { LinkProps, RedisLinkProps } from "./types";
@@ -68,6 +68,7 @@ export async function getRedisLink(link: LinkProps): Promise<RedisLinkProps> {
     ios,
     android,
     geo,
+    projectId,
   } = link;
   const hasPassword = password && password.length > 0 ? true : false;
 
@@ -84,5 +85,7 @@ export async function getRedisLink(link: LinkProps): Promise<RedisLinkProps> {
     ...(ios && { ios }),
     ...(android && { android }),
     ...(geo && { geo: geo as object }),
+    // we record the projectId for default Dub domains
+    ...(isDubDomain(domain) && projectId && { projectId }),
   };
 }

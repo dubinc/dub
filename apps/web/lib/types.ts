@@ -29,6 +29,7 @@ export interface RedisLinkProps {
   ios?: string;
   android?: string;
   geo?: object;
+  projectId?: string;
 }
 
 export interface TagProps {

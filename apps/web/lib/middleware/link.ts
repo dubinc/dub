@@ -6,6 +6,7 @@ import {
   LEGAL_PROJECT_ID,
   LOCALHOST_GEO_DATA,
   LOCALHOST_IP,
+  isDubDomain,
 } from "@dub/utils";
 import { ipAddress } from "@vercel/edge";
 import {
@@ -16,7 +17,7 @@ import {
 } from "next/server";
 import { isBlacklistedReferrer } from "../edge-config";
 import { getLinkViaEdge } from "../planetscale";
-import { LinkProps, RedisDomainMetadataProps, RedisLinkProps } from "../types";
+import { RedisDomainMetadataProps, RedisLinkProps } from "../types";
 
 export default async function LinkMiddleware(
   req: NextRequest,
@@ -50,24 +51,20 @@ export default async function LinkMiddleware(
   }
 
   const inspectMode = key.endsWith("+");
+  // if inspect mode is enabled, remove the trailing `+` from the key
   if (inspectMode) {
     key = key.slice(0, -1);
   }
 
   const response = await redis.hmget<
-    Record<string, RedisDomainMetadataProps | RedisLinkProps>
-  >(
-    domain,
-    "_metadata",
-    // if inspect mode is enabled, remove the trailing `+` from the key
-    key,
-  );
+    Record<string, RedisLinkProps | RedisDomainMetadataProps>
+  >(domain, key, "_metadata");
+
+  let link = response ? (response[key] as RedisLinkProps) : null;
 
   let metadata = response
     ? (response._metadata as RedisDomainMetadataProps)
     : null;
-
-  let link = response ? (response[key] as RedisLinkProps) : null;
 
   if (!metadata || !link) {
     const linkData = await getLinkViaEdge(domain, key);
@@ -77,6 +74,7 @@ export default async function LinkMiddleware(
       return NextResponse.redirect(new URL("/", req.url), DUB_HEADERS);
     }
 
+    // only set metadata if it's not been set before
     let setMetadata = false;
     if (!metadata) {
       setMetadata = true;
@@ -84,11 +82,12 @@ export default async function LinkMiddleware(
         projectId: linkData.projectId,
       };
     }
+    // format link to fit the RedisLinkProps interface
     link = await getRedisLink(linkData as any);
 
     await redis.hset(domain, {
-      ...(setMetadata && { _metadata: metadata }),
       [key]: link,
+      ...(setMetadata && { _metadata: metadata }),
     });
   }
 
@@ -104,6 +103,11 @@ export default async function LinkMiddleware(
     android,
     geo,
   } = link;
+
+  const projectId = isDubDomain(domain) ? link.projectId : metadata.projectId;
+  const rules = metadata.redirectRules;
+
+  console.log({ link, metadata, projectId, rules });
 
   // only show inspect modal if the link is not password protected
   if (inspectMode && !password) {
@@ -131,7 +135,7 @@ export default async function LinkMiddleware(
   }
 
   // if the link is banned
-  if (metadata.projectId === LEGAL_PROJECT_ID) {
+  if (link.projectId === LEGAL_PROJECT_ID) {
     return NextResponse.rewrite(new URL("/banned", req.url));
   }
 

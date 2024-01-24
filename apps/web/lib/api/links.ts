@@ -405,12 +405,8 @@ export async function addLink(link: LinkProps) {
     description,
     image,
     proxy,
-    rewrite,
-    ios,
-    android,
     geo,
   } = link;
-  const hasPassword = password && password.length > 0 ? true : false;
   const uploadedImage = image && image.startsWith("data:image") ? true : false;
 
   const exists = await checkIfKeyExists(domain, key);
@@ -546,17 +542,12 @@ export async function editLink({
     key,
     url,
     expiresAt,
-    password,
     title,
     description,
     image,
     proxy,
-    rewrite,
-    ios,
-    android,
     geo,
   } = updatedLink;
-  const hasPassword = password && password.length > 0 ? true : false;
   const changedKey = key.toLowerCase() !== oldKey.toLowerCase();
   const changedDomain = domain !== oldDomain;
   const uploadedImage = image && image.startsWith("data:image") ? true : false;
