@@ -39,3 +39,9 @@ export const ProjectSchema = z.object({
     description: "The date and time when the project was created.",
   }),
 });
+
+export const TagSchema = z.object({
+  id: z.string().openapi({ description: "The unique ID of the tag." }),
+  name: z.string().openapi({ description: "The name of the tag." }),
+  color: z.string().openapi({ description: "The color of the tag." }),
+});
