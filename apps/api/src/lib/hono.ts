@@ -5,7 +5,8 @@ import { prettyJSON } from "hono/pretty-json";
 
 import { User } from "@dub/database";
 import { handleError, handleZodError } from "./errors";
-import { withAuth } from "./middlewares/withAuth";
+import { validateApiKey } from "./middlewares/validateApiKey";
+import { rateLimit } from "./middlewares/rateLimit";
 
 export type HonoEnv = {
   Variables: {
@@ -23,7 +24,8 @@ export function newHonoApp() {
   app.use(prettyJSON());
   app.use("*", cors());
   app.use("*", logger());
-  app.use("/api/v1/*", withAuth);
+  app.use("/api/v1/*", validateApiKey);
+  // app.use("/api/v1/*", rateLimit);
 
   app.doc("/openapi.json", {
     openapi: "3.0.0",

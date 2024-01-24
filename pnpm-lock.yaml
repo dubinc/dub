@@ -35,6 +35,9 @@ importers:
       '@dub/database':
         specifier: workspace:*
         version: link:../../packages/database
+      '@dub/upstash':
+        specifier: workspace:*
+        version: link:../../packages/upstash
       '@dub/utils':
         specifier: workspace:*
         version: link:../../packages/utils
@@ -479,6 +482,18 @@ importers:
       typescript:
         specifier: ^5.1.6
         version: 5.1.6
+
+  packages/upstash:
+    dependencies:
+      '@dub/utils':
+        specifier: workspace:*
+        version: link:../utils
+      '@upstash/ratelimit':
+        specifier: ^0.3.6
+        version: 0.3.6(@babel/core@7.17.8)(react-dom@18.2.0)
+      '@upstash/redis':
+        specifier: ^1.25.1
+        version: 1.25.1
 
   packages/utils:
     dependencies:

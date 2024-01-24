@@ -11,6 +11,7 @@ const ErrorCode = z.enum([
   "unauthorized",
   "bad_request",
   "forbidden",
+  "rate_limited",
 ]);
 
 const prismaErrorMapping: Record<
@@ -26,6 +27,7 @@ const errorCodeToHttpStatus: Record<z.infer<typeof ErrorCode>, number> = {
   internal_server_error: 500,
   unauthorized: 401,
   forbidden: 403,
+  rate_limited: 429,
 };
 
 const ErrorSchema = z.object({
