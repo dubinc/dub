@@ -164,25 +164,6 @@ export async function getLinksCount({
   }
 }
 
-export async function getRandomKey(domain: string): Promise<string> {
-  /* recursively get random key till it gets one that's available */
-  const key = nanoid();
-  const response = await prisma.link.findUnique({
-    where: {
-      domain_key: {
-        domain,
-        key,
-      },
-    },
-  });
-  if (response) {
-    // by the off chance that key already exists
-    return getRandomKey(domain);
-  } else {
-    return key;
-  }
-}
-
 export async function checkIfKeyExists(domain: string, key: string) {
   // reserved keys for default short domain
   if (domain === SHORT_DOMAIN) {
@@ -197,6 +178,18 @@ export async function checkIfKeyExists(domain: string, key: string) {
   }
   const link = await getLinkViaEdge(domain, key);
   return !!link;
+}
+
+export async function getRandomKey(domain: string): Promise<string> {
+  /* recursively get random key till it gets one that's available */
+  const key = nanoid();
+  const response = await checkIfKeyExists(domain, key);
+  if (response) {
+    // by the off chance that key already exists
+    return getRandomKey(domain);
+  } else {
+    return key;
+  }
 }
 
 export function processKey(key: string) {

@@ -19,7 +19,7 @@ export interface RedisLinkProps {
   proxy?: boolean;
   rewrite?: boolean;
   iframeable?: boolean;
-  expiresAt?: string;
+  expiresAt?: Date;
   ios?: string;
   android?: string;
   geo?: object;
