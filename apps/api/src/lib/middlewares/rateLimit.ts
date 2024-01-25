@@ -29,6 +29,7 @@ export const rateLimit = async (c: Context, next: () => Promise<void>) => {
     });
   }
 
+  // TODO: Offload this to a background job
   await prisma.token.update({
     where: {
       hashedKey,
