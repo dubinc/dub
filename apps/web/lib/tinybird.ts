@@ -19,11 +19,13 @@ export async function recordClick({
   id,
   domain,
   key,
+  projectId,
 }: {
   req: NextRequest;
   id?: string;
   domain: string;
   key?: string;
+  projectId?: string;
 }) {
   const isBot = detectBot(req);
   if (isBot) {

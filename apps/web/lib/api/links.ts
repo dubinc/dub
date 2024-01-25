@@ -604,7 +604,7 @@ export async function editLink({
               invalidate: true,
             })
             .catch(() => {}),
-          redis.del(`${oldDomain}:${oldKey}`),
+          redis.hdel(oldDomain, oldKey.toLowerCase()),
         ]
       : []),
   ]);
@@ -651,7 +651,7 @@ export async function deleteLink({
     cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
       invalidate: true,
     }),
-    redis.del(`${domain}:${key}`),
+    redis.hdel(domain, key.toLowerCase()),
     projectId &&
       prisma.project.update({
         where: {

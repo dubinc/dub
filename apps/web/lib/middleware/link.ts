@@ -6,7 +6,6 @@ import {
   LEGAL_PROJECT_ID,
   LOCALHOST_GEO_DATA,
   LOCALHOST_IP,
-  isDubDomain,
 } from "@dub/utils";
 import { ipAddress } from "@vercel/edge";
 import {
@@ -56,17 +55,9 @@ export default async function LinkMiddleware(
     key = key.slice(0, -1);
   }
 
-  const response = await redis.hmget<
-    Record<string, RedisLinkProps | RedisDomainMetadataProps>
-  >(domain, key, "_metadata");
+  let link = await redis.hget<RedisLinkProps>(domain, key);
 
-  let link = response ? (response[key] as RedisLinkProps) : null;
-
-  let metadata = response
-    ? (response._metadata as RedisDomainMetadataProps)
-    : null;
-
-  if (!metadata || !link) {
+  if (!link) {
     const linkData = await getLinkViaEdge(domain, key);
 
     if (!linkData) {
@@ -74,20 +65,11 @@ export default async function LinkMiddleware(
       return NextResponse.redirect(new URL("/", req.url), DUB_HEADERS);
     }
 
-    // only set metadata if it's not been set before
-    let setMetadata = false;
-    if (!metadata) {
-      setMetadata = true;
-      metadata = {
-        projectId: linkData.projectId,
-      };
-    }
     // format link to fit the RedisLinkProps interface
     link = await getRedisLink(linkData as any);
 
     await redis.hset(domain, {
       [key]: link,
-      ...(setMetadata && { _metadata: metadata }),
     });
   }
 
@@ -102,12 +84,8 @@ export default async function LinkMiddleware(
     ios,
     android,
     geo,
+    projectId,
   } = link;
-
-  const projectId = isDubDomain(domain) ? link.projectId : metadata.projectId;
-  const rules = metadata.redirectRules;
-
-  console.log({ link, metadata, projectId, rules });
 
   // only show inspect modal if the link is not password protected
   if (inspectMode && !password) {
@@ -146,7 +124,7 @@ export default async function LinkMiddleware(
 
   // only track the click when there is no `dub-no-track` header
   if (!req.headers.get("dub-no-track")) {
-    ev.waitUntil(recordClick({ req, id, domain, key }));
+    ev.waitUntil(recordClick({ req, id, domain, key, projectId }));
   }
 
   const isBot = detectBot(req);
@@ -169,7 +147,7 @@ export default async function LinkMiddleware(
       );
     } else {
       // if link is not iframeable, use Next.js rewrite instead
-      return NextResponse.rewrite(decodeURIComponent(target), DUB_HEADERS);
+      return NextResponse.rewrite(target, DUB_HEADERS);
     }
 
     // redirect to iOS link if it is specified and the user is on an iOS device

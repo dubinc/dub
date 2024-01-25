@@ -74,7 +74,7 @@ export async function getRedisLink(link: LinkProps): Promise<RedisLinkProps> {
 
   return {
     id,
-    url: encodeURIComponent(url),
+    url,
     ...(hasPassword && { password: true }),
     ...(proxy && { proxy: true }),
     ...(rewrite && {
@@ -85,7 +85,6 @@ export async function getRedisLink(link: LinkProps): Promise<RedisLinkProps> {
     ...(ios && { ios }),
     ...(android && { android }),
     ...(geo && { geo: geo as object }),
-    // we record the projectId for default Dub domains
-    ...(isDubDomain(domain) && projectId && { projectId }),
+    ...(projectId && { projectId }),
   };
 }

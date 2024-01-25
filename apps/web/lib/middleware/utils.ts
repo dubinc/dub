@@ -30,7 +30,7 @@ export const getFinalUrl = (target: string, { req }: { req: NextRequest }) => {
   const searchParams = req.nextUrl.searchParams;
 
   // get the query params of the target url
-  const targetUrl = new URL(decodeURIComponent(target));
+  const targetUrl = new URL(target);
 
   // @ts-ignore – until https://github.com/microsoft/TypeScript/issues/54466 is fixed
   if (searchParams.size === 0) return targetUrl.toString(); // if there are no query params, then return the target url as is (no need to parse it)
