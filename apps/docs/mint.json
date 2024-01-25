@@ -61,7 +61,7 @@
   "navigation": [
     {
       "group": "Getting Started",
-      "pages": ["introduction", "self-hosting/guide"]
+      "pages": ["introduction", "local-development", "self-hosting/guide"]
     },
     {
       "group": "Integrations",
