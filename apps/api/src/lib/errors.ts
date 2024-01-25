@@ -5,8 +5,6 @@ import { HTTPException } from "hono/http-exception";
 import { ZodError } from "zod";
 import { generateErrorMessage } from "zod-error";
 
-import { capitalize } from "@dub/utils";
-
 const ErrorCode = z.enum([
   "not_found",
   "internal_server_error",
@@ -16,7 +14,7 @@ const ErrorCode = z.enum([
   "rate_limited",
   "invite_expired",
   "invite_pending",
-  "exceeded_limit"
+  "exceeded_limit",
 ]);
 
 const prismaErrorMapping: Record<
@@ -35,7 +33,7 @@ const errorCodeToHttpStatus: Record<z.infer<typeof ErrorCode>, number> = {
   rate_limited: 429,
   invite_expired: 410,
   invite_pending: 409,
-  exceeded_limit: 403
+  exceeded_limit: 403,
 };
 
 const ErrorSchema = z.object({
@@ -179,23 +177,3 @@ export class DubApiError extends HTTPException {
     this.code = code;
   }
 }
-
-// TODO: Move to a shared package
-export type PlanProps = "free" | "pro" | "business" | "enterprise";
-
-// TODO: Move to a shared package
-export const exceededLimitError = ({
-  plan,
-  limit,
-  type,
-}: {
-  plan: PlanProps;
-  limit: number;
-  type: "clicks" | "links" | "domains" | "tags" | "users";
-}) => {
-  return `You've reached your ${
-    type === "links" ? "monthly" : ""
-  } limit of ${limit} ${
-    limit === 1 ? type.slice(0, -1) : type
-  } on the ${capitalize(plan)} plan. Please upgrade to add more ${type}.`;
-};

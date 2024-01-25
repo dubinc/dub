@@ -1,55 +1,12 @@
 import { createRoute, z } from "@hono/zod-openapi";
 
 import { prisma } from "@dub/database";
-import { DubApiError, PlanProps, exceededLimitError } from "../lib/errors";
+import { exceededLimitError, PlanProps, randomBadgeColor } from "@dub/utils";
+import { DubApiError } from "../lib/errors";
 import { HonoApp } from "../lib/hono";
 import { authorizeAndRetrieveProject } from "../lib/project";
 import { TagSchema } from "../lib/schemas/dub";
 import { openApiErrorResponses } from "../lib/schemas/openapi";
-
-// TODO: Move to a shared package
-export type TagColorProps =
-  | "red"
-  | "yellow"
-  | "green"
-  | "blue"
-  | "purple"
-  | "pink"
-  | "brown";
-
-// TODO: Move to a shared package
-export const COLORS_LIST: { color: TagColorProps; css: string }[] = [
-  {
-    color: "red",
-    css: "bg-red-100 text-red-600",
-  },
-  {
-    color: "yellow",
-    css: "bg-yellow-100 text-yellow-600",
-  },
-  {
-    color: "green",
-    css: "bg-green-100 text-green-600",
-  },
-  {
-    color: "blue",
-    css: "bg-blue-100 text-blue-600",
-  },
-  {
-    color: "purple",
-    css: "bg-purple-100 text-purple-600",
-  },
-  {
-    color: "brown",
-    css: "bg-brown-100 text-brown-600",
-  },
-];
-
-// TODO: Move to a shared package
-export function randomBadgeColor() {
-  const randomIndex = Math.floor(Math.random() * COLORS_LIST.length);
-  return COLORS_LIST[randomIndex].color;
-}
 
 // Create a new tag
 const route = createRoute({
