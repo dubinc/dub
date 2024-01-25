@@ -1,3 +1,4 @@
+import { swaggerUI } from "@hono/swagger-ui";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
@@ -5,8 +6,8 @@ import { prettyJSON } from "hono/pretty-json";
 
 import { User } from "@dub/database";
 import { handleError, handleZodError } from "./errors";
-import { validateApiKey } from "./middlewares/validateApiKey";
 import { rateLimit } from "./middlewares/rateLimit";
+import { validateApiKey } from "./middlewares/validateApiKey";
 
 export type HonoEnv = {
   Variables: {
@@ -24,9 +25,10 @@ export function newHonoApp() {
   app.use(prettyJSON());
   app.use("*", cors());
   app.use("*", logger());
-  app.use("/api/v1/*", validateApiKey);
-  // app.use("/api/v1/*", rateLimit);
+  app.use("/api/*", validateApiKey);
+  app.use("/api/*", rateLimit);
 
+  // OpenAPI Spec
   app.doc("/openapi.json", {
     openapi: "3.0.0",
     info: {
@@ -35,7 +37,7 @@ export function newHonoApp() {
     },
     servers: [
       {
-        url: "https://api.dub.co",
+        url: "http://localhost:4000",
         description: "Production",
       },
     ],
@@ -45,6 +47,11 @@ export function newHonoApp() {
       },
     ],
   });
+
+  // Swagger UI (for development)
+  if (process.env.NODE_ENV !== "production") {
+    app.get("/doc", swaggerUI({ url: "/openapi.json" }));
+  }
 
   app.openAPIRegistry.registerComponent("securitySchemes", "bearerAuth", {
     bearerFormat: "API Token",
