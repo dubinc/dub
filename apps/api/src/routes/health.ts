@@ -23,7 +23,7 @@ const route = createRoute({
   ...openApiErrorResponses,
 });
 
-export const healthCheckApi = (app: HonoApp) => {
+export const healthCheckHandler = (app: HonoApp) => {
   app.openapi(route, async (c) => {
     return c.json({
       status: "ok",

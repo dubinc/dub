@@ -40,7 +40,7 @@ const route = createRoute({
   ...openApiErrorResponses,
 });
 
-export const createTagApi = (app: HonoApp) => {
+export const createTagHandler = (app: HonoApp) => {
   app.openapi(route, async (c) => {
     const { project } = await authorizeAndRetrieveProject(c);
 

@@ -23,7 +23,7 @@ const route = createRoute({
   ...openApiErrorResponses,
 });
 
-export const getProjectsApi = (app: HonoApp) => {
+export const getProjectsHandler = (app: HonoApp) => {
   app.openapi(route, async (c) => {
     const user = c.get("user");
 
