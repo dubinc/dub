@@ -72,7 +72,9 @@ export default function LinkFilters() {
           <h3 className="ml-1 mt-2 font-semibold">Filter Links</h3>
           {showClearButton && <ClearButton searchInputRef={searchInputRef} />}
         </div>
-        <SearchBox searchInputRef={searchInputRef} />
+        <div className="hidden lg:block">
+          <SearchBox searchInputRef={searchInputRef} />
+        </div>
       </div>
       <DomainsFilter />
       {tags && tagsCount && (
@@ -109,7 +111,7 @@ const ClearButton = ({ searchInputRef }) => {
   );
 };
 
-const SearchBox = ({ searchInputRef }) => {
+export const SearchBox = ({ searchInputRef }) => {
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
   const debounced = useDebouncedCallback((value) => {

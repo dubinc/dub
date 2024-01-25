@@ -5,11 +5,11 @@ import { MaxWidthWrapper } from "@dub/ui";
 import { useLinkFiltersModal } from "../modals/link-filters-modal";
 import LinkCard from "./link-card";
 import LinkCardPlaceholder from "./link-card-placeholder";
-import LinkFilters from "./link-filters";
+import LinkFilters, { SearchBox } from "./link-filters";
 import LinkPagination from "./link-pagination";
 import LinkSort from "./link-sort";
 import NoLinksPlaceholder from "./no-links-placeholder";
-import { Suspense } from "react";
+import { Suspense, useRef } from "react";
 import useLinksCount from "@/lib/swr/use-links-count";
 
 export default function LinksContainer({
@@ -20,16 +20,22 @@ export default function LinksContainer({
   const { links, isValidating } = useLinks();
   const { data: count } = useLinksCount();
   const { LinkFiltersButton, LinkFiltersModal } = useLinkFiltersModal();
+  const searchInputRef = useRef();
 
   return (
     <>
       <LinkFiltersModal />
       <MaxWidthWrapper>
-        <div className="my-5 flex h-10 w-full justify-center lg:justify-end">
+        <div className="my-3 flex h-10 w-full justify-center lg:justify-end">
           <LinkFiltersButton />
           <Suspense>
             <LinkSort />
           </Suspense>
+        </div>
+        <div className="block lg:hidden">
+          <div className="mb-3">
+            <SearchBox searchInputRef={searchInputRef} />
+          </div>
         </div>
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-7">
           <div className="scrollbar-hide sticky top-32 col-span-2 hidden max-h-[calc(100vh-150px)] self-start overflow-auto rounded-lg border border-gray-100 bg-white shadow lg:block">
