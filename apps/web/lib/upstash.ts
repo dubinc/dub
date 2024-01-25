@@ -56,7 +56,9 @@ export async function recordMetatags(url: string, error: boolean) {
   return await ratelimitRedis.zincrby("metatags-zset", 1, domain);
 }
 
-export async function getRedisLink(link: LinkProps): Promise<RedisLinkProps> {
+export async function formatRedisLink(
+  link: LinkProps,
+): Promise<RedisLinkProps> {
   const {
     id,
     domain,

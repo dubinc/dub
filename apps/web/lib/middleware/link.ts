@@ -1,6 +1,6 @@
 import { detectBot, getFinalUrl, parse } from "@/lib/middleware/utils";
 import { recordClick } from "@/lib/tinybird";
-import { getRedisLink, ratelimit, redis } from "@/lib/upstash";
+import { formatRedisLink, ratelimit, redis } from "@/lib/upstash";
 import {
   DUB_HEADERS,
   LEGAL_PROJECT_ID,
@@ -66,7 +66,7 @@ export default async function LinkMiddleware(
     }
 
     // format link to fit the RedisLinkProps interface
-    link = await getRedisLink(linkData as any);
+    link = await formatRedisLink(linkData as any);
 
     await redis.hset(domain, {
       [key]: link,

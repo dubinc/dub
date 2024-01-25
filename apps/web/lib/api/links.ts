@@ -5,7 +5,7 @@ import {
   isReservedUsername,
 } from "@/lib/edge-config";
 import prisma from "@/lib/prisma";
-import { getRedisLink, redis } from "@/lib/upstash";
+import { formatRedisLink, redis } from "@/lib/upstash";
 import {
   DEFAULT_REDIRECTS,
   DUB_DOMAINS,
@@ -14,7 +14,6 @@ import {
   getParamsFromURL,
   getUrlFromString,
   isDubDomain,
-  isIframeable,
   linkConstructor,
   nanoid,
   truncate,
@@ -432,7 +431,7 @@ export async function addLink(link: LinkProps) {
         geo: geo || undefined,
       },
     }),
-    redis.hsetnx(domain, key.toLowerCase(), await getRedisLink(link)),
+    redis.hsetnx(domain, key.toLowerCase(), await formatRedisLink(link)),
   ]);
 
   if (proxy && image) {
@@ -472,7 +471,7 @@ export async function bulkCreateLinks(links: LinkProps[]) {
       linksByDomain[domain] = {};
     }
     // this technically will be a synchronous function since isIframeable won't be run for bulk link creation
-    linksByDomain[domain][key.toLowerCase()] = await getRedisLink(link);
+    linksByDomain[domain][key.toLowerCase()] = await formatRedisLink(link);
   });
 
   const pipeline = redis.pipeline();
@@ -594,7 +593,7 @@ export async function editLink({
           invalidate: true,
         }),
     redis.hset(domain, {
-      [key.toLowerCase()]: await getRedisLink(updatedLink),
+      [key.toLowerCase()]: await formatRedisLink(updatedLink),
     }),
     // if key is changed: rename resource in Cloudinary, delete the old key in Redis and change the clicks key name
     ...(changedDomain || changedKey
