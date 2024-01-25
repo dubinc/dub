@@ -611,7 +611,7 @@ function AddEditLinkButton({
 }: {
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { slug, plan, exceededLinks } = useProject();
+  const { plan, exceededLinks } = useProject();
   const { queryParams } = useRouterStuff();
 
   const onKeyDown = useCallback((e: KeyboardEvent) => {
@@ -674,10 +674,10 @@ function AddEditLinkButton({
       text="Create link"
       shortcut="C"
       disabledTooltip={
-        slug && exceededLinks ? (
+        exceededLinks ? (
           <TooltipContent
             title="Your project has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
-            cta="Upgrade"
+            cta={`Upgrade to ${plan === "free" ? "Pro" : "Business"}`}
             onClick={() => {
               queryParams({
                 set: {

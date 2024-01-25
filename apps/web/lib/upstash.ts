@@ -37,30 +37,6 @@ export const ratelimit = (
   });
 };
 
-// only for dub.sh public demo
-export async function setRandomKey(
-  url: string,
-): Promise<{ response: string; key: string }> {
-  /* recursively set link till successful */
-  const key = nanoid();
-  const response = await redis.set(
-    `dub.sh:${key}`,
-    {
-      url,
-    },
-    {
-      nx: true,
-      ex: 30 * 60, // 30 minutes
-    },
-  );
-  if (response !== "OK") {
-    // by the off chance that key already exists
-    return setRandomKey(url);
-  } else {
-    return { response, key };
-  }
-}
-
 /**
  * Recording metatags that were generated via `/api/edge/metatags`
  * If there's an error, it will be logged to a separate redis list for debugging
