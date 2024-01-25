@@ -26,7 +26,7 @@ export function newHonoApp() {
   app.use("*", cors());
   app.use("*", logger());
   app.use("/api/*", validateApiKey);
-  app.use("/api/*", rateLimit);
+  // app.use("/api/*", rateLimit);
 
   // OpenAPI Spec
   app.doc("/openapi.json", {

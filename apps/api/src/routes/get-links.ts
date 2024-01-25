@@ -30,14 +30,14 @@ const QuerySchema = z.object({
       description:
         "The field to sort the links by. The default is 'createdAt', and sort order is always descending.",
     }),
-  page: z.number().optional().openapi({
+  page: z.coerce.number().optional().openapi({
     description:
       "The page number for pagination (each page contains 100 links).",
   }),
   userId: z.string().optional().openapi({
     description: "The user ID to filter the links by.",
   }),
-  showArchived: z.boolean().optional().default(false).openapi({
+  showArchived: z.coerce.boolean().optional().default(false).openapi({
     description:
       "Whether to include archived links in the response. Defaults to false if not provided.",
   }),
@@ -60,12 +60,11 @@ const LinkResponseSchema = z.object({
     .boolean()
     .default(false)
     .openapi({ description: "Whether the short link is archived." }),
-  shortLink: z
-    .string()
-    .openapi({
-      description:
-        "The full URL of the short link, including the https protocol (e.g. https://dub.sh/try).",
-    }),
+  shortLink: z.string().openapi({
+    description:
+      "The full URL of the short link, including the https protocol (e.g. https://dub.sh/try).",
+  }),
+
   // TODO: Add the rest of the fields
 });
 
