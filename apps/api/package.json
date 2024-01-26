@@ -3,7 +3,7 @@
   "private": true,
   "license": "AGPL-3.0-or-later",
   "scripts": {
-    "dev": "tsx watch src/index.ts"
+    "dev": "tsx watch index.ts"
   },
   "dependencies": {
     "@dub/database": "workspace:*",

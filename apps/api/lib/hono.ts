@@ -3,6 +3,7 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { prettyJSON } from "hono/pretty-json";
+import { sentry } from '@hono/sentry'
 
 import { User } from "@dub/database";
 import { handleError, handleZodError } from "./errors";
@@ -25,6 +26,7 @@ export function newHonoApp() {
   app.use(prettyJSON());
   app.use("*", cors());
   app.use("*", logger());
+  app.use("*", sentry());
   app.use("/api/*", validateApiKey);
   // app.use("/api/*", rateLimit);
 

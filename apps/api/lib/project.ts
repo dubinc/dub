@@ -1,8 +1,8 @@
 import { Context } from "hono";
 
 import { prisma } from "@dub/database";
-import { DubApiError } from "../lib/errors";
-import { HonoEnv } from "../lib/hono";
+import { DubApiError } from "./errors";
+import { HonoEnv } from "./hono";
 
 // Checks if the user is authorized to access the project
 export const authorizeAndRetrieveProject = async (c: Context<HonoEnv>) => {
