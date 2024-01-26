@@ -198,8 +198,6 @@ export const withAuth =
       }
     }
 
-    //We're here
-
     const [project, link] = (await Promise.all([
       prisma.project.findUnique({
         where: {
