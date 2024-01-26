@@ -3,7 +3,7 @@ import { createRoute, z } from "@hono/zod-openapi";
 import { prisma } from "@dub/database";
 import { linkConstructor } from "@dub/utils";
 import { HonoApp } from "../lib/hono";
-import { authorizeAndRetrieveProject } from "../lib/project";
+import { authorizeAndRetrieveProject } from "../lib/projects";
 import { LinkResponseSchema, openApiErrorResponses } from "../lib/schemas";
 
 const QuerySchema = z.object({

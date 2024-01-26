@@ -2,7 +2,7 @@ import { createRoute, z } from "@hono/zod-openapi";
 
 import { prisma } from "@dub/database";
 import { HonoApp } from "../lib/hono";
-import { authorizeAndRetrieveProject } from "../lib/project";
+import { authorizeAndRetrieveProject } from "../lib/projects";
 import {
   ProjectParamSchema,
   TagSchema,

@@ -4,7 +4,7 @@ import { prisma } from "@dub/database";
 import { exceededLimitError, PlanProps, randomBadgeColor } from "@dub/utils";
 import { DubApiError } from "../lib/errors";
 import { HonoApp } from "../lib/hono";
-import { authorizeAndRetrieveProject } from "../lib/project";
+import { authorizeAndRetrieveProject } from "../lib/projects";
 import {
   openApiErrorResponses,
   ProjectParamSchema,

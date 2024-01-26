@@ -1,18 +1,18 @@
+import { sentry } from "@hono/sentry";
 import { swaggerUI } from "@hono/swagger-ui";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { prettyJSON } from "hono/pretty-json";
-import { sentry } from '@hono/sentry'
 
 import { User } from "@dub/database";
 import { handleError, handleZodError } from "./errors";
+import { authenticate } from "./middlewares/authenticate";
 import { rateLimit } from "./middlewares/rateLimit";
-import { apiKeyValidator } from "./middlewares/apiKeyValidator";
 
 export type HonoEnv = {
   Variables: {
-    user: Pick<User, "id" | "name" | "email">;
+    user: Pick<User, "id" | "name" | "email"> & { apiKey?: string };
   };
 };
 
@@ -27,8 +27,8 @@ export function newHonoApp() {
   app.use("*", cors());
   app.use("*", logger());
   app.use("*", sentry());
-  app.use("/api/*", apiKeyValidator);
-  app.use("/api/*", rateLimit);
+  app.use("/api/*", authenticate());
+  app.use("/api/*", rateLimit());
 
   // OpenAPI Spec
   app.doc("/openapi.json", {
