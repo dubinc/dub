@@ -67,7 +67,7 @@ export async function POST(req: Request) {
 
   // increment links usage and send alert if needed
   if (type === "create" && link.projectId) {
-    const [project, _redisLink] = await Promise.all([
+    const [project, _] = await Promise.all([
       prisma.project.update({
         where: {
           id: link.projectId,

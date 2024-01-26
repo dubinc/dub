@@ -462,48 +462,27 @@ export async function addLink(link: LinkProps) {
 export async function bulkCreateLinks(links: LinkProps[]) {
   if (links.length === 0) return [];
 
-  // split links into domains
-  const linksByDomain: Record<string, Record<string, RedisLinkProps>> = {};
-  links.forEach(async (link) => {
-    const { domain, key } = link;
-
-    if (!linksByDomain[domain]) {
-      linksByDomain[domain] = {};
-    }
-    // this technically will be a synchronous function since isIframeable won't be run for bulk link creation
-    linksByDomain[domain][key.toLowerCase()] = await formatRedisLink(link);
-  });
-
-  const pipeline = redis.pipeline();
-
-  Object.entries(linksByDomain).forEach(([domain, links]) => {
-    pipeline.hset(domain, links);
-  });
-
-  await Promise.all([
-    prisma.link.createMany({
-      data: links.map((link) => {
-        const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
-          getParamsFromURL(link.url);
-        return {
-          ...link,
-          title: truncate(link.title, 120),
-          description: truncate(link.description, 240),
-          utm_source,
-          utm_medium,
-          utm_campaign,
-          utm_term,
-          utm_content,
-          expiresAt: link.expiresAt ? new Date(link.expiresAt) : null,
-          geo: link.geo || undefined,
-        };
-      }),
-      skipDuplicates: true,
+  await prisma.link.createMany({
+    data: links.map((link) => {
+      const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
+        getParamsFromURL(link.url);
+      return {
+        ...link,
+        title: truncate(link.title, 120),
+        description: truncate(link.description, 240),
+        utm_source,
+        utm_medium,
+        utm_campaign,
+        utm_term,
+        utm_content,
+        expiresAt: link.expiresAt ? new Date(link.expiresAt) : null,
+        geo: link.geo || undefined,
+      };
     }),
-    pipeline.exec(),
-  ]);
+    skipDuplicates: true,
+  });
 
-  const createdLinks = await Promise.all(
+  const createdLinks = (await Promise.all(
     links.map(async (link) => {
       const { key, domain } = link;
       return await prisma.link.findUnique({
@@ -515,7 +494,32 @@ export async function bulkCreateLinks(links: LinkProps[]) {
         },
       });
     }),
+  )) as LinkProps[];
+
+  const pipeline = redis.pipeline();
+
+  // split links into domains
+  const linksByDomain: Record<string, Record<string, RedisLinkProps>> = {};
+
+  // this technically will be a synchronous function since isIframeable won't be run for bulk link creation
+  await Promise.all(
+    createdLinks.map(async (link) => {
+      const { domain, key } = link;
+
+      if (!linksByDomain[domain]) {
+        linksByDomain[domain] = {};
+      }
+      const formattedLink = await formatRedisLink(link);
+
+      linksByDomain[domain][key.toLowerCase()] = formattedLink;
+    }),
   );
+
+  Object.entries(linksByDomain).forEach(([domain, links]) => {
+    pipeline.hset(domain, links);
+  });
+
+  await pipeline.exec();
 
   return createdLinks.map((link) => ({
     ...link,
