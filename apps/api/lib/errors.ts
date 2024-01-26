@@ -122,6 +122,8 @@ export function handleZodError(
 export function handleError(error: Error, c: Context): Response {
   console.error("An error occurred", error);
 
+  c.get("sentry").captureException(error);
+
   // Handle Prisma errors
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
     return c.json<ErrorResponse>(
