@@ -20,8 +20,8 @@
 <p align="center">
   <a href="#introduction"><strong>Introduction</strong></a> ·
   <a href="#features"><strong>Features</strong></a> ·
-  <a href="#self-hosting"><strong>Self-hosting</strong></a> ·
   <a href="#tech-stack"><strong>Tech Stack</strong></a> ·
+  <a href="#self-hosting"><strong>Self-hosting</strong></a> ·
   <a href="#contributing"><strong>Contributing</strong></a>
 </p>
 <br/>
@@ -38,10 +38,6 @@ Dub.co is the open-source link management infrastructure for modern marketing te
 - [Personalization](https://dub.co/features/personalization)
 - [Team Collaboration](https://dub.co/features/collaboration)
 
-## Self-Hosting
-
-You can self-host Dub.co for greater control over your data and design. [Read this guide](https://dub.co/docs/self-hosting/guide) to learn more.
-
 ## Tech Stack
 
 - [Next.js](https://nextjs.org/) – framework
@@ -57,11 +53,16 @@ You can self-host Dub.co for greater control over your data and design. [Read th
 - [Resend](https://resend.com/) – emails
 - [Vercel](https://vercel.com/) – deployments
 
+## Self-Hosting
+
+You can self-host Dub.co for greater control over your data and design. [Read this guide](https://dub.co/docs/self-hosting/guide) to learn more.
+
 ## Contributing
 
 We love our contributors! Here's how you can contribute:
 
 - [Open an issue](https://github.com/dubinc/dub/issues) if you believe you've encountered a bug.
+- Follow the [local development guide](https://dub.co/docs/local-development) to get your local dev environment set up.
 - Make a [pull request](https://github.com/dubinc/dub/pull) to add new features/make quality-of-life improvements/fix bugs.
 
 <a href="https://github.com/dubinc/dub/graphs/contributors">
