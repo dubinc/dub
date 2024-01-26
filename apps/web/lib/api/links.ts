@@ -23,6 +23,7 @@ import cloudinary from "cloudinary";
 import { isIframeable } from "../middleware/utils";
 import { LinkProps, ProjectProps } from "../types";
 import { Session } from "../auth";
+import { getLinkViaEdge } from "../planetscale";
 
 export async function getLinksForProject({
   projectId,
@@ -163,28 +164,9 @@ export async function getLinksCount({
   }
 }
 
-export async function getRandomKey(domain: string): Promise<string> {
-  /* recursively get random key till it gets one that's available */
-  const key = nanoid();
-  const response = await prisma.link.findUnique({
-    where: {
-      domain_key: {
-        domain,
-        key,
-      },
-    },
-  });
-  if (response) {
-    // by the off chance that key already exists
-    return getRandomKey(domain);
-  } else {
-    return key;
-  }
-}
-
 export async function checkIfKeyExists(domain: string, key: string) {
-  // reserved keys for dub.sh
-  if (domain === "dub.sh") {
+  // reserved keys for default short domain
+  if (domain === SHORT_DOMAIN) {
     if ((await isReservedKey(key)) || DEFAULT_REDIRECTS[key]) {
       return true;
     }
@@ -194,15 +176,20 @@ export async function checkIfKeyExists(domain: string, key: string) {
       return true;
     }
   }
-  const link = await prisma.link.findUnique({
-    where: {
-      domain_key: {
-        domain,
-        key,
-      },
-    },
-  });
+  const link = await getLinkViaEdge(domain, key);
   return !!link;
+}
+
+export async function getRandomKey(domain: string): Promise<string> {
+  /* recursively get random key till it gets one that's available */
+  const key = nanoid();
+  const response = await checkIfKeyExists(domain, key);
+  if (response) {
+    // by the off chance that key already exists
+    return getRandomKey(domain);
+  } else {
+    return key;
+  }
 }
 
 export function processKey(key: string) {
@@ -279,54 +266,52 @@ export async function processLink({
     }
   }
 
-  // if domain is not defined, use the project's primary domain
+  // if domain is not defined, set it to the project's primary domain
   if (!domain) {
     domain = project?.domains?.find((d) => d.primary)?.slug || SHORT_DOMAIN;
+  }
 
-    // if domain is defined, do some checks
-  } else {
-    // checks for dub.sh domain
-    if (domain === "dub.sh") {
-      const keyBlacklisted = await isBlacklistedKey(key);
-      if (keyBlacklisted) {
-        return {
-          link: payload,
-          error: "Invalid key.",
-          status: 422,
-        };
-      }
-      const domainBlacklisted = await isBlacklistedDomain(url);
-      if (domainBlacklisted) {
-        return {
-          link: payload,
-          error: "Invalid url.",
-          status: 422,
-        };
-      }
-
-      // checks for other Dub-owned domains (chatg.pt, spti.fi, etc.)
-    } else if (isDubDomain(domain)) {
-      // coerce type with ! cause we already checked if it exists
-      const { allowedHostnames } = DUB_DOMAINS.find((d) => d.slug === domain)!;
-      const urlDomain = getDomainWithoutWWW(url) || "";
-      if (!allowedHostnames.includes(urlDomain)) {
-        return {
-          link: payload,
-          error: `Invalid url. You can only use ${domain} short links for URLs starting with ${allowedHostnames
-            .map((d) => `\`${d}\``)
-            .join(", ")}.`,
-          status: 422,
-        };
-      }
-
-      // else, check if the domain belongs to the project
-    } else if (!project?.domains?.find((d) => d.slug === domain)) {
+  // checks for default short domain
+  if (domain === SHORT_DOMAIN) {
+    const keyBlacklisted = await isBlacklistedKey(key);
+    if (keyBlacklisted) {
       return {
         link: payload,
-        error: "Domain does not belong to project.",
-        status: 403,
+        error: "Invalid key.",
+        status: 422,
       };
     }
+    const domainBlacklisted = await isBlacklistedDomain(url);
+    if (domainBlacklisted) {
+      return {
+        link: payload,
+        error: "Invalid url.",
+        status: 422,
+      };
+    }
+
+    // checks for other Dub-owned domains (chatg.pt, spti.fi, etc.)
+  } else if (isDubDomain(domain)) {
+    // coerce type with ! cause we already checked if it exists
+    const { allowedHostnames } = DUB_DOMAINS.find((d) => d.slug === domain)!;
+    const urlDomain = getDomainWithoutWWW(url) || "";
+    if (!allowedHostnames.includes(urlDomain)) {
+      return {
+        link: payload,
+        error: `Invalid url. You can only use ${domain} short links for URLs starting with ${allowedHostnames
+          .map((d) => `\`${d}\``)
+          .join(", ")}.`,
+        status: 422,
+      };
+    }
+
+    // else, check if the domain belongs to the project
+  } else if (!project?.domains?.find((d) => d.slug === domain)) {
+    return {
+      link: payload,
+      error: "Domain does not belong to project.",
+      status: 403,
+    };
   }
 
   if (!key) {
@@ -470,17 +455,6 @@ export async function addLink(link: LinkProps) {
         nx: true,
       },
     ),
-    link.projectId &&
-      prisma.project.update({
-        where: {
-          id: link.projectId,
-        },
-        data: {
-          linksUsage: {
-            increment: 1,
-          },
-        },
-      }),
   ]);
 
   if (proxy && image) {

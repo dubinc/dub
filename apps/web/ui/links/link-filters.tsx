@@ -79,9 +79,9 @@ export default function LinkFilters() {
         <>
           <TagsFilter tags={tags} tagsCount={tagsCount} />
           <MyLinksFilter />
+          <ArchiveFilter />
         </>
       )}
-      <ArchiveFilter />
     </div>
   ) : (
     <div className="grid h-full gap-6 rounded-md bg-white p-5">

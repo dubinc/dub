@@ -194,6 +194,10 @@ export const PLANS = [
   },
 ];
 
+export const FREE_PLAN = PLANS.find((plan) => plan.name === "free")!;
+
 export const SELF_SERVE_PAID_PLANS = PLANS.filter(
   (p) => p.name === "Pro" || p.name === "Business",
 );
+
+export const FREE_PROJECTS_LIMIT = 2;
