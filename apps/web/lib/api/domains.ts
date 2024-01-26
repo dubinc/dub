@@ -183,7 +183,7 @@ export async function setRootDomain({
           rewrite: true,
           iframeable: await isIframeable({
             url,
-            requestDomain: domain,
+            requestDomain: newDomain || domain,
           }),
         }),
       projectId,
