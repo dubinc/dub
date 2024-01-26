@@ -19,26 +19,28 @@ const route = createRoute({
       content: {
         "application/json": {
           schema: z.object({
-            ...ProjectSchema.shape,
-            users: z.array(
-              z.object({
-                role: z.string().openapi({
-                  description:
-                    "The role of the authenticated user in the project.",
+            data: z.object({
+              ...ProjectSchema.shape,
+              users: z.array(
+                z.object({
+                  role: z.string().openapi({
+                    description:
+                      "The role of the authenticated user in the project.",
+                  }),
                 }),
-              }),
-            ),
-            domains: z.array(
-              z.object({
-                slug: z
-                  .string()
-                  .openapi({ description: "The domain of the project." }),
-                primary: z.boolean().openapi({
-                  description:
-                    "Whether the domain is the primary domain of the project.",
+              ),
+              domains: z.array(
+                z.object({
+                  slug: z
+                    .string()
+                    .openapi({ description: "The domain of the project." }),
+                  primary: z.boolean().openapi({
+                    description:
+                      "Whether the domain is the primary domain of the project.",
+                  }),
                 }),
-              }),
-            ),
+              ),
+            }),
           }),
         },
       },
@@ -84,6 +86,8 @@ export const getProjectHandler = (app: HonoApp) => {
       },
     });
 
-    return c.json(project);
+    return c.json({
+      data: project,
+    });
   });
 };

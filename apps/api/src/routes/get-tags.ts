@@ -3,7 +3,7 @@ import { createRoute, z } from "@hono/zod-openapi";
 import { prisma } from "@dub/database";
 import { HonoApp } from "../lib/hono";
 import { authorizeAndRetrieveProject } from "../lib/project";
-import { TagSchema } from "../lib/schemas/dub";
+import { ProjectParamSchema, TagSchema } from "../lib/schemas/dub";
 import { openApiErrorResponses } from "../lib/schemas/openapi";
 
 // Get a specific project
@@ -11,12 +11,17 @@ const route = createRoute({
   method: "get",
   path: "/api/v1/projects/{projectSlug}/tags",
   security: [{ bearerAuth: [] }],
+  request: {
+    params: ProjectParamSchema,
+  },
   responses: {
     200: {
       description: "List of tags",
       content: {
         "application/json": {
-          schema: z.array(TagSchema),
+          schema: z.object({
+            data: z.array(TagSchema),
+          }),
         },
       },
     },
@@ -42,6 +47,8 @@ export const getTagsHandler = (app: HonoApp) => {
       },
     });
 
-    return c.json(tags);
+    return c.json({
+      data: tags,
+    });
   });
 };

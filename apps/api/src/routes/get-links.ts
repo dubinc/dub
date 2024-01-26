@@ -81,7 +81,9 @@ const route = createRoute({
       description: "Retrieve a list of links",
       content: {
         "application/json": {
-          schema: z.array(LinkResponseSchema),
+          schema: z.object({
+            data: z.array(LinkResponseSchema),
+          }),
         },
       },
     },
@@ -134,6 +136,8 @@ export const getLinksHandler = (app: HonoApp) => {
       }),
     }));
 
-    return c.json(allLinks);
+    return c.json({
+      data: allLinks,
+    });
   });
 };

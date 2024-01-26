@@ -15,7 +15,9 @@ const route = createRoute({
       description: "List of projects",
       content: {
         "application/json": {
-          schema: z.array(ProjectSchema),
+          schema: z.object({
+            data: z.array(ProjectSchema),
+          }),
         },
       },
     },
@@ -49,6 +51,8 @@ export const getProjectsHandler = (app: HonoApp) => {
       },
     });
 
-    return c.json(projects);
+    return c.json({
+      data: projects,
+    });
   });
 };

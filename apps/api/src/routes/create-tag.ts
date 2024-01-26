@@ -5,7 +5,7 @@ import { exceededLimitError, PlanProps, randomBadgeColor } from "@dub/utils";
 import { DubApiError } from "../lib/errors";
 import { HonoApp } from "../lib/hono";
 import { authorizeAndRetrieveProject } from "../lib/project";
-import { TagSchema } from "../lib/schemas/dub";
+import { ProjectParamSchema, TagSchema } from "../lib/schemas/dub";
 import { openApiErrorResponses } from "../lib/schemas/openapi";
 
 // Create a new tag
@@ -14,6 +14,7 @@ const route = createRoute({
   path: "/api/v1/projects/{projectSlug}/tags",
   security: [{ bearerAuth: [] }],
   request: {
+    params: ProjectParamSchema,
     body: {
       required: true,
       content: {
@@ -32,7 +33,9 @@ const route = createRoute({
       description: "Tag created",
       content: {
         "application/json": {
-          schema: TagSchema,
+          schema: z.object({
+            data: TagSchema,
+          }),
         },
       },
     },
@@ -63,7 +66,7 @@ export const createTagHandler = (app: HonoApp) => {
 
     const { tag } = c.req.valid("json");
 
-    const response = await prisma.tag.create({
+    const createdTag = await prisma.tag.create({
       data: {
         name: tag,
         color: randomBadgeColor(),
@@ -76,6 +79,8 @@ export const createTagHandler = (app: HonoApp) => {
       },
     });
 
-    return c.json(response);
+    return c.json({
+      data: createdTag,
+    });
   });
 };
