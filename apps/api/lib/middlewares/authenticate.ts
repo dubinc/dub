@@ -1,4 +1,5 @@
 import { Context } from "hono";
+import { env } from "hono/adapter";
 import { getCookie } from "hono/cookie";
 import { decode } from "next-auth/jwt";
 
@@ -89,9 +90,11 @@ export const authenticate = () => {
         });
       }
 
+      const { NEXTAUTH_SECRET } = env<{ NEXTAUTH_SECRET: string }>(c);
+
       const token = await decode({
         token: sessionToken,
-        secret: "e0b76b1be35120c974b4bb152e312ff7", // TODO: Read this from env
+        secret: NEXTAUTH_SECRET,
       });
 
       if (!token || !token.user || !token.user.id) {
