@@ -4,7 +4,7 @@ import { prisma } from "@dub/database";
 import { linkConstructor } from "@dub/utils";
 import { HonoApp } from "../lib/hono";
 import { authorizeAndRetrieveProject } from "../lib/project";
-import { openApiErrorResponses } from "../lib/schemas/openapi";
+import { LinkResponseSchema, openApiErrorResponses } from "../lib/schemas";
 
 const QuerySchema = z.object({
   projectSlug: z.string().min(1).openapi({
@@ -41,31 +41,6 @@ const QuerySchema = z.object({
     description:
       "Whether to include archived links in the response. Defaults to false if not provided.",
   }),
-});
-
-const LinkResponseSchema = z.object({
-  id: z.string().openapi({ description: "The unique ID of the short link." }),
-  domain: z.string().openapi({
-    description:
-      "The domain of the short link. If not provided, the primary domain for the project will be used (or dub.sh if the project has no domains).",
-  }),
-  key: z.string().openapi({
-    description:
-      "The short link slug. If not provided, a random 7-character slug will be generated.",
-  }),
-  url: z
-    .string()
-    .openapi({ description: "The destination URL of the short link." }),
-  archived: z
-    .boolean()
-    .default(false)
-    .openapi({ description: "Whether the short link is archived." }),
-  shortLink: z.string().openapi({
-    description:
-      "The full URL of the short link, including the https protocol (e.g. https://dub.sh/try).",
-  }),
-
-  // TODO: Add the rest of the fields
 });
 
 // Get a specific link

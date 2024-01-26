@@ -5,8 +5,11 @@ import { exceededLimitError, PlanProps, randomBadgeColor } from "@dub/utils";
 import { DubApiError } from "../lib/errors";
 import { HonoApp } from "../lib/hono";
 import { authorizeAndRetrieveProject } from "../lib/project";
-import { ProjectParamSchema, TagSchema } from "../lib/schemas/dub";
-import { openApiErrorResponses } from "../lib/schemas/openapi";
+import {
+  openApiErrorResponses,
+  ProjectParamSchema,
+  TagSchema,
+} from "../lib/schemas";
 
 // Create a new tag
 const route = createRoute({
