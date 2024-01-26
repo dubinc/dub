@@ -10,6 +10,7 @@
     "@dub/upstash": "workspace:*",
     "@dub/utils": "workspace:*",
     "@hono/node-server": "^1.4.1",
+    "@hono/sentry": "^1.0.0",
     "@hono/swagger-ui": "^0.2.1",
     "@hono/zod-openapi": "^0.9.5",
     "hono": "^3.12.6",
