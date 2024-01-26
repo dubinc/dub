@@ -8,7 +8,7 @@ import { sentry } from '@hono/sentry'
 import { User } from "@dub/database";
 import { handleError, handleZodError } from "./errors";
 import { rateLimit } from "./middlewares/rateLimit";
-import { validateApiKey } from "./middlewares/validateApiKey";
+import { apiKeyValidator } from "./middlewares/apiKeyValidator";
 
 export type HonoEnv = {
   Variables: {
@@ -27,8 +27,8 @@ export function newHonoApp() {
   app.use("*", cors());
   app.use("*", logger());
   app.use("*", sentry());
-  app.use("/api/*", validateApiKey);
-  // app.use("/api/*", rateLimit);
+  app.use("/api/*", apiKeyValidator);
+  app.use("/api/*", rateLimit);
 
   // OpenAPI Spec
   app.doc("/openapi.json", {

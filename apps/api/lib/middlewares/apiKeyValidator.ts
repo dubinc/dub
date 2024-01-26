@@ -6,7 +6,7 @@ import { extractApiKey } from "../apikey";
 import { DubApiError } from "../errors";
 
 // Check if the request is authenticated with a valid API key
-export const validateApiKey = async (c: Context, next: () => Promise<void>) => {
+export const apiKeyValidator = async (c: Context, next: () => Promise<void>) => {
   const apiKey = extractApiKey(c);
 
   const url = new URL(c.req.url || "", API_DOMAIN);

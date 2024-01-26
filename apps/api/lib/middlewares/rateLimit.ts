@@ -7,6 +7,10 @@ import { extractApiKey } from "../apikey";
 import { DubApiError } from "../errors";
 
 export const rateLimit = async (c: Context, next: () => Promise<void>) => {
+  // TODO: Just to bypass rate limit for local development
+  // Remove this before merging
+  await next();
+
   const apiKey = extractApiKey(c);
 
   const hashedKey = hashToken(apiKey, {
