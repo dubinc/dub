@@ -414,25 +414,22 @@ export async function addLink(link: LinkProps) {
   const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
     getParamsFromURL(url);
 
-  let [response, _] = await Promise.all([
-    prisma.link.create({
-      data: {
-        ...link,
-        key,
-        title: truncate(title, 120),
-        description: truncate(description, 240),
-        image: uploadedImage ? undefined : image,
-        utm_source,
-        utm_medium,
-        utm_campaign,
-        utm_term,
-        utm_content,
-        expiresAt: expiresAt ? new Date(expiresAt) : null,
-        geo: geo || undefined,
-      },
-    }),
-    redis.hsetnx(domain, key.toLowerCase(), await formatRedisLink(link)),
-  ]);
+  let response = await prisma.link.create({
+    data: {
+      ...link,
+      key,
+      title: truncate(title, 120),
+      description: truncate(description, 240),
+      image: uploadedImage ? undefined : image,
+      utm_source,
+      utm_medium,
+      utm_campaign,
+      utm_term,
+      utm_content,
+      expiresAt: expiresAt ? new Date(expiresAt) : null,
+      geo: geo || undefined,
+    },
+  });
 
   if (proxy && image) {
     const { secure_url } = await cloudinary.v2.uploader.upload(image, {
