@@ -22,8 +22,8 @@ export default async function RootMiddleware(
     const linkData = await getDomainViaEdge(domain);
 
     if (!linkData) {
-      // short link not found, redirect to root
-      return NextResponse.redirect(new URL("/", req.url), DUB_HEADERS);
+      // rewrite to placeholder page if domain doesn't exist
+      return NextResponse.rewrite(new URL(`/${domain}`, req.url));
     }
 
     // format link to fit the RedisLinkProps interface
@@ -41,22 +41,22 @@ export default async function RootMiddleware(
   // record clicks on root page
   ev.waitUntil(recordClick({ req, id, domain, projectId }));
 
-  if (url) {
-    if (rewrite) {
-      if (iframeable) {
-        return NextResponse.rewrite(
-          new URL(`/rewrite/${url}`, req.url),
-          DUB_HEADERS,
-        );
-      } else {
-        // if link is not iframeable, use Next.js rewrite instead
-        return NextResponse.rewrite(url, DUB_HEADERS);
-      }
+  if (!url) {
+    // rewrite to placeholder page unless the user defines a site to redirect to
+    return NextResponse.rewrite(new URL(`/${domain}`, req.url));
+  }
+
+  if (rewrite) {
+    if (iframeable) {
+      return NextResponse.rewrite(
+        new URL(`/rewrite/${url}`, req.url),
+        DUB_HEADERS,
+      );
     } else {
-      return NextResponse.redirect(url, DUB_HEADERS);
+      // if link is not iframeable, use Next.js rewrite instead
+      return NextResponse.rewrite(url, DUB_HEADERS);
     }
   } else {
-    // rewrite to root page unless the user defines a site to redirect to
-    return NextResponse.rewrite(new URL(`/${domain}`, req.url));
+    return NextResponse.redirect(url, DUB_HEADERS);
   }
 }
