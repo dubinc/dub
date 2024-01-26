@@ -1,7 +1,12 @@
 import { getDomainWithoutWWW, isDubDomain, isIframeable } from "@dub/utils";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
-import { LinkProps, RedisLinkProps } from "./types";
+import {
+  DomainProps,
+  LinkProps,
+  RedisDomainProps,
+  RedisLinkProps,
+} from "./types";
 
 // Initiate Redis instance by connecting to REST URL
 export const redis = new Redis({
@@ -87,6 +92,23 @@ export async function formatRedisLink(
     ...(ios && { ios }),
     ...(android && { android }),
     ...(geo && { geo: geo as object }),
+    ...(projectId && { projectId }),
+  };
+}
+
+export async function formatRedisDomain(
+  domain: DomainProps,
+): Promise<RedisDomainProps> {
+  const { id, slug, target: url, type, projectId } = domain;
+
+  return {
+    id,
+    ...(url && { url }),
+    ...(type === "rewrite" &&
+      url && {
+        rewrite: true,
+        iframeable: await isIframeable({ url, requestDomain: slug }),
+      }),
     ...(projectId && { projectId }),
   };
 }

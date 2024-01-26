@@ -16,7 +16,7 @@ import {
 } from "next/server";
 import { isBlacklistedReferrer } from "../edge-config";
 import { getLinkViaEdge } from "../planetscale";
-import { RedisDomainMetadataProps, RedisLinkProps } from "../types";
+import { RedisLinkProps } from "../types";
 
 export default async function LinkMiddleware(
   req: NextRequest,
@@ -62,20 +62,23 @@ export default async function LinkMiddleware(
 
     if (!linkData) {
       // short link not found, redirect to root
+      // TODO: log 404s (https://github.com/dubinc/dub/issues/559)
       return NextResponse.redirect(new URL("/", req.url), DUB_HEADERS);
     }
 
     // format link to fit the RedisLinkProps interface
     link = await formatRedisLink(linkData as any);
 
-    await redis.hset(domain, {
-      [key]: link,
-    });
+    ev.waitUntil(
+      redis.hset(domain, {
+        [key]: link,
+      }),
+    );
   }
 
   const {
     id,
-    url: target,
+    url,
     password,
     proxy,
     rewrite,
@@ -142,12 +145,12 @@ export default async function LinkMiddleware(
   } else if (rewrite) {
     if (iframeable) {
       return NextResponse.rewrite(
-        new URL(`/rewrite/${target}`, req.url),
+        new URL(`/rewrite/${url}`, req.url),
         DUB_HEADERS,
       );
     } else {
       // if link is not iframeable, use Next.js rewrite instead
-      return NextResponse.rewrite(target, DUB_HEADERS);
+      return NextResponse.rewrite(url, DUB_HEADERS);
     }
 
     // redirect to iOS link if it is specified and the user is on an iOS device
@@ -167,6 +170,6 @@ export default async function LinkMiddleware(
 
     // regular redirect
   } else {
-    return NextResponse.redirect(getFinalUrl(target, { req }), DUB_HEADERS);
+    return NextResponse.redirect(getFinalUrl(url, { req }), DUB_HEADERS);
   }
 }

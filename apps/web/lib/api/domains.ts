@@ -155,58 +155,40 @@ export const verifyDomain = async (domain: string) => {
 };
 
 export async function setRootDomain({
+  id,
   domain,
-  target,
+  projectId,
+  url,
   rewrite,
   newDomain,
 }: {
+  id: string;
   domain: string;
-  target: string;
-  rewrite: boolean;
+  projectId: string;
+  url?: string;
+  rewrite?: boolean;
   newDomain?: string; // if the domain is changed, this will be the new domain
 }) {
   if (newDomain) {
-    const pipeline = redis.pipeline();
-    pipeline.del(`root:${domain}`);
-    pipeline.set(`root:${newDomain}`, {
-      target,
-      ...(rewrite && {
-        rewrite: true,
-        iframeable: await isIframeable({ url: target, requestDomain: domain }),
-      }),
-    });
-    return await pipeline.exec();
-  } else {
-    await redis.set(`root:${domain}`, {
-      target,
-      ...(rewrite && {
-        rewrite: true,
-        iframeable: await isIframeable({ url: target, requestDomain: domain }),
-      }),
-    });
+    await redis.rename(domain, newDomain);
   }
-}
-
-/* Change the domain for every link and its respective stats when the project domain is changed */
-export async function changeDomainForLinks(domain: string, newDomain: string) {
-  const links = await prisma.link.findMany({
-    where: {
-      domain,
-    },
-    select: {
-      key: true,
+  return await redis.hset(newDomain || domain, {
+    _root: {
+      id,
+      ...(url && {
+        url,
+      }),
+      ...(url &&
+        rewrite && {
+          rewrite: true,
+          iframeable: await isIframeable({
+            url,
+            requestDomain: domain,
+          }),
+        }),
+      projectId,
     },
   });
-  if (links.length === 0) return null;
-  const pipeline = redis.pipeline();
-  links.forEach(({ key }) => {
-    pipeline.rename(`${domain}:${key}`, `${newDomain}:${key}`);
-  });
-  try {
-    return await pipeline.exec();
-  } catch (e) {
-    return null;
-  }
 }
 
 /* Change the domain for all images for a given project on Cloudinary */

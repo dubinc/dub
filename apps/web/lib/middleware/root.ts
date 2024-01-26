@@ -1,8 +1,10 @@
 import { recordClick } from "@/lib/tinybird";
-import { redis } from "@/lib/upstash";
+import { formatRedisDomain, redis } from "@/lib/upstash";
 import { DUB_HEADERS } from "@dub/utils";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 import { parse } from "./utils";
+import { RedisDomainProps } from "../types";
+import { getDomainViaEdge } from "../planetscale";
 
 export default async function RootMiddleware(
   req: NextRequest,
@@ -14,34 +16,44 @@ export default async function RootMiddleware(
     return NextResponse.next();
   }
 
+  let link = await redis.hget<RedisDomainProps>(domain, "_root");
+
+  if (!link) {
+    const linkData = await getDomainViaEdge(domain);
+
+    if (!linkData) {
+      // short link not found, redirect to root
+      return NextResponse.redirect(new URL("/", req.url), DUB_HEADERS);
+    }
+
+    // format link to fit the RedisLinkProps interface
+    link = await formatRedisDomain(linkData as any);
+
+    ev.waitUntil(
+      redis.hset(domain, {
+        _root: link,
+      }),
+    );
+  }
+
+  const { id, url, rewrite, iframeable, projectId } = link;
+
   // record clicks on root page
-  ev.waitUntil(recordClick({ req, domain }));
+  ev.waitUntil(recordClick({ req, id, domain, projectId }));
 
-  const response = await redis.get<{
-    target: string;
-    rewrite?: boolean;
-    iframeable?: boolean;
-  }>(`root:${domain}`);
-
-  const { target, rewrite, iframeable } = response || {};
-
-  if (target) {
+  if (url) {
     if (rewrite) {
       if (iframeable) {
-        // note: there's a discrepancy between the implementation here and for
-        // link rewriting in `lib/api/links` – here we do `encodeURIComponent` but for links we
-        // don't need to. This is because link targets are already encoded, while root targets
-        // are not. TODO: standardize this in the future.
         return NextResponse.rewrite(
-          new URL(`/rewrite/${encodeURIComponent(target)}`, req.url),
+          new URL(`/rewrite/${url}`, req.url),
           DUB_HEADERS,
         );
       } else {
         // if link is not iframeable, use Next.js rewrite instead
-        return NextResponse.rewrite(target, DUB_HEADERS);
+        return NextResponse.rewrite(url, DUB_HEADERS);
       }
     } else {
-      return NextResponse.redirect(target, DUB_HEADERS);
+      return NextResponse.redirect(url, DUB_HEADERS);
     }
   } else {
     // rewrite to root page unless the user defines a site to redirect to

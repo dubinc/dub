@@ -25,23 +25,23 @@ export const parse = (req: NextRequest) => {
   return { domain, path, fullPath, key, fullKey };
 };
 
-export const getFinalUrl = (target: string, { req }: { req: NextRequest }) => {
+export const getFinalUrl = (url: string, { req }: { req: NextRequest }) => {
   // query is the query string (e.g. dub.sh/github?utm_source=twitter -> ?utm_source=twitter)
   const searchParams = req.nextUrl.searchParams;
 
   // get the query params of the target url
-  const targetUrl = new URL(target);
+  const urlObj = new URL(url);
 
   // @ts-ignore – until https://github.com/microsoft/TypeScript/issues/54466 is fixed
-  if (searchParams.size === 0) return targetUrl.toString(); // if there are no query params, then return the target url as is (no need to parse it)
+  if (searchParams.size === 0) return urlObj.toString(); // if there are no query params, then return the target url as is (no need to parse it)
 
   // if searchParams (type: `URLSearchParams`) has the same key as target url, then overwrite it
   for (const [key, value] of searchParams) {
-    targetUrl.searchParams.set(key, value);
+    urlObj.searchParams.set(key, value);
   }
 
   // construct final url
-  const finalUrl = targetUrl.toString();
+  const finalUrl = urlObj.toString();
 
   return finalUrl;
 };

@@ -192,6 +192,7 @@ export const POST = async (req: Request) => {
             stripeId,
           },
           select: {
+            id: true,
             slug: true,
             domains: true,
             users: {
@@ -225,7 +226,11 @@ export const POST = async (req: Request) => {
         const pipeline = redis.pipeline();
         // remove root domain redirect for all domains
         projectDomains.forEach((domain) => {
-          pipeline.del(`root:${domain}`);
+          pipeline.hset(domain, {
+            _root: {
+              projectId: project.id,
+            },
+          });
         });
 
         await Promise.allSettled([

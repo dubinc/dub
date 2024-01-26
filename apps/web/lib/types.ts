@@ -13,11 +13,6 @@ export interface QRLinkProps {
   url?: string;
 }
 
-export interface RedisDomainMetadataProps {
-  projectId: string;
-  redirectRules?: Record<string, string>;
-}
-
 export interface RedisLinkProps {
   id: string;
   url: string;
@@ -101,6 +96,7 @@ export type DomainVerificationStatusProps =
   | "Unknown Error";
 
 export interface DomainProps {
+  id: string;
   slug: string;
   verified: boolean;
   primary: boolean;
@@ -109,6 +105,14 @@ export interface DomainProps {
   type: string;
   placeholder?: string;
   clicks: number;
+  projectId: string;
+}
+export interface RedisDomainProps {
+  id: string;
+  url?: string;
+  rewrite?: boolean;
+  iframeable?: boolean;
+  projectId?: string;
 }
 
 export interface BitlyGroupProps {
