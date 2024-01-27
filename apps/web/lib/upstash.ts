@@ -92,7 +92,7 @@ export async function formatRedisLink(
     ...(ios && { ios }),
     ...(android && { android }),
     ...(geo && { geo: geo as object }),
-    ...(projectId && { projectId }), // for anonymous links
+    ...(projectId && { projectId }), // projectId can be undefined for anonymous links
   };
 }
 
