@@ -11,6 +11,7 @@ import { BlurImage } from "@/ui/shared/blur-image";
 import { Chart, Delete, ThreeDots } from "@/ui/shared/icons";
 import {
   Avatar,
+  Copy,
   CopyButton,
   IconMenu,
   NumberTooltip,
@@ -20,6 +21,7 @@ import {
   TooltipContent,
   useIntersectionObserver,
   useRouterStuff,
+  useCopyToClipboard,
 } from "@dub/ui";
 import {
   GOOGLE_FAVICON_URL,
@@ -45,8 +47,16 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import Linkify from "linkify-react";
 import punycode from "punycode/";
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import useSWR from "swr";
+import { toast } from "sonner";
 
 export default function LinkCard({
   props,
@@ -134,6 +144,17 @@ export default function LinkCard({
   const [openPopover, setOpenPopover] = useState(false);
   const [selected, setSelected] = useState(false);
 
+  const shortLink = linkConstructor({ key, domain });
+  const [_copied, copyToClipboard] = useCopyToClipboard();
+
+  const copyShortLinkToClipboard = useCallback(() => {
+    toast.promise(copyToClipboard(shortLink), {
+      loading: "Copying to clipboard...",
+      success: "Copied to clipboard!",
+      error: "Failed to copy",
+    });
+  }, [shortLink]);
+
   useEffect(() => {
     // if there's an existing modal backdrop and the link is selected, unselect it
     const existingModalBackdrop = document.getElementById("modal-backdrop");
@@ -168,35 +189,37 @@ export default function LinkCard({
     };
   }, [handlClickOnLinkCard]);
 
-  const onKeyDown = (e: any) => {
+  const onKeyDown = (ev: Event) => {
     // only run shortcut logic if:
-    // - usage is not exceeded
     // - link is selected or the 3 dots menu is open
     // - the key pressed is one of the shortcuts
     // - there is no existing modal backdrop
-    if (
-      (selected || openPopover) &&
-      ["e", "d", "q", "a", "x"].includes(e.key)
-    ) {
-      setSelected(false);
-      e.preventDefault();
-      switch (e.key) {
-        case "e":
-          setShowAddEditLinkModal(true);
-          break;
-        case "d":
-          setShowDuplicateLinkModal(true);
-          break;
-        case "q":
-          setShowLinkQRModal(true);
-          break;
-        case "a":
-          setShowArchiveLinkModal(true);
-          break;
-        case "x":
-          setShowDeleteLinkModal(true);
-          break;
-      }
+
+    if (!(ev instanceof KeyboardEvent)) return;
+    if (!selected && !openPopover) return;
+    if (!["e", "d", "q", "a", "x"].includes(ev.key)) return;
+
+    ev.preventDefault();
+
+    setSelected(false);
+    setOpenPopover(false);
+
+    switch (ev.key) {
+      case "e":
+        setShowAddEditLinkModal(true);
+        break;
+      case "d":
+        setShowDuplicateLinkModal(true);
+        break;
+      case "q":
+        setShowLinkQRModal(true);
+        break;
+      case "a":
+        setShowArchiveLinkModal(true);
+        break;
+      case "x":
+        setShowDeleteLinkModal(true);
+        break;
     }
   };
 
@@ -282,7 +305,7 @@ export default function LinkCard({
                       "text-gray-500": archived || expired,
                     },
                   )}
-                  href={linkConstructor({ key, domain })}
+                  href={shortLink}
                   target="_blank"
                   rel="noreferrer"
                 >
@@ -293,7 +316,7 @@ export default function LinkCard({
                   })}
                 </a>
               )}
-              <CopyButton value={linkConstructor({ key, domain })} />
+              <CopyButton value={shortLink} className="hidden sm:block" />
               {comments && (
                 <Tooltip
                   content={
@@ -410,78 +433,61 @@ export default function LinkCard({
           <Popover
             content={
               <div className="grid w-full gap-px p-2 sm:w-48">
-                <button
+                <PopoverItem
+                  text="Copy"
+                  icon={<Copy className="h-4 w-4" />}
+                  onClick={() => {
+                    setOpenPopover(false);
+                    copyShortLinkToClipboard();
+                  }}
+                  className="sm:hidden"
+                />
+                <PopoverItem
+                  text="Edit"
+                  kbd="E"
+                  icon={<Edit3 className="h-4 w-4" />}
                   onClick={() => {
                     setOpenPopover(false);
                     setShowAddEditLinkModal(true);
                   }}
-                  className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
-                >
-                  <IconMenu text="Edit" icon={<Edit3 className="h-4 w-4" />} />
-                  <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 transition-all duration-75 group-hover:bg-gray-200 sm:inline-block">
-                    E
-                  </kbd>
-                </button>
-                <button
+                />
+                <PopoverItem
+                  text="Duplicate"
+                  kbd="D"
+                  icon={<CopyPlus className="h-4 w-4" />}
                   onClick={() => {
                     setOpenPopover(false);
                     setShowDuplicateLinkModal(true);
                   }}
-                  className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
-                >
-                  <IconMenu
-                    text="Duplicate"
-                    icon={<CopyPlus className="h-4 w-4" />}
-                  />
-                  <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 transition-all duration-75 group-hover:bg-gray-200 sm:inline-block">
-                    D
-                  </kbd>
-                </button>
-                <button
+                />
+                <PopoverItem
+                  text="QR Code"
+                  kbd="Q"
+                  icon={<QrCode className="h-4 w-4" />}
                   onClick={() => {
                     setOpenPopover(false);
                     setShowLinkQRModal(true);
                   }}
-                  className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
-                >
-                  <IconMenu
-                    text="QR Code"
-                    icon={<QrCode className="h-4 w-4" />}
-                  />
-                  <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 transition-all duration-75 group-hover:bg-gray-200 sm:inline-block">
-                    Q
-                  </kbd>
-                </button>
-                <button
+                />
+                <PopoverItem
+                  text={archived ? "Unarchive" : "Archive"}
+                  kbd="A"
+                  icon={<Archive className="h-4 w-4" />}
                   onClick={() => {
                     setOpenPopover(false);
                     setShowArchiveLinkModal(true);
                   }}
-                  className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
-                >
-                  <IconMenu
-                    text={archived ? "Unarchive" : "Archive"}
-                    icon={<Archive className="h-4 w-4" />}
-                  />
-                  <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 transition-all duration-75 group-hover:bg-gray-200 sm:inline-block">
-                    A
-                  </kbd>
-                </button>
-                <button
+                />
+                <PopoverItem
+                  variant="danger"
+                  text="Delete"
+                  kbd="X"
+                  icon={<Delete className="h-4 w-4" />}
                   onClick={() => {
                     setOpenPopover(false);
                     setShowDeleteLinkModal(true);
                   }}
-                  className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-red-600 transition-all duration-75 hover:bg-red-600 hover:text-white"
-                >
-                  <IconMenu
-                    text="Delete"
-                    icon={<Delete className="h-4 w-4" />}
-                  />
-                  <kbd className="hidden rounded bg-red-100 px-2 py-0.5 text-xs font-light text-red-600 transition-all duration-75 group-hover:bg-red-500 group-hover:text-white sm:inline-block">
-                    X
-                  </kbd>
-                </button>
+                />
               </div>
             }
             align="end"
@@ -502,5 +508,58 @@ export default function LinkCard({
         </div>
       </div>
     </li>
+  );
+}
+
+function PopoverItem({
+  text,
+  icon,
+  kbd,
+  variant = "primary",
+  onClick,
+  className,
+}: {
+  text: string;
+  icon: ReactNode;
+  onClick: () => void;
+  kbd?: string;
+  variant?: "primary" | "danger";
+  className?: string;
+}) {
+  const variantColors = {
+    primary: {
+      button: "text-gray-500 hover:bg-gray-100",
+      kbd: "bg-gray-100 text-gray-500 group-hover:bg-gray-200",
+    },
+    danger: {
+      button: "text-red-600 hover:bg-red-600 hover:text-white",
+      kbd: "bg-red-100 text-red-600 group-hover:bg-red-500 group-hover:text-white",
+    },
+  };
+
+  return (
+    <button
+      className={cn(
+        "group flex w-full items-center justify-between rounded-md p-2",
+        "text-left text-sm font-medium",
+        "transition-all duration-75",
+        variantColors[variant].button,
+        className,
+      )}
+      onClick={onClick}
+    >
+      <IconMenu text={text} icon={icon} />
+      {!!kbd && (
+        <kbd
+          className={cn(
+            "rounded px-2 py-0.5 text-xs font-light transition-all duration-75",
+            "hidden sm:inline-block",
+            variantColors[variant].kbd,
+          )}
+        >
+          {kbd}
+        </kbd>
+      )}
+    </button>
   );
 }
