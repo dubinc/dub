@@ -3,10 +3,10 @@ import { redis } from "@/lib/upstash";
 import {
   getApexDomain,
   getDomainWithoutWWW,
+  isIframeable,
   validDomainRegex,
 } from "@dub/utils";
 import cloudinary from "cloudinary";
-import { isIframeable } from "../middleware/utils";
 
 export const validateDomain = async (domain: string) => {
   if (!domain || typeof domain !== "string") {
