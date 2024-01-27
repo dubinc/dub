@@ -32,9 +32,8 @@ export const getFinalUrl = (url: string, { req }: { req: NextRequest }) => {
   // get the query params of the target url
   const urlObj = new URL(url);
 
-  // @ts-ignore – until https://github.com/microsoft/TypeScript/issues/54466 is fixed
-  if (searchParams.size === 0) return urlObj.toString(); // if there are no query params, then return the target url as is (no need to parse it)
-
+  // if there are no query params, then return the target url as is (no need to parse it)
+  if (searchParams.size === 0) return url;
   // if searchParams (type: `URLSearchParams`) has the same key as target url, then overwrite it
   for (const [key, value] of searchParams) {
     urlObj.searchParams.set(key, value);
