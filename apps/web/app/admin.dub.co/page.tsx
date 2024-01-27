@@ -2,7 +2,6 @@ import { constructMetadata } from "@dub/utils";
 import BanUser from "./components/ban";
 import ImpersonateProject from "./components/impersonate-project";
 import ImpersonateUser from "./components/impersonate-user";
-import DeleteLink from "./components/delete-link";
 
 export const metadata = constructMetadata({
   title: "Dub Admin",
