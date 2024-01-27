@@ -103,9 +103,9 @@ export async function formatRedisDomain(
 
   return {
     id,
-    ...(url && { url }),
-    ...(type === "rewrite" &&
-      url && {
+    ...(url && { url }), // on free plans you cannot set a root domain redirect, hence URL is undefined
+    ...(url &&
+      type === "rewrite" && {
         rewrite: true,
         iframeable: await isIframeable({ url, requestDomain: slug }),
       }),
