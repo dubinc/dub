@@ -125,8 +125,14 @@ export default async function LinkMiddleware(
     return NextResponse.rewrite(new URL("/expired", req.url));
   }
 
-  // only track the click when there is no `dub-no-track` header
-  if (!req.headers.get("dub-no-track")) {
+  const searchParams = req.nextUrl.searchParams;
+  // only track the click when there is no `dub-no-track` header or query param
+  if (
+    !(
+      req.headers.get("dub-no-track") ||
+      searchParams.get("dub-no-track") === "1"
+    )
+  ) {
     ev.waitUntil(recordClick({ req, id, domain, key, projectId }));
   }
 
