@@ -221,6 +221,7 @@ export async function processLink({
     url,
     image,
     proxy,
+    password,
     rewrite,
     expiresAt,
     ios,
@@ -247,11 +248,11 @@ export async function processLink({
 
   // free plan restrictions
   if (!project || project.plan === "free") {
-    if (proxy || rewrite || expiresAt || ios || android || geo) {
+    if (proxy || password || rewrite || expiresAt || ios || android || geo) {
       return {
         link: payload,
         error:
-          "You can only use link cloaking, custom social media cards, link expiration, device and geo targeting on a Pro plan and above. Upgrade to Pro to use these features.",
+          "You can only use custom social media cards, password-protection, link cloaking, link expiration, device and geo targeting on a Pro plan and above. Upgrade to Pro to use these features.",
         status: 403,
       };
     }
