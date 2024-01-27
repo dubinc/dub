@@ -49,7 +49,7 @@ export default async function RootMiddleware(
   if (rewrite) {
     if (iframeable) {
       return NextResponse.rewrite(
-        new URL(`/rewrite/${url}`, req.url),
+        new URL(`/rewrite/${encodeURIComponent(url)}`, req.url),
         DUB_HEADERS,
       );
     } else {
