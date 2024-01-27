@@ -13,6 +13,7 @@ export const isBlacklistedDomain = async (domain: string) => {
     blacklistedTerms = [];
   }
   const domainToTest = getDomainWithoutWWW(domain) || domain;
+  if (blacklistedDomains.length === 0) return false;
   return (
     blacklistedDomains.includes(domainToTest) ||
     new RegExp(blacklistedTerms.join("|")).test(domainToTest)
@@ -37,6 +38,7 @@ export const isBlacklistedKey = async (key: string) => {
   } catch (e) {
     blacklistedKeys = [];
   }
+  if (blacklistedKeys.length === 0) return false;
   return new RegExp(blacklistedKeys.join("|"), "i").test(key);
 };
 
@@ -60,6 +62,7 @@ export const isBlacklistedEmail = async (email: string) => {
   } catch (e) {
     blacklistedEmails = [];
   }
+  if (blacklistedEmails.length === 0) return false;
   return new RegExp(blacklistedEmails.join("|"), "i").test(email);
 };
 
