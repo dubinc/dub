@@ -26,10 +26,10 @@ export async function generateMetadata({
   const apexDomain = getApexDomain(data.url);
 
   return constructMetadata({
-    title: unescape(data.title),
-    description: unescape(data.description),
-    image: unescape(data.image),
-    icons: `${GOOGLE_FAVICON_URL}${unescape(apexDomain)}`,
+    title: unescape(data.title || ""),
+    description: unescape(data.description || ""),
+    image: data.image,
+    icons: `${GOOGLE_FAVICON_URL}${apexDomain}`,
     noIndex: true,
   });
 }
@@ -59,13 +59,13 @@ export default async function ProxyPage({
     <main className="flex h-screen w-screen items-center justify-center">
       <div className="mx-5 w-full max-w-lg overflow-hidden rounded-lg border border-gray-200 sm:mx-0">
         <img
-          src={unescape(data.image)}
+          src={data.image}
           alt={unescape(data.title)}
           className="w-full object-cover"
         />
         <div className="flex space-x-3 bg-gray-100 p-5">
           <img
-            src={`${GOOGLE_FAVICON_URL}${unescape(apexDomain)}`}
+            src={`${GOOGLE_FAVICON_URL}${apexDomain}`}
             alt={unescape(data.title)}
             className="mt-1 h-6 w-6"
           />

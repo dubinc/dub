@@ -36,10 +36,10 @@ export async function generateMetadata({
   const apexDomain = getApexDomain(data.url);
 
   return constructMetadata({
-    title: unescape(data.title),
-    description: unescape(data.description),
-    image: unescape(data.image),
-    icons: `${GOOGLE_FAVICON_URL}${unescape(apexDomain)}`,
+    title: unescape(data.title || ""),
+    description: unescape(data.description || ""),
+    image: data.image,
+    icons: `${GOOGLE_FAVICON_URL}${apexDomain}`,
     noIndex: true,
   });
 }
