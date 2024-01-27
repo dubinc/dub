@@ -1,8 +1,6 @@
-import { getLinkViaEdge } from "@/lib/planetscale";
 import { Background, Footer, Nav } from "@dub/ui";
 import { constructMetadata } from "@dub/utils";
 import { ShieldBan } from "lucide-react";
-import { notFound } from "next/navigation";
 
 export const runtime = "edge";
 
@@ -12,21 +10,7 @@ export const metadata = constructMetadata({
   noIndex: true,
 });
 
-export default async function BannedPage({
-  params,
-}: {
-  params: { domain: string; key: string };
-}) {
-  const domain = params.domain;
-  const key = decodeURIComponent(params.key);
-
-  const data = await getLinkViaEdge(domain, key);
-
-  // if the link doesn't exist
-  if (!data) {
-    notFound();
-  }
-
+export default async function BannedPage() {
   return (
     <main className="flex min-h-screen flex-col justify-between">
       <Nav />

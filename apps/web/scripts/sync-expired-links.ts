@@ -35,6 +35,7 @@ async function main() {
       const { domain, key, expiresAt } = chunk[idx];
       // @ts-ignore (old version)
       const { expired, ...rest } = link || {};
+      // WARNING: OLD VERSION OF REDIS IMPLEMENTATION, WE NOW USE HSET (hashes)
       pipeline.set(`${domain}:${key}`, {
         ...rest,
         expiresAt,

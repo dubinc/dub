@@ -3,7 +3,6 @@
 import { deleteProject } from "@/lib/api/projects";
 import { getSession, hashToken } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { redis } from "@/lib/upstash";
 import {
   DUB_PROJECT_ID,
   LEGAL_USER_ID,
@@ -359,10 +358,6 @@ export async function deleteAndBlacklistLink(data: FormData) {
   const blacklistedDomains = (await get("domains")) as string[];
 
   const response = await Promise.allSettled([
-    redis.set(`${SHORT_DOMAIN}:${key}`, {
-      url: encodeURIComponent(url),
-      banned: true,
-    }),
     prisma.link.update({
       where: {
         domain_key: {
@@ -372,6 +367,7 @@ export async function deleteAndBlacklistLink(data: FormData) {
       },
       data: {
         userId: LEGAL_USER_ID,
+        projectId: LEGAL_PROJECT_ID,
       },
     }),
     fetch(

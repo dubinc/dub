@@ -1,3 +1,4 @@
+import { bulkCreateLinks } from "@/lib/api/links";
 import { qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
@@ -35,8 +36,6 @@ export const importLinksFromShort = async ({
   ).then((res) => res.json());
   const { links, nextPageToken } = data;
 
-  const pipeline = redis.pipeline();
-
   // convert links to format that can be imported into database
   const importedLinks = links
     .map(
@@ -53,17 +52,6 @@ export const importLinksFromShort = async ({
         if (path.length === 0) {
           return null;
         }
-        pipeline.set(
-          `${domain}:${path}`,
-          {
-            url: encodeURIComponent(originalURL),
-            ...(iphoneURL && { ios: encodeURIComponent(iphoneURL) }),
-            ...(androidURL && { android: encodeURIComponent(androidURL) }),
-          },
-          {
-            nx: true,
-          },
-        );
         return {
           projectId,
           userId,
@@ -80,14 +68,8 @@ export const importLinksFromShort = async ({
     )
     .filter(Boolean);
 
-  // import links into database
-  await Promise.all([
-    prisma.link.createMany({
-      data: importedLinks,
-      skipDuplicates: true,
-    }),
-    pipeline.exec(),
-  ]);
+  // bulk create links
+  await bulkCreateLinks(importedLinks);
 
   count += importedLinks.length;
 
