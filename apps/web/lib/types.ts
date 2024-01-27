@@ -112,7 +112,7 @@ export interface RedisDomainProps {
   url?: string;
   rewrite?: boolean;
   iframeable?: boolean;
-  projectId?: string;
+  projectId: string;
 }
 
 export interface BitlyGroupProps {

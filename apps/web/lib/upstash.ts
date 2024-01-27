@@ -1,4 +1,4 @@
-import { getDomainWithoutWWW, isDubDomain, isIframeable } from "@dub/utils";
+import { getDomainWithoutWWW, isIframeable } from "@dub/utils";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import {
@@ -92,7 +92,7 @@ export async function formatRedisLink(
     ...(ios && { ios }),
     ...(android && { android }),
     ...(geo && { geo: geo as object }),
-    ...(projectId && { projectId }),
+    ...(projectId && { projectId }), // for anonymous links
   };
 }
 
@@ -109,6 +109,6 @@ export async function formatRedisDomain(
         rewrite: true,
         iframeable: await isIframeable({ url, requestDomain: slug }),
       }),
-    ...(projectId && { projectId }),
+    projectId,
   };
 }
