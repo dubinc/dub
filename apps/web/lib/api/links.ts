@@ -14,13 +14,13 @@ import {
   getParamsFromURL,
   getUrlFromString,
   isDubDomain,
+  isIframeable,
   linkConstructor,
   nanoid,
   truncate,
   validKeyRegex,
 } from "@dub/utils";
 import cloudinary from "cloudinary";
-import { isIframeable } from "../middleware/utils";
 import { LinkProps, ProjectProps } from "../types";
 import { Session } from "../auth";
 import { getLinkViaEdge } from "../planetscale";
