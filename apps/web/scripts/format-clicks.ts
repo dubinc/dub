@@ -16,24 +16,33 @@ async function main() {
       domain: true,
       key: true,
       url: true,
+      projectId: true,
     },
   });
-  const domains = await prisma.domain.findMany({
-    where: {
-      projectId,
-    },
-    select: {
-      id: true,
-      slug: true,
-      target: true,
-    },
-  });
+  const domains = await prisma.domain
+    .findMany({
+      where: {
+        projectId,
+      },
+      select: {
+        id: true,
+        slug: true,
+        target: true,
+        projectId: true,
+      },
+    })
+    .then((domains) =>
+      domains.map((domain) => ({
+        ...domain,
+        key: "_root",
+        url: domain.target,
+      })),
+    );
 
   Papa.parse(fs.createReadStream("sql.csv", "utf-8"), {
     header: true,
     skipEmptyLines: true,
     step: ({ data }) => {
-      const { id, projectId: pId, url, ...rest } = data;
       const link =
         data.key === "_root"
           ? domains.find(({ slug }) => slug === data.domain)
@@ -51,11 +60,11 @@ async function main() {
       }
 
       clicks.push({
-        ...rest,
+        ...data,
+        key: link.key.toLowerCase() || "_root",
+        url: link.url || "",
         link_id: link.id,
-        project_id: projectId,
-        // @ts-ignore
-        url: link.url || link.target || "",
+        project_id: link.projectId,
         alias: "",
         bot: data.bot === "1" ? 1 : 0,
       });
