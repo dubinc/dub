@@ -5,11 +5,11 @@ import { tagSchema, tagPaths } from "../zod/schemas/tags";
 export const openAPIDocument = createDocument({
   openapi: "3.0.0",
   info: {
-    title: "Dub.co’s API",
-    description: "",
-    version: "1.0.0",
+    title: "Dub.co API",
+    description: "Dub is an open-source link management tool for modern marketing teams to create, share, and track short links.",
+    version: "0.0.1",
     contact: {
-      name: "Dub Support",
+      name: "Dub.co Support",
       email: "support@dub.co",
       url: "https://dub.co/help",
     },
@@ -21,11 +21,7 @@ export const openAPIDocument = createDocument({
   servers: [
     {
       url: "https://api.dub.co",
-      description: "Production",
-    },
-    {
-      url: "http://localhost:8888",
-      description: "Local",
+      description: "Production API",
     },
   ],
   paths: {

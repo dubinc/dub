@@ -12,7 +12,6 @@
     "script": "tsx ./scripts/run.ts"
   },
   "dependencies": {
-    "@anatine/zod-openapi": "^2.2.3",
     "@boxyhq/saml-jackson": "^1.14.2",
     "@dub/tailwind-config": "workspace:*",
     "@dub/ui": "workspace:*",
