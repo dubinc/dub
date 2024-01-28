@@ -149,7 +149,7 @@ const DefaultDomains = () => {
     >
       <button
         onClick={() => setOpenPopover(!openPopover)}
-        className="group ml-2 flex items-center justify-between space-x-2 rounded-md border border-gray-200 bg-white p-2.5 shadow transition-all duration-75 active:scale-95"
+        className="group ml-2 flex items-center justify-between space-x-2 rounded-md border border-gray-200 bg-white p-2.5 shadow transition-all duration-75"
       >
         <ChevronDown
           className={`h-4 w-4 shrink-0 ${
