@@ -1,7 +1,12 @@
 import { detectBot, getFinalUrl, parse } from "@/lib/middleware/utils";
 import { recordClick } from "@/lib/tinybird";
-import { ratelimit, redis } from "@/lib/upstash";
-import { DUB_HEADERS, LOCALHOST_GEO_DATA, LOCALHOST_IP } from "@dub/utils";
+import { formatRedisLink, ratelimit, redis } from "@/lib/upstash";
+import {
+  DUB_HEADERS,
+  LEGAL_PROJECT_ID,
+  LOCALHOST_GEO_DATA,
+  LOCALHOST_IP,
+} from "@dub/utils";
 import { ipAddress } from "@vercel/edge";
 import {
   NextFetchEvent,
@@ -17,11 +22,14 @@ export default async function LinkMiddleware(
   req: NextRequest,
   ev: NextFetchEvent,
 ) {
-  const { domain, fullKey: key } = parse(req);
+  let { domain, fullKey: key } = parse(req);
 
   if (!domain || !key) {
     return NextResponse.next();
   }
+
+  // links on Dub are case insensitive by default
+  key = key.toLowerCase();
 
   if (
     process.env.NODE_ENV !== "development" &&
@@ -42,11 +50,31 @@ export default async function LinkMiddleware(
   }
 
   const inspectMode = key.endsWith("+");
+  // if inspect mode is enabled, remove the trailing `+` from the key
+  if (inspectMode) {
+    key = key.slice(0, -1);
+  }
 
-  const response = await redis.get<RedisLinkProps>(
-    // if inspect mode is enabled, remove the trailing `+` from the key
-    `${domain}:${inspectMode ? key.slice(0, -1) : key}`,
-  );
+  let link = await redis.hget<RedisLinkProps>(domain, key);
+
+  if (!link) {
+    const linkData = await getLinkViaEdge(domain, key);
+
+    if (!linkData) {
+      // short link not found, redirect to root
+      // TODO: log 404s (https://github.com/dubinc/dub/issues/559)
+      return NextResponse.redirect(new URL("/", req.url), DUB_HEADERS);
+    }
+
+    // format link to fit the RedisLinkProps interface
+    link = await formatRedisLink(linkData as any);
+
+    ev.waitUntil(
+      redis.hset(domain, {
+        [key]: link,
+      }),
+    );
+  }
 
   const {
     id,
@@ -60,115 +88,103 @@ export default async function LinkMiddleware(
     android,
     geo,
     projectId,
-    banned,
-  } = response || {};
+  } = link;
 
-  if (url) {
-    // only show inspect modal if the link is not password protected
-    if (inspectMode && !password) {
+  // only show inspect modal if the link is not password protected
+  if (inspectMode && !password) {
+    return NextResponse.rewrite(
+      new URL(`/inspect/${domain}/${encodeURIComponent(key)}+`, req.url),
+    );
+  }
+
+  // if the link is password protected
+  if (password) {
+    const pw = req.nextUrl.searchParams.get("pw");
+
+    // rewrite to auth page (/protected/[domain]/[key]) if:
+    // - no `pw` param is provided
+    // - the `pw` param is incorrect
+    // this will also ensure that no clicks are tracked unless the password is correct
+    if (!pw || (await getLinkViaEdge(domain, key))?.password !== pw) {
       return NextResponse.rewrite(
-        new URL(`/inspect/${domain}/${encodeURIComponent(key)}`, req.url),
+        new URL(`/protected/${domain}/${encodeURIComponent(key)}`, req.url),
       );
+    } else if (pw) {
+      // strip it from the URL if it's correct
+      req.nextUrl.searchParams.delete("pw");
     }
+  }
 
-    // if the link is password protected
-    if (password) {
-      const pw = req.nextUrl.searchParams.get("pw");
+  // if the link is banned
+  if (link.projectId === LEGAL_PROJECT_ID) {
+    return NextResponse.rewrite(new URL("/banned", req.url));
+  }
 
-      // rewrite to auth page (/protected/[domain]/[key]) if:
-      // - no `pw` param is provided
-      // - the `pw` param is incorrect
-      // this will also ensure that no clicks are tracked unless the password is correct
-      if (!pw || (await getLinkViaEdge(domain, key))?.password !== pw) {
-        return NextResponse.rewrite(
-          new URL(`/protected/${domain}/${encodeURIComponent(key)}`, req.url),
-        );
-      } else if (pw) {
-        // strip it from the URL if it's correct
-        req.nextUrl.searchParams.delete("pw");
-      }
-    }
+  // if the link has expired
+  if (expiresAt && new Date(expiresAt) < new Date()) {
+    return NextResponse.rewrite(new URL("/expired", req.url));
+  }
 
-    // if the link is banned
-    if (banned) {
+  const searchParams = req.nextUrl.searchParams;
+  // only track the click when there is no `dub-no-track` header or query param
+  if (
+    !(
+      req.headers.get("dub-no-track") ||
+      searchParams.get("dub-no-track") === "1"
+    )
+  ) {
+    ev.waitUntil(
+      recordClick({
+        req,
+        id,
+        domain,
+        key,
+        url: getFinalUrl(url, { req }),
+        projectId,
+      }),
+    );
+  }
+
+  const isBot = detectBot(req);
+
+  const { country } =
+    process.env.VERCEL === "1" && req.geo ? req.geo : LOCALHOST_GEO_DATA;
+
+  // rewrite to proxy page (/proxy/[domain]/[key]) if it's a bot and proxy is enabled
+  if (isBot && proxy) {
+    return NextResponse.rewrite(
+      new URL(`/proxy/${domain}/${encodeURIComponent(key)}`, req.url),
+    );
+
+    // rewrite to target URL if link cloaking is enabled
+  } else if (rewrite) {
+    if (iframeable) {
       return NextResponse.rewrite(
-        new URL(`/banned/${domain}/${encodeURIComponent(key)}`, req.url),
-      );
-    }
-
-    // if the link has expired
-    if (expiresAt && new Date(expiresAt) < new Date()) {
-      return NextResponse.rewrite(
-        new URL(`/expired/${domain}/${encodeURIComponent(key)}`, req.url),
-      );
-    }
-
-    const searchParams = req.nextUrl.searchParams;
-    // only track the click when:
-    // - the `dub-no-track` header is not set
-    // - the `__dub_no_track` query param is not set
-    if (
-      !(
-        req.headers.get("dub-no-track") ||
-        searchParams.get("__dub_no_track") === "1"
-      )
-    ) {
-      ev.waitUntil(
-        recordClick({
-          req,
-          domain,
-          key,
-          url: getFinalUrl(url, { req }),
-          id,
-          projectId,
-        }),
-      );
-    }
-
-    const isBot = detectBot(req);
-
-    const { country } =
-      process.env.VERCEL === "1" && req.geo ? req.geo : LOCALHOST_GEO_DATA;
-
-    // rewrite to proxy page (/_proxy/[domain]/[key]) if it's a bot and proxy is enabled
-    if (isBot && proxy) {
-      return NextResponse.rewrite(
-        new URL(`/proxy/${domain}/${encodeURIComponent(key)}`, req.url),
-      );
-
-      // rewrite to destination URL if link cloaking is enabled
-    } else if (rewrite) {
-      if (iframeable) {
-        return NextResponse.rewrite(
-          new URL(`/rewrite/${url}`, req.url),
-          DUB_HEADERS,
-        );
-      } else {
-        // if link is not iframeable, use Next.js rewrite instead
-        return NextResponse.rewrite(decodeURIComponent(url), DUB_HEADERS);
-      }
-
-      // redirect to iOS link if it is specified and the user is on an iOS device
-    } else if (ios && userAgent(req).os?.name === "iOS") {
-      return NextResponse.redirect(getFinalUrl(ios, { req }), DUB_HEADERS);
-
-      // redirect to Android link if it is specified and the user is on an Android device
-    } else if (android && userAgent(req).os?.name === "Android") {
-      return NextResponse.redirect(getFinalUrl(android, { req }), DUB_HEADERS);
-
-      // redirect to geo-specific link if it is specified and the user is in the specified country
-    } else if (geo && country && country in geo) {
-      return NextResponse.redirect(
-        getFinalUrl(geo[country], { req }),
+        new URL(`/rewrite/${encodeURIComponent(url)}`, req.url),
         DUB_HEADERS,
       );
-
-      // regular redirect
     } else {
-      return NextResponse.redirect(getFinalUrl(url, { req }), DUB_HEADERS);
+      // if link is not iframeable, use Next.js rewrite instead
+      return NextResponse.rewrite(url, DUB_HEADERS);
     }
+
+    // redirect to iOS link if it is specified and the user is on an iOS device
+  } else if (ios && userAgent(req).os?.name === "iOS") {
+    return NextResponse.redirect(getFinalUrl(ios, { req }), DUB_HEADERS);
+
+    // redirect to Android link if it is specified and the user is on an Android device
+  } else if (android && userAgent(req).os?.name === "Android") {
+    return NextResponse.redirect(getFinalUrl(android, { req }), DUB_HEADERS);
+
+    // redirect to geo-specific link if it is specified and the user is in the specified country
+  } else if (geo && country && country in geo) {
+    return NextResponse.redirect(
+      getFinalUrl(geo[country], { req }),
+      DUB_HEADERS,
+    );
+
+    // regular redirect
   } else {
-    // short link not found, redirect to root
-    return NextResponse.redirect(new URL("/", req.url), DUB_HEADERS);
+    return NextResponse.redirect(getFinalUrl(url, { req }), DUB_HEADERS);
   }
 }

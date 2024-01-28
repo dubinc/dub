@@ -6,8 +6,8 @@ import {
 } from "@dub/utils";
 import { ipAddress } from "@vercel/edge";
 import { NextRequest, userAgent } from "next/server";
-import { conn, getDomainViaEdge, getLinkViaEdge } from "./planetscale";
-import { ratelimit, updateRedisLink } from "./upstash";
+import { conn } from "./planetscale";
+import { ratelimit } from "./upstash";
 import { detectBot } from "./middleware/utils";
 
 /**
@@ -16,17 +16,17 @@ import { detectBot } from "./middleware/utils";
  **/
 export async function recordClick({
   req,
+  id,
   domain,
   key,
   url,
-  id,
   projectId,
 }: {
   req: NextRequest;
+  id: string;
   domain: string;
   key?: string;
   url?: string;
-  id?: string;
   projectId?: string;
 }) {
   const isBot = detectBot(req);
@@ -48,22 +48,6 @@ export async function recordClick({
       return null;
     }
   }
-  let updateRedis = false;
-
-  if (id || !projectId) {
-    if (key) {
-      const linkData = await getLinkViaEdge(domain, key);
-      id = linkData?.id;
-      projectId = linkData?.projectId || undefined;
-    } else {
-      const domainData = await getDomainViaEdge(domain);
-      id = domainData?.id;
-      projectId = domainData?.projectId || undefined;
-    }
-    updateRedis = true;
-  }
-
-  console.log({ id, projectId, domain, key, url });
 
   return await Promise.allSettled([
     fetch(
@@ -105,16 +89,6 @@ export async function recordClick({
         }),
       },
     ).then((res) => res.json()),
-
-    updateRedis &&
-      updateRedisLink({
-        domain,
-        key,
-        data: {
-          id,
-          projectId,
-        },
-      }),
 
     // increment the click count for the link if key is specified (not root click)
     // also increment the usage count for the project, and then we have a cron that will reset it at the start of new billing cycle

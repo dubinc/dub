@@ -109,6 +109,11 @@ export const DUB_LOGO = "https://d2vwwcvoksz7ty.cloudfront.net/logo.png";
 export const DUB_THUMBNAIL =
   "https://d2vwwcvoksz7ty.cloudfront.net/thumbnail.png";
 
+export const DEMO_LINK_ID = "clqo10sum0006js08vutzfxt3";
+export const DUB_PROJECT_ID = "cl7pj5kq4006835rbjlt2ofka";
+export const LEGAL_PROJECT_ID = "clrflia0j0000vs7sqfhz9c7q";
+export const LEGAL_USER_ID = "clqei1lgc0000vsnzi01pbf47";
+
 export const HIDE_BACKGROUND_SEGMENTS = [
   "stats",
   "changelog",
@@ -119,6 +124,7 @@ export const HIDE_BACKGROUND_SEGMENTS = [
 
 export const DUB_DOMAINS = [
   {
+    id: "clce1z7ch00j0rbstbjufva4j",
     slug: SHORT_DOMAIN,
     verified: true,
     primary: true,
@@ -128,10 +134,12 @@ export const DUB_DOMAINS = [
     placeholder: "https://dub.co/help/article/what-is-dub",
     clicks: 0,
     allowedHostnames: [],
+    projectId: DUB_PROJECT_ID,
   },
   ...(process.env.NEXT_PUBLIC_IS_DUB
     ? [
         {
+          id: "clce1z7cs00y8rbstk4xtnj0k",
           slug: "chatg.pt",
           verified: true,
           primary: false,
@@ -141,8 +149,10 @@ export const DUB_DOMAINS = [
           placeholder: "https://chat.openai.com/g/g-UGjKKONEe-domainsgpt",
           clicks: 0,
           allowedHostnames: ["chat.openai.com"],
+          projectId: DUB_PROJECT_ID,
         },
         {
+          id: "cloxw8qtk000bjt08n9b812vs",
           slug: "amzn.id",
           verified: true,
           primary: false,
@@ -152,8 +162,10 @@ export const DUB_DOMAINS = [
           placeholder: "https://www.amazon.com/dp/B0BW4SWNC8",
           clicks: 0,
           allowedHostnames: ["amazon.com", "amazon.co.uk", "amazon.ca"],
+          projectId: DUB_PROJECT_ID,
         },
         {
+          id: "cloxw8y2u0003js08a7mqg1j8",
           slug: "spti.fi",
           verified: true,
           primary: false,
@@ -163,6 +175,7 @@ export const DUB_DOMAINS = [
           placeholder: "https://open.spotify.com/album/1SCyi9a5pOasikidToUY5y",
           clicks: 0,
           allowedHostnames: ["open.spotify.com"],
+          projectId: DUB_PROJECT_ID,
         },
       ]
     : []),
@@ -219,11 +232,6 @@ export const DEFAULT_LINK_PROPS = {
 
   proxy: false,
 };
-
-export const DEMO_LINK_ID = "clqo10sum0006js08vutzfxt3";
-export const DUB_PROJECT_ID = "cl7pj5kq4006835rbjlt2ofka";
-export const LEGAL_PROJECT_ID = "clrflia0j0000vs7sqfhz9c7q";
-export const LEGAL_USER_ID = "clqei1lgc0000vsnzi01pbf47";
 
 export const SAML_PROVIDERS = [
   {

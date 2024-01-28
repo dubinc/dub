@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import {
   addDomainToVercel,
   domainExists,
+  setRootDomain,
   validateDomain,
 } from "@/lib/api/domains";
 import { withSession } from "@/lib/auth";
@@ -111,7 +112,7 @@ export const POST = withSession(async ({ req, session }) => {
       { status: 422 },
     );
   }
-  const response = await Promise.allSettled([
+  const response = await Promise.all([
     prisma.project.create({
       data: {
         name,
@@ -132,9 +133,18 @@ export const POST = withSession(async ({ req, session }) => {
         }),
         billingCycleStart: new Date().getDate(),
       },
+      include: {
+        domains: true,
+      },
     }),
     addDomainToVercel(domain),
   ]);
+
+  await setRootDomain({
+    id: response[0].domains[0].id,
+    domain,
+    projectId: response[0].id,
+  });
 
   return NextResponse.json(response);
 });

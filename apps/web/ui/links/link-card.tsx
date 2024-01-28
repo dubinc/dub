@@ -45,7 +45,8 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import punycode from "punycode/";
 import { useEffect, useMemo, useRef, useState } from "react";
-import useSWR from "swr";
+import useSWR, { mutate } from "swr";
+import { toast } from "sonner";
 import { LinkifyTooltipContent } from "@dub/ui/src/tooltip";
 
 export default function LinkCard({
@@ -56,6 +57,7 @@ export default function LinkCard({
   };
 }) {
   const {
+    id,
     key,
     domain,
     url,
@@ -470,6 +472,43 @@ export default function LinkCard({
                     X
                   </kbd>
                 </button>
+                {!slug && ( // this is only shown in admin mode (where there's no slug)
+                  <button
+                    onClick={() => {
+                      window.confirm(
+                        "Are you sure you want to ban this link? It will blacklist the domain and prevent any links from that domain from being created.",
+                      ) &&
+                        (setOpenPopover(false),
+                        toast.promise(
+                          fetch(`/api/admin/links/${id}/ban`, {
+                            method: "DELETE",
+                          }).then(async () => {
+                            await mutate(
+                              (key) =>
+                                typeof key === "string" &&
+                                key.startsWith("/api/admin/links"),
+                              undefined,
+                              { revalidate: true },
+                            );
+                          }),
+                          {
+                            loading: "Banning link...",
+                            success: "Link banned!",
+                            error: "Error banning link.",
+                          },
+                        ));
+                    }}
+                    className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-red-600 transition-all duration-75 hover:bg-red-600 hover:text-white"
+                  >
+                    <IconMenu
+                      text="Ban"
+                      icon={<Delete className="h-4 w-4" />}
+                    />
+                    <kbd className="hidden rounded bg-red-100 px-2 py-0.5 text-xs font-light text-red-600 transition-all duration-75 group-hover:bg-red-500 group-hover:text-white sm:inline-block">
+                      B
+                    </kbd>
+                  </button>
+                )}
               </div>
             }
             align="end"

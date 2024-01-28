@@ -1,7 +1,12 @@
-import { getDomainWithoutWWW, nanoid } from "@dub/utils";
+import { getDomainWithoutWWW, isIframeable } from "@dub/utils";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
-import { RedisLinkProps } from "./types";
+import {
+  DomainProps,
+  LinkProps,
+  RedisDomainProps,
+  RedisLinkProps,
+} from "./types";
 
 // Initiate Redis instance by connecting to REST URL
 export const redis = new Redis({
@@ -38,30 +43,6 @@ export const ratelimit = (
   });
 };
 
-// only for dub.sh public demo
-export async function setRandomKey(
-  url: string,
-): Promise<{ response: string; key: string }> {
-  /* recursively set link till successful */
-  const key = nanoid();
-  const response = await redis.set(
-    `dub.sh:${key}`,
-    {
-      url,
-    },
-    {
-      nx: true,
-      ex: 30 * 60, // 30 minutes
-    },
-  );
-  if (response !== "OK") {
-    // by the off chance that key already exists
-    return setRandomKey(url);
-  } else {
-    return { response, key };
-  }
-}
-
 /**
  * Recording metatags that were generated via `/api/edge/metatags`
  * If there's an error, it will be logged to a separate redis list for debugging
@@ -80,33 +61,54 @@ export async function recordMetatags(url: string, error: boolean) {
   return await ratelimitRedis.zincrby("metatags-zset", 1, domain);
 }
 
-/**
- * Update Redis data for a given link
- */
+export async function formatRedisLink(
+  link: LinkProps,
+): Promise<RedisLinkProps> {
+  const {
+    id,
+    domain,
+    url,
+    password,
+    proxy,
+    rewrite,
+    expiresAt,
+    ios,
+    android,
+    geo,
+    projectId,
+  } = link;
+  const hasPassword = password && password.length > 0 ? true : false;
 
-export const updateRedisLink = async ({
-  domain,
-  key,
-  data,
-}: {
-  domain: string;
-  key?: string;
-  data: Partial<RedisLinkProps>;
-}) => {
-  const redisKey = key ? `${domain}:${key}` : `root:${domain}`;
+  return {
+    id,
+    url,
+    ...(hasPassword && { password: true }),
+    ...(proxy && { proxy: true }),
+    ...(rewrite && {
+      rewrite: true,
+      iframeable: await isIframeable({ url, requestDomain: domain }),
+    }),
+    ...(expiresAt && { expiresAt: new Date(expiresAt) }),
+    ...(ios && { ios }),
+    ...(android && { android }),
+    ...(geo && { geo: geo as object }),
+    ...(projectId && { projectId }), // projectId can be undefined for anonymous links
+  };
+}
 
-  // RedisLinkProps is technically not the right type since
-  // root:{domain} has a slightly different type, but it works
-  const currentData = await redis.get<RedisLinkProps>(redisKey);
-  if (!currentData) return null;
+export async function formatRedisDomain(
+  domain: DomainProps,
+): Promise<RedisDomainProps> {
+  const { id, slug, target: url, type, projectId } = domain;
 
-  // filter out properties that are false (e.g. password: false, proxy: false)
-  Object.keys(currentData).forEach((key) => {
-    if (!currentData[key as keyof RedisLinkProps]) {
-      delete currentData[key as keyof RedisLinkProps];
-    }
-  });
-
-  const newData = { ...currentData, ...data };
-  return await redis.set<RedisLinkProps>(redisKey, newData);
-};
+  return {
+    id,
+    ...(url && { url }), // on free plans you cannot set a root domain redirect, hence URL is undefined
+    ...(url &&
+      type === "rewrite" && {
+        rewrite: true,
+        iframeable: await isIframeable({ url, requestDomain: slug }),
+      }),
+    projectId,
+  };
+}

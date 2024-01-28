@@ -30,7 +30,10 @@ export const POST = withAuth(
         headers,
       });
     }
-    if (project.linksUsage + links.length > project.linksLimit) {
+    if (
+      project.linksUsage + links.length > project.linksLimit &&
+      (project.plan === "free" || project.plan === "pro")
+    ) {
       return new Response(
         exceededLimitError({
           plan: project.plan,

@@ -7,7 +7,7 @@ import { internal_runWithWaitUntil as waitUntil } from "next/dist/server/web/int
 export const getHtml = async (url: string) => {
   return await fetchWithTimeout(url, {
     headers: {
-      "User-Agent": "dub-bot/1.0",
+      "User-Agent": "Dub.co Bot",
     },
   })
     .then((r) => r.text())

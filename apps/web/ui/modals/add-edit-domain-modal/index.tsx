@@ -38,7 +38,7 @@ function AddEditDomainModal({
 }) {
   const router = useRouter();
   const { slug } = useParams() as { slug: string };
-  const { logo, plan } = useProject();
+  const { id, logo, plan } = useProject();
   const { queryParams } = useRouterStuff();
 
   const [data, setData] = useState<DomainProps>(
@@ -51,7 +51,7 @@ function AddEditDomainModal({
       target: "",
       type: "redirect",
       clicks: 0,
-      projectId: "",
+      projectId: id || "",
     },
   );
 

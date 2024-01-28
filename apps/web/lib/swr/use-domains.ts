@@ -17,6 +17,7 @@ export default function useDomains({ domain }: { domain?: string } = {}) {
     },
   );
 
+  const allProjectDomains = data || [];
   const projectDomains = data?.filter((domain) => !domain.archived);
   const archivedProjectDomains = data?.filter((domain) => domain.archived);
 
@@ -53,8 +54,9 @@ export default function useDomains({ domain }: { domain?: string } = {}) {
     projectDomains,
     archivedProjectDomains,
     defaultDomains,
-    allDomains,
+    allProjectDomains,
     allActiveDomains,
+    allDomains,
     primaryDomain,
     verified,
     loading: !data && !error,

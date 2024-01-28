@@ -1,8 +1,10 @@
 import { recordClick } from "@/lib/tinybird";
-import { redis } from "@/lib/upstash";
+import { formatRedisDomain, redis } from "@/lib/upstash";
 import { DUB_HEADERS } from "@dub/utils";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
-import { getFinalUrl, parse } from "./utils";
+import { parse } from "./utils";
+import { RedisDomainProps } from "../types";
+import { getDomainViaEdge } from "../planetscale";
 
 export default async function RootMiddleware(
   req: NextRequest,
@@ -14,57 +16,49 @@ export default async function RootMiddleware(
     return NextResponse.next();
   }
 
-  const response = await redis.get<{
-    id?: string;
-    target?: string;
-    rewrite?: boolean;
-    iframeable?: boolean;
-    projectId?: string;
-  }>(`root:${domain}`);
+  let link = await redis.hget<RedisDomainProps>(domain, "_root");
 
-  const { id, target, rewrite, iframeable, projectId } = response || {};
+  if (!link) {
+    const linkData = await getDomainViaEdge(domain);
 
-  const searchParams = req.nextUrl.searchParams;
-  // only track the click when:
-  // - the `dub-no-track` header is not set
-  // - the `__dub_no_track` query param is not set
-  if (
-    !(
-      req.headers.get("dub-no-track") ||
-      searchParams.get("__dub_no_track") === "1"
-    )
-  ) {
+    if (!linkData) {
+      // rewrite to placeholder page if domain doesn't exist
+      return NextResponse.rewrite(new URL(`/${domain}`, req.url));
+    }
+
+    // format link to fit the RedisLinkProps interface
+    link = await formatRedisDomain(linkData as any);
+
     ev.waitUntil(
-      recordClick({
-        req,
-        domain,
-        url: target ? getFinalUrl(target, { req }) : undefined,
-        id,
-        projectId,
+      redis.hset(domain, {
+        _root: link,
       }),
     );
   }
 
-  if (target) {
-    if (rewrite) {
-      if (iframeable) {
-        // note: there's a discrepancy between the implementation here and for
-        // link rewriting in `lib/api/links` – here we do `encodeURIComponent` but for links we
-        // don't need to. This is because link targets are already encoded, while root targets
-        // are not. TODO: standardize this in the future.
-        return NextResponse.rewrite(
-          new URL(`/rewrite/${encodeURIComponent(target)}`, req.url),
-          DUB_HEADERS,
-        );
-      } else {
-        // if link is not iframeable, use Next.js rewrite instead
-        return NextResponse.rewrite(target, DUB_HEADERS);
-      }
+  const { id, url, rewrite, iframeable, projectId } = link;
+
+  // record clicks on root page
+  ev.waitUntil(
+    recordClick({ req, id, domain, ...(url && { url }), projectId }),
+  );
+
+  if (!url) {
+    // rewrite to placeholder page unless the user defines a site to redirect to
+    return NextResponse.rewrite(new URL(`/${domain}`, req.url));
+  }
+
+  if (rewrite) {
+    if (iframeable) {
+      return NextResponse.rewrite(
+        new URL(`/rewrite/${encodeURIComponent(url)}`, req.url),
+        DUB_HEADERS,
+      );
     } else {
-      return NextResponse.redirect(target, DUB_HEADERS);
+      // if link is not iframeable, use Next.js rewrite instead
+      return NextResponse.rewrite(url, DUB_HEADERS);
     }
   } else {
-    // rewrite to root page unless the user defines a site to redirect to
-    return NextResponse.rewrite(new URL(`/${domain}`, req.url));
+    return NextResponse.redirect(url, DUB_HEADERS);
   }
 }

@@ -3,6 +3,7 @@ import useProject from "@/lib/swr/use-project";
 import {
   Badge,
   Copy,
+  ExpandingArrow,
   IconMenu,
   Popover,
   Switch,
@@ -23,13 +24,14 @@ import {
   linkConstructor,
   truncate,
 } from "@dub/utils";
-import { Calendar, ChevronDown, Globe, Lock, Share2, X } from "lucide-react";
+import { Calendar, ChevronDown, Lock, Share2 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { useContext, useMemo, useState } from "react";
 import { StatsContext } from ".";
 import useSWR, { mutate } from "swr";
 import { toast } from "sonner";
+import punycode from "punycode/";
 import { BlurImage } from "../shared/blur-image";
 import useDomains from "@/lib/swr/use-domains";
 import { DomainProps } from "@/lib/types";
@@ -48,7 +50,8 @@ export default function Toggle() {
 
   const scrolled = useScroll(80);
   const { name, plan, logo } = useProject();
-  const { allDomains, primaryDomain } = useDomains();
+  // TODO: change this to allDomains after #545 merges
+  const { allProjectDomains, primaryDomain } = useDomains();
 
   const isPublicStatsPage = basePath.startsWith("/stats");
 
@@ -61,28 +64,44 @@ export default function Toggle() {
       })}
     >
       <div className="mx-auto flex h-20 max-w-4xl flex-col items-center justify-between space-y-3 px-2.5 md:h-10 md:flex-row md:space-y-0 lg:px-0">
-        <div className="flex items-center space-x-2">
-          <BlurImage
-            alt={name || "Project Logo"}
-            src={logo || DUB_LOGO}
-            className="h-6 w-6 flex-shrink-0 overflow-hidden rounded-full"
-            width={48}
-            height={48}
-          />
-          <h2 className="text-lg font-semibold text-gray-800">
-            {primaryDomain}
-          </h2>
-          {allDomains && allDomains.length > 1 && (
-            <Tooltip
-              content={<DomainsFilterTooltip domains={allDomains} />}
-              side="bottom"
-            >
-              <div className="cursor-pointer">
-                <Badge variant="gray">+{allDomains.length - 1}</Badge>
-              </div>
-            </Tooltip>
-          )}
-        </div>
+        {isPublicStatsPage ? (
+          <a
+            className="group flex text-lg font-semibold text-gray-800 md:text-xl"
+            href={linkConstructor({ domain, key })}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {linkConstructor({
+              domain: punycode.toUnicode(domain),
+              key,
+              pretty: true,
+            })}
+            <ExpandingArrow className="h-5 w-5" />
+          </a>
+        ) : (
+          <div className="flex items-center space-x-2">
+            <BlurImage
+              alt={name || "Project Logo"}
+              src={logo || DUB_LOGO}
+              className="h-6 w-6 flex-shrink-0 overflow-hidden rounded-full"
+              width={48}
+              height={48}
+            />
+            <h2 className="text-lg font-semibold text-gray-800">
+              {primaryDomain}
+            </h2>
+            {allProjectDomains && allProjectDomains.length > 1 && (
+              <Tooltip
+                content={<DomainsFilterTooltip domains={allProjectDomains} />}
+                side="bottom"
+              >
+                <div className="cursor-pointer">
+                  <Badge variant="gray">+{allProjectDomains.length - 1}</Badge>
+                </div>
+              </Tooltip>
+            )}
+          </div>
+        )}
         <div className="flex items-center">
           {!isPublicStatsPage && key && key !== "_root" && <SharePopover />}
           <Popover

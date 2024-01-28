@@ -1,3 +1,4 @@
+import { bulkCreateLinks } from "@/lib/api/links";
 import { qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
@@ -39,8 +40,6 @@ export const importLinksFromBitly = async ({
   const { links, pagination } = data;
   const nextSearchAfter = pagination.search_after;
 
-  const pipeline = redis.pipeline();
-
   // convert links to format that can be imported into database
   const importedLinks = links.flatMap(
     ({
@@ -57,13 +56,6 @@ export const importLinksFromBitly = async ({
       if (!domains.includes(domain)) {
         return [];
       }
-      pipeline.set(
-        `${domain}:${key}`,
-        {
-          url: encodeURIComponent(url),
-        },
-        { nx: true },
-      );
       const createdAt = new Date(created_at).toISOString();
       const tagId = tagsToId ? tagsToId[tags[0]] : null;
       const linkDetails = {
@@ -94,13 +86,6 @@ export const importLinksFromBitly = async ({
             // original bitlink, but it should
             const customDomain = new URL(customBitlink).hostname;
             const customKey = new URL(customBitlink).pathname.slice(1);
-            pipeline.set(
-              `${customDomain}:${customKey}`,
-              {
-                url: encodeURIComponent(url),
-              },
-              { nx: true },
-            );
             return {
               ...linkDetails,
               domain: customDomain,
@@ -111,14 +96,8 @@ export const importLinksFromBitly = async ({
     },
   );
 
-  // import links into database
-  await Promise.all([
-    prisma.link.createMany({
-      data: importedLinks,
-      skipDuplicates: true,
-    }),
-    pipeline.exec(),
-  ]);
+  // bulk create links
+  await bulkCreateLinks(importedLinks);
 
   count += importedLinks.length;
 

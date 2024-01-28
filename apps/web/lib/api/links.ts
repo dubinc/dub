@@ -5,7 +5,7 @@ import {
   isReservedUsername,
 } from "@/lib/edge-config";
 import prisma from "@/lib/prisma";
-import { redis } from "@/lib/upstash";
+import { formatRedisLink, redis } from "@/lib/upstash";
 import {
   DEFAULT_REDIRECTS,
   DUB_DOMAINS,
@@ -20,8 +20,7 @@ import {
   validKeyRegex,
 } from "@dub/utils";
 import cloudinary from "cloudinary";
-import { isIframeable } from "../middleware/utils";
-import { LinkProps, ProjectProps } from "../types";
+import { LinkProps, ProjectProps, RedisLinkProps } from "../types";
 import { Session } from "../auth";
 import { getLinkViaEdge } from "../planetscale";
 
@@ -164,28 +163,9 @@ export async function getLinksCount({
   }
 }
 
-export async function getRandomKey(domain: string): Promise<string> {
-  /* recursively get random key till it gets one that's available */
-  const key = nanoid();
-  const response = await prisma.link.findUnique({
-    where: {
-      domain_key: {
-        domain,
-        key,
-      },
-    },
-  });
-  if (response) {
-    // by the off chance that key already exists
-    return getRandomKey(domain);
-  } else {
-    return key;
-  }
-}
-
 export async function checkIfKeyExists(domain: string, key: string) {
-  // reserved keys for dub.sh
-  if (domain === "dub.sh") {
+  // reserved keys for default short domain
+  if (domain === SHORT_DOMAIN) {
     if ((await isReservedKey(key)) || DEFAULT_REDIRECTS[key]) {
       return true;
     }
@@ -197,6 +177,18 @@ export async function checkIfKeyExists(domain: string, key: string) {
   }
   const link = await getLinkViaEdge(domain, key);
   return !!link;
+}
+
+export async function getRandomKey(domain: string): Promise<string> {
+  /* recursively get random key till it gets one that's available */
+  const key = nanoid();
+  const response = await checkIfKeyExists(domain, key);
+  if (response) {
+    // by the off chance that key already exists
+    return getRandomKey(domain);
+  } else {
+    return key;
+  }
 }
 
 export function processKey(key: string) {
@@ -228,6 +220,7 @@ export async function processLink({
     url,
     image,
     proxy,
+    password,
     rewrite,
     expiresAt,
     ios,
@@ -254,11 +247,11 @@ export async function processLink({
 
   // free plan restrictions
   if (!project || project.plan === "free") {
-    if (proxy || rewrite || expiresAt || ios || android || geo) {
+    if (proxy || password || rewrite || expiresAt || ios || android || geo) {
       return {
         link: payload,
         error:
-          "You can only use link cloaking, custom social media cards, link expiration, device and geo targeting on a Pro plan and above. Upgrade to Pro to use these features.",
+          "You can only use custom social media cards, password-protection, link cloaking, link expiration, device and geo targeting on a Pro plan and above. Upgrade to Pro to use these features.",
         status: 403,
       };
     }
@@ -273,54 +266,52 @@ export async function processLink({
     }
   }
 
-  // if domain is not defined, use the project's primary domain
+  // if domain is not defined, set it to the project's primary domain
   if (!domain) {
     domain = project?.domains?.find((d) => d.primary)?.slug || SHORT_DOMAIN;
+  }
 
-    // if domain is defined, do some checks
-  } else {
-    // checks for dub.sh domain
-    if (domain === "dub.sh") {
-      const keyBlacklisted = await isBlacklistedKey(key);
-      if (keyBlacklisted) {
-        return {
-          link: payload,
-          error: "Invalid key.",
-          status: 422,
-        };
-      }
-      const domainBlacklisted = await isBlacklistedDomain(url);
-      if (domainBlacklisted) {
-        return {
-          link: payload,
-          error: "Invalid url.",
-          status: 422,
-        };
-      }
-
-      // checks for other Dub-owned domains (chatg.pt, spti.fi, etc.)
-    } else if (isDubDomain(domain)) {
-      // coerce type with ! cause we already checked if it exists
-      const { allowedHostnames } = DUB_DOMAINS.find((d) => d.slug === domain)!;
-      const urlDomain = getDomainWithoutWWW(url) || "";
-      if (!allowedHostnames.includes(urlDomain)) {
-        return {
-          link: payload,
-          error: `Invalid url. You can only use ${domain} short links for URLs starting with ${allowedHostnames
-            .map((d) => `\`${d}\``)
-            .join(", ")}.`,
-          status: 422,
-        };
-      }
-
-      // else, check if the domain belongs to the project
-    } else if (!project?.domains?.find((d) => d.slug === domain)) {
+  // checks for default short domain
+  if (domain === SHORT_DOMAIN) {
+    const keyBlacklisted = await isBlacklistedKey(key);
+    if (keyBlacklisted) {
       return {
         link: payload,
-        error: "Domain does not belong to project.",
-        status: 403,
+        error: "Invalid key.",
+        status: 422,
       };
     }
+    const domainBlacklisted = await isBlacklistedDomain(url);
+    if (domainBlacklisted) {
+      return {
+        link: payload,
+        error: "Invalid url.",
+        status: 422,
+      };
+    }
+
+    // checks for other Dub-owned domains (chatg.pt, spti.fi, etc.)
+  } else if (isDubDomain(domain)) {
+    // coerce type with ! cause we already checked if it exists
+    const { allowedHostnames } = DUB_DOMAINS.find((d) => d.slug === domain)!;
+    const urlDomain = getDomainWithoutWWW(url) || "";
+    if (!allowedHostnames.includes(urlDomain)) {
+      return {
+        link: payload,
+        error: `Invalid url. You can only use ${domain} short links for URLs starting with ${allowedHostnames
+          .map((d) => `\`${d}\``)
+          .join(", ")}.`,
+        status: 422,
+      };
+    }
+
+    // else, check if the domain belongs to the project
+  } else if (!project?.domains?.find((d) => d.slug === domain)) {
+    return {
+      link: payload,
+      error: "Domain does not belong to project.",
+      status: 403,
+    };
   }
 
   if (!key) {
@@ -414,12 +405,8 @@ export async function addLink(link: LinkProps) {
     description,
     image,
     proxy,
-    rewrite,
-    ios,
-    android,
     geo,
   } = link;
-  const hasPassword = password && password.length > 0 ? true : false;
   const uploadedImage = image && image.startsWith("data:image") ? true : false;
 
   const exists = await checkIfKeyExists(domain, key);
@@ -428,43 +415,22 @@ export async function addLink(link: LinkProps) {
   const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
     getParamsFromURL(url);
 
-  let [response, _] = await Promise.all([
-    prisma.link.create({
-      data: {
-        ...link,
-        key,
-        title: truncate(title, 120),
-        description: truncate(description, 240),
-        image: uploadedImage ? undefined : image,
-        utm_source,
-        utm_medium,
-        utm_campaign,
-        utm_term,
-        utm_content,
-        expiresAt: expiresAt ? new Date(expiresAt) : null,
-        geo: geo || undefined,
-      },
-    }),
-    redis.set(
-      `${domain}:${key}`,
-      {
-        url: encodeURIComponent(url),
-        ...(hasPassword && { password: true }),
-        ...(proxy && { proxy: true }),
-        ...(rewrite && {
-          rewrite: true,
-          iframeable: await isIframeable({ url, requestDomain: domain }),
-        }),
-        ...(expiresAt && { expiresAt }),
-        ...(ios && { ios }),
-        ...(android && { android }),
-        ...(geo && { geo }),
-      },
-      {
-        nx: true,
-      },
-    ),
-  ]);
+  let response = await prisma.link.create({
+    data: {
+      ...link,
+      key,
+      title: truncate(title, 120),
+      description: truncate(description, 240),
+      image: uploadedImage ? undefined : image,
+      utm_source,
+      utm_medium,
+      utm_campaign,
+      utm_term,
+      utm_content,
+      expiresAt: expiresAt ? new Date(expiresAt) : null,
+      geo: geo || undefined,
+    },
+  });
 
   if (proxy && image) {
     const { secure_url } = await cloudinary.v2.uploader.upload(image, {
@@ -493,46 +459,28 @@ export async function addLink(link: LinkProps) {
 
 export async function bulkCreateLinks(links: LinkProps[]) {
   if (links.length === 0) return [];
-  const pipeline = redis.pipeline();
-  links.forEach(({ domain, key, url, password, expiresAt }) => {
-    const hasPassword = password && password.length > 0 ? true : false;
-    pipeline.set(
-      `${domain}:${key}`,
-      {
-        url: encodeURIComponent(url),
-        ...(hasPassword && { password: true }),
-        ...(expiresAt && { expiresAt }),
-      },
-      {
-        nx: true,
-      },
-    );
+
+  await prisma.link.createMany({
+    data: links.map((link) => {
+      const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
+        getParamsFromURL(link.url);
+      return {
+        ...link,
+        title: truncate(link.title, 120),
+        description: truncate(link.description, 240),
+        utm_source,
+        utm_medium,
+        utm_campaign,
+        utm_term,
+        utm_content,
+        expiresAt: link.expiresAt ? new Date(link.expiresAt) : null,
+        geo: link.geo || undefined,
+      };
+    }),
+    skipDuplicates: true,
   });
 
-  await Promise.all([
-    prisma.link.createMany({
-      data: links.map((link) => {
-        const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
-          getParamsFromURL(link.url);
-        return {
-          ...link,
-          title: truncate(link.title, 120),
-          description: truncate(link.description, 240),
-          utm_source,
-          utm_medium,
-          utm_campaign,
-          utm_term,
-          utm_content,
-          expiresAt: link.expiresAt ? new Date(link.expiresAt) : null,
-          geo: link.geo || undefined,
-        };
-      }),
-      skipDuplicates: true,
-    }),
-    pipeline.exec(),
-  ]);
-
-  const createdLinks = await Promise.all(
+  const createdLinks = (await Promise.all(
     links.map(async (link) => {
       const { key, domain } = link;
       return await prisma.link.findUnique({
@@ -544,7 +492,32 @@ export async function bulkCreateLinks(links: LinkProps[]) {
         },
       });
     }),
+  )) as LinkProps[];
+
+  const pipeline = redis.pipeline();
+
+  // split links into domains
+  const linksByDomain: Record<string, Record<string, RedisLinkProps>> = {};
+
+  // this technically will be a synchronous function since isIframeable won't be run for bulk link creation
+  await Promise.all(
+    createdLinks.map(async (link) => {
+      const { domain, key } = link;
+
+      if (!linksByDomain[domain]) {
+        linksByDomain[domain] = {};
+      }
+      const formattedLink = await formatRedisLink(link);
+
+      linksByDomain[domain][key.toLowerCase()] = formattedLink;
+    }),
   );
+
+  Object.entries(linksByDomain).forEach(([domain, links]) => {
+    pipeline.hset(domain, links);
+  });
+
+  await pipeline.exec();
 
   return createdLinks.map((link) => ({
     ...link,
@@ -570,17 +543,12 @@ export async function editLink({
     key,
     url,
     expiresAt,
-    password,
     title,
     description,
     image,
     proxy,
-    rewrite,
-    ios,
-    android,
     geo,
   } = updatedLink;
-  const hasPassword = password && password.length > 0 ? true : false;
   const changedKey = key.toLowerCase() !== oldKey.toLowerCase();
   const changedDomain = domain !== oldDomain;
   const uploadedImage = image && image.startsWith("data:image") ? true : false;
@@ -626,18 +594,8 @@ export async function editLink({
       : cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
           invalidate: true,
         }),
-    redis.set(`${domain}:${key}`, {
-      url: encodeURIComponent(url),
-      ...(hasPassword && { password: true }),
-      ...(proxy && { proxy: true }),
-      ...(rewrite && {
-        rewrite: true,
-        iframeable: await isIframeable({ url, requestDomain: domain }),
-      }),
-      ...(expiresAt && { expiresAt }),
-      ...(ios && { ios }),
-      ...(android && { android }),
-      ...(geo && { geo }),
+    redis.hset(domain, {
+      [key.toLowerCase()]: await formatRedisLink(updatedLink),
     }),
     // if key is changed: rename resource in Cloudinary, delete the old key in Redis and change the clicks key name
     ...(changedDomain || changedKey
@@ -647,7 +605,7 @@ export async function editLink({
               invalidate: true,
             })
             .catch(() => {}),
-          redis.del(`${oldDomain}:${oldKey}`),
+          redis.hdel(oldDomain, oldKey.toLowerCase()),
         ]
       : []),
   ]);
@@ -694,7 +652,7 @@ export async function deleteLink({
     cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
       invalidate: true,
     }),
-    redis.del(`${domain}:${key}`),
+    redis.hdel(domain, key.toLowerCase()),
     projectId &&
       prisma.project.update({
         where: {
