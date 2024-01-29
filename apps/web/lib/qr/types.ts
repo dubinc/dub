@@ -16,7 +16,6 @@ export type ImageSettings = {
 export type QRProps = {
   value: string;
   size?: number;
-  // Should be a real enum, but doesn't seem to be compatible with real code.
   level?: string;
   bgColor?: string;
   fgColor?: string;

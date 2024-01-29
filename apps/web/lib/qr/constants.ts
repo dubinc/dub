@@ -15,6 +15,8 @@ export const DEFAULT_INCLUDEMARGIN = false;
 
 export const MARGIN_SIZE = 4;
 
+export const QR_LEVELS = ["L", "M", "Q", "H"];
+
 // This is *very* rough estimate of max amount of QRCode allowed to be covered.
 // It is "wrong" in a lot of ways (area is a terrible way to estimate, it
 // really should be number of modules covered), but if for some reason we don't
