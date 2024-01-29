@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef } from "react";
 import useSWR from "swr";
 import { useDebounce } from "use-debounce";
+import { useMediaQuery } from "./hooks";
 import { LoadingCircle, Photo } from "./icons";
 
 export function LinkPreview({ defaultUrl }: { defaultUrl?: string }) {
@@ -35,6 +36,8 @@ export function LinkPreview({ defaultUrl }: { defaultUrl?: string }) {
     }
   }, [defaultUrl]);
 
+  const { isMobile } = useMediaQuery();
+
   return (
     <>
       {!defaultUrl && (
@@ -45,7 +48,7 @@ export function LinkPreview({ defaultUrl }: { defaultUrl?: string }) {
             name="url"
             id="url"
             type="url"
-            autoFocus
+            autoFocus={!isMobile}
             className="block w-full rounded-md border-gray-200 pl-10 text-sm text-gray-900 placeholder-gray-400 shadow-lg focus:border-gray-500 focus:outline-none focus:ring-gray-500"
             placeholder="Enter your URL"
             defaultValue={url}
