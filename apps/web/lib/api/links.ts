@@ -73,13 +73,17 @@ export async function getLinksForProject({
     }),
   });
 
-  return links.map((link) => ({
-    ...link,
-    shortLink: linkConstructor({
+  return links.map((link) => {
+    const shortLink = linkConstructor({
       domain: link.domain,
       key: link.key,
-    }),
-  }));
+    });
+    return {
+      ...link,
+      shortLink,
+      qrCode: `https://api.dub.co/qr?url=${shortLink}`,
+    };
+  });
 }
 
 export async function getLinksCount({
@@ -373,8 +377,9 @@ export async function processLink({
     }
   }
 
-  // remove shortLink attribute from payload since it's a polyfill
+  // remove shortLink & qrCode attributes from payload since it's a polyfill
   delete payload["shortLink"];
+  delete payload["qrCode"];
 
   return {
     link: {
@@ -395,18 +400,8 @@ export async function processLink({
 }
 
 export async function addLink(link: LinkProps) {
-  const {
-    domain,
-    key,
-    url,
-    expiresAt,
-    password,
-    title,
-    description,
-    image,
-    proxy,
-    geo,
-  } = link;
+  const { domain, key, url, expiresAt, title, description, image, proxy, geo } =
+    link;
   const uploadedImage = image && image.startsWith("data:image") ? true : false;
 
   const exists = await checkIfKeyExists(domain, key);
@@ -448,12 +443,14 @@ export async function addLink(link: LinkProps) {
       },
     });
   }
+  const shortLink = linkConstructor({
+    domain: response.domain,
+    key: response.key,
+  });
   return {
     ...response,
-    shortLink: linkConstructor({
-      domain: response.domain,
-      key: response.key,
-    }),
+    shortLink,
+    qrCode: `https://api.dub.co/qr?url=${shortLink}`,
   };
 }
 
@@ -519,13 +516,17 @@ export async function bulkCreateLinks(links: LinkProps[]) {
 
   await pipeline.exec();
 
-  return createdLinks.map((link) => ({
-    ...link,
-    shortLink: linkConstructor({
-      domain: link?.domain,
-      key: link?.key,
-    }),
-  }));
+  return createdLinks.map((link) => {
+    const shortLink = linkConstructor({
+      domain: link.domain,
+      key: link.key,
+    });
+    return {
+      ...link,
+      shortLink,
+      qrCode: `https://api.dub.co/qr?url=${shortLink}`,
+    };
+  });
 }
 
 export async function editLink({
@@ -622,12 +623,15 @@ export async function editLink({
     });
   }
 
+  const shortLink = linkConstructor({
+    domain: response.domain,
+    key: response.key,
+  });
+
   return {
     ...response,
-    shortLink: linkConstructor({
-      domain: response.domain,
-      key: response.key,
-    }),
+    shortLink,
+    qrCode: `https://api.dub.co/qr?url=${shortLink}`,
   };
 }
 
