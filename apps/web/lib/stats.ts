@@ -141,7 +141,10 @@ export const getStats = async ({
   );
 
   if (key) {
-    url.searchParams.append("key", decodeURIComponent(key));
+    url.searchParams.append(
+      "key",
+      `${decodeURIComponent(key)},${decodeURIComponent(key).toLowerCase()}`,
+    );
   }
   if (interval) {
     url.searchParams.append(
