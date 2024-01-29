@@ -20,6 +20,7 @@
     "react": "^18.2.0"
   },
   "devDependencies": {
+    "@dub/eslint-config": "workspace:*",
     "@types/ms": "^0.7.31",
     "@types/node": "18.11.9",
     "@types/react": "^18.2.5",

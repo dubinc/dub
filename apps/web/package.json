@@ -89,6 +89,7 @@
     "vaul": "^0.6.8"
   },
   "devDependencies": {
+    "@dub/eslint-config": "workspace:*",
     "@trivago/prettier-plugin-sort-imports": "^4.0.0",
     "@types/dotenv-flow": "^3.3.2",
     "@types/he": "^1.2.3",
@@ -101,6 +102,7 @@
     "@types/topojson-client": "^3.1.1",
     "array-to-ndjson": "^1.0.1",
     "autoprefixer": "^10.4.16",
+    "eslint-config-next": "14.0.5-canary.55",
     "dotenv-flow": "^4.0.0",
     "papaparse": "^5.4.1",
     "postcss": "^8.4.31",
