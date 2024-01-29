@@ -425,6 +425,102 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
           },
         },
       },
+      "/qr": {
+        get: {
+          description: "Retrieve a QR code for a link.",
+          operationId: "getQRCode",
+          summary: "Retrieve a QR code",
+          parameters: [
+            {
+              name: "url",
+              description:
+                "The URL to generate a QR code for. Defaults to `https://dub.co` if not provided.",
+              in: "query",
+              required: true,
+              schema: {
+                description:
+                  "The URL to generate a QR code for. Defaults to `https://dub.co` if not provided.",
+                type: "string",
+              },
+            },
+            {
+              name: "size",
+              description:
+                "The size of the QR code in pixels. Defaults to `600` if not provided.",
+              in: "query",
+              required: false,
+              schema: {
+                description:
+                  "The size of the QR code in pixels. Defaults to `600` if not provided.",
+                type: "number",
+              },
+            },
+            {
+              name: "level",
+              description:
+                "The level of error correction to use for the QR code. Defaults to `L` if not provided.",
+              in: "query",
+              required: false,
+              schema: {
+                description:
+                  "The level of error correction to use for the QR code. Defaults to `L` if not provided.",
+                type: "string",
+                enum: ["L", "M", "Q", "H"],
+              },
+            },
+            {
+              name: "fgColor",
+              description:
+                "The foreground color of the QR code in hex format. Defaults to `#000000` if not provided.",
+              in: "query",
+              required: false,
+              schema: {
+                description:
+                  "The foreground color of the QR code in hex format. Defaults to `#000000` if not provided.",
+                type: "string",
+              },
+            },
+            {
+              name: "bgColor",
+              description:
+                "The background color of the QR code in hex format. Defaults to `#ffffff` if not provided.",
+              in: "query",
+              required: false,
+              schema: {
+                description:
+                  "The background color of the QR code in hex format. Defaults to `#ffffff` if not provided.",
+                type: "string",
+              },
+            },
+            {
+              name: "includeMargin",
+              description:
+                "Whether to include a margin around the QR code. Defaults to `false` if not provided.",
+              in: "query",
+              required: false,
+              schema: {
+                description:
+                  "Whether to include a margin around the QR code. Defaults to `false` if not provided.",
+                type: "boolean",
+                enum: [true, false],
+              },
+            },
+          ],
+          responses: {
+            "200": {
+              description: "The QR code",
+              content: {
+                "image/png": {
+                  schema: {
+                    type: "string",
+                    format: "binary",
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
       "/projects": {
         get: {
           description:

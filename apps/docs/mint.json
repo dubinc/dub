@@ -88,6 +88,10 @@
       ]
     },
     {
+      "group": "QR Codes",
+      "pages": ["api-reference/endpoint/qr"]
+    },
+    {
       "group": "Projects",
       "pages": [
         "api-reference/endpoint/retrieve-a-project",
