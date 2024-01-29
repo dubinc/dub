@@ -1,0 +1,16 @@
+{
+  "name": "@dub/upstash",
+  "version": "1.0.0",
+  "main": "./src/index.ts",
+  "dependencies": {
+    "@dub/utils": "workspace:*",
+    "@upstash/ratelimit": "^0.3.6",
+    "@upstash/redis": "^1.25.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

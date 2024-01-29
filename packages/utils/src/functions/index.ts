@@ -17,3 +17,4 @@ export * from "./nformatter";
 export * from "./time-ago";
 export * from "./truncate";
 export * from "./urls";
+export * from "./tag-colors";
