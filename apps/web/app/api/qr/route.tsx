@@ -5,6 +5,14 @@ import { ipAddress } from "@vercel/edge";
 import { getToken } from "next-auth/jwt";
 import { ImageResponse } from "next/og";
 import { QRCodeSVG } from "@/lib/qr/utils";
+import {
+  DEFAULT_BGCOLOR,
+  DEFAULT_FGCOLOR,
+  DEFAULT_INCLUDEMARGIN,
+  DEFAULT_LEVEL,
+  QR_LEVELS,
+} from "@/lib/qr/constants";
+import { QRLevelsType } from "@/lib/qr";
 
 export const runtime = "edge";
 
@@ -24,12 +32,26 @@ export async function GET(req: NextRequest) {
 
   const url = req.nextUrl.searchParams.get("url") || "https://dub.co";
   const size = parseInt(req.nextUrl.searchParams.get("size") || "600", 10);
+  const level = req.nextUrl.searchParams.get("level") || DEFAULT_LEVEL;
+  if (!QR_LEVELS.includes(level)) {
+    return new Response("Invalid QR code level.", { status: 400 });
+  }
+  const fgColor = req.nextUrl.searchParams.get("fgColor") || DEFAULT_FGCOLOR;
+  const bgColor = req.nextUrl.searchParams.get("bgColor") || DEFAULT_BGCOLOR;
+
+  const includeMargin =
+    req.nextUrl.searchParams.get("includeMargin") || DEFAULT_INCLUDEMARGIN;
+
   // const logo = req.nextUrl.searchParams.get("logo") || "https://d2vwwcvoksz7ty.cloudfront.net/logo.png";
 
   return new ImageResponse(
     QRCodeSVG({
       value: url,
-      size: size,
+      size,
+      level: level as QRLevelsType,
+      includeMargin: includeMargin === "true",
+      fgColor,
+      bgColor,
       // imageSettings: {
       //   src: logo,
       //   height: size / 4,

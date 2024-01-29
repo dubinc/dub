@@ -12,12 +12,12 @@ export type ImageSettings = {
   x?: number;
   y?: number;
 };
+export type QRLevelsType = "L" | "M" | "Q" | "H";
 
 export type QRProps = {
   value: string;
   size?: number;
-  // Should be a real enum, but doesn't seem to be compatible with real code.
-  level?: string;
+  level?: QRLevelsType;
   bgColor?: string;
   fgColor?: string;
   style?: CSSProperties;
