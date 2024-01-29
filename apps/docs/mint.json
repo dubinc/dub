@@ -89,7 +89,7 @@
     },
     {
       "group": "QR Codes",
-      "pages": ["api-reference/endpoint/qr"]
+      "pages": ["api-reference/endpoint/retrieve-a-qr-code"]
     },
     {
       "group": "Projects",
