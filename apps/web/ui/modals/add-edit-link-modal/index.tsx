@@ -10,6 +10,7 @@ import {
   Logo,
   Modal,
   TooltipContent,
+  useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
 import {
@@ -299,6 +300,8 @@ function AddEditLinkModal({
     }
   }, [key]);
 
+  const { isMobile } = useMediaQuery();
+
   return (
     <Modal
       showModal={showAddEditLinkModal}
@@ -420,7 +423,7 @@ function AddEditLinkModal({
                       "https://dub.co/help/article/what-is-dub"
                     }
                     value={url}
-                    autoFocus={!key}
+                    autoFocus={!key && !isMobile}
                     autoComplete="off"
                     onChange={(e) => {
                       setUrlError(null);
