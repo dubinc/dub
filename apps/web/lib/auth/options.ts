@@ -203,7 +203,6 @@ export const authOptions: NextAuthOptions = {
           });
         }
       } else if (account?.provider === "github") {
-        console.log("github user!");
         const userExists = await prisma.user.findUnique({
           where: { email: user.email },
           select: { name: true },
