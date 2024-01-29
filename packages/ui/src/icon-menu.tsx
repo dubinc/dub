@@ -1,11 +1,11 @@
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 interface MenuIconProps {
   icon: ReactNode;
   text: string;
 }
 
-export function IconMenu({ icon, text }: MenuIconProps) {
+export function IconMenu({ icon, text }: MenuIconProps): JSX.Element {
   return (
     <div className="flex items-center justify-start space-x-2">
       {icon}

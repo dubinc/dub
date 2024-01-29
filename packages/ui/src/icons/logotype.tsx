@@ -1,29 +1,29 @@
 import { cn } from "@dub/utils";
 
-export default function LogoType({ className }: { className?: string }) {
+export default function LogoType({ className }: { className?: string }): JSX.Element {
   return (
     <svg
-      width="834"
+      className={cn("h-6 w-24", className)}
+      fill="none"
       height="236"
       viewBox="0 0 834 236"
-      fill="none"
+      width="834"
       xmlns="http://www.w3.org/2000/svg"
-      className={cn("h-6 w-24", className)}
     >
       <path
         d="M266 119.5C266 181.632 215.632 232 153.5 232C91.368 232 41 181.632 41 119.5C41 57.368 91.368 7 153.5 7C215.632 7 266 57.368 266 119.5Z"
         fill="currentColor"
       />
       <mask
+        height="225"
         id="mask0_46_2"
+        maskUnits="userSpaceOnUse"
         style={{
           maskType: "alpha",
         }}
-        maskUnits="userSpaceOnUse"
+        width="225"
         x="41"
         y="7"
-        width="225"
-        height="225"
       >
         <path
           d="M266 119.5C266 181.632 215.632 232 153.5 232C91.368 232 41 181.632 41 119.5C41 57.368 91.368 7 153.5 7C215.632 7 266 57.368 266 119.5Z"
@@ -31,7 +31,7 @@ export default function LogoType({ className }: { className?: string }) {
         />
       </mask>
       <g mask="url(#mask0_46_2)">
-        <ellipse cx="153" cy="124.5" rx="58" ry="57.5" fill="white" />
+        <ellipse cx="153" cy="124.5" fill="white" rx="58" ry="57.5" />
         <path d="M185 -10H211V181H185V-10Z" fill="white" />
       </g>
       <path

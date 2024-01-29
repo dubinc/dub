@@ -1,4 +1,4 @@
-export async function generateMD5Hash(message: string) {
+export async function generateMD5Hash(message: string): Promise<string> {
   // Convert the message string to a Uint8Array
   const encoder = new TextEncoder();
   const data = encoder.encode(message);

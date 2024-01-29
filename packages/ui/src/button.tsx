@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@dub/utils";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 import { LoadingSpinner } from "./icons";
 import { Tooltip } from "./tooltip";
 
@@ -22,17 +22,15 @@ export function Button({
   shortcut,
   disabledTooltip,
   ...props
-}: ButtonProps) {
+}: ButtonProps): JSX.Element {
   if (disabledTooltip) {
     return (
       <Tooltip content={disabledTooltip}>
         <div className="flex h-10 w-full cursor-not-allowed items-center justify-center space-x-2 rounded-md border border-gray-200 bg-gray-100 px-4 text-sm text-gray-400 transition-all focus:outline-none">
           <p>{text}</p>
-          {shortcut && (
-            <kbd className="hidden rounded bg-zinc-200 px-2 py-0.5 text-xs font-light text-gray-400 md:inline-block">
+          {shortcut ? <kbd className="hidden rounded bg-zinc-200 px-2 py-0.5 text-xs font-light text-gray-400 md:inline-block">
               {shortcut}
-            </kbd>
-          )}
+            </kbd> : null}
         </div>
       </Tooltip>
     );
@@ -40,7 +38,6 @@ export function Button({
   return (
     <button
       // if onClick is passed, it's a "button" type, otherwise it's being used in a form, hence "submit"
-      type={props.onClick ? "button" : "submit"}
       className={cn(
         "group flex h-10 w-full items-center justify-center space-x-2 rounded-md border px-4 text-sm transition-all focus:outline-none",
         props.disabled || loading
@@ -60,15 +57,14 @@ export function Button({
         props.className,
       )}
       disabled={props.disabled || loading}
+      type={props.onClick ? "button" : "submit"}
       {...props}
     >
       {loading ? <LoadingSpinner /> : icon ? icon : null}
       <p>{text}</p>
-      {shortcut && (
-        <kbd className="hidden rounded bg-zinc-700 px-2 py-0.5 text-xs font-light text-gray-400 transition-all duration-75 group-hover:bg-gray-100 group-hover:text-gray-500 md:inline-block">
+      {shortcut ? <kbd className="hidden rounded bg-zinc-700 px-2 py-0.5 text-xs font-light text-gray-400 transition-all duration-75 group-hover:bg-gray-100 group-hover:text-gray-500 md:inline-block">
           {shortcut}
-        </kbd>
-      )}
+        </kbd> : null}
     </button>
   );
 }

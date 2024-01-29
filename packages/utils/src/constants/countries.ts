@@ -1,4 +1,4 @@
-export const COUNTRIES: { [key: string]: string } = {
+export const COUNTRIES: Record<string, string> = {
   AF: "Afghanistan",
   AL: "Albania",
   DZ: "Algeria",

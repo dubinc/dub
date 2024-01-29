@@ -1,4 +1,4 @@
-export function Background() {
+export function Background(): JSX.Element {
   return (
     <div style={styles.backgroundMain}>
       <div style={styles.backgroundMainBefore} />
@@ -8,7 +8,7 @@ export function Background() {
   );
 }
 
-const styles: { [key: string]: React.CSSProperties } = {
+const styles: Record<string, React.CSSProperties> = {
   backgroundMain: {
     width: "100vw",
     minHeight: "100vh",

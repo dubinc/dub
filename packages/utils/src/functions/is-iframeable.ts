@@ -5,7 +5,7 @@ export const isIframeable = async ({
 }: {
   url: string;
   requestDomain: string;
-}) => {
+}): Promise<boolean> => {
   const res = await fetch(url, {
     headers: {
       "User-Agent": "Dub.co Bot",
@@ -27,9 +27,7 @@ export const isIframeable = async ({
     return true;
   }
 
-  const frameAncestorsMatch = cspHeader.match(
-    /frame-ancestors\s+([\s\S]+?)(?=;|$)/i,
-  );
+  const frameAncestorsMatch = /frame-ancestors\s+([\s\S]+?)(?=;|$)/i.exec(cspHeader);
   if (frameAncestorsMatch) {
     const allowedOrigins = frameAncestorsMatch[1].split(/\s+/);
     if (allowedOrigins.includes(requestDomain)) {

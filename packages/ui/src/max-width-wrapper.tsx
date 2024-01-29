@@ -1,5 +1,5 @@
 import { cn } from "@dub/utils";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 export function MaxWidthWrapper({
   className,
@@ -7,7 +7,7 @@ export function MaxWidthWrapper({
 }: {
   className?: string;
   children: ReactNode;
-}) {
+}): JSX.Element {
   return (
     <div
       className={cn(

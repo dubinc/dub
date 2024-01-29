@@ -13,7 +13,7 @@ export const log = async ({
   message: string;
   type: "alerts" | "cron" | "links" | "errors";
   mention?: boolean;
-}) => {
+}): Promise<Response | undefined> => {
   if (
     process.env.NODE_ENV === "development" ||
     !process.env.DUB_SLACK_HOOK_ALERTS ||

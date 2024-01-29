@@ -10,13 +10,13 @@ function ToastWithUndo({
   id: number | string;
   message: string;
   undo: () => void;
-}) {
-  const undoAndDismiss = () => {
+}): JSX.Element {
+  const undoAndDismiss = (): void => {
     undo();
     toast.dismiss(id);
   };
 
-  const handleKeyboardEvent = (event: KeyboardEvent) => {
+  const handleKeyboardEvent = (event: KeyboardEvent): void => {
     if (event.key === "z" && (event.ctrlKey || event.metaKey)) {
       undoAndDismiss();
     }
@@ -24,7 +24,7 @@ function ToastWithUndo({
 
   useEffect(() => {
     document.addEventListener("keydown", handleKeyboardEvent);
-    return () => document.removeEventListener("keydown", handleKeyboardEvent);
+    return () => { document.removeEventListener("keydown", handleKeyboardEvent); };
   }, []);
 
   return (

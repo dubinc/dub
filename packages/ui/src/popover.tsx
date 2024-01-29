@@ -1,7 +1,7 @@
 "use client";
 
 import * as PopoverPrimitive from "@radix-ui/react-popover";
-import { Dispatch, ReactNode, SetStateAction } from "react";
+import type { Dispatch, ReactNode, SetStateAction } from "react";
 import { Drawer } from "vaul";
 import { useMediaQuery } from "./hooks";
 
@@ -19,13 +19,13 @@ export function Popover({
   openPopover: boolean;
   setOpenPopover: Dispatch<SetStateAction<boolean>>;
   mobileOnly?: boolean;
-}) {
+}): JSX.Element {
   const { isMobile } = useMediaQuery();
 
   if (mobileOnly || isMobile) {
     return (
-      <Drawer.Root open={openPopover} onOpenChange={setOpenPopover}>
-        <Drawer.Trigger className="sm:hidden" asChild>
+      <Drawer.Root onOpenChange={setOpenPopover} open={openPopover}>
+        <Drawer.Trigger asChild className="sm:hidden">
           {children}
         </Drawer.Trigger>
         <Drawer.Overlay className="fixed inset-0 z-40 bg-gray-100 bg-opacity-10 backdrop-blur" />
@@ -45,15 +45,15 @@ export function Popover({
   }
 
   return (
-    <PopoverPrimitive.Root open={openPopover} onOpenChange={setOpenPopover}>
-      <PopoverPrimitive.Trigger className="sm:inline-flex" asChild>
+    <PopoverPrimitive.Root onOpenChange={setOpenPopover} open={openPopover}>
+      <PopoverPrimitive.Trigger asChild className="sm:inline-flex">
         {children}
       </PopoverPrimitive.Trigger>
       <PopoverPrimitive.Portal>
         <PopoverPrimitive.Content
-          sideOffset={8}
           align={align}
           className="animate-slide-up-fade z-50 items-center rounded-md border border-gray-200 bg-white drop-shadow-lg sm:block"
+          sideOffset={8}
         >
           {content}
         </PopoverPrimitive.Content>

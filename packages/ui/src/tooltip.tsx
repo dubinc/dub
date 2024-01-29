@@ -4,9 +4,13 @@ import { nFormatter, timeAgo } from "@dub/utils";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { HelpCircle } from "lucide-react";
 import Link from "next/link";
-import { ReactNode, useState } from "react";
+import { useState, type ReactNode } from "react";
 
-export function TooltipProvider({ children }: { children: ReactNode }) {
+export function TooltipProvider({
+  children,
+}: {
+  children: ReactNode;
+}): JSX.Element {
   return (
     <TooltipPrimitive.Provider delayDuration={100}>
       {children}
@@ -22,7 +26,7 @@ export function Tooltip({
   children: ReactNode;
   content: ReactNode | string;
   side?: "top" | "bottom" | "left" | "right";
-}) {
+}): JSX.Element {
   const [open, setOpen] = useState(false);
 
   return (
@@ -69,7 +73,7 @@ export function TooltipContent({
   href?: string;
   target?: string;
   onClick?: () => void;
-}) {
+}): JSX.Element {
   return (
     <div className="flex max-w-xs flex-col items-center space-y-3 p-4 text-center">
       <p className="text-sm text-gray-700">{title}</p>
@@ -103,7 +107,7 @@ export function SimpleTooltipContent({
   title: string;
   cta: string;
   href: string;
-}) {
+}): JSX.Element {
   return (
     <div className="max-w-xs px-4 py-2 text-center text-sm text-gray-700">
       {title}{" "}
@@ -118,7 +122,11 @@ export function SimpleTooltipContent({
   );
 }
 
-export function InfoTooltip({ content }: { content: ReactNode | string }) {
+export function InfoTooltip({
+  content,
+}: {
+  content: ReactNode | string;
+}): JSX.Element {
   return (
     <Tooltip content={content}>
       <HelpCircle className="h-4 w-4 text-gray-500" />

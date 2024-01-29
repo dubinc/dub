@@ -9,8 +9,8 @@ import useSWR from "swr";
 import { FEATURES_LIST } from "./content";
 import { navItems } from "./nav";
 
-export function NavMobile() {
-  const { domain = "dub.co" } = useParams() as { domain: string };
+export function NavMobile(): JSX.Element {
+  const { domain = "dub.co" } = useParams() ;
   const [open, setOpen] = useState(false);
   const [openFeatures, setOpenFeatures] = useState(false);
   // prevent body scroll when modal is open
@@ -22,7 +22,7 @@ export function NavMobile() {
     }
   }, [open]);
 
-  const { data: session, isLoading } = useSWR(
+  const { data: session } = useSWR(
     domain === "dub.co" && "/api/auth/session",
     fetcher,
     {
@@ -33,11 +33,11 @@ export function NavMobile() {
   return (
     <>
       <button
-        onClick={() => setOpen(!open)}
         className={cn(
           "fixed right-3 top-3 z-40 rounded-full p-2 transition-colors duration-200 hover:bg-gray-200 focus:outline-none active:bg-gray-300 lg:hidden",
           open && "hover:bg-gray-100 active:bg-gray-200",
         )}
+        onClick={() => { setOpen(!open); }}
       >
         {open ? (
           <X className="h-5 w-5 text-gray-600" />
@@ -55,7 +55,7 @@ export function NavMobile() {
           <li className="py-3">
             <button
               className="flex w-full justify-between"
-              onClick={() => setOpenFeatures(!openFeatures)}
+              onClick={() => { setOpenFeatures(!openFeatures); }}
             >
               <p className="font-semibold">Features</p>
               <ChevronDown
@@ -65,34 +65,32 @@ export function NavMobile() {
                 )}
               />
             </button>
-            {openFeatures && (
-              <div className="grid gap-4 overflow-hidden py-4">
+            {openFeatures ? <div className="grid gap-4 overflow-hidden py-4">
                 {FEATURES_LIST.map(({ slug, icon: Icon, shortTitle }) => (
                   <Link
-                    key={slug}
+                    className="flex w-full space-x-2"
                     href={
                       domain === "dub.co"
                         ? `/${slug}`
                         : `https://dub.co/${slug}`
                     }
-                    onClick={() => setOpen(false)}
-                    className="flex w-full space-x-2"
+                    key={slug}
+                    onClick={() => { setOpen(false); }}
                   >
                     <Icon className="h-5 w-5 text-gray-500" />
                     <span className="text-sm">{shortTitle}</span>
                   </Link>
                 ))}
-              </div>
-            )}
+              </div> : null}
           </li>
           {navItems.map(({ name, slug }) => (
-            <li key={slug} className="py-3">
+            <li className="py-3" key={slug}>
               <Link
+                className="flex w-full font-semibold capitalize"
                 href={
                   domain === "dub.co" ? `/${slug}` : `https://dub.co/${slug}`
                 }
-                onClick={() => setOpen(false)}
-                className="flex w-full font-semibold capitalize"
+                onClick={() => { setOpen(false); }}
               >
                 {name}
               </Link>
@@ -102,8 +100,8 @@ export function NavMobile() {
           {session && Object.keys(session).length > 0 ? (
             <li className="py-3">
               <Link
-                href={APP_DOMAIN}
                 className="flex w-full font-semibold capitalize"
+                href={APP_DOMAIN}
               >
                 Dashboard
               </Link>
@@ -112,8 +110,8 @@ export function NavMobile() {
             <>
               <li className="py-3">
                 <Link
-                  href={`${APP_DOMAIN}/login`}
                   className="flex w-full font-semibold capitalize"
+                  href={`${APP_DOMAIN}/login`}
                 >
                   Log in
                 </Link>
@@ -121,8 +119,8 @@ export function NavMobile() {
 
               <li className="py-3">
                 <Link
-                  href={`${APP_DOMAIN}/register`}
                   className="flex w-full font-semibold capitalize"
+                  href={`${APP_DOMAIN}/register`}
                 >
                   Sign Up
                 </Link>

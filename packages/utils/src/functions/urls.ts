@@ -1,4 +1,4 @@
-export const isValidUrl = (url: string) => {
+export const isValidUrl = (url: string): boolean => {
   try {
     new URL(url);
     return true;
@@ -7,7 +7,7 @@ export const isValidUrl = (url: string) => {
   }
 };
 
-export const getUrlFromString = (str: string) => {
+export const getUrlFromString = (str: string): string | null | undefined => {
   if (isValidUrl(str)) return new URL(str).toString();
   try {
     if (str.includes(".") && !str.includes(" ")) {
@@ -18,9 +18,9 @@ export const getUrlFromString = (str: string) => {
   }
 };
 
-export const getSearchParams = (url: string) => {
+export const getSearchParams = (url: string): Record<string, string> => {
   // Create a params object
-  let params = {} as Record<string, string>;
+  const params = {} as Record<string, string>;
 
   new URL(url).searchParams.forEach(function (val, key) {
     params[key] = val;
@@ -29,7 +29,7 @@ export const getSearchParams = (url: string) => {
   return params;
 };
 
-export const getParamsFromURL = (url: string) => {
+export const getParamsFromURL = (url: string): Record<string, string> => {
   if (!url) return {};
   try {
     const params = new URL(url).searchParams;
@@ -48,7 +48,7 @@ export const getParamsFromURL = (url: string) => {
 export const constructURLFromUTMParams = (
   url: string,
   utmParams: Record<string, string>,
-) => {
+): string => {
   if (!url) return "";
   try {
     const newURL = new URL(url);
@@ -74,10 +74,10 @@ export const paramsMetadata = [
   { display: "UTM Content", key: "utm_content", examples: "logolink" },
 ];
 
-export const getUrlWithoutUTMParams = (url: string) => {
+export const getUrlWithoutUTMParams = (url: string): string => {
   try {
     const newURL = new URL(url);
-    paramsMetadata.forEach((param) => newURL.searchParams.delete(param.key));
+    paramsMetadata.forEach((param) => { newURL.searchParams.delete(param.key); });
     return newURL.toString();
   } catch (e) {
     return url;

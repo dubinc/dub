@@ -7,7 +7,7 @@ import {
 } from "../constants";
 import { isValidUrl } from "./urls";
 
-export const generateDomainFromName = (name: string) => {
+export const generateDomainFromName = (name: string): string => {
   const normalizedName = slugify(name, { separator: "" });
   if (normalizedName.length < 3) {
     return "";
@@ -33,16 +33,16 @@ export const validDomainRegex = new RegExp(
   /^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/,
 );
 
-export const validKeyRegex = new RegExp(/^[0-9A-Za-z\u0080-\uFFFF\/\-]*$/u);
+export const validKeyRegex = new RegExp(/^[0-9A-Za-z\u0080-\uFFFF/-]*$/u);
 
-export const validSlugRegex = new RegExp(/^[a-zA-Z0-9\-]+$/);
+export const validSlugRegex = new RegExp(/^[a-zA-Z0-9-]+$/);
 
-export const getSubdomain = (name: string, apexName: string) => {
+export const getSubdomain = (name: string, apexName: string): string | null => {
   if (name === apexName) return null;
   return name.slice(0, name.length - apexName.length - 1);
 };
 
-export const getApexDomain = (url: string) => {
+export const getApexDomain = (url: string): string => {
   let domain;
   try {
     // replace any custom scheme (e.g. notion://) with https://
@@ -73,7 +73,7 @@ export const getApexDomain = (url: string) => {
   return domain;
 };
 
-export const getDomainWithoutWWW = (url: string) => {
+export const getDomainWithoutWWW = (url: string): string | null | undefined => {
   if (isValidUrl(url)) {
     return new URL(url).hostname.replace(/^www\./, "");
   }
@@ -86,6 +86,6 @@ export const getDomainWithoutWWW = (url: string) => {
   }
 };
 
-export const isDubDomain = (domain: string) => {
+export const isDubDomain = (domain: string): boolean => {
   return DUB_DOMAINS.some((d) => d.slug === domain);
 };

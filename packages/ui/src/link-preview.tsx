@@ -8,11 +8,11 @@ import useSWR from "swr";
 import { useDebounce } from "use-debounce";
 import { LoadingCircle, Photo } from "./icons";
 
-export function LinkPreview({ defaultUrl }: { defaultUrl?: string }) {
+export function LinkPreview({ defaultUrl }: { defaultUrl?: string }): JSX.Element {
   const router = useRouter();
   const searchParams = useSearchParams();
   const url =
-    defaultUrl || searchParams?.get("url") || "https://github.com/dubinc/dub";
+    defaultUrl || searchParams.get("url") || "https://github.com/dubinc/dub";
   const [debouncedUrl] = useDebounce(getUrlFromString(url), 500);
   const hostname = useMemo(() => {
     return getDomainWithoutWWW(debouncedUrl || "");
@@ -41,37 +41,35 @@ export function LinkPreview({ defaultUrl }: { defaultUrl?: string }) {
         <div className="relative flex items-center">
           <Link2 className="absolute inset-y-0 left-0 my-2 ml-3 w-5 text-gray-400" />
           <input
-            ref={inputRef}
-            name="url"
-            id="url"
-            type="url"
+            aria-invalid="true"
             autoFocus
             className="block w-full rounded-md border-gray-200 pl-10 text-sm text-gray-900 placeholder-gray-400 shadow-lg focus:border-gray-500 focus:outline-none focus:ring-gray-500"
-            placeholder="Enter your URL"
             defaultValue={url}
+            id="url"
+            name="url"
             onChange={(e) =>
-              router.replace(
+              { router.replace(
                 `/tools/metatags${
                   e.target.value.length > 0 ? `?url=${e.target.value}` : ""
                 }`,
-              )
+              ); }
             }
-            aria-invalid="true"
+            placeholder="Enter your URL"
+            ref={inputRef}
+            type="url"
           />
         </div>
       )}
 
       <div className="relative overflow-hidden rounded-md border border-gray-300 bg-gray-50">
-        {isValidating && (
-          <div className="absolute flex h-[250px] w-full flex-col items-center justify-center space-y-4 border-b border-gray-300 bg-gray-50">
+        {isValidating ? <div className="absolute flex h-[250px] w-full flex-col items-center justify-center space-y-4 border-b border-gray-300 bg-gray-50">
             <LoadingCircle />
-          </div>
-        )}
+          </div> : null}
         {image ? (
           <img
-            src={image}
             alt="Preview"
             className="h-[250px] w-full border-b border-gray-300 object-cover"
+            src={image}
           />
         ) : (
           <div className="flex h-[250px] w-full flex-col items-center justify-center space-y-4 border-b border-gray-300">
@@ -118,13 +116,13 @@ export function LinkPreviewPlaceholder({
       <div className="relative flex items-center">
         <Link2 className="absolute inset-y-0 left-0 my-2 ml-3 w-5 text-gray-400" />
         <input
-          name="url"
-          id="url"
-          type="url"
-          disabled
           className="block w-full rounded-md border-gray-200 pl-10 text-sm text-gray-900 placeholder-gray-400 shadow-lg focus:border-gray-500 focus:outline-none focus:ring-gray-500"
-          placeholder="Enter your URL"
           defaultValue={defaultUrl || "https://github.com/dubinc/dub"}
+          disabled
+          id="url"
+          name="url"
+          placeholder="Enter your URL"
+          type="url"
         />
       </div>
       <div className="relative overflow-hidden rounded-md border border-gray-300 bg-gray-50">

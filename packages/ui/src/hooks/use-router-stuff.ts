@@ -14,10 +14,10 @@ export default function useRouterStuff() {
   ) => {
     const newParams = new URLSearchParams(searchParams);
     if (kv) {
-      Object.entries(kv).forEach(([k, v]) => newParams.set(k, v));
+      Object.entries(kv).forEach(([k, v]) => { newParams.set(k, v); });
     }
     if (opts?.ignore) {
-      opts.ignore.forEach((k) => newParams.delete(k));
+      opts.ignore.forEach((k) => { newParams.delete(k); });
     }
     const queryString = newParams.toString();
     return queryString.length > 0 ? `?${queryString}` : "";
@@ -33,14 +33,14 @@ export default function useRouterStuff() {
     del?: string | string[];
     replace?: boolean;
     getNewPath?: boolean;
-  }) => {
+  }): string | undefined => {
     const newParams = new URLSearchParams(searchParams);
     if (set) {
-      Object.entries(set).forEach(([k, v]) => newParams.set(k, v));
+      Object.entries(set).forEach(([k, v]) => { newParams.set(k, v); });
     }
     if (del) {
       if (Array.isArray(del)) {
-        del.forEach((k) => newParams.delete(k));
+        del.forEach((k) => { newParams.delete(k); });
       } else {
         newParams.delete(del);
       }

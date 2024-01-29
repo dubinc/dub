@@ -10,7 +10,7 @@ export function linkConstructor({
   localhost?: boolean;
   pretty?: boolean;
   noDomain?: boolean;
-}) {
+}): string {
   const link = `${
     localhost ? "http://home.localhost:8888" : `https://${domain}`
   }${key && key !== "_root" ? `/${key}` : ""}`;

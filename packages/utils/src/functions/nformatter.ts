@@ -3,7 +3,7 @@ export function nFormatter(
   opts: { digits?: number; full?: boolean } = {
     digits: 1,
   },
-) {
+): string {
   if (!num) return "0";
   if (opts.full) {
     return Intl.NumberFormat("en-US").format(num);
@@ -18,7 +18,7 @@ export function nFormatter(
     { value: 1e18, symbol: "E" },
   ];
   const rx = /\.0+$|(\.[0-9]*[1-9])0+$/;
-  var item = lookup
+  const item = lookup
     .slice()
     .reverse()
     .find(function (item) {

@@ -3,7 +3,7 @@
 import { cn } from "@dub/utils";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useRouter } from "next/navigation";
-import { Dispatch, SetStateAction } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import { Drawer } from "vaul";
 import { useMediaQuery } from "./hooks";
 
@@ -23,7 +23,7 @@ export function Modal({
   onClose?: () => void;
   desktopOnly?: boolean;
   preventDefaultClose?: boolean;
-}) {
+}): JSX.Element {
   const router = useRouter();
 
   const closeModal = ({ dragged }: { dragged?: boolean } = {}) => {
@@ -46,12 +46,12 @@ export function Modal({
   if (isMobile && !desktopOnly) {
     return (
       <Drawer.Root
-        open={setShowModal ? showModal : true}
         onOpenChange={(open) => {
           if (!open) {
             closeModal({ dragged: true });
           }
         }}
+        open={setShowModal ? showModal : true}
       >
         <Drawer.Overlay className="fixed inset-0 z-40 bg-gray-100 bg-opacity-10 backdrop-blur" />
         <Drawer.Portal>
@@ -74,26 +74,26 @@ export function Modal({
 
   return (
     <Dialog.Root
-      open={setShowModal ? showModal : true}
       onOpenChange={(open) => {
         if (!open) {
           closeModal();
         }
       }}
+      open={setShowModal ? showModal : true}
     >
       <Dialog.Portal>
         <Dialog.Overlay
           // for detecting when there's an active opened modal
-          id="modal-backdrop"
           className="animate-fade-in fixed inset-0 z-40 bg-gray-100 bg-opacity-50 backdrop-blur-md"
+          id="modal-backdrop"
         />
         <Dialog.Content
-          onOpenAutoFocus={(e) => e.preventDefault()}
-          onCloseAutoFocus={(e) => e.preventDefault()}
           className={cn(
             "animate-scale-in fixed inset-0 z-40 m-auto max-h-fit w-full max-w-md overflow-hidden border border-gray-200 bg-white p-0 shadow-xl sm:rounded-2xl",
             className,
           )}
+          onCloseAutoFocus={(e) => { e.preventDefault(); }}
+          onOpenAutoFocus={(e) => { e.preventDefault(); }}
         >
           {children}
         </Dialog.Content>

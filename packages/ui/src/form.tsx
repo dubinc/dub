@@ -1,5 +1,6 @@
 import { cn } from "@dub/utils";
-import { InputHTMLAttributes, ReactNode, useMemo, useState } from "react";
+import type { InputHTMLAttributes, ReactNode} from "react";
+import { useMemo, useState } from "react";
 import { Button } from "./button";
 
 export function Form({
@@ -18,7 +19,7 @@ export function Form({
   buttonText?: string;
   disabledTooltip?: string | ReactNode;
   handleSubmit: (data: any) => Promise<any>;
-}) {
+}): JSX.Element {
   const [value, setValue] = useState(inputData.defaultValue);
   const [saving, setSaving] = useState(false);
   const saveDisabled = useMemo(() => {
@@ -27,15 +28,15 @@ export function Form({
 
   return (
     <form
+      className="rounded-lg border border-gray-200 bg-white"
       onSubmit={async (e) => {
         e.preventDefault();
         setSaving(true);
         await handleSubmit({
-          [inputData.name as string]: value,
+          [inputData.name!]: value,
         });
         setSaving(false);
       }}
-      className="rounded-lg border border-gray-200 bg-white"
     >
       <div className="relative flex flex-col space-y-6 p-5 sm:p-10">
         <div className="flex flex-col space-y-3">
@@ -45,16 +46,16 @@ export function Form({
         {typeof inputData.defaultValue === "string" ? (
           <input
             {...inputData}
-            type="text"
-            required
-            disabled={disabledTooltip ? true : false}
-            onChange={(e) => setValue(e.target.value)}
             className={cn(
               "w-full max-w-md rounded-md border border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
               {
                 "cursor-not-allowed bg-gray-100 text-gray-400": disabledTooltip,
               },
             )}
+            disabled={Boolean(disabledTooltip)}
+            onChange={(e) => { setValue(e.target.value); }}
+            required
+            type="text"
           />
         ) : (
           <div className="h-[2.35rem] w-full max-w-md animate-pulse rounded-md bg-gray-200" />
@@ -68,10 +69,10 @@ export function Form({
         />
         <div className="shrink-0">
           <Button
-            text={buttonText}
-            loading={saving}
             disabled={saveDisabled}
             disabledTooltip={disabledTooltip}
+            loading={saving}
+            text={buttonText}
           />
         </div>
       </div>

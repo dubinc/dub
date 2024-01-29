@@ -2,7 +2,7 @@
 
 import { cn } from "@dub/utils";
 import * as SwitchPrimitive from "@radix-ui/react-switch";
-import { Dispatch, ReactNode, SetStateAction } from "react";
+import type { Dispatch, ReactNode, SetStateAction } from "react";
 import { Tooltip } from "./tooltip";
 
 export function Switch({
@@ -21,7 +21,7 @@ export function Switch({
   checked?: boolean;
   disabled?: boolean;
   disabledTooltip?: string | ReactNode;
-}) {
+}): JSX.Element {
   if (disabledTooltip) {
     return (
       <Tooltip content={disabledTooltip}>
@@ -35,9 +35,6 @@ export function Switch({
   return (
     <SwitchPrimitive.Root
       checked={checked}
-      name="switch"
-      onCheckedChange={(checked) => fn(checked)}
-      disabled={disabled}
       className={cn(
         disabled
           ? "cursor-not-allowed bg-gray-300"
@@ -45,6 +42,9 @@ export function Switch({
         "relative inline-flex h-4 w-8 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out",
         trackDimensions,
       )}
+      disabled={disabled}
+      name="switch"
+      onCheckedChange={(checked) => { fn(checked); }}
     >
       <SwitchPrimitive.Thumb
         className={cn(

@@ -1,4 +1,36 @@
-export const PLANS = [
+export interface Plan {
+  name: string;
+  tagline?: string;
+  price: {
+    monthly: number | null;
+    yearly: number | null;
+    ids?: string[];
+  };
+  limits: {
+    links: number | null;
+    clicks: number | null;
+    domains: number | null;
+    tags?: number | null;
+    users?: number | null;
+  };
+  colors: {
+    bg: string;
+    text: string;
+  };
+  cta: {
+    text: string;
+    shortText?: string;
+    href: string;
+    color: string;
+  };
+  featureTitle: string;
+  features: {
+    text: string;
+    footnote?: string | { title: string; cta: string; href: string };
+  }[]
+};
+
+export const PLANS: Plan[] = [
   {
     name: "Free",
     tagline: "For hobby & side projects",

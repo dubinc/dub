@@ -10,6 +10,9 @@
       "cache": false,
       "persistent": true
     },
+    "lint": {
+      "cache": false
+    },
     "clean": {
       "cache": false
     }

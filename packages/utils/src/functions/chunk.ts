@@ -1,6 +1,6 @@
-export const chunk = <T>(array: T[], chunk_size: number): T[][] => {
-  return array.reduce((resultArray, item, index) => {
-    const chunkIndex = Math.floor(index / chunk_size);
+export const chunk = <T>(array: T[], chunkSize: number): T[][] => {
+  return array.reduce<T[][]>((resultArray, item, index) => {
+    const chunkIndex = Math.floor(index / chunkSize);
 
     if (!resultArray[chunkIndex]) {
       resultArray[chunkIndex] = []; // start a new chunk
@@ -9,5 +9,5 @@ export const chunk = <T>(array: T[], chunk_size: number): T[][] => {
     resultArray[chunkIndex].push(item);
 
     return resultArray;
-  }, [] as T[][]);
+  }, []);
 };

@@ -14,7 +14,7 @@ export default function useCookies<T>(
 
   useEffect(() => {
     // Update state if the cookie changes
-    const handleStorageChange = () => {
+    const handleStorageChange = (): void => {
       const item = Cookies.get(key);
       if (item) {
         setStoredValue(JSON.parse(item));
@@ -30,7 +30,7 @@ export default function useCookies<T>(
     };
   }, [key]);
 
-  const setValue = (value: T) => {
+  const setValue = (value: T): void => {
     // Save state
     setStoredValue(value);
     // Save to Cookies
