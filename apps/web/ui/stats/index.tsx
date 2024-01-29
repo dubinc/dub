@@ -129,7 +129,6 @@ export default function Stats({
       {modal && (
         <button
           className="group sticky right-4 top-4 z-30 float-right hidden rounded-full p-3 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:scale-75 md:block"
-          autoFocus={false}
           onClick={() => router.back()}
         >
           <X className="h-6 w-6" />
