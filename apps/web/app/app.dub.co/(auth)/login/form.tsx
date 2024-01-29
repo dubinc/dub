@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Google, InfoTooltip } from "@dub/ui";
+import { Button, Google, InfoTooltip, useMediaQuery } from "@dub/ui";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -22,6 +22,8 @@ export default function LoginForm() {
     const error = searchParams?.get("error");
     error && toast.error(error);
   }, [searchParams]);
+
+  const { isMobile } = useMediaQuery();
 
   return (
     <>
@@ -81,7 +83,7 @@ export default function LoginForm() {
             <input
               id="email"
               name="email"
-              autoFocus
+              autoFocus={!isMobile}
               type="email"
               placeholder="panic@thedis.co"
               autoComplete="email"
@@ -146,7 +148,7 @@ export default function LoginForm() {
             <input
               id="slug"
               name="slug"
-              autoFocus
+              autoFocus={!isMobile}
               type="text"
               placeholder="my-team"
               autoComplete="off"

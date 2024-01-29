@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef } from "react";
 import useSWR from "swr";
 import { useDebounce } from "use-debounce";
+import { useMediaQuery } from "./hooks";
 import { LoadingCircle, Photo } from "./icons";
 
 export function LinkPreview({ defaultUrl }: { defaultUrl?: string }): JSX.Element {
@@ -35,14 +36,19 @@ export function LinkPreview({ defaultUrl }: { defaultUrl?: string }): JSX.Elemen
     }
   }, [defaultUrl]);
 
+  const { isMobile } = useMediaQuery();
+
   return (
     <>
       {!defaultUrl && (
         <div className="relative flex items-center">
           <Link2 className="absolute inset-y-0 left-0 my-2 ml-3 w-5 text-gray-400" />
           <input
-            aria-invalid="true"
-            autoFocus
+            ref={inputRef}
+            name="url"
+            id="url"
+            type="url"
+            autoFocus={!isMobile}
             className="block w-full rounded-md border-gray-200 pl-10 text-sm text-gray-900 placeholder-gray-400 shadow-lg focus:border-gray-500 focus:outline-none focus:ring-gray-500"
             defaultValue={url}
             id="url"

@@ -1,4 +1,11 @@
-import { Badge, Button, Logo, Modal, TokenAvatar } from "@dub/ui";
+import {
+  Badge,
+  Button,
+  Logo,
+  Modal,
+  TokenAvatar,
+  useMediaQuery,
+} from "@dub/ui";
 import { timeAgo } from "@dub/utils";
 import { Token } from "@prisma/client";
 import {
@@ -21,6 +28,8 @@ function DeleteTokenModal({
   token: Token;
 }) {
   const [removing, setRemoving] = useState(false);
+
+  const { isMobile } = useMediaQuery();
 
   return (
     <Modal
@@ -54,7 +63,7 @@ function DeleteTokenModal({
         <Button
           text="Confirm"
           variant="danger"
-          autoFocus
+          autoFocus={!isMobile}
           loading={removing}
           onClick={() => {
             setRemoving(true);
