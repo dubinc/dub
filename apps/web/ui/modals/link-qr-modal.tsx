@@ -162,9 +162,8 @@ export function QRCodePicker({
             fgColor={qrData.fgColor}
             level={qrData.level}
             includeMargin={false}
-            // @ts-ignore
-            imageSettings={
-              showLogo && {
+            {...(qrData.imageSettings && {
+              imageSettings: {
                 ...qrData.imageSettings,
                 height: qrData.imageSettings
                   ? qrData.imageSettings.height / 8
@@ -172,8 +171,8 @@ export function QRCodePicker({
                 width: qrData.imageSettings
                   ? qrData.imageSettings.width / 8
                   : 0,
-              }
-            }
+              },
+            })}
           />
         </div>
 

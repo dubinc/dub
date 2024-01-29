@@ -733,6 +733,12 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
                 "The full URL of the short link, including the https protocol (e.g. https://dub.sh/try).",
               readOnly: true,
             },
+            qrCode: {
+              type: "string",
+              description:
+                "The full URL of the QR code for the short link (e.g. https://api.dub.co/qr?url=https://dub.sh/try).",
+              readOnly: true,
+            },
             utm_source: {
               type: "string",
               description: "The UTM source of the short link.",
