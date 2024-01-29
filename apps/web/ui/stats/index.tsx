@@ -117,7 +117,7 @@ export default function Stats({
     <StatsContext.Provider
       value={{
         basePath, // basePath for the page (e.g. /stats/[key], /links/[key], /[slug]/[domain]/[key])
-        baseApiPath, // baseApiPath for the API (e.g. /api/edge/links/[key]/stats)
+        baseApiPath, // baseApiPath for the API (e.g. /api/links/[key]/stats)
         queryString,
         domain: domain || undefined, // domain for the link (e.g. dub.sh, stey.me, etc.)
         key: key ? decodeURIComponent(key) : undefined, // link key (e.g. github, weathergpt, etc.)

@@ -23,7 +23,7 @@ export function LinkPreview({ defaultUrl }: { defaultUrl?: string }) {
     title: string | null;
     description: string | null;
     image: string | null;
-  }>(debouncedUrl && `/api/edge/metatags?url=${debouncedUrl}`, fetcher, {
+  }>(debouncedUrl && `/api/metatags?url=${debouncedUrl}`, fetcher, {
     revalidateOnFocus: false,
   });
 
