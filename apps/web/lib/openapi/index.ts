@@ -26,6 +26,7 @@ export const openAPIDocument = createDocument({
   ],
   paths: {
     ...tagPaths,
+    // TODO: Add remaining paths
   },
   components: {
     schemas: {
