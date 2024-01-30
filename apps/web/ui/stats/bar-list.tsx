@@ -43,6 +43,8 @@ export default function BarList({
     }
   }, [data, limit, search]);
 
+  const { isMobile } = useMediaQuery();
+
   const bars = (
     <div className="grid gap-4">
       {filteredData.map(({ icon, title, href, clicks }, idx) => {
@@ -120,7 +122,7 @@ export default function BarList({
           </div>
           <input
             type="text"
-            autoFocus
+            autoFocus={!isMobile}
             className="w-full rounded-md border border-gray-300 py-2 pl-10 text-black placeholder:text-gray-400 focus:border-black focus:outline-none focus:ring-gray-600 sm:text-sm"
             placeholder={`Search ${tab}...`}
             onChange={(e) => setSearch(e.target.value)}

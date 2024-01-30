@@ -1,7 +1,7 @@
 "use client";
 
 import { AlertCircleFill } from "@/ui/shared/icons";
-import { Button } from "@dub/ui";
+import { Button, useMediaQuery } from "@dub/ui";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
@@ -14,6 +14,8 @@ export default function PasswordForm() {
     key: string;
   };
   const [error, setError] = useState(false);
+
+  const { isMobile } = useMediaQuery();
 
   return (
     <form
@@ -39,7 +41,7 @@ export default function PasswordForm() {
             type="password"
             name="password"
             id="password"
-            autoFocus
+            autoFocus={!isMobile}
             required
             onChange={() => {
               setError(false);

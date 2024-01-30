@@ -7,6 +7,7 @@ import {
   Modal,
   SimpleTooltipContent,
   Switch,
+  useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
 import { HOME_DOMAIN, fetcher, nFormatter } from "@dub/utils";
@@ -74,6 +75,8 @@ function ImportShortModal({
   };
 
   const { queryParams } = useRouterStuff();
+
+  const { isMobile } = useMediaQuery();
 
   return (
     <Modal
@@ -226,7 +229,7 @@ function ImportShortModal({
               <input
                 id="apiKey"
                 name="apiKey"
-                autoFocus
+                autoFocus={!isMobile}
                 type="text"
                 placeholder="sk_xxxxxxxxxxxxxxxx"
                 autoComplete="off"

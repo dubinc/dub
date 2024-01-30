@@ -186,7 +186,7 @@ export const ALL_TOOLS = [
   { name: "Amazon Link Shortener", slug: "amazon-link-shortener" },
   { name: "Spotify Link Shortener", slug: "spotify-link-shortener" },
   { name: "Metatags API", slug: "metatags" },
-  { name: "QR Code Generator", slug: "qr-code" },
+  { name: "QR Code API", slug: "qr-code" },
   { name: "Link Inspector", slug: "inspector" },
 ];
 

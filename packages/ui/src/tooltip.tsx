@@ -9,7 +9,7 @@ import { ReactNode, useState } from "react";
 
 export function TooltipProvider({ children }: { children: ReactNode }) {
   return (
-    <TooltipPrimitive.Provider delayDuration={0}>
+    <TooltipPrimitive.Provider delayDuration={100}>
       {children}
     </TooltipPrimitive.Provider>
   );
