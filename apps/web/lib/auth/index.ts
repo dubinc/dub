@@ -334,7 +334,11 @@ export const withAuth =
     }
 
     // links usage overage checks
-    if (needNotExceededLinks && project.linksUsage > project.linksLimit) {
+    if (
+      needNotExceededLinks &&
+      project.linksUsage > project.linksLimit &&
+      (project.plan === "free" || project.plan === "pro")
+    ) {
       return new Response(
         exceededLimitError({
           plan: project.plan,

@@ -4,13 +4,14 @@ import { getStats } from "@/lib/stats";
 import { ProjectProps } from "@/lib/types";
 import {
   APP_DOMAIN_WITH_NGROK,
+  capitalize,
   getAdjustedBillingCycleStart,
   linkConstructor,
   log,
 } from "@dub/utils";
 import { sendEmail } from "emails";
 import ClicksSummary from "emails/clicks-summary";
-import UsageExceeded from "emails/usage-exceeded";
+import ClicksExceeded from "emails/clicks-exceeded";
 
 const limit = 250;
 
@@ -71,15 +72,17 @@ export const updateUsage = async (skip?: number) => {
   // Send email to notify overages
   await Promise.allSettled(
     exceedingUsage.map(async (project) => {
-      const { name, usage, usageLimit, users, sentEmails } = project;
+      const { slug, plan, usage, usageLimit, users, sentEmails } = project;
       const emails = users.map((user) => user.user.email) as string[];
 
       await log({
-        message: `${name} is over usage limit. Usage: ${usage}, Limit: ${usageLimit}, Email: ${emails.join(
+        message: `*${slug}* is over their *${capitalize(
+          plan,
+        )} Plan* usage limit. Usage: ${usage}, Limit: ${usageLimit}, Email: ${emails.join(
           ", ",
         )}`,
-        type: "cron",
-        mention: true,
+        type: plan === "free" ? "cron" : "alerts",
+        mention: plan !== "free",
       });
       const sentFirstUsageLimitEmail = sentEmails.some(
         (email) => email.type === "firstUsageLimitEmail",
@@ -118,6 +121,7 @@ export const updateUsage = async (skip?: number) => {
         const topLinks =
           project.usage > 0
             ? await getStats({
+                projectId: project.id,
                 domain: project.domains.map((domain) => domain.slug).join(","),
                 endpoint: "top_links",
                 interval: "30d",
@@ -220,9 +224,9 @@ const sendUsageLimitEmail = async (
     emails.map((email) => {
       limiter.schedule(() =>
         sendEmail({
-          subject: `You have exceeded your ${process.env.NEXT_PUBLIC_APP_NAME} usage limit`,
+          subject: `${process.env.NEXT_PUBLIC_APP_NAME} Alert: Clicks Limit Exceeded`,
           email,
-          react: UsageExceeded({
+          react: ClicksExceeded({
             email,
             project,
             type,

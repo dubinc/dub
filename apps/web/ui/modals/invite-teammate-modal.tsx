@@ -1,6 +1,6 @@
 import useProject from "@/lib/swr/use-project";
 import { BlurImage } from "@/ui/shared/blur-image";
-import { Button, Logo, Modal } from "@dub/ui";
+import { Button, Logo, Modal, useMediaQuery } from "@dub/ui";
 import va from "@vercel/analytics";
 import { useParams } from "next/navigation";
 import {
@@ -24,6 +24,7 @@ function InviteTeammateModal({
   const [inviting, setInviting] = useState(false);
   const [email, setEmail] = useState("");
   const { logo } = useProject();
+  const { isMobile } = useMediaQuery();
 
   return (
     <Modal
@@ -83,7 +84,7 @@ function InviteTeammateModal({
               name="email"
               id="email"
               placeholder="panic@thedis.co"
-              autoFocus
+              autoFocus={!isMobile}
               autoComplete="off"
               required
               value={email}

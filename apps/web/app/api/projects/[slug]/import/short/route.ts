@@ -3,7 +3,7 @@ import { withAuth } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, fetchWithTimeout } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/projects/[slug]/import/short – get all short.io domains for a project
@@ -28,7 +28,7 @@ export const GET = withAuth(async ({ project }) => {
     data.map(async ({ id, hostname }: { id: number; hostname: string }) => ({
       id,
       domain: hostname,
-      links: await fetch(
+      links: await fetchWithTimeout(
         `https://api-v2.short.cm/statistics/domain/${id}?period=total`,
         {
           headers: {
@@ -39,7 +39,7 @@ export const GET = withAuth(async ({ project }) => {
       )
         .then((r) => r.json())
         .then((data) => data.links - 1) // subtract 1 to exclude root domain
-        .catch((e) => 0),
+        .catch(() => 0),
     })),
   );
 

@@ -117,7 +117,7 @@ export default function Stats({
     <StatsContext.Provider
       value={{
         basePath, // basePath for the page (e.g. /stats/[key], /links/[key], /[slug]/[domain]/[key])
-        baseApiPath, // baseApiPath for the API (e.g. /api/edge/links/[key]/stats)
+        baseApiPath, // baseApiPath for the API (e.g. /api/links/[key]/stats)
         queryString,
         domain: domain || undefined, // domain for the link (e.g. dub.sh, stey.me, etc.)
         key: key ? decodeURIComponent(key) : undefined, // link key (e.g. github, weathergpt, etc.)
@@ -129,7 +129,6 @@ export default function Stats({
       {modal && (
         <button
           className="group sticky right-4 top-4 z-30 float-right hidden rounded-full p-3 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:scale-75 md:block"
-          autoFocus={false}
           onClick={() => router.back()}
         >
           <X className="h-6 w-6" />

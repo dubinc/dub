@@ -16,12 +16,16 @@ import { detectBot } from "./middleware/utils";
  **/
 export async function recordClick({
   req,
+  id,
   domain,
   key,
+  projectId,
 }: {
   req: NextRequest;
+  id?: string;
   domain: string;
   key?: string;
+  projectId?: string;
 }) {
   const isBot = detectBot(req);
   if (isBot) {

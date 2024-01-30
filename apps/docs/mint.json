@@ -61,7 +61,7 @@
   "navigation": [
     {
       "group": "Getting Started",
-      "pages": ["introduction", "self-hosting/guide"]
+      "pages": ["introduction", "local-development", "self-hosting/guide"]
     },
     {
       "group": "Integrations",
@@ -86,6 +86,10 @@
         "api-reference/endpoint/retrieve-a-list-of-links",
         "api-reference/endpoint/bulk-create-links"
       ]
+    },
+    {
+      "group": "QR Codes",
+      "pages": ["api-reference/endpoint/retrieve-a-qr-code"]
     },
     {
       "group": "Projects",

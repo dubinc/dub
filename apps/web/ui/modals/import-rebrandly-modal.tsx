@@ -7,6 +7,7 @@ import {
   Modal,
   SimpleTooltipContent,
   Switch,
+  useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
 import { fetcher, nFormatter } from "@dub/utils";
@@ -86,6 +87,8 @@ function ImportRebrandlyModal({
   };
 
   const { queryParams } = useRouterStuff();
+
+  const { isMobile } = useMediaQuery();
 
   return (
     <Modal
@@ -250,7 +253,7 @@ function ImportRebrandlyModal({
               <input
                 id="apiKey"
                 name="apiKey"
-                autoFocus
+                autoFocus={!isMobile}
                 type="text"
                 placeholder="93467061146a64622df83c12bcc0bffb"
                 autoComplete="off"
