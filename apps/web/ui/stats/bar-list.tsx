@@ -1,6 +1,6 @@
 "use client";
 
-import { NumberTooltip, Tooltip } from "@dub/ui";
+import { NumberTooltip, Tooltip, useMediaQuery } from "@dub/ui";
 import { cn, nFormatter, truncate } from "@dub/utils";
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
