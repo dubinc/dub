@@ -15,7 +15,6 @@ const ErrorCode = z.enum([
   "invite_pending",
   "exceeded_limit",
   "conflict",
-
 ]);
 
 const errorCodeToHttpStatus: Record<z.infer<typeof ErrorCode>, number> = {
@@ -56,7 +55,7 @@ const ErrorSchema = z.object({
   }),
 });
 
-type ErrorResponse = z.infer<typeof ErrorSchema>;
+export type ErrorResponse = z.infer<typeof ErrorSchema>;
 
 export class DubApiError extends Error {
   public readonly code: z.infer<typeof ErrorCode>;

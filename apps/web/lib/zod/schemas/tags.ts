@@ -46,7 +46,9 @@ export const createTag: ZodOpenApiOperationObject = {
       description: "The tag was created",
       content: {
         "application/json": {
-          schema: tagSchema,
+          schema: z.object({
+            data: tagSchema,
+          }),
         },
       },
     },
@@ -71,7 +73,9 @@ export const getTags: ZodOpenApiOperationObject = {
       description: "The tags were found",
       content: {
         "application/json": {
-          schema: z.array(tagSchema),
+          schema: z.object({
+            data: z.array(tagSchema),
+          }),
         },
       },
     },

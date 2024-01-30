@@ -6,7 +6,7 @@ import useSWR from "swr";
 export default function useTags() {
   const { slug } = useParams() as { slug?: string };
 
-  const { data: tags, isValidating } = useSWR<TagProps[]>(
+  const { data: tags, isValidating } = useSWR<{ data: TagProps[] }>(
     slug && `/api/projects/${slug}/tags`,
     fetcher,
     {
@@ -15,7 +15,7 @@ export default function useTags() {
   );
 
   return {
-    tags,
+    tags: tags?.data,
     loading: tags ? false : true,
     isValidating,
   };

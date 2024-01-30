@@ -3,25 +3,30 @@ import { withAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { randomBadgeColor } from "@/ui/links/tag-badge";
 import { NextResponse } from "next/server";
-import { DubApiError, handleApiError } from "@/lib/errors";
+import { DubApiError, ErrorResponse, handleApiError } from "@/lib/errors";
 import { createTagSchema, Tag } from "@/lib/zod/schemas/tags";
 
 // GET /api/projects/[slug]/tags - get all tags for a project
 export const GET = withAuth(async ({ project, headers }) => {
-  const tags = await prisma.tag.findMany({
-    where: {
-      projectId: project.id,
-    },
-    select: {
-      id: true,
-      name: true,
-      color: true,
-    },
-    orderBy: {
-      name: "asc",
-    },
-  });
-  return NextResponse.json<Tag[]>(tags, { headers });
+  try {
+    const tags = await prisma.tag.findMany({
+      where: {
+        projectId: project.id,
+      },
+      select: {
+        id: true,
+        name: true,
+        color: true,
+      },
+      orderBy: {
+        name: "asc",
+      },
+    });
+    return NextResponse.json<{ data: Tag[] }>({ data: tags }, { headers });
+  } catch (err) {
+    const { error, status } = handleApiError(err);
+    return NextResponse.json<ErrorResponse>({ error }, { headers, status });
+  }
 });
 
 // POST /api/projects/[slug]/tags - create a tag for a project
@@ -73,9 +78,12 @@ export const POST = withAuth(async ({ req, project, headers }) => {
       },
     });
 
-    return NextResponse.json<Tag>(response, { headers, status: 201 });
+    return NextResponse.json<{ data: Tag }>(
+      { data: response },
+      { headers, status: 201 },
+    );
   } catch (err) {
     const { error, status } = handleApiError(err);
-    return NextResponse.json(error, { ...headers, status });
+    return NextResponse.json<ErrorResponse>({ error }, { headers, status });
   }
 });
