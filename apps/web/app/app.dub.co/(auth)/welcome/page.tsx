@@ -13,8 +13,8 @@ export default function WelcomePage() {
   return (
     <div className="flex h-screen flex-col items-center">
       <Background />
-      <Suspense fallback={<div/>}>
-      <WelcomePageClient />
+      <Suspense fallback={null}>
+        <WelcomePageClient />
       </Suspense>
     </div>
   );
