@@ -147,12 +147,7 @@ export default function TagsSection({
           </div>
         </div>
         {openCommandList && (
-          <Command.List
-            style={{
-              animationFillMode: "forwards", // to keep the last frame of the animation
-            }}
-            className="animate-input-select-slide-up sm:animate-input-select-slide-down absolute z-20 h-[300px] w-full overflow-auto rounded-md border border-gray-200 bg-white p-2 shadow-md transition-all sm:h-[calc(var(--cmdk-list-height)+17px)] sm:max-h-[300px]"
-          >
+          <Command.List className="absolute z-20 mt-2 h-[calc(var(--cmdk-list-height)+17px)] max-h-[300px] w-full overflow-auto rounded-md border border-gray-200 bg-white p-2 shadow-md transition-all">
             {tags?.length === 0 && inputValue.length === 0 && (
               <p className="px-4 py-2.5 text-sm text-gray-900">
                 Start typing to create tag...

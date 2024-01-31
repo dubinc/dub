@@ -62,7 +62,7 @@ export default function PasswordSection({
           fn={() => setEnabled(!enabled)}
           checked={enabled}
           // password protection is only available on Dub's Pro plan
-          {...(!plan || plan === "free"
+          {...((!plan || plan === "free") && !enabled
             ? {
                 disabledTooltip: (
                   <TooltipContent

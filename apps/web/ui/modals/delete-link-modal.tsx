@@ -1,5 +1,5 @@
 import { BlurImage } from "@/ui/shared/blur-image";
-import { Button, Modal } from "@dub/ui";
+import { Button, Modal, useMediaQuery } from "@dub/ui";
 import { GOOGLE_FAVICON_URL, getApexDomain, linkConstructor } from "@dub/utils";
 import { type Link as LinkProps } from "@prisma/client";
 import { useParams, useSearchParams } from "next/navigation";
@@ -37,6 +37,8 @@ function DeleteLinkModal({
       pretty: true,
     });
   }, [key, domain]);
+
+  const { isMobile } = useMediaQuery();
 
   return (
     <Modal
@@ -98,7 +100,7 @@ function DeleteLinkModal({
               id="verification"
               pattern={shortlink}
               required
-              autoFocus
+              autoFocus={!isMobile}
               autoComplete="off"
               className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
             />

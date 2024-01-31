@@ -10,6 +10,7 @@ import {
   Logo,
   Modal,
   TooltipContent,
+  useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
 import {
@@ -185,7 +186,7 @@ function AddEditLinkModal({
         // if url is valid, continue to generate metatags, else return null
         new URL(debouncedUrl);
         setGeneratingMetatags(true);
-        fetch(`/api/edge/metatags?url=${debouncedUrl}`).then(async (res) => {
+        fetch(`/api/metatags?url=${debouncedUrl}`).then(async (res) => {
           if (res.status === 200) {
             const results = await res.json();
             setData((prev) => ({
@@ -298,6 +299,8 @@ function AddEditLinkModal({
       keyRef.current?.select();
     }
   }, [key]);
+
+  const { isMobile } = useMediaQuery();
 
   return (
     <Modal
@@ -420,7 +423,7 @@ function AddEditLinkModal({
                       "https://dub.co/help/article/what-is-dub"
                     }
                     value={url}
-                    autoFocus={!key}
+                    autoFocus={!key && !isMobile}
                     autoComplete="off"
                     onChange={(e) => {
                       setUrlError(null);

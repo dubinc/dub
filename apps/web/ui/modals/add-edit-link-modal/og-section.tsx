@@ -78,6 +78,8 @@ export default function OGSection({
 
   const [cooldown, setCooldown] = useState(false);
   const [openPopover, setOpenPopover] = useState(false);
+
+  // hacky workaround to fix bug with Radix Popover: https://github.com/radix-ui/primitives/issues/2348#issuecomment-1778941310
   function handleSet() {
     if (cooldown) return;
     setOpenPopover(!openPopover);
@@ -107,7 +109,7 @@ export default function OGSection({
           fn={() => setData((prev) => ({ ...prev, proxy: !proxy }))}
           checked={proxy}
           // custom social media cards is only available on Dub's Pro plan
-          {...(!plan || plan === "free"
+          {...((!plan || plan === "free") && !proxy
             ? {
                 disabledTooltip: (
                   <TooltipContent
