@@ -37,6 +37,7 @@ import {
   CopyPlus,
   Edit3,
   EyeOff,
+  Mail,
   MessageCircle,
   QrCode,
   TimerOff,
@@ -332,9 +333,19 @@ export default function LinkCard({
                 content={
                   <div className="w-full p-4">
                     <Avatar user={user} className="h-10 w-10" />
-                    <p className="mt-2 text-sm font-semibold text-gray-700">
-                      {user?.name || user?.email || "Anonymous User"}
-                    </p>
+                    <div className="mt-2 flex items-center space-x-1.5">
+                      <p className="text-sm font-semibold text-gray-700">
+                        {user?.name || user?.email || "Anonymous User"}
+                      </p>
+                      {!slug && // this is only shown in admin mode (where there's no slug)
+                        user?.email && (
+                          <CopyButton
+                            value={user.email}
+                            icon={Mail}
+                            className="[&>*]:w-3 [&>*]:h-3"
+                          />
+                        )}
+                    </div>
                     <p className="mt-1 text-xs text-gray-500">
                       Created{" "}
                       {new Date(createdAt).toLocaleDateString("en-us", {
@@ -376,7 +387,7 @@ export default function LinkCard({
                 href={url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="xs:block hidden max-w-[140px] truncate text-sm font-medium text-gray-700 underline-offset-2 hover:underline sm:max-w-[300px] md:max-w-[360px] xl:max-w-[440px]"
+                className="xs:block hidden max-w-[140px] truncate text-sm font-medium text-gray-700 underline-offset-2 hover:underline sm:max-w-[300px] md:max-w-[360px] xl:max-w-[420px]"
               >
                 {url}
               </a>

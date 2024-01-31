@@ -1,24 +1,21 @@
 "use client";
 
-import { Copy, LoadingSpinner, Tick } from "@dub/ui";
+import { Button, LoadingSpinner } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
-import { getUser } from "../actions";
+import { banUser, getUserOrProjectOwner } from "../actions";
+import UserInfo, { UserInfoProps } from "./user-info";
 
 export default function ImpersonateUser() {
-  const [data, setData] = useState<{
-    email: string;
-    impersonateUrl: string;
-  } | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [data, setData] = useState<UserInfoProps | null>(null);
 
   return (
     <div className="flex flex-col space-y-5">
       <form
         action={(data) =>
-          getUser(data).then((res) => {
+          getUserOrProjectOwner(data).then((res) => {
             if (res.error) {
               toast.error(res.error);
             } else {
@@ -31,34 +28,25 @@ export default function ImpersonateUser() {
         <Form />
       </form>
       {data && (
-        <div className="flex w-full items-center space-x-3">
-          <input
-            type="email"
-            name="email"
-            id="email"
-            value={data.email}
-            readOnly
-            className="w-full rounded-md border-gray-300 text-sm text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500"
-          />
-          <button
-            type="button"
-            onClick={() => {
-              setCopied(true);
-              navigator.clipboard.writeText(data.impersonateUrl);
-              toast.success("Copied to clipboard");
-              setTimeout(() => {
-                setCopied(false);
-              }, 3000);
-            }}
-            className="rounded-md border border-gray-300 p-2"
-          >
-            {copied ? (
-              <Tick className="h-5 w-5 text-gray-500" />
-            ) : (
-              <Copy className="h-5 w-5 text-gray-500" />
-            )}
-          </button>
-        </div>
+        <form
+          action={(formData) => {
+            if (
+              !confirm(
+                `This will ban the user ${data.email} and delete all their projects and links. Are you sure?`,
+              )
+            ) {
+              return;
+            }
+            banUser(formData).then(() => {
+              toast.success("Successfully banned user");
+            });
+          }}
+        >
+          <UserInfo data={data} />
+          <div className="mt-4">
+            <BanButton />
+          </div>
+        </form>
       )}
     </div>
   );
@@ -88,4 +76,9 @@ const Form = () => {
       )}
     </div>
   );
+};
+
+const BanButton = () => {
+  const { pending } = useFormStatus();
+  return <Button text="Confirm Ban" loading={pending} variant="danger" />;
 };

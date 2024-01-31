@@ -1,6 +1,5 @@
 "use server";
 import { getLinkViaEdge } from "@/lib/planetscale";
-import prisma from "@/lib/prisma";
 import { linkConstructor } from "@dub/utils";
 import { redirect } from "next/navigation";
 
