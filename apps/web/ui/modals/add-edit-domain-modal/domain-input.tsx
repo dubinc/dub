@@ -1,5 +1,5 @@
 import { AlertCircleFill, CheckCircleFill } from "@/ui/shared/icons";
-import { Label, RadioGroup, RadioGroupItem } from "@dub/ui";
+import { Label, RadioGroup, RadioGroupItem, useMediaQuery } from "@dub/ui";
 import {
   FADE_IN_ANIMATION_SETTINGS,
   cn,
@@ -40,6 +40,8 @@ export default function DomainInput({
     [domain],
   );
 
+  const { isMobile } = useMediaQuery();
+
   return (
     <>
       <div className="relative mt-2 flex rounded-md shadow-sm">
@@ -72,6 +74,7 @@ export default function DomainInput({
             id="domain"
             type="text"
             required
+            autoFocus={!isMobile && identifier === "slug"}
             autoComplete="off"
             pattern="[a-zA-Z0-9\-.]+"
             className={cn(
