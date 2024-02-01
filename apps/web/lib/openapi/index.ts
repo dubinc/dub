@@ -1,12 +1,13 @@
 import { createDocument } from "zod-openapi";
 
-import { tagSchema, tagPaths } from "../zod/schemas/tags";
+import { TagSchemaOpenApi, tagPaths } from "../zod/schemas/tags";
 
 export const openAPIDocument = createDocument({
   openapi: "3.0.0",
   info: {
     title: "Dub.co API",
-    description: "Dub is an open-source link management tool for modern marketing teams to create, share, and track short links.",
+    description:
+      "Dub is an open-source link management tool for modern marketing teams to create, share, and track short links.",
     version: "0.0.1",
     contact: {
       name: "Dub.co Support",
@@ -30,7 +31,7 @@ export const openAPIDocument = createDocument({
   },
   components: {
     schemas: {
-      tagSchema,
+      TagSchemaOpenApi,
     },
   },
 });
