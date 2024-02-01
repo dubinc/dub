@@ -9,7 +9,7 @@ export function BlurImage(props: ImageProps) {
   const [src, setSrc] = useState(props.src);
   useEffect(() => setSrc(props.src), [props.src]); // update the `src` value when the `prop.src` value changes
 
-  const handleLoad = (e) => {
+  const handleLoad = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     setLoading(false);
     const target = e.target as HTMLImageElement;
     if (target.naturalWidth < 20 && target.naturalHeight < 20) {
