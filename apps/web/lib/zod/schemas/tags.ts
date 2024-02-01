@@ -1,25 +1,35 @@
-import { z } from "@/lib/zod";
 import { ZodOpenApiOperationObject, ZodOpenApiPathsObject } from "zod-openapi";
 
-export const tagSchema = z
-  .object({
-    id: z.string().openapi({ description: "The unique ID of the tag." }),
-    name: z.string().openapi({ description: "The name of the tag." }),
-    color: z.string().openapi({ description: "The color of the tag." }),
-  })
-  .openapi({
-    title: "Tag",
-    description: "A tag schema",
-  });
+import { z } from "@/lib/zod";
+import { TagSchema } from "prisma/zod";
 
-export const createTagSchema = z.object({
+export const TagSchemaOpenApi = TagSchema.pick({
+  id: true,
+  name: true,
+  color: true,
+}).openapi({
+  title: "Tag",
+  properties: {
+    id: {
+      description: "The unique ID of the tag.",
+    },
+    name: {
+      description: "The name of the tag.",
+    },
+    color: {
+      description: "The color of the tag.",
+    },
+  },
+});
+
+export const CreateTagSchema = z.object({
   tag: z.string().min(1).openapi({
     description: "The name of the tag to create.",
     example: "news",
   }),
 });
 
-export type Tag = z.infer<typeof tagSchema>;
+export type Tag = z.infer<typeof TagSchemaOpenApi>;
 
 export const createTag: ZodOpenApiOperationObject = {
   operationId: "createTag",
@@ -37,7 +47,7 @@ export const createTag: ZodOpenApiOperationObject = {
   requestBody: {
     content: {
       "application/json": {
-        schema: createTagSchema,
+        schema: CreateTagSchema,
       },
     },
   },
@@ -47,7 +57,7 @@ export const createTag: ZodOpenApiOperationObject = {
       content: {
         "application/json": {
           schema: z.object({
-            data: tagSchema,
+            data: TagSchemaOpenApi,
           }),
         },
       },
@@ -74,7 +84,7 @@ export const getTags: ZodOpenApiOperationObject = {
       content: {
         "application/json": {
           schema: z.object({
-            data: z.array(tagSchema),
+            data: z.array(TagSchemaOpenApi),
           }),
         },
       },
