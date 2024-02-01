@@ -1,4 +1,5 @@
 import { receiver } from "@/lib/cron";
+import prisma from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -34,10 +35,20 @@ export async function POST(req: Request) {
       response: "success",
     });
   } catch (error) {
+    const project = await prisma.project.findUnique({
+      where: {
+        id: body.projectId,
+      },
+      select: {
+        slug: true,
+      },
+    });
+
     await log({
-      message: "Import Short.io cron failed. Error: " + error.message,
-      type: "cron",
-      mention: true,
+      message: `Import Short.io cron for project ${
+        project?.slug || body.projectId
+      } failed. Error: ${error.message}`,
+      type: "errors",
     });
     return NextResponse.json({ error: error.message });
   }

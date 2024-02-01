@@ -58,13 +58,17 @@ export const POST = withAuth(async ({ req, project }) => {
           3. If the domain is being set as the primary domain, set all other domains to not be the primary domain
           4. Add the domain to the database along with its primary status
       */
-  const response = await Promise.allSettled([
-    target &&
-      setRootDomain({
-        domain,
+  const response = await Promise.all([
+    prisma.domain.create({
+      data: {
+        slug: domain,
         target,
-        rewrite: type === "rewrite",
-      }),
+        type,
+        projectId: project.id,
+        primary: primary || project.domains.length === 0,
+        archived,
+      },
+    }),
     primary &&
       prisma.domain.updateMany({
         where: {
@@ -75,17 +79,17 @@ export const POST = withAuth(async ({ req, project }) => {
           primary: false,
         },
       }),
-    prisma.domain.create({
-      data: {
-        slug: domain,
-        target,
-        type,
-        projectId: project.id,
-        primary,
-        archived,
-      },
-    }),
   ]);
+
+  await setRootDomain({
+    id: response[0].id,
+    domain,
+    projectId: project.id,
+    ...(project.plan !== "free" && {
+      url: target,
+    }),
+    rewrite: type === "rewrite",
+  });
 
   return NextResponse.json(response);
 });

@@ -8,12 +8,13 @@ import { ModalContext } from "@/ui/modals/provider";
 import { Badge } from "@dub/ui";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { useParams, usePathname } from "next/navigation";
+import { useParams, usePathname, useSearchParams } from "next/navigation";
 import { useContext, useMemo } from "react";
 
 export default function NavTabs() {
   const pathname = usePathname();
   const { slug } = useParams() as { slug?: string };
+  const domain = useSearchParams()?.get("domain");
   const { loading, error } = useProject();
 
   const tabs = [
@@ -53,6 +54,7 @@ export default function NavTabs() {
         !loading &&
         !error &&
         !loadingDomains &&
+        !domain &&
         (!verified || count === 0) && <OnboardingChecklist />}
     </div>
   );

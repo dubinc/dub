@@ -1,3 +1,4 @@
+import { SHORT_DOMAIN } from "@dub/utils";
 import { NextRequest } from "next/server";
 
 export const parse = (req: NextRequest) => {
@@ -5,7 +6,7 @@ export const parse = (req: NextRequest) => {
   domain = domain.replace("www.", ""); // remove www. from domain
   if (domain === "dub.localhost:8888" || domain.endsWith(".vercel.app")) {
     // for local development and preview URLs
-    domain = "dub.sh";
+    domain = SHORT_DOMAIN;
   }
 
   // path is the path of the URL (e.g. dub.co/stats/github -> /stats/github)
@@ -24,23 +25,24 @@ export const parse = (req: NextRequest) => {
   return { domain, path, fullPath, key, fullKey };
 };
 
-export const getFinalUrl = (target: string, { req }: { req: NextRequest }) => {
+export const getFinalUrl = (url: string, { req }: { req: NextRequest }) => {
   // query is the query string (e.g. dub.sh/github?utm_source=twitter -> ?utm_source=twitter)
   const searchParams = req.nextUrl.searchParams;
 
   // get the query params of the target url
-  const targetUrl = new URL(decodeURIComponent(target));
+  const urlObj = new URL(url);
 
+  // if there are no query params, then return the target url as is (no need to parse it)
   // @ts-ignore – until https://github.com/microsoft/TypeScript/issues/54466 is fixed
-  if (searchParams.size === 0) return targetUrl.toString(); // if there are no query params, then return the target url as is (no need to parse it)
+  if (searchParams.size === 0) return url;
 
   // if searchParams (type: `URLSearchParams`) has the same key as target url, then overwrite it
   for (const [key, value] of searchParams) {
-    targetUrl.searchParams.set(key, value);
+    urlObj.searchParams.set(key, value);
   }
 
   // construct final url
-  const finalUrl = targetUrl.toString();
+  const finalUrl = urlObj.toString();
 
   return finalUrl;
 };
@@ -61,47 +63,5 @@ export const detectBot = (req: NextRequest) => {
       ua,
     );
   }
-  return false;
-};
-
-// check if a link can be displayed in an iframe
-export const isIframeable = async ({
-  url,
-  requestDomain,
-}: {
-  url: string;
-  requestDomain: string;
-}) => {
-  const res = await fetch(url, {
-    headers: {
-      "User-Agent": "dub-bot/1.0",
-    },
-  });
-
-  // if the request throws a status that's not 200, then it's not iframeable
-  if (!res.ok) {
-    return false;
-  }
-
-  const xFrameOptions = res.headers.get("X-Frame-Options"); // returns null if there is no `X-Frame-Options` header
-  if (xFrameOptions) {
-    return false;
-  }
-
-  const cspHeader = res.headers.get("content-security-policy");
-  if (!cspHeader) {
-    return true;
-  }
-
-  const frameAncestorsMatch = cspHeader.match(
-    /frame-ancestors\s+([\s\S]+?)(?=;|$)/i,
-  );
-  if (frameAncestorsMatch) {
-    const allowedOrigins = frameAncestorsMatch[1].split(/\s+/);
-    if (allowedOrigins.includes(requestDomain)) {
-      return true;
-    }
-  }
-
   return false;
 };

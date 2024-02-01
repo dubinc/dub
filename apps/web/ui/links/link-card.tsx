@@ -37,6 +37,7 @@ import {
   CopyPlus,
   Edit3,
   EyeOff,
+  Mail,
   MessageCircle,
   QrCode,
   TimerOff,
@@ -46,7 +47,8 @@ import { useParams } from "next/navigation";
 import Linkify from "linkify-react";
 import punycode from "punycode/";
 import { useEffect, useMemo, useRef, useState } from "react";
-import useSWR from "swr";
+import useSWR, { mutate } from "swr";
+import { toast } from "sonner";
 
 export default function LinkCard({
   props,
@@ -56,6 +58,7 @@ export default function LinkCard({
   };
 }) {
   const {
+    id,
     key,
     domain,
     url,
@@ -342,9 +345,19 @@ export default function LinkCard({
                 content={
                   <div className="w-full p-4">
                     <Avatar user={user} className="h-10 w-10" />
-                    <p className="mt-2 text-sm font-semibold text-gray-700">
-                      {user?.name || user?.email || "Anonymous User"}
-                    </p>
+                    <div className="mt-2 flex items-center space-x-1.5">
+                      <p className="text-sm font-semibold text-gray-700">
+                        {user?.name || user?.email || "Anonymous User"}
+                      </p>
+                      {!slug && // this is only shown in admin mode (where there's no slug)
+                        user?.email && (
+                          <CopyButton
+                            value={user.email}
+                            icon={Mail}
+                            className="[&>*]:w-3 [&>*]:h-3"
+                          />
+                        )}
+                    </div>
                     <p className="mt-1 text-xs text-gray-500">
                       Created{" "}
                       {new Date(createdAt).toLocaleDateString("en-us", {
@@ -386,7 +399,7 @@ export default function LinkCard({
                 href={url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="xs:block hidden max-w-[140px] truncate text-sm font-medium text-gray-700 underline-offset-2 hover:underline sm:max-w-[300px] md:max-w-[360px] xl:max-w-[440px]"
+                className="xs:block hidden max-w-[140px] truncate text-sm font-medium text-gray-700 underline-offset-2 hover:underline sm:max-w-[300px] md:max-w-[360px] xl:max-w-[420px]"
               >
                 {url}
               </a>
@@ -482,6 +495,43 @@ export default function LinkCard({
                     X
                   </kbd>
                 </button>
+                {!slug && ( // this is only shown in admin mode (where there's no slug)
+                  <button
+                    onClick={() => {
+                      window.confirm(
+                        "Are you sure you want to ban this link? It will blacklist the domain and prevent any links from that domain from being created.",
+                      ) &&
+                        (setOpenPopover(false),
+                        toast.promise(
+                          fetch(`/api/admin/links/${id}/ban`, {
+                            method: "DELETE",
+                          }).then(async () => {
+                            await mutate(
+                              (key) =>
+                                typeof key === "string" &&
+                                key.startsWith("/api/admin/links"),
+                              undefined,
+                              { revalidate: true },
+                            );
+                          }),
+                          {
+                            loading: "Banning link...",
+                            success: "Link banned!",
+                            error: "Error banning link.",
+                          },
+                        ));
+                    }}
+                    className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-red-600 transition-all duration-75 hover:bg-red-600 hover:text-white"
+                  >
+                    <IconMenu
+                      text="Ban"
+                      icon={<Delete className="h-4 w-4" />}
+                    />
+                    <kbd className="hidden rounded bg-red-100 px-2 py-0.5 text-xs font-light text-red-600 transition-all duration-75 group-hover:bg-red-500 group-hover:text-white sm:inline-block">
+                      B
+                    </kbd>
+                  </button>
+                )}
               </div>
             }
             align="end"

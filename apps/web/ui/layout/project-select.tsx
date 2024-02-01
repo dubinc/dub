@@ -159,10 +159,10 @@ function ProjectList({
               width={20}
               height={20}
               alt={id}
-              className="h-7 w-7 overflow-hidden rounded-full"
+              className="h-7 w-7 shrink-0 overflow-hidden rounded-full"
             />
             <span
-              className={`block truncate text-sm ${
+              className={`block truncate text-sm sm:max-w-[140px] ${
                 selected.slug === slug ? "font-medium" : "font-normal"
               }`}
             >

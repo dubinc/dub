@@ -1,7 +1,6 @@
 import useProject from "@/lib/swr/use-project";
-import { BlurImage } from "@/ui/shared/blur-image";
-import { Button, Logo, Modal } from "@dub/ui";
-import { GOOGLE_FAVICON_URL, cn } from "@dub/utils";
+import { Button, Logo, Modal, useMediaQuery } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { useParams, useRouter } from "next/navigation";
 import {
   Dispatch,
@@ -22,7 +21,7 @@ function DeleteProjectModal({
 }) {
   const router = useRouter();
   const { slug } = useParams() as { slug: string };
-  const { id, logo, plan, isOwner } = useProject();
+  const { plan, isOwner } = useProject();
 
   const [deleting, setDeleting] = useState(false);
 
@@ -47,6 +46,8 @@ function DeleteProjectModal({
       });
     });
   }
+
+  const { isMobile } = useMediaQuery();
 
   return (
     <Modal
@@ -87,7 +88,7 @@ function DeleteProjectModal({
               type="text"
               name="project-slug"
               id="project-slug"
-              autoFocus={false}
+              autoFocus={!isMobile}
               autoComplete="off"
               pattern={slug}
               disabled={plan === "enterprise" && !isOwner}
@@ -117,7 +118,6 @@ function DeleteProjectModal({
               id="verification"
               pattern="confirm delete project"
               required
-              autoFocus={false}
               autoComplete="off"
               disabled={plan === "enterprise" && !isOwner}
               className={cn(

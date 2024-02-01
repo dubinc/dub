@@ -10,6 +10,7 @@ import {
   Logo,
   Modal,
   TooltipContent,
+  useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
 import {
@@ -185,7 +186,7 @@ function AddEditLinkModal({
         // if url is valid, continue to generate metatags, else return null
         new URL(debouncedUrl);
         setGeneratingMetatags(true);
-        fetch(`/api/edge/metatags?url=${debouncedUrl}`).then(async (res) => {
+        fetch(`/api/metatags?url=${debouncedUrl}`).then(async (res) => {
           if (res.status === 200) {
             const results = await res.json();
             setData((prev) => ({
@@ -298,6 +299,8 @@ function AddEditLinkModal({
       keyRef.current?.select();
     }
   }, [key]);
+
+  const { isMobile } = useMediaQuery();
 
   return (
     <Modal
@@ -420,7 +423,7 @@ function AddEditLinkModal({
                       "https://dub.co/help/article/what-is-dub"
                     }
                     value={url}
-                    autoFocus={!key}
+                    autoFocus={!key && !isMobile}
                     autoComplete="off"
                     onChange={(e) => {
                       setUrlError(null);
@@ -611,7 +614,7 @@ function AddEditLinkButton({
 }: {
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { slug, plan, exceededLinks } = useProject();
+  const { plan, exceededLinks } = useProject();
   const { queryParams } = useRouterStuff();
 
   const onKeyDown = useCallback((e: KeyboardEvent) => {
@@ -674,10 +677,10 @@ function AddEditLinkButton({
       text="Create link"
       shortcut="C"
       disabledTooltip={
-        slug && exceededLinks ? (
+        exceededLinks ? (
           <TooltipContent
             title="Your project has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
-            cta="Upgrade"
+            cta={`Upgrade to ${plan === "free" ? "Pro" : "Business"}`}
             onClick={() => {
               queryParams({
                 set: {

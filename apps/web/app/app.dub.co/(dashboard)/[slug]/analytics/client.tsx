@@ -13,7 +13,7 @@ export default function AnalyticsClient({ children }: { children: ReactNode }) {
   if (exceededClicks) {
     return <ProjectExceededClicks />;
   }
-  const { allActiveDomains, loading: loadingDomains } = useDomains();
+  const { allDomains, loading: loadingDomains } = useDomains();
   const searchParams = useSearchParams();
   const domain = searchParams?.get("domain");
 
@@ -21,8 +21,8 @@ export default function AnalyticsClient({ children }: { children: ReactNode }) {
     return <LayoutLoader />;
   }
   if (
-    allActiveDomains?.length === 0 ||
-    (domain && !allActiveDomains?.find((d) => d.slug === domain))
+    allDomains?.length === 0 ||
+    (domain && !allDomains?.find((d) => d.slug === domain))
   ) {
     return <LinkNotFound />;
   }

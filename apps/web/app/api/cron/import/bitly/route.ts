@@ -76,10 +76,20 @@ export async function POST(req: Request) {
       response: "success",
     });
   } catch (error) {
+    const project = await prisma.project.findUnique({
+      where: {
+        id: body.projectId,
+      },
+      select: {
+        slug: true,
+      },
+    });
+
     await log({
-      message: "Import Bitly cron failed. Error: " + error.message,
-      type: "cron",
-      mention: true,
+      message: `Import Bitly cron for project ${
+        project?.slug || body.projectId
+      } failed. Error: ${error.message}`,
+      type: "errors",
     });
     return NextResponse.json({ error: error.message });
   }
