@@ -13,7 +13,7 @@ export function GET(): NextResponse<oas31.OpenAPIObject> {
     info: {
       title: "Dub.co API",
       description:
-        "Dub is an open-source link management tool for modern marketing teams to create, share, and track short links.",
+        "Dub is link management infrastructure for companies to create marketing campaigns, link sharing features, and referral programs.",
       contact: {
         email: "support@dub.co",
         name: "Dub.co Support",
@@ -43,24 +43,24 @@ export function GET(): NextResponse<oas31.OpenAPIObject> {
             {
               name: "projectSlug",
               description:
-                "The slug for the project to retrieve links for. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
+                "The slug for the project to retrieve links for. E.g. for `app.dub.co/acme`, the projectSlug is `acme`.",
               in: "query",
               required: true,
               schema: {
                 description:
-                  "The slug for the project to retrieve links for. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
+                  "The slug for the project to retrieve links for. E.g. for `app.dub.co/acme`, the projectSlug is `acme`.",
                 type: "string",
               },
             },
             {
               name: "domain",
               description:
-                "The domain to filter the links by. E.g. 'ac.me'. If not provided, all links for the project will be returned.",
+                "The domain to filter the links by. E.g. `ac.me`. If not provided, all links for the project will be returned.",
               in: "query",
               required: false,
               schema: {
                 description:
-                  "The domain to filter the links by. E.g. 'ac.me'. If not provided, all links for the project will be returned.",
+                  "The domain to filter the links by. E.g. `ac.me`. If not provided, all links for the project will be returned.",
                 type: "string",
               },
             },
@@ -89,13 +89,13 @@ export function GET(): NextResponse<oas31.OpenAPIObject> {
             {
               name: "sort",
               description:
-                "The field to sort the links by. The default is 'createdAt', and sort order is always descending.",
+                "The field to sort the links by. The default is `createdAt`, and sort order is always descending.",
               in: "query",
               required: false,
               schema: {
                 default: "createdAt",
                 description:
-                  "The field to sort the links by. The default is 'createdAt', and sort order is always descending.",
+                  "The field to sort the links by. The default is `createdAt`, and sort order is always descending.",
                 type: "string",
                 enum: ["createdAt", "clicks", "lastClicked"],
               },
@@ -125,12 +125,12 @@ export function GET(): NextResponse<oas31.OpenAPIObject> {
             {
               name: "showArchived",
               description:
-                "Whether to include archived links in the response. Defaults to false if not provided.",
+                "Whether to include archived links in the response. Defaults to `false` if not provided.",
               in: "query",
               required: false,
               schema: {
                 description:
-                  "Whether to include archived links in the response. Defaults to false if not provided.",
+                  "Whether to include archived links in the response. Defaults to `false` if not provided.",
                 type: "boolean",
                 enum: [true, false],
               },
@@ -165,12 +165,12 @@ export function GET(): NextResponse<oas31.OpenAPIObject> {
             {
               name: "projectSlug",
               description:
-                "The slug for the project to create links for. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
+                "The slug for the project to create links for. E.g. for `app.dub.co/acme`, the projectSlug is `acme`.",
               in: "query",
               required: true,
               schema: {
                 description:
-                  "The slug for the project to create links for. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
+                  "The slug for the project to create links for. E.g. for `app.dub.co/acme`, the projectSlug is `acme`.",
                 type: "string",
               },
             },
@@ -216,36 +216,36 @@ export function GET(): NextResponse<oas31.OpenAPIObject> {
             {
               name: "projectSlug",
               description:
-                "The slug for the project that the link belongs to. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
+                "The slug for the project that the link belongs to. E.g. for `app.dub.co/acme`, the projectSlug is `acme`.",
               in: "query",
               required: true,
               schema: {
                 description:
-                  "The slug for the project that the link belongs to. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
+                  "The slug for the project that the link belongs to. E.g. for `app.dub.co/acme`, the projectSlug is `acme`.",
                 type: "string",
               },
             },
             {
               name: "domain",
               description:
-                "The domain of the link to retrieve. E.g. for dub.sh/github, the domain is 'dub.sh'.",
+                "The domain of the link to retrieve. E.g. for `dub.sh/github`, the domain is `dub.sh`.",
               in: "query",
               required: true,
               schema: {
                 description:
-                  "The domain of the link to retrieve. E.g. for dub.sh/github, the domain is 'dub.sh'.",
+                  "The domain of the link to retrieve. E.g. for `dub.sh/github`, the domain is `dub.sh`.",
                 type: "string",
               },
             },
             {
               name: "key",
               description:
-                "The key of the link to retrieve. E.g. for dub.sh/github, the key is 'github'.",
+                "The key of the link to retrieve. E.g. for `dub.sh/github`, the key is `github`.",
               in: "query",
               required: true,
               schema: {
                 description:
-                  "The key of the link to retrieve. E.g. for dub.sh/github, the key is 'github'.",
+                  "The key of the link to retrieve. E.g. for `dub.sh/github`, the key is `github`.",
                 type: "string",
               },
             },
@@ -278,12 +278,12 @@ export function GET(): NextResponse<oas31.OpenAPIObject> {
             {
               name: "projectSlug",
               description:
-                "The slug for the project that the link belongs to. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
+                "The slug for the project that the link belongs to. E.g. for `app.dub.co/acme`, the projectSlug is `acme`.",
               in: "query",
               required: true,
               schema: {
                 description:
-                  "The slug for the project that the link belongs to. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
+                  "The slug for the project that the link belongs to. E.g. for `app.dub.co/acme`, the projectSlug is `acme`.",
                 type: "string",
               },
             },
@@ -337,12 +337,12 @@ export function GET(): NextResponse<oas31.OpenAPIObject> {
             {
               name: "projectSlug",
               description:
-                "The slug for the project that the link belongs to. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
+                "The slug for the project that the link belongs to. E.g. for `app.dub.co/acme`, the projectSlug is `acme`.",
               in: "query",
               required: true,
               schema: {
                 description:
-                  "The slug for the project that the link belongs to. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
+                  "The slug for the project that the link belongs to. E.g. for `app.dub.co/acme`, the projectSlug is `acme`.",
                 type: "string",
               },
             },
@@ -388,12 +388,12 @@ export function GET(): NextResponse<oas31.OpenAPIObject> {
             {
               name: "projectSlug",
               description:
-                "The slug for the project to create links for. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
+                "The slug for the project to create links for. E.g. for `app.dub.co/acme`, the projectSlug is `acme`.",
               in: "query",
               required: true,
               schema: {
                 description:
-                  "The slug for the project to create links for. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
+                  "The slug for the project to create links for. E.g. for `app.dub.co/acme`, the projectSlug is `acme`.",
                 type: "string",
               },
             },
@@ -422,6 +422,102 @@ export function GET(): NextResponse<oas31.OpenAPIObject> {
                     items: {
                       $ref: "#/components/schemas/Link",
                     },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      "/qr": {
+        get: {
+          description: "Retrieve a QR code for a link.",
+          operationId: "getQRCode",
+          summary: "Retrieve a QR code",
+          parameters: [
+            {
+              name: "url",
+              description:
+                "The URL to generate a QR code for. Defaults to `https://dub.co` if not provided.",
+              in: "query",
+              required: true,
+              schema: {
+                description:
+                  "The URL to generate a QR code for. Defaults to `https://dub.co` if not provided.",
+                type: "string",
+              },
+            },
+            {
+              name: "size",
+              description:
+                "The size of the QR code in pixels. Defaults to `600` if not provided.",
+              in: "query",
+              required: false,
+              schema: {
+                description:
+                  "The size of the QR code in pixels. Defaults to `600` if not provided.",
+                type: "number",
+              },
+            },
+            {
+              name: "level",
+              description:
+                "The level of error correction to use for the QR code. Defaults to `L` if not provided.",
+              in: "query",
+              required: false,
+              schema: {
+                description:
+                  "The level of error correction to use for the QR code. Defaults to `L` if not provided.",
+                type: "string",
+                enum: ["L", "M", "Q", "H"],
+              },
+            },
+            {
+              name: "fgColor",
+              description:
+                "The foreground color of the QR code in hex format. Defaults to `#000000` if not provided.",
+              in: "query",
+              required: false,
+              schema: {
+                description:
+                  "The foreground color of the QR code in hex format. Defaults to `#000000` if not provided.",
+                type: "string",
+              },
+            },
+            {
+              name: "bgColor",
+              description:
+                "The background color of the QR code in hex format. Defaults to `#ffffff` if not provided.",
+              in: "query",
+              required: false,
+              schema: {
+                description:
+                  "The background color of the QR code in hex format. Defaults to `#ffffff` if not provided.",
+                type: "string",
+              },
+            },
+            {
+              name: "includeMargin",
+              description:
+                "Whether to include a margin around the QR code. Defaults to `false` if not provided.",
+              in: "query",
+              required: false,
+              schema: {
+                description:
+                  "Whether to include a margin around the QR code. Defaults to `false` if not provided.",
+                type: "boolean",
+                enum: [true, false],
+              },
+            },
+          ],
+          responses: {
+            "200": {
+              description: "The QR code",
+              content: {
+                "image/png": {
+                  schema: {
+                    type: "string",
+                    format: "binary",
                   },
                 },
               },
@@ -471,12 +567,12 @@ export function GET(): NextResponse<oas31.OpenAPIObject> {
             {
               name: "projectSlug",
               description:
-                "The slug for the project to retrieve. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
+                "The slug for the project to retrieve. E.g. for `app.dub.co/acme`, the projectSlug is `acme`.",
               in: "path",
               required: true,
               schema: {
                 description:
-                  "The slug for the project to retrieve. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
+                  "The slug for the project to retrieve. E.g. for `app.dub.co/acme`, the projectSlug is `acme`.",
                 type: "string",
               },
             },
@@ -509,12 +605,12 @@ export function GET(): NextResponse<oas31.OpenAPIObject> {
             {
               name: "projectSlug",
               description:
-                "The slug for the project to retrieve tags for. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
+                "The slug for the project to retrieve tags for. E.g. for `app.dub.co/acme`, the projectSlug is `acme`.",
               in: "path",
               required: true,
               schema: {
                 description:
-                  "The slug for the project to retrieve tags for. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
+                  "The slug for the project to retrieve tags for. E.g. for `app.dub.co/acme`, the projectSlug is `acme`.",
                 type: "string",
               },
             },
@@ -548,12 +644,12 @@ export function GET(): NextResponse<oas31.OpenAPIObject> {
             {
               name: "projectSlug",
               description:
-                "The slug for the project to create tags for. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
+                "The slug for the project to create tags for. E.g. for `app.dub.co/acme`, the projectSlug is `acme`.",
               in: "path",
               required: true,
               schema: {
                 description:
-                  "The slug for the project to create tags for. E.g. for app.dub.co/acme, the projectSlug is 'acme'.",
+                  "The slug for the project to create tags for. E.g. for `app.dub.co/acme`, the projectSlug is `acme`.",
                 type: "string",
               },
             },
@@ -658,21 +754,21 @@ export function GET(): NextResponse<oas31.OpenAPIObject> {
             title: {
               type: "string",
               description:
-                "The title of the short link generated via api.dub.co/metatags. Will be used for Custom Social Media Cards if `proxy` is true.",
+                "The title of the short link generated via `api.dub.co/metatags`. Will be used for Custom Social Media Cards if `proxy` is true.",
               default: null,
               nullable: true,
             },
             description: {
               type: "string",
               description:
-                "The description of the short link generated via api.dub.co/metatags. Will be used for Custom Social Media Cards if `proxy` is true.",
+                "The description of the short link generated via `api.dub.co/metatags`. Will be used for Custom Social Media Cards if `proxy` is true.",
               default: null,
               nullable: true,
             },
             image: {
               type: "string",
               description:
-                "The image of the short link generated via api.dub.co/metatags. Will be used for Custom Social Media Cards if `proxy` is true.",
+                "The image of the short link generated via `api.dub.co/metatags`. Will be used for Custom Social Media Cards if `proxy` is true.",
               default: null,
               nullable: true,
             },
@@ -698,7 +794,7 @@ export function GET(): NextResponse<oas31.OpenAPIObject> {
             geo: {
               type: "object",
               description:
-                'Geo targeting information for the short link in JSON format {[COUNTRY]: "https://example.com" }. Learn more: https://dub.sh/geo',
+                "Geo targeting information for the short link in JSON format {[COUNTRY]: `https://example.com` }. Learn more: `https://dub.sh/geo`",
               additionalProperties: {
                 type: "string",
                 format: "uri",
@@ -734,7 +830,13 @@ export function GET(): NextResponse<oas31.OpenAPIObject> {
             shortLink: {
               type: "string",
               description:
-                "The full URL of the short link, including the https protocol (e.g. https://dub.sh/try).",
+                "The full URL of the short link, including the https protocol (e.g. `https://dub.sh/try`).",
+              readOnly: true,
+            },
+            qrCode: {
+              type: "string",
+              description:
+                "The full URL of the QR code for the short link (e.g. `https://api.dub.co/qr?url=https://dub.sh/try`).",
               readOnly: true,
             },
             utm_source: {

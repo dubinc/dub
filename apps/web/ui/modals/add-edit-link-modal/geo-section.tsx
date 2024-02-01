@@ -67,7 +67,7 @@ export default function GeoSection({
           fn={() => setEnabled(!enabled)}
           checked={enabled}
           // geo targeting is only available on Dub's Pro plan
-          {...(!plan || plan === "free"
+          {...((!plan || plan === "free") && !enabled
             ? {
                 disabledTooltip: (
                   <TooltipContent
