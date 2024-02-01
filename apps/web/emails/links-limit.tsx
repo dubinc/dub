@@ -88,9 +88,11 @@ export default function LinksLimitAlert({
             <Section className="mb-8 text-center">
               <Link
                 className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                href={`https://app.dub.co/${slug}?upgrade=${
-                  plan === "free" ? "pro" : "business"
-                }`}
+                href={
+                  plan === "free"
+                    ? `https://app.dub.co/${slug}?upgrade=pro`
+                    : `https://app.dub.co/${slug}/settings/billing`
+                }
               >
                 Upgrade my plan
               </Link>
