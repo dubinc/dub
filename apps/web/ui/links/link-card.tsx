@@ -88,7 +88,9 @@ export default function LinkCard({
   const isVisible = !!entry?.isIntersecting;
 
   const { data: clicks } = useSWR<number>(
+    // only fetch clicks if the link is visible and there's a slug and the usage is not exceeded
     isVisible &&
+      slug &&
       !exceededClicks &&
       `/api/projects/${slug}/stats/clicks?domain=${domain}&key=${key}`,
     fetcher,
@@ -247,7 +249,7 @@ export default function LinkCard({
           ) : (
             <BlurImage
               src={`${GOOGLE_FAVICON_URL}${apexDomain}`}
-              alt={apexDomain}
+              alt={apexDomain || encodeURIComponent(url)}
               className="h-8 w-8 rounded-full sm:h-10 sm:w-10"
               width={20}
               height={20}
