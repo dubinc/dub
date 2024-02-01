@@ -1,7 +1,6 @@
-import { ZodOpenApiOperationObject, ZodOpenApiPathsObject } from "zod-openapi";
-
-import { z } from "@/lib/zod";
+import z from "@/lib/zod";
 import { TagSchema } from "prisma/zod";
+import { ZodOpenApiOperationObject, ZodOpenApiPathsObject } from "zod-openapi";
 
 export const TagSchemaOpenApi = TagSchema.pick({
   id: true,

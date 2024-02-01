@@ -48,7 +48,7 @@ export interface ProjectProps {
   id: string;
   name: string;
   slug: string;
-  logo?: string;
+  logo: string | null;
   usage: number;
   usageLimit: number;
   linksUsage: number;
@@ -57,7 +57,7 @@ export interface ProjectProps {
   tagsLimit: number;
   usersLimit: number;
   plan: PlanProps;
-  stripeId?: string;
+  stripeId: string | null;
   billingCycleStart: number;
   createdAt: Date;
   domains: {

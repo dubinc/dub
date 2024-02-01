@@ -3,7 +3,7 @@ import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 
 export default function useProjects() {
-  const { data, error } = useSWR<ProjectWithDomainProps[]>(
+  const { data, error } = useSWR<{ data: ProjectWithDomainProps[] }>(
     "/api/projects",
     fetcher,
     {
@@ -11,7 +11,7 @@ export default function useProjects() {
     },
   );
 
-  const projects = data?.map((project) => ({
+  const projects = data?.data.map((project) => ({
     ...project,
     isOwner: project?.users && project.users[0].role === "owner",
     primaryDomain:

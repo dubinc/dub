@@ -4,10 +4,17 @@ import prisma from "@/lib/prisma";
 import { deleteProject } from "@/lib/api/projects";
 import { DEFAULT_REDIRECTS, validSlugRegex } from "@dub/utils";
 import { isReservedKey } from "@/lib/edge-config";
+import { ErrorResponse, handleApiError } from "@/lib/errors";
+import { Project } from "@/lib/zod/schemas/projects";
 
 // GET /api/projects/[slug] – get a specific project
 export const GET = withAuth(async ({ project, headers }) => {
-  return NextResponse.json(project, { headers });
+  try {
+    return NextResponse.json<{ data: Project }>({ data: project }, { headers });
+  } catch (err) {
+    const { error, status } = handleApiError(err);
+    return NextResponse.json<ErrorResponse>({ error }, { headers, status });
+  }
 });
 
 // PUT /api/projects/[slug] – update a specific project

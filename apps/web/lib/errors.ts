@@ -2,7 +2,7 @@ import { ZodError } from "zod";
 import { generateErrorMessage } from "zod-error";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
-import { z } from "./zod";
+import z from "./zod";
 
 const ErrorCode = z.enum([
   "bad_request",

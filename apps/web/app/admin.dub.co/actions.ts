@@ -174,8 +174,8 @@ export async function banUser(data: FormData) {
       deleteProject({
         id: project.id,
         slug: project.slug,
-        stripeId: project.stripeId || undefined,
-        logo: project.logo || undefined,
+        stripeId: project.stripeId || null,
+        logo: project.logo || null,
       }),
     ),
   );

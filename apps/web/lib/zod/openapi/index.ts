@@ -1,6 +1,7 @@
 import { createDocument } from "zod-openapi";
 
 import { TagSchemaOpenApi, tagPaths } from "../schemas/tags";
+import { ProjectSchemaOpenApi, projectPaths } from "../schemas/projects";
 
 export const openAPIDocument = createDocument({
   openapi: "3.0.0",
@@ -27,11 +28,12 @@ export const openAPIDocument = createDocument({
   ],
   paths: {
     ...tagPaths,
-    // TODO: Add remaining paths
+    ...projectPaths,
   },
   components: {
     schemas: {
       TagSchemaOpenApi,
+      ProjectSchemaOpenApi,
     },
   },
 });

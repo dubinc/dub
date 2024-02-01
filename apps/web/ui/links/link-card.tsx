@@ -355,7 +355,7 @@ export default function LinkCard({
                         user?.email && (
                           <CopyButton
                             value={user.email}
-                            icon={Mail}
+                            // icon={Mail}
                             className="[&>*]:w-3 [&>*]:h-3"
                           />
                         )}

@@ -13,30 +13,37 @@ import {
   FREE_PROJECTS_LIMIT,
   validSlugRegex,
 } from "@dub/utils";
+import { Project } from "@/lib/zod/schemas/projects";
+import { ErrorResponse, handleApiError } from "@/lib/errors";
 
 // GET /api/projects - get all projects for the current user
 export const GET = withSession(async ({ session }) => {
-  const projects = await prisma.project.findMany({
-    where: {
-      users: {
-        some: {
-          userId: session.user.id,
+  try {
+    const projects = await prisma.project.findMany({
+      where: {
+        users: {
+          some: {
+            userId: session.user.id,
+          },
         },
       },
-    },
-    include: {
-      domains: true,
-      users: {
-        where: {
-          userId: session.user.id,
-        },
-        select: {
-          role: true,
+      include: {
+        domains: true,
+        users: {
+          where: {
+            userId: session.user.id,
+          },
+          select: {
+            role: true,
+          },
         },
       },
-    },
-  });
-  return NextResponse.json(projects);
+    });
+    return NextResponse.json<{ data: Project[] }>({ data: projects });
+  } catch (err) {
+    const { error, status } = handleApiError(err);
+    return NextResponse.json<ErrorResponse>({ error }, { status });
+  }
 });
 
 export const POST = withSession(async ({ req, session }) => {
