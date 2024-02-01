@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { openAPIDocument } from "@/lib/openapi";
+import { openAPIDocument } from "@/lib/zod/openapi";
 import { oas31 } from "openapi3-ts";
 
 export const runtime = "edge";
