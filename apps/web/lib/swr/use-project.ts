@@ -6,13 +6,15 @@ import useSWR from "swr";
 export default function useProject() {
   const { slug } = useParams() as { slug?: string };
 
-  const {
-    data: project,
-    error,
-    mutate,
-  } = useSWR<ProjectProps>(slug && `/api/projects/${slug}`, fetcher, {
-    dedupingInterval: 30000,
-  });
+  const { data, error, mutate } = useSWR<{ data: ProjectProps }>(
+    slug && `/api/projects/${slug}`,
+    fetcher,
+    {
+      dedupingInterval: 30000,
+    },
+  );
+
+  const project = data?.data;
 
   return {
     ...project,
