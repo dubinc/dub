@@ -87,7 +87,6 @@ export default async function LinkMiddleware(
     ios,
     android,
     geo,
-    projectId,
   } = link;
 
   // only show inspect modal if the link is not password protected
@@ -134,14 +133,7 @@ export default async function LinkMiddleware(
     )
   ) {
     ev.waitUntil(
-      recordClick({
-        req,
-        id,
-        domain,
-        key,
-        url: getFinalUrl(url, { req }),
-        projectId,
-      }),
+      recordClick({ req, id, domain, key, url: getFinalUrl(url, { req }) }),
     );
   }
 

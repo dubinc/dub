@@ -21,14 +21,12 @@ export async function recordClick({
   domain,
   key,
   url,
-  projectId,
 }: {
   req: NextRequest;
   id: string;
   domain: string;
   key?: string;
   url?: string;
-  projectId?: string;
 }) {
   const isBot = detectBot(req);
   if (isBot) {
@@ -98,7 +96,7 @@ export async function recordClick({
         },
         body: JSON.stringify({
           ...payload,
-          click_id: nanoid(),
+          click_id: nanoid(12),
           link_id: id,
           alias_link_id: "",
           url: url || "",
