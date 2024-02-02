@@ -1,12 +1,10 @@
 
 SCHEMA >
-    `link_id` String `json:$.link_id`,
-    `project_id` String `json:$.project_id`,
-    `domain` String `json:$.domain`,
-    `key` String `json:$.key`,
-    `url` String `json:$.url`,
     `timestamp` DateTime64(3) `json:$.timestamp`,
-    `alias` String `json:$.alias`,
+    `click_id` String `json:$.click_id`,
+    `link_id` String `json:$.link_id`,
+    `alias_link_id` String `json:$.alias_link_id`,
+    `url` String `json:$.url`,
     `country` LowCardinality(String) `json:$.country`,
     `city` String `json:$.city`,
     `region` String `json:$.region`,
@@ -29,4 +27,4 @@ SCHEMA >
 
 ENGINE "MergeTree"
 ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
-ENGINE_SORTING_KEY "project_id, link_id, domain, key, timestamp"
+ENGINE_SORTING_KEY "timestamp, link_id, click_id"

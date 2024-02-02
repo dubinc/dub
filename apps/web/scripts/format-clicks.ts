@@ -2,27 +2,43 @@ import "dotenv-flow/config";
 import * as Papa from "papaparse";
 import * as fs from "fs";
 import prisma from "@/lib/prisma";
+import { nanoid } from "./utils";
 
-const projectId = "cl7wsy2836920mjrb352g5wfx";
+// const projectId = "cl7wsy2836920mjrb352g5wfx";
 const clicks: any[] = [];
+const linkCriteria = {
+  where: {
+    domain: {
+      in: ["chatg.pt", "amzn.id", "spti.fi", "cdt.pm"],
+    },
+  },
+  select: {
+    id: true,
+    domain: true,
+    key: true,
+    url: true,
+    projectId: true,
+  },
+};
 
 async function main() {
-  const links = await prisma.link.findMany({
-    where: {
-      projectId,
-    },
-    select: {
-      id: true,
-      domain: true,
-      key: true,
-      url: true,
-      projectId: true,
-    },
-  });
+  const [firstLinks, secondLinks] = await Promise.all([
+    prisma.link.findMany({
+      ...linkCriteria,
+      take: 100000,
+    }),
+    prisma.link.findMany({
+      ...linkCriteria,
+      skip: 100000,
+    }),
+  ]);
+  const links = [...firstLinks, ...secondLinks];
   const domains = await prisma.domain
     .findMany({
       where: {
-        projectId,
+        slug: {
+          in: ["chatg.pt", "amzn.id", "spti.fi", "cdt.pm"],
+        },
       },
       select: {
         id: true,
@@ -30,10 +46,12 @@ async function main() {
         target: true,
         projectId: true,
       },
+      take: 1000,
     })
     .then((domains) =>
       domains.map((domain) => ({
         ...domain,
+        domain: domain.slug,
         key: "_root",
         url: domain.target,
       })),
@@ -45,7 +63,7 @@ async function main() {
     step: ({ data }) => {
       const link =
         data.key === "_root"
-          ? domains.find(({ slug }) => slug === data.domain)
+          ? domains.find(({ domain }) => domain === data.domain)
           : links.find(
               ({ domain, key }) =>
                 domain === data.domain &&
@@ -59,13 +77,13 @@ async function main() {
         return;
       }
 
+      const { domain, key, id, projectId, url, alias, ...rest } = data;
+
       clicks.push({
-        ...data,
-        key: link.key.toLowerCase() || "_root",
+        ...rest,
+        click_id: nanoid(),
         url: link.url || "",
         link_id: link.id,
-        project_id: link.projectId,
-        alias: "",
         bot: data.bot === "1" ? 1 : 0,
       });
     },
@@ -98,6 +116,26 @@ async function main() {
       }
     },
   });
+
+  const file = fs.createWriteStream(`links-metadata.ndjson`);
+
+  // Iterate over the array and write each object as a string
+  [...links, ...domains].forEach((obj) => {
+    file.write(
+      JSON.stringify({
+        ...obj,
+        timestamp: new Date(Date.now()).toISOString(),
+        id: undefined,
+        projectId: undefined,
+        link_id: obj.id,
+        team_id: obj.projectId || "",
+        url: obj.url || "",
+      }) + "\n",
+    );
+  });
+
+  // Close the stream
+  file.end();
 }
 
 main();
