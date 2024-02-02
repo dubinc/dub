@@ -87,7 +87,6 @@ export default async function LinkMiddleware(
     ios,
     android,
     geo,
-    projectId,
   } = link;
 
   // only show inspect modal if the link is not password protected
@@ -133,7 +132,7 @@ export default async function LinkMiddleware(
       searchParams.get("dub-no-track") === "1"
     )
   ) {
-    ev.waitUntil(recordClick({ req, id, domain, key, projectId }));
+    ev.waitUntil(recordClick({ req, id, domain, key, url }));
   }
 
   const isBot = detectBot(req);
