@@ -96,7 +96,7 @@ export async function recordClick({
         },
         body: JSON.stringify({
           ...payload,
-          click_id: nanoid(12),
+          click_id: nanoid(16),
           link_id: id,
           alias_link_id: "",
           url: url || "",
