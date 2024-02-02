@@ -1,6 +1,12 @@
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
+import { Link } from "@prisma/client";
 
-export { type Link as LinkProps } from "@prisma/client";
+export type LinkProps = Link;
+
+export interface LinkWithTagIdsProps extends LinkProps {
+  tagIds?: string[];
+}
+
 export interface SimpleLinkProps {
   domain: string;
   key: string;

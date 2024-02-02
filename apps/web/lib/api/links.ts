@@ -20,7 +20,12 @@ import {
   validKeyRegex,
 } from "@dub/utils";
 import cloudinary from "cloudinary";
-import { LinkProps, ProjectProps, RedisLinkProps } from "../types";
+import {
+  LinkProps,
+  LinkWithTagIdsProps,
+  ProjectProps,
+  RedisLinkProps,
+} from "../types";
 import { Session } from "../auth";
 import { getLinkViaEdge } from "../planetscale";
 
@@ -105,7 +110,7 @@ export async function getLinksCount({
       showArchived?: boolean;
     };
 
-  const combinedTagIds = (tagIds ?? []).concat(tagId ?? []);
+  const combinedTagIds = combineTagIds({ tagId, tagIds });
 
   const linksWhere = {
     archived: showArchived ? undefined : false,
@@ -231,7 +236,7 @@ export async function processLink({
   session,
   bulk = false,
 }: {
-  payload: LinkProps;
+  payload: LinkWithTagIdsProps;
   project?: ProjectProps;
   session?: Session;
   bulk?: boolean;
@@ -395,6 +400,25 @@ export async function processLink({
     }
   }
 
+  const combinedTagIds = combineTagIds(payload);
+  if (combinedTagIds.length) {
+    const validTagsCount = await prisma.tag.count({
+      where: {
+        id: {
+          in: combinedTagIds,
+        },
+        projectId: payload.projectId ?? undefined,
+      },
+    });
+    if (validTagsCount !== combinedTagIds.length) {
+      return {
+        link: payload,
+        error: "Invalid tags.",
+        status: 422,
+      };
+    }
+  }
+
   // remove shortLink & qrCode attributes from payload since it's a polyfill
   delete payload["shortLink"];
   delete payload["qrCode"];
@@ -417,10 +441,23 @@ export async function processLink({
   };
 }
 
-export async function addLink(link: LinkProps) {
-  const { domain, key, url, expiresAt, title, description, image, proxy, geo } =
-    link;
+export async function addLink(link: LinkWithTagIdsProps) {
+  const {
+    domain,
+    key,
+    url,
+    expiresAt,
+    title,
+    description,
+    image,
+    proxy,
+    geo,
+    tagId,
+    tagIds,
+  } = link;
   const uploadedImage = image && image.startsWith("data:image") ? true : false;
+
+  const combinedTagIds = combineTagIds({ tagId, tagIds });
 
   const exists = await checkIfKeyExists(domain, key);
   if (exists) return null;
@@ -442,6 +479,13 @@ export async function addLink(link: LinkProps) {
       utm_content,
       expiresAt: expiresAt ? new Date(expiresAt) : null,
       geo: geo || undefined,
+      ...(combinedTagIds?.length && {
+        tags: {
+          createMany: {
+            data: combinedTagIds.map((tagId) => ({ tagId })),
+          },
+        },
+      }),
     },
   });
 
@@ -472,11 +516,12 @@ export async function addLink(link: LinkProps) {
   };
 }
 
-export async function bulkCreateLinks(links: LinkProps[]) {
+export async function bulkCreateLinks(links: LinkWithTagIdsProps[]) {
   if (links.length === 0) return [];
 
   await prisma.link.createMany({
-    data: links.map((link) => {
+    data: links.map(({ tagId, tagIds, ...link }) => {
+      const combinedTagIds = combineTagIds({ tagId, tagIds });
       const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
         getParamsFromURL(link.url);
       return {
@@ -490,6 +535,13 @@ export async function bulkCreateLinks(links: LinkProps[]) {
         utm_content,
         expiresAt: link.expiresAt ? new Date(link.expiresAt) : null,
         geo: link.geo || undefined,
+        ...(combinedTagIds?.length && {
+          tags: {
+            createMany: {
+              data: combinedTagIds.map((tagId) => ({ tagId })),
+            },
+          },
+        }),
       };
     }),
     skipDuplicates: true,
@@ -705,4 +757,14 @@ export async function archiveLink(
       archived,
     },
   });
+}
+
+function combineTagIds({
+  tagId,
+  tagIds,
+}: {
+  tagId?: string | null;
+  tagIds?: string[];
+}) {
+  return (tagIds ?? []).concat(tagId ?? []);
 }
