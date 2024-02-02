@@ -27,7 +27,7 @@ import { getLinkViaEdge } from "../planetscale";
 export async function getLinksForProject({
   projectId,
   domain,
-  tagId,
+  tagIds,
   search,
   sort = "createdAt",
   page,
@@ -36,7 +36,7 @@ export async function getLinksForProject({
 }: {
   projectId: string;
   domain?: string;
-  tagId?: string;
+  tagIds?: string[];
   search?: string;
   sort?: "createdAt" | "clicks" | "lastClicked"; // descending for all
   page?: string;
@@ -58,7 +58,7 @@ export async function getLinksForProject({
           },
         ],
       }),
-      ...(tagId && { tagId }),
+      ...(tagIds?.length && { tags: { some: { id: { in: tagIds } } } }),
       ...(userId && { userId }),
     },
     include: {
@@ -95,75 +95,93 @@ export async function getLinksCount({
   projectId: string;
   userId?: string | null;
 }) {
-  let { groupBy, search, domain, tagId, showArchived } = searchParams as {
-    groupBy?: "domain" | "tagId";
-    search?: string;
-    domain?: string;
-    tagId?: string;
-    showArchived?: boolean;
+  let { groupBy, search, domain, tagId, tagIds, showArchived } =
+    searchParams as {
+      groupBy?: "domain" | "tagId";
+      search?: string;
+      domain?: string;
+      tagId?: string;
+      tagIds?: string[];
+      showArchived?: boolean;
+    };
+
+  const combinedTagIds = (tagIds ?? []).concat(tagId ?? []);
+
+  const linksWhere = {
+    archived: showArchived ? undefined : false,
+    ...(userId && { userId }),
+    ...(search && {
+      OR: [
+        {
+          key: { contains: search },
+        },
+        {
+          url: { contains: search },
+        },
+      ],
+    }),
+    // when filtering by domain, only filter by domain if the filter group is not "Domains"
+    ...(domain &&
+      groupBy !== "domain" && {
+        domain,
+      }),
   };
 
-  if (groupBy) {
-    return await prisma.link.groupBy({
-      by: [groupBy],
+  if (groupBy === "tagId") {
+    const tags = await prisma.tag.findMany({
+      select: {
+        id: true,
+        _count: {
+          select: {
+            linksNew: true,
+          },
+        },
+      },
       where: {
         projectId,
-        archived: showArchived ? undefined : false,
-        ...(userId && { userId }),
-        ...(search && {
-          OR: [
-            {
-              key: { contains: search },
-            },
-            {
-              url: { contains: search },
-            },
-          ],
-        }),
-        // when filtering by domain, only filter by domain if the filter group is not "Domains"
-        ...(domain &&
-          groupBy !== "domain" && {
-            domain,
-          }),
-        // when filtering by tagId, only filter by tagId if the filter group is not "Tags"
-        ...(tagId &&
-          groupBy !== "tagId" && {
-            tagId,
-          }),
-        // for the "Tags" filter group, only count links that have a tagId
-        ...(groupBy === "tagId" && {
-          NOT: {
-            tagId: null,
+        linksNew: {
+          some: {
+            link: linksWhere,
           },
-        }),
-      },
-      _count: true,
-      orderBy: {
-        _count: {
-          [groupBy]: "desc",
         },
       },
     });
+
+    return tags.map((tag) => ({
+      tagId: tag.id,
+      _count: tag._count.linksNew,
+    }));
   } else {
-    return await prisma.link.count({
-      where: {
-        projectId,
-        archived: showArchived ? undefined : false,
-        ...(userId && { userId }),
-        ...(search && {
-          OR: [
-            {
-              key: { contains: search },
+    const where = {
+      projectId,
+      ...linksWhere,
+      ...(combinedTagIds?.length && {
+        tags: {
+          some: {
+            id: {
+              in: combinedTagIds,
             },
-            {
-              url: { contains: search },
-            },
-          ],
-        }),
-        ...(domain && { domain }),
-        ...(tagId && { tagId }),
-      },
-    });
+          },
+        },
+      }),
+    };
+
+    if (groupBy) {
+      return await prisma.link.groupBy({
+        by: [groupBy],
+        where,
+        _count: true,
+        orderBy: {
+          _count: {
+            [groupBy]: "desc",
+          },
+        },
+      });
+    } else {
+      return await prisma.link.count({
+        where,
+      });
+    }
   }
 }
 

@@ -65,9 +65,22 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
               description: "The tag ID to filter the links by.",
               in: "query",
               required: false,
+              deprecated: true,
               schema: {
                 description: "The tag ID to filter the links by.",
                 type: "string",
+              },
+            },
+            {
+              name: "tagIds",
+              description: "The tag IDs to filter the links by.",
+              in: "query",
+              required: false,
+              schema: {
+                type: "array",
+                items: {
+                  type: "string",
+                },
               },
             },
             {
@@ -811,6 +824,17 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
                 "The unique id of the tag assigned to the short link.",
               default: null,
               nullable: true,
+              deprecated: true,
+            },
+            tagIds: {
+              type: "array",
+              items: {
+                type: "string",
+                format: "cuid",
+              },
+              description:
+                "The unique IDs of the tags assigned to the short link.",
+              default: [],
             },
             comments: {
               type: "string",

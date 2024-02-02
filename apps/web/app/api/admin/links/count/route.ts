@@ -6,7 +6,7 @@ import { DUB_DOMAINS, LEGAL_USER_ID } from "@dub/utils";
 // GET /api/links – get all user links
 export const GET = withAdmin(async ({ searchParams }) => {
   let { groupBy, search, domain, tagId } = searchParams as {
-    groupBy?: "domain" | "tagId";
+    groupBy?: "domain";
     search?: string;
     domain?: string;
     tagId?: string;
@@ -69,7 +69,13 @@ export const GET = withAdmin(async ({ searchParams }) => {
                 in: DUB_DOMAINS.map((domain) => domain.slug),
               },
             }),
-        ...(tagId && { tagId }),
+        ...(tagId && {
+          tags: {
+            some: {
+              id: tagId,
+            },
+          },
+        }),
       },
     });
   }
