@@ -1,12 +1,7 @@
 import { hashToken, withSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { customAlphabet } from "nanoid";
+import { nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
-
-const generateToken = customAlphabet(
-  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
-  24,
-);
 
 // GET /api/user/tokens – get all tokens for a specific user
 export const GET = withSession(async ({ session }) => {
@@ -36,7 +31,7 @@ export const GET = withSession(async ({ session }) => {
 // POST /api/user/tokens – create a new token for a specific user
 export const POST = withSession(async ({ req, session }) => {
   const { name } = await req.json();
-  const token = generateToken();
+  const token = nanoid(24);
   const hashedKey = hashToken(token, {
     noSecret: true,
   });
