@@ -4,138 +4,107 @@ import * as fs from "fs";
 import prisma from "@/lib/prisma";
 import { nanoid } from "./utils";
 
-// const projectId = "cl7wsy2836920mjrb352g5wfx";
-const clicks: any[] = [];
-const linkCriteria = {
-  where: {
-    domain: {
-      in: ["chatg.pt", "amzn.id", "spti.fi", "cdt.pm"],
-    },
-  },
-  select: {
-    id: true,
-    domain: true,
-    key: true,
-    url: true,
-    projectId: true,
-  },
-};
+function createLinksMapFromFile(filePath: string) {
+  const fileContent = fs.readFileSync(filePath, { encoding: "utf-8" });
+  const lines = fileContent.split("\n").filter((line) => line.trim());
+
+  const linksMap = new Map();
+
+  for (const line of lines) {
+    try {
+      const data = JSON.parse(line);
+      // 'domain' and 'key' together form a unique identifier for each link
+      const uniqueId = `${data.domain}/${
+        data.key ? data.key.toLowerCase() : "_root"
+      }`; // Customize this based on your data structure
+      linksMap.set(uniqueId, data);
+    } catch (error) {
+      console.error("Error parsing line to JSON:", error);
+    }
+  }
+
+  return linksMap;
+}
+
+// Function to determine the partition file name based on timestamp
+function getPartitionFileName(timestamp: string) {
+  const date = new Date(timestamp);
+  const start = new Date("2022-09-01");
+  let current = new Date(start);
+
+  // Calculate 8-month intervals until the timestamp falls within the current interval
+  while (current < date) {
+    const end = new Date(current);
+    end.setMonth(end.getMonth() + 8);
+    if (date >= current && date < end) {
+      return `clicks-${current.getFullYear()}-${current.getMonth()}.ndjson`;
+    }
+    current = end;
+  }
+
+  // Fallback for any date beyond the calculated intervals
+  return `clicks-${date.getFullYear()}-${date.getMonth()}.ndjson`;
+}
+
+// Function to get or create a write stream for a given partition
+function getWriteStreamForPartition(partitionFileName: string) {
+  if (!writeStreams[partitionFileName]) {
+    writeStreams[partitionFileName] = fs.createWriteStream(partitionFileName, {
+      flags: "a",
+    });
+  }
+  return writeStreams[partitionFileName];
+}
+
+const writeStreams: Record<string, fs.WriteStream> = {};
 
 async function main() {
-  const [firstLinks, secondLinks] = await Promise.all([
-    prisma.link.findMany({
-      ...linkCriteria,
-      take: 100000,
-    }),
-    prisma.link.findMany({
-      ...linkCriteria,
-      skip: 100000,
-    }),
-  ]);
-  const links = [...firstLinks, ...secondLinks];
-  const domains = await prisma.domain
-    .findMany({
-      where: {
-        slug: {
-          in: ["chatg.pt", "amzn.id", "spti.fi", "cdt.pm"],
-        },
-      },
-      select: {
-        id: true,
-        slug: true,
-        target: true,
-        projectId: true,
-      },
-      take: 1000,
-    })
-    .then((domains) =>
-      domains.map((domain) => ({
-        ...domain,
-        domain: domain.slug,
-        key: "_root",
-        url: domain.target,
-      })),
-    );
+  const links = createLinksMapFromFile("links-metadata.ndjson");
+  const csvStream = fs.createReadStream("all_clicks_data.csv", "utf-8");
 
-  Papa.parse(fs.createReadStream("sql.csv", "utf-8"), {
+  Papa.parse(csvStream, {
     header: true,
     skipEmptyLines: true,
     step: ({ data }) => {
-      const link =
-        data.key === "_root"
-          ? domains.find(({ domain }) => domain === data.domain)
-          : links.find(
-              ({ domain, key }) =>
-                domain === data.domain &&
-                key.toLowerCase() === data.key.toLowerCase(),
-            );
+      const link = links.get(
+        `${data.domain}/${data.key ? data.key.toLowerCase() : "_root"}`,
+      );
 
       if (!link) {
-        console.log(
-          `No link found for ${data.domain}/${data.key}. Probably deleted.`,
-        );
+        // console.log(
+        //   `No link found for ${data.domain}/${data.key}. Probably deleted.`,
+        // );
         return;
       }
 
-      const { domain, key, id, projectId, url, alias, ...rest } = data;
+      const { domain, key, id, projectId, url, alias, timestamp, ...rest } =
+        data;
 
-      clicks.push({
+      const partitionFileName = getPartitionFileName(timestamp);
+      const stream = getWriteStreamForPartition(partitionFileName);
+
+      const clickData = {
         ...rest,
-        click_id: nanoid(),
+        timestamp,
+        click_id: nanoid(16),
+        link_id: link.link_id,
+        alias_link_id: "",
         url: link.url || "",
-        link_id: link.id,
         bot: data.bot === "1" ? 1 : 0,
-      });
+      };
+
+      // Write directly to the appropriate file
+      stream.write(JSON.stringify(clickData) + "\n");
     },
-    complete: async () => {
-      console.log(clicks.length);
-
-      // chunk the clicks into period of 8 months, up until today's date
-      const today = new Date();
-      let start = new Date("2022-09-01");
-      while (start < today) {
-        const end = new Date(start);
-        end.setMonth(end.getMonth() + 8);
-        const clicksForPeriod = clicks.filter(
-          ({ timestamp }) =>
-            new Date(timestamp) >= start && new Date(timestamp) < end,
-        );
-        const file = fs.createWriteStream(
-          `clicks-${start.getFullYear()}-${start.getMonth()}.ndjson`,
-        );
-
-        // Iterate over the array and write each object as a string
-        clicksForPeriod.forEach((obj) => {
-          file.write(JSON.stringify(obj) + "\n");
-        });
-
-        // Close the stream
-        file.end();
-
-        start = end;
-      }
+    complete: () => {
+      // Close all write streams once processing is complete
+      Object.values(writeStreams).forEach((stream) => stream.end());
+      console.log("All data processed.");
+    },
+    error: (error) => {
+      console.error("Error processing file:", error);
     },
   });
-
-  const file = fs.createWriteStream(`links-metadata.ndjson`);
-
-  // Iterate over the array and write each object as a string
-  [...links, ...domains].forEach((obj) => {
-    file.write(
-      JSON.stringify({
-        ...obj,
-        timestamp: new Date(Date.now()).toISOString(),
-        id: undefined,
-        projectId: undefined,
-        link_id: obj.id,
-        team_id: obj.projectId || "",
-        url: obj.url || "",
-      }) + "\n",
-    );
-  });
-
-  // Close the stream
-  file.end();
 }
 
 main();

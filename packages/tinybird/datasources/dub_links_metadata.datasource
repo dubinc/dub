@@ -4,8 +4,8 @@ SCHEMA >
     `domain` String `json:$.domain`,
     `key` String `json:$.key`,
     `url` String `json:$.url`,
-    `project_id` String `json:$.project_id`
+    `team_id` String `json:$.team_id`,
     `deleted` UInt8 `json:$.deleted`
 
 ENGINE "MergeTree"
-ENGINE_SORTING_KEY "timestamp, link_id, deleted"
+ENGINE_SORTING_KEY "timestamp, link_id, team_id, deleted"
