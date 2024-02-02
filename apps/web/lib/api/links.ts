@@ -606,7 +606,7 @@ export async function editLink({
 }: {
   domain?: string;
   key: string;
-  updatedLink: LinkProps;
+  updatedLink: LinkWithTagIdsProps;
 }) {
   const {
     id,
@@ -631,8 +631,17 @@ export async function editLink({
   const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
     getParamsFromURL(url);
 
+  const combinedTagIds = combineTagIds(updatedLink);
+
   // exclude fields that should not be updated
-  const { id: _, clicks, lastClicked, updatedAt, ...rest } = updatedLink;
+  const {
+    id: _,
+    clicks,
+    lastClicked,
+    updatedAt,
+    tagIds,
+    ...rest
+  } = updatedLink;
 
   const [response, ...effects] = await Promise.all([
     prisma.link.update({
@@ -652,24 +661,41 @@ export async function editLink({
         utm_content,
         expiresAt: expiresAt ? new Date(expiresAt) : null,
         geo: geo || undefined,
+        ...(combinedTagIds?.length && {
+          tags: {
+            deleteMany: {
+              tagId: {
+                notIn: combinedTagIds,
+              },
+            },
+            connectOrCreate: combinedTagIds.map((tagId) => ({
+              where: { linkId_tagId: { linkId: id, tagId } },
+              create: { tagId },
+            })),
+          },
+        }),
       },
     }),
-    // only upload image to cloudinary if proxy is true and there's an image
-    proxy && image
-      ? cloudinary.v2.uploader.upload(image, {
-          public_id: key,
-          folder: domain,
-          overwrite: true,
-          invalidate: true,
-        })
-      : cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
-          invalidate: true,
-        }),
+    ...(process.env.CLOUDINARY_URL
+      ? [
+          // only upload image to cloudinary if proxy is true and there's an image
+          proxy && image
+            ? cloudinary.v2.uploader.upload(image, {
+                public_id: key,
+                folder: domain,
+                overwrite: true,
+                invalidate: true,
+              })
+            : cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
+                invalidate: true,
+              }),
+        ]
+      : []),
     redis.hset(domain, {
       [key.toLowerCase()]: await formatRedisLink(updatedLink),
     }),
     // if key is changed: rename resource in Cloudinary, delete the old key in Redis and change the clicks key name
-    ...(changedDomain || changedKey
+    ...(process.env.CLOUDINARY_URL && (changedDomain || changedKey)
       ? [
           cloudinary.v2.uploader
             .destroy(`${oldDomain}/${oldKey}`, {
