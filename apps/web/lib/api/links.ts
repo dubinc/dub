@@ -32,6 +32,7 @@ import { getLinkViaEdge } from "../planetscale";
 export async function getLinksForProject({
   projectId,
   domain,
+  tagId,
   tagIds,
   search,
   sort = "createdAt",
@@ -41,6 +42,7 @@ export async function getLinksForProject({
 }: {
   projectId: string;
   domain?: string;
+  tagId?: string;
   tagIds?: string[];
   search?: string;
   sort?: "createdAt" | "clicks" | "lastClicked"; // descending for all
@@ -48,6 +50,8 @@ export async function getLinksForProject({
   userId?: string | null;
   showArchived?: boolean;
 }): Promise<LinkProps[]> {
+  const combinedTagIds = combineTagIds({ tagId, tagIds });
+
   const links = await prisma.link.findMany({
     where: {
       projectId,
@@ -63,7 +67,9 @@ export async function getLinksForProject({
           },
         ],
       }),
-      ...(tagIds?.length && { tags: { some: { id: { in: tagIds } } } }),
+      ...(combinedTagIds?.length && {
+        tags: { some: { tagId: { in: combinedTagIds } } },
+      }),
       ...(userId && { userId }),
     },
     include: {

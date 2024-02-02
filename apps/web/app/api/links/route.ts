@@ -22,7 +22,8 @@ export const GET = withAuth(async ({ headers, searchParams, project }) => {
   const response = await getLinksForProject({
     projectId: project.id,
     domain,
-    tagIds: (tagIds ?? []).concat(tagId ?? []),
+    tagId,
+    tagIds,
     search,
     sort,
     page,
