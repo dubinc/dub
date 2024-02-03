@@ -5,6 +5,7 @@ export * from "./construct-metadata";
 export * from "./datetime";
 export * from "./deep-equal";
 export * from "./domains";
+export * from "./ensure-array";
 export * from "./fetch-with-timeout";
 export * from "./fetcher";
 export * from "./hash";

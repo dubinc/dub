@@ -62,25 +62,21 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
             },
             {
               name: "tagId",
-              description: "The tag ID to filter the links by.",
-              in: "query",
-              required: false,
-              deprecated: true,
-              schema: {
-                description: "The tag ID to filter the links by.",
-                type: "string",
-              },
-            },
-            {
-              name: "tagIds",
-              description: "The tag IDs to filter the links by.",
+              description: "The tag ID(s) to filter the links by.",
               in: "query",
               required: false,
               schema: {
-                type: "array",
-                items: {
-                  type: "string",
-                },
+                oneOf: [
+                  {
+                    type: "string",
+                  },
+                  {
+                    type: "array",
+                    items: {
+                      type: "string",
+                    },
+                  },
+                ],
               },
             },
             {

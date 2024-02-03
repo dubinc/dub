@@ -29,14 +29,25 @@ export default function useRouterStuff() {
     replace,
     getNewPath,
   }: {
-    set?: Record<string, string>;
+    set?: Record<string, string | string[]>;
     del?: string | string[];
     replace?: boolean;
     getNewPath?: boolean;
   }) => {
     const newParams = new URLSearchParams(searchParams);
     if (set) {
-      Object.entries(set).forEach(([k, v]) => newParams.set(k, v));
+      const entries = Object.entries(set);
+      entries.forEach(([k, v]) => {
+        if (Array.isArray(v)) {
+          // Clear any old values
+          newParams.delete(k);
+
+          // Append each array item
+          v.forEach((vv) => newParams.append(k, vv));
+        } else {
+          newParams.set(k, v);
+        }
+      });
     }
     if (del) {
       if (Array.isArray(del)) {

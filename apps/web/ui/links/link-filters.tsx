@@ -263,6 +263,22 @@ const TagsFilter = ({
   const [search, setSearch] = useState("");
   const [showMore, setShowMore] = useState(false);
 
+  const selectedTagIds = searchParams?.getAll("tagId");
+
+  const onCheckboxChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      queryParams({
+        set: {
+          tagId: e.target.checked
+            ? [...selectedTagIds, e.target.id]
+            : selectedTagIds.filter((tagId) => tagId !== e.target.id) ?? [],
+        },
+        del: "page",
+      });
+    },
+    [selectedTagIds],
+  );
+
   const options = useMemo(() => {
     const initialOptions = tags
       .map((tag) => ({
@@ -332,16 +348,9 @@ const TagsFilter = ({
                   <input
                     id={id}
                     name={id}
-                    checked={searchParams?.get("tagId") === id}
-                    onChange={() => {
-                      queryParams({
-                        set: {
-                          tagId: id,
-                        },
-                        del: "page",
-                      });
-                    }}
-                    type="radio"
+                    checked={selectedTagIds.includes(id)}
+                    onChange={onCheckboxChange}
+                    type="checkbox"
                     className="ml-3 h-4 w-4 cursor-pointer rounded-full border-gray-300 text-black focus:outline-none focus:ring-0"
                   />
                   <label

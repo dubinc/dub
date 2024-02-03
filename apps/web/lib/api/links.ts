@@ -10,6 +10,7 @@ import {
   DEFAULT_REDIRECTS,
   DUB_DOMAINS,
   SHORT_DOMAIN,
+  ensureArray,
   getDomainWithoutWWW,
   getParamsFromURL,
   getUrlFromString,
@@ -33,7 +34,6 @@ export async function getLinksForProject({
   projectId,
   domain,
   tagId,
-  tagIds,
   search,
   sort = "createdAt",
   page,
@@ -42,15 +42,14 @@ export async function getLinksForProject({
 }: {
   projectId: string;
   domain?: string;
-  tagId?: string;
-  tagIds?: string[];
+  tagId?: string | string[];
   search?: string;
   sort?: "createdAt" | "clicks" | "lastClicked"; // descending for all
   page?: string;
   userId?: string | null;
   showArchived?: boolean;
 }): Promise<LinkProps[]> {
-  const combinedTagIds = combineTagIds({ tagId, tagIds });
+  const tagIds = ensureArray(tagId ?? []);
 
   const links = await prisma.link.findMany({
     where: {
@@ -67,8 +66,8 @@ export async function getLinksForProject({
           },
         ],
       }),
-      ...(combinedTagIds?.length && {
-        tags: { some: { tagId: { in: combinedTagIds } } },
+      ...(tagIds?.length && {
+        tags: { some: { tagId: { in: tagIds } } },
       }),
       ...(userId && { userId }),
     },
@@ -106,17 +105,15 @@ export async function getLinksCount({
   projectId: string;
   userId?: string | null;
 }) {
-  let { groupBy, search, domain, tagId, tagIds, showArchived } =
-    searchParams as {
-      groupBy?: "domain" | "tagId";
-      search?: string;
-      domain?: string;
-      tagId?: string;
-      tagIds?: string[];
-      showArchived?: boolean;
-    };
+  let { groupBy, search, domain, tagId, showArchived } = searchParams as {
+    groupBy?: "domain" | "tagId";
+    search?: string;
+    domain?: string;
+    tagId?: string;
+    showArchived?: boolean;
+  };
 
-  const combinedTagIds = combineTagIds({ tagId, tagIds });
+  const tagIds = ensureArray(tagId ?? []);
 
   const linksWhere = {
     archived: showArchived ? undefined : false,
@@ -166,11 +163,11 @@ export async function getLinksCount({
     const where = {
       projectId,
       ...linksWhere,
-      ...(combinedTagIds?.length && {
+      ...(tagIds?.length && {
         tags: {
           some: {
             id: {
-              in: combinedTagIds,
+              in: tagIds,
             },
           },
         },
