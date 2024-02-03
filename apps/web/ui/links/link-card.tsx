@@ -1,7 +1,6 @@
 import useDomains from "@/lib/swr/use-domains";
 import useProject from "@/lib/swr/use-project";
-import useTags from "@/lib/swr/use-tags";
-import { UserProps } from "@/lib/types";
+import { TagProps, UserProps } from "@/lib/types";
 import TagBadge from "@/ui/links/tag-badge";
 import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
 import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
@@ -45,7 +44,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import Linkify from "linkify-react";
 import punycode from "punycode/";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useSWR, { mutate } from "swr";
 import { toast } from "sonner";
 
@@ -53,6 +52,7 @@ export default function LinkCard({
   props,
 }: {
   props: LinkProps & {
+    tags: TagProps[];
     user: UserProps;
   };
 }) {
@@ -66,12 +66,10 @@ export default function LinkCard({
     createdAt,
     lastClicked,
     archived,
-    tagId,
+    tags,
     comments,
     user,
   } = props;
-  const { tags } = useTags();
-  const tag = useMemo(() => tags?.find((t) => t.id === tagId), [tags, tagId]);
 
   const apexDomain = getApexDomain(url);
 
@@ -257,7 +255,7 @@ export default function LinkCard({
             it messes up the tooltip positioning.
           */}
           <div className="ml-2 sm:ml-4">
-            <div className="flex max-w-fit items-center space-x-2">
+            <div className="flex max-w-fit flex-wrap items-center gap-x-2">
               {!verified && !loading ? (
                 <Tooltip
                   content={
@@ -268,7 +266,7 @@ export default function LinkCard({
                     />
                   }
                 >
-                  <div className="w-24 -translate-x-2 cursor-not-allowed truncate text-sm font-semibold text-gray-400 line-through sm:w-full sm:text-base">
+                  <div className="max-w-[140px] -translate-x-2 cursor-not-allowed truncate text-sm font-semibold text-gray-400 line-through sm:max-w-[300px] sm:text-base md:max-w-[360px] xl:max-w-[500px]">
                     {linkConstructor({
                       key,
                       domain: punycode.toUnicode(domain || ""),
@@ -279,7 +277,7 @@ export default function LinkCard({
               ) : (
                 <a
                   className={cn(
-                    "w-full max-w-[140px] truncate text-sm font-semibold text-blue-800 sm:max-w-[300px] sm:text-base md:max-w-[360px] xl:max-w-[500px]",
+                    "max-w-[140px] truncate text-sm font-semibold text-blue-800 sm:max-w-[300px] sm:text-base md:max-w-[360px] xl:max-w-[500px]",
                     {
                       "text-gray-500": archived || expired,
                     },
@@ -324,20 +322,22 @@ export default function LinkCard({
                   </button>
                 </Tooltip>
               )}
-              {tag?.color && (
-                <button
-                  onClick={() => {
-                    queryParams({
-                      set: {
-                        tagId: tag.id,
-                      },
-                    });
-                  }}
-                  className="transition-all duration-75 hover:scale-105 active:scale-100"
-                >
-                  <TagBadge {...tag} withIcon />
-                </button>
-              )}
+              {tags
+                .filter(({ color }) => color)
+                .map((tag) => (
+                  <button
+                    onClick={() => {
+                      queryParams({
+                        set: {
+                          tagId: tag.id,
+                        },
+                      });
+                    }}
+                    className="transition-all duration-75 hover:scale-105 active:scale-100"
+                  >
+                    <TagBadge {...tag} withIcon />
+                  </button>
+                ))}
             </div>
             <div className="flex max-w-fit items-center space-x-1">
               <Tooltip

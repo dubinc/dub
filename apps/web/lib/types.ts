@@ -1,5 +1,5 @@
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
-import { Link } from "@prisma/client";
+import { Link, Tag } from "@prisma/client";
 
 export type LinkProps = Link;
 

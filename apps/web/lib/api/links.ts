@@ -73,6 +73,17 @@ export async function getLinksForProject({
     },
     include: {
       user: true,
+      tags: {
+        include: {
+          tag: {
+            select: {
+              id: true,
+              name: true,
+              color: true,
+            },
+          },
+        },
+      },
     },
     orderBy: {
       [sort]: "desc",
@@ -90,6 +101,7 @@ export async function getLinksForProject({
     });
     return {
       ...link,
+      tags: link.tags.map(({ tag }) => tag),
       shortLink,
       qrCode: `https://api.dub.co/qr?url=${shortLink}`,
     };

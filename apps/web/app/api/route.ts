@@ -822,14 +822,12 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
               nullable: true,
               deprecated: true,
             },
-            tagIds: {
+            tags: {
               type: "array",
               items: {
-                type: "string",
-                format: "cuid",
+                $ref: "#/components/schemas/Tag",
               },
-              description:
-                "The unique IDs of the tags assigned to the short link.",
+              description: "The tags assigned to the short link.",
               default: [],
             },
             comments: {
