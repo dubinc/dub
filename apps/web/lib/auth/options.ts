@@ -188,34 +188,37 @@ export const authOptions: NextAuthOptions = {
       if (account?.provider === "google") {
         const userExists = await prisma.user.findUnique({
           where: { email: user.email },
-          select: { name: true },
+          select: { name: true, image: true },
         });
         // if the user already exists via email,
         // update the user with their name and image from Google
-        if (userExists && !userExists.name) {
+        if (userExists && profile) {
           await prisma.user.update({
             where: { email: user.email },
             data: {
-              name: profile?.name,
-              // @ts-ignore - this is a bug in the types, `picture` is a valid on the `Profile` type
-              image: profile?.picture,
+              ...(userExists.name ? {} : { name: profile.name }),
+              // @ts-expect-error - this is a bug in the types, `picture` is a valid on the `Profile` type
+              ...(userExists.image ? {} : { image: profile.picture }),
             },
           });
         }
       } else if (account?.provider === "github") {
         const userExists = await prisma.user.findUnique({
           where: { email: user.email },
-          select: { name: true },
+          select: { name: true, image: true },
         });
         // if the user already exists via email,
         // update the user with their name and image from Github
-        if (userExists && !userExists.name) {
+        if (userExists && profile) {
           await prisma.user.update({
             where: { email: user.email },
             data: {
-              name: profile?.name,
-              // @ts-ignore - this is a bug in the types, `picture` is a valid on the `Profile` type
-              image: profile?.picture,
+              ...(userExists.name
+                ? {}
+                : // @ts-expect-error - this is a bug in the types, `login` is a valid on the `Profile` type
+                  { name: profile.name || profile.login }),
+              // @ts-expect-error - this is a bug in the types, `avatar_url` is a valid on the `Profile` type
+              ...(userExists.image ? {} : { image: profile.avatar_url }),
             },
           });
         }
