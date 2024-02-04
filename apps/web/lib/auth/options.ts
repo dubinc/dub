@@ -8,6 +8,7 @@ import WelcomeEmail from "emails/welcome-email";
 import { type NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
+import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
@@ -31,6 +32,11 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      allowDangerousEmailAccountLinking: true,
+    }),
+    GithubProvider({
+      clientId: process.env.GITHUB_CLIENT_ID as string,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
       allowDangerousEmailAccountLinking: true,
     }),
     {
@@ -182,17 +188,37 @@ export const authOptions: NextAuthOptions = {
       if (account?.provider === "google") {
         const userExists = await prisma.user.findUnique({
           where: { email: user.email },
-          select: { name: true },
+          select: { name: true, image: true },
         });
         // if the user already exists via email,
         // update the user with their name and image from Google
-        if (userExists && !userExists.name) {
+        if (userExists && profile) {
           await prisma.user.update({
             where: { email: user.email },
             data: {
-              name: profile?.name,
-              // @ts-ignore - this is a bug in the types, `picture` is a valid on the `Profile` type
-              image: profile?.picture,
+              ...(userExists.name ? {} : { name: profile.name }),
+              // @ts-expect-error - this is a bug in the types, `picture` is a valid on the `Profile` type
+              ...(userExists.image ? {} : { image: profile.picture }),
+            },
+          });
+        }
+      } else if (account?.provider === "github") {
+        const userExists = await prisma.user.findUnique({
+          where: { email: user.email },
+          select: { name: true, image: true },
+        });
+        // if the user already exists via email,
+        // update the user with their name and image from Github
+        if (userExists && profile) {
+          await prisma.user.update({
+            where: { email: user.email },
+            data: {
+              ...(userExists.name
+                ? {}
+                : // @ts-expect-error - this is a bug in the types, `login` is a valid on the `Profile` type
+                  { name: profile.name || profile.login }),
+              // @ts-expect-error - this is a bug in the types, `avatar_url` is a valid on the `Profile` type
+              ...(userExists.image ? {} : { image: profile.avatar_url }),
             },
           });
         }
