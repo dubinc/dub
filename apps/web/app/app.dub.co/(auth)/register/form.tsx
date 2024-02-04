@@ -15,6 +15,7 @@ export default function RegisterForm() {
   return (
     <>
       <Button
+        variant="secondary"
         text="Continue with Google"
         onClick={() => {
           setClickedGoogle(true);
@@ -44,7 +45,6 @@ export default function RegisterForm() {
         >
           Sign in
         </Link>
-        .
       </p>
     </>
   );

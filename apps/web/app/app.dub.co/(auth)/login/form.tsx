@@ -28,30 +28,32 @@ export default function LoginForm() {
 
   return (
     <>
-      <Button
-        text="Continue with Google"
-        onClick={() => {
-          setClickedGoogle(true);
-          signIn("google", {
-            ...(next && next.length > 0 ? { callbackUrl: next } : {}),
-          });
-        }}
-        loading={clickedGoogle}
-        disabled={clickedEmail || clickedSSO}
-        icon={<Google className="h-4 w-4" />}
-      />
-      <Button
-        text="Continue with GitHub"
-        onClick={() => {
-          setClickedGithub(true);
-          signIn("github", {
-            ...(next && next.length > 0 ? { callbackUrl: next } : {}),
-          });
-        }}
-        loading={clickedGitub}
-        disabled={clickedEmail || clickedSSO}
-        icon={<Github className="h-4 w-4" />}
-      />
+      <div className="flex space-x-2">
+        <Button
+          variant="secondary"
+          onClick={() => {
+            setClickedGoogle(true);
+            signIn("google", {
+              ...(next && next.length > 0 ? { callbackUrl: next } : {}),
+            });
+          }}
+          loading={clickedGoogle}
+          disabled={clickedEmail || clickedSSO}
+          icon={<Google className="h-5 w-5" />}
+        />
+        <Button
+          variant="secondary"
+          onClick={() => {
+            setClickedGithub(true);
+            signIn("github", {
+              ...(next && next.length > 0 ? { callbackUrl: next } : {}),
+            });
+          }}
+          loading={clickedGitub}
+          disabled={clickedEmail || clickedSSO}
+          icon={<Github className="h-5 w-5 text-black" />}
+        />
+      </div>
       <form
         onSubmit={async (e) => {
           e.preventDefault();
@@ -202,7 +204,6 @@ export default function LoginForm() {
           >
             Sign up
           </Link>
-          .
         </p>
       )}
     </>
