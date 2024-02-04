@@ -28,9 +28,11 @@ export function Button({
       <Tooltip content={disabledTooltip}>
         <div className="flex h-10 w-full cursor-not-allowed items-center justify-center space-x-2 rounded-md border border-gray-200 bg-gray-100 px-4 text-sm text-gray-400 transition-all focus:outline-none">
           <p>{text}</p>
-          {shortcut ? <kbd className="hidden rounded bg-zinc-200 px-2 py-0.5 text-xs font-light text-gray-400 md:inline-block">
+          {shortcut ? (
+            <kbd className="hidden rounded bg-zinc-200 px-2 py-0.5 text-xs font-light text-gray-400 md:inline-block">
               {shortcut}
-            </kbd> : null}
+            </kbd>
+          ) : null}
         </div>
       </Tooltip>
     );
@@ -65,7 +67,8 @@ export function Button({
       {shortcut && (
         <kbd className="hidden rounded bg-zinc-700 px-2 py-0.5 text-xs font-light text-gray-400 transition-all duration-75 group-hover:bg-gray-100 group-hover:text-gray-500 md:inline-block">
           {shortcut}
-        </kbd> : null}
+        </kbd>
+      )}
     </button>
   );
 }

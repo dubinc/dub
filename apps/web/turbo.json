@@ -1,0 +1,47 @@
+{
+  "extends": ["//"],
+  "pipeline": {
+    "build": {
+      "env": [
+        "DATABASE_URL",
+        "NEXT_PUBLIC_APP_NAME",
+        "VERCEL_ENV",
+        "VERCEL",
+        "VERCEL_URL",
+        "NODE_ENV",
+        "NEXTAUTH_SECRET",
+        "NEXTAUTH_URL",
+        "NEXT_PUBLIC_IS_DUB",
+        "NEXT_PUBLIC_APP_NAME",
+        "NEXT_PUBLIC_APP_DOMAIN",
+        "TEAM_ID_VERCEL",
+        "PROJECT_ID_VERCEL",
+        "AUTH_BEARER_TOKEN",
+        "CRON_SECRET",
+        "TINYBIRD_API_KEY",
+        "UPSTASH_REDIS_REST_URL",
+        "UPSTASH_REDIS_REST_TOKEN",
+        "RATELIMIT_UPSTASH_REDIS_REST_URL",
+        "RATELIMIT_UPSTASH_REDIS_REST_TOKEN",
+        "QSTASH_TOKEN",
+        "QSTASH_CURRENT_SIGNING_KEY",
+        "QSTASH_NEXT_SIGNING_KEY",
+        "RESEND_API_KEY",
+        "RESEND_AUDIENCE_ID",
+        "STRIPE_SECRET_KEY",
+        "STRIPE_SECRET_KEY_LIVE",
+        "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+        "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_LIVE",
+        "GOOGLE_CLIENT_ID",
+        "GOOGLE_CLIENT_SECRET",
+        "GITHUB_CLIENT_ID",
+        "GITHUB_CLIENT_SECRET",
+        "NEXT_PUBLIC_BITLY_REDIRECT_URI",
+        "BITLY_CLIENT_SECRET",
+        "UNSPLASH_ACCESS_KEY",
+        "CLOUDINARY_URL"
+      ],
+      "outputs": [".next/**"]
+    }
+  }
+}

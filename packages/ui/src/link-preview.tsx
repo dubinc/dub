@@ -9,7 +9,11 @@ import { useDebounce } from "use-debounce";
 import { useMediaQuery } from "./hooks";
 import { LoadingCircle, Photo } from "./icons";
 
-export function LinkPreview({ defaultUrl }: { defaultUrl?: string }): JSX.Element {
+export function LinkPreview({
+  defaultUrl,
+}: {
+  defaultUrl?: string;
+}): JSX.Element {
   const router = useRouter();
   const searchParams = useSearchParams();
   const url =
@@ -44,21 +48,18 @@ export function LinkPreview({ defaultUrl }: { defaultUrl?: string }): JSX.Elemen
         <div className="relative flex items-center">
           <Link2 className="absolute inset-y-0 left-0 my-2 ml-3 w-5 text-gray-400" />
           <input
-            ref={inputRef}
-            name="url"
-            id="url"
-            type="url"
+            aria-invalid="true"
             autoFocus={!isMobile}
             className="block w-full rounded-md border-gray-200 pl-10 text-sm text-gray-900 placeholder-gray-400 shadow-lg focus:border-gray-500 focus:outline-none focus:ring-gray-500"
             defaultValue={url}
             id="url"
             name="url"
             onChange={(e) =>
-              { router.replace(
+              router.replace(
                 `/tools/metatags${
                   e.target.value.length > 0 ? `?url=${e.target.value}` : ""
                 }`,
-              ); }
+              )
             }
             placeholder="Enter your URL"
             ref={inputRef}
@@ -68,9 +69,11 @@ export function LinkPreview({ defaultUrl }: { defaultUrl?: string }): JSX.Elemen
       )}
 
       <div className="relative overflow-hidden rounded-md border border-gray-300 bg-gray-50">
-        {isValidating ? <div className="absolute flex h-[250px] w-full flex-col items-center justify-center space-y-4 border-b border-gray-300 bg-gray-50">
+        {isValidating ? (
+          <div className="absolute flex h-[250px] w-full flex-col items-center justify-center space-y-4 border-b border-gray-300 bg-gray-50">
             <LoadingCircle />
-          </div> : null}
+          </div>
+        ) : null}
         {image ? (
           <img
             alt="Preview"
@@ -116,7 +119,7 @@ export function LinkPreviewPlaceholder({
   defaultUrl,
 }: {
   defaultUrl?: string;
-}) {
+}): JSX.Element {
   return (
     <>
       <div className="relative flex items-center">

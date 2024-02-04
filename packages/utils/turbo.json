@@ -1,0 +1,21 @@
+{
+  "extends": ["//"],
+  "pipeline": {
+    "build": {
+      "env": [
+        "NEXT_PUBLIC_APP_SHORT_DOMAIN",
+        "NEXT_PUBLIC_APP_DOMAIN",
+        "NEXT_PUBLIC_APP_NAME",
+        "NEXT_PUBLIC_VERCEL_ENV",
+        "NEXT_PUBLIC_IS_DUB",
+        "NGROK_URL",
+        "NODE_ENV",
+        "DUB_SLACK_HOOK_ALERTS",
+        "DUB_SLACK_HOOK_CRON",
+        "DUB_SLACK_HOOK_LINKS",
+        "DUB_SLACK_HOOK_ERRORS"
+      ],
+      "outputs": [".next/**"]
+    }
+  }
+}

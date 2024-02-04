@@ -1,0 +1,9 @@
+{
+  "extends": ["//"],
+  "pipeline": {
+    "build": {
+      "env": ["NEXT_PUBLIC_APP_NAME"],
+      "outputs": [".next/**"]
+    }
+  }
+}
