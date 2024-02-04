@@ -87,22 +87,22 @@ export async function recordClick({
       },
     ).then((res) => res.json()),
 
-    // fetch(
-    //   "https://api.us-east.tinybird.co/v0/events?name=dub_click_events&wait=true",
-    //   {
-    //     method: "POST",
-    //     headers: {
-    //       Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
-    //     },
-    //     body: JSON.stringify({
-    //       ...payload,
-    //       click_id: nanoid(16),
-    //       link_id: id,
-    //       alias_link_id: "",
-    //       url: url || "",
-    //     }),
-    //   },
-    // ).then((res) => res.json()),
+    fetch(
+      "https://api.us-east.tinybird.co/v0/events?name=dub_click_events&wait=true",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
+        },
+        body: JSON.stringify({
+          ...payload,
+          click_id: nanoid(16),
+          link_id: id,
+          alias_link_id: "",
+          url: url || "",
+        }),
+      },
+    ).then((res) => res.json()),
 
     // increment the click count for the link if key is specified (not root click)
     // also increment the usage count for the project, and then we have a cron that will reset it at the start of new billing cycle
