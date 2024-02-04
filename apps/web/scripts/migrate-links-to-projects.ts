@@ -55,13 +55,8 @@ async function main() {
   //         const projectName =
   //           capitalize(u.name ?? u.email?.split("@")[0]) + "'s Links";
 
-  //         let projectSlug = "";
-  //         if (u.name) {
-  //           projectSlug = slugify(u.name);
-  //         }
-  //         if (projectSlug === "") {
-  //           projectSlug = slugify(u.email?.split("@")[0] ?? "");
-  //         }
+  //         const projectSlug = slugify(u.email ?? "");
+
   //         return {
   //           userId: user.userId,
   //           name: u.name,

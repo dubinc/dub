@@ -2,7 +2,7 @@ import { limiter } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { redis } from "@/lib/upstash";
-import { PLANS, getPlanFromPriceId, log } from "@dub/utils";
+import { FREE_PLAN, getPlanFromPriceId, log } from "@dub/utils";
 import { resend, sendEmail } from "emails";
 import UpgradeEmail from "emails/upgrade-email";
 import { NextResponse } from "next/server";
@@ -40,8 +40,7 @@ export const POST = async (req: Request) => {
         ) {
           await log({
             message: "Missing items in Stripe webhook callback",
-            type: "cron",
-            mention: true,
+            type: "errors",
           });
           return;
         }
@@ -56,8 +55,7 @@ export const POST = async (req: Request) => {
         if (!plan) {
           await log({
             message: "Invalid price ID in checkout.session.completed event",
-            type: "cron",
-            mention: true,
+            type: "errors",
           });
           return;
         }
@@ -129,8 +127,7 @@ export const POST = async (req: Request) => {
         if (!plan) {
           await log({
             message: "Invalid price ID in customer.subscription.updated event",
-            type: "cron",
-            mention: true,
+            type: "errors",
           });
           return;
         }
@@ -149,7 +146,7 @@ export const POST = async (req: Request) => {
               "Project with Stripe ID *`" +
               stripeId +
               "`* not found in Stripe webhook `customer.subscription.updated` callback",
-            type: "cron",
+            type: "errors",
           });
           return NextResponse.json({ received: true });
         }
@@ -195,6 +192,7 @@ export const POST = async (req: Request) => {
             stripeId,
           },
           select: {
+            id: true,
             slug: true,
             domains: true,
             users: {
@@ -215,7 +213,7 @@ export const POST = async (req: Request) => {
               "Project with Stripe ID *`" +
               stripeId +
               "`* not found in Stripe webhook `customer.subscription.deleted` callback",
-            type: "cron",
+            type: "errors",
           });
           return NextResponse.json({ received: true });
         }
@@ -223,15 +221,17 @@ export const POST = async (req: Request) => {
         const projectUsers = project.users.map(
           ({ user }) => user.email as string,
         );
-        const projectDomains = project.domains.map((domain) => domain.slug);
 
         const pipeline = redis.pipeline();
         // remove root domain redirect for all domains
-        projectDomains.forEach((domain) => {
-          pipeline.del(`root:${domain}`);
+        project.domains.forEach((domain) => {
+          pipeline.hset(domain.slug, {
+            _root: {
+              id: domain.id,
+              projectId: project.id,
+            },
+          });
         });
-
-        const FREE_PLAN = PLANS.find((plan) => plan.name === "free")!;
 
         await Promise.allSettled([
           prisma.project.update({
@@ -267,8 +267,7 @@ export const POST = async (req: Request) => {
     } catch (error) {
       await log({
         message: `Stripe webook failed. Error: ${error.message}`,
-        type: "cron",
-        mention: true,
+        type: "errors",
       });
       return new Response(
         'Webhook error: "Webhook handler failed. View logs."',

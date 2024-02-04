@@ -29,13 +29,8 @@ const config: Config = {
       animation: {
         // Modal
         "scale-in": "scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
-        "fade-in": "fade-in 0.3s ease-out forwards",
-        // Input Select
-        "input-select-slide-up":
-          "input-select-slide-up 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
-        "input-select-slide-down":
-          "input-select-slide-down 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
-        // Tooltip
+        "fade-in": "fade-in 0.2s ease-out forwards",
+        // Popover, Tooltip
         "slide-up-fade": "slide-up-fade 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
         "slide-right-fade":
           "slide-right-fade 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
@@ -68,16 +63,7 @@ const config: Config = {
           "0%": { opacity: "0" },
           "100%": { opacity: "1" },
         },
-        // Input Select
-        "input-select-slide-up": {
-          "0%": { transform: "translateY(-342px)" },
-          "100%": { transform: "translateY(-350px)" },
-        },
-        "input-select-slide-down": {
-          "0%": { transform: "translateY(0px)" },
-          "100%": { transform: "translateY(8px)" },
-        },
-        // Tooltip
+        // Popover, Tooltip
         "slide-up-fade": {
           "0%": { opacity: "0", transform: "translateY(2px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },

@@ -6,10 +6,16 @@ import {
   LinkPreviewPlaceholder,
   Nav,
 } from "@dub/ui";
-import { HOME_DOMAIN, constructMetadata } from "@dub/utils";
+import {
+  GOOGLE_FAVICON_URL,
+  HOME_DOMAIN,
+  constructMetadata,
+  getApexDomain,
+} from "@dub/utils";
 import { notFound } from "next/navigation";
 import LinkInspectorCard from "./card";
 import { Suspense } from "react";
+import { unescape } from "html-escaper";
 
 export const runtime = "edge";
 
@@ -27,11 +33,13 @@ export async function generateMetadata({
     return;
   }
 
+  const apexDomain = getApexDomain(data.url);
+
   return constructMetadata({
-    title:
-      "Link Inspector - Inspect a Short Link on Dub to Make Sure It's Safe",
-    description:
-      "Dub's Link Inspector is a simple tool for inspecting short links on Dub to make sure it's safe to click on. If you think this link is malicious, please report it.",
+    title: unescape(data.title || ""),
+    description: unescape(data.description || ""),
+    image: data.image,
+    icons: `${GOOGLE_FAVICON_URL}${apexDomain}`,
     noIndex: true,
   });
 }

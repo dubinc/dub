@@ -1,0 +1,189 @@
+---
+title: "Local Development"
+description: "A guide on how to run Dub's codebase locally."
+---
+
+## Introduction
+
+Dub's codebase is set up in a monorepo (via [Turborepo](https://turbo.build/repo)) and is fully [open-source on GitHub](https://github.com/dubinc/dub).
+
+Here's the monorepo structure:
+
+```
+apps
+├── docs
+├── web
+packages
+├── tailwind-config
+├── tinybird
+├── tsconfig
+├── ui
+├── utils
+```
+
+The `apps` directory contains the code for:
+
+- `web`: The entirety of Dub's application ([app.dub.co](https://app.dub.co)) + our link redirect infrastructure.
+- `docs`: Dub's documentation site ([dub.co/docs](https://dub.co/docs)) – including this page you're on right now!
+
+The `packages` directory contains the code for:
+
+- `tailwind-config`: The Tailwind CSS configuration for Dub's web app.
+- `tinybird`: Dub's Tinybird configuration.
+- `tsconfig`: The TypeScript configuration for Dub's web app.
+- `ui`: Dub's UI component library.
+- `utils`: A collection of utility functions and constants used across Dub's codebase.
+
+## How `app.dub.co` works
+
+Dub's web app is built with [Next.js](https://nextjs.org) and [TailwindCSS](https://tailwindcss.com).
+
+It also utilizes code from the `packages` directory, specifically the `@dub/ui` and `@dub/utils` packages.
+
+All of the code for the web app is located in here: [`main`/apps/web/app/app.dub.co](https://github.com/dubinc/dub/tree/main/apps/web/app/app.dub.co). This is using the Next.js [route group pattern](https://nextjs.org/docs/app/building-your-application/routing/route-groups).
+
+There's also the API server, which is located in here: [`main`/apps/web/app/api](https://github.com/dubinc/dub/tree/main/apps/web/app/api)
+
+When you run `pnpm dev` to start the development server, the app will be available at [http://localhost:8888](http://localhost:8888). The reason we use `localhost:8888` and not `app.localhost:8888` is because Google OAuth doesn't allow you to use localhost subdomains.
+
+## How link redirects work on Dub
+
+Link redirects on Dub are powered by [Next.js Middleware](https://nextjs.org/docs/app/building-your-application/routing/middleware).
+
+To handle high traffic, we use Redis to cache every link's metadata when it's first created. This allows us to serve redirects without hitting our MySQL database.
+
+Here's the code that powers link redirects:
+
+- Link redirects: [`main`/apps/web/lib/middleware/link.ts](https://github.com/dubinc/dub/blob/main/apps/web/lib/middleware/link.ts).
+- Root domain redirects: [`main`/apps/web/lib/middleware/root.ts](https://github.com/dubinc/dub/blob/main/apps/web/lib/middleware/root.ts).
+
+## Running Dub locally
+
+### Prerequisites
+
+Before you begin, make sure you have the following:
+
+- A [Tinybird](https://www.tinybird.co/) account
+- An [Upstash](https://upstash.com/) account
+- A [Planetscale](https://planetscale.com/) account
+
+In the future, we plan to make it easier to self-host Dub.co by making these dependencies optional by swapping them out for native databases (e.g. mysql, redis, clickhouse, [GeoLite2](https://github.com/GitSquared/node-geolite2-redist) etc.)
+
+Also, Docker is currently not supported, but we have a few [open](https://github.com/dubinc/dub/issues/25) [issues](https://github.com/dubinc/dub/issues/378) and [PRs](https://github.com/dubinc/dub/pull/391) for it.
+
+### Step 1: Local setup
+
+First, clone the [Dub repo](https://dub.sh/github)
+
+```bash
+git clone https://github.com/dubinc/dub.git
+```
+
+Run the following command to install the dependencies:
+
+```bash
+pnpm i
+```
+
+Install Mintlify CLI (for docs server):
+
+```bash
+pnpm i -g mintlify
+```
+
+Convert the `.env.example` file to `.env`:
+
+```bash
+cp apps/web/.env.example apps/web/.env
+```
+
+You can start filling in the first few environment variables:
+
+```bash
+# The domain that your app will be hosted on
+NEXT_PUBLIC_APP_DOMAIN=http://localhost:8888
+# The short domain that your app will be using (could be the same as the above)
+NEXT_PUBLIC_APP_SHORT_DOMAIN=dub.localhost:8888
+```
+
+You will fill in the remaining environment variables in the following steps.
+
+### Step 2: Publish Tinybird endpoints
+
+Next, you'll need to publish the Tinybird endpoints:
+
+1. In your [Tinybird](https://tinybird.co/) account, create a new Workspace.
+2. Copy your `admin` [Auth Token](https://www.tinybird.co/docs/concepts/auth-tokens.html). Paste this token as the `TINYBIRD_API_KEY` environment variable in your `.env` file.
+3. In your cloned Dub repo, navigate to the `packages/tinybird` directory.
+4. Install the Tinybird CLI with `pip install tinybird-cli` (requires Python >= 3.8).
+5. Run `tb auth` and paste your `admin` Auth Token.
+6. Run `tb push` to publish the datasource and endpoints in the `packages/tinybird` directory. You should see the following output (truncated for brevity):
+
+```bash
+$ tb push
+
+** Processing ./datasources/click_events.datasource
+** Processing ./endpoints/clicks.pipe
+...
+** Building dependencies
+** Running 'click_events'
+** 'click_events' created
+** Running 'device'
+** => Test endpoint at https://api.us-east.tinybird.co/v0/pipes/device.json
+** Token device_endpoint_read_8888 not found, creating one
+** => Test endpoint with:
+** $ curl https://api.us-east.tinybird.co/v0/pipes/device.json?token=p.ey...NWeaoTLM
+** 'device' created
+...
+```
+
+### Step 3: Set up Upstash Redis database
+
+Next, you'll need to set up the Upstash Redis database:
+
+1. In your [Upstash account](https://console.upstash.com/), create a new database.
+2. For better performance & read times, we recommend setting up a global database with several read regions.
+
+![Upstash Redis database](/images/upstash-create-db.png)
+
+3. Once your database is created, copy the `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` from the **REST API** section into your `.env` file.
+
+![Upstash Redis tokens](/images/upstash-redis-tokens.png)
+
+4. Navigate to the [QStash tab](https://console.upstash.com/qstash) and copy the `QSTASH_URL`, `QSTASH_CURRENT_SIGNING_KEY`, and `QSTASH_NEXT_SIGNING_KEY` from the **Request Builder** section into your `.env` file.
+
+![Upstash QStash tokens](/images/upstash-qstash-tokens.png)
+
+### Step 4: Set up Planetscale database
+
+In your [Planetscale account](https://app.planetscale.com/), create a new database. You can use the free tier for this project.
+
+Once your database is created, you'll be prompted to select your language or Framework. Select **Prisma**.
+
+![Planetscale choose framework](/images/planetscale-choose-framework.png)
+
+Then, you'll have to create a new password for your database. Once the password is created, scroll down to the **Add credentials to .env** section and copy the `DATABASE_URL` into your `.env` file.
+
+![Planetscale add credentials](/images/planetscale-add-credentials.png)
+
+Going back to your terminal, navigate to the `apps/web` directory and run the following command to generate the Prisma client:
+
+```bash
+npx prisma generate
+```
+
+Then, create the database tables with the following command:
+
+```bash
+npx prisma db push
+```
+
+### Step 5: Start the development server
+
+Finally, you can start the development server. This will build the packages + start the app servers.
+
+```bash
+pnpm dev
+```
+
+The Web app will be available at [http://localhost:8888](http://localhost:8888) and the Docs will be available at [http://localhost:3334](http://localhost:3334).

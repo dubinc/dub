@@ -3,6 +3,7 @@ import { constructMetadata, isDubDomain } from "@dub/utils";
 import prisma from "@/lib/prisma";
 import PasswordForm from "./form";
 import { notFound, redirect } from "next/navigation";
+import { BlurImage } from "@/ui/shared/blur-image";
 
 const title = "Password Required";
 const description =
@@ -116,9 +117,11 @@ export default async function PasswordProtectedLinkPage({
           {!isDubDomain(domain) &&
           link.project?.plan !== "free" &&
           link.project?.logo ? (
-            <img
+            <BlurImage
               src={link.project.logo}
               alt={link.project.name}
+              width={20}
+              height={20}
               className="h-10 w-10 rounded-full"
             />
           ) : (

@@ -3,7 +3,7 @@
   "private": true,
   "license": "AGPL-3.0-or-later",
   "scripts": {
-    "dev": "concurrently --kill-others \"prisma generate && next dev --port 8888\" \"prisma studio --browser none\"",
+    "dev": "concurrently --kill-others \"prisma generate && next dev --port 8888\" \"prisma studio --browser none\" \"email dev --port 3333\"",
     "build": "prisma generate & next build",
     "format:write": "prettier --write \"**/*.{css,js,json,jsx,ts,tsx}\"",
     "format": "prettier \"**/*.{css,js,json,jsx,ts,tsx}\"",
@@ -67,7 +67,7 @@
     "react-colorful": "^5.6.1",
     "react-dom": "^18.2.0",
     "react-dom-confetti": "^0.2.0",
-    "react-email": "^1.9.5",
+    "react-email": "^2.0.0",
     "react-highlight-words": "^0.20.0",
     "react-medium-image-zoom": "^5.1.7",
     "react-parallax-tilt": "^1.7.70",

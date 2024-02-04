@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { LinkProps, SimpleLinkProps } from "@/lib/types";
 import { exceededLimitError } from "@/lib/api/errors";
+import { bulkCreateLinks } from "@/lib/api/links";
 
 // POST /api/links/sync – sync user's publicly created links to their accounts
 export const POST = withAuth(async ({ req, session, project }) => {
@@ -58,6 +59,7 @@ export const POST = withAuth(async ({ req, session, project }) => {
         publicStats: false,
       },
     }),
+    bulkCreateLinks(unclaimedLinks),
     prisma.project.update({
       where: {
         id: project.id,

@@ -48,12 +48,12 @@ const AddLinkOptions = () => {
       content={
         <div className="w-full divide-y divide-gray-200 md:w-52">
           <div className="p-2">
-            {slug && exceededLinks ? (
+            {exceededLinks ? (
               <Tooltip
                 content={
                   <TooltipContent
                     title="Your project has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
-                    cta="Upgrade"
+                    cta={`Upgrade to ${plan === "free" ? "Pro" : "Business"}`}
                     onClick={() => {
                       setOpenPopover(false);
                       queryParams({
@@ -98,12 +98,12 @@ const AddLinkOptions = () => {
                 />
               </button>
             )}
-            {slug && exceededLinks ? (
+            {exceededLinks ? (
               <Tooltip
                 content={
                   <TooltipContent
                     title="Your project has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
-                    cta="Upgrade to Pro"
+                    cta={`Upgrade to ${plan === "free" ? "Pro" : "Business"}`}
                     onClick={() => {
                       setOpenPopover(false);
                       queryParams({
@@ -148,12 +148,12 @@ const AddLinkOptions = () => {
                 />
               </button>
             )}
-            {slug && exceededLinks ? (
+            {exceededLinks ? (
               <Tooltip
                 content={
                   <TooltipContent
                     title="Your project has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
-                    cta="Upgrade to Pro"
+                    cta={`Upgrade to ${plan === "free" ? "Pro" : "Business"}`}
                     onClick={() => {
                       setOpenPopover(false);
                       queryParams({
@@ -225,7 +225,7 @@ const AddLinkOptions = () => {
     >
       <button
         onClick={() => setOpenPopover(!openPopover)}
-        className="group ml-2 flex items-center justify-between space-x-2 rounded-md border border-gray-200 bg-white p-2.5 shadow transition-all duration-75 active:scale-95"
+        className="group ml-2 flex items-center justify-between space-x-2 rounded-md border border-gray-200 bg-white p-2.5 shadow transition-all duration-75"
       >
         <ChevronDown
           className={`h-4 w-4 shrink-0 ${

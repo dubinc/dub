@@ -1,7 +1,7 @@
 import { withAdmin } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { DUB_DOMAINS } from "@dub/utils";
+import { DUB_DOMAINS, LEGAL_USER_ID } from "@dub/utils";
 
 // GET /api/links – get all user links
 export const GET = withAdmin(async ({ searchParams }) => {
@@ -39,8 +39,16 @@ export const GET = withAdmin(async ({ searchParams }) => {
           },
         ],
       }),
-      ...(tagId && { tagId }),
-      ...(userId && { userId }),
+      OR: [
+        {
+          userId: {
+            not: LEGAL_USER_ID,
+          },
+        },
+        {
+          userId: null,
+        },
+      ],
     },
     include: {
       user: true,

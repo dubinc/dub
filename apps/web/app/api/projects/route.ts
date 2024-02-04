@@ -2,12 +2,17 @@ import { NextResponse } from "next/server";
 import {
   addDomainToVercel,
   domainExists,
+  setRootDomain,
   validateDomain,
 } from "@/lib/api/domains";
 import { withSession } from "@/lib/auth";
 import { isReservedKey } from "@/lib/edge-config";
 import prisma from "@/lib/prisma";
-import { DEFAULT_REDIRECTS, validSlugRegex } from "@dub/utils";
+import {
+  DEFAULT_REDIRECTS,
+  FREE_PROJECTS_LIMIT,
+  validSlugRegex,
+} from "@dub/utils";
 
 // GET /api/projects - get all projects for the current user
 export const GET = withSession(async ({ session }) => {
@@ -80,9 +85,9 @@ export const POST = withSession(async ({ req, session }) => {
     },
   });
 
-  if (freeProjects >= 1) {
+  if (freeProjects >= FREE_PROJECTS_LIMIT) {
     return new Response(
-      "You can only create one free project. Additional projects require a paid plan.",
+      `You can only create up to ${FREE_PROJECTS_LIMIT} free projects. Additional projects require a paid plan.`,
       { status: 403 },
     );
   }
@@ -107,7 +112,7 @@ export const POST = withSession(async ({ req, session }) => {
       { status: 422 },
     );
   }
-  const response = await Promise.allSettled([
+  const response = await Promise.all([
     prisma.project.create({
       data: {
         name,
@@ -128,9 +133,18 @@ export const POST = withSession(async ({ req, session }) => {
         }),
         billingCycleStart: new Date().getDate(),
       },
+      include: {
+        domains: true,
+      },
     }),
     addDomainToVercel(domain),
   ]);
+
+  await setRootDomain({
+    id: response[0].domains[0].id,
+    domain,
+    projectId: response[0].id,
+  });
 
   return NextResponse.json(response);
 });

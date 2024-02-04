@@ -1,7 +1,7 @@
 import useProject from "@/lib/swr/use-project";
 import { UserProps } from "@/lib/types";
 import { BlurImage } from "@/ui/shared/blur-image";
-import { Avatar, Button, Logo, Modal } from "@dub/ui";
+import { Avatar, Button, Logo, Modal, useMediaQuery } from "@dub/ui";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -31,6 +31,7 @@ function RemoveTeammateModal({
   const { name: projectName, logo } = useProject();
   const { data: session } = useSession();
   const { id, name, email } = user;
+  const { isMobile } = useMediaQuery();
 
   return (
     <Modal
@@ -85,7 +86,7 @@ function RemoveTeammateModal({
         <Button
           text="Confirm"
           variant="danger"
-          autoFocus
+          autoFocus={!isMobile}
           loading={removing}
           onClick={() => {
             setRemoving(true);

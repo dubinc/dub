@@ -1,3 +1,4 @@
+import { bulkCreateLinks } from "@/lib/api/links";
 import { qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
@@ -165,47 +166,31 @@ export const importLinksFromRebrandly = async ({
   } else {
     const newLastLinkId = links[links.length - 1].id;
 
-    const pipeline = redis.pipeline();
-
     // convert links to format that can be imported into database
     const importedLinks = links
-      .map(({ title, slashtag, destination, tags, createdAt, updatedAt }) => {
-        pipeline.set(
-          `${domain}:${slashtag}`,
-          {
-            url: encodeURIComponent(destination),
-          },
-          {
-            nx: true,
-          },
-        );
+      .map(
+        ({ title, slashtag: key, destination, tags, createdAt, updatedAt }) => {
+          // if tagsToId is provided and tags array is not empty, get the tagId
+          const tagId =
+            tagsToId && tags.length > 0 ? tagsToId[tags[0].name] : null;
 
-        // if tagsToId is provided and tags array is not empty, get the tagId
-        const tagId =
-          tagsToId && tags.length > 0 ? tagsToId[tags[0].name] : null;
-
-        return {
-          projectId,
-          userId,
-          domain,
-          key: slashtag,
-          url: destination,
-          title,
-          createdAt,
-          updatedAt,
-          ...(tagId ? { tagId } : {}),
-        };
-      })
+          return {
+            projectId,
+            userId,
+            domain,
+            key,
+            url: destination,
+            title,
+            createdAt,
+            updatedAt,
+            ...(tagId ? { tagId } : {}),
+          };
+        },
+      )
       .filter(Boolean);
 
-    // import links into database
-    await Promise.all([
-      prisma.link.createMany({
-        data: importedLinks,
-        skipDuplicates: true,
-      }),
-      pipeline.exec(),
-    ]);
+    // bulk create links
+    await bulkCreateLinks(importedLinks);
 
     count += importedLinks.length;
 

@@ -54,7 +54,7 @@ export default function RewriteSection({
           fn={() => setEnabled(!enabled)}
           checked={enabled}
           // link cloaking is only available on Dub's Pro plan
-          {...(!plan || plan === "free"
+          {...((!plan || plan === "free") && !enabled
             ? {
                 disabledTooltip: (
                   <TooltipContent
