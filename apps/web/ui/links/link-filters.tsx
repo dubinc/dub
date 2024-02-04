@@ -147,7 +147,7 @@ export const SearchBox = ({ searchInputRef }) => {
 
   return (
     <div className="relative">
-      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
         {isValidating && searchInputRef.current?.value.length > 0 ? (
           <LoadingSpinner className="h-4 w-4" />
         ) : (
@@ -157,13 +157,24 @@ export const SearchBox = ({ searchInputRef }) => {
       <input
         ref={searchInputRef}
         type="text"
-        className="peer w-full rounded-md border border-gray-300 pl-10 text-black placeholder:text-gray-400 focus:border-black focus:ring-0 sm:text-sm"
+        className="peer w-full rounded-md border border-gray-300 px-10 text-black placeholder:text-gray-400 focus:border-black focus:ring-0 sm:text-sm"
         placeholder="Search..."
         defaultValue={searchParams?.get("search") || ""}
         onChange={(e) => {
           debounced(e.target.value);
         }}
       />
+      {searchInputRef.current?.value.length > 0 && (
+        <button
+          onClick={() => {
+            searchInputRef.current.value = "";
+            queryParams({ del: "search" });
+          }}
+          className="pointer-events-auto absolute inset-y-0 right-0 flex items-center pr-4"
+        >
+          <XCircle className="h-4 w-4 text-gray-600" />
+        </button>
+      )}
     </div>
   );
 };
