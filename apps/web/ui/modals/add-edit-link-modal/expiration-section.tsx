@@ -61,7 +61,7 @@ export default function ExpirationSection({
           fn={() => setEnabled(!enabled)}
           checked={enabled}
           // expiration date is only available on Dub's Pro plan
-          {...(!plan || plan === "free"
+          {...((!plan || plan === "free") && !enabled
             ? {
                 disabledTooltip: (
                   <TooltipContent

@@ -58,7 +58,7 @@ export default function AndroidSection({
           fn={() => setEnabled(!enabled)}
           checked={enabled}
           // Android targeting is only available on Dub's Pro plan
-          {...(!plan || plan === "free"
+          {...((!plan || plan === "free") && !enabled
             ? {
                 disabledTooltip: (
                   <TooltipContent

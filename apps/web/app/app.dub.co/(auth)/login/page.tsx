@@ -18,7 +18,7 @@ export default function LoginPage() {
           Sign in to {process.env.NEXT_PUBLIC_APP_NAME}
         </h3>
         <p className="text-sm text-gray-500">
-          Start creating short links with superpowers.
+          Start creating short links with superpowers
         </p>
       </div>
       <div className="flex flex-col space-y-3 bg-gray-50 px-4 py-8 sm:px-16">

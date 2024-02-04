@@ -3,6 +3,7 @@ import {
   capitalize,
   getDomainWithoutWWW,
   LOCALHOST_IP,
+  nanoid,
 } from "@dub/utils";
 import { ipAddress } from "@vercel/edge";
 import { NextRequest, userAgent } from "next/server";
@@ -19,13 +20,13 @@ export async function recordClick({
   id,
   domain,
   key,
-  projectId,
+  url,
 }: {
   req: NextRequest;
-  id?: string;
+  id: string;
   domain: string;
   key?: string;
-  projectId?: string;
+  url?: string;
 }) {
   const isBot = detectBot(req);
   if (isBot) {
@@ -35,15 +36,40 @@ export async function recordClick({
   const ua = userAgent(req);
   const referer = req.headers.get("referer");
   const ip = ipAddress(req) || LOCALHOST_IP;
-  // deduplicate clicks from the same IP, domain and key – only record 1 click per hour
-  const { success } = await ratelimit(2, "1 h").limit(
-    `recordClick:${ip}:${domain.toLowerCase()}:${
-      key?.toLowerCase() || "_root"
-    }`,
-  );
-  if (!success) {
-    return null;
+  // if in production / preview env, deduplicate clicks from the same IP, domain and key – only record 1 click per hour
+  if (process.env.VERCEL === "1") {
+    const { success } = await ratelimit(2, "1 h").limit(
+      `recordClick:${ip}:${domain.toLowerCase()}:${
+        key?.toLowerCase() || "_root"
+      }`,
+    );
+    if (!success) {
+      return null;
+    }
   }
+
+  const payload = {
+    timestamp: new Date(Date.now()).toISOString(),
+    country: geo?.country || "Unknown",
+    city: geo?.city || "Unknown",
+    region: geo?.region || "Unknown",
+    latitude: geo?.latitude || "Unknown",
+    longitude: geo?.longitude || "Unknown",
+    device: ua.device.type ? capitalize(ua.device.type) : "Desktop",
+    device_vendor: ua.device.vendor || "Unknown",
+    device_model: ua.device.model || "Unknown",
+    browser: ua.browser.name || "Unknown",
+    browser_version: ua.browser.version || "Unknown",
+    engine: ua.engine.name || "Unknown",
+    engine_version: ua.engine.version || "Unknown",
+    os: ua.os.name || "Unknown",
+    os_version: ua.os.version || "Unknown",
+    cpu_architecture: ua.cpu?.architecture || "Unknown",
+    ua: ua.ua || "Unknown",
+    bot: ua.isBot,
+    referer: referer ? getDomainWithoutWWW(referer) || "(direct)" : "(direct)",
+    referer_url: referer || "(direct)",
+  };
 
   return await Promise.allSettled([
     fetch(
@@ -54,30 +80,26 @@ export async function recordClick({
           Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
         },
         body: JSON.stringify({
-          timestamp: new Date(Date.now()).toISOString(),
+          ...payload,
           domain,
           key: key || "_root",
-          country: geo?.country || "Unknown",
-          city: geo?.city || "Unknown",
-          region: geo?.region || "Unknown",
-          latitude: geo?.latitude || "Unknown",
-          longitude: geo?.longitude || "Unknown",
-          ua: ua.ua || "Unknown",
-          browser: ua.browser.name || "Unknown",
-          browser_version: ua.browser.version || "Unknown",
-          engine: ua.engine.name || "Unknown",
-          engine_version: ua.engine.version || "Unknown",
-          os: ua.os.name || "Unknown",
-          os_version: ua.os.version || "Unknown",
-          device: ua.device.type ? capitalize(ua.device.type) : "Desktop",
-          device_vendor: ua.device.vendor || "Unknown",
-          device_model: ua.device.model || "Unknown",
-          cpu_architecture: ua.cpu?.architecture || "Unknown",
-          bot: ua.isBot,
-          referer: referer
-            ? getDomainWithoutWWW(referer) || "(direct)"
-            : "(direct)",
-          referer_url: referer || "(direct)",
+        }),
+      },
+    ).then((res) => res.json()),
+
+    fetch(
+      "https://api.us-east.tinybird.co/v0/events?name=dub_click_events&wait=true",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
+        },
+        body: JSON.stringify({
+          ...payload,
+          click_id: nanoid(16),
+          link_id: id,
+          alias_link_id: "",
+          url: url || "",
         }),
       },
     ).then((res) => res.json()),

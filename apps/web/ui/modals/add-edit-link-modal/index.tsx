@@ -186,7 +186,7 @@ function AddEditLinkModal({
         // if url is valid, continue to generate metatags, else return null
         new URL(debouncedUrl);
         setGeneratingMetatags(true);
-        fetch(`/api/edge/metatags?url=${debouncedUrl}`).then(async (res) => {
+        fetch(`/api/metatags?url=${debouncedUrl}`).then(async (res) => {
           if (res.status === 200) {
             const results = await res.json();
             setData((prev) => ({

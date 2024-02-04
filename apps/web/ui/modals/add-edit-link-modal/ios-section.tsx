@@ -56,7 +56,7 @@ export default function IOSSection({
           fn={() => setEnabled(!enabled)}
           checked={enabled}
           // iOS targeting is only available on Dub's Pro plan
-          {...(!plan || plan === "free"
+          {...((!plan || plan === "free") && !enabled
             ? {
                 disabledTooltip: (
                   <TooltipContent
