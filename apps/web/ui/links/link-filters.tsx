@@ -170,7 +170,7 @@ export const SearchBox = ({ searchInputRef }) => {
             searchInputRef.current.value = "";
             queryParams({ del: "search" });
           }}
-          className="pointer-events-auto absolute inset-y-0 right-0 flex items-center pr-4"
+          className="pointer-events-auto absolute inset-y-0 right-0 flex items-center pr-4 lg:hidden"
         >
           <XCircle className="h-4 w-4 text-gray-600" />
         </button>

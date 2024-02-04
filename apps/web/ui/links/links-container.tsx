@@ -25,17 +25,15 @@ export default function LinksContainer({
   return (
     <>
       <LinkFiltersModal />
-      <MaxWidthWrapper>
-        <div className="my-3 flex h-10 w-full justify-center lg:justify-end">
+      <MaxWidthWrapper className="flex flex-col space-y-3 py-3">
+        <div className="flex h-10 w-full justify-center lg:justify-end">
           <LinkFiltersButton />
           <Suspense>
             <LinkSort />
           </Suspense>
         </div>
         <div className="block lg:hidden">
-          <div className="mb-3">
-            <SearchBox searchInputRef={searchInputRef} />
-          </div>
+          <SearchBox searchInputRef={searchInputRef} />
         </div>
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-7">
           <div className="scrollbar-hide sticky top-32 col-span-2 hidden max-h-[calc(100vh-150px)] self-start overflow-auto rounded-lg border border-gray-100 bg-white shadow lg:block">
