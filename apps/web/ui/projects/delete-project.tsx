@@ -27,7 +27,7 @@ export default function DeleteProject() {
       </div>
       <div
         className={cn("border-b border-red-600", {
-          "border-gray-200": plan === "enterprise" && !isOwner,
+          "border-gray-200": !isOwner,
         })}
       />
 
@@ -37,10 +37,9 @@ export default function DeleteProject() {
             text="Delete Project"
             variant="danger"
             onClick={() => setShowDeleteProjectModal(true)}
-            {...(plan === "enterprise" &&
-              !isOwner && {
-                disabledTooltip: "Only project owners can delete a project.",
-              })}
+            {...(!isOwner && {
+              disabledTooltip: "Only project owners can delete a project.",
+            })}
           />
         </div>
       </div>
