@@ -60,7 +60,7 @@ const writeStreams: Record<string, fs.WriteStream> = {};
 
 async function main() {
   const links = createLinksMapFromFile("links-metadata.ndjson");
-  const csvStream = fs.createReadStream("all_clicks_data.csv", "utf-8");
+  const csvStream = fs.createReadStream("sql.csv", "utf-8");
 
   Papa.parse(csvStream, {
     header: true,
