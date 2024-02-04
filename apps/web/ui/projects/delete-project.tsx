@@ -13,7 +13,7 @@ export default function DeleteProject() {
   return (
     <div
       className={cn("rounded-lg border border-red-600 bg-white", {
-        "border-gray-200": plan === "enterprise" && !isOwner,
+        "border-gray-200": !isOwner,
       })}
     >
       <DeleteProjectModal />
