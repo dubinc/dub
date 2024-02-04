@@ -8,6 +8,7 @@ export * from "./domains";
 export * from "./fetch-with-timeout";
 export * from "./fetcher";
 export * from "./hash";
+export * from "./is-iframeable";
 export * from "./link-constructor";
 export * from "./log";
 export * from "./misc";

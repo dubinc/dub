@@ -1,5 +1,5 @@
 "use server";
-import prisma from "@/lib/prisma";
+import { getLinkViaEdge } from "@/lib/planetscale";
 import { linkConstructor } from "@dub/utils";
 import { redirect } from "next/navigation";
 
@@ -9,10 +9,7 @@ export async function verifyPassword(data: FormData) {
   const key = decodeURIComponent(rawKey);
   const password = data.get("password") as string;
 
-  const link = await prisma.link.findUnique({
-    where: { domain_key: { domain, key } },
-    select: { url: true, password: true },
-  });
+  const link = await getLinkViaEdge(domain, key);
   if (!link) {
     return { error: "Link not found" };
   }

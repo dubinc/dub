@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import {
   addDomainToVercel,
   domainExists,
+  setRootDomain,
   validateDomain,
 } from "@/lib/api/domains";
 import { withSession } from "@/lib/auth";
@@ -111,7 +112,7 @@ export const POST = withSession(async ({ req, session }) => {
       { status: 422 },
     );
   }
-  const response = await Promise.allSettled([
+  const [projectResponse, domainRepsonse] = await Promise.all([
     prisma.project.create({
       data: {
         name,
@@ -132,9 +133,22 @@ export const POST = withSession(async ({ req, session }) => {
         }),
         billingCycleStart: new Date().getDate(),
       },
+      include: {
+        domains: true,
+      },
     }),
-    addDomainToVercel(domain),
+    domain && addDomainToVercel(domain),
   ]);
 
-  return NextResponse.json(response);
+  // if domain is specified and it was successfully added to Vercel
+  // update it in Redis cache
+  if (domain && !domainRepsonse.error) {
+    await setRootDomain({
+      id: projectResponse.domains[0].id,
+      domain,
+      projectId: projectResponse.id,
+    });
+  }
+
+  return NextResponse.json(projectResponse);
 });

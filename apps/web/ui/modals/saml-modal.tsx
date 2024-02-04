@@ -1,7 +1,13 @@
 import useProject from "@/lib/swr/use-project";
 import useSAML from "@/lib/swr/use-saml";
 import { SAMLProviderProps } from "@/lib/types";
-import { Button, InfoTooltip, Modal, SimpleTooltipContent } from "@dub/ui";
+import {
+  Button,
+  InfoTooltip,
+  Modal,
+  SimpleTooltipContent,
+  useMediaQuery,
+} from "@dub/ui";
 import { HOME_DOMAIN, SAML_PROVIDERS } from "@dub/utils";
 import { Check, Lock, UploadCloud } from "lucide-react";
 import {
@@ -34,6 +40,8 @@ function SAMLModal({
 
   const [file, setFile] = useState<File | null>(null);
   const [fileContent, setFileContent] = useState("");
+
+  const { isMobile } = useMediaQuery();
 
   return (
     <Modal showModal={showSAMLModal} setShowModal={setShowSAMLModal}>
@@ -203,7 +211,7 @@ function SAMLModal({
                 <input
                   id="metadataUrl"
                   name="metadataUrl"
-                  autoFocus
+                  autoFocus={!isMobile}
                   type="url"
                   placeholder="https://"
                   autoComplete="off"

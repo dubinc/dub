@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@dub/utils";
+import { LucideIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Copy, Tick } from "./icons";
@@ -8,11 +9,14 @@ import { Copy, Tick } from "./icons";
 export function CopyButton({
   value,
   className,
+  icon,
 }: {
   value: string;
   className?: string;
+  icon?: LucideIcon;
 }) {
   const [copied, setCopied] = useState(false);
+  const Comp = icon || Copy;
   return (
     <button
       onClick={(e) => {
@@ -32,7 +36,7 @@ export function CopyButton({
       {copied ? (
         <Tick className="text-gray-700 transition-all group-hover:text-blue-800" />
       ) : (
-        <Copy className="text-gray-700 transition-all group-hover:text-blue-800" />
+        <Comp className="text-gray-700 transition-all group-hover:text-blue-800" />
       )}
     </button>
   );

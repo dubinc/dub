@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Google, InfoTooltip } from "@dub/ui";
+import { Button, Google, Github, InfoTooltip, useMediaQuery } from "@dub/ui";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -15,6 +15,7 @@ export default function LoginForm() {
   const [noSuchAccount, setNoSuchAccount] = useState(false);
   const [email, setEmail] = useState("");
   const [clickedGoogle, setClickedGoogle] = useState(false);
+  const [clickedGitub, setClickedGithub] = useState(false);
   const [clickedEmail, setClickedEmail] = useState(false);
   const [clickedSSO, setClickedSSO] = useState(false);
 
@@ -23,20 +24,36 @@ export default function LoginForm() {
     error && toast.error(error);
   }, [searchParams]);
 
+  const { isMobile } = useMediaQuery();
+
   return (
     <>
-      <Button
-        text="Continue with Google"
-        onClick={() => {
-          setClickedGoogle(true);
-          signIn("google", {
-            ...(next && next.length > 0 ? { callbackUrl: next } : {}),
-          });
-        }}
-        loading={clickedGoogle}
-        disabled={clickedEmail || clickedSSO}
-        icon={<Google className="h-4 w-4" />}
-      />
+      <div className="flex space-x-2">
+        <Button
+          variant="secondary"
+          onClick={() => {
+            setClickedGoogle(true);
+            signIn("google", {
+              ...(next && next.length > 0 ? { callbackUrl: next } : {}),
+            });
+          }}
+          loading={clickedGoogle}
+          disabled={clickedEmail || clickedSSO}
+          icon={<Google className="h-5 w-5" />}
+        />
+        <Button
+          variant="secondary"
+          onClick={() => {
+            setClickedGithub(true);
+            signIn("github", {
+              ...(next && next.length > 0 ? { callbackUrl: next } : {}),
+            });
+          }}
+          loading={clickedGitub}
+          disabled={clickedEmail || clickedSSO}
+          icon={<Github className="h-5 w-5 text-black" />}
+        />
+      </div>
       <form
         onSubmit={async (e) => {
           e.preventDefault();
@@ -81,7 +98,7 @@ export default function LoginForm() {
             <input
               id="email"
               name="email"
-              autoFocus
+              autoFocus={!isMobile}
               type="email"
               placeholder="panic@thedis.co"
               autoComplete="email"
@@ -146,7 +163,7 @@ export default function LoginForm() {
             <input
               id="slug"
               name="slug"
-              autoFocus
+              autoFocus={!isMobile}
               type="text"
               placeholder="my-team"
               autoComplete="off"
@@ -187,7 +204,6 @@ export default function LoginForm() {
           >
             Sign up
           </Link>
-          .
         </p>
       )}
     </>

@@ -5,7 +5,7 @@ import {
   isReservedUsername,
 } from "@/lib/edge-config";
 import prisma from "@/lib/prisma";
-import { redis } from "@/lib/upstash";
+import { formatRedisLink, redis } from "@/lib/upstash";
 import {
   DEFAULT_REDIRECTS,
   DUB_DOMAINS,
@@ -20,8 +20,7 @@ import {
   validKeyRegex,
 } from "@dub/utils";
 import cloudinary from "cloudinary";
-import { isIframeable } from "../middleware/utils";
-import { LinkProps, ProjectProps } from "../types";
+import { LinkProps, ProjectProps, RedisLinkProps } from "../types";
 import { Session } from "../auth";
 import { getLinkViaEdge } from "../planetscale";
 
@@ -74,13 +73,17 @@ export async function getLinksForProject({
     }),
   });
 
-  return links.map((link) => ({
-    ...link,
-    shortLink: linkConstructor({
+  return links.map((link) => {
+    const shortLink = linkConstructor({
       domain: link.domain,
       key: link.key,
-    }),
-  }));
+    });
+    return {
+      ...link,
+      shortLink,
+      qrCode: `https://api.dub.co/qr?url=${shortLink}`,
+    };
+  });
 }
 
 export async function getLinksCount({
@@ -221,6 +224,7 @@ export async function processLink({
     url,
     image,
     proxy,
+    password,
     rewrite,
     expiresAt,
     ios,
@@ -247,11 +251,11 @@ export async function processLink({
 
   // free plan restrictions
   if (!project || project.plan === "free") {
-    if (proxy || rewrite || expiresAt || ios || android || geo) {
+    if (proxy || password || rewrite || expiresAt || ios || android || geo) {
       return {
         link: payload,
         error:
-          "You can only use link cloaking, custom social media cards, link expiration, device and geo targeting on a Pro plan and above. Upgrade to Pro to use these features.",
+          "You can only use custom social media cards, password-protection, link cloaking, link expiration, device and geo targeting on a Pro plan and above. Upgrade to Pro to use these features.",
         status: 403,
       };
     }
@@ -373,8 +377,9 @@ export async function processLink({
     }
   }
 
-  // remove shortLink attribute from payload since it's a polyfill
+  // remove shortLink & qrCode attributes from payload since it's a polyfill
   delete payload["shortLink"];
+  delete payload["qrCode"];
 
   return {
     link: {
@@ -395,22 +400,8 @@ export async function processLink({
 }
 
 export async function addLink(link: LinkProps) {
-  const {
-    domain,
-    key,
-    url,
-    expiresAt,
-    password,
-    title,
-    description,
-    image,
-    proxy,
-    rewrite,
-    ios,
-    android,
-    geo,
-  } = link;
-  const hasPassword = password && password.length > 0 ? true : false;
+  const { domain, key, url, expiresAt, title, description, image, proxy, geo } =
+    link;
   const uploadedImage = image && image.startsWith("data:image") ? true : false;
 
   const exists = await checkIfKeyExists(domain, key);
@@ -419,43 +410,22 @@ export async function addLink(link: LinkProps) {
   const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
     getParamsFromURL(url);
 
-  let [response, _] = await Promise.all([
-    prisma.link.create({
-      data: {
-        ...link,
-        key,
-        title: truncate(title, 120),
-        description: truncate(description, 240),
-        image: uploadedImage ? undefined : image,
-        utm_source,
-        utm_medium,
-        utm_campaign,
-        utm_term,
-        utm_content,
-        expiresAt: expiresAt ? new Date(expiresAt) : null,
-        geo: geo || undefined,
-      },
-    }),
-    redis.set(
-      `${domain}:${key}`,
-      {
-        url: encodeURIComponent(url),
-        password: hasPassword,
-        proxy,
-        ...(rewrite && {
-          rewrite: true,
-          iframeable: await isIframeable({ url, requestDomain: domain }),
-        }),
-        ...(expiresAt && { expiresAt }),
-        ...(ios && { ios }),
-        ...(android && { android }),
-        ...(geo && { geo }),
-      },
-      {
-        nx: true,
-      },
-    ),
-  ]);
+  let response = await prisma.link.create({
+    data: {
+      ...link,
+      key,
+      title: truncate(title, 120),
+      description: truncate(description, 240),
+      image: uploadedImage ? undefined : image,
+      utm_source,
+      utm_medium,
+      utm_campaign,
+      utm_term,
+      utm_content,
+      expiresAt: expiresAt ? new Date(expiresAt) : null,
+      geo: geo || undefined,
+    },
+  });
 
   if (proxy && image) {
     const { secure_url } = await cloudinary.v2.uploader.upload(image, {
@@ -473,57 +443,41 @@ export async function addLink(link: LinkProps) {
       },
     });
   }
+  const shortLink = linkConstructor({
+    domain: response.domain,
+    key: response.key,
+  });
   return {
     ...response,
-    shortLink: linkConstructor({
-      domain: response.domain,
-      key: response.key,
-    }),
+    shortLink,
+    qrCode: `https://api.dub.co/qr?url=${shortLink}`,
   };
 }
 
 export async function bulkCreateLinks(links: LinkProps[]) {
   if (links.length === 0) return [];
-  const pipeline = redis.pipeline();
-  links.forEach(({ domain, key, url, password, expiresAt }) => {
-    const hasPassword = password && password.length > 0 ? true : false;
-    pipeline.set(
-      `${domain}:${key}`,
-      {
-        url: encodeURIComponent(url),
-        password: hasPassword,
-        ...(expiresAt && { expiresAt }),
-      },
-      {
-        nx: true,
-      },
-    );
+
+  await prisma.link.createMany({
+    data: links.map((link) => {
+      const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
+        getParamsFromURL(link.url);
+      return {
+        ...link,
+        title: truncate(link.title, 120),
+        description: truncate(link.description, 240),
+        utm_source,
+        utm_medium,
+        utm_campaign,
+        utm_term,
+        utm_content,
+        expiresAt: link.expiresAt ? new Date(link.expiresAt) : null,
+        geo: link.geo || undefined,
+      };
+    }),
+    skipDuplicates: true,
   });
 
-  await Promise.all([
-    prisma.link.createMany({
-      data: links.map((link) => {
-        const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
-          getParamsFromURL(link.url);
-        return {
-          ...link,
-          title: truncate(link.title, 120),
-          description: truncate(link.description, 240),
-          utm_source,
-          utm_medium,
-          utm_campaign,
-          utm_term,
-          utm_content,
-          expiresAt: link.expiresAt ? new Date(link.expiresAt) : null,
-          geo: link.geo || undefined,
-        };
-      }),
-      skipDuplicates: true,
-    }),
-    pipeline.exec(),
-  ]);
-
-  const createdLinks = await Promise.all(
+  const createdLinks = (await Promise.all(
     links.map(async (link) => {
       const { key, domain } = link;
       return await prisma.link.findUnique({
@@ -535,15 +489,44 @@ export async function bulkCreateLinks(links: LinkProps[]) {
         },
       });
     }),
+  )) as LinkProps[];
+
+  const pipeline = redis.pipeline();
+
+  // split links into domains
+  const linksByDomain: Record<string, Record<string, RedisLinkProps>> = {};
+
+  // this technically will be a synchronous function since isIframeable won't be run for bulk link creation
+  await Promise.all(
+    createdLinks.map(async (link) => {
+      const { domain, key } = link;
+
+      if (!linksByDomain[domain]) {
+        linksByDomain[domain] = {};
+      }
+      const formattedLink = await formatRedisLink(link);
+
+      linksByDomain[domain][key.toLowerCase()] = formattedLink;
+    }),
   );
 
-  return createdLinks.map((link) => ({
-    ...link,
-    shortLink: linkConstructor({
-      domain: link?.domain,
-      key: link?.key,
-    }),
-  }));
+  Object.entries(linksByDomain).forEach(([domain, links]) => {
+    pipeline.hset(domain, links);
+  });
+
+  await pipeline.exec();
+
+  return createdLinks.map((link) => {
+    const shortLink = linkConstructor({
+      domain: link.domain,
+      key: link.key,
+    });
+    return {
+      ...link,
+      shortLink,
+      qrCode: `https://api.dub.co/qr?url=${shortLink}`,
+    };
+  });
 }
 
 export async function editLink({
@@ -561,17 +544,12 @@ export async function editLink({
     key,
     url,
     expiresAt,
-    password,
     title,
     description,
     image,
     proxy,
-    rewrite,
-    ios,
-    android,
     geo,
   } = updatedLink;
-  const hasPassword = password && password.length > 0 ? true : false;
   const changedKey = key.toLowerCase() !== oldKey.toLowerCase();
   const changedDomain = domain !== oldDomain;
   const uploadedImage = image && image.startsWith("data:image") ? true : false;
@@ -617,18 +595,8 @@ export async function editLink({
       : cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
           invalidate: true,
         }),
-    redis.set(`${domain}:${key}`, {
-      url: encodeURIComponent(url),
-      password: hasPassword,
-      proxy,
-      ...(rewrite && {
-        rewrite: true,
-        iframeable: await isIframeable({ url, requestDomain: domain }),
-      }),
-      ...(expiresAt && { expiresAt }),
-      ...(ios && { ios }),
-      ...(android && { android }),
-      ...(geo && { geo }),
+    redis.hset(domain, {
+      [key.toLowerCase()]: await formatRedisLink(updatedLink),
     }),
     // if key is changed: rename resource in Cloudinary, delete the old key in Redis and change the clicks key name
     ...(changedDomain || changedKey
@@ -638,7 +606,7 @@ export async function editLink({
               invalidate: true,
             })
             .catch(() => {}),
-          redis.del(`${oldDomain}:${oldKey}`),
+          redis.hdel(oldDomain, oldKey.toLowerCase()),
         ]
       : []),
   ]);
@@ -655,12 +623,15 @@ export async function editLink({
     });
   }
 
+  const shortLink = linkConstructor({
+    domain: response.domain,
+    key: response.key,
+  });
+
   return {
     ...response,
-    shortLink: linkConstructor({
-      domain: response.domain,
-      key: response.key,
-    }),
+    shortLink,
+    qrCode: `https://api.dub.co/qr?url=${shortLink}`,
   };
 }
 
@@ -685,7 +656,7 @@ export async function deleteLink({
     cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
       invalidate: true,
     }),
-    redis.del(`${domain}:${key}`),
+    redis.hdel(domain, key.toLowerCase()),
     projectId &&
       prisma.project.update({
         where: {

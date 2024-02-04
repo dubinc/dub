@@ -1,7 +1,6 @@
 import useProject from "@/lib/swr/use-project";
-import { BlurImage } from "@/ui/shared/blur-image";
-import { Button, Logo, Modal } from "@dub/ui";
-import { GOOGLE_FAVICON_URL, cn } from "@dub/utils";
+import { Button, Logo, Modal, useMediaQuery } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { useParams, useRouter } from "next/navigation";
 import {
   Dispatch,
@@ -22,7 +21,7 @@ function DeleteProjectModal({
 }) {
   const router = useRouter();
   const { slug } = useParams() as { slug: string };
-  const { id, logo, plan, isOwner } = useProject();
+  const { plan, isOwner } = useProject();
 
   const [deleting, setDeleting] = useState(false);
 
@@ -47,6 +46,8 @@ function DeleteProjectModal({
       });
     });
   }
+
+  const { isMobile } = useMediaQuery();
 
   return (
     <Modal
@@ -87,15 +88,14 @@ function DeleteProjectModal({
               type="text"
               name="project-slug"
               id="project-slug"
-              autoFocus={false}
+              autoFocus={!isMobile}
               autoComplete="off"
               pattern={slug}
-              disabled={plan === "enterprise" && !isOwner}
+              disabled={!isOwner}
               className={cn(
                 "block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
                 {
-                  "cursor-not-allowed bg-gray-100":
-                    plan === "enterprise" && !isOwner,
+                  "cursor-not-allowed bg-gray-100": !isOwner,
                 },
               )}
             />
@@ -117,14 +117,12 @@ function DeleteProjectModal({
               id="verification"
               pattern="confirm delete project"
               required
-              autoFocus={false}
               autoComplete="off"
-              disabled={plan === "enterprise" && !isOwner}
+              disabled={!isOwner}
               className={cn(
                 "block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
                 {
-                  "cursor-not-allowed bg-gray-100":
-                    plan === "enterprise" && !isOwner,
+                  "cursor-not-allowed bg-gray-100": !isOwner,
                 },
               )}
             />
@@ -135,10 +133,9 @@ function DeleteProjectModal({
           text="Confirm delete project"
           variant="danger"
           loading={deleting}
-          {...(plan === "enterprise" &&
-            !isOwner && {
-              disabledTooltip: "Only project owners can delete a project.",
-            })}
+          {...(!isOwner && {
+            disabledTooltip: "Only project owners can delete a project.",
+          })}
         />
       </form>
     </Modal>

@@ -12,6 +12,7 @@ import {
   NumberTooltip,
   Popover,
   Switch,
+  useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
 import {
@@ -411,6 +412,8 @@ const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
     });
   };
 
+  const { isMobile } = useMediaQuery();
+
   return processing ? (
     <div className="flex h-6 items-center justify-center">
       <LoadingCircle />
@@ -434,7 +437,7 @@ const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
               </div>
               <input
                 type="text"
-                autoFocus
+                autoFocus={!isMobile}
                 required
                 onKeyDown={(e) => {
                   // if ESC key pressed, close popover

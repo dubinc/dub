@@ -305,10 +305,8 @@ export const withAuth =
       }
     }
 
-    // project role checks (enterprise only)
+    // project role checks
     if (
-      requiredRole &&
-      project.plan === "enterprise" &&
       !requiredRole.includes(project.users[0].role) &&
       !(allowSelf && searchParams.userId === session.user.id)
     ) {

@@ -33,9 +33,20 @@ export async function deleteProject(
     }),
   ]);
 
+  const linksByDomain: Record<string, string[]> = {};
+  defaultDomainLinks.forEach(async (link) => {
+    const { domain, key } = link;
+
+    if (!linksByDomain[domain]) {
+      linksByDomain[domain] = [];
+    }
+    linksByDomain[domain].push(key.toLowerCase());
+  });
+
   const pipeline = redis.pipeline();
-  defaultDomainLinks.forEach(({ domain, key }) => {
-    pipeline.del(`${domain}:${key}`);
+
+  Object.entries(linksByDomain).forEach(([domain, links]) => {
+    pipeline.hdel(domain, ...links);
   });
 
   // delete all domains, links, and uploaded images associated with the project
@@ -46,7 +57,8 @@ export async function deleteProject(
         skipPrismaDelete: true,
       }),
     ),
-    pipeline.exec(), // delete all default domain links from redis
+    // delete all default domain links from redis
+    pipeline.exec(),
     // remove all images from cloudinary
     ...defaultDomainLinks.map(({ domain, key, proxy }) =>
       proxy
