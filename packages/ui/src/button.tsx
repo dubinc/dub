@@ -1,3 +1,5 @@
+"use client";
+
 import { cn } from "@dub/utils";
 import type { ReactNode } from "react";
 import { LoadingSpinner } from "./icons";

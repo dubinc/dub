@@ -4,6 +4,7 @@ import { useAddProjectModal } from "@/ui/modals/add-project-modal";
 import { useUpgradePlanModal } from "@/ui/modals/upgrade-plan-modal";
 import Interim from "@/ui/welcome/interim";
 import Intro from "@/ui/welcome/intro";
+import { Background } from "@dub/ui";
 import va from "@vercel/analytics";
 import { AnimatePresence } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
@@ -39,7 +40,8 @@ export default function WelcomePageClient() {
   }, [searchParams]);
 
   return (
-    <>
+    <div className="flex h-screen flex-col items-center">
+      <Background />
       <AddProjectModal />
       <UpgradePlanModal />
       <AnimatePresence mode="wait">
@@ -59,6 +61,6 @@ export default function WelcomePageClient() {
           </>
         )}
       </AnimatePresence>
-      </>
+    </div>
   );
 }

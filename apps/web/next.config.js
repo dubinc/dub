@@ -18,7 +18,6 @@ module.exports = {
     useDeploymentId: true,
     useDeploymentIdServerActions: true,
   },
-  transpilePackages: ["@dub/ui"],
   webpack: (config, { webpack, isServer }) => {
     if (isServer) {
       config.plugins.push(

@@ -1,5 +1,3 @@
-"use client";
-
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export default function useRouterStuff() {
