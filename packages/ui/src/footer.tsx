@@ -1,3 +1,4 @@
+/* eslint-disable import/no-named-as-default-member -- proper use of va.track*/
 "use client";
 
 import { ALL_TOOLS } from "@dub/utils";
@@ -32,10 +33,11 @@ const navigation = {
   })),
 };
 
-export function Footer() {
+export function Footer(): JSX.Element {
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- this assertion is needed or build failes
   const { domain = "dub.co" } = useParams() as { domain: string };
 
-  const createHref = (href: string) =>
+  const createHref = (href: string): string =>
     domain === "dub.co" ? href : `https://dub.co${href}`;
 
   return (
@@ -65,30 +67,30 @@ export function Footer() {
             </p>
             <div className="flex items-center space-x-2">
               <a
-                href="https://twitter.com/dubdotco"
-                target="_blank"
-                rel="noreferrer"
                 className="group rounded-md p-2 transition-colors hover:bg-gray-100 active:bg-gray-200"
+                href="https://twitter.com/dubdotco"
+                rel="noreferrer"
+                target="_blank"
               >
                 <span className="sr-only">Twitter</span>
                 <Twitter className="h-5 w-5 text-gray-600" />
               </a>
               <div className="h-8 border-l border-gray-200" />
               <a
-                href="https://github.com/dubinc/dub"
-                target="_blank"
-                rel="noreferrer"
                 className="rounded-md p-2 transition-colors hover:bg-gray-100 active:bg-gray-200"
+                href="https://github.com/dubinc/dub"
+                rel="noreferrer"
+                target="_blank"
               >
                 <span className="sr-only">Github</span>
                 <Github className="h-5 w-5 text-gray-600" />
               </a>
               <div className="h-8 border-l border-gray-200" />
               <a
-                href="https://www.linkedin.com/company/dubinc/"
-                target="_blank"
-                rel="noreferrer"
                 className="rounded-md p-2 transition-colors hover:bg-gray-100 active:bg-gray-200"
+                href="https://www.linkedin.com/company/dubinc/"
+                rel="noreferrer"
+                target="_blank"
               >
                 <span className="sr-only">LinkedIn</span>
                 <LinkedIn className="h-5 w-5" fill="#52525B" />
@@ -101,7 +103,7 @@ export function Footer() {
                 <h3 className="text-sm font-semibold text-gray-900">
                   Features
                 </h3>
-                <ul role="list" className="mt-4 space-y-4">
+                <ul className="mt-4 space-y-4">
                   {navigation.features.map((item) => (
                     <li key={item.name}>
                       <Link
@@ -124,7 +126,7 @@ export function Footer() {
               </div>
               <div className="mt-10 md:mt-0">
                 <h3 className="text-sm font-semibold text-gray-600">Product</h3>
-                <ul role="list" className="mt-4 space-y-4">
+                <ul className="mt-4 space-y-4">
                   {navigation.product.map((item) => (
                     <li key={item.name}>
                       <Link
@@ -149,7 +151,7 @@ export function Footer() {
             <div className="md:grid md:grid-cols-2">
               <div>
                 <h3 className="text-sm font-semibold text-gray-600">Legal</h3>
-                <ul role="list" className="mt-4 space-y-4">
+                <ul className="mt-4 space-y-4">
                   {navigation.legal.map((item) => (
                     <li key={item.name}>
                       <Link
@@ -173,7 +175,7 @@ export function Footer() {
 
               <div className="mt-10 md:mt-0">
                 <h3 className="text-sm font-semibold text-gray-600">Tools</h3>
-                <ul role="list" className="mt-4 space-y-4">
+                <ul className="mt-4 space-y-4">
                   {navigation.tools.map((item) => (
                     <li key={item.name}>
                       <Link

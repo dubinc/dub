@@ -18,6 +18,7 @@ export function TabSelect({
           } rounded-md px-2 py-1 text-sm font-medium capitalize transition-all duration-75 active:scale-95 sm:px-3`}
           key={option}
           onClick={() => { selectAction(option); }}
+          type="button"
         >
           {option}
         </button>

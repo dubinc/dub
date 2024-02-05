@@ -10,7 +10,7 @@ import { FEATURES_LIST } from "./content";
 import { navItems } from "./nav";
 
 export function NavMobile(): JSX.Element {
-  const { domain = "dub.co" } = useParams() ;
+  const { domain = "dub.co" } = useParams();
   const [open, setOpen] = useState(false);
   const [openFeatures, setOpenFeatures] = useState(false);
   // prevent body scroll when modal is open
@@ -37,7 +37,10 @@ export function NavMobile(): JSX.Element {
           "fixed right-3 top-3 z-40 rounded-full p-2 transition-colors duration-200 hover:bg-gray-200 focus:outline-none active:bg-gray-300 lg:hidden",
           open && "hover:bg-gray-100 active:bg-gray-200",
         )}
-        onClick={() => { setOpen(!open); }}
+        onClick={() => {
+          setOpen(!open);
+        }}
+        type="button"
       >
         {open ? (
           <X className="h-5 w-5 text-gray-600" />
@@ -55,7 +58,10 @@ export function NavMobile(): JSX.Element {
           <li className="py-3">
             <button
               className="flex w-full justify-between"
-              onClick={() => { setOpenFeatures(!openFeatures); }}
+              onClick={() => {
+                setOpenFeatures(!openFeatures);
+              }}
+              type="button"
             >
               <p className="font-semibold">Features</p>
               <ChevronDown
@@ -65,7 +71,8 @@ export function NavMobile(): JSX.Element {
                 )}
               />
             </button>
-            {openFeatures ? <div className="grid gap-4 overflow-hidden py-4">
+            {openFeatures ? (
+              <div className="grid gap-4 overflow-hidden py-4">
                 {FEATURES_LIST.map(({ slug, icon: Icon, shortTitle }) => (
                   <Link
                     className="flex w-full space-x-2"
@@ -75,13 +82,16 @@ export function NavMobile(): JSX.Element {
                         : `https://dub.co/${slug}`
                     }
                     key={slug}
-                    onClick={() => { setOpen(false); }}
+                    onClick={() => {
+                      setOpen(false);
+                    }}
                   >
                     <Icon className="h-5 w-5 text-gray-500" />
                     <span className="text-sm">{shortTitle}</span>
                   </Link>
                 ))}
-              </div> : null}
+              </div>
+            ) : null}
           </li>
           {navItems.map(({ name, slug }) => (
             <li className="py-3" key={slug}>
@@ -90,7 +100,9 @@ export function NavMobile(): JSX.Element {
                 href={
                   domain === "dub.co" ? `/${slug}` : `https://dub.co/${slug}`
                 }
-                onClick={() => { setOpen(false); }}
+                onClick={() => {
+                  setOpen(false);
+                }}
               >
                 {name}
               </Link>

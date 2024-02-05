@@ -36,7 +36,7 @@ export function Avatar({
   );
 }
 
-export function TokenAvatar({ id }: { id: string }) {
+export function TokenAvatar({ id }: { id: string }): JSX.Element {
   return (
     <img
       alt="avatar"

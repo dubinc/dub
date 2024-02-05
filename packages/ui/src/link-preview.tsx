@@ -55,11 +55,11 @@ export function LinkPreview({
             id="url"
             name="url"
             onChange={(e) =>
-              router.replace(
+              { router.replace(
                 `/tools/metatags${
                   e.target.value.length > 0 ? `?url=${e.target.value}` : ""
                 }`,
-              )
+              ); }
             }
             placeholder="Enter your URL"
             ref={inputRef}

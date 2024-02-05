@@ -36,6 +36,7 @@ function ToastWithUndo({
       <button
         className="rounded border border-black bg-black px-2 py-1 text-xs font-normal text-white transition-all duration-75 active:scale-95"
         onClick={undoAndDismiss}
+        type="submit"
       >
         Undo
       </button>
@@ -54,7 +55,7 @@ export default function useToastWithUndo() {
     message: string;
     undo: () => void;
     duration?: number;
-  }) => {
+  }): string | number => {
     return toast(<ToastWithUndo id={id} message={message} undo={undo} />, {
       id,
       ...(duration && { duration }),

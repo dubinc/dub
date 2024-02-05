@@ -26,7 +26,7 @@ export function Modal({
 }): JSX.Element {
   const router = useRouter();
 
-  const closeModal = ({ dragged }: { dragged?: boolean } = {}) => {
+  const closeModal = ({ dragged }: { dragged?: boolean } = {}): void => {
     if (preventDefaultClose && !dragged) {
       return;
     }

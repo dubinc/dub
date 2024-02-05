@@ -11,7 +11,7 @@ export default function useRouterStuff() {
     opts?: {
       ignore?: string[];
     },
-  ) => {
+  ): string => {
     const newParams = new URLSearchParams(searchParams);
     if (kv) {
       Object.entries(kv).forEach(([k, v]) => { newParams.set(k, v); });

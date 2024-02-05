@@ -1,3 +1,4 @@
+/* eslint-disable import/no-named-as-default-member -- va.track is proper usage*/
 "use client";
 
 import { APP_DOMAIN, HIDE_BACKGROUND_SEGMENTS, cn, fetcher } from "@dub/utils";
@@ -35,7 +36,8 @@ export const navItems = [
   },
 ];
 
-export function Nav() {
+export function Nav(): JSX.Element {
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- this assertion is needed or build failes
   const { domain = "dub.co" } = useParams() as { domain: string };
   const scrolled = useScroll(80);
   const selectedLayout = useSelectedLayoutSegment();
@@ -80,16 +82,16 @@ export function Nav() {
               <div className="flex items-center">
                 <div className="mr-3 h-5 border-l-2 border-gray-400" />
                 <Link
-                  href="/help"
                   className="font-display text-lg font-bold text-gray-700"
+                  href="/help"
                 >
                   Help Center
                 </Link>
               </div>
             ) : (
               <NavigationMenuPrimitive.Root
-                delayDuration={0}
                 className="relative hidden lg:block"
+                delayDuration={0}
               >
                 <NavigationMenuPrimitive.List className="flex flex-row space-x-2 p-4">
                   <NavigationMenuPrimitive.Item>
@@ -112,12 +114,12 @@ export function Nav() {
                         {FEATURES_LIST.map(
                           ({ slug, icon: Icon, title, shortTitle }) => (
                             <Link
-                              key={slug}
                               href={
                                 domain === "dub.co"
                                   ? `/${slug}`
                                   : `https://dub.co/${slug}`
                               }
+                              key={slug}
                               {...(domain !== "dub.co" && {
                                 onClick: () => {
                                   va.track("Referred from custom domain", {
@@ -145,15 +147,15 @@ export function Nav() {
                   </NavigationMenuPrimitive.Item>
 
                   {navItems.map(({ name, slug }) => (
-                    <NavigationMenuPrimitive.Item key={slug} asChild>
+                    <NavigationMenuPrimitive.Item asChild key={slug}>
                       <Link
-                        id={`nav-${slug}`}
-                        key={slug}
                         href={
                           domain === "dub.co"
                             ? `/${slug}`
                             : `https://dub.co/${slug}`
                         }
+                        id={`nav-${slug}`}
+                        key={slug}
                         {...(domain !== "dub.co" && {
                           onClick: () => {
                             va.track("Referred from custom domain", {
@@ -183,8 +185,8 @@ export function Nav() {
           <div className="hidden lg:block">
             {session && Object.keys(session).length > 0 ? (
               <Link
-                href={APP_DOMAIN}
                 className="animate-fade-in rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
+                href={APP_DOMAIN}
               >
                 Dashboard
               </Link>

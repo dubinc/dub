@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@dub/utils";
-import { LucideIcon } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Copy, Tick } from "./icons";
@@ -31,6 +31,7 @@ export function CopyButton({
         });
         setTimeout(() => { setCopied(false); }, 3000);
       }}
+      type="button"
     >
       <span className="sr-only">Copy</span>
       {copied ? (
