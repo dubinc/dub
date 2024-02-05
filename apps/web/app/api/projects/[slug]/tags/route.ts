@@ -78,10 +78,7 @@ export const POST = withAuth(async ({ req, project, headers }) => {
       },
     });
 
-    return NextResponse.json<{ data: Tag }>(
-      { data: response },
-      { headers, status: 201 },
-    );
+    return NextResponse.json(response, { headers, status: 201 });
   } catch (err) {
     const { error, status } = handleApiError(err);
     return NextResponse.json<ErrorResponse>({ error }, { headers, status });
