@@ -22,7 +22,7 @@ export const getSearchParams = (url: string): Record<string, string> => {
   // Create a params object
   const params = {} as Record<string, string>;
 
-  new URL(url).searchParams.forEach(function (val, key) {
+  new URL(url).searchParams.forEach((val, key) => {
     params[key] = val;
   });
 
