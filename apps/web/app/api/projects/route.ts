@@ -39,7 +39,7 @@ export const GET = withSession(async ({ session }) => {
         },
       },
     });
-    return NextResponse.json<{ data: Project[] }>({ data: projects });
+    return NextResponse.json(projects);
   } catch (err) {
     const { error, status } = handleApiError(err);
     return NextResponse.json<ErrorResponse>({ error }, { status });

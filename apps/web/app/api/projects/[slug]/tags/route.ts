@@ -22,7 +22,7 @@ export const GET = withAuth(async ({ project, headers }) => {
         name: "asc",
       },
     });
-    return NextResponse.json<{ data: Tag[] }>({ data: tags }, { headers });
+    return NextResponse.json(tags, { headers });
   } catch (err) {
     const { error, status } = handleApiError(err);
     return NextResponse.json<ErrorResponse>({ error }, { headers, status });
