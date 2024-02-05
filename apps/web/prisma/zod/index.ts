@@ -58,7 +58,7 @@ export const TransactionIsolationLevelSchema = z.enum(['ReadUncommitted','ReadCo
 
 export const UserScalarFieldEnumSchema = z.enum(['id','name','email','emailVerified','image','createdAt']);
 
-export const AccountScalarFieldEnumSchema = z.enum(['id','userId','type','provider','providerAccountId','refresh_token','access_token','expires_at','token_type','scope','id_token','session_state']);
+export const AccountScalarFieldEnumSchema = z.enum(['id','userId','type','provider','providerAccountId','refresh_token','refresh_token_expires_in','access_token','expires_at','token_type','scope','id_token','session_state']);
 
 export const SessionScalarFieldEnumSchema = z.enum(['id','sessionToken','userId','expires']);
 
@@ -158,6 +158,7 @@ export const AccountSchema = z.object({
   provider: z.string(),
   providerAccountId: z.string(),
   refresh_token: z.string().nullable(),
+  refresh_token_expires_in: z.number().int().nullable(),
   access_token: z.string().nullable(),
   expires_at: z.number().int().nullable(),
   token_type: z.string().nullable(),
