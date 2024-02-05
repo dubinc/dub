@@ -14,6 +14,7 @@ import useProject from "@/lib/swr/use-project";
 import { ChevronDown, FilePlus2, Sheet } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import Image from "next/image";
 
 export default function ProjectLinksClient() {
   const { AddEditLinkModal, AddEditLinkButton } = useAddEditLinkModal();
@@ -69,7 +70,7 @@ const AddLinkOptions = () => {
                   <IconMenu
                     text="Import from Bitly"
                     icon={
-                      <img
+                      <Image
                         src="/_static/icons/bitly.svg"
                         alt="Bitly logo"
                         className="h-4 w-4 rounded-full grayscale"
@@ -89,7 +90,7 @@ const AddLinkOptions = () => {
                 <IconMenu
                   text="Import from Bitly"
                   icon={
-                    <img
+                    <Image
                       src="/_static/icons/bitly.svg"
                       alt="Bitly logo"
                       className="h-4 w-4"
@@ -119,7 +120,7 @@ const AddLinkOptions = () => {
                   <IconMenu
                     text="Import from Rebrandly"
                     icon={
-                      <img
+                      <Image
                         src="/_static/icons/rebrandly.svg"
                         alt="Rebrandly logo"
                         className="h-4 w-4 grayscale"
@@ -139,7 +140,7 @@ const AddLinkOptions = () => {
                 <IconMenu
                   text="Import from Rebrandly"
                   icon={
-                    <img
+                    <Image
                       src="/_static/icons/rebrandly.svg"
                       alt="Rebrandly logo"
                       className="h-4 w-4"
@@ -169,7 +170,7 @@ const AddLinkOptions = () => {
                   <IconMenu
                     text="Import from Short.io"
                     icon={
-                      <img
+                      <Image
                         src="/_static/icons/short.svg"
                         alt="Short.io logo"
                         className="h-4 w-4 grayscale"
@@ -189,7 +190,7 @@ const AddLinkOptions = () => {
                 <IconMenu
                   text="Import from Short.io"
                   icon={
-                    <img
+                    <Image
                       src="/_static/icons/short.svg"
                       alt="Short.io logo"
                       className="h-4 w-4"
@@ -198,7 +199,7 @@ const AddLinkOptions = () => {
                 />
               </button>
             )}
-            <Tooltip content="This feature is still in development – we'll let you know when it's ready!">
+            <Tooltip content="This feature is still in development – we'll let you know when it's ready!">
               <div className="flex w-full cursor-not-allowed items-center justify-between space-x-2 rounded-md p-2 text-sm text-gray-400">
                 <IconMenu
                   text="Import from CSV"
@@ -208,7 +209,7 @@ const AddLinkOptions = () => {
             </Tooltip>
           </div>
           <div className="p-2">
-            <Tooltip content="This feature is still in development – we'll let you know when it's ready!">
+            <Tooltip content="This feature is still in development – we'll let you know when it's ready!">
               <div className="flex w-full cursor-not-allowed items-center justify-between space-x-2 rounded-md p-2 text-sm text-gray-400">
                 <IconMenu
                   text="Bulk create links"

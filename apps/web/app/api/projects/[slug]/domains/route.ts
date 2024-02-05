@@ -8,7 +8,7 @@ import {
 } from "@/lib/api/domains";
 import { exceededLimitError } from "@/lib/api/errors";
 
-// GET /api/projects/[slug]/domains – get all domains for a project
+// GET /api/projects/[slug]/domains – get all domains for a project
 export const GET = withAuth(async ({ project }) => {
   const domains = await prisma.domain.findMany({
     where: {

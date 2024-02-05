@@ -2,7 +2,7 @@ import { withSession } from "@/lib/auth";
 import { domainExists } from "@/lib/api/domains";
 import { NextResponse } from "next/server";
 
-// GET /api/domains/[domain]/exists – check if a domain exists
+// GET /api/domains/[domain]/exists – check if a domain exists
 export const GET = withSession(async ({ params }) => {
   const { domain } = params;
 

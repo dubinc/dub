@@ -3,7 +3,7 @@ import { withAuth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import { exceededLimitError } from "@/lib/api/errors";
 
-// POST /api/links/bulk – bulk create up to 100 links
+// POST /api/links/bulk – bulk create up to 100 links
 export const POST = withAuth(
   async ({ req, headers, session, project }) => {
     if (!project) {

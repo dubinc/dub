@@ -3,13 +3,12 @@
 import useProject from "@/lib/swr/use-project";
 import { Button } from "@dub/ui";
 import { UploadCloud } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import Image from "next/image";
 
 export default function UploadLogo() {
-  const router = useRouter();
   const { slug, logo } = useProject();
 
   const [image, setImage] = useState<string | null>();
@@ -138,7 +137,7 @@ export default function UploadLogo() {
               />
             </div>
             {image && (
-              <img
+              <Image
                 src={image}
                 alt="Preview"
                 className="h-full w-full rounded-full object-cover"

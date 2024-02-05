@@ -137,7 +137,7 @@ function ImportShortModal({
                 {
                   loading: "Adding links to import queue...",
                   success:
-                    "Successfully added links to import queue! You can now safely navigate from this tab – we will send you an email when your links have been fully imported.",
+                    "Successfully added links to import queue! You can now safely navigate from this tab – we will send you an email when your links have been fully imported.",
                   error: "Error adding links to import queue",
                 },
               );

@@ -185,7 +185,7 @@ model Link {
   expiresAt DateTime? // when the link expires – stored on Redis via ttl
   password  String? // password to access the link
 
-  proxy       Boolean @default(false) // Proxy to use custom OG tags (stored on redis) – if false, will use OG tags from target url
+  proxy       Boolean @default(false) // Proxy to use custom OG tags (stored on redis) – if false, will use OG tags from target url
   title       String? // OG title for the link (e.g. Dub.co - Open-Source Link Management Infrastructure)
   description String? @db.VarChar(280) // OG description for the link (e.g. An open-source link management tool for modern marketing teams to create, share, and track short links.)
   image       String? @db.LongText // OG image for the link (e.g. https://dub.sh/og-image.png)

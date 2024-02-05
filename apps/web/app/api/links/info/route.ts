@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 import { linkConstructor } from "@dub/utils";
 import { NextResponse } from "next/server";
 
-// GET /api/links/info – get the info for a link
+// GET /api/links/info – get the info for a link
 export const GET = withAuth(async ({ headers, searchParams }) => {
   const { domain, key } = searchParams;
   if (!domain || !key) {

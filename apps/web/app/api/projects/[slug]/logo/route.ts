@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 import cloudinary from "cloudinary";
 import { NextResponse } from "next/server";
 
-// POST /api/projects/[slug]/logo – upload a new project logo
+// POST /api/projects/[slug]/logo – upload a new project logo
 export const POST = withAuth(
   async ({ req, project }) => {
     const { image } = await req.json();

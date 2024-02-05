@@ -9,7 +9,7 @@ import {
 import { formatRedisLink, redis } from "@/lib/upstash";
 import { get } from "@vercel/edge-config";
 
-// DELETE /api/admin/links/[linkId]/ban – ban a link
+// DELETE /api/admin/links/[linkId]/ban – ban a link
 export const DELETE = withAdmin(async ({ params }) => {
   const { linkId } = params as { linkId: string };
 

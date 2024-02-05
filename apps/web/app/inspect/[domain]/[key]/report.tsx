@@ -13,6 +13,7 @@ export default function ReportButton({ link }: { link: string }) {
       onClick={() => {
         setOpening(true);
         // @ts-ignore
+        // eslint-disable-next-line no-undef
         window.Tally?.openPopup("mJpe4J", {
           width: 540,
           hiddenFields: {

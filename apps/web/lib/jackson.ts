@@ -1,3 +1,4 @@
+/* eslint-disable no-undef -- throws over globalThis all over the file*/
 import type {
   IConnectionAPIController,
   IDirectorySyncController,

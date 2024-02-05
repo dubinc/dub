@@ -4,7 +4,7 @@ import { redis } from "@/lib/upstash";
 import cloudinary from "cloudinary";
 import { NextResponse } from "next/server";
 
-// GET /api/user – get a specific user
+// GET /api/user – get a specific user
 export const GET = withSession(async ({ session }) => {
   const migratedProject = await redis.hget(
     "migrated_links_users",
@@ -17,7 +17,7 @@ export const GET = withSession(async ({ session }) => {
   });
 });
 
-// PUT /api/user – edit a specific user
+// PUT /api/user – edit a specific user
 export const PUT = withSession(async ({ req, session }) => {
   let { name, email, image } = await req.json();
   try {
@@ -50,7 +50,7 @@ export const PUT = withSession(async ({ req, session }) => {
   }
 });
 
-// DELETE /api/user – delete a specific user
+// DELETE /api/user – delete a specific user
 export const DELETE = withSession(async ({ session }) => {
   const userIsOwnerOfProjects = await prisma.projectUsers.findMany({
     where: {

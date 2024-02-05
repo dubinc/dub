@@ -34,7 +34,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
     response: any;
   }>(
     slug &&
-      !showLinkQRModal && // Don't fetch if QR modal is open – it'll cause it to re-render
+      !showLinkQRModal && // Don't fetch if QR modal is open – it'll cause it to re-render
       `/api/projects/${slug}/domains/${domain}/verify`,
     fetcher,
     {

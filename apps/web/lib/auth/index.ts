@@ -64,9 +64,9 @@ export const withAuth =
       requiredRole = ["owner", "member"],
       needNotExceededClicks, // if the action needs the user to not have exceeded their clicks usage
       needNotExceededLinks, // if the action needs the user to not have exceeded their links usage
-      allowAnonymous, // special case for /api/links (POST /api/links) – allow no session
+      allowAnonymous, // special case for /api/links (POST /api/links) – allow no session
       allowSelf, // special case for removing yourself from a project
-      skipLinkChecks, // special case for /api/links/exists – skip link checks
+      skipLinkChecks, // special case for /api/links/exists – skip link checks
     }: {
       requiredPlan?: Array<PlanProps>;
       requiredRole?: Array<"owner" | "member">;

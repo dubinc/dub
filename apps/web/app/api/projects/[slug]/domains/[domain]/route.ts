@@ -12,7 +12,7 @@ import {
 import { NextResponse } from "next/server";
 import { DUB_PROJECT_ID, isDubDomain } from "@dub/utils";
 
-// GET /api/projects/[slug]/domains/[domain] – get a project's domain
+// GET /api/projects/[slug]/domains/[domain] – get a project's domain
 export const GET = withAuth(async ({ domain, project }) => {
   if (isDubDomain(domain) && project.id !== DUB_PROJECT_ID) {
     return new Response("Domain does not belong to project.", {
@@ -43,7 +43,7 @@ export const GET = withAuth(async ({ domain, project }) => {
   });
 });
 
-// PUT /api/projects/[slug]/domains/[domain] – edit a project's domain
+// PUT /api/projects/[slug]/domains/[domain] – edit a project's domain
 export const PUT = withAuth(async ({ req, project, domain }) => {
   const {
     slug: newDomain,

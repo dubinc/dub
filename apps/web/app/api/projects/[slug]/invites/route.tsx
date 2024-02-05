@@ -4,7 +4,7 @@ import { inviteUser } from "@/lib/api/users";
 import prisma from "@/lib/prisma";
 import { exceededLimitError } from "@/lib/api/errors";
 
-// GET /api/projects/[slug]/invites – get invites for a specific project
+// GET /api/projects/[slug]/invites – get invites for a specific project
 export const GET = withAuth(async ({ project }) => {
   const invites = await prisma.projectInvite.findMany({
     where: {
@@ -77,7 +77,7 @@ export const POST = withAuth(
   },
 );
 
-// DELETE /api/projects/[slug]/invites – delete a pending invite
+// DELETE /api/projects/[slug]/invites – delete a pending invite
 export const DELETE = withAuth(
   async ({ searchParams, project }) => {
     const { email } = searchParams;

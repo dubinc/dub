@@ -2,7 +2,7 @@ import { withSession } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-// POST /api/projects/[slug]/invites/accept – accept a project invite
+// POST /api/projects/[slug]/invites/accept – accept a project invite
 export const POST = withSession(async ({ session, params }) => {
   const invite = await prisma.projectInvite.findFirst({
     where: {

@@ -36,7 +36,7 @@ export async function recordClick({
   const ua = userAgent(req);
   const referer = req.headers.get("referer");
   const ip = ipAddress(req) || LOCALHOST_IP;
-  // if in production / preview env, deduplicate clicks from the same IP, domain and key – only record 1 click per hour
+  // if in production / preview env, deduplicate clicks from the same IP, domain and key – only record 1 click per hour
   if (process.env.VERCEL === "1") {
     const { success } = await ratelimit(2, "1 h").limit(
       `recordClick:${ip}:${domain.toLowerCase()}:${

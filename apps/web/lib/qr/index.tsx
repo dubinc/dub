@@ -90,6 +90,7 @@ export function QRCodeCanvas(props: QRPropsCanvas) {
       // matches the number of cells. This avoids rounding issues, but does
       // result in some potentially unwanted single pixel issues between
       // blocks, only in environments that don't support Path2D.
+      // eslint-disable-next-line no-undef
       const pixelRatio = window.devicePixelRatio || 1;
       canvas.height = canvas.width = size * pixelRatio;
       const scale = (size / numCells) * pixelRatio;
@@ -267,6 +268,7 @@ export async function getQRAsCanvas(
     }
   }
 
+  // eslint-disable-next-line no-undef
   const pixelRatio = window.devicePixelRatio || 1;
   canvas.height = canvas.width = size * pixelRatio;
   const scale = (size / numCells) * pixelRatio;

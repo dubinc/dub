@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import jackson, { samlAudience } from "@/lib/jackson";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 
-// GET /api/projects/[slug]/saml – get SAML connections for a specific project
+// GET /api/projects/[slug]/saml – get SAML connections for a specific project
 export const GET = withAuth(async ({ project }) => {
   const { apiController } = await jackson();
 
@@ -24,7 +24,7 @@ export const GET = withAuth(async ({ project }) => {
   return NextResponse.json(response);
 });
 
-// POST /api/projects/[slug]/saml – create a new SAML connection
+// POST /api/projects/[slug]/saml – create a new SAML connection
 export const POST = withAuth(
   async ({ req, project }) => {
     const { metadataUrl, encodedRawMetadata } = await req.json();
@@ -52,7 +52,7 @@ export const POST = withAuth(
   },
 );
 
-// DELETE /api/projects/[slug]/saml – delete all SAML connections
+// DELETE /api/projects/[slug]/saml – delete all SAML connections
 
 export const DELETE = withAuth(
   async ({ searchParams }) => {

@@ -6,6 +6,7 @@ import { useContext, useState } from "react";
 import useSWR from "swr";
 import { StatsContext } from ".";
 import BarList from "./bar-list";
+import Image from "next/image";
 
 export default function Locations() {
   const [tab, setTab] = useState<LocationTabs>("country");
@@ -26,7 +27,7 @@ export default function Locations() {
       data={
         data?.map((d) => ({
           icon: (
-            <img
+            <Image
               alt={d.country}
               src={`https://flag.vercel.app/m/${d.country}.svg`}
               className="h-3 w-5"

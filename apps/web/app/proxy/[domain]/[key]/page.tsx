@@ -7,6 +7,7 @@ import {
 } from "@dub/utils";
 import { unescape } from "html-escaper";
 import { notFound, redirect } from "next/navigation";
+import Image from "next/image";
 
 export const runtime = "edge";
 
@@ -59,7 +60,7 @@ export default async function ProxyPage({
   return (
     <main className="flex h-screen w-screen items-center justify-center">
       <div className="mx-5 w-full max-w-lg overflow-hidden rounded-lg border border-gray-200 sm:mx-0">
-        <img
+        <Image
           src={data.image}
           alt={unescape(data.title || "")}
           className="w-full object-cover"

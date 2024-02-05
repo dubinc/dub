@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge, Copy, Tick } from "@dub/ui";
-import { capitalize, cn, nFormatter } from "@dub/utils";
+import { capitalize, nFormatter } from "@dub/utils";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Globe } from "lucide-react";

@@ -3,7 +3,7 @@
 import { deleteProject } from "@/lib/api/projects";
 import { getSession, hashToken } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { DUB_DOMAINS, DUB_PROJECT_ID, getDomainWithoutWWW } from "@dub/utils";
+import { DUB_DOMAINS, DUB_PROJECT_ID } from "@dub/utils";
 import { randomBytes } from "crypto";
 import cloudinary from "cloudinary";
 import { get } from "@vercel/edge-config";

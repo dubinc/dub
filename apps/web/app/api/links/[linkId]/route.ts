@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { qstash } from "@/lib/cron";
 
-// GET /api/links/[linkId] – get a link
+// GET /api/links/[linkId] – get a link
 export const GET = withAuth(async ({ headers, link }) => {
   // link is guaranteed to exist because if not we will return 404
   return NextResponse.json(link!, {
@@ -12,7 +12,7 @@ export const GET = withAuth(async ({ headers, link }) => {
   });
 });
 
-// PUT /api/links/[linkId] – update a link
+// PUT /api/links/[linkId] – update a link
 export const PUT = withAuth(async ({ req, headers, project, link }) => {
   let body;
   try {
@@ -81,7 +81,7 @@ export const PUT = withAuth(async ({ req, headers, project, link }) => {
   });
 });
 
-// DELETE /api/links/[linkId] – delete a link
+// DELETE /api/links/[linkId] – delete a link
 export const DELETE = withAuth(async ({ headers, link, project }) => {
   // link is guaranteed to exist because if not we will return 404
   const response = await deleteLink({

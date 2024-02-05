@@ -2,7 +2,7 @@ import { withAuth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-// GET /api/projects/[slug]/users – get users for a specific project
+// GET /api/projects/[slug]/users – get users for a specific project
 export const GET = withAuth(async ({ project }) => {
   const users = await prisma.projectUsers.findMany({
     where: {
@@ -29,7 +29,7 @@ export const GET = withAuth(async ({ project }) => {
   );
 });
 
-// PUT /api/projects/[slug]/users – update a user's role for a specific project
+// PUT /api/projects/[slug]/users – update a user's role for a specific project
 export const PUT = withAuth(
   async ({ req, project }) => {
     const { userId, role } = await req.json();
@@ -54,7 +54,7 @@ export const PUT = withAuth(
   },
 );
 
-// DELETE /api/projects/[slug]/users – remove a user from a project
+// DELETE /api/projects/[slug]/users – remove a user from a project
 
 export const DELETE = withAuth(
   async ({ searchParams, project }) => {

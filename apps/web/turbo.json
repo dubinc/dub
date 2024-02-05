@@ -8,6 +8,7 @@
         "VERCEL_ENV",
         "VERCEL",
         "VERCEL_URL",
+        "EDGE_CONFIG_ID",
         "NODE_ENV",
         "NEXTAUTH_SECRET",
         "NEXTAUTH_URL",
@@ -28,6 +29,7 @@
         "QSTASH_NEXT_SIGNING_KEY",
         "RESEND_API_KEY",
         "RESEND_AUDIENCE_ID",
+        "STRIPE_WEBHOOK_SECRET",
         "STRIPE_SECRET_KEY",
         "STRIPE_SECRET_KEY_LIVE",
         "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
@@ -37,6 +39,7 @@
         "GITHUB_CLIENT_ID",
         "GITHUB_CLIENT_SECRET",
         "NEXT_PUBLIC_BITLY_REDIRECT_URI",
+        "NEXT_PUBLIC_BITLY_CLIENT_ID",
         "BITLY_CLIENT_SECRET",
         "UNSPLASH_ACCESS_KEY",
         "CLOUDINARY_URL"

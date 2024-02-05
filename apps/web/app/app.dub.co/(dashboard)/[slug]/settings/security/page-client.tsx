@@ -12,6 +12,7 @@ import { Button, IconMenu, Popover, TooltipContent } from "@dub/ui";
 import { HOME_DOMAIN, SAML_PROVIDERS } from "@dub/utils";
 import { FolderSync, Lock, ShieldOff } from "lucide-react";
 import { useMemo, useState } from "react";
+import Image from "next/image";
 
 export default function ProjectSecurityClient() {
   return (
@@ -38,7 +39,7 @@ const SAMLSection = () => {
     } else if (configured) {
       return {
         logo: (
-          <img
+          <Image
             src={SAML_PROVIDERS.find((p) => p.name === provider)!.logo}
             alt={provider + " logo"}
             className="h-8 w-8"
@@ -182,7 +183,7 @@ const SCIMSection = () => {
     } else if (configured) {
       return {
         logo: (
-          <img
+          <Image
             src={SAML_PROVIDERS.find((p) => p.scim === provider)!.logo}
             alt={`${provider} logo`}
             className="h-8 w-8"

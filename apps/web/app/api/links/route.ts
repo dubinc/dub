@@ -5,7 +5,7 @@ import { ratelimit } from "@/lib/upstash";
 import { APP_DOMAIN_WITH_NGROK, LOCALHOST_IP } from "@dub/utils";
 import { NextResponse } from "next/server";
 
-// GET /api/links – get all user links
+// GET /api/links – get all user links
 export const GET = withAuth(async ({ headers, searchParams, project }) => {
   const { domain, tagId, search, sort, page, userId, showArchived } =
     searchParams as {
@@ -32,7 +32,7 @@ export const GET = withAuth(async ({ headers, searchParams, project }) => {
   });
 });
 
-// POST /api/links – create a new link
+// POST /api/links – create a new link
 export const POST = withAuth(
   async ({ req, headers, session, project }) => {
     let body;

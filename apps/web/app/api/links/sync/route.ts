@@ -5,7 +5,7 @@ import { LinkProps, SimpleLinkProps } from "@/lib/types";
 import { exceededLimitError } from "@/lib/api/errors";
 import { bulkCreateLinks } from "@/lib/api/links";
 
-// POST /api/links/sync – sync user's publicly created links to their accounts
+// POST /api/links/sync – sync user's publicly created links to their accounts
 export const POST = withAuth(async ({ req, session, project }) => {
   let links: SimpleLinkProps[] = [];
   try {

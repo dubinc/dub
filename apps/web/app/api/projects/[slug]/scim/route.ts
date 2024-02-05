@@ -2,7 +2,7 @@ import { withAuth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import jackson from "@/lib/jackson";
 
-// GET /api/projects/[slug]/scim – get all SCIM directories
+// GET /api/projects/[slug]/scim – get all SCIM directories
 export const GET = withAuth(async ({ project }) => {
   const { directorySyncController } = await jackson();
 
@@ -20,7 +20,7 @@ export const GET = withAuth(async ({ project }) => {
   });
 });
 
-// POST /api/projects/[slug]/scim – create a new SCIM directory
+// POST /api/projects/[slug]/scim – create a new SCIM directory
 export const POST = withAuth(
   async ({ req, project }) => {
     const { provider = "okta-scim-v2", currentDirectoryId } = await req.json();
@@ -46,7 +46,7 @@ export const POST = withAuth(
   },
 );
 
-// DELETE /api/projects/[slug]/scim – delete a SCIM directory
+// DELETE /api/projects/[slug]/scim – delete a SCIM directory
 
 export const DELETE = withAuth(
   async ({ searchParams }) => {

@@ -5,12 +5,12 @@ import { deleteProject } from "@/lib/api/projects";
 import { DEFAULT_REDIRECTS, validSlugRegex } from "@dub/utils";
 import { isReservedKey } from "@/lib/edge-config";
 
-// GET /api/projects/[slug] – get a specific project
+// GET /api/projects/[slug] – get a specific project
 export const GET = withAuth(async ({ project, headers }) => {
   return NextResponse.json(project, { headers });
 });
 
-// PUT /api/projects/[slug] – update a specific project
+// PUT /api/projects/[slug] – update a specific project
 export const PUT = withAuth(
   async ({ req, project }) => {
     const { name, slug, defaultDomains } = await req.json();
@@ -62,7 +62,7 @@ export const PUT = withAuth(
   },
 );
 
-// DELETE /api/projects/[slug] – delete a specific project
+// DELETE /api/projects/[slug] – delete a specific project
 export const DELETE = withAuth(
   async ({ project }) => {
     const response = await deleteProject(project);

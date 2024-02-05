@@ -106,7 +106,7 @@ export default function RebrandEmail({
               ◆ <strong>Link comments</strong> - Leave comments on your links
             </Text>
             <Text className="ml-1 text-sm leading-6 text-black">
-              ◆ <strong>Link Cloaking</strong> – Mask your destination URL
+              ◆ <strong>Link Cloaking</strong> – Mask your destination URL
             </Text>
             <Text className="ml-1 text-sm leading-6 text-black">
               ◆ <strong>Custom QR Codes</strong> – Available on the Pro plan

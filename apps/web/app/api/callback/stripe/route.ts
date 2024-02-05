@@ -14,7 +14,7 @@ const relevantEvents = new Set([
   "customer.subscription.deleted",
 ]);
 
-// POST /api/callback/stripe – listen to Stripe webhooks
+// POST /api/callback/stripe – listen to Stripe webhooks
 export const POST = async (req: Request) => {
   const buf = await req.text();
   const sig = req.headers.get("Stripe-Signature") as string;

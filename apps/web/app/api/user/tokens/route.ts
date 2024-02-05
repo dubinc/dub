@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 import { nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 
-// GET /api/user/tokens – get all tokens for a specific user
+// GET /api/user/tokens – get all tokens for a specific user
 export const GET = withSession(async ({ session }) => {
   const tokens = await prisma.token.findMany({
     where: {
@@ -28,7 +28,7 @@ export const GET = withSession(async ({ session }) => {
   return NextResponse.json(tokens);
 });
 
-// POST /api/user/tokens – create a new token for a specific user
+// POST /api/user/tokens – create a new token for a specific user
 export const POST = withSession(async ({ req, session }) => {
   const { name } = await req.json();
   const token = nanoid(24);
@@ -48,7 +48,7 @@ export const POST = withSession(async ({ req, session }) => {
   return NextResponse.json({ token });
 });
 
-// DELETE /api/user/tokens – delete a token for a specific user
+// DELETE /api/user/tokens – delete a token for a specific user
 export const DELETE = withSession(async ({ searchParams, session }) => {
   const { id } = searchParams;
   const response = await prisma.token.delete({

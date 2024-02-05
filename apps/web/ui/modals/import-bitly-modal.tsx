@@ -22,6 +22,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
+import Image from "next/image";
 
 function ImportBitlyModal({
   showImportBitlyModal,
@@ -94,7 +95,7 @@ function ImportBitlyModal({
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-8 sm:px-16">
         <div className="flex items-center space-x-3 py-4">
-          <img
+          <Image
             src="/_static/icons/bitly.svg"
             alt="Bitly logo"
             className="h-10 w-10 rounded-full"
@@ -142,7 +143,7 @@ function ImportBitlyModal({
                 {
                   loading: "Adding links to import queue...",
                   success:
-                    "Successfully added links to import queue! You can now safely navigate from this tab – we will send you an email when your links have been fully imported.",
+                    "Successfully added links to import queue! You can now safely navigate from this tab – we will send you an email when your links have been fully imported.",
                   error: "Error adding links to import queue",
                 },
               );
@@ -238,7 +239,7 @@ function ImportBitlyModal({
               variant="secondary"
               loading={redirecting}
               icon={
-                <img
+                <Image
                   src="/_static/icons/bitly.svg"
                   alt="Bitly logo"
                   className="h-5 w-5 rounded-full border border-gray-200"

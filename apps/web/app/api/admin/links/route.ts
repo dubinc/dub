@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { DUB_DOMAINS, LEGAL_USER_ID } from "@dub/utils";
 
-// GET /api/links – get all user links
+// GET /api/links – get all user links
 export const GET = withAdmin(async ({ searchParams }) => {
   const {
     domain,

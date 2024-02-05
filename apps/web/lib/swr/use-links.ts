@@ -12,6 +12,7 @@ export default function useLinks() {
 
   const [admin, setAdmin] = useState(false);
   useEffect(() => {
+    // eslint-disable-next-line no-undef
     if (window.location.host.startsWith("admin.")) {
       setAdmin(true);
     }
