@@ -50,7 +50,7 @@ export default function TagsSection({
       if (res.ok) {
         await mutate(`/api/projects/${slug}/tags`);
         const newTag = await res.json();
-        setData({ ...data, tagId: newTag.data.id });
+        setData({ ...data, tagId: newTag.id });
         toast.success(`Successfully created tag!`);
         setCreatingTag(false);
       } else {

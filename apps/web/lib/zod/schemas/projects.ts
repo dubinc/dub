@@ -61,9 +61,7 @@ export const getProjects: ZodOpenApiOperationObject = {
       description: "The projects were retrieved",
       content: {
         "application/json": {
-          schema: z.object({
-            data: z.array(ProjectSchemaOpenApi),
-          }),
+          schema: z.array(ProjectSchemaOpenApi),
         },
       },
     },
