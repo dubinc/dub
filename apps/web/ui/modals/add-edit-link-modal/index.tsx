@@ -387,8 +387,6 @@ function AddEditLinkModal({
                     } else if (error.toLowerCase().includes("url")) {
                       setUrlError(error);
                     }
-                  } else {
-                    toast.error(await res.text());
                   }
                 }
                 setSaving(false);
