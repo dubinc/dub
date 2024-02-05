@@ -3,6 +3,10 @@ import { Link, Tag } from "@prisma/client";
 
 export type LinkProps = Link;
 
+export interface LinkWithTagsProps extends LinkProps {
+  tags: TagProps[];
+}
+
 export interface LinkWithTagIdsProps extends LinkProps {
   tagIds?: string[];
 }

@@ -1,6 +1,6 @@
 import useDomains from "@/lib/swr/use-domains";
 import useProject from "@/lib/swr/use-project";
-import { TagProps, UserProps } from "@/lib/types";
+import { LinkWithTagsProps, UserProps } from "@/lib/types";
 import TagBadge from "@/ui/links/tag-badge";
 import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
 import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
@@ -51,8 +51,7 @@ import { toast } from "sonner";
 export default function LinkCard({
   props,
 }: {
-  props: LinkProps & {
-    tags: TagProps[];
+  props: LinkWithTagsProps & {
     user: UserProps;
   };
 }) {

@@ -230,6 +230,8 @@ export const DEFAULT_LINK_PROPS = {
   userId: "",
 
   proxy: false,
+
+  tags: [] as any,
 };
 
 export const SAML_PROVIDERS = [

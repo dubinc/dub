@@ -52,6 +52,7 @@ import Preview from "./preview";
 import RewriteSection from "./rewrite-section";
 import UTMSection from "./utm-section";
 import TagsSection from "./tags-section";
+import { LinkWithTagsProps } from "@/lib/types";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
@@ -62,8 +63,8 @@ function AddEditLinkModal({
 }: {
   showAddEditLinkModal: boolean;
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
-  props?: LinkProps;
-  duplicateProps?: LinkProps;
+  props?: LinkWithTagsProps;
+  duplicateProps?: LinkWithTagsProps;
   homepageDemo?: boolean;
 }) {
   const params = useParams() as { slug?: string };
@@ -82,10 +83,10 @@ function AddEditLinkModal({
     defaultDomains,
   } = useDomains();
 
-  const [data, setData] = useState<LinkProps>(
+  const [data, setData] = useState<LinkWithTagsProps>(
     props ||
       duplicateProps || {
-        ...(DEFAULT_LINK_PROPS as LinkProps),
+        ...(DEFAULT_LINK_PROPS as LinkWithTagsProps),
         domain: primaryDomain,
         key: "",
         url: "",
@@ -344,13 +345,18 @@ function AddEditLinkModal({
               e.preventDefault();
               setSaving(true);
               // @ts-ignore – exclude the extra `user` attribute from `data` object before sending to API
-              const { user, ...rest } = data;
+              const { user, tags, ...rest } = data;
+              const bodyData = {
+                ...rest,
+                // Map tags to tagIds
+                tagIds: tags.map(({ id }) => id),
+              };
               fetch(endpoint.url, {
                 method: endpoint.method,
                 headers: {
                   "Content-Type": "application/json",
                 },
-                body: JSON.stringify(rest),
+                body: JSON.stringify(bodyData),
               }).then(async (res) => {
                 if (res.status === 200) {
                   await mutate(
@@ -701,8 +707,8 @@ export function useAddEditLinkModal({
   duplicateProps,
   homepageDemo,
 }: {
-  props?: LinkProps;
-  duplicateProps?: LinkProps;
+  props?: LinkWithTagsProps;
+  duplicateProps?: LinkWithTagsProps;
   homepageDemo?: boolean;
 } = {}) {
   const [showAddEditLinkModal, setShowAddEditLinkModal] = useState(false);

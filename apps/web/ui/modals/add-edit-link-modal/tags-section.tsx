@@ -1,19 +1,12 @@
 import useTags from "@/lib/swr/use-tags";
+import { LinkWithTagsProps } from "@/lib/types";
 import TagBadge from "@/ui/links/tag-badge";
 import { LoadingCircle, SimpleTooltipContent, Tooltip } from "@dub/ui";
 import { HOME_DOMAIN } from "@dub/utils";
-import { type Link as LinkProps } from "@prisma/client";
 import { Command, useCommandState } from "cmdk";
 import { Check, ChevronDown, Tag, X } from "lucide-react";
 import { useParams } from "next/navigation";
-import {
-  Dispatch,
-  SetStateAction,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
@@ -21,18 +14,12 @@ export default function TagsSection({
   data,
   setData,
 }: {
-  data: LinkProps;
-  setData: Dispatch<SetStateAction<LinkProps>>;
+  data: LinkWithTagsProps;
+  setData: Dispatch<SetStateAction<LinkWithTagsProps>>;
 }) {
   const { slug } = useParams() as { slug?: string };
-  const { tagId } = data;
-  const { tags } = useTags();
-
-  const selectedTag = useMemo(() => {
-    if (tagId) {
-      return tags?.find((tag) => tag.id === tagId);
-    }
-  }, [tagId, tags]);
+  const { tags: availableTags } = useTags();
+  const tags = data.tags;
 
   const [inputValue, setInputValue] = useState("");
   const [creatingTag, setCreatingTag] = useState(false);
@@ -78,7 +65,7 @@ export default function TagsSection({
     const isEmpty = useCommandState((state) => state.filtered.count === 0);
     return (
       <Command.Input
-        placeholder="Choose a tag"
+        placeholder="Select tags..."
         // hack to focus on the input when the dropdown opens
         autoFocus={openCommandList}
         // when focus on the input. only show the dropdown if there are tags and the tagValue is not empty
@@ -124,16 +111,16 @@ export default function TagsSection({
               </Tooltip>
             )}
           </div>
-          <div className="flex h-9 px-8">
-            {selectedTag ? (
-              <TagBadge key={selectedTag.id} {...selectedTag} />
-            ) : (
-              <CommandInput />
-            )}
-            {selectedTag ? (
+          <div className="flex h-9 gap-1.5 px-8">
+            {tags.map((tag) => (
+              <TagBadge key={tag.id} {...tag} />
+            ))}
+            <CommandInput />
+            {tags.length ? (
               <button
+                type="button"
                 onClick={() => {
-                  setData({ ...data, tagId: null });
+                  setData({ ...data, tags: [] });
                   setInputValue("");
                 }}
                 className="absolute inset-y-0 right-0 my-auto"
@@ -147,7 +134,7 @@ export default function TagsSection({
         </div>
         {openCommandList && (
           <Command.List className="absolute z-20 mt-2 h-[calc(var(--cmdk-list-height)+17px)] max-h-[300px] w-full overflow-auto rounded-md border border-gray-200 bg-white p-2 shadow-md transition-all">
-            {tags?.length === 0 && inputValue.length === 0 && (
+            {availableTags?.length === 0 && inputValue.length === 0 && (
               <p className="px-4 py-2.5 text-sm text-gray-900">
                 Start typing to create tag...
               </p>
@@ -166,18 +153,25 @@ export default function TagsSection({
                 </button>
               )}
             </Command.Empty>
-            {tags?.map((tag) => (
+            {availableTags?.map((tag) => (
               <Command.Item
                 key={tag.id}
                 value={tag.name}
                 onSelect={() => {
-                  setData({ ...data, tagId: tag.id });
-                  setOpenCommandList(false);
+                  const isRemoving = data.tags
+                    .map(({ id }) => id)
+                    .includes(tag.id);
+                  setData({
+                    ...data,
+                    tags: isRemoving
+                      ? data.tags.filter(({ id }) => id !== tag.id)
+                      : [...data.tags, tag],
+                  });
                 }}
                 className="aria-selected:bg-gray-100 aria-selected:text-gray-900 group flex cursor-pointer items-center justify-between rounded-md px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200"
               >
                 <TagBadge {...tag} />
-                {selectedTag?.id === tag.id && (
+                {tags.map(({ id }) => id).includes(tag.id) && (
                   <Check className="h-5 w-5 text-gray-500" />
                 )}
               </Command.Item>
