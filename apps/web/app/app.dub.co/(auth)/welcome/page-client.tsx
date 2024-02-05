@@ -39,7 +39,7 @@ export default function WelcomePageClient() {
   }, [searchParams]);
 
   return (
-    <>
+    <div className="flex h-screen flex-col items-center">
       <AddProjectModal />
       <UpgradePlanModal />
       <AnimatePresence mode="wait">
@@ -59,6 +59,6 @@ export default function WelcomePageClient() {
           </>
         )}
       </AnimatePresence>
-      </>
+    </div>
   );
 }

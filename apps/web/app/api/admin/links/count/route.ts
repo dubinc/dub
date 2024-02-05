@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { DUB_DOMAINS, LEGAL_USER_ID } from "@dub/utils";
 
-// GET /api/links – get all user links
+// GET /api/admin/links/count
 export const GET = withAdmin(async ({ searchParams }) => {
   let { groupBy, search, domain, tagId } = searchParams as {
     groupBy?: "domain" | "tagId";
