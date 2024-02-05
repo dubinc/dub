@@ -6,7 +6,7 @@ import { LoadingSpinner } from "./icons";
 import { Tooltip } from "./tooltip";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  text: string;
+  text?: string;
   variant?: "primary" | "secondary" | "outline" | "success" | "danger";
   loading?: boolean;
   icon?: ReactNode;
@@ -42,13 +42,13 @@ export function Button({
       // if onClick is passed, it's a "button" type, otherwise it's being used in a form, hence "submit"
       type={props.onClick ? "button" : "submit"}
       className={cn(
-        "group flex h-10 w-full items-center justify-center space-x-2 rounded-md border px-4 text-sm transition-all focus:outline-none",
+        "group flex h-10 w-full items-center justify-center space-x-2 rounded-md border px-4 text-sm transition-all",
         props.disabled || loading
           ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
           : {
               "border-black bg-black text-white hover:bg-white hover:text-black":
                 variant === "primary",
-              "border-gray-200 bg-white text-gray-500 hover:border-black hover:text-black":
+              "border-gray-200 bg-white text-gray-600 hover:bg-gray-100":
                 variant === "secondary",
               "border-transparent text-gray-500 transition-all duration-75 hover:bg-gray-100":
                 variant === "outline",
@@ -63,7 +63,7 @@ export function Button({
       {...props}
     >
       {loading ? <LoadingSpinner /> : icon ? icon : null}
-      <p>{text}</p>
+      {text && <p>{text}</p>}
       {shortcut && (
         <kbd className="hidden rounded bg-zinc-700 px-2 py-0.5 text-xs font-light text-gray-400 transition-all duration-75 group-hover:bg-gray-100 group-hover:text-gray-500 md:inline-block">
           {shortcut}

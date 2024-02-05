@@ -31,8 +31,10 @@ function LinkFiltersModal({
 
 function LinkFiltersButton({
   setShowLinkFiltersModal,
+  showLinkFiltersModal,
 }: {
   setShowLinkFiltersModal: Dispatch<SetStateAction<boolean>>;
+  showLinkFiltersModal: boolean;
 }) {
   return (
     <button
@@ -42,7 +44,7 @@ function LinkFiltersButton({
       <IconMenu text="Filters" icon={<Filter className="h-4 w-4 shrink-0" />} />
       <ChevronDown
         className={`h-5 w-5 text-gray-400 ${
-          true ? "rotate-180 transform" : ""
+          showLinkFiltersModal ? "rotate-180 transform" : ""
         } transition-all duration-75`}
       />
     </button>
@@ -63,7 +65,7 @@ export function useLinkFiltersModal() {
 
   const LinkFiltersButtonCallback = useCallback(() => {
     return (
-      <LinkFiltersButton setShowLinkFiltersModal={setShowLinkFiltersModal} />
+      <LinkFiltersButton showLinkFiltersModal={showLinkFiltersModal} setShowLinkFiltersModal={setShowLinkFiltersModal} />
     );
   }, [setShowLinkFiltersModal]);
 

@@ -1,5 +1,7 @@
 import { constructMetadata } from "@dub/utils";
 import WelcomePageClient from "./page-client";
+import { Background } from "@dub/ui";
+import { Suspense } from "react";
 
 export const runtime = "nodejs";
 
@@ -8,5 +10,12 @@ export const metadata = constructMetadata({
 });
 
 export default function WelcomePage() {
-  return <WelcomePageClient />;
+  return (
+    <>
+      <Background />
+      <Suspense>
+        <WelcomePageClient />
+      </Suspense>
+    </>
+  );
 }

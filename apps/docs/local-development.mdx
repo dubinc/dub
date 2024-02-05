@@ -178,7 +178,20 @@ Then, create the database tables with the following command:
 npx prisma db push
 ```
 
-### Step 5: Start the development server
+### Step 5: Set up GitHub OAuth
+
+Next, follow [these steps](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps) to create a GitHub App. This will let you sign in to Dub with your GitHub account.
+
+Don't forget to set this Callback URLs `http://localhost:8888/api/auth/callback/github` for local development.
+
+<Info>
+  Optional: Set the "Email addresses" account permission to **read-only** in
+  order to access private email addresses on GitHub.
+</Info>
+
+Once your GitHub App is created, copy the `Client ID` and `Client Secret` into your `.env` file as the `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` environment variables.
+
+### Step 6: Start the development server
 
 Finally, you can start the development server. This will build the packages + start the app servers.
 
