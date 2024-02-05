@@ -76,7 +76,7 @@ export default function Preview({
             </div>
             <div className="relative flex justify-center">
               <div className="flex items-center space-x-2 bg-white px-3">
-                <Twitter className="h-4 w-4 text-[#1DA1F2]" />
+                <Twitter className="h-3 w-3" />
                 <p className="text-sm text-gray-400">Twitter</p>
               </div>
             </div>
