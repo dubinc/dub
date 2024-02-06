@@ -23,6 +23,7 @@ import cloudinary from "cloudinary";
 import { LinkProps, ProjectProps, RedisLinkProps } from "../types";
 import { Session } from "../auth";
 import { getLinkViaEdge } from "../planetscale";
+import { GetLinksCountParams } from "../zod";
 
 export async function getLinksForProject({
   projectId,
@@ -91,17 +92,11 @@ export async function getLinksCount({
   projectId,
   userId,
 }: {
-  searchParams: Record<string, string>;
+  searchParams: GetLinksCountParams;
   projectId: string;
   userId?: string | null;
 }) {
-  let { groupBy, search, domain, tagId, showArchived } = searchParams as {
-    groupBy?: "domain" | "tagId";
-    search?: string;
-    domain?: string;
-    tagId?: string;
-    showArchived?: boolean;
-  };
+  let { groupBy, search, domain, tagId, showArchived } = searchParams;
 
   if (groupBy) {
     return await prisma.link.groupBy({

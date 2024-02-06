@@ -1,16 +1,25 @@
 import { getLinksCount } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
+import { ErrorResponse, handleApiError } from "@/lib/errors";
+import { GetLinksCountParamsSchema } from "@/lib/zod";
 import { NextResponse } from "next/server";
 
 // GET /api/links/count – get the number of links for a project
 export const GET = withAuth(async ({ headers, searchParams, project }) => {
-  const { userId } = searchParams;
-  const count = await getLinksCount({
-    searchParams,
-    projectId: project.id,
-    userId,
-  });
-  return NextResponse.json(count, {
-    headers,
-  });
+  try {
+    const { userId, ...params } = GetLinksCountParamsSchema.parse(searchParams);
+
+    const count = await getLinksCount({
+      searchParams: params,
+      projectId: project.id,
+      userId,
+    });
+
+    return NextResponse.json(count, {
+      headers,
+    });
+  } catch (err) {
+    const { error, status } = handleApiError(err);
+    return NextResponse.json<ErrorResponse>({ error }, { headers, status });
+  }
 });
