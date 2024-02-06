@@ -5,9 +5,9 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 const QueryParamsSchema = z.object({
-  domain: z.string().min(1),
+  domain: z.string().optional(),
   key: z.string().optional(),
-  interval: z.enum(["all", "90d"]),
+  interval: z.enum(["1h", "24h", "7d", "30d", "90d", "all"]).optional(),
 });
 
 // GET /api/stats/[endpoint] – get stats for a specific endpoint
@@ -35,10 +35,10 @@ export const GET = withAuth(
 
       const response = await getStats({
         projectId: project.id,
-        domain,
+        domain: domain as string,
         key: key as string,
         endpoint,
-        interval,
+        interval: interval as string,
         ...searchParams,
       });
       return NextResponse.json(response);

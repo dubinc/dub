@@ -93,9 +93,9 @@ export const getStats = async ({
 }: {
   projectId?: string;
   domain: string;
-  key?: string;
+  key?: string | undefined;
   endpoint: string;
-  interval?: string;
+  interval?: keyof typeof intervalData | undefined | string;
 } & {
   [key in typeof VALID_STATS_FILTERS[number]]: string;
 }) => {
