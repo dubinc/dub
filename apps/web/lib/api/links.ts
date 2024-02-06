@@ -39,7 +39,7 @@ export async function getLinksForProject({
   tagId?: string;
   search?: string;
   sort?: "createdAt" | "clicks" | "lastClicked"; // descending for all
-  page?: string;
+  page?: number;
   userId?: string | null;
   showArchived?: boolean;
 }): Promise<LinkProps[]> {
@@ -69,7 +69,7 @@ export async function getLinksForProject({
     },
     take: 100,
     ...(page && {
-      skip: (parseInt(page) - 1) * 100,
+      skip: (page - 1) * 100,
     }),
   });
 
