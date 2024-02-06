@@ -3,6 +3,7 @@ import { deleteLink, editLink, processLink } from "@/lib/api/links";
 import { NextResponse } from "next/server";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { qstash } from "@/lib/cron";
+import { ErrorResponse, handleApiError } from "@/lib/errors";
 
 // GET /api/links/[linkId] – get a link
 export const GET = withAuth(async ({ headers, link }) => {

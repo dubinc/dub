@@ -1,23 +1,32 @@
 import { withAuth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import jackson from "@/lib/jackson";
+import { DubApiError, ErrorResponse, handleApiError } from "@/lib/errors";
 
 // GET /api/projects/[slug]/scim – get all SCIM directories
 export const GET = withAuth(async ({ project }) => {
   const { directorySyncController } = await jackson();
 
-  const { data, error } =
-    await directorySyncController.directories.getByTenantAndProduct(
-      project.id,
-      "Dub",
-    );
-  if (error) {
-    return new Response(error.message, { status: 500 });
-  }
+  try {
+    const { data, error } =
+      await directorySyncController.directories.getByTenantAndProduct(
+        project.id,
+        "Dub",
+      );
+    if (error) {
+      throw new DubApiError({
+        code: "internal_server_error",
+        message: error.message,
+      });
+    }
 
-  return NextResponse.json({
-    directories: data,
-  });
+    return NextResponse.json({
+      directories: data,
+    });
+  } catch (err) {
+    const { error, status } = handleApiError(err);
+    return NextResponse.json<ErrorResponse>({ error }, { status });
+  }
 });
 
 // POST /api/projects/[slug]/scim – create a new SCIM directory

@@ -11,36 +11,41 @@ import {
 } from "@/lib/api/domains";
 import { NextResponse } from "next/server";
 import { DUB_PROJECT_ID, isDubDomain } from "@dub/utils";
+import { DubApiError, ErrorResponse, handleApiError } from "@/lib/errors";
 
 // GET /api/projects/[slug]/domains/[domain] – get a project's domain
 export const GET = withAuth(async ({ domain, project }) => {
-  if (isDubDomain(domain) && project.id !== DUB_PROJECT_ID) {
-    return new Response("Domain does not belong to project.", {
-      status: 403,
-    });
-  }
+  try {
+    if (isDubDomain(domain) && project.id !== DUB_PROJECT_ID) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "Domain does not belong to project.",
+      });
+    }
 
-  const data = await prisma.domain.findUnique({
-    where: {
-      slug: domain,
-    },
-    select: {
-      slug: true,
-      verified: true,
-      primary: true,
-      target: true,
-      type: true,
-      placeholder: true,
-      clicks: true,
-    },
-  });
-  if (!data) {
-    return new Response("Domain not found", { status: 404 });
+    const data = await prisma.domain.findUniqueOrThrow({
+      where: {
+        slug: domain,
+      },
+      select: {
+        slug: true,
+        verified: true,
+        primary: true,
+        target: true,
+        type: true,
+        placeholder: true,
+        clicks: true,
+      },
+    });
+
+    return NextResponse.json({
+      ...data,
+      url: data.target,
+    });
+  } catch (err) {
+    const { error, status } = handleApiError(err);
+    return NextResponse.json<ErrorResponse>({ error }, { status });
   }
-  return NextResponse.json({
-    ...data,
-    url: data.target,
-  });
 });
 
 // PUT /api/projects/[slug]/domains/[domain] – edit a project's domain

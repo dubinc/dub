@@ -9,12 +9,7 @@ import { Project } from "@/lib/zod/schemas/projects";
 
 // GET /api/projects/[slug] – get a specific project
 export const GET = withAuth(async ({ project, headers }) => {
-  try {
-    return NextResponse.json(project, { headers });
-  } catch (err) {
-    const { error, status } = handleApiError(err);
-    return NextResponse.json<ErrorResponse>({ error }, { headers, status });
-  }
+  return NextResponse.json(project, { headers });
 });
 
 // PUT /api/projects/[slug] – update a specific project
