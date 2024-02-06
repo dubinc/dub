@@ -3,6 +3,8 @@ import { extendZodWithOpenApi } from "zod-openapi";
 
 extendZodWithOpenApi(z);
 
+export default z;
+
 export const GetLinksCountParamsSchema = z.object({
   userId: z.string().optional(),
   tagId: z.string().optional(),
@@ -12,6 +14,9 @@ export const GetLinksCountParamsSchema = z.object({
   groupBy: z.union([z.literal("domain"), z.literal("tagId")]).optional(),
 });
 
-export type GetLinksCountParams = z.infer<typeof GetLinksCountParamsSchema>;
+export const DomainKeySchema = z.object({
+  domain: z.string().min(1),
+  key: z.string().min(1),
+});
 
-export default z;
+export type GetLinksCountParams = z.infer<typeof GetLinksCountParamsSchema>;
