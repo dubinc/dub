@@ -149,13 +149,17 @@ export function QRCodeSVG(props: QRPropsSVG) {
     }
 
     image = (
-      <image
-        href={imageSettings.src}
-        height={calculatedImageSettings.h}
-        width={calculatedImageSettings.w}
-        x={calculatedImageSettings.x + margin}
-        y={calculatedImageSettings.y + margin}
-        preserveAspectRatio="none"
+      <img
+        alt="Qr Logo"
+        src={imageSettings.src}
+        style={{
+          height: imageSettings.height,
+          width: imageSettings.width,
+          position: "absolute",
+          left: "50%",
+          top: "50%",
+          transform: "translate(-50%, -50%)",
+        }}
       />
     );
   }

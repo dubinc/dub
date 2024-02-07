@@ -30,6 +30,7 @@ export async function GET(req: NextRequest) {
   }
 
   const url = req.nextUrl.searchParams.get("url") || "https://dub.co";
+
   const size = parseInt(req.nextUrl.searchParams.get("size") || "600", 10);
   const level = req.nextUrl.searchParams.get("level") || DEFAULT_LEVEL;
   if (!QR_LEVELS.includes(level)) {
@@ -41,26 +42,35 @@ export async function GET(req: NextRequest) {
   const includeMargin =
     req.nextUrl.searchParams.get("includeMargin") || DEFAULT_INCLUDEMARGIN;
 
-  // const logo = req.nextUrl.searchParams.get("logo") || "https://d2vwwcvoksz7ty.cloudfront.net/logo.png";
+  const logo_url =
+    req.nextUrl.searchParams.get("logo") ||
+    "https://d2vwwcvoksz7ty.cloudfront.net/logo.png";
 
-  return new ImageResponse(
-    QRCodeSVG({
-      value: url,
-      size,
-      level,
-      includeMargin: includeMargin === "true",
-      fgColor,
-      bgColor,
-      // imageSettings: {
-      //   src: logo,
-      //   height: size / 4,
-      //   width: size / 4,
-      //   excavate: true,
-      // },
-    }),
-    {
-      width: size,
-      height: size,
-    },
-  );
+  let svg_data: any = {
+    value: url,
+    size,
+    level,
+    includeMargin: includeMargin === "true",
+    fgColor,
+    bgColor,
+  };
+
+  if (logo_url) {
+    svg_data = {
+      ...svg_data,
+      imageSettings: {
+        src: logo_url,
+        height: size / 4,
+        width: size / 4,
+        excavate: true,
+      },
+    };
+  }
+
+  const res = QRCodeSVG(svg_data);
+
+  return new ImageResponse(res, {
+    width: size,
+    height: size,
+  });
 }
