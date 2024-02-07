@@ -1,6 +1,7 @@
 import { ZodError } from "zod";
 import { generateErrorMessage } from "zod-error";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import { NextResponse } from "next/server";
 
 import z from "./zod";
 
@@ -145,4 +146,12 @@ export function handleApiError(
     },
     status: 500,
   };
+}
+
+export function handleAndReturnErrorResponse(
+  err: unknown,
+  headers?: Record<string, string>,
+) {
+  const { error, status } = handleApiError(err);
+  return NextResponse.json<ErrorResponse>({ error }, { headers, status });
 }

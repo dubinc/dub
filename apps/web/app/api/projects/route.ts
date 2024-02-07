@@ -13,8 +13,7 @@ import {
   FREE_PROJECTS_LIMIT,
   validSlugRegex,
 } from "@dub/utils";
-import { Project } from "@/lib/zod/schemas/projects";
-import { ErrorResponse, handleApiError } from "@/lib/errors";
+import { handleAndReturnErrorResponse } from "@/lib/errors";
 
 // GET /api/projects - get all projects for the current user
 export const GET = withSession(async ({ session }) => {
@@ -41,8 +40,7 @@ export const GET = withSession(async ({ session }) => {
     });
     return NextResponse.json(projects);
   } catch (err) {
-    const { error, status } = handleApiError(err);
-    return NextResponse.json<ErrorResponse>({ error }, { status });
+    return handleAndReturnErrorResponse(err);
   }
 });
 

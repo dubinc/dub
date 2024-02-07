@@ -1,7 +1,7 @@
 import { addDomainToVercel } from "@/lib/api/domains";
 import { withAuth } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
-import { DubApiError, ErrorResponse, handleApiError } from "@/lib/errors";
+import { DubApiError, handleAndReturnErrorResponse } from "@/lib/errors";
 import prisma from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -64,8 +64,7 @@ export const GET = withAuth(async ({ project }) => {
 
     return NextResponse.json({ domains, tagsCount });
   } catch (err) {
-    const { error, status } = handleApiError(err);
-    return NextResponse.json<ErrorResponse>({ error }, { status });
+    return handleAndReturnErrorResponse(err);
   }
 });
 

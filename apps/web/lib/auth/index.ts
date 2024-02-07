@@ -8,8 +8,7 @@ import { API_DOMAIN, getSearchParams, isDubDomain } from "@dub/utils";
 import { ratelimit } from "../upstash";
 import { exceededLimitError } from "../api/errors";
 import { isAdmin } from "app/admin.dub.co/actions";
-import { DubApiError, ErrorResponse, handleApiError } from "../errors";
-import { NextResponse } from "next/server";
+import { DubApiError, handleAndReturnErrorResponse } from "../errors";
 
 export interface Session {
   user: {
@@ -387,8 +386,7 @@ export const withAuth =
         link,
       });
     } catch (err) {
-      const { error, status } = handleApiError(err);
-      return NextResponse.json<ErrorResponse>({ error }, { headers, status });
+      return handleAndReturnErrorResponse(err);
     }
   };
 

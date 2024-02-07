@@ -1,7 +1,7 @@
 import { addLink, getLinksForProject, processLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
-import { ErrorResponse, handleApiError } from "@/lib/errors";
+import { handleAndReturnErrorResponse } from "@/lib/errors";
 import { ratelimit } from "@/lib/upstash";
 import { GetLinksQuery } from "@/lib/zod/schemas/links";
 import { APP_DOMAIN_WITH_NGROK, LOCALHOST_IP } from "@dub/utils";
@@ -27,8 +27,7 @@ export const GET = withAuth(async ({ headers, searchParams, project }) => {
       headers,
     });
   } catch (err) {
-    const { error, status } = handleApiError(err);
-    return NextResponse.json<ErrorResponse>({ error }, { headers, status });
+    return handleAndReturnErrorResponse(err, headers);
   }
 });
 

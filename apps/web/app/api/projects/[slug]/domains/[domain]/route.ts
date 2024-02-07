@@ -1,6 +1,5 @@
 import { withAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { redis } from "@/lib/upstash";
 import {
   addDomainToVercel,
   changeDomainForImages,
@@ -11,7 +10,7 @@ import {
 } from "@/lib/api/domains";
 import { NextResponse } from "next/server";
 import { DUB_PROJECT_ID, isDubDomain } from "@dub/utils";
-import { DubApiError, ErrorResponse, handleApiError } from "@/lib/errors";
+import { DubApiError, handleAndReturnErrorResponse } from "@/lib/errors";
 
 // GET /api/projects/[slug]/domains/[domain] – get a project's domain
 export const GET = withAuth(async ({ domain, project }) => {
@@ -43,8 +42,7 @@ export const GET = withAuth(async ({ domain, project }) => {
       url: data.target,
     });
   } catch (err) {
-    const { error, status } = handleApiError(err);
-    return NextResponse.json<ErrorResponse>({ error }, { status });
+    return handleAndReturnErrorResponse(err);
   }
 });
 
@@ -138,12 +136,17 @@ export const PUT = withAuth(async ({ req, project, domain }) => {
 
 // DELETE /api/projects/[slug]/domains/[domain] - delete a project's domain
 export const DELETE = withAuth(async ({ domain, project }) => {
-  if (isDubDomain(domain) && project.id !== DUB_PROJECT_ID) {
-    return new Response("Domain does not belong to project.", {
-      status: 403,
-    });
-  }
+  try {
+    if (isDubDomain(domain) && project.id !== DUB_PROJECT_ID) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "Domain does not belong to project.",
+      });
+    }
 
-  const response = await deleteDomainAndLinks(domain);
-  return NextResponse.json(response);
+    const response = await deleteDomainAndLinks(domain);
+    return NextResponse.json(response);
+  } catch (err) {
+    return handleAndReturnErrorResponse(err);
+  }
 });

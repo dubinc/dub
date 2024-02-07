@@ -3,8 +3,8 @@ import { withAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { randomBadgeColor } from "@/ui/links/tag-badge";
 import { NextResponse } from "next/server";
-import { DubApiError, ErrorResponse, handleApiError } from "@/lib/errors";
-import { CreateTagSchema, Tag } from "@/lib/zod/schemas/tags";
+import { DubApiError, handleAndReturnErrorResponse } from "@/lib/errors";
+import { CreateTagSchema } from "@/lib/zod/schemas/tags";
 
 // GET /api/projects/[slug]/tags - get all tags for a project
 export const GET = withAuth(async ({ project, headers }) => {
@@ -24,8 +24,7 @@ export const GET = withAuth(async ({ project, headers }) => {
     });
     return NextResponse.json(tags, { headers });
   } catch (err) {
-    const { error, status } = handleApiError(err);
-    return NextResponse.json<ErrorResponse>({ error }, { headers, status });
+    return handleAndReturnErrorResponse(err);
   }
 });
 
@@ -80,7 +79,6 @@ export const POST = withAuth(async ({ req, project, headers }) => {
 
     return NextResponse.json(response, { headers, status: 201 });
   } catch (err) {
-    const { error, status } = handleApiError(err);
-    return NextResponse.json<ErrorResponse>({ error }, { headers, status });
+    return handleAndReturnErrorResponse(err);
   }
 });

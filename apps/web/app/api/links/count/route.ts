@@ -1,6 +1,6 @@
 import { getLinksCount } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
-import { ErrorResponse, handleApiError } from "@/lib/errors";
+import { handleAndReturnErrorResponse } from "@/lib/errors";
 import { GetLinksCountParamsSchema } from "@/lib/zod";
 import { NextResponse } from "next/server";
 
@@ -19,7 +19,6 @@ export const GET = withAuth(async ({ headers, searchParams, project }) => {
       headers,
     });
   } catch (err) {
-    const { error, status } = handleApiError(err);
-    return NextResponse.json<ErrorResponse>({ error }, { headers, status });
+    return handleAndReturnErrorResponse(err, headers);
   }
 });

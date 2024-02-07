@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 import { linkConstructor } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { GetLinkInfoQuery } from "@/lib/zod/schemas/links";
-import { ErrorResponse, handleApiError } from "@/lib/errors";
+import { handleAndReturnErrorResponse } from "@/lib/errors";
 
 // GET /api/links/info – get the info for a link
 export const GET = withAuth(async ({ headers, searchParams }) => {
@@ -35,7 +35,6 @@ export const GET = withAuth(async ({ headers, searchParams }) => {
       },
     );
   } catch (err) {
-    const { error, status } = handleApiError(err);
-    return NextResponse.json<ErrorResponse>({ error }, { headers, status });
+    return handleAndReturnErrorResponse(err, headers);
   }
 });

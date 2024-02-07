@@ -1,5 +1,5 @@
 import { withAuth } from "@/lib/auth";
-import { DubApiError, ErrorResponse, handleApiError } from "@/lib/errors";
+import { DubApiError, handleAndReturnErrorResponse } from "@/lib/errors";
 import { getStats } from "@/lib/stats";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -43,8 +43,7 @@ export const GET = withAuth(
       });
       return NextResponse.json(response);
     } catch (err) {
-      const { error, status } = handleApiError(err);
-      return NextResponse.json<ErrorResponse>({ error }, { status });
+      return handleAndReturnErrorResponse(err);
     }
   },
   {

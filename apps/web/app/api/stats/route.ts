@@ -1,5 +1,5 @@
 import { withAuth } from "@/lib/auth";
-import { ErrorResponse, handleApiError } from "@/lib/errors";
+import { handleAndReturnErrorResponse } from "@/lib/errors";
 import prisma from "@/lib/prisma";
 import { DomainKeySchema } from "@/lib/zod";
 import { NextResponse } from "next/server";
@@ -22,8 +22,7 @@ export const GET = withAuth(async ({ searchParams }) => {
     });
     return NextResponse.json(response);
   } catch (err) {
-    const { error, status } = handleApiError(err);
-    return NextResponse.json<ErrorResponse>({ error }, { status });
+    return handleAndReturnErrorResponse(err);
   }
 });
 
@@ -46,7 +45,6 @@ export const PUT = withAuth(async ({ req, searchParams }) => {
     });
     return NextResponse.json(response);
   } catch (err) {
-    const { error, status } = handleApiError(err);
-    return NextResponse.json<ErrorResponse>({ error }, { status });
+    return handleAndReturnErrorResponse(err);
   }
 });
