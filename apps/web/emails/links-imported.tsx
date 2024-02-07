@@ -88,7 +88,7 @@ export default function LinksImported({
               <strong>
                 imported {Intl.NumberFormat("en-us").format(count)} links
               </strong>{" "}
-              from {provider} into your Dub project,{" "}
+              from {provider} into your Dub.co project,{" "}
               <Link
                 href={`https://app.dub.co/${projectSlug}`}
                 className="font-medium text-blue-600 no-underline"

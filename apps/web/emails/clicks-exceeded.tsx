@@ -1,4 +1,4 @@
-import { DUB_LOGO, capitalize, nFormatter } from "@dub/utils";
+import { DUB_LOGO, PLANS, capitalize, nFormatter } from "@dub/utils";
 import {
   Body,
   Container,
@@ -23,7 +23,7 @@ export default function ClicksExceeded({
     slug: "acme",
     usage: 2410,
     usageLimit: 1000,
-    plan: "free",
+    plan: "business",
   },
   type = "first",
 }: {
@@ -32,6 +32,9 @@ export default function ClicksExceeded({
   type: "first" | "second";
 }) {
   const { slug, name, usage, usageLimit, plan } = project;
+  const nextPlan =
+    PLANS[PLANS.findIndex((p) => p.name.toLowerCase() === plan) + 1];
+
   return (
     <Html>
       <Head />
@@ -73,8 +76,14 @@ export default function ClicksExceeded({
             </Text>
             <Text className="text-sm leading-6 text-black">
               All your existing links will continue to work, and we are still
-              collecting data on them, but you'll need to upgrade to view their
-              stats.
+              collecting data on them, but you'll need to upgrade to the{" "}
+              <Link
+                href={nextPlan.link}
+                className="font-medium text-blue-600 no-underline"
+              >
+                {nextPlan.name} plan
+              </Link>{" "}
+              to view their stats.
             </Text>
             <Section className="my-8 text-center">
               <Link
