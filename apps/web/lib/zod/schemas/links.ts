@@ -4,8 +4,6 @@ import { ZodOpenApiOperationObject, ZodOpenApiPathsObject } from "zod-openapi";
 
 export const LinkSchemaOpenApi = LinkSchema;
 
-export type Link = z.infer<typeof LinkSchema>;
-
 export const GetLinkInfoQuery = z.object({
   projectSlug: z.string().openapi({
     description:
@@ -52,9 +50,96 @@ export const GetLinksQuery = z.object({
     description:
       "Whether to include archived links in the response. Defaults to `false` if not provided.",
   }),
-})
+});
 
-export const getLinkInfo: ZodOpenApiOperationObject = {
+export const CreateLinkBodySchema = z.object({
+  domain: z.string().optional().openapi({
+    description:
+      "The domain of the short link. If not provided, the primary domain for the project will be used (or `dub.sh` if the project has no domains).",
+  }),
+  key: z.string().optional().openapi({
+    description:
+      "The short link slug. If not provided, a random 7-character slug will be generated.",
+  }),
+  url: z.string().url().openapi({
+    description: "The destination URL of the short link.",
+  }),
+  archived: z.boolean().optional().openapi({
+    description: "Whether the short link is archived.",
+    default: false,
+  }),
+  expiresAt: z
+    .string()
+    .datetime({
+      message: "Invalid expiry date. Expiry date must be in ISO-8601 format.",
+    })
+    .optional()
+    .nullable()
+    .openapi({
+      description:
+        "The date and time when the short link will expire in ISO-8601 format. Must be in the future.",
+    })
+    .refine(
+      (expiresAt) => {
+        return expiresAt ? new Date(expiresAt) > new Date() : true;
+      },
+      {
+        message: "Expiry date must be in the future.",
+      },
+    ),
+  password: z.string().optional().nullable().openapi({
+    description:
+      "The password required to access the destination URL of the short link.",
+  }),
+  proxy: z.boolean().optional().openapi({
+    description:
+      "Whether the short link uses Custom Social Media Cards feature.",
+    default: false,
+  }),
+  title: z.string().optional().openapi({
+    description:
+      "The title of the short link generated via `api.dub.co/metatags`. Will be used for Custom Social Media Cards if `proxy` is true.",
+  }),
+  description: z.string().optional().openapi({
+    description:
+      "The description of the short link generated via `api.dub.co/metatags`. Will be used for Custom Social Media Cards if `proxy` is true.",
+  }),
+  image: z.string().optional().openapi({
+    description:
+      "The image of the short link generated via `api.dub.co/metatags`. Will be used for Custom Social Media Cards if `proxy` is true.",
+  }),
+  rewrite: z.boolean().optional().openapi({
+    description: "Whether the short link uses link cloaking.",
+    default: false,
+  }),
+  ios: z.string().optional().nullable().openapi({
+    description:
+      "The iOS destination URL for the short link for iOS device targeting.",
+  }),
+  android: z.string().optional().nullable().openapi({
+    description:
+      "The Android destination URL for the short link for Android device targeting.",
+  }),
+  geo: z.record(z.string()).optional().nullable().openapi({
+    description:
+      "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`.",
+  }),
+  publicStats: z.boolean().optional().openapi({
+    description: "Whether the short link's stats are publicly accessible.",
+    default: false,
+  }),
+  tagId: z.string().optional().nullable().openapi({
+    description: "The tag ID to assign to the short link.",
+  }),
+  comments: z.string().optional().nullable().openapi({
+    description: "The comments for the short link.",
+  }),
+});
+
+export type Link = z.infer<typeof LinkSchema>;
+export type CreateLinkBody = z.infer<typeof CreateLinkBodySchema>;
+
+const getLinkInfo: ZodOpenApiOperationObject = {
   operationId: "getLinkInfo",
   summary: "Retrieve a link",
   description: "Retrieve the info for a link from their domain and key.",
@@ -73,7 +158,7 @@ export const getLinkInfo: ZodOpenApiOperationObject = {
   },
 };
 
-export const getLinks: ZodOpenApiOperationObject = {
+const getLinks: ZodOpenApiOperationObject = {
   operationId: "getLinks",
   summary: "Retrieve a list of links",
   description:
@@ -93,11 +178,35 @@ export const getLinks: ZodOpenApiOperationObject = {
   },
 };
 
-export const linkPaths: ZodOpenApiPathsObject = {
-  "/links/info": {
-    get: getLinkInfo,
+const createLink: ZodOpenApiOperationObject = {
+  operationId: "createLink",
+  summary: "Create a new link",
+  description: "Create a new link for the authenticated project.",
+  requestBody: {
+    content: {
+      "application/json": {
+        schema: CreateLinkBodySchema,
+      },
+    },
   },
+  responses: {
+    "200": {
+      description: "The link was created",
+      content: {
+        "application/json": {
+          schema: LinkSchemaOpenApi,
+        },
+      },
+    },
+  },
+};
+
+export const linkPaths: ZodOpenApiPathsObject = {
   "/links": {
     get: getLinks,
+    post: createLink,
+  },
+  "/links/info": {
+    get: getLinkInfo,
   },
 };

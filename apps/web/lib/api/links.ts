@@ -23,7 +23,9 @@ import cloudinary from "cloudinary";
 import { LinkProps, ProjectProps, RedisLinkProps } from "../types";
 import { Session } from "../auth";
 import { getLinkViaEdge } from "../planetscale";
-import { GetLinksCountParams } from "../zod";
+import z, { GetLinksCountParams } from "../zod";
+import { CreateLinkBody } from "../zod/schemas/links";
+import { DubApiError } from "../errors";
 
 export async function getLinksForProject({
   projectId,
@@ -37,7 +39,7 @@ export async function getLinksForProject({
 }: {
   projectId: string;
   domain?: string;
-  tagId?: string;
+  tagId?: string | null;
   search?: string;
   sort?: "createdAt" | "clicks" | "lastClicked"; // descending for all
   page?: number;
@@ -208,7 +210,7 @@ export async function processLink({
   session,
   bulk = false,
 }: {
-  payload: LinkProps;
+  payload: CreateLinkBody;
   project?: ProjectProps;
   session?: Session;
   bulk?: boolean;
@@ -227,41 +229,30 @@ export async function processLink({
     geo,
   } = payload;
 
-  // url checks
-  if (!url) {
-    return {
-      link: payload,
-      error: "Missing destination url.",
-      status: 400,
-    };
-  }
   const processedUrl = getUrlFromString(url);
   if (!processedUrl) {
-    return {
-      link: payload,
-      error: "Invalid destination url.",
-      status: 422,
-    };
+    throw new DubApiError({
+      code: "unprocessible_entity",
+      message: "Invalid destination url.",
+    });
   }
 
   // free plan restrictions
   if (!project || project.plan === "free") {
     if (proxy || password || rewrite || expiresAt || ios || android || geo) {
-      return {
-        link: payload,
-        error:
+      throw new DubApiError({
+        code: "forbidden",
+        message:
           "You can only use custom social media cards, password-protection, link cloaking, link expiration, device and geo targeting on a Pro plan and above. Upgrade to Pro to use these features.",
-        status: 403,
-      };
+      });
     }
     // can't use `/` in key on free plan
     if (key?.includes("/")) {
-      return {
-        link: payload,
-        error:
+      throw new DubApiError({
+        code: "unprocessible_entity",
+        message:
           "Key cannot contain '/'. You can only use this on a Pro plan and above. Upgrade to Pro to use this feature.",
-        status: 422,
-      };
+      });
     }
   }
 
@@ -272,21 +263,19 @@ export async function processLink({
 
   // checks for default short domain
   if (domain === SHORT_DOMAIN) {
-    const keyBlacklisted = await isBlacklistedKey(key);
+    const keyBlacklisted = await isBlacklistedKey(key!);
     if (keyBlacklisted) {
-      return {
-        link: payload,
-        error: "Invalid key.",
-        status: 422,
-      };
+      throw new DubApiError({
+        code: "unprocessible_entity",
+        message: "Invalid key.",
+      });
     }
     const domainBlacklisted = await isBlacklistedDomain(url);
     if (domainBlacklisted) {
-      return {
-        link: payload,
-        error: "Invalid url.",
-        status: 422,
-      };
+      throw new DubApiError({
+        code: "unprocessible_entity",
+        message: "Invalid url.",
+      });
     }
 
     // checks for other Dub-owned domains (chatg.pt, spti.fi, etc.)
@@ -295,22 +284,20 @@ export async function processLink({
     const { allowedHostnames } = DUB_DOMAINS.find((d) => d.slug === domain)!;
     const urlDomain = getDomainWithoutWWW(url) || "";
     if (!allowedHostnames.includes(urlDomain)) {
-      return {
-        link: payload,
-        error: `Invalid url. You can only use ${domain} short links for URLs starting with ${allowedHostnames
+      throw new DubApiError({
+        code: "unprocessible_entity",
+        message: `Invalid url. You can only use ${domain} short links for URLs starting with ${allowedHostnames
           .map((d) => `\`${d}\``)
           .join(", ")}.`,
-        status: 422,
-      };
+      });
     }
 
     // else, check if the domain belongs to the project
   } else if (!project?.domains?.find((d) => d.slug === domain)) {
-    return {
-      link: payload,
-      error: "Domain does not belong to project.",
-      status: 403,
-    };
+    throw new DubApiError({
+      code: "forbidden",
+      message: "Domain does not belong to project.",
+    });
   }
 
   if (!key) {
@@ -319,57 +306,33 @@ export async function processLink({
 
   if (bulk) {
     if (image) {
-      return {
-        link: payload,
-        error: "You cannot set custom social cards with bulk link creation.",
-        status: 422,
-      };
+      throw new DubApiError({
+        code: "unprocessible_entity",
+        message: "You cannot set custom social cards with bulk link creation.",
+      });
     }
     if (rewrite) {
-      return {
-        link: payload,
-        error: "You cannot use link cloaking with bulk link creation.",
-        status: 422,
-      };
+      throw new DubApiError({
+        code: "unprocessible_entity",
+        message: "You cannot use link cloaking with bulk link creation.",
+      });
     }
     const exists = await checkIfKeyExists(domain, key);
     if (exists) {
-      return {
-        link: payload,
-        error: `Link already exists.`,
-        status: 409,
-      };
+      throw new DubApiError({
+        code: "conflict",
+        message: "Link already exists.",
+      });
     }
   }
 
   // custom social media image checks
   const uploadedImage = image && image.startsWith("data:image") ? true : false;
   if (uploadedImage && !process.env.CLOUDINARY_URL) {
-    return {
-      link: payload,
-      error: "Missing Cloudinary environment variable.",
-      status: 400,
-    };
-  }
-
-  // expire date checks
-  if (expiresAt) {
-    const date = new Date(expiresAt);
-    if (isNaN(date.getTime())) {
-      return {
-        link: payload,
-        error: "Invalid expiry date. Expiry date must be in ISO-8601 format.",
-        status: 422,
-      };
-    }
-    // check if expiresAt is in the future
-    if (new Date(expiresAt) < new Date()) {
-      return {
-        link: payload,
-        error: "Expiry date must be in the future.",
-        status: 422,
-      };
-    }
+    throw new DubApiError({
+      code: "unprocessible_entity",
+      message: "Missing Cloudinary environment variable.",
+    });
   }
 
   // remove shortLink & qrCode attributes from payload since it's a polyfill
@@ -394,7 +357,9 @@ export async function processLink({
   };
 }
 
-export async function addLink(link: LinkProps) {
+export async function addLink(
+  link: CreateLinkBody & Pick<LinkProps, "domain" | "key">,
+) {
   const { domain, key, url, expiresAt, title, description, image, proxy, geo } =
     link;
   const uploadedImage = image && image.startsWith("data:image") ? true : false;
@@ -409,8 +374,8 @@ export async function addLink(link: LinkProps) {
     data: {
       ...link,
       key,
-      title: truncate(title, 120),
-      description: truncate(description, 240),
+      title: truncate(title || "", 120),
+      description: truncate(description || "", 240),
       image: uploadedImage ? undefined : image,
       utm_source,
       utm_medium,

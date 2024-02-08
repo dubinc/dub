@@ -52,6 +52,7 @@ import Preview from "./preview";
 import RewriteSection from "./rewrite-section";
 import UTMSection from "./utm-section";
 import TagsSection from "./tags-section";
+import { extractApiErrorMessage } from "@/ui/utils";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
@@ -379,7 +380,7 @@ function AddEditLinkModal({
                   }
                   setShowAddEditLinkModal(false);
                 } else {
-                  const error = await res.text();
+                  const error = await extractApiErrorMessage(res);
                   if (error) {
                     toast.error(error);
                     if (error.toLowerCase().includes("key")) {

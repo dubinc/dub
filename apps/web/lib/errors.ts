@@ -16,6 +16,7 @@ const ErrorCode = z.enum([
   "invite_pending",
   "exceeded_limit",
   "conflict",
+  "unprocessible_entity",
 ]);
 
 const errorCodeToHttpStatus: Record<z.infer<typeof ErrorCode>, number> = {
@@ -29,6 +30,7 @@ const errorCodeToHttpStatus: Record<z.infer<typeof ErrorCode>, number> = {
   invite_pending: 409,
   exceeded_limit: 403,
   conflict: 409,
+  unprocessible_entity: 422,
 };
 
 const prismaErrorMapping: Record<
@@ -153,5 +155,6 @@ export function handleAndReturnErrorResponse(
   headers?: Record<string, string>,
 ) {
   const { error, status } = handleApiError(err);
+  console.error(error);
   return NextResponse.json<ErrorResponse>({ error }, { headers, status });
 }

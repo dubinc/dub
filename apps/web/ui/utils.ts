@@ -1,5 +1,7 @@
 // Keep this until we have move all error response to new JSON format
-export const extractApiErrorMessage = async (response: Response) => {
+export const extractApiErrorMessage = async (
+  response: Response,
+): Promise<string | null> => {
   if (response.ok) {
     return null;
   }
@@ -12,6 +14,5 @@ export const extractApiErrorMessage = async (response: Response) => {
   }
 
   // If parsing JSON fails, treat it as plain text error
-  const errorText = await response.text();
-  return errorText;
+  return await response.text();
 };
