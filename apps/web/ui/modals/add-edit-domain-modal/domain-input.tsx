@@ -7,7 +7,7 @@ import {
   getSubdomain,
   getUrlFromString,
 } from "@dub/utils";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useDebounce } from "use-debounce";
 import { motion } from "framer-motion";
 import { InfoTooltip } from "@dub/ui/src/tooltip";
@@ -41,6 +41,14 @@ export default function DomainInput({
   );
 
   const { isMobile } = useMediaQuery();
+  const domainRef = useRef<HTMLInputElement>(null);
+  const subdomainRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (domainType === "website") {
+      subdomainRef.current?.focus();
+    }
+  }, [domainType]);
 
   return (
     <>
@@ -48,6 +56,7 @@ export default function DomainInput({
         {domainType === "website" ? (
           <div className="relative flex w-full rounded-md shadow-sm">
             <input
+              ref={subdomainRef}
               name="subdomain"
               id="subdomain"
               type="text"
@@ -70,6 +79,7 @@ export default function DomainInput({
           </div>
         ) : (
           <input
+            ref={domainRef}
             name="domain"
             id="domain"
             type="text"

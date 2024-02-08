@@ -64,13 +64,8 @@
       "pages": ["introduction", "local-development", "self-hosting/guide"]
     },
     {
-      "group": "Integrations",
-      "pages": [
-        "integrations/zapier",
-        "integrations/pipedream",
-        "integrations/make",
-        "integrations/raycast"
-      ]
+      "group": "Resources",
+      "pages": ["integrations", "sdks", "examples"]
     },
     {
       "group": "API Reference",
@@ -117,5 +112,23 @@
     "github": "https://github.com/steven-tey/dub",
     "linkedin": "https://www.linkedin.com/company/dubhq",
     "website": "https://dub.co"
-  }
+  },
+  "redirects": [
+    {
+      "source": "/integrations/zapier",
+      "destination": "/integrations"
+    },
+    {
+      "source": "/integrations/pipedream",
+      "destination": "/integrations"
+    },
+    {
+      "source": "/integrations/make",
+      "destination": "/integrations"
+    },
+    {
+      "source": "/integrations/raycast",
+      "destination": "/integrations"
+    }
+  ]
 }

@@ -19,7 +19,6 @@ Before you begin, make sure you have the following:
 - A [Tinybird](https://www.tinybird.co/) account
 - An [Upstash](https://upstash.com/) account
 - A [Planetscale](https://planetscale.com/) account
-- A [Resend](https://resend.com/) account
 - A [Vercel](https://vercel.com/) account
 
 ## Step 1: Local setup
@@ -133,25 +132,38 @@ Then, create the database tables with the following command:
 npx prisma db push
 ```
 
-## Step 5: Set up Resend
+## Step 5: Set up GitHub OAuth
+
+Next, follow [these steps](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps) to create a GitHub App. This will allow users to sign in with their GitHub accounts.
+
+Don't forget to set the following Callback URLs:
+
+- `https://app.yourdomain.com/api/auth/callback/github`
+- `http://localhost:8888/api/auth/callback/github` for local development.
+
+<Info>
+  Optional: Set the "Email addresses" account permission to **read-only** in
+  order to access private email addresses on GitHub.
+</Info>
+
+Once your GitHub App is created, copy the `Client ID` and `Client Secret` into your `.env` file as the `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` environment variables.
+
+## Step 6: Set up Resend (optional)
 
 Next, you'll need to set up Resend for transactional emails (e.g. magic link emails):
 
 1. In your [Resend account](https://resend.com/overview), create a new API key.
-
-![Resend API key](/images/resend-api-key.png)
-
 2. Copy the API key into your `.env` file as the `RESEND_API_KEY` environment variable.
 3. You'll then need to set up MX records for your domain to start working. You can follow this guide to learn [how to set up MX records with Resend](https://resend.com/docs/dashboard/domains/introduction).
 
-## Step 6: Set up Cloudinary & Unsplash (optional)
+## Step 7: Set up Cloudinary & Unsplash (optional)
 
-If you want to enable the [Custom Social Media Cards](https://dub.co/help/article/how-to-create-link#custom-social-media-cards) feature, you'll need to set up Cloudinary and Unsplash:
+If you want to enable the [Custom Social Media Cards](https://dub.co/help/article/custom-social-media-cards) feature, you'll need to set up Cloudinary and Unsplash:
 
 - [How to set up `CLOUDINARY_URL` env var](https://cloudinary.com/documentation/node_quickstart#set_your_api_environment_variable)
 - [How to set up `UNSPLASH_ACCESS_KEY` env var](https://unsplash.com/documentation#creating-a-developer-account)
 
-## Step 7: Deploy to Vercel
+## Step 8: Deploy to Vercel
 
 Once you've set up all of the above services, you can now deploy your app to Vercel:
 

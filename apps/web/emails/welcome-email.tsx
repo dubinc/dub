@@ -24,7 +24,7 @@ export default function WelcomeEmail({
   return (
     <Html>
       <Head />
-      <Preview>Welcome to Dub</Preview>
+      <Preview>Welcome to Dub.co</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
@@ -38,7 +38,7 @@ export default function WelcomeEmail({
               />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-center text-xl font-semibold text-black">
-              Welcome to Dub
+              Welcome to Dub.co
             </Heading>
             <Section className="my-8">
               <Img src={DUB_THUMBNAIL} alt="Dub" className="max-w-[500px]" />
@@ -47,21 +47,13 @@ export default function WelcomeEmail({
               Thanks for signing up{name && `, ${name}`}!
             </Text>
             <Text className="text-sm leading-6 text-black">
-              My name is Steven, and I'm the founder of Dub - the link
-              management tool for modern marketing teams. I'm excited to have
-              you on board!
+              My name is Steven, and I'm the founder of Dub.co - the modern link
+              management platform for you to create marketing campaigns, link
+              sharing features, and referral programs. We're excited to have you
+              on board!
             </Text>
             <Text className="text-sm leading-6 text-black">
               Here are a few things you can do:
-            </Text>
-            <Text className="ml-1 text-sm leading-4 text-black">
-              ◆ Create a{" "}
-              <Link
-                href="https://app.dub.co/links"
-                className="font-medium text-blue-600 no-underline"
-              >
-                Dub.sh short link
-              </Link>
             </Text>
             <Text className="ml-1 text-sm leading-4 text-black">
               ◆ Create a{" "}
@@ -71,16 +63,32 @@ export default function WelcomeEmail({
               >
                 new project
               </Link>{" "}
-              and add your custom domain
-            </Text>
-            <Text className="ml-1 text-sm leading-4 text-black">
-              ◆ Follow us on{" "}
+              and{" "}
               <Link
-                href="https://twitter.com/dubdotco"
+                href="https://dub.co/help/article/how-to-add-custom-domain"
                 className="font-medium text-blue-600 no-underline"
               >
-                Twitter
+                add your custom domain
               </Link>
+            </Text>
+            <Text className="ml-1 text-sm leading-4 text-black">
+              ◆ Create your first{" "}
+              <Link
+                href="https://dub.co/help/article/how-to-create-link"
+                className="font-medium text-blue-600 no-underline"
+              >
+                short link
+              </Link>
+            </Text>
+            <Text className="ml-1 text-sm leading-4 text-black">
+              ◆ Check out our{" "}
+              <Link
+                href="https://dub.co/api"
+                className="font-medium text-blue-600 no-underline"
+              >
+                API documentation
+              </Link>{" "}
+              for programmatic link generation
             </Text>
             <Text className="text-sm leading-6 text-black">
               Let me know if you have any questions or feedback. I'm always

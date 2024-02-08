@@ -378,7 +378,7 @@ export default function LinkCard({
                     <SimpleTooltipContent
                       title="This link is cloaked. Your users will only see the short link in the browser address bar."
                       cta="Learn more."
-                      href={`${HOME_DOMAIN}/help/article/how-to-create-link#link-cloaking`}
+                      href={`${HOME_DOMAIN}/help/article/link-cloaking`}
                     />
                   }
                 >
