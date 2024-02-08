@@ -2,7 +2,10 @@ import z from "@/lib/zod";
 import { LinkSchema } from "prisma/zod";
 import { ZodOpenApiOperationObject, ZodOpenApiPathsObject } from "zod-openapi";
 
-export const LinkSchemaOpenApi = LinkSchema;
+// TODO: Add openapi description for each field
+export const LinkSchemaOpenApi = LinkSchema.extend({
+  geo: z.record(z.string()).optional().nullable(), // TODO: Add proper type
+});
 
 export const GetLinkInfoQuery = z.object({
   projectSlug: z.string().openapi({
