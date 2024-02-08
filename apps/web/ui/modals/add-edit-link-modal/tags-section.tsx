@@ -26,6 +26,7 @@ export default function TagsSection({
 
   const createTag = async (tag: string) => {
     setCreatingTag(true);
+    setInputValue("");
     fetch(`/api/projects/${slug}/tags`, {
       method: "POST",
       headers: {
@@ -36,7 +37,7 @@ export default function TagsSection({
       if (res.ok) {
         await mutate(`/api/projects/${slug}/tags`);
         const newTag = await res.json();
-        setData({ ...data, tagId: newTag.id });
+        setData({ ...data, tags: [...tags, newTag] });
         toast.success(`Successfully created tag!`);
         setCreatingTag(false);
       } else {
@@ -80,6 +81,18 @@ export default function TagsSection({
           } else if (e.key === "Enter" && isEmpty) {
             setOpenCommandList(false);
             createTag(inputValue);
+
+            // remove the last tag if backspaced
+          } else if (
+            ["Backspace", "Delete"].includes(e.key) &&
+            inputValue === ""
+          ) {
+            setData((data) => {
+              const popped = [...data.tags];
+              popped.pop();
+              return { ...data, tags: popped };
+            });
+
             // if it's a letter or a number and there's no meta key pressed, openCommandList dropdown
           } else if (e.key.match(/^[a-z0-9]$/i) && !e.metaKey) {
             setOpenCommandList(true);
@@ -167,6 +180,7 @@ export default function TagsSection({
                       ? data.tags.filter(({ id }) => id !== tag.id)
                       : [...data.tags, tag],
                   });
+                  setInputValue("");
                 }}
                 className="aria-selected:bg-gray-100 aria-selected:text-gray-900 group flex cursor-pointer items-center justify-between rounded-md px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200"
               >
