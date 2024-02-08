@@ -85,7 +85,7 @@ export default function TagsSection({
             setOpenCommandList(true);
           }
         }}
-        className="block w-full rounded-md border-none px-0 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 sm:text-sm"
+        className="block rounded-md border-none px-0 py-0 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 sm:text-sm"
       />
     );
   };
@@ -93,7 +93,7 @@ export default function TagsSection({
   return (
     <div className="border-b border-gray-200 pb-5">
       <Command ref={commandRef} className="relative" loop>
-        <div className="group mt-1 rounded-md border border-gray-300 bg-white px-1 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500">
+        <div className="group mt-1 rounded-md border border-gray-300 bg-white px-1 py-2 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500">
           <div className="absolute inset-y-0 left-0 flex items-center justify-center pl-3 text-gray-400">
             {creatingTag ? (
               <LoadingCircle />
@@ -111,7 +111,7 @@ export default function TagsSection({
               </Tooltip>
             )}
           </div>
-          <div className="flex h-9 gap-1.5 px-8">
+          <div className="flex flex-wrap gap-1.5 px-8">
             {tags.map((tag) => (
               <TagBadge key={tag.id} {...tag} />
             ))}
