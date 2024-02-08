@@ -65,7 +65,7 @@ export default function UTMSection({
               <SimpleTooltipContent
                 title="Add UTM parameters to your short links for conversion tracking."
                 cta="Learn more."
-                href={`${HOME_DOMAIN}/help/article/how-to-create-link#utm-builder`}
+                href={`${HOME_DOMAIN}/help/article/utm-builder`}
               />
             }
           />

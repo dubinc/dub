@@ -39,7 +39,7 @@ export default function CommentsSection({
               <SimpleTooltipContent
                 title="Use comments to add context to your short links – for you and your team."
                 cta="Learn more."
-                href={`${HOME_DOMAIN}/help/article/how-to-create-link#comments`}
+                href={`${HOME_DOMAIN}/help/article/link-comments`}
               />
             }
           />
