@@ -100,7 +100,7 @@ export default function OGSection({
               <SimpleTooltipContent
                 title="Customize how your links look when shared on social media."
                 cta="Learn more."
-                href={`${HOME_DOMAIN}/help/article/how-to-create-link#custom-social-media-cards`}
+                href={`${HOME_DOMAIN}/help/article/custom-social-media-cards`}
               />
             }
           />
