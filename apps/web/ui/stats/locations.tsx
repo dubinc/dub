@@ -10,7 +10,7 @@ import BarList from "./bar-list";
 export default function Locations() {
   const [tab, setTab] = useState<LocationTabs>("country");
 
-  const { baseApiPath, queryString, modal } = useContext(StatsContext);
+  const { baseApiPath, queryString } = useContext(StatsContext);
 
   const { data } = useSWR<{ country: string; city: string; clicks: number }[]>(
     `${baseApiPath}/${tab}?${queryString}`,
@@ -84,7 +84,7 @@ export default function Locations() {
             <LoadingSpinner />
           </div>
         )}
-        {!modal && data && data.length > 9 && (
+        {data && data.length > 9 && (
           <button
             onClick={() => setShowModal(true)}
             className="absolute inset-x-0 bottom-4 z-10 mx-auto flex w-full items-center justify-center space-x-2 rounded-md bg-gradient-to-b from-transparent to-white py-2 text-gray-500 transition-all hover:text-gray-800 active:scale-95"
