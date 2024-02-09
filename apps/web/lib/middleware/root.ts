@@ -39,7 +39,7 @@ export default async function RootMiddleware(
   const { id, url, rewrite, iframeable } = link;
 
   // record clicks on root page
-  ev.waitUntil(recordClick({ req, id, domain, ...(url && { url }) }));
+  ev.waitUntil(recordClick({ req, id, ...(url && { url }), root: true }));
 
   if (!url) {
     // rewrite to placeholder page unless the user defines a site to redirect to

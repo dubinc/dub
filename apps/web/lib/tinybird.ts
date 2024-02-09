@@ -13,20 +13,17 @@ import { detectBot } from "./middleware/utils";
 
 /**
  * Recording clicks with geo, ua, referer and timestamp data
- * If key is not specified, record click as the root click ("_root", e.g. dub.sh, vercel.fyi)
  **/
 export async function recordClick({
   req,
   id,
-  domain,
-  key,
   url,
+  root,
 }: {
   req: NextRequest;
   id: string;
-  domain: string;
-  key?: string;
   url?: string;
+  root?: boolean;
 }) {
   const isBot = detectBot(req);
   if (isBot) {
@@ -36,12 +33,10 @@ export async function recordClick({
   const ua = userAgent(req);
   const referer = req.headers.get("referer");
   const ip = ipAddress(req) || LOCALHOST_IP;
-  // if in production / preview env, deduplicate clicks from the same IP, domain and key – only record 1 click per hour
+  // if in production / preview env, deduplicate clicks from the same IP & link ID – only record 1 click per hour
   if (process.env.VERCEL === "1") {
     const { success } = await ratelimit(2, "1 h").limit(
-      `recordClick:${ip}:${domain.toLowerCase()}:${
-        key?.toLowerCase() || "_root"
-      }`,
+      `recordClick:${ip}:${id}`,
     );
     if (!success) {
       return null;
@@ -73,21 +68,6 @@ export async function recordClick({
 
   return await Promise.allSettled([
     fetch(
-      "https://api.us-east.tinybird.co/v0/events?name=click_events&wait=true",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
-        },
-        body: JSON.stringify({
-          ...payload,
-          domain,
-          key: key || "_root",
-        }),
-      },
-    ).then((res) => res.json()),
-
-    fetch(
       "https://api.us-east.tinybird.co/v0/events?name=dub_click_events&wait=true",
       {
         method: "POST",
@@ -104,23 +84,24 @@ export async function recordClick({
       },
     ).then((res) => res.json()),
 
-    // increment the click count for the link if key is specified (not root click)
-    // also increment the usage count for the project, and then we have a cron that will reset it at the start of new billing cycle
-    key
-      ? [
+    // increment the click count for the link or domain (based on their ID)
+    // also increment the usage count for the project (if it's a link click)
+    // and then we have a cron that will reset it at the start of new billing cycle
+    root
+      ? conn.execute(
+          "UPDATE Domain SET clicks = clicks + 1, lastClicked = NOW() WHERE id = ?",
+          [id],
+        )
+      : [
           conn.execute(
-            "UPDATE Link SET clicks = clicks + 1, lastClicked = NOW() WHERE domain = ? AND `key` = ?",
-            [domain, key],
+            "UPDATE Link SET clicks = clicks + 1, lastClicked = NOW() WHERE id = ?",
+            [id],
           ),
           conn.execute(
-            "UPDATE Project p JOIN Link l ON p.id = l.projectId SET p.usage = p.usage + 1 WHERE domain = ? AND `key` = ?",
-            [domain, key],
+            "UPDATE Project p JOIN Link l ON p.id = l.projectId SET p.usage = p.usage + 1 WHERE l.id = ?",
+            [id],
           ),
-        ]
-      : conn.execute(
-          "UPDATE Domain SET clicks = clicks + 1, lastClicked = NOW() WHERE slug = ?",
-          [domain],
-        ),
+        ],
   ]);
 }
 
