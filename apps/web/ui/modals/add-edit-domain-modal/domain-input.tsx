@@ -2,6 +2,7 @@ import { AlertCircleFill, CheckCircleFill } from "@/ui/shared/icons";
 import { Label, RadioGroup, RadioGroupItem, useMediaQuery } from "@dub/ui";
 import {
   FADE_IN_ANIMATION_SETTINGS,
+  HOME_DOMAIN,
   cn,
   getApexDomain,
   getSubdomain,
@@ -169,6 +170,18 @@ export default function DomainInput({
             </div>
           </RadioGroup>
         </motion.div>
+      )}
+      {(domain.includes("/") || domainType === "website") && (
+        <p className="mt-2 text-sm text-gray-500">
+          Want to set up Dub.co to handle redirects on a subpath instead?{" "}
+          <a
+            href={`${HOME_DOMAIN}/help/article/how-to-use-dub-with-subpath`}
+            target="_blank"
+            className="underline"
+          >
+            Read this guide.
+          </a>
+        </p>
       )}
     </>
   );
