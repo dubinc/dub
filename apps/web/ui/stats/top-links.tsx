@@ -1,7 +1,7 @@
-import { LoadingSpinner, Modal, TabSelect, useRouterStuff } from "@dub/ui";
-import { capitalize, fetcher, linkConstructor, truncate } from "@dub/utils";
-import { Maximize } from "lucide-react";
-import { useContext, useState } from "react";
+import { LoadingSpinner, Modal, useRouterStuff } from "@dub/ui";
+import { fetcher, linkConstructor } from "@dub/utils";
+import { Maximize, X } from "lucide-react";
+import { useContext, useEffect, useState } from "react";
 import useSWR from "swr";
 import { StatsContext } from ".";
 import BarList from "./bar-list";
@@ -10,7 +10,15 @@ import { TopLinksTabs } from "@/lib/stats";
 export default function TopLinks() {
   const [tab, setTab] = useState<TopLinksTabs>("link");
 
-  const { baseApiPath, queryString, modal } = useContext(StatsContext);
+  const { baseApiPath, queryString, domain, key } = useContext(StatsContext);
+
+  useEffect(() => {
+    if (domain && key) {
+      setTab("url");
+    } else {
+      setTab("link");
+    }
+  }, [domain, key]);
 
   const { data } = useSWR<
     ({ domain: string; key: string } & {
@@ -70,13 +78,24 @@ export default function TopLinks() {
       </Modal>
       <div className="scrollbar-hide relative z-0 h-[400px] overflow-scroll border border-gray-200 bg-white px-7 py-5 sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
         <div className="mb-5 flex justify-between">
-          <h1 className="text-lg font-semibold capitalize">Top Links</h1>
-          <TabSelect
-            options={["link", "url", "alias"]}
-            selected={tab}
-            // @ts-ignore
-            selectAction={setTab}
-          />
+          <h1 className="text-lg font-semibold capitalize">
+            Top {tab === "link" ? "Links" : "URLs"}
+          </h1>
+          {domain && key && (
+            <button
+              className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-1 text-sm text-gray-500 transition-all duration-75 hover:bg-gray-100 active:scale-[0.98] sm:px-3"
+              onClick={() => {
+                queryParams({
+                  del: ["domain", "key"],
+                });
+              }}
+            >
+              <strong className="text-gray-800">
+                {linkConstructor({ domain, key, pretty: true })}
+              </strong>
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
         {data ? (
           data.length > 0 ? (
@@ -91,7 +110,7 @@ export default function TopLinks() {
             <LoadingSpinner />
           </div>
         )}
-        {!modal && data && data.length > 9 && (
+        {data && data.length > 9 && (
           <button
             onClick={() => setShowModal(true)}
             className="absolute inset-x-0 bottom-4 z-10 mx-auto flex w-full items-center justify-center space-x-2 rounded-md bg-gradient-to-b from-transparent to-white py-2 text-gray-500 transition-all hover:text-gray-800 active:scale-95"

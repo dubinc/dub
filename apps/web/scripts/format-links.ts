@@ -53,7 +53,7 @@ async function main() {
         projectId: undefined,
         link_id: obj.id,
         url: obj.url || "",
-        team_id: obj.projectId || "",
+        project_id: obj.projectId || "",
         deleted: 0,
       }) + "\n",
     );

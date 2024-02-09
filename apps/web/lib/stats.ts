@@ -58,8 +58,8 @@ export const intervalData = {
   },
 };
 
-export type LocationTabs = "country" | "city" | "region";
-export type TopLinksTabs = "link" | "url" | "alias";
+export type LocationTabs = "country" | "city";
+export type TopLinksTabs = "link" | "url";
 export type DeviceTabs = "device" | "browser" | "os" | "ua";
 
 const VALID_TINYBIRD_ENDPOINTS = [
@@ -67,7 +67,7 @@ const VALID_TINYBIRD_ENDPOINTS = [
   "clicks",
   "top_links",
   "top_urls",
-  "top_aliases",
+  // "top_aliases",
   "country",
   "city",
   "device",

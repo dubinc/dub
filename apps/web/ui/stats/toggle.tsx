@@ -40,7 +40,7 @@ export default function Toggle() {
   const { slug } = useParams() as { slug?: string };
   const { queryParams } = useRouterStuff();
 
-  const { basePath, domain, key, interval, modal } = useContext(StatsContext);
+  const { basePath, domain, key, interval } = useContext(StatsContext);
 
   const [openDatePopover, setOpenDatePopover] = useState(false);
 
@@ -59,8 +59,7 @@ export default function Toggle() {
     <div
       className={cn("sticky top-[6.85rem] z-10 mb-5 bg-gray-50 py-3 md:py-5", {
         "top-14": isPublicStatsPage,
-        "top-6 md:top-0": modal,
-        "shadow-md": scrolled && !modal,
+        "shadow-md": scrolled,
       })}
     >
       <div className="mx-auto flex h-20 max-w-4xl flex-col items-center justify-between space-y-3 px-2.5 md:h-10 md:flex-row md:space-y-0 lg:px-0">

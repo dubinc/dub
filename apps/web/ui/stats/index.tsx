@@ -22,7 +22,6 @@ import Devices from "./devices";
 import Locations from "./locations";
 import Referer from "./referer";
 import Toggle from "./toggle";
-import Feedback from "./feedback";
 import useSWR from "swr";
 import { fetcher } from "@dub/utils";
 import { VALID_STATS_FILTERS } from "@/lib/stats";
@@ -35,7 +34,6 @@ export const StatsContext = createContext<{
   queryString: string;
   interval: string;
   totalClicks?: number;
-  modal?: boolean;
 }>({
   basePath: "",
   baseApiPath: "",
@@ -45,13 +43,7 @@ export const StatsContext = createContext<{
   interval: "",
 });
 
-export default function Stats({
-  staticDomain,
-  modal,
-}: {
-  staticDomain?: string;
-  modal?: boolean;
-}) {
+export default function Stats({ staticDomain }: { staticDomain?: string }) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
@@ -116,17 +108,8 @@ export default function Stats({
         key: key ? decodeURIComponent(key) : undefined, // link key (e.g. github, weathergpt, etc.)
         interval, // time interval (e.g. 24h, 7d, 30d, etc.)
         totalClicks, // total clicks for the link
-        modal, // whether or not this is a modal
       }}
     >
-      {modal && (
-        <button
-          className="group sticky right-4 top-4 z-30 float-right hidden rounded-full p-3 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:scale-75 md:block"
-          onClick={() => router.back()}
-        >
-          <X className="h-6 w-6" />
-        </button>
-      )}
       <div className="bg-gray-50 py-10">
         <Toggle />
         <div className="mx-auto grid max-w-4xl gap-5">
