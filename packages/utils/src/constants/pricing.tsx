@@ -80,6 +80,7 @@ export const PLANS: Plan[] = [
   {
     name: "Pro",
     tagline: "For startups & small businesses",
+    link: "https://dub.co/help/article/pro-plan",
     price: {
       monthly: 24,
       yearly: 19,
@@ -138,6 +139,7 @@ export const PLANS: Plan[] = [
   {
     name: "Business",
     tagline: "For larger teams with increased usage",
+    link: "https://dub.co/help/article/business-plan",
     price: {
       monthly: 49,
       yearly: 39,
@@ -193,6 +195,9 @@ export const PLANS: Plan[] = [
   },
   {
     name: "Enterprise",
+    tagline:
+      "Custom tailored plans for large enterprises. Whether you're running a SMS campaign with millions of short links or a large marketing campaign with billions of clicks, we've got you covered.",
+    link: "https://dub.co/enterprise",
     price: {
       monthly: null,
       yearly: null,

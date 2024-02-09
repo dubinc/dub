@@ -47,7 +47,7 @@ export default function IOSSection({
               <SimpleTooltipContent
                 title="Redirect your iOS users to a different link."
                 cta="Learn more about device targeting."
-                href={`${HOME_DOMAIN}/help/article/how-to-create-link#device-targeting-ios--android`}
+                href={`${HOME_DOMAIN}/help/article/device-targeting`}
               />
             }
           />
