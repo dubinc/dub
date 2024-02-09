@@ -20,7 +20,7 @@
     "prettier-plugin-organize-imports": "^3.2.3",
     "prettier-plugin-tailwindcss": "^0.5.3",
     "tsconfig": "workspace:*",
-    "turbo": "^1.10.15"
+    "turbo": "^1.12.3"
   },
   "packageManager": "pnpm@8.6.10"
 }
