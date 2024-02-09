@@ -161,7 +161,7 @@ export const DUB_DOMAINS = [
           type: "redirect",
           placeholder: "https://www.amazon.com/dp/B0BW4SWNC8",
           clicks: 0,
-          allowedHostnames: ["amazon.com", "amazon.co.uk", "amazon.ca"],
+          allowedHostnames: ["amazon.com", "amazon.co.uk", "amazon.ca", "amazon.es"],
           projectId: DUB_PROJECT_ID,
         },
         {
