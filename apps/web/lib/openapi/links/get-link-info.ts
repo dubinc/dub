@@ -20,4 +20,5 @@ export const getLinkInfo: ZodOpenApiOperationObject = {
     },
   },
   tags: ["Links"],
+  security: [{ bearerToken: [] }],
 };

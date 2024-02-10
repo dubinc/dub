@@ -32,4 +32,5 @@ export const createBulkLink: ZodOpenApiOperationObject = {
     },
   },
   tags: ["Links"],
+  security: [{ bearerToken: [] }],
 };

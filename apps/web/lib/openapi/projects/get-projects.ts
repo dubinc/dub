@@ -18,4 +18,5 @@ export const getProjects: ZodOpenApiOperationObject = {
     },
   },
   tags: ["Projects"],
+  security: [{ bearerToken: [] }],
 };

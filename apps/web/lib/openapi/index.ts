@@ -41,5 +41,12 @@ export const openAPIDocument = createDocument({
       ProjectSchema,
       TagSchema,
     },
+    securitySchemes: {
+      bearerToken: {
+        type: "http",
+        description: "Default authentication mechanism",
+        scheme: "bearer",
+      },
+    },
   },
 });

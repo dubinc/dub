@@ -27,4 +27,5 @@ export const getTags: ZodOpenApiOperationObject = {
     },
   },
   tags: ["Tags"],
+  security: [{ bearerToken: [] }],
 };
