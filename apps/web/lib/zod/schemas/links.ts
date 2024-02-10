@@ -165,4 +165,4 @@ export const BulkCreateLinksBodySchema = z
 // TODO: Add proper type for geo
 export const LinkSchema = Link.extend({
   geo: z.record(z.string()).optional().nullable(),
-});
+}).openapi({ title: "Link" });

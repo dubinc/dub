@@ -1,9 +1,9 @@
 import { createDocument } from "zod-openapi";
 
-import { linkPaths } from "./links";
+import { linksPaths } from "./links";
+import { tagsPaths } from "./tags";
 import { LinkSchema } from "@/lib/zod/schemas/links";
-import { TagSchemaOpenApi, tagPaths } from "@/lib/zod/schemas/tags";
-import { ProjectSchemaOpenApi, projectPaths } from "@/lib/zod/schemas/projects";
+import { TagSchema } from "@/lib/zod/schemas/tags";
 
 export const openAPIDocument = createDocument({
   openapi: "3.0.3",
@@ -29,15 +29,14 @@ export const openAPIDocument = createDocument({
     },
   ],
   paths: {
-    ...linkPaths,
-    // ...tagPaths,
+    ...linksPaths,
+    ...tagsPaths,
     // ...projectPaths,
   },
   components: {
     schemas: {
       LinkSchema,
-      TagSchemaOpenApi,
-      ProjectSchemaOpenApi,
+      TagSchema,
     },
   },
 });

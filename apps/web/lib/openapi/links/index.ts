@@ -7,7 +7,7 @@ import { deleteLink } from "./delete-link";
 import { editLink } from "./edit-link";
 import { createBulkLink } from "./create-bulk-link";
 
-export const linkPaths: ZodOpenApiPathsObject = {
+export const linksPaths: ZodOpenApiPathsObject = {
   "/links": {
     post: createLink,
     get: getLinks,
