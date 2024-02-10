@@ -5,6 +5,7 @@ import {
   LinkSchema,
   GetLinkInfoQuerySchema,
 } from "@/lib/zod/schemas/links";
+import { openApiErrorResponses } from "@/lib/openapi/responses";
 
 export const createLink: ZodOpenApiOperationObject = {
   operationId: "createLink",
@@ -29,6 +30,7 @@ export const createLink: ZodOpenApiOperationObject = {
         },
       },
     },
+    ...openApiErrorResponses,
   },
   tags: ["Links"],
   security: [{ bearerToken: [] }],

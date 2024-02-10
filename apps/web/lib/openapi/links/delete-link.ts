@@ -2,6 +2,7 @@ import { ZodOpenApiOperationObject } from "zod-openapi";
 
 import z from "@/lib/zod";
 import { GetLinksQuerySchema, LinkSchema } from "@/lib/zod/schemas/links";
+import { openApiErrorResponses } from "@/lib/openapi/responses";
 
 export const deleteLink: ZodOpenApiOperationObject = {
   operationId: "deleteLink",
@@ -25,6 +26,7 @@ export const deleteLink: ZodOpenApiOperationObject = {
         },
       },
     },
+    ...openApiErrorResponses,
   },
   tags: ["Links"],
   security: [{ bearerToken: [] }],

@@ -2,6 +2,7 @@ import { ZodOpenApiOperationObject } from "zod-openapi";
 
 import z from "@/lib/zod";
 import { TagSchema } from "@/lib/zod/schemas/tags";
+import { openApiErrorResponses } from "@/lib/openapi/responses";
 
 export const getTags: ZodOpenApiOperationObject = {
   operationId: "getTags",
@@ -25,6 +26,7 @@ export const getTags: ZodOpenApiOperationObject = {
         },
       },
     },
+    ...openApiErrorResponses,
   },
   tags: ["Tags"],
   security: [{ bearerToken: [] }],

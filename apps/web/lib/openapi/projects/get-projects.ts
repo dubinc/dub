@@ -2,6 +2,7 @@ import { ZodOpenApiOperationObject } from "zod-openapi";
 
 import z from "@/lib/zod";
 import { ProjectSchema } from "@/lib/zod/schemas/projects";
+import { openApiErrorResponses } from "@/lib/openapi/responses";
 
 export const getProjects: ZodOpenApiOperationObject = {
   operationId: "getProjects",
@@ -16,6 +17,7 @@ export const getProjects: ZodOpenApiOperationObject = {
         },
       },
     },
+    ...openApiErrorResponses,
   },
   tags: ["Projects"],
   security: [{ bearerToken: [] }],

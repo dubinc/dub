@@ -2,6 +2,7 @@ import { ZodOpenApiOperationObject } from "zod-openapi";
 
 import z from "@/lib/zod";
 import { GetLinksQuerySchema, LinkSchema } from "@/lib/zod/schemas/links";
+import { openApiErrorResponses } from "@/lib/openapi/responses";
 
 export const getLinks: ZodOpenApiOperationObject = {
   operationId: "getLinks",
@@ -20,6 +21,7 @@ export const getLinks: ZodOpenApiOperationObject = {
         },
       },
     },
+    ...openApiErrorResponses,
   },
   tags: ["Links"],
   security: [{ bearerToken: [] }],

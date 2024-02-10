@@ -6,6 +6,7 @@ import {
   GetLinkInfoQuerySchema,
 } from "@/lib/zod/schemas/links";
 import z from "@/lib/zod";
+import { openApiErrorResponses } from "@/lib/openapi/responses";
 
 export const createBulkLink: ZodOpenApiOperationObject = {
   operationId: "bulkCreateLinks",
@@ -30,6 +31,7 @@ export const createBulkLink: ZodOpenApiOperationObject = {
         },
       },
     },
+    ...openApiErrorResponses,
   },
   tags: ["Links"],
   security: [{ bearerToken: [] }],

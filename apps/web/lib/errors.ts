@@ -21,16 +21,16 @@ const ErrorCode = z.enum([
 
 const errorCodeToHttpStatus: Record<z.infer<typeof ErrorCode>, number> = {
   bad_request: 400,
-  not_found: 404,
-  internal_server_error: 500,
   unauthorized: 401,
   forbidden: 403,
-  rate_limit_exceeded: 429,
-  invite_expired: 410,
-  invite_pending: 409,
   exceeded_limit: 403,
+  not_found: 404,
   conflict: 409,
+  invite_pending: 409,
+  invite_expired: 410,
   unprocessible_entity: 422,
+  rate_limit_exceeded: 429,
+  internal_server_error: 500,
 };
 
 const prismaErrorMapping: Record<
@@ -156,3 +156,26 @@ export function handleAndReturnErrorResponse(
   console.error(error);
   return NextResponse.json<ErrorResponse>({ error }, { headers, status });
 }
+
+export const errorSchemaFactory = (code: z.infer<typeof ErrorCode>) => {
+  return z.object({
+    error: z.object({
+      code: z.literal(code).openapi({
+        description: "A short code indicating the error code returned.",
+        example: code,
+      }),
+      message: z.string().openapi({
+        description: "A human readable explanation of what went wrong.",
+        example: "The requested resource was not found.",
+      }),
+      doc_url: z
+        .string()
+        .optional()
+        .openapi({
+          description:
+            "A link to our documentation with more details about this error code",
+          example: `${docErrorUrl}#${code}`,
+        }),
+    }),
+  });
+};
