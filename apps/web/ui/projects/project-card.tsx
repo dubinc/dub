@@ -108,7 +108,7 @@ export default function ProjectCard({
                       cta={
                         primaryDomain?.verified === false
                           ? "Verify Domain"
-                          : "Manage Domain"
+                          : `Manage Domain${domains.length > 1 ? "s" : ""}`
                       }
                       href={`/${slug}/domains`}
                     />
