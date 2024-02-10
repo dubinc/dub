@@ -1,11 +1,12 @@
 import { createDocument } from "zod-openapi";
 
-import { TagSchemaOpenApi, tagPaths } from "../schemas/tags";
-import { ProjectSchemaOpenApi, projectPaths } from "../schemas/projects";
-import { LinkSchemaOpenApi, linkPaths } from "../schemas/links";
+import { linkPaths } from "./links";
+import { LinkSchema } from "@/lib/zod/schemas/links";
+import { TagSchemaOpenApi, tagPaths } from "@/lib/zod/schemas/tags";
+import { ProjectSchemaOpenApi, projectPaths } from "@/lib/zod/schemas/projects";
 
 export const openAPIDocument = createDocument({
-  openapi: "3.0.0",
+  openapi: "3.0.3",
   info: {
     title: "Dub.co API",
     description:
@@ -28,15 +29,15 @@ export const openAPIDocument = createDocument({
     },
   ],
   paths: {
+    ...linkPaths,
     ...tagPaths,
     ...projectPaths,
-    ...linkPaths,
   },
   components: {
     schemas: {
+      LinkSchema,
       TagSchemaOpenApi,
       ProjectSchemaOpenApi,
-      LinkSchemaOpenApi,
     },
   },
 });

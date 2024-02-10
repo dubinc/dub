@@ -3,15 +3,18 @@ import { withAuth } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/errors";
 import { ratelimit } from "@/lib/upstash";
-import { CreateLinkBodySchema, GetLinksQuery } from "@/lib/zod/schemas/links";
+import {
+  CreateLinkBodySchema,
+  GetLinksQuerySchema,
+} from "@/lib/zod/schemas/links";
 import { APP_DOMAIN_WITH_NGROK, LOCALHOST_IP } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/links – get all user links
 export const GET = withAuth(async ({ headers, searchParams, project }) => {
   try {
-    const { domain, tagId, search, sort, page, userId, showArchived } =
-      GetLinksQuery.parse(searchParams);
+    const parsed = GetLinksQuerySchema.parse(searchParams);
+    const { domain, tagId, search, sort, page, userId, showArchived } = parsed;
 
     const response = await getLinksForProject({
       projectId: project.id,
@@ -35,7 +38,7 @@ export const GET = withAuth(async ({ headers, searchParams, project }) => {
 export const POST = withAuth(
   async ({ req, headers, session, project }) => {
     try {
-      const body = CreateLinkBodySchema.parse(await req.json());
+      const payload = CreateLinkBodySchema.parse(await req.json());
 
       if (!session) {
         const ip = req.headers.get("x-forwarded-for") || LOCALHOST_IP;
@@ -51,7 +54,7 @@ export const POST = withAuth(
       }
 
       const { link } = await processLink({
-        payload: body,
+        payload,
         project,
         session,
       });
@@ -65,13 +68,13 @@ export const POST = withAuth(
         });
       }
 
-      await qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/event`,
-        body: {
-          linkId: response.id,
-          type: "create",
-        },
-      });
+      // await qstash.publishJSON({
+      //   url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/event`,
+      //   body: {
+      //     linkId: response.id,
+      //     type: "create",
+      //   },
+      // });
 
       return NextResponse.json(response, { headers });
     } catch (err) {

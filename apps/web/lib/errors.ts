@@ -105,9 +105,7 @@ export function fromZodError(error: ZodError): ErrorResponse {
   };
 }
 
-export function handleApiError(
-  error: unknown,
-): ErrorResponse & { status: number } {
+export function handleApiError(error: any): ErrorResponse & { status: number } {
   // Zod errors
   if (error instanceof ZodError) {
     return { ...fromZodError(error), status: 400 };
@@ -115,7 +113,7 @@ export function handleApiError(
 
   // Prisma errors
   if (error instanceof PrismaClientKnownRequestError) {
-    const code = prismaErrorMapping[error.code] ?? "internal_server_error";
+    const code = prismaErrorMapping[error.code] ?? error.message;
 
     return {
       error: {

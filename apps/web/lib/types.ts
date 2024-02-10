@@ -1,4 +1,6 @@
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
+import z from "@/lib/zod";
+import { CreateLinkBodySchema } from "./zod/schemas/links";
 
 export { type Link as LinkProps } from "@prisma/client";
 export interface SimpleLinkProps {
@@ -138,3 +140,5 @@ export interface SAMLProviderProps {
     token: string;
   };
 }
+
+export type NewLinkProps = z.infer<typeof CreateLinkBodySchema>;

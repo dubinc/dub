@@ -20,11 +20,15 @@ import {
   validKeyRegex,
 } from "@dub/utils";
 import cloudinary from "cloudinary";
-import { LinkProps, ProjectProps, RedisLinkProps } from "../types";
+import {
+  LinkProps,
+  NewLinkProps,
+  ProjectProps,
+  RedisLinkProps,
+} from "../types";
 import { Session } from "../auth";
 import { getLinkViaEdge } from "../planetscale";
-import z, { GetLinksCountParams } from "../zod";
-import { CreateLinkBody } from "../zod/schemas/links";
+import { GetLinksCountParams } from "../zod";
 import { DubApiError } from "../errors";
 
 export async function getLinksForProject({
@@ -210,7 +214,7 @@ export async function processLink({
   session,
   bulk = false,
 }: {
-  payload: CreateLinkBody;
+  payload: NewLinkProps;
   project?: ProjectProps;
   session?: Session;
   bulk?: boolean;
@@ -358,7 +362,7 @@ export async function processLink({
 }
 
 export async function addLink(
-  link: CreateLinkBody & Pick<LinkProps, "domain" | "key">,
+  link: Awaited<ReturnType<typeof processLink>>["link"],
 ) {
   const { domain, key, url, expiresAt, title, description, image, proxy, geo } =
     link;
@@ -374,8 +378,8 @@ export async function addLink(
     data: {
       ...link,
       key,
-      title: truncate(title || "", 120),
-      description: truncate(description || "", 240),
+      title: title ? truncate(title, 120) : null,
+      description: description ? truncate(description, 240) : null,
       image: uploadedImage ? undefined : image,
       utm_source,
       utm_medium,
@@ -414,7 +418,9 @@ export async function addLink(
   };
 }
 
-export async function bulkCreateLinks(links: LinkProps[]) {
+export async function bulkCreateLinks(
+  links: Awaited<ReturnType<typeof processLink>>["link"][],
+) {
   if (links.length === 0) return [];
 
   await prisma.link.createMany({
@@ -423,8 +429,8 @@ export async function bulkCreateLinks(links: LinkProps[]) {
         getParamsFromURL(link.url);
       return {
         ...link,
-        title: truncate(link.title, 120),
-        description: truncate(link.description, 240),
+        title: link.title ? truncate(link.title, 120) : null,
+        description: link.description ? truncate(link.description, 240) : null,
         utm_source,
         utm_medium,
         utm_campaign,
