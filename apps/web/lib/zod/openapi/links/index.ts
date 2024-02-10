@@ -19,7 +19,7 @@ export const linkPaths: ZodOpenApiPathsObject = {
     put: editLink,
     delete: deleteLink,
   },
-  "links/bulk": {
+  "/links/bulk": {
     post: createBulkLink,
   }
 };

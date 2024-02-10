@@ -30,8 +30,8 @@ export const openAPIDocument = createDocument({
   ],
   paths: {
     ...linkPaths,
-    ...tagPaths,
-    ...projectPaths,
+    // ...tagPaths,
+    // ...projectPaths,
   },
   components: {
     schemas: {
