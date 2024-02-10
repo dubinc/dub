@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { qstash } from "@/lib/cron";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/errors";
-import { CreateLinkBodySchema } from "@/lib/zod/schemas/links";
+import { createLinkBodySchema } from "@/lib/zod/schemas/links";
 
 // GET /api/links/[linkId] – get a link
 export const GET = withAuth(async ({ headers, link }) => {
@@ -17,7 +17,7 @@ export const GET = withAuth(async ({ headers, link }) => {
 // PUT /api/links/[linkId] – update a link
 export const PUT = withAuth(async ({ req, headers, project, link }) => {
   try {
-    const body = CreateLinkBodySchema.parse(await req.json());
+    const body = createLinkBodySchema.parse(await req.json());
 
     const updatedLink = {
       ...link,

@@ -1,7 +1,7 @@
 import z from "@/lib/zod";
 import { LinkSchema as Link } from "prisma/zod";
 
-export const GetLinksQuerySchema = z.object({
+export const getLinksQuerySchema = z.object({
   projectSlug: z
     .string()
     .describe(
@@ -41,7 +41,7 @@ export const GetLinksQuerySchema = z.object({
     ),
 });
 
-export const GetLinkInfoQuerySchema = z.object({
+export const getLinkInfoQuerySchema = z.object({
   projectSlug: z
     .string()
     .describe(
@@ -59,7 +59,7 @@ export const GetLinkInfoQuerySchema = z.object({
     ),
 });
 
-export const CreateLinkBodySchema = z.object({
+export const createLinkBodySchema = z.object({
   domain: z
     .string()
     .optional()
@@ -159,8 +159,8 @@ export const CreateLinkBodySchema = z.object({
   comments: z.string().nullish().describe("The comments for the short link."),
 });
 
-export const BulkCreateLinksBodySchema = z
-  .array(CreateLinkBodySchema)
+export const bulkCreateLinksBodySchema = z
+  .array(createLinkBodySchema)
   .max(100, "You can only create up to 100 links at a time.");
 
 // TODO: Add description for each field

@@ -1,7 +1,7 @@
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
 import z from "@/lib/zod";
-import { GetQRCodeQuerySchema } from "@/lib/zod/schemas/qr";
+import { getQRCodeQuerySchema } from "@/lib/zod/schemas/qr";
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 
 export const getQRCode: ZodOpenApiOperationObject = {
@@ -9,7 +9,7 @@ export const getQRCode: ZodOpenApiOperationObject = {
   summary: "Retrieve a QR code",
   description: "Retrieve a QR code for a link.",
   requestParams: {
-    query: GetQRCodeQuerySchema,
+    query: getQRCodeQuerySchema,
   },
   responses: {
     "200": {

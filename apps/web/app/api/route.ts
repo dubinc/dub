@@ -1,12 +1,8 @@
 import { NextResponse } from "next/server";
-import { openAPIDocument } from "@/lib/openapi";
-import { oas31 } from "openapi3-ts";
 
 export const runtime = "edge";
 
-export function GET(): NextResponse<oas31.OpenAPIObject> {
-  // return NextResponse.json(openAPIDocument);
-
+export function GET() {
   // TODO: Remove this once we have all the paths
   return NextResponse.json({
     openapi: "3.0.3",

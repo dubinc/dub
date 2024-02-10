@@ -4,8 +4,8 @@ import { qstash } from "@/lib/cron";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/errors";
 import { ratelimit } from "@/lib/upstash";
 import {
-  CreateLinkBodySchema,
-  GetLinksQuerySchema,
+  createLinkBodySchema,
+  getLinksQuerySchema,
 } from "@/lib/zod/schemas/links";
 import { APP_DOMAIN_WITH_NGROK, LOCALHOST_IP } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -13,7 +13,7 @@ import { NextResponse } from "next/server";
 // GET /api/links – get all user links
 export const GET = withAuth(async ({ headers, searchParams, project }) => {
   try {
-    const parsed = GetLinksQuerySchema.parse(searchParams);
+    const parsed = getLinksQuerySchema.parse(searchParams);
     const { domain, tagId, search, sort, page, userId, showArchived } = parsed;
 
     const response = await getLinksForProject({
@@ -38,7 +38,7 @@ export const GET = withAuth(async ({ headers, searchParams, project }) => {
 export const POST = withAuth(
   async ({ req, headers, session, project }) => {
     try {
-      const payload = CreateLinkBodySchema.parse(await req.json());
+      const payload = createLinkBodySchema.parse(await req.json());
 
       if (!session) {
         const ip = req.headers.get("x-forwarded-for") || LOCALHOST_IP;

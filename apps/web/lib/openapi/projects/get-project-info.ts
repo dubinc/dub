@@ -1,7 +1,7 @@
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
 import z from "@/lib/zod";
-import { ProjectSchema } from "@/lib/zod/schemas/projects";
+import { projectSchema } from "@/lib/zod/schemas/projects";
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 
 export const getProjectInfo: ZodOpenApiOperationObject = {
@@ -22,7 +22,7 @@ export const getProjectInfo: ZodOpenApiOperationObject = {
       description: "The retrieved project",
       content: {
         "application/json": {
-          schema: ProjectSchema,
+          schema: projectSchema,
         },
       },
     },

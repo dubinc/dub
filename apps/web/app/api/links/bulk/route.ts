@@ -3,7 +3,7 @@ import { withAuth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import { exceededLimitError } from "@/lib/api/errors";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/errors";
-import { BulkCreateLinksBodySchema } from "@/lib/zod/schemas/links";
+import { bulkCreateLinksBodySchema } from "@/lib/zod/schemas/links";
 
 // POST /api/links/bulk – bulk create up to 100 links
 export const POST = withAuth(
@@ -17,7 +17,7 @@ export const POST = withAuth(
       //   );
       // }
 
-      const links = BulkCreateLinksBodySchema.parse(await req.json());
+      const links = bulkCreateLinksBodySchema.parse(await req.json());
 
       if (
         project.linksUsage + links.length > project.linksLimit &&

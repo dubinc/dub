@@ -1,7 +1,7 @@
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
 import z from "@/lib/zod";
-import { GetLinksQuerySchema, LinkSchema } from "@/lib/zod/schemas/links";
+import { getLinksQuerySchema, LinkSchema } from "@/lib/zod/schemas/links";
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 
 export const deleteLink: ZodOpenApiOperationObject = {
@@ -9,7 +9,7 @@ export const deleteLink: ZodOpenApiOperationObject = {
   summary: "Delete a link",
   description: "Delete a link for the authenticated project.",
   requestParams: {
-    query: GetLinksQuerySchema.pick({ projectSlug: true }),
+    query: getLinksQuerySchema.pick({ projectSlug: true }),
     path: z.object({
       linkId: z.string().openapi({
         description:

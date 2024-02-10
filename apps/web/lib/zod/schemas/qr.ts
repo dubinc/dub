@@ -1,6 +1,6 @@
 import z from "@/lib/zod";
 
-export const GetQRCodeQuerySchema = z.object({
+export const getQRCodeQuerySchema = z.object({
   url: z
     .string()
     .url()

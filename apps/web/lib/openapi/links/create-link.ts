@@ -1,9 +1,9 @@
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
 import {
-  CreateLinkBodySchema,
+  createLinkBodySchema,
   LinkSchema,
-  GetLinkInfoQuerySchema,
+  getLinkInfoQuerySchema,
 } from "@/lib/zod/schemas/links";
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 
@@ -12,12 +12,12 @@ export const createLink: ZodOpenApiOperationObject = {
   summary: "Create a new link",
   description: "Create a new link for the authenticated project.",
   requestParams: {
-    query: GetLinkInfoQuerySchema.pick({ projectSlug: true }),
+    query: getLinkInfoQuerySchema.pick({ projectSlug: true }),
   },
   requestBody: {
     content: {
       "application/json": {
-        schema: CreateLinkBodySchema,
+        schema: createLinkBodySchema,
       },
     },
   },

@@ -1,7 +1,7 @@
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
 import z from "@/lib/zod";
-import { TagSchema } from "@/lib/zod/schemas/tags";
+import { tagSchema } from "@/lib/zod/schemas/tags";
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 
 export const getTags: ZodOpenApiOperationObject = {
@@ -22,7 +22,7 @@ export const getTags: ZodOpenApiOperationObject = {
       description: "A list of tags",
       content: {
         "application/json": {
-          schema: z.array(TagSchema),
+          schema: z.array(tagSchema),
         },
       },
     },

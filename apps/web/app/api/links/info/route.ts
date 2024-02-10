@@ -2,13 +2,13 @@ import { withAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { linkConstructor } from "@dub/utils";
 import { NextResponse } from "next/server";
-import { GetLinkInfoQuerySchema } from "@/lib/zod/schemas/links";
+import { getLinkInfoQuerySchema } from "@/lib/zod/schemas/links";
 import { handleAndReturnErrorResponse } from "@/lib/errors";
 
 // GET /api/links/info – get the info for a link
 export const GET = withAuth(async ({ headers, searchParams }) => {
   try {
-    const { domain, key } = GetLinkInfoQuerySchema.parse(searchParams);
+    const { domain, key } = getLinkInfoQuerySchema.parse(searchParams);
 
     const response = await prisma.link.findUniqueOrThrow({
       where: {

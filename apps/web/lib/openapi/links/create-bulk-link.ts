@@ -1,9 +1,9 @@
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
 import {
-  CreateLinkBodySchema,
+  createLinkBodySchema,
   LinkSchema,
-  GetLinkInfoQuerySchema,
+  getLinkInfoQuerySchema,
 } from "@/lib/zod/schemas/links";
 import z from "@/lib/zod";
 import { openApiErrorResponses } from "@/lib/openapi/responses";
@@ -13,12 +13,12 @@ export const createBulkLink: ZodOpenApiOperationObject = {
   summary: "Bulk create links",
   description: "Bulk create up to 100 links for the authenticated project.",
   requestParams: {
-    query: GetLinkInfoQuerySchema.pick({ projectSlug: true }),
+    query: getLinkInfoQuerySchema.pick({ projectSlug: true }),
   },
   requestBody: {
     content: {
       "application/json": {
-        schema: z.array(CreateLinkBodySchema),
+        schema: z.array(createLinkBodySchema),
       },
     },
   },

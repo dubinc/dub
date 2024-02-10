@@ -1,7 +1,7 @@
 import z from "@/lib/zod";
 import { RoleSchema, PlanSchema } from "prisma/zod";
 
-export const ProjectSchema = z
+export const projectSchema = z
   .object({
     id: z.string().describe("The unique ID of the project."),
     name: z.string().describe("The name of the project."),
