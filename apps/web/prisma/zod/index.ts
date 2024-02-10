@@ -128,6 +128,10 @@ export const RoleSchema = z.enum(['owner','member']);
 
 export type RoleType = `${z.infer<typeof RoleSchema>}`
 
+export const PlanSchema = z.enum(['free','pro','business','enterprise']);
+
+export type PlanType = `${z.infer<typeof PlanSchema>}`
+
 /////////////////////////////////////////
 // MODELS
 /////////////////////////////////////////
