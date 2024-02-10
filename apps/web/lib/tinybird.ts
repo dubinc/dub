@@ -10,6 +10,7 @@ import { NextRequest, userAgent } from "next/server";
 import { conn } from "./planetscale";
 import { ratelimit } from "./upstash";
 import { detectBot } from "./middleware/utils";
+import { LinkProps } from "./types";
 
 /**
  * Recording clicks with geo, ua, referer and timestamp data
@@ -105,29 +106,29 @@ export async function recordClick({
   ]);
 }
 
-// WIP, still needs testing
-export async function deleteClickData({
-  domain,
-  key,
+export async function recordLink({
+  link,
+  deleted,
 }: {
-  domain: string;
-  key: string;
+  link: LinkProps;
+  deleted?: boolean;
 }) {
-  if (!domain || !key) {
-    return null;
-  }
-  const deleteCondition = `domain='${domain}' AND key='${key}'`;
-  const response = await fetch(
-    "https://api.tinybird.co/v0/datasources/click_events/delete",
+  return await fetch(
+    "https://api.us-east.tinybird.co/v0/events?name=dub_links_metadata&wait=true",
     {
       method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
-        "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: `delete_condition=${encodeURIComponent(deleteCondition)}`,
+      body: JSON.stringify({
+        timestamp: new Date(Date.now()).toISOString(),
+        link_id: link.id,
+        domain: link.domain,
+        key: link.key,
+        url: link.url,
+        project_id: link.projectId || "",
+        deleted: deleted ? 1 : 0,
+      }),
     },
   ).then((res) => res.json());
-  console.log({ response });
-  return response;
 }

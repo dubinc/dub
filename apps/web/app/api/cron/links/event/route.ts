@@ -1,5 +1,6 @@
 import { limiter, qstash, receiver } from "@/lib/cron";
 import prisma from "@/lib/prisma";
+import { recordLink } from "@/lib/tinybird";
 import { ProjectProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import {
@@ -65,24 +66,26 @@ export async function POST(req: Request) {
     });
   }
 
+  // update redis and tinybird
+  await Promise.all([
+    redis.hset(link.domain, {
+      [link.key.toLowerCase()]: await formatRedisLink(link),
+    }),
+    recordLink({ link }),
+  ]);
+
   // increment links usage and send alert if needed
   if (type === "create" && link.projectId) {
-    const [project, _] = await Promise.all([
-      prisma.project.update({
-        where: {
-          id: link.projectId,
+    const project = await prisma.project.update({
+      where: {
+        id: link.projectId,
+      },
+      data: {
+        linksUsage: {
+          increment: 1,
         },
-        data: {
-          linksUsage: {
-            increment: 1,
-          },
-        },
-      }),
-      // set the index in redis again cause we don't have the linkId the first time
-      redis.hset(link.domain, {
-        [link.key.toLowerCase()]: await formatRedisLink(link),
-      }),
-    ]);
+      },
+    });
 
     const percentage = Math.round(
       (project.linksUsage / project.linksLimit) * 100,
