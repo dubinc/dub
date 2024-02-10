@@ -32,7 +32,7 @@ export const importLinksFromCSV = async ({
     })),
   );
 
-  const importedLinks = await bulkCreateLinks(processedLinks);
+  const importedLinks = await bulkCreateLinks(processedLinks as any); // TODO: fix types
 
   count += importedLinks.length;
 

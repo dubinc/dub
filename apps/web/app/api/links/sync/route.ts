@@ -59,7 +59,7 @@ export const POST = withAuth(async ({ req, session, project }) => {
         publicStats: false,
       },
     }),
-    bulkCreateLinks(unclaimedLinks),
+    bulkCreateLinks(unclaimedLinks as any), // TODO: fix types
     prisma.project.update({
       where: {
         id: project.id,

@@ -4,8 +4,6 @@ import prisma from "@/lib/prisma";
 import { deleteProject } from "@/lib/api/projects";
 import { DEFAULT_REDIRECTS, validSlugRegex } from "@dub/utils";
 import { isReservedKey } from "@/lib/edge-config";
-import { ErrorResponse, handleApiError } from "@/lib/errors";
-import { Project } from "@/lib/zod/schemas/projects";
 
 // GET /api/projects/[slug] – get a specific project
 export const GET = withAuth(async ({ project, headers }) => {
