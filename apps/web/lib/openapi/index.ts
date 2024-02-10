@@ -1,4 +1,4 @@
-import { createDocument } from "zod-openapi";
+import { ZodOpenApiObject, createDocument } from "zod-openapi";
 
 import { linksPaths } from "./links";
 import { tagsPaths } from "./tags";
@@ -7,7 +7,7 @@ import { LinkSchema } from "@/lib/zod/schemas/links";
 import { TagSchema } from "@/lib/zod/schemas/tags";
 import { ProjectSchema } from "@/lib/zod/schemas/projects";
 
-export const openAPIDocument = createDocument({
+export const openApiObject: ZodOpenApiObject = {
   openapi: "3.0.3",
   info: {
     title: "Dub.co API",
@@ -49,4 +49,4 @@ export const openAPIDocument = createDocument({
       },
     },
   },
-});
+};

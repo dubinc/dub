@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
-import { openAPIDocument } from "@/lib/openapi";
+import { createDocument } from "zod-openapi";
+
+import { openApiObject } from "@/lib/openapi";
 
 export const GET = async () => {
-  return NextResponse.json(openAPIDocument);
+  return NextResponse.json(createDocument(openApiObject));
 };
