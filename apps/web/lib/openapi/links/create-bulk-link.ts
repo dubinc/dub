@@ -8,7 +8,7 @@ import {
 import z from "@/lib/zod";
 
 export const createBulkLink: ZodOpenApiOperationObject = {
-  operationId: "createBulkLink",
+  operationId: "bulkCreateLinks",
   summary: "Bulk create links",
   description: "Bulk create up to 100 links for the authenticated project.",
   requestParams: {

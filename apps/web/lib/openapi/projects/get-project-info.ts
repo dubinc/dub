@@ -4,7 +4,7 @@ import z from "@/lib/zod";
 import { ProjectSchema } from "@/lib/zod/schemas/projects";
 
 export const getProjectInfo: ZodOpenApiOperationObject = {
-  operationId: "getProjectInfo",
+  operationId: "getProject",
   summary: "Retrieve a project",
   description: "Retrieve a project for the authenticated user.",
   requestParams: {
