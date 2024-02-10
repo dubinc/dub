@@ -23,6 +23,7 @@ export const GetLinksQuerySchema = z.object({
   sort: z
     .enum(["createdAt", "clicks", "lastClicked"])
     .optional()
+    .default("createdAt")
     .describe(
       "The field to sort the links by. The default is `createdAt`, and sort order is always descending.",
     ),
@@ -34,6 +35,7 @@ export const GetLinksQuerySchema = z.object({
   showArchived: z.coerce
     .boolean()
     .optional()
+    .default(false)
     .describe(
       "Whether to include archived links in the response. Defaults to `false` if not provided.",
     ),
