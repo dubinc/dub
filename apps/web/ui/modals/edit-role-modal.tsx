@@ -12,6 +12,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import { extractApiErrorMessage } from "../utils";
 
 function EditRoleModal({
   showEditRoleModal,
@@ -80,7 +81,7 @@ function EditRoleModal({
                   `Successfully changed ${name || email}'s role to ${role}.`,
                 );
               } else {
-                const error = await res.text();
+                const error = await extractApiErrorMessage(res);
                 toast.error(error);
               }
               setEditing(false);

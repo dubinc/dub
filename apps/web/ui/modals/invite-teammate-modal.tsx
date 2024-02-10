@@ -12,6 +12,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import { extractApiErrorMessage } from "../utils";
 
 function InviteTeammateModal({
   showInviteTeammateModal,
@@ -66,7 +67,7 @@ function InviteTeammateModal({
               });
               setShowInviteTeammateModal(false);
             } else {
-              const error = await res.text();
+              const error = await extractApiErrorMessage(res);
               toast.error(error);
             }
             setInviting(false);

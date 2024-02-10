@@ -54,7 +54,7 @@ export default function TagsSection({
         toast.success(`Successfully created tag!`);
         setCreatingTag(false);
       } else {
-        const error = extractApiErrorMessage(res);
+        const error = await extractApiErrorMessage(res);
         toast.error(error);
       }
     });
