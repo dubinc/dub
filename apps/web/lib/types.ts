@@ -1,8 +1,8 @@
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 
 import z from "@/lib/zod";
-import { PlanSchema } from "./zod/schemas";
 import { CreateLinkBodySchema } from "./zod/schemas/links";
+import { PlanSchema } from "prisma/zod";
 
 export { type Link as LinkProps } from "@prisma/client";
 export interface SimpleLinkProps {
