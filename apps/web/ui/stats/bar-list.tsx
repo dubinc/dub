@@ -137,7 +137,7 @@ export function LineItem({
   setShowModal: Dispatch<SetStateAction<boolean>>;
   barBackground: string;
 }) {
-  const itemRef = useRef<HTMLDivElement>(null);
+  const itemRef = useRef<HTMLAnchorElement>(null);
   const entry = useIntersectionObserver(itemRef, {});
   const isVisible = !!entry?.isIntersecting;
 
