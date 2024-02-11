@@ -806,7 +806,8 @@ function combineTagIds({
 }: {
   tagId?: string | null;
   tagIds?: string[];
-}) {
-  // Using Set to remove duplicates
-  return [...new Set((tagIds ?? []).concat(tagId ?? []))];
+}): string[] {
+  // Use tagIds if present, fall back to tagId
+  if (tagIds?.length) return tagIds;
+  return tagId ? [tagId] : [];
 }
