@@ -10,7 +10,6 @@ import {
   DEFAULT_REDIRECTS,
   DUB_DOMAINS,
   SHORT_DOMAIN,
-  ensureArray,
   getDomainWithoutWWW,
   getParamsFromURL,
   getUrlFromString,
@@ -66,7 +65,7 @@ export async function getLinksForProject({
           },
         ],
       }),
-      ...(tagIds?.length && {
+      ...(tagIds.length > 0 && {
         tags: { some: { tagId: { in: tagIds } } },
       }),
       ...(userId && { userId }),
@@ -175,7 +174,7 @@ export async function getLinksCount({
   } else {
     const where = {
       ...linksWhere,
-      ...(tagIds?.length && {
+      ...(tagIds.length > 0 && {
         tags: {
           some: {
             id: {

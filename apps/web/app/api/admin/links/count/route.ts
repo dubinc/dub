@@ -12,6 +12,8 @@ export const GET = withAdmin(async ({ searchParams }) => {
     tagId?: string;
   };
 
+  const tagIds = tagId ? tagId.split(",") : [];
+
   let response;
 
   if (groupBy) {
@@ -69,7 +71,7 @@ export const GET = withAdmin(async ({ searchParams }) => {
                 in: DUB_DOMAINS.map((domain) => domain.slug),
               },
             }),
-        ...(tagId && {
+        ...(tagIds.length > 0 && {
           tags: {
             some: {
               id: tagId,
