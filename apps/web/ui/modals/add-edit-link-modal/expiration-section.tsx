@@ -52,7 +52,7 @@ export default function ExpirationSection({
               <SimpleTooltipContent
                 title="Set an expiration date for your links – after which it won't be accessible."
                 cta="Learn more."
-                href={`${HOME_DOMAIN}/help/article/how-to-create-link#expiration-date`}
+                href={`${HOME_DOMAIN}/help/article/link-expiration`}
               />
             }
           />
@@ -61,7 +61,7 @@ export default function ExpirationSection({
           fn={() => setEnabled(!enabled)}
           checked={enabled}
           // expiration date is only available on Dub's Pro plan
-          {...(!plan || plan === "free"
+          {...((!plan || plan === "free") && !enabled
             ? {
                 disabledTooltip: (
                   <TooltipContent

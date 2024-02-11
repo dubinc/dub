@@ -58,7 +58,7 @@ export default function GeoSection({
               <SimpleTooltipContent
                 title="Redirect your users to different links based on their location."
                 cta="Learn more about geo targeting."
-                href={`${HOME_DOMAIN}/help/article/how-to-create-link#geo-targeting`}
+                href={`${HOME_DOMAIN}/help/article/geo-targeting`}
               />
             }
           />
@@ -67,7 +67,7 @@ export default function GeoSection({
           fn={() => setEnabled(!enabled)}
           checked={enabled}
           // geo targeting is only available on Dub's Pro plan
-          {...(!plan || plan === "free"
+          {...((!plan || plan === "free") && !enabled
             ? {
                 disabledTooltip: (
                   <TooltipContent

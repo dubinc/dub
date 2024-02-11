@@ -1,4 +1,4 @@
-import { DUB_LOGO, capitalize, nFormatter } from "@dub/utils";
+import { DUB_LOGO, PLANS, capitalize, nFormatter } from "@dub/utils";
 import {
   Body,
   Container,
@@ -37,6 +37,9 @@ export default function LinksLimitAlert({
     plan: string;
   };
   const percentage = Math.round((linksUsage / linksLimit) * 100);
+  const nextPlan =
+    PLANS[PLANS.findIndex((p) => p.name.toLowerCase() === plan) + 1];
+
   return (
     <Html>
       <Head />
@@ -74,23 +77,47 @@ export default function LinksLimitAlert({
               (out of a maximum of {nFormatter(linksLimit, { full: true })}{" "}
               links) in your current billing cycle.
             </Text>
-            <Text className="text-sm leading-6 text-black">
-              {plan === "business" || plan === "enterprise"
-                ? "Since you're on the Business plan, you will still be able to create links even after you hit your limit. We're planning to introduce on-demand billing for overages in the future, but for now, you can continue to create links without any interruption."
-                : percentage === 100
-                ? `All your existing links will continue to work, and we are still collecting data on them, but you'll need to upgrade the ${
-                    plan === "free" ? "Pro" : "Business"
-                  } plan to add more links.`
-                : `Once you hit your limit, you'll need to upgrade to the ${
-                    plan === "free" ? "Pro" : "Business"
-                  } plan to add more links.`}
-            </Text>
+
+            {plan === "business" || plan === "enterprise" ? (
+              <Text className="text-sm leading-6 text-black">
+                Since you're on the {capitalize(plan)} plan, you will still be
+                able to create links even after you hit your limit. We're
+                planning to introduce on-demand billing for overages in the
+                future, but for now, you can continue to create links without
+                any interruption.
+              </Text>
+            ) : percentage === 100 ? (
+              <Text className="text-sm leading-6 text-black">
+                All your existing links will continue to work, and we are still
+                collecting data on them, but you'll need to upgrade the{" "}
+                <Link
+                  href={nextPlan.link}
+                  className="font-medium text-blue-600 no-underline"
+                >
+                  {nextPlan.name} plan
+                </Link>{" "}
+                add more links.
+              </Text>
+            ) : (
+              <Text className="text-sm leading-6 text-black">
+                Once you hit your limit, you'll need to upgrade to the{" "}
+                <Link
+                  href={nextPlan.link}
+                  className="font-medium text-blue-600 no-underline"
+                >
+                  {nextPlan.name} plan
+                </Link>{" "}
+                to add more links.
+              </Text>
+            )}
             <Section className="mb-8 text-center">
               <Link
                 className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                href={`https://app.dub.co/${slug}?upgrade=${
-                  plan === "free" ? "pro" : "business"
-                }`}
+                href={
+                  plan === "free"
+                    ? `https://app.dub.co/${slug}?upgrade=pro`
+                    : `https://app.dub.co/${slug}/settings/billing`
+                }
               >
                 Upgrade my plan
               </Link>

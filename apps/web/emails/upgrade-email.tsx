@@ -1,4 +1,4 @@
-import { DUB_LOGO } from "@dub/utils";
+import { DUB_LOGO, SELF_SERVE_PAID_PLANS } from "@dub/utils";
 import {
   Body,
   Container,
@@ -23,10 +23,11 @@ export default function UpgradeEmail({
   email: string;
   plan: string;
 }) {
+  const planDetails = SELF_SERVE_PAID_PLANS.find((p) => p.name === plan)!;
   return (
     <Html>
       <Head />
-      <Preview>Thank you for upgrading to Dub {plan}!</Preview>
+      <Preview>Thank you for upgrading to Dub.co {plan}!</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
@@ -40,7 +41,7 @@ export default function UpgradeEmail({
               />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-center text-xl font-semibold text-black">
-              Thank you for upgrading to Dub {plan}!
+              Thank you for upgrading to Dub.co {plan}!
             </Heading>
             <Section className="my-8">
               <Img
@@ -54,7 +55,14 @@ export default function UpgradeEmail({
             </Text>
             <Text className="text-sm leading-6 text-black">
               My name is Steven, and I'm the founder of Dub. I wanted to
-              personally reach out to thank you for upgrading to Dub {plan}!
+              personally reach out to thank you for upgrading to{" "}
+              <Link
+                href={planDetails.link}
+                className="font-medium text-blue-600 no-underline"
+              >
+                Dub.co {plan}
+              </Link>
+              !
             </Text>
             <Text className="text-sm leading-6 text-black">
               As you might already know, we are a{" "}
@@ -72,38 +80,16 @@ export default function UpgradeEmail({
                 open-source
               </Link>{" "}
               business. Your support means the world to us and helps us continue
-              to build and improve Dub.
+              to build and improve Dub.co.
             </Text>
             <Text className="text-sm leading-6 text-black">
               On the {plan} plan, you now have access to:
             </Text>
-            <Text className="ml-1 text-sm leading-4 text-black">
-              ◆ {plan === "Enterprise" ? "Unlimited" : "Up to 50K"} link clicks
-              per month
-            </Text>
-            <Text className="ml-1 text-sm leading-4 text-black">
-              ◆ Custom branding for your QR codes
-            </Text>
-            <Text className="ml-1 text-sm leading-4 text-black">
-              ◆ Redirect your root domain to the URL of your choice
-            </Text>
-            <Text className="ml-1 text-sm leading-4 text-black">
-              ◆ Unlimited teammates
-            </Text>
-            <Text className="ml-1 text-sm leading-4 text-black">
-              ◆ Unlimited link history
-            </Text>
-            <Text className="ml-1 text-sm leading-4 text-black">
-              ◆ Unlimited tags
-            </Text>
-            <Text className="ml-1 text-sm leading-4 text-black">
-              ◆ API access
-            </Text>
-            {plan === "Enterprise" && (
+            {planDetails.features.map((feature) => (
               <Text className="ml-1 text-sm leading-4 text-black">
-                ◆ Priority support
+                ◆ {feature.text}
               </Text>
-            )}
+            ))}
             <Text className="text-sm leading-6 text-black">
               Let me know if you have any questions or feedback. I'm always
               happy to help!
@@ -111,7 +97,6 @@ export default function UpgradeEmail({
             <Text className="text-sm font-light leading-6 text-gray-400">
               Steven from Dub
             </Text>
-
             <Footer email={email} marketing />
           </Container>
         </Body>

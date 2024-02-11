@@ -36,6 +36,7 @@ import {
   CopyPlus,
   Edit3,
   EyeOff,
+  Mail,
   MessageCircle,
   QrCode,
   TimerOff,
@@ -84,7 +85,9 @@ export default function LinkCard({
   const isVisible = !!entry?.isIntersecting;
 
   const { data: clicks } = useSWR<number>(
+    // only fetch clicks if the link is visible and there's a slug and the usage is not exceeded
     isVisible &&
+      slug &&
       !exceededClicks &&
       `/api/projects/${slug}/stats/clicks?domain=${domain}&key=${key}`,
     fetcher,
@@ -243,7 +246,7 @@ export default function LinkCard({
           ) : (
             <BlurImage
               src={`${GOOGLE_FAVICON_URL}${apexDomain}`}
-              alt={apexDomain}
+              alt={apexDomain || encodeURIComponent(url)}
               className="h-8 w-8 rounded-full sm:h-10 sm:w-10"
               width={20}
               height={20}
@@ -343,9 +346,19 @@ export default function LinkCard({
                 content={
                   <div className="w-full p-4">
                     <Avatar user={user} className="h-10 w-10" />
-                    <p className="mt-2 text-sm font-semibold text-gray-700">
-                      {user?.name || user?.email || "Anonymous User"}
-                    </p>
+                    <div className="mt-2 flex items-center space-x-1.5">
+                      <p className="text-sm font-semibold text-gray-700">
+                        {user?.name || user?.email || "Anonymous User"}
+                      </p>
+                      {!slug && // this is only shown in admin mode (where there's no slug)
+                        user?.email && (
+                          <CopyButton
+                            value={user.email}
+                            icon={Mail}
+                            className="[&>*]:w-3 [&>*]:h-3"
+                          />
+                        )}
+                    </div>
                     <p className="mt-1 text-xs text-gray-500">
                       Created{" "}
                       {new Date(createdAt).toLocaleDateString("en-us", {
@@ -376,7 +389,7 @@ export default function LinkCard({
                     <SimpleTooltipContent
                       title="This link is cloaked. Your users will only see the short link in the browser address bar."
                       cta="Learn more."
-                      href={`${HOME_DOMAIN}/help/article/how-to-create-link#link-cloaking`}
+                      href={`${HOME_DOMAIN}/help/article/link-cloaking`}
                     />
                   }
                 >
@@ -387,7 +400,7 @@ export default function LinkCard({
                 href={url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="xs:block hidden max-w-[140px] truncate text-sm font-medium text-gray-700 underline-offset-2 hover:underline sm:max-w-[300px] md:max-w-[360px] xl:max-w-[440px]"
+                className="xs:block hidden max-w-[140px] truncate text-sm font-medium text-gray-700 underline-offset-2 hover:underline sm:max-w-[300px] md:max-w-[360px] xl:max-w-[420px]"
               >
                 {url}
               </a>

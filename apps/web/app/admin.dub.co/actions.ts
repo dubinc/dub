@@ -3,7 +3,7 @@
 import { deleteProject } from "@/lib/api/projects";
 import { getSession, hashToken } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { DUB_PROJECT_ID, getDomainWithoutWWW } from "@dub/utils";
+import { DUB_DOMAINS, DUB_PROJECT_ID, getDomainWithoutWWW } from "@dub/utils";
 import { randomBytes } from "crypto";
 import cloudinary from "cloudinary";
 import { get } from "@vercel/edge-config";
@@ -44,37 +44,8 @@ async function getImpersonateUrl(email: string) {
   return `${process.env.NEXTAUTH_URL}/api/auth/callback/email?${params}`;
 }
 
-export async function getUser(data: FormData) {
+export async function getUserOrProjectOwner(data: FormData) {
   const email = data.get("email") as string;
-
-  if (!(await isAdmin())) {
-    return {
-      error: "Unauthorized",
-    };
-  }
-
-  const response = await prisma.user.findUnique({
-    where: {
-      email,
-    },
-    select: {
-      email: true,
-    },
-  });
-
-  if (!response?.email) {
-    return {
-      error: "No user found",
-    };
-  }
-
-  return {
-    email: response.email,
-    impersonateUrl: await getImpersonateUrl(response.email),
-  };
-}
-
-export async function getProjectOwner(data: FormData) {
   const slug = data.get("slug") as string;
 
   if (!(await isAdmin())) {
@@ -84,18 +55,48 @@ export async function getProjectOwner(data: FormData) {
   }
 
   const response = await prisma.user.findFirst({
-    where: {
-      projects: {
-        some: {
-          project: {
-            slug,
+    where: email
+      ? { email }
+      : {
+          projects: {
+            some: {
+              project: {
+                slug,
+              },
+              role: "owner",
+            },
           },
-          role: "owner",
         },
-      },
-    },
     select: {
       email: true,
+      links: {
+        where: {
+          domain: {
+            in: DUB_DOMAINS.map((domain) => domain.slug),
+          },
+        },
+        select: {
+          domain: true,
+        },
+      },
+      projects: {
+        select: {
+          project: {
+            select: {
+              name: true,
+              slug: true,
+              plan: true,
+              usage: true,
+              _count: {
+                select: {
+                  domains: true,
+                  links: true,
+                },
+              },
+            },
+          },
+        },
+      },
     },
   });
 
@@ -107,91 +108,22 @@ export async function getProjectOwner(data: FormData) {
 
   return {
     email: response.email,
+    // object with domain slugs as keys and the count of links as values
+    defaultDomainLinks: response.links.reduce((acc, { domain }) => {
+      if (acc[domain]) {
+        acc[domain]++;
+      } else {
+        acc[domain] = 1;
+      }
+      return acc;
+    }, {} as Record<string, number>),
+    projects: response.projects.map(({ project }) => ({
+      ...project,
+      clicks: project.usage,
+      domains: project._count.domains,
+      links: project._count.links,
+    })),
     impersonateUrl: await getImpersonateUrl(response.email),
-  };
-}
-
-export async function getUserByKey(data: FormData) {
-  const key = data.get("key") as string;
-
-  if (!(await isAdmin())) {
-    return {
-      error: "Unauthorized",
-    };
-  }
-
-  const response = await prisma.user.findFirst({
-    where: {
-      links: {
-        some: {
-          domain: "dub.sh",
-          key,
-        },
-      },
-    },
-    select: {
-      email: true,
-      links: {
-        where: {
-          domain: "dub.sh",
-        },
-        select: {
-          key: true,
-          url: true,
-        },
-      },
-      projects: {
-        where: {
-          role: "owner",
-        },
-        select: {
-          project: {
-            select: {
-              name: true,
-              slug: true,
-              plan: true,
-              domains: {
-                select: {
-                  slug: true,
-                  verified: true,
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  });
-  if (!response?.email) {
-    return {
-      error: "No user found",
-    };
-  }
-
-  const { email, links, projects } = response;
-
-  const hostnames = new Set<string>();
-
-  links.map((link) => {
-    const hostname = getDomainWithoutWWW(link.url);
-    hostname && hostnames.add(hostname);
-  });
-
-  const verifiedDomains = projects
-    .filter(({ project }) => {
-      return project.domains.some(({ verified }) => verified);
-    })
-    .flatMap(({ project }) => project.domains.map(({ slug }) => slug));
-
-  return {
-    email: response?.email as string,
-    hostnames: Array.from(hostnames),
-    proProjectSlugs:
-      projects
-        .filter(({ project }) => project.plan === "pro")
-        .map(({ project }) => project.slug) || [],
-    verifiedDomains: verifiedDomains || [],
-    impersonateUrl: await getImpersonateUrl(email),
   };
 }
 
