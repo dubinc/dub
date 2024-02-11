@@ -4,7 +4,7 @@ import { getLinkViaEdge } from "@/lib/planetscale";
 import { linkConstructor } from "@dub/utils";
 import { redirect } from "next/navigation";
 
-export async function verifyPassword(data: FormData) {
+export async function verifyPassword(_prevState: any, data: FormData) {
   const domain = data.get("domain") as string;
   const rawKey = data.get("key") as string; // keys can potentially be encoded
   const key = decodeURIComponent(rawKey);

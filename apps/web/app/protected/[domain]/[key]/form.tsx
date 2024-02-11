@@ -3,31 +3,26 @@
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { Button, useMediaQuery } from "@dub/ui";
 import { useParams } from "next/navigation";
-import { useState } from "react";
-import { useFormStatus } from "react-dom";
-import { toast } from "sonner";
+import { useFormState, useFormStatus } from "react-dom";
 import { verifyPassword } from "./action";
+
+const initialState = {
+  error: null,
+};
 
 export default function PasswordForm() {
   const { domain, key } = useParams() as {
     domain: string;
     key: string;
   };
-  const [error, setError] = useState(false);
+  const [state, formAction] = useFormState(verifyPassword, initialState);
 
   const { isMobile } = useMediaQuery();
 
   return (
     <form
       data-testid="password-form"
-      action={(data) =>
-        verifyPassword(data).then((res) => {
-          if (res?.error) {
-            setError(true);
-            toast.error(res.error);
-          }
-        })
-      }
+      action={formAction}
       className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 sm:px-16"
     >
       <div>
@@ -43,16 +38,13 @@ export default function PasswordForm() {
             id="password"
             autoFocus={!isMobile}
             required
-            onChange={() => {
-              setError(false);
-            }}
             className={`${
-              error
+              state?.error
                 ? "border-red-300 pr-10 text-red-500 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                 : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
             } block w-full rounded-md focus:outline-none sm:text-sm`}
           />
-          {error && (
+          {state?.error && (
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
               <AlertCircleFill
                 className="h-5 w-5 text-red-500"
@@ -61,7 +53,7 @@ export default function PasswordForm() {
             </div>
           )}
         </div>
-        {error && (
+        {state?.error && (
           <p className="mt-2 text-sm text-red-600" id="slug-error">
             Incorrect password
           </p>
