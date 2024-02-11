@@ -27,7 +27,7 @@ export function TabSelect({
           {option === selected && (
             <motion.div
               layoutId={options.join("-")}
-              className="absolute left-0 top-0 h-full h-full w-full w-full rounded-lg border border-gray-200 bg-gray-50"
+              className="absolute left-0 top-0 h-full w-full rounded-lg border border-gray-200 bg-gray-50"
               style={{ zIndex: -1 }}
               transition={{ duration: 0.25 }}
             />
