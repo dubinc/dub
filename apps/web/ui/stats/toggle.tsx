@@ -40,7 +40,7 @@ export default function Toggle() {
   const { slug } = useParams() as { slug?: string };
   const { queryParams } = useRouterStuff();
 
-  const { basePath, domain, key, interval, modal } = useContext(StatsContext);
+  const { basePath, domain, key, interval } = useContext(StatsContext);
 
   const [openDatePopover, setOpenDatePopover] = useState(false);
 
@@ -59,8 +59,7 @@ export default function Toggle() {
     <div
       className={cn("sticky top-[6.85rem] z-10 mb-5 bg-gray-50 py-3 md:py-5", {
         "top-14": isPublicStatsPage,
-        "top-6 md:top-0": modal,
-        "shadow-md": scrolled && !modal,
+        "shadow-md": scrolled,
       })}
     >
       <div className="mx-auto flex h-20 max-w-4xl flex-col items-center justify-between space-y-3 px-2.5 md:h-10 md:flex-row md:space-y-0 lg:px-0">
@@ -95,8 +94,13 @@ export default function Toggle() {
                 content={<DomainsFilterTooltip domains={allProjectDomains} />}
                 side="bottom"
               >
-                <div className="cursor-pointer">
-                  <Badge variant="gray">+{allProjectDomains.length - 1}</Badge>
+                <div className="group flex cursor-pointer items-center">
+                  <Badge
+                    variant="gray"
+                    className="border-gray-300 transition-all group-hover:bg-gray-200"
+                  >
+                    +{allProjectDomains.length - 1}
+                  </Badge>
                 </div>
               </Tooltip>
             )}
@@ -172,7 +176,7 @@ export default function Toggle() {
           >
             <button
               onClick={() => setOpenDatePopover(!openDatePopover)}
-              className="flex w-full items-center justify-between space-x-2 rounded-md bg-white px-3 py-2.5 shadow transition-all duration-75 hover:shadow-md active:scale-95 md:w-48"
+              className="flex w-full items-center justify-between space-x-2 rounded-md bg-white px-3 py-2.5 shadow transition-all hover:shadow-md md:w-48"
             >
               <IconMenu
                 text={selectedInterval.display}
@@ -200,16 +204,17 @@ const DomainsFilterTooltip = ({ domains }: { domains: DomainProps[] }) => {
     <div className="flex w-full flex-col items-start space-y-2 divide-y divide-gray-200 p-2 md:w-48">
       <div className="flex w-full flex-col">
         {domains.map(({ slug, target }) => (
-          <button
+          <Link
             key={slug}
-            onClick={() => {
+            href={
               queryParams({
                 set: {
                   domain: slug,
                 },
                 del: "key",
-              });
-            }}
+                getNewPath: true,
+              }) as string
+            }
             className="group flex items-center justify-between space-x-2 rounded-md p-2 text-gray-500 transition-all hover:bg-gray-100 active:bg-gray-200"
           >
             <div className="flex items-center space-x-2">
@@ -227,7 +232,7 @@ const DomainsFilterTooltip = ({ domains }: { domains: DomainProps[] }) => {
               </p>
             </div>
             {domain === slug && !key && <Tick className="h-4 w-4" />}
-          </button>
+          </Link>
         ))}
       </div>
     </div>
