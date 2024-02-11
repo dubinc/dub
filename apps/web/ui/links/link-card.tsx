@@ -18,6 +18,7 @@ import {
   Tooltip,
   TooltipContent,
   useIntersectionObserver,
+  useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
 import {
@@ -44,11 +45,9 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import Linkify from "linkify-react";
 import punycode from "punycode/";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import useSWR, { mutate } from "swr";
 import { toast } from "sonner";
-
-const PRIMARY_TAGS_COUNT = 2;
 
 export default function LinkCard({
   props,
@@ -72,14 +71,21 @@ export default function LinkCard({
     user,
   } = props;
 
-  const primaryTags = tags.filter((_, idx) => idx < PRIMARY_TAGS_COUNT);
-  const additionalTags = tags.filter((_, idx) => idx >= PRIMARY_TAGS_COUNT);
+  const { isMobile } = useMediaQuery();
+
+  const [primaryTags, additionalTags] = useMemo(() => {
+    const primaryTagsCount = isMobile ? 1 : 2;
+
+    return [
+      tags.filter((_, idx) => idx < primaryTagsCount),
+      tags.filter((_, idx) => idx >= primaryTagsCount),
+    ];
+  }, [tags, isMobile]);
 
   const apexDomain = getApexDomain(url);
 
   const params = useParams() as { slug?: string };
   const { slug } = params;
-  const { queryParams } = useRouterStuff();
 
   const { exceededClicks } = useProject();
   let { verified, loading } = useDomains({ domain });
