@@ -81,6 +81,7 @@ export default function Clicks() {
             if (!value || filter === "excludeRoot") return null;
             return (
               <Link
+                key={filter}
                 href={
                   queryParams({
                     del: filter,

@@ -7,6 +7,7 @@ import {
   validDomainRegex,
 } from "@dub/utils";
 import cloudinary from "cloudinary";
+import { recordLink } from "../tinybird";
 
 export const validateDomain = async (domain: string) => {
   if (!domain || typeof domain !== "string") {
@@ -172,23 +173,34 @@ export async function setRootDomain({
   if (newDomain) {
     await redis.rename(domain, newDomain);
   }
-  return await redis.hset(newDomain || domain, {
-    _root: {
-      id,
-      ...(url && {
-        url,
-      }),
-      ...(url &&
-        rewrite && {
-          rewrite: true,
-          iframeable: await isIframeable({
-            url,
-            requestDomain: newDomain || domain,
-          }),
+  return await Promise.all([
+    redis.hset(newDomain || domain, {
+      _root: {
+        id,
+        ...(url && {
+          url,
         }),
-      projectId,
-    },
-  });
+        ...(url &&
+          rewrite && {
+            rewrite: true,
+            iframeable: await isIframeable({
+              url,
+              requestDomain: newDomain || domain,
+            }),
+          }),
+        projectId,
+      },
+    }),
+    recordLink({
+      link: {
+        domain: newDomain || domain,
+        key: "_root",
+        id,
+        url: url || "",
+        projectId,
+      },
+    }),
+  ]);
 }
 
 /* Change the domain for all images for a given project on Cloudinary */

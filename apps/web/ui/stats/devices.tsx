@@ -58,7 +58,7 @@ export default function Devices() {
         {barList()}
       </Modal>
       <div className="scrollbar-hide relative z-0 h-[400px] overflow-scroll border border-gray-200 bg-white px-7 py-5  sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
-        <div className="mb-5 flex justify-between">
+        <div className="mb-3 flex justify-between">
           <h1 className="text-lg font-semibold">Devices</h1>
           <TabSelect
             options={["device", "browser", "os"]}

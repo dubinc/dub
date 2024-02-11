@@ -117,17 +117,20 @@ export const getStats = async ({
   // get all-time clicks count if:
   // 1. endpoint is /clicks
   // 2. interval is not defined
-  if (endpoint === "clicks" && !interval) {
-    const response = linkId
-      ? await conn.execute("SELECT clicks FROM Link WHERE `id` = ?", [linkId])
-      : await conn.execute("SELECT clicks FROM Domain WHERE slug = ?", [
-          domain,
-        ]);
-    try {
-      const clicks = response.rows[0]["clicks"];
-      return clicks || "0";
-    } catch (e) {
-      console.log(e, "Potential reason: Link is not in MySQL DB");
+  if (endpoint === "clicks" && !interval && linkId) {
+    let response = await conn.execute(
+      "SELECT clicks FROM Link WHERE `id` = ?",
+      [linkId],
+    );
+    if (response.rows.length === 0) {
+      response = await conn.execute(
+        "SELECT clicks FROM Domain WHERE `id` = ?",
+        [linkId],
+      );
+      if (response.rows.length === 0) {
+        return "0";
+      }
+      return response.rows[0]["clicks"];
     }
   }
 

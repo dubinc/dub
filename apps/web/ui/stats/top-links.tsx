@@ -38,24 +38,12 @@ export default function TopLinks() {
       tab={tab}
       data={
         data?.map((d) => ({
-          title:
-            tab === "link"
-              ? linkConstructor({
-                  domain: d.domain,
-                  key: d.key,
-                  pretty: true,
-                })
-              : d[tab],
+          icon: null,
+          title: d[tab],
           href: queryParams({
-            set:
-              tab === "link"
-                ? {
-                    domain: d.domain,
-                    key: d.key,
-                  }
-                : {
-                    [tab]: d[tab],
-                  },
+            set: {
+              [tab]: d[tab],
+            },
             getNewPath: true,
           }) as string,
           clicks: d.clicks,
@@ -81,7 +69,7 @@ export default function TopLinks() {
         {barList()}
       </Modal>
       <div className="scrollbar-hide relative z-0 h-[400px] overflow-scroll border border-gray-200 bg-white px-7 py-5 sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
-        <div className="mb-5 flex justify-between">
+        <div className="mb-3 flex justify-between">
           <h1 className="text-lg font-semibold capitalize">
             Top {tab === "link" ? "Links" : "URLs"}
           </h1>
@@ -144,10 +132,12 @@ export default function TopLinks() {
         {data && data.length > 9 && (
           <button
             onClick={() => setShowModal(true)}
-            className="absolute inset-x-0 bottom-4 z-10 mx-auto flex w-full items-center justify-center space-x-2 rounded-md bg-gradient-to-b from-transparent to-white py-2 text-gray-500 transition-all hover:text-gray-800 active:scale-95"
+            className="absolute inset-x-0 bottom-4 z-10 mx-auto flex w-full items-center justify-center rounded-md bg-gradient-to-b from-transparent to-white text-gray-500 transition-all hover:text-gray-800 active:scale-95"
           >
-            <Maximize className="h-4 w-4" />
-            <p className="text-xs font-semibold uppercase">View all</p>
+            <div className="flex items-center space-x-1 bg-white px-4 py-2">
+              <Maximize className="h-4 w-4" />
+              <p className="text-xs font-semibold uppercase">View all</p>
+            </div>
           </button>
         )}
       </div>

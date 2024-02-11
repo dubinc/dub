@@ -110,7 +110,7 @@ export async function recordLink({
   link,
   deleted,
 }: {
-  link: LinkProps;
+  link: Partial<LinkProps>;
   deleted?: boolean;
 }) {
   return await fetch(
