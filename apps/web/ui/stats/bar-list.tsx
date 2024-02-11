@@ -1,6 +1,12 @@
 "use client";
 
-import { NumberTooltip, Tooltip, useMediaQuery, useRouterStuff } from "@dub/ui";
+import {
+  NumberTooltip,
+  Tooltip,
+  useIntersectionObserver,
+  useMediaQuery,
+  useRouterStuff,
+} from "@dub/ui";
 import {
   GOOGLE_FAVICON_URL,
   cn,
@@ -13,7 +19,14 @@ import {
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
 import Link from "next/link";
-import { Dispatch, ReactNode, SetStateAction, useMemo, useState } from "react";
+import {
+  Dispatch,
+  ReactNode,
+  SetStateAction,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import LinkPreviewTooltip from "./link-preview";
 import { LinkifyTooltipContent } from "@dub/ui/src/tooltip";
 import { useParams } from "next/navigation";
@@ -124,6 +137,10 @@ export function LineItem({
   setShowModal: Dispatch<SetStateAction<boolean>>;
   barBackground: string;
 }) {
+  const itemRef = useRef<HTMLDivElement>(null);
+  const entry = useIntersectionObserver(itemRef, {});
+  const isVisible = !!entry?.isIntersecting;
+
   const { slug } = useParams() as { slug?: string };
   const { data } = useSWR<
     LinkProps & {
@@ -131,6 +148,7 @@ export function LineItem({
     }
   >(
     tab === "link" &&
+      isVisible &&
       `/api/links/${title}?projectSlug=${slug}&checkDomain=true`,
     fetcher,
     {
@@ -187,6 +205,7 @@ export function LineItem({
 
   return (
     <Link
+      ref={itemRef}
       href={
         tab === "link" && data
           ? (queryParams({
