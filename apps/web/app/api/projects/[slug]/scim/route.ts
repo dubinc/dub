@@ -2,6 +2,16 @@ import { withAuth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import jackson from "@/lib/jackson";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/errors";
+import z from "@/lib/zod";
+
+const createOrUpdateDirectorySchema = z.object({
+  provider: z.enum(["okta-scim-v2", "azure-scim-v2", "google"]).optional(),
+  currentDirectoryId: z.string().min(1).optional(),
+});
+
+const deleteDirectorySchema = z.object({
+  directoryId: z.string().min(1),
+});
 
 // GET /api/projects/[slug]/scim – get all SCIM directories
 export const GET = withAuth(async ({ project }) => {
@@ -31,22 +41,27 @@ export const GET = withAuth(async ({ project }) => {
 // POST /api/projects/[slug]/scim – create a new SCIM directory
 export const POST = withAuth(
   async ({ req, project }) => {
-    const { provider = "okta-scim-v2", currentDirectoryId } = await req.json();
+    try {
+      const { provider = "okta-scim-v2", currentDirectoryId } =
+        createOrUpdateDirectorySchema.parse(await req.json());
 
-    const { directorySyncController } = await jackson();
+      const { directorySyncController } = await jackson();
 
-    const [data, _] = await Promise.all([
-      directorySyncController.directories.create({
-        name: "Dub SCIM Directory",
-        tenant: project.id,
-        product: "Dub",
-        type: provider,
-      }),
-      currentDirectoryId &&
-        directorySyncController.directories.delete(currentDirectoryId),
-    ]);
+      const [data, _] = await Promise.all([
+        directorySyncController.directories.create({
+          name: "Dub SCIM Directory",
+          tenant: project.id,
+          product: "Dub",
+          type: provider,
+        }),
+        currentDirectoryId &&
+          directorySyncController.directories.delete(currentDirectoryId),
+      ]);
 
-    return NextResponse.json(data);
+      return NextResponse.json(data);
+    } catch (err) {
+      return handleAndReturnErrorResponse(err);
+    }
   },
   {
     requiredRole: ["owner"],
@@ -58,19 +73,26 @@ export const POST = withAuth(
 
 export const DELETE = withAuth(
   async ({ searchParams }) => {
-    const { directoryId } = searchParams;
+    try {
+      const { directoryId } = deleteDirectorySchema.parse(searchParams);
 
-    if (!directoryId) {
-      return new Response(`Missing SCIM directory ID`, { status: 400 });
+      const { directorySyncController } = await jackson();
+
+      const { error, data } = await directorySyncController.directories.delete(
+        directoryId,
+      );
+
+      if (error) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: error.message,
+        });
+      }
+
+      return NextResponse.json(data);
+    } catch (err) {
+      return handleAndReturnErrorResponse(err);
     }
-
-    const { directorySyncController } = await jackson();
-
-    const response = await directorySyncController.directories.delete(
-      directoryId,
-    );
-
-    return NextResponse.json(response);
   },
   {
     requiredRole: ["owner"],

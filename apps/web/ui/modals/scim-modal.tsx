@@ -20,6 +20,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { extractApiErrorMessage } from "../utils";
 
 function SCIMModal({
   showSCIMModal,
@@ -95,7 +96,7 @@ function SCIMModal({
                 await mutate();
                 toast.success("Successfully configured SCIM");
               } else {
-                const err = await res.text();
+                const err = await extractApiErrorMessage(res);
                 toast.error(err);
               }
               setSubmitting(false);

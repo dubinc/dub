@@ -106,6 +106,8 @@ export function fromZodError(error: ZodError): ErrorResponse {
 }
 
 export function handleApiError(error: any): ErrorResponse & { status: number } {
+  console.error(error);
+
   // Zod errors
   if (error instanceof ZodError) {
     return { ...fromZodError(error), status: 400 };
@@ -141,7 +143,7 @@ export function handleApiError(error: any): ErrorResponse & { status: number } {
   return {
     error: {
       code: "internal_server_error",
-      message: "Something went wrong. Please try again.",
+      message: error instanceof Error ? error.message : "Internal Server Error",
       doc_url: `${docErrorUrl}#internal_server_error`,
     },
     status: 500,
@@ -153,7 +155,6 @@ export function handleAndReturnErrorResponse(
   headers?: Record<string, string>,
 ) {
   const { error, status } = handleApiError(err);
-  console.error(error);
   return NextResponse.json<ErrorResponse>({ error }, { headers, status });
 }
 

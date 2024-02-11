@@ -11,6 +11,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { extractApiErrorMessage } from "../utils";
 
 function RemoveSAMLModal({
   showRemoveSAMLModal,
@@ -85,7 +86,7 @@ function RemoveSAMLModal({
                 setShowRemoveSAMLModal(false);
                 toast.success("SAML removed successfully");
               } else {
-                const error = await res.text();
+                const error = await extractApiErrorMessage(res);
                 toast.error(error);
               }
               setRemoving(false);
