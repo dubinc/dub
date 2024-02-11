@@ -20,12 +20,7 @@ export async function verifyPassword(_prevState: any, data: FormData) {
 
   if (validPassword) {
     // if the password is valid, redirect to the link with the password in the query string
-    redirect(
-      `${linkConstructor({
-        domain,
-        key: rawKey,
-      })}?pw=${password}`,
-    );
+    redirect(`/${rawKey}?pw=${password}`);
   } else {
     return { error: "Invalid password" };
   }
