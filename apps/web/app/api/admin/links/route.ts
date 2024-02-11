@@ -1,7 +1,7 @@
 import { withAdmin } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { DUB_DOMAINS, LEGAL_USER_ID } from "@dub/utils";
+import { DUB_DOMAINS, LEGAL_USER_ID, ensureArray } from "@dub/utils";
 
 // GET /api/links – get all user links
 export const GET = withAdmin(async ({ searchParams }) => {
@@ -14,12 +14,15 @@ export const GET = withAdmin(async ({ searchParams }) => {
     userId,
   } = searchParams as {
     domain?: string;
-    tagId?: string;
+    tagId?: string | string[];
     search?: string;
     sort?: "createdAt" | "clicks" | "lastClicked";
     page?: string;
     userId?: string;
   };
+
+  const tagIds = ensureArray(tagId ?? []);
+
   const response = await prisma.link.findMany({
     where: {
       ...(domain
@@ -49,9 +52,23 @@ export const GET = withAdmin(async ({ searchParams }) => {
           userId: null,
         },
       ],
+      ...(tagIds?.length && {
+        tags: { some: { tagId: { in: tagIds } } },
+      }),
     },
     include: {
       user: true,
+      tags: {
+        include: {
+          tag: {
+            select: {
+              id: true,
+              name: true,
+              color: true,
+            },
+          },
+        },
+      },
     },
     orderBy: {
       [sort]: "desc",
@@ -62,5 +79,10 @@ export const GET = withAdmin(async ({ searchParams }) => {
     }),
   });
 
-  return NextResponse.json(response);
+  const links = response.map((link) => ({
+    ...link,
+    tags: link.tags.map(({ tag }) => tag),
+  }));
+
+  return NextResponse.json(links);
 });
