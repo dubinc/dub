@@ -199,16 +199,17 @@ const DomainsFilterTooltip = ({ domains }: { domains: DomainProps[] }) => {
     <div className="flex w-full flex-col items-start space-y-2 divide-y divide-gray-200 p-2 md:w-48">
       <div className="flex w-full flex-col">
         {domains.map(({ slug, target }) => (
-          <button
+          <Link
             key={slug}
-            onClick={() => {
+            href={
               queryParams({
                 set: {
                   domain: slug,
                 },
                 del: "key",
-              });
-            }}
+                getNewPath: true,
+              }) as string
+            }
             className="group flex items-center justify-between space-x-2 rounded-md p-2 text-gray-500 transition-all hover:bg-gray-100 active:bg-gray-200"
           >
             <div className="flex items-center space-x-2">
@@ -226,7 +227,7 @@ const DomainsFilterTooltip = ({ domains }: { domains: DomainProps[] }) => {
               </p>
             </div>
             {domain === slug && !key && <Tick className="h-4 w-4" />}
-          </button>
+          </Link>
         ))}
       </div>
     </div>

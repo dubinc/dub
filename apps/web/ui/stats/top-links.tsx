@@ -7,6 +7,7 @@ import { StatsContext } from ".";
 import BarList from "./bar-list";
 import { TopLinksTabs } from "@/lib/stats";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 export default function TopLinks() {
   const [tab, setTab] = useState<TopLinksTabs>("link");
@@ -85,34 +86,36 @@ export default function TopLinks() {
             Top {tab === "link" ? "Links" : "URLs"}
           </h1>
           {domain && key ? (
-            <button
+            <Link
               className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-500 transition-all hover:bg-gray-100"
-              onClick={() => {
+              href={
                 queryParams({
                   del: ["domain", "key"],
-                });
-              }}
+                  getNewPath: true,
+                }) as string
+              }
             >
               <strong className="text-gray-800">
                 {linkConstructor({ domain, key, pretty: true })}
               </strong>
               <X className="h-4 w-4" />
-            </button>
+            </Link>
           ) : (
-            <button
-              onClick={() => {
-                if (excludeRoot) {
-                  queryParams({
-                    del: "excludeRoot",
-                  });
-                } else {
-                  queryParams({
-                    set: {
-                      excludeRoot: "true",
-                    },
-                  });
-                }
-              }}
+            <Link
+              href={
+                queryParams({
+                  ...(excludeRoot
+                    ? {
+                        del: "excludeRoot",
+                      }
+                    : {
+                        set: {
+                          excludeRoot: "true",
+                        },
+                      }),
+                  getNewPath: true,
+                }) as string
+              }
               className="flex items-center space-x-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 hover:bg-gray-100"
             >
               <p className="text-sm font-medium">Exclude Root Domains</p>
@@ -122,7 +125,7 @@ export default function TopLinks() {
                 thumbDimensions="w-2 h-2"
                 thumbTranslate="translate-x-3"
               />
-            </button>
+            </Link>
           )}
         </div>
         {data ? (

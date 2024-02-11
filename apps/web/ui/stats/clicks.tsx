@@ -13,6 +13,7 @@ import BarChart from "./bar-chart";
 import { useSearchParams, useParams } from "next/navigation";
 import { X } from "lucide-react";
 import { VALID_STATS_FILTERS } from "@/lib/stats";
+import Link from "next/link";
 
 export default function Clicks() {
   const { totalClicks } = useContext(StatsContext);
@@ -45,12 +46,13 @@ export default function Clicks() {
         <div className="flex flex-wrap items-center justify-end gap-2">
           {domain &&
             (key ? (
-              <button
-                onClick={() => {
+              <Link
+                href={
                   queryParams({
                     del: ["domain", "key"],
-                  });
-                }}
+                    getNewPath: true,
+                  }) as string
+                }
                 className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-500 transition-all hover:bg-gray-100"
               >
                 <p>Link</p>
@@ -58,31 +60,33 @@ export default function Clicks() {
                   {linkConstructor({ domain, key, pretty: true })}
                 </strong>
                 <X className="h-4 w-4" />
-              </button>
+              </Link>
             ) : (
-              <button
-                onClick={() => {
+              <Link
+                href={
                   queryParams({
                     del: "domain",
-                  });
-                }}
+                    getNewPath: true,
+                  }) as string
+                }
                 className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-500 transition-all hover:bg-gray-100"
               >
                 <p>Domain</p>
                 <strong className="text-gray-800">{domain}</strong>
                 <X className="h-4 w-4" />
-              </button>
+              </Link>
             ))}
           {VALID_STATS_FILTERS.map((filter) => {
             const value = searchParams?.get(filter);
             if (!value || filter === "excludeRoot") return null;
             return (
-              <button
-                onClick={() => {
+              <Link
+                href={
                   queryParams({
                     del: filter,
-                  });
-                }}
+                    getNewPath: true,
+                  }) as string
+                }
                 className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-500 transition-all hover:bg-gray-100"
               >
                 <p>{capitalize(filter)}</p>
@@ -92,7 +96,7 @@ export default function Clicks() {
                     : truncate(value, 24)}
                 </strong>
                 <X className="h-4 w-4" />
-              </button>
+              </Link>
             );
           })}
         </div>
