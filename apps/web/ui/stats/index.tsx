@@ -8,13 +8,7 @@
   We use the `useEndpoint()` hook to get the correct layout
 */
 
-import { X } from "lucide-react";
-import {
-  useParams,
-  usePathname,
-  useRouter,
-  useSearchParams,
-} from "next/navigation";
+import { useParams, usePathname, useSearchParams } from "next/navigation";
 import { createContext, useMemo } from "react";
 import Clicks from "./clicks";
 import TopLinks from "./top-links";
@@ -46,7 +40,6 @@ export const StatsContext = createContext<{
 export default function Stats({ staticDomain }: { staticDomain?: string }) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const router = useRouter();
 
   let { slug, key } = useParams() as {
     slug?: string;

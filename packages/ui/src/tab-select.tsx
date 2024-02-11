@@ -1,3 +1,6 @@
+import { cn } from "@dub/utils";
+import { motion } from "framer-motion";
+
 export function TabSelect({
   options,
   selected,
@@ -8,18 +11,27 @@ export function TabSelect({
   selectAction: (option: string) => void;
 }) {
   return (
-    <div className="relative inline-flex items-center space-x-3">
+    <div className="relative inline-flex items-center space-x-1">
       {options.map((option) => (
         <button
           key={option}
-          className={`${
-            option === selected
-              ? "bg-gray-200 text-gray-800"
-              : "bg-gray-50 text-gray-600 hover:bg-gray-100"
-          } rounded-md px-2 py-1 text-sm font-medium capitalize transition-all duration-75 active:scale-95 sm:px-3`}
+          className={cn(
+            "relative z-10 px-3 py-1 text-sm font-medium capitalize",
+            {
+              "transition-all hover:text-gray-500": option !== selected,
+            },
+          )}
           onClick={() => selectAction(option)}
         >
-          {option}
+          <p>{option}</p>
+          {option === selected && (
+            <motion.div
+              layoutId={options.join("-")}
+              className="absolute left-0 top-0 h-full h-full w-full w-full rounded-lg border border-gray-200 bg-gray-50"
+              style={{ zIndex: -1 }}
+              transition={{ duration: 0.25 }}
+            />
+          )}
         </button>
       ))}
     </div>

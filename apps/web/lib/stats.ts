@@ -85,6 +85,7 @@ export const VALID_STATS_FILTERS = [
   "browser",
   "os",
   "referer",
+  "excludeRoot",
 ];
 
 export const getStats = async ({

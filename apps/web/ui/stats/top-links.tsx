@@ -1,4 +1,4 @@
-import { LoadingSpinner, Modal, useRouterStuff } from "@dub/ui";
+import { LoadingSpinner, Modal, Switch, useRouterStuff } from "@dub/ui";
 import { fetcher, linkConstructor } from "@dub/utils";
 import { Maximize, X } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
@@ -6,6 +6,7 @@ import useSWR from "swr";
 import { StatsContext } from ".";
 import BarList from "./bar-list";
 import { TopLinksTabs } from "@/lib/stats";
+import { useSearchParams } from "next/navigation";
 
 export default function TopLinks() {
   const [tab, setTab] = useState<TopLinksTabs>("link");
@@ -27,6 +28,8 @@ export default function TopLinks() {
   >(`${baseApiPath}/top_${tab}s?${queryString}`, fetcher);
 
   const { queryParams } = useRouterStuff();
+  const searchParams = useSearchParams();
+  const excludeRoot = !!searchParams.get("excludeRoot");
   const [showModal, setShowModal] = useState(false);
 
   const barList = (limit?: number) => (
@@ -81,9 +84,9 @@ export default function TopLinks() {
           <h1 className="text-lg font-semibold capitalize">
             Top {tab === "link" ? "Links" : "URLs"}
           </h1>
-          {domain && key && (
+          {domain && key ? (
             <button
-              className="flex items-center space-x-1 rounded-md bg-gray-100 px-2 py-1 text-sm text-gray-500 transition-all duration-75 hover:bg-gray-100 active:scale-[0.98] sm:px-3"
+              className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-500 transition-all hover:bg-gray-100"
               onClick={() => {
                 queryParams({
                   del: ["domain", "key"],
@@ -94,6 +97,31 @@ export default function TopLinks() {
                 {linkConstructor({ domain, key, pretty: true })}
               </strong>
               <X className="h-4 w-4" />
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                if (excludeRoot) {
+                  queryParams({
+                    del: "excludeRoot",
+                  });
+                } else {
+                  queryParams({
+                    set: {
+                      excludeRoot: "true",
+                    },
+                  });
+                }
+              }}
+              className="flex items-center space-x-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 hover:bg-gray-100"
+            >
+              <p className="text-sm font-medium">Exclude Root Domains</p>
+              <Switch
+                checked={excludeRoot}
+                trackDimensions="h-3 w-6"
+                thumbDimensions="w-2 h-2"
+                thumbTranslate="translate-x-3"
+              />
             </button>
           )}
         </div>

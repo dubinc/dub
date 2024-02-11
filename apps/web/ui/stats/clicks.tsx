@@ -51,7 +51,7 @@ export default function Clicks() {
                     del: ["domain", "key"],
                   });
                 }}
-                className="flex items-center space-x-1 rounded-md bg-gray-50 px-2 py-1 text-sm text-gray-500 transition-all duration-75 hover:bg-gray-100 active:scale-[0.98] sm:px-3"
+                className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-500 transition-all hover:bg-gray-100"
               >
                 <p>Link</p>
                 <strong className="text-gray-800">
@@ -66,7 +66,7 @@ export default function Clicks() {
                     del: "domain",
                   });
                 }}
-                className="flex items-center space-x-1 rounded-md bg-gray-50 px-2 py-1 text-sm text-gray-500 transition-all duration-75 hover:bg-gray-100 active:scale-[0.98] sm:px-3"
+                className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-500 transition-all hover:bg-gray-100"
               >
                 <p>Domain</p>
                 <strong className="text-gray-800">{domain}</strong>
@@ -75,7 +75,7 @@ export default function Clicks() {
             ))}
           {VALID_STATS_FILTERS.map((filter) => {
             const value = searchParams?.get(filter);
-            if (!value) return null;
+            if (!value || filter === "excludeRoot") return null;
             return (
               <button
                 onClick={() => {
@@ -83,7 +83,7 @@ export default function Clicks() {
                     del: filter,
                   });
                 }}
-                className="flex items-center space-x-1 rounded-md bg-gray-50 px-2 py-1 text-sm text-gray-500 transition-all duration-75 hover:bg-gray-100 active:scale-[0.98] sm:px-3"
+                className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-500 transition-all hover:bg-gray-100"
               >
                 <p>{capitalize(filter)}</p>
                 <strong className="text-gray-800">
