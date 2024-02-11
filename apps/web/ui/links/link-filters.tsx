@@ -276,17 +276,23 @@ const TagsFilter = ({
   const [search, setSearch] = useState("");
   const [showMore, setShowMore] = useState(false);
 
-  const selectedTagIds = searchParams?.getAll("tagId");
+  const selectedTagIds =
+    searchParams?.get("tagId")?.split("|")?.filter(Boolean) ?? [];
 
   const onCheckboxChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newTags = e.target.checked
+        ? [...selectedTagIds, e.target.id]
+        : selectedTagIds.filter((tagId) => tagId !== e.target.id) ?? [];
       queryParams({
         set: {
-          tagId: e.target.checked
-            ? [...selectedTagIds, e.target.id]
-            : selectedTagIds.filter((tagId) => tagId !== e.target.id) ?? [],
+          tagId: newTags,
         },
-        del: "page",
+        del: [
+          "page",
+          // Remove tagId from params if empty
+          ...(newTags.length ? [] : ["tagId"]),
+        ],
       });
     },
     [selectedTagIds],

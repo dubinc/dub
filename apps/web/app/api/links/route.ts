@@ -10,7 +10,7 @@ export const GET = withAuth(async ({ headers, searchParams, project }) => {
   const { domain, tagId, search, sort, page, userId, showArchived } =
     searchParams as {
       domain?: string;
-      tagId?: string | string[];
+      tagId?: string;
       search?: string;
       sort?: "createdAt" | "clicks" | "lastClicked";
       page?: string;

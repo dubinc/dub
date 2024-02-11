@@ -48,7 +48,7 @@ interface WithAuthHandler {
   }: {
     req: Request;
     params: Record<string, string>;
-    searchParams: Record<string, string | string[]>;
+    searchParams: Record<string, string>;
     headers?: Record<string, string>;
     session: Session;
     project: ProjectProps;

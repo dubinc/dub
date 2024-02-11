@@ -18,19 +18,15 @@ export const getUrlFromString = (str: string) => {
   }
 };
 
-/**
- * Gets search params from a URL, supporting multiple values for a single key as an array value
- */
 export const getSearchParams = (url: string) => {
-  return [...new URL(url).searchParams.entries()].reduce(
-    (params, [k, v]) =>
-      k in params
-        ? // Key already exists; append
-          { ...params, [k]: [v].concat(params[k]) }
-        : // Key does not exist; set
-          { ...params, [k]: v },
-    {} as Record<string, string | string[]>,
-  );
+  // Create a params object
+  let params = {} as Record<string, string>;
+
+  new URL(url).searchParams.forEach(function (val, key) {
+    params[key] = val;
+  });
+
+  return params;
 };
 
 export const getParamsFromURL = (url: string) => {
