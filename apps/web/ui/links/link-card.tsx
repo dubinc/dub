@@ -1,6 +1,6 @@
 import useDomains from "@/lib/swr/use-domains";
 import useProject from "@/lib/swr/use-project";
-import { LinkWithTagsProps, UserProps } from "@/lib/types";
+import { LinkWithTagsProps, TagProps, UserProps } from "@/lib/types";
 import TagBadge from "@/ui/links/tag-badge";
 import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
 import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
@@ -30,7 +30,6 @@ import {
   nFormatter,
   timeAgo,
 } from "@dub/utils";
-import { type Link as LinkProps } from "@prisma/client";
 import {
   Archive,
   CopyPlus,
@@ -48,6 +47,8 @@ import punycode from "punycode/";
 import { useEffect, useRef, useState } from "react";
 import useSWR, { mutate } from "swr";
 import { toast } from "sonner";
+
+const PRIMARY_TAGS_COUNT = 2;
 
 export default function LinkCard({
   props,
@@ -71,6 +72,9 @@ export default function LinkCard({
     user,
   } = props;
 
+  const primaryTags = tags.filter((_, idx) => idx < PRIMARY_TAGS_COUNT);
+  const additionalTags = tags.filter((_, idx) => idx >= PRIMARY_TAGS_COUNT);
+
   const apexDomain = getApexDomain(url);
 
   const params = useParams() as { slug?: string };
@@ -78,7 +82,8 @@ export default function LinkCard({
   const { queryParams } = useRouterStuff();
 
   const { exceededClicks } = useProject();
-  const { verified, loading } = useDomains({ domain });
+  let { verified, loading } = useDomains({ domain });
+  verified = true;
 
   const linkRef = useRef<any>();
   const entry = useIntersectionObserver(linkRef, {});
@@ -324,22 +329,24 @@ export default function LinkCard({
                   </button>
                 </Tooltip>
               )}
-              {tags
-                .filter(({ color }) => color)
-                .map((tag) => (
-                  <button
-                    onClick={() => {
-                      queryParams({
-                        set: {
-                          tagId: tag.id,
-                        },
-                      });
-                    }}
-                    className="transition-all duration-75 hover:scale-105 active:scale-100"
-                  >
-                    <TagBadge {...tag} withIcon />
-                  </button>
-                ))}
+              {primaryTags.map((tag) => (
+                <TagButton {...tag} />
+              ))}
+              {additionalTags.length > 0 && (
+                <Tooltip
+                  content={
+                    <div className="flex flex-wrap gap-1.5 p-3">
+                      {additionalTags.map((tag) => (
+                        <TagButton {...tag} />
+                      ))}
+                    </div>
+                  }
+                >
+                  <div className="flex select-none items-center space-x-1.5 whitespace-nowrap rounded-md bg-gray-100 p-1.5 text-sm font-medium text-gray-500 hover:text-gray-600 sm:rounded-md sm:px-2 sm:py-0.5">
+                    +{additionalTags.length}
+                  </div>
+                </Tooltip>
+              )}
             </div>
             <div className="flex max-w-fit items-center space-x-1">
               <Tooltip
@@ -553,5 +560,24 @@ export default function LinkCard({
         </div>
       </div>
     </li>
+  );
+}
+
+function TagButton(tag: TagProps) {
+  const { queryParams } = useRouterStuff();
+
+  return (
+    <button
+      onClick={() => {
+        queryParams({
+          set: {
+            tagId: tag.id,
+          },
+        });
+      }}
+      className="transition-all duration-75 hover:scale-105 active:scale-100"
+    >
+      <TagBadge {...tag} withIcon />
+    </button>
   );
 }

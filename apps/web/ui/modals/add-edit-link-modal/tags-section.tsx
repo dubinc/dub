@@ -98,7 +98,7 @@ export default function TagsSection({
             setOpenCommandList(true);
           }
         }}
-        className="block rounded-md border-none px-0 py-0 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 sm:text-sm"
+        className="block grow rounded-md border-none px-0 py-0 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 sm:text-sm"
       />
     );
   };
@@ -136,9 +136,9 @@ export default function TagsSection({
                   setData({ ...data, tags: [] });
                   setInputValue("");
                 }}
-                className="absolute inset-y-0 right-0 my-auto"
+                className="absolute inset-y-0 right-0 my-auto text-gray-400 hover:text-gray-500"
               >
-                <X className="h-7 w-7 pr-3 text-gray-400" />
+                <X className="h-7 w-7 pr-3" />
               </button>
             ) : (
               <ChevronDown className="absolute inset-y-0 right-0 my-auto h-7 w-7 pr-3 text-gray-400 transition-all" />
