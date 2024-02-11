@@ -94,8 +94,13 @@ export default function Toggle() {
                 content={<DomainsFilterTooltip domains={allProjectDomains} />}
                 side="bottom"
               >
-                <div className="cursor-pointer">
-                  <Badge variant="gray">+{allProjectDomains.length - 1}</Badge>
+                <div className="group flex cursor-pointer items-center">
+                  <Badge
+                    variant="gray"
+                    className="border-gray-300 transition-all group-hover:bg-gray-200"
+                  >
+                    +{allProjectDomains.length - 1}
+                  </Badge>
                 </div>
               </Tooltip>
             )}
@@ -171,7 +176,7 @@ export default function Toggle() {
           >
             <button
               onClick={() => setOpenDatePopover(!openDatePopover)}
-              className="flex w-full items-center justify-between space-x-2 rounded-md bg-white px-3 py-2.5 shadow transition-all duration-75 hover:shadow-md active:scale-95 md:w-48"
+              className="flex w-full items-center justify-between space-x-2 rounded-md border border-gray-200 bg-white px-3 py-2.5 shadow transition-all hover:shadow-md md:w-48"
             >
               <IconMenu
                 text={selectedInterval.display}
