@@ -52,7 +52,6 @@ import Preview from "./preview";
 import RewriteSection from "./rewrite-section";
 import UTMSection from "./utm-section";
 import TagsSection from "./tags-section";
-import { extractApiErrorMessage } from "@/ui/utils";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
@@ -380,13 +379,13 @@ function AddEditLinkModal({
                   }
                   setShowAddEditLinkModal(false);
                 } else {
-                  const error = await extractApiErrorMessage(res);
+                  const { error } = await res.json();
                   if (error) {
-                    toast.error(error);
-                    if (error.toLowerCase().includes("key")) {
-                      setKeyError(error);
-                    } else if (error.toLowerCase().includes("url")) {
-                      setUrlError(error);
+                    toast.error(error.message);
+                    if (error.message.toLowerCase().includes("key")) {
+                      setKeyError(error.message);
+                    } else if (error.message.toLowerCase().includes("url")) {
+                      setUrlError(error.message);
                     }
                   }
                 }

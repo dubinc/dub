@@ -12,7 +12,6 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { extractApiErrorMessage } from "../utils";
 
 function RemoveSCIMModal({
   showRemoveSCIMModal,
@@ -91,8 +90,8 @@ function RemoveSCIMModal({
                 setShowRemoveSCIMModal(false);
                 toast.success("SCIM directory removed successfully");
               } else {
-                const error = await extractApiErrorMessage(res);
-                toast.error(error);
+                const { error } = await res.json();
+                toast.error(error.message);
               }
               setRemoving(false);
             });

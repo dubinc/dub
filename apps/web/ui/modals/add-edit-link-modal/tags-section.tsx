@@ -1,6 +1,5 @@
 import useTags from "@/lib/swr/use-tags";
 import TagBadge from "@/ui/links/tag-badge";
-import { extractApiErrorMessage } from "@/ui/utils";
 import { LoadingCircle, SimpleTooltipContent, Tooltip } from "@dub/ui";
 import { HOME_DOMAIN } from "@dub/utils";
 import { type Link as LinkProps } from "@prisma/client";
@@ -54,8 +53,8 @@ export default function TagsSection({
         toast.success(`Successfully created tag!`);
         setCreatingTag(false);
       } else {
-        const error = await extractApiErrorMessage(res);
-        toast.error(error);
+        const { error } = await res.json();
+        toast.error(error.message);
       }
     });
   };

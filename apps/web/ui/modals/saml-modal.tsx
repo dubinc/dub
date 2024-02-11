@@ -18,7 +18,6 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { extractApiErrorMessage } from "../utils";
 
 function SAMLModal({
   showSAMLModal,
@@ -79,8 +78,8 @@ function SAMLModal({
                 setShowSAMLModal(false);
                 toast.success("Successfully configured SAML");
               } else {
-                const err = await extractApiErrorMessage(res)
-                toast.error(err);
+                const { error } = await res.json();
+                toast.error(error.message);
               }
               setSubmitting(false);
             });

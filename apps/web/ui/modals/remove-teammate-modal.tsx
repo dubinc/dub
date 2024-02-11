@@ -13,7 +13,6 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { extractApiErrorMessage } from "../utils";
 
 function RemoveTeammateModal({
   showRemoveTeammateModal,
@@ -118,8 +117,8 @@ function RemoveTeammateModal({
                     : "Successfully removed teammate!",
                 );
               } else {
-                const error = await extractApiErrorMessage(res);
-                toast.error(error);
+                const { error } = await res.json();
+                toast.error(error.message);
               }
               setRemoving(false);
             });
