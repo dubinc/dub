@@ -22,7 +22,7 @@ export default function PasswordForm() {
       data-testid="password-form"
       action={(data) =>
         verifyPassword(data).then((res) => {
-          if (res.error) {
+          if (res?.error) {
             setError(true);
             toast.error(res.error);
           }
