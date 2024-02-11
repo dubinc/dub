@@ -1,8 +1,9 @@
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 
 import z from "@/lib/zod";
-import { createLinkBodySchema } from "./zod/schemas/links";
 import { PlanSchema } from "prisma/zod";
+import { createLinkBodySchema } from "./zod/schemas/links";
+import { tagColorSchema } from "./zod/schemas/tags";
 
 export { type Link as LinkProps } from "@prisma/client";
 export interface SimpleLinkProps {
@@ -37,14 +38,7 @@ export interface TagProps {
   color: TagColorProps;
 }
 
-export type TagColorProps =
-  | "red"
-  | "yellow"
-  | "green"
-  | "blue"
-  | "purple"
-  | "pink"
-  | "brown";
+export type TagColorProps = z.infer<typeof tagColorSchema>;
 
 export type PlanProps = z.infer<typeof PlanSchema>;
 

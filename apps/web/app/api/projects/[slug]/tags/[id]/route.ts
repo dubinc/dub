@@ -1,21 +1,33 @@
 import { withAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import z from "@/lib/zod";
+import { tagColorSchema } from "@/lib/zod/schemas/tags";
+import { handleAndReturnErrorResponse } from "@/lib/errors";
+
+const updateTagSchema = z.object({
+  name: z.string().min(1),
+  color: tagColorSchema,
+});
 
 // PUT /api/projects/[slug]/tags/[id] – update a tag for a project
 export const PUT = withAuth(async ({ req, params }) => {
   const { id } = params;
-  const { name, color } = await req.json();
-  const response = await prisma.tag.update({
-    where: {
-      id,
-    },
-    data: {
-      name,
-      color,
-    },
-  });
-  return NextResponse.json(response);
+  try {
+    const { name, color } = updateTagSchema.parse(await req.json());
+    const response = await prisma.tag.update({
+      where: {
+        id,
+      },
+      data: {
+        name,
+        color,
+      },
+    });
+    return NextResponse.json(response);
+  } catch (error) {
+    return handleAndReturnErrorResponse(error);
+  }
 });
 
 // DELETE /api/projects/[slug]/tags/[id] – delete a tag for a project

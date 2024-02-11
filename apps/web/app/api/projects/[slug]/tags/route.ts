@@ -8,24 +8,20 @@ import { createTagBodySchema } from "@/lib/zod/schemas/tags";
 
 // GET /api/projects/[slug]/tags - get all tags for a project
 export const GET = withAuth(async ({ project, headers }) => {
-  try {
-    const tags = await prisma.tag.findMany({
-      where: {
-        projectId: project.id,
-      },
-      select: {
-        id: true,
-        name: true,
-        color: true,
-      },
-      orderBy: {
-        name: "asc",
-      },
-    });
-    return NextResponse.json(tags, { headers });
-  } catch (err) {
-    return handleAndReturnErrorResponse(err);
-  }
+  const tags = await prisma.tag.findMany({
+    where: {
+      projectId: project.id,
+    },
+    select: {
+      id: true,
+      name: true,
+      color: true,
+    },
+    orderBy: {
+      name: "asc",
+    },
+  });
+  return NextResponse.json(tags, { headers });
 });
 
 // POST /api/projects/[slug]/tags - create a tag for a project

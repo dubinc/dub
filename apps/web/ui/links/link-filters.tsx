@@ -34,6 +34,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { useDebouncedCallback } from "use-debounce";
+import { extractApiErrorMessage } from "../utils";
 
 export default function LinkFilters() {
   const { data: domains } = useLinksCount({ groupBy: "domain" });
@@ -403,7 +404,8 @@ const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
         await mutate(`/api/projects/${slug}/tags`);
         toast.success("Tag updated");
       } else {
-        toast.error("Something went wrong");
+        const error = await extractApiErrorMessage(res);
+        toast.error(error);
       }
     });
   };
