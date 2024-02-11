@@ -65,6 +65,8 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
               description: "The tag ID(s) to filter the links by.",
               in: "query",
               required: false,
+              style: "pipeDelimited",
+              explode: false,
               schema: {
                 oneOf: [
                   {
@@ -1056,5 +1058,5 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
         },
       },
     },
-  });
+  } as OpenAPIV3.Document);
 }
