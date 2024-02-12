@@ -23,6 +23,7 @@ import cloudinary from "cloudinary";
 import { LinkProps, ProjectProps, RedisLinkProps } from "../types";
 import { Session } from "../auth";
 import { getLinkViaEdge } from "../planetscale";
+import { recordLink } from "../tinybird";
 
 export async function getLinksForProject({
   projectId,
@@ -454,49 +455,60 @@ export async function addLink(link: LinkProps) {
   };
 }
 
-export async function bulkCreateLinks(links: LinkProps[]) {
+export async function bulkCreateLinks({
+  links,
+  skipPrismaCreate,
+}: {
+  links: LinkProps[];
+  skipPrismaCreate?: boolean;
+}) {
   if (links.length === 0) return [];
 
-  await prisma.link.createMany({
-    data: links.map((link) => {
-      const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
-        getParamsFromURL(link.url);
-      return {
-        ...link,
-        title: truncate(link.title, 120),
-        description: truncate(link.description, 240),
-        utm_source,
-        utm_medium,
-        utm_campaign,
-        utm_term,
-        utm_content,
-        expiresAt: link.expiresAt ? new Date(link.expiresAt) : null,
-        geo: link.geo || undefined,
-      };
-    }),
-    skipDuplicates: true,
-  });
+  let createdLinks: LinkProps[] = [];
 
-  const createdLinks = (await Promise.all(
-    links.map(async (link) => {
-      const { key, domain } = link;
-      return await prisma.link.findUnique({
-        where: {
-          domain_key: {
-            domain,
-            key,
+  if (skipPrismaCreate) {
+    createdLinks = links;
+  } else {
+    await prisma.link.createMany({
+      data: links.map((link) => {
+        const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
+          getParamsFromURL(link.url);
+        return {
+          ...link,
+          title: truncate(link.title, 120),
+          description: truncate(link.description, 240),
+          utm_source,
+          utm_medium,
+          utm_campaign,
+          utm_term,
+          utm_content,
+          expiresAt: link.expiresAt ? new Date(link.expiresAt) : null,
+          geo: link.geo || undefined,
+        };
+      }),
+      skipDuplicates: true,
+    });
+
+    createdLinks = (await Promise.all(
+      links.map(async (link) => {
+        const { key, domain } = link;
+        return await prisma.link.findUnique({
+          where: {
+            domain_key: {
+              domain,
+              key,
+            },
           },
-        },
-      });
-    }),
-  )) as LinkProps[];
+        });
+      }),
+    )) as LinkProps[];
+  }
 
   const pipeline = redis.pipeline();
 
   // split links into domains
   const linksByDomain: Record<string, Record<string, RedisLinkProps>> = {};
 
-  // this technically will be a synchronous function since isIframeable won't be run for bulk link creation
   await Promise.all(
     createdLinks.map(async (link) => {
       const { domain, key } = link;
@@ -504,9 +516,12 @@ export async function bulkCreateLinks(links: LinkProps[]) {
       if (!linksByDomain[domain]) {
         linksByDomain[domain] = {};
       }
+      // this technically will be a synchronous function since isIframeable won't be run for bulk link creation
       const formattedLink = await formatRedisLink(link);
-
       linksByDomain[domain][key.toLowerCase()] = formattedLink;
+
+      // record link in Tinybird
+      await recordLink({ link });
     }),
   );
 
@@ -595,9 +610,6 @@ export async function editLink({
       : cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
           invalidate: true,
         }),
-    redis.hset(domain, {
-      [key.toLowerCase()]: await formatRedisLink(updatedLink),
-    }),
     // if key is changed: rename resource in Cloudinary, delete the old key in Redis and change the clicks key name
     ...(changedDomain || changedKey
       ? [
@@ -635,32 +647,22 @@ export async function editLink({
   };
 }
 
-export async function deleteLink({
-  domain = SHORT_DOMAIN,
-  key,
-  projectId,
-}: {
-  domain?: string;
-  key: string;
-  projectId?: string;
-}) {
+export async function deleteLink(link: LinkProps) {
   return await Promise.all([
     prisma.link.delete({
       where: {
-        domain_key: {
-          domain,
-          key,
-        },
+        id: link.id,
       },
     }),
-    cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
+    cloudinary.v2.uploader.destroy(`${link.domain}/${link.key}`, {
       invalidate: true,
     }),
-    redis.hdel(domain, key.toLowerCase()),
-    projectId &&
+    redis.hdel(link.domain, link.key.toLowerCase()),
+    recordLink({ link, deleted: true }),
+    link.projectId &&
       prisma.project.update({
         where: {
-          id: projectId,
+          id: link.projectId,
         },
         data: {
           linksUsage: {

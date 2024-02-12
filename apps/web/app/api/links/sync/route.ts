@@ -46,7 +46,7 @@ export const POST = withAuth(async ({ req, session, project }) => {
     );
   }
 
-  const response = await Promise.all([
+  const response = await Promise.allSettled([
     prisma.link.updateMany({
       where: {
         id: {
@@ -59,7 +59,15 @@ export const POST = withAuth(async ({ req, session, project }) => {
         publicStats: false,
       },
     }),
-    bulkCreateLinks(unclaimedLinks),
+    bulkCreateLinks({
+      links: unclaimedLinks.map((link) => ({
+        ...link,
+        userId: session.user.id,
+        projectId: project.id,
+        publicStats: false,
+      })),
+      skipPrismaCreate: true,
+    }),
     prisma.project.update({
       where: {
         id: project.id,

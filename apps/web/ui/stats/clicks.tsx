@@ -10,14 +10,13 @@ import {
 import { useContext } from "react";
 import { StatsContext } from ".";
 import BarChart from "./bar-chart";
-import { useSearchParams, useParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { X } from "lucide-react";
 import { VALID_STATS_FILTERS } from "@/lib/stats";
 import Link from "next/link";
 
 export default function Clicks() {
   const { totalClicks } = useContext(StatsContext);
-  const { slug } = useParams() as { slug?: string };
   const searchParams = useSearchParams();
   const domain = searchParams?.get("domain");
   const key = searchParams?.get("key");
@@ -81,6 +80,7 @@ export default function Clicks() {
             if (!value || filter === "excludeRoot") return null;
             return (
               <Link
+                key={filter}
                 href={
                   queryParams({
                     del: filter,

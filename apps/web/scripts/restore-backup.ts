@@ -54,7 +54,7 @@ async function main() {
         "checkDisabled",
         "clicks",
       ]);
-      await bulkCreateLinks(csvLinks);
+      await bulkCreateLinks({ links: csvLinks });
     },
   });
 }

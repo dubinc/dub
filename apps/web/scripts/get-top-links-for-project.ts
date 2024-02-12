@@ -35,27 +35,37 @@ async function main() {
     return;
   }
   const topLinks = await getStats({
-    domain: project.domains.map((domain) => domain.slug).join(","),
+    projectId: project.id,
     endpoint: "top_links",
     interval: "30d",
-  }).then((data) =>
-    data
-      .slice(0, 5)
-      .map(
-        ({
-          domain,
-          key,
-          clicks,
-        }: {
-          domain: string;
-          key: string;
-          clicks: number;
-        }) => ({
-          link: linkConstructor({ domain, key, pretty: true }),
-          clicks,
-        }),
+    excludeRoot: "true",
+  }).then(async (data) => {
+    const topFive = data.slice(0, 5);
+    return await Promise.all(
+      topFive.map(
+        async ({ link: linkId, clicks }: { link: string; clicks: number }) => {
+          const link = await prisma.link.findUnique({
+            where: {
+              id: linkId,
+            },
+            select: {
+              domain: true,
+              key: true,
+            },
+          });
+          if (!link) return;
+          return {
+            link: linkConstructor({
+              domain: link.domain,
+              key: link.key,
+              pretty: true,
+            }),
+            clicks,
+          };
+        },
       ),
-  );
+    );
+  });
 
   console.table(topLinks);
 }

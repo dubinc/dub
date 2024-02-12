@@ -20,7 +20,7 @@ export async function generateMetadata({
 
   const data = await getLinkViaEdge(domain, key);
 
-  if (!data || data.proxy === 0) {
+  if (!data?.proxy) {
     return;
   }
 
@@ -50,7 +50,7 @@ export default async function ProxyPage({
     notFound();
 
     // if the link does not have proxy enabled, redirect to the original URL
-  } else if (data.proxy === 0) {
+  } else if (!data?.proxy) {
     redirect(data.url);
   }
 

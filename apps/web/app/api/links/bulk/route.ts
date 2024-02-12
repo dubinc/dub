@@ -62,7 +62,7 @@ export const POST = withAuth(
       }));
 
     const validLinksResponse =
-      validLinks.length > 0 ? await bulkCreateLinks(validLinks) : [];
+      validLinks.length > 0 ? await bulkCreateLinks({ links: validLinks }) : [];
 
     return NextResponse.json([...validLinksResponse, ...errors], { headers });
   },

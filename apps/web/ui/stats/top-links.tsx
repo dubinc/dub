@@ -1,36 +1,49 @@
-import { LoadingSpinner, Modal, useRouterStuff } from "@dub/ui";
+import { LoadingSpinner, Modal, Switch, useRouterStuff } from "@dub/ui";
 import { fetcher, linkConstructor } from "@dub/utils";
-import { Maximize } from "lucide-react";
-import { useContext, useState } from "react";
+import { Maximize, X } from "lucide-react";
+import { useContext, useEffect, useState } from "react";
 import useSWR from "swr";
 import { StatsContext } from ".";
 import BarList from "./bar-list";
+import { TopLinksTabs } from "@/lib/stats";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 export default function TopLinks() {
-  const { baseApiPath, queryString, modal } = useContext(StatsContext);
+  const [tab, setTab] = useState<TopLinksTabs>("link");
 
-  const { data } = useSWR<{ domain: string; key: string; clicks: number }[]>(
-    `${baseApiPath}/top_links?${queryString}`,
-    fetcher,
-  );
+  const { basePath, baseApiPath, queryString, domain, key } =
+    useContext(StatsContext);
+
+  useEffect(() => {
+    if (domain && key) {
+      setTab("url");
+    } else {
+      setTab("link");
+    }
+  }, [domain, key]);
+
+  const { data } = useSWR<
+    ({ domain: string; key: string } & {
+      [key in TopLinksTabs]: string;
+    } & { clicks: number })[]
+  >(`${baseApiPath}/top_${tab}s?${queryString}`, fetcher);
 
   const { queryParams } = useRouterStuff();
+  const searchParams = useSearchParams();
+  const excludeRoot = !!searchParams.get("excludeRoot");
   const [showModal, setShowModal] = useState(false);
 
   const barList = (limit?: number) => (
     <BarList
-      tab="Top Links"
+      tab={tab}
       data={
         data?.map((d) => ({
-          title: linkConstructor({
-            domain: d.domain,
-            key: d.key,
-            pretty: true,
-          }),
+          icon: null,
+          title: d[tab],
           href: queryParams({
             set: {
-              domain: d.domain,
-              key: d.key,
+              [tab]: d[tab],
             },
             getNewPath: true,
           }) as string,
@@ -56,9 +69,55 @@ export default function TopLinks() {
         </div>
         {barList()}
       </Modal>
-      <div className="scrollbar-hide relative z-0 h-[400px] overflow-scroll border border-gray-200 bg-white px-7 py-5 sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
-        <div className="mb-5 flex">
-          <h1 className="text-lg font-semibold">Top Links</h1>
+      <div className="scrollbar-hide relative z-0 h-[400px] border border-gray-200 bg-white px-7 py-5 sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
+        <div className="mb-3 flex justify-between">
+          <h1 className="text-lg font-semibold capitalize">
+            Top {tab === "link" ? "Links" : "URLs"}
+          </h1>
+          {domain && key ? (
+            !basePath.startsWith("/stats") && (
+              <Link
+                className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-500 transition-all hover:bg-gray-100"
+                href={
+                  queryParams({
+                    del: ["domain", "key"],
+                    getNewPath: true,
+                  }) as string
+                }
+              >
+                <strong className="text-gray-800">
+                  {linkConstructor({ domain, key, pretty: true })}
+                </strong>
+                <X className="h-4 w-4" />
+              </Link>
+            )
+          ) : (
+            <Link
+              href={
+                queryParams({
+                  ...(excludeRoot
+                    ? {
+                        del: "excludeRoot",
+                      }
+                    : {
+                        set: {
+                          excludeRoot: "true",
+                        },
+                      }),
+                  getNewPath: true,
+                }) as string
+              }
+              className="flex items-center space-x-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 hover:bg-gray-100"
+            >
+              <p className="text-sm font-medium">Exclude Root Domains</p>
+              <Switch
+                checked={excludeRoot}
+                trackDimensions="h-3 w-6"
+                thumbDimensions="w-2 h-2"
+                thumbTranslate="translate-x-3"
+              />
+            </Link>
+          )}
         </div>
         {data ? (
           data.length > 0 ? (
@@ -73,13 +132,15 @@ export default function TopLinks() {
             <LoadingSpinner />
           </div>
         )}
-        {!modal && data && data.length > 9 && (
+        {data && data.length > 9 && (
           <button
             onClick={() => setShowModal(true)}
-            className="absolute inset-x-0 bottom-4 z-10 mx-auto flex w-full items-center justify-center space-x-2 rounded-md bg-gradient-to-b from-transparent to-white py-2 text-gray-500 transition-all hover:text-gray-800 active:scale-95"
+            className="absolute inset-x-0 bottom-4 z-10 mx-auto flex w-full items-center justify-center rounded-md bg-gradient-to-b from-transparent to-white text-gray-500 transition-all hover:text-gray-800 active:scale-95"
           >
-            <Maximize className="h-4 w-4" />
-            <p className="text-xs font-semibold uppercase">View all</p>
+            <div className="flex items-center space-x-1 bg-white px-4 py-2">
+              <Maximize className="h-4 w-4" />
+              <p className="text-xs font-semibold uppercase">View all</p>
+            </div>
           </button>
         )}
       </div>

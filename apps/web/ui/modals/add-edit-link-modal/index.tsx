@@ -460,7 +460,7 @@ function AddEditLinkModal({
                       type="button"
                       onClick={() => {
                         window.confirm(
-                          "Editing an existing short link will result in broken links and reset its analytics. Are you sure you want to continue?",
+                          "Editing an existing short link could potentially break existing links. Are you sure you want to continue?",
                         ) && setLockKey(false);
                       }}
                     >

@@ -23,16 +23,17 @@ export async function GET(req: NextRequest) {
   const domain = req.nextUrl.searchParams.get("domain") || "dub.sh";
   const key = req.nextUrl.searchParams.get("key") || "github";
 
-  const data = await getLinkViaEdge(domain, key);
-  if (!data?.publicStats) {
+  const link = await getLinkViaEdge(domain, key);
+  if (!link?.publicStats) {
     return new Response(`Stats for this link are not public`, {
       status: 403,
     });
   }
 
   const timeseries = await getStats({
-    domain,
-    key,
+    // projectId can be undefined (for public links that haven't been claimed/synced to a project)
+    ...(link.projectId && { projectId: link.projectId }),
+    linkId: link.id,
     endpoint: "timeseries",
     interval: "30d",
   });

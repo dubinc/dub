@@ -1,5 +1,6 @@
 import { Redis } from "@upstash/redis";
 import { Resend } from "resend";
+import { customAlphabet } from "nanoid";
 
 // Initiate Redis instance by connecting to REST URL
 export const redis = new Redis({
@@ -48,3 +49,10 @@ export function capitalize(str?: string | null) {
   if (!str || typeof str !== "string") return str;
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
+
+export const nanoid = (chars?: number) => {
+  return customAlphabet(
+    "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
+    chars || 7, // 7-character random string by default
+  )();
+};
