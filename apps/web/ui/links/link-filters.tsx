@@ -391,7 +391,7 @@ const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
     e.stopPropagation();
     e.preventDefault();
     setProcessing(true);
-    fetch(`/api/projects/${slug}/tags/${tag.id}`, {
+    fetch(`/api/tags/${tag.id}?projectSlug${slug}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -400,7 +400,7 @@ const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
     }).then(async (res) => {
       setProcessing(false);
       if (res.ok) {
-        await mutate(`/api/projects/${slug}/tags`);
+        await mutate(`/api/tags?projectSlug${slug}`);
         toast.success("Tag updated");
       } else {
         toast.error("Something went wrong");
@@ -410,11 +410,11 @@ const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
 
   const handleDelete = async () => {
     setProcessing(true);
-    fetch(`/api/projects/${slug}/tags/${tag.id}`, {
+    fetch(`/api/tags/${tag.id}?projectSlug${slug}`, {
       method: "DELETE",
     }).then(async (res) => {
       if (res.ok) {
-        await mutate(`/api/projects/${slug}/tags`);
+        await mutate(`/api/tags?projectSlug${slug}`);
         toast.success("Tag deleted");
       } else {
         toast.error("Something went wrong");

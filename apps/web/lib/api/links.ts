@@ -34,6 +34,7 @@ export async function getLinksForProject({
   page,
   userId,
   showArchived,
+  withTags,
 }: {
   projectId: string;
   domain?: string;
@@ -43,6 +44,7 @@ export async function getLinksForProject({
   page?: string;
   userId?: string | null;
   showArchived?: boolean;
+  withTags?: boolean;
 }): Promise<LinkProps[]> {
   const links = await prisma.link.findMany({
     where: {
@@ -59,7 +61,7 @@ export async function getLinksForProject({
           },
         ],
       }),
-      ...(tagId && { tagId }),
+      ...(tagId ? { tagId } : withTags ? { tagId: { not: null } } : {}),
       ...(userId && { userId }),
     },
     include: {
@@ -96,13 +98,15 @@ export async function getLinksCount({
   projectId: string;
   userId?: string | null;
 }) {
-  let { groupBy, search, domain, tagId, showArchived } = searchParams as {
-    groupBy?: "domain" | "tagId";
-    search?: string;
-    domain?: string;
-    tagId?: string;
-    showArchived?: boolean;
-  };
+  let { groupBy, search, domain, tagId, showArchived, withTags } =
+    searchParams as {
+      groupBy?: "domain" | "tagId";
+      search?: string;
+      domain?: string;
+      tagId?: string;
+      showArchived?: boolean;
+      withTags?: boolean;
+    };
 
   if (groupBy) {
     return await prisma.link.groupBy({
@@ -131,8 +135,8 @@ export async function getLinksCount({
           groupBy !== "tagId" && {
             tagId,
           }),
-        // for the "Tags" filter group, only count links that have a tagId
-        ...(groupBy === "tagId" && {
+        // for the "Tags" filter group (or if withTags is true), only count links that have a tagId
+        ...((groupBy === "tagId" || withTags) && {
           NOT: {
             tagId: null,
           },
@@ -162,7 +166,7 @@ export async function getLinksCount({
           ],
         }),
         ...(domain && { domain }),
-        ...(tagId && { tagId }),
+        ...(tagId ? { tagId } : withTags ? { tagId: { not: null } } : {}),
       },
     });
   }
