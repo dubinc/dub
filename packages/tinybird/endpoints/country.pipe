@@ -1,6 +1,10 @@
+DESCRIPTION >
+	Top countries by clicks
+
+
 TOKEN "country_endpoint_read_3116" READ
 
-NODE country_node
+NODE endpoint
 DESCRIPTION >
     undefined
 
@@ -8,9 +12,62 @@ SQL >
 
     %
     SELECT country, COUNT(country) as clicks
-    FROM click_events
+    FROM
+        dub_click_events_mv
+        {% if not defined(linkId) %}
+            PREWHERE link_id in (
+                SELECT link_id
+                from dub_links_metadata_latest FINAL
+                WHERE
+                    project_id
+                    = {{
+                        String(
+                            projectId,
+                            'cl7wsy2836920mjrb352g5wfx',
+                            description="The ID of the project",
+                            required=True,
+                        )
+                    }}
+                    AND deleted == 0
+                    {% if defined(domain) %} AND domain IN {{ Array(domain, 'String') }} {% end %}
+                    {% if defined(excludeRoot) %} AND key != '_root' {% end %}
+            )
+        {% end %}
     WHERE
-        domain IN {{ Array(domain, 'String', default='stey.me') }}
+        true
+        {% if defined(linkId) %}
+            AND link_id
+            = {{
+                String(
+                    linkId,
+                    'clsdzhhlq0003vskwcaz6nm39',
+                    description="The ID of the link",
+                )
+            }}
+        {% end %}
+        AND country != 'Unknown'
+        {% if defined(country) %} AND country = {{ country }} {% end %}
+        {% if defined(city) %} AND city = {{ city }} {% end %}
+        {% if defined(device) %} AND device = {{ device }} {% end %}
+        {% if defined(browser) %} AND browser = {{ browser }} {% end %}
+        {% if defined(os) %} AND os = {{ os }} {% end %}
+        {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+        {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
+        {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
+    GROUP BY country
+    ORDER BY clicks DESC
+
+
+
+NODE country_1
+SQL >
+
+    %
+    {% set interval = 24 %}
+    SELECT country, COUNT(country) as clicks
+    FROM click_events_mv
+    WHERE
+        domain IN {{ Array(domain, 'String', default='pplx.ai,labs.pplx.ai,perpl.ai') }}
         {% if defined(key) %}
             AND key IN {{ Array(key, 'String', default='twitter') }}
         {% end %}
@@ -21,8 +78,7 @@ SQL >
         {% if defined(browser) %} AND browser = {{ browser }} {% end %}
         {% if defined(os) %} AND os = {{ os }} {% end %}
         {% if defined(referer) %} AND referer = {{ referer }} {% end %}
-        {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
-        {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
+        AND timestamp > toDate(now() - INTERVAL {{Int16(interval)}} HOUR)
     GROUP BY country
     ORDER BY clicks DESC
 

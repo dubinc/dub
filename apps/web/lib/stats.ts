@@ -101,7 +101,7 @@ export const getStats = async ({
   endpoint: string;
   interval?: string;
 } & {
-  [key in (typeof VALID_STATS_FILTERS)[number]]: string;
+  [key in typeof VALID_STATS_FILTERS[number]]: string;
 }) => {
   // Note: we're using decodeURIComponent in this function because that's how we store it in MySQL and Tinybird
 
@@ -134,7 +134,7 @@ export const getStats = async ({
   }
 
   let url = new URL(
-    `https://api.us-east.tinybird.co/v0/pipes/${endpoint}_new.json`,
+    `https://api.us-east.tinybird.co/v0/pipes/${endpoint}.json`,
   );
   if (projectId) {
     url.searchParams.append("projectId", projectId);
