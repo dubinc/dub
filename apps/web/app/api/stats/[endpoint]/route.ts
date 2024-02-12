@@ -4,7 +4,7 @@ import { getStats } from "@/lib/stats";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-const QueryParamsSchema = z.object({
+const getStatsParamsSchema = z.object({
   domain: z.string().optional(),
   key: z.string().optional(),
   interval: z.enum(["1h", "24h", "7d", "30d", "90d", "all"]).optional(),
@@ -15,7 +15,7 @@ export const GET = withAuth(
   async ({ params, searchParams, project }) => {
     try {
       const { endpoint } = params;
-      let { domain, key, interval } = QueryParamsSchema.parse(searchParams);
+      let { domain, key, interval } = getStatsParamsSchema.parse(searchParams);
 
       // TODO: remove this logic after #545 merges
       if (!domain && project.domains.length > 0) {
