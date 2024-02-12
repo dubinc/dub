@@ -1,11 +1,12 @@
 import { DEMO_LINK_ID, DUB_PROJECT_ID, getSearchParams } from "@dub/utils";
 import { isBlacklistedReferrer } from "@/lib/edge-config";
-import { getLinkViaEdge } from "@/lib/planetscale";
+import { getLinkViaEdge, getProjectViaEdge } from "@/lib/planetscale";
 import { getStats } from "@/lib/stats";
 import { ratelimit } from "@/lib/upstash";
 import { LOCALHOST_IP } from "@dub/utils";
 import { ipAddress } from "@vercel/edge";
 import { NextResponse, type NextRequest } from "next/server";
+import { exceededLimitError } from "@/lib/api/errors";
 
 export const runtime = "edge";
 
@@ -49,9 +50,23 @@ export const GET = async (
         status: 403,
       });
     }
-    // return 403 if interval is 90d or all
-    if (interval === "all" || interval === "90d") {
-      return new Response(`Require higher plan`, { status: 403 });
+    const project =
+      link?.projectId && (await getProjectViaEdge(link.projectId));
+    if (
+      !project ||
+      (project.plan === "free" && (interval === "all" || interval === "90d"))
+    ) {
+      return new Response("Unauthorized: Need higher plan.", { status: 403 });
+    }
+    if (project.usage > project.usageLimit) {
+      return new Response(
+        exceededLimitError({
+          plan: project.plan,
+          limit: project.usageLimit,
+          type: "clicks",
+        }),
+        { status: 403 },
+      );
     }
   }
 

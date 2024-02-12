@@ -50,8 +50,7 @@ export default function Toggle() {
 
   const scrolled = useScroll(80);
   const { name, plan, logo } = useProject();
-  // TODO: change this to allDomains after #545 merges
-  const { allProjectDomains, primaryDomain } = useDomains();
+  const { allDomains, primaryDomain } = useDomains();
 
   const isPublicStatsPage = basePath.startsWith("/stats");
 
@@ -89,9 +88,9 @@ export default function Toggle() {
             <h2 className="text-lg font-semibold text-gray-800">
               {primaryDomain}
             </h2>
-            {allProjectDomains && allProjectDomains.length > 1 && (
+            {allDomains && allDomains.length > 1 && (
               <Tooltip
-                content={<DomainsFilterTooltip domains={allProjectDomains} />}
+                content={<DomainsFilterTooltip domains={allDomains} />}
                 side="bottom"
               >
                 <div className="group flex cursor-pointer items-center">
@@ -99,7 +98,7 @@ export default function Toggle() {
                     variant="gray"
                     className="border-gray-300 transition-all group-hover:bg-gray-200"
                   >
-                    +{allProjectDomains.length - 1}
+                    +{allDomains.length - 1}
                   </Badge>
                 </div>
               </Tooltip>
