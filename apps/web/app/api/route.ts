@@ -600,7 +600,7 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
           },
         },
       },
-      "/projects/{projectSlug}/tags": {
+      "/tags": {
         get: {
           description: "Retrieve a list of tags for the authenticated project.",
           operationId: "getTags",
