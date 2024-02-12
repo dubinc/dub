@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import {
   addDomainToVercel,
   domainExists,
@@ -13,6 +12,7 @@ import {
   FREE_PROJECTS_LIMIT,
   validSlugRegex,
 } from "@dub/utils";
+import { NextResponse } from "next/server";
 
 // GET /api/projects - get all projects for the current user
 export const GET = withSession(async ({ session }) => {

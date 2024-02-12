@@ -14,7 +14,7 @@ export function Switch({
   disabled = false,
   disabledTooltip,
 }: {
-  fn: Dispatch<SetStateAction<boolean>> | (() => void);
+  fn?: Dispatch<SetStateAction<boolean>> | (() => void);
   trackDimensions?: string;
   thumbDimensions?: string;
   thumbTranslate?: string;
@@ -36,7 +36,7 @@ export function Switch({
     <SwitchPrimitive.Root
       checked={checked}
       name="switch"
-      onCheckedChange={(checked) => fn(checked)}
+      {...(fn && { onCheckedChange: fn })}
       disabled={disabled}
       className={cn(
         disabled

@@ -1,5 +1,5 @@
 import { connect } from "@planetscale/database";
-import { DomainProps } from "./types";
+import { DomainProps, ProjectProps } from "./types";
 
 export const pscale_config = {
   url: process.env.DATABASE_URL,
@@ -46,5 +46,17 @@ export const getDomainViaEdge = async (domain: string) => {
 
   return rows && Array.isArray(rows) && rows.length > 0
     ? (rows[0] as DomainProps)
+    : null;
+};
+
+export const getProjectViaEdge = async (projectId: string) => {
+  if (!process.env.DATABASE_URL) return null;
+
+  const { rows } =
+    (await conn.execute("SELECT * FROM Project WHERE id = ?", [projectId])) ||
+    {};
+
+  return rows && Array.isArray(rows) && rows.length > 0
+    ? (rows[0] as ProjectProps)
     : null;
 };

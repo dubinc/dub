@@ -1,9 +1,9 @@
 "use server";
+
 import { getLinkViaEdge } from "@/lib/planetscale";
-import { linkConstructor } from "@dub/utils";
 import { redirect } from "next/navigation";
 
-export async function verifyPassword(data: FormData) {
+export async function verifyPassword(_prevState: any, data: FormData) {
   const domain = data.get("domain") as string;
   const rawKey = data.get("key") as string; // keys can potentially be encoded
   const key = decodeURIComponent(rawKey);
@@ -19,12 +19,7 @@ export async function verifyPassword(data: FormData) {
 
   if (validPassword) {
     // if the password is valid, redirect to the link with the password in the query string
-    redirect(
-      `${linkConstructor({
-        domain,
-        key: rawKey,
-      })}?pw=${password}`,
-    );
+    redirect(`/${rawKey}?pw=${password}`);
   } else {
     return { error: "Invalid password" };
   }

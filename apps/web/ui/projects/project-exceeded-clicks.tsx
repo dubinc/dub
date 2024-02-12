@@ -1,9 +1,8 @@
 "use client";
 
-import { BlurImage } from "@/ui/shared/blur-image";
-import { MaxWidthWrapper, useRouterStuff } from "@dub/ui";
-import { Lock } from "lucide-react";
 import useProject from "@/lib/swr/use-project";
+import { BlurImage, MaxWidthWrapper, useRouterStuff } from "@dub/ui";
+import { Lock } from "lucide-react";
 
 export default function ProjectExceededClicks() {
   const { plan } = useProject();

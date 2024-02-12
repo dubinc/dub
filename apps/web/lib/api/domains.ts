@@ -7,6 +7,7 @@ import {
   validDomainRegex,
 } from "@dub/utils";
 import cloudinary from "cloudinary";
+import { recordLink } from "../tinybird";
 
 export const validateDomain = async (domain: string) => {
   if (!domain || typeof domain !== "string") {
@@ -172,23 +173,34 @@ export async function setRootDomain({
   if (newDomain) {
     await redis.rename(domain, newDomain);
   }
-  return await redis.hset(newDomain || domain, {
-    _root: {
-      id,
-      ...(url && {
-        url,
-      }),
-      ...(url &&
-        rewrite && {
-          rewrite: true,
-          iframeable: await isIframeable({
-            url,
-            requestDomain: newDomain || domain,
-          }),
+  return await Promise.all([
+    redis.hset(newDomain || domain, {
+      _root: {
+        id,
+        ...(url && {
+          url,
         }),
-      projectId,
-    },
-  });
+        ...(url &&
+          rewrite && {
+            rewrite: true,
+            iframeable: await isIframeable({
+              url,
+              requestDomain: newDomain || domain,
+            }),
+          }),
+        projectId,
+      },
+    }),
+    recordLink({
+      link: {
+        id,
+        domain: newDomain || domain,
+        key: "_root",
+        url: url || "",
+        projectId,
+      },
+    }),
+  ]);
 }
 
 /* Change the domain for all images for a given project on Cloudinary */
@@ -227,9 +239,33 @@ export async function deleteDomainAndLinks(
     skipPrismaDelete = false,
   } = {},
 ) {
+  const domainData = await prisma.domain.findUnique({
+    where: {
+      slug: domain,
+    },
+    select: {
+      id: true,
+      target: true,
+      projectId: true,
+    },
+  });
+  if (!domainData) {
+    return null;
+  }
   return await Promise.allSettled([
     // delete all links from redis
     redis.del(domain),
+    // record delete in tinybird
+    recordLink({
+      link: {
+        id: domainData.id,
+        domain,
+        key: "_root",
+        url: domainData.target || "",
+        projectId: domainData.projectId,
+      },
+      deleted: true,
+    }),
     // remove all images from cloudinary
     cloudinary.v2.api.delete_resources_by_prefix(domain),
     // remove the domain from Vercel

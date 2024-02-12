@@ -2,9 +2,10 @@
 
 import { QRCodeSVG, getQRAsCanvas, getQRAsSVGDataUri } from "@/lib/qr";
 import useProject from "@/lib/swr/use-project";
-import { BlurImage } from "@/ui/shared/blur-image";
+import { QRLinkProps } from "@/lib/types";
 import { Clipboard, Download } from "@/ui/shared/icons";
 import {
+  BlurImage,
   IconMenu,
   InfoTooltip,
   Logo,
@@ -27,6 +28,7 @@ import {
 } from "@dub/utils";
 import { motion } from "framer-motion";
 import { Check, ChevronRight, Link2 } from "lucide-react";
+import { useParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -38,8 +40,6 @@ import {
 import { HexColorInput, HexColorPicker } from "react-colorful";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
-import { useParams } from "next/navigation";
-import { QRLinkProps } from "@/lib/types";
 
 function LinkQRModalHelper({
   showLinkQRModal,

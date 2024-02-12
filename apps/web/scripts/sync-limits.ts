@@ -1,5 +1,5 @@
-import "dotenv-flow/config";
 import prisma from "@/lib/prisma";
+import "dotenv-flow/config";
 
 async function main() {
   const response = await prisma.project.updateMany({

@@ -10,8 +10,8 @@ import {
   log,
 } from "@dub/utils";
 import { sendEmail } from "emails";
-import ClicksSummary from "emails/clicks-summary";
 import ClicksExceeded from "emails/clicks-exceeded";
+import ClicksSummary from "emails/clicks-summary";
 
 const limit = 250;
 
@@ -122,27 +122,42 @@ export const updateUsage = async (skip?: number) => {
           project.usage > 0
             ? await getStats({
                 projectId: project.id,
-                domain: project.domains.map((domain) => domain.slug).join(","),
                 endpoint: "top_links",
                 interval: "30d",
-              }).then((data) =>
-                data
-                  .slice(0, 5)
-                  .map(
-                    ({
-                      domain,
-                      key,
+                excludeRoot: "true",
+              }).then(async (data) => {
+                const topFive = data.slice(0, 5);
+                return await Promise.all(
+                  topFive.map(
+                    async ({
+                      link: linkId,
                       clicks,
                     }: {
-                      domain: string;
-                      key: string;
+                      link: string;
                       clicks: number;
-                    }) => ({
-                      link: linkConstructor({ domain, key, pretty: true }),
-                      clicks,
-                    }),
+                    }) => {
+                      const link = await prisma.link.findUnique({
+                        where: {
+                          id: linkId,
+                        },
+                        select: {
+                          domain: true,
+                          key: true,
+                        },
+                      });
+                      if (!link) return;
+                      return {
+                        link: linkConstructor({
+                          domain: link.domain,
+                          key: link.key,
+                          pretty: true,
+                        }),
+                        clicks,
+                      };
+                    },
                   ),
-              )
+                );
+              })
             : [];
 
         const emails = project.users.map((user) => user.user.email) as string[];
