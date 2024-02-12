@@ -193,9 +193,9 @@ export async function setRootDomain({
     }),
     recordLink({
       link: {
+        id,
         domain: newDomain || domain,
         key: "_root",
-        id,
         url: url || "",
         projectId,
       },
@@ -258,11 +258,11 @@ export async function deleteDomainAndLinks(
     // record delete in tinybird
     recordLink({
       link: {
+        id: domainData.id,
         domain,
         key: "_root",
-        projectId: domainData.projectId,
-        id: domainData.id,
         url: domainData.target || "",
+        projectId: domainData.projectId,
       },
       deleted: true,
     }),
