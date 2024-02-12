@@ -20,10 +20,10 @@ import {
   validKeyRegex,
 } from "@dub/utils";
 import cloudinary from "cloudinary";
-import { LinkProps, ProjectProps, RedisLinkProps } from "../types";
 import { Session } from "../auth";
 import { getLinkViaEdge } from "../planetscale";
 import { recordLink } from "../tinybird";
+import { LinkProps, ProjectProps, RedisLinkProps } from "../types";
 
 export async function getLinksForProject({
   projectId,

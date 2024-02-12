@@ -1,12 +1,16 @@
-import { DEMO_LINK_ID, DUB_PROJECT_ID, getSearchParams } from "@dub/utils";
+import { exceededLimitError } from "@/lib/api/errors";
 import { isBlacklistedReferrer } from "@/lib/edge-config";
 import { getLinkViaEdge, getProjectViaEdge } from "@/lib/planetscale";
 import { getStats } from "@/lib/stats";
 import { ratelimit } from "@/lib/upstash";
-import { LOCALHOST_IP } from "@dub/utils";
+import {
+  DEMO_LINK_ID,
+  DUB_PROJECT_ID,
+  LOCALHOST_IP,
+  getSearchParams,
+} from "@dub/utils";
 import { ipAddress } from "@vercel/edge";
 import { NextResponse, type NextRequest } from "next/server";
-import { exceededLimitError } from "@/lib/api/errors";
 
 export const runtime = "edge";
 

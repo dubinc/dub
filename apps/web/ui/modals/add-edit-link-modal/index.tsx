@@ -2,9 +2,9 @@
 
 import useDomains from "@/lib/swr/use-domains";
 import useProject from "@/lib/swr/use-project";
-import { BlurImage } from "@/ui/shared/blur-image";
 import { AlertCircleFill, Lock, Random, X } from "@/ui/shared/icons";
 import {
+  BlurImage,
   Button,
   LoadingCircle,
   Logo,
@@ -50,8 +50,8 @@ import OGSection from "./og-section";
 import PasswordSection from "./password-section";
 import Preview from "./preview";
 import RewriteSection from "./rewrite-section";
-import UTMSection from "./utm-section";
 import TagsSection from "./tags-section";
+import UTMSection from "./utm-section";
 
 function AddEditLinkModal({
   showAddEditLinkModal,

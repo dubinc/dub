@@ -1,13 +1,12 @@
-import { constructMetadata } from "@dub/utils";
+import NavTabs from "@/ui/layout/nav-tabs";
+import ProjectSelect from "@/ui/layout/project-select";
+import UpgradeBanner from "@/ui/layout/upgrade-banner";
+import UserDropdown from "@/ui/layout/user-dropdown";
 import { Divider } from "@/ui/shared/icons";
 import { Logo, MaxWidthWrapper } from "@dub/ui";
-import { HOME_DOMAIN } from "@dub/utils";
+import { HOME_DOMAIN, constructMetadata } from "@dub/utils";
 import Link from "next/link";
 import { ReactNode, Suspense } from "react";
-import UserDropdown from "@/ui/layout/user-dropdown";
-import ProjectSelect from "@/ui/layout/project-select";
-import NavTabs from "@/ui/layout/nav-tabs";
-import UpgradeBanner from "@/ui/layout/upgrade-banner";
 import Providers from "./providers";
 
 export const dynamic = "force-static";

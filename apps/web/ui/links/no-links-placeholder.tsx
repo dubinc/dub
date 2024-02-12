@@ -1,4 +1,4 @@
-import { BlurImage } from "@/ui/shared/blur-image";
+import { BlurImage } from "@dub/ui";
 
 export default function NoLinksPlaceholder({
   AddEditLinkButton,

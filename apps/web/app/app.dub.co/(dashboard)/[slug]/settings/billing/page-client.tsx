@@ -108,7 +108,7 @@ export default function ProjectBillingClient() {
             usage={usage}
             usageLimit={usageLimit}
           />
-          <div className="grid grid-cols-1 divide-y divide-gray-200 sm:grid-cols-2 sm:divide-y-0 sm:divide-x">
+          <div className="grid grid-cols-1 divide-y divide-gray-200 sm:grid-cols-2 sm:divide-x sm:divide-y-0">
             <UsageCategory
               title="Created Links"
               unit="links"
@@ -125,7 +125,7 @@ export default function ProjectBillingClient() {
               numberOnly
             />
           </div>
-          <div className="grid grid-cols-1 divide-y divide-gray-200 sm:grid-cols-2 sm:divide-y-0 sm:divide-x">
+          <div className="grid grid-cols-1 divide-y divide-gray-200 sm:grid-cols-2 sm:divide-x sm:divide-y-0">
             <UsageCategory
               title="Tags"
               unit="tags"

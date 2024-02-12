@@ -1,5 +1,5 @@
-import { withAuth } from "@/lib/auth";
 import { getRandomKey } from "@/lib/api/links";
+import { withAuth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
 // GET /api/links/random – get a random available link key

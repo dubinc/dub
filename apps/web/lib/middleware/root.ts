@@ -2,9 +2,9 @@ import { recordClick } from "@/lib/tinybird";
 import { formatRedisDomain, redis } from "@/lib/upstash";
 import { DUB_HEADERS } from "@dub/utils";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
-import { parse } from "./utils";
-import { RedisDomainProps } from "../types";
 import { getDomainViaEdge } from "../planetscale";
+import { RedisDomainProps } from "../types";
+import { parse } from "./utils";
 
 export default async function RootMiddleware(
   req: NextRequest,

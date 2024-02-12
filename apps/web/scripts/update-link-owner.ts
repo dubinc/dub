@@ -1,5 +1,5 @@
-import "dotenv-flow/config";
 import prisma from "@/lib/prisma";
+import "dotenv-flow/config";
 
 const projectSlug = "xxx";
 

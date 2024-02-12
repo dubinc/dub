@@ -1,8 +1,7 @@
 "use client";
 
 import { ModalContext } from "@/ui/modals/provider";
-import { BlurImage } from "@/ui/shared/blur-image";
-import Link from "next/link";
+import { BlurImage } from "@dub/ui";
 import { useContext } from "react";
 
 export default function NoProjectsPlaceholder() {

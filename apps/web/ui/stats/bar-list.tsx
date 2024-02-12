@@ -1,12 +1,15 @@
 "use client";
 
+import { LinkProps, UserProps } from "@/lib/types";
 import {
+  BlurImage,
   NumberTooltip,
   Tooltip,
   useIntersectionObserver,
   useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
+import { LinkifyTooltipContent } from "@dub/ui/src/tooltip";
 import {
   GOOGLE_FAVICON_URL,
   cn,
@@ -19,6 +22,7 @@ import {
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import {
   Dispatch,
   ReactNode,
@@ -27,12 +31,8 @@ import {
   useRef,
   useState,
 } from "react";
-import LinkPreviewTooltip from "./link-preview";
-import { LinkifyTooltipContent } from "@dub/ui/src/tooltip";
-import { useParams } from "next/navigation";
 import useSWR from "swr";
-import { LinkProps, UserProps } from "@/lib/types";
-import { BlurImage } from "../shared/blur-image";
+import LinkPreviewTooltip from "./link-preview";
 
 export default function BarList({
   tab,

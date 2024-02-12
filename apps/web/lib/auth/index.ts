@@ -1,13 +1,13 @@
-import { authOptions } from "./options";
 import prisma from "@/lib/prisma";
-import { Link as LinkProps } from "@prisma/client";
-import { PlanProps, ProjectProps } from "../types";
-import { getServerSession } from "next-auth/next";
-import { createHash } from "crypto";
 import { API_DOMAIN, getSearchParams, isDubDomain } from "@dub/utils";
-import { ratelimit } from "../upstash";
-import { exceededLimitError } from "../api/errors";
+import { Link as LinkProps } from "@prisma/client";
 import { isAdmin } from "app/admin.dub.co/actions";
+import { createHash } from "crypto";
+import { getServerSession } from "next-auth/next";
+import { exceededLimitError } from "../api/errors";
+import { PlanProps, ProjectProps } from "../types";
+import { ratelimit } from "../upstash";
+import { authOptions } from "./options";
 
 export interface Session {
   user: {

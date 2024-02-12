@@ -1,9 +1,15 @@
 "use client";
 
+import { Session } from "@/lib/auth";
 import { DomainProps, ProjectWithDomainProps } from "@/lib/types";
-import { BlurImage } from "@/ui/shared/blur-image";
 import { CheckCircleFill, XCircleFill } from "@/ui/shared/icons";
-import { Badge, InlineSnippet, NumberTooltip, Tooltip } from "@dub/ui";
+import {
+  Badge,
+  BlurImage,
+  InlineSnippet,
+  NumberTooltip,
+  Tooltip,
+} from "@dub/ui";
 import {
   DUB_DOMAINS,
   GOOGLE_FAVICON_URL,
@@ -17,7 +23,6 @@ import Link from "next/link";
 import useSWR from "swr";
 import useSWRImmutable from "swr/immutable";
 import PlanBadge from "./plan-badge";
-import { Session } from "@/lib/auth";
 import ProjectArrow from "./project-arrow";
 
 export default function ProjectCard({
@@ -116,7 +121,12 @@ export default function ProjectCard({
                 >
                   <div className="ml-1 flex items-center">
                     {domains.length > 1 ? (
-                      <Badge variant="gray">+{domains.length - 1}</Badge>
+                      <Badge
+                        variant="gray"
+                        className="border-gray-300 transition-all hover:bg-gray-200"
+                      >
+                        +{domains.length - 1}
+                      </Badge>
                     ) : primaryDomain?.verified ? (
                       <CheckCircleFill className="h-5 w-5 text-blue-500" />
                     ) : primaryDomain?.verified === false ? (

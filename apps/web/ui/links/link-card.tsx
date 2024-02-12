@@ -7,10 +7,10 @@ import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
 import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
 import { useDeleteLinkModal } from "@/ui/modals/delete-link-modal";
 import { useLinkQRModal } from "@/ui/modals/link-qr-modal";
-import { BlurImage } from "@/ui/shared/blur-image";
 import { Chart, Delete, ThreeDots } from "@/ui/shared/icons";
 import {
   Avatar,
+  BlurImage,
   CopyButton,
   IconMenu,
   NumberTooltip,
@@ -21,6 +21,7 @@ import {
   useIntersectionObserver,
   useRouterStuff,
 } from "@dub/ui";
+import { LinkifyTooltipContent } from "@dub/ui/src/tooltip";
 import {
   GOOGLE_FAVICON_URL,
   HOME_DOMAIN,
@@ -46,9 +47,8 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import punycode from "punycode/";
 import { useEffect, useMemo, useRef, useState } from "react";
-import useSWR, { mutate } from "swr";
 import { toast } from "sonner";
-import { LinkifyTooltipContent } from "@dub/ui/src/tooltip";
+import useSWR, { mutate } from "swr";
 
 export default function LinkCard({
   props,
@@ -344,7 +344,7 @@ export default function LinkCard({
                           <CopyButton
                             value={user.email}
                             icon={Mail}
-                            className="[&>*]:w-3 [&>*]:h-3"
+                            className="[&>*]:h-3 [&>*]:w-3"
                           />
                         )}
                     </div>

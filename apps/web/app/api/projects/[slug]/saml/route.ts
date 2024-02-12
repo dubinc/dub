@@ -1,7 +1,7 @@
 import { withAuth } from "@/lib/auth";
-import { NextResponse } from "next/server";
 import jackson, { samlAudience } from "@/lib/jackson";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { NextResponse } from "next/server";
 
 // GET /api/projects/[slug]/saml – get SAML connections for a specific project
 export const GET = withAuth(async ({ project }) => {

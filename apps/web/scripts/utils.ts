@@ -1,6 +1,6 @@
 import { Redis } from "@upstash/redis";
-import { Resend } from "resend";
 import { customAlphabet } from "nanoid";
+import { Resend } from "resend";
 
 // Initiate Redis instance by connecting to REST URL
 export const redis = new Redis({

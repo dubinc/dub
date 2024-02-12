@@ -1,3 +1,4 @@
+import useProject from "@/lib/swr/use-project";
 import { UploadCloud } from "@/ui/shared/icons";
 import {
   InfoTooltip,
@@ -8,6 +9,7 @@ import {
   Unsplash,
   useRouterStuff,
 } from "@dub/ui";
+import { TooltipContent } from "@dub/ui/src/tooltip";
 import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "@dub/utils";
 import { type Link as LinkProps } from "@prisma/client";
 import { motion } from "framer-motion";
@@ -21,8 +23,6 @@ import {
 } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import UnsplashSearch from "./unsplash-search";
-import useProject from "@/lib/swr/use-project";
-import { TooltipContent } from "@dub/ui/src/tooltip";
 
 export default function OGSection({
   props,
