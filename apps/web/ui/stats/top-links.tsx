@@ -12,7 +12,8 @@ import Link from "next/link";
 export default function TopLinks() {
   const [tab, setTab] = useState<TopLinksTabs>("link");
 
-  const { baseApiPath, queryString, domain, key } = useContext(StatsContext);
+  const { basePath, baseApiPath, queryString, domain, key } =
+    useContext(StatsContext);
 
   useEffect(() => {
     if (domain && key) {
@@ -74,20 +75,22 @@ export default function TopLinks() {
             Top {tab === "link" ? "Links" : "URLs"}
           </h1>
           {domain && key ? (
-            <Link
-              className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-500 transition-all hover:bg-gray-100"
-              href={
-                queryParams({
-                  del: ["domain", "key"],
-                  getNewPath: true,
-                }) as string
-              }
-            >
-              <strong className="text-gray-800">
-                {linkConstructor({ domain, key, pretty: true })}
-              </strong>
-              <X className="h-4 w-4" />
-            </Link>
+            !basePath.startsWith("/stats") && (
+              <Link
+                className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-500 transition-all hover:bg-gray-100"
+                href={
+                  queryParams({
+                    del: ["domain", "key"],
+                    getNewPath: true,
+                  }) as string
+                }
+              >
+                <strong className="text-gray-800">
+                  {linkConstructor({ domain, key, pretty: true })}
+                </strong>
+                <X className="h-4 w-4" />
+              </Link>
+            )
           ) : (
             <Link
               href={
