@@ -44,29 +44,6 @@ export async function recordClick({
     }
   }
 
-  const payload = {
-    timestamp: new Date(Date.now()).toISOString(),
-    country: geo?.country || "Unknown",
-    city: geo?.city || "Unknown",
-    region: geo?.region || "Unknown",
-    latitude: geo?.latitude || "Unknown",
-    longitude: geo?.longitude || "Unknown",
-    device: ua.device.type ? capitalize(ua.device.type) : "Desktop",
-    device_vendor: ua.device.vendor || "Unknown",
-    device_model: ua.device.model || "Unknown",
-    browser: ua.browser.name || "Unknown",
-    browser_version: ua.browser.version || "Unknown",
-    engine: ua.engine.name || "Unknown",
-    engine_version: ua.engine.version || "Unknown",
-    os: ua.os.name || "Unknown",
-    os_version: ua.os.version || "Unknown",
-    cpu_architecture: ua.cpu?.architecture || "Unknown",
-    ua: ua.ua || "Unknown",
-    bot: ua.isBot,
-    referer: referer ? getDomainWithoutWWW(referer) || "(direct)" : "(direct)",
-    referer_url: referer || "(direct)",
-  };
-
   return await Promise.allSettled([
     fetch(
       "https://api.us-east.tinybird.co/v0/events?name=dub_click_events&wait=true",
@@ -76,11 +53,32 @@ export async function recordClick({
           Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
         },
         body: JSON.stringify({
-          ...payload,
+          timestamp: new Date(Date.now()).toISOString(),
           click_id: nanoid(16),
           link_id: id,
           alias_link_id: "",
           url: url || "",
+          country: geo?.country || "Unknown",
+          city: geo?.city || "Unknown",
+          region: geo?.region || "Unknown",
+          latitude: geo?.latitude || "Unknown",
+          longitude: geo?.longitude || "Unknown",
+          device: ua.device.type ? capitalize(ua.device.type) : "Desktop",
+          device_vendor: ua.device.vendor || "Unknown",
+          device_model: ua.device.model || "Unknown",
+          browser: ua.browser.name || "Unknown",
+          browser_version: ua.browser.version || "Unknown",
+          engine: ua.engine.name || "Unknown",
+          engine_version: ua.engine.version || "Unknown",
+          os: ua.os.name || "Unknown",
+          os_version: ua.os.version || "Unknown",
+          cpu_architecture: ua.cpu?.architecture || "Unknown",
+          ua: ua.ua || "Unknown",
+          bot: ua.isBot,
+          referer: referer
+            ? getDomainWithoutWWW(referer) || "(direct)"
+            : "(direct)",
+          referer_url: referer || "(direct)",
         }),
       },
     ).then((res) => res.json()),
