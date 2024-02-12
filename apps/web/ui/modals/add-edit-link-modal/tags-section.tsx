@@ -39,7 +39,7 @@ export default function TagsSection({
 
   const createTag = async (tag: string) => {
     setCreatingTag(true);
-    fetch(`/api/tags?projectSlug${slug}`, {
+    fetch(`/api/tags?projectSlug=${slug}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -47,7 +47,7 @@ export default function TagsSection({
       body: JSON.stringify({ tag }),
     }).then(async (res) => {
       if (res.ok) {
-        await mutate(`/api/tags?projectSlug${slug}`);
+        await mutate(`/api/tags?projectSlug=${slug}`);
         const newTag = await res.json();
         setData({ ...data, tagId: newTag.id });
         toast.success(`Successfully created tag!`);
