@@ -1,7 +1,6 @@
 "use client";
 
 import { ModalContext } from "@/ui/modals/provider";
-import { BlurImage } from "@dub/ui";
 import { useContext } from "react";
 
 export default function NoProjectsPlaceholder() {
@@ -12,7 +11,7 @@ export default function NoProjectsPlaceholder() {
       <h2 className="z-10 text-xl font-semibold text-gray-700">
         You don't have any projects yet!
       </h2>
-      <BlurImage
+      <img
         src="/_static/illustrations/shopping-call.svg"
         alt="No links yet"
         width={400}

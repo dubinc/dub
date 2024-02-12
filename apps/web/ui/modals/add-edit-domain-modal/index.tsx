@@ -311,7 +311,6 @@ function AddEditDomainModal({
               <Switch
                 fn={() => setData((prev) => ({ ...prev, archived: !archived }))}
                 checked={archived}
-                disabled={props?.archived}
               />
             </div>
 
