@@ -88,8 +88,7 @@ export default function LinkCard({
   const { slug } = params;
 
   const { exceededClicks } = useProject();
-  let { verified, loading } = useDomains({ domain });
-  verified = true;
+  const { verified, loading } = useDomains({ domain });
 
   const linkRef = useRef<any>();
   const entry = useIntersectionObserver(linkRef, {});
