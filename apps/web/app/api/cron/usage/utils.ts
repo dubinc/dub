@@ -124,6 +124,7 @@ export const updateUsage = async (skip?: number) => {
                 projectId: project.id,
                 endpoint: "top_links",
                 interval: "30d",
+                excludeRoot: "true",
               }).then((data) =>
                 data
                   .slice(0, 5)

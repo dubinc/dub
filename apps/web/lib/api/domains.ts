@@ -239,9 +239,33 @@ export async function deleteDomainAndLinks(
     skipPrismaDelete = false,
   } = {},
 ) {
+  const domainData = await prisma.domain.findUnique({
+    where: {
+      slug: domain,
+    },
+    select: {
+      id: true,
+      target: true,
+      projectId: true,
+    },
+  });
+  if (!domainData) {
+    return null;
+  }
   return await Promise.allSettled([
     // delete all links from redis
     redis.del(domain),
+    // record delete in tinybird
+    recordLink({
+      link: {
+        domain,
+        key: "_root",
+        projectId: domainData.projectId,
+        id: domainData.id,
+        url: domainData.target || "",
+      },
+      deleted: true,
+    }),
     // remove all images from cloudinary
     cloudinary.v2.api.delete_resources_by_prefix(domain),
     // remove the domain from Vercel

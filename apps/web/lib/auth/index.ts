@@ -242,16 +242,22 @@ export const withAuth =
               id: linkId,
             },
           })
-        : domain && key && key !== "_root"
-        ? prisma.link.findUnique({
-            where: {
-              domain_key: {
-                domain,
-                key,
-              },
-            },
-          })
-        : undefined,
+        : domain &&
+          key &&
+          (key === "_root"
+            ? prisma.domain.findUnique({
+                where: {
+                  slug: domain,
+                },
+              })
+            : prisma.link.findUnique({
+                where: {
+                  domain_key: {
+                    domain,
+                    key,
+                  },
+                },
+              })),
     ])) as [ProjectProps, LinkProps | undefined];
 
     if (!project || !project.users) {
