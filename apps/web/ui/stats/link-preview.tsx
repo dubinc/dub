@@ -1,5 +1,5 @@
 import { LinkProps, UserProps } from "@/lib/types";
-import { Avatar, CopyButton } from "@dub/ui";
+import { Avatar, BlurImage, CopyButton } from "@dub/ui";
 import {
   GOOGLE_FAVICON_URL,
   cn,
@@ -8,7 +8,6 @@ import {
   timeAgo,
 } from "@dub/utils";
 import { Archive, EyeOff, Globe } from "lucide-react";
-import { BlurImage } from "../shared/blur-image";
 import punycode from "punycode/";
 
 export default function LinkPreviewTooltip({

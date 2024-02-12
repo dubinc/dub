@@ -1,5 +1,5 @@
 import { getLinkViaEdge } from "@/lib/planetscale";
-import { BlurImage } from "@/ui/shared/blur-image";
+import { BlurImage } from "@dub/ui";
 import {
   GOOGLE_FAVICON_URL,
   constructMetadata,

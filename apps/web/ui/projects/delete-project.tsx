@@ -1,9 +1,9 @@
 "use client";
 
 import useProject from "@/lib/swr/use-project";
+import { useDeleteProjectModal } from "@/ui/modals/delete-project-modal";
 import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { useDeleteProjectModal } from "@/ui/modals/delete-project-modal";
 
 export default function DeleteProject() {
   const { setShowDeleteProjectModal, DeleteProjectModal } =

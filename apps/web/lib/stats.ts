@@ -101,7 +101,7 @@ export const getStats = async ({
   endpoint: string;
   interval?: string;
 } & {
-  [key in typeof VALID_STATS_FILTERS[number]]: string;
+  [key in (typeof VALID_STATS_FILTERS)[number]]: string;
 }) => {
   // Note: we're using decodeURIComponent in this function because that's how we store it in MySQL and Tinybird
 

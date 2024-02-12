@@ -1,9 +1,9 @@
-import "dotenv-flow/config";
-import * as Papa from "papaparse";
-import * as fs from "fs";
 import prisma from "@/lib/prisma";
-import { linkConstructor } from "./utils";
 import { getStats } from "@/lib/stats";
+import "dotenv-flow/config";
+import * as fs from "fs";
+import * as Papa from "papaparse";
+import { linkConstructor } from "./utils";
 
 async function main() {
   const topLinks = await getStats({

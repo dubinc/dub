@@ -8,17 +8,17 @@
   We use the `useEndpoint()` hook to get the correct layout
 */
 
+import { VALID_STATS_FILTERS } from "@/lib/stats";
+import { fetcher } from "@dub/utils";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
 import { createContext, useMemo } from "react";
+import useSWR from "swr";
 import Clicks from "./clicks";
-import TopLinks from "./top-links";
 import Devices from "./devices";
 import Locations from "./locations";
 import Referer from "./referer";
 import Toggle from "./toggle";
-import useSWR from "swr";
-import { fetcher } from "@dub/utils";
-import { VALID_STATS_FILTERS } from "@/lib/stats";
+import TopLinks from "./top-links";
 
 export const StatsContext = createContext<{
   basePath: string;

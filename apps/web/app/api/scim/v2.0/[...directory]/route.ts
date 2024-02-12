@@ -1,5 +1,4 @@
 import { inviteUser } from "@/lib/api/users";
-import { getSearchParams } from "@dub/utils";
 import jackson from "@/lib/jackson";
 import prisma from "@/lib/prisma";
 import { ProjectProps } from "@/lib/types";
@@ -7,6 +6,7 @@ import type {
   DirectorySyncEvent,
   DirectorySyncRequest,
 } from "@boxyhq/saml-jackson";
+import { getSearchParams } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 const handler = async (
@@ -52,7 +52,7 @@ const handler = async (
   return NextResponse.json(data, { status });
 };
 
-export { handler as GET, handler as POST, handler as PUT, handler as DELETE };
+export { handler as DELETE, handler as GET, handler as POST, handler as PUT };
 
 // Handle the SCIM events
 const handleEvents = async (event: DirectorySyncEvent) => {

@@ -1,13 +1,13 @@
+import { TopLinksTabs } from "@/lib/stats";
 import { LoadingSpinner, Modal, Switch, useRouterStuff } from "@dub/ui";
 import { fetcher, linkConstructor } from "@dub/utils";
 import { Maximize, X } from "lucide-react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
 import useSWR from "swr";
 import { StatsContext } from ".";
 import BarList from "./bar-list";
-import { TopLinksTabs } from "@/lib/stats";
-import { useSearchParams } from "next/navigation";
-import Link from "next/link";
 
 export default function TopLinks() {
   const [tab, setTab] = useState<TopLinksTabs>("link");

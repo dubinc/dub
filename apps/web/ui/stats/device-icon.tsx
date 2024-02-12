@@ -1,6 +1,6 @@
 import { DeviceTabs } from "@/lib/stats";
-import { BlurImage } from "@/ui/shared/blur-image";
 import { Apple, Chrome, Safari } from "@/ui/shared/icons/devices";
+import { BlurImage } from "@dub/ui";
 
 export default function DeviceIcon({
   display,

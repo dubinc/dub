@@ -15,6 +15,7 @@ import {
 } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import va from "@vercel/analytics";
+import { motion } from "framer-motion";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Dispatch,
@@ -26,9 +27,8 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { useDebounce } from "use-debounce";
 import { mutate } from "swr";
-import { motion } from "framer-motion";
+import { useDebounce } from "use-debounce";
 import DomainInput from "./add-edit-domain-modal/domain-input";
 
 function AddProjectModalHelper({

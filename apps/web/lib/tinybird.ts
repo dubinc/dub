@@ -1,16 +1,16 @@
 import {
   LOCALHOST_GEO_DATA,
+  LOCALHOST_IP,
   capitalize,
   getDomainWithoutWWW,
-  LOCALHOST_IP,
   nanoid,
 } from "@dub/utils";
 import { ipAddress } from "@vercel/edge";
 import { NextRequest, userAgent } from "next/server";
-import { conn } from "./planetscale";
-import { ratelimit } from "./upstash";
 import { detectBot } from "./middleware/utils";
+import { conn } from "./planetscale";
 import { LinkProps } from "./types";
+import { ratelimit } from "./upstash";
 
 /**
  * Recording clicks with geo, ua, referer and timestamp data

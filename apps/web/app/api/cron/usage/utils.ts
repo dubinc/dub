@@ -10,8 +10,8 @@ import {
   log,
 } from "@dub/utils";
 import { sendEmail } from "emails";
-import ClicksSummary from "emails/clicks-summary";
 import ClicksExceeded from "emails/clicks-exceeded";
+import ClicksSummary from "emails/clicks-summary";
 
 const limit = 250;
 

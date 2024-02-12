@@ -1,8 +1,8 @@
 import useProject from "@/lib/swr/use-project";
 import { DomainProps } from "@/lib/types";
-import { BlurImage } from "@/ui/shared/blur-image";
 import { Lock } from "@/ui/shared/icons";
 import {
+  BlurImage,
   Button,
   InfoTooltip,
   Logo,

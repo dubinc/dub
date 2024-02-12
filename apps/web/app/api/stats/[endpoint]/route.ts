@@ -1,5 +1,5 @@
 import { withAuth } from "@/lib/auth";
-import { getDomainViaEdge, getLinkViaEdge } from "@/lib/planetscale";
+import { getDomainViaEdge } from "@/lib/planetscale";
 import { getStats } from "@/lib/stats";
 import { NextResponse } from "next/server";
 

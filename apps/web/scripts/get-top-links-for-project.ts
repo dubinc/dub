@@ -1,6 +1,6 @@
-import "dotenv-flow/config";
 import prisma from "@/lib/prisma";
 import { getStats } from "@/lib/stats";
+import "dotenv-flow/config";
 import { linkConstructor } from "./utils";
 
 async function main() {

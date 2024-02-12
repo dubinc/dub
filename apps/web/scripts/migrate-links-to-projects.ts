@@ -1,7 +1,5 @@
-import "dotenv-flow/config";
 import prisma from "@/lib/prisma";
-import slugify from "@sindresorhus/slugify";
-import { capitalize, redis } from "./utils";
+import "dotenv-flow/config";
 
 const DUB_PROJECT_ID = "cl7pj5kq4006835rbjlt2ofka";
 const DUB_USER_ID = "cl7p1s07k000687rbuhpwqkqa";

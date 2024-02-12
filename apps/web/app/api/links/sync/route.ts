@@ -1,9 +1,9 @@
-import { withAuth } from "@/lib/auth";
-import prisma from "@/lib/prisma";
-import { NextResponse } from "next/server";
-import { LinkProps, SimpleLinkProps } from "@/lib/types";
 import { exceededLimitError } from "@/lib/api/errors";
 import { bulkCreateLinks } from "@/lib/api/links";
+import { withAuth } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { LinkProps, SimpleLinkProps } from "@/lib/types";
+import { NextResponse } from "next/server";
 
 // POST /api/links/sync – sync user's publicly created links to their accounts
 export const POST = withAuth(async ({ req, session, project }) => {

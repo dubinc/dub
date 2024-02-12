@@ -1,6 +1,6 @@
+import prisma from "@/lib/prisma";
 import "dotenv-flow/config";
 import * as fs from "fs";
-import prisma from "@/lib/prisma";
 
 const linkCriteria = {
   select: {

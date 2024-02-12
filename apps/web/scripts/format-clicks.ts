@@ -1,7 +1,6 @@
 import "dotenv-flow/config";
-import * as Papa from "papaparse";
 import * as fs from "fs";
-import prisma from "@/lib/prisma";
+import * as Papa from "papaparse";
 import { nanoid } from "./utils";
 
 function createLinksMapFromFile(filePath: string) {

@@ -1,5 +1,6 @@
 import { AlertCircleFill, CheckCircleFill } from "@/ui/shared/icons";
 import { Label, RadioGroup, RadioGroupItem, useMediaQuery } from "@dub/ui";
+import { InfoTooltip } from "@dub/ui/src/tooltip";
 import {
   FADE_IN_ANIMATION_SETTINGS,
   HOME_DOMAIN,
@@ -8,10 +9,9 @@ import {
   getSubdomain,
   getUrlFromString,
 } from "@dub/utils";
+import { motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useDebounce } from "use-debounce";
-import { motion } from "framer-motion";
-import { InfoTooltip } from "@dub/ui/src/tooltip";
 
 export default function DomainInput({
   identifier = "domain", // "domain" is the default, but when it's used in AddEditDomainModal, it's "slug"
