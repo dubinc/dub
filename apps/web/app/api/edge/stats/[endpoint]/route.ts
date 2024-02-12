@@ -56,7 +56,8 @@ export const GET = async (
   }
 
   const response = await getStats({
-    projectId: link.projectId,
+    // projectId can be undefined (for public links that haven't been claimed/synced to a project)
+    ...(link.projectId && { projectId: link.projectId }),
     linkId: link.id,
     endpoint,
     interval,

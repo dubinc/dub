@@ -125,24 +125,39 @@ export const updateUsage = async (skip?: number) => {
                 endpoint: "top_links",
                 interval: "30d",
                 excludeRoot: "true",
-              }).then((data) =>
-                data
-                  .slice(0, 5)
-                  .map(
-                    ({
-                      domain,
-                      key,
+              }).then(async (data) => {
+                const topFive = data.slice(0, 5);
+                return await Promise.all(
+                  topFive.map(
+                    async ({
+                      link: linkId,
                       clicks,
                     }: {
-                      domain: string;
-                      key: string;
+                      link: string;
                       clicks: number;
-                    }) => ({
-                      link: linkConstructor({ domain, key, pretty: true }),
-                      clicks,
-                    }),
+                    }) => {
+                      const link = await prisma.link.findUnique({
+                        where: {
+                          id: linkId,
+                        },
+                        select: {
+                          domain: true,
+                          key: true,
+                        },
+                      });
+                      if (!link) return;
+                      return {
+                        link: linkConstructor({
+                          domain: link.domain,
+                          key: link.key,
+                          pretty: true,
+                        }),
+                        clicks,
+                      };
+                    },
                   ),
-              )
+                );
+              })
             : [];
 
         const emails = project.users.map((user) => user.user.email) as string[];

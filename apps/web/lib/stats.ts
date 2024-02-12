@@ -1,4 +1,3 @@
-import { DUB_PROJECT_ID, isDubDomain } from "@dub/utils";
 import { conn } from "./planetscale";
 
 export type IntervalProps = "1h" | "24h" | "7d" | "30d" | "90d" | "all";
@@ -96,7 +95,7 @@ export const getStats = async ({
   interval,
   ...rest
 }: {
-  projectId: string;
+  projectId?: string;
   linkId?: string;
   domain?: string;
   endpoint: string;
@@ -137,7 +136,9 @@ export const getStats = async ({
   let url = new URL(
     `https://api.us-east.tinybird.co/v0/pipes/${endpoint}_new.json`,
   );
-  url.searchParams.append("projectId", projectId);
+  if (projectId) {
+    url.searchParams.append("projectId", projectId);
+  }
   if (linkId) {
     url.searchParams.append("linkId", linkId);
   } else if (domain) {
