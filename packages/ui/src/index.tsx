@@ -8,6 +8,7 @@ export * from "./badge";
 export * from "./button";
 export * from "./checkbox";
 export * from "./form";
+export * from "./input-select";
 export * from "./label";
 export * from "./modal";
 export * from "./popover";

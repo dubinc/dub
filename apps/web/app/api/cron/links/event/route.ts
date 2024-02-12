@@ -26,7 +26,7 @@ export async function POST(req: Request) {
 
   const { linkId, type } = body as {
     linkId: string;
-    type: "create" | "edit";
+    type: "create" | "edit" | "transfer";
   };
 
   const link = await prisma.link.findUnique({
@@ -39,8 +39,8 @@ export async function POST(req: Request) {
     return new Response("Link not found", { status: 200 });
   }
 
-  // if the link is a dub.sh link, do some checks
-  if (link.domain === "dub.sh") {
+  // if the link is a dub.sh link (and is not a transfer event), do some checks
+  if (link.domain === "dub.sh" && type !== "transfer") {
     const invalidFavicon = await fetch(
       `${GOOGLE_FAVICON_URL}${getApexDomain(link.url)}`,
     ).then((res) => !res.ok);

@@ -38,6 +38,7 @@ import {
   CopyPlus,
   Edit3,
   EyeOff,
+  FolderInput,
   Mail,
   MessageCircle,
   QrCode,
@@ -49,6 +50,7 @@ import punycode from "punycode/";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
+import { useTransferLinkModal } from "../modals/transfer-link-modal";
 
 export default function LinkCard({
   props,
@@ -133,6 +135,9 @@ export default function LinkCard({
     props,
     archived: !archived,
   });
+  const { setShowTransferLinkModal, TransferLinkModal } = useTransferLinkModal({
+    props,
+  });
   const { setShowDeleteLinkModal, DeleteLinkModal } = useDeleteLinkModal({
     props,
   });
@@ -181,7 +186,7 @@ export default function LinkCard({
     // - there is no existing modal backdrop
     if (
       (selected || openPopover) &&
-      ["e", "d", "q", "a", "x"].includes(e.key)
+      ["e", "d", "q", "a", "t", "x"].includes(e.key)
     ) {
       setSelected(false);
       e.preventDefault();
@@ -197,6 +202,9 @@ export default function LinkCard({
           break;
         case "a":
           setShowArchiveLinkModal(true);
+          break;
+        case "t":
+          setShowTransferLinkModal(true);
           break;
         case "x":
           setShowDeleteLinkModal(true);
@@ -225,6 +233,7 @@ export default function LinkCard({
           <AddEditLinkModal />
           <DuplicateLinkModal />
           <ArchiveLinkModal />
+          <TransferLinkModal />
           <DeleteLinkModal />
         </>
       )}
@@ -468,6 +477,21 @@ export default function LinkCard({
                   />
                   <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 transition-all duration-75 group-hover:bg-gray-200 sm:inline-block">
                     A
+                  </kbd>
+                </button>
+                <button
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setShowTransferLinkModal(true);
+                  }}
+                  className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
+                >
+                  <IconMenu
+                    text="Transfer"
+                    icon={<FolderInput className="h-4 w-4" />}
+                  />
+                  <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 transition-all duration-75 group-hover:bg-gray-200 sm:inline-block">
+                    T
                   </kbd>
                 </button>
                 <button
