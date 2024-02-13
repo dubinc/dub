@@ -1,7 +1,15 @@
 import useProjects from "@/lib/swr/use-projects";
-import { BlurImage, Button, Modal } from "@dub/ui";
-import InputSelect from "@dub/ui/src/input-select";
 import {
+  BlurImage,
+  Button,
+  InputSelect,
+  InputSelectItemProps,
+  Modal,
+  useMediaQuery,
+} from "@dub/ui";
+import {
+  APP_NAME,
+  DUB_LOGO,
   GOOGLE_FAVICON_URL,
   getApexDomain,
   isDubDomain,
@@ -32,7 +40,8 @@ function TransferLinkModal({
   const { slug } = params;
   const { projects } = useProjects();
   const [transferring, setTransferring] = useState(false);
-  const [newProjectId, setNewProjectId] = useState<string | null>(null);
+  const [selectedProject, setSelectedProject] =
+    useState<InputSelectItemProps | null>(null);
 
   const apexDomain = getApexDomain(props.url);
   const { key, domain } = props;
@@ -55,6 +64,8 @@ function TransferLinkModal({
     });
   };
 
+  const { isDesktop } = useMediaQuery();
+
   return (
     <Modal
       showModal={showTransferLinkModal}
@@ -63,9 +74,9 @@ function TransferLinkModal({
       <form
         onSubmit={async (e) => {
           e.preventDefault();
-          if (newProjectId) {
+          if (selectedProject) {
             setTransferring(true);
-            toast.promise(transferLink(props.id, newProjectId), {
+            toast.promise(transferLink(props.id, selectedProject.id), {
               loading: "Transferring link...",
               success: () => {
                 mutate(
@@ -92,11 +103,12 @@ function TransferLinkModal({
           />
           <h3 className="text-lg font-medium">Transfer {shortlink}</h3>
           <p className="text-sm text-gray-500">
-            Transfer this link to another project.
+            Transfer this link along with its associated analytics to another{" "}
+            {APP_NAME} project.
           </p>
         </div>
 
-        <div className="flex flex-col space-y-3 bg-gray-50 px-4 py-8 text-left sm:rounded-b-2xl sm:px-16">
+        <div className="flex flex-col space-y-28 bg-gray-50 px-4 py-8 text-left sm:space-y-3 sm:rounded-b-2xl sm:px-16">
           <InputSelect
             items={
               projects
@@ -105,14 +117,19 @@ function TransferLinkModal({
                     .map((project) => ({
                       id: project.id,
                       value: project.name,
+                      image: project.logo || DUB_LOGO,
                     }))
                 : []
             }
-            handleSelect={(item) => setNewProjectId(item.id)}
-            placeholder="Select a project"
+            selectedItem={selectedProject}
+            setSelectedItem={setSelectedProject}
+            inputData={{
+              autoFocus: isDesktop,
+              placeholder: "Select a project",
+            }}
           />
           <Button
-            disabled={!newProjectId || !isDubDomain(domain)}
+            disabled={!selectedProject || !isDubDomain(domain)}
             loading={transferring}
             text="Confirm transfer"
           />

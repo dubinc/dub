@@ -1,18 +1,34 @@
 "use client";
 import { Command, useCommandState } from "cmdk";
-import { ReactNode, useEffect, useRef, useState } from "react";
+import {
+  Dispatch,
+  InputHTMLAttributes,
+  ReactNode,
+  SetStateAction,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { Check, ChevronDown, Search, X } from "lucide-react";
 
-export default function InputSelect({
+export interface InputSelectItemProps {
+  id: string;
+  value: string;
+  image: string;
+}
+
+export function InputSelect({
   items,
-  handleSelect,
-  placeholder,
+  selectedItem,
+  setSelectedItem,
   icon,
+  inputData,
 }: {
-  items: { id: string; value: string }[];
-  handleSelect: (item: { id: string; value: string }) => void;
-  placeholder?: string;
+  items: InputSelectItemProps[];
+  selectedItem: InputSelectItemProps | null;
+  setSelectedItem: Dispatch<SetStateAction<InputSelectItemProps | null>>;
   icon?: ReactNode;
+  inputData?: InputHTMLAttributes<HTMLInputElement>;
 }) {
   const commandRef = useRef<HTMLDivElement | null>(null);
   const [openCommandList, setOpenCommandList] = useState(false);
@@ -37,9 +53,9 @@ export default function InputSelect({
     const isEmpty = useCommandState((state: any) => state.filtered.count === 0);
     return (
       <Command.Input
-        placeholder={placeholder || "Search..."}
+        placeholder={inputData?.placeholder || "Search..."}
         // hack to focus on the input when the dropdown opens
-        autoFocus={openCommandList}
+        autoFocus={inputData?.autoFocus || openCommandList}
         // when focus on the input. only show the dropdown if there are tags and the tagValue is not empty
         onFocus={() => setOpenCommandList(true)}
         value={inputValue}
@@ -65,13 +81,24 @@ export default function InputSelect({
     <Command ref={commandRef} className="relative w-full" loop>
       <div className="group rounded-md border border-gray-300 bg-white px-1 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500">
         <div className="absolute inset-y-0 left-0 flex items-center justify-center pl-3 text-gray-400">
-          {icon || <Search className="h-4 w-4 text-gray-400" />}
+          {selectedItem ? (
+            <img
+              src={selectedItem.image}
+              alt={selectedItem.value}
+              className="h-4 w-4 rounded-full"
+            />
+          ) : (
+            icon || <Search className="h-4 w-4 text-gray-400" />
+          )}
         </div>
         <div className="flex h-9 px-8">
           <CommandInput />
           {inputValue ? (
             <button
-              onClick={() => setInputValue("")}
+              onClick={() => {
+                setSelectedItem(null);
+                setInputValue("");
+              }}
               className="absolute inset-y-0 right-0 my-auto"
             >
               <X className="h-7 w-7 pr-3 text-gray-400" />
@@ -91,13 +118,20 @@ export default function InputSelect({
               key={item.id}
               value={item.value}
               onSelect={() => {
-                handleSelect(item);
+                setSelectedItem(item);
                 setInputValue(item.value);
                 setOpenCommandList(false);
               }}
               className="group flex cursor-pointer items-center justify-between rounded-md px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 aria-selected:bg-gray-100 aria-selected:text-gray-900"
             >
-              {item.value}
+              <div className="flex items-center space-x-2">
+                <img
+                  src={item.image}
+                  alt={item.value}
+                  className="h-4 w-4 rounded-full"
+                />
+                <p>{item.value}</p>
+              </div>
               <Check className="invisible h-5 w-5 text-gray-500 aria-selected:visible" />
             </Command.Item>
           ))}

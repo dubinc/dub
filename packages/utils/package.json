@@ -31,10 +31,10 @@
   },
   "dependencies": {
     "@sindresorhus/slugify": "^2.2.1",
-    "clsx": "^1.2.1",
+    "clsx": "^2.1.0",
     "ms": "^2.1.3",
     "nanoid": "^5.0.1",
-    "tailwind-merge": "^1.13.2"
+    "tailwind-merge": "^2.2.1"
   },
   "author": "Steven Tey <stevensteel97@gmail.com>",
   "homepage": "https://dub.co",
