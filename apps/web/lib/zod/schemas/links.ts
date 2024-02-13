@@ -39,6 +39,13 @@ export const getLinksQuerySchema = z.object({
     .describe(
       "Whether to include archived links in the response. Defaults to `false` if not provided.",
     ),
+  withTags: z.coerce
+    .boolean()
+    .optional()
+    .default(false)
+    .describe(
+      "Whether to include tags in the response. Defaults to `false` if not provided.",
+    ),
 });
 
 export const getLinkInfoQuerySchema = z.object({

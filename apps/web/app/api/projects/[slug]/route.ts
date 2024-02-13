@@ -2,8 +2,10 @@ import { deleteProject } from "@/lib/api/projects";
 import { withAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import z from "@/lib/zod";
-import { validSlugRegex } from "@dub/utils";
+import { DEFAULT_REDIRECTS, validSlugRegex } from "@dub/utils";
+import { isReservedKey } from "@/lib/edge-config";
 import { NextResponse } from "next/server";
+import { handleAndReturnErrorResponse } from "@/lib/errors";
 
 const updateProjectSchema = z.object({
   name: z.string().max(32).optional(),
@@ -11,6 +13,13 @@ const updateProjectSchema = z.object({
     .string()
     .max(48, { message: "Slug must be less than 48 characters" })
     .regex(validSlugRegex, { message: "Invalid slug" })
+    .refine(async (slug) => {
+      if ((await isReservedKey(slug)) || DEFAULT_REDIRECTS[slug]) {
+        return false;
+      }
+
+      return true;
+    }, { message: "Cannot use reserved slugs" })
     .optional(),
   defaultDomains: z.array(z.string()).optional(),
 });
@@ -23,28 +32,8 @@ export const GET = withAuth(async ({ project, headers }) => {
 // PUT /api/projects/[slug] – update a specific project
 export const PUT = withAuth(
   async ({ req, project }) => {
-    // const { name, slug, defaultDomains } = await req.json();
-
-    // // if slug is defined, do some checks
-    // if (slug) {
-    //   // check if slug is too long
-    //   if (slug.length > 48) {
-    //     return new Response("Slug must be less than 48 characters", {
-    //       status: 400,
-    //     });
-
-    //     // check if slug is valid
-    //   } else if (!validSlugRegex.test(slug)) {
-    //     return new Response("Invalid slug", { status: 400 });
-
-    //     // check if slug is reserved
-    //   } else if ((await isReservedKey(slug)) || DEFAULT_REDIRECTS[slug]) {
-    //     return new Response("Cannot use reserved slugs", { status: 422 });
-    //   }
-    // }
-
     try {
-      const { name, slug, defaultDomains } = updateProjectSchema.parse(
+      const { name, slug, defaultDomains } = await updateProjectSchema.parseAsync(
         await req.json(),
       );
 
@@ -65,10 +54,11 @@ export const PUT = withAuth(
       });
       return NextResponse.json(response);
     } catch (error) {
-      if (error.code === "P2002") {
-        return new Response("Project slug already exists.", { status: 422 });
-      }
-      return new Response(error.message, { status: 500 });
+      // TODO: Kiran
+      // if (error.code === "P2002") {
+      //   return new Response("Project slug already exists.", { status: 422 });
+      // }
+      return handleAndReturnErrorResponse(error);
     }
   },
   {

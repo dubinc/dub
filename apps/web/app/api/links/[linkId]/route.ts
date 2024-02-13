@@ -41,7 +41,8 @@ export const PUT = withAuth(async ({ req, headers, project, link }) => {
       project,
     });
 
-    // TODO: handle error
+    // TODO: Kiran
+    // Handle error and status
     if (error) {
       return new Response(error, { status, headers });
     }

@@ -24,6 +24,8 @@ import { Session } from "../auth";
 import { getLinkViaEdge } from "../planetscale";
 import { recordLink } from "../tinybird";
 import { LinkProps, ProjectProps, RedisLinkProps } from "../types";
+import z from "../zod";
+import { getLinksQuerySchema } from "../zod/schemas/links";
 
 export async function getLinksForProject({
   projectId,
@@ -35,17 +37,7 @@ export async function getLinksForProject({
   userId,
   showArchived,
   withTags,
-}: {
-  projectId: string;
-  domain?: string;
-  tagId?: string;
-  search?: string;
-  sort?: "createdAt" | "clicks" | "lastClicked"; // descending for all
-  page?: string;
-  userId?: string | null;
-  showArchived?: boolean;
-  withTags?: boolean;
-}): Promise<LinkProps[]> {
+}: Omit<z.infer<typeof getLinksQuerySchema>, "projectSlug"> & {projectId: string}): Promise<LinkProps[]> {
   const links = await prisma.link.findMany({
     where: {
       projectId,
@@ -72,7 +64,7 @@ export async function getLinksForProject({
     },
     take: 100,
     ...(page && {
-      skip: (parseInt(page) - 1) * 100,
+      skip: (page - 1) * 100,
     }),
   });
 
