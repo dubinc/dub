@@ -1,10 +1,10 @@
 import { exceededLimitError } from "@/lib/api/errors";
 import { bulkCreateLinks, processLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
-import { NextResponse } from "next/server";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/errors";
-import { bulkCreateLinksBodySchema } from "@/lib/zod/schemas/links";
 import { LinkProps } from "@/lib/types";
+import { bulkCreateLinksBodySchema } from "@/lib/zod/schemas/links";
+import { NextResponse } from "next/server";
 
 // POST /api/links/bulk – bulk create up to 100 links
 export const POST = withAuth(
@@ -15,7 +15,7 @@ export const POST = withAuth(
           code: "bad_request",
           message:
             "Missing project. Bulk link creation is only available for custom domain projects.",
-        })
+        });
       }
       const links = bulkCreateLinksBodySchema.parse(await req.json());
       if (
@@ -31,35 +31,40 @@ export const POST = withAuth(
           }),
         });
       }
-  
+
       const processedLinks = await Promise.all(
         links.map(async (link) =>
-          processLink({ payload: link as LinkProps, project, session, bulk: true }),
+          processLink({
+            payload: link as LinkProps,
+            project,
+            session,
+            bulk: true,
+          }),
         ),
       );
-  
+
       const validLinks = processedLinks
         .filter(({ error }) => !error)
         .map(({ link }) => link);
-  
+
       const errors = processedLinks
         .filter(({ error }) => error)
         .map(({ link, error }) => ({
           link,
           error,
         }));
-  
+
       const validLinksResponse =
-        validLinks.length > 0 ? await bulkCreateLinks({ links: validLinks }) : [];
-  
-        // TODO: Kiran
-        // Handle error in the response
+        validLinks.length > 0
+          ? await bulkCreateLinks({ links: validLinks })
+          : [];
+
+      // TODO: Kiran
+      // Handle error in the response
       return NextResponse.json([...validLinksResponse, ...errors], { headers });
     } catch (error) {
       return handleAndReturnErrorResponse(error);
     }
-
-
   },
   {
     needNotExceededLinks: true,

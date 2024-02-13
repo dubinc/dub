@@ -1,11 +1,11 @@
 import { deleteProject } from "@/lib/api/projects";
 import { withAuth } from "@/lib/auth";
+import { isReservedKey } from "@/lib/edge-config";
+import { handleAndReturnErrorResponse } from "@/lib/errors";
 import prisma from "@/lib/prisma";
 import z from "@/lib/zod";
 import { DEFAULT_REDIRECTS, validSlugRegex } from "@dub/utils";
-import { isReservedKey } from "@/lib/edge-config";
 import { NextResponse } from "next/server";
-import { handleAndReturnErrorResponse } from "@/lib/errors";
 
 const updateProjectSchema = z.object({
   name: z.string().max(32).optional(),
@@ -13,13 +13,16 @@ const updateProjectSchema = z.object({
     .string()
     .max(48, { message: "Slug must be less than 48 characters" })
     .regex(validSlugRegex, { message: "Invalid slug" })
-    .refine(async (slug) => {
-      if ((await isReservedKey(slug)) || DEFAULT_REDIRECTS[slug]) {
-        return false;
-      }
+    .refine(
+      async (slug) => {
+        if ((await isReservedKey(slug)) || DEFAULT_REDIRECTS[slug]) {
+          return false;
+        }
 
-      return true;
-    }, { message: "Cannot use reserved slugs" })
+        return true;
+      },
+      { message: "Cannot use reserved slugs" },
+    )
     .optional(),
   defaultDomains: z.array(z.string()).optional(),
 });
@@ -33,9 +36,8 @@ export const GET = withAuth(async ({ project, headers }) => {
 export const PUT = withAuth(
   async ({ req, project }) => {
     try {
-      const { name, slug, defaultDomains } = await updateProjectSchema.parseAsync(
-        await req.json(),
-      );
+      const { name, slug, defaultDomains } =
+        await updateProjectSchema.parseAsync(await req.json());
 
       const response = await prisma.project.update({
         where: {

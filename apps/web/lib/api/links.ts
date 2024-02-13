@@ -37,7 +37,9 @@ export async function getLinksForProject({
   userId,
   showArchived,
   withTags,
-}: Omit<z.infer<typeof getLinksQuerySchema>, "projectSlug"> & {projectId: string}): Promise<LinkProps[]> {
+}: Omit<z.infer<typeof getLinksQuerySchema>, "projectSlug"> & {
+  projectId: string;
+}): Promise<LinkProps[]> {
   const links = await prisma.link.findMany({
     where: {
       projectId,
