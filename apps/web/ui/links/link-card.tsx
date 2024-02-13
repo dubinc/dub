@@ -11,6 +11,7 @@ import { Chart, Delete, ThreeDots } from "@/ui/shared/icons";
 import {
   Avatar,
   BlurImage,
+  Button,
   CopyButton,
   IconMenu,
   NumberTooltip,
@@ -28,6 +29,7 @@ import {
   cn,
   fetcher,
   getApexDomain,
+  isDubDomain,
   linkConstructor,
   nFormatter,
   timeAgo,
@@ -38,6 +40,7 @@ import {
   CopyPlus,
   Edit3,
   EyeOff,
+  FolderInput,
   Mail,
   MessageCircle,
   QrCode,
@@ -49,6 +52,7 @@ import punycode from "punycode/";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
+import { useTransferLinkModal } from "../modals/transfer-link-modal";
 
 export default function LinkCard({
   props,
@@ -133,6 +137,9 @@ export default function LinkCard({
     props,
     archived: !archived,
   });
+  const { setShowTransferLinkModal, TransferLinkModal } = useTransferLinkModal({
+    props,
+  });
   const { setShowDeleteLinkModal, DeleteLinkModal } = useDeleteLinkModal({
     props,
   });
@@ -181,7 +188,7 @@ export default function LinkCard({
     // - there is no existing modal backdrop
     if (
       (selected || openPopover) &&
-      ["e", "d", "q", "a", "x"].includes(e.key)
+      ["e", "d", "q", "a", "t", "x"].includes(e.key)
     ) {
       setSelected(false);
       e.preventDefault();
@@ -197,6 +204,11 @@ export default function LinkCard({
           break;
         case "a":
           setShowArchiveLinkModal(true);
+          break;
+        case "t":
+          if (isDubDomain(domain)) {
+            setShowTransferLinkModal(true);
+          }
           break;
         case "x":
           setShowDeleteLinkModal(true);
@@ -225,6 +237,7 @@ export default function LinkCard({
           <AddEditLinkModal />
           <DuplicateLinkModal />
           <ArchiveLinkModal />
+          <TransferLinkModal />
           <DeleteLinkModal />
         </>
       )}
@@ -413,78 +426,76 @@ export default function LinkCard({
           <Popover
             content={
               <div className="grid w-full gap-px p-2 sm:w-48">
-                <button
+                <Button
+                  text="Edit"
+                  variant="outline"
                   onClick={() => {
                     setOpenPopover(false);
                     setShowAddEditLinkModal(true);
                   }}
-                  className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
-                >
-                  <IconMenu text="Edit" icon={<Edit3 className="h-4 w-4" />} />
-                  <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 transition-all duration-75 group-hover:bg-gray-200 sm:inline-block">
-                    E
-                  </kbd>
-                </button>
-                <button
+                  icon={<Edit3 className="h-4 w-4" />}
+                  shortcut="E"
+                  className="h-9 px-2 font-medium"
+                />
+                <Button
+                  text="Duplicate"
+                  variant="outline"
                   onClick={() => {
                     setOpenPopover(false);
                     setShowDuplicateLinkModal(true);
                   }}
-                  className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
-                >
-                  <IconMenu
-                    text="Duplicate"
-                    icon={<CopyPlus className="h-4 w-4" />}
-                  />
-                  <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 transition-all duration-75 group-hover:bg-gray-200 sm:inline-block">
-                    D
-                  </kbd>
-                </button>
-                <button
+                  icon={<CopyPlus className="h-4 w-4" />}
+                  shortcut="D"
+                  className="h-9 px-2 font-medium"
+                />
+                <Button
+                  text="QR Code"
+                  variant="outline"
                   onClick={() => {
                     setOpenPopover(false);
                     setShowLinkQRModal(true);
                   }}
-                  className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
-                >
-                  <IconMenu
-                    text="QR Code"
-                    icon={<QrCode className="h-4 w-4" />}
-                  />
-                  <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 transition-all duration-75 group-hover:bg-gray-200 sm:inline-block">
-                    Q
-                  </kbd>
-                </button>
-                <button
+                  icon={<QrCode className="h-4 w-4" />}
+                  shortcut="Q"
+                  className="h-9 px-2 font-medium"
+                />
+                <Button
+                  text={archived ? "Unarchive" : "Archive"}
+                  variant="outline"
                   onClick={() => {
                     setOpenPopover(false);
                     setShowArchiveLinkModal(true);
                   }}
-                  className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
-                >
-                  <IconMenu
-                    text={archived ? "Unarchive" : "Archive"}
-                    icon={<Archive className="h-4 w-4" />}
-                  />
-                  <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 transition-all duration-75 group-hover:bg-gray-200 sm:inline-block">
-                    A
-                  </kbd>
-                </button>
-                <button
+                  icon={<Archive className="h-4 w-4" />}
+                  shortcut="A"
+                  className="h-9 px-2 font-medium"
+                />
+                <Button
+                  text="Transfer"
+                  variant="outline"
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setShowTransferLinkModal(true);
+                  }}
+                  icon={<FolderInput className="h-4 w-4" />}
+                  shortcut="T"
+                  className="h-9 px-2 font-medium"
+                  {...(!isDubDomain(domain) && {
+                    disabledTooltip:
+                      "You cannot transfer custom domain links between projects.",
+                  })}
+                />
+                <Button
+                  text="Delete"
+                  variant="danger-outline"
                   onClick={() => {
                     setOpenPopover(false);
                     setShowDeleteLinkModal(true);
                   }}
-                  className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-red-600 transition-all duration-75 hover:bg-red-600 hover:text-white"
-                >
-                  <IconMenu
-                    text="Delete"
-                    icon={<Delete className="h-4 w-4" />}
-                  />
-                  <kbd className="hidden rounded bg-red-100 px-2 py-0.5 text-xs font-light text-red-600 transition-all duration-75 group-hover:bg-red-500 group-hover:text-white sm:inline-block">
-                    X
-                  </kbd>
-                </button>
+                  icon={<Delete className="h-4 w-4" />}
+                  shortcut="X"
+                  className="h-9 px-2 font-medium"
+                />
                 {!slug && ( // this is only shown in admin mode (where there's no slug)
                   <button
                     onClick={() => {

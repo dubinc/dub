@@ -56,6 +56,7 @@ export default function BarList({
 }) {
   const [search, setSearch] = useState("");
 
+  // TODO: fix for top links since it's technically link IDs
   const filteredData = useMemo(() => {
     if (limit) {
       return data.slice(0, limit);
@@ -173,6 +174,14 @@ export function LineItem({
           ) : (
             <div className="h-5 w-5 animate-pulse rounded-full bg-gray-100" />
           )
+        ) : tab === "url" ? (
+          <BlurImage
+            src={`${GOOGLE_FAVICON_URL}${getApexDomain(title)}`}
+            alt={title}
+            className="h-5 w-5 rounded-full"
+            width={20}
+            height={20}
+          />
         ) : (
           icon
         )}

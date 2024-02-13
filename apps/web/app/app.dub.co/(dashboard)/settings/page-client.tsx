@@ -14,7 +14,7 @@ export default function SettingsPageClient() {
       <Form
         title="Your Name"
         description={`This will be your display name on ${process.env.NEXT_PUBLIC_APP_NAME}.`}
-        inputData={{
+        inputAttrs={{
           name: "name",
           defaultValue:
             status === "loading" ? undefined : session?.user?.name || "",
@@ -43,7 +43,7 @@ export default function SettingsPageClient() {
       <Form
         title="Your Email"
         description={`This will be the email you use to log in to ${process.env.NEXT_PUBLIC_APP_NAME} and receive notifications.`}
-        inputData={{
+        inputAttrs={{
           name: "email",
           defaultValue: session?.user?.email || undefined,
           placeholder: "panic@thedis.co",

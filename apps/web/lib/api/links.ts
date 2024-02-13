@@ -677,20 +677,37 @@ export async function deleteLink(link: LinkProps) {
   ]);
 }
 
-export async function archiveLink(
-  domain: string,
-  key: string,
-  archived = true,
-) {
+export async function archiveLink({
+  linkId,
+  archived,
+}: {
+  linkId: string;
+  archived: boolean;
+}) {
   return await prisma.link.update({
     where: {
-      domain_key: {
-        domain,
-        key,
-      },
+      id: linkId,
     },
     data: {
       archived,
+    },
+  });
+}
+
+export async function transferLink({
+  linkId,
+  newProjectId,
+}: {
+  linkId: string;
+  newProjectId: string;
+}) {
+  return await prisma.link.update({
+    where: {
+      id: linkId,
+    },
+    data: {
+      projectId: newProjectId,
+      tagId: null, // remove tags when transferring link
     },
   });
 }

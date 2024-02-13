@@ -5,7 +5,7 @@ import { Button } from "./button";
 export function Form({
   title,
   description,
-  inputData,
+  inputAttrs,
   helpText,
   buttonText = "Save Changes",
   disabledTooltip,
@@ -13,17 +13,17 @@ export function Form({
 }: {
   title: string;
   description: string;
-  inputData: InputHTMLAttributes<HTMLInputElement>;
+  inputAttrs: InputHTMLAttributes<HTMLInputElement>;
   helpText?: string;
   buttonText?: string;
   disabledTooltip?: string | ReactNode;
   handleSubmit: (data: any) => Promise<any>;
 }) {
-  const [value, setValue] = useState(inputData.defaultValue);
+  const [value, setValue] = useState(inputAttrs.defaultValue);
   const [saving, setSaving] = useState(false);
   const saveDisabled = useMemo(() => {
-    return saving || !value || value === inputData.defaultValue;
-  }, [saving, value, inputData.defaultValue]);
+    return saving || !value || value === inputAttrs.defaultValue;
+  }, [saving, value, inputAttrs.defaultValue]);
 
   return (
     <form
@@ -31,7 +31,7 @@ export function Form({
         e.preventDefault();
         setSaving(true);
         await handleSubmit({
-          [inputData.name as string]: value,
+          [inputAttrs.name as string]: value,
         });
         setSaving(false);
       }}
@@ -42,9 +42,9 @@ export function Form({
           <h2 className="text-xl font-medium">{title}</h2>
           <p className="text-sm text-gray-500">{description}</p>
         </div>
-        {typeof inputData.defaultValue === "string" ? (
+        {typeof inputAttrs.defaultValue === "string" ? (
           <input
-            {...inputData}
+            {...inputAttrs}
             type="text"
             required
             disabled={disabledTooltip ? true : false}
