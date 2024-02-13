@@ -1,10 +1,10 @@
 "use client";
 
+import DeleteAccountSection from "@/ui/account/delete-account";
+import UploadAvatar from "@/ui/account/upload-avatar";
 import { Form } from "@dub/ui";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
-import UploadAvatar from "@/ui/account/upload-avatar";
-import DeleteAccountSection from "@/ui/account/delete-account";
 
 export default function SettingsPageClient() {
   const { data: session, update, status } = useSession();

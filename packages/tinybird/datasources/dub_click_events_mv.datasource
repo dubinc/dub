@@ -1,0 +1,17 @@
+# Data Source created from Pipe 'dub_click_events_pipe'
+
+SCHEMA >
+    `timestamp` DateTime64(3),
+    `click_id` String,
+    `link_id` String,
+    `url` String,
+    `country` LowCardinality(String),
+    `city` String,
+    `device` LowCardinality(String),
+    `browser` LowCardinality(String),
+    `os` LowCardinality(String),
+    `referer` String
+
+ENGINE "MergeTree"
+ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
+ENGINE_SORTING_KEY "link_id, timestamp"

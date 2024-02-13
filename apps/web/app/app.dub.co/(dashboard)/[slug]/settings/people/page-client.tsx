@@ -4,15 +4,14 @@ import useProject from "@/lib/swr/use-project";
 import useUsers from "@/lib/swr/use-users";
 import { UserProps } from "@/lib/types";
 import { useEditRoleModal } from "@/ui/modals/edit-role-modal";
+import { useInviteTeammateModal } from "@/ui/modals/invite-teammate-modal";
 import { useRemoveTeammateModal } from "@/ui/modals/remove-teammate-modal";
-import { BlurImage } from "@/ui/shared/blur-image";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Avatar, Badge, IconMenu, Popover } from "@dub/ui";
 import { cn, timeAgo } from "@dub/utils";
 import { UserMinus } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
-import { useInviteTeammateModal } from "@/ui/modals/invite-teammate-modal";
 
 const tabs: Array<"Members" | "Invitations"> = ["Members", "Invitations"];
 
@@ -73,7 +72,7 @@ export default function ProjectPeopleClient() {
               ))
             ) : (
               <div className="flex flex-col items-center justify-center py-10">
-                <BlurImage
+                <img
                   src="/_static/illustrations/video-park.svg"
                   alt="No invitations sent"
                   width={300}

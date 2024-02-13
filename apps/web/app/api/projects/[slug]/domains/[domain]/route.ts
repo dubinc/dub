@@ -8,8 +8,8 @@ import {
   setRootDomain,
   validateDomain,
 } from "@/lib/api/domains";
-import { NextResponse } from "next/server";
 import { DUB_PROJECT_ID, isDubDomain } from "@dub/utils";
+import { NextResponse } from "next/server";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/errors";
 
 // GET /api/projects/[slug]/domains/[domain] – get a project's domain

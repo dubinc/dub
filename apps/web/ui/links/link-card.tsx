@@ -7,10 +7,10 @@ import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
 import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
 import { useDeleteLinkModal } from "@/ui/modals/delete-link-modal";
 import { useLinkQRModal } from "@/ui/modals/link-qr-modal";
-import { BlurImage } from "@/ui/shared/blur-image";
 import { Chart, Delete, ThreeDots } from "@/ui/shared/icons";
 import {
   Avatar,
+  BlurImage,
   CopyButton,
   IconMenu,
   NumberTooltip,
@@ -21,6 +21,7 @@ import {
   useIntersectionObserver,
   useRouterStuff,
 } from "@dub/ui";
+import { LinkifyTooltipContent } from "@dub/ui/src/tooltip";
 import {
   GOOGLE_FAVICON_URL,
   HOME_DOMAIN,
@@ -44,11 +45,10 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import Linkify from "linkify-react";
 import punycode from "punycode/";
 import { useEffect, useMemo, useRef, useState } from "react";
-import useSWR, { mutate } from "swr";
 import { toast } from "sonner";
+import useSWR, { mutate } from "swr";
 
 export default function LinkCard({
   props,
@@ -302,19 +302,7 @@ export default function LinkCard({
               {comments && (
                 <Tooltip
                   content={
-                    <div className="block max-w-sm px-4 py-2 text-center text-sm text-gray-700">
-                      <Linkify
-                        as="p"
-                        options={{
-                          target: "_blank",
-                          rel: "noopener noreferrer nofollow",
-                          className:
-                            "underline underline-offset-4 text-gray-400 hover:text-gray-700",
-                        }}
-                      >
-                        {comments}
-                      </Linkify>
-                    </div>
+                    <LinkifyTooltipContent>{comments}</LinkifyTooltipContent>
                   }
                 >
                   <button
@@ -356,7 +344,7 @@ export default function LinkCard({
                           <CopyButton
                             value={user.email}
                             icon={Mail}
-                            className="[&>*]:w-3 [&>*]:h-3"
+                            className="[&>*]:h-3 [&>*]:w-3"
                           />
                         )}
                     </div>

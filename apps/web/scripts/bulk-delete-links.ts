@@ -1,5 +1,5 @@
-import "dotenv-flow/config";
 import prisma from "@/lib/prisma";
+import "dotenv-flow/config";
 import { redis } from "./utils";
 
 const domain = "song.fyi";

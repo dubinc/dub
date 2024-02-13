@@ -1,6 +1,6 @@
 import { withAuth } from "@/lib/auth";
-import { NextResponse } from "next/server";
 import jackson from "@/lib/jackson";
+import { NextResponse } from "next/server";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/errors";
 import z from "@/lib/zod";
 

@@ -1,9 +1,9 @@
 import { deleteDomainAndLinks } from "@/lib/api/domains";
 import prisma from "@/lib/prisma";
 import { cancelSubscription } from "@/lib/stripe";
+import { DUB_DOMAINS } from "@dub/utils";
 import cloudinary from "cloudinary";
 import { ProjectProps } from "../types";
-import { DUB_DOMAINS } from "@dub/utils";
 import { redis } from "../upstash";
 
 export async function deleteProject(

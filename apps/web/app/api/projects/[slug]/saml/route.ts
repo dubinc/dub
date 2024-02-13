@@ -1,7 +1,7 @@
 import { withAuth } from "@/lib/auth";
-import { NextResponse } from "next/server";
 import jackson, { samlAudience } from "@/lib/jackson";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { NextResponse } from "next/server";
 import { handleAndReturnErrorResponse } from "@/lib/errors";
 import z from "@/lib/zod";
 

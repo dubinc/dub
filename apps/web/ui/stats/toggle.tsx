@@ -1,7 +1,10 @@
 import { INTERVALS } from "@/lib/stats";
+import useDomains from "@/lib/swr/use-domains";
 import useProject from "@/lib/swr/use-project";
+import { DomainProps } from "@/lib/types";
 import {
   Badge,
+  BlurImage,
   Copy,
   ExpandingArrow,
   IconMenu,
@@ -22,19 +25,15 @@ import {
   fetcher,
   getApexDomain,
   linkConstructor,
-  truncate,
 } from "@dub/utils";
 import { Calendar, ChevronDown, Lock, Share2 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
-import { useContext, useMemo, useState } from "react";
-import { StatsContext } from ".";
-import useSWR, { mutate } from "swr";
-import { toast } from "sonner";
 import punycode from "punycode/";
-import { BlurImage } from "../shared/blur-image";
-import useDomains from "@/lib/swr/use-domains";
-import { DomainProps } from "@/lib/types";
+import { useContext, useMemo, useState } from "react";
+import { toast } from "sonner";
+import useSWR, { mutate } from "swr";
+import { StatsContext } from ".";
 
 export default function Toggle() {
   const { slug } = useParams() as { slug?: string };
@@ -50,8 +49,7 @@ export default function Toggle() {
 
   const scrolled = useScroll(80);
   const { name, plan, logo } = useProject();
-  // TODO: change this to allDomains after #545 merges
-  const { allProjectDomains, primaryDomain } = useDomains();
+  const { allDomains, primaryDomain } = useDomains();
 
   const isPublicStatsPage = basePath.startsWith("/stats");
 
@@ -89,17 +87,17 @@ export default function Toggle() {
             <h2 className="text-lg font-semibold text-gray-800">
               {primaryDomain}
             </h2>
-            {allProjectDomains && allProjectDomains.length > 1 && (
+            {allDomains && allDomains.length > 1 && (
               <Tooltip
-                content={<DomainsFilterTooltip domains={allProjectDomains} />}
+                content={<DomainsFilterTooltip domains={allDomains} />}
                 side="bottom"
               >
-                <div className="group flex cursor-pointer items-center">
+                <div className="flex cursor-pointer items-center">
                   <Badge
                     variant="gray"
-                    className="border-gray-300 transition-all group-hover:bg-gray-200"
+                    className="border-gray-300 transition-all hover:bg-gray-200"
                   >
-                    +{allProjectDomains.length - 1}
+                    +{allDomains.length - 1}
                   </Badge>
                 </div>
               </Tooltip>
@@ -150,16 +148,12 @@ export default function Toggle() {
                   ) : (
                     <Link
                       key={value}
-                      href={`${basePath}?${
-                        isPublicStatsPage
-                          ? `interval=${value}`
-                          : `${new URLSearchParams({
-                              ...(domain && { domain }),
-                              ...(key && key !== "_root" && { key }),
-                              interval: value,
-                            }).toString()}`
-                      }`}
-                      scroll={false}
+                      href={
+                        queryParams({
+                          set: { interval: value },
+                          getNewPath: true,
+                        }) as string
+                      }
                       className="flex w-full items-center justify-between space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
                     >
                       <p className="text-sm">{display}</p>

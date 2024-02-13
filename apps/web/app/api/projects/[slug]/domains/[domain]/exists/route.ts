@@ -1,5 +1,5 @@
-import { withAuth } from "@/lib/auth";
 import { domainExists } from "@/lib/api/domains";
+import { withAuth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
 // GET /api/projects/[slug]/domains/[domain]/exists – check if a domain exists

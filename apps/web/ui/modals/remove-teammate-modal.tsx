@@ -1,7 +1,6 @@
 import useProject from "@/lib/swr/use-project";
 import { UserProps } from "@/lib/types";
-import { BlurImage } from "@/ui/shared/blur-image";
-import { Avatar, Button, Logo, Modal, useMediaQuery } from "@dub/ui";
+import { Avatar, BlurImage, Button, Logo, Modal, useMediaQuery } from "@dub/ui";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import {

@@ -1,15 +1,15 @@
-import { Excavation, ImageSettings, Modules, QRPropsSVG } from "./types";
+import qrcodegen from "./codegen";
 import {
-  ERROR_LEVEL_MAP,
-  DEFAULT_SIZE,
-  DEFAULT_LEVEL,
   DEFAULT_BGCOLOR,
   DEFAULT_FGCOLOR,
-  DEFAULT_INCLUDEMARGIN,
-  MARGIN_SIZE,
   DEFAULT_IMG_SCALE,
+  DEFAULT_INCLUDEMARGIN,
+  DEFAULT_LEVEL,
+  DEFAULT_SIZE,
+  ERROR_LEVEL_MAP,
+  MARGIN_SIZE,
 } from "./constants";
-import qrcodegen from "./codegen";
+import { Excavation, ImageSettings, Modules, QRPropsSVG } from "./types";
 
 // We could just do this in generatePath, except that we want to support
 // non-Path2D canvas, so we need to keep it an explicit step.

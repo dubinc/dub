@@ -32,6 +32,7 @@ export * from "./nav-mobile";
 export * from "./content";
 
 // misc
+export * from "./blur-image";
 export * from "./copy-button";
 export * from "./icon-menu";
 export * from "./inline-snippet";

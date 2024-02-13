@@ -20,16 +20,10 @@ import {
   validKeyRegex,
 } from "@dub/utils";
 import cloudinary from "cloudinary";
-import {
-  LinkProps,
-  NewLinkProps,
-  ProjectProps,
-  RedisLinkProps,
-} from "../types";
 import { Session } from "../auth";
 import { getLinkViaEdge } from "../planetscale";
-import { GetLinksCountParams } from "../zod";
-import { DubApiError } from "../errors";
+import { recordLink } from "../tinybird";
+import { LinkProps, ProjectProps, RedisLinkProps } from "../types";
 
 export async function getLinksForProject({
   projectId,
@@ -40,15 +34,17 @@ export async function getLinksForProject({
   page,
   userId,
   showArchived,
+  withTags,
 }: {
   projectId: string;
   domain?: string;
-  tagId?: string | null;
+  tagId?: string;
   search?: string;
   sort?: "createdAt" | "clicks" | "lastClicked"; // descending for all
-  page?: number;
+  page?: string;
   userId?: string | null;
   showArchived?: boolean;
+  withTags?: boolean;
 }): Promise<LinkProps[]> {
   const links = await prisma.link.findMany({
     where: {
@@ -65,7 +61,7 @@ export async function getLinksForProject({
           },
         ],
       }),
-      ...(tagId && { tagId }),
+      ...(tagId ? { tagId } : withTags ? { tagId: { not: null } } : {}),
       ...(userId && { userId }),
     },
     include: {
@@ -76,7 +72,7 @@ export async function getLinksForProject({
     },
     take: 100,
     ...(page && {
-      skip: (page - 1) * 100,
+      skip: (parseInt(page) - 1) * 100,
     }),
   });
 
@@ -98,11 +94,19 @@ export async function getLinksCount({
   projectId,
   userId,
 }: {
-  searchParams: GetLinksCountParams;
+  searchParams: Record<string, string>;
   projectId: string;
   userId?: string | null;
 }) {
-  let { groupBy, search, domain, tagId, showArchived } = searchParams;
+  let { groupBy, search, domain, tagId, showArchived, withTags } =
+    searchParams as {
+      groupBy?: "domain" | "tagId";
+      search?: string;
+      domain?: string;
+      tagId?: string;
+      showArchived?: boolean;
+      withTags?: boolean;
+    };
 
   if (groupBy) {
     return await prisma.link.groupBy({
@@ -131,8 +135,8 @@ export async function getLinksCount({
           groupBy !== "tagId" && {
             tagId,
           }),
-        // for the "Tags" filter group, only count links that have a tagId
-        ...(groupBy === "tagId" && {
+        // for the "Tags" filter group (or if withTags is true), only count links that have a tagId
+        ...((groupBy === "tagId" || withTags) && {
           NOT: {
             tagId: null,
           },
@@ -162,7 +166,7 @@ export async function getLinksCount({
           ],
         }),
         ...(domain && { domain }),
-        ...(tagId && { tagId }),
+        ...(tagId ? { tagId } : withTags ? { tagId: { not: null } } : {}),
       },
     });
   }
@@ -214,7 +218,7 @@ export async function processLink({
   session,
   bulk = false,
 }: {
-  payload: NewLinkProps;
+  payload: LinkProps;
   project?: ProjectProps;
   session?: Session;
   bulk?: boolean;
@@ -233,30 +237,41 @@ export async function processLink({
     geo,
   } = payload;
 
+  // url checks
+  if (!url) {
+    return {
+      link: payload,
+      error: "Missing destination url.",
+      status: 400,
+    };
+  }
   const processedUrl = getUrlFromString(url);
   if (!processedUrl) {
-    throw new DubApiError({
-      code: "unprocessible_entity",
-      message: "Invalid destination url.",
-    });
+    return {
+      link: payload,
+      error: "Invalid destination url.",
+      status: 422,
+    };
   }
 
   // free plan restrictions
   if (!project || project.plan === "free") {
     if (proxy || password || rewrite || expiresAt || ios || android || geo) {
-      throw new DubApiError({
-        code: "forbidden",
-        message:
+      return {
+        link: payload,
+        error:
           "You can only use custom social media cards, password-protection, link cloaking, link expiration, device and geo targeting on a Pro plan and above. Upgrade to Pro to use these features.",
-      });
+        status: 403,
+      };
     }
     // can't use `/` in key on free plan
     if (key?.includes("/")) {
-      throw new DubApiError({
-        code: "unprocessible_entity",
-        message:
+      return {
+        link: payload,
+        error:
           "Key cannot contain '/'. You can only use this on a Pro plan and above. Upgrade to Pro to use this feature.",
-      });
+        status: 422,
+      };
     }
   }
 
@@ -267,19 +282,21 @@ export async function processLink({
 
   // checks for default short domain
   if (domain === SHORT_DOMAIN) {
-    const keyBlacklisted = await isBlacklistedKey(key!);
+    const keyBlacklisted = await isBlacklistedKey(key);
     if (keyBlacklisted) {
-      throw new DubApiError({
-        code: "unprocessible_entity",
-        message: "Invalid key.",
-      });
+      return {
+        link: payload,
+        error: "Invalid key.",
+        status: 422,
+      };
     }
     const domainBlacklisted = await isBlacklistedDomain(url);
     if (domainBlacklisted) {
-      throw new DubApiError({
-        code: "unprocessible_entity",
-        message: "Invalid url.",
-      });
+      return {
+        link: payload,
+        error: "Invalid url.",
+        status: 422,
+      };
     }
 
     // checks for other Dub-owned domains (chatg.pt, spti.fi, etc.)
@@ -288,20 +305,22 @@ export async function processLink({
     const { allowedHostnames } = DUB_DOMAINS.find((d) => d.slug === domain)!;
     const urlDomain = getDomainWithoutWWW(url) || "";
     if (!allowedHostnames.includes(urlDomain)) {
-      throw new DubApiError({
-        code: "unprocessible_entity",
-        message: `Invalid url. You can only use ${domain} short links for URLs starting with ${allowedHostnames
+      return {
+        link: payload,
+        error: `Invalid url. You can only use ${domain} short links for URLs starting with ${allowedHostnames
           .map((d) => `\`${d}\``)
           .join(", ")}.`,
-      });
+        status: 422,
+      };
     }
 
     // else, check if the domain belongs to the project
   } else if (!project?.domains?.find((d) => d.slug === domain)) {
-    throw new DubApiError({
-      code: "forbidden",
-      message: "Domain does not belong to project.",
-    });
+    return {
+      link: payload,
+      error: "Domain does not belong to project.",
+      status: 403,
+    };
   }
 
   if (!key) {
@@ -310,33 +329,57 @@ export async function processLink({
 
   if (bulk) {
     if (image) {
-      throw new DubApiError({
-        code: "unprocessible_entity",
-        message: "You cannot set custom social cards with bulk link creation.",
-      });
+      return {
+        link: payload,
+        error: "You cannot set custom social cards with bulk link creation.",
+        status: 422,
+      };
     }
     if (rewrite) {
-      throw new DubApiError({
-        code: "unprocessible_entity",
-        message: "You cannot use link cloaking with bulk link creation.",
-      });
+      return {
+        link: payload,
+        error: "You cannot use link cloaking with bulk link creation.",
+        status: 422,
+      };
     }
     const exists = await checkIfKeyExists(domain, key);
     if (exists) {
-      throw new DubApiError({
-        code: "conflict",
-        message: "Link already exists.",
-      });
+      return {
+        link: payload,
+        error: `Link already exists.`,
+        status: 409,
+      };
     }
   }
 
   // custom social media image checks
   const uploadedImage = image && image.startsWith("data:image") ? true : false;
   if (uploadedImage && !process.env.CLOUDINARY_URL) {
-    throw new DubApiError({
-      code: "unprocessible_entity",
-      message: "Missing Cloudinary environment variable.",
-    });
+    return {
+      link: payload,
+      error: "Missing Cloudinary environment variable.",
+      status: 400,
+    };
+  }
+
+  // expire date checks
+  if (expiresAt) {
+    const date = new Date(expiresAt);
+    if (isNaN(date.getTime())) {
+      return {
+        link: payload,
+        error: "Invalid expiry date. Expiry date must be in ISO-8601 format.",
+        status: 422,
+      };
+    }
+    // check if expiresAt is in the future
+    if (new Date(expiresAt) < new Date()) {
+      return {
+        link: payload,
+        error: "Expiry date must be in the future.",
+        status: 422,
+      };
+    }
   }
 
   // remove shortLink & qrCode attributes from payload since it's a polyfill
@@ -361,9 +404,7 @@ export async function processLink({
   };
 }
 
-export async function addLink(
-  link: Awaited<ReturnType<typeof processLink>>["link"],
-) {
+export async function addLink(link: LinkProps) {
   const { domain, key, url, expiresAt, title, description, image, proxy, geo } =
     link;
   const uploadedImage = image && image.startsWith("data:image") ? true : false;
@@ -378,8 +419,8 @@ export async function addLink(
     data: {
       ...link,
       key,
-      title: title ? truncate(title, 120) : null,
-      description: description ? truncate(description, 240) : null,
+      title: truncate(title, 120),
+      description: truncate(description, 240),
       image: uploadedImage ? undefined : image,
       utm_source,
       utm_medium,
@@ -418,51 +459,60 @@ export async function addLink(
   };
 }
 
-export async function bulkCreateLinks(
-  links: Awaited<ReturnType<typeof processLink>>["link"][],
-) {
+export async function bulkCreateLinks({
+  links,
+  skipPrismaCreate,
+}: {
+  links: LinkProps[];
+  skipPrismaCreate?: boolean;
+}) {
   if (links.length === 0) return [];
 
-  await prisma.link.createMany({
-    data: links.map((link) => {
-      const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
-        getParamsFromURL(link.url);
-      return {
-        ...link,
-        title: link.title ? truncate(link.title, 120) : null,
-        description: link.description ? truncate(link.description, 240) : null,
-        utm_source,
-        utm_medium,
-        utm_campaign,
-        utm_term,
-        utm_content,
-        expiresAt: link.expiresAt ? new Date(link.expiresAt) : null,
-        geo: link.geo || undefined,
-      };
-    }),
-    skipDuplicates: true,
-  });
+  let createdLinks: LinkProps[] = [];
 
-  const createdLinks = (await Promise.all(
-    links.map(async (link) => {
-      const { key, domain } = link;
-      return await prisma.link.findUnique({
-        where: {
-          domain_key: {
-            domain,
-            key,
+  if (skipPrismaCreate) {
+    createdLinks = links;
+  } else {
+    await prisma.link.createMany({
+      data: links.map((link) => {
+        const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
+          getParamsFromURL(link.url);
+        return {
+          ...link,
+          title: truncate(link.title, 120),
+          description: truncate(link.description, 240),
+          utm_source,
+          utm_medium,
+          utm_campaign,
+          utm_term,
+          utm_content,
+          expiresAt: link.expiresAt ? new Date(link.expiresAt) : null,
+          geo: link.geo || undefined,
+        };
+      }),
+      skipDuplicates: true,
+    });
+
+    createdLinks = (await Promise.all(
+      links.map(async (link) => {
+        const { key, domain } = link;
+        return await prisma.link.findUnique({
+          where: {
+            domain_key: {
+              domain,
+              key,
+            },
           },
-        },
-      });
-    }),
-  )) as LinkProps[];
+        });
+      }),
+    )) as LinkProps[];
+  }
 
   const pipeline = redis.pipeline();
 
   // split links into domains
   const linksByDomain: Record<string, Record<string, RedisLinkProps>> = {};
 
-  // this technically will be a synchronous function since isIframeable won't be run for bulk link creation
   await Promise.all(
     createdLinks.map(async (link) => {
       const { domain, key } = link;
@@ -470,9 +520,12 @@ export async function bulkCreateLinks(
       if (!linksByDomain[domain]) {
         linksByDomain[domain] = {};
       }
+      // this technically will be a synchronous function since isIframeable won't be run for bulk link creation
       const formattedLink = await formatRedisLink(link);
-
       linksByDomain[domain][key.toLowerCase()] = formattedLink;
+
+      // record link in Tinybird
+      await recordLink({ link });
     }),
   );
 
@@ -561,9 +614,6 @@ export async function editLink({
       : cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
           invalidate: true,
         }),
-    redis.hset(domain, {
-      [key.toLowerCase()]: await formatRedisLink(updatedLink),
-    }),
     // if key is changed: rename resource in Cloudinary, delete the old key in Redis and change the clicks key name
     ...(changedDomain || changedKey
       ? [
@@ -601,32 +651,22 @@ export async function editLink({
   };
 }
 
-export async function deleteLink({
-  domain = SHORT_DOMAIN,
-  key,
-  projectId,
-}: {
-  domain?: string;
-  key: string;
-  projectId?: string;
-}) {
+export async function deleteLink(link: LinkProps) {
   return await Promise.all([
     prisma.link.delete({
       where: {
-        domain_key: {
-          domain,
-          key,
-        },
+        id: link.id,
       },
     }),
-    cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
+    cloudinary.v2.uploader.destroy(`${link.domain}/${link.key}`, {
       invalidate: true,
     }),
-    redis.hdel(domain, key.toLowerCase()),
-    projectId &&
+    redis.hdel(link.domain, link.key.toLowerCase()),
+    recordLink({ link, deleted: true }),
+    link.projectId &&
       prisma.project.update({
         where: {
-          id: projectId,
+          id: link.projectId,
         },
         data: {
           linksUsage: {

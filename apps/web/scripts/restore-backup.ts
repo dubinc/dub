@@ -1,9 +1,8 @@
-import "dotenv-flow/config";
-import prisma from "@/lib/prisma";
-import * as Papa from "papaparse";
-import * as fs from "fs";
-import { LinkProps } from "@/lib/types";
 import { bulkCreateLinks } from "@/lib/api/links";
+import { LinkProps } from "@/lib/types";
+import "dotenv-flow/config";
+import * as fs from "fs";
+import * as Papa from "papaparse";
 
 const domain = "xxx";
 const csvLinks: LinkProps[] = [];
@@ -54,7 +53,7 @@ async function main() {
         "checkDisabled",
         "clicks",
       ]);
-      await bulkCreateLinks(csvLinks as any); // TODO: fix types
+      await bulkCreateLinks({ links: csvLinks });
     },
   });
 }

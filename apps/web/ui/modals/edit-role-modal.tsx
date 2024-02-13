@@ -1,8 +1,7 @@
 import useProject from "@/lib/swr/use-project";
 import { UserProps } from "@/lib/types";
-import { BlurImage } from "@/ui/shared/blur-image";
-import { Avatar, Button, Logo, Modal } from "@dub/ui";
-import { useParams, useRouter } from "next/navigation";
+import { Avatar, BlurImage, Button, Logo, Modal } from "@dub/ui";
+import { useParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,

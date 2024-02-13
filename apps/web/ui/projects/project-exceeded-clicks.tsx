@@ -1,9 +1,8 @@
 "use client";
 
-import { BlurImage } from "@/ui/shared/blur-image";
+import useProject from "@/lib/swr/use-project";
 import { MaxWidthWrapper, useRouterStuff } from "@dub/ui";
 import { Lock } from "lucide-react";
-import useProject from "@/lib/swr/use-project";
 
 export default function ProjectExceededClicks() {
   const { plan } = useProject();
@@ -22,7 +21,7 @@ export default function ProjectExceededClicks() {
           Your project has exceeded your monthly clicks limits. We're still
           collecting data on your links, but you need to upgrade to view them.
         </p>
-        <BlurImage
+        <img
           src="/_static/illustrations/video-park.svg"
           alt="No links yet"
           width={400}

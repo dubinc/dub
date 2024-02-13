@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import {
   addDomainToVercel,
   domainExists,
@@ -14,6 +13,7 @@ import {
   validSlugRegex,
 } from "@dub/utils";
 import { handleAndReturnErrorResponse } from "@/lib/errors";
+import { NextResponse } from "next/server";
 
 // GET /api/projects - get all projects for the current user
 export const GET = withSession(async ({ session }) => {

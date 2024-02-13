@@ -1,80 +1,20 @@
-import { UserProps } from "@/lib/types";
-import { Avatar, CopyButton } from "@dub/ui";
+import { LinkProps, UserProps } from "@/lib/types";
+import { Avatar, BlurImage, CopyButton } from "@dub/ui";
 import {
   GOOGLE_FAVICON_URL,
   cn,
-  fetcher,
   getApexDomain,
   linkConstructor,
   timeAgo,
 } from "@dub/utils";
-import { Link as LinkProps } from "@prisma/client";
-import { Archive, EyeOff, Globe, Trash } from "lucide-react";
-import { useParams } from "next/navigation";
-import useSWR from "swr";
-import { BlurImage } from "../shared/blur-image";
+import { Archive, EyeOff, Globe } from "lucide-react";
 import punycode from "punycode/";
 
 export default function LinkPreviewTooltip({
-  link,
+  data,
 }: {
-  // link is in the format dub.sh/github
-  link: string;
+  data: LinkProps & { user?: UserProps };
 }) {
-  const domain = link.split("/")[0];
-  const key = link.split("/").slice(1).join("/");
-  const { slug } = useParams() as { slug?: string };
-  const { data, isLoading } = useSWR<
-    LinkProps & {
-      user: UserProps;
-    }
-  >(
-    key
-      ? `/api/links/info?domain=${domain}&key=${key}&projectSlug=${slug}`
-      : `/api/projects/${slug}/domains/${domain}`,
-    fetcher,
-    {
-      dedupingInterval: 60000,
-    },
-  );
-  if (isLoading) {
-    return (
-      <div className="relative flex w-[28rem] items-center px-4 py-2">
-        <div className="mr-2 h-8 w-8 animate-pulse rounded-full bg-gray-200 sm:h-10 sm:w-10" />
-        <div className="flex flex-col space-y-2">
-          <div className="flex items-center space-x-2">
-            <div className="h-5 w-40 animate-pulse rounded-md bg-gray-200" />
-            <div className="h-5 w-5 animate-pulse rounded-full bg-gray-200" />
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="h-5 w-5 animate-pulse rounded-full bg-gray-200" />
-            <div className="h-5 w-20 animate-pulse rounded-md bg-gray-200" />
-            <div className="h-5 w-48 animate-pulse rounded-md bg-gray-200" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-  if (!data) {
-    return (
-      <div className="relative flex w-[28rem] items-center space-x-3 px-4 py-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-300 px-0 sm:h-10 sm:w-10">
-          <Trash className="h-4 w-4 text-gray-500 sm:h-5 sm:w-5" />
-        </div>
-        <div className="flex flex-col space-y-1">
-          <p className="w-full max-w-[140px] truncate text-sm font-semibold text-gray-500 line-through sm:max-w-[300px] sm:text-base md:max-w-[360px] xl:max-w-[500px]">
-            {linkConstructor({
-              domain: punycode.toUnicode(domain || ""),
-              key,
-              pretty: true,
-            })}
-          </p>
-          <p className="text-sm text-gray-500">This link has been deleted.</p>
-        </div>
-      </div>
-    );
-  }
-
   const { url, rewrite, createdAt, archived, user } = data;
   const apexDomain = getApexDomain(url);
 
@@ -111,18 +51,20 @@ export default function LinkPreviewTooltip({
                   "text-gray-500": archived,
                 },
               )}
-              href={linkConstructor({ domain, key })}
+              href={linkConstructor({ domain: data.domain, key: data.key })}
               target="_blank"
               rel="noreferrer"
               onClick={(e) => e.stopPropagation()}
             >
               {linkConstructor({
-                domain: punycode.toUnicode(domain || ""),
-                key,
+                domain: punycode.toUnicode(data.domain || ""),
+                key: data.key,
                 pretty: true,
               })}
             </a>
-            <CopyButton value={linkConstructor({ domain, key })} />
+            <CopyButton
+              value={linkConstructor({ domain: data.domain, key: data.key })}
+            />
           </div>
           <div className="flex max-w-fit items-center space-x-1">
             {user && (

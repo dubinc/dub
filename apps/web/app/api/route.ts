@@ -131,6 +131,19 @@ export function GET() {
                 enum: [true, false],
               },
             },
+            {
+              name: "withTags",
+              description:
+                "Only return links with tags. Defaults to `false` if not provided.",
+              in: "query",
+              required: false,
+              schema: {
+                description:
+                  "Only return links with tags. Defaults to `false` if not provided.",
+                type: "boolean",
+                enum: [true, false],
+              },
+            },
           ],
           responses: {
             "200": {
@@ -587,7 +600,7 @@ export function GET() {
           },
         },
       },
-      "/projects/{projectSlug}/tags": {
+      "/tags": {
         get: {
           description: "Retrieve a list of tags for the authenticated project.",
           operationId: "getTags",

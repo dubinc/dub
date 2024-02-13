@@ -1,17 +1,16 @@
 "use client";
 
+import useProjects from "@/lib/swr/use-projects";
 import { PlanProps, ProjectWithDomainProps } from "@/lib/types";
 import { ModalContext } from "@/ui/modals/provider";
 import PlanBadge from "@/ui/projects/plan-badge";
-import { Popover, Tick } from "@dub/ui";
+import { BlurImage, Popover, Tick } from "@dub/ui";
 import { GOOGLE_FAVICON_URL, SHORT_DOMAIN } from "@dub/utils";
 import { ChevronsUpDown, PlusCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { useCallback, useContext, useMemo, useState } from "react";
-import useProjects from "@/lib/swr/use-projects";
-import { BlurImage } from "../shared/blur-image";
 
 export default function ProjectSelect() {
   const { projects } = useProjects();

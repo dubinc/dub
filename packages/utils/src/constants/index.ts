@@ -109,6 +109,7 @@ export const DUB_LOGO = "https://d2vwwcvoksz7ty.cloudfront.net/logo.png";
 export const DUB_THUMBNAIL =
   "https://d2vwwcvoksz7ty.cloudfront.net/thumbnail.png";
 
+export const DEMO_LINK_ID = "clqo10sum0006js08vutzfxt3";
 export const DUB_PROJECT_ID = "cl7pj5kq4006835rbjlt2ofka";
 export const LEGAL_PROJECT_ID = "clrflia0j0000vs7sqfhz9c7q";
 export const LEGAL_USER_ID = "clqei1lgc0000vsnzi01pbf47";
@@ -160,7 +161,12 @@ export const DUB_DOMAINS = [
           type: "redirect",
           placeholder: "https://www.amazon.com/dp/B0BW4SWNC8",
           clicks: 0,
-          allowedHostnames: ["amazon.com", "amazon.co.uk", "amazon.ca", "amazon.es"],
+          allowedHostnames: [
+            "amazon.com",
+            "amazon.co.uk",
+            "amazon.ca",
+            "amazon.es",
+          ],
           projectId: DUB_PROJECT_ID,
         },
         {
