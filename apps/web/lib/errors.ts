@@ -75,7 +75,7 @@ export class DubApiError extends Error {
   }) {
     super(message);
     this.code = code;
-    this.docUrl = docUrl;
+    this.docUrl = docUrl ?? `${docErrorUrl}#${code}`;
   }
 }
 
@@ -137,7 +137,7 @@ export function handleApiError(error: any): ErrorResponse & { status: number } {
       error: {
         code: error.code,
         message: error.message,
-        doc_url: error.docUrl || `${docErrorUrl}#${error.code}`,
+        doc_url: error.docUrl,
       },
       status: errorCodeToHttpStatus[error.code],
     };
