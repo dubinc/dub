@@ -1,7 +1,7 @@
 import { ZodOpenApiPathsObject } from "zod-openapi";
 
-import { getProjects } from "./get-projects";
 import { getProjectInfo } from "./get-project-info";
+import { getProjects } from "./get-projects";
 
 export const projectsPaths: ZodOpenApiPathsObject = {
   "/projects": {

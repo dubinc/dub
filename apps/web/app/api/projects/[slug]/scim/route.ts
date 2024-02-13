@@ -1,8 +1,8 @@
 import { withAuth } from "@/lib/auth";
-import jackson from "@/lib/jackson";
-import { NextResponse } from "next/server";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/errors";
+import jackson from "@/lib/jackson";
 import z from "@/lib/zod";
+import { NextResponse } from "next/server";
 
 const createOrUpdateDirectorySchema = z.object({
   provider: z.enum(["okta-scim-v2", "azure-scim-v2", "google"]).optional(),
@@ -78,9 +78,8 @@ export const DELETE = withAuth(
 
       const { directorySyncController } = await jackson();
 
-      const { error, data } = await directorySyncController.directories.delete(
-        directoryId,
-      );
+      const { error, data } =
+        await directorySyncController.directories.delete(directoryId);
 
       if (error) {
         throw new DubApiError({

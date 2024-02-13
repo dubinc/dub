@@ -1,5 +1,3 @@
-import { withAuth } from "@/lib/auth";
-import prisma from "@/lib/prisma";
 import {
   addDomainToVercel,
   changeDomainForImages,
@@ -8,9 +6,11 @@ import {
   setRootDomain,
   validateDomain,
 } from "@/lib/api/domains";
+import { withAuth } from "@/lib/auth";
+import { DubApiError, handleAndReturnErrorResponse } from "@/lib/errors";
+import prisma from "@/lib/prisma";
 import { DUB_PROJECT_ID, isDubDomain } from "@dub/utils";
 import { NextResponse } from "next/server";
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/errors";
 
 // GET /api/projects/[slug]/domains/[domain] – get a project's domain
 export const GET = withAuth(async ({ domain, project }) => {

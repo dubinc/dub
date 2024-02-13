@@ -1,14 +1,17 @@
 import { deleteProject } from "@/lib/api/projects";
 import { withAuth } from "@/lib/auth";
-import { isReservedKey } from "@/lib/edge-config";
 import prisma from "@/lib/prisma";
-import { DEFAULT_REDIRECTS, validSlugRegex } from "@dub/utils";
-import { NextResponse } from "next/server";
 import z from "@/lib/zod";
+import { validSlugRegex } from "@dub/utils";
+import { NextResponse } from "next/server";
 
 const updateProjectSchema = z.object({
   name: z.string().max(32).optional(),
-  slug: z.string().max(48, { message: "Slug must be less than 48 characters" }).regex(validSlugRegex, { message: "Invalid slug" }).optional(),
+  slug: z
+    .string()
+    .max(48, { message: "Slug must be less than 48 characters" })
+    .regex(validSlugRegex, { message: "Invalid slug" })
+    .optional(),
   defaultDomains: z.array(z.string()).optional(),
 });
 
@@ -41,7 +44,9 @@ export const PUT = withAuth(
     // }
 
     try {
-      const { name, slug, defaultDomains } = updateProjectSchema.parse(await req.json()); 
+      const { name, slug, defaultDomains } = updateProjectSchema.parse(
+        await req.json(),
+      );
 
       const response = await prisma.project.update({
         where: {

@@ -1,11 +1,11 @@
 import { ZodOpenApiPathsObject } from "zod-openapi";
 
-import { getLinks } from "./get-links";
+import { createBulkLink } from "./create-bulk-link";
 import { createLink } from "./create-link";
-import { getLinkInfo } from "./get-link-info";
 import { deleteLink } from "./delete-link";
 import { editLink } from "./edit-link";
-import { createBulkLink } from "./create-bulk-link";
+import { getLinkInfo } from "./get-link-info";
+import { getLinks } from "./get-links";
 import { getQRCode } from "./get-qr";
 
 export const linksPaths: ZodOpenApiPathsObject = {

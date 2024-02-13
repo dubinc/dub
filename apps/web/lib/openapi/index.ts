@@ -1,11 +1,11 @@
-import { ZodOpenApiObject, createDocument } from "zod-openapi";
+import { ZodOpenApiObject } from "zod-openapi";
 
-import { linksPaths } from "./links";
-import { tagsPaths } from "./tags";
-import { projectsPaths } from "./projects";
 import { LinkSchema } from "@/lib/zod/schemas/links";
-import { tagSchema } from "@/lib/zod/schemas/tags";
 import { projectSchema } from "@/lib/zod/schemas/projects";
+import { tagSchema } from "@/lib/zod/schemas/tags";
+import { linksPaths } from "./links";
+import { projectsPaths } from "./projects";
+import { tagsPaths } from "./tags";
 
 export const openApiObject: ZodOpenApiObject = {
   openapi: "3.0.3",

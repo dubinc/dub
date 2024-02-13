@@ -1,8 +1,8 @@
 import { withAuth } from "@/lib/auth";
-import prisma from "@/lib/prisma";
-import { NextResponse } from "next/server";
-import z from "@/lib/zod";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/errors";
+import prisma from "@/lib/prisma";
+import z from "@/lib/zod";
+import { NextResponse } from "next/server";
 
 const updateRoleSchema = z.object({
   userId: z.string().min(1),
@@ -16,7 +16,6 @@ const updateRoleSchema = z.object({
 const removeUserSchema = z.object({
   userId: z.string().min(1),
 });
-
 
 // GET /api/projects/[slug]/users – get users for a specific project
 export const GET = withAuth(async ({ project }) => {

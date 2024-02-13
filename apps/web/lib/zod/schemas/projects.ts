@@ -1,5 +1,5 @@
 import z from "@/lib/zod";
-import { RoleSchema, PlanSchema } from "prisma/zod";
+import { PlanSchema, RoleSchema } from "prisma/zod";
 
 export const projectSchema = z
   .object({

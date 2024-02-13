@@ -1,9 +1,9 @@
 import { withAuth } from "@/lib/auth";
+import { handleAndReturnErrorResponse } from "@/lib/errors";
 import prisma from "@/lib/prisma";
+import { getLinkInfoQuerySchema } from "@/lib/zod/schemas/links";
 import { linkConstructor } from "@dub/utils";
 import { NextResponse } from "next/server";
-import { getLinkInfoQuerySchema } from "@/lib/zod/schemas/links";
-import { handleAndReturnErrorResponse } from "@/lib/errors";
 
 // GET /api/links/info – get the info for a link
 export const GET = withAuth(async ({ headers, searchParams }) => {

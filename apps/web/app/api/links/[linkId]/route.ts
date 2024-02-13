@@ -1,11 +1,11 @@
 import { deleteLink, editLink, processLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import { DubApiError, handleAndReturnErrorResponse } from "@/lib/errors";
+import { LinkProps } from "@/lib/types";
+import { createLinkBodySchema } from "@/lib/zod/schemas/links";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/errors";
-import { createLinkBodySchema } from "@/lib/zod/schemas/links";
-import { LinkProps } from "@/lib/types";
 
 // GET /api/links/[linkId] – get a link
 export const GET = withAuth(async ({ headers, link }) => {
@@ -40,7 +40,7 @@ export const PUT = withAuth(async ({ req, headers, project, link }) => {
       payload: updatedLink as LinkProps,
       project,
     });
-  
+
     // TODO: handle error
     if (error) {
       return new Response(error, { status, headers });

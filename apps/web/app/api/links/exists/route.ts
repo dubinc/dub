@@ -1,8 +1,8 @@
 import { checkIfKeyExists } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
-import { NextResponse } from "next/server";
 import { handleAndReturnErrorResponse } from "@/lib/errors";
 import { domainKeySchema } from "@/lib/zod";
+import { NextResponse } from "next/server";
 
 // GET /api/links/exists – check if a link exists
 export const GET = withAuth(

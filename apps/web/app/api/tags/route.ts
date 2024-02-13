@@ -1,10 +1,10 @@
 import { exceededLimitError } from "@/lib/api/errors";
 import { withAuth } from "@/lib/auth";
+import { DubApiError, handleAndReturnErrorResponse } from "@/lib/errors";
 import prisma from "@/lib/prisma";
+import { createTagBodySchema } from "@/lib/zod/schemas/tags";
 import { randomBadgeColor } from "@/ui/links/tag-badge";
 import { NextResponse } from "next/server";
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/errors";
-import { createTagBodySchema } from "@/lib/zod/schemas/tags";
 
 // GET /api/projects/[slug]/tags - get all tags for a project
 export const GET = withAuth(async ({ project, headers }) => {

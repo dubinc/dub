@@ -6,13 +6,13 @@ import {
 } from "@/lib/api/domains";
 import { withSession } from "@/lib/auth";
 import { isReservedKey } from "@/lib/edge-config";
+import { handleAndReturnErrorResponse } from "@/lib/errors";
 import prisma from "@/lib/prisma";
 import {
   DEFAULT_REDIRECTS,
   FREE_PROJECTS_LIMIT,
   validSlugRegex,
 } from "@dub/utils";
-import { handleAndReturnErrorResponse } from "@/lib/errors";
 import { NextResponse } from "next/server";
 
 // GET /api/projects - get all projects for the current user

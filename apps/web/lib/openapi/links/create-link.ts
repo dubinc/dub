@@ -1,11 +1,11 @@
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
+import { openApiErrorResponses } from "@/lib/openapi/responses";
 import {
-  createLinkBodySchema,
   LinkSchema,
+  createLinkBodySchema,
   getLinkInfoQuerySchema,
 } from "@/lib/zod/schemas/links";
-import { openApiErrorResponses } from "@/lib/openapi/responses";
 
 export const createLink: ZodOpenApiOperationObject = {
   operationId: "createLink",

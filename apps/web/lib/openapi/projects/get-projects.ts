@@ -1,8 +1,8 @@
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
+import { openApiErrorResponses } from "@/lib/openapi/responses";
 import z from "@/lib/zod";
 import { projectSchema } from "@/lib/zod/schemas/projects";
-import { openApiErrorResponses } from "@/lib/openapi/responses";
 
 export const getProjects: ZodOpenApiOperationObject = {
   operationId: "getProjects",

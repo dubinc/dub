@@ -5,10 +5,10 @@ import { isAdmin } from "app/admin.dub.co/actions";
 import { createHash } from "crypto";
 import { getServerSession } from "next-auth/next";
 import { exceededLimitError } from "../api/errors";
+import { DubApiError, handleAndReturnErrorResponse } from "../errors";
 import { PlanProps, ProjectProps } from "../types";
 import { ratelimit } from "../upstash";
 import { authOptions } from "./options";
-import { DubApiError, handleAndReturnErrorResponse } from "../errors";
 
 export interface Session {
   user: {
@@ -93,317 +93,317 @@ export const withAuth =
     let headers = {};
 
     try {
-    // if there's no projectSlug defined
-    if (!slug) {
-      if (allowAnonymous) {
-        // @ts-expect-error
-        return handler({
-          req,
-          params: params || {},
-          searchParams,
-          headers,
-        });
-      } else {
-        throw new DubApiError({
-          code: "not_found",
-          message:
-            "Project slug not found. Did you forget to include a `projectSlug` query parameter?",
-        });
+      // if there's no projectSlug defined
+      if (!slug) {
+        if (allowAnonymous) {
+          // @ts-expect-error
+          return handler({
+            req,
+            params: params || {},
+            searchParams,
+            headers,
+          });
+        } else {
+          throw new DubApiError({
+            code: "not_found",
+            message:
+              "Project slug not found. Did you forget to include a `projectSlug` query parameter?",
+          });
+        }
       }
-    }
 
-    const authorizationHeader = req.headers.get("Authorization");
-    if (authorizationHeader) {
-      if (!authorizationHeader.includes("Bearer ")) {
-        throw new DubApiError({
-          code: "bad_request",
-          message:
-            "Misconfigured authorization header. Did you forget to add 'Bearer '?",
+      const authorizationHeader = req.headers.get("Authorization");
+      if (authorizationHeader) {
+        if (!authorizationHeader.includes("Bearer ")) {
+          throw new DubApiError({
+            code: "bad_request",
+            message:
+              "Misconfigured authorization header. Did you forget to add 'Bearer '?",
             docUrl: "https://dub.sh/auth",
+          });
+        }
+        const apiKey = authorizationHeader.replace("Bearer ", "");
+
+        const url = new URL(req.url || "", API_DOMAIN);
+
+        if (url.pathname.includes("/stats")) {
+          throw new DubApiError({
+            code: "forbidden",
+            message: "API access is not available for stats yet.",
+          });
+        }
+
+        const hashedKey = hashToken(apiKey, {
+          noSecret: true,
         });
-      }
-      const apiKey = authorizationHeader.replace("Bearer ", "");
 
-      const url = new URL(req.url || "", API_DOMAIN);
-
-      if (url.pathname.includes("/stats")) {
-        throw new DubApiError({
-          code: "forbidden",
-          message: "API access is not available for stats yet.",
-        });
-      }
-
-      const hashedKey = hashToken(apiKey, {
-        noSecret: true,
-      });
-
-      const user = await prisma.user.findFirst({
-        where: {
-          tokens: {
-            some: {
-              hashedKey,
+        const user = await prisma.user.findFirst({
+          where: {
+            tokens: {
+              some: {
+                hashedKey,
+              },
             },
           },
-        },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-        },
-      });
-      if (!user) {
-        throw new DubApiError({
-          code: "unauthorized",
-          message: "Unauthorized: Invalid API key.",
-        });
-      }
-
-      const { success, limit, reset, remaining } = await ratelimit(
-        10,
-        "1 s",
-      ).limit(apiKey);
-
-      headers = {
-        "Retry-After": reset.toString(),
-        "X-RateLimit-Limit": limit.toString(),
-        "X-RateLimit-Remaining": remaining.toString(),
-        "X-RateLimit-Reset": reset.toString(),
-      };
-
-      if (!success) {
-        throw new DubApiError({
-          code: "rate_limit_exceeded",
-          message: "Too many requests.",
-        });
-      }
-      await prisma.token.update({
-        where: {
-          hashedKey,
-        },
-        data: {
-          lastUsed: new Date(),
-        },
-      });
-      session = {
-        user: {
-          id: user.id,
-          name: user.name || "",
-          email: user.email || "",
-        },
-      };
-    } else {
-      session = await getSession();
-      if (!session?.user?.id) {
-        throw new DubApiError({
-          code: "unauthorized",
-          message: "Unauthorized: Login required.",
-        });
-      }
-    }
-
-    let [project, link] = (await Promise.all([
-      prisma.project.findUnique({
-        where: {
-          slug,
-        },
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          logo: true,
-          usage: true,
-          usageLimit: true,
-          linksUsage: true,
-          linksLimit: true,
-          domainsLimit: true,
-          tagsLimit: true,
-          usersLimit: true,
-          plan: true,
-          stripeId: true,
-          billingCycleStart: true,
-          createdAt: true,
-          users: {
-            where: {
-              userId: session.user.id,
-            },
-            select: {
-              role: true,
-            },
+          select: {
+            id: true,
+            name: true,
+            email: true,
           },
-          domains: {
-            select: {
-              slug: true,
-              primary: true,
-            },
+        });
+        if (!user) {
+          throw new DubApiError({
+            code: "unauthorized",
+            message: "Unauthorized: Invalid API key.",
+          });
+        }
+
+        const { success, limit, reset, remaining } = await ratelimit(
+          10,
+          "1 s",
+        ).limit(apiKey);
+
+        headers = {
+          "Retry-After": reset.toString(),
+          "X-RateLimit-Limit": limit.toString(),
+          "X-RateLimit-Remaining": remaining.toString(),
+          "X-RateLimit-Reset": reset.toString(),
+        };
+
+        if (!success) {
+          throw new DubApiError({
+            code: "rate_limit_exceeded",
+            message: "Too many requests.",
+          });
+        }
+        await prisma.token.update({
+          where: {
+            hashedKey,
           },
-          metadata: true,
-        },
-      }),
-      linkId
-        ? prisma.link.findUnique({
-            where: {
-              id: linkId,
+          data: {
+            lastUsed: new Date(),
+          },
+        });
+        session = {
+          user: {
+            id: user.id,
+            name: user.name || "",
+            email: user.email || "",
+          },
+        };
+      } else {
+        session = await getSession();
+        if (!session?.user?.id) {
+          throw new DubApiError({
+            code: "unauthorized",
+            message: "Unauthorized: Login required.",
+          });
+        }
+      }
+
+      let [project, link] = (await Promise.all([
+        prisma.project.findUnique({
+          where: {
+            slug,
+          },
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            logo: true,
+            usage: true,
+            usageLimit: true,
+            linksUsage: true,
+            linksLimit: true,
+            domainsLimit: true,
+            tagsLimit: true,
+            usersLimit: true,
+            plan: true,
+            stripeId: true,
+            billingCycleStart: true,
+            createdAt: true,
+            users: {
+              where: {
+                userId: session.user.id,
+              },
+              select: {
+                role: true,
+              },
             },
-          })
-        : domain &&
-          key &&
-          (key === "_root"
-            ? prisma.domain.findUnique({
-                where: {
-                  slug: domain,
-                },
-              })
-            : prisma.link.findUnique({
-                where: {
-                  domain_key: {
-                    domain,
-                    key,
+            domains: {
+              select: {
+                slug: true,
+                primary: true,
+              },
+            },
+            metadata: true,
+          },
+        }),
+        linkId
+          ? prisma.link.findUnique({
+              where: {
+                id: linkId,
+              },
+            })
+          : domain &&
+            key &&
+            (key === "_root"
+              ? prisma.domain.findUnique({
+                  where: {
+                    slug: domain,
                   },
-                },
-              })),
-    ])) as [ProjectProps, LinkProps | undefined];
+                })
+              : prisma.link.findUnique({
+                  where: {
+                    domain_key: {
+                      domain,
+                      key,
+                    },
+                  },
+                })),
+      ])) as [ProjectProps, LinkProps | undefined];
 
-    if (!project || !project.users) {
-      // project doesn't exist
-      throw new DubApiError({
-        code: "not_found",
-        message: "Project not found.",
-      });
-    }
-
-    // prevent unauthorized access to domains that don't belong to the project
-    if (
-      domain &&
-      !isDubDomain(domain) &&
-      !project.domains.find((d) => d.slug === domain)
-    ) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: "Domain does not belong to project.",
-      });
-    }
-
-    // project exists but user is not part of it
-    if (project.users.length === 0) {
-      const pendingInvites = await prisma.projectInvite.findUnique({
-        where: {
-          email_projectId: {
-            email: session.user.email,
-            projectId: project.id,
-          },
-        },
-        select: {
-          expires: true,
-        },
-      });
-      if (!pendingInvites) {
+      if (!project || !project.users) {
+        // project doesn't exist
         throw new DubApiError({
           code: "not_found",
           message: "Project not found.",
         });
-      } else if (pendingInvites.expires < new Date()) {
+      }
+
+      // prevent unauthorized access to domains that don't belong to the project
+      if (
+        domain &&
+        !isDubDomain(domain) &&
+        !project.domains.find((d) => d.slug === domain)
+      ) {
         throw new DubApiError({
-          code: "invite_expired",
-          message: "Project invite expired.",
-        });
-      } else {
-        throw new DubApiError({
-          code: "invite_pending",
-          message: "Project invite pending.",
+          code: "forbidden",
+          message: "Domain does not belong to project.",
         });
       }
-    }
 
-    // project role checks
-    if (
-      !requiredRole.includes(project.users[0].role) &&
-      !(allowSelf && searchParams.userId === session.user.id)
-    ) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: "Unauthorized: Insufficient permissions.",
-      });
-    }
-
-    // clicks usage overage checks
-    if (needNotExceededClicks && project.usage > project.usageLimit) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: exceededLimitError({
-          plan: project.plan,
-          limit: project.usageLimit,
-          type: "clicks",
-        }),
-      });
-    }
-
-    // links usage overage checks
-    if (
-      needNotExceededLinks &&
-      project.linksUsage > project.linksLimit &&
-      (project.plan === "free" || project.plan === "pro")
-    ) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: exceededLimitError({
-          plan: project.plan,
-          limit: project.linksLimit,
-          type: "links",
-        }),
-      });
-    }
-
-    // plan checks
-    if (!requiredPlan.includes(project.plan)) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: "Unauthorized: Need higher plan.",
-      });
-    }
-
-    // link checks (if linkId or domain and key are provided)
-    if ((linkId || (domain && key && key !== "_root")) && !skipLinkChecks) {
-      // special case for getting domain by ID
-      // TODO: refactor domains to use the same logic as links
-      if (!link && searchParams.checkDomain === "true") {
-        const domain = await prisma.domain.findUnique({
+      // project exists but user is not part of it
+      if (project.users.length === 0) {
+        const pendingInvites = await prisma.projectInvite.findUnique({
           where: {
-            id: linkId,
+            email_projectId: {
+              email: session.user.email,
+              projectId: project.id,
+            },
+          },
+          select: {
+            expires: true,
           },
         });
-        if (domain) {
-          link = {
-            ...domain,
-            domain: domain.slug,
-            key: "_root",
-            url: domain.target || "",
-          } as unknown as LinkProps;
+        if (!pendingInvites) {
+          throw new DubApiError({
+            code: "not_found",
+            message: "Project not found.",
+          });
+        } else if (pendingInvites.expires < new Date()) {
+          throw new DubApiError({
+            code: "invite_expired",
+            message: "Project invite expired.",
+          });
+        } else {
+          throw new DubApiError({
+            code: "invite_pending",
+            message: "Project invite pending.",
+          });
         }
       }
 
-      // make sure the link is owned by the project
-      if (!link || link.projectId !== project?.id) {
+      // project role checks
+      if (
+        !requiredRole.includes(project.users[0].role) &&
+        !(allowSelf && searchParams.userId === session.user.id)
+      ) {
         throw new DubApiError({
-          code: "not_found",
-          message: "Link not found.",
+          code: "forbidden",
+          message: "Unauthorized: Insufficient permissions.",
         });
       }
-    }
 
-    return handler({
-      req,
-      params: params || {},
-      searchParams,
-      headers,
-      session,
-      project,
-      domain,
-      link,
-    });
-  } catch (err) {
-    return handleAndReturnErrorResponse(err);
-  }
-};
+      // clicks usage overage checks
+      if (needNotExceededClicks && project.usage > project.usageLimit) {
+        throw new DubApiError({
+          code: "forbidden",
+          message: exceededLimitError({
+            plan: project.plan,
+            limit: project.usageLimit,
+            type: "clicks",
+          }),
+        });
+      }
+
+      // links usage overage checks
+      if (
+        needNotExceededLinks &&
+        project.linksUsage > project.linksLimit &&
+        (project.plan === "free" || project.plan === "pro")
+      ) {
+        throw new DubApiError({
+          code: "forbidden",
+          message: exceededLimitError({
+            plan: project.plan,
+            limit: project.linksLimit,
+            type: "links",
+          }),
+        });
+      }
+
+      // plan checks
+      if (!requiredPlan.includes(project.plan)) {
+        throw new DubApiError({
+          code: "forbidden",
+          message: "Unauthorized: Need higher plan.",
+        });
+      }
+
+      // link checks (if linkId or domain and key are provided)
+      if ((linkId || (domain && key && key !== "_root")) && !skipLinkChecks) {
+        // special case for getting domain by ID
+        // TODO: refactor domains to use the same logic as links
+        if (!link && searchParams.checkDomain === "true") {
+          const domain = await prisma.domain.findUnique({
+            where: {
+              id: linkId,
+            },
+          });
+          if (domain) {
+            link = {
+              ...domain,
+              domain: domain.slug,
+              key: "_root",
+              url: domain.target || "",
+            } as unknown as LinkProps;
+          }
+        }
+
+        // make sure the link is owned by the project
+        if (!link || link.projectId !== project?.id) {
+          throw new DubApiError({
+            code: "not_found",
+            message: "Link not found.",
+          });
+        }
+      }
+
+      return handler({
+        req,
+        params: params || {},
+        searchParams,
+        headers,
+        session,
+        project,
+        domain,
+        link,
+      });
+    } catch (err) {
+      return handleAndReturnErrorResponse(err);
+    }
+  };
 
 interface WithSessionHandler {
   ({

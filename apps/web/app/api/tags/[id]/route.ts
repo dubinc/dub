@@ -1,9 +1,9 @@
 import { withAuth } from "@/lib/auth";
+import { handleAndReturnErrorResponse } from "@/lib/errors";
 import prisma from "@/lib/prisma";
-import { NextResponse } from "next/server";
 import z from "@/lib/zod";
 import { tagColorSchema } from "@/lib/zod/schemas/tags";
-import { handleAndReturnErrorResponse } from "@/lib/errors";
+import { NextResponse } from "next/server";
 
 const updateTagSchema = z.object({
   name: z.string().min(1),
