@@ -5,7 +5,6 @@ import {
   InputSelect,
   InputSelectItemProps,
   Modal,
-  useMediaQuery,
 } from "@dub/ui";
 import {
   APP_NAME,
@@ -63,8 +62,6 @@ function TransferLinkModal({
       body: JSON.stringify({ newProjectId }),
     });
   };
-
-  const { isDesktop } = useMediaQuery();
 
   return (
     <Modal
