@@ -17,7 +17,7 @@ export default function ProjectSettingsClient() {
       <Form
         title="Project Name"
         description={`This is the name of your project on ${process.env.NEXT_PUBLIC_APP_NAME}.`}
-        inputData={{
+        inputAttrs={{
           name: "name",
           defaultValue: name,
           placeholder: "My Project",
@@ -53,7 +53,7 @@ export default function ProjectSettingsClient() {
       <Form
         title="Project Slug"
         description={`This is your project's unique slug on ${process.env.NEXT_PUBLIC_APP_NAME}.`}
-        inputData={{
+        inputAttrs={{
           name: "slug",
           defaultValue: slug,
           placeholder: "my-project",

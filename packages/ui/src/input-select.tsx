@@ -22,13 +22,13 @@ export function InputSelect({
   selectedItem,
   setSelectedItem,
   icon,
-  inputData,
+  inputAttrs,
 }: {
   items: InputSelectItemProps[];
   selectedItem: InputSelectItemProps | null;
   setSelectedItem: Dispatch<SetStateAction<InputSelectItemProps | null>>;
   icon?: ReactNode;
-  inputData?: InputHTMLAttributes<HTMLInputElement>;
+  inputAttrs?: InputHTMLAttributes<HTMLInputElement>;
 }) {
   const commandRef = useRef<HTMLDivElement | null>(null);
   const [openCommandList, setOpenCommandList] = useState(false);
@@ -53,9 +53,9 @@ export function InputSelect({
     const isEmpty = useCommandState((state: any) => state.filtered.count === 0);
     return (
       <Command.Input
-        placeholder={inputData?.placeholder || "Search..."}
+        placeholder={inputAttrs?.placeholder || "Search..."}
         // hack to focus on the input when the dropdown opens
-        autoFocus={inputData?.autoFocus || openCommandList}
+        autoFocus={openCommandList}
         // when focus on the input. only show the dropdown if there are tags and the tagValue is not empty
         onFocus={() => setOpenCommandList(true)}
         value={inputValue}

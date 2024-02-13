@@ -27,7 +27,7 @@ export default function TokensPageClient() {
       <Form
         title="Create New API Key"
         description="Enter a unique name for your API key to differentiate it from other keys."
-        inputData={{
+        inputAttrs={{
           name: "name",
           defaultValue: "",
           placeholder: "Jetpack API Key",

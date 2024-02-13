@@ -123,8 +123,7 @@ function TransferLinkModal({
             }
             selectedItem={selectedProject}
             setSelectedItem={setSelectedProject}
-            inputData={{
-              autoFocus: isDesktop,
+            inputAttrs={{
               placeholder: "Select a project",
             }}
           />
