@@ -481,8 +481,13 @@ export default function LinkCard({
                   shortcut="T"
                   className="h-9 px-2 font-medium"
                   {...(!isDubDomain(domain) && {
-                    disabledTooltip:
-                      "You cannot transfer custom domain links between projects.",
+                    disabledTooltip: (
+                      <SimpleTooltipContent
+                        title="You cannot transfer custom domain links between projects."
+                        cta="Learn more."
+                        href={`${HOME_DOMAIN}/help/article/how-to-transfer-links`}
+                      />
+                    ),
                   })}
                 />
                 <Button
