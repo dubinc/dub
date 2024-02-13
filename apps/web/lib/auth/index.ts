@@ -8,6 +8,7 @@ import { exceededLimitError } from "../api/errors";
 import { PlanProps, ProjectProps } from "../types";
 import { ratelimit } from "../upstash";
 import { authOptions } from "./options";
+import { DubApiError, handleAndReturnErrorResponse } from "../errors";
 
 export interface Session {
   user: {
@@ -91,6 +92,7 @@ export const withAuth =
     let session: Session | undefined;
     let headers = {};
 
+    try {
     // if there's no projectSlug defined
     if (!slug) {
       if (allowAnonymous) {
@@ -102,32 +104,32 @@ export const withAuth =
           headers,
         });
       } else {
-        return new Response(
-          "Project slug not found. Did you forget to include a `projectSlug` query parameter?",
-          {
-            status: 400,
-          },
-        );
+        throw new DubApiError({
+          code: "not_found",
+          message:
+            "Project slug not found. Did you forget to include a `projectSlug` query parameter?",
+        });
       }
     }
 
     const authorizationHeader = req.headers.get("Authorization");
     if (authorizationHeader) {
       if (!authorizationHeader.includes("Bearer ")) {
-        return new Response(
-          "Misconfigured authorization header. Did you forget to add 'Bearer '? Learn more: https://dub.sh/auth ",
-          {
-            status: 400,
-          },
-        );
+        throw new DubApiError({
+          code: "bad_request",
+          message:
+            "Misconfigured authorization header. Did you forget to add 'Bearer '?",
+            docUrl: "https://dub.sh/auth",
+        });
       }
       const apiKey = authorizationHeader.replace("Bearer ", "");
 
       const url = new URL(req.url || "", API_DOMAIN);
 
       if (url.pathname.includes("/stats")) {
-        return new Response("API access is not available for stats yet.", {
-          status: 403,
+        throw new DubApiError({
+          code: "forbidden",
+          message: "API access is not available for stats yet.",
         });
       }
 
@@ -150,8 +152,9 @@ export const withAuth =
         },
       });
       if (!user) {
-        return new Response("Unauthorized: Invalid API key.", {
-          status: 401,
+        throw new DubApiError({
+          code: "unauthorized",
+          message: "Unauthorized: Invalid API key.",
         });
       }
 
@@ -168,9 +171,9 @@ export const withAuth =
       };
 
       if (!success) {
-        return new Response("Too many requests.", {
-          status: 429,
-          headers,
+        throw new DubApiError({
+          code: "rate_limit_exceeded",
+          message: "Too many requests.",
         });
       }
       await prisma.token.update({
@@ -191,9 +194,9 @@ export const withAuth =
     } else {
       session = await getSession();
       if (!session?.user?.id) {
-        return new Response("Unauthorized: Login required.", {
-          status: 401,
-          headers,
+        throw new DubApiError({
+          code: "unauthorized",
+          message: "Unauthorized: Login required.",
         });
       }
     }
@@ -262,9 +265,9 @@ export const withAuth =
 
     if (!project || !project.users) {
       // project doesn't exist
-      return new Response("Project not found.", {
-        status: 404,
-        headers,
+      throw new DubApiError({
+        code: "not_found",
+        message: "Project not found.",
       });
     }
 
@@ -274,9 +277,9 @@ export const withAuth =
       !isDubDomain(domain) &&
       !project.domains.find((d) => d.slug === domain)
     ) {
-      return new Response("Domain does not belong to project.", {
-        status: 403,
-        headers,
+      throw new DubApiError({
+        code: "forbidden",
+        message: "Domain does not belong to project.",
       });
     }
 
@@ -294,19 +297,19 @@ export const withAuth =
         },
       });
       if (!pendingInvites) {
-        return new Response("Project not found.", {
-          status: 404,
-          headers,
+        throw new DubApiError({
+          code: "not_found",
+          message: "Project not found.",
         });
       } else if (pendingInvites.expires < new Date()) {
-        return new Response("Project invite expired.", {
-          status: 410,
-          headers,
+        throw new DubApiError({
+          code: "invite_expired",
+          message: "Project invite expired.",
         });
       } else {
-        return new Response("Project invite pending.", {
-          status: 409,
-          headers,
+        throw new DubApiError({
+          code: "invite_pending",
+          message: "Project invite pending.",
         });
       }
     }
@@ -316,25 +319,22 @@ export const withAuth =
       !requiredRole.includes(project.users[0].role) &&
       !(allowSelf && searchParams.userId === session.user.id)
     ) {
-      return new Response("Unauthorized: Insufficient permissions.", {
-        status: 403,
-        headers,
+      throw new DubApiError({
+        code: "forbidden",
+        message: "Unauthorized: Insufficient permissions.",
       });
     }
 
     // clicks usage overage checks
     if (needNotExceededClicks && project.usage > project.usageLimit) {
-      return new Response(
-        exceededLimitError({
+      throw new DubApiError({
+        code: "forbidden",
+        message: exceededLimitError({
           plan: project.plan,
           limit: project.usageLimit,
           type: "clicks",
         }),
-        {
-          status: 403,
-          headers,
-        },
-      );
+      });
     }
 
     // links usage overage checks
@@ -343,25 +343,21 @@ export const withAuth =
       project.linksUsage > project.linksLimit &&
       (project.plan === "free" || project.plan === "pro")
     ) {
-      return new Response(
-        exceededLimitError({
+      throw new DubApiError({
+        code: "forbidden",
+        message: exceededLimitError({
           plan: project.plan,
           limit: project.linksLimit,
           type: "links",
         }),
-        {
-          status: 403,
-          headers,
-        },
-      );
+      });
     }
 
     // plan checks
     if (!requiredPlan.includes(project.plan)) {
-      // return res.status(403).end("Unauthorized: Need higher plan.");
-      return new Response("Unauthorized: Need higher plan.", {
-        status: 403,
-        headers,
+      throw new DubApiError({
+        code: "forbidden",
+        message: "Unauthorized: Need higher plan.",
       });
     }
 
@@ -387,9 +383,9 @@ export const withAuth =
 
       // make sure the link is owned by the project
       if (!link || link.projectId !== project?.id) {
-        return new Response("Link not found.", {
-          status: 404,
-          headers,
+        throw new DubApiError({
+          code: "not_found",
+          message: "Link not found.",
         });
       }
     }
@@ -404,7 +400,10 @@ export const withAuth =
       domain,
       link,
     });
-  };
+  } catch (err) {
+    return handleAndReturnErrorResponse(err);
+  }
+};
 
 interface WithSessionHandler {
   ({

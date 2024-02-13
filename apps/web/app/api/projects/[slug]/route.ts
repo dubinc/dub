@@ -4,6 +4,13 @@ import { isReservedKey } from "@/lib/edge-config";
 import prisma from "@/lib/prisma";
 import { DEFAULT_REDIRECTS, validSlugRegex } from "@dub/utils";
 import { NextResponse } from "next/server";
+import z from "@/lib/zod";
+
+const updateProjectSchema = z.object({
+  name: z.string().max(32).optional(),
+  slug: z.string().max(48, { message: "Slug must be less than 48 characters" }).regex(validSlugRegex, { message: "Invalid slug" }).optional(),
+  defaultDomains: z.array(z.string()).optional(),
+});
 
 // GET /api/projects/[slug] – get a specific project
 export const GET = withAuth(async ({ project, headers }) => {
@@ -13,27 +20,29 @@ export const GET = withAuth(async ({ project, headers }) => {
 // PUT /api/projects/[slug] – update a specific project
 export const PUT = withAuth(
   async ({ req, project }) => {
-    const { name, slug, defaultDomains } = await req.json();
+    // const { name, slug, defaultDomains } = await req.json();
 
-    // if slug is defined, do some checks
-    if (slug) {
-      // check if slug is too long
-      if (slug.length > 48) {
-        return new Response("Slug must be less than 48 characters", {
-          status: 400,
-        });
+    // // if slug is defined, do some checks
+    // if (slug) {
+    //   // check if slug is too long
+    //   if (slug.length > 48) {
+    //     return new Response("Slug must be less than 48 characters", {
+    //       status: 400,
+    //     });
 
-        // check if slug is valid
-      } else if (!validSlugRegex.test(slug)) {
-        return new Response("Invalid slug", { status: 400 });
+    //     // check if slug is valid
+    //   } else if (!validSlugRegex.test(slug)) {
+    //     return new Response("Invalid slug", { status: 400 });
 
-        // check if slug is reserved
-      } else if ((await isReservedKey(slug)) || DEFAULT_REDIRECTS[slug]) {
-        return new Response("Cannot use reserved slugs", { status: 422 });
-      }
-    }
+    //     // check if slug is reserved
+    //   } else if ((await isReservedKey(slug)) || DEFAULT_REDIRECTS[slug]) {
+    //     return new Response("Cannot use reserved slugs", { status: 422 });
+    //   }
+    // }
 
     try {
+      const { name, slug, defaultDomains } = updateProjectSchema.parse(await req.json()); 
+
       const response = await prisma.project.update({
         where: {
           slug: project.slug,

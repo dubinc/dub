@@ -62,16 +62,20 @@ export type ErrorResponse = z.infer<typeof ErrorSchema>;
 
 export class DubApiError extends Error {
   public readonly code: z.infer<typeof ErrorCode>;
+  public readonly docUrl?: string;
 
   constructor({
     code,
     message,
+    docUrl,
   }: {
     code: z.infer<typeof ErrorCode>;
     message: string;
+    docUrl?: string;
   }) {
     super(message);
     this.code = code;
+    this.docUrl = docUrl;
   }
 }
 
@@ -133,7 +137,7 @@ export function handleApiError(error: any): ErrorResponse & { status: number } {
       error: {
         code: error.code,
         message: error.message,
-        doc_url: `${docErrorUrl}#${error.code}`,
+        doc_url: error.docUrl || `${docErrorUrl}#${error.code}`,
       },
       status: errorCodeToHttpStatus[error.code],
     };
