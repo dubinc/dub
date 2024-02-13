@@ -25,7 +25,7 @@ import { getLinkViaEdge } from "../planetscale";
 import { recordLink } from "../tinybird";
 import { LinkProps, ProjectProps, RedisLinkProps } from "../types";
 import z from "../zod";
-import { getLinksQuerySchema } from "../zod/schemas/links";
+import { getLinksCountParamsSchema, getLinksQuerySchema } from "@/lib/zod/schemas/links";
 
 export async function getLinksForProject({
   projectId,
@@ -88,7 +88,7 @@ export async function getLinksCount({
   projectId,
   userId,
 }: {
-  searchParams: Record<string, string>;
+  searchParams: z.infer<typeof getLinksCountParamsSchema>;
   projectId: string;
   userId?: string | null;
 }) {

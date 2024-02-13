@@ -175,3 +175,12 @@ export const bulkCreateLinksBodySchema = z
 export const LinkSchema = Link.extend({
   geo: z.record(z.string()).optional().nullable(),
 }).openapi({ title: "Link" });
+
+export const getLinksCountParamsSchema = z.object({
+  userId: z.string().optional(),
+  tagId: z.string().optional(),
+  domain: z.string().optional(),
+  showArchived: z.coerce.boolean().optional(),
+  search: z.string().optional(),
+  groupBy: z.union([z.literal("domain"), z.literal("tagId")]).optional(),
+});

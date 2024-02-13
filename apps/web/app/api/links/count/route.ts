@@ -1,7 +1,7 @@
 import { getLinksCount } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
 import { handleAndReturnErrorResponse } from "@/lib/errors";
-import { getLinksCountParamsSchema } from "@/lib/zod";
+import { getLinksCountParamsSchema } from "@/lib/zod/schemas/links";
 import { NextResponse } from "next/server";
 
 // GET /api/links/count – get the number of links for a project
