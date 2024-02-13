@@ -2,6 +2,7 @@ import { transferLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
+import { redis } from "@/lib/upstash";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -51,14 +52,17 @@ export const POST = withAuth(async ({ req, headers, session, link }) => {
       linkId: link!.id,
       newProjectId: body.newProjectId,
     }),
-    qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/event`,
-      body: {
-        linkId: link!.id,
-        type: "transfer",
-      },
-    }),
+    // set this in redis so we can use it in the event cron job
+    redis.set(`transfer:${link!.id}:oldProjectId`, link!.projectId),
   ]);
+
+  await qstash.publishJSON({
+    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/event`,
+    body: {
+      linkId: link!.id,
+      type: "transfer",
+    },
+  });
 
   return NextResponse.json(response, {
     headers,

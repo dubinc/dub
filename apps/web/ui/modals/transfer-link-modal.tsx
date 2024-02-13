@@ -103,8 +103,8 @@ function TransferLinkModal({
           />
           <h3 className="text-lg font-medium">Transfer {shortlink}</h3>
           <p className="text-sm text-gray-500">
-            Transfer this link along with its associated analytics to another{" "}
-            {APP_NAME} project.
+            Transfer this link and its analytics to another {APP_NAME} project.
+            Link tags will not be transferred.
           </p>
         </div>
 

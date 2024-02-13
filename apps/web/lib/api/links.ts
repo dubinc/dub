@@ -707,6 +707,7 @@ export async function transferLink({
     },
     data: {
       projectId: newProjectId,
+      tagId: null, // remove tags when transferring link
     },
   });
 }

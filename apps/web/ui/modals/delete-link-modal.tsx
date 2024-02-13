@@ -85,7 +85,7 @@ function DeleteLinkModal({
             setDeleting(false);
           });
         }}
-        className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:rounded-b-2xl sm:px-16"
+        className="flex flex-col space-y-3 bg-gray-50 px-4 py-8 text-left sm:rounded-b-2xl sm:px-16"
       >
         <div>
           <label htmlFor="verification" className="block text-sm text-gray-700">

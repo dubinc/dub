@@ -1,5 +1,6 @@
 import { limiter, qstash, receiver } from "@/lib/cron";
 import prisma from "@/lib/prisma";
+import { getStats } from "@/lib/stats";
 import { recordLink } from "@/lib/tinybird";
 import { ProjectProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
@@ -131,6 +132,50 @@ export async function POST(req: Request) {
         }),
       ]);
     }
+  }
+
+  if (type === "transfer") {
+    const oldProjectId = await redis.get<string>(
+      `transfer:${linkId}:oldProjectId`,
+    );
+
+    const linkClicks = await getStats({
+      linkId,
+      endpoint: "clicks",
+      interval: "30d",
+    });
+
+    // update old and new project usage
+    await Promise.all([
+      oldProjectId &&
+        prisma.project.update({
+          where: {
+            id: oldProjectId,
+          },
+          data: {
+            usage: {
+              decrement: linkClicks,
+            },
+            linksUsage: {
+              decrement: 1,
+            },
+          },
+        }),
+      link.projectId &&
+        prisma.project.update({
+          where: {
+            id: link.projectId,
+          },
+          data: {
+            usage: {
+              increment: linkClicks,
+            },
+            linksUsage: {
+              increment: 1,
+            },
+          },
+        }),
+    ]);
   }
 
   return new Response("OK", { status: 200 });
