@@ -1,6 +1,5 @@
 "use client";
 import { Command, useCommandState } from "cmdk";
-import { Check, ChevronDown, Search, X } from "lucide-react";
 import {
   Dispatch,
   InputHTMLAttributes,
@@ -10,6 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { Check, ChevronDown, Search, X } from "lucide-react";
 
 export interface InputSelectItemProps {
   id: string;

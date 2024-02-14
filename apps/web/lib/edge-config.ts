@@ -72,7 +72,7 @@ export const isReservedKey = async (key: string) => {
   }
   let reservedKeys;
   try {
-    reservedKeys = [];
+    reservedKeys = await get("reserved");
   } catch (e) {
     reservedKeys = [];
   }
