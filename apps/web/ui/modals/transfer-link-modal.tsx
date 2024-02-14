@@ -75,7 +75,12 @@ function TransferLinkModal({
             setTransferring(true);
             toast.promise(transferLink(props.id, selectedProject.id), {
               loading: "Transferring link...",
-              success: () => {
+              success: async (response) => {
+                if (!response.ok) {
+                  const { error } = await response.json();
+                  return `Failed to transfer link. ${error.message}`;
+                }
+
                 mutate(
                   (key) =>
                     typeof key === "string" && key.startsWith("/api/links"),
