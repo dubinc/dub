@@ -9,6 +9,9 @@ export const GET = withSession(async ({ session }) => {
       id: session.user.id,
     },
     select: {
+      id: true,
+      name: true,
+      email: true,
       subscribed: true,
     },
   });
@@ -17,9 +20,7 @@ export const GET = withSession(async ({ session }) => {
     return new Response("User not found", { status: 404 });
   }
 
-  return NextResponse.json({
-    subscribed: user.subscribed,
-  });
+  return NextResponse.json(user);
 });
 
 // POST /api/user/subscribe – subscribe a specific user
@@ -31,10 +32,14 @@ export const POST = withSession(async ({ session }) => {
     data: {
       subscribed: true,
     },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      subscribed: true,
+    },
   });
-  return NextResponse.json({
-    subscribed: user.subscribed,
-  });
+  return NextResponse.json(user);
 });
 
 // DELETE /api/user/subscribe – unsubscribe a specific user
@@ -46,8 +51,12 @@ export const DELETE = withSession(async ({ session }) => {
     data: {
       subscribed: false,
     },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      subscribed: true,
+    },
   });
-  return NextResponse.json({
-    subscribed: user.subscribed,
-  });
+  return NextResponse.json(user);
 });
