@@ -277,7 +277,7 @@ const TagsFilter = ({
   const [showMore, setShowMore] = useState(false);
 
   const selectedTagIds =
-    searchParams?.get("tagId")?.split("|")?.filter(Boolean) ?? [];
+    searchParams?.get("tagId")?.split(",")?.filter(Boolean) ?? [];
 
   const onCheckboxChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {

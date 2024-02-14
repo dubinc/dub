@@ -48,7 +48,7 @@ export async function getLinksForProject({
   userId?: string | null;
   showArchived?: boolean;
 }): Promise<LinkProps[]> {
-  const tagIds = tagId ? tagId.split("|") : [];
+  const tagIds = tagId ? tagId.split(",") : [];
 
   const links = await prisma.link.findMany({
     where: {

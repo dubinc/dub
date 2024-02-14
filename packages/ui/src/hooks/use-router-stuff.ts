@@ -28,7 +28,7 @@ export default function useRouterStuff() {
     del,
     replace,
     getNewPath,
-    arrayDelimiter = "|",
+    arrayDelimiter = ",",
   }: {
     set?: Record<string, string | string[]>;
     del?: string | string[];
