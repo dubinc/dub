@@ -2,7 +2,7 @@ import { withAuth } from "@/lib/auth";
 import { handleAndReturnErrorResponse } from "@/lib/errors";
 import prisma from "@/lib/prisma";
 import z from "@/lib/zod";
-import { tagColorSchema } from "@/lib/zod/schemas/tags";
+import { tagColorSchema } from "@/lib/zod/schemas";
 import { NextResponse } from "next/server";
 
 const updateTagSchema = z.object({
@@ -21,7 +21,7 @@ export const PUT = withAuth(async ({ req, params }) => {
       },
       data: {
         name,
-        color,
+        color: color as any,
       },
     });
     return NextResponse.json(response);
