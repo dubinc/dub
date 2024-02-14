@@ -11,7 +11,9 @@ export const GET = withSession(async ({ session }) => {
     session.user.id,
   );
 
-  await redis.hdel("migrated_links_users", session.user.id);
+  if (migratedProject) {
+    await redis.hdel("migrated_links_users", session.user.id);
+  }
 
   return NextResponse.json({
     ...session.user,
