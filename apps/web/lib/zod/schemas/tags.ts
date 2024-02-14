@@ -13,13 +13,3 @@ export const tagSchema = z
   .openapi({
     title: "Tag",
   });
-
-export const tagColorSchema = z.enum([
-  "red",
-  "yellow",
-  "green",
-  "blue",
-  "purple",
-  "pink",
-  "brown",
-]);

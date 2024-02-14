@@ -4,7 +4,7 @@ import { createTag } from "./create-tag";
 import { getTags } from "./get-tags";
 
 export const tagsPaths: ZodOpenApiPathsObject = {
-  "/projects/{projectSlug}/tags": {
+  "/tags": {
     post: createTag,
     get: getTags,
   },

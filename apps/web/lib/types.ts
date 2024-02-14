@@ -2,7 +2,6 @@ import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 
 import z from "@/lib/zod";
 import { createLinkBodySchema } from "./zod/schemas/links";
-import { tagColorSchema } from "./zod/schemas/tags";
 
 export { type Link as LinkProps } from "@prisma/client";
 export interface SimpleLinkProps {
@@ -53,9 +52,9 @@ export interface TagProps {
   color: TagColorProps;
 }
 
-export type TagColorProps = z.infer<typeof tagColorSchema>;
+export type TagColorProps = keyof typeof TagColor
 
-export type PlanProps = "free" | "pro" | "business" | "enterprise";
+export type PlanProps = keyof typeof Plan;
 
 export interface ProjectProps {
   id: string;
@@ -153,3 +152,25 @@ export interface SAMLProviderProps {
 }
 
 export type NewLinkProps = z.infer<typeof createLinkBodySchema>;
+
+export enum Plan {
+  "free",
+  "pro",
+  "business",
+  "enterprise",
+}
+
+export enum Role {
+  "owner",
+  "member",
+}
+
+export enum TagColor {
+  "red",
+  "yellow",
+  "green",
+  "blue",
+  "purple",
+  "pink",
+  "brown",
+}

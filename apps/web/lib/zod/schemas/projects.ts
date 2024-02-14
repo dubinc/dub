@@ -1,5 +1,5 @@
 import z from "@/lib/zod";
-import { PlanSchema, RoleSchema } from ".";
+import { planSchema, roleSchema } from ".";
 
 export const projectSchema = z
   .object({
@@ -18,7 +18,7 @@ export const projectSchema = z
     domainsLimit: z.number().describe("The domains limit of the project."),
     tagsLimit: z.number().describe("The tags limit of the project."),
     usersLimit: z.number().describe("The users limit of the project."),
-    plan: PlanSchema,
+    plan: planSchema,
     stripeId: z.string().nullable().describe("The Stripe ID of the project."),
     billingCycleStart: z
       .number()
@@ -31,7 +31,7 @@ export const projectSchema = z
     users: z
       .array(
         z.object({
-          role: RoleSchema,
+          role: roleSchema,
         }),
       )
       .describe("The role of the authenticated user in the project."),
