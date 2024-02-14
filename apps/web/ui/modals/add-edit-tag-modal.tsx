@@ -24,7 +24,7 @@ import { HOME_DOMAIN, capitalize, cn } from "@dub/utils";
 import { COLORS_LIST, randomBadgeColor } from "../links/tag-badge";
 import { toast } from "sonner";
 
-function AddEditTagButton({
+function AddTagButton({
   setShowAddEditTagModal,
 }: {
   setShowAddEditTagModal: Dispatch<SetStateAction<boolean>>;
@@ -77,17 +77,17 @@ export function useAddEditTagModal({ props }: { props?: TagProps } = {}) {
     );
   }, [showAddEditTagModal, setShowAddEditTagModal]);
 
-  const AddEditTagButtonCallback = useCallback(() => {
-    return <AddEditTagButton setShowAddEditTagModal={setShowAddEditTagModal} />;
+  const AddTagButtonCallback = useCallback(() => {
+    return <AddTagButton setShowAddEditTagModal={setShowAddEditTagModal} />;
   }, [setShowAddEditTagModal]);
 
   return useMemo(
     () => ({
       setShowAddEditTagModal,
       AddEditTagModal: AddEditTagModalCallback,
-      AddEditTagButton: AddEditTagButtonCallback,
+      AddTagButton: AddTagButtonCallback,
     }),
-    [setShowAddEditTagModal, AddEditTagModalCallback, AddEditTagButtonCallback],
+    [setShowAddEditTagModal, AddEditTagModalCallback, AddTagButtonCallback],
   );
 }
 
@@ -101,6 +101,9 @@ function AddEditTagModal({
   props?: TagProps;
 }) {
   const { slug: projectSlug } = useProject();
+  const { isMobile } = useMediaQuery();
+
+  const [saving, setSaving] = useState(false);
 
   const [data, setData] = useState<TagProps>(
     props || {
@@ -111,25 +114,31 @@ function AddEditTagModal({
   );
   const { id, name, color } = data;
 
-  const endpoint = useMemo(() => {
-    if (props) {
-      return {
-        method: "PUT",
-        url: `/api/tags/${id}`,
-        successMessage: "Successfully updated tag!",
-      };
-    } else {
-      return {
-        method: "POST",
-        url: `/api/tags`,
-        successMessage: "Successfully added tag!",
-      };
-    }
-  }, [id]);
+  const saveDisabled = useMemo(
+    () =>
+      saving ||
+      !name ||
+      !color ||
+      (props &&
+        Object.entries(props).every(([key, value]) => data[key] === value)),
+    [props, data],
+  );
 
-  const [saving, setSaving] = useState(false);
-
-  const { isMobile } = useMediaQuery();
+  const endpoint = useMemo(
+    () =>
+      props
+        ? {
+            method: "PUT",
+            url: `/api/tags/${id}?projectSlug=${projectSlug}`,
+            successMessage: "Successfully updated tag!",
+          }
+        : {
+            method: "POST",
+            url: `/api/tags?projectSlug=${projectSlug}`,
+            successMessage: "Successfully added tag!",
+          },
+    [id],
+  );
 
   return (
     <Modal
@@ -138,7 +147,7 @@ function AddEditTagModal({
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
         <Logo />
-        <h3 className="text-lg font-medium">Create a new tag</h3>
+        <h3 className="text-lg font-medium">{props ? "Edit" : "Add"} tag</h3>
         <a
           href={`${HOME_DOMAIN}/help/article/how-to-use-tags#what-is-a-tag`}
           target="_blank"
@@ -159,14 +168,15 @@ function AddEditTagModal({
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
+              // Create expects 'tag', edit expects 'name', so provide both
+              name: data.name,
               tag: data.name,
               color: data.color,
             }),
           }).then(async (res) => {
             if (res.status === 200) {
-              // track tag creation event
-              va.track("Created Tag");
-              await mutate("/api/tags");
+              va.track(props ? "Edited Tag" : "Created Tag");
+              await mutate(`/api/tags?projectSlug=${projectSlug}`);
               toast.success(endpoint.successMessage);
               setShowAddEditTagModal(false);
             } else {
@@ -234,7 +244,11 @@ function AddEditTagModal({
           </div>
         </div>
 
-        <Button loading={saving} text="Create tag" />
+        <Button
+          disabled={saveDisabled}
+          loading={saving}
+          text={props ? "Save changes" : "Create tag"}
+        />
       </form>
     </Modal>
   );

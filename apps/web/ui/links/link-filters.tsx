@@ -3,9 +3,10 @@ import useLinks from "@/lib/swr/use-links";
 import useLinksCount from "@/lib/swr/use-links-count";
 import useTags from "@/lib/swr/use-tags";
 import { TagProps } from "@/lib/types";
-import TagBadge, { COLORS_LIST } from "@/ui/links/tag-badge";
-import { ThreeDots } from "@/ui/shared/icons";
+import TagBadge from "@/ui/links/tag-badge";
+import { Delete, ThreeDots } from "@/ui/shared/icons";
 import {
+  Button,
   IconMenu,
   LoadingCircle,
   LoadingSpinner,
@@ -21,7 +22,7 @@ import {
   truncate,
 } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, ChevronRight, Search, Trash, XCircle } from "lucide-react";
+import { ChevronRight, Edit3, Search, Trash, XCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import {
   useParams,
@@ -277,7 +278,7 @@ const TagsFilter = ({
   const [search, setSearch] = useState("");
   const [showMore, setShowMore] = useState(false);
 
-  const { setShowAddEditTagModal, AddEditTagModal, AddEditTagButton } =
+  const { setShowAddEditTagModal, AddEditTagModal, AddTagButton } =
     useAddEditTagModal();
 
   const selectedTagIds =
@@ -332,7 +333,7 @@ const TagsFilter = ({
           />
           <h4 className="font-medium text-gray-900">Tags</h4>
         </button>
-        <AddEditTagButton />
+        <AddTagButton />
       </div>
       <AnimatePresence initial={false}>
         {!collapsed && (
@@ -404,30 +405,12 @@ const TagsFilter = ({
 
 const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
   const { slug } = useParams() as { slug?: string };
-  const [data, setData] = useState(tag);
   const [openPopover, setOpenPopover] = useState(false);
   const [processing, setProcessing] = useState(false);
 
-  const handleEdit = async (e) => {
-    e.stopPropagation();
-    e.preventDefault();
-    setProcessing(true);
-    fetch(`/api/tags/${tag.id}?projectSlug=${slug}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    }).then(async (res) => {
-      setProcessing(false);
-      if (res.ok) {
-        await mutate(`/api/tags?projectSlug=${slug}`);
-        toast.success("Tag updated");
-      } else {
-        toast.error("Something went wrong");
-      }
-    });
-  };
+  const { AddEditTagModal, setShowAddEditTagModal } = useAddEditTagModal({
+    props: tag,
+  });
 
   const handleDelete = async () => {
     setProcessing(true);
@@ -444,104 +427,64 @@ const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
     });
   };
 
-  const { isMobile } = useMediaQuery();
-
   return processing ? (
     <div className="flex h-6 items-center justify-center">
       <LoadingCircle />
     </div>
   ) : (
-    <Popover
-      content={
-        <div className="flex w-48 flex-col divide-y divide-gray-200">
-          <div className="p-2">
-            <form
-              onClick={(e) => e.stopPropagation()} // prevent triggering <Command.Item> onClick
-              onKeyDown={(e) => e.stopPropagation()} // prevent triggering <Command.Item> onKeyDown
-              onSubmit={handleEdit}
-              className="relative py-1"
-            >
-              <div className="my-2 flex items-center justify-between px-3">
-                <p className="text-xs text-gray-500">Edit Tag</p>
-                {data !== tag && (
-                  <button className="text-xs text-gray-500">Save</button>
-                )}
-              </div>
-              <input
-                type="text"
-                autoFocus={!isMobile}
-                required
-                onKeyDown={(e) => {
-                  // if ESC key pressed, close popover
-                  if (e.key === "Escape") {
-                    setOpenPopover(false);
-                  }
-                }}
-                value={data.name}
-                onChange={(e) => setData({ ...data, name: e.target.value })}
-                className="block w-full rounded-md border-gray-300 py-1 pr-7 text-sm text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500"
-              />
-              <div className="grid grid-cols-3 gap-3 p-3 pb-0">
-                {COLORS_LIST.map(({ color, css }) => (
-                  <button
-                    key={color}
-                    type="button"
-                    className={`mx-auto flex h-6 w-6 items-center justify-center rounded-full transition-all duration-75 hover:scale-110 active:scale-90 ${css}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setData({ ...data, color });
-                    }}
-                  >
-                    {data.color === color && <Check className="h-4 w-4" />}
-                  </button>
-                ))}
-              </div>
-            </form>
-          </div>
-          <div className="p-2">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
+    <>
+      <Popover
+        content={
+          <div className="grid w-full gap-px p-2 sm:w-48">
+            <Button
+              type="button"
+              text="Edit"
+              variant="outline"
+              onClick={() => setShowAddEditTagModal(true)}
+              icon={<Edit3 className="h-4 w-4" />}
+              className="h-9 w-full justify-start px-2 font-medium"
+            />
+            <Button
+              type="button"
+              text="Delete"
+              variant="danger-outline"
+              onClick={() => {
                 confirm(
                   "Are you sure you want to delete this tag? All tagged links will be untagged, but they won't be deleted.",
                 ) && handleDelete();
               }}
-              className="flex w-full items-center space-x-2 rounded-md p-2 text-red-600 transition-colors hover:bg-red-100 active:bg-red-200"
-            >
-              <IconMenu
-                text="Delete Tag"
-                icon={<Trash className="h-4 w-4 text-red-600" />}
-              />
-            </button>
+              icon={<Delete className="h-4 w-4" />}
+              className="h-9 w-full justify-start px-2 font-medium"
+            />
           </div>
-        </div>
-      }
-      align="end"
-      openPopover={openPopover}
-      setOpenPopover={setOpenPopover}
-    >
-      <button
-        type="button"
-        onClick={() => setOpenPopover(!openPopover)}
-        className={`${
-          openPopover ? "bg-gray-200" : "hover:bg-gray-200"
-        } -mr-1 flex h-6 w-5 items-center justify-center rounded-md transition-colors`}
+        }
+        align="end"
+        openPopover={openPopover}
+        setOpenPopover={setOpenPopover}
       >
-        <ThreeDots
-          className={`h-4 w-4 text-gray-500 ${
-            openPopover ? "" : "hidden group-hover:block"
-          }`}
-        />
-        <p
-          className={`text-gray-500 ${
-            openPopover ? "hidden" : "group-hover:hidden"
-          }`}
+        <button
+          type="button"
+          onClick={() => setOpenPopover(!openPopover)}
+          className={`${
+            openPopover ? "bg-gray-200" : "hover:bg-gray-200"
+          } -mr-1 flex h-6 w-5 items-center justify-center rounded-md transition-colors`}
         >
-          {nFormatter(count)}
-        </p>
-      </button>
-    </Popover>
+          <ThreeDots
+            className={`h-4 w-4 text-gray-500 ${
+              openPopover ? "" : "hidden group-hover:block"
+            }`}
+          />
+          <p
+            className={`text-gray-500 ${
+              openPopover ? "hidden" : "group-hover:hidden"
+            }`}
+          >
+            {nFormatter(count)}
+          </p>
+        </button>
+      </Popover>
+      <AddEditTagModal />
+    </>
   );
 };
 
