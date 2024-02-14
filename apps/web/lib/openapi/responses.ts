@@ -64,7 +64,7 @@ export const openApiErrorResponses = {
       "The request was well-formed but was unable to be followed due to semantic errors.",
     content: {
       "application/json": {
-        schema: errorSchemaFactory("unprocessible_entity"),
+        schema: errorSchemaFactory("unprocessable_entity"),
       },
     },
   },

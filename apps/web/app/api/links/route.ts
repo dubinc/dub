@@ -1,7 +1,11 @@
 import { addLink, getLinksForProject, processLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/errors";
+import {
+  DubApiError,
+  ErrorCodes,
+  handleAndReturnErrorResponse,
+} from "@/lib/errors";
 import { LinkProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import {
@@ -63,14 +67,17 @@ export const POST = withAuth(
         }
       }
 
-      const { link, error, status } = await processLink({
+      const { link, error, code } = await processLink({
         payload: body as LinkProps,
         project,
         session,
       });
 
       if (error) {
-        return new Response(error, { status, headers });
+        throw new DubApiError({
+          code: code as ErrorCodes,
+          message: error,
+        });
       }
 
       const response = await addLink(link);

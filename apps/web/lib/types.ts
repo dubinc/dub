@@ -1,7 +1,6 @@
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 
 import z from "@/lib/zod";
-import { PlanSchema } from "prisma/zod";
 import { createLinkBodySchema } from "./zod/schemas/links";
 import { tagColorSchema } from "./zod/schemas/tags";
 
@@ -56,7 +55,7 @@ export interface TagProps {
 
 export type TagColorProps = z.infer<typeof tagColorSchema>;
 
-export type PlanProps = z.infer<typeof PlanSchema>;
+export type PlanProps = "free" | "pro" | "business" | "enterprise";
 
 export interface ProjectProps {
   id: string;

@@ -1,7 +1,7 @@
 import { deleteLink, editLink, processLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/errors";
+import { DubApiError, ErrorCodes, handleAndReturnErrorResponse } from "@/lib/errors";
 import { LinkProps } from "@/lib/types";
 import { createLinkBodySchema } from "@/lib/zod/schemas/links";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -35,16 +35,17 @@ export const PUT = withAuth(async ({ req, headers, project, link }) => {
     const {
       link: processedLink,
       error,
-      status,
+      code,
     } = await processLink({
       payload: updatedLink as LinkProps,
       project,
     });
 
-    // TODO: Kiran
-    // Handle error and status
     if (error) {
-      return new Response(error, { status, headers });
+      throw new DubApiError({
+        code: code as ErrorCodes,
+        message: error,
+      });
     }
 
     const [response, _] = await Promise.allSettled([

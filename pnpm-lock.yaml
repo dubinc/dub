@@ -271,9 +271,6 @@ importers:
       zod-openapi:
         specifier: ^2.12.0
         version: 2.12.0(zod@3.22.4)
-      zod-prisma-types:
-        specifier: ^3.1.6
-        version: 3.1.6
     devDependencies:
       '@types/dotenv-flow':
         specifier: ^3.3.2
@@ -4027,10 +4024,6 @@ packages:
       prisma: 5.2.0
     dev: false
 
-  /@prisma/debug@5.9.1:
-    resolution: {integrity: sha512-yAHFSFCg8KVoL0oRUno3m60GAjsUKYUDkQ+9BA2X2JfVR3kRVSJFc/GpQ2fSORi4pSHZR9orfM4UC9OVXIFFTA==}
-    dev: false
-
   /@prisma/engines-version@5.2.0-25.2804dc98259d2ea960602aca6b8e7fdc03c1758f:
     resolution: {integrity: sha512-jsnKT5JIDIE01lAeCj2ghY9IwxkedhKNvxQeoyLs6dr4ZXynetD0vTy7u6wMJt8vVPv8I5DPy/I4CFaoXAgbtg==}
     dev: false
@@ -4038,12 +4031,6 @@ packages:
   /@prisma/engines@5.2.0:
     resolution: {integrity: sha512-dT7FOLUCdZmq+AunLqB1Iz+ZH/IIS1Fz2THmKZQ6aFONrQD/BQ5ecJ7g2wGS2OgyUFf4OaLam6/bxmgdOBDqig==}
     requiresBuild: true
-    dev: false
-
-  /@prisma/generator-helper@5.9.1:
-    resolution: {integrity: sha512-WMdEUPpPYxUGruRQM6e6IVTWXFjt1hHdF/m2TO7pWxhPo7/ZeoTOF9fH8JsvVSV78DYLOQkx9osjFLXZu447Kw==}
-    dependencies:
-      '@prisma/debug': 5.9.1
     dev: false
 
   /@protobufjs/aspromise@1.1.2:
@@ -8362,10 +8349,6 @@ packages:
     resolution: {integrity: sha512-WHr7X4o1ym94GZ96h7b1pNemZJacbOzd02dZtnVwuC4oWBaLg96PBmp2rIS1SAhUDhhC/QyS9WEqkpZIs/ZBTg==}
     dependencies:
       phenomenon: 1.6.0
-    dev: false
-
-  /code-block-writer@12.0.0:
-    resolution: {integrity: sha512-q4dMFMlXtKR3XNBHyMHt/3pwYNA69EDk00lloMOaaUMKPUXBw6lpXtbu3MMVG6/uOihGnRDOlkyqsONEUj60+w==}
     dev: false
 
   /color-convert@1.9.3:
@@ -13115,7 +13098,7 @@ packages:
         optional: true
     dependencies:
       prettier: 3.2.5
-      prettier-plugin-organize-imports: 3.2.4(prettier@3.2.5)(typescript@5.2.2)
+      prettier-plugin-organize-imports: 3.2.4(prettier@3.2.5)(typescript@5.1.6)
     dev: true
 
   /prettier@3.2.5:
@@ -15975,16 +15958,6 @@ packages:
     peerDependencies:
       zod: ^3.21.4
     dependencies:
-      zod: 3.22.4
-    dev: false
-
-  /zod-prisma-types@3.1.6:
-    resolution: {integrity: sha512-ySaG91RraTm4J19zfvuX6S3OxhDMlK4dTfYWM4rS+4AlEGqDqGu5BbIn2trjTDt8OiCMBHoIjZmRXPKQCyNApA==}
-    hasBin: true
-    dependencies:
-      '@prisma/generator-helper': 5.9.1
-      code-block-writer: 12.0.0
-      lodash: 4.17.21
       zod: 3.22.4
     dev: false
 

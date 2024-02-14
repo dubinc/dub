@@ -237,6 +237,7 @@ export async function processLink({
       link: payload,
       error: "Missing destination url.",
       status: 400,
+      code: "bad_request",
     };
   }
   const processedUrl = getUrlFromString(url);
@@ -245,6 +246,7 @@ export async function processLink({
       link: payload,
       error: "Invalid destination url.",
       status: 422,
+      code: "unprocessable_entity",
     };
   }
 
@@ -256,6 +258,7 @@ export async function processLink({
         error:
           "You can only use custom social media cards, password-protection, link cloaking, link expiration, device and geo targeting on a Pro plan and above. Upgrade to Pro to use these features.",
         status: 403,
+        code: "forbidden",
       };
     }
     // can't use `/` in key on free plan
@@ -265,6 +268,7 @@ export async function processLink({
         error:
           "Key cannot contain '/'. You can only use this on a Pro plan and above. Upgrade to Pro to use this feature.",
         status: 422,
+        code: "unprocessable_entity",
       };
     }
   }
@@ -282,6 +286,7 @@ export async function processLink({
         link: payload,
         error: "Invalid key.",
         status: 422,
+        code: "unprocessable_entity",
       };
     }
     const domainBlacklisted = await isBlacklistedDomain(url);
@@ -290,6 +295,7 @@ export async function processLink({
         link: payload,
         error: "Invalid url.",
         status: 422,
+        code: "unprocessable_entity",
       };
     }
 
@@ -305,6 +311,7 @@ export async function processLink({
           .map((d) => `\`${d}\``)
           .join(", ")}.`,
         status: 422,
+        code: "unprocessable_entity",
       };
     }
 
@@ -314,6 +321,7 @@ export async function processLink({
       link: payload,
       error: "Domain does not belong to project.",
       status: 403,
+      code: "forbidden",
     };
   }
 
@@ -327,6 +335,7 @@ export async function processLink({
         link: payload,
         error: "You cannot set custom social cards with bulk link creation.",
         status: 422,
+        code: "unprocessable_entity",
       };
     }
     if (rewrite) {
@@ -334,6 +343,7 @@ export async function processLink({
         link: payload,
         error: "You cannot use link cloaking with bulk link creation.",
         status: 422,
+        code: "unprocessable_entity",
       };
     }
     const exists = await checkIfKeyExists(domain, key);
@@ -342,6 +352,7 @@ export async function processLink({
         link: payload,
         error: `Link already exists.`,
         status: 409,
+        code: "conflict",
       };
     }
   }
@@ -353,6 +364,7 @@ export async function processLink({
       link: payload,
       error: "Missing Cloudinary environment variable.",
       status: 400,
+      code: "bad_request",
     };
   }
 
@@ -364,6 +376,7 @@ export async function processLink({
         link: payload,
         error: "Invalid expiry date. Expiry date must be in ISO-8601 format.",
         status: 422,
+        code: "unprocessable_entity",
       };
     }
     // check if expiresAt is in the future
@@ -372,6 +385,7 @@ export async function processLink({
         link: payload,
         error: "Expiry date must be in the future.",
         status: 422,
+        code: "unprocessable_entity",
       };
     }
   }

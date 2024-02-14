@@ -5,7 +5,7 @@ import { generateErrorMessage } from "zod-error";
 
 import z from "./zod";
 
-const ErrorCode = z.enum([
+export const ErrorCode = z.enum([
   "bad_request",
   "not_found",
   "internal_server_error",
@@ -16,7 +16,7 @@ const ErrorCode = z.enum([
   "invite_pending",
   "exceeded_limit",
   "conflict",
-  "unprocessible_entity",
+  "unprocessable_entity",
 ]);
 
 const errorCodeToHttpStatus: Record<z.infer<typeof ErrorCode>, number> = {
@@ -28,7 +28,7 @@ const errorCodeToHttpStatus: Record<z.infer<typeof ErrorCode>, number> = {
   conflict: 409,
   invite_pending: 409,
   invite_expired: 410,
-  unprocessible_entity: 422,
+  unprocessable_entity: 422,
   rate_limit_exceeded: 429,
   internal_server_error: 500,
 };
@@ -59,6 +59,7 @@ const ErrorSchema = z.object({
 });
 
 export type ErrorResponse = z.infer<typeof ErrorSchema>;
+export type ErrorCodes = z.infer<typeof ErrorCode>;
 
 export class DubApiError extends Error {
   public readonly code: z.infer<typeof ErrorCode>;
