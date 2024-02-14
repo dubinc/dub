@@ -52,7 +52,7 @@ export const POST = withAuth(
         .map(({ link, error, code }) => ({
           link,
           error,
-          code
+          code,
         }));
 
       const validLinksResponse =
