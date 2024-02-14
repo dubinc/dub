@@ -193,16 +193,6 @@ export async function banUser(data: FormData) {
       invalidate: true,
     }),
     fetch(
-      `https://api.resend.com/audiences/${process.env.RESEND_AUDIENCE_ID}/contacts/${user.email}`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-      },
-    ),
-    fetch(
       `https://api.vercel.com/v1/edge-config/${process.env.EDGE_CONFIG_ID}/items?teamId=${process.env.TEAM_ID_VERCEL}`,
       {
         method: "PATCH",
