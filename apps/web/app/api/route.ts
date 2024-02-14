@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
+import { OpenAPIV3 } from "openapi-types";
 
 export const runtime = "edge";
 
-export function GET() {
-  // TODO: Remove this once we have all the paths
+export function GET(): NextResponse<OpenAPIV3.Document> {
   return NextResponse.json({
     openapi: "3.0.3",
     info: {
