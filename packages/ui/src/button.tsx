@@ -21,12 +21,18 @@ export function Button({
   icon,
   shortcut,
   disabledTooltip,
+  className,
   ...props
 }: ButtonProps) {
   if (disabledTooltip) {
     return (
       <Tooltip content={disabledTooltip}>
-        <div className="flex h-10 w-full cursor-not-allowed items-center justify-center space-x-2 rounded-md border border-gray-200 bg-gray-100 px-4 text-sm text-gray-400 transition-all focus:outline-none">
+        <div
+          className={cn(
+            "flex h-10 w-full cursor-not-allowed items-center justify-center space-x-2 rounded-md border border-gray-200 bg-gray-100 px-4 text-sm text-gray-400 transition-all focus:outline-none",
+            className,
+          )}
+        >
           <p>{text}</p>
           {shortcut && (
             <kbd className="hidden rounded bg-zinc-200 px-2 py-0.5 text-xs font-light text-gray-400 md:inline-block">
@@ -57,7 +63,7 @@ export function Button({
               "border-red-500 bg-red-500 text-white hover:bg-white hover:text-red-500":
                 variant === "danger",
             },
-        props.className,
+        className,
       )}
       disabled={props.disabled || loading}
       {...props}

@@ -34,6 +34,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { useDebouncedCallback } from "use-debounce";
+import { useAddEditTagModal } from "@/ui/modals/add-edit-tag-modal";
 
 export default function LinkFilters() {
   const { data: domains } = useLinksCount({ groupBy: "domain" });
@@ -276,6 +277,9 @@ const TagsFilter = ({
   const [search, setSearch] = useState("");
   const [showMore, setShowMore] = useState(false);
 
+  const { setShowAddEditTagModal, AddEditTagModal, AddEditTagButton } =
+    useAddEditTagModal();
+
   const selectedTagIds =
     searchParams?.get("tagId")?.split(",")?.filter(Boolean) ?? [];
 
@@ -315,6 +319,7 @@ const TagsFilter = ({
 
   return (
     <fieldset className="overflow-hidden py-6">
+      <AddEditTagModal />
       <div className="flex h-8 items-center justify-between">
         <button
           onClick={() => {
@@ -327,6 +332,7 @@ const TagsFilter = ({
           />
           <h4 className="font-medium text-gray-900">Tags</h4>
         </button>
+        <AddEditTagButton />
       </div>
       <AnimatePresence initial={false}>
         {!collapsed && (

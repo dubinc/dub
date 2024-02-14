@@ -1,3 +1,4 @@
+import { COLORS_LIST } from "@/ui/links/tag-badge";
 import { NextResponse } from "next/server";
 import { OpenAPIV3 } from "openapi-types";
 
@@ -672,7 +673,14 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
                       type: "string",
                       description: "The name of the tag to create.",
                     },
+                    color: {
+                      type: "string",
+                      enum: COLORS_LIST.map(({ color }) => color),
+                      description:
+                        "The color of the tag (random if not provided).",
+                    },
                   },
+                  required: ["tag"],
                 },
               },
             },

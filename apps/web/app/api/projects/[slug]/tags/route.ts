@@ -1,7 +1,7 @@
 import { exceededLimitError } from "@/lib/api/errors";
 import { withAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { randomBadgeColor } from "@/ui/links/tag-badge";
+import { COLORS_LIST, randomBadgeColor } from "@/ui/links/tag-badge";
 import { NextResponse } from "next/server";
 
 // GET /api/projects/[slug]/tags - get all tags for a project
@@ -41,11 +41,14 @@ export const POST = withAuth(async ({ req, project, headers }) => {
       },
     );
   }
-  const { tag } = await req.json();
+  const { tag, color } = await req.json();
   const response = await prisma.tag.create({
     data: {
       name: tag,
-      color: randomBadgeColor(),
+      color:
+        color && COLORS_LIST.map(({ color }) => color).includes(color)
+          ? color
+          : randomBadgeColor(),
       projectId: project.id,
     },
   });
