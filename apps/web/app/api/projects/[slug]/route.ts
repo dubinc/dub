@@ -1,7 +1,7 @@
 import { deleteProject } from "@/lib/api/projects";
 import { withAuth } from "@/lib/auth";
 import { isReservedKey } from "@/lib/edge-config";
-import { handleAndReturnErrorResponse } from "@/lib/errors";
+import { ErrorResponse, handleAndReturnErrorResponse } from "@/lib/errors";
 import prisma from "@/lib/prisma";
 import z from "@/lib/zod";
 import { DEFAULT_REDIRECTS, validSlugRegex } from "@dub/utils";
@@ -56,10 +56,17 @@ export const PUT = withAuth(
       });
       return NextResponse.json(response);
     } catch (error) {
-      // TODO: Kiran
-      // if (error.code === "P2002") {
-      //   return new Response("Project slug already exists.", { status: 422 });
-      // }
+      if (error.code === "P2002") {
+        return NextResponse.json<ErrorResponse>(
+          {
+            error: {
+              code: "conflict",
+              message: "Project slug already exists.",
+            },
+          },
+          { status: 422 },
+        );
+      }
       return handleAndReturnErrorResponse(error);
     }
   },
