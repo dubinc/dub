@@ -74,7 +74,7 @@ export const POST = withAuth(async ({ req, project, headers }) => {
     });
 
     return NextResponse.json(response, { headers, status: 201 });
-  } catch (err) {
-    return handleAndReturnErrorResponse(err);
+  } catch (error) {
+    return handleAndReturnErrorResponse(error);
   }
 });

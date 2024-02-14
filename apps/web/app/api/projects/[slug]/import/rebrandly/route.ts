@@ -63,8 +63,8 @@ export const GET = withAuth(async ({ project }) => {
       .then((data) => data.count);
 
     return NextResponse.json({ domains, tagsCount });
-  } catch (err) {
-    return handleAndReturnErrorResponse(err);
+  } catch (error) {
+    return handleAndReturnErrorResponse(error);
   }
 });
 

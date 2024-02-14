@@ -33,8 +33,8 @@ export const GET = withAuth(async ({ project }) => {
     return NextResponse.json({
       directories: data,
     });
-  } catch (err) {
-    return handleAndReturnErrorResponse(err);
+  } catch (error) {
+    return handleAndReturnErrorResponse(error);
   }
 });
 
@@ -59,8 +59,8 @@ export const POST = withAuth(
       ]);
 
       return NextResponse.json(data);
-    } catch (err) {
-      return handleAndReturnErrorResponse(err);
+    } catch (error) {
+      return handleAndReturnErrorResponse(error);
     }
   },
   {
@@ -89,8 +89,8 @@ export const DELETE = withAuth(
       }
 
       return NextResponse.json(data);
-    } catch (err) {
-      return handleAndReturnErrorResponse(err);
+    } catch (error) {
+      return handleAndReturnErrorResponse(error);
     }
   },
   {

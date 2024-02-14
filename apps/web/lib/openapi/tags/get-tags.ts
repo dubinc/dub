@@ -9,7 +9,7 @@ export const getTags: ZodOpenApiOperationObject = {
   summary: "Retrieve a list of tags",
   description: "Retrieve a list of tags for the authenticated project.",
   requestParams: {
-    path: z.object({
+    query: z.object({
       projectSlug: z
         .string()
         .describe(

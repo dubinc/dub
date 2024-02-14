@@ -9,7 +9,7 @@ export const createTag: ZodOpenApiOperationObject = {
   summary: "Create a new tag",
   description: "Create a new tag for the authenticated project.",
   requestParams: {
-    path: z.object({
+    query: z.object({
       projectSlug: z
         .string()
         .describe(

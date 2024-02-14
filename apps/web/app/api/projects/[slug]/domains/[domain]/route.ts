@@ -41,8 +41,8 @@ export const GET = withAuth(async ({ domain, project }) => {
       ...data,
       url: data.target,
     });
-  } catch (err) {
-    return handleAndReturnErrorResponse(err);
+  } catch (error) {
+    return handleAndReturnErrorResponse(error);
   }
 });
 
@@ -146,7 +146,7 @@ export const DELETE = withAuth(async ({ domain, project }) => {
 
     const response = await deleteDomainAndLinks(domain);
     return NextResponse.json(response);
-  } catch (err) {
-    return handleAndReturnErrorResponse(err);
+  } catch (error) {
+    return handleAndReturnErrorResponse(error);
   }
 });

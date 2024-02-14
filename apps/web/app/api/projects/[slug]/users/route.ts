@@ -61,8 +61,8 @@ export const PUT = withAuth(
         },
       });
       return NextResponse.json(response);
-    } catch (err) {
-      return handleAndReturnErrorResponse(err);
+    } catch (error) {
+      return handleAndReturnErrorResponse(error);
     }
   },
   {
@@ -103,8 +103,8 @@ export const DELETE = withAuth(
         },
       });
       return NextResponse.json(response);
-    } catch (err) {
-      return handleAndReturnErrorResponse(err);
+    } catch (error) {
+      return handleAndReturnErrorResponse(error);
     }
   },
   {

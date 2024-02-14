@@ -93,7 +93,7 @@ export const DELETE = withAuth(async ({ headers, link }) => {
     return NextResponse.json(response[0], {
       headers,
     });
-  } catch (err) {
-    return handleAndReturnErrorResponse(err);
+  } catch (error) {
+    return handleAndReturnErrorResponse(error);
   }
 });

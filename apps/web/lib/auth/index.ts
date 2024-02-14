@@ -400,8 +400,8 @@ export const withAuth =
         domain,
         link,
       });
-    } catch (err) {
-      return handleAndReturnErrorResponse(err);
+    } catch (error) {
+      return handleAndReturnErrorResponse(error);
     }
   };
 

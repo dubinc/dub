@@ -21,8 +21,8 @@ export const GET = withAuth(async ({ searchParams }) => {
       },
     });
     return NextResponse.json(response);
-  } catch (err) {
-    return handleAndReturnErrorResponse(err);
+  } catch (error) {
+    return handleAndReturnErrorResponse(error);
   }
 });
 
@@ -44,7 +44,7 @@ export const PUT = withAuth(async ({ req, searchParams }) => {
       },
     });
     return NextResponse.json(response);
-  } catch (err) {
-    return handleAndReturnErrorResponse(err);
+  } catch (error) {
+    return handleAndReturnErrorResponse(error);
   }
 });

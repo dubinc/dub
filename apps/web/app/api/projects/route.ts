@@ -39,8 +39,8 @@ export const GET = withSession(async ({ session }) => {
       },
     });
     return NextResponse.json(projects);
-  } catch (err) {
-    return handleAndReturnErrorResponse(err);
+  } catch (error) {
+    return handleAndReturnErrorResponse(error);
   }
 });
 

@@ -54,8 +54,8 @@ export const GET = withAuth(async ({ project }) => {
     ).then((g) => g.filter(({ bsds }) => bsds.length > 0));
 
     return NextResponse.json(groupsWithTags);
-  } catch (err) {
-    return handleAndReturnErrorResponse(err);
+  } catch (error) {
+    return handleAndReturnErrorResponse(error);
   }
 });
 

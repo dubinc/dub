@@ -52,8 +52,8 @@ export const GET = withAuth(async ({ project }) => {
     );
 
     return NextResponse.json(domains);
-  } catch (err) {
-    return handleAndReturnErrorResponse(err);
+  } catch (error) {
+    return handleAndReturnErrorResponse(error);
   }
 });
 
