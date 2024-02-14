@@ -1,16 +1,22 @@
+import { VALID_STATS_FILTERS } from "@/lib/stats";
 import { Chart } from "@/ui/shared/icons";
 import { NumberTooltip, useRouterStuff } from "@dub/ui";
-import { COUNTRIES, capitalize, linkConstructor, nFormatter } from "@dub/utils";
+import {
+  COUNTRIES,
+  capitalize,
+  linkConstructor,
+  nFormatter,
+  truncate,
+} from "@dub/utils";
+import { X } from "lucide-react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useContext } from "react";
 import { StatsContext } from ".";
 import BarChart from "./bar-chart";
-import { useSearchParams, useParams } from "next/navigation";
-import { X } from "lucide-react";
-import { VALID_STATS_FILTERS } from "@/lib/stats";
 
 export default function Clicks() {
   const { totalClicks } = useContext(StatsContext);
-  const { slug } = useParams() as { slug?: string };
   const searchParams = useSearchParams();
   const domain = searchParams?.get("domain");
   const key = searchParams?.get("key");
@@ -37,55 +43,60 @@ export default function Clicks() {
           </p>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-2">
-          {slug &&
-            domain &&
+          {domain &&
             (key ? (
-              <button
-                onClick={() => {
+              <Link
+                href={
                   queryParams({
                     del: ["domain", "key"],
-                  });
-                }}
-                className="flex items-center space-x-1 rounded-md bg-gray-50 px-2 py-1 text-sm text-gray-500 transition-all duration-75 hover:bg-gray-100 active:scale-[0.98] sm:px-3"
+                    getNewPath: true,
+                  }) as string
+                }
+                className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-500 transition-all hover:bg-gray-100"
               >
                 <p>Link</p>
                 <strong className="text-gray-800">
                   {linkConstructor({ domain, key, pretty: true })}
                 </strong>
                 <X className="h-4 w-4" />
-              </button>
+              </Link>
             ) : (
-              <button
-                onClick={() => {
+              <Link
+                href={
                   queryParams({
                     del: "domain",
-                  });
-                }}
-                className="flex items-center space-x-1 rounded-md bg-gray-50 px-2 py-1 text-sm text-gray-500 transition-all duration-75 hover:bg-gray-100 active:scale-[0.98] sm:px-3"
+                    getNewPath: true,
+                  }) as string
+                }
+                className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-500 transition-all hover:bg-gray-100"
               >
                 <p>Domain</p>
                 <strong className="text-gray-800">{domain}</strong>
                 <X className="h-4 w-4" />
-              </button>
+              </Link>
             ))}
           {VALID_STATS_FILTERS.map((filter) => {
             const value = searchParams?.get(filter);
-            if (!value) return null;
+            if (!value || filter === "excludeRoot") return null;
             return (
-              <button
-                onClick={() => {
+              <Link
+                key={filter}
+                href={
                   queryParams({
                     del: filter,
-                  });
-                }}
-                className="flex items-center space-x-1 rounded-md bg-gray-50 px-2 py-1 text-sm text-gray-500 transition-all duration-75 hover:bg-gray-100 active:scale-[0.98] sm:px-3"
+                    getNewPath: true,
+                  }) as string
+                }
+                className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-500 transition-all hover:bg-gray-100"
               >
                 <p>{capitalize(filter)}</p>
                 <strong className="text-gray-800">
-                  {filter === "country" ? COUNTRIES[value] : value}
+                  {filter === "country"
+                    ? COUNTRIES[value]
+                    : truncate(value, 24)}
                 </strong>
                 <X className="h-4 w-4" />
-              </button>
+              </Link>
             );
           })}
         </div>

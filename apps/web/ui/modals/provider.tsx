@@ -1,6 +1,8 @@
 "use client";
 
 import useProject from "@/lib/swr/use-project";
+import { SimpleLinkProps } from "@/lib/types";
+import { useAcceptInviteModal } from "@/ui/modals/accept-invite-modal";
 import { useAddEditDomainModal } from "@/ui/modals/add-edit-domain-modal";
 import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
 import { useAddProjectModal } from "@/ui/modals/add-project-modal";
@@ -8,7 +10,7 @@ import { useCompleteSetupModal } from "@/ui/modals/complete-setup-modal";
 import { useImportBitlyModal } from "@/ui/modals/import-bitly-modal";
 import { useImportShortModal } from "@/ui/modals/import-short-modal";
 import { useUpgradePlanModal } from "@/ui/modals/upgrade-plan-modal";
-import { useAcceptInviteModal } from "@/ui/modals/accept-invite-modal";
+import { useCookies } from "@dub/ui";
 import {
   Dispatch,
   ReactNode,
@@ -16,10 +18,8 @@ import {
   createContext,
   useEffect,
 } from "react";
-import { mutate } from "swr";
-import { useCookies } from "@dub/ui";
-import { SimpleLinkProps } from "@/lib/types";
 import { toast } from "sonner";
+import { mutate } from "swr";
 import { useImportRebrandlyModal } from "./import-rebrandly-modal";
 
 export const ModalContext = createContext<{

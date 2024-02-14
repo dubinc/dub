@@ -1,6 +1,6 @@
 import { withAuth } from "@/lib/auth";
-import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { NextResponse } from "next/server";
 
 // GET /api/projects/[slug]/users – get users for a specific project
 export const GET = withAuth(async ({ project }) => {

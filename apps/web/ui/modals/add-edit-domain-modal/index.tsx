@@ -1,8 +1,8 @@
 import useProject from "@/lib/swr/use-project";
 import { DomainProps } from "@/lib/types";
-import { BlurImage } from "@/ui/shared/blur-image";
 import { Lock } from "@/ui/shared/icons";
 import {
+  BlurImage,
   Button,
   InfoTooltip,
   Logo,
@@ -171,7 +171,7 @@ function AddEditDomainModal({
             setSaving(false);
           });
         }}
-        className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16"
+        className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:rounded-b-2xl sm:px-16"
       >
         <div>
           <div className="flex items-center justify-between">
@@ -311,7 +311,6 @@ function AddEditDomainModal({
               <Switch
                 fn={() => setData((prev) => ({ ...prev, archived: !archived }))}
                 checked={archived}
-                disabled={props?.archived}
               />
             </div>
 

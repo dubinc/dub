@@ -1,9 +1,8 @@
-import { Background, Logo } from "@dub/ui";
-import { constructMetadata, isDubDomain } from "@dub/utils";
 import prisma from "@/lib/prisma";
-import PasswordForm from "./form";
+import { Background, BlurImage, Logo } from "@dub/ui";
+import { constructMetadata, isDubDomain } from "@dub/utils";
 import { notFound, redirect } from "next/navigation";
-import { BlurImage } from "@/ui/shared/blur-image";
+import PasswordForm from "./form";
 
 const title = "Password Required";
 const description =
@@ -40,7 +39,10 @@ export async function generateMetadata({
   }
 
   return constructMetadata({
-    title: isDubDomain(domain) || link.project?.plan === "free" ? `${title} - Dub.co` : title,
+    title:
+      isDubDomain(domain) || link.project?.plan === "free"
+        ? `${title} - Dub.co`
+        : title,
     description,
     image,
     ...(!isDubDomain(domain) &&
@@ -129,9 +131,7 @@ export default async function PasswordProtectedLinkPage({
               <Logo />
             </a>
           )}
-          <h3 className="text-xl font-semibold">
-            {title}
-          </h3>
+          <h3 className="text-xl font-semibold">{title}</h3>
           <p className="text-sm text-gray-500">{description}</p>
         </div>
         <PasswordForm />

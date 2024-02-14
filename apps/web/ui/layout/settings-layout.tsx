@@ -1,6 +1,6 @@
+import NavLink from "@/ui/layout/settings-nav-link";
 import { MaxWidthWrapper } from "@dub/ui";
 import { ReactNode } from "react";
-import NavLink from "@/ui/layout/settings-nav-link";
 
 export default function SettingsLayout({
   tabs,
@@ -22,7 +22,7 @@ export default function SettingsLayout({
         </MaxWidthWrapper>
       </div>
       <MaxWidthWrapper className="grid items-start gap-5 py-10 md:grid-cols-5">
-        <div className="md:sticky top-36 flex gap-1 md:grid">
+        <div className="top-36 flex gap-1 md:sticky md:grid">
           {tabs.map(({ name, segment }) => (
             <NavLink segment={segment}>{name}</NavLink>
           ))}

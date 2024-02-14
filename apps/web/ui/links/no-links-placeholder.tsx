@@ -1,5 +1,3 @@
-import { BlurImage } from "@/ui/shared/blur-image";
-
 export default function NoLinksPlaceholder({
   AddEditLinkButton,
 }: {
@@ -10,7 +8,7 @@ export default function NoLinksPlaceholder({
       <h2 className="z-10 text-xl font-semibold text-gray-700">
         No links found.
       </h2>
-      <BlurImage
+      <img
         src="/_static/illustrations/call-waiting.svg"
         alt="No links yet"
         width={400}

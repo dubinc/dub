@@ -1,3 +1,4 @@
+import LinkFilters from "@/ui/links/link-filters";
 import { IconMenu, Modal } from "@dub/ui";
 import { ChevronDown, Filter } from "lucide-react";
 import {
@@ -8,7 +9,6 @@ import {
   useMemo,
   useState,
 } from "react";
-import LinkFilters from "@/ui/links/link-filters";
 
 function LinkFiltersModal({
   showLinkFiltersModal,
@@ -65,7 +65,10 @@ export function useLinkFiltersModal() {
 
   const LinkFiltersButtonCallback = useCallback(() => {
     return (
-      <LinkFiltersButton showLinkFiltersModal={showLinkFiltersModal} setShowLinkFiltersModal={setShowLinkFiltersModal} />
+      <LinkFiltersButton
+        showLinkFiltersModal={showLinkFiltersModal}
+        setShowLinkFiltersModal={setShowLinkFiltersModal}
+      />
     );
   }, [setShowLinkFiltersModal]);
 

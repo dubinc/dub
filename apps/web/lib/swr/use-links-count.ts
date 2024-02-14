@@ -1,8 +1,8 @@
-import { fetcher } from "@dub/utils";
 import { useRouterStuff } from "@dub/ui";
+import { fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
-import useSWR from "swr";
 import { useEffect, useState } from "react";
+import useSWR from "swr";
 export default function useLinksCount({
   groupBy,
 }: {

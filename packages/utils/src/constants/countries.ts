@@ -214,7 +214,7 @@ export const COUNTRIES: { [key: string]: string } = {
   TO: "Tonga",
   TT: "Trinidad and Tobago",
   TN: "Tunisia",
-  TR: "Türkiye",
+  TR: "Turkey",
   TM: "Turkmenistan",
   TC: "Turks and Caicos Islands",
   TV: "Tuvalu",

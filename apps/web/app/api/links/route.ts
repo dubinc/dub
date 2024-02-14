@@ -7,7 +7,7 @@ import { NextResponse } from "next/server";
 
 // GET /api/links – get all user links
 export const GET = withAuth(async ({ headers, searchParams, project }) => {
-  const { domain, tagId, search, sort, page, userId, showArchived } =
+  const { domain, tagId, search, sort, page, userId, showArchived, withTags } =
     searchParams as {
       domain?: string;
       tagId?: string;
@@ -16,6 +16,7 @@ export const GET = withAuth(async ({ headers, searchParams, project }) => {
       page?: string;
       userId?: string;
       showArchived?: string;
+      withTags?: string;
     };
 
   const response = await getLinksForProject({
@@ -27,6 +28,7 @@ export const GET = withAuth(async ({ headers, searchParams, project }) => {
     page,
     userId,
     showArchived: showArchived === "true" ? true : false,
+    withTags: withTags === "true" ? true : false,
   });
   return NextResponse.json(response, {
     headers,

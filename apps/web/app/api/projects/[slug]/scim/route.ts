@@ -1,6 +1,6 @@
 import { withAuth } from "@/lib/auth";
-import { NextResponse } from "next/server";
 import jackson from "@/lib/jackson";
+import { NextResponse } from "next/server";
 
 // GET /api/projects/[slug]/scim – get all SCIM directories
 export const GET = withAuth(async ({ project }) => {
@@ -58,9 +58,8 @@ export const DELETE = withAuth(
 
     const { directorySyncController } = await jackson();
 
-    const response = await directorySyncController.directories.delete(
-      directoryId,
-    );
+    const response =
+      await directorySyncController.directories.delete(directoryId);
 
     return NextResponse.json(response);
   },

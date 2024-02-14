@@ -3,7 +3,7 @@ import { LinkWithTagsProps } from "@/lib/types";
 import TagBadge from "@/ui/links/tag-badge";
 import { LoadingCircle, SimpleTooltipContent, Tooltip } from "@dub/ui";
 import { HOME_DOMAIN } from "@dub/utils";
-import { Command, useCommandState } from "cmdk";
+import { Command } from "cmdk";
 import { Check, ChevronDown, Tag, X } from "lucide-react";
 import { useParams } from "next/navigation";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
@@ -27,7 +27,7 @@ export default function TagsSection({
   const createTag = async (tag: string) => {
     setCreatingTag(true);
     setInputValue("");
-    fetch(`/api/projects/${slug}/tags`, {
+    fetch(`/api/tags?projectSlug=${slug}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -35,7 +35,7 @@ export default function TagsSection({
       body: JSON.stringify({ tag }),
     }).then(async (res) => {
       if (res.ok) {
-        await mutate(`/api/projects/${slug}/tags`);
+        await mutate(`/api/tags?projectSlug=${slug}`);
         const newTag = await res.json();
         setData({ ...data, tags: [...tags, newTag] });
         toast.success(`Successfully created tag!`);
@@ -63,7 +63,6 @@ export default function TagsSection({
   }, [commandRef, openCommandList]);
 
   const CommandInput = () => {
-    const isEmpty = useCommandState((state) => state.filtered.count === 0);
     return (
       <Command.Input
         placeholder="Select tags..."

@@ -1,9 +1,9 @@
 "use client";
 
 import useProjects from "@/lib/swr/use-projects";
+import NoProjectsPlaceholder from "@/ui/projects/no-projects-placeholder";
 import ProjectCard from "@/ui/projects/project-card";
 import ProjectCardPlaceholder from "./project-card-placeholder";
-import NoProjectsPlaceholder from "@/ui/projects/no-projects-placeholder";
 
 export default function ProjectList() {
   const { projects, loading } = useProjects();

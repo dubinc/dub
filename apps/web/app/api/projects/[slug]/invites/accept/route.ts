@@ -1,6 +1,6 @@
 import { withSession } from "@/lib/auth";
-import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { NextResponse } from "next/server";
 
 // POST /api/projects/[slug]/invites/accept – accept a project invite
 export const POST = withSession(async ({ session, params }) => {

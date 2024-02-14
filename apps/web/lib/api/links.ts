@@ -28,6 +28,7 @@ import {
 } from "../types";
 import { Session } from "../auth";
 import { getLinkViaEdge } from "../planetscale";
+import { recordLink } from "../tinybird";
 
 export async function getLinksForProject({
   projectId,
@@ -38,6 +39,7 @@ export async function getLinksForProject({
   page,
   userId,
   showArchived,
+  withTags,
 }: {
   projectId: string;
   domain?: string;
@@ -47,6 +49,7 @@ export async function getLinksForProject({
   page?: string;
   userId?: string | null;
   showArchived?: boolean;
+  withTags?: boolean;
 }): Promise<LinkProps[]> {
   const tagIds = tagId ? tagId.split(",") : [];
 
@@ -65,6 +68,11 @@ export async function getLinksForProject({
           },
         ],
       }),
+      ...(withTags && {
+        tags: {
+          some: {},
+        },
+      }),
       ...(tagIds.length > 0 && {
         tags: { some: { tagId: { in: tagIds } } },
       }),
@@ -72,17 +80,19 @@ export async function getLinksForProject({
     },
     include: {
       user: true,
-      tags: {
-        include: {
-          tag: {
-            select: {
-              id: true,
-              name: true,
-              color: true,
+      ...(withTags && {
+        tags: {
+          include: {
+            tag: {
+              select: {
+                id: true,
+                name: true,
+                color: true,
+              },
             },
           },
         },
-      },
+      }),
     },
     orderBy: {
       [sort]: "desc",
@@ -100,7 +110,7 @@ export async function getLinksForProject({
     });
     return {
       ...link,
-      tags: link.tags.map(({ tag }) => tag),
+      tags: withTags ? link.tags.map(({ tag }) => tag) : undefined,
       shortLink,
       qrCode: `https://api.dub.co/qr?url=${shortLink}`,
     };
@@ -116,13 +126,15 @@ export async function getLinksCount({
   projectId: string;
   userId?: string | null;
 }) {
-  let { groupBy, search, domain, tagId, showArchived } = searchParams as {
-    groupBy?: "domain" | "tagId";
-    search?: string;
-    domain?: string;
-    tagId?: string;
-    showArchived?: boolean;
-  };
+  let { groupBy, search, domain, tagId, showArchived, withTags } =
+    searchParams as {
+      groupBy?: "domain" | "tagId";
+      search?: string;
+      domain?: string;
+      tagId?: string;
+      showArchived?: boolean;
+      withTags?: boolean;
+    };
 
   const tagIds = tagId ? tagId.split(",") : [];
 
@@ -174,6 +186,11 @@ export async function getLinksCount({
   } else {
     const where = {
       ...linksWhere,
+      ...(withTags && {
+        tags: {
+          some: {},
+        },
+      }),
       ...(tagIds.length > 0 && {
         tags: {
           some: {
@@ -530,57 +547,68 @@ export async function addLink(link: LinkWithTagIdsProps) {
   };
 }
 
-export async function bulkCreateLinks(links: LinkWithTagIdsProps[]) {
+export async function bulkCreateLinks({
+  links,
+  skipPrismaCreate,
+}: {
+  links: LinkWithTagIdsProps[];
+  skipPrismaCreate?: boolean;
+}) {
   if (links.length === 0) return [];
 
-  await prisma.link.createMany({
-    data: links.map(({ tagId, tagIds, ...link }) => {
-      const combinedTagIds = combineTagIds({ tagId, tagIds });
-      const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
-        getParamsFromURL(link.url);
-      return {
-        ...link,
-        title: truncate(link.title, 120),
-        description: truncate(link.description, 240),
-        utm_source,
-        utm_medium,
-        utm_campaign,
-        utm_term,
-        utm_content,
-        expiresAt: link.expiresAt ? new Date(link.expiresAt) : null,
-        geo: link.geo || undefined,
-        ...(combinedTagIds?.length && {
-          tags: {
-            createMany: {
-              data: combinedTagIds.map((tagId) => ({ tagId })),
+  let createdLinks: LinkProps[] = [];
+
+  if (skipPrismaCreate) {
+    createdLinks = links;
+  } else {
+    await prisma.link.createMany({
+      data: links.map(({ tagId, tagIds, ...link }) => {
+        const combinedTagIds = combineTagIds({ tagId, tagIds });
+        const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
+          getParamsFromURL(link.url);
+        return {
+          ...link,
+          title: truncate(link.title, 120),
+          description: truncate(link.description, 240),
+          utm_source,
+          utm_medium,
+          utm_campaign,
+          utm_term,
+          utm_content,
+          expiresAt: link.expiresAt ? new Date(link.expiresAt) : null,
+          geo: link.geo || undefined,
+          ...(combinedTagIds?.length && {
+            tags: {
+              createMany: {
+                data: combinedTagIds.map((tagId) => ({ tagId })),
+              },
+            },
+          }),
+        };
+      }),
+      skipDuplicates: true,
+    });
+
+    createdLinks = (await Promise.all(
+      links.map(async (link) => {
+        const { key, domain } = link;
+        return await prisma.link.findUnique({
+          where: {
+            domain_key: {
+              domain,
+              key,
             },
           },
-        }),
-      };
-    }),
-    skipDuplicates: true,
-  });
-
-  const createdLinks = (await Promise.all(
-    links.map(async (link) => {
-      const { key, domain } = link;
-      return await prisma.link.findUnique({
-        where: {
-          domain_key: {
-            domain,
-            key,
-          },
-        },
-      });
-    }),
-  )) as LinkProps[];
+        });
+      }),
+    )) as LinkProps[];
+  }
 
   const pipeline = redis.pipeline();
 
   // split links into domains
   const linksByDomain: Record<string, Record<string, RedisLinkProps>> = {};
 
-  // this technically will be a synchronous function since isIframeable won't be run for bulk link creation
   await Promise.all(
     createdLinks.map(async (link) => {
       const { domain, key } = link;
@@ -588,9 +616,12 @@ export async function bulkCreateLinks(links: LinkWithTagIdsProps[]) {
       if (!linksByDomain[domain]) {
         linksByDomain[domain] = {};
       }
+      // this technically will be a synchronous function since isIframeable won't be run for bulk link creation
       const formattedLink = await formatRedisLink(link);
-
       linksByDomain[domain][key.toLowerCase()] = formattedLink;
+
+      // record link in Tinybird
+      await recordLink({ link });
     }),
   );
 
@@ -705,17 +736,18 @@ export async function editLink({
               }),
         ]
       : []),
-    redis.hset(domain, {
-      [key.toLowerCase()]: await formatRedisLink(updatedLink),
-    }),
     // if key is changed: rename resource in Cloudinary, delete the old key in Redis and change the clicks key name
-    ...(process.env.CLOUDINARY_URL && (changedDomain || changedKey)
+    ...(changedDomain || changedKey
       ? [
-          cloudinary.v2.uploader
-            .destroy(`${oldDomain}/${oldKey}`, {
-              invalidate: true,
-            })
-            .catch(() => {}),
+          ...(process.env.CLOUDINARY_URL
+            ? [
+                cloudinary.v2.uploader
+                  .destroy(`${oldDomain}/${oldKey}`, {
+                    invalidate: true,
+                  })
+                  .catch(() => {}),
+              ]
+            : []),
           redis.hdel(oldDomain, oldKey.toLowerCase()),
         ]
       : []),
@@ -745,32 +777,22 @@ export async function editLink({
   };
 }
 
-export async function deleteLink({
-  domain = SHORT_DOMAIN,
-  key,
-  projectId,
-}: {
-  domain?: string;
-  key: string;
-  projectId?: string;
-}) {
+export async function deleteLink(link: LinkProps) {
   return await Promise.all([
     prisma.link.delete({
       where: {
-        domain_key: {
-          domain,
-          key,
-        },
+        id: link.id,
       },
     }),
-    cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
+    cloudinary.v2.uploader.destroy(`${link.domain}/${link.key}`, {
       invalidate: true,
     }),
-    redis.hdel(domain, key.toLowerCase()),
-    projectId &&
+    redis.hdel(link.domain, link.key.toLowerCase()),
+    recordLink({ link, deleted: true }),
+    link.projectId &&
       prisma.project.update({
         where: {
-          id: projectId,
+          id: link.projectId,
         },
         data: {
           linksUsage: {
@@ -781,20 +803,37 @@ export async function deleteLink({
   ]);
 }
 
-export async function archiveLink(
-  domain: string,
-  key: string,
-  archived = true,
-) {
+export async function archiveLink({
+  linkId,
+  archived,
+}: {
+  linkId: string;
+  archived: boolean;
+}) {
   return await prisma.link.update({
     where: {
-      domain_key: {
-        domain,
-        key,
-      },
+      id: linkId,
     },
     data: {
       archived,
+    },
+  });
+}
+
+export async function transferLink({
+  linkId,
+  newProjectId,
+}: {
+  linkId: string;
+  newProjectId: string;
+}) {
+  return await prisma.link.update({
+    where: {
+      id: linkId,
+    },
+    data: {
+      projectId: newProjectId,
+      tagId: null, // remove tags when transferring link
     },
   });
 }

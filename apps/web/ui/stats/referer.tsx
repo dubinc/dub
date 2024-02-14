@@ -1,5 +1,4 @@
-import { BlurImage } from "@/ui/shared/blur-image";
-import { LoadingSpinner, Modal, useRouterStuff } from "@dub/ui";
+import { BlurImage, LoadingSpinner, Modal, useRouterStuff } from "@dub/ui";
 import { GOOGLE_FAVICON_URL, fetcher } from "@dub/utils";
 import { Link2, Maximize } from "lucide-react";
 import { useContext, useState } from "react";
@@ -8,8 +7,7 @@ import { StatsContext } from ".";
 import BarList from "./bar-list";
 
 export default function Referer() {
-  const { baseApiPath, queryString, totalClicks, modal } =
-    useContext(StatsContext);
+  const { baseApiPath, queryString } = useContext(StatsContext);
 
   const { data } = useSWR<{ referer: string; clicks: number }[]>(
     `${baseApiPath}/referer?${queryString}`,
@@ -65,8 +63,8 @@ export default function Referer() {
         </div>
         {barList()}
       </Modal>
-      <div className="scrollbar-hide relative z-0 h-[400px] overflow-scroll border border-gray-200 bg-white px-7 py-5 sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
-        <div className="mb-5 flex">
+      <div className="scrollbar-hide relative z-0 h-[400px] border border-gray-200 bg-white px-7 py-5 sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
+        <div className="mb-3 flex justify-between">
           <h1 className="text-lg font-semibold">Referrers</h1>
         </div>
         {data ? (
@@ -82,7 +80,7 @@ export default function Referer() {
             <LoadingSpinner />
           </div>
         )}
-        {!modal && data && data.length > 9 && (
+        {data && data.length > 9 && (
           <button
             onClick={() => setShowModal(true)}
             className="absolute inset-x-0 bottom-4 z-10 mx-auto flex w-full items-center justify-center space-x-2 rounded-md bg-gradient-to-b from-transparent to-white py-2 text-gray-500 transition-all hover:text-gray-800 active:scale-95"

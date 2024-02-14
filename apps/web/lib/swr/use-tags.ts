@@ -7,7 +7,7 @@ export default function useTags() {
   const { slug } = useParams() as { slug?: string };
 
   const { data: tags, isValidating } = useSWR<TagProps[]>(
-    slug && `/api/projects/${slug}/tags`,
+    slug && `/api/tags?projectSlug=${slug}`,
     fetcher,
     {
       dedupingInterval: 30000,

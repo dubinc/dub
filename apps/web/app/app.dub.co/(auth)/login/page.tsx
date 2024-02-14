@@ -25,9 +25,9 @@ export default function LoginPage() {
         <Suspense
           fallback={
             <>
-              <Button disabled={true} text="" variant="secondary" />
-              <Button disabled={true} text="" variant="secondary" />
-              <Button disabled={true} text="" variant="secondary" />
+              <Button disabled={true} variant="secondary" />
+              <Button disabled={true} variant="secondary" />
+              <Button disabled={true} variant="secondary" />
               <div className="mx-auto h-5 w-3/4 rounded-lg bg-gray-100" />
             </>
           }

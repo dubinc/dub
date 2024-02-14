@@ -1,7 +1,6 @@
 import useProject from "@/lib/swr/use-project";
 import useSAML from "@/lib/swr/use-saml";
-import { BlurImage } from "@/ui/shared/blur-image";
-import { Button, Logo, Modal } from "@dub/ui";
+import { BlurImage, Button, Logo, Modal } from "@dub/ui";
 import { SAML_PROVIDERS } from "@dub/utils";
 import {
   Dispatch,
@@ -47,7 +46,7 @@ function RemoveSAMLModal({
         </p>
       </div>
 
-      <div className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 text-left sm:px-16">
+      <div className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 text-left sm:rounded-b-2xl sm:px-16">
         <div className="flex items-center space-x-3 rounded-md border border-gray-300 bg-white p-3">
           <img
             src={SAML_PROVIDERS.find((p) => p.name === provider)!.logo}

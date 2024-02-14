@@ -190,7 +190,7 @@ export const importLinksFromRebrandly = async ({
       .filter(Boolean);
 
     // bulk create links
-    await bulkCreateLinks(importedLinks);
+    await bulkCreateLinks({ links: importedLinks });
 
     count += importedLinks.length;
 

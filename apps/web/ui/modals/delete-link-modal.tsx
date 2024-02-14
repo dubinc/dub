@@ -1,5 +1,4 @@
-import { BlurImage } from "@/ui/shared/blur-image";
-import { Button, Modal, useMediaQuery } from "@dub/ui";
+import { BlurImage, Button, Modal, useMediaQuery } from "@dub/ui";
 import { GOOGLE_FAVICON_URL, getApexDomain, linkConstructor } from "@dub/utils";
 import { type Link as LinkProps } from "@prisma/client";
 import { useParams, useSearchParams } from "next/navigation";
@@ -86,7 +85,7 @@ function DeleteLinkModal({
             setDeleting(false);
           });
         }}
-        className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16"
+        className="flex flex-col space-y-3 bg-gray-50 px-4 py-8 text-left sm:rounded-b-2xl sm:px-16"
       >
         <div>
           <label htmlFor="verification" className="block text-sm text-gray-700">

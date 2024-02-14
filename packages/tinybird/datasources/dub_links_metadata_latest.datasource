@@ -1,0 +1,14 @@
+# Data Source created from Pipe 'dub_links_metadata_pipe'
+
+SCHEMA >
+    `timestamp` DateTime,
+    `link_id` String,
+    `domain` String,
+    `key` String,
+    `url` String,
+    `project_id` String,
+    `deleted` UInt8
+
+ENGINE "ReplacingMergeTree"
+ENGINE_SORTING_KEY "link_id"
+ENGINE_VER "timestamp"
