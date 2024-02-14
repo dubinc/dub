@@ -124,7 +124,7 @@ export async function getLinksCount({
     showArchived?: boolean;
   };
 
-  const tagIds = tagId ? tagId.split("|") : [];
+  const tagIds = tagId ? tagId.split(",") : [];
 
   const linksWhere = {
     projectId,
