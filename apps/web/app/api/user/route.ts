@@ -11,7 +11,9 @@ export const GET = withSession(async ({ session }) => {
     session.user.id,
   );
 
-  await redis.hdel("migrated_links_users", session.user.id);
+  if (migratedProject) {
+    await redis.hdel("migrated_links_users", session.user.id);
+  }
 
   return NextResponse.json({
     ...session.user,
@@ -75,16 +77,6 @@ export const DELETE = withSession(async ({ session }) => {
       cloudinary.v2.uploader.destroy(`avatars/${session?.user?.id}`, {
         invalidate: true,
       }),
-      fetch(
-        `https://api.resend.com/audiences/${process.env.RESEND_AUDIENCE_ID}/contacts/${session?.user?.email}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-        },
-      ),
     ]);
     return NextResponse.json(response);
   }

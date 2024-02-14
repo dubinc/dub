@@ -327,32 +327,15 @@ export const authOptions: NextAuthOptions = {
           new Date(user.createdAt).getTime() > Date.now() - 10000 &&
           process.env.NEXT_PUBLIC_IS_DUB
         ) {
-          await Promise.allSettled([
-            fetch(
-              `https://api.resend.com/audiences/${process.env.RESEND_AUDIENCE_ID}/contacts`,
-              {
-                method: "POST",
-                headers: {
-                  Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  email,
-                  first_name: user.name?.split(" ")[0] || null,
-                  last_name: user.name?.split(" ")[1] || null,
-                }),
-              },
-            ),
-            sendEmail({
-              subject: "Welcome to Dub.co!",
+          await sendEmail({
+            subject: "Welcome to Dub.co!",
+            email,
+            react: WelcomeEmail({
               email,
-              react: WelcomeEmail({
-                email,
-                name: user.name || null,
-              }),
-              marketing: true,
+              name: user.name || null,
             }),
-          ]);
+            marketing: true,
+          });
         }
       }
     },

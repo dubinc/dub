@@ -3,7 +3,7 @@
   "private": true,
   "license": "AGPL-3.0-or-later",
   "scripts": {
-    "dev": "concurrently --kill-others \"prisma generate && next dev --port 8888\" \"prisma studio --browser none\" \"email dev --port 3333\"",
+    "dev": "concurrently --kill-others \"prisma generate && next dev --port 8888\" \"prisma generate && prisma studio --browser none\" \"email dev --port 3333\"",
     "build": "prisma generate & next build",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "lint": "next lint",
