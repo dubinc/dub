@@ -49,9 +49,10 @@ export const POST = withAuth(
 
       const errors = processedLinks
         .filter(({ error }) => error)
-        .map(({ link, error }) => ({
+        .map(({ link, error, code }) => ({
           link,
           error,
+          code
         }));
 
       const validLinksResponse =
@@ -59,8 +60,6 @@ export const POST = withAuth(
           ? await bulkCreateLinks({ links: validLinks })
           : [];
 
-      // TODO: Kiran
-      // Handle error in the response
       return NextResponse.json([...validLinksResponse, ...errors], { headers });
     } catch (error) {
       return handleAndReturnErrorResponse(error);

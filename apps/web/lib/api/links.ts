@@ -456,6 +456,7 @@ export async function addLink(link: LinkProps) {
       },
     });
   }
+
   const shortLink = linkConstructor({
     domain: response.domain,
     key: response.key,
