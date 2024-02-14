@@ -17,6 +17,11 @@ module.exports = {
   experimental: {
     useDeploymentId: true,
     useDeploymentIdServerActions: true,
+    serverComponentsExternalPackages: [
+      "@react-email/components",
+      "@react-email/render",
+      "@react-email/tailwind",
+    ],
   },
   webpack: (config, { webpack, isServer }) => {
     if (isServer) {
