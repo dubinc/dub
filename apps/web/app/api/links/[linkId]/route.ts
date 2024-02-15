@@ -79,8 +79,8 @@ export const PUT = withAuth(async ({ req, headers, project, link }) => {
     return NextResponse.json(response, {
       headers,
     });
-  } catch (err) {
-    return handleAndReturnErrorResponse(err, headers);
+  } catch (error) {
+    return handleAndReturnErrorResponse(error, headers);
   }
 });
 

@@ -18,7 +18,7 @@ export const GET = withAuth(async ({ headers, searchParams, project }) => {
     return NextResponse.json(count, {
       headers,
     });
-  } catch (err) {
-    return handleAndReturnErrorResponse(err, headers);
+  } catch (error) {
+    return handleAndReturnErrorResponse(error, headers);
   }
 });

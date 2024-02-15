@@ -4,7 +4,7 @@ import jackson from "@/lib/jackson";
 import z from "@/lib/zod";
 import { NextResponse } from "next/server";
 
-const createOrUpdateDirectorySchema = z.object({
+const createDirectorySchema = z.object({
   provider: z.enum(["okta-scim-v2", "azure-scim-v2", "google"]).optional(),
   currentDirectoryId: z.string().min(1).optional(),
 });
@@ -43,7 +43,7 @@ export const POST = withAuth(
   async ({ req, project }) => {
     try {
       const { provider = "okta-scim-v2", currentDirectoryId } =
-        createOrUpdateDirectorySchema.parse(await req.json());
+        createDirectorySchema.parse(await req.json());
 
       const { directorySyncController } = await jackson();
 

@@ -13,8 +13,8 @@ export const GET = withAuth(
       return NextResponse.json(response, {
         headers,
       });
-    } catch (err) {
-      return handleAndReturnErrorResponse(err, headers);
+    } catch (error) {
+      return handleAndReturnErrorResponse(error, headers);
     }
   },
   { skipLinkChecks: true },

@@ -173,7 +173,10 @@ export const getLinksCountParamsSchema = z.object({
   userId: z.string().optional(),
   tagId: z.string().optional(),
   domain: z.string().optional(),
-  showArchived: z.coerce.boolean().optional(),
+  showArchived: z
+    .enum(["true", "false"])
+    .optional()
+    .transform((value) => value == "true"),
   search: z.string().optional(),
   groupBy: z.union([z.literal("domain"), z.literal("tagId")]).optional(),
 });

@@ -34,7 +34,7 @@ export const GET = withAuth(async ({ headers, searchParams }) => {
         headers,
       },
     );
-  } catch (err) {
-    return handleAndReturnErrorResponse(err, headers);
+  } catch (error) {
+    return handleAndReturnErrorResponse(error, headers);
   }
 });

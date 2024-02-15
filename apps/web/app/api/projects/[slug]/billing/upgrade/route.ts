@@ -3,6 +3,7 @@ import { stripe } from "@/lib/stripe";
 import { APP_DOMAIN } from "@dub/utils";
 import { NextResponse } from "next/server";
 
+// POST /api/projects/[slug]/billing/upgrade
 export const POST = withAuth(async ({ searchParams, project, session }) => {
   const { plan } = searchParams;
 
