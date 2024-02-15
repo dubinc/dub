@@ -1,4 +1,4 @@
-import { getDomainOrLink } from "@/lib/api/links";
+import { getDomainOrLink } from "@/lib/planetscale";
 import { getStats } from "@/lib/stats";
 import { DUB_LOGO, nFormatter, truncate } from "@dub/utils";
 import { ImageResponse } from "next/og";

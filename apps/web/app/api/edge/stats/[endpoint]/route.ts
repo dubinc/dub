@@ -1,7 +1,6 @@
 import { exceededLimitError } from "@/lib/api/errors";
-import { getDomainOrLink } from "@/lib/api/links";
 import { isBlacklistedReferrer } from "@/lib/edge-config";
-import { getProjectViaEdge } from "@/lib/planetscale";
+import { getDomainOrLink, getProjectViaEdge } from "@/lib/planetscale";
 import { getStats } from "@/lib/stats";
 import { ratelimit } from "@/lib/upstash";
 import {

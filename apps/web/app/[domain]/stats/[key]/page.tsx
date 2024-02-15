@@ -1,4 +1,4 @@
-import { getDomainOrLink } from "@/lib/api/links";
+import { getDomainOrLink } from "@/lib/planetscale";
 import Stats from "@/ui/stats";
 import { constructMetadata } from "@dub/utils";
 import { notFound } from "next/navigation";
