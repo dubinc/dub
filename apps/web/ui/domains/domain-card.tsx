@@ -8,14 +8,14 @@ import {
 } from "@/ui/shared/icons";
 import { Button, LoadingCircle, LoadingDots, NumberTooltip } from "@dub/ui";
 import { capitalize, fetcher, nFormatter, truncate } from "@dub/utils";
+import { QrCode } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import punycode from "punycode/";
 import useSWR, { mutate } from "swr";
 import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
-import DomainConfiguration from "./domain-configuration";
 import { useLinkQRModal } from "../modals/link-qr-modal";
-import { QrCode } from "lucide-react";
+import DomainConfiguration from "./domain-configuration";
 
 export default function DomainCard({ props }: { props: DomainProps }) {
   const { slug } = useParams() as { slug: string };

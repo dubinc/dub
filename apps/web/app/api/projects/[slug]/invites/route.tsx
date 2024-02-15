@@ -1,8 +1,8 @@
-import { withAuth } from "@/lib/auth";
-import { NextResponse } from "next/server";
-import { inviteUser } from "@/lib/api/users";
-import prisma from "@/lib/prisma";
 import { exceededLimitError } from "@/lib/api/errors";
+import { inviteUser } from "@/lib/api/users";
+import { withAuth } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { NextResponse } from "next/server";
 
 // GET /api/projects/[slug]/invites – get invites for a specific project
 export const GET = withAuth(async ({ project }) => {

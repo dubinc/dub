@@ -2,11 +2,12 @@
 
 import { deleteProject } from "@/lib/api/projects";
 import { getSession, hashToken } from "@/lib/auth";
+import { unsubscribe } from "@/lib/flodesk";
 import prisma from "@/lib/prisma";
-import { DUB_DOMAINS, DUB_PROJECT_ID, getDomainWithoutWWW } from "@dub/utils";
-import { randomBytes } from "crypto";
-import cloudinary from "cloudinary";
+import { DUB_DOMAINS, DUB_PROJECT_ID } from "@dub/utils";
 import { get } from "@vercel/edge-config";
+import cloudinary from "cloudinary";
+import { randomBytes } from "crypto";
 
 export async function isAdmin() {
   const session = await getSession();
@@ -109,14 +110,17 @@ export async function getUserOrProjectOwner(data: FormData) {
   return {
     email: response.email,
     // object with domain slugs as keys and the count of links as values
-    defaultDomainLinks: response.links.reduce((acc, { domain }) => {
-      if (acc[domain]) {
-        acc[domain]++;
-      } else {
-        acc[domain] = 1;
-      }
-      return acc;
-    }, {} as Record<string, number>),
+    defaultDomainLinks: response.links.reduce(
+      (acc, { domain }) => {
+        if (acc[domain]) {
+          acc[domain]++;
+        } else {
+          acc[domain] = 1;
+        }
+        return acc;
+      },
+      {} as Record<string, number>,
+    ),
     projects: response.projects.map(({ project }) => ({
       ...project,
       clicks: project.usage,
@@ -161,7 +165,7 @@ export async function banUser(data: FormData) {
     },
   });
 
-  if (!user) {
+  if (!user?.email) {
     return {
       error: "No user found",
     };
@@ -189,16 +193,7 @@ export async function banUser(data: FormData) {
     cloudinary.v2.uploader.destroy(`avatars/${user.id}`, {
       invalidate: true,
     }),
-    fetch(
-      `https://api.resend.com/audiences/${process.env.RESEND_AUDIENCE_ID}/contacts/${user.email}`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-      },
-    ),
+    unsubscribe(user.email),
     fetch(
       `https://api.vercel.com/v1/edge-config/${process.env.EDGE_CONFIG_ID}/items?teamId=${process.env.TEAM_ID_VERCEL}`,
       {

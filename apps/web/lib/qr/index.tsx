@@ -4,23 +4,23 @@
  * SPDX-License-Identifier: ISC
  */
 import { escape } from "html-escaper";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import qrcodegen from "./codegen";
 import {
-  ERROR_LEVEL_MAP,
-  DEFAULT_SIZE,
-  DEFAULT_LEVEL,
   DEFAULT_BGCOLOR,
   DEFAULT_FGCOLOR,
   DEFAULT_INCLUDEMARGIN,
+  DEFAULT_LEVEL,
+  DEFAULT_SIZE,
+  ERROR_LEVEL_MAP,
   MARGIN_SIZE,
 } from "./constants";
 import { QRProps, QRPropsCanvas } from "./types";
 import {
+  SUPPORTS_PATH2D,
   excavateModules,
   generatePath,
   getImageSettings,
-  SUPPORTS_PATH2D,
 } from "./utils";
 export * from "./types";
 export * from "./utils";

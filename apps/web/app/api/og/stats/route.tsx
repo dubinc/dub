@@ -1,8 +1,8 @@
-import { NextRequest } from "next/server";
-import { ImageResponse } from "next/og";
-import { getLinkViaEdge } from "@/lib/planetscale";
+import { getDomainOrLink } from "@/lib/api/links";
 import { getStats } from "@/lib/stats";
 import { DUB_LOGO, nFormatter, truncate } from "@dub/utils";
+import { ImageResponse } from "next/og";
+import { NextRequest } from "next/server";
 
 export const runtime = "edge";
 
@@ -23,16 +23,17 @@ export async function GET(req: NextRequest) {
   const domain = req.nextUrl.searchParams.get("domain") || "dub.sh";
   const key = req.nextUrl.searchParams.get("key") || "github";
 
-  const data = await getLinkViaEdge(domain, key);
-  if (!data?.publicStats) {
+  const link = await getDomainOrLink({ domain, key });
+  if (!link?.publicStats) {
     return new Response(`Stats for this link are not public`, {
       status: 403,
     });
   }
 
   const timeseries = await getStats({
-    domain,
-    key,
+    // projectId can be undefined (for public links that haven't been claimed/synced to a project)
+    ...(link.projectId && { projectId: link.projectId }),
+    linkId: link.id,
     endpoint: "timeseries",
     interval: "30d",
   });

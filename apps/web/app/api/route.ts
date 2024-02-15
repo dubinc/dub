@@ -131,6 +131,19 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
                 enum: [true, false],
               },
             },
+            {
+              name: "withTags",
+              description:
+                "Only return links with tags. Defaults to `false` if not provided.",
+              in: "query",
+              required: false,
+              schema: {
+                description:
+                  "Only return links with tags. Defaults to `false` if not provided.",
+                type: "boolean",
+                enum: [true, false],
+              },
+            },
           ],
           responses: {
             "200": {
@@ -587,7 +600,7 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
           },
         },
       },
-      "/projects/{projectSlug}/tags": {
+      "/tags": {
         get: {
           description: "Retrieve a list of tags for the authenticated project.",
           operationId: "getTags",
@@ -602,7 +615,7 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
               name: "projectSlug",
               description:
                 "The slug for the project to retrieve tags for. E.g. for `app.dub.co/acme`, the projectSlug is `acme`.",
-              in: "path",
+              in: "query",
               required: true,
               schema: {
                 description:
@@ -641,7 +654,7 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
               name: "projectSlug",
               description:
                 "The slug for the project to create tags for. E.g. for `app.dub.co/acme`, the projectSlug is `acme`.",
-              in: "path",
+              in: "query",
               required: true,
               schema: {
                 description:

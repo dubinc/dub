@@ -1,4 +1,3 @@
-import { BlurImage } from "@/ui/shared/blur-image";
 import { Logo } from "@dub/ui";
 import { STAGGER_CHILD_VARIANTS } from "@dub/utils";
 import { motion } from "framer-motion";
@@ -58,7 +57,7 @@ export default function Interim() {
           onClick={() => router.push("/welcome?type=project")}
           className="flex flex-col items-center justify-center overflow-hidden p-5 transition-colors hover:bg-gray-50 md:p-10"
         >
-          <BlurImage
+          <img
             src="/_static/illustrations/shopping-call.svg"
             alt="No links yet"
             width={250}
@@ -73,7 +72,7 @@ export default function Interim() {
           }
           className="flex flex-col items-center justify-center overflow-hidden p-5 transition-colors hover:bg-gray-50 md:p-10"
         >
-          <BlurImage
+          <img
             src="/_static/illustrations/call-waiting.svg"
             alt="No links yet"
             width={250}

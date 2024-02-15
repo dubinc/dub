@@ -12,10 +12,10 @@ import {
   constructMetadata,
   getApexDomain,
 } from "@dub/utils";
-import { notFound } from "next/navigation";
-import LinkInspectorCard from "./card";
-import { Suspense } from "react";
 import { unescape } from "html-escaper";
+import { notFound } from "next/navigation";
+import { Suspense } from "react";
+import LinkInspectorCard from "./card";
 
 export const runtime = "edge";
 

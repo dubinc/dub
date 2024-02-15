@@ -58,7 +58,7 @@ function UpgradePlanModal({
     SELF_SERVE_PAID_PLANS[0];
   const [openPlanSelector, setOpenPlanSelector] = useState(false);
 
-  const [period, setPeriod] = useState<typeof PERIODS[number]>("yearly");
+  const [period, setPeriod] = useState<(typeof PERIODS)[number]>("yearly");
   const [openPeriodSelector, setOpenPeriodSelector] = useState(false);
 
   const [clicked, setClicked] = useState(false);
@@ -211,7 +211,7 @@ function UpgradePlanModal({
           </Popover>
         </div>
         <motion.div
-          className="mt-6 mb-4 flex flex-col"
+          className="mb-4 mt-6 flex flex-col"
           variants={STAGGER_CHILD_VARIANTS}
           initial="hidden"
           animate="show"

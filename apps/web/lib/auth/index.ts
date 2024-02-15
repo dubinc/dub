@@ -1,13 +1,13 @@
-import { authOptions } from "./options";
 import prisma from "@/lib/prisma";
-import { Link as LinkProps } from "@prisma/client";
-import { PlanProps, ProjectProps } from "../types";
-import { getServerSession } from "next-auth/next";
-import { createHash } from "crypto";
 import { API_DOMAIN, getSearchParams, isDubDomain } from "@dub/utils";
-import { ratelimit } from "../upstash";
-import { exceededLimitError } from "../api/errors";
+import { Link as LinkProps } from "@prisma/client";
 import { isAdmin } from "app/admin.dub.co/actions";
+import { createHash } from "crypto";
+import { getServerSession } from "next-auth/next";
+import { exceededLimitError } from "../api/errors";
+import { PlanProps, ProjectProps } from "../types";
+import { ratelimit } from "../upstash";
+import { authOptions } from "./options";
 
 export interface Session {
   user: {
@@ -198,7 +198,7 @@ export const withAuth =
       }
     }
 
-    const [project, link] = (await Promise.all([
+    let [project, link] = (await Promise.all([
       prisma.project.findUnique({
         where: {
           slug,
@@ -242,16 +242,22 @@ export const withAuth =
               id: linkId,
             },
           })
-        : domain && key && key !== "_root"
-        ? prisma.link.findUnique({
-            where: {
-              domain_key: {
-                domain,
-                key,
-              },
-            },
-          })
-        : undefined,
+        : domain &&
+          key &&
+          (key === "_root"
+            ? prisma.domain.findUnique({
+                where: {
+                  slug: domain,
+                },
+              })
+            : prisma.link.findUnique({
+                where: {
+                  domain_key: {
+                    domain,
+                    key,
+                  },
+                },
+              })),
     ])) as [ProjectProps, LinkProps | undefined];
 
     if (!project || !project.users) {
@@ -361,16 +367,26 @@ export const withAuth =
 
     // link checks (if linkId or domain and key are provided)
     if ((linkId || (domain && key && key !== "_root")) && !skipLinkChecks) {
-      // if link doesn't exist
-      if (!link) {
-        return new Response("Link not found.", {
-          status: 404,
-          headers,
+      // special case for getting domain by ID
+      // TODO: refactor domains to use the same logic as links
+      if (!link && searchParams.checkDomain === "true") {
+        const domain = await prisma.domain.findUnique({
+          where: {
+            id: linkId,
+          },
         });
+        if (domain) {
+          link = {
+            ...domain,
+            domain: domain.slug,
+            key: "_root",
+            url: domain.target || "",
+          } as unknown as LinkProps;
+        }
       }
 
       // make sure the link is owned by the project
-      if (link.projectId !== project?.id) {
+      if (!link || link.projectId !== project?.id) {
         return new Response("Link not found.", {
           status: 404,
           headers,

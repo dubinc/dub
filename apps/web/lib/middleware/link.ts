@@ -132,7 +132,7 @@ export default async function LinkMiddleware(
       searchParams.get("dub-no-track") === "1"
     )
   ) {
-    ev.waitUntil(recordClick({ req, id, domain, key, url }));
+    ev.waitUntil(recordClick({ req, id, url: getFinalUrl(url, { req }) }));
   }
 
   const isBot = detectBot(req);

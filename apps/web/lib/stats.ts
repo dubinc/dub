@@ -1,4 +1,3 @@
-import { DUB_PROJECT_ID, isDubDomain } from "@dub/utils";
 import { conn } from "./planetscale";
 
 export type IntervalProps = "1h" | "24h" | "7d" | "30d" | "90d" | "all";
@@ -58,14 +57,16 @@ export const intervalData = {
   },
 };
 
-export type LocationTabs = "country" | "city" | "region";
-
+export type LocationTabs = "country" | "city";
+export type TopLinksTabs = "link" | "url";
 export type DeviceTabs = "device" | "browser" | "os" | "ua";
 
 const VALID_TINYBIRD_ENDPOINTS = [
   "timeseries",
   "clicks",
   "top_links",
+  "top_urls",
+  // "top_aliases",
   "country",
   "city",
   "device",
@@ -77,23 +78,26 @@ const VALID_TINYBIRD_ENDPOINTS = [
 export const VALID_STATS_FILTERS = [
   "country",
   "city",
+  "url",
+  "alias",
   "device",
   "browser",
   "os",
   "referer",
+  "excludeRoot",
 ];
 
 export const getStats = async ({
   projectId,
+  linkId,
   domain,
-  key,
   endpoint,
   interval,
   ...rest
 }: {
   projectId?: string;
-  domain: string;
-  key?: string;
+  linkId?: string;
+  domain?: string;
   endpoint: string;
   interval?: string;
 } & {
@@ -112,39 +116,33 @@ export const getStats = async ({
   // get all-time clicks count if:
   // 1. endpoint is /clicks
   // 2. interval is not defined
-  if (endpoint === "clicks" && key && !interval) {
-    const response =
-      key === "_root"
-        ? await conn.execute("SELECT clicks FROM Domain WHERE slug = ?", [
-            domain,
-          ])
-        : await conn.execute(
-            "SELECT clicks FROM Link WHERE domain = ? AND `key` = ?",
-            [domain, decodeURIComponent(key)],
-          );
-    try {
-      const clicks = response.rows[0]["clicks"];
-      return clicks || "0";
-    } catch (e) {
-      console.log(e, "Potential reason: Link is not in MySQL DB");
+  if (endpoint === "clicks" && !interval && linkId) {
+    let response = await conn.execute(
+      "SELECT clicks FROM Link WHERE `id` = ?",
+      [linkId],
+    );
+    if (response.rows.length === 0) {
+      response = await conn.execute(
+        "SELECT clicks FROM Domain WHERE `id` = ?",
+        [linkId],
+      );
+      if (response.rows.length === 0) {
+        return "0";
+      }
+      return response.rows[0]["clicks"];
     }
   }
 
   let url = new URL(
     `https://api.us-east.tinybird.co/v0/pipes/${endpoint}.json`,
   );
-
-  // TODO: remove this logic after #545 merges
-  url.searchParams.append(
-    "domain",
-    isDubDomain(domain) && !key && projectId !== DUB_PROJECT_ID ? "" : domain,
-  );
-
-  if (key) {
-    url.searchParams.append(
-      "key",
-      `${decodeURIComponent(key)},${decodeURIComponent(key).toLowerCase()}`,
-    );
+  if (projectId) {
+    url.searchParams.append("projectId", projectId);
+  }
+  if (linkId) {
+    url.searchParams.append("linkId", linkId);
+  } else if (domain) {
+    url.searchParams.append("domain", domain);
   }
   if (interval) {
     url.searchParams.append(
@@ -173,7 +171,13 @@ export const getStats = async ({
       Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
     },
   })
-    .then((res) => res.json())
+    .then(async (res) => {
+      if (res.ok) {
+        return res.json();
+      }
+      const error = await res.text();
+      console.error(error);
+    })
     .then(({ data }) => {
       if (endpoint === "clicks") {
         try {

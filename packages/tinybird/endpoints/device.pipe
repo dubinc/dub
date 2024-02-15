@@ -1,6 +1,10 @@
+DESCRIPTION >
+	Top devices by clicks
+
+
 TOKEN "device_endpoint_read_8888" READ
 
-NODE device_node
+NODE endpoint
 DESCRIPTION >
     undefined
 
@@ -8,12 +12,40 @@ SQL >
 
     %
     SELECT device, COUNT(device) as clicks
-    FROM click_events
-    WHERE
-        domain IN {{ Array(domain, 'String', default='stey.me') }}
-        {% if defined(key) %}
-            AND key IN {{ Array(key, 'String', default='twitter') }}
+    FROM
+        dub_click_events_mv
+        {% if not defined(linkId) %}
+            PREWHERE link_id in (
+                SELECT link_id
+                from dub_links_metadata_latest FINAL
+                WHERE
+                    project_id
+                    = {{
+                        String(
+                            projectId,
+                            'cl7wsy2836920mjrb352g5wfx',
+                            description="The ID of the project",
+                            required=True,
+                        )
+                    }}
+                    AND deleted == 0
+                    {% if defined(domain) %} AND domain IN {{ Array(domain, 'String') }} {% end %}
+                    {% if defined(excludeRoot) %} AND key != '_root' {% end %}
+            )
         {% end %}
+    WHERE
+        true
+        {% if defined(linkId) %}
+            AND link_id
+            = {{
+                String(
+                    linkId,
+                    'clsdzhhlq0003vskwcaz6nm39',
+                    description="The ID of the link",
+                )
+            }}
+        {% end %}
+        AND device != 'Unknown'
         {% if defined(country) %} AND country = {{ country }} {% end %}
         {% if defined(city) %} AND city = {{ city }} {% end %}
         {% if defined(device) %} AND device = {{ device }} {% end %}

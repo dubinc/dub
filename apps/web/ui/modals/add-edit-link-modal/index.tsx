@@ -2,9 +2,9 @@
 
 import useDomains from "@/lib/swr/use-domains";
 import useProject from "@/lib/swr/use-project";
-import { BlurImage } from "@/ui/shared/blur-image";
 import { AlertCircleFill, Lock, Random, X } from "@/ui/shared/icons";
 import {
+  BlurImage,
   Button,
   LoadingCircle,
   Logo,
@@ -50,8 +50,8 @@ import OGSection from "./og-section";
 import PasswordSection from "./password-section";
 import Preview from "./preview";
 import RewriteSection from "./rewrite-section";
-import UTMSection from "./utm-section";
 import TagsSection from "./tags-section";
+import UTMSection from "./utm-section";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
@@ -460,7 +460,7 @@ function AddEditLinkModal({
                       type="button"
                       onClick={() => {
                         window.confirm(
-                          "Editing an existing short link will result in broken links and reset its analytics. Are you sure you want to continue?",
+                          "Editing an existing short link could potentially break existing links. Are you sure you want to continue?",
                         ) && setLockKey(false);
                       }}
                     >
@@ -584,7 +584,7 @@ function AddEditLinkModal({
             <div
               className={`${
                 atBottom ? "" : "md:shadow-[0_-20px_30px_-10px_rgba(0,0,0,0.1)]"
-              } z-10 bg-gray-50 px-4 py-8 transition-all md:sticky  md:bottom-0 md:px-16`}
+              } z-10 bg-gray-50 px-4 py-8 transition-all sm:rounded-b-2xl md:sticky  md:bottom-0 md:px-16`}
             >
               {homepageDemo ? (
                 <Button

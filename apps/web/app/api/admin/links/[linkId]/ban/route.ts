@@ -1,13 +1,13 @@
 import { withAdmin } from "@/lib/auth";
-import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { formatRedisLink, redis } from "@/lib/upstash";
 import {
   LEGAL_PROJECT_ID,
   LEGAL_USER_ID,
   getDomainWithoutWWW,
 } from "@dub/utils";
-import { formatRedisLink, redis } from "@/lib/upstash";
 import { get } from "@vercel/edge-config";
+import { NextResponse } from "next/server";
 
 // DELETE /api/admin/links/[linkId]/ban – ban a link
 export const DELETE = withAdmin(async ({ params }) => {

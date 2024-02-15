@@ -1,8 +1,7 @@
-import { Button, Logo } from "@dub/ui";
+import { BlurImage, Button, Logo } from "@dub/ui";
 import { HOME_DOMAIN, constructMetadata } from "@dub/utils";
 import { Suspense } from "react";
 import RegisterForm from "./form";
-import { BlurImage } from "@/ui/shared/blur-image";
 
 export const metadata = constructMetadata({
   title: `Create your ${process.env.NEXT_PUBLIC_APP_NAME} account`,

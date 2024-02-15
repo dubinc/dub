@@ -1,7 +1,7 @@
-import { constructMetadata } from "@dub/utils";
-import WelcomePageClient from "./page-client";
 import { Background } from "@dub/ui";
+import { constructMetadata } from "@dub/utils";
 import { Suspense } from "react";
+import WelcomePageClient from "./page-client";
 
 export const runtime = "nodejs";
 
