@@ -104,7 +104,7 @@ export default function Toggle() {
           </div>
         )}
         <div className="flex items-center">
-          {!isPublicStatsPage && key && key !== "_root" && <SharePopover />}
+          {!isPublicStatsPage && key && <SharePopover />}
           <Popover
             content={
               <div className="grid w-full p-2 md:w-48">

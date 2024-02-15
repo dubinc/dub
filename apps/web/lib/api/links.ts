@@ -21,7 +21,7 @@ import {
 } from "@dub/utils";
 import cloudinary from "cloudinary";
 import { Session } from "../auth";
-import { getLinkViaEdge } from "../planetscale";
+import { getDomainViaEdge, getLinkViaEdge } from "../planetscale";
 import { recordLink } from "../tinybird";
 import { LinkProps, ProjectProps, RedisLinkProps } from "../types";
 
@@ -710,4 +710,24 @@ export async function transferLink({
       tagId: null, // remove tags when transferring link
     },
   });
+}
+
+export async function getDomainOrLink({
+  domain,
+  key,
+}: {
+  domain: string;
+  key?: string;
+}) {
+  if (!key || key === "_root") {
+    const data = await getDomainViaEdge(domain);
+    if (!data) return null;
+    return {
+      ...data,
+      key: "_root",
+      url: data?.target,
+    };
+  } else {
+    return await getLinkViaEdge(domain, key);
+  }
 }

@@ -1,4 +1,4 @@
-import { getLinkViaEdge } from "@/lib/planetscale";
+import { getDomainOrLink } from "@/lib/api/links";
 import { getStats } from "@/lib/stats";
 import { DUB_LOGO, nFormatter, truncate } from "@dub/utils";
 import { ImageResponse } from "next/og";
@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
   const domain = req.nextUrl.searchParams.get("domain") || "dub.sh";
   const key = req.nextUrl.searchParams.get("key") || "github";
 
-  const link = await getLinkViaEdge(domain, key);
+  const link = await getDomainOrLink({ domain, key });
   if (!link?.publicStats) {
     return new Response(`Stats for this link are not public`, {
       status: 403,

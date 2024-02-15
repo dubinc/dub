@@ -1,6 +1,7 @@
 import { exceededLimitError } from "@/lib/api/errors";
+import { getDomainOrLink } from "@/lib/api/links";
 import { isBlacklistedReferrer } from "@/lib/edge-config";
-import { getLinkViaEdge, getProjectViaEdge } from "@/lib/planetscale";
+import { getProjectViaEdge } from "@/lib/planetscale";
 import { getStats } from "@/lib/stats";
 import { ratelimit } from "@/lib/upstash";
 import {
@@ -47,7 +48,7 @@ export const GET = async (
       projectId: DUB_PROJECT_ID,
     };
   } else {
-    link = await getLinkViaEdge(domain, key);
+    link = await getDomainOrLink({ domain, key });
     // if the link is explicitly private (publicStats === false)
     if (!link?.publicStats) {
       return new Response(`Stats for this link are not public`, {
