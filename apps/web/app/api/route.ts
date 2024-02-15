@@ -615,7 +615,7 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
               name: "projectSlug",
               description:
                 "The slug for the project to retrieve tags for. E.g. for `app.dub.co/acme`, the projectSlug is `acme`.",
-              in: "path",
+              in: "query",
               required: true,
               schema: {
                 description:
@@ -654,7 +654,7 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
               name: "projectSlug",
               description:
                 "The slug for the project to create tags for. E.g. for `app.dub.co/acme`, the projectSlug is `acme`.",
-              in: "path",
+              in: "query",
               required: true,
               schema: {
                 description:

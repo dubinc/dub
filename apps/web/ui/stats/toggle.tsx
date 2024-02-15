@@ -13,6 +13,7 @@ import {
   Tick,
   Tooltip,
   TooltipContent,
+  useOptimisticUpdate,
   useRouterStuff,
   useScroll,
 } from "@dub/ui";
@@ -22,7 +23,6 @@ import {
   GOOGLE_FAVICON_URL,
   SHORT_DOMAIN,
   cn,
-  fetcher,
   getApexDomain,
   linkConstructor,
 } from "@dub/utils";
@@ -32,7 +32,6 @@ import { useParams, useSearchParams } from "next/navigation";
 import punycode from "punycode/";
 import { useContext, useMemo, useState } from "react";
 import { toast } from "sonner";
-import useSWR, { mutate } from "swr";
 import { StatsContext } from ".";
 
 export default function Toggle() {
@@ -245,45 +244,36 @@ const SharePopover = () => {
     key: string; // coerce to string since <SharePopover is not shown if key is undefined)
   };
 
-  const { data } = useSWR<{ publicStats: boolean }>(
-    `${baseApiPath}?${queryString}`,
-    fetcher,
-  );
+  const { data, isLoading, update } = useOptimisticUpdate<{
+    publicStats: boolean;
+  }>(`${baseApiPath}?${queryString}`, {
+    loading: "Updating...",
+    success: "Successfully updated stats page visibility!",
+    error: "Something went wrong",
+  });
 
-  const [updating, setUpdating] = useState(false);
-
-  const handleChange = async () => {
-    toast.promise(
-      new Promise<void>(async (resolve) => {
-        setUpdating(true);
-        const res = await fetch(`${baseApiPath}?${queryString}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            publicStats: !data?.publicStats,
-          }),
-        });
-        if (res.status === 200) {
-          await mutate(`${baseApiPath}?${queryString}`);
-          !data?.publicStats &&
-            navigator.clipboard.writeText(
-              `https://${domain}/stats/${encodeURIComponent(key)}`,
-            );
-        }
-        setUpdating(false);
-        resolve();
-      }),
-      {
-        loading: "Updating...",
-        success: `Stats page is now ${
-          data?.publicStats ? "private." : "public. Link copied to clipboard."
-        }`,
-        error: "Something went wrong",
+  const handleUpdate = async (checked: boolean) => {
+    const res = await fetch(`${baseApiPath}?${queryString}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
       },
-    );
+      body: JSON.stringify({
+        publicStats: checked,
+      }),
+    });
+    if (!res.ok) {
+      throw new Error("Failed to update email preferences");
+    }
+    if (res.status === 200) {
+      checked &&
+        navigator.clipboard.writeText(
+          `https://${domain}/stats/${encodeURIComponent(key)}`,
+        );
+    }
+    return { publicStats: checked };
   };
+
   const [copied, setCopied] = useState(false);
 
   if (!data) return null;
@@ -303,8 +293,10 @@ const SharePopover = () => {
               <p className="font-semibold text-gray-800">Public Stats Page</p>
               <Switch
                 checked={data?.publicStats}
-                fn={handleChange}
-                disabled={updating}
+                loading={isLoading}
+                fn={(checked: boolean) => {
+                  update(() => handleUpdate(checked), { publicStats: checked });
+                }}
               />
             </div>
             <p className="text-gray-500">

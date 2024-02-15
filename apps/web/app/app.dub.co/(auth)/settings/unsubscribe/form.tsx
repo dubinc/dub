@@ -4,6 +4,7 @@ import { LoadingSpinner, Logo } from "@dub/ui";
 import { APP_NAME, HOME_DOMAIN } from "@dub/utils";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function UnsubscribeForm() {
   const [unsubscribing, setUnsubscribing] = useState(true);
@@ -11,7 +12,12 @@ export default function UnsubscribeForm() {
   useEffect(() => {
     fetch("/api/user/subscribe", {
       method: "DELETE",
-    }).then(() => setUnsubscribing(false));
+    }).then(() => {
+      setUnsubscribing(false);
+      toast.success(
+        `You have been unsubscribed from all ${APP_NAME} marketing emails`,
+      );
+    });
   }, []);
 
   return (

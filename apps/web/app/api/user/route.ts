@@ -1,4 +1,5 @@
 import { withSession } from "@/lib/auth";
+import { unsubscribe } from "@/lib/flodesk";
 import prisma from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import cloudinary from "cloudinary";
@@ -77,6 +78,7 @@ export const DELETE = withSession(async ({ session }) => {
       cloudinary.v2.uploader.destroy(`avatars/${session?.user?.id}`, {
         invalidate: true,
       }),
+      unsubscribe(session.user.email),
     ]);
     return NextResponse.json(response);
   }

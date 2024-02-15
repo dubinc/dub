@@ -10,6 +10,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
+import { subscribe } from "../flodesk";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
@@ -327,15 +328,18 @@ export const authOptions: NextAuthOptions = {
           new Date(user.createdAt).getTime() > Date.now() - 10000 &&
           process.env.NEXT_PUBLIC_IS_DUB
         ) {
-          await sendEmail({
-            subject: "Welcome to Dub.co!",
-            email,
-            react: WelcomeEmail({
+          await Promise.allSettled([
+            subscribe({ email, name: user.name || undefined }),
+            sendEmail({
+              subject: "Welcome to Dub.co!",
               email,
-              name: user.name || null,
+              react: WelcomeEmail({
+                email,
+                name: user.name || null,
+              }),
+              marketing: true,
             }),
-            marketing: true,
-          });
+          ]);
         }
       }
     },
