@@ -1,5 +1,5 @@
-import { getDomainOrLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
+import { getDomainOrLink } from "@/lib/planetscale";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
