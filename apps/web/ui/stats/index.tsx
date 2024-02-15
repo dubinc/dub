@@ -91,6 +91,8 @@ export default function Stats({ staticDomain }: { staticDomain?: string }) {
     fetcher,
   );
 
+  const isPublicStatsPage = basePath.startsWith("/stats");
+
   return (
     <StatsContext.Provider
       value={{
@@ -109,9 +111,10 @@ export default function Stats({ staticDomain }: { staticDomain?: string }) {
           <Clicks />
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <Locations />
-            <TopLinks />
+            {!isPublicStatsPage && <TopLinks />}
             <Devices />
             <Referer />
+            {isPublicStatsPage && <TopLinks />}
           </div>
         </div>
       </div>
