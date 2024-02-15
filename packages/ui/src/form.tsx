@@ -14,7 +14,7 @@ export function Form({
   title: string;
   description: string;
   inputAttrs: InputHTMLAttributes<HTMLInputElement>;
-  helpText?: string;
+  helpText?: string | ReactNode;
   buttonText?: string;
   disabledTooltip?: string | ReactNode;
   handleSubmit: (data: any) => Promise<any>;
@@ -62,10 +62,14 @@ export function Form({
       </div>
 
       <div className="flex items-center justify-between space-x-4 rounded-b-lg border-t border-gray-200 bg-gray-50 p-3 sm:px-10">
-        <p
-          className="prose-sm prose-a:underline prose-a:underline-offset-4 hover:prose-a:text-gray-700 text-gray-500 transition-colors"
-          dangerouslySetInnerHTML={{ __html: helpText || "" }}
-        />
+        {typeof helpText === "string" ? (
+          <p
+            className="prose-sm prose-a:underline prose-a:underline-offset-4 hover:prose-a:text-gray-700 text-gray-500 transition-colors"
+            dangerouslySetInnerHTML={{ __html: helpText || "" }}
+          />
+        ) : (
+          helpText
+        )}
         <div className="shrink-0">
           <Button
             text={buttonText}
