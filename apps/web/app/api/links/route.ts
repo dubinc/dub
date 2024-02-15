@@ -18,7 +18,6 @@ export const GET = withAuth(async ({ headers, searchParams, project }) => {
       showArchived?: string;
       withTags?: string;
     };
-
   const response = await getLinksForProject({
     projectId: project.id,
     domain,
