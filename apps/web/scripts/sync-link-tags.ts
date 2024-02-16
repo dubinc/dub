@@ -1,5 +1,5 @@
-import "dotenv-flow/config";
 import prisma from "@/lib/prisma";
+import "dotenv-flow/config";
 
 /**
  * Propagates LinkTag records for links with tagIds
@@ -19,28 +19,28 @@ async function main() {
 
   console.log(`Updating ${links.length} links...`);
 
-  const all = await Promise.allSettled(
-    links.map(async (link) => {
-      if (link.tagId == null) return;
+  // const all = await Promise.allSettled(
+  //   links.map(async (link) => {
+  //     if (link.tagId == null) return;
 
-      await prisma.link.update({
-        where: {
-          id: link.id,
-        },
-        data: {
-          tags: {
-            create: {
-              tagId: link.tagId,
-            },
-          },
-        },
-      });
-    }),
-  );
+  //     await prisma.link.update({
+  //       where: {
+  //         id: link.id,
+  //       },
+  //       data: {
+  //         tags: {
+  //           create: {
+  //             tagId: link.tagId,
+  //           },
+  //         },
+  //       },
+  //     });
+  //   }),
+  // );
 
-  const updated = all.filter(({ status }) => status === "fulfilled");
+  // const updated = all.filter(({ status }) => status === "fulfilled");
 
-  console.log(`Updated ${updated.length} / ${links.length} links.`);
+  // console.log(`Updated ${updated.length} / ${links.length} links.`);
 }
 
 main();

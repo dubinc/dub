@@ -4,16 +4,15 @@ import useLinksCount from "@/lib/swr/use-links-count";
 import useTags from "@/lib/swr/use-tags";
 import { TagProps } from "@/lib/types";
 import TagBadge from "@/ui/links/tag-badge";
+import { useAddEditTagModal } from "@/ui/modals/add-edit-tag-modal";
 import { Delete, ThreeDots } from "@/ui/shared/icons";
 import {
   Button,
-  IconMenu,
   LoadingCircle,
   LoadingSpinner,
   NumberTooltip,
   Popover,
   Switch,
-  useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
 import {
@@ -22,7 +21,7 @@ import {
   truncate,
 } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronRight, Edit3, Search, Trash, XCircle } from "lucide-react";
+import { ChevronRight, Edit3, Search, XCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import {
   useParams,
@@ -35,7 +34,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { useDebouncedCallback } from "use-debounce";
-import { useAddEditTagModal } from "@/ui/modals/add-edit-tag-modal";
+import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
 
 export default function LinkFilters() {
   const { data: domains } = useLinksCount({ groupBy: "domain" });
@@ -190,6 +189,14 @@ const DomainsFilter = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [showMore, setShowMore] = useState(false);
 
+  const { AddEditDomainModal, AddDomainButton } = useAddEditDomainModal({
+    buttonProps: {
+      text: "Add",
+      variant: "secondary",
+      className: "h-8 px-2",
+    },
+  });
+
   const options = useMemo(() => {
     return domains?.length === 0
       ? [
@@ -206,6 +213,7 @@ const DomainsFilter = () => {
 
   return (
     <fieldset className="overflow-hidden py-6">
+      <AddEditDomainModal />
       <div className="flex h-8 items-center justify-between">
         <button
           onClick={() => {
@@ -218,6 +226,7 @@ const DomainsFilter = () => {
           />
           <h4 className="font-medium text-gray-900">Domains</h4>
         </button>
+        <AddDomainButton />
       </div>
       <AnimatePresence initial={false}>
         {!collapsed && (
@@ -289,8 +298,7 @@ const TagsFilter = ({
   const [search, setSearch] = useState("");
   const [showMore, setShowMore] = useState(false);
 
-  const { setShowAddEditTagModal, AddEditTagModal, AddTagButton } =
-    useAddEditTagModal();
+  const { AddEditTagModal, AddTagButton } = useAddEditTagModal();
 
   const selectedTagIds =
     searchParams?.get("tagId")?.split(",")?.filter(Boolean) ?? [];

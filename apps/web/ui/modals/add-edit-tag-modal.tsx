@@ -1,13 +1,3 @@
-import {
-  Dispatch,
-  FormEvent,
-  SetStateAction,
-  useCallback,
-  useMemo,
-  useState,
-} from "react";
-import va from "@vercel/analytics";
-import { mutate } from "swr";
 import useProject from "@/lib/swr/use-project";
 import useTags from "@/lib/swr/use-tags";
 import { TagProps } from "@/lib/types";
@@ -21,75 +11,18 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { HOME_DOMAIN, capitalize, cn } from "@dub/utils";
-import { COLORS_LIST, randomBadgeColor } from "../links/tag-badge";
+import va from "@vercel/analytics";
+import {
+  Dispatch,
+  FormEvent,
+  SetStateAction,
+  useCallback,
+  useMemo,
+  useState,
+} from "react";
 import { toast } from "sonner";
-
-function AddTagButton({
-  setShowAddEditTagModal,
-}: {
-  setShowAddEditTagModal: Dispatch<SetStateAction<boolean>>;
-}) {
-  const { plan, tagsLimit } = useProject();
-  const { tags } = useTags();
-  const { queryParams } = useRouterStuff();
-
-  const exceededTags = tags && tagsLimit && tags.length >= tagsLimit;
-
-  return (
-    <div>
-      <Button
-        variant="secondary"
-        text="Add Tag"
-        className="h-8 px-2"
-        disabledTooltip={
-          exceededTags ? (
-            <TooltipContent
-              title={`You can only add up to ${tagsLimit} tag${
-                tagsLimit === 1 ? "" : "s"
-              } on the ${capitalize(plan)} plan. Upgrade to add more tags`}
-              cta="Upgrade"
-              onClick={() => {
-                queryParams({
-                  set: {
-                    upgrade: plan === "free" ? "pro" : "business",
-                  },
-                });
-              }}
-            />
-          ) : undefined
-        }
-        onClick={() => setShowAddEditTagModal(true)}
-      />
-    </div>
-  );
-}
-
-export function useAddEditTagModal({ props }: { props?: TagProps } = {}) {
-  const [showAddEditTagModal, setShowAddEditTagModal] = useState(false);
-
-  const AddEditTagModalCallback = useCallback(() => {
-    return (
-      <AddEditTagModal
-        showAddEditTagModal={showAddEditTagModal}
-        setShowAddEditTagModal={setShowAddEditTagModal}
-        props={props}
-      />
-    );
-  }, [showAddEditTagModal, setShowAddEditTagModal]);
-
-  const AddTagButtonCallback = useCallback(() => {
-    return <AddTagButton setShowAddEditTagModal={setShowAddEditTagModal} />;
-  }, [setShowAddEditTagModal]);
-
-  return useMemo(
-    () => ({
-      setShowAddEditTagModal,
-      AddEditTagModal: AddEditTagModalCallback,
-      AddTagButton: AddTagButtonCallback,
-    }),
-    [setShowAddEditTagModal, AddEditTagModalCallback, AddTagButtonCallback],
-  );
-}
+import { mutate } from "swr";
+import { COLORS_LIST, randomBadgeColor } from "../links/tag-badge";
 
 function AddEditTagModal({
   showAddEditTagModal,
@@ -147,15 +80,20 @@ function AddEditTagModal({
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
         <Logo />
-        <h3 className="text-lg font-medium">{props ? "Edit" : "Add"} tag</h3>
-        <a
-          href={`${HOME_DOMAIN}/help/article/how-to-use-tags#what-is-a-tag`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="-translate-y-2 text-center text-xs text-gray-500 underline underline-offset-4 hover:text-gray-800"
-        >
-          What is a tag?
-        </a>
+        <div className="flex flex-col space-y-1 text-center">
+          <h3 className="text-lg font-medium">{props ? "Edit" : "Add"} tag</h3>
+          <p className="text-sm text-gray-500">
+            Use tags to organize your links.{" "}
+            <a
+              href={`${HOME_DOMAIN}/help/article/how-to-use-tags#what-is-a-tag`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-4 hover:text-gray-800"
+            >
+              Learn more
+            </a>
+          </p>
+        </div>
       </div>
 
       <form
@@ -251,5 +189,72 @@ function AddEditTagModal({
         />
       </form>
     </Modal>
+  );
+}
+
+function AddTagButton({
+  setShowAddEditTagModal,
+}: {
+  setShowAddEditTagModal: Dispatch<SetStateAction<boolean>>;
+}) {
+  const { plan, tagsLimit } = useProject();
+  const { tags } = useTags();
+  const { queryParams } = useRouterStuff();
+
+  const exceededTags = tags && tagsLimit && tags.length >= tagsLimit;
+
+  return (
+    <div>
+      <Button
+        variant="secondary"
+        text="Add"
+        className="h-8 px-2"
+        disabledTooltip={
+          exceededTags ? (
+            <TooltipContent
+              title={`You can only add up to ${tagsLimit} tag${
+                tagsLimit === 1 ? "" : "s"
+              } on the ${capitalize(plan)} plan. Upgrade to add more tags`}
+              cta="Upgrade"
+              onClick={() => {
+                queryParams({
+                  set: {
+                    upgrade: plan === "free" ? "pro" : "business",
+                  },
+                });
+              }}
+            />
+          ) : undefined
+        }
+        onClick={() => setShowAddEditTagModal(true)}
+      />
+    </div>
+  );
+}
+
+export function useAddEditTagModal({ props }: { props?: TagProps } = {}) {
+  const [showAddEditTagModal, setShowAddEditTagModal] = useState(false);
+
+  const AddEditTagModalCallback = useCallback(() => {
+    return (
+      <AddEditTagModal
+        showAddEditTagModal={showAddEditTagModal}
+        setShowAddEditTagModal={setShowAddEditTagModal}
+        props={props}
+      />
+    );
+  }, [showAddEditTagModal, setShowAddEditTagModal]);
+
+  const AddTagButtonCallback = useCallback(() => {
+    return <AddTagButton setShowAddEditTagModal={setShowAddEditTagModal} />;
+  }, [setShowAddEditTagModal]);
+
+  return useMemo(
+    () => ({
+      setShowAddEditTagModal,
+      AddEditTagModal: AddEditTagModalCallback,
+      AddTagButton: AddTagButtonCallback,
+    }),
+    [setShowAddEditTagModal, AddEditTagModalCallback, AddTagButtonCallback],
   );
 }
