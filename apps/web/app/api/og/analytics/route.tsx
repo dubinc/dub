@@ -1,5 +1,5 @@
+import { getAnalytics } from "@/lib/analytics";
 import { getDomainOrLink } from "@/lib/planetscale";
-import { getStats } from "@/lib/stats";
 import { DUB_LOGO, nFormatter, truncate } from "@dub/utils";
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  const timeseries = await getStats({
+  const timeseries = await getAnalytics({
     // projectId can be undefined (for public links that haven't been claimed/synced to a project)
     ...(link.projectId && { projectId: link.projectId }),
     linkId: link.id,

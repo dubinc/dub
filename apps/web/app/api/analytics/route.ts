@@ -3,7 +3,7 @@ import { getDomainOrLink } from "@/lib/planetscale";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-// GET /api/stats – get the publicStats setting for a link
+// GET /api/analytics – get the publicStats setting for a link
 export const GET = withAuth(async ({ searchParams }) => {
   const { domain, key } = searchParams;
   if (!domain || !key) {
@@ -13,7 +13,7 @@ export const GET = withAuth(async ({ searchParams }) => {
   return NextResponse.json(response);
 });
 
-// PUT /api/stats – update the publicStats setting for a link
+// PUT /api/analytics – update the publicStats setting for a link
 export const PUT = withAuth(async ({ req, searchParams }) => {
   const { domain, key } = searchParams;
   if (!domain || !key) {

@@ -1,5 +1,5 @@
 import { getDomainOrLink } from "@/lib/planetscale";
-import Stats from "@/ui/stats";
+import Stats from "@/ui/analytics";
 import { constructMetadata } from "@dub/utils";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";

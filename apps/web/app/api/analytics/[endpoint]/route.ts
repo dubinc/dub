@@ -1,9 +1,9 @@
+import { getAnalytics } from "@/lib/analytics";
 import { withAuth } from "@/lib/auth";
 import { getDomainViaEdge } from "@/lib/planetscale";
-import { getStats } from "@/lib/stats";
 import { NextResponse } from "next/server";
 
-// GET /api/analytics/[endpoint] – get stats for a specific endpoint
+// GET /api/analytics/[endpoint] – get analytics for a specific endpoint
 export const GET = withAuth(
   async ({ params, searchParams, project, link }) => {
     const { endpoint } = params;
@@ -20,10 +20,10 @@ export const GET = withAuth(
     const linkId = link
       ? link.id
       : domain && key === "_root"
-      ? await getDomainViaEdge(domain).then((d) => d?.id)
-      : null;
+        ? await getDomainViaEdge(domain).then((d) => d?.id)
+        : null;
 
-    const response = await getStats({
+    const response = await getAnalytics({
       projectId: project.id,
       ...(linkId && { linkId }),
       domain,
