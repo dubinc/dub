@@ -16,9 +16,6 @@ export async function subscribe({
       ...(name && {
         first_name: name.split(" ")[0],
         last_name: name.split(" ").slice(1).join(" "),
-        custom_fields: {
-          name,
-        },
       }),
     }),
   }).then((res) => res.json());
