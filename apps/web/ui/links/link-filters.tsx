@@ -193,7 +193,7 @@ const DomainsFilter = () => {
     buttonProps: {
       text: "Add",
       variant: "secondary",
-      className: "h-8 px-2",
+      className: "h-7 px-2",
     },
   });
 
