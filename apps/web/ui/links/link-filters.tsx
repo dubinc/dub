@@ -186,6 +186,7 @@ const DomainsFilter = () => {
   const { primaryDomain } = useDomains();
 
   const [collapsed, setCollapsed] = useState(false);
+  const [showMore, setShowMore] = useState(false);
 
   const options = useMemo(() => {
     return domains?.length === 0
@@ -222,40 +223,50 @@ const DomainsFilter = () => {
             className="mt-4 grid gap-2"
             {...SWIPE_REVEAL_ANIMATION_SETTINGS}
           >
-            {options?.map(({ value, count }) => (
-              <div
-                key={value}
-                className="relative flex cursor-pointer items-center space-x-3 rounded-md bg-gray-50 transition-all hover:bg-gray-100"
-              >
-                <input
-                  id={value}
-                  name={value}
-                  checked={
-                    searchParams?.get("domain") === value ||
-                    domains?.length <= 1
-                  }
-                  onChange={() => {
-                    queryParams({
-                      set: {
-                        domain: value,
-                      },
-                      del: "page",
-                    });
-                  }}
-                  type="radio"
-                  className="ml-3 h-4 w-4 cursor-pointer rounded-full border-gray-300 text-black focus:outline-none focus:ring-0"
-                />
-                <label
-                  htmlFor={value}
-                  className="flex w-full cursor-pointer justify-between px-3 py-2 pl-0 text-sm font-medium text-gray-700"
+            {options
+              .slice(0, showMore ? options.length : 3)
+              .map(({ value, count }) => (
+                <div
+                  key={value}
+                  className="relative flex cursor-pointer items-center space-x-3 rounded-md bg-gray-50 transition-all hover:bg-gray-100"
                 >
-                  <p>{truncate(punycode.toUnicode(value || ""), 24)}</p>
-                  <NumberTooltip value={count} unit="links">
-                    <p className="text-gray-500">{nFormatter(count)}</p>
-                  </NumberTooltip>
-                </label>
-              </div>
-            ))}
+                  <input
+                    id={value}
+                    name={value}
+                    checked={
+                      searchParams?.get("domain") === value ||
+                      domains?.length <= 1
+                    }
+                    onChange={() => {
+                      queryParams({
+                        set: {
+                          domain: value,
+                        },
+                        del: "page",
+                      });
+                    }}
+                    type="radio"
+                    className="ml-3 h-4 w-4 cursor-pointer rounded-full border-gray-300 text-black focus:outline-none focus:ring-0"
+                  />
+                  <label
+                    htmlFor={value}
+                    className="flex w-full cursor-pointer justify-between px-3 py-2 pl-0 text-sm font-medium text-gray-700"
+                  >
+                    <p>{truncate(punycode.toUnicode(value || ""), 24)}</p>
+                    <NumberTooltip value={count} unit="links">
+                      <p className="text-gray-500">{nFormatter(count)}</p>
+                    </NumberTooltip>
+                  </label>
+                </div>
+              ))}
+            {options.length > 3 && (
+              <button
+                onClick={() => setShowMore(!showMore)}
+                className="rounded-md border border-gray-300 p-1 text-center text-sm"
+              >
+                Show {showMore ? "less" : "more"}
+              </button>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -336,7 +347,7 @@ const TagsFilter = ({
               </>
             )}
             {options
-              .slice(0, showMore ? options.length : 4)
+              .slice(0, showMore ? options.length : 3)
               .map(({ id, name, color, count }) => (
                 <div
                   key={id}
@@ -366,7 +377,7 @@ const TagsFilter = ({
                   </label>
                 </div>
               ))}
-            {options.length > 4 && (
+            {options.length > 3 && (
               <button
                 onClick={() => setShowMore(!showMore)}
                 className="rounded-md border border-gray-300 p-1 text-center text-sm"
