@@ -6,16 +6,7 @@ import {
 import { exceededLimitError } from "@/lib/api/errors";
 import { withAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import z, { domainSchema } from "@/lib/zod";
 import { NextResponse } from "next/server";
-
-const addDomainSchema = z.object({
-  slug: domainSchema,
-  primary: z.boolean().optional().default(false),
-  archived: z.boolean().optional().default(false),
-  target: z.string(),
-  type: z.enum(["redirect", "rewrite"]),
-});
 
 // GET /api/projects/[slug]/domains – get all domains for a project
 export const GET = withAuth(async ({ project }) => {

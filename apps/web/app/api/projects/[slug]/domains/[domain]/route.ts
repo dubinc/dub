@@ -7,43 +7,39 @@ import {
   validateDomain,
 } from "@/lib/api/domains";
 import { withAuth } from "@/lib/auth";
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/errors";
 import prisma from "@/lib/prisma";
 import { DUB_PROJECT_ID, isDubDomain } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/projects/[slug]/domains/[domain] – get a project's domain
 export const GET = withAuth(async ({ domain, project }) => {
-  try {
-    if (isDubDomain(domain) && project.id !== DUB_PROJECT_ID) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: "Domain does not belong to project.",
-      });
-    }
-
-    const data = await prisma.domain.findUniqueOrThrow({
-      where: {
-        slug: domain,
-      },
-      select: {
-        slug: true,
-        verified: true,
-        primary: true,
-        target: true,
-        type: true,
-        placeholder: true,
-        clicks: true,
-      },
+  if (isDubDomain(domain) && project.id !== DUB_PROJECT_ID) {
+    return new Response("Domain does not belong to project.", {
+      status: 403,
     });
-
-    return NextResponse.json({
-      ...data,
-      url: data.target,
-    });
-  } catch (error) {
-    return handleAndReturnErrorResponse(error);
   }
+
+  const data = await prisma.domain.findUnique({
+    where: {
+      slug: domain,
+    },
+    select: {
+      slug: true,
+      verified: true,
+      primary: true,
+      target: true,
+      type: true,
+      placeholder: true,
+      clicks: true,
+    },
+  });
+  if (!data) {
+    return new Response("Domain not found", { status: 404 });
+  }
+  return NextResponse.json({
+    ...data,
+    url: data.target,
+  });
 });
 
 // PUT /api/projects/[slug]/domains/[domain] – edit a project's domain
@@ -136,17 +132,12 @@ export const PUT = withAuth(async ({ req, project, domain }) => {
 
 // DELETE /api/projects/[slug]/domains/[domain] - delete a project's domain
 export const DELETE = withAuth(async ({ domain, project }) => {
-  try {
-    if (isDubDomain(domain) && project.id !== DUB_PROJECT_ID) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: "Domain does not belong to project.",
-      });
-    }
-
-    const response = await deleteDomainAndLinks(domain);
-    return NextResponse.json(response);
-  } catch (error) {
-    return handleAndReturnErrorResponse(error);
+  if (isDubDomain(domain) && project.id !== DUB_PROJECT_ID) {
+    return new Response("Domain does not belong to project.", {
+      status: 403,
+    });
   }
+
+  const response = await deleteDomainAndLinks(domain);
+  return NextResponse.json(response);
 });
