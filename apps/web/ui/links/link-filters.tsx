@@ -199,7 +199,7 @@ const DomainsFilter = () => {
       : domains?.map(({ domain, _count }) => ({
           value: domain,
           count: _count,
-        }));
+        })) || [];
   }, [domains, primaryDomain]);
 
   return (
@@ -224,7 +224,7 @@ const DomainsFilter = () => {
             {...SWIPE_REVEAL_ANIMATION_SETTINGS}
           >
             {options
-              .slice(0, showMore ? options.length : 3)
+              .slice(0, showMore ? options.length : 4)
               .map(({ value, count }) => (
                 <div
                   key={value}
@@ -259,7 +259,7 @@ const DomainsFilter = () => {
                   </label>
                 </div>
               ))}
-            {options.length > 3 && (
+            {options.length > 4 && (
               <button
                 onClick={() => setShowMore(!showMore)}
                 className="rounded-md border border-gray-300 p-1 text-center text-sm"
@@ -347,7 +347,7 @@ const TagsFilter = ({
               </>
             )}
             {options
-              .slice(0, showMore ? options.length : 3)
+              .slice(0, showMore ? options.length : 4)
               .map(({ id, name, color, count }) => (
                 <div
                   key={id}
@@ -377,7 +377,7 @@ const TagsFilter = ({
                   </label>
                 </div>
               ))}
-            {options.length > 3 && (
+            {options.length > 4 && (
               <button
                 onClick={() => setShowMore(!showMore)}
                 className="rounded-md border border-gray-300 p-1 text-center text-sm"
