@@ -8,7 +8,7 @@ const updatePublicStatsSchema = z.object({
   publicStats: z.boolean(),
 });
 
-// GET /api/stats – get the publicStats setting for a link
+// GET /api/analytics – get the publicStats setting for a link
 export const GET = withAuth(async ({ searchParams }) => {
   try {
     const { domain, key } = domainKeySchema.parse(searchParams);
@@ -29,7 +29,7 @@ export const GET = withAuth(async ({ searchParams }) => {
   }
 });
 
-// PUT /api/stats – update the publicStats setting for a link
+// PUT /api/analytics – update the publicStats setting for a link
 export const PUT = withAuth(async ({ req, searchParams }) => {
   try {
     const { domain, key } = domainKeySchema.parse(searchParams);

@@ -166,7 +166,7 @@ export function LineItem({
           data ? (
             <BlurImage
               src={`${GOOGLE_FAVICON_URL}${getApexDomain(data.url)}`}
-              alt={data.url}
+              alt={getApexDomain(data.url)}
               className="h-5 w-5 rounded-full"
               width={20}
               height={20}
@@ -177,7 +177,7 @@ export function LineItem({
         ) : tab === "url" ? (
           <BlurImage
             src={`${GOOGLE_FAVICON_URL}${getApexDomain(title)}`}
-            alt={title}
+            alt={getApexDomain(title)}
             className="h-5 w-5 rounded-full"
             width={20}
             height={20}

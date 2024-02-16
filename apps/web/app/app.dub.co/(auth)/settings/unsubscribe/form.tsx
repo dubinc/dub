@@ -1,36 +1,23 @@
 "use client";
 
-import { LoadingSpinner, Logo } from "@dub/ui";
+import UpdateSubscription from "@/ui/account/update-subscription";
+import { Logo } from "@dub/ui";
 import { APP_NAME, HOME_DOMAIN } from "@dub/utils";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
 
 export default function UnsubscribeForm() {
-  const [unsubscribing, setUnsubscribing] = useState(true);
-
-  useEffect(() => {
-    fetch("/api/user/subscribe", {
-      method: "DELETE",
-    }).then(() => {
-      setUnsubscribing(false);
-      toast.success(
-        `You have been unsubscribed from all ${APP_NAME} marketing emails`,
-      );
-    });
-  }, []);
-
   return (
-    <div className="flex h-screen max-w-xs flex-col items-center justify-center space-y-6 text-center">
+    <div className="flex h-screen flex-col items-center justify-center space-y-6 text-center">
       <Link href={HOME_DOMAIN} target="_blank">
         <Logo className="h-12 w-12" />
       </Link>
+      <h1 className="font-display text-4xl font-bold">Email Preferences</h1>
       <p className="text-lg text-gray-600">
-        {unsubscribing
-          ? `Unsubscribing you from all ${APP_NAME} marketing emails...`
-          : `You have been unsubscribed from all ${APP_NAME} marketing emails`}
+        Configure your email preferences for {APP_NAME}.
       </p>
-      {unsubscribing && <LoadingSpinner className="h-7 w-7" />}
+      <div className="rounded-lg border border-gray-200 bg-white px-6 py-3">
+        <UpdateSubscription />
+      </div>
     </div>
   );
 }

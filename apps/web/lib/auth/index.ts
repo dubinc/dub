@@ -126,10 +126,10 @@ export const withAuth =
 
         const url = new URL(req.url || "", API_DOMAIN);
 
-        if (url.pathname.includes("/stats")) {
+        if (url.pathname.includes("/analytics")) {
           throw new DubApiError({
             code: "forbidden",
-            message: "API access is not available for stats yet.",
+            message: "API access is not available for Analytics yet.",
           });
         }
 

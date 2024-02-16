@@ -1,7 +1,7 @@
+import { getAnalytics } from "@/lib/analytics";
 import { exceededLimitError } from "@/lib/api/errors";
 import { isBlacklistedReferrer } from "@/lib/edge-config";
-import { getLinkViaEdge, getProjectViaEdge } from "@/lib/planetscale";
-import { getStats } from "@/lib/stats";
+import { getDomainOrLink, getProjectViaEdge } from "@/lib/planetscale";
 import { ratelimit } from "@/lib/upstash";
 import {
   DEMO_LINK_ID,
@@ -47,10 +47,10 @@ export const GET = async (
       projectId: DUB_PROJECT_ID,
     };
   } else {
-    link = await getLinkViaEdge(domain, key);
+    link = await getDomainOrLink({ domain, key });
     // if the link is explicitly private (publicStats === false)
     if (!link?.publicStats) {
-      return new Response(`Stats for this link are not public`, {
+      return new Response(`Analytics for this link are not public`, {
         status: 403,
       });
     }
@@ -74,7 +74,7 @@ export const GET = async (
     }
   }
 
-  const response = await getStats({
+  const response = await getAnalytics({
     // projectId can be undefined (for public links that haven't been claimed/synced to a project)
     ...(link.projectId && { projectId: link.projectId }),
     linkId: link.id,

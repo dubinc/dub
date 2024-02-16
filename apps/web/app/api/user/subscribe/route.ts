@@ -1,6 +1,7 @@
 import { withSession } from "@/lib/auth";
 import { subscribe, unsubscribe } from "@/lib/flodesk";
 import prisma from "@/lib/prisma";
+import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/user/subscribe – get a specific user
@@ -42,6 +43,10 @@ export const POST = withSession(async ({ session }) => {
       },
     }),
     subscribe({ email: session.user.email, name: session.user.name }),
+    log({
+      message: `*${session.user.email}* resubscribed to the newsletter. Manual addition required.`,
+      type: "alerts",
+    }),
   ]);
 
   return NextResponse.json(user);
