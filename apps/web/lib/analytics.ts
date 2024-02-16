@@ -75,7 +75,7 @@ const VALID_TINYBIRD_ENDPOINTS = [
   "referer",
 ];
 
-export const VALID_STATS_FILTERS = [
+export const VALID_ANALYTICS_FILTERS = [
   "country",
   "city",
   "url",
@@ -87,7 +87,7 @@ export const VALID_STATS_FILTERS = [
   "excludeRoot",
 ];
 
-export const getStats = async ({
+export const getAnalytics = async ({
   projectId,
   linkId,
   domain,
@@ -101,7 +101,7 @@ export const getStats = async ({
   endpoint: string;
   interval?: string;
 } & {
-  [key in typeof VALID_STATS_FILTERS[number]]: string;
+  [key in (typeof VALID_ANALYTICS_FILTERS)[number]]: string;
 }) => {
   // Note: we're using decodeURIComponent in this function because that's how we store it in MySQL and Tinybird
 
@@ -160,7 +160,7 @@ export const getStats = async ({
     url.searchParams.append("granularity", intervalData[interval].granularity);
   }
 
-  VALID_STATS_FILTERS.forEach((filter) => {
+  VALID_ANALYTICS_FILTERS.forEach((filter) => {
     if (rest[filter]) {
       url.searchParams.append(filter, rest[filter]);
     }

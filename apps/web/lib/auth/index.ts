@@ -125,8 +125,8 @@ export const withAuth =
 
       const url = new URL(req.url || "", API_DOMAIN);
 
-      if (url.pathname.includes("/stats")) {
-        return new Response("API access is not available for stats yet.", {
+      if (url.pathname.includes("/analytics")) {
+        return new Response("API access is not available for Analytics yet.", {
           status: 403,
         });
       }
