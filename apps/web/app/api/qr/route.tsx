@@ -7,7 +7,7 @@ import {
 } from "@/lib/qr/constants";
 import { QRCodeSVG } from "@/lib/qr/utils";
 import { ratelimit } from "@/lib/upstash";
-import { LOCALHOST_IP } from "@dub/utils";
+import { DUB_LOGO, LOCALHOST_IP } from "@dub/utils";
 import { ipAddress } from "@vercel/edge";
 import { getToken } from "next-auth/jwt";
 import { ImageResponse } from "next/og";
@@ -42,32 +42,22 @@ export async function GET(req: NextRequest) {
   const includeMargin =
     req.nextUrl.searchParams.get("includeMargin") || DEFAULT_INCLUDEMARGIN;
 
-  const logo_url =
-    req.nextUrl.searchParams.get("logo") ||
-    "https://d2vwwcvoksz7ty.cloudfront.net/logo.png";
+  const logo_url = req.nextUrl.searchParams.get("logo") || DUB_LOGO;
 
-  let svg_data: any = {
+  const res = QRCodeSVG({
     value: url,
     size,
     level,
     includeMargin: includeMargin === "true",
     fgColor,
     bgColor,
-  };
-
-  if (logo_url) {
-    svg_data = {
-      ...svg_data,
-      imageSettings: {
-        src: logo_url,
-        height: size / 4,
-        width: size / 4,
-        excavate: true,
-      },
-    };
-  }
-
-  const res = QRCodeSVG(svg_data);
+    imageSettings: {
+      src: logo_url,
+      height: size / 4,
+      width: size / 4,
+      excavate: true,
+    },
+  });
 
   return new ImageResponse(res, {
     width: size,
