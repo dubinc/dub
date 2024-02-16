@@ -97,8 +97,8 @@ export default function Analytics({ staticDomain }: { staticDomain?: string }) {
   return (
     <AnalyticsContext.Provider
       value={{
-        basePath, // basePath for the page (e.g. /stats/[key], /links/[key], /[slug]/[domain]/[key])
-        baseApiPath, // baseApiPath for the API (e.g. /api/links/[key]/stats)
+        basePath, // basePath for the page (e.g. /stats/[key], /[slug]/analytics)
+        baseApiPath, // baseApiPath for the API (e.g. /api/analytics)
         queryString,
         domain: domain || undefined, // domain for the link (e.g. dub.sh, stey.me, etc.)
         key: key ? decodeURIComponent(key) : undefined, // link key (e.g. github, weathergpt, etc.)
