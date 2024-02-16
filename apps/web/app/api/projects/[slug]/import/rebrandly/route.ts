@@ -1,7 +1,6 @@
 import { addDomainToVercel } from "@/lib/api/domains";
 import { withAuth } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/errors";
 import prisma from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -9,63 +8,53 @@ import { NextResponse } from "next/server";
 
 // GET /api/projects/[slug]/import/rebrandly – get all Rebrandly domains for a project
 export const GET = withAuth(async ({ project }) => {
-  try {
-    const accessToken = await redis.get(`import:rebrandly:${project.id}`);
-    if (!accessToken) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "No Rebrandly access token found",
-      });
-    }
-
-    const response = await fetch(`https://api.rebrandly.com/v1/domains`, {
-      headers: {
-        "Content-Type": "application/json",
-        apikey: accessToken as string,
-      },
-    });
-    const data = await response.json();
-    if (data.error === "Unauthorized") {
-      throw new DubApiError({
-        code: "forbidden",
-        message: "Invalid Rebrandly access token",
-      });
-    }
-
-    const domains = await Promise.all(
-      data
-        .filter(({ fullName }) => fullName !== "rebrand.ly")
-        .map(async ({ id, fullName }: { id: number; fullName: string }) => ({
-          id,
-          domain: fullName,
-          links: await fetch(
-            `https://api.rebrandly.com/v1/links/count?domain.id=${id}`,
-            {
-              headers: {
-                "Content-Type": "application/json",
-                apikey: accessToken as string,
-              },
-            },
-          )
-            .then((r) => r.json())
-            .then((data) => data.count) // subtract 1 to exclude root domain
-            .catch(() => 0),
-        })),
-    );
-
-    const tagsCount = await fetch("https://api.rebrandly.com/v1/tags/count", {
-      headers: {
-        "Content-Type": "application/json",
-        apikey: accessToken as string,
-      },
-    })
-      .then((r) => r.json())
-      .then((data) => data.count);
-
-    return NextResponse.json({ domains, tagsCount });
-  } catch (error) {
-    return handleAndReturnErrorResponse(error);
+  const accessToken = await redis.get(`import:rebrandly:${project.id}`);
+  if (!accessToken) {
+    return new Response("No Rebrandly access token found", { status: 400 });
   }
+
+  const response = await fetch(`https://api.rebrandly.com/v1/domains`, {
+    headers: {
+      "Content-Type": "application/json",
+      apikey: accessToken as string,
+    },
+  });
+  const data = await response.json();
+  if (data.error === "Unauthorized") {
+    return new Response("Invalid Rebrandly access token", { status: 403 });
+  }
+
+  const domains = await Promise.all(
+    data
+      .filter(({ fullName }) => fullName !== "rebrand.ly")
+      .map(async ({ id, fullName }: { id: number; fullName: string }) => ({
+        id,
+        domain: fullName,
+        links: await fetch(
+          `https://api.rebrandly.com/v1/links/count?domain.id=${id}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              apikey: accessToken as string,
+            },
+          },
+        )
+          .then((r) => r.json())
+          .then((data) => data.count) // subtract 1 to exclude root domain
+          .catch(() => 0),
+      })),
+  );
+
+  const tagsCount = await fetch("https://api.rebrandly.com/v1/tags/count", {
+    headers: {
+      "Content-Type": "application/json",
+      apikey: accessToken as string,
+    },
+  })
+    .then((r) => r.json())
+    .then((data) => data.count);
+
+  return NextResponse.json({ domains, tagsCount });
 });
 
 // PUT /api/projects/[slug]/import/rebrandly - save Rebrandly API key

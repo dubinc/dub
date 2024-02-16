@@ -1,7 +1,6 @@
 import { addDomainToVercel } from "@/lib/api/domains";
 import { withAuth } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/errors";
 import prisma from "@/lib/prisma";
 import { BitlyGroupProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
@@ -10,53 +9,43 @@ import { NextResponse } from "next/server";
 
 // GET /api/projects/[slug]/import/bitly – get all bitly groups for a project
 export const GET = withAuth(async ({ project }) => {
-  try {
-    const accessToken = await redis.get(`import:bitly:${project.id}`);
-    if (!accessToken) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "No Bitly access token found",
-      });
-    }
-    const response = await fetch(`https://api-ssl.bitly.com/v4/groups`, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-    const data = await response.json();
-    if (data.message === "FORBIDDEN") {
-      throw new DubApiError({
-        code: "forbidden",
-        message: "Invalid Bitly access token",
-      });
-    }
-
-    const groups = data.groups
-      // filter for active groups only
-      .filter(({ is_active }) => is_active) as BitlyGroupProps[];
-
-    const groupsWithTags = await Promise.all(
-      groups.map(async (group) => ({
-        ...group,
-        tags: await fetch(
-          `https://api-ssl.bitly.com/v4/groups/${group.guid}/tags`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${accessToken}`,
-            },
-          },
-        )
-          .then((r) => r.json())
-          .then((r) => r.tags),
-      })),
-    ).then((g) => g.filter(({ bsds }) => bsds.length > 0));
-
-    return NextResponse.json(groupsWithTags);
-  } catch (error) {
-    return handleAndReturnErrorResponse(error);
+  const accessToken = await redis.get(`import:bitly:${project.id}`);
+  if (!accessToken) {
+    return new Response("No Bitly access token found", { status: 400 });
   }
+  const response = await fetch(`https://api-ssl.bitly.com/v4/groups`, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  const data = await response.json();
+  if (data.message === "FORBIDDEN") {
+    return new Response("Invalid Bitly access token", { status: 403 });
+  }
+
+  const groups = data.groups
+    // filter for active groups only
+    .filter(({ is_active }) => is_active) as BitlyGroupProps[];
+
+  const groupsWithTags = await Promise.all(
+    groups.map(async (group) => ({
+      ...group,
+      tags: await fetch(
+        `https://api-ssl.bitly.com/v4/groups/${group.guid}/tags`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      )
+        .then((r) => r.json())
+        .then((r) => r.tags),
+    })),
+  ).then((g) => g.filter(({ bsds }) => bsds.length > 0));
+
+  return NextResponse.json(groupsWithTags);
 });
 
 // POST /api/projects/[slug]/import/bitly - create job to import links from bitly

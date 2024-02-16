@@ -1,7 +1,6 @@
 import { addDomainToVercel } from "@/lib/api/domains";
 import { withAuth } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/errors";
 import prisma from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import { APP_DOMAIN_WITH_NGROK, fetchWithTimeout } from "@dub/utils";
@@ -9,52 +8,42 @@ import { NextResponse } from "next/server";
 
 // GET /api/projects/[slug]/import/short – get all short.io domains for a project
 export const GET = withAuth(async ({ project }) => {
-  try {
-    const accessToken = await redis.get(`import:short:${project.id}`);
-    if (!accessToken) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "No Short.io access token found",
-      });
-    }
-
-    const response = await fetch(`https://api.short.io/api/domains`, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: accessToken as string,
-      },
-    });
-    const data = await response.json();
-    if (data.error === "Unauthorized") {
-      throw new DubApiError({
-        code: "forbidden",
-        message: "Invalid Short.io access token",
-      });
-    }
-
-    const domains = await Promise.all(
-      data.map(async ({ id, hostname }: { id: number; hostname: string }) => ({
-        id,
-        domain: hostname,
-        links: await fetchWithTimeout(
-          `https://api-v2.short.cm/statistics/domain/${id}?period=total`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: accessToken as string,
-            },
-          },
-        )
-          .then((r) => r.json())
-          .then((data) => data.links - 1) // subtract 1 to exclude root domain
-          .catch(() => 0),
-      })),
-    );
-
-    return NextResponse.json(domains);
-  } catch (error) {
-    return handleAndReturnErrorResponse(error);
+  const accessToken = await redis.get(`import:short:${project.id}`);
+  if (!accessToken) {
+    return new Response("No Short.io access token found", { status: 400 });
   }
+
+  const response = await fetch(`https://api.short.io/api/domains`, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: accessToken as string,
+    },
+  });
+  const data = await response.json();
+  if (data.error === "Unauthorized") {
+    return new Response("Invalid Short.io access token", { status: 403 });
+  }
+
+  const domains = await Promise.all(
+    data.map(async ({ id, hostname }: { id: number; hostname: string }) => ({
+      id,
+      domain: hostname,
+      links: await fetchWithTimeout(
+        `https://api-v2.short.cm/statistics/domain/${id}?period=total`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: accessToken as string,
+          },
+        },
+      )
+        .then((r) => r.json())
+        .then((data) => data.links - 1) // subtract 1 to exclude root domain
+        .catch(() => 0),
+    })),
+  );
+
+  return NextResponse.json(domains);
 });
 
 // PUT /api/projects/[slug]/import/short - save Short.io API key
