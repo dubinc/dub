@@ -1,15 +1,12 @@
-import { Plan, Role, TagColor } from "@/lib/types";
+import { plans, roles, tagColors } from "@/lib/types";
 import z from "@/lib/zod";
 
-export const planSchema = z
-  .nativeEnum(Plan)
-  .default(Plan.free)
-  .describe("The plan of the project.");
+export const planSchema = z.enum(plans).describe("The plan of the project.");
 
 export const roleSchema = z
-  .nativeEnum(Role)
+  .enum(roles)
   .describe("The role of the authenticated user in the project.");
 
 export const tagColorSchema = z
-  .nativeEnum(TagColor)
+  .enum(tagColors)
   .describe("The color of the tag.");

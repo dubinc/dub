@@ -6,7 +6,7 @@ import prisma from "@/lib/prisma";
 import z from "@/lib/zod";
 import { NextResponse } from "next/server";
 
-const createOrDeleteInviteSchema = z.object({
+const emailInviteSchema = z.object({
   email: z.string().email(),
 });
 
@@ -28,7 +28,7 @@ export const GET = withAuth(async ({ project }) => {
 export const POST = withAuth(
   async ({ req, project, session }) => {
     try {
-      const { email } = createOrDeleteInviteSchema.parse(await req.json());
+      const { email } = emailInviteSchema.parse(await req.json());
       const alreadyInTeam = await prisma.projectUsers.findFirst({
         where: {
           projectId: project.id,
@@ -84,7 +84,7 @@ export const POST = withAuth(
 export const DELETE = withAuth(
   async ({ searchParams, project }) => {
     try {
-      const { email } = createOrDeleteInviteSchema.parse(searchParams);
+      const { email } = emailInviteSchema.parse(searchParams);
       const response = await prisma.projectInvite.delete({
         where: {
           email_projectId: {

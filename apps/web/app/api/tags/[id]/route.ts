@@ -33,10 +33,14 @@ export const PUT = withAuth(async ({ req, params }) => {
 // DELETE /api/projects/[slug]/tags/[id] – delete a tag for a project
 export const DELETE = withAuth(async ({ params }) => {
   const { id } = params;
-  const response = await prisma.tag.delete({
-    where: {
-      id,
-    },
-  });
-  return NextResponse.json(response);
+  try {
+    const response = await prisma.tag.delete({
+      where: {
+        id,
+      },
+    });
+    return NextResponse.json(response);
+  } catch (error) {
+    return handleAndReturnErrorResponse(error);
+  }
 });

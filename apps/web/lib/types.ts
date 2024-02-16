@@ -52,9 +52,11 @@ export interface TagProps {
   color: TagColorProps;
 }
 
-export type TagColorProps = keyof typeof TagColor
+export type TagColorProps = (typeof tagColors)[number];
 
-export type PlanProps = keyof typeof Plan;
+export type PlanProps = (typeof plans)[number];
+
+export type RoleProps = (typeof roles)[number];
 
 export interface ProjectProps {
   id: string;
@@ -77,7 +79,7 @@ export interface ProjectProps {
     primary: boolean;
   }[];
   users: {
-    role: "owner" | "member";
+    role: RoleProps;
   }[];
   metadata?: {
     defaultDomains?: string[];
@@ -95,7 +97,7 @@ export interface UserProps {
   email: string;
   image?: string;
   createdAt: Date;
-  role: "owner" | "member";
+  role: RoleProps;
   projects?: { projectId: string }[];
 }
 
@@ -153,19 +155,11 @@ export interface SAMLProviderProps {
 
 export type NewLinkProps = z.infer<typeof createLinkBodySchema>;
 
-export enum Plan {
-  "free",
-  "pro",
-  "business",
-  "enterprise",
-}
+export const plans = ["free", "pro", "business", "enterprise"] as const;
 
-export enum Role {
-  "owner",
-  "member",
-}
+export const roles = ["owner", "member"] as const;
 
-export enum TagColor {
+export const tagColors = [
   "red",
   "yellow",
   "green",
@@ -173,4 +167,4 @@ export enum TagColor {
   "purple",
   "pink",
   "brown",
-}
+] as const;

@@ -1,12 +1,13 @@
 import { withAuth } from "@/lib/auth";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/errors";
 import prisma from "@/lib/prisma";
+import { roles } from "@/lib/types";
 import z from "@/lib/zod";
 import { NextResponse } from "next/server";
 
 const updateRoleSchema = z.object({
   userId: z.string().min(1),
-  role: z.enum(["owner", "member"], {
+  role: z.enum(roles, {
     errorMap: () => ({
       message: `Role must be either "owner" or "member".`,
     }),
