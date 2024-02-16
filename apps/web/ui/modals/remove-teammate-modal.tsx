@@ -1,7 +1,6 @@
 import useProject from "@/lib/swr/use-project";
 import { UserProps } from "@/lib/types";
-import { BlurImage } from "@/ui/shared/blur-image";
-import { Avatar, Button, Logo, Modal, useMediaQuery } from "@dub/ui";
+import { Avatar, BlurImage, Button, Logo, Modal, useMediaQuery } from "@dub/ui";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -54,28 +53,28 @@ function RemoveTeammateModal({
           {invite
             ? "Revoke Invitation"
             : session?.user?.email === email
-            ? "Leave Project"
-            : "Remove Teammate"}
+              ? "Leave Project"
+              : "Remove Teammate"}
         </h3>
         <p className="text-center text-sm text-gray-500">
           {invite
             ? "This will revoke "
             : session?.user?.email === email
-            ? "You're about to leave "
-            : "This will remove "}
+              ? "You're about to leave "
+              : "This will remove "}
           <span className="font-semibold text-black">
             {session?.user?.email === email ? projectName : name || email}
           </span>
           {invite
             ? "'s invitation to join your project. "
             : session?.user?.email === email
-            ? ". You will lose all access to this project. "
-            : " from your project. "}
+              ? ". You will lose all access to this project. "
+              : " from your project. "}
           Are you sure you want to continue?
         </p>
       </div>
 
-      <div className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 text-left sm:px-16">
+      <div className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 text-left sm:rounded-b-2xl sm:px-16">
         <div className="flex items-center space-x-3 rounded-md border border-gray-300 bg-white p-3">
           <Avatar user={user} />
           <div className="flex flex-col">
@@ -113,8 +112,8 @@ function RemoveTeammateModal({
                   session?.user?.email === email
                     ? "You have left the project!"
                     : invite
-                    ? "Successfully revoked invitation!"
-                    : "Successfully removed teammate!",
+                      ? "Successfully revoked invitation!"
+                      : "Successfully removed teammate!",
                 );
               } else {
                 const error = await res.text();

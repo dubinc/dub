@@ -49,7 +49,7 @@ export default function AndroidSection({
               <SimpleTooltipContent
                 title="Redirect your Android users to a different link."
                 cta="Learn more about device targeting."
-                href={`${HOME_DOMAIN}/help/article/how-to-create-link#device-targeting-ios--android`}
+                href={`${HOME_DOMAIN}/help/article/device-targeting`}
               />
             }
           />

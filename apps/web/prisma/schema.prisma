@@ -19,28 +19,29 @@ model User {
   emailVerified DateTime?
   image         String?
 
-  accounts       Account[]
-  sessions       Session[]
-  projects       ProjectUsers[]
-  links          Link[]
-  tokens        Token[]
-  createdAt      DateTime       @default(now())
+  accounts   Account[]
+  sessions   Session[]
+  projects   ProjectUsers[]
+  links      Link[]
+  tokens     Token[]
+  createdAt  DateTime       @default(now())
+  subscribed Boolean        @default(true)
 }
 
 model Account {
-  id                        String  @id @default(cuid())
-  userId                    String
-  type                      String
-  provider                  String
-  providerAccountId         String
-  refresh_token             String? @db.Text
-  refresh_token_expires_in  Int?
-  access_token              String? @db.Text
-  expires_at                Int?
-  token_type                String?
-  scope                     String?
-  id_token                  String? @db.Text
-  session_state             String?
+  id                       String  @id @default(cuid())
+  userId                   String
+  type                     String
+  provider                 String
+  providerAccountId        String
+  refresh_token            String? @db.Text
+  refresh_token_expires_in Int?
+  access_token             String? @db.Text
+  expires_at               Int?
+  token_type               String?
+  scope                    String?
+  id_token                 String? @db.Text
+  session_state            String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -67,48 +68,48 @@ model VerificationToken {
 }
 
 model Token {
-  id        String   @id @default(cuid())
-  name      String
-  hashedKey String   @unique
+  id         String    @id @default(cuid())
+  name       String
+  hashedKey  String    @unique
   partialKey String
-  expires   DateTime?
-  lastUsed  DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String
+  expires    DateTime?
+  lastUsed   DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
 
   @@index([userId])
 }
 
 model Project {
-  id                 String          @id @default(cuid())
-  name               String
-  slug               String          @unique
-  logo               String?
+  id   String  @id @default(cuid())
+  name String
+  slug String  @unique
+  logo String?
 
-  plan               String          @default("free")
-  stripeId           String?         @unique // Stripe subscription ID
-  billingCycleStart  Int             // day of the month when the billing cycle starts
-  usage              Int             @default(0)
-  usageLimit         Int             @default(1000)
-  linksUsage         Int             @default(0)
-  linksLimit         Int             @default(25)
-  domainsLimit       Int             @default(3)
-  tagsLimit          Int             @default(5)
-  usersLimit         Int             @default(1)
-  monitoringId       String?         @unique // cron job ID for monitoring
-  
-  users              ProjectUsers[]
-  invites            ProjectInvite[]
-  sentEmails         SentEmail[]
-  links              Link[]
-  domains            Domain[]
-  tags               Tag[]
+  plan              String  @default("free")
+  stripeId          String? @unique // Stripe subscription ID
+  billingCycleStart Int // day of the month when the billing cycle starts
+  usage             Int     @default(0)
+  usageLimit        Int     @default(1000)
+  linksUsage        Int     @default(0)
+  linksLimit        Int     @default(25)
+  domainsLimit      Int     @default(3)
+  tagsLimit         Int     @default(5)
+  usersLimit        Int     @default(1)
+  monitoringId      String? @unique // cron job ID for monitoring
 
-  createdAt          DateTime        @default(now())
-  updatedAt          DateTime        @updatedAt
-  metadata           Json?           @default("{\"defaultDomains\":[\"dub.sh\",\"chatg.pt\",\"spti.fi\",\"amzn.id\"]}")
+  users      ProjectUsers[]
+  invites    ProjectInvite[]
+  sentEmails SentEmail[]
+  links      Link[]
+  domains    Domain[]
+  tags       Tag[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  metadata  Json?    @default("{\"defaultDomains\":[\"dub.sh\",\"chatg.pt\",\"spti.fi\",\"amzn.id\"]}")
 }
 
 model ProjectInvite {
@@ -129,7 +130,7 @@ enum Role {
 
 model ProjectUsers {
   id        String   @id @default(cuid())
-  role      Role   @default(member)
+  role      Role     @default(member)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -142,33 +143,34 @@ model ProjectUsers {
 }
 
 model SentEmail {
-  id        String    @id @default(cuid())
+  id        String   @id @default(cuid())
   type      String
-  createdAt DateTime  @default(now())
-  project   Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId String?
 
   @@index([projectId])
 }
 
 model Domain {
-  id                  String   @id @default(cuid())
-  slug                String   @unique
-  verified            Boolean  @default(false)
-  target              String?
-  type                String   @default("redirect")
-  placeholder         String   @default("https://dub.co/help/article/what-is-dub")
-  description         String?
-  project             Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  projectId           String?
-  primary             Boolean  @default(false)
-  archived            Boolean  @default(false)
-  links               Link[]
-  clicks              Int      @default(0)
-  lastClicked         DateTime? // when the link was last clicked
-  lastChecked         DateTime @default(now())
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  verified    Boolean   @default(false)
+  target      String?
+  type        String    @default("redirect")
+  placeholder String    @default("https://dub.co/help/article/what-is-dub")
+  description String?
+  project     Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String?
+  primary     Boolean   @default(false)
+  archived    Boolean   @default(false)
+  publicStats Boolean   @default(false)
+  links       Link[]
+  clicks      Int       @default(0)
+  lastClicked DateTime? // when the link was last clicked
+  lastChecked DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@index(projectId)
   @@index(clicks(sort: Desc))
@@ -198,12 +200,12 @@ model Link {
   utm_content  String? // UTM content for the link (e.g. description)
 
   // Link cloaking/masking via rewrite
-  rewrite      Boolean @default(false) // whether to rewrite the link or not
+  rewrite Boolean @default(false) // whether to rewrite the link or not
 
   // Custom device targeting
   ios     String? @db.LongText // custom link for iOS devices
   android String? @db.LongText // custom link for Android devices
-  geo     Json?   @db.Json  // custom link for specific countries
+  geo     Json?   @db.Json // custom link for specific countries
 
   // User who created the link
   user   User?   @relation(fields: [userId], references: [id])
@@ -215,19 +217,19 @@ model Link {
   // Relational reference to the project domain
   projectDomain Domain?  @relation(fields: [domain], references: [slug], onUpdate: Cascade, onDelete: Cascade)
 
-  publicStats   Boolean  @default(false) // whether to show public stats or not
-  clicks        Int      @default(0) // number of clicks
+  publicStats   Boolean   @default(false) // whether to show public stats or not
+  clicks        Int       @default(0) // number of clicks
   lastClicked   DateTime? // when the link was last clicked
-  checkDisabled Boolean  @default(false) // disable 404 checking
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  checkDisabled Boolean   @default(false) // disable 404 checking
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   // Link tags
   tag   Tag?    @relation(fields: [tagId], references: [id])
   tagId String?
 
   // Comments on the particular shortlink
-  comments String? @db.LongText 
+  comments String? @db.LongText
 
   // TODO: might wanna add indices for utm_source, utm_medium, utm_campaign
 
@@ -269,13 +271,13 @@ model jackson_index {
 }
 
 model jackson_store {
-  key               String    @id @db.VarChar(250)
-  value             String    @db.Text
-  iv                String?   @db.VarChar(64)
-  tag               String?   @db.VarChar(64)
-  namespace         String?   @db.VarChar(64)
-  createdAt         DateTime  @default(now()) @db.Timestamp(0)
-  modifiedAt        DateTime? @db.Timestamp(0)
+  key        String    @id @db.VarChar(250)
+  value      String    @db.Text
+  iv         String?   @db.VarChar(64)
+  tag        String?   @db.VarChar(64)
+  namespace  String?   @db.VarChar(64)
+  createdAt  DateTime  @default(now()) @db.Timestamp(0)
+  modifiedAt DateTime? @db.Timestamp(0)
 
   @@index([namespace], map: "_jackson_store_namespace")
 }

@@ -74,7 +74,7 @@ export default function UnsplashSearch({
                   alt={photo.alt_description || "Unsplash image"}
                   className="absolute h-full w-full object-cover"
                 />
-                <p className="line-clamp-1 absolute bottom-0 left-0 right-0 w-full bg-black bg-opacity-10 p-1 text-xs text-white">
+                <p className="absolute bottom-0 left-0 right-0 line-clamp-1 w-full bg-black bg-opacity-10 p-1 text-xs text-white">
                   by{" "}
                   <a
                     className="underline underline-offset-2"

@@ -1,8 +1,7 @@
 import useProject from "@/lib/swr/use-project";
 import { UserProps } from "@/lib/types";
-import { BlurImage } from "@/ui/shared/blur-image";
-import { Avatar, Button, Logo, Modal } from "@dub/ui";
-import { useParams, useRouter } from "next/navigation";
+import { Avatar, BlurImage, Button, Logo, Modal } from "@dub/ui";
+import { useParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -52,7 +51,7 @@ function EditRoleModal({
         </p>
       </div>
 
-      <div className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 text-left sm:px-16">
+      <div className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 text-left sm:rounded-b-2xl sm:px-16">
         <div className="flex items-center space-x-3 rounded-md border border-gray-300 bg-white p-3">
           <Avatar user={user} />
           <div className="flex flex-col">

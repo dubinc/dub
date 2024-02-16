@@ -1,7 +1,7 @@
-import Stats from "@/ui/stats";
-import AnalyticsClient from "./client";
-import { Suspense } from "react";
+import Stats from "@/ui/analytics";
 import LayoutLoader from "@/ui/layout/layout-loader";
+import { Suspense } from "react";
+import AnalyticsClient from "./client";
 
 export default function ProjectAnalytics() {
   return (

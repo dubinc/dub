@@ -1,11 +1,34 @@
 import { connect } from "@planetscale/database";
-import { DomainProps } from "./types";
+import { DomainProps, ProjectProps } from "./types";
 
 export const pscale_config = {
   url: process.env.DATABASE_URL,
 };
 
 export const conn = connect(pscale_config);
+
+export const getProjectViaEdge = async (projectId: string) => {
+  if (!process.env.DATABASE_URL) return null;
+
+  const { rows } =
+    (await conn.execute("SELECT * FROM Project WHERE id = ?", [projectId])) ||
+    {};
+
+  return rows && Array.isArray(rows) && rows.length > 0
+    ? (rows[0] as ProjectProps)
+    : null;
+};
+
+export const getDomainViaEdge = async (domain: string) => {
+  if (!process.env.DATABASE_URL) return null;
+
+  const { rows } =
+    (await conn.execute("SELECT * FROM Domain WHERE slug = ?", [domain])) || {};
+
+  return rows && Array.isArray(rows) && rows.length > 0
+    ? (rows[0] as DomainProps)
+    : null;
+};
 
 export const getLinkViaEdge = async (domain: string, key: string) => {
   if (!process.env.DATABASE_URL) return null;
@@ -38,13 +61,22 @@ export const getLinkViaEdge = async (domain: string, key: string) => {
     : null;
 };
 
-export const getDomainViaEdge = async (domain: string) => {
-  if (!process.env.DATABASE_URL) return null;
-
-  const { rows } =
-    (await conn.execute("SELECT * FROM Domain WHERE slug = ?", [domain])) || {};
-
-  return rows && Array.isArray(rows) && rows.length > 0
-    ? (rows[0] as DomainProps)
-    : null;
-};
+export async function getDomainOrLink({
+  domain,
+  key,
+}: {
+  domain: string;
+  key?: string;
+}) {
+  if (!key || key === "_root") {
+    const data = await getDomainViaEdge(domain);
+    if (!data) return null;
+    return {
+      ...data,
+      key: "_root",
+      url: data?.target,
+    };
+  } else {
+    return await getLinkViaEdge(domain, key);
+  }
+}

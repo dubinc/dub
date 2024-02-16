@@ -1,5 +1,5 @@
-import { constructMetadata } from "@dub/utils";
 import { Logo, MaxWidthWrapper } from "@dub/ui";
+import { constructMetadata } from "@dub/utils";
 import Link from "next/link";
 import { ReactNode } from "react";
 

@@ -1,10 +1,3 @@
-import { NextRequest } from "next/server";
-import { ratelimit } from "@/lib/upstash";
-import { LOCALHOST_IP } from "@dub/utils";
-import { ipAddress } from "@vercel/edge";
-import { getToken } from "next-auth/jwt";
-import { ImageResponse } from "next/og";
-import { QRCodeSVG } from "@/lib/qr/utils";
 import {
   DEFAULT_BGCOLOR,
   DEFAULT_FGCOLOR,
@@ -12,6 +5,13 @@ import {
   DEFAULT_LEVEL,
   QR_LEVELS,
 } from "@/lib/qr/constants";
+import { QRCodeSVG } from "@/lib/qr/utils";
+import { ratelimit } from "@/lib/upstash";
+import { LOCALHOST_IP } from "@dub/utils";
+import { ipAddress } from "@vercel/edge";
+import { getToken } from "next-auth/jwt";
+import { ImageResponse } from "next/og";
+import { NextRequest } from "next/server";
 
 export const runtime = "edge";
 

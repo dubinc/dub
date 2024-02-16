@@ -1,5 +1,11 @@
-import { BlurImage } from "@/ui/shared/blur-image";
-import { Facebook, LinkedIn, LoadingCircle, Photo, Twitter } from "@dub/ui";
+import {
+  BlurImage,
+  Facebook,
+  LinkedIn,
+  LoadingCircle,
+  Photo,
+  Twitter,
+} from "@dub/ui";
 import { getDomainWithoutWWW } from "@dub/utils";
 import { type Link as LinkProps } from "@prisma/client";
 import { useMemo } from "react";
@@ -84,7 +90,7 @@ export default function Preview({
           <div className="relative overflow-hidden rounded-2xl border border-gray-300">
             {previewImage}
             {title && (
-              <div className="absolute bottom-2 left-2 rounded-md bg-[#414142] py-px px-1.5">
+              <div className="absolute bottom-2 left-2 rounded-md bg-[#414142] px-1.5 py-px">
                 <h3 className="max-w-sm truncate text-sm text-white">
                   {title}
                 </h3>

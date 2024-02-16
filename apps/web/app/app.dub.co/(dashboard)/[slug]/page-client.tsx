@@ -1,5 +1,6 @@
 "use client";
 
+import useProject from "@/lib/swr/use-project";
 import LinksContainer from "@/ui/links/links-container";
 import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
 import {
@@ -10,7 +11,6 @@ import {
   TooltipContent,
   useRouterStuff,
 } from "@dub/ui";
-import useProject from "@/lib/swr/use-project";
 import { ChevronDown, FilePlus2, Sheet } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";

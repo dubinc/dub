@@ -1,6 +1,5 @@
 import useProject from "@/lib/swr/use-project";
-import { BlurImage } from "@/ui/shared/blur-image";
-import { Button, Logo, Modal, useMediaQuery } from "@dub/ui";
+import { BlurImage, Button, Logo, Modal, useMediaQuery } from "@dub/ui";
 import va from "@vercel/analytics";
 import { useParams } from "next/navigation";
 import {
@@ -72,7 +71,7 @@ function InviteTeammateModal({
             setInviting(false);
           });
         }}
-        className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 text-left sm:px-16"
+        className="flex flex-col space-y-4 bg-gray-50 px-4 py-8 text-left sm:rounded-b-2xl sm:px-16"
       >
         <div>
           <label htmlFor="email" className="block text-sm text-gray-700">

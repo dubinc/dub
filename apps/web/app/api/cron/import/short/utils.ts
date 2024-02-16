@@ -69,7 +69,7 @@ export const importLinksFromShort = async ({
     .filter(Boolean);
 
   // bulk create links
-  await bulkCreateLinks(importedLinks);
+  await bulkCreateLinks({ links: importedLinks });
 
   count += importedLinks.length;
 

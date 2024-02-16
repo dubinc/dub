@@ -1,6 +1,10 @@
+DESCRIPTION >
+	Top referers by clicks
+
+
 TOKEN "referer_endpoint_read_8276" READ
 
-NODE referer_node
+NODE endpoint
 DESCRIPTION >
     undefined
 
@@ -8,14 +12,43 @@ SQL >
 
     %
     SELECT referer, COUNT(referer) as clicks
-    FROM click_events
+    FROM
+        dub_click_events_mv
+        {% if not defined(linkId) %}
+            PREWHERE link_id in (
+                SELECT link_id
+                from dub_links_metadata_latest FINAL
+                WHERE
+                    project_id
+                    = {{
+                        String(
+                            projectId,
+                            'cl7wsy2836920mjrb352g5wfx',
+                            description="The ID of the project",
+                            required=True,
+                        )
+                    }}
+                    AND deleted == 0
+                    {% if defined(domain) %} AND domain IN {{ Array(domain, 'String') }} {% end %}
+                    {% if defined(excludeRoot) %} AND key != '_root' {% end %}
+            )
+        {% end %}
     WHERE
-        domain IN {{ Array(domain, 'String', default='stey.me') }}
-        {% if defined(key) %}
-            AND key IN {{ Array(key, 'String', default='twitter') }}
+        true
+        {% if defined(linkId) %}
+            AND link_id
+            = {{
+                String(
+                    linkId,
+                    'clsdzhhlq0003vskwcaz6nm39',
+                    description="The ID of the link",
+                )
+            }}
         {% end %}
         {% if defined(country) %} AND country = {{ country }} {% end %}
         {% if defined(city) %} AND city = {{ city }} {% end %}
+        {% if defined(url) %} AND url = {{ url }} {% end %}
+        {% if defined(alias) %} AND alias = {{ alias }} {% end %}
         {% if defined(device) %} AND device = {{ device }} {% end %}
         {% if defined(browser) %} AND browser = {{ browser }} {% end %}
         {% if defined(os) %} AND os = {{ os }} {% end %}
