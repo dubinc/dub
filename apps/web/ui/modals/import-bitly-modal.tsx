@@ -48,9 +48,8 @@ function ImportBitlyModal({
       refreshWhenHidden: false,
       refreshInterval: 0,
       onError: (err) => {
-        const { error } = JSON.parse(err.message);
-        if (error.message !== "No Bitly access token found") {
-          toast.error(error.message);
+        if (err.message !== "No Bitly access token found") {
+          toast.error(err.message);
         }
       },
     },
