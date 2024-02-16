@@ -44,7 +44,8 @@ export default function DomainCard({ props }: { props: DomainProps }) {
   );
 
   const { data: clicks } = useSWR<number>(
-    slug && `/api/projects/${slug}/analytics/clicks?domain=${domain}&key=_root`,
+    slug &&
+      `/api/analytics/clicks?projectSlug=${slug}&domain=${domain}&key=_root`,
     fetcher,
     {
       fallbackData: props.clicks,
