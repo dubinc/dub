@@ -115,19 +115,7 @@
   },
   "redirects": [
     {
-      "source": "/integrations/zapier",
-      "destination": "/integrations"
-    },
-    {
-      "source": "/integrations/pipedream",
-      "destination": "/integrations"
-    },
-    {
-      "source": "/integrations/make",
-      "destination": "/integrations"
-    },
-    {
-      "source": "/integrations/raycast",
+      "source": "/integrations/:path*",
       "destination": "/integrations"
     }
   ]

@@ -1,21 +1,23 @@
-import { LocationTabs } from "@/lib/stats";
+import { DeviceTabs } from "@/lib/analytics";
 import { LoadingSpinner, Modal, TabSelect, useRouterStuff } from "@dub/ui";
-import { COUNTRIES, fetcher } from "@dub/utils";
+import { fetcher } from "@dub/utils";
 import { Maximize } from "lucide-react";
 import { useContext, useState } from "react";
 import useSWR from "swr";
-import { StatsContext } from ".";
+import { AnalyticsContext } from ".";
 import BarList from "./bar-list";
+import DeviceIcon from "./device-icon";
 
-export default function Locations() {
-  const [tab, setTab] = useState<LocationTabs>("country");
+export default function Devices() {
+  const [tab, setTab] = useState<DeviceTabs>("device");
 
-  const { baseApiPath, queryString } = useContext(StatsContext);
+  const { baseApiPath, queryString } = useContext(AnalyticsContext);
 
-  const { data } = useSWR<{ country: string; city: string; clicks: number }[]>(
-    `${baseApiPath}/${tab}?${queryString}`,
-    fetcher,
-  );
+  const { data } = useSWR<
+    ({
+      [key in DeviceTabs]: string;
+    } & { clicks: number })[]
+  >(`${baseApiPath}/${tab}?${queryString}`, fetcher);
 
   const { queryParams } = useRouterStuff();
   const [showModal, setShowModal] = useState(false);
@@ -25,14 +27,8 @@ export default function Locations() {
       tab={tab}
       data={
         data?.map((d) => ({
-          icon: (
-            <img
-              alt={d.country}
-              src={`https://flag.vercel.app/m/${d.country}.svg`}
-              className="h-3 w-5"
-            />
-          ),
-          title: tab === "country" ? COUNTRIES[d.country] : d.city,
+          icon: <DeviceIcon display={d[tab]} tab={tab} className="h-4 w-4" />,
+          title: d[tab],
           href: queryParams({
             set: {
               [tab]: d[tab],
@@ -43,7 +39,7 @@ export default function Locations() {
         })) || []
       }
       maxClicks={data?.[0]?.clicks || 0}
-      barBackground="bg-orange-100"
+      barBackground="bg-green-100"
       setShowModal={setShowModal}
       {...(limit && { limit })}
     />
@@ -57,15 +53,15 @@ export default function Locations() {
         className="max-w-lg"
       >
         <div className="border-b border-gray-200 px-6 py-4">
-          <h1 className="text-lg font-semibold">Locations</h1>
+          <h1 className="text-lg font-semibold">Devices</h1>
         </div>
         {barList()}
       </Modal>
       <div className="scrollbar-hide relative z-0 h-[400px] border border-gray-200 bg-white px-7 py-5  sm:rounded-lg sm:border-gray-100 sm:shadow-lg">
         <div className="mb-3 flex justify-between">
-          <h1 className="text-lg font-semibold">Locations</h1>
+          <h1 className="text-lg font-semibold">Devices</h1>
           <TabSelect
-            options={["country", "city"]}
+            options={["device", "browser", "os"]}
             selected={tab}
             // @ts-ignore
             selectAction={setTab}

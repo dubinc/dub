@@ -16,7 +16,10 @@ export default function Footer({
           <span className="text-black">{email}</span>. If you were not expecting
           this email, you can ignore this email. If you don't want to receive
           emails like this in the future, you can{" "}
-          <a href="{{{RESEND_UNSUBSCRIBE_URL}}}" className="text-gray-600">
+          <a
+            href="https://app.dub.co/settings/unsubscribe"
+            className="text-gray-600"
+          >
             unsubscribe here
           </a>
           .

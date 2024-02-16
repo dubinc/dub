@@ -103,7 +103,7 @@ export default function LinkCard({
     isVisible &&
       slug &&
       !exceededClicks &&
-      `/api/projects/${slug}/stats/clicks?domain=${domain}&key=${key}`,
+      `/api/analytics/clicks?projectSlug=${slug}&domain=${domain}&key=${key}`,
     fetcher,
     {
       fallbackData: props.clicks,
@@ -269,7 +269,7 @@ export default function LinkCard({
           ) : (
             <BlurImage
               src={`${GOOGLE_FAVICON_URL}${apexDomain}`}
-              alt={apexDomain || encodeURIComponent(url)}
+              alt={apexDomain}
               className="h-8 w-8 rounded-full sm:h-10 sm:w-10"
               width={20}
               height={20}

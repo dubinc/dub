@@ -3,11 +3,11 @@ import { GOOGLE_FAVICON_URL, fetcher } from "@dub/utils";
 import { Link2, Maximize } from "lucide-react";
 import { useContext, useState } from "react";
 import useSWR from "swr";
-import { StatsContext } from ".";
+import { AnalyticsContext } from ".";
 import BarList from "./bar-list";
 
 export default function Referer() {
-  const { baseApiPath, queryString } = useContext(StatsContext);
+  const { baseApiPath, queryString } = useContext(AnalyticsContext);
 
   const { data } = useSWR<{ referer: string; clicks: number }[]>(
     `${baseApiPath}/referer?${queryString}`,

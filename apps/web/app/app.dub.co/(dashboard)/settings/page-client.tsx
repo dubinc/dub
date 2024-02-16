@@ -3,6 +3,7 @@
 import DeleteAccountSection from "@/ui/account/delete-account";
 import UploadAvatar from "@/ui/account/upload-avatar";
 import { Form } from "@dub/ui";
+import { APP_NAME } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
@@ -13,7 +14,7 @@ export default function SettingsPageClient() {
     <>
       <Form
         title="Your Name"
-        description={`This will be your display name on ${process.env.NEXT_PUBLIC_APP_NAME}.`}
+        description={`This will be your display name on ${APP_NAME}.`}
         inputAttrs={{
           name: "name",
           defaultValue:
@@ -42,13 +43,14 @@ export default function SettingsPageClient() {
       />
       <Form
         title="Your Email"
-        description={`This will be the email you use to log in to ${process.env.NEXT_PUBLIC_APP_NAME} and receive notifications.`}
+        description={`This will be the email you use to log in to ${APP_NAME} and receive notifications.`}
         inputAttrs={{
           name: "email",
           defaultValue: session?.user?.email || undefined,
           placeholder: "panic@thedis.co",
         }}
         helpText="Must be a valid email address."
+        // helpText={<UpdateSubscription />} TODO: enable this once we can subscribe folks programmatically
         handleSubmit={(data) =>
           fetch("/api/user", {
             method: "PUT",

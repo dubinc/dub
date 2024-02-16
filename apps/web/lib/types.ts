@@ -127,6 +127,7 @@ export interface DomainProps {
   verified: boolean;
   primary: boolean;
   archived: boolean;
+  publicStats: boolean;
   target?: string;
   type: string;
   placeholder?: string;

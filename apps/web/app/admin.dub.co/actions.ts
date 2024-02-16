@@ -2,6 +2,7 @@
 
 import { deleteProject } from "@/lib/api/projects";
 import { getSession, hashToken } from "@/lib/auth";
+import { unsubscribe } from "@/lib/flodesk";
 import prisma from "@/lib/prisma";
 import { DUB_DOMAINS, DUB_PROJECT_ID } from "@dub/utils";
 import { get } from "@vercel/edge-config";
@@ -164,7 +165,7 @@ export async function banUser(data: FormData) {
     },
   });
 
-  if (!user) {
+  if (!user?.email) {
     return {
       error: "No user found",
     };
@@ -192,16 +193,7 @@ export async function banUser(data: FormData) {
     cloudinary.v2.uploader.destroy(`avatars/${user.id}`, {
       invalidate: true,
     }),
-    fetch(
-      `https://api.resend.com/audiences/${process.env.RESEND_AUDIENCE_ID}/contacts/${user.email}`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-      },
-    ),
+    unsubscribe(user.email),
     fetch(
       `https://api.vercel.com/v1/edge-config/${process.env.EDGE_CONFIG_ID}/items?teamId=${process.env.TEAM_ID_VERCEL}`,
       {

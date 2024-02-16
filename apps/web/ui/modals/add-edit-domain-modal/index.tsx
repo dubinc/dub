@@ -48,6 +48,7 @@ function AddEditDomainModal({
       verified: false,
       primary: false,
       archived: false,
+      publicStats: false,
       target: "",
       type: "redirect",
       clicks: 0,

@@ -11,14 +11,16 @@ export function Switch({
   thumbDimensions,
   thumbTranslate,
   checked = true,
+  loading = false,
   disabled = false,
   disabledTooltip,
 }: {
-  fn?: Dispatch<SetStateAction<boolean>> | (() => void);
+  fn?: Dispatch<SetStateAction<boolean>> | ((checked: boolean) => void);
   trackDimensions?: string;
   thumbDimensions?: string;
   thumbTranslate?: string;
   checked?: boolean;
+  loading?: boolean;
   disabled?: boolean;
   disabledTooltip?: string | ReactNode;
 }) {
@@ -39,22 +41,26 @@ export function Switch({
       {...(fn && { onCheckedChange: fn })}
       disabled={disabled}
       className={cn(
-        disabled
-          ? "cursor-not-allowed bg-gray-300"
-          : "radix-state-checked:bg-blue-500 radix-state-unchecked:bg-gray-200 cursor-pointer focus:outline-none focus-visible:ring focus-visible:ring-blue-500 focus-visible:ring-opacity-75",
+        loading
+          ? "bg-gray-200"
+          : disabled
+            ? "cursor-not-allowed bg-gray-300"
+            : "radix-state-checked:bg-blue-500 radix-state-unchecked:bg-gray-200 cursor-pointer focus:outline-none focus-visible:ring focus-visible:ring-blue-500 focus-visible:ring-opacity-75",
         "relative inline-flex h-4 w-8 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out",
         trackDimensions,
       )}
     >
-      <SwitchPrimitive.Thumb
-        className={cn(
-          `radix-state-checked:${thumbTranslate}`,
-          "radix-state-unchecked:translate-x-0",
-          `pointer-events-none h-3 w-3 translate-x-4 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out`,
-          thumbDimensions,
-          thumbTranslate,
-        )}
-      />
+      {!loading && (
+        <SwitchPrimitive.Thumb
+          className={cn(
+            `radix-state-checked:${thumbTranslate}`,
+            "radix-state-unchecked:translate-x-0",
+            `pointer-events-none h-3 w-3 translate-x-4 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out`,
+            thumbDimensions,
+            thumbTranslate,
+          )}
+        />
+      )}
     </SwitchPrimitive.Root>
   );
 }
