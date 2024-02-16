@@ -1,4 +1,4 @@
-import { INTERVALS } from "@/lib/stats";
+import { INTERVALS } from "@/lib/analytics";
 import useDomains from "@/lib/swr/use-domains";
 import useProject from "@/lib/swr/use-project";
 import { DomainProps } from "@/lib/types";
@@ -32,13 +32,13 @@ import { useParams, useSearchParams } from "next/navigation";
 import punycode from "punycode/";
 import { useContext, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { StatsContext } from ".";
+import { AnalyticsContext } from ".";
 
 export default function Toggle() {
   const { slug } = useParams() as { slug?: string };
   const { queryParams } = useRouterStuff();
 
-  const { basePath, domain, key, interval } = useContext(StatsContext);
+  const { basePath, domain, key, interval } = useContext(AnalyticsContext);
 
   const [openDatePopover, setOpenDatePopover] = useState(false);
 
@@ -236,7 +236,7 @@ const SharePopover = () => {
   const [openSharePopover, setopenSharePopoverPopover] = useState(false);
 
   const { baseApiPath, queryString, domain, key } = useContext(
-    StatsContext,
+    AnalyticsContext,
   ) as {
     baseApiPath: string;
     queryString: string;

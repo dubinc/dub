@@ -1,4 +1,4 @@
-import { VALID_STATS_FILTERS } from "@/lib/stats";
+import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics";
 import { Chart } from "@/ui/shared/icons";
 import { NumberTooltip, useRouterStuff } from "@dub/ui";
 import {
@@ -12,11 +12,11 @@ import { X } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useContext } from "react";
-import { StatsContext } from ".";
+import { AnalyticsContext } from ".";
 import BarChart from "./bar-chart";
 
 export default function Clicks() {
-  const { totalClicks } = useContext(StatsContext);
+  const { totalClicks } = useContext(AnalyticsContext);
   const searchParams = useSearchParams();
   const domain = searchParams?.get("domain");
   const key = searchParams?.get("key");
@@ -75,7 +75,7 @@ export default function Clicks() {
                 <X className="h-4 w-4" />
               </Link>
             ))}
-          {VALID_STATS_FILTERS.map((filter) => {
+          {VALID_ANALYTICS_FILTERS.map((filter) => {
             const value = searchParams?.get(filter);
             if (!value || filter === "excludeRoot") return null;
             return (

@@ -96,7 +96,7 @@ export default function LinkCard({
     isVisible &&
       slug &&
       !exceededClicks &&
-      `/api/projects/${slug}/stats/clicks?domain=${domain}&key=${key}`,
+      `/api/analytics/clicks?projectSlug=${slug}&domain=${domain}&key=${key}`,
     fetcher,
     {
       fallbackData: props.clicks,

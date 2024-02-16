@@ -1,5 +1,5 @@
+import { getAnalytics } from "@/lib/analytics";
 import prisma from "@/lib/prisma";
-import { getStats } from "@/lib/stats";
 import "dotenv-flow/config";
 import { linkConstructor } from "./utils";
 
@@ -34,7 +34,7 @@ async function main() {
     console.log("No project found");
     return;
   }
-  const topLinks = await getStats({
+  const topLinks = await getAnalytics({
     projectId: project.id,
     endpoint: "top_links",
     interval: "30d",

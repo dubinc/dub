@@ -1,5 +1,5 @@
 import { getDomainOrLink } from "@/lib/planetscale";
-import Stats from "@/ui/stats";
+import Stats from "@/ui/analytics";
 import { constructMetadata } from "@dub/utils";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -20,7 +20,7 @@ export async function generateMetadata({
 
   return constructMetadata({
     title: `Analytics for ${params.domain}/${params.key} – ${process.env.NEXT_PUBLIC_APP_NAME}`,
-    image: `https://${params.domain}/api/og/stats?domain=${params.domain}&key=${params.key}`,
+    image: `https://${params.domain}/api/og/analytics?domain=${params.domain}&key=${params.key}`,
   });
 }
 

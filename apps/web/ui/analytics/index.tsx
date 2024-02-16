@@ -8,7 +8,7 @@
   We use the `useEndpoint()` hook to get the correct layout
 */
 
-import { VALID_STATS_FILTERS } from "@/lib/stats";
+import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics";
 import { fetcher } from "@dub/utils";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
 import { createContext, useMemo } from "react";
@@ -20,7 +20,7 @@ import Referer from "./referer";
 import Toggle from "./toggle";
 import TopLinks from "./top-links";
 
-export const StatsContext = createContext<{
+export const AnalyticsContext = createContext<{
   basePath: string;
   baseApiPath: string;
   domain?: string;
@@ -37,7 +37,7 @@ export const StatsContext = createContext<{
   interval: "",
 });
 
-export default function Stats({ staticDomain }: { staticDomain?: string }) {
+export default function Analytics({ staticDomain }: { staticDomain?: string }) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
@@ -55,21 +55,21 @@ export default function Stats({ staticDomain }: { staticDomain?: string }) {
     if (slug) {
       return {
         basePath: `/${slug}/analytics`,
-        baseApiPath: `/api/projects/${slug}/stats`,
+        baseApiPath: `/api/analytics`,
         domain: domainSlug,
       };
     } else {
       // Public stats page, e.g. dub.co/stats/github, stey.me/stats/weathergpt
       return {
         basePath: `/stats/${key}`,
-        baseApiPath: `/api/edge/stats`,
+        baseApiPath: "/api/analytics/edge",
         domain: staticDomain,
       };
     }
   }, [slug, pathname, staticDomain, domainSlug, key]);
 
   const queryString = useMemo(() => {
-    const availableFilterParams = VALID_STATS_FILTERS.reduce(
+    const availableFilterParams = VALID_ANALYTICS_FILTERS.reduce(
       (acc, filter) => ({
         ...acc,
         ...(searchParams?.get(filter) && {
@@ -79,6 +79,7 @@ export default function Stats({ staticDomain }: { staticDomain?: string }) {
       {},
     );
     return new URLSearchParams({
+      ...(slug && { projectSlug: slug }),
       ...(domain && { domain }),
       ...(key && { key }),
       ...availableFilterParams,
@@ -94,10 +95,10 @@ export default function Stats({ staticDomain }: { staticDomain?: string }) {
   const isPublicStatsPage = basePath.startsWith("/stats");
 
   return (
-    <StatsContext.Provider
+    <AnalyticsContext.Provider
       value={{
-        basePath, // basePath for the page (e.g. /stats/[key], /links/[key], /[slug]/[domain]/[key])
-        baseApiPath, // baseApiPath for the API (e.g. /api/links/[key]/stats)
+        basePath, // basePath for the page (e.g. /stats/[key], /[slug]/analytics)
+        baseApiPath, // baseApiPath for the API (e.g. /api/analytics)
         queryString,
         domain: domain || undefined, // domain for the link (e.g. dub.sh, stey.me, etc.)
         key: key ? decodeURIComponent(key) : undefined, // link key (e.g. github, weathergpt, etc.)
@@ -118,6 +119,6 @@ export default function Stats({ staticDomain }: { staticDomain?: string }) {
           </div>
         </div>
       </div>
-    </StatsContext.Provider>
+    </AnalyticsContext.Provider>
   );
 }

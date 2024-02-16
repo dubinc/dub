@@ -1,6 +1,6 @@
+import { getAnalytics } from "@/lib/analytics";
 import { limiter, qstash, receiver } from "@/lib/cron";
 import prisma from "@/lib/prisma";
-import { getStats } from "@/lib/stats";
 import { recordLink } from "@/lib/tinybird";
 import { ProjectProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
@@ -139,7 +139,7 @@ export async function POST(req: Request) {
       `transfer:${linkId}:oldProjectId`,
     );
 
-    const linkClicks = await getStats({
+    const linkClicks = await getAnalytics({
       linkId,
       endpoint: "clicks",
       interval: "30d",

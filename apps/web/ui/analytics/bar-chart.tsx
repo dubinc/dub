@@ -8,7 +8,7 @@ import { useTooltip, useTooltipInPortal } from "@visx/tooltip";
 import { motion } from "framer-motion";
 import { useCallback, useContext, useMemo } from "react";
 import useSWR from "swr";
-import { StatsContext } from ".";
+import { AnalyticsContext } from ".";
 import styles from "./bar-chart.module.css";
 
 const LEFT_AXIS_WIDTH = 30;
@@ -31,7 +31,7 @@ const rangeFormatter = (maxN: number): number => {
 };
 
 export default function BarChart() {
-  const { baseApiPath, queryString, interval } = useContext(StatsContext);
+  const { baseApiPath, queryString, interval } = useContext(AnalyticsContext);
 
   const { data } = useSWR<{ start: Date; clicks: number }[]>(
     `${baseApiPath}/timeseries?${queryString}`,
