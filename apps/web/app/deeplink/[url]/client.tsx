@@ -14,7 +14,7 @@ export default function DeeplinkClient({ url }: { url: string }) {
       /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) &&
       deepLink !== url
     ) {
-      router.push(deepLink);
+      window.open(deepLink, "_blank");
       setTimeout(() => {
         router.push(url);
       }, 25);
