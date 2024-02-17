@@ -20,7 +20,6 @@ import {
   validKeyRegex,
 } from "@dub/utils";
 import cloudinary from "cloudinary";
-import { Session } from "../auth";
 import { getLinkViaEdge } from "../planetscale";
 import { recordLink } from "../tinybird";
 import {
@@ -262,12 +261,12 @@ export function processKey(key: string) {
 export async function processLink({
   payload,
   project,
-  session,
+  userId,
   bulk = false,
 }: {
   payload: LinkWithTagIdsProps;
   project?: ProjectProps;
-  session?: Session;
+  userId?: string;
   bulk?: boolean;
 }) {
   let {
@@ -441,9 +440,9 @@ export async function processLink({
       url: processedUrl,
       // make sure projectId is set to the current project
       projectId: project?.id || null,
-      // if session is passed, set userId to the current user's id (we don't change the userId if it's already set, e.g. when editing a link)
-      ...(session && {
-        userId: session.user.id,
+      // if userId is passed, set it (we don't change the userId if it's already set, e.g. when editing a link)
+      ...(userId && {
+        userId,
       }),
     },
     error: null,
