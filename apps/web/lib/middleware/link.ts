@@ -1,4 +1,3 @@
-import { detectBot, getFinalUrl, parse } from "@/lib/middleware/utils";
 import { recordClick } from "@/lib/tinybird";
 import { formatRedisLink, ratelimit, redis } from "@/lib/upstash";
 import {
@@ -17,6 +16,7 @@ import {
 import { isBlacklistedReferrer } from "../edge-config";
 import { getLinkViaEdge } from "../planetscale";
 import { RedisLinkProps } from "../types";
+import { detectBot, getFinalUrl, parse, urlToDeeplink } from "./utils";
 
 export default async function LinkMiddleware(
   req: NextRequest,
@@ -132,7 +132,7 @@ export default async function LinkMiddleware(
       searchParams.get("dub-no-track") === "1"
     )
   ) {
-    ev.waitUntil(recordClick({ req, id, url: getFinalUrl(url, { req }) }));
+    ev.waitUntil(recordClick({ req, id, url: getFinalUrl({ url, req }) }));
   }
 
   const isBot = detectBot(req);
@@ -159,22 +159,45 @@ export default async function LinkMiddleware(
     }
 
     // redirect to iOS link if it is specified and the user is on an iOS device
-  } else if (ios && userAgent(req).os?.name === "iOS") {
-    return NextResponse.redirect(getFinalUrl(ios, { req }), DUB_HEADERS);
+  } else if (userAgent(req).os?.name === "iOS") {
+    if (ios) {
+      return NextResponse.redirect(getFinalUrl({ url: ios, req }), DUB_HEADERS);
+    }
+
+    const deepLink = urlToDeeplink(url);
+    if (deepLink !== url) {
+      return NextResponse.rewrite(
+        new URL(`/rewrite/${encodeURIComponent(url)}`, req.url),
+        DUB_HEADERS,
+      );
+    }
 
     // redirect to Android link if it is specified and the user is on an Android device
-  } else if (android && userAgent(req).os?.name === "Android") {
-    return NextResponse.redirect(getFinalUrl(android, { req }), DUB_HEADERS);
+  } else if (userAgent(req).os?.name === "Android") {
+    if (android) {
+      return NextResponse.redirect(
+        getFinalUrl({ url: android, req }),
+        DUB_HEADERS,
+      );
+    }
+
+    const deepLink = urlToDeeplink(url);
+    if (deepLink !== url) {
+      return NextResponse.rewrite(
+        new URL(`/rewrite/${encodeURIComponent(url)}`, req.url),
+        DUB_HEADERS,
+      );
+    }
 
     // redirect to geo-specific link if it is specified and the user is in the specified country
   } else if (geo && country && country in geo) {
     return NextResponse.redirect(
-      getFinalUrl(geo[country], { req }),
+      getFinalUrl({ url: geo[country], req }),
       DUB_HEADERS,
     );
 
     // regular redirect
   } else {
-    return NextResponse.redirect(getFinalUrl(url, { req }), DUB_HEADERS);
+    return NextResponse.redirect(getFinalUrl({ url, req }), DUB_HEADERS);
   }
 }

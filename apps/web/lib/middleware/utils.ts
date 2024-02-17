@@ -25,7 +25,13 @@ export const parse = (req: NextRequest) => {
   return { domain, path, fullPath, key, fullKey };
 };
 
-export const getFinalUrl = (url: string, { req }: { req: NextRequest }) => {
+export const getFinalUrl = ({
+  url,
+  req,
+}: {
+  url: string;
+  req: NextRequest;
+}) => {
   // query is the query string (e.g. dub.sh/github?utm_source=twitter -> ?utm_source=twitter)
   const searchParams = req.nextUrl.searchParams;
 
@@ -64,4 +70,28 @@ export const detectBot = (req: NextRequest) => {
     );
   }
   return false;
+};
+
+export const urlToDeeplink = (url: string): string => {
+  const patterns: [RegExp, (matches: RegExpMatchArray) => string][] = [
+    [
+      /https?:\/\/(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/,
+      (matches) => `vnd.youtube://${matches[1]}`,
+    ],
+    // Example for another service, adjust the regex and deep link format accordingly
+    // [
+    //     /https?:\/\/(?:www\.)?example\.com\/content\/([a-zA-Z0-9_-]+)/,
+    //     (matches) => `exampleapp://${matches[1]}`
+    // ],
+  ];
+
+  for (let [regex, transformer] of patterns) {
+    const matches = url.match(regex);
+    if (matches) {
+      return transformer(matches);
+    }
+  }
+
+  // Return the original URL if no patterns match
+  return url;
 };
