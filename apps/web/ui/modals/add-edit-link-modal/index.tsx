@@ -2,6 +2,7 @@
 
 import useDomains from "@/lib/swr/use-domains";
 import useProject from "@/lib/swr/use-project";
+import { LinkProps } from "@/lib/types";
 import { AlertCircleFill, Lock, Random, X } from "@/ui/shared/icons";
 import {
   BlurImage,
@@ -25,7 +26,6 @@ import {
   linkConstructor,
   truncate,
 } from "@dub/utils";
-import { type Link as LinkProps } from "@prisma/client";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import punycode from "punycode/";
 import {
