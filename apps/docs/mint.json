@@ -61,7 +61,7 @@
   "navigation": [
     {
       "group": "Getting Started",
-      "pages": ["introduction", "local-development", "self-hosting/guide"]
+      "pages": ["introduction", "local-development", "self-hosting"]
     },
     {
       "group": "Resources",
@@ -117,6 +117,10 @@
     {
       "source": "/integrations/:path*",
       "destination": "/integrations"
+    },
+    {
+      "source": "/self-hosting/guide",
+      "destination": "/self-hosting"
     }
   ]
 }
