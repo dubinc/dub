@@ -9,6 +9,7 @@ import { useLinkQRModal } from "@/ui/modals/link-qr-modal";
 import { Chart, Delete, ThreeDots } from "@/ui/shared/icons";
 import {
   Avatar,
+  BadgeTooltip,
   BlurImage,
   Button,
   CopyButton,
@@ -19,7 +20,6 @@ import {
   Tooltip,
   TooltipContent,
   useIntersectionObserver,
-  useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
 import { LinkifyTooltipContent } from "@dub/ui/src/tooltip";
@@ -75,16 +75,14 @@ export default function LinkCard({
     user,
   } = props;
 
-  const { isMobile } = useMediaQuery();
-
   const [primaryTags, additionalTags] = useMemo(() => {
-    const primaryTagsCount = isMobile ? 1 : 2;
+    const primaryTagsCount = 1;
 
     return [
       tags.filter((_, idx) => idx < primaryTagsCount),
       tags.filter((_, idx) => idx >= primaryTagsCount),
     ];
-  }, [tags, isMobile]);
+  }, [tags]);
 
   const apexDomain = getApexDomain(url);
 
@@ -339,7 +337,7 @@ export default function LinkCard({
                 <TagButton {...tag} />
               ))}
               {additionalTags.length > 0 && (
-                <Tooltip
+                <BadgeTooltip
                   content={
                     <div className="flex flex-wrap gap-1.5 p-3">
                       {additionalTags.map((tag) => (
@@ -347,11 +345,10 @@ export default function LinkCard({
                       ))}
                     </div>
                   }
+                  side="top"
                 >
-                  <div className="flex select-none items-center space-x-1.5 whitespace-nowrap rounded-md bg-gray-100 p-1.5 text-sm font-medium text-gray-500 hover:text-gray-600 sm:rounded-md sm:px-2 sm:py-0.5">
-                    +{additionalTags.length}
-                  </div>
-                </Tooltip>
+                  +{additionalTags.length}
+                </BadgeTooltip>
               )}
             </div>
             <div className="flex max-w-fit items-center space-x-1">
