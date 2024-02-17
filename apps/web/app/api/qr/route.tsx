@@ -29,8 +29,8 @@ export async function GET(req: NextRequest) {
     }
 
     const params = getSearchParams(req.url);
-    const parsed = getQRCodeQuerySchema.parse(params);
-    const { url, size, level, fgColor, bgColor, includeMargin } = parsed;
+    const { url, size, level, fgColor, bgColor, includeMargin } =
+      getQRCodeQuerySchema.parse(params);
 
     // const logo = req.nextUrl.searchParams.get("logo") || "https://d2vwwcvoksz7ty.cloudfront.net/logo.png";
 
