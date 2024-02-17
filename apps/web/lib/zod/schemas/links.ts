@@ -1,4 +1,5 @@
 import z from "@/lib/zod";
+import { booleanQuerySchema } from ".";
 
 export const getLinksQuerySchema = z.object({
   projectSlug: z
@@ -31,17 +32,15 @@ export const getLinksQuerySchema = z.object({
     .optional()
     .describe("The page number for pagination (each page contains 100 links)."),
   userId: z.string().optional().describe("The user ID to filter the links by."),
-  showArchived: z.coerce
-    .boolean()
+  showArchived: booleanQuerySchema
     .optional()
-    .default(false)
+    .default("false")
     .describe(
       "Whether to include archived links in the response. Defaults to `false` if not provided.",
     ),
-  withTags: z.coerce
-    .boolean()
+  withTags: booleanQuerySchema
     .optional()
-    .default(false)
+    .default("false")
     .describe(
       "Whether to include tags in the response. Defaults to `false` if not provided.",
     ),
@@ -173,10 +172,7 @@ export const getLinksCountParamsSchema = z.object({
   userId: z.string().optional(),
   tagId: z.string().optional(),
   domain: z.string().optional(),
-  showArchived: z
-    .enum(["true", "false"])
-    .optional()
-    .transform((value) => value == "true"),
+  showArchived: booleanQuerySchema.optional(),
   search: z.string().optional(),
   groupBy: z.union([z.literal("domain"), z.literal("tagId")]).optional(),
 });
