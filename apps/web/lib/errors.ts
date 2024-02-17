@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { generateErrorMessage } from "zod-error";
-
-import z from "../zod";
+import z from "./zod";
 
 export const ErrorCode = z.enum([
   "bad_request",
