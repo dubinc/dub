@@ -44,6 +44,7 @@ export const getFinalUrl = ({
 
   // if searchParams (type: `URLSearchParams`) has the same key as target url, then overwrite it
   for (const [key, value] of searchParams) {
+    if (key === "pw") continue; // skip the password param
     urlObj.searchParams.set(key, value);
   }
 

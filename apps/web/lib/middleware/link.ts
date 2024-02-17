@@ -110,9 +110,6 @@ export default async function LinkMiddleware(
       return NextResponse.rewrite(
         new URL(`/protected/${domain}/${encodeURIComponent(key)}`, req.url),
       );
-    } else if (pw) {
-      // strip it from the URL if it's correct
-      req.nextUrl.searchParams.delete("pw");
     }
   }
 
