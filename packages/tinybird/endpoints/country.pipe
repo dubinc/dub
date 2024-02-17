@@ -56,30 +56,3 @@ SQL >
         {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
     GROUP BY country
     ORDER BY clicks DESC
-
-
-
-NODE country_1
-SQL >
-
-    %
-    {% set interval = 24 %}
-    SELECT country, COUNT(country) as clicks
-    FROM click_events_mv
-    WHERE
-        domain IN {{ Array(domain, 'String', default='pplx.ai,labs.pplx.ai,perpl.ai') }}
-        {% if defined(key) %}
-            AND key IN {{ Array(key, 'String', default='twitter') }}
-        {% end %}
-        {% if defined(country) %} AND country = {{ country }} {% end %}
-        AND country != 'Unknown'
-        {% if defined(city) %} AND city = {{ city }} {% end %}
-        {% if defined(device) %} AND device = {{ device }} {% end %}
-        {% if defined(browser) %} AND browser = {{ browser }} {% end %}
-        {% if defined(os) %} AND os = {{ os }} {% end %}
-        {% if defined(referer) %} AND referer = {{ referer }} {% end %}
-        AND timestamp > toDate(now() - INTERVAL {{Int16(interval)}} HOUR)
-    GROUP BY country
-    ORDER BY clicks DESC
-
-
