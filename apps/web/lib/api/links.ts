@@ -20,15 +20,15 @@ import {
   validKeyRegex,
 } from "@dub/utils";
 import cloudinary from "cloudinary";
+import { Session } from "../auth";
+import { getLinkViaEdge } from "../planetscale";
+import { recordLink } from "../tinybird";
 import {
   LinkProps,
   LinkWithTagIdsProps,
   ProjectProps,
   RedisLinkProps,
 } from "../types";
-import { Session } from "../auth";
-import { getLinkViaEdge } from "../planetscale";
-import { recordLink } from "../tinybird";
 
 export async function getLinksForProject({
   projectId,
@@ -282,6 +282,7 @@ export async function processLink({
     ios,
     android,
     geo,
+    projectId,
   } = payload;
 
   // url checks
@@ -430,19 +431,36 @@ export async function processLink({
   }
 
   const combinedTagIds = combineTagIds(payload);
-  if (combinedTagIds.length) {
-    const validTagsCount = await prisma.tag.count({
+  // tag checks
+  if (combinedTagIds.length > 0) {
+    if (!projectId) {
+      return {
+        link: payload,
+        error: "Missing projectId.",
+        status: 400,
+      };
+    }
+    // check if there are any tags that don't belong to the project
+    const projectTags = await prisma.tag.findMany({
       where: {
+        projectId,
         id: {
           in: combinedTagIds,
         },
-        projectId: payload.projectId ?? undefined,
+      },
+      select: {
+        id: true,
       },
     });
-    if (validTagsCount !== combinedTagIds.length) {
+    if (projectTags.length !== combinedTagIds.length) {
+      const invalidTagIds = combinedTagIds.filter(
+        (tagId) => !projectTags.find((tag) => tag.id === tagId),
+      );
       return {
         link: payload,
-        error: "Invalid tags.",
+        error: `One or more tags do not belong to the project: ${invalidTagIds.join(
+          ", ",
+        )}.`,
         status: 422,
       };
     }
@@ -508,7 +526,7 @@ export async function addLink(link: LinkWithTagIdsProps) {
       utm_content,
       expiresAt: expiresAt ? new Date(expiresAt) : null,
       geo: geo || undefined,
-      ...(combinedTagIds?.length && {
+      ...(combinedTagIds.length > 0 && {
         tags: {
           createMany: {
             data: combinedTagIds.map((tagId) => ({ tagId })),
@@ -575,7 +593,7 @@ export async function bulkCreateLinks({
           utm_content,
           expiresAt: link.expiresAt ? new Date(link.expiresAt) : null,
           geo: link.geo || undefined,
-          ...(combinedTagIds?.length && {
+          ...(combinedTagIds.length > 0 && {
             tags: {
               createMany: {
                 data: combinedTagIds.map((tagId) => ({ tagId })),
@@ -704,19 +722,17 @@ export async function editLink({
         utm_content,
         expiresAt: expiresAt ? new Date(expiresAt) : null,
         geo: geo || undefined,
-        ...(combinedTagIds?.length && {
-          tags: {
-            deleteMany: {
-              tagId: {
-                notIn: combinedTagIds,
-              },
+        tags: {
+          deleteMany: {
+            tagId: {
+              notIn: combinedTagIds,
             },
-            connectOrCreate: combinedTagIds.map((tagId) => ({
-              where: { linkId_tagId: { linkId: id, tagId } },
-              create: { tagId },
-            })),
           },
-        }),
+          connectOrCreate: combinedTagIds.map((tagId) => ({
+            where: { linkId_tagId: { linkId: id, tagId } },
+            create: { tagId },
+          })),
+        },
       },
     }),
     ...(process.env.CLOUDINARY_URL
@@ -844,6 +860,8 @@ function combineTagIds({
   tagIds?: string[];
 }): string[] {
   // Use tagIds if present, fall back to tagId
-  if (tagIds?.length) return tagIds;
+  if (tagIds && Array.isArray(tagIds) && tagIds.length > 0) {
+    return tagIds;
+  }
   return tagId ? [tagId] : [];
 }
