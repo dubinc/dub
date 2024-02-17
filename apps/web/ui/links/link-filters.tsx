@@ -437,7 +437,14 @@ const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
       method: "DELETE",
     }).then(async (res) => {
       if (res.ok) {
-        await mutate(`/api/tags?projectSlug=${slug}`);
+        await Promise.all([
+          mutate(`/api/tags?projectSlug=${slug}`),
+          mutate(
+            (key) => typeof key === "string" && key.startsWith("/api/links"),
+            undefined,
+            { revalidate: true },
+          ),
+        ]);
         toast.success("Tag deleted");
       } else {
         toast.error("Something went wrong");
