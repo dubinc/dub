@@ -1,9 +1,9 @@
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+// import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { generateErrorMessage } from "zod-error";
 
-import z from "./zod";
+import z from "../zod";
 
 export const ErrorCode = z.enum([
   "bad_request",
@@ -33,13 +33,13 @@ const errorCodeToHttpStatus: Record<z.infer<typeof ErrorCode>, number> = {
   internal_server_error: 500,
 };
 
-const prismaErrorMapping: Record<
-  PrismaClientKnownRequestError["code"],
-  ErrorResponse["error"]["code"]
-> = {
-  P2025: "not_found",
-  P2002: "conflict",
-};
+// const prismaErrorMapping: Record<
+//   PrismaClientKnownRequestError["code"],
+//   ErrorResponse["error"]["code"]
+// > = {
+//   P2025: "not_found",
+//   P2002: "conflict",
+// };
 
 const ErrorSchema = z.object({
   error: z.object({
@@ -119,18 +119,18 @@ export function handleApiError(error: any): ErrorResponse & { status: number } {
   }
 
   // Prisma errors
-  if (error instanceof PrismaClientKnownRequestError) {
-    const code = prismaErrorMapping[error.code] ?? error.message;
+  // if (error instanceof PrismaClientKnownRequestError) {
+  //   const code = prismaErrorMapping[error.code] ?? error.message;
 
-    return {
-      error: {
-        code,
-        message: error.message,
-        doc_url: `${docErrorUrl}#${code}`,
-      },
-      status: errorCodeToHttpStatus[code],
-    };
-  }
+  //   return {
+  //     error: {
+  //       code,
+  //       message: error.message,
+  //       doc_url: `${docErrorUrl}#${code}`,
+  //     },
+  //     status: errorCodeToHttpStatus[code],
+  //   };
+  // }
 
   // DubApiError errors
   if (error instanceof DubApiError) {

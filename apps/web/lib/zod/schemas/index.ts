@@ -7,6 +7,15 @@ export const roleSchema = z
   .enum(roles)
   .describe("The role of the authenticated user in the project.");
 
+// TODO: Move to tags.ts
 export const tagColorSchema = z
   .enum(tagColors)
   .describe("The color of the tag.");
+
+// A boolean query schema that coerces the value to a boolean
+export const booleanQuerySchema = z
+  .enum(["true", "false"])
+  .transform((value) => value == "true")
+  .openapi({
+    type: "boolean",
+  });
