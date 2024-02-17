@@ -282,7 +282,6 @@ export async function processLink({
     ios,
     android,
     geo,
-    projectId,
   } = payload;
 
   // url checks
@@ -430,43 +429,7 @@ export async function processLink({
     }
   }
 
-  const combinedTagIds = combineTagIds(payload);
-  // tag checks
-  if (combinedTagIds.length > 0) {
-    if (!projectId) {
-      return {
-        link: payload,
-        error: "Missing projectId.",
-        status: 400,
-      };
-    }
-    // check if there are any tags that don't belong to the project
-    const projectTags = await prisma.tag.findMany({
-      where: {
-        projectId,
-        id: {
-          in: combinedTagIds,
-        },
-      },
-      select: {
-        id: true,
-      },
-    });
-    if (projectTags.length !== combinedTagIds.length) {
-      const invalidTagIds = combinedTagIds.filter(
-        (tagId) => !projectTags.find((tag) => tag.id === tagId),
-      );
-      return {
-        link: payload,
-        error: `One or more tags do not belong to the project: ${invalidTagIds.join(
-          ", ",
-        )}.`,
-        status: 422,
-      };
-    }
-  }
-
-  // remove shortLink & qrCode attributes from payload since it's a polyfill
+  // remove polyfill attributes from payload
   delete payload["shortLink"];
   delete payload["qrCode"];
 
@@ -489,32 +452,33 @@ export async function processLink({
 }
 
 export async function addLink(link: LinkWithTagIdsProps) {
-  const {
-    domain,
-    key,
-    url,
-    expiresAt,
-    title,
-    description,
-    image,
-    proxy,
-    geo,
-    tagId,
-    tagIds,
-  } = link;
+  let { domain, key, url, expiresAt, title, description, image, proxy, geo } =
+    link;
   const uploadedImage = image && image.startsWith("data:image") ? true : false;
-
-  const combinedTagIds = combineTagIds({ tagId, tagIds });
 
   const exists = await checkIfKeyExists(domain, key);
   if (exists) return null;
 
+  const combinedTagIds = combineTagIds(link);
+
   const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
     getParamsFromURL(url);
 
-  let response = await prisma.link.create({
+  if (proxy && image) {
+    const { secure_url } = await cloudinary.v2.uploader.upload(image, {
+      public_id: key,
+      folder: domain,
+      overwrite: true,
+      invalidate: true,
+    });
+    image = secure_url;
+  }
+
+  const { tagId, tagIds, ...rest } = link;
+
+  const response = await prisma.link.create({
     data: {
-      ...link,
+      ...rest,
       key,
       title: truncate(title, 120),
       description: truncate(description, 240),
@@ -536,22 +500,6 @@ export async function addLink(link: LinkWithTagIdsProps) {
     },
   });
 
-  if (proxy && image) {
-    const { secure_url } = await cloudinary.v2.uploader.upload(image, {
-      public_id: key,
-      folder: domain,
-      overwrite: true,
-      invalidate: true,
-    });
-    response = await prisma.link.update({
-      where: {
-        id: response.id,
-      },
-      data: {
-        image: secure_url,
-      },
-    });
-  }
   const shortLink = linkConstructor({
     domain: response.domain,
     key: response.key,
@@ -692,14 +640,13 @@ export async function editLink({
   const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
     getParamsFromURL(url);
 
-  const combinedTagIds = combineTagIds(updatedLink);
-
   // exclude fields that should not be updated
   const {
     id: _,
     clicks,
     lastClicked,
     updatedAt,
+    tagId,
     tagIds,
     ...rest
   } = updatedLink;
@@ -725,10 +672,10 @@ export async function editLink({
         tags: {
           deleteMany: {
             tagId: {
-              notIn: combinedTagIds,
+              notIn: tagIds,
             },
           },
-          connectOrCreate: combinedTagIds.map((tagId) => ({
+          connectOrCreate: tagIds.map((tagId) => ({
             where: { linkId_tagId: { linkId: id, tagId } },
             create: { tagId },
           })),
