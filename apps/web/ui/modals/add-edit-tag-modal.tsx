@@ -1,11 +1,14 @@
 import useProject from "@/lib/swr/use-project";
 import useTags from "@/lib/swr/use-tags";
-import { TagProps } from "@/lib/types";
+import { TagColorProps, TagProps } from "@/lib/types";
 import {
   Button,
   InfoTooltip,
+  Label,
   Logo,
   Modal,
+  RadioGroup,
+  RadioGroupItem,
   TooltipContent,
   useMediaQuery,
   useRouterStuff,
@@ -152,34 +155,33 @@ function AddEditTagModal({
             <p className="block text-sm font-medium text-gray-700">Tag Color</p>
             <InfoTooltip content={`A color to make your tag stand out.`} />
           </label>
-          <div className="mt-2 flex flex-wrap gap-3">
+          <RadioGroup
+            defaultValue={color}
+            onValueChange={(value: TagColorProps) => {
+              setData({ ...data, color: value });
+            }}
+            className="mt-2 flex flex-wrap gap-3"
+          >
             {COLORS_LIST.map(({ color: colorOption, css }) => (
-              <div key={colorOption}>
-                <label className="flex cursor-pointer items-center">
-                  <input
-                    type="radio"
-                    name="color"
-                    value={colorOption}
-                    onChange={(e) => {
-                      if (e.target.checked)
-                        setData({ ...data, color: colorOption });
-                    }}
-                    className="peer pointer-events-none absolute opacity-0"
-                  />
-                  <span
-                    aria-hidden="true"
-                    className={cn(
-                      css,
-                      "whitespace-nowrap rounded-md px-2 py-0.5 text-sm capitalize ring-current peer-focus-visible:ring-offset-2",
-                      color === colorOption && "ring-2",
-                    )}
-                  >
-                    {colorOption}
-                  </span>
-                </label>
+              <div key={colorOption} className="flex items-center">
+                <RadioGroupItem
+                  value={colorOption}
+                  id={colorOption}
+                  className="peer pointer-events-none absolute opacity-0"
+                />
+                <Label
+                  htmlFor={colorOption}
+                  className={cn(
+                    "cursor-pointer whitespace-nowrap rounded-md px-2 py-0.5 text-sm capitalize ring-current peer-focus-visible:ring-offset-2",
+                    css,
+                    color === colorOption && "ring-2",
+                  )}
+                >
+                  {colorOption}
+                </Label>
               </div>
             ))}
-          </div>
+          </RadioGroup>
         </div>
 
         <Button
