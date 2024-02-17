@@ -62,7 +62,7 @@ function AddEditTagModal({
 
   const endpoint = useMemo(
     () =>
-      props
+      id
         ? {
             method: "PUT",
             url: `/api/tags/${id}?projectSlug=${projectSlug}`,
@@ -117,7 +117,17 @@ function AddEditTagModal({
           }).then(async (res) => {
             if (res.status === 200) {
               va.track(props ? "Edited Tag" : "Created Tag");
-              await mutate(`/api/tags?projectSlug=${projectSlug}`);
+              await Promise.all([
+                mutate(`/api/tags?projectSlug=${projectSlug}`),
+                props
+                  ? mutate(
+                      (key) =>
+                        typeof key === "string" && key.startsWith("/api/links"),
+                      undefined,
+                      { revalidate: true },
+                    )
+                  : null,
+              ]);
               toast.success(endpoint.successMessage);
               setShowAddEditTagModal(false);
             } else {
