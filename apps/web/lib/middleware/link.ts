@@ -76,7 +76,7 @@ export default async function LinkMiddleware(
     );
   }
 
-  const {
+  let {
     id,
     url,
     password,
@@ -88,6 +88,8 @@ export default async function LinkMiddleware(
     android,
     geo,
   } = link;
+
+  url = getFinalUrl({ url, req });
 
   // only show inspect modal if the link is not password protected
   if (inspectMode && !password) {
@@ -132,7 +134,7 @@ export default async function LinkMiddleware(
       searchParams.get("dub-no-track") === "1"
     )
   ) {
-    ev.waitUntil(recordClick({ req, id, url: getFinalUrl({ url, req }) }));
+    ev.waitUntil(recordClick({ req, id, url }));
   }
 
   const isBot = detectBot(req);
@@ -167,7 +169,7 @@ export default async function LinkMiddleware(
     const deepLink = urlToDeeplink(url);
     if (deepLink !== url) {
       return NextResponse.rewrite(
-        new URL(`/rewrite/${encodeURIComponent(url)}`, req.url),
+        new URL(`/deeplink/${encodeURIComponent(url)}`, req.url),
         DUB_HEADERS,
       );
     }
@@ -184,7 +186,7 @@ export default async function LinkMiddleware(
     const deepLink = urlToDeeplink(url);
     if (deepLink !== url) {
       return NextResponse.rewrite(
-        new URL(`/rewrite/${encodeURIComponent(url)}`, req.url),
+        new URL(`/deeplink/${encodeURIComponent(url)}`, req.url),
         DUB_HEADERS,
       );
     }
@@ -198,6 +200,6 @@ export default async function LinkMiddleware(
 
     // regular redirect
   } else {
-    return NextResponse.redirect(getFinalUrl({ url, req }), DUB_HEADERS);
+    return NextResponse.redirect(url, DUB_HEADERS);
   }
 }
