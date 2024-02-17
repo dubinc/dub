@@ -77,7 +77,7 @@ export const DELETE = withAuth(
   async ({ searchParams, project }) => {
     try {
       const { userId } = removeUserSchema.parse(searchParams);
-      const projectUser = await prisma.projectUsers.findUniqueOrThrow({
+      const projectUser = await prisma.projectUsers.findUnique({
         where: {
           userId_projectId: {
             projectId: project.id,
@@ -88,6 +88,12 @@ export const DELETE = withAuth(
           role: true,
         },
       });
+      if (!projectUser) {
+        throw new DubApiError({
+          code: "not_found",
+          message: "User not found",
+        });
+      }
       if (projectUser.role === "owner") {
         throw new DubApiError({
           code: "bad_request",

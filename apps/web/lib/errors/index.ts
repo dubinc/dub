@@ -1,4 +1,3 @@
-// import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { generateErrorMessage } from "zod-error";
@@ -32,14 +31,6 @@ const errorCodeToHttpStatus: Record<z.infer<typeof ErrorCode>, number> = {
   rate_limit_exceeded: 429,
   internal_server_error: 500,
 };
-
-// const prismaErrorMapping: Record<
-//   PrismaClientKnownRequestError["code"],
-//   ErrorResponse["error"]["code"]
-// > = {
-//   P2025: "not_found",
-//   P2002: "conflict",
-// };
 
 const ErrorSchema = z.object({
   error: z.object({
@@ -111,26 +102,10 @@ export function fromZodError(error: ZodError): ErrorResponse {
 }
 
 export function handleApiError(error: any): ErrorResponse & { status: number } {
-  console.error(error);
-
   // Zod errors
   if (error instanceof ZodError) {
     return { ...fromZodError(error), status: 400 };
   }
-
-  // Prisma errors
-  // if (error instanceof PrismaClientKnownRequestError) {
-  //   const code = prismaErrorMapping[error.code] ?? error.message;
-
-  //   return {
-  //     error: {
-  //       code,
-  //       message: error.message,
-  //       doc_url: `${docErrorUrl}#${code}`,
-  //     },
-  //     status: errorCodeToHttpStatus[code],
-  //   };
-  // }
 
   // DubApiError errors
   if (error instanceof DubApiError) {
