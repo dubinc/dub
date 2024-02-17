@@ -7,6 +7,10 @@ import {
 import prisma from "@/lib/prisma";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import {
+  getLinksCountParamsSchema,
+  getLinksQuerySchema,
+} from "@/lib/zod/schemas/links";
+import {
   DEFAULT_REDIRECTS,
   DUB_DOMAINS,
   SHORT_DOMAIN,
@@ -25,7 +29,6 @@ import { getLinkViaEdge } from "../planetscale";
 import { recordLink } from "../tinybird";
 import { LinkProps, ProjectProps, RedisLinkProps } from "../types";
 import z from "../zod";
-import { getLinksCountParamsSchema, getLinksQuerySchema } from "@/lib/zod/schemas/links";
 
 export async function getLinksForProject({
   projectId,

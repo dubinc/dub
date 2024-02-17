@@ -432,7 +432,7 @@ export const withSession =
           throw new DubApiError({
             code: "bad_request",
             message:
-            "Misconfigured authorization header. Did you forget to add 'Bearer '? Learn more: https://dub.sh/auth ",
+              "Misconfigured authorization header. Did you forget to add 'Bearer '? Learn more: https://dub.sh/auth ",
           });
         }
         const apiKey = authorizationHeader.replace("Bearer ", "");

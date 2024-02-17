@@ -142,12 +142,12 @@ function AddProjectModalHelper({
               const { error } = await res.json();
               const message = error.message;
 
-              if(message.toLowerCase().includes("slug")) {
+              if (message.toLowerCase().includes("slug")) {
                 alert(message);
                 setSlugError(message);
               }
 
-              if(message.toLowerCase().includes("domain")) {
+              if (message.toLowerCase().includes("domain")) {
                 setDomainError(message);
               }
 
