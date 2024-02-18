@@ -1,11 +1,11 @@
 import { bulkCreateLinks } from "@/lib/api/links";
-import { LinkProps } from "@/lib/types";
+import { LinkWithTagIdsProps } from "@/lib/types";
 import "dotenv-flow/config";
 import * as fs from "fs";
 import * as Papa from "papaparse";
 
 const domain = "xxx";
-const csvLinks: LinkProps[] = [];
+const csvLinks: LinkWithTagIdsProps[] = [];
 
 async function main() {
   //   const links = await prisma.link.findMany({
@@ -37,6 +37,7 @@ async function main() {
           result.data.lastChecked.length > 0 ? result.data.lastChecked : null,
         lastClicked:
           result.data.lastClicked.length > 0 ? result.data.lastClicked : null,
+        tagIds: [],
       });
     },
     complete: async () => {
