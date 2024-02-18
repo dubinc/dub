@@ -5,6 +5,7 @@ import {
   LEGAL_PROJECT_ID,
   LOCALHOST_GEO_DATA,
   LOCALHOST_IP,
+  urlToDeeplink,
 } from "@dub/utils";
 import { ipAddress } from "@vercel/edge";
 import {
@@ -16,7 +17,7 @@ import {
 import { isBlacklistedReferrer } from "../edge-config";
 import { getLinkViaEdge } from "../planetscale";
 import { RedisLinkProps } from "../types";
-import { detectBot, getFinalUrl, parse, urlToDeeplink } from "./utils";
+import { detectBot, getFinalUrl, parse } from "./utils";
 
 export default async function LinkMiddleware(
   req: NextRequest,

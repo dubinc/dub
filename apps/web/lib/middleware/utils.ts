@@ -4,7 +4,11 @@ import { NextRequest } from "next/server";
 export const parse = (req: NextRequest) => {
   let domain = req.headers.get("host") as string;
   domain = domain.replace("www.", ""); // remove www. from domain
-  if (domain === "dub.localhost:8888" || domain.endsWith(".vercel.app")) {
+  if (
+    domain === "dub.localhost:8888" ||
+    domain.endsWith(".vercel.app") ||
+    domain === new URL(process.env.NGROK_URL as string).hostname
+  ) {
     // for local development and preview URLs
     domain = SHORT_DOMAIN;
   }
@@ -71,53 +75,4 @@ export const detectBot = (req: NextRequest) => {
     );
   }
   return false;
-};
-
-export const urlToDeeplink = ({
-  url,
-  os,
-}: {
-  url: string;
-  os: "ios" | "android";
-}): string => {
-  if (!url) return url; // weird edge case
-
-  const patterns: [
-    RegExp,
-    (matches: RegExpMatchArray) => { ios: string; android: string },
-  ][] = [
-    // YouTube (youtube.com)
-    [
-      /https?:\/\/(?:www\.)?youtube\.com\/([a-zA-Z0-9@_-]+)/,
-      (matches) => ({
-        ios: `vnd.youtube://www.youtube.com/${matches[1]}`,
-        android: `intent://www.youtube.com/${matches[1]}#Intent;package=com.google.android.youtube;scheme=https;end`,
-      }),
-    ],
-    // Amazon (amazon.com, amazon.ca, amazon.co.uk, amazon.in, amazon.es etc.)
-    [
-      /https?:\/\/(?:www\.)?amazon\.(com|ca|co\.uk|in|es)\/([a-zA-Z0-9@_-]+)/,
-      (matches) => ({
-        ios: `com.amazon.mobile.shopping.web://amazon.com/${matches[1]}`,
-        android: `com.amazon.mobile.shopping.web://amazon.com/${matches[1]}`,
-      }),
-    ],
-    // Example for another service, adjust the regex and deep link format accordingly
-    // [
-    //     /https?:\/\/(?:www\.)?example\.com\/content\/([a-zA-Z0-9_-]+)/,
-    //     (matches) => ({
-    //         ios: `example://content/${matches[1]}`,
-    //         android: `example://content/${matches[1]}`
-    // ],
-  ];
-
-  for (let [regex, transformer] of patterns) {
-    const matches = url.match(regex);
-    if (matches) {
-      return transformer(matches)[os];
-    }
-  }
-
-  // Return the original URL if no patterns match
-  return url;
 };

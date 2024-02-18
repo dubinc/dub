@@ -1,6 +1,6 @@
 "use client";
 
-import { urlToDeeplink } from "@/lib/middleware/utils";
+import { urlToDeeplink } from "@dub/utils";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
