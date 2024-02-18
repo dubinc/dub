@@ -16,7 +16,7 @@ export const urlToDeeplink = ({
       /https?:\/\/(?:www\.)?(youtube\.com|youtu\.be)\/([a-zA-Z0-9@_-]+)/,
       (matches) => ({
         ios: `vnd.youtube://www.youtube.com/${matches[1]}`,
-        android: `intent://www.youtube.com/${matches[1]}#Intent;package=com.google.android.youtube;scheme=https;end`,
+        android: `intent://www.youtube.com/${matches[1]}&feature=youtu.be#Intent;package=com.google.android.youtube;scheme=https;end`,
       }),
     ],
     // Amazon (amazon.com, amazon.ca, amazon.co.uk, amazon.in, amazon.es etc.)
