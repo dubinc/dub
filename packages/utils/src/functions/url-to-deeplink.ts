@@ -40,7 +40,7 @@ export const urlToDeeplink = ({
       /https?:\/\/(?:www\.)?instagram\.com\/([a-zA-Z0-9_-]+)/,
       (matches) => ({
         ios: `instagram://user?username=${matches[1]}`,
-        android: `intent://instagram.com/${matches[1]}/#Intent;package=com.instagram.android;scheme=https;end`,
+        android: `intent://instagram.com/${matches[1]}#Intent;package=com.instagram.android;scheme=https;end`,
       }),
     ],
     // Spotify (open.spotify.com)
@@ -64,7 +64,15 @@ export const urlToDeeplink = ({
       /https?:\/\/(?:www\.)?twitter\.com\/([a-zA-Z0-9_-]+)/,
       (matches) => ({
         ios: `twitter://user?screen_name=${matches[1]}`,
-        android: `intent://twitter.com/${matches[1]}/#Intent;package=com.twitter.android;scheme=https;end`,
+        android: `intent://twitter.com/${matches[1]}#Intent;package=com.twitter.android;scheme=https;end`,
+      }),
+    ],
+    // Telegram (t.me/username)
+    [
+      /https?:\/\/t\.me\/([a-zA-Z0-9_-]+)/,
+      (matches) => ({
+        ios: `tg://resolve?domain=${matches[1]}`,
+        android: `intent://resolve?domain=${matches[1]}#Intent;package=org.telegram.messenger;scheme=tg;end`,
       }),
     ],
     // Example for another service, adjust the regex and deep link format accordingly
