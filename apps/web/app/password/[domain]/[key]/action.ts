@@ -19,8 +19,12 @@ export async function verifyPassword(_prevState: any, data: FormData) {
 
   if (validPassword) {
     // if the password is valid, redirect to the link with the password in the query string
-    redirect(`/${rawKey}?pw=${password}`);
+    await redirectHelper(domain, key, password);
   } else {
     return { error: "Invalid password" };
   }
+}
+
+async function redirectHelper(domain: string, key: string, password: string) {
+  redirect(`https://${domain}/${key}?pw=${password}`);
 }
