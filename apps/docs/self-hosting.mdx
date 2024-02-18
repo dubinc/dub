@@ -131,6 +131,24 @@ In your newly-cloned Dub.co repo, navigate to the `packages/tinybird` directory.
 
   </Step>
 
+  <Step title="Set up Tinybird API base URL">
+
+    You will then need to update your [Tinybird API base URL](https://www.tinybird.co/docs/api-reference/api-reference.html#regions-and-endpoints) to match the region of your database.
+
+    From the previous step, take note of the **Test endpoint** URL. It should look something like this:
+
+    ```
+    Test endpoint at https://api.us-east.tinybird.co/v0/pipes/device.json
+    ```
+
+    Copy the base URL and paste it as the `TINYBIRD_API_URL` environment variable in your `.env` file.
+
+    ```bash
+    TINYBIRD_API_URL=https://api.us-east.tinybird.co
+    ```
+
+  </Step>
+  
 </Steps>
 
 ## Step 3: Set up Upstash Redis database
@@ -220,7 +238,7 @@ Next, follow [these steps](https://docs.github.com/en/apps/oauth-apps/building-o
 
 Don't forget to set the following Callback URLs:
 
-- `https://app.yourdomain.com/api/auth/callback/github`
+- `https://app.acme.com/api/auth/callback/github`
 - `http://localhost:8888/api/auth/callback/github` for local development.
 
 <Info>
@@ -275,7 +293,7 @@ Once you've set up all of the above services, you can now deploy your app to Ver
     In the **Environment Variables** section, add all of the environment variables from your `.env` file by copying all of them and pasting it into the first input field. A few notes:
 
     - Remove the `PROJECT_ID_VERCEL` environment variable for now since we will only get the project ID after deploying the project.
-    - Replace the `NEXTAUTH_URL` environment variable with the app domain that you will be using (e.g. `https://app.yourdomain.com`).
+    - Replace the `NEXTAUTH_URL` environment variable with the app domain that you will be using (e.g. `https://app.acme.com`).
 
     Click on **Deploy** to deploy your project.
 
@@ -301,7 +319,7 @@ Add both the `NEXT_PUBLIC_APP_DOMAIN` and `NEXT_PUBLIC_APP_SHORT_DOMAIN` as doma
   <Step title="Redeploy your Vercel project">
   Go back to the **Deployments** page and redeploy your project. 
   
-  Once the deployment is complete, you should be able to visit your app domain (e.g. `https://app.yourdomain.com`) and see the following login page:
+  Once the deployment is complete, you should be able to visit your app domain (e.g. `https://app.acme.com`) and see the following login page:
 
 ![Whitelabeled Login](/images/whitelabeled-login.png)
 
