@@ -163,7 +163,7 @@ export default async function LinkMiddleware(
       return NextResponse.redirect(getFinalUrl({ url: ios, req }), DUB_HEADERS);
     }
 
-    const deepLink = urlToDeeplink(url);
+    const deepLink = urlToDeeplink({ url, os: "ios" });
     if (deepLink !== url) {
       return NextResponse.rewrite(
         new URL(`/deeplink/${encodeURIComponent(url)}`, req.url),
@@ -180,7 +180,7 @@ export default async function LinkMiddleware(
       );
     }
 
-    const deepLink = urlToDeeplink(url);
+    const deepLink = urlToDeeplink({ url, os: "android" });
     if (deepLink !== url) {
       return NextResponse.rewrite(
         new URL(`/deeplink/${encodeURIComponent(url)}`, req.url),

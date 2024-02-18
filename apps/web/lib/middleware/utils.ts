@@ -86,11 +86,20 @@ export const urlToDeeplink = ({
     RegExp,
     (matches: RegExpMatchArray) => { ios: string; android: string },
   ][] = [
+    // YouTube (youtube.com)
     [
       /https?:\/\/(?:www\.)?youtube\.com\/([a-zA-Z0-9@_-]+)/,
       (matches) => ({
         ios: `vnd.youtube://www.youtube.com/${matches[1]}`,
         android: `intent://www.youtube.com/${matches[1]}#Intent;package=com.google.android.youtube;scheme=https;end`,
+      }),
+    ],
+    // Amazon (amazon.com, amazon.ca, amazon.co.uk, amazon.in, amazon.es etc.)
+    [
+      /https?:\/\/(?:www\.)?amazon\.(com|ca|co\.uk|in|es)\/([a-zA-Z0-9@_-]+)/,
+      (matches) => ({
+        ios: `com.amazon.mobile.shopping.web://amazon.com/${matches[1]}`,
+        android: `com.amazon.mobile.shopping.web://amazon.com/${matches[1]}`,
       }),
     ],
     // Example for another service, adjust the regex and deep link format accordingly
