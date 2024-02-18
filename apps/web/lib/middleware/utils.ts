@@ -73,23 +73,39 @@ export const detectBot = (req: NextRequest) => {
   return false;
 };
 
-export const urlToDeeplink = (url: string): string => {
-  const patterns: [RegExp, (matches: RegExpMatchArray) => string][] = [
+export const urlToDeeplink = ({
+  url,
+  os,
+}: {
+  url: string;
+  os: "ios" | "android";
+}): string => {
+  if (!url) return url; // weird edge case
+
+  const patterns: [
+    RegExp,
+    (matches: RegExpMatchArray) => { ios: string; android: string },
+  ][] = [
     [
-      /https?:\/\/(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/,
-      (matches) => `vnd.youtube://${matches[1]}`,
+      /https?:\/\/(?:www\.)?youtube\.com\/([a-zA-Z0-9@_-]+)/,
+      (matches) => ({
+        ios: `vnd.youtube://www.youtube.com/${matches[1]}`,
+        android: `intent://www.youtube.com/${matches[1]}#Intent;package=com.google.android.youtube;scheme=https;end`,
+      }),
     ],
     // Example for another service, adjust the regex and deep link format accordingly
     // [
     //     /https?:\/\/(?:www\.)?example\.com\/content\/([a-zA-Z0-9_-]+)/,
-    //     (matches) => `exampleapp://${matches[1]}`
+    //     (matches) => ({
+    //         ios: `example://content/${matches[1]}`,
+    //         android: `example://content/${matches[1]}`
     // ],
   ];
 
   for (let [regex, transformer] of patterns) {
     const matches = url.match(regex);
     if (matches) {
-      return transformer(matches);
+      return transformer(matches)[os];
     }
   }
 

@@ -8,25 +8,26 @@ export default function DeeplinkClient({ url }: { url: string }) {
   const router = useRouter();
 
   useEffect(() => {
-    const deepLink = urlToDeeplink(url);
+    const os = /iPhone|iPad|iPod/i.test(navigator.userAgent)
+      ? "ios"
+      : /Android/i.test(navigator.userAgent)
+        ? "android"
+        : "unknown";
 
-    if (
-      /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) &&
-      deepLink !== url
-    ) {
-      window.open(deepLink, "_blank");
-      setTimeout(() => {
-        router.push(url);
-      }, 25);
-    } else {
-      router.push(url);
+    if (os !== "unknown") {
+      const deepLink = urlToDeeplink({
+        url,
+        os,
+      });
+      if (deepLink !== url) {
+        window.open(deepLink, "_blank");
+        setTimeout(() => {
+          router.push(url);
+        }, 25);
+      }
     }
 
-    const killPopup = () => window.removeEventListener("pagehide", killPopup);
-    window.addEventListener("pagehide", killPopup);
-
-    // Cleanup on component unmount
-    return () => window.removeEventListener("pagehide", killPopup);
+    router.push(url);
   }, [url]);
 
   return <div />;
