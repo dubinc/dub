@@ -1,6 +1,6 @@
+import { LinkProps } from "@/lib/types";
 import { LoadingSpinner, useMediaQuery } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { type Link as LinkProps } from "@prisma/client";
 import { Dispatch, SetStateAction, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";

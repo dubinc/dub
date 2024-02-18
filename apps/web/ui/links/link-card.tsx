@@ -1,7 +1,7 @@
 import useDomains from "@/lib/swr/use-domains";
 import useProject from "@/lib/swr/use-project";
 import useTags from "@/lib/swr/use-tags";
-import { UserProps } from "@/lib/types";
+import { LinkProps, UserProps } from "@/lib/types";
 import TagBadge from "@/ui/links/tag-badge";
 import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
 import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
@@ -34,7 +34,6 @@ import {
   nFormatter,
   timeAgo,
 } from "@dub/utils";
-import { type Link as LinkProps } from "@prisma/client";
 import {
   Archive,
   CopyPlus,

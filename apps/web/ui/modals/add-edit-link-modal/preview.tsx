@@ -1,3 +1,4 @@
+import { LinkProps } from "@/lib/types";
 import {
   BlurImage,
   Facebook,
@@ -7,7 +8,6 @@ import {
   Twitter,
 } from "@dub/ui";
 import { getDomainWithoutWWW } from "@dub/utils";
-import { type Link as LinkProps } from "@prisma/client";
 import { useMemo } from "react";
 import { useDebounce } from "use-debounce";
 
