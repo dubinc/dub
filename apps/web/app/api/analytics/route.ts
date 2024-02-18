@@ -2,11 +2,10 @@ import { withAuth } from "@/lib/auth";
 import { handleAndReturnErrorResponse } from "@/lib/errors";
 import prisma from "@/lib/prisma";
 import z, { domainKeySchema } from "@/lib/zod";
-import { booleanQuerySchema } from "@/lib/zod/schemas";
 import { NextResponse } from "next/server";
 
 const updatePublicStatsSchema = z.object({
-  publicStats: booleanQuerySchema,
+  publicStats: z.boolean(),
 });
 
 // GET /api/analytics – get the publicStats setting for a link
