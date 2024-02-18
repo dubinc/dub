@@ -1,7 +1,7 @@
 "use server";
 
 import { getLinkViaEdge } from "@/lib/planetscale";
-import { redirect } from "next/navigation";
+import { linkConstructor } from "@dub/utils";
 
 export async function verifyPassword(_prevState: any, data: FormData) {
   const domain = data.get("domain") as string;
@@ -19,12 +19,20 @@ export async function verifyPassword(_prevState: any, data: FormData) {
 
   if (validPassword) {
     // if the password is valid, redirect to the link with the password in the query string
-    await redirectHelper(domain, key, password);
+    return {
+      redirect: `${linkConstructor({
+        domain,
+        key: rawKey,
+      })}?pw=${password}`,
+    };
+    // TODO: Fix this once this actually works: https://nextjs.org/docs/app/api-reference/functions/redirect#client-component
+    // redirect(
+    //   `${linkConstructor({
+    //     domain,
+    //     key: rawKey,
+    //   })}?pw=${password}`,
+    // );
   } else {
     return { error: "Invalid password" };
   }
-}
-
-async function redirectHelper(domain: string, key: string, password: string) {
-  redirect(`https://${domain}/${key}?pw=${password}`);
 }
