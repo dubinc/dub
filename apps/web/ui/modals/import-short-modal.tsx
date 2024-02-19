@@ -105,7 +105,7 @@ function ImportShortModal({
         </p>
       </div>
 
-      <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:rounded-b-2xl sm:px-16">
+      <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16">
         {isLoading ? (
           <button className="flex flex-col items-center justify-center space-y-4 bg-none">
             <LoadingSpinner />
