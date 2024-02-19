@@ -75,7 +75,7 @@ const docErrorUrl = "https://dub.co/docs/api-reference/errors";
 export function fromZodError(error: ZodError): ErrorResponse {
   return {
     error: {
-      code: "bad_request",
+      code: "unprocessable_entity",
       message: generateErrorMessage(error.issues, {
         maxErrors: 1,
         delimiter: {
@@ -95,7 +95,7 @@ export function fromZodError(error: ZodError): ErrorResponse {
           label: "",
         },
       }),
-      doc_url: `${docErrorUrl}#bad_request`,
+      doc_url: `${docErrorUrl}#unprocessable_entity`,
     },
   };
 }
@@ -103,7 +103,10 @@ export function fromZodError(error: ZodError): ErrorResponse {
 export function handleApiError(error: any): ErrorResponse & { status: number } {
   // Zod errors
   if (error instanceof ZodError) {
-    return { ...fromZodError(error), status: 400 };
+    return {
+      ...fromZodError(error),
+      status: errorCodeToHttpStatus.unprocessable_entity,
+    };
   }
 
   // DubApiError errors

@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
-import { OpenAPIV3 } from "openapi-types";
+import { createDocument } from "zod-openapi";
+import { openApiObject } from "@/lib/openapi";
 
 export const runtime = "edge";
 
-export function GET(): NextResponse<OpenAPIV3.Document> {
+export function GET() {
+  return NextResponse.json(createDocument(openApiObject));
+
+  // Remove this after the above code is merged
   return NextResponse.json({
     openapi: "3.0.3",
     info: {

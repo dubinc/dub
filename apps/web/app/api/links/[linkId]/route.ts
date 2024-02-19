@@ -7,7 +7,7 @@ import {
   handleAndReturnErrorResponse,
 } from "@/lib/errors";
 import { LinkProps } from "@/lib/types";
-import { createLinkBodySchema } from "@/lib/zod/schemas/links";
+import { updateLinkBodySchema } from "@/lib/zod/schemas/links";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -22,7 +22,7 @@ export const GET = withAuth(async ({ headers, link }) => {
 // PUT /api/links/[linkId] – update a link
 export const PUT = withAuth(async ({ req, headers, project, link }) => {
   try {
-    const body = createLinkBodySchema.parse(await req.json());
+    const body = updateLinkBodySchema.parse(await req.json());
 
     const updatedLink = {
       ...link,

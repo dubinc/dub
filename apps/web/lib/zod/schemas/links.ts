@@ -49,16 +49,19 @@ export const getLinksQuerySchema = z.object({
 export const getLinkInfoQuerySchema = z.object({
   projectSlug: z
     .string()
+    .min(1, "Project slug is required.")
     .describe(
       "The slug for the project that the link belongs to. E.g. for `app.dub.co/acme`, the projectSlug is `acme`.",
     ),
   domain: z
     .string()
+    .min(1, "Domain is required.")
     .describe(
       "The domain of the link to retrieve. E.g. for `dub.sh/github`, the domain is `dub.sh`.",
     ),
   key: z
     .string()
+    .min(1, "Key is required.")
     .describe(
       "The key of the link to retrieve. E.g. for `dub.sh/github`, the key is `github`.",
     ),
@@ -163,6 +166,8 @@ export const createLinkBodySchema = z.object({
     .describe("The tag ID to assign to the short link."),
   comments: z.string().nullish().describe("The comments for the short link."),
 });
+
+export const updateLinkBodySchema = createLinkBodySchema.partial();
 
 export const bulkCreateLinksBodySchema = z
   .array(createLinkBodySchema)
