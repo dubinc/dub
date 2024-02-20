@@ -46,7 +46,7 @@ export async function recordClick({
 
   return await Promise.allSettled([
     fetch(
-      "https://api.us-east.tinybird.co/v0/events?name=dub_click_events&wait=true",
+      `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_click_events&wait=true`,
       {
         method: "POST",
         headers: {
@@ -112,7 +112,7 @@ export async function recordLink({
   deleted?: boolean;
 }) {
   return await fetch(
-    "https://api.us-east.tinybird.co/v0/events?name=dub_links_metadata&wait=true",
+    `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_links_metadata&wait=true`,
     {
       method: "POST",
       headers: {

@@ -38,7 +38,7 @@ export default function Toggle() {
   const { slug } = useParams() as { slug?: string };
   const { queryParams } = useRouterStuff();
 
-  const { basePath, domain, key, interval } = useContext(AnalyticsContext);
+  const { basePath, domain, key, url, interval } = useContext(AnalyticsContext);
 
   const [openDatePopover, setOpenDatePopover] = useState(false);
 
@@ -62,11 +62,20 @@ export default function Toggle() {
       <div className="mx-auto flex h-20 max-w-4xl flex-col items-center justify-between space-y-3 px-2.5 md:h-10 md:flex-row md:space-y-0 lg:px-0">
         {isPublicStatsPage ? (
           <a
-            className="group flex text-lg font-semibold text-gray-800 md:text-xl"
+            className="group flex items-center text-lg font-semibold text-gray-800"
             href={linkConstructor({ domain, key })}
             target="_blank"
             rel="noreferrer"
           >
+            <BlurImage
+              alt={url || "Dub.co"}
+              src={
+                url ? `${GOOGLE_FAVICON_URL}${getApexDomain(url)}` : DUB_LOGO
+              }
+              className="mr-2 h-6 w-6 flex-shrink-0 overflow-hidden rounded-full"
+              width={48}
+              height={48}
+            />
             {linkConstructor({
               domain: punycode.toUnicode(domain),
               key,

@@ -25,6 +25,7 @@ export const AnalyticsContext = createContext<{
   baseApiPath: string;
   domain?: string;
   key?: string;
+  url?: string;
   queryString: string;
   interval: string;
   totalClicks?: number;
@@ -32,12 +33,17 @@ export const AnalyticsContext = createContext<{
   basePath: "",
   baseApiPath: "",
   domain: "",
-  key: "",
   queryString: "",
   interval: "",
 });
 
-export default function Analytics({ staticDomain }: { staticDomain?: string }) {
+export default function Analytics({
+  staticDomain,
+  staticUrl,
+}: {
+  staticDomain?: string;
+  staticUrl?: string;
+}) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
@@ -102,6 +108,7 @@ export default function Analytics({ staticDomain }: { staticDomain?: string }) {
         queryString,
         domain: domain || undefined, // domain for the link (e.g. dub.sh, stey.me, etc.)
         key: key ? decodeURIComponent(key) : undefined, // link key (e.g. github, weathergpt, etc.)
+        url: staticUrl, // url for the link (only for public stats pages)
         interval, // time interval (e.g. 24h, 7d, 30d, etc.)
         totalClicks, // total clicks for the link
       }}
