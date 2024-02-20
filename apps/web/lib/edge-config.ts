@@ -9,11 +9,11 @@ export const isBlacklistedDomain = async (domain: string) => {
       get("terms"),
     ]);
   } catch (e) {
-    blacklistedDomains = [];
-    blacklistedTerms = [];
+    return false; // if blacklisted domains & terms don't exist, don't block
   }
+
   const domainToTest = getDomainWithoutWWW(domain) || domain;
-  if (blacklistedDomains.length === 0) return false;
+
   const blacklistedTermsRegex = new RegExp(
     blacklistedTerms
       .map((term: string) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
