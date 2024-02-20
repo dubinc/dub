@@ -67,6 +67,7 @@ function TransferLinkModal({
     <Modal
       showModal={showTransferLinkModal}
       setShowModal={setShowTransferLinkModal}
+      className="overflow-visible"
     >
       <form
         onSubmit={async (e) => {
