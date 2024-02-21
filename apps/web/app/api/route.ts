@@ -24,6 +24,151 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
       },
     ],
     paths: {
+      "/analytics/clicks": {
+        get: {
+          description:
+            "Retrieve the number of clicks for a link, a domain, or the authenticated project.",
+          operationId: "getClicksAnalytics",
+          security: [
+            {
+              bearerToken: [],
+            },
+          ],
+          parameters: [
+            {
+              $ref: "#/components/parameters/ProjectSlug",
+            },
+            {
+              $ref: "#/components/parameters/LinkDomain",
+            },
+            {
+              $ref: "#/components/parameters/LinkKey",
+            },
+            {
+              $ref: "#/components/parameters/LinkId",
+            },
+            {
+              $ref: "#/components/parameters/AnalyticsInterval",
+            },
+            {
+              $ref: "#/components/parameters/AnalyticsCountry",
+            },
+            {
+              $ref: "#/components/parameters/AnalyticsCity",
+            },
+            {
+              $ref: "#/components/parameters/AnalyticsURL",
+            },
+            {
+              $ref: "#/components/parameters/AnalyticsDevice",
+            },
+            {
+              $ref: "#/components/parameters/AnalyticsBrowser",
+            },
+            {
+              $ref: "#/components/parameters/AnalyticsOS",
+            },
+            {
+              $ref: "#/components/parameters/AnalyticsReferer",
+            },
+            {
+              $ref: "#/components/parameters/AnalyticsExcludeRoot",
+            },
+          ],
+          responses: {
+            "200": {
+              description: "The number of clicks",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "number",
+                    description: "The number of clicks",
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      "/analytics/timeseries": {
+        get: {
+          description:
+            "Retrieve the number of clicks for a link, a domain, or the authenticated project over a period of time.",
+          operationId: "getTimeseriesAnalytics",
+          security: [
+            {
+              bearerToken: [],
+            },
+          ],
+          parameters: [
+            {
+              $ref: "#/components/parameters/ProjectSlug",
+            },
+            {
+              $ref: "#/components/parameters/LinkDomain",
+            },
+            {
+              $ref: "#/components/parameters/LinkKey",
+            },
+            {
+              $ref: "#/components/parameters/LinkId",
+            },
+            {
+              $ref: "#/components/parameters/AnalyticsInterval",
+            },
+            {
+              $ref: "#/components/parameters/AnalyticsCountry",
+            },
+            {
+              $ref: "#/components/parameters/AnalyticsCity",
+            },
+            {
+              $ref: "#/components/parameters/AnalyticsURL",
+            },
+            {
+              $ref: "#/components/parameters/AnalyticsDevice",
+            },
+            {
+              $ref: "#/components/parameters/AnalyticsBrowser",
+            },
+            {
+              $ref: "#/components/parameters/AnalyticsOS",
+            },
+            {
+              $ref: "#/components/parameters/AnalyticsReferer",
+            },
+            {
+              $ref: "#/components/parameters/AnalyticsExcludeRoot",
+            },
+          ],
+          responses: {
+            "200": {
+              description: "The number of clicks over a period of time",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        start: {
+                          type: "string",
+                          format: "date-time",
+                          description: "The starting timestamp of the interval",
+                        },
+                        clicks: {
+                          type: "number",
+                          description: "The number of clicks in the interval",
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
       "/links": {
         get: {
           description:
@@ -438,6 +583,72 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
           },
         },
       },
+      "/projects": {
+        get: {
+          description:
+            "Retrieve a list of projects for the authenticated user.",
+          operationId: "getProjects",
+          security: [
+            {
+              bearerToken: [],
+            },
+          ],
+          summary: "Retrieve a list of projects",
+          responses: {
+            "200": {
+              description: "A list of projects",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "array",
+                    items: {
+                      $ref: "#/components/schemas/Project",
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      "/projects/{projectSlug}": {
+        get: {
+          description: "Retrieve a project for the authenticated user.",
+          operationId: "getProject",
+          security: [
+            {
+              bearerToken: [],
+            },
+          ],
+          summary: "Retrieve a project",
+          parameters: [
+            {
+              name: "projectSlug",
+              description:
+                "The slug for the project to retrieve. E.g. for `app.dub.co/acme`, the projectSlug is `acme`.",
+              in: "path",
+              required: true,
+              schema: {
+                description:
+                  "The slug for the project to retrieve. E.g. for `app.dub.co/acme`, the projectSlug is `acme`.",
+                type: "string",
+              },
+            },
+          ],
+          responses: {
+            "200": {
+              description: "The retrieved project",
+              content: {
+                "application/json": {
+                  schema: {
+                    $ref: "#/components/schemas/ProjectDetails",
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
       "/qr": {
         get: {
           description: "Retrieve a QR code for a link.",
@@ -527,72 +738,6 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
                   schema: {
                     type: "string",
                     format: "binary",
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-      "/projects": {
-        get: {
-          description:
-            "Retrieve a list of projects for the authenticated user.",
-          operationId: "getProjects",
-          security: [
-            {
-              bearerToken: [],
-            },
-          ],
-          summary: "Retrieve a list of projects",
-          responses: {
-            "200": {
-              description: "A list of projects",
-              content: {
-                "application/json": {
-                  schema: {
-                    type: "array",
-                    items: {
-                      $ref: "#/components/schemas/Project",
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-      "/projects/{projectSlug}": {
-        get: {
-          description: "Retrieve a project for the authenticated user.",
-          operationId: "getProject",
-          security: [
-            {
-              bearerToken: [],
-            },
-          ],
-          summary: "Retrieve a project",
-          parameters: [
-            {
-              name: "projectSlug",
-              description:
-                "The slug for the project to retrieve. E.g. for `app.dub.co/acme`, the projectSlug is `acme`.",
-              in: "path",
-              required: true,
-              schema: {
-                description:
-                  "The slug for the project to retrieve. E.g. for `app.dub.co/acme`, the projectSlug is `acme`.",
-                type: "string",
-              },
-            },
-          ],
-          responses: {
-            "200": {
-              description: "The retrieved project",
-              content: {
-                "application/json": {
-                  schema: {
-                    $ref: "#/components/schemas/ProjectDetails",
                   },
                 },
               },
@@ -696,6 +841,134 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
       },
     },
     components: {
+      parameters: {
+        ProjectSlug: {
+          name: "projectSlug",
+          in: "query",
+          description:
+            "The unique slug for the authenticated project. E.g. for `app.dub.co/acme`, the projectSlug is `acme`.",
+          required: true,
+          schema: {
+            type: "string",
+            format: "cuid",
+          },
+        },
+        LinkDomain: {
+          name: "domain",
+          in: "query",
+          description: "The domain of the short link.",
+          required: false,
+          schema: {
+            type: "string",
+          },
+        },
+        LinkKey: {
+          name: "key",
+          in: "query",
+          description: "The short link slug.",
+          required: false,
+          schema: {
+            type: "string",
+          },
+        },
+        LinkId: {
+          name: "linkId",
+          in: "query",
+          description: "The unique ID of the short link.",
+          required: false,
+          schema: {
+            type: "string",
+            format: "cuid",
+          },
+        },
+        AnalyticsInterval: {
+          name: "interval",
+          in: "query",
+          description:
+            "The interval to retrieve analytics for. Defaults to `24h` if not provided.",
+          required: false,
+          schema: {
+            type: "string",
+            enum: ["1h", "24h", "7d", "30d", "90d", "all"],
+            default: "24h",
+          },
+        },
+        AnalyticsCountry: {
+          name: "country",
+          in: "query",
+          description: "The country to retrieve analytics for.",
+          required: false,
+          schema: {
+            type: "string",
+          },
+        },
+        AnalyticsCity: {
+          name: "city",
+          in: "query",
+          description: "The city to retrieve analytics for.",
+          required: false,
+          schema: {
+            type: "string",
+          },
+        },
+        AnalyticsDevice: {
+          name: "device",
+          in: "query",
+          description: "The device to retrieve analytics for.",
+          required: false,
+          schema: {
+            type: "string",
+          },
+        },
+        AnalyticsBrowser: {
+          name: "browser",
+          in: "query",
+          description: "The browser to retrieve analytics for.",
+          required: false,
+          schema: {
+            type: "string",
+          },
+        },
+        AnalyticsOS: {
+          name: "os",
+          in: "query",
+          description: "The OS to retrieve analytics for.",
+          required: false,
+          schema: {
+            type: "string",
+          },
+        },
+        AnalyticsReferer: {
+          name: "referer",
+          in: "query",
+          description: "The referer to retrieve analytics for.",
+          required: false,
+          schema: {
+            type: "string",
+          },
+        },
+        AnalyticsURL: {
+          name: "url",
+          in: "query",
+          description: "The URL to retrieve analytics for.",
+          required: false,
+          schema: {
+            type: "string",
+          },
+        },
+        AnalyticsExcludeRoot: {
+          name: "excludeRoot",
+          in: "query",
+          description:
+            "Whether to exclude the root link from the response. Defaults to `false` if not provided.",
+          required: false,
+          schema: {
+            type: "boolean",
+            enum: [true, false],
+            default: false,
+          },
+        },
+      },
       schemas: {
         Link: {
           allOf: [

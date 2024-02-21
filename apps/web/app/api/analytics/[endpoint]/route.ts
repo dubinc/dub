@@ -35,5 +35,6 @@ export const GET = withAuth(
   },
   {
     needNotExceededClicks: true,
+    requiredPlan: ["pro", "business", "enterprise"],
   },
 );

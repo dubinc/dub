@@ -79,7 +79,7 @@ export const VALID_ANALYTICS_FILTERS = [
   "country",
   "city",
   "url",
-  "alias",
+  // "alias",
   "device",
   "browser",
   "os",
@@ -144,21 +144,19 @@ export const getAnalytics = async ({
   } else if (domain) {
     url.searchParams.append("domain", domain);
   }
-  if (interval) {
-    url.searchParams.append(
-      "start",
-      intervalData[interval].startDate
-        .toISOString()
-        .replace("T", " ")
-        .replace("Z", ""),
-    );
-    url.searchParams.append(
-      "end",
-      new Date(Date.now()).toISOString().replace("T", " ").replace("Z", ""),
-    );
 
-    url.searchParams.append("granularity", intervalData[interval].granularity);
-  }
+  const { startDate, granularity } = intervalData[interval || "24h"];
+
+  url.searchParams.append(
+    "start",
+    startDate.toISOString().replace("T", " ").replace("Z", ""),
+  );
+  url.searchParams.append(
+    "end",
+    new Date(Date.now()).toISOString().replace("T", " ").replace("Z", ""),
+  );
+
+  url.searchParams.append("granularity", granularity);
 
   VALID_ANALYTICS_FILTERS.forEach((filter) => {
     if (rest[filter]) {

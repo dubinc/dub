@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import { API_DOMAIN, getSearchParams, isDubDomain } from "@dub/utils";
+import { getSearchParams, isDubDomain } from "@dub/utils";
 import { Link as LinkProps } from "@prisma/client";
 import { isAdmin } from "app/admin.dub.co/actions";
 import { createHash } from "crypto";
@@ -122,14 +122,6 @@ export const withAuth =
         );
       }
       const apiKey = authorizationHeader.replace("Bearer ", "");
-
-      const url = new URL(req.url || "", API_DOMAIN);
-
-      if (url.pathname.includes("/analytics")) {
-        return new Response("API access is not available for Analytics yet.", {
-          status: 403,
-        });
-      }
 
       const hashedKey = hashToken(apiKey, {
         noSecret: true,
