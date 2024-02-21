@@ -3,8 +3,10 @@ import { ZodOpenApiObject } from "zod-openapi";
 import { LinkSchema } from "@/lib/zod/schemas/links";
 import { projectSchema } from "@/lib/zod/schemas/projects";
 import { tagSchema } from "@/lib/zod/schemas/tags";
+import { analyticsPaths } from "./analytics";
 import { linksPaths } from "./links";
 import { projectsPaths } from "./projects";
+import { qrCodePaths } from "./qr";
 import { tagsPaths } from "./tags";
 
 export const openApiObject: ZodOpenApiObject = {
@@ -31,7 +33,9 @@ export const openApiObject: ZodOpenApiObject = {
     },
   ],
   paths: {
+    ...analyticsPaths,
     ...linksPaths,
+    ...qrCodePaths,
     ...projectsPaths,
     ...tagsPaths,
   },

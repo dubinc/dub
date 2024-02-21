@@ -6,7 +6,6 @@ import { deleteLink } from "./delete-link";
 import { editLink } from "./edit-link";
 import { getLinkInfo } from "./get-link-info";
 import { getLinks } from "./get-links";
-import { getQRCode } from "./get-qr";
 
 export const linksPaths: ZodOpenApiPathsObject = {
   "/links": {
@@ -22,8 +21,5 @@ export const linksPaths: ZodOpenApiPathsObject = {
   },
   "/links/bulk": {
     post: createBulkLink,
-  },
-  "/qr": {
-    get: getQRCode,
   },
 };
