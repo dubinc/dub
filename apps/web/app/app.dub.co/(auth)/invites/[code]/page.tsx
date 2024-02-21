@@ -1,7 +1,7 @@
 import { getSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { LoadingSpinner, Logo } from "@dub/ui";
-import { APP_NAME, TWO_WEEKS_IN_SECONDS } from "@dub/utils";
+import { APP_NAME } from "@dub/utils";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
@@ -71,7 +71,6 @@ async function VerifyInvite({ code }: { code: string }) {
       _count: {
         select: {
           users: true,
-          invites: true,
         },
       },
     },
@@ -93,7 +92,7 @@ async function VerifyInvite({ code }: { code: string }) {
     redirect(`/${project.slug}`);
   }
 
-  if (project._count.users + project._count.invites >= project.usersLimit) {
+  if (project._count.users >= project.usersLimit) {
     return (
       <PageCopy
         title="User Limit Reached"
@@ -102,23 +101,12 @@ async function VerifyInvite({ code }: { code: string }) {
     );
   }
 
-  try {
-    await prisma.projectInvite.create({
-      data: {
-        email: session.user.email,
-        expires: new Date(Date.now() + TWO_WEEKS_IN_SECONDS * 1000),
-        projectId: project.id,
-      },
-    });
-  } catch (e) {
-    if (e.code !== "P2002") {
-      return (
-        <>
-          <PageCopy title="Error" message={e.message} />
-        </>
-      );
-    }
-  }
+  await prisma.projectUsers.create({
+    data: {
+      userId: session.user.id,
+      projectId: project.id,
+    },
+  });
 
   redirect(`/${project.slug}`);
 }
