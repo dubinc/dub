@@ -38,8 +38,8 @@ function InviteCodeModal({
       </div>
 
       <div className="flex flex-col space-y-3 bg-gray-50 px-4 py-8 text-left sm:px-16">
-        <div className="flex items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2">
-          <p className="scrollbar-hide w-5/6 overflow-scroll font-mono text-sm text-gray-500">
+        <div className="flex items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-1.5">
+          <p className="scrollbar-hide w-[88%] overflow-scroll font-mono text-xs text-gray-500">
             {inviteLink}
           </p>
           <CopyButton value={inviteLink} className="rounded-md" />
