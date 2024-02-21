@@ -109,7 +109,9 @@ model Project {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  metadata  Json?    @default("{\"defaultDomains\":[\"dub.sh\",\"chatg.pt\",\"spti.fi\",\"amzn.id\"]}")
+
+  inviteCode  String? @unique
+  metadata    Json?    @default("{\"defaultDomains\":[\"dub.sh\",\"chatg.pt\",\"spti.fi\",\"amzn.id\"]}")
 }
 
 model ProjectInvite {
@@ -228,6 +230,9 @@ model Link {
   tag   Tag?    @relation(fields: [tagId], references: [id])
   tagId String?
 
+  // (Upcoming) multiple link tags
+  tags  LinkTag[]
+
   // Comments on the particular shortlink
   comments String? @db.LongText
 
@@ -256,9 +261,24 @@ model Tag {
   project   Project  @relation(fields: [projectId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   projectId String
   links     Link[]
+  linksNew  LinkTag[]
 
   @@unique([name, projectId])
   @@index(projectId)
+}
+
+model LinkTag {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  link      Link     @relation(fields: [linkId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  linkId    String
+  tag       Tag      @relation(fields: [tagId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  tagId     String
+
+  @@unique([linkId, tagId])
+  @@index(linkId)
+  @@index(tagId)
 }
 
 model jackson_index {
