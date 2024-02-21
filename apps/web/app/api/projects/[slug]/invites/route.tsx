@@ -1,5 +1,5 @@
 import { exceededLimitError } from "@/lib/api/errors";
-import { inviteUser } from "@/lib/api/users";
+import { inviteChecks, inviteUser } from "@/lib/api/users";
 import { withAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
@@ -22,31 +22,18 @@ export const GET = withAuth(async ({ project }) => {
 export const POST = withAuth(
   async ({ req, project, session }) => {
     const { email } = await req.json();
-    const alreadyInTeam = await prisma.projectUsers.findFirst({
-      where: {
-        projectId: project.id,
-        user: {
-          email,
-        },
-      },
+    const [alreadyInTeam, projectUserCount] = await inviteChecks({
+      projectId: project.id,
+      email,
     });
+
     if (alreadyInTeam) {
       return new Response("User already exists in this project.", {
         status: 400,
       });
     }
 
-    const users = await prisma.projectUsers.count({
-      where: {
-        projectId: project.id,
-      },
-    });
-    const invites = await prisma.projectInvite.count({
-      where: {
-        projectId: project.id,
-      },
-    });
-    if (users + invites >= project.usersLimit) {
+    if (projectUserCount >= project.usersLimit) {
       return new Response(
         exceededLimitError({
           plan: project.plan,

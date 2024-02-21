@@ -1,9 +1,34 @@
 import { Session, hashToken } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { ProjectProps } from "@/lib/types";
+import { TWO_WEEKS_IN_SECONDS } from "@dub/utils";
 import { randomBytes } from "crypto";
 import { sendEmail } from "emails";
 import ProjectInvite from "emails/project-invite";
+
+export async function inviteChecks({
+  projectId,
+  email,
+}: {
+  projectId: string;
+  email: string;
+}) {
+  return await Promise.all([
+    prisma.projectUsers.findFirst({
+      where: {
+        projectId,
+        user: {
+          email,
+        },
+      },
+    }),
+    prisma.projectUsers.count({
+      where: {
+        projectId,
+      },
+    }),
+  ]);
+}
 
 export async function inviteUser({
   email,
@@ -16,7 +41,6 @@ export async function inviteUser({
 }) {
   // same method of generating a token as next-auth
   const token = randomBytes(32).toString("hex");
-  const TWO_WEEKS_IN_SECONDS = 60 * 60 * 24 * 14;
   const expires = new Date(Date.now() + TWO_WEEKS_IN_SECONDS * 1000);
 
   // create a project invite record and a verification request token that lasts for a week

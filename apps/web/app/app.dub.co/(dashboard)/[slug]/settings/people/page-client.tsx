@@ -4,10 +4,11 @@ import useProject from "@/lib/swr/use-project";
 import useUsers from "@/lib/swr/use-users";
 import { UserProps } from "@/lib/types";
 import { useEditRoleModal } from "@/ui/modals/edit-role-modal";
+import { useInviteCodeModal } from "@/ui/modals/invite-code-modal";
 import { useInviteTeammateModal } from "@/ui/modals/invite-teammate-modal";
 import { useRemoveTeammateModal } from "@/ui/modals/remove-teammate-modal";
-import { ThreeDots } from "@/ui/shared/icons";
-import { Avatar, Badge, IconMenu, Popover } from "@dub/ui";
+import { Link as LinkIcon, ThreeDots } from "@/ui/shared/icons";
+import { Avatar, Badge, Button, IconMenu, Popover } from "@dub/ui";
 import { cn, timeAgo } from "@dub/utils";
 import { UserMinus } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -19,6 +20,8 @@ export default function ProjectPeopleClient() {
   const { setShowInviteTeammateModal, InviteTeammateModal } =
     useInviteTeammateModal();
 
+  const { setShowInviteCodeModal, InviteCodeModal } = useInviteCodeModal();
+
   const [currentTab, setCurrentTab] = useState<"Members" | "Invitations">(
     "Members",
   );
@@ -28,6 +31,7 @@ export default function ProjectPeopleClient() {
   return (
     <>
       <InviteTeammateModal />
+      <InviteCodeModal />
       <div className="rounded-lg border border-gray-200 bg-white">
         <div className="flex flex-col items-center justify-between space-y-3 p-5 sm:flex-row sm:space-y-0 sm:p-10">
           <div className="flex flex-col space-y-3">
@@ -36,12 +40,19 @@ export default function ProjectPeopleClient() {
               Teammates that have access to this project.
             </p>
           </div>
-          <button
-            onClick={() => setShowInviteTeammateModal(true)}
-            className="h-9 w-full rounded-md border border-black bg-black px-6 text-sm text-white transition-all duration-150 ease-in-out hover:bg-white hover:text-black focus:outline-none sm:w-auto"
-          >
-            Invite
-          </button>
+          <div className="flex space-x-2">
+            <Button
+              text="Invite"
+              onClick={() => setShowInviteTeammateModal(true)}
+              className="h-9"
+            />
+            <Button
+              icon={<LinkIcon className="h-4 w-4 text-gray-800" />}
+              variant="secondary"
+              onClick={() => setShowInviteCodeModal(true)}
+              className="h-9"
+            />
+          </div>
         </div>
         <div className="flex space-x-3 border-b border-gray-200 px-3 sm:px-7">
           {tabs.map((tab) => (
@@ -186,8 +197,8 @@ const UserCard = ({
                       session?.user?.email === email
                         ? "Leave project"
                         : currentTab === "Members"
-                        ? "Remove teammate"
-                        : "Revoke invite"
+                          ? "Remove teammate"
+                          : "Revoke invite"
                     }
                     icon={<UserMinus className="h-4 w-4" />}
                   />
