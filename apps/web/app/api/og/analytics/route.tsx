@@ -36,6 +36,7 @@ export async function GET(req: NextRequest) {
     linkId: link.id,
     endpoint: "timeseries",
     interval: "30d",
+    excludeRoot: false
   });
 
   const maxClicks = Math.max(...timeseries.map((t) => t.clicks));

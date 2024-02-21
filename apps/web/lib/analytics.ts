@@ -98,7 +98,7 @@ export const getAnalytics = async ({
   endpoint,
   interval,
   ...rest
-}: z.infer<typeof getAnalyticsQuerySchema> & {
+}: Omit<z.infer<typeof getAnalyticsQuerySchema>, "projectSlug"> & {
   projectId?: string;
   linkId?: string;
   endpoint: (typeof VALID_TINYBIRD_ENDPOINTS)[number];
