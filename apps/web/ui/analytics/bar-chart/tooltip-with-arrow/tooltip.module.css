@@ -1,0 +1,25 @@
+.tooltip {
+  position: absolute;
+  pointer-events: none;
+  padding: 0.3rem 0.5rem;
+  min-width: 150px;
+  border-radius: 5px;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+}
+
+.tooltip::after {
+  content: "";
+  width: 0;
+  height: 0;
+
+  /* make a bottom arrow from borders*/
+  border: 7px solid transparent;
+  border-top-color: white;
+
+  /* center arrow horizontally */
+  position: absolute;
+  margin: auto;
+  left: 0;
+  right: 0;
+  top: 100%;
+}
