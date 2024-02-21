@@ -6,7 +6,7 @@ import z from "@/lib/zod";
 import { getAnalyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { NextResponse } from "next/server";
 
-export const endpointSchema = z.object({
+const endpointSchema = z.object({
   endpoint: z.enum(VALID_TINYBIRD_ENDPOINTS, {
     errorMap: (issue, ctx) => {
       return {
