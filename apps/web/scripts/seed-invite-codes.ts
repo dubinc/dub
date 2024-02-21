@@ -10,7 +10,7 @@ async function main() {
     where: {
       inviteCode: null,
     },
-    take: 1000,
+    take: 500,
   });
 
   const res = await Promise.all(

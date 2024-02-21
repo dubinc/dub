@@ -81,13 +81,24 @@ async function VerifyInvite({ code }: { code: string }) {
     );
   }
 
-  await prisma.projectInvite.create({
-    data: {
-      email: session.user.email,
-      expires: new Date(Date.now() + TWO_WEEKS_IN_SECONDS * 1000),
-      projectId: project.id,
-    },
-  });
+  try {
+    await prisma.projectInvite.create({
+      data: {
+        email: session.user.email,
+        expires: new Date(Date.now() + TWO_WEEKS_IN_SECONDS * 1000),
+        projectId: project.id,
+      },
+    });
+  } catch (e) {
+    if (e.code !== "P2002") {
+      return (
+        <>
+          <h1 className="font-display text-4xl font-bold">Error</h1>
+          <p className="text-lg text-gray-600">{e.message}</p>
+        </>
+      );
+    }
+  }
 
   redirect(`/${project.slug}`);
 }
