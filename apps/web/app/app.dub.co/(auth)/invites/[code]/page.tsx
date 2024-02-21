@@ -1,4 +1,3 @@
-import { inviteChecks } from "@/lib/api/users";
 import { getSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { LoadingSpinner, Logo } from "@dub/ui";
@@ -7,6 +6,17 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 export const runtime = "nodejs";
+
+const PageCopy = ({ title, message }: { title: string; message: string }) => {
+  return (
+    <>
+      <h1 className="font-display text-3xl font-bold sm:text-4xl">{title}</h1>
+      <p className="max-w-lg text-gray-600 [text-wrap:balance] sm:text-lg">
+        {message}
+      </p>
+    </>
+  );
+};
 
 export default function InvitesPage({
   params,
@@ -21,13 +31,10 @@ export default function InvitesPage({
       <Suspense
         fallback={
           <>
-            <h1 className="font-display text-4xl font-bold">
-              Verifying Invite
-            </h1>
-            <p className="text-lg text-gray-600">
-              {APP_NAME} is verifying your invite link.
-              <br /> Please wait...
-            </p>
+            <PageCopy
+              title="Verifying Invite"
+              message={`${APP_NAME} is verifying your invite link...`}
+            />
             <LoadingSpinner className="h-7 w-7" />
           </>
         }
@@ -45,39 +52,53 @@ async function VerifyInvite({ code }: { code: string }) {
     redirect("/login");
   }
 
-  // fake promise 3s
   const project = await prisma.project.findUnique({
+    where: {
+      inviteCode: code,
+    },
     select: {
       id: true,
       slug: true,
       usersLimit: true,
-    },
-    where: {
-      inviteCode: code,
+      users: {
+        where: {
+          userId: session.user.id,
+        },
+        select: {
+          role: true,
+        },
+      },
+      _count: {
+        select: {
+          users: true,
+          invites: true,
+        },
+      },
     },
   });
 
   if (!project) {
-    redirect("/");
+    return (
+      <>
+        <PageCopy
+          title="Invalid Invite"
+          message="The invite link you are trying to use is invalid. Please contact the project owner for a new invite."
+        />
+      </>
+    );
   }
 
-  const [alreadyInTeam, projectUserCount] = await inviteChecks({
-    projectId: project.id,
-    email: session.user.email,
-  });
-
-  if (alreadyInTeam) {
+  // check if user is already in the project
+  if (project.users.length > 0) {
     redirect(`/${project.slug}`);
   }
 
-  if (projectUserCount >= project.usersLimit) {
+  if (project._count.users + project._count.invites >= project.usersLimit) {
     return (
-      <>
-        <h1 className="font-display text-4xl font-bold">User Limit Reached</h1>
-        <p className="text-lg text-gray-600">
-          This project has reached its user limit.
-        </p>
-      </>
+      <PageCopy
+        title="User Limit Reached"
+        message="The project you are trying to join is currently full. Please contact the project owner for more information."
+      />
     );
   }
 
@@ -93,8 +114,7 @@ async function VerifyInvite({ code }: { code: string }) {
     if (e.code !== "P2002") {
       return (
         <>
-          <h1 className="font-display text-4xl font-bold">Error</h1>
-          <p className="text-lg text-gray-600">{e.message}</p>
+          <PageCopy title="Error" message={e.message} />
         </>
       );
     }

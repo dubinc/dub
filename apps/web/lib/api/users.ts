@@ -6,30 +6,6 @@ import { randomBytes } from "crypto";
 import { sendEmail } from "emails";
 import ProjectInvite from "emails/project-invite";
 
-export async function inviteChecks({
-  projectId,
-  email,
-}: {
-  projectId: string;
-  email: string;
-}) {
-  return await Promise.all([
-    prisma.projectUsers.findFirst({
-      where: {
-        projectId,
-        user: {
-          email,
-        },
-      },
-    }),
-    prisma.projectUsers.count({
-      where: {
-        projectId,
-      },
-    }),
-  ]);
-}
-
 export async function inviteUser({
   email,
   project,
