@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
   });
   if (!session?.email) {
     const ip = ipAddress(req) || LOCALHOST_IP;
-    const { success } = await ratelimit(10, "1s").limit(ip);
+    const { success } = await ratelimit(10, "1 s").limit(ip);
     if (!success) {
       return new Response("Don't DDoS me pls 🥺", { status: 429 });
     }
