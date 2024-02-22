@@ -17,7 +17,7 @@ async function main() {
         return;
       }
 
-      // subscribe top 95 users
+      // upload top 95 users
       await Promise.all(users.slice(0, 95).map(({ email, name }) => {}));
 
       console.log(`Uploaded 95 users, ${users.length - 95} remaining`);

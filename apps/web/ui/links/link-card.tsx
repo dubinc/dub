@@ -44,6 +44,7 @@ import {
   MessageCircle,
   QrCode,
   TimerOff,
+  Lock,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -66,6 +67,7 @@ export default function LinkCard({
     domain,
     url,
     rewrite,
+    password,
     expiresAt,
     createdAt,
     lastClicked,
@@ -404,6 +406,19 @@ export default function LinkCard({
                   }
                 >
                   <EyeOff className="xs:block hidden h-4 w-4 text-gray-500" />
+                </Tooltip>
+              )}
+              {password && (
+                <Tooltip
+                  content={
+                    <SimpleTooltipContent
+                      title="This link is password-protected."
+                      cta="Learn more."
+                      href={`${HOME_DOMAIN}/help/article/password-protected-links`}
+                    />
+                  }
+                >
+                  <Lock className="xs:block hidden h-4 w-4 text-gray-500" />
                 </Tooltip>
               )}
               <a
