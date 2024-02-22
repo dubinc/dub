@@ -29,14 +29,29 @@ export const POST = withAuth(
   async ({ req, project, session }) => {
     try {
       const { email } = emailInviteSchema.parse(await req.json());
-      const alreadyInTeam = await prisma.projectUsers.findFirst({
-        where: {
-          projectId: project.id,
-          user: {
-            email,
-          },
-        },
-      });
+
+      const [alreadyInTeam, projectUserCount, projectInviteCount] =
+        await Promise.all([
+          prisma.projectUsers.findFirst({
+            where: {
+              projectId: project.id,
+              user: {
+                email,
+              },
+            },
+          }),
+          prisma.projectUsers.count({
+            where: {
+              projectId: project.id,
+            },
+          }),
+          prisma.projectInvite.count({
+            where: {
+              projectId: project.id,
+            },
+          }),
+        ]);
+
       if (alreadyInTeam) {
         throw new DubApiError({
           code: "bad_request",
@@ -44,17 +59,7 @@ export const POST = withAuth(
         });
       }
 
-      const users = await prisma.projectUsers.count({
-        where: {
-          projectId: project.id,
-        },
-      });
-      const invites = await prisma.projectInvite.count({
-        where: {
-          projectId: project.id,
-        },
-      });
-      if (users + invites >= project.usersLimit) {
+      if (projectUserCount + projectInviteCount >= project.usersLimit) {
         throw new DubApiError({
           code: "exceeded_limit",
           message: exceededLimitError({
@@ -70,6 +75,7 @@ export const POST = withAuth(
         project,
         session,
       });
+
       return NextResponse.json({ message: "Invite sent" });
     } catch (error) {
       return handleAndReturnErrorResponse(error);

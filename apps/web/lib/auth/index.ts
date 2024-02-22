@@ -236,6 +236,7 @@ export const withAuth =
                 primary: true,
               },
             },
+            inviteCode: true,
             metadata: true,
           },
         }),

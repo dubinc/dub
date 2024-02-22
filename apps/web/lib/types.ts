@@ -84,6 +84,7 @@ export interface ProjectProps {
   metadata?: {
     defaultDomains?: string[];
   };
+  inviteCode: string;
 }
 
 export interface ProjectWithDomainProps extends ProjectProps {

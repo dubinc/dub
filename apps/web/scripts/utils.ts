@@ -1,14 +1,11 @@
 import { Redis } from "@upstash/redis";
 import { customAlphabet } from "nanoid";
-import { Resend } from "resend";
 
 // Initiate Redis instance by connecting to REST URL
 export const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL || "",
   token: process.env.UPSTASH_REDIS_REST_TOKEN || "",
 });
-
-export const resend = new Resend(process.env.RESEND_API_KEY);
 
 export function linkConstructor({
   key,

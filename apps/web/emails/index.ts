@@ -1,39 +1,41 @@
-import { nanoid } from "@dub/utils";
+import { render } from "@react-email/render";
+import { Client } from "postmark";
 import { JSXElementConstructor, ReactElement } from "react";
-import { Resend } from "resend";
 
-export const resend = new Resend(process.env.RESEND_API_KEY);
+export const client = new Client(process.env.POSTMARK_API_KEY as string);
 
 export const sendEmail = async ({
   email,
   subject,
+  text,
   react,
   marketing,
-  test,
 }: {
   email: string;
   subject: string;
-  react: ReactElement<any, string | JSXElementConstructor<any>>;
+  text?: string;
+  react?: ReactElement<any, string | JSXElementConstructor<any>>;
   marketing?: boolean;
-  test?: boolean;
 }) => {
-  if (!process.env.RESEND_API_KEY) {
+  if (!process.env.POSTMARK_API_KEY) {
     console.log(
-      "Resend is not configured. You need to add a RESEND_API_KEY in your .env file for emails to work.",
+      "Postmark is not configured. You need to add a POSTMARK_API_KEY in your .env file for emails to work.",
     );
     return Promise.resolve();
   }
-  return resend.emails.send({
-    from: marketing
-      ? "Steven from Dub.co <steven@ship.dub.co>"
+
+  return client.sendEmail({
+    From: marketing
+      ? "steven@ship.dub.co"
       : process.env.NEXT_PUBLIC_IS_DUB
-      ? "Dub.co <system@dub.co>"
-      : `system@${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
-    to: test ? "delivered@resend.dev" : email,
-    subject,
-    react,
-    headers: {
-      "X-Entity-Ref-ID": nanoid(),
-    },
+        ? "system@dub.co"
+        : `${process.env.NEXT_PUBLIC_APP_NAME} <system@${process.env.NEXT_PUBLIC_APP_DOMAIN}>`,
+    To: email,
+    Subject: subject,
+    ...(text && { TextBody: text }),
+    ...(react && { HtmlBody: render(react) }),
+    ...(marketing && {
+      MessageStream: "broadcast",
+    }),
   });
 };
