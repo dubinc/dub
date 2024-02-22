@@ -1,9 +1,9 @@
-import { withAuth } from "@/lib/auth";
 import {
   getConfigResponse,
   getDomainResponse,
   verifyDomain,
 } from "@/lib/api/domains";
+import { withAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { DomainVerificationStatusProps } from "@/lib/types";
 import { NextResponse } from "next/server";

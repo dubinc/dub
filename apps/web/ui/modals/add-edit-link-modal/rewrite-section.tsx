@@ -1,4 +1,5 @@
 import useProject from "@/lib/swr/use-project";
+import { LinkProps } from "@/lib/types";
 import {
   InfoTooltip,
   SimpleTooltipContent,
@@ -7,7 +8,6 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { HOME_DOMAIN } from "@dub/utils";
-import { type Link as LinkProps } from "@prisma/client";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 export default function RewriteSection({
@@ -45,7 +45,7 @@ export default function RewriteSection({
               <SimpleTooltipContent
                 title="Mask your destination URL so your users only see the short link in the browser address bar."
                 cta="Learn more."
-                href={`${HOME_DOMAIN}/help/article/how-to-create-link#link-cloaking`}
+                href={`${HOME_DOMAIN}/help/article/link-cloaking`}
               />
             }
           />
@@ -54,7 +54,7 @@ export default function RewriteSection({
           fn={() => setEnabled(!enabled)}
           checked={enabled}
           // link cloaking is only available on Dub's Pro plan
-          {...(!plan || plan === "free"
+          {...((!plan || plan === "free") && !enabled
             ? {
                 disabledTooltip: (
                   <TooltipContent

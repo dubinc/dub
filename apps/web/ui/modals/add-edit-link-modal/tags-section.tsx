@@ -1,8 +1,8 @@
 import useTags from "@/lib/swr/use-tags";
+import { LinkProps } from "@/lib/types";
 import TagBadge from "@/ui/links/tag-badge";
 import { LoadingCircle, SimpleTooltipContent, Tooltip } from "@dub/ui";
 import { HOME_DOMAIN } from "@dub/utils";
-import { type Link as LinkProps } from "@prisma/client";
 import { Command, useCommandState } from "cmdk";
 import { Check, ChevronDown, Tag, X } from "lucide-react";
 import { useParams } from "next/navigation";
@@ -39,7 +39,7 @@ export default function TagsSection({
 
   const createTag = async (tag: string) => {
     setCreatingTag(true);
-    fetch(`/api/projects/${slug}/tags`, {
+    fetch(`/api/tags?projectSlug=${slug}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -47,7 +47,7 @@ export default function TagsSection({
       body: JSON.stringify({ tag }),
     }).then(async (res) => {
       if (res.ok) {
-        await mutate(`/api/projects/${slug}/tags`);
+        await mutate(`/api/tags?projectSlug=${slug}`);
         const newTag = await res.json();
         setData({ ...data, tagId: newTag.id });
         toast.success('Successfully created tag!');
@@ -146,12 +146,7 @@ export default function TagsSection({
           </div>
         </div>
         {openCommandList && (
-          <Command.List
-            style={{
-              animationFillMode: "forwards", // to keep the last frame of the animation
-            }}
-            className="animate-input-select-slide-up sm:animate-input-select-slide-down absolute z-20 h-[300px] w-full overflow-auto rounded-md border border-gray-200 bg-white p-2 shadow-md transition-all sm:h-[calc(var(--cmdk-list-height)+17px)] sm:max-h-[300px]"
-          >
+          <Command.List className="absolute z-20 mt-2 h-[calc(var(--cmdk-list-height)+17px)] max-h-[300px] w-full overflow-auto rounded-md border border-gray-200 bg-white p-2 shadow-md transition-all">
             {tags?.length === 0 && inputValue.length === 0 && (
               <p className="px-4 py-2.5 text-sm text-gray-900">
                 Start typing to create tag...
@@ -162,7 +157,7 @@ export default function TagsSection({
                 <button
                   type="button"
                   onClick={() => createTag(inputValue)}
-                  className="aria-selected:bg-gray-100 aria-selected:text-gray-900 flex w-full cursor-pointer items-center rounded-md bg-gray-100 px-4 py-2 text-sm text-gray-900 hover:text-gray-900"
+                  className="flex w-full cursor-pointer items-center rounded-md bg-gray-100 px-4 py-2 text-sm text-gray-900 hover:text-gray-900 aria-selected:bg-gray-100 aria-selected:text-gray-900"
                 >
                   Create tag{" "}
                   <span className="ml-1.5 rounded-md bg-gray-200 px-2 py-0.5 text-gray-800">
@@ -179,7 +174,7 @@ export default function TagsSection({
                   setData({ ...data, tagId: tag.id });
                   setOpenCommandList(false);
                 }}
-                className="aria-selected:bg-gray-100 aria-selected:text-gray-900 group flex cursor-pointer items-center justify-between rounded-md px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200"
+                className="group flex cursor-pointer items-center justify-between rounded-md px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 aria-selected:bg-gray-100 aria-selected:text-gray-900"
               >
                 <TagBadge {...tag} />
                 {selectedTag?.id === tag.id && (

@@ -44,7 +44,7 @@ export default function DomainDeleted({
             </Heading>
             <Text className="text-sm leading-6 text-black">
               Your domain <code className="text-purple-600">{domain}</code> for
-              your Dub project{" "}
+              your Dub.co project{" "}
               <Link
                 href={`https://app.dub.co/${projectSlug}`}
                 className="font-medium text-blue-600 no-underline"
@@ -56,7 +56,7 @@ export default function DomainDeleted({
             </Text>
             <Text className="text-sm leading-6 text-black">
               If you would like to restore the domain, you can easily create it
-              again on Dub with the link below.
+              again on Dub.co with the link below.
             </Text>
             <Section className="my-8 text-center">
               <Link
@@ -67,8 +67,8 @@ export default function DomainDeleted({
               </Link>
             </Section>
             <Text className="text-sm leading-6 text-black">
-              If you did not want to keep using this domain on Dub anyway, you
-              can simply ignore this email.
+              If you did not want to keep using this domain on Dub.co anyway,
+              you can simply ignore this email.
             </Text>
             <Footer email={email} />
           </Container>

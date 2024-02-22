@@ -3,10 +3,11 @@ import { redis } from "@/lib/upstash";
 import {
   getApexDomain,
   getDomainWithoutWWW,
+  isIframeable,
   validDomainRegex,
 } from "@dub/utils";
 import cloudinary from "cloudinary";
-import { isIframeable } from "../middleware/utils";
+import { recordLink } from "../tinybird";
 
 export const validateDomain = async (domain: string) => {
   if (!domain || typeof domain !== "string") {
@@ -155,58 +156,51 @@ export const verifyDomain = async (domain: string) => {
 };
 
 export async function setRootDomain({
+  id,
   domain,
-  target,
+  projectId,
+  url,
   rewrite,
   newDomain,
 }: {
+  id: string;
   domain: string;
-  target: string;
-  rewrite: boolean;
+  projectId: string;
+  url?: string;
+  rewrite?: boolean;
   newDomain?: string; // if the domain is changed, this will be the new domain
 }) {
   if (newDomain) {
-    const pipeline = redis.pipeline();
-    pipeline.del(`root:${domain}`);
-    pipeline.set(`root:${newDomain}`, {
-      target,
-      ...(rewrite && {
-        rewrite: true,
-        iframeable: await isIframeable({ url: target, requestDomain: domain }),
-      }),
-    });
-    return await pipeline.exec();
-  } else {
-    await redis.set(`root:${domain}`, {
-      target,
-      ...(rewrite && {
-        rewrite: true,
-        iframeable: await isIframeable({ url: target, requestDomain: domain }),
-      }),
-    });
+    await redis.rename(domain, newDomain);
   }
-}
-
-/* Change the domain for every link and its respective stats when the project domain is changed */
-export async function changeDomainForLinks(domain: string, newDomain: string) {
-  const links = await prisma.link.findMany({
-    where: {
-      domain,
-    },
-    select: {
-      key: true,
-    },
-  });
-  if (links.length === 0) return null;
-  const pipeline = redis.pipeline();
-  links.forEach(({ key }) => {
-    pipeline.rename(`${domain}:${key}`, `${newDomain}:${key}`);
-  });
-  try {
-    return await pipeline.exec();
-  } catch (e) {
-    return null;
-  }
+  return await Promise.all([
+    redis.hset(newDomain || domain, {
+      _root: {
+        id,
+        ...(url && {
+          url,
+        }),
+        ...(url &&
+          rewrite && {
+            rewrite: true,
+            iframeable: await isIframeable({
+              url,
+              requestDomain: newDomain || domain,
+            }),
+          }),
+        projectId,
+      },
+    }),
+    recordLink({
+      link: {
+        id,
+        domain: newDomain || domain,
+        key: "_root",
+        url: url || "",
+        projectId,
+      },
+    }),
+  ]);
 }
 
 /* Change the domain for all images for a given project on Cloudinary */
@@ -246,20 +240,58 @@ export async function deleteDomainAndLinks(
     skipPrismaDelete = false,
   } = {},
 ) {
-  const links = await prisma.link.findMany({
-    where: {
-      domain,
-    },
-  });
-
-  const pipeline = redis.pipeline();
-  links.forEach(({ key }) => {
-    pipeline.del(`${domain}:${key}`);
-  });
-  pipeline.del(`root:${domain}`);
-
+  const [domainData, allLinks] = await Promise.all([
+    prisma.domain.findUnique({
+      where: {
+        slug: domain,
+      },
+      select: {
+        id: true,
+        target: true,
+        projectId: true,
+      },
+    }),
+    prisma.link.findMany({
+      where: {
+        domain,
+      },
+      select: {
+        id: true,
+        key: true,
+        url: true,
+        projectId: true,
+      },
+    }),
+  ]);
+  if (!domainData) {
+    return null;
+  }
   return await Promise.allSettled([
-    pipeline.exec(), // delete all links from redis
+    // delete all links from redis
+    redis.del(domain),
+    // record deletes in tinybird for domain & links
+    recordLink({
+      link: {
+        id: domainData.id,
+        domain,
+        key: "_root",
+        url: domainData.target || "",
+        projectId: domainData.projectId,
+      },
+      deleted: true,
+    }),
+    ...allLinks.map(({ id, key, url, projectId }) =>
+      recordLink({
+        link: {
+          id,
+          domain,
+          key,
+          url,
+          projectId,
+        },
+        deleted: true,
+      }),
+    ),
     // remove all images from cloudinary
     process.env.CLOUDINARY_URL &&
       cloudinary.v2.api.delete_resources_by_prefix(domain),

@@ -1,4 +1,5 @@
 import useProject from "@/lib/swr/use-project";
+import { LinkProps } from "@/lib/types";
 import { Eye, EyeOff } from "@/ui/shared/icons";
 import {
   InfoTooltip,
@@ -8,7 +9,6 @@ import {
 } from "@dub/ui";
 import { TooltipContent } from "@dub/ui/src/tooltip";
 import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "@dub/utils";
-import { type Link as LinkProps } from "@prisma/client";
 import { motion } from "framer-motion";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
@@ -62,7 +62,7 @@ export default function PasswordSection({
           fn={() => setEnabled(!enabled)}
           checked={enabled}
           // password protection is only available on Dub's Pro plan
-          {...(!plan || plan === "free"
+          {...((!plan || plan === "free") && !enabled
             ? {
                 disabledTooltip: (
                   <TooltipContent

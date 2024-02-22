@@ -1,7 +1,7 @@
-import "dotenv-flow/config";
 import prisma from "@/lib/prisma";
-import { redis, chunk } from "./utils";
 import { RedisLinkProps } from "@/lib/types";
+import "dotenv-flow/config";
+import { chunk, redis } from "./utils";
 
 async function main() {
   const allExpiredLinks = await prisma.link.findMany({
@@ -35,6 +35,7 @@ async function main() {
       const { domain, key, expiresAt } = chunk[idx];
       // @ts-ignore (old version)
       const { expired, ...rest } = link || {};
+      // WARNING: OLD VERSION OF REDIS IMPLEMENTATION, WE NOW USE HSET (hashes)
       pipeline.set(`${domain}:${key}`, {
         ...rest,
         expiresAt,

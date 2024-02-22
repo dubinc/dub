@@ -1,7 +1,7 @@
 {
   "name": "@dub/utils",
   "description": "Utility functions and constants for Dub.co",
-  "version": "0.0.27",
+  "version": "0.0.29",
   "sideEffects": false,
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -31,10 +31,10 @@
   },
   "dependencies": {
     "@sindresorhus/slugify": "^2.2.1",
-    "clsx": "^1.2.1",
+    "clsx": "^2.1.0",
     "ms": "^2.1.3",
     "nanoid": "^5.0.1",
-    "tailwind-merge": "^1.13.2"
+    "tailwind-merge": "^2.2.1"
   },
   "author": "Steven Tey <stevensteel97@gmail.com>",
   "homepage": "https://dub.co",

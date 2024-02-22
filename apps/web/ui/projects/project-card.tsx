@@ -1,9 +1,15 @@
 "use client";
 
+import { Session } from "@/lib/auth";
 import { DomainProps, ProjectWithDomainProps } from "@/lib/types";
-import { BlurImage } from "@/ui/shared/blur-image";
 import { CheckCircleFill, XCircleFill } from "@/ui/shared/icons";
-import { Badge, InlineSnippet, NumberTooltip, Tooltip } from "@dub/ui";
+import {
+  Badge,
+  BlurImage,
+  InlineSnippet,
+  NumberTooltip,
+  Tooltip,
+} from "@dub/ui";
 import {
   DUB_DOMAINS,
   GOOGLE_FAVICON_URL,
@@ -14,10 +20,10 @@ import {
 } from "@dub/utils";
 import { BarChart2, ExternalLink, Globe, Link2 } from "lucide-react";
 import Link from "next/link";
+import punycode from "punycode/";
 import useSWR from "swr";
 import useSWRImmutable from "swr/immutable";
 import PlanBadge from "./plan-badge";
-import { Session } from "@/lib/auth";
 import ProjectArrow from "./project-arrow";
 
 export default function ProjectCard({
@@ -108,7 +114,7 @@ export default function ProjectCard({
                       cta={
                         primaryDomain?.verified === false
                           ? "Verify Domain"
-                          : "Manage Domain"
+                          : `Manage Domain${domains.length > 1 ? "s" : ""}`
                       }
                       href={`/${slug}/domains`}
                     />
@@ -116,7 +122,12 @@ export default function ProjectCard({
                 >
                   <div className="ml-1 flex items-center">
                     {domains.length > 1 ? (
-                      <Badge variant="gray">+{domains.length - 1}</Badge>
+                      <Badge
+                        variant="gray"
+                        className="border-gray-300 transition-all hover:bg-gray-200"
+                      >
+                        +{domains.length - 1}
+                      </Badge>
                     ) : primaryDomain?.verified ? (
                       <CheckCircleFill className="h-5 w-5 text-blue-500" />
                     ) : primaryDomain?.verified === false ? (
@@ -194,7 +205,9 @@ const DomainsTooltip = ({
               ) : (
                 <XCircleFill className="h-5 w-5 text-gray-300" />
               )}
-              <p className="text-sm font-semibold text-gray-500">{slug}</p>
+              <p className="text-sm font-semibold text-gray-500">
+                {punycode.toUnicode(slug)}
+              </p>
             </div>
             <ExternalLink className="h-4 w-4 text-gray-500 md:invisible md:group-hover:visible" />
           </a>

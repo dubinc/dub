@@ -1,7 +1,5 @@
-import "dotenv-flow/config";
 import prisma from "@/lib/prisma";
-import slugify from "@sindresorhus/slugify";
-import { capitalize, redis } from "./utils";
+import "dotenv-flow/config";
 
 const DUB_PROJECT_ID = "cl7pj5kq4006835rbjlt2ofka";
 const DUB_USER_ID = "cl7p1s07k000687rbuhpwqkqa";
@@ -55,13 +53,8 @@ async function main() {
   //         const projectName =
   //           capitalize(u.name ?? u.email?.split("@")[0]) + "'s Links";
 
-  //         let projectSlug = "";
-  //         if (u.name) {
-  //           projectSlug = slugify(u.name);
-  //         }
-  //         if (projectSlug === "") {
-  //           projectSlug = slugify(u.email?.split("@")[0] ?? "");
-  //         }
+  //         const projectSlug = slugify(u.email ?? "");
+
   //         return {
   //           userId: user.userId,
   //           name: u.name,

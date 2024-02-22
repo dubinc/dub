@@ -14,7 +14,7 @@ export const FEATURES_LIST = [
     slug: "features/branded-links",
   },
   {
-    title: "Free QR Code Generator",
+    title: "Gorgeous QR codes for your links",
     shortTitle: "QR Codes",
     icon: QrCode,
     slug: "features/qr-codes",

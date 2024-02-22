@@ -1,6 +1,9 @@
+import { getAnalytics } from "@/lib/analytics";
 import { limiter, qstash, receiver } from "@/lib/cron";
 import prisma from "@/lib/prisma";
+import { recordLink } from "@/lib/tinybird";
 import { ProjectProps } from "@/lib/types";
+import { formatRedisLink, redis } from "@/lib/upstash";
 import {
   APP_DOMAIN_WITH_NGROK,
   GOOGLE_FAVICON_URL,
@@ -24,7 +27,7 @@ export async function POST(req: Request) {
 
   const { linkId, type } = body as {
     linkId: string;
-    type: "create" | "edit";
+    type: "create" | "edit" | "transfer";
   };
 
   const link = await prisma.link.findUnique({
@@ -37,8 +40,8 @@ export async function POST(req: Request) {
     return new Response("Link not found", { status: 200 });
   }
 
-  // if the link is a dub.sh link, do some checks
-  if (link.domain === "dub.sh") {
+  // if the link is a dub.sh link (and is not a transfer event), do some checks
+  if (link.domain === "dub.sh" && type !== "transfer") {
     const invalidFavicon = await fetch(
       `${GOOGLE_FAVICON_URL}${getApexDomain(link.url)}`,
     ).then((res) => !res.ok);
@@ -63,6 +66,14 @@ export async function POST(req: Request) {
       },
     });
   }
+
+  // update redis and tinybird
+  await Promise.all([
+    redis.hset(link.domain, {
+      [link.key.toLowerCase()]: await formatRedisLink(link),
+    }),
+    recordLink({ link }),
+  ]);
 
   // increment links usage and send alert if needed
   if (type === "create" && link.projectId) {
@@ -112,8 +123,59 @@ export async function POST(req: Request) {
             }),
           );
         }),
+        log({
+          message: `*${
+            project.slug
+          }* has used ${percentage.toString()}% of its links limit for the month.`,
+          type: project.plan === "free" ? "cron" : "alerts",
+          mention: project.plan !== "free",
+        }),
       ]);
     }
+  }
+
+  if (type === "transfer") {
+    const oldProjectId = await redis.get<string>(
+      `transfer:${linkId}:oldProjectId`,
+    );
+
+    const linkClicks = await getAnalytics({
+      linkId,
+      endpoint: "clicks",
+      interval: "30d",
+    });
+
+    // update old and new project usage
+    await Promise.all([
+      oldProjectId &&
+        prisma.project.update({
+          where: {
+            id: oldProjectId,
+          },
+          data: {
+            usage: {
+              decrement: linkClicks,
+            },
+            linksUsage: {
+              decrement: 1,
+            },
+          },
+        }),
+      link.projectId &&
+        prisma.project.update({
+          where: {
+            id: link.projectId,
+          },
+          data: {
+            usage: {
+              increment: linkClicks,
+            },
+            linksUsage: {
+              increment: 1,
+            },
+          },
+        }),
+    ]);
   }
 
   return new Response("OK", { status: 200 });

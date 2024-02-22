@@ -1,16 +1,16 @@
 "use client";
 
+import useProjects from "@/lib/swr/use-projects";
 import { PlanProps, ProjectWithDomainProps } from "@/lib/types";
 import { ModalContext } from "@/ui/modals/provider";
 import PlanBadge from "@/ui/projects/plan-badge";
-import { Popover, Tick } from "@dub/ui";
+import { BlurImage, Popover, Tick } from "@dub/ui";
 import { GOOGLE_FAVICON_URL, SHORT_DOMAIN } from "@dub/utils";
 import { ChevronsUpDown, PlusCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { useCallback, useContext, useMemo, useState } from "react";
-import useProjects from "@/lib/swr/use-projects";
 
 export default function ProjectSelect() {
   const { projects } = useProjects();
@@ -76,9 +76,11 @@ export default function ProjectSelect() {
           className="flex items-center justify-between rounded-lg bg-white p-1.5 text-left text-sm transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200"
         >
           <div className="flex items-center space-x-3 pr-2">
-            <img
+            <BlurImage
               src={selected.image}
               referrerPolicy="no-referrer"
+              width={20}
+              height={20}
               alt={selected.id || selected.name}
               className="h-8 w-8 flex-none overflow-hidden rounded-full"
             />
@@ -148,11 +150,13 @@ function ProjectList({
             shallow={false}
             onClick={() => setOpenPopover(false)}
           >
-            <img
+            <BlurImage
               src={
                 logo ||
                 `${GOOGLE_FAVICON_URL}${primaryDomain?.slug || SHORT_DOMAIN}`
               }
+              width={20}
+              height={20}
               alt={id}
               className="h-7 w-7 shrink-0 overflow-hidden rounded-full"
             />

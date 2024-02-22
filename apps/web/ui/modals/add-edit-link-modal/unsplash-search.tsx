@@ -1,6 +1,6 @@
-import { LoadingSpinner } from "@dub/ui";
+import { LinkProps } from "@/lib/types";
+import { LoadingSpinner, useMediaQuery } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { type Link as LinkProps } from "@prisma/client";
 import { Dispatch, SetStateAction, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
@@ -27,6 +27,8 @@ export default function UnsplashSearch({
       },
     },
   );
+  const { isMobile } = useMediaQuery();
+
   return (
     <div className="h-[24rem] w-full overflow-auto p-3 md:w-[24rem]">
       <div className="relative mt-1 rounded-md shadow-sm">
@@ -35,7 +37,7 @@ export default function UnsplashSearch({
           name="search"
           id="search"
           placeholder="Search for an image..."
-          autoFocus
+          autoFocus={!isMobile}
           autoComplete="off"
           value={search}
           onChange={(e) => setSearch(e.target.value)}

@@ -42,7 +42,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
     return ApiMiddleware(req);
   }
 
-  // for public stats pages (e.g. dub.co/stats/github)
+  // for public stats pages (e.g. dub.co/stats/try)
   if (key === "stats") {
     return NextResponse.rewrite(new URL(`/${domain}${path}`, req.url));
   }

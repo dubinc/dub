@@ -9,13 +9,19 @@ export const isBlacklistedDomain = async (domain: string) => {
       get("terms"),
     ]);
   } catch (e) {
-    blacklistedDomains = [];
-    blacklistedTerms = [];
+    return false; // if blacklisted domains & terms don't exist, don't block
   }
+
   const domainToTest = getDomainWithoutWWW(domain) || domain;
+
+  const blacklistedTermsRegex = new RegExp(
+    blacklistedTerms
+      .map((term: string) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+      .join("|"),
+  );
   return (
     blacklistedDomains.includes(domainToTest) ||
-    new RegExp(blacklistedTerms.join("|")).test(domainToTest)
+    blacklistedTermsRegex.test(domainToTest)
   );
 };
 
@@ -37,6 +43,7 @@ export const isBlacklistedKey = async (key: string) => {
   } catch (e) {
     blacklistedKeys = [];
   }
+  if (blacklistedKeys.length === 0) return false;
   return new RegExp(blacklistedKeys.join("|"), "i").test(key);
 };
 
@@ -60,6 +67,7 @@ export const isBlacklistedEmail = async (email: string) => {
   } catch (e) {
     blacklistedEmails = [];
   }
+  if (blacklistedEmails.length === 0) return false;
   return new RegExp(blacklistedEmails.join("|"), "i").test(email);
 };
 

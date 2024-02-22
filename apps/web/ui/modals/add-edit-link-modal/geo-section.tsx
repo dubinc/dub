@@ -1,4 +1,5 @@
 import useProject from "@/lib/swr/use-project";
+import { LinkProps } from "@/lib/types";
 import {
   InfoTooltip,
   SimpleTooltipContent,
@@ -7,7 +8,6 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { COUNTRIES, FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "@dub/utils";
-import { type Link as LinkProps } from "@prisma/client";
 import { motion } from "framer-motion";
 import { Trash } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
@@ -58,7 +58,7 @@ export default function GeoSection({
               <SimpleTooltipContent
                 title="Redirect your users to different links based on their location."
                 cta="Learn more about geo targeting."
-                href={`${HOME_DOMAIN}/help/article/how-to-create-link#geo-targeting`}
+                href={`${HOME_DOMAIN}/help/article/geo-targeting`}
               />
             }
           />
@@ -67,7 +67,7 @@ export default function GeoSection({
           fn={() => setEnabled(!enabled)}
           checked={enabled}
           // geo targeting is only available on Dub's Pro plan
-          {...(!plan || plan === "free"
+          {...((!plan || plan === "free") && !enabled
             ? {
                 disabledTooltip: (
                   <TooltipContent

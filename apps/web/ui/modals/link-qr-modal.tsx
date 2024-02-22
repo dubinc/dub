@@ -2,9 +2,10 @@
 
 import { QRCodeSVG, getQRAsCanvas, getQRAsSVGDataUri } from "@/lib/qr";
 import useProject from "@/lib/swr/use-project";
-import { BlurImage } from "@/ui/shared/blur-image";
+import { QRLinkProps } from "@/lib/types";
 import { Clipboard, Download } from "@/ui/shared/icons";
 import {
+  BlurImage,
   IconMenu,
   InfoTooltip,
   Logo,
@@ -26,7 +27,8 @@ import {
   linkConstructor,
 } from "@dub/utils";
 import { motion } from "framer-motion";
-import { Check, ChevronRight } from "lucide-react";
+import { Check, ChevronRight, Link2 } from "lucide-react";
+import { useParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -38,8 +40,6 @@ import {
 import { HexColorInput, HexColorPicker } from "react-colorful";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
-import { useParams } from "next/navigation";
-import { QRLinkProps } from "@/lib/types";
 
 function LinkQRModalHelper({
   showLinkQRModal,
@@ -121,7 +121,7 @@ export function QRCodePicker({
     [props, fgColor, showLogo, qrLogoUrl],
   );
 
-  const [copied, setCopied] = useState(false);
+  const [copiedImage, setCopiedImage] = useState(false);
   const copyToClipboard = async () => {
     try {
       const canvas = await getQRAsCanvas(qrData, "image/png", true);
@@ -129,13 +129,15 @@ export function QRCodePicker({
         // @ts-ignore
         const item = new ClipboardItem({ "image/png": blob });
         await navigator.clipboard.write([item]);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+        setCopiedImage(true);
+        setTimeout(() => setCopiedImage(false), 2000);
       });
     } catch (e) {
       throw e;
     }
   };
+  const [copiedURL, setCopiedURL] = useState(false);
+
   return (
     <>
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
@@ -153,7 +155,7 @@ export function QRCodePicker({
         <h3 className="text-lg font-medium">Download QR Code</h3>
       </div>
 
-      <div className="flex flex-col space-y-6 bg-gray-50 py-6 text-left sm:rounded-b-2xl">
+      <div className="flex flex-col space-y-6 bg-gray-50 py-6 text-left">
         <div className="mx-auto rounded-lg border-2 border-gray-200 bg-white p-4">
           <QRCodeSVG
             value={qrData.value}
@@ -162,9 +164,8 @@ export function QRCodePicker({
             fgColor={qrData.fgColor}
             level={qrData.level}
             includeMargin={false}
-            // @ts-ignore
-            imageSettings={
-              showLogo && {
+            {...(qrData.imageSettings && {
+              imageSettings: {
                 ...qrData.imageSettings,
                 height: qrData.imageSettings
                   ? qrData.imageSettings.height / 8
@@ -172,8 +173,8 @@ export function QRCodePicker({
                 width: qrData.imageSettings
                   ? qrData.imageSettings.width / 8
                   : 0,
-              }
-            }
+              },
+            })}
           />
         </div>
 
@@ -186,32 +187,115 @@ export function QRCodePicker({
         />
 
         <div className="grid grid-cols-2 gap-2 px-4 sm:px-16">
-          <button
-            onClick={async () => {
-              toast.promise(copyToClipboard, {
-                loading: "Copying QR code to clipboard...",
-                success: "Copied QR code to clipboard!",
-                error: "Failed to copy",
-              });
-            }}
-            className="flex items-center justify-center gap-2 rounded-md border border-black bg-black px-5 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
-          >
-            {copied ? (
-              <>
-                <Check className="h-4 w-4" /> <p>Copied</p>
-              </>
-            ) : (
-              <>
-                <Clipboard className="h-4 w-4" /> <p>Copy</p>
-              </>
-            )}
-          </button>
           <QrDropdown
-            download={download}
-            qrData={qrData}
-            showLogo={showLogo}
-            logo={qrLogoUrl}
-          />
+            button={
+              <>
+                <Clipboard />
+                <p>Copy</p>
+              </>
+            }
+          >
+            <>
+              <button
+                onClick={async () => {
+                  toast.promise(copyToClipboard, {
+                    loading: "Copying QR code to clipboard...",
+                    success: "Copied QR code to clipboard!",
+                    error: "Failed to copy",
+                  });
+                }}
+                className="w-full rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
+              >
+                <IconMenu
+                  text="Image"
+                  icon={
+                    copiedImage ? (
+                      <Check className="h-4 w-4" />
+                    ) : (
+                      <Photo className="h-4 w-4" />
+                    )
+                  }
+                />
+              </button>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(
+                    `https://api.dub.co/qr?url=${linkConstructor({
+                      key: props.key,
+                      domain: props.domain,
+                    })}`,
+                  );
+                  toast.success("Copied QR code URL to clipboard!");
+                  setCopiedURL(true);
+                  setTimeout(() => setCopiedURL(false), 2000);
+                }}
+                className="w-full rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
+              >
+                <IconMenu
+                  text="URL"
+                  icon={
+                    copiedURL ? (
+                      <Check className="h-4 w-4" />
+                    ) : (
+                      <Link2 className="h-4 w-4" />
+                    )
+                  }
+                />
+              </button>
+            </>
+          </QrDropdown>
+          <QrDropdown
+            button={
+              <>
+                <Download />
+                <p>Export</p>
+              </>
+            }
+          >
+            <>
+              <button
+                onClick={() => {
+                  download(
+                    getQRAsSVGDataUri({
+                      ...qrData,
+                      ...(qrData.imageSettings && {
+                        imageSettings: {
+                          ...qrData.imageSettings,
+                          src: logo || "https://dub.co/_static/logo.svg",
+                        },
+                      }),
+                    }),
+                    "svg",
+                  );
+                }}
+                className="w-full rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
+              >
+                <IconMenu text="SVG" icon={<Photo className="h-4 w-4" />} />
+              </button>
+              <button
+                onClick={async () => {
+                  download(
+                    (await getQRAsCanvas(qrData, "image/png")) as string,
+                    "png",
+                  );
+                }}
+                className="w-full rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
+              >
+                <IconMenu text="PNG" icon={<Photo className="h-4 w-4" />} />
+              </button>
+              <button
+                onClick={async () => {
+                  download(
+                    (await getQRAsCanvas(qrData, "image/jpeg")) as string,
+                    "jpg",
+                  );
+                }}
+                className="w-full rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
+              >
+                <IconMenu text="JPEG" icon={<Photo className="h-4 w-4" />} />
+              </button>
+            </>
+          </QrDropdown>
         </div>
 
         {/* This will be used to prompt downloads. */}
@@ -376,49 +460,17 @@ function AdvancedSettings({
   );
 }
 
-function QrDropdown({ download, qrData, showLogo, logo }) {
+function QrDropdown({
+  button,
+  children,
+}: {
+  button: JSX.Element;
+  children: JSX.Element;
+}) {
   const [openPopover, setOpenPopover] = useState(false);
   return (
     <Popover
-      content={
-        <div className="grid w-full gap-1 p-2 sm:w-40">
-          <button
-            onClick={() => {
-              download(
-                getQRAsSVGDataUri({
-                  ...qrData,
-                  ...(showLogo && {
-                    imageSettings: {
-                      ...qrData.imageSettings,
-                      src: logo || "https://dub.co/_static/logo.svg",
-                    },
-                  }),
-                }),
-                "svg",
-              );
-            }}
-            className="w-full rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
-          >
-            <IconMenu text="SVG" icon={<Photo className="h-4 w-4" />} />
-          </button>
-          <button
-            onClick={async () => {
-              download(await getQRAsCanvas(qrData, "image/png"), "png");
-            }}
-            className="w-full rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
-          >
-            <IconMenu text="PNG" icon={<Photo className="h-4 w-4" />} />
-          </button>
-          <button
-            onClick={async () => {
-              download(await getQRAsCanvas(qrData, "image/jpeg"), "jpg");
-            }}
-            className="w-full rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
-          >
-            <IconMenu text="JPEG" icon={<Photo className="h-4 w-4" />} />
-          </button>
-        </div>
-      }
+      content={<div className="grid w-full gap-1 p-2 sm:w-40">{children}</div>}
       align="center"
       openPopover={openPopover}
       setOpenPopover={setOpenPopover}
@@ -427,8 +479,7 @@ function QrDropdown({ download, qrData, showLogo, logo }) {
         onClick={() => setOpenPopover(!openPopover)}
         className="flex w-full items-center justify-center gap-2 rounded-md border border-black bg-black px-5 py-1.5 text-sm text-white transition-all hover:bg-white hover:text-black"
       >
-        <Download />
-        Export
+        {button}
       </button>
     </Popover>
   );

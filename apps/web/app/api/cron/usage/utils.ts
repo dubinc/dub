@@ -1,16 +1,17 @@
+import { getAnalytics } from "@/lib/analytics";
 import { limiter, qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
-import { getStats } from "@/lib/stats";
 import { ProjectProps } from "@/lib/types";
 import {
   APP_DOMAIN_WITH_NGROK,
+  capitalize,
   getAdjustedBillingCycleStart,
   linkConstructor,
   log,
 } from "@dub/utils";
 import { sendEmail } from "emails";
-import ClicksSummary from "emails/clicks-summary";
 import ClicksExceeded from "emails/clicks-exceeded";
+import ClicksSummary from "emails/clicks-summary";
 
 const limit = 250;
 
@@ -71,15 +72,17 @@ export const updateUsage = async (skip?: number) => {
   // Send email to notify overages
   await Promise.allSettled(
     exceedingUsage.map(async (project) => {
-      const { name, usage, usageLimit, users, sentEmails } = project;
+      const { slug, plan, usage, usageLimit, users, sentEmails } = project;
       const emails = users.map((user) => user.user.email) as string[];
 
       await log({
-        message: `${name} is over usage limit. Usage: ${usage}, Limit: ${usageLimit}, Email: ${emails.join(
+        message: `*${slug}* is over their *${capitalize(
+          plan,
+        )} Plan* usage limit. Usage: ${usage}, Limit: ${usageLimit}, Email: ${emails.join(
           ", ",
         )}`,
-        type: "cron",
-        mention: true,
+        type: plan === "free" ? "cron" : "alerts",
+        mention: plan !== "free",
       });
       const sentFirstUsageLimitEmail = sentEmails.some(
         (email) => email.type === "firstUsageLimitEmail",
@@ -117,28 +120,44 @@ export const updateUsage = async (skip?: number) => {
       ) {
         const topLinks =
           project.usage > 0
-            ? await getStats({
-                domain: project.domains.map((domain) => domain.slug).join(","),
+            ? await getAnalytics({
+                projectId: project.id,
                 endpoint: "top_links",
                 interval: "30d",
-              }).then((data) =>
-                data
-                  .slice(0, 5)
-                  .map(
-                    ({
-                      domain,
-                      key,
+                excludeRoot: "true",
+              }).then(async (data) => {
+                const topFive = data.slice(0, 5);
+                return await Promise.all(
+                  topFive.map(
+                    async ({
+                      link: linkId,
                       clicks,
                     }: {
-                      domain: string;
-                      key: string;
+                      link: string;
                       clicks: number;
-                    }) => ({
-                      link: linkConstructor({ domain, key, pretty: true }),
-                      clicks,
-                    }),
+                    }) => {
+                      const link = await prisma.link.findUnique({
+                        where: {
+                          id: linkId,
+                        },
+                        select: {
+                          domain: true,
+                          key: true,
+                        },
+                      });
+                      if (!link) return;
+                      return {
+                        link: linkConstructor({
+                          domain: link.domain,
+                          key: link.key,
+                          pretty: true,
+                        }),
+                        clicks,
+                      };
+                    },
                   ),
-              )
+                );
+              })
             : [];
 
         const emails = project.users.map((user) => user.user.email) as string[];
@@ -176,10 +195,10 @@ export const updateUsage = async (skip?: number) => {
         plan === "free"
           ? usage < usageLimit * 2
           : plan === "pro"
-          ? usage < usageLimit * 1.5
-          : plan === "business"
-          ? usage < usageLimit * 1.2
-          : true;
+            ? usage < usageLimit * 1.5
+            : plan === "business"
+              ? usage < usageLimit * 1.2
+              : true;
 
       return await prisma.project.update({
         where: {

@@ -1,3 +1,4 @@
+import { LinkProps } from "@/lib/types";
 import { InfoTooltip, SimpleTooltipContent, Switch } from "@dub/ui";
 import {
   FADE_IN_ANIMATION_SETTINGS,
@@ -7,7 +8,6 @@ import {
   getUrlWithoutUTMParams,
   paramsMetadata,
 } from "@dub/utils";
-import { type Link as LinkProps } from "@prisma/client";
 import { motion } from "framer-motion";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 
@@ -65,7 +65,7 @@ export default function UTMSection({
               <SimpleTooltipContent
                 title="Add UTM parameters to your short links for conversion tracking."
                 cta="Learn more."
-                href={`${HOME_DOMAIN}/help/article/how-to-create-link#utm-builder`}
+                href={`${HOME_DOMAIN}/help/article/utm-builder`}
               />
             }
           />

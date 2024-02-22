@@ -1,7 +1,7 @@
-import "dotenv-flow/config";
-import * as Papa from "papaparse";
-import * as fs from "fs";
 import prisma from "@/lib/prisma";
+import "dotenv-flow/config";
+import * as fs from "fs";
+import * as Papa from "papaparse";
 
 const index = 24000;
 const linkClicks: { domain: string; key: string; clicks: string }[] = [];

@@ -1,6 +1,12 @@
-import { getDomainWithoutWWW, nanoid } from "@dub/utils";
+import { getDomainWithoutWWW, isIframeable } from "@dub/utils";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
+import {
+  DomainProps,
+  LinkProps,
+  RedisDomainProps,
+  RedisLinkProps,
+} from "./types";
 
 // Initiate Redis instance by connecting to REST URL
 export const redis = new Redis({
@@ -37,32 +43,8 @@ export const ratelimit = (
   });
 };
 
-// only for dub.sh public demo
-export async function setRandomKey(
-  url: string,
-): Promise<{ response: string; key: string }> {
-  /* recursively set link till successful */
-  const key = nanoid();
-  const response = await redis.set(
-    `dub.sh:${key}`,
-    {
-      url,
-    },
-    {
-      nx: true,
-      ex: 30 * 60, // 30 minutes
-    },
-  );
-  if (response !== "OK") {
-    // by the off chance that key already exists
-    return setRandomKey(url);
-  } else {
-    return { response, key };
-  }
-}
-
 /**
- * Recording metatags that were generated via `/api/edge/metatags`
+ * Recording metatags that were generated via `/api/metatags`
  * If there's an error, it will be logged to a separate redis list for debugging
  **/
 export async function recordMetatags(url: string, error: boolean) {
@@ -77,4 +59,56 @@ export async function recordMetatags(url: string, error: boolean) {
 
   const domain = getDomainWithoutWWW(url);
   return await ratelimitRedis.zincrby("metatags-zset", 1, domain);
+}
+
+export async function formatRedisLink(
+  link: LinkProps,
+): Promise<RedisLinkProps> {
+  const {
+    id,
+    domain,
+    url,
+    password,
+    proxy,
+    rewrite,
+    expiresAt,
+    ios,
+    android,
+    geo,
+    projectId,
+  } = link;
+  const hasPassword = password && password.length > 0 ? true : false;
+
+  return {
+    id,
+    url,
+    ...(hasPassword && { password: true }),
+    ...(proxy && { proxy: true }),
+    ...(rewrite && {
+      rewrite: true,
+      iframeable: await isIframeable({ url, requestDomain: domain }),
+    }),
+    ...(expiresAt && { expiresAt: new Date(expiresAt) }),
+    ...(ios && { ios }),
+    ...(android && { android }),
+    ...(geo && { geo: geo as object }),
+    ...(projectId && { projectId }), // projectId can be undefined for anonymous links
+  };
+}
+
+export async function formatRedisDomain(
+  domain: DomainProps,
+): Promise<RedisDomainProps> {
+  const { id, slug, target: url, type, projectId } = domain;
+
+  return {
+    id,
+    ...(url && { url }), // on free plans you cannot set a root domain redirect, hence URL is undefined
+    ...(url &&
+      type === "rewrite" && {
+        rewrite: true,
+        iframeable: await isIframeable({ url, requestDomain: slug }),
+      }),
+    projectId,
+  };
 }

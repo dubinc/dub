@@ -1,9 +1,9 @@
 import { withAdmin } from "@/lib/auth";
-import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { DUB_DOMAINS } from "@dub/utils";
+import { DUB_DOMAINS, LEGAL_USER_ID } from "@dub/utils";
+import { NextResponse } from "next/server";
 
-// GET /api/links – get all user links
+// GET /api/admin/links/count
 export const GET = withAdmin(async ({ searchParams }) => {
   let { groupBy, search, domain, tagId } = searchParams as {
     groupBy?: "domain" | "tagId";
@@ -38,17 +38,9 @@ export const GET = withAdmin(async ({ searchParams }) => {
                 in: DUB_DOMAINS.map((domain) => domain.slug),
               },
             }),
-        // when filtering by tagId, only filter by tagId if the filter group is not "Tags"
-        ...(tagId &&
-          groupBy !== "tagId" && {
-            tagId,
-          }),
-        // for the "Tags" filter group, only count links that have a tagId
-        ...(groupBy === "tagId" && {
-          NOT: {
-            tagId: null,
-          },
-        }),
+        userId: {
+          not: LEGAL_USER_ID,
+        },
       },
       _count: true,
       orderBy: {

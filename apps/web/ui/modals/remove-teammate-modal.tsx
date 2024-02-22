@@ -1,7 +1,6 @@
 import useProject from "@/lib/swr/use-project";
 import { UserProps } from "@/lib/types";
-import { BlurImage } from "@/ui/shared/blur-image";
-import { Avatar, Button, Logo, Modal } from "@dub/ui";
+import { Avatar, BlurImage, Button, Logo, Modal, useMediaQuery } from "@dub/ui";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -31,6 +30,7 @@ function RemoveTeammateModal({
   const { name: projectName, logo } = useProject();
   const { data: session } = useSession();
   const { id, name, email } = user;
+  const { isMobile } = useMediaQuery();
 
   return (
     <Modal
@@ -53,23 +53,23 @@ function RemoveTeammateModal({
           {invite
             ? "Revoke Invitation"
             : session?.user?.email === email
-            ? "Leave Project"
-            : "Remove Teammate"}
+              ? "Leave Project"
+              : "Remove Teammate"}
         </h3>
         <p className="text-center text-sm text-gray-500">
           {invite
             ? "This will revoke "
             : session?.user?.email === email
-            ? "You're about to leave "
-            : "This will remove "}
+              ? "You're about to leave "
+              : "This will remove "}
           <span className="font-semibold text-black">
             {session?.user?.email === email ? projectName : name || email}
           </span>
           {invite
             ? "'s invitation to join your project. "
             : session?.user?.email === email
-            ? ". You will lose all access to this project. "
-            : " from your project. "}
+              ? ". You will lose all access to this project. "
+              : " from your project. "}
           Are you sure you want to continue?
         </p>
       </div>
@@ -85,7 +85,7 @@ function RemoveTeammateModal({
         <Button
           text="Confirm"
           variant="danger"
-          autoFocus
+          autoFocus={!isMobile}
           loading={removing}
           onClick={() => {
             setRemoving(true);
@@ -112,8 +112,8 @@ function RemoveTeammateModal({
                   session?.user?.email === email
                     ? "You have left the project!"
                     : invite
-                    ? "Successfully revoked invitation!"
-                    : "Successfully removed teammate!",
+                      ? "Successfully revoked invitation!"
+                      : "Successfully removed teammate!",
                 );
               } else {
                 const error = await res.text();

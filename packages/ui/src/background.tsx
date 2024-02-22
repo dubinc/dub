@@ -13,7 +13,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     width: "100vw",
     minHeight: "100vh",
     position: "fixed",
-    zIndex: -1,
+    zIndex: 1,
     display: "flex",
     justifyContent: "center",
     padding: "120px 24px 160px 24px",

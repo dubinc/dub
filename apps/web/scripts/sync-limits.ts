@@ -1,5 +1,5 @@
-import "dotenv-flow/config";
 import prisma from "@/lib/prisma";
+import "dotenv-flow/config";
 
 async function main() {
   const response = await prisma.project.updateMany({
@@ -7,7 +7,7 @@ async function main() {
       plan: "pro",
     },
     data: {
-      linksLimit: 250,
+      linksLimit: 1000,
       domainsLimit: 10,
       tagsLimit: 25,
       usersLimit: 5,

@@ -1,8 +1,9 @@
+import { exceededLimitError } from "@/lib/api/errors";
+import { bulkCreateLinks } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { NextResponse } from "next/server";
 import { LinkProps, SimpleLinkProps } from "@/lib/types";
-import { exceededLimitError } from "@/lib/api/errors";
+import { NextResponse } from "next/server";
 
 // POST /api/links/sync – sync user's publicly created links to their accounts
 export const POST = withAuth(async ({ req, session, project }) => {
@@ -45,7 +46,7 @@ export const POST = withAuth(async ({ req, session, project }) => {
     );
   }
 
-  const response = await Promise.all([
+  const response = await Promise.allSettled([
     prisma.link.updateMany({
       where: {
         id: {
@@ -57,6 +58,15 @@ export const POST = withAuth(async ({ req, session, project }) => {
         projectId: project.id,
         publicStats: false,
       },
+    }),
+    bulkCreateLinks({
+      links: unclaimedLinks.map((link) => ({
+        ...link,
+        userId: session.user.id,
+        projectId: project.id,
+        publicStats: false,
+      })),
+      skipPrismaCreate: true,
     }),
     prisma.project.update({
       where: {

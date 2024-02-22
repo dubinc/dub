@@ -5,6 +5,7 @@ import {
   Logo,
   Modal,
   Switch,
+  useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
 import {
@@ -14,6 +15,7 @@ import {
 } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import va from "@vercel/analytics";
+import { motion } from "framer-motion";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Dispatch,
@@ -25,9 +27,8 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { useDebounce } from "use-debounce";
 import { mutate } from "swr";
-import { motion } from "framer-motion";
+import { useDebounce } from "use-debounce";
 import DomainInput from "./add-edit-domain-modal/domain-input";
 
 function AddProjectModalHelper({
@@ -89,6 +90,8 @@ function AddProjectModalHelper({
       setUseDefaultDomain(false);
     }
   }, [searchParams]);
+
+  const { isMobile } = useMediaQuery();
 
   return (
     <Modal
@@ -172,7 +175,7 @@ function AddProjectModalHelper({
               id="name"
               type="text"
               required
-              autoFocus
+              autoFocus={!isMobile}
               autoComplete="off"
               className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
               placeholder="Acme, Inc."

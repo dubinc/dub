@@ -1,8 +1,8 @@
-import { withAuth } from "@/lib/auth";
 import { deleteLink, editLink, processLink } from "@/lib/api/links";
-import { NextResponse } from "next/server";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { withAuth } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { NextResponse } from "next/server";
 
 // GET /api/links/[linkId] – get a link
 export const GET = withAuth(async ({ headers, link }) => {
@@ -82,13 +82,10 @@ export const PUT = withAuth(async ({ req, headers, project, link }) => {
 });
 
 // DELETE /api/links/[linkId] – delete a link
-export const DELETE = withAuth(async ({ headers, link, project }) => {
+export const DELETE = withAuth(async ({ headers, link }) => {
   // link is guaranteed to exist because if not we will return 404
-  const response = await deleteLink({
-    domain: link!.domain,
-    key: link!.key,
-    projectId: project.id,
-  });
+  const response = await deleteLink(link!);
+
   return NextResponse.json(response[0], {
     headers,
   });

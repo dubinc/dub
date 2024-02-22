@@ -1,16 +1,17 @@
 import useDomains from "@/lib/swr/use-domains";
 import useProject from "@/lib/swr/use-project";
 import useTags from "@/lib/swr/use-tags";
-import { UserProps } from "@/lib/types";
+import { LinkProps, UserProps } from "@/lib/types";
 import TagBadge from "@/ui/links/tag-badge";
 import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
 import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
 import { useDeleteLinkModal } from "@/ui/modals/delete-link-modal";
 import { useLinkQRModal } from "@/ui/modals/link-qr-modal";
-import { BlurImage } from "@/ui/shared/blur-image";
 import { Chart, Delete, ThreeDots } from "@/ui/shared/icons";
 import {
   Avatar,
+  BlurImage,
+  Button,
   CopyButton,
   IconMenu,
   NumberTooltip,
@@ -21,32 +22,36 @@ import {
   useIntersectionObserver,
   useRouterStuff,
 } from "@dub/ui";
+import { LinkifyTooltipContent } from "@dub/ui/src/tooltip";
 import {
   GOOGLE_FAVICON_URL,
   HOME_DOMAIN,
   cn,
   fetcher,
   getApexDomain,
+  isDubDomain,
   linkConstructor,
   nFormatter,
   timeAgo,
 } from "@dub/utils";
-import { type Link as LinkProps } from "@prisma/client";
 import {
   Archive,
   CopyPlus,
   Edit3,
   EyeOff,
+  FolderInput,
+  Mail,
   MessageCircle,
   QrCode,
   TimerOff,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import Linkify from "linkify-react";
 import punycode from "punycode/";
 import { useEffect, useMemo, useRef, useState } from "react";
-import useSWR from "swr";
+import { toast } from "sonner";
+import useSWR, { mutate } from "swr";
+import { useTransferLinkModal } from "../modals/transfer-link-modal";
 
 export default function LinkCard({
   props,
@@ -56,6 +61,7 @@ export default function LinkCard({
   };
 }) {
   const {
+    id,
     key,
     domain,
     url,
@@ -85,9 +91,11 @@ export default function LinkCard({
   const isVisible = !!entry?.isIntersecting;
 
   const { data: clicks } = useSWR<number>(
+    // only fetch clicks if the link is visible and there's a slug and the usage is not exceeded
     isVisible &&
+      slug &&
       !exceededClicks &&
-      `/api/projects/${slug}/stats/clicks?domain=${domain}&key=${key}`,
+      `/api/analytics/clicks?projectSlug=${slug}&domain=${domain}&key=${key}`,
     fetcher,
     {
       fallbackData: props.clicks,
@@ -127,6 +135,9 @@ export default function LinkCard({
   const { setShowArchiveLinkModal, ArchiveLinkModal } = useArchiveLinkModal({
     props,
     archived: !archived,
+  });
+  const { setShowTransferLinkModal, TransferLinkModal } = useTransferLinkModal({
+    props,
   });
   const { setShowDeleteLinkModal, DeleteLinkModal } = useDeleteLinkModal({
     props,
@@ -176,7 +187,7 @@ export default function LinkCard({
     // - there is no existing modal backdrop
     if (
       (selected || openPopover) &&
-      ["e", "d", "q", "a", "x"].includes(e.key)
+      ["e", "d", "q", "a", "t", "x"].includes(e.key)
     ) {
       setSelected(false);
       e.preventDefault();
@@ -192,6 +203,11 @@ export default function LinkCard({
           break;
         case "a":
           setShowArchiveLinkModal(true);
+          break;
+        case "t":
+          if (isDubDomain(domain)) {
+            setShowTransferLinkModal(true);
+          }
           break;
         case "x":
           setShowDeleteLinkModal(true);
@@ -220,6 +236,7 @@ export default function LinkCard({
           <AddEditLinkModal />
           <DuplicateLinkModal />
           <ArchiveLinkModal />
+          <TransferLinkModal />
           <DeleteLinkModal />
         </>
       )}
@@ -297,19 +314,7 @@ export default function LinkCard({
               {comments && (
                 <Tooltip
                   content={
-                    <div className="block max-w-sm px-4 py-2 text-center text-sm text-gray-700">
-                      <Linkify
-                        as="p"
-                        options={{
-                          target: "_blank",
-                          rel: "noopener noreferrer nofollow",
-                          className:
-                            "underline underline-offset-4 text-gray-400 hover:text-gray-700",
-                        }}
-                      >
-                        {comments}
-                      </Linkify>
-                    </div>
+                    <LinkifyTooltipContent>{comments}</LinkifyTooltipContent>
                   }
                 >
                   <button
@@ -342,9 +347,19 @@ export default function LinkCard({
                 content={
                   <div className="w-full p-4">
                     <Avatar user={user} className="h-10 w-10" />
-                    <p className="mt-2 text-sm font-semibold text-gray-700">
-                      {user?.name || user?.email || "Anonymous User"}
-                    </p>
+                    <div className="mt-2 flex items-center space-x-1.5">
+                      <p className="text-sm font-semibold text-gray-700">
+                        {user?.name || user?.email || "Anonymous User"}
+                      </p>
+                      {!slug && // this is only shown in admin mode (where there's no slug)
+                        user?.email && (
+                          <CopyButton
+                            value={user.email}
+                            icon={Mail}
+                            className="[&>*]:h-3 [&>*]:w-3"
+                          />
+                        )}
+                    </div>
                     <p className="mt-1 text-xs text-gray-500">
                       Created{" "}
                       {new Date(createdAt).toLocaleDateString("en-us", {
@@ -375,7 +390,7 @@ export default function LinkCard({
                     <SimpleTooltipContent
                       title="This link is cloaked. Your users will only see the short link in the browser address bar."
                       cta="Learn more."
-                      href={`${HOME_DOMAIN}/help/article/how-to-create-link#link-cloaking`}
+                      href={`${HOME_DOMAIN}/help/article/link-cloaking`}
                     />
                   }
                 >
@@ -386,7 +401,7 @@ export default function LinkCard({
                 href={url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="xs:block hidden max-w-[140px] truncate text-sm font-medium text-gray-700 underline-offset-2 hover:underline sm:max-w-[300px] md:max-w-[360px] xl:max-w-[440px]"
+                className="xs:block hidden max-w-[140px] truncate text-sm font-medium text-gray-700 underline-offset-2 hover:underline sm:max-w-[300px] md:max-w-[360px] xl:max-w-[420px]"
               >
                 {url}
               </a>
@@ -410,78 +425,118 @@ export default function LinkCard({
           <Popover
             content={
               <div className="grid w-full gap-px p-2 sm:w-48">
-                <button
+                <Button
+                  text="Edit"
+                  variant="outline"
                   onClick={() => {
                     setOpenPopover(false);
                     setShowAddEditLinkModal(true);
                   }}
-                  className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
-                >
-                  <IconMenu text="Edit" icon={<Edit3 className="h-4 w-4" />} />
-                  <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 transition-all duration-75 group-hover:bg-gray-200 sm:inline-block">
-                    E
-                  </kbd>
-                </button>
-                <button
+                  icon={<Edit3 className="h-4 w-4" />}
+                  shortcut="E"
+                  className="h-9 px-2 font-medium"
+                />
+                <Button
+                  text="Duplicate"
+                  variant="outline"
                   onClick={() => {
                     setOpenPopover(false);
                     setShowDuplicateLinkModal(true);
                   }}
-                  className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
-                >
-                  <IconMenu
-                    text="Duplicate"
-                    icon={<CopyPlus className="h-4 w-4" />}
-                  />
-                  <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 transition-all duration-75 group-hover:bg-gray-200 sm:inline-block">
-                    D
-                  </kbd>
-                </button>
-                <button
+                  icon={<CopyPlus className="h-4 w-4" />}
+                  shortcut="D"
+                  className="h-9 px-2 font-medium"
+                />
+                <Button
+                  text="QR Code"
+                  variant="outline"
                   onClick={() => {
                     setOpenPopover(false);
                     setShowLinkQRModal(true);
                   }}
-                  className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
-                >
-                  <IconMenu
-                    text="QR Code"
-                    icon={<QrCode className="h-4 w-4" />}
-                  />
-                  <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 transition-all duration-75 group-hover:bg-gray-200 sm:inline-block">
-                    Q
-                  </kbd>
-                </button>
-                <button
+                  icon={<QrCode className="h-4 w-4" />}
+                  shortcut="Q"
+                  className="h-9 px-2 font-medium"
+                />
+                <Button
+                  text={archived ? "Unarchive" : "Archive"}
+                  variant="outline"
                   onClick={() => {
                     setOpenPopover(false);
                     setShowArchiveLinkModal(true);
                   }}
-                  className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
-                >
-                  <IconMenu
-                    text={archived ? "Unarchive" : "Archive"}
-                    icon={<Archive className="h-4 w-4" />}
-                  />
-                  <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 transition-all duration-75 group-hover:bg-gray-200 sm:inline-block">
-                    A
-                  </kbd>
-                </button>
-                <button
+                  icon={<Archive className="h-4 w-4" />}
+                  shortcut="A"
+                  className="h-9 px-2 font-medium"
+                />
+                <Button
+                  text="Transfer"
+                  variant="outline"
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setShowTransferLinkModal(true);
+                  }}
+                  icon={<FolderInput className="h-4 w-4" />}
+                  shortcut="T"
+                  className="h-9 px-2 font-medium"
+                  {...(!isDubDomain(domain) && {
+                    disabledTooltip: (
+                      <SimpleTooltipContent
+                        title="You cannot transfer custom domain links between projects."
+                        cta="Learn more."
+                        href={`${HOME_DOMAIN}/help/article/how-to-transfer-links`}
+                      />
+                    ),
+                  })}
+                />
+                <Button
+                  text="Delete"
+                  variant="danger-outline"
                   onClick={() => {
                     setOpenPopover(false);
                     setShowDeleteLinkModal(true);
                   }}
-                  className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-red-600 transition-all duration-75 hover:bg-red-600 hover:text-white"
-                >
-                  <IconMenu
-                    text="Delete"
-                    icon={<Delete className="h-4 w-4" />}
-                  />
-                  <kbd className="hidden rounded bg-red-100 px-2 py-0.5 text-xs font-light text-red-600 transition-all duration-75 group-hover:bg-red-500 group-hover:text-white sm:inline-block">
-                    X
-                  </kbd>
-                </button>
+                  icon={<Delete className="h-4 w-4" />}
+                  shortcut="X"
+                  className="h-9 px-2 font-medium"
+                />
+                {!slug && ( // this is only shown in admin mode (where there's no slug)
+                  <button
+                    onClick={() => {
+                      window.confirm(
+                        "Are you sure you want to ban this link? It will blacklist the domain and prevent any links from that domain from being created.",
+                      ) &&
+                        (setOpenPopover(false),
+                        toast.promise(
+                          fetch(`/api/admin/links/${id}/ban`, {
+                            method: "DELETE",
+                          }).then(async () => {
+                            await mutate(
+                              (key) =>
+                                typeof key === "string" &&
+                                key.startsWith("/api/admin/links"),
+                              undefined,
+                              { revalidate: true },
+                            );
+                          }),
+                          {
+                            loading: "Banning link...",
+                            success: "Link banned!",
+                            error: "Error banning link.",
+                          },
+                        ));
+                    }}
+                    className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-red-600 transition-all duration-75 hover:bg-red-600 hover:text-white"
+                  >
+                    <IconMenu
+                      text="Ban"
+                      icon={<Delete className="h-4 w-4" />}
+                    />
+                    <kbd className="hidden rounded bg-red-100 px-2 py-0.5 text-xs font-light text-red-600 transition-all duration-75 group-hover:bg-red-500 group-hover:text-white sm:inline-block">
+                      B
+                    </kbd>
+                  </button>
+                )}
               </div>
             }
             align="end"

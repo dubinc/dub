@@ -1,16 +1,17 @@
 import { AlertCircleFill, CheckCircleFill } from "@/ui/shared/icons";
-import { Label, RadioGroup, RadioGroupItem } from "@dub/ui";
+import { Label, RadioGroup, RadioGroupItem, useMediaQuery } from "@dub/ui";
+import { InfoTooltip } from "@dub/ui/src/tooltip";
 import {
   FADE_IN_ANIMATION_SETTINGS,
+  HOME_DOMAIN,
   cn,
   getApexDomain,
   getSubdomain,
   getUrlFromString,
 } from "@dub/utils";
-import { useEffect, useMemo, useState } from "react";
-import { useDebounce } from "use-debounce";
 import { motion } from "framer-motion";
-import { InfoTooltip } from "@dub/ui/src/tooltip";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useDebounce } from "use-debounce";
 
 export default function DomainInput({
   identifier = "domain", // "domain" is the default, but when it's used in AddEditDomainModal, it's "slug"
@@ -40,12 +41,23 @@ export default function DomainInput({
     [domain],
   );
 
+  const { isMobile } = useMediaQuery();
+  const domainRef = useRef<HTMLInputElement>(null);
+  const subdomainRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (domainType === "website") {
+      subdomainRef.current?.focus();
+    }
+  }, [domainType]);
+
   return (
     <>
       <div className="relative mt-2 flex rounded-md shadow-sm">
         {domainType === "website" ? (
           <div className="relative flex w-full rounded-md shadow-sm">
             <input
+              ref={subdomainRef}
               name="subdomain"
               id="subdomain"
               type="text"
@@ -68,10 +80,12 @@ export default function DomainInput({
           </div>
         ) : (
           <input
+            ref={domainRef}
             name="domain"
             id="domain"
             type="text"
             required
+            autoFocus={!isMobile && identifier === "slug"}
             autoComplete="off"
             pattern="[a-zA-Z0-9\-.]+"
             className={cn(
@@ -156,6 +170,18 @@ export default function DomainInput({
             </div>
           </RadioGroup>
         </motion.div>
+      )}
+      {(domain.includes("/") || domainType === "website") && (
+        <p className="mt-2 text-sm text-gray-500">
+          Want to set up Dub.co to handle redirects on a subpath instead?{" "}
+          <a
+            href={`${HOME_DOMAIN}/help/article/how-to-use-dub-with-subpath`}
+            target="_blank"
+            className="underline"
+          >
+            Read this guide.
+          </a>
+        </p>
       )}
     </>
   );

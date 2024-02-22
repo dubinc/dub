@@ -1,4 +1,5 @@
 import useProject from "@/lib/swr/use-project";
+import { LinkProps } from "@/lib/types";
 import {
   InfoTooltip,
   SimpleTooltipContent,
@@ -11,7 +12,6 @@ import {
   HOME_DOMAIN,
   getDateTimeLocal,
 } from "@dub/utils";
-import { type Link as LinkProps } from "@prisma/client";
 import { motion } from "framer-motion";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
@@ -52,7 +52,7 @@ export default function ExpirationSection({
               <SimpleTooltipContent
                 title="Set an expiration date for your links – after which it won't be accessible."
                 cta="Learn more."
-                href={`${HOME_DOMAIN}/help/article/how-to-create-link#expiration-date`}
+                href={`${HOME_DOMAIN}/help/article/link-expiration`}
               />
             }
           />
@@ -61,7 +61,7 @@ export default function ExpirationSection({
           fn={() => setEnabled(!enabled)}
           checked={enabled}
           // expiration date is only available on Dub's Pro plan
-          {...(!plan || plan === "free"
+          {...((!plan || plan === "free") && !enabled
             ? {
                 disabledTooltip: (
                   <TooltipContent

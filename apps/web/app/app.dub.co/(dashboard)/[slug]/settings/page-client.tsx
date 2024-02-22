@@ -17,17 +17,16 @@ export default function ProjectSettingsClient() {
       <Form
         title="Project Name"
         description={`This is the name of your project on ${process.env.NEXT_PUBLIC_APP_NAME}.`}
-        inputData={{
+        inputAttrs={{
           name: "name",
           defaultValue: name,
           placeholder: "My Project",
           maxLength: 32,
         }}
         helpText="Max 32 characters."
-        {...(plan === "enterprise" &&
-          !isOwner && {
-            disabledTooltip: "Only project owners can change the project name.",
-          })}
+        {...(!isOwner && {
+          disabledTooltip: "Only project owners can change the project name.",
+        })}
         handleSubmit={(updateData) =>
           fetch(`/api/projects/${slug}`, {
             method: "PUT",
@@ -54,7 +53,7 @@ export default function ProjectSettingsClient() {
       <Form
         title="Project Slug"
         description={`This is your project's unique slug on ${process.env.NEXT_PUBLIC_APP_NAME}.`}
-        inputData={{
+        inputAttrs={{
           name: "slug",
           defaultValue: slug,
           placeholder: "my-project",
@@ -62,10 +61,9 @@ export default function ProjectSettingsClient() {
           maxLength: 48,
         }}
         helpText="Only lowercase letters, numbers, and dashes. Max 48 characters."
-        {...(plan === "enterprise" &&
-          !isOwner && {
-            disabledTooltip: "Only project owners can change the project slug.",
-          })}
+        {...(!isOwner && {
+          disabledTooltip: "Only project owners can change the project slug.",
+        })}
         handleSubmit={(data) =>
           fetch(`/api/projects/${slug}`, {
             method: "PUT",

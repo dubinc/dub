@@ -14,16 +14,33 @@ export interface QRLinkProps {
 }
 
 export interface RedisLinkProps {
+  id: string;
   url: string;
   password?: boolean;
   proxy?: boolean;
   rewrite?: boolean;
   iframeable?: boolean;
-  expiresAt?: string;
+  expiresAt?: Date;
   ios?: string;
   android?: string;
   geo?: object;
-  banned?: boolean;
+  projectId?: string;
+}
+
+export interface EdgeLinkProps {
+  id: string;
+  domain: string;
+  key: string;
+  url: string;
+  proxy: boolean;
+  title: string;
+  description: string;
+  image: string;
+  password: string;
+  clicks: number;
+  publicStats: boolean;
+  userId: string;
+  projectId: string;
 }
 
 export interface TagProps {
@@ -69,6 +86,7 @@ export interface ProjectProps {
   metadata?: {
     defaultDomains?: string[];
   };
+  inviteCode: string;
 }
 
 export interface ProjectWithDomainProps extends ProjectProps {
@@ -95,14 +113,24 @@ export type DomainVerificationStatusProps =
   | "Unknown Error";
 
 export interface DomainProps {
+  id: string;
   slug: string;
   verified: boolean;
   primary: boolean;
   archived: boolean;
+  publicStats: boolean;
   target?: string;
   type: string;
   placeholder?: string;
   clicks: number;
+  projectId: string;
+}
+export interface RedisDomainProps {
+  id: string;
+  url?: string;
+  rewrite?: boolean;
+  iframeable?: boolean;
+  projectId: string;
 }
 
 export interface BitlyGroupProps {

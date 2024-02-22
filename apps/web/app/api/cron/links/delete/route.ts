@@ -30,10 +30,7 @@ export async function POST(req: Request) {
     return new Response("Link claimed. Skipping...", { status: 200 });
   }
 
-  await deleteLink({
-    domain: link.domain,
-    key: link.key,
-  });
+  await deleteLink(link);
 
   return new Response("Link deleted.", { status: 200 });
 }

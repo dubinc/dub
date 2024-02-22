@@ -2,14 +2,16 @@
 
 import useDomains from "@/lib/swr/use-domains";
 import useProject from "@/lib/swr/use-project";
-import { BlurImage } from "@/ui/shared/blur-image";
+import { LinkProps } from "@/lib/types";
 import { AlertCircleFill, Lock, Random, X } from "@/ui/shared/icons";
 import {
+  BlurImage,
   Button,
   LoadingCircle,
   Logo,
   Modal,
   TooltipContent,
+  useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
 import {
@@ -24,7 +26,6 @@ import {
   linkConstructor,
   truncate,
 } from "@dub/utils";
-import { type Link as LinkProps } from "@prisma/client";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import punycode from "punycode/";
 import {
@@ -49,8 +50,8 @@ import OGSection from "./og-section";
 import PasswordSection from "./password-section";
 import Preview from "./preview";
 import RewriteSection from "./rewrite-section";
-import UTMSection from "./utm-section";
 import TagsSection from "./tags-section";
+import UTMSection from "./utm-section";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
@@ -185,7 +186,7 @@ function AddEditLinkModal({
         // if url is valid, continue to generate metatags, else return null
         new URL(debouncedUrl);
         setGeneratingMetatags(true);
-        fetch(`/api/edge/metatags?url=${debouncedUrl}`).then(async (res) => {
+        fetch(`/api/metatags?url=${debouncedUrl}`).then(async (res) => {
           if (res.status === 200) {
             const results = await res.json();
             setData((prev) => ({
@@ -298,6 +299,8 @@ function AddEditLinkModal({
       keyRef.current?.select();
     }
   }, [key]);
+
+  const { isMobile } = useMediaQuery();
 
   return (
     <Modal
@@ -418,7 +421,7 @@ function AddEditLinkModal({
                       "https://dub.co/help/article/what-is-dub"
                     }
                     value={url}
-                    autoFocus={!key}
+                    autoFocus={!key && !isMobile}
                     autoComplete="off"
                     onChange={(e) => {
                       setUrlError(null);
@@ -455,7 +458,7 @@ function AddEditLinkModal({
                       type="button"
                       onClick={() => {
                         window.confirm(
-                          "Editing an existing short link will result in broken links and reset its analytics. Are you sure you want to continue?",
+                          "Editing an existing short link could potentially break existing links. Are you sure you want to continue?",
                         ) && setLockKey(false);
                       }}
                     >
@@ -609,7 +612,7 @@ function AddEditLinkButton({
 }: {
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { slug, plan, exceededLinks } = useProject();
+  const { plan, exceededLinks } = useProject();
   const { queryParams } = useRouterStuff();
 
   const onKeyDown = useCallback((e: KeyboardEvent) => {
@@ -672,10 +675,10 @@ function AddEditLinkButton({
       text="Create link"
       shortcut="C"
       disabledTooltip={
-        slug && exceededLinks ? (
+        exceededLinks ? (
           <TooltipContent
             title="Your project has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
-            cta="Upgrade"
+            cta={`Upgrade to ${plan === "free" ? "Pro" : "Business"}`}
             onClick={() => {
               queryParams({
                 set: {

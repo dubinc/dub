@@ -1,7 +1,7 @@
 import { withAuth } from "@/lib/auth";
-import { NextResponse } from "next/server";
 import jackson, { samlAudience } from "@/lib/jackson";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { NextResponse } from "next/server";
 
 // GET /api/projects/[slug]/saml – get SAML connections for a specific project
 export const GET = withAuth(async ({ project }) => {
@@ -31,16 +31,20 @@ export const POST = withAuth(
 
     const { apiController } = await jackson();
 
-    const data = await apiController.createSAMLConnection({
-      encodedRawMetadata,
-      metadataUrl,
-      defaultRedirectUrl: `${process.env.NEXTAUTH_URL}/auth/saml`,
-      redirectUrl: process.env.NEXTAUTH_URL as string,
-      tenant: project.id,
-      product: "Dub",
-    });
+    try {
+      const data = await apiController.createSAMLConnection({
+        encodedRawMetadata,
+        metadataUrl,
+        defaultRedirectUrl: `${process.env.NEXTAUTH_URL}/auth/saml`,
+        redirectUrl: process.env.NEXTAUTH_URL as string,
+        tenant: project.id,
+        product: "Dub",
+      });
 
-    return NextResponse.json(data);
+      return NextResponse.json(data);
+    } catch (error) {
+      return new Response(error.message, { status: 400 });
+    }
   },
   {
     requiredRole: ["owner"],
@@ -65,6 +69,5 @@ export const DELETE = withAuth(
   },
   {
     requiredRole: ["owner"],
-    requiredPlan: ["enterprise"],
   },
 );

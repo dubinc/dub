@@ -1,8 +1,8 @@
 import useProject from "@/lib/swr/use-project";
 import { DomainProps } from "@/lib/types";
-import { BlurImage } from "@/ui/shared/blur-image";
 import { Lock } from "@/ui/shared/icons";
 import {
+  BlurImage,
   Button,
   InfoTooltip,
   Logo,
@@ -38,18 +38,21 @@ function AddEditDomainModal({
 }) {
   const router = useRouter();
   const { slug } = useParams() as { slug: string };
-  const { logo, plan } = useProject();
+  const { id, logo, plan } = useProject();
   const { queryParams } = useRouterStuff();
 
   const [data, setData] = useState<DomainProps>(
     props || {
+      id: "",
       slug: "",
       verified: false,
       primary: false,
       archived: false,
+      publicStats: false,
       target: "",
       type: "redirect",
       clicks: 0,
+      projectId: id || "",
     },
   );
 
@@ -309,7 +312,6 @@ function AddEditDomainModal({
               <Switch
                 fn={() => setData((prev) => ({ ...prev, archived: !archived }))}
                 checked={archived}
-                disabled={props?.archived}
               />
             </div>
 

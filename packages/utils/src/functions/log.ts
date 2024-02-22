@@ -1,4 +1,5 @@
 const logTypeToEnv = {
+  alerts: process.env.DUB_SLACK_HOOK_ALERTS,
   cron: process.env.DUB_SLACK_HOOK_CRON,
   links: process.env.DUB_SLACK_HOOK_LINKS,
   errors: process.env.DUB_SLACK_HOOK_ERRORS,
@@ -10,16 +11,18 @@ export const log = async ({
   mention = false,
 }: {
   message: string;
-  type: "cron" | "links" | "errors";
+  type: "alerts" | "cron" | "links" | "errors";
   mention?: boolean;
 }) => {
   if (
     process.env.NODE_ENV === "development" ||
+    !process.env.DUB_SLACK_HOOK_ALERTS ||
     !process.env.DUB_SLACK_HOOK_CRON ||
     !process.env.DUB_SLACK_HOOK_LINKS ||
     !process.env.DUB_SLACK_HOOK_ERRORS
-  )
+  ) {
     console.log(message);
+  }
   /* Log a message to the console */
   const HOOK = logTypeToEnv[type];
   if (!HOOK) return;
@@ -35,13 +38,8 @@ export const log = async ({
             type: "section",
             text: {
               type: "mrkdwn",
-              text: `${
-                mention
-                  ? "<@U0404G6J3NJ> "
-                  : type === "errors"
-                  ? ":alert: "
-                  : ""
-              }${message}`,
+              // prettier-ignore
+              text: `${mention ? "<@U0404G6J3NJ> " : ""}${(type === "alerts" || type === "errors") ? ":alert: " : ""}${message}`,
             },
           },
         ],

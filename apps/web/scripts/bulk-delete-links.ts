@@ -1,28 +1,17 @@
-import "dotenv-flow/config";
 import prisma from "@/lib/prisma";
+import "dotenv-flow/config";
 import { redis } from "./utils";
 
 const domain = "song.fyi";
 
 async function main() {
-  const links = await prisma.link.findMany({
-    where: {
-      domain,
-    },
-  });
-
-  const pipeline = redis.pipeline();
-  links.forEach(({ domain, key }) => {
-    pipeline.del(`${domain}:${key}`);
-  });
-
   const response = await Promise.all([
-    pipeline.exec(),
     prisma.link.deleteMany({
       where: {
         domain,
       },
     }),
+    redis.del(domain),
   ]);
 
   console.log(JSON.stringify(response, null, 2));

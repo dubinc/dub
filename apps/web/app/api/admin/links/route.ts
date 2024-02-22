@@ -1,25 +1,22 @@
 import { withAdmin } from "@/lib/auth";
-import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { DUB_DOMAINS } from "@dub/utils";
+import { DUB_DOMAINS, LEGAL_USER_ID } from "@dub/utils";
+import { NextResponse } from "next/server";
 
-// GET /api/links – get all user links
+// GET /api/admin/links
 export const GET = withAdmin(async ({ searchParams }) => {
   const {
     domain,
-    tagId,
     search,
     sort = "createdAt",
     page,
-    userId,
   } = searchParams as {
     domain?: string;
-    tagId?: string;
     search?: string;
     sort?: "createdAt" | "clicks" | "lastClicked";
     page?: string;
-    userId?: string;
   };
+
   const response = await prisma.link.findMany({
     where: {
       ...(domain
@@ -39,8 +36,9 @@ export const GET = withAdmin(async ({ searchParams }) => {
           },
         ],
       }),
-      ...(tagId && { tagId }),
-      ...(userId && { userId }),
+      userId: {
+        not: LEGAL_USER_ID,
+      },
     },
     include: {
       user: true,

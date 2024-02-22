@@ -1,12 +1,12 @@
 "use client";
 
+import useProject from "@/lib/swr/use-project";
+import { Badge, useRouterStuff } from "@dub/ui";
 import { Crisp } from "crisp-sdk-web";
 import Cookies from "js-cookie";
-import useProject from "@/lib/swr/use-project";
-import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import ProBanner from "../projects/pro-banner";
-import { Badge, useRouterStuff } from "@dub/ui";
 
 export default function UpgradeBanner() {
   const { slug } = useParams() as { slug?: string };

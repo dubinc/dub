@@ -1,4 +1,5 @@
 import useProject from "@/lib/swr/use-project";
+import { LinkProps } from "@/lib/types";
 import {
   InfoTooltip,
   SimpleTooltipContent,
@@ -7,7 +8,6 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "@dub/utils";
-import { type Link as LinkProps } from "@prisma/client";
 import { motion } from "framer-motion";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
@@ -47,7 +47,7 @@ export default function IOSSection({
               <SimpleTooltipContent
                 title="Redirect your iOS users to a different link."
                 cta="Learn more about device targeting."
-                href={`${HOME_DOMAIN}/help/article/how-to-create-link#device-targeting-ios--android`}
+                href={`${HOME_DOMAIN}/help/article/device-targeting`}
               />
             }
           />
@@ -56,7 +56,7 @@ export default function IOSSection({
           fn={() => setEnabled(!enabled)}
           checked={enabled}
           // iOS targeting is only available on Dub's Pro plan
-          {...(!plan || plan === "free"
+          {...((!plan || plan === "free") && !enabled
             ? {
                 disabledTooltip: (
                   <TooltipContent

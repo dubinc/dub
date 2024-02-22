@@ -17,6 +17,11 @@ module.exports = {
   experimental: {
     useDeploymentId: true,
     useDeploymentIdServerActions: true,
+    serverComponentsExternalPackages: [
+      "@react-email/components",
+      "@react-email/render",
+      "@react-email/tailwind",
+    ],
   },
   webpack: (config, { webpack, isServer }) => {
     if (isServer) {
@@ -26,11 +31,6 @@ module.exports = {
           resourceRegExp:
             /(^@google-cloud\/spanner|^@mongodb-js\/zstd|^aws-crt|^aws4$|^pg-native$|^mongodb-client-encryption$|^@sap\/hana-client$|^snappy$|^react-native-sqlite-storage$|^bson-ext$|^cardinal$|^kerberos$|^hdb-pool$|^sql.js$|^sqlite3$|^better-sqlite3$|^ioredis$|^typeorm-aurora-data-api-driver$|^pg-query-stream$|^oracledb$|^mysql$|^snappy\/package\.json$|^cloudflare:sockets$)/,
         }),
-        // temp fix for react-email bug: https://github.com/resendlabs/react-email/issues/868#issuecomment-1782771917
-        new NormalModuleReplacementPlugin(
-          /email\/render/,
-          path.resolve(__dirname, "./renderEmailFix.js"),
-        ),
       );
     }
 
@@ -66,6 +66,9 @@ module.exports = {
       },
       {
         hostname: "lh3.googleusercontent.com",
+      },
+      {
+        hostname: "avatars.githubusercontent.com",
       },
       {
         hostname: "media.cleanshot.cloud", // only for staging purposes

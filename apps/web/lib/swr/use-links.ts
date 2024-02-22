@@ -1,10 +1,10 @@
-import { fetcher } from "@dub/utils";
+import { LinkProps } from "@/lib/types";
 import { useRouterStuff } from "@dub/ui";
-import { type Link as LinkProps } from "@prisma/client";
-import useSWR from "swr";
-import { UserProps } from "../types";
+import { fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import useSWR from "swr";
+import { UserProps } from "../types";
 
 export default function useLinks() {
   const { slug } = useParams() as { slug?: string };
@@ -30,8 +30,8 @@ export default function useLinks() {
           },
         )}`
       : admin
-      ? `/api/admin/links${getQueryString()}`
-      : null,
+        ? `/api/admin/links${getQueryString()}`
+        : null,
     fetcher,
     {
       dedupingInterval: 20000,

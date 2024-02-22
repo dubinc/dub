@@ -1,3 +1,5 @@
+import useProject from "@/lib/swr/use-project";
+import { LinkProps } from "@/lib/types";
 import { UploadCloud } from "@/ui/shared/icons";
 import {
   InfoTooltip,
@@ -8,8 +10,8 @@ import {
   Unsplash,
   useRouterStuff,
 } from "@dub/ui";
+import { TooltipContent } from "@dub/ui/src/tooltip";
 import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "@dub/utils";
-import { type Link as LinkProps } from "@prisma/client";
 import { motion } from "framer-motion";
 import { Link2 } from "lucide-react";
 import {
@@ -21,8 +23,6 @@ import {
 } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import UnsplashSearch from "./unsplash-search";
-import useProject from "@/lib/swr/use-project";
-import { TooltipContent } from "@dub/ui/src/tooltip";
 
 export default function OGSection({
   props,
@@ -78,6 +78,8 @@ export default function OGSection({
 
   const [cooldown, setCooldown] = useState(false);
   const [openPopover, setOpenPopover] = useState(false);
+
+  // hacky workaround to fix bug with Radix Popover: https://github.com/radix-ui/primitives/issues/2348#issuecomment-1778941310
   function handleSet() {
     if (cooldown) return;
     setOpenPopover(!openPopover);
@@ -98,7 +100,7 @@ export default function OGSection({
               <SimpleTooltipContent
                 title="Customize how your links look when shared on social media."
                 cta="Learn more."
-                href={`${HOME_DOMAIN}/help/article/how-to-create-link#custom-social-media-cards`}
+                href={`${HOME_DOMAIN}/help/article/custom-social-media-cards`}
               />
             }
           />
@@ -107,7 +109,7 @@ export default function OGSection({
           fn={() => setData((prev) => ({ ...prev, proxy: !proxy }))}
           checked={proxy}
           // custom social media cards is only available on Dub's Pro plan
-          {...(!plan || plan === "free"
+          {...((!plan || plan === "free") && !proxy
             ? {
                 disabledTooltip: (
                   <TooltipContent

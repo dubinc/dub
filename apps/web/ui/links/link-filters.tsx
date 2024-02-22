@@ -12,6 +12,7 @@ import {
   NumberTooltip,
   Popover,
   Switch,
+  useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
 import {
@@ -72,16 +73,18 @@ export default function LinkFilters() {
           <h3 className="ml-1 mt-2 font-semibold">Filter Links</h3>
           {showClearButton && <ClearButton searchInputRef={searchInputRef} />}
         </div>
-        <SearchBox searchInputRef={searchInputRef} />
+        <div className="hidden lg:block">
+          <SearchBox searchInputRef={searchInputRef} />
+        </div>
       </div>
       <DomainsFilter />
       {tags && tagsCount && (
         <>
           <TagsFilter tags={tags} tagsCount={tagsCount} />
           <MyLinksFilter />
+          <ArchiveFilter />
         </>
       )}
-      <ArchiveFilter />
     </div>
   ) : (
     <div className="grid h-full gap-6 rounded-md bg-white p-5">
@@ -109,7 +112,7 @@ const ClearButton = ({ searchInputRef }) => {
   );
 };
 
-const SearchBox = ({ searchInputRef }) => {
+export const SearchBox = ({ searchInputRef }) => {
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
   const debounced = useDebouncedCallback((value) => {
@@ -144,7 +147,7 @@ const SearchBox = ({ searchInputRef }) => {
 
   return (
     <div className="relative">
-      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
         {isValidating && searchInputRef.current?.value.length > 0 ? (
           <LoadingSpinner className="h-4 w-4" />
         ) : (
@@ -154,13 +157,24 @@ const SearchBox = ({ searchInputRef }) => {
       <input
         ref={searchInputRef}
         type="text"
-        className="peer w-full rounded-md border border-gray-300 pl-10 text-black placeholder:text-gray-400 focus:border-black focus:ring-0 sm:text-sm"
+        className="peer w-full rounded-md border border-gray-300 px-10 text-black placeholder:text-gray-400 focus:border-black focus:ring-0 sm:text-sm"
         placeholder="Search..."
         defaultValue={searchParams?.get("search") || ""}
         onChange={(e) => {
           debounced(e.target.value);
         }}
       />
+      {searchInputRef.current?.value.length > 0 && (
+        <button
+          onClick={() => {
+            searchInputRef.current.value = "";
+            queryParams({ del: "search" });
+          }}
+          className="pointer-events-auto absolute inset-y-0 right-0 flex items-center pr-4 lg:hidden"
+        >
+          <XCircle className="h-4 w-4 text-gray-600" />
+        </button>
+      )}
     </div>
   );
 };
@@ -172,6 +186,7 @@ const DomainsFilter = () => {
   const { primaryDomain } = useDomains();
 
   const [collapsed, setCollapsed] = useState(false);
+  const [showMore, setShowMore] = useState(false);
 
   const options = useMemo(() => {
     return domains?.length === 0
@@ -184,7 +199,7 @@ const DomainsFilter = () => {
       : domains?.map(({ domain, _count }) => ({
           value: domain,
           count: _count,
-        }));
+        })) || [];
   }, [domains, primaryDomain]);
 
   return (
@@ -208,40 +223,50 @@ const DomainsFilter = () => {
             className="mt-4 grid gap-2"
             {...SWIPE_REVEAL_ANIMATION_SETTINGS}
           >
-            {options?.map(({ value, count }) => (
-              <div
-                key={value}
-                className="relative flex cursor-pointer items-center space-x-3 rounded-md bg-gray-50 transition-all hover:bg-gray-100"
-              >
-                <input
-                  id={value}
-                  name={value}
-                  checked={
-                    searchParams?.get("domain") === value ||
-                    domains?.length <= 1
-                  }
-                  onChange={() => {
-                    queryParams({
-                      set: {
-                        domain: value,
-                      },
-                      del: "page",
-                    });
-                  }}
-                  type="radio"
-                  className="ml-3 h-4 w-4 cursor-pointer rounded-full border-gray-300 text-black focus:outline-none focus:ring-0"
-                />
-                <label
-                  htmlFor={value}
-                  className="flex w-full cursor-pointer justify-between px-3 py-2 pl-0 text-sm font-medium text-gray-700"
+            {options
+              .slice(0, showMore ? options.length : 4)
+              .map(({ value, count }) => (
+                <div
+                  key={value}
+                  className="relative flex cursor-pointer items-center space-x-3 rounded-md bg-gray-50 transition-all hover:bg-gray-100"
                 >
-                  <p>{truncate(punycode.toUnicode(value || ""), 24)}</p>
-                  <NumberTooltip value={count} unit="links">
-                    <p className="text-gray-500">{nFormatter(count)}</p>
-                  </NumberTooltip>
-                </label>
-              </div>
-            ))}
+                  <input
+                    id={value}
+                    name={value}
+                    checked={
+                      searchParams?.get("domain") === value ||
+                      domains?.length <= 1
+                    }
+                    onChange={() => {
+                      queryParams({
+                        set: {
+                          domain: value,
+                        },
+                        del: "page",
+                      });
+                    }}
+                    type="radio"
+                    className="ml-3 h-4 w-4 cursor-pointer rounded-full border-gray-300 text-black focus:outline-none focus:ring-0"
+                  />
+                  <label
+                    htmlFor={value}
+                    className="flex w-full cursor-pointer justify-between px-3 py-2 pl-0 text-sm font-medium text-gray-700"
+                  >
+                    <p>{truncate(punycode.toUnicode(value || ""), 24)}</p>
+                    <NumberTooltip value={count} unit="links">
+                      <p className="text-gray-500">{nFormatter(count)}</p>
+                    </NumberTooltip>
+                  </label>
+                </div>
+              ))}
+            {options.length > 4 && (
+              <button
+                onClick={() => setShowMore(!showMore)}
+                className="rounded-md border border-gray-300 p-1 text-center text-sm"
+              >
+                Show {showMore ? "less" : "more"}
+              </button>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -377,7 +402,7 @@ const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
     e.stopPropagation();
     e.preventDefault();
     setProcessing(true);
-    fetch(`/api/projects/${slug}/tags/${tag.id}`, {
+    fetch(`/api/tags/${tag.id}?projectSlug=${slug}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -386,7 +411,7 @@ const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
     }).then(async (res) => {
       setProcessing(false);
       if (res.ok) {
-        await mutate(`/api/projects/${slug}/tags`);
+        await mutate(`/api/tags?projectSlug=${slug}`);
         toast.success("Tag updated");
       } else {
         toast.error("Something went wrong");
@@ -396,11 +421,11 @@ const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
 
   const handleDelete = async () => {
     setProcessing(true);
-    fetch(`/api/projects/${slug}/tags/${tag.id}`, {
+    fetch(`/api/tags/${tag.id}?projectSlug=${slug}`, {
       method: "DELETE",
     }).then(async (res) => {
       if (res.ok) {
-        await mutate(`/api/projects/${slug}/tags`);
+        await mutate(`/api/tags?projectSlug=${slug}`);
         toast.success("Tag deleted");
       } else {
         toast.error("Something went wrong");
@@ -408,6 +433,8 @@ const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
       setProcessing(false);
     });
   };
+
+  const { isMobile } = useMediaQuery();
 
   return processing ? (
     <div className="flex h-6 items-center justify-center">
@@ -432,7 +459,7 @@ const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
               </div>
               <input
                 type="text"
-                autoFocus
+                autoFocus={!isMobile}
                 required
                 onKeyDown={(e) => {
                   // if ESC key pressed, close popover
