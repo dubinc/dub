@@ -87,7 +87,7 @@ export function Button({
       {...props}
     >
       {loading ? <LoadingSpinner /> : icon ? icon : null}
-      <p className={cn(shortcut && "flex-1 text-left")}>{text}</p>
+      {text && <p className={cn(shortcut && "flex-1 text-left")}>{text}</p>}
       {shortcut && (
         <kbd
           className={cn(
