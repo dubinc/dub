@@ -105,7 +105,8 @@ function UpgradePlanModal({
           className="text-center text-sm text-gray-500"
           variants={STAGGER_CHILD_VARIANTS}
         >
-          Enjoy higher limits and extra features with Dub.co {currentPlan.name}
+          Enjoy higher limits and extra features <br /> with Dub.co{" "}
+          {currentPlan.name}
         </motion.p>
       </motion.div>
       <div className="bg-gray-50 px-4 py-6 text-left sm:px-16">

@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { redis } from "@/lib/upstash";
 import { FREE_PLAN, getPlanFromPriceId, log } from "@dub/utils";
+import slugify from "@sindresorhus/slugify";
 import { sendEmail } from "emails";
 import UpgradeEmail from "emails/upgrade-email";
 import { NextResponse } from "next/server";
@@ -78,7 +79,7 @@ export const POST = async (req: Request) => {
             domainsLimit: plan.limits.domains!,
             tagsLimit: plan.limits.tags!,
             usersLimit: plan.limits.users!,
-            plan: plan.name.toLowerCase(),
+            plan: slugify(plan.name),
           },
           select: {
             users: {
@@ -108,7 +109,7 @@ export const POST = async (req: Request) => {
                 react: UpgradeEmail({
                   name: user.name,
                   email: user.email as string,
-                  plan: plan.name,
+                  plan: slugify(plan.name),
                 }),
                 marketing: true,
               }),
@@ -162,7 +163,7 @@ export const POST = async (req: Request) => {
             domainsLimit: plan.limits.domains!,
             tagsLimit: plan.limits.tags!,
             usersLimit: plan.limits.users!,
-            plan: plan.name.toLowerCase(),
+            plan: slugify(plan.name),
           },
           select: {
             users: {

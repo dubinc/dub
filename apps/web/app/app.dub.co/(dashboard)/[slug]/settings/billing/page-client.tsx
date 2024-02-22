@@ -7,7 +7,7 @@ import PlanBadge from "@/ui/projects/plan-badge";
 import { Divider } from "@/ui/shared/icons";
 import ProgressBar from "@/ui/shared/progress-bar";
 import { Button, InfoTooltip, NumberTooltip, useRouterStuff } from "@dub/ui";
-import { HOME_DOMAIN, getFirstAndLastDay, nFormatter } from "@dub/utils";
+import { HOME_DOMAIN, PLANS, getFirstAndLastDay, nFormatter } from "@dub/utils";
 import va from "@vercel/analytics";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -71,6 +71,9 @@ export default function ProjectBillingClient() {
       }, 1000);
     }
   }, [searchParams, plan]);
+
+  const nextPlan =
+    PLANS[PLANS.findIndex((p) => p.name.toLowerCase() === plan) + 1];
 
   return (
     <>
@@ -149,11 +152,9 @@ export default function ProjectBillingClient() {
             <p className="text-sm text-gray-500">
               {plan === "enterprise"
                 ? "You're on the Enterprise plan."
-                : plan === "business"
-                ? "Need more clicks or links? Contact us for an Enterprise quote."
-                : `For higher limits, upgrade to the ${
-                    plan === "free" ? "Pro" : "Business"
-                  } plan.`}
+                : plan === "business-max"
+                  ? "Need more clicks or links? Contact us for an Enterprise quote."
+                  : `For higher limits, upgrade to the ${nextPlan.name} plan.`}
             </p>
           ) : (
             <div className="h-3 w-28 animate-pulse rounded-full bg-gray-200" />
@@ -172,7 +173,7 @@ export default function ProjectBillingClient() {
                   }
                   variant="success"
                 />
-              ) : plan === "business" ? (
+              ) : plan === "business-max" ? (
                 <a
                   href={`${HOME_DOMAIN}/enterprise`}
                   target="_blank"

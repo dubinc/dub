@@ -58,7 +58,14 @@ export type TagColorProps =
   | "pink"
   | "brown";
 
-export type PlanProps = "free" | "pro" | "business" | "enterprise";
+export type PlanProps =
+  | "free"
+  | "pro"
+  | "business"
+  | "business-plus"
+  | "business-extra"
+  | "business-max"
+  | "enterprise";
 
 export interface ProjectProps {
   id: string;

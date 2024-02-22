@@ -78,7 +78,7 @@ export default function LinksLimitAlert({
               links) in your current billing cycle.
             </Text>
 
-            {plan === "business" || plan === "enterprise" ? (
+            {plan === "business-max" || plan === "enterprise" ? (
               <Text className="text-sm leading-6 text-black">
                 Since you're on the {capitalize(plan)} plan, you will still be
                 able to create links even after you hit your limit. We're

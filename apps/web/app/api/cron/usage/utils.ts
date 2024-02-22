@@ -196,7 +196,7 @@ export const updateUsage = async (skip?: number) => {
           ? usage < usageLimit * 2
           : plan === "pro"
             ? usage < usageLimit * 1.5
-            : plan === "business"
+            : plan.startsWith("business")
               ? usage < usageLimit * 1.2
               : true;
 
