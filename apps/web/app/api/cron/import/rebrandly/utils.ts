@@ -172,7 +172,17 @@ export const importLinksFromRebrandly = async ({
         ({ title, slashtag: key, destination, tags, createdAt, updatedAt }) => {
           // if tagsToId is provided and tags array is not empty, get the tagIds
           const tagIds =
-            tagsToId && tags.length > 0 ? tags.map((tag) => tagsToId[tag]) : [];
+            tagsToId && tags.length > 0
+              ? tags.map(
+                  (tag: {
+                    id: string;
+                    name: string;
+                    color: string;
+                    active: boolean;
+                    clicks: number;
+                  }) => tagsToId[tag.name],
+                )
+              : [];
 
           return {
             projectId,

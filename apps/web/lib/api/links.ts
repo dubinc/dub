@@ -520,15 +520,16 @@ export async function bulkCreateLinks({
   if (links.length === 0) return [];
 
   let createdLinks: LinkProps[] = [];
+  let linkTags: { tagId: string; linkId: string }[] = [];
 
   if (skipPrismaCreate) {
     createdLinks = links;
   } else {
     await prisma.link.createMany({
       data: links.map(({ tagId, tagIds, ...link }) => {
-        const combinedTagIds = combineTagIds({ tagId, tagIds });
         const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
           getParamsFromURL(link.url);
+
         return {
           ...link,
           title: truncate(link.title, 120),
@@ -540,13 +541,8 @@ export async function bulkCreateLinks({
           utm_content,
           expiresAt: link.expiresAt ? new Date(link.expiresAt) : null,
           geo: link.geo || undefined,
-          ...(combinedTagIds.length > 0 && {
-            tags: {
-              createMany: {
-                data: combinedTagIds.map((tagId) => ({ tagId })),
-              },
-            },
-          }),
+          // note: we're creating linkTags separately cause you can't do
+          // nested createMany in Prisma: https://github.com/prisma/prisma/issues/5455
         };
       }),
       skipDuplicates: true,
@@ -554,8 +550,8 @@ export async function bulkCreateLinks({
 
     createdLinks = (await Promise.all(
       links.map(async (link) => {
-        const { key, domain } = link;
-        return await prisma.link.findUnique({
+        const { key, domain, tagId, tagIds } = link;
+        const data = await prisma.link.findUnique({
           where: {
             domain_key: {
               domain,
@@ -563,8 +559,18 @@ export async function bulkCreateLinks({
             },
           },
         });
+        if (!data) return null;
+        // combine tagIds for creation later
+        const combinedTagIds = combineTagIds({ tagId, tagIds });
+        linkTags.push(
+          ...combinedTagIds.map((tagId) => ({ tagId, linkId: data.id })),
+        );
+        return {
+          ...data,
+          tagIds: combinedTagIds,
+        };
       }),
-    )) as LinkProps[];
+    )) as LinkWithTagIdsProps[];
   }
 
   const pipeline = redis.pipeline();
@@ -592,7 +598,15 @@ export async function bulkCreateLinks({
     pipeline.hset(domain, links);
   });
 
-  await pipeline.exec();
+  await Promise.all([
+    pipeline.exec(),
+    // create link tags
+    linkTags.length > 0 &&
+      prisma.linkTag.createMany({
+        data: linkTags,
+        skipDuplicates: true,
+      }),
+  ]);
 
   return createdLinks.map((link) => {
     const shortLink = linkConstructor({

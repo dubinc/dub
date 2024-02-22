@@ -2,7 +2,6 @@
 
 import useDomains from "@/lib/swr/use-domains";
 import useProject from "@/lib/swr/use-project";
-import { LinkProps } from "@/lib/types";
 import { AlertCircleFill, Lock, Random, X } from "@/ui/shared/icons";
 import {
   BlurImage,
@@ -90,6 +89,7 @@ function AddEditLinkModal({
         domain: primaryDomain,
         key: "",
         url: "",
+        tags: [],
       },
   );
 
