@@ -604,24 +604,26 @@ export async function editLink({
       },
     }),
     // only upload image to cloudinary if proxy is true and there's an image
-    process.env.CLOUDINARY_URL && (proxy && image
-      ? cloudinary.v2.uploader.upload(image, {
-          public_id: key,
-          folder: domain,
-          overwrite: true,
-          invalidate: true,
-        })
-      : cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
-          invalidate: true,
-        })),
+    process.env.CLOUDINARY_URL &&
+      (proxy && image
+        ? cloudinary.v2.uploader.upload(image, {
+            public_id: key,
+            folder: domain,
+            overwrite: true,
+            invalidate: true,
+          })
+        : cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
+            invalidate: true,
+          })),
     // if key is changed: rename resource in Cloudinary, delete the old key in Redis and change the clicks key name
     ...(changedDomain || changedKey
       ? [
-          process.env.CLOUDINARY_URL && cloudinary.v2.uploader
-            .destroy(`${oldDomain}/${oldKey}`, {
-              invalidate: true,
-            })
-            .catch(() => {}),
+          process.env.CLOUDINARY_URL &&
+            cloudinary.v2.uploader
+              .destroy(`${oldDomain}/${oldKey}`, {
+                invalidate: true,
+              })
+              .catch(() => {}),
           redis.hdel(oldDomain, oldKey.toLowerCase()),
         ]
       : []),
@@ -658,9 +660,10 @@ export async function deleteLink(link: LinkProps) {
         id: link.id,
       },
     }),
-    process.env.CLOUDINARY_URL && cloudinary.v2.uploader.destroy(`${link.domain}/${link.key}`, {
-      invalidate: true,
-    }),
+    process.env.CLOUDINARY_URL &&
+      cloudinary.v2.uploader.destroy(`${link.domain}/${link.key}`, {
+        invalidate: true,
+      }),
     redis.hdel(link.domain, link.key.toLowerCase()),
     recordLink({ link, deleted: true }),
     link.projectId &&

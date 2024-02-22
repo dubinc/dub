@@ -10,7 +10,7 @@ export const POST = withAuth(
       return NextResponse.json("Missing Cloudinary environment variable.", {
         status: 400,
       });
-  
+
     const { image } = await req.json();
 
     const { secure_url } = await cloudinary.v2.uploader.upload(image, {

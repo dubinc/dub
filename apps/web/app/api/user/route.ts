@@ -75,9 +75,10 @@ export const DELETE = withSession(async ({ session }) => {
           id: session.user.id,
         },
       }),
-      process.env.CLOUDINARY_URL && cloudinary.v2.uploader.destroy(`avatars/${session?.user?.id}`, {
-        invalidate: true,
-      }),
+      process.env.CLOUDINARY_URL &&
+        cloudinary.v2.uploader.destroy(`avatars/${session?.user?.id}`, {
+          invalidate: true,
+        }),
       process.env.FLODESK_API_KEY && unsubscribe(session.user.email),
     ]);
     return NextResponse.json(response);

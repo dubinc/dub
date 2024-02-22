@@ -380,7 +380,7 @@ function AddEditLinkModal({
                   setShowAddEditLinkModal(false);
                 } else {
                   const error = await res.text();
-                  toast.error(error || 'Something went wrong');
+                  toast.error(error || "Something went wrong");
                   if (error) {
                     if (error.toLowerCase().includes("key")) {
                       setKeyError(error);
