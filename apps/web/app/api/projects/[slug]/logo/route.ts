@@ -6,6 +6,11 @@ import { NextResponse } from "next/server";
 // POST /api/projects/[slug]/logo – upload a new project logo
 export const POST = withAuth(
   async ({ req, project }) => {
+    if (!process.env.CLOUDINARY_URL)
+      return NextResponse.json("Missing Cloudinary environment variable.", {
+        status: 400,
+      });
+  
     const { image } = await req.json();
 
     const { secure_url } = await cloudinary.v2.uploader.upload(image, {

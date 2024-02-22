@@ -466,7 +466,7 @@ export async function addLink(link: LinkProps) {
     ),
   ]);
 
-  if (proxy && image) {
+  if (proxy && image && process.env.CLOUDINARY_URL) {
     const { secure_url } = await cloudinary.v2.uploader.upload(image, {
       public_id: key,
       folder: domain,
@@ -616,16 +616,17 @@ export async function editLink({
       },
     }),
     // only upload image to cloudinary if proxy is true and there's an image
-    proxy && image
-      ? cloudinary.v2.uploader.upload(image, {
-          public_id: key,
-          folder: domain,
-          overwrite: true,
-          invalidate: true,
-        })
-      : cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
-          invalidate: true,
-        }),
+    process.env.CLOUDINARY_URL &&
+      (proxy && image
+        ? cloudinary.v2.uploader.upload(image, {
+            public_id: key,
+            folder: domain,
+            overwrite: true,
+            invalidate: true,
+          })
+        : cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
+            invalidate: true,
+          })),
     redis.set(`${domain}:${key}`, {
       url: encodeURIComponent(url),
       password: hasPassword,
@@ -642,16 +643,17 @@ export async function editLink({
     // if key is changed: rename resource in Cloudinary, delete the old key in Redis and change the clicks key name
     ...(changedDomain || changedKey
       ? [
-          cloudinary.v2.uploader
-            .destroy(`${oldDomain}/${oldKey}`, {
-              invalidate: true,
-            })
-            .catch(() => {}),
+          process.env.CLOUDINARY_URL &&
+            cloudinary.v2.uploader
+              .destroy(`${oldDomain}/${oldKey}`, {
+                invalidate: true,
+              })
+              .catch(() => {}),
           redis.del(`${oldDomain}:${oldKey}`),
         ]
       : []),
   ]);
-  if (proxy && image) {
+  if (proxy && image && process.env.CLOUDINARY_URL) {
     const { secure_url } = effects[0];
     response.image = secure_url;
     await prisma.link.update({
@@ -691,9 +693,10 @@ export async function deleteLink({
         },
       },
     }),
-    cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
-      invalidate: true,
-    }),
+    process.env.CLOUDINARY_URL &&
+      cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
+        invalidate: true,
+      }),
     redis.del(`${domain}:${key}`),
     projectId &&
       prisma.project.update({

@@ -5,9 +5,12 @@ import { NextRequest, NextResponse } from "next/server";
 export default function ApiMiddleware(req: NextRequest) {
   const { path, fullPath, domain } = parse(req);
   if (fullPath === "/" && domain === "api.dub.co") {
-    return NextResponse.redirect(`${HOME_DOMAIN}/docs/api-reference/introduction`, {
-      status: 307,
-    });
+    return NextResponse.redirect(
+      `${HOME_DOMAIN}/docs/api-reference/introduction`,
+      {
+        status: 307,
+      },
+    );
 
     // special case for metatags
   } else if (path === "/metatags") {

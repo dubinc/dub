@@ -48,18 +48,21 @@ export async function deleteProject(
     ),
     pipeline.exec(), // delete all default domain links from redis
     // remove all images from cloudinary
-    ...defaultDomainLinks.map(({ domain, key, proxy }) =>
-      proxy
-        ? cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
-            invalidate: true,
-          })
-        : Promise.resolve(),
-    ),
+    ...(process.env.CLOUDINARY_URL
+      ? defaultDomainLinks.map(({ domain, key, proxy }) =>
+          proxy
+            ? cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
+                invalidate: true,
+              })
+            : Promise.resolve(),
+        )
+      : []),
   ]);
 
   const deleteProjectResponse = await Promise.all([
     // delete project logo from Cloudinary
     project.logo &&
+      process.env.CLOUDINARY_URL &&
       cloudinary.v2.uploader.destroy(`logos/${project.id}`, {
         invalidate: true,
       }),

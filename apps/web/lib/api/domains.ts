@@ -220,6 +220,7 @@ export async function changeDomainForImages(domain: string, newDomain: string) {
     },
   });
   if (links.length === 0) return null;
+  if (!process.env.CLOUDINARY_URL) return null;
   try {
     return await Promise.all(
       links.map(({ key }) =>
@@ -260,7 +261,8 @@ export async function deleteDomainAndLinks(
   return await Promise.allSettled([
     pipeline.exec(), // delete all links from redis
     // remove all images from cloudinary
-    cloudinary.v2.api.delete_resources_by_prefix(domain),
+    process.env.CLOUDINARY_URL &&
+      cloudinary.v2.api.delete_resources_by_prefix(domain),
     // remove the domain from Vercel
     removeDomainFromVercel(domain),
     !skipPrismaDelete &&

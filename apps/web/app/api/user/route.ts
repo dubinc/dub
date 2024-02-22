@@ -70,10 +70,10 @@ export const DELETE = withSession(async ({ session }) => {
           id: session.user.id,
         },
       }),
-      cloudinary.v2.uploader.destroy(`avatars/${session?.user?.id}`, {
+      process.env.CLOUDINARY_URL && cloudinary.v2.uploader.destroy(`avatars/${session?.user?.id}`, {
         invalidate: true,
       }),
-      fetch(
+      process.env.RESEND_API_KEY && process.env.RESEND_AUDIENCE_ID && fetch(
         `https://api.resend.com/audiences/${process.env.RESEND_AUDIENCE_ID}/contacts/${session?.user?.email}`,
         {
           method: "DELETE",
