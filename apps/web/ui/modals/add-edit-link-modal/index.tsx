@@ -377,15 +377,13 @@ function AddEditLinkModal({
                   setShowAddEditLinkModal(false);
                 } else {
                   const error = await res.text();
+                  toast.error(error || 'Something went wrong');
                   if (error) {
-                    toast.error(error);
                     if (error.toLowerCase().includes("key")) {
                       setKeyError(error);
                     } else if (error.toLowerCase().includes("url")) {
                       setUrlError(error);
                     }
-                  } else {
-                    toast.error(await res.text());
                   }
                 }
                 setSaving(false);

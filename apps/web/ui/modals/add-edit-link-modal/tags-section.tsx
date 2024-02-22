@@ -50,11 +50,11 @@ export default function TagsSection({
         await mutate(`/api/projects/${slug}/tags`);
         const newTag = await res.json();
         setData({ ...data, tagId: newTag.id });
-        toast.success(`Successfully created tag!`);
+        toast.success('Successfully created tag!');
         setCreatingTag(false);
       } else {
         const error = await res.text();
-        toast.error(error);
+        toast.error(error || 'Something went wrong');
       }
     });
   };
