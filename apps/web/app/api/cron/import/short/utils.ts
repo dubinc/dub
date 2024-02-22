@@ -79,12 +79,24 @@ export const importLinksFromShort = async ({
 
   // import tags into database
   if (importTags && tagsToCreate.size > 0) {
-    await prisma.tag.createMany({
-      data: Array.from(tagsToCreate).map((tag) => ({
-        name: tag,
-        color: randomBadgeColor(),
+    const existingTags = await prisma.tag.findMany({
+      where: {
         projectId,
-      })),
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+    await prisma.tag.createMany({
+      data: Array.from(tagsToCreate)
+        // filter out existing tags with the same name
+        .filter((tag) => !existingTags.some((t) => t.name === tag))
+        .map((tag) => ({
+          name: tag,
+          color: randomBadgeColor(),
+          projectId,
+        })),
       skipDuplicates: true,
     });
     allTags = await prisma.tag.findMany({
