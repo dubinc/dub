@@ -7,6 +7,27 @@ export const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN || "",
 });
 
+export function linkConstructor({
+  key,
+  domain = "dub.sh",
+  localhost,
+  pretty,
+  noDomain,
+}: {
+  key: string;
+  domain?: string;
+  localhost?: boolean;
+  pretty?: boolean;
+  noDomain?: boolean;
+}) {
+  const link = `${
+    localhost ? "http://home.localhost:8888" : `https://${domain}`
+  }${key !== "_root" ? `/${key}` : ""}`;
+
+  if (noDomain) return `/${key}`;
+  return pretty ? link.replace(/^https?:\/\//, "") : link;
+}
+
 export const chunk = <T>(array: T[], chunk_size: number): T[][] => {
   return array.reduce((resultArray, item, index) => {
     const chunkIndex = Math.floor(index / chunk_size);
