@@ -3,7 +3,7 @@
   "description": "Utility functions and constants for Dub.co",
   "version": "0.0.29",
   "sideEffects": false,
-  "main": "./dist/index.js",
+  "main": "./dist/index.mjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "files": [

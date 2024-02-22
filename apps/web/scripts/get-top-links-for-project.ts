@@ -1,7 +1,7 @@
 import { getAnalytics } from "@/lib/analytics";
 import prisma from "@/lib/prisma";
+import { linkConstructor } from "@dub/utils";
 import "dotenv-flow/config";
-import { linkConstructor } from "./utils";
 
 async function main() {
   const project = await prisma.project.findUnique({
