@@ -248,17 +248,17 @@ Don't forget to set the following Callback URLs:
 
 Once your GitHub App is created, copy the `Client ID` and `Client Secret` into your `.env` file as the `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` environment variables.
 
-## Step 6: Set up Resend (optional)
+## Step 6: Set up Postmark (optional)
 
 <Note>
   Note that if you want to use magic link sign-in, this is a required step.
 </Note>
 
-Next, you'll need to set up Resend for transactional emails (e.g. magic link emails):
+Next, you'll need to set up Postmark for transactional emails (e.g. magic link emails):
 
-1. In your [Resend account](https://resend.com/overview), create a new API key.
-2. Copy the API key into your `.env` file as the `RESEND_API_KEY` environment variable.
-3. You'll then need to set up MX records for your domain to start working. You can follow this guide to learn [how to set up MX records with Resend](https://resend.com/docs/dashboard/domains/introduction).
+1. Follow [this guide](https://postmarkapp.com/support/article/1008-what-are-the-account-and-server-api-tokens) to create a new API token.
+2. Copy the API key into your `.env` file as the `POSTMARK_API_KEY` environment variable.
+3. You'll then need to set up DKIM records and for your domain to start working. You can [follow this guide](https://postmarkapp.com/support/article/1002-getting-started-with-postmark) to learn how to do so.
 
 ## Step 7: Set up Cloudinary & Unsplash (optional)
 

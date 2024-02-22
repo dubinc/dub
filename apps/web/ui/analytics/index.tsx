@@ -123,6 +123,7 @@ export default function Analytics({
             <Devices />
             <Referer />
             {isPublicStatsPage && <TopLinks />}
+            {/* <Feedback /> */}
           </div>
         </div>
       </div>

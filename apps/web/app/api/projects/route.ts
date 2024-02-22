@@ -10,6 +10,7 @@ import prisma from "@/lib/prisma";
 import {
   DEFAULT_REDIRECTS,
   FREE_PROJECTS_LIMIT,
+  nanoid,
   validSlugRegex,
 } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -132,6 +133,7 @@ export const POST = withSession(async ({ req, session }) => {
           },
         }),
         billingCycleStart: new Date().getDate(),
+        inviteCode: nanoid(24),
       },
       include: {
         domains: true,
