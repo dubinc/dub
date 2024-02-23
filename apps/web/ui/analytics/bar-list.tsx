@@ -160,13 +160,14 @@ export function LineItem({
   const { queryParams } = useRouterStuff();
 
   const lineItem = useMemo(() => {
+    const apexDomain = tab === "link" ? data ? getApexDomain(data.url) : null : getApexDomain(title);
     return (
       <div className="z-10 flex items-center space-x-2 px-2">
-        {tab === "link" ? (
+        {tab === "link" && apexDomain ? (
           data ? (
             <BlurImage
-              src={`${GOOGLE_FAVICON_URL}${getApexDomain(data.url)}`}
-              alt={getApexDomain(data.url)}
+              src={`${GOOGLE_FAVICON_URL}${apexDomain}`}
+              alt={apexDomain}
               className="h-5 w-5 rounded-full"
               width={20}
               height={20}
@@ -174,10 +175,10 @@ export function LineItem({
           ) : (
             <div className="h-5 w-5 animate-pulse rounded-full bg-gray-100" />
           )
-        ) : tab === "url" ? (
+        ) : tab === "url" && apexDomain ? (
           <BlurImage
-            src={`${GOOGLE_FAVICON_URL}${getApexDomain(title)}`}
-            alt={getApexDomain(title)}
+            src={`${GOOGLE_FAVICON_URL}${apexDomain}`}
+            alt={apexDomain}
             className="h-5 w-5 rounded-full"
             width={20}
             height={20}

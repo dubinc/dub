@@ -1,7 +1,7 @@
 import { TopLinksTabs } from "@/lib/analytics";
 import { LoadingSpinner, Modal, Switch, useRouterStuff } from "@dub/ui";
 import { fetcher, linkConstructor } from "@dub/utils";
-import { Maximize, X } from "lucide-react";
+import { Link2, Maximize, X } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
@@ -39,7 +39,7 @@ export default function TopLinks() {
       tab={tab}
       data={
         data?.map((d) => ({
-          icon: null,
+          icon: <Link2 className="h-4 w-4" />,
           title: d[tab],
           href: queryParams({
             set: {
