@@ -63,7 +63,7 @@ export default async function InspectPage({
     <>
       <main className="flex min-h-screen flex-col justify-between">
         <Nav />
-        <div className="mx-2 my-10 flex max-w-md flex-col space-y-5 px-2.5 text-center sm:mx-auto sm:max-w-lg sm:px-0 lg:mb-16 z-10">
+        <div className="z-10 mx-2 my-10 flex max-w-md flex-col space-y-5 px-2.5 text-center sm:mx-auto sm:max-w-lg sm:px-0 lg:mb-16">
           <h1 className="font-display text-5xl font-extrabold leading-[1.15] text-black sm:text-6xl sm:leading-[1.15]">
             Link Inspector
           </h1>
