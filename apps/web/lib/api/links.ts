@@ -157,29 +157,18 @@ export async function getLinksCount({
   };
 
   if (groupBy === "tagId") {
-    const tags = await prisma.tag.findMany({
-      select: {
-        id: true,
-        _count: {
-          select: {
-            linksNew: true,
-          },
-        },
-      },
+    return await prisma.linkTag.groupBy({
+      by: ["tagId"],
       where: {
-        projectId,
-        linksNew: {
-          some: {
-            link: linksWhere,
-          },
+        link: linksWhere,
+      },
+      _count: true,
+      orderBy: {
+        _count: {
+          tagId: "desc",
         },
       },
     });
-
-    return tags.map((tag) => ({
-      tagId: tag.id,
-      _count: tag._count.linksNew,
-    }));
   } else {
     const where = {
       ...linksWhere,
@@ -191,7 +180,7 @@ export async function getLinksCount({
       ...(tagIds.length > 0 && {
         tags: {
           some: {
-            id: {
+            tagId: {
               in: tagIds,
             },
           },
@@ -199,7 +188,7 @@ export async function getLinksCount({
       }),
     };
 
-    if (groupBy) {
+    if (groupBy === "domain") {
       return await prisma.link.groupBy({
         by: [groupBy],
         where,
