@@ -127,7 +127,7 @@ export const getAnalytics = async ({
         [linkId],
       );
       if (response.rows.length === 0) {
-        return "0";
+        return 0;
       }
       return response.rows[0]["clicks"];
     }
@@ -182,7 +182,7 @@ export const getAnalytics = async ({
       if (endpoint === "clicks") {
         try {
           const clicks = data[0]["count()"];
-          return clicks || "0";
+          return clicks || 0;
         } catch (e) {
           console.log(e);
         }

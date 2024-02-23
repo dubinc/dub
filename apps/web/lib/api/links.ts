@@ -796,7 +796,10 @@ export async function transferLink({
     },
     data: {
       projectId: newProjectId,
-      tagId: null, // remove tags when transferring link
+      // remove tags when transferring link
+      tags: {
+        deleteMany: {},
+      },
     },
   });
 }

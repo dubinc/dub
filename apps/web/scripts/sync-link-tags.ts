@@ -15,7 +15,7 @@ async function main() {
         none: {},
       },
     },
-    take: 1000,
+    take: 5000,
   });
 
   // make sure all tagId exist
