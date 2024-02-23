@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { DUB_PROJECT_ID } from "@dub/utils";
 import "dotenv-flow/config";
 
 /**
@@ -19,28 +20,14 @@ async function main() {
 
   console.log(`Updating ${links.length} links...`);
 
-  // const all = await Promise.allSettled(
-  //   links.map(async (link) => {
-  //     if (link.tagId == null) return;
+  const response = await prisma.linkTag.createMany({
+    data: links.map((link) => ({
+      linkId: link.id,
+      tagId: link.tagId!, // cause we filtered out links without tagId
+    })),
+  });
 
-  //     await prisma.link.update({
-  //       where: {
-  //         id: link.id,
-  //       },
-  //       data: {
-  //         tags: {
-  //           create: {
-  //             tagId: link.tagId,
-  //           },
-  //         },
-  //       },
-  //     });
-  //   }),
-  // );
-
-  // const updated = all.filter(({ status }) => status === "fulfilled");
-
-  // console.log(`Updated ${updated.length} / ${links.length} links.`);
+  console.log(`Created ${response.count} LinkTag records`);
 }
 
 main();
