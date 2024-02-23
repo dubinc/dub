@@ -33,7 +33,8 @@ export default async function AppMiddleware(req: NextRequest) {
     if (
       session?.user?.createdAt &&
       new Date(session?.user?.createdAt).getTime() > Date.now() - 10000 &&
-      path === "/"
+      // here we include the root page + /new (since they're going through welcome flow already)
+      (path === "/" || path === "/new")
     ) {
       return NextResponse.redirect(new URL("/welcome", req.url));
 
