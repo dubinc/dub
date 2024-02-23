@@ -64,6 +64,7 @@ export default function LinkFilters() {
       "tagId",
       "showArchived",
       "page",
+      "withTags",
     ].some((param) => searchParams?.has(param));
   }, [searchParams]);
 
