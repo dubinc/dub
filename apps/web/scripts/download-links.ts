@@ -1,8 +1,8 @@
 import prisma from "@/lib/prisma";
+import { linkConstructor } from "@dub/utils";
 import "dotenv-flow/config";
 import * as fs from "fs";
 import * as Papa from "papaparse";
-import { linkConstructor } from "./utils";
 
 const projectId = "xxx";
 
