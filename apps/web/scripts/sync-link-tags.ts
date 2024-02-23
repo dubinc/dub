@@ -28,16 +28,23 @@ async function main() {
     },
   });
 
+  const missingTags = tagIds.filter(
+    (tagId) => tags.find((tag) => tag.id === tagId) === undefined,
+  );
+  console.log(`Missing tags: ${missingTags.length}`, missingTags);
+
+  // filter out links with tagIds that don't exist
+  const linksWithValidTags = links.filter(
+    ({ tagId }) => tags.find((tag) => tag.id === tagId) !== undefined,
+  );
+
   console.log(`Updating ${links.length} links...`);
 
   const response = await prisma.linkTag.createMany({
-    data: links
-      // filter out links with tagIds that don't exist
-      .filter(({ tagId }) => tags.find((tag) => tag.id === tagId) !== undefined)
-      .map((link) => ({
-        linkId: link.id,
-        tagId: link.tagId!, // cause we filtered out links without tagId
-      })),
+    data: linksWithValidTags.map((link) => ({
+      linkId: link.id,
+      tagId: link.tagId!, // cause we filtered out links without tagId
+    })),
   });
 
   console.log(`Created ${response.count} LinkTag records`);
