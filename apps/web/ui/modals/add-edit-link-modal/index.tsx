@@ -26,7 +26,12 @@ import {
   linkConstructor,
   truncate,
 } from "@dub/utils";
-import { useParams, usePathname, useRouter } from "next/navigation";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import punycode from "punycode/";
 import {
   Dispatch,
@@ -302,18 +307,36 @@ function AddEditLinkModal({
 
   const { isMobile } = useMediaQuery();
 
+  const searchParams = useSearchParams();
+  const { queryParams } = useRouterStuff();
+
   return (
     <Modal
       showModal={showAddEditLinkModal}
       setShowModal={setShowAddEditLinkModal}
       className="max-w-screen-lg"
       preventDefaultClose={homepageDemo ? false : true}
-      {...(welcomeFlow && { onClose: () => router.back() })}
+      onClose={() => {
+        if (welcomeFlow) {
+          router.back();
+        } else if (searchParams.has("newLink")) {
+          queryParams({
+            del: ["newLink"],
+          });
+        }
+      }}
     >
       <div className="scrollbar-hide grid max-h-[90vh] w-full divide-x divide-gray-100 overflow-auto md:grid-cols-2 md:overflow-hidden">
         {!welcomeFlow && !homepageDemo && (
           <button
-            onClick={() => setShowAddEditLinkModal(false)}
+            onClick={() => {
+              setShowAddEditLinkModal(false);
+              if (searchParams.has("newLink")) {
+                queryParams({
+                  del: ["newLink"],
+                });
+              }
+            }}
             className="group absolute right-0 top-0 z-20 m-3 hidden rounded-full p-2 text-gray-500 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 md:block"
           >
             <X className="h-5 w-5" />

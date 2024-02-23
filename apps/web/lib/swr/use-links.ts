@@ -26,7 +26,7 @@ export default function useLinks() {
       ? `/api/links${getQueryString(
           { projectSlug: slug },
           {
-            ignore: ["import", "upgrade"],
+            ignore: ["import", "upgrade", "newLink"],
           },
         )}`
       : admin
