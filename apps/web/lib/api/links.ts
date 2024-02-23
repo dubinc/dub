@@ -272,6 +272,8 @@ export async function processLink({
     geo,
   } = payload;
 
+  const tagIds = combineTagIds(payload);
+
   // url checks
   if (!url) {
     return {
@@ -412,6 +414,21 @@ export async function processLink({
       return {
         link: payload,
         error: "Expiry date must be in the future.",
+        status: 422,
+      };
+    }
+  }
+
+  // tag validity checks
+  if (tagIds.length > 0) {
+    const tags = await prisma.tag.findMany({
+      where: { projectId: project?.id, id: { in: tagIds } },
+    });
+
+    if (tags.length !== tagIds.length) {
+      return {
+        link: payload,
+        error: "One or more tagIds are invalid.",
         status: 422,
       };
     }
@@ -825,18 +842,6 @@ export async function transferLink({
       // remove tags when transferring link
       tags: {
         deleteMany: {},
-      },
-    },
-  });
-}
-
-export async function removeInvalidLinkTags({ linkId }: { linkId: string }) {
-  console.log(`Removing invalid LinkTags for linkId: ${linkId}`);
-  return await prisma.linkTag.deleteMany({
-    where: {
-      linkId,
-      tag: {
-        id: undefined,
       },
     },
   });
