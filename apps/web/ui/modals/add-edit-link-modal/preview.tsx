@@ -97,6 +97,9 @@ export default function Preview({
               </div>
             )}
           </div>
+          {hostname && (
+            <p className="mt-2 text-[0.8rem] text-[#606770]">From {hostname}</p>
+          )}
         </div>
 
         {/* Facebook */}

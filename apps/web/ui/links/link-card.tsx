@@ -45,6 +45,7 @@ import {
   QrCode,
   TimerOff,
   Lock,
+  Globe,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -260,7 +261,7 @@ export default function LinkCard({
                 )}
               </div>
             </Tooltip>
-          ) : (
+          ) : apexDomain ? (
             <BlurImage
               src={`${GOOGLE_FAVICON_URL}${apexDomain}`}
               alt={apexDomain}
@@ -268,6 +269,10 @@ export default function LinkCard({
               width={20}
               height={20}
             />
+          ) : (
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 px-0 sm:h-10 sm:w-10">
+              <Globe className="h-4 w-4 text-gray-600 sm:h-5 sm:w-5" />
+            </div>
           )}
           {/* 
             Here, we're manually setting ml-* values because if we do space-x-* in the parent div, 

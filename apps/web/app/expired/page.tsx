@@ -15,7 +15,7 @@ export default async function ExpiredPage() {
   return (
     <main className="flex min-h-screen flex-col justify-between">
       <Nav />
-      <div className="mx-2 my-10 flex max-w-md flex-col items-center space-y-5 px-2.5 text-center sm:mx-auto sm:max-w-lg sm:px-0 lg:mb-16">
+      <div className="mx-2 my-10 flex max-w-md flex-col items-center space-y-5 px-2.5 text-center sm:mx-auto sm:max-w-lg sm:px-0 lg:mb-16 z-10">
         <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-gray-300 bg-white/30">
           <TimerOff className="h-6 w-6 text-gray-400" />
         </div>
