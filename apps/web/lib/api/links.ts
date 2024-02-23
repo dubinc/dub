@@ -379,12 +379,39 @@ export async function processLink({
         status: 422,
       };
     }
+    // we check if a key exists in bulk creation because
+    // for regular creation we check it in the addLink function
     const exists = await checkIfKeyExists(domain, key);
     if (exists) {
       return {
         link: payload,
         error: `Link already exists.`,
         status: 409,
+      };
+    }
+
+    // only perform tag validity checks if:
+    // - not bulk creation (we do that check in bulkCreateLinks)
+    // - tagIds are present
+  } else if (tagIds.length > 0) {
+    const tags = await prisma.tag.findMany({
+      select: {
+        id: true,
+      },
+      where: { projectId: project?.id, id: { in: tagIds } },
+    });
+
+    if (tags.length !== tagIds.length) {
+      return {
+        link: payload,
+        error:
+          "Invalid tagIds: " +
+          tagIds
+            .filter(
+              (tagId) => tags.find(({ id }) => tagId === id) === undefined,
+            )
+            .join(", "),
+        status: 422,
       };
     }
   }
@@ -414,30 +441,6 @@ export async function processLink({
       return {
         link: payload,
         error: "Expiry date must be in the future.",
-        status: 422,
-      };
-    }
-  }
-
-  // tag validity checks
-  if (tagIds.length > 0) {
-    const tags = await prisma.tag.findMany({
-      select: {
-        id: true,
-      },
-      where: { projectId: project?.id, id: { in: tagIds } },
-    });
-
-    if (tags.length !== tagIds.length) {
-      return {
-        link: payload,
-        error:
-          "Invalid tagIds: " +
-          tagIds
-            .filter(
-              (tagId) => tags.find(({ id }) => tagId === id) === undefined,
-            )
-            .join(", "),
         status: 422,
       };
     }
