@@ -567,8 +567,20 @@ export async function bulkCreateLinks({
   // split links into domains
   const linksByDomain: Record<string, Record<string, RedisLinkProps>> = {};
 
-  await Promise.all(
-    createdLinks.map(async (link) => {
+  const [validTagIds, ..._rest] = await Promise.all([
+    prisma.tag
+      .findMany({
+        where: {
+          id: {
+            in: linkTags.map(({ tagId }) => tagId),
+          },
+        },
+        select: {
+          id: true,
+        },
+      })
+      .then((tags) => tags.map(({ id }) => id)),
+    ...createdLinks.map(async (link) => {
       const { domain, key } = link;
 
       if (!linksByDomain[domain]) {
@@ -581,7 +593,7 @@ export async function bulkCreateLinks({
       // record link in Tinybird
       await recordLink({ link });
     }),
-  );
+  ]);
 
   Object.entries(linksByDomain).forEach(([domain, links]) => {
     pipeline.hset(domain, links);
@@ -589,10 +601,10 @@ export async function bulkCreateLinks({
 
   await Promise.all([
     pipeline.exec(),
-    // create link tags
+    // create link tags for valid tagIds
     linkTags.length > 0 &&
       prisma.linkTag.createMany({
-        data: linkTags,
+        data: linkTags.filter(({ tagId }) => validTagIds.includes(tagId)),
         skipDuplicates: true,
       }),
   ]);
