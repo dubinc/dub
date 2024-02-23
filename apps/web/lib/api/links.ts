@@ -422,13 +422,22 @@ export async function processLink({
   // tag validity checks
   if (tagIds.length > 0) {
     const tags = await prisma.tag.findMany({
+      select: {
+        id: true,
+      },
       where: { projectId: project?.id, id: { in: tagIds } },
     });
 
     if (tags.length !== tagIds.length) {
       return {
         link: payload,
-        error: "One or more tagIds are invalid.",
+        error:
+          "Invalid tagIds: " +
+          tagIds
+            .filter(
+              (tagId) => tags.find(({ id }) => tagId === id) === undefined,
+            )
+            .join(", "),
         status: 422,
       };
     }
