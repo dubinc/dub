@@ -1,5 +1,4 @@
 import prisma from "@/lib/prisma";
-import { DUB_PROJECT_ID } from "@dub/utils";
 import "dotenv-flow/config";
 
 /**
@@ -28,6 +27,21 @@ async function main() {
   });
 
   console.log(`Created ${response.count} LinkTag records`);
+
+  // const tagsThatDontExist = await Promise.all(
+  //   links.map(async ({ tagId }) => ({
+  //     id: tagId,
+  //     tag: await prisma.tag.findUnique({
+  //       where: {
+  //         id: tagId!,
+  //       },
+  //     }),
+  //   })),
+  // ).then((tags) => tags.filter(({ tag }) => !tag).map(({ id }) => id));
+
+  // console.log(
+  //   `Tags that don't exist: ${JSON.stringify(tagsThatDontExist, null, 2)}`,
+  // );
 }
 
 main();
