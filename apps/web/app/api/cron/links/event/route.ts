@@ -1,4 +1,5 @@
 import { getAnalytics } from "@/lib/analytics";
+import { removeInvalidLinkTags } from "@/lib/api/links";
 import { limiter, qstash, receiver } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
@@ -33,6 +34,9 @@ export async function POST(req: Request) {
   const link = await prisma.link.findUnique({
     where: {
       id: linkId,
+    },
+    include: {
+      tags: true,
     },
   });
 
@@ -73,6 +77,7 @@ export async function POST(req: Request) {
       [link.key.toLowerCase()]: await formatRedisLink(link),
     }),
     recordLink({ link }),
+    link.tags.length > 0 && removeInvalidLinkTags({ linkId: link.id }),
   ]);
 
   // increment links usage and send alert if needed

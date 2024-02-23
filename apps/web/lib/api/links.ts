@@ -439,6 +439,20 @@ export async function processLink({
   };
 }
 
+function combineTagIds({
+  tagId,
+  tagIds,
+}: {
+  tagId?: string | null;
+  tagIds?: string[];
+}): string[] {
+  // Use tagIds if present, fall back to tagId
+  if (tagIds && Array.isArray(tagIds) && tagIds.length > 0) {
+    return tagIds;
+  }
+  return tagId ? [tagId] : [];
+}
+
 export async function addLink(link: LinkWithTagIdsProps) {
   let { domain, key, url, expiresAt, title, description, image, proxy, geo } =
     link;
@@ -816,16 +830,14 @@ export async function transferLink({
   });
 }
 
-function combineTagIds({
-  tagId,
-  tagIds,
-}: {
-  tagId?: string | null;
-  tagIds?: string[];
-}): string[] {
-  // Use tagIds if present, fall back to tagId
-  if (tagIds && Array.isArray(tagIds) && tagIds.length > 0) {
-    return tagIds;
-  }
-  return tagId ? [tagId] : [];
+export async function removeInvalidLinkTags({ linkId }: { linkId: string }) {
+  console.log(`Removing invalid LinkTags for linkId: ${linkId}`);
+  return await prisma.linkTag.deleteMany({
+    where: {
+      linkId,
+      tag: {
+        id: undefined,
+      },
+    },
+  });
 }
