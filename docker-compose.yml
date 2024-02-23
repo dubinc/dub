@@ -1,0 +1,20 @@
+version: "3"
+
+services:
+  web:
+    container_name: web
+    build:
+      context: .
+      dockerfile: ./apps/web/Dockerfile
+    restart: always
+    ports:
+      - 8888:8888
+
+  docs:
+    container_name: docs
+    build:
+      context: .
+      dockerfile: ./apps/docs/Dockerfile
+    restart: always
+    ports:
+      - 3334:3334
