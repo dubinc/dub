@@ -2,7 +2,7 @@ import { exceededLimitError } from "@/lib/api/errors";
 import { bulkCreateLinks, processLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/errors";
-import { LinkProps } from "@/lib/types";
+import { LinkWithTagIdsProps } from "@/lib/types";
 import { bulkCreateLinksBodySchema } from "@/lib/zod/schemas/links";
 import { NextResponse } from "next/server";
 
@@ -35,7 +35,7 @@ export const POST = withAuth(
       const processedLinks = await Promise.all(
         links.map(async (link) =>
           processLink({
-            payload: link as LinkProps,
+            payload: link as LinkWithTagIdsProps,
             project,
             userId: session.user.id,
             bulk: true,
