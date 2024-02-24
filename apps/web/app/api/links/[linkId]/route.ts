@@ -6,7 +6,7 @@ import {
   ErrorCodes,
   handleAndReturnErrorResponse,
 } from "@/lib/errors";
-import { LinkProps } from "@/lib/types";
+import { LinkWithTagIdsProps } from "@/lib/types";
 import { updateLinkBodySchema } from "@/lib/zod/schemas/links";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -41,7 +41,7 @@ export const PUT = withAuth(async ({ req, headers, project, link }) => {
       error,
       code,
     } = await processLink({
-      payload: updatedLink as LinkProps,
+      payload: updatedLink as LinkWithTagIdsProps,
       project,
     });
 

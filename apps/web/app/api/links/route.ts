@@ -6,7 +6,7 @@ import {
   ErrorCodes,
   handleAndReturnErrorResponse,
 } from "@/lib/errors";
-import { LinkProps } from "@/lib/types";
+import { LinkWithTagIdsProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import {
   createLinkBodySchema,
@@ -68,7 +68,7 @@ export const POST = withAuth(
       }
 
       const { link, error, code } = await processLink({
-        payload: body as LinkProps,
+        payload: body as LinkWithTagIdsProps,
         project,
         userId: session.user.id,
       });

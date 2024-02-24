@@ -163,7 +163,11 @@ export const createLinkBodySchema = z.object({
   tagId: z
     .string()
     .nullish()
-    .describe("The tag ID to assign to the short link."),
+    .describe("The unique ID of the tag assigned to the short link."),
+  tagIds: z
+    .array(z.string())
+    .nullish()
+    .describe("The unique IDs of the tags assigned to the short link."),
   comments: z.string().nullish().describe("The comments for the short link."),
 });
 

@@ -1,5 +1,5 @@
 import { withAuth } from "@/lib/auth";
-import { handleAndReturnErrorResponse } from "@/lib/errors";
+import { DubApiError, handleAndReturnErrorResponse } from "@/lib/errors";
 import prisma from "@/lib/prisma";
 import { updateTagBodySchema } from "@/lib/zod/schemas/tags";
 import { NextResponse } from "next/server";
@@ -9,6 +9,20 @@ export const PUT = withAuth(async ({ req, params }) => {
   const { id } = params;
   try {
     const { name, color } = updateTagBodySchema.parse(await req.json());
+
+    const tag = await prisma.tag.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    if (!tag) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Tag not found.",
+      });
+    }
+
     const response = await prisma.tag.update({
       where: {
         id,
