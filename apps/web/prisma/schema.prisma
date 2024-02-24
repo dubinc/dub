@@ -227,10 +227,6 @@ model Link {
   updatedAt     DateTime  @updatedAt
 
   // Link tags
-  tag   Tag?    @relation(fields: [tagId], references: [id])
-  tagId String?
-
-  // (Upcoming) multiple link tags
   tags  LinkTag[]
 
   // Comments on the particular shortlink
@@ -241,7 +237,6 @@ model Link {
   @@unique([domain, key])
   @@index(projectId)
   @@index(domain)
-  @@index(tagId)
   @@index(proxy)
   @@index(password)
   @@index(createdAt(sort: Desc))
@@ -260,8 +255,7 @@ model Tag {
   updatedAt DateTime @updatedAt
   project   Project  @relation(fields: [projectId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   projectId String
-  links     Link[]
-  linksNew  LinkTag[]
+  links     LinkTag[]
 
   @@unique([name, projectId])
   @@index(projectId)

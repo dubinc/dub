@@ -5,7 +5,7 @@ import { isAdmin } from "app/admin.dub.co/actions";
 import { createHash } from "crypto";
 import { getServerSession } from "next-auth/next";
 import { exceededLimitError } from "../api/errors";
-import { PlanProps, ProjectProps } from "../types";
+import { PlanProps, ProjectProps, TagProps } from "../types";
 import { ratelimit } from "../upstash";
 import { authOptions } from "./options";
 
@@ -53,7 +53,7 @@ interface WithAuthHandler {
     session: Session;
     project: ProjectProps;
     domain: string;
-    link?: LinkProps;
+    link?: LinkProps & { tags: TagProps[] };
   }): Promise<Response>;
 }
 export const withAuth =
@@ -198,6 +198,20 @@ export const withAuth =
       }
     }
 
+    const includeTags = {
+      tags: {
+        include: {
+          tag: {
+            select: {
+              id: true,
+              name: true,
+              color: true,
+            },
+          },
+        },
+      },
+    };
+
     let [project, link] = (await Promise.all([
       prisma.project.findUnique({
         where: {
@@ -242,6 +256,7 @@ export const withAuth =
             where: {
               id: linkId,
             },
+            include: includeTags,
           })
         : domain &&
           key &&
@@ -258,8 +273,12 @@ export const withAuth =
                     key,
                   },
                 },
+                include: includeTags,
               })),
-    ])) as [ProjectProps, LinkProps | undefined];
+    ])) as [
+      ProjectProps,
+      (LinkProps & { tags?: { tag: TagProps }[] }) | undefined,
+    ];
 
     if (!project || !project.users) {
       // project doesn't exist
@@ -403,7 +422,7 @@ export const withAuth =
       session,
       project,
       domain,
-      link,
+      link: link && { ...link, tags: link?.tags?.map(({ tag }) => tag) ?? [] },
     });
   };
 

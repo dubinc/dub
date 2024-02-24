@@ -201,8 +201,15 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
             content: {
               "application/json": {
                 schema: {
-                  $ref: "#/components/schemas/LinkBody",
-                  required: ["url"],
+                  allOf: [
+                    {
+                      $ref: "#/components/schemas/LinkBody",
+                      required: ["url"],
+                    },
+                    {
+                      $ref: "#/components/schemas/LinkTagIdsBody",
+                    },
+                  ],
                 },
               },
             },
@@ -326,7 +333,14 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
             content: {
               "application/json": {
                 schema: {
-                  $ref: "#/components/schemas/LinkBody",
+                  allOf: [
+                    {
+                      $ref: "#/components/schemas/LinkBody",
+                    },
+                    {
+                      $ref: "#/components/schemas/LinkTagIdsBody",
+                    },
+                  ],
                 },
               },
             },
@@ -426,7 +440,15 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
                 schema: {
                   type: "array",
                   items: {
-                    $ref: "#/components/schemas/LinkBody",
+                    allOf: [
+                      {
+                        $ref: "#/components/schemas/LinkBody",
+                        required: ["url"],
+                      },
+                      {
+                        $ref: "#/components/schemas/LinkTagIdsBody",
+                      },
+                    ],
                   },
                 },
               },
@@ -842,6 +864,17 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
                 "The unique ID of the tag assigned to the short link.",
               deprecated: true,
             },
+            comments: {
+              type: "string",
+              description: "The comments for the short link.",
+              default: null,
+              nullable: true,
+            },
+          },
+        },
+        LinkTagIdsBody: {
+          type: "object",
+          properties: {
             tagIds: {
               type: "array",
               items: {
@@ -851,12 +884,6 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
               description:
                 "The unique IDs of the tags assigned to the short link.",
               default: [],
-            },
-            comments: {
-              type: "string",
-              description: "The comments for the short link.",
-              default: null,
-              nullable: true,
             },
           },
         },

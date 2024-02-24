@@ -27,7 +27,22 @@ import {
   LinkWithTagIdsProps,
   ProjectProps,
   RedisLinkProps,
+  TagProps,
 } from "../types";
+
+const includeTags = {
+  tags: {
+    include: {
+      tag: {
+        select: {
+          id: true,
+          name: true,
+          color: true,
+        },
+      },
+    },
+  },
+};
 
 export async function getLinksForProject({
   projectId,
@@ -79,17 +94,7 @@ export async function getLinksForProject({
     },
     include: {
       user: true,
-      tags: {
-        include: {
-          tag: {
-            select: {
-              id: true,
-              name: true,
-              color: true,
-            },
-          },
-        },
-      },
+      ...includeTags,
     },
     orderBy: {
       [sort]: "desc",
@@ -529,6 +534,7 @@ export async function addLink(link: LinkWithTagIdsProps) {
         },
       }),
     },
+    include: includeTags,
   });
 
   const shortLink = linkConstructor({
@@ -537,6 +543,7 @@ export async function addLink(link: LinkWithTagIdsProps) {
   });
   return {
     ...response,
+    tags: response.tags.map(({ tag }) => tag),
     shortLink,
     qrCode: `https://api.dub.co/qr?url=${shortLink}`,
   };
@@ -590,6 +597,7 @@ export async function bulkCreateLinks({
               key,
             },
           },
+          include: includeTags,
         });
         if (!data) return null;
         // combine tagIds for creation later
@@ -599,10 +607,10 @@ export async function bulkCreateLinks({
         );
         return {
           ...data,
-          tagIds: combinedTagIds,
+          tags: data.tags.map(({ tag }) => tag),
         };
       }),
-    )) as LinkWithTagIdsProps[];
+    )) as (LinkProps & { tags: TagProps[] })[];
   }
 
   const pipeline = redis.pipeline();
@@ -713,6 +721,7 @@ export async function editLink({
       where: {
         id,
       },
+      include: includeTags,
       data: {
         ...rest,
         key,
@@ -790,6 +799,7 @@ export async function editLink({
 
   return {
     ...response,
+    tags: response.tags.map(({ tag }) => tag),
     shortLink,
     qrCode: `https://api.dub.co/qr?url=${shortLink}`,
   };
