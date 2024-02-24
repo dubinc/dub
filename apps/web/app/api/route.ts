@@ -840,16 +840,16 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
               format: "cuid",
               description:
                 "The unique id of the tag assigned to the short link.",
-              default: null,
-              nullable: true,
               deprecated: true,
             },
-            tags: {
+            tagIds: {
               type: "array",
               items: {
-                $ref: "#/components/schemas/Tag",
+                type: "string",
+                format: "cuid",
               },
-              description: "The tags assigned to the short link.",
+              description:
+                "The unique ids of the tags assigned to the short link.",
               default: [],
             },
             comments: {
@@ -904,6 +904,14 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
               description: "The UTM content of the short link.",
               default: null,
               nullable: true,
+            },
+            tags: {
+              type: "array",
+              items: {
+                $ref: "#/components/schemas/Tag",
+              },
+              description: "The tags assigned to the short link.",
+              default: [],
             },
             userId: {
               type: "string",
