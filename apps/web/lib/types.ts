@@ -1,9 +1,18 @@
-import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
-
 import z from "@/lib/zod";
+import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
+import { Link } from "@prisma/client";
 import { createLinkBodySchema } from "./zod/schemas/links";
 
-export { type Link as LinkProps } from "@prisma/client";
+export type LinkProps = Link;
+
+export interface LinkWithTagsProps extends LinkProps {
+  tags: TagProps[];
+}
+
+export interface LinkWithTagIdsProps extends LinkProps {
+  tagIds: string[];
+}
+
 export interface SimpleLinkProps {
   domain: string;
   key: string;

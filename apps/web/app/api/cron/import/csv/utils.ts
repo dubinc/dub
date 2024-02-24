@@ -1,7 +1,7 @@
-import { bulkCreateLinks, getRandomKey } from "@/lib/api/links";
+import { bulkCreateLinks, processLink } from "@/lib/api/links";
 import { qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
-import { LinkProps } from "@/lib/types";
+import { LinkWithTagIdsProps, ProjectProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { sendEmail } from "emails";
@@ -19,20 +19,31 @@ export const importLinksFromCSV = async ({
   count?: number;
 }) => {
   const [links, totalCount] = await Promise.all([
-    redis.lrange<LinkProps>(`import:csv:${projectId}`, count, count + 100),
+    redis.lrange<LinkWithTagIdsProps>(
+      `import:csv:${projectId}`,
+      count,
+      count + 100,
+    ),
     redis.llen(`import:csv:${projectId}`),
   ]);
 
+  const project = (await prisma.project.findUnique({
+    where: {
+      id: projectId,
+    },
+  })) as unknown as ProjectProps;
+
   const processedLinks = await Promise.all(
-    links.map(async (link) => ({
-      ...link,
-      key: link.key || (await getRandomKey(domain)),
-      projectId,
-      userId,
-    })),
+    links.map(async (link) =>
+      processLink({ payload: link, project, userId, bulk: true }),
+    ),
   );
 
-  const importedLinks = await bulkCreateLinks({ links: processedLinks });
+  const validLinks = processedLinks
+    .filter(({ error }) => !error)
+    .map(({ link }) => link);
+
+  const importedLinks = await bulkCreateLinks({ links: validLinks });
 
   count += importedLinks.length;
 

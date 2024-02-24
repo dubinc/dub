@@ -6,6 +6,7 @@ import Linkify from "linkify-react";
 import { HelpCircle } from "lucide-react";
 import Link from "next/link";
 import { ReactNode, useState } from "react";
+import { Badge } from "./badge";
 
 export function TooltipProvider({ children }: { children: ReactNode }) {
   return (
@@ -15,15 +16,13 @@ export function TooltipProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function Tooltip({
-  children,
-  content,
-  side = "top",
-}: {
+interface TooltipProps {
   children: ReactNode;
   content: ReactNode | string;
   side?: "top" | "bottom" | "left" | "right";
-}) {
+}
+
+export function Tooltip({ children, content, side = "top" }: TooltipProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -177,6 +176,25 @@ export function NumberTooltip({
       }
     >
       {children}
+    </Tooltip>
+  );
+}
+
+export function BadgeTooltip({
+  children,
+  content,
+  side = "bottom",
+}: TooltipProps) {
+  return (
+    <Tooltip content={content} side={side}>
+      <div className="flex cursor-pointer items-center">
+        <Badge
+          variant="gray"
+          className="border-gray-300 transition-all hover:bg-gray-200"
+        >
+          {children}
+        </Badge>
+      </div>
     </Tooltip>
   );
 }

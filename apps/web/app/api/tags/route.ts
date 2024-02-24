@@ -3,7 +3,7 @@ import { withAuth } from "@/lib/auth";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/errors";
 import prisma from "@/lib/prisma";
 import { createTagBodySchema } from "@/lib/zod/schemas/tags";
-import { randomBadgeColor } from "@/ui/links/tag-badge";
+import { COLORS_LIST, randomBadgeColor } from "@/ui/links/tag-badge";
 import { NextResponse } from "next/server";
 
 // GET /api/projects/[slug]/tags - get all tags for a project
@@ -44,7 +44,7 @@ export const POST = withAuth(async ({ req, project, headers }) => {
       });
     }
 
-    const { tag } = createTagBodySchema.parse(await req.json());
+    const { tag, color } = createTagBodySchema.parse(await req.json());
 
     const existingTag = await prisma.tag.findFirst({
       where: {
@@ -63,13 +63,11 @@ export const POST = withAuth(async ({ req, project, headers }) => {
     const response = await prisma.tag.create({
       data: {
         name: tag,
-        color: randomBadgeColor(),
+        color:
+          color && COLORS_LIST.map(({ color }) => color).includes(color)
+            ? color
+            : randomBadgeColor(),
         projectId: project.id,
-      },
-      select: {
-        id: true,
-        name: true,
-        color: true,
       },
     });
 

@@ -37,7 +37,7 @@ export const POST = withAuth(
           processLink({
             payload: link as LinkProps,
             project,
-            session,
+            userId: session.user.id,
             bulk: true,
           }),
         ),
