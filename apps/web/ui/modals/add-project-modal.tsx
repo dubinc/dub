@@ -98,7 +98,15 @@ function AddProjectModalHelper({
       showModal={showAddProjectModal}
       setShowModal={setShowAddProjectModal}
       preventDefaultClose={welcomeFlow}
-      {...(welcomeFlow && { onClose: () => router.back() })}
+      onClose={() => {
+        if (welcomeFlow) {
+          router.back();
+        } else if (searchParams.has("newProject")) {
+          queryParams({
+            del: ["newProject"],
+          });
+        }
+      }}
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
         <Logo />

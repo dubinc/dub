@@ -21,6 +21,7 @@ import {
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { useImportRebrandlyModal } from "./import-rebrandly-modal";
+import { useSearchParams } from "next/navigation";
 
 export const ModalContext = createContext<{
   setShowAddProjectModal: Dispatch<SetStateAction<boolean>>;
@@ -97,6 +98,18 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
       setShowAcceptInviteModal(true);
     }
   }, [error]);
+
+  const searchParams = useSearchParams();
+
+  // handle ?newProject and ?newLink query params
+  useEffect(() => {
+    if (searchParams.has("newProject")) {
+      setShowAddProjectModal(true);
+    }
+    if (searchParams.has("newLink")) {
+      setShowAddEditLinkModal(true);
+    }
+  }, []);
 
   return (
     <ModalContext.Provider
