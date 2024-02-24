@@ -839,7 +839,7 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
               type: "string",
               format: "cuid",
               description:
-                "The unique id of the tag assigned to the short link.",
+                "The unique ID of the tag assigned to the short link.",
               deprecated: true,
             },
             tagIds: {
@@ -849,7 +849,7 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
                 format: "cuid",
               },
               description:
-                "The unique ids of the tags assigned to the short link.",
+                "The unique IDs of the tags assigned to the short link.",
               default: [],
             },
             comments: {
