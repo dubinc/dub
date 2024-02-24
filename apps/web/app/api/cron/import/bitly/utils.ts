@@ -57,7 +57,7 @@ export const importLinksFromBitly = async ({
         return [];
       }
       const createdAt = new Date(created_at).toISOString();
-      const tagIds = tagsToId ? tags.map((tag) => tagsToId[tag]) : [];
+      const tagIds = tagsToId ? tags.map((tag: string) => tagsToId[tag]) : [];
       const linkDetails = {
         projectId,
         userId,
@@ -97,7 +97,7 @@ export const importLinksFromBitly = async ({
   );
 
   // bulk create links
-  await bulkCreateLinks(importedLinks);
+  await bulkCreateLinks({ links: importedLinks });
 
   count += importedLinks.length;
 
