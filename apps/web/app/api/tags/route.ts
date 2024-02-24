@@ -73,6 +73,11 @@ export const POST = withAuth(async ({ req, project, headers }) => {
 
     return NextResponse.json(response, { headers, status: 201 });
   } catch (error) {
+    if (error.code === "P2002") {
+      error.code = "conflict";
+      error.message = "A tag with that name already exists.";
+    }
+
     return handleAndReturnErrorResponse(error);
   }
 });

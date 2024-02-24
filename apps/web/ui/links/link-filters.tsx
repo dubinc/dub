@@ -8,11 +8,13 @@ import { useAddEditTagModal } from "@/ui/modals/add-edit-tag-modal";
 import { Delete, ThreeDots } from "@/ui/shared/icons";
 import {
   Button,
+  Copy,
   LoadingCircle,
   LoadingSpinner,
   NumberTooltip,
   Popover,
   Switch,
+  Tick,
   useRouterStuff,
 } from "@dub/ui";
 import {
@@ -455,6 +457,8 @@ const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
     });
   };
 
+  const [copied, setCopied] = useState(false);
+
   return processing ? (
     <div className="flex h-6 items-center justify-center">
       <LoadingCircle />
@@ -470,6 +474,25 @@ const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
               variant="outline"
               onClick={() => setShowAddEditTagModal(true)}
               icon={<Edit3 className="h-4 w-4" />}
+              className="h-9 w-full justify-start px-2 font-medium"
+            />
+            <Button
+              type="button"
+              text="Copy Tag ID"
+              variant="outline"
+              onClick={() => {
+                navigator.clipboard.writeText(tag.id);
+                setCopied(true);
+                toast.success("Tag ID copied");
+                setTimeout(() => setCopied(false), 3000);
+              }}
+              icon={
+                copied ? (
+                  <Tick className="h-4 w-4" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )
+              }
               className="h-9 w-full justify-start px-2 font-medium"
             />
             <Button
