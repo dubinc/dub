@@ -5,6 +5,7 @@ import {
   Badge,
   Button,
   IconMenu,
+  LoadingSpinner,
   Logo,
   Modal,
   Popover,
@@ -65,6 +66,7 @@ function UpgradePlanModal({
   const [openPeriodSelector, setOpenPeriodSelector] = useState(false);
 
   const [clicked, setClicked] = useState(false);
+  const [clickedCompare, setClickedCompare] = useState(false);
   const { queryParams } = useRouterStuff();
 
   return (
@@ -294,13 +296,53 @@ function UpgradePlanModal({
             }}
           />
           <div className="mt-2 flex items-center justify-center space-x-2">
-            <a
-              href={`${HOME_DOMAIN}/pricing`}
-              target="_blank"
-              className="text-center text-xs text-gray-500 underline-offset-4 transition-all hover:text-gray-800 hover:underline"
-            >
-              Compare plans
-            </a>
+            {currentPlan === "free" ? (
+              <a
+                href={`${HOME_DOMAIN}/pricing`}
+                target="_blank"
+                className="text-center text-xs text-gray-500 underline-offset-4 transition-all hover:text-gray-800 hover:underline"
+              >
+                Compare plans
+              </a>
+            ) : (
+              <button
+                onClick={() => {
+                  setClickedCompare(true);
+                  fetch(`/api/projects/${slug}/billing/upgrade`, {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      plan,
+                      period,
+                      baseUrl: `${APP_DOMAIN}${pathname}`,
+                      comparePlans: true,
+                    }),
+                  })
+                    .then(async (res) => {
+                      const url = await res.json();
+                      router.push(url);
+                    })
+                    .catch((err) => {
+                      alert(err);
+                      setClicked(false);
+                    });
+                }}
+                disabled={clickedCompare}
+                className={cn(
+                  "flex items-center space-x-2 text-center text-xs text-gray-500",
+                  clickedCompare
+                    ? "cursor-not-allowed"
+                    : "underline-offset-4 transition-all hover:text-gray-800 hover:underline",
+                )}
+              >
+                {clickedCompare && (
+                  <LoadingSpinner className="h-4 w-4" aria-hidden="true" />
+                )}
+                <p>Compare plans</p>
+              </button>
+            )}
             <p className="text-gray-500">•</p>
             {welcomeFlow ? (
               <Link
