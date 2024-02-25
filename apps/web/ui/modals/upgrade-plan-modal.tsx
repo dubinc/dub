@@ -273,7 +273,7 @@ function UpgradePlanModal({
                 body: JSON.stringify({
                   plan,
                   period,
-                  baseUrl: `${APP_DOMAIN}/${pathname}`,
+                  baseUrl: `${APP_DOMAIN}${pathname}`,
                 }),
               })
                 .then(async (res) => {
