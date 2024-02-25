@@ -374,7 +374,7 @@ function AddDomainButton({
   setShowAddEditDomainModal: Dispatch<SetStateAction<boolean>>;
   buttonProps?: Partial<ButtonProps>;
 }) {
-  const { plan, domainsLimit, exceededDomains } = useProject();
+  const { plan, nextPlan, domainsLimit, exceededDomains } = useProject();
   const { queryParams } = useRouterStuff();
 
   return (
@@ -391,7 +391,7 @@ function AddDomainButton({
               onClick={() => {
                 queryParams({
                   set: {
-                    upgrade: plan === "free" ? "pro" : "business",
+                    upgrade: nextPlan.name.toLowerCase(),
                   },
                 });
               }}

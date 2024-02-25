@@ -1,3 +1,81 @@
+import { nFormatter } from "../functions";
+
+const BUSINESS_PLAN_MODIFIER = ({
+  name = "Business",
+  monthly = 49,
+  yearly = 39,
+  links = 5000,
+  clicks = 150000,
+  domains = 40,
+  tags = 150,
+  users = 15,
+  ids = [],
+}: {
+  name: string;
+  monthly: number;
+  yearly: number;
+  links: number;
+  clicks: number;
+  domains: number;
+  users: number;
+  tags: number;
+  ids: string[];
+}) => ({
+  name,
+  tagline: "For larger teams with increased usage",
+  link: "https://dub.co/help/article/business-plan",
+  price: {
+    monthly,
+    yearly,
+    ids,
+  },
+  limits: {
+    links,
+    clicks,
+    domains,
+    tags,
+    users,
+  },
+  colors: {
+    bg: "bg-sky-900",
+    text: "text-sky-900",
+  },
+  cta: {
+    text: "Get started with Business",
+    shortText: "Get started",
+    href: "https://app.dub.co/register",
+    color: "bg-sky-900 border-sky-900 hover:text-sky-900",
+  },
+  featureTitle: "Everything in Pro, plus:",
+  features: [
+    { text: `${nFormatter(links, { full: true })} links/mo` },
+    {
+      text: `${nFormatter(clicks)} tracked clicks/mo`,
+    },
+    { text: "2-year analytics retention" },
+    { text: `${domains} custom domains` },
+    { text: `${users} users` },
+    {
+      text: `${nFormatter(tags, { full: true })} tags`,
+      footnote: {
+        title: "Organize your links with tags.",
+        cta: "Learn more.",
+        href: "https://dub.co/help/article/how-to-use-tags",
+      },
+    },
+    { text: "Elevated support", footnote: "Email and chat support." },
+    {
+      text: "Custom branding",
+      footnote: {
+        title:
+          "Set custom QR code logos, password-protected links logos, and more.",
+        cta: "Learn more.",
+        href: "https://dub.co/help/article/custom-qr-codes",
+      },
+    },
+  ],
+});
+
 export const PLANS = [
   {
     name: "Free",
@@ -104,63 +182,65 @@ export const PLANS = [
       },
     ],
   },
-  {
+  BUSINESS_PLAN_MODIFIER({
     name: "Business",
-    tagline: "For larger teams with increased usage",
-    link: "https://dub.co/help/article/business-plan",
-    price: {
-      monthly: 49,
-      yearly: 39,
-      ids: [
-        "price_1LodLoAlJJEpqkPVJdwv5zrG", // old yearly
-        "price_1LoyrCAlJJEpqkPVZ32BV3wm", // new monthly (test)
-        "price_1LodLoAlJJEpqkPV9rD0rlNL", // old & new monthly (prod, no change)
-        "price_1OTcRzAlJJEpqkPV6G9iP0Tb", // new yearly (test)
-        "price_1OZgmnAlJJEpqkPVOj4kV64R", // new yearly (prod)
-      ],
-    },
-    limits: {
-      links: 5000,
-      clicks: 250000,
-      domains: 20,
-      tags: 150,
-      users: 15,
-    },
-    colors: {
-      bg: "bg-sky-900",
-      text: "text-sky-900",
-    },
-    cta: {
-      text: "Get started with Business",
-      shortText: "Get started",
-      href: "https://app.dub.co/register",
-      color: "bg-sky-900 border-sky-900 hover:text-sky-900",
-    },
-    featureTitle: "Everything in Pro, plus:",
-    features: [
-      { text: "5,000 links/mo" },
-      {
-        text: "250K tracked clicks/mo",
-      },
-      { text: "2-year analytics retention" },
-      { text: "20 custom domains" },
-      { text: "15 users" },
-      { text: "Elevated support", footnote: "Email and chat support." },
-      {
-        text: "Custom branding",
-        footnote: {
-          title:
-            "Set custom QR code logos, password-protected links logos, and more.",
-          cta: "Learn more.",
-          href: "https://dub.co/help/article/custom-qr-codes",
-        },
-      },
-      {
-        text: "Event callbacks (Beta)",
-        footnote: "Get notified when someone clicks on your links.",
-      },
+    monthly: 49,
+    yearly: 39,
+    links: 5000,
+    clicks: 150000,
+    domains: 40,
+    tags: 150,
+    users: 15,
+    ids: [
+      "price_1LodLoAlJJEpqkPVJdwv5zrG", // old yearly
+      "price_1LoyrCAlJJEpqkPVZ32BV3wm", // new monthly (test)
+      "price_1LodLoAlJJEpqkPV9rD0rlNL", // old & new monthly (prod, no change)
+      "price_1OTcRzAlJJEpqkPV6G9iP0Tb", // new yearly (test)
+      "price_1OZgmnAlJJEpqkPVOj4kV64R", // new yearly (prod)
     ],
-  },
+  }),
+  BUSINESS_PLAN_MODIFIER({
+    name: "Business Plus",
+    monthly: 119,
+    yearly: 99,
+    links: 15000,
+    clicks: 400000,
+    domains: 100,
+    tags: 300,
+    users: 40,
+    ids: [
+      "price_1OnWu0AlJJEpqkPVWk4144ZG", // monthly (test)
+      "price_1OnWu0AlJJEpqkPVkDWVriAB", // yearly (test)
+    ],
+  }),
+  BUSINESS_PLAN_MODIFIER({
+    name: "Business Extra",
+    monthly: 249,
+    yearly: 199,
+    links: 40000,
+    clicks: 1000000,
+    domains: 250,
+    tags: 500,
+    users: 100,
+    ids: [
+      "price_1OnWvCAlJJEpqkPVLzLHx5QD", // monthly (test)
+      "price_1OnWvCAlJJEpqkPVHhCCvIOq", // yearly (test)
+    ],
+  }),
+  BUSINESS_PLAN_MODIFIER({
+    name: "Business Max",
+    monthly: 499,
+    yearly: 399,
+    links: 100000,
+    clicks: 2500000,
+    domains: 500,
+    tags: 1000,
+    users: 250,
+    ids: [
+      "price_1OnWwLAlJJEpqkPVXtJyPqLk", // monthly (test)
+      "price_1OnWwLAlJJEpqkPV4eMbOkNh", // yearly (test)
+    ],
+  }),
   {
     name: "Enterprise",
     tagline:
@@ -200,9 +280,37 @@ export const PLANS = [
 ];
 
 export const FREE_PLAN = PLANS.find((plan) => plan.name === "Free")!;
+export const PRO_PLAN = PLANS.find((plan) => plan.name === "Pro")!;
+export const BUSINESS_PLAN = PLANS.find((plan) => plan.name === "Business")!;
+export const ENTERPRISE_PLAN = PLANS.find(
+  (plan) => plan.name === "Enterprise",
+)!;
+
+export const PUBLIC_PLANS = [
+  FREE_PLAN,
+  PRO_PLAN,
+  BUSINESS_PLAN,
+  ENTERPRISE_PLAN,
+];
 
 export const SELF_SERVE_PAID_PLANS = PLANS.filter(
-  (p) => p.name === "Pro" || p.name === "Business",
+  (p) => p.name !== "Free" && p.name !== "Enterprise",
 );
 
 export const FREE_PROJECTS_LIMIT = 2;
+
+export const getPlanFromPriceId = (priceId: string) => {
+  return PLANS.find((plan) => plan.price.ids?.includes(priceId)) || null;
+};
+
+export const getPlanDetails = (plan: string) => {
+  return SELF_SERVE_PAID_PLANS.find(
+    (p) => p.name.toLowerCase() === plan.toLowerCase(),
+  )!;
+};
+
+export const getNextPlan = (plan: string) => {
+  return PLANS[
+    PLANS.findIndex((p) => p.name.toLowerCase() === plan.toLowerCase()) + 1
+  ];
+};

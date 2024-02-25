@@ -11,7 +11,6 @@ export * from "./hash";
 export * from "./is-iframeable";
 export * from "./link-constructor";
 export * from "./log";
-export * from "./misc";
 export * from "./nanoid";
 export * from "./nformatter";
 export * from "./time-ago";
