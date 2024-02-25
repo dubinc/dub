@@ -1,6 +1,6 @@
 import { nFormatter } from "../functions";
 
-const BUSINESS_PLAN = ({
+const BUSINESS_PLAN_MODIFIER = ({
   name = "Business",
   monthly = 49,
   yearly = 39,
@@ -175,7 +175,7 @@ export const PLANS = [
       },
     ],
   },
-  BUSINESS_PLAN({
+  BUSINESS_PLAN_MODIFIER({
     name: "Business",
     monthly: 49,
     yearly: 39,
@@ -192,7 +192,7 @@ export const PLANS = [
       "price_1OZgmnAlJJEpqkPVOj4kV64R", // new yearly (prod)
     ],
   }),
-  BUSINESS_PLAN({
+  BUSINESS_PLAN_MODIFIER({
     name: "Business Plus",
     monthly: 119,
     yearly: 99,
@@ -206,7 +206,7 @@ export const PLANS = [
       "price_1OnWu0AlJJEpqkPVkDWVriAB", // yearly (test)
     ],
   }),
-  BUSINESS_PLAN({
+  BUSINESS_PLAN_MODIFIER({
     name: "Business Extra",
     monthly: 249,
     yearly: 199,
@@ -220,7 +220,7 @@ export const PLANS = [
       "price_1OnWvCAlJJEpqkPVHhCCvIOq", // yearly (test)
     ],
   }),
-  BUSINESS_PLAN({
+  BUSINESS_PLAN_MODIFIER({
     name: "Business Max",
     monthly: 499,
     yearly: 399,
@@ -274,6 +274,17 @@ export const PLANS = [
 
 export const FREE_PLAN = PLANS.find((plan) => plan.name === "Free")!;
 export const PRO_PLAN = PLANS.find((plan) => plan.name === "Pro")!;
+export const BUSINESS_PLAN = PLANS.find((plan) => plan.name === "Business")!;
+export const ENTERPRISE_PLAN = PLANS.find(
+  (plan) => plan.name === "Enterprise",
+)!;
+
+export const PUBLIC_PLANS = [
+  FREE_PLAN,
+  PRO_PLAN,
+  BUSINESS_PLAN,
+  ENTERPRISE_PLAN,
+];
 
 export const SELF_SERVE_PAID_PLANS = PLANS.filter(
   (p) => p.name !== "Free" && p.name !== "Enterprise",
