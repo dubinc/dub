@@ -284,8 +284,16 @@ export const getPlanFromPriceId = (priceId: string) => {
   return PLANS.find((plan) => plan.price.ids?.includes(priceId)) || null;
 };
 
+export const getPlanDetails = (plan: string) => {
+  return SELF_SERVE_PAID_PLANS.find(
+    (p) => p.name.toLowerCase() === plan.toLowerCase(),
+  )!;
+};
+
 export const getNextPlan = (plan: any) => {
   return (
-    PLANS[PLANS.findIndex((p) => p.name.toLowerCase() === plan) + 1] || PLANS[1]
+    PLANS[
+      PLANS.findIndex((p) => p.name.toLowerCase() === plan.toLowerCase()) + 1
+    ] || PLANS[1]
   );
 };

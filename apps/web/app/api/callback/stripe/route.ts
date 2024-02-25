@@ -108,7 +108,7 @@ export const POST = async (req: Request) => {
                 react: UpgradeEmail({
                   name: user.name,
                   email: user.email as string,
-                  plan: plan.name.toLowerCase(),
+                  plan: plan.name,
                 }),
                 marketing: true,
               }),
