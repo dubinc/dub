@@ -3,14 +3,12 @@
 import useProject from "@/lib/swr/use-project";
 import { Button } from "@dub/ui";
 import { UploadCloud } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
 export default function UploadLogo() {
-  const router = useRouter();
-  const { slug, logo } = useProject();
+  const { slug, logo, isOwner } = useProject();
 
   const [image, setImage] = useState<string | null>();
 
@@ -63,7 +61,8 @@ export default function UploadLogo() {
           } else if (res.status === 413) {
             toast.error("File size too big (max 2MB)");
           } else {
-            toast.error("Something went wrong");
+            const errorMessage = await res.text();
+            toast.error(errorMessage || "Something went wrong");
           }
           setUploading(false);
         });
@@ -167,7 +166,11 @@ export default function UploadLogo() {
           <Button
             text="Save changes"
             loading={uploading}
-            disabled={!image || logo === image}
+            disabled={!isOwner || !image || logo === image}
+            {...(!isOwner && {
+              disabledTooltip:
+                "Only project owners can change the project logo.",
+            })}
           />
         </div>
       </div>
