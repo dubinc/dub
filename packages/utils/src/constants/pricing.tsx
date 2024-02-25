@@ -55,7 +55,14 @@ const BUSINESS_PLAN_MODIFIER = ({
     { text: "2-year analytics retention" },
     { text: `${domains} custom domains` },
     { text: `${users} users` },
-    { text: `${nFormatter(tags, { full: true })} tags` },
+    {
+      text: `${nFormatter(tags, { full: true })} tags`,
+      footnote: {
+        title: "Organize your links with tags.",
+        cta: "Learn more.",
+        href: "https://dub.co/help/article/how-to-use-tags",
+      },
+    },
     { text: "Elevated support", footnote: "Email and chat support." },
     {
       text: "Custom branding",
