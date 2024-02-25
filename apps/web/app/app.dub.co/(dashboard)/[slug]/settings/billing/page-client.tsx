@@ -183,7 +183,7 @@ export default function ProjectBillingClient() {
           )}
           <div>
             {plan ? (
-              plan === "business max" ? (
+              plan === "enterprise" || plan === "business max" ? (
                 <a
                   href={`${HOME_DOMAIN}/enterprise`}
                   target="_blank"
