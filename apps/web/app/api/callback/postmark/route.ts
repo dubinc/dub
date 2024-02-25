@@ -24,12 +24,14 @@ export async function POST(req: NextRequest) {
         subscribed: !unsub,
       },
     }),
-    unsub
-      ? unsubscribe(email)
-      : log({
-          message: `*${email}* resubscribed to the newsletter. Manual addition required.`,
-          type: "alerts",
-        }),
+    unsub && unsubscribe(email),
+    log({
+      message: `*${email}* ${
+        unsub ? "unsubscribed" : "subscribed"
+      } to the newsletter (*Postmark*). ${!unsub ? "Manual addition required." : ""}`,
+      type: "subscribers",
+      mention: !unsub,
+    }),
   ]);
 
   return NextResponse.json({ success: true });

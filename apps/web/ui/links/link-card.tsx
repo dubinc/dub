@@ -1,7 +1,6 @@
 import useDomains from "@/lib/swr/use-domains";
 import useProject from "@/lib/swr/use-project";
-import useTags from "@/lib/swr/use-tags";
-import { LinkProps, UserProps } from "@/lib/types";
+import { LinkWithTagsProps, TagProps, UserProps } from "@/lib/types";
 import TagBadge from "@/ui/links/tag-badge";
 import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
 import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
@@ -10,6 +9,7 @@ import { useLinkQRModal } from "@/ui/modals/link-qr-modal";
 import { Chart, Delete, ThreeDots } from "@/ui/shared/icons";
 import {
   Avatar,
+  BadgeTooltip,
   BlurImage,
   Button,
   CopyButton,
@@ -44,6 +44,7 @@ import {
   MessageCircle,
   QrCode,
   TimerOff,
+  Lock,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -56,7 +57,7 @@ import { useTransferLinkModal } from "../modals/transfer-link-modal";
 export default function LinkCard({
   props,
 }: {
-  props: LinkProps & {
+  props: LinkWithTagsProps & {
     user: UserProps;
   };
 }) {
@@ -66,22 +67,29 @@ export default function LinkCard({
     domain,
     url,
     rewrite,
+    password,
     expiresAt,
     createdAt,
     lastClicked,
     archived,
-    tagId,
+    tags,
     comments,
     user,
   } = props;
-  const { tags } = useTags();
-  const tag = useMemo(() => tags?.find((t) => t.id === tagId), [tags, tagId]);
+
+  const [primaryTags, additionalTags] = useMemo(() => {
+    const primaryTagsCount = 1;
+
+    return [
+      tags.filter((_, idx) => idx < primaryTagsCount),
+      tags.filter((_, idx) => idx >= primaryTagsCount),
+    ];
+  }, [tags]);
 
   const apexDomain = getApexDomain(url);
 
   const params = useParams() as { slug?: string };
   const { slug } = params;
-  const { queryParams } = useRouterStuff();
 
   const { exceededClicks } = useProject();
   const { verified, loading } = useDomains({ domain });
@@ -272,7 +280,7 @@ export default function LinkCard({
             it messes up the tooltip positioning.
           */}
           <div className="ml-2 sm:ml-4">
-            <div className="flex max-w-fit items-center space-x-2">
+            <div className="flex max-w-fit flex-wrap items-center gap-x-2">
               {!verified && !loading ? (
                 <Tooltip
                   content={
@@ -283,7 +291,7 @@ export default function LinkCard({
                     />
                   }
                 >
-                  <div className="w-24 -translate-x-2 cursor-not-allowed truncate text-sm font-semibold text-gray-400 line-through sm:w-full sm:text-base">
+                  <div className="max-w-[140px] -translate-x-2 cursor-not-allowed truncate text-sm font-semibold text-gray-400 line-through sm:max-w-[300px] sm:text-base md:max-w-[360px] xl:max-w-[500px]">
                     {linkConstructor({
                       key,
                       domain: punycode.toUnicode(domain || ""),
@@ -294,7 +302,7 @@ export default function LinkCard({
               ) : (
                 <a
                   className={cn(
-                    "w-full max-w-[140px] truncate text-sm font-semibold text-blue-800 sm:max-w-[300px] sm:text-base md:max-w-[360px] xl:max-w-[500px]",
+                    "max-w-[140px] truncate text-sm font-semibold text-blue-800 sm:max-w-[300px] sm:text-base md:max-w-[360px] xl:max-w-[500px]",
                     {
                       "text-gray-500": archived || expired,
                     },
@@ -327,19 +335,22 @@ export default function LinkCard({
                   </button>
                 </Tooltip>
               )}
-              {tag?.color && (
-                <button
-                  onClick={() => {
-                    queryParams({
-                      set: {
-                        tagId: tag.id,
-                      },
-                    });
-                  }}
-                  className="transition-all duration-75 hover:scale-105 active:scale-100"
+              {primaryTags.map((tag) => (
+                <TagButton {...tag} />
+              ))}
+              {additionalTags.length > 0 && (
+                <BadgeTooltip
+                  content={
+                    <div className="flex flex-wrap gap-1.5 p-3">
+                      {additionalTags.map((tag) => (
+                        <TagButton {...tag} />
+                      ))}
+                    </div>
+                  }
+                  side="top"
                 >
-                  <TagBadge {...tag} withIcon />
-                </button>
+                  +{additionalTags.length}
+                </BadgeTooltip>
               )}
             </div>
             <div className="flex max-w-fit items-center space-x-1">
@@ -395,6 +406,19 @@ export default function LinkCard({
                   }
                 >
                   <EyeOff className="xs:block hidden h-4 w-4 text-gray-500" />
+                </Tooltip>
+              )}
+              {password && (
+                <Tooltip
+                  content={
+                    <SimpleTooltipContent
+                      title="This link is password-protected."
+                      cta="Learn more."
+                      href={`${HOME_DOMAIN}/help/article/password-protected-links`}
+                    />
+                  }
+                >
+                  <Lock className="xs:block hidden h-4 w-4 text-gray-500" />
                 </Tooltip>
               )}
               <a
@@ -557,5 +581,24 @@ export default function LinkCard({
         </div>
       </div>
     </li>
+  );
+}
+
+function TagButton(tag: TagProps) {
+  const { queryParams } = useRouterStuff();
+
+  return (
+    <button
+      onClick={() => {
+        queryParams({
+          set: {
+            tagId: tag.id,
+          },
+        });
+      }}
+      className="transition-all duration-75 hover:scale-105 active:scale-100"
+    >
+      <TagBadge {...tag} withIcon />
+    </button>
   );
 }

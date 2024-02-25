@@ -22,7 +22,7 @@ import { useState } from "react";
 export default function ProjectDomainsClient() {
   const { id: projectId } = useProject();
 
-  const { AddEditDomainModal, AddEditDomainButton } = useAddEditDomainModal();
+  const { AddEditDomainModal, AddDomainButton } = useAddEditDomainModal();
   const { projectDomains, archivedProjectDomains } = useDomains();
   const [showArchivedDomains, setShowArchivedDomains] = useState(false);
 
@@ -46,7 +46,7 @@ export default function ProjectDomainsClient() {
               />
             </div>
             <div className="flex">
-              <AddEditDomainButton />
+              <AddDomainButton />
               <DefaultDomains />
             </div>
           </div>
@@ -63,7 +63,7 @@ export default function ProjectDomainsClient() {
               ))}
             </ul>
           ) : (
-            <NoDomainsPlaceholder AddEditDomainButton={AddEditDomainButton} />
+            <NoDomainsPlaceholder AddDomainButton={AddDomainButton} />
           )
         ) : (
           <DomainCardPlaceholder />

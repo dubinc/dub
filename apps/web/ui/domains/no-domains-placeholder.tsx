@@ -1,7 +1,7 @@
 export default function NoDomainsPlaceholder({
-  AddEditDomainButton,
+  AddDomainButton,
 }: {
-  AddEditDomainButton: () => JSX.Element;
+  AddDomainButton: () => JSX.Element;
 }) {
   return (
     <div className="flex flex-col items-center justify-center rounded-md border border-gray-200 bg-white py-12">
@@ -15,7 +15,7 @@ export default function NoDomainsPlaceholder({
         height={400}
         className="pointer-events-none -my-8"
       />
-      <AddEditDomainButton />
+      <AddDomainButton />
     </div>
   );
 }

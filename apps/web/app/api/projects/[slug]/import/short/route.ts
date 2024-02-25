@@ -55,7 +55,7 @@ export const PUT = withAuth(async ({ req, project }) => {
 
 // POST /api/projects/[slug]/import/short - create job to import links from Short.io
 export const POST = withAuth(async ({ req, project, session }) => {
-  const { selectedDomains } = await req.json();
+  const { selectedDomains, importTags } = await req.json();
 
   // check if there are domains that are not in the project
   // if yes, add them to the project
@@ -87,6 +87,7 @@ export const POST = withAuth(async ({ req, project, session }) => {
           userId: session?.user?.id,
           domainId: id,
           domain,
+          importTags,
         },
       }),
     ),

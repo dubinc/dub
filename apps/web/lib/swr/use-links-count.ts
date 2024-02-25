@@ -26,14 +26,14 @@ export default function useLinksCount({
             ...(groupBy && { groupBy }),
           },
           {
-            ignore: ["import", "upgrade"],
+            ignore: ["import", "upgrade", "newLink"],
           },
         )}`
       : admin
-      ? `/api/admin/links/count${getQueryString({
-          ...(groupBy && { groupBy }),
-        })}`
-      : null,
+        ? `/api/admin/links/count${getQueryString({
+            ...(groupBy && { groupBy }),
+          })}`
+        : null,
     fetcher,
     {
       dedupingInterval: 30000,

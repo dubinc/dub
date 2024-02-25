@@ -57,7 +57,7 @@ export const importLinksFromBitly = async ({
         return [];
       }
       const createdAt = new Date(created_at).toISOString();
-      const tagId = tagsToId ? tagsToId[tags[0]] : null;
+      const tagIds = tagsToId ? tags.map((tag: string) => tagsToId[tag]) : [];
       const linkDetails = {
         projectId,
         userId,
@@ -67,7 +67,7 @@ export const importLinksFromBitly = async ({
         title,
         archived,
         createdAt,
-        ...(tagId ? { tagId } : {}),
+        tagIds,
       };
 
       return [
@@ -97,7 +97,7 @@ export const importLinksFromBitly = async ({
   );
 
   // bulk create links
-  await bulkCreateLinks(importedLinks);
+  await bulkCreateLinks({ links: importedLinks });
 
   count += importedLinks.length;
 
@@ -160,7 +160,7 @@ export const importLinksFromBitly = async ({
       prisma.tag.deleteMany({
         where: {
           projectId,
-          links: {
+          linksNew: {
             none: {},
           },
         },

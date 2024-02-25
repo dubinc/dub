@@ -2,6 +2,7 @@ const logTypeToEnv = {
   alerts: process.env.DUB_SLACK_HOOK_ALERTS,
   cron: process.env.DUB_SLACK_HOOK_CRON,
   links: process.env.DUB_SLACK_HOOK_LINKS,
+  subscribers: process.env.DUB_SLACK_HOOK_SUBSCRIBERS,
   errors: process.env.DUB_SLACK_HOOK_ERRORS,
 };
 
@@ -11,7 +12,7 @@ export const log = async ({
   mention = false,
 }: {
   message: string;
-  type: "alerts" | "cron" | "links" | "errors";
+  type: "alerts" | "cron" | "links" | "subscribers" | "errors";
   mention?: boolean;
 }) => {
   if (
@@ -19,6 +20,7 @@ export const log = async ({
     !process.env.DUB_SLACK_HOOK_ALERTS ||
     !process.env.DUB_SLACK_HOOK_CRON ||
     !process.env.DUB_SLACK_HOOK_LINKS ||
+    !process.env.DUB_SLACK_HOOK_SUBSCRIBERS ||
     !process.env.DUB_SLACK_HOOK_ERRORS
   ) {
     console.log(message);
