@@ -32,7 +32,7 @@ export default function ClicksExceeded({
   type: "first" | "second";
 }) {
   const { slug, name, usage, usageLimit, plan } = project;
-  const nextPlan = getNextPlan(plan);
+  const nextPlan = getNextPlan(plan as string);
 
   return (
     <Html>
