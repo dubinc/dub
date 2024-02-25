@@ -77,29 +77,53 @@ export default function ProjectBillingClient() {
     <>
       <Confetti active={confetti} config={{ elementCount: 200, spread: 90 }} />
       <div className="rounded-lg border border-gray-200 bg-white">
-        <div className="flex flex-col space-y-3 p-10">
-          <h2 className="text-xl font-medium">Plan &amp; Usage</h2>
-          <p className="text-sm text-gray-500">
-            You are currently on the{" "}
-            {plan ? (
-              <PlanBadge plan={plan} />
-            ) : (
-              <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-200">
-                load
-              </span>
-            )}{" "}
-            plan.
-            {billingStart && billingEnd && (
-              <>
-                {" "}
-                Current billing cycle:{" "}
-                <span className="font-medium text-black">
-                  {billingStart} - {billingEnd}
+        <div className="flex flex-col items-start justify-between space-y-4 p-10 xl:flex-row xl:space-y-0">
+          <div className="flex flex-col space-y-3">
+            <h2 className="text-xl font-medium">Plan &amp; Usage</h2>
+            <p className="text-sm text-gray-500">
+              You are currently on the{" "}
+              {plan ? (
+                <PlanBadge plan={plan} />
+              ) : (
+                <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-200">
+                  load
                 </span>
-                .
-              </>
-            )}
-          </p>
+              )}{" "}
+              plan.
+              {billingStart && billingEnd && (
+                <>
+                  {" "}
+                  Current billing cycle:{" "}
+                  <span className="font-medium text-black">
+                    {billingStart} - {billingEnd}
+                  </span>
+                  .
+                </>
+              )}
+            </p>
+          </div>
+          <div>
+            <Button
+              text="Manage Subscription"
+              variant="secondary"
+              className="h-9"
+              onClick={() => {
+                setClicked(true);
+                fetch(`/api/projects/${slug}/billing/manage`, {
+                  method: "POST",
+                })
+                  .then(async (res) => {
+                    const url = await res.json();
+                    router.push(url);
+                  })
+                  .catch((err) => {
+                    alert(err);
+                    setClicked(false);
+                  });
+              }}
+              loading={clicked}
+            />
+          </div>
         </div>
         <div className="grid divide-y divide-gray-200 border-y border-gray-200">
           <UsageCategory
@@ -145,7 +169,7 @@ export default function ProjectBillingClient() {
             />
           </div>
         </div>
-        <div className="flex flex-col items-center justify-between space-y-3 px-10 py-4 text-center sm:flex-row sm:space-y-0 sm:text-left">
+        <div className="flex flex-col items-center justify-between space-y-3 px-10 py-4 text-center md:flex-row md:space-y-0 md:text-left">
           {plan ? (
             <p className="text-sm text-gray-500">
               {plan === "enterprise"
@@ -159,19 +183,7 @@ export default function ProjectBillingClient() {
           )}
           <div>
             {plan ? (
-              plan === "free" ? (
-                <Button
-                  text="Upgrade"
-                  onClick={() =>
-                    queryParams({
-                      set: {
-                        upgrade: "pro",
-                      },
-                    })
-                  }
-                  variant="success"
-                />
-              ) : plan === "business max" ? (
+              plan === "business max" ? (
                 <a
                   href={`${HOME_DOMAIN}/enterprise`}
                   target="_blank"
@@ -181,22 +193,15 @@ export default function ProjectBillingClient() {
                 </a>
               ) : (
                 <Button
-                  text="Manage Subscription"
-                  onClick={() => {
-                    setClicked(true);
-                    fetch(`/api/projects/${slug}/billing/manage`, {
-                      method: "POST",
+                  text={`Upgrade to ${nextPlan.name}`}
+                  onClick={() =>
+                    queryParams({
+                      set: {
+                        upgrade: nextPlan.name.toLowerCase(),
+                      },
                     })
-                      .then(async (res) => {
-                        const url = await res.json();
-                        router.push(url);
-                      })
-                      .catch((err) => {
-                        alert(err);
-                        setClicked(false);
-                      });
-                  }}
-                  loading={clicked}
+                  }
+                  variant="success"
                 />
               )
             ) : (
