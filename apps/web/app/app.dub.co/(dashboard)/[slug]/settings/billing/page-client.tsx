@@ -7,7 +7,13 @@ import PlanBadge from "@/ui/projects/plan-badge";
 import { Divider } from "@/ui/shared/icons";
 import ProgressBar from "@/ui/shared/progress-bar";
 import { Button, InfoTooltip, NumberTooltip, useRouterStuff } from "@dub/ui";
-import { HOME_DOMAIN, PLANS, getFirstAndLastDay, nFormatter } from "@dub/utils";
+import {
+  HOME_DOMAIN,
+  PLANS,
+  getFirstAndLastDay,
+  getNextPlan,
+  nFormatter,
+} from "@dub/utils";
 import va from "@vercel/analytics";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -72,8 +78,7 @@ export default function ProjectBillingClient() {
     }
   }, [searchParams, plan]);
 
-  const nextPlan =
-    PLANS[PLANS.findIndex((p) => p.name.toLowerCase() === plan) + 1];
+  const nextPlan = getNextPlan(plan as string);
 
   return (
     <>

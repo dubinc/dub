@@ -55,7 +55,7 @@ export const POST = async (req: Request) => {
 
         if (!plan) {
           await log({
-            message: "Invalid price ID in checkout.session.completed event",
+            message: `Invalid price ID in checkout.session.completed event: ${priceId}`,
             type: "errors",
           });
           return;
@@ -127,7 +127,7 @@ export const POST = async (req: Request) => {
 
         if (!plan) {
           await log({
-            message: "Invalid price ID in customer.subscription.updated event",
+            message: `Invalid price ID in customer.subscription.updated event: ${priceId}`,
             type: "errors",
           });
           return;

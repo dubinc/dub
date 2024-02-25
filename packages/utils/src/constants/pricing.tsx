@@ -6,6 +6,9 @@ const BUSINESS_PLAN = ({
   yearly = 39,
   links = 5000,
   clicks = 150000,
+  domains = 40,
+  tags = 150,
+  users = 15,
   ids = [],
 }: {
   name: string;
@@ -13,6 +16,9 @@ const BUSINESS_PLAN = ({
   yearly: number;
   links: number;
   clicks: number;
+  domains: number;
+  users: number;
+  tags: number;
   ids: string[];
 }) => ({
   name,
@@ -26,9 +32,9 @@ const BUSINESS_PLAN = ({
   limits: {
     links,
     clicks,
-    domains: 20,
-    tags: 150,
-    users: 15,
+    domains,
+    tags,
+    users,
   },
   colors: {
     bg: "bg-sky-900",
@@ -47,8 +53,9 @@ const BUSINESS_PLAN = ({
       text: `${nFormatter(clicks)} tracked clicks/mo`,
     },
     { text: "2-year analytics retention" },
-    { text: "20 custom domains" },
-    { text: "15 users" },
+    { text: `${domains} custom domains` },
+    { text: `${nFormatter(tags, { full: true })} tags` },
+    { text: `${users} users` },
     { text: "Elevated support", footnote: "Email and chat support." },
     {
       text: "Custom branding",
@@ -58,10 +65,6 @@ const BUSINESS_PLAN = ({
         cta: "Learn more.",
         href: "https://dub.co/help/article/custom-qr-codes",
       },
-    },
-    {
-      text: "Event callbacks (Beta)",
-      footnote: "Get notified when someone clicks on your links.",
     },
   ],
 });
@@ -178,6 +181,9 @@ export const PLANS = [
     yearly: 39,
     links: 5000,
     clicks: 150000,
+    domains: 40,
+    tags: 150,
+    users: 15,
     ids: [
       "price_1LodLoAlJJEpqkPVJdwv5zrG", // old yearly
       "price_1LoyrCAlJJEpqkPVZ32BV3wm", // new monthly (test)
@@ -190,9 +196,15 @@ export const PLANS = [
     name: "Business Plus",
     monthly: 119,
     yearly: 99,
-    links: 10000,
+    links: 15000,
     clicks: 400000,
-    ids: [],
+    domains: 100,
+    tags: 300,
+    users: 40,
+    ids: [
+      "price_1OnWu0AlJJEpqkPVWk4144ZG", // monthly (test)
+      "price_1OnWu0AlJJEpqkPVkDWVriAB", // yearly (test)
+    ],
   }),
   BUSINESS_PLAN({
     name: "Business Extra",
@@ -200,7 +212,13 @@ export const PLANS = [
     yearly: 199,
     links: 40000,
     clicks: 1000000,
-    ids: [],
+    domains: 250,
+    tags: 500,
+    users: 100,
+    ids: [
+      "price_1OnWvCAlJJEpqkPVLzLHx5QD", // monthly (test)
+      "price_1OnWvCAlJJEpqkPVHhCCvIOq", // yearly (test)
+    ],
   }),
   BUSINESS_PLAN({
     name: "Business Max",
@@ -208,7 +226,13 @@ export const PLANS = [
     yearly: 399,
     links: 100000,
     clicks: 2500000,
-    ids: [],
+    domains: 500,
+    tags: 1000,
+    users: 250,
+    ids: [
+      "price_1OnWwLAlJJEpqkPVXtJyPqLk", // monthly (test)
+      "price_1OnWwLAlJJEpqkPV4eMbOkNh", // yearly (test)
+    ],
   }),
   {
     name: "Enterprise",
@@ -255,3 +279,11 @@ export const SELF_SERVE_PAID_PLANS = PLANS.filter(
 );
 
 export const FREE_PROJECTS_LIMIT = 2;
+
+export const getPlanFromPriceId = (priceId: string) => {
+  return PLANS.find((plan) => plan.price.ids?.includes(priceId)) || null;
+};
+
+export const getNextPlan = (plan: string) => {
+  return PLANS[PLANS.findIndex((p) => p.name.toLowerCase() === plan) + 1];
+};

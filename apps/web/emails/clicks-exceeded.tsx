@@ -1,4 +1,10 @@
-import { DUB_LOGO, PLANS, capitalize, nFormatter } from "@dub/utils";
+import {
+  DUB_LOGO,
+  PLANS,
+  capitalize,
+  getNextPlan,
+  nFormatter,
+} from "@dub/utils";
 import {
   Body,
   Container,
@@ -32,8 +38,7 @@ export default function ClicksExceeded({
   type: "first" | "second";
 }) {
   const { slug, name, usage, usageLimit, plan } = project;
-  const nextPlan =
-    PLANS[PLANS.findIndex((p) => p.name.toLowerCase() === plan) + 1];
+  const nextPlan = getNextPlan(plan as string);
 
   return (
     <Html>
@@ -88,9 +93,7 @@ export default function ClicksExceeded({
             <Section className="my-8 text-center">
               <Link
                 className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                href={`https://app.dub.co/${slug}?upgrade=${
-                  plan === "free" ? "pro" : "business"
-                }}`}
+                href={`https://app.dub.co/${slug}?upgrade=${nextPlan.name.toLowerCase()}}`}
               >
                 Upgrade my plan
               </Link>
