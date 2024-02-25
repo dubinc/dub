@@ -54,8 +54,8 @@ const BUSINESS_PLAN_MODIFIER = ({
     },
     { text: "2-year analytics retention" },
     { text: `${domains} custom domains` },
-    { text: `${nFormatter(tags, { full: true })} tags` },
     { text: `${users} users` },
+    { text: `${nFormatter(tags, { full: true })} tags` },
     { text: "Elevated support", footnote: "Email and chat support." },
     {
       text: "Custom branding",
