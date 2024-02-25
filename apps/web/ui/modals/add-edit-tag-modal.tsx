@@ -209,10 +209,9 @@ function AddTagButton({
 }: {
   setShowAddEditTagModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { plan, tagsLimit } = useProject();
+  const { plan, nextPlan, tagsLimit } = useProject();
   const { tags } = useTags();
   const { queryParams } = useRouterStuff();
-
   const exceededTags = tags && tagsLimit && tags.length >= tagsLimit;
 
   return (
@@ -231,7 +230,7 @@ function AddTagButton({
               onClick={() => {
                 queryParams({
                   set: {
-                    upgrade: plan === "free" ? "pro" : "business",
+                    upgrade: nextPlan.name.toLowerCase(),
                   },
                 });
               }}

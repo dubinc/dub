@@ -61,7 +61,15 @@ export const withAuth =
   (
     handler: WithAuthHandler,
     {
-      requiredPlan = ["free", "pro", "business", "enterprise"], // if the action needs a specific plan
+      requiredPlan = [
+        "free",
+        "pro",
+        "business",
+        "business plus",
+        "business max",
+        "business extra",
+        "enterprise",
+      ], // if the action needs a specific plan
       requiredRole = ["owner", "member"],
       needNotExceededClicks, // if the action needs the user to not have exceeded their clicks usage
       needNotExceededLinks, // if the action needs the user to not have exceeded their links usage

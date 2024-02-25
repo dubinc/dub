@@ -1,4 +1,4 @@
-import { DUB_LOGO, SELF_SERVE_PAID_PLANS } from "@dub/utils";
+import { DUB_LOGO, getPlanDetails } from "@dub/utils";
 import {
   Body,
   Container,
@@ -23,7 +23,7 @@ export default function UpgradeEmail({
   email: string;
   plan: string;
 }) {
-  const planDetails = SELF_SERVE_PAID_PLANS.find((p) => p.name === plan)!;
+  const planDetails = getPlanDetails(plan);
   return (
     <Html>
       <Head />

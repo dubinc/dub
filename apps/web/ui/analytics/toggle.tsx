@@ -131,8 +131,7 @@ export default function Toggle() {
                                   setOpenDatePopover(false);
                                   queryParams({
                                     set: {
-                                      upgrade:
-                                        plan === "free" ? "pro" : "business",
+                                      upgrade: "pro",
                                     },
                                   });
                                 },

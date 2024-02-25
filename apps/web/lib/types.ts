@@ -166,7 +166,15 @@ export interface SAMLProviderProps {
 
 export type NewLinkProps = z.infer<typeof createLinkBodySchema>;
 
-export const plans = ["free", "pro", "business", "enterprise"] as const;
+export const plans = [
+  "free",
+  "pro",
+  "business",
+  "business plus",
+  "business extra",
+  "business max",
+  "enterprise",
+] as const;
 
 export const roles = ["owner", "member"] as const;
 

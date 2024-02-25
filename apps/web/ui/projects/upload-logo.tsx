@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 
 export default function UploadLogo() {
-  const { slug, logo } = useProject();
+  const { slug, logo, isOwner } = useProject();
 
   const [image, setImage] = useState<string | null>();
 
@@ -58,10 +58,10 @@ export default function UploadLogo() {
               mutate(`/api/projects/${slug}`),
             ]);
             toast.success("Succesfully uploaded project logo!");
-            return;
+          } else {
+            const { error } = await res.json();
+            toast.error(error.message);
           }
-          const { error } = await res.json();
-          toast.error(error.message);
           setUploading(false);
         });
       }}
@@ -164,7 +164,11 @@ export default function UploadLogo() {
           <Button
             text="Save changes"
             loading={uploading}
-            disabled={!image || logo === image}
+            disabled={!isOwner || !image || logo === image}
+            {...(!isOwner && {
+              disabledTooltip:
+                "Only project owners can change the project logo.",
+            })}
           />
         </div>
       </div>
