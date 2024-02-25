@@ -273,6 +273,7 @@ export const PLANS = [
 ];
 
 export const FREE_PLAN = PLANS.find((plan) => plan.name === "Free")!;
+export const PRO_PLAN = PLANS.find((plan) => plan.name === "Pro")!;
 
 export const SELF_SERVE_PAID_PLANS = PLANS.filter(
   (p) => p.name !== "Free" && p.name !== "Enterprise",
@@ -290,10 +291,8 @@ export const getPlanDetails = (plan: string) => {
   )!;
 };
 
-export const getNextPlan = (plan: any) => {
-  return (
-    PLANS[
-      PLANS.findIndex((p) => p.name.toLowerCase() === plan.toLowerCase()) + 1
-    ] || PLANS[1]
-  );
+export const getNextPlan = (plan: string) => {
+  return PLANS[
+    PLANS.findIndex((p) => p.name.toLowerCase() === plan.toLowerCase()) + 1
+  ];
 };
