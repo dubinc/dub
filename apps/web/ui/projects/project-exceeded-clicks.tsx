@@ -2,13 +2,11 @@
 
 import useProject from "@/lib/swr/use-project";
 import { MaxWidthWrapper, useRouterStuff } from "@dub/ui";
-import { getNextPlan } from "@dub/utils";
 import { Lock } from "lucide-react";
 
 export default function ProjectExceededClicks() {
-  const { plan } = useProject();
+  const { nextPlan } = useProject();
   const { queryParams } = useRouterStuff();
-  const nextPlan = getNextPlan(plan as string);
 
   return (
     <MaxWidthWrapper>

@@ -72,9 +72,9 @@ export type PlanProps =
   | "free"
   | "pro"
   | "business"
-  | "business-plus"
-  | "business-extra"
-  | "business-max"
+  | "business plus"
+  | "business extra"
+  | "business max"
   | "enterprise";
 
 export interface ProjectProps {

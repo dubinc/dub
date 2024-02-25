@@ -7,13 +7,7 @@ import PlanBadge from "@/ui/projects/plan-badge";
 import { Divider } from "@/ui/shared/icons";
 import ProgressBar from "@/ui/shared/progress-bar";
 import { Button, InfoTooltip, NumberTooltip, useRouterStuff } from "@dub/ui";
-import {
-  HOME_DOMAIN,
-  PLANS,
-  getFirstAndLastDay,
-  getNextPlan,
-  nFormatter,
-} from "@dub/utils";
+import { HOME_DOMAIN, getFirstAndLastDay, nFormatter } from "@dub/utils";
 import va from "@vercel/analytics";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -28,6 +22,7 @@ export default function ProjectBillingClient() {
   const {
     slug,
     plan,
+    nextPlan,
     usage,
     usageLimit,
     linksUsage,
@@ -77,8 +72,6 @@ export default function ProjectBillingClient() {
       }, 1000);
     }
   }, [searchParams, plan]);
-
-  const nextPlan = getNextPlan(plan as string);
 
   return (
     <>
@@ -157,7 +150,7 @@ export default function ProjectBillingClient() {
             <p className="text-sm text-gray-500">
               {plan === "enterprise"
                 ? "You're on the Enterprise plan."
-                : plan === "business-max"
+                : plan === "business max"
                   ? "Need more clicks or links? Contact us for an Enterprise quote."
                   : `For higher limits, upgrade to the ${nextPlan.name} plan.`}
             </p>
@@ -178,7 +171,7 @@ export default function ProjectBillingClient() {
                   }
                   variant="success"
                 />
-              ) : plan === "business-max" ? (
+              ) : plan === "business max" ? (
                 <a
                   href={`${HOME_DOMAIN}/enterprise`}
                   target="_blank"

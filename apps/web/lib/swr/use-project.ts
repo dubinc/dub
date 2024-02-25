@@ -1,5 +1,5 @@
 import { ProjectProps } from "@/lib/types";
-import { fetcher } from "@dub/utils";
+import { fetcher, getNextPlan } from "@dub/utils";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 
@@ -16,6 +16,7 @@ export default function useProject() {
 
   return {
     ...project,
+    nextPlan: getNextPlan(project?.plan),
     defaultDomains: project?.metadata?.defaultDomains || [],
     isOwner: project?.users && project.users[0].role === "owner",
     exceededClicks: project && project.usage >= project.usageLimit,

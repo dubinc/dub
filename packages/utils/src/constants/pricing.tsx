@@ -284,6 +284,8 @@ export const getPlanFromPriceId = (priceId: string) => {
   return PLANS.find((plan) => plan.price.ids?.includes(priceId)) || null;
 };
 
-export const getNextPlan = (plan: string) => {
-  return PLANS[PLANS.findIndex((p) => p.name.toLowerCase() === plan) + 1];
+export const getNextPlan = (plan: any) => {
+  return (
+    PLANS[PLANS.findIndex((p) => p.name.toLowerCase() === plan) + 1] || PLANS[1]
+  );
 };

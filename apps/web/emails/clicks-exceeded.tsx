@@ -1,10 +1,4 @@
-import {
-  DUB_LOGO,
-  PLANS,
-  capitalize,
-  getNextPlan,
-  nFormatter,
-} from "@dub/utils";
+import { DUB_LOGO, capitalize, getNextPlan, nFormatter } from "@dub/utils";
 import {
   Body,
   Container,
@@ -38,7 +32,7 @@ export default function ClicksExceeded({
   type: "first" | "second";
 }) {
   const { slug, name, usage, usageLimit, plan } = project;
-  const nextPlan = getNextPlan(plan as string);
+  const nextPlan = getNextPlan(plan);
 
   return (
     <Html>
