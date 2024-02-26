@@ -17,6 +17,7 @@ import {
   NumberTooltip,
   Popover,
   SimpleTooltipContent,
+  Tick,
   Tooltip,
   TooltipContent,
   useIntersectionObserver,
@@ -45,6 +46,8 @@ import {
   QrCode,
   TimerOff,
   Lock,
+  Copy,
+  CopyCheck,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -187,6 +190,15 @@ export default function LinkCard({
     };
   }, [handlClickOnLinkCard]);
 
+  const [copiedLinkId, setCopiedLinkId] = useState(false);
+
+  const copyLinkId = () => {
+    navigator.clipboard.writeText(id);
+    setCopiedLinkId(true);
+    toast.success("Link ID copied!");
+    setTimeout(() => setCopiedLinkId(false), 3000);
+  };
+
   const onKeyDown = (e: any) => {
     // only run shortcut logic if:
     // - usage is not exceeded
@@ -195,7 +207,7 @@ export default function LinkCard({
     // - there is no existing modal backdrop
     if (
       (selected || openPopover) &&
-      ["e", "d", "q", "a", "t", "x"].includes(e.key)
+      ["e", "d", "q", "a", "t", "i", "x"].includes(e.key)
     ) {
       setSelected(false);
       e.preventDefault();
@@ -216,6 +228,9 @@ export default function LinkCard({
           if (isDubDomain(domain)) {
             setShowTransferLinkModal(true);
           }
+          break;
+        case "i":
+          copyLinkId();
           break;
         case "x":
           setShowDeleteLinkModal(true);
@@ -493,25 +508,32 @@ export default function LinkCard({
                   shortcut="A"
                   className="h-9 px-2 font-medium"
                 />
+                {isDubDomain(domain) && (
+                  <Button
+                    text="Transfer"
+                    variant="outline"
+                    onClick={() => {
+                      setOpenPopover(false);
+                      setShowTransferLinkModal(true);
+                    }}
+                    icon={<FolderInput className="h-4 w-4" />}
+                    shortcut="T"
+                    className="h-9 px-2 font-medium"
+                  />
+                )}
                 <Button
-                  text="Transfer"
+                  text="Copy Link ID"
                   variant="outline"
-                  onClick={() => {
-                    setOpenPopover(false);
-                    setShowTransferLinkModal(true);
-                  }}
-                  icon={<FolderInput className="h-4 w-4" />}
-                  shortcut="T"
+                  onClick={() => copyLinkId()}
+                  icon={
+                    copiedLinkId ? (
+                      <CopyCheck className="h-4 w-4" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )
+                  }
+                  shortcut="I"
                   className="h-9 px-2 font-medium"
-                  {...(!isDubDomain(domain) && {
-                    disabledTooltip: (
-                      <SimpleTooltipContent
-                        title="You cannot transfer custom domain links between projects."
-                        cta="Learn more."
-                        href={`${HOME_DOMAIN}/help/article/how-to-transfer-links`}
-                      />
-                    ),
-                  })}
                 />
                 <Button
                   text="Delete"
