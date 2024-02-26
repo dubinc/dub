@@ -92,13 +92,14 @@ function AddEditLinkModal({
   );
 
   useEffect(() => {
-    if (primaryDomain) {
+    // for a new link (no props or duplicateProps), set the domain to the primary domain
+    if (primaryDomain && !props && !duplicateProps) {
       setData((prev) => ({
         ...prev,
         domain: primaryDomain,
       }));
     }
-  }, [primaryDomain]);
+  }, [primaryDomain, props, duplicateProps]);
 
   const { domain, key, url, password, proxy } = data;
 
