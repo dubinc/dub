@@ -80,6 +80,12 @@ export const createLinkBodySchema = z.object({
     .describe(
       "The short link slug. If not provided, a random 7-character slug will be generated.",
     ),
+  prefix: z
+    .string()
+    .optional()
+    .describe(
+      "The prefix of the short link slug for randomly-generated keys (e.g. if prefix is `/c/`, generated keys will be in the `/c/:key` format). Will be ignored if `key` is provided.",
+    ),
   url: z.string().url().describe("The destination URL of the short link."),
   archived: z
     .boolean()
