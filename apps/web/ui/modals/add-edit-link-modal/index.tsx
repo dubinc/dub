@@ -88,15 +88,17 @@ function AddEditLinkModal({
   } = useDomains();
 
   const [data, setData] = useState<LinkWithTagsProps>(
-    props ||
-      duplicateProps || {
-        ...(DEFAULT_LINK_PROPS as LinkWithTagsProps),
-        domain: primaryDomain,
-        key: "",
-        url: "",
-        tags: [],
-      },
+    props || duplicateProps || DEFAULT_LINK_PROPS,
   );
+
+  useEffect(() => {
+    if (primaryDomain) {
+      setData((prev) => ({
+        ...prev,
+        domain: primaryDomain,
+      }));
+    }
+  }, [primaryDomain]);
 
   const { domain, key, url, password, proxy } = data;
 

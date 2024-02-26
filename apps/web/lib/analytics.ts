@@ -116,6 +116,7 @@ export const getAnalytics = async ({
   // get all-time clicks count if:
   // 1. endpoint is /clicks
   // 2. interval is not defined
+  // 3. linkId is defined
   if (endpoint === "clicks" && !interval && linkId) {
     let response = await conn.execute(
       "SELECT clicks FROM Link WHERE `id` = ?",

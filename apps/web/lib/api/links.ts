@@ -220,13 +220,19 @@ export async function checkIfKeyExists(domain: string, key: string) {
   return !!link;
 }
 
-export async function getRandomKey(domain: string): Promise<string> {
+export async function getRandomKey(
+  domain: string,
+  prefix?: string,
+): Promise<string> {
   /* recursively get random key till it gets one that's available */
-  const key = nanoid();
+  let key = nanoid();
+  if (prefix) {
+    key = `${prefix.replace(/^\/|\/$/g, "")}/${key}`;
+  }
   const response = await checkIfKeyExists(domain, key);
   if (response) {
     // by the off chance that key already exists
-    return getRandomKey(domain);
+    return getRandomKey(domain, prefix);
   } else {
     return key;
   }
@@ -302,11 +308,11 @@ export async function processLink({
       };
     }
     // can't use `/` in key on free plan
-    if (key?.includes("/")) {
+    if (key?.includes("/") || payload["prefix"]) {
       return {
         link: payload,
         error:
-          "Key cannot contain '/'. You can only use this on a Pro plan and above. Upgrade to Pro to use this feature.",
+          "Key cannot contain '/'. You can only use key prefixes on a Pro plan and above. Upgrade to Pro to use this feature.",
         status: 422,
         code: "unprocessable_entity",
       };
@@ -366,7 +372,7 @@ export async function processLink({
   }
 
   if (!key) {
-    key = await getRandomKey(domain);
+    key = await getRandomKey(domain, payload["prefix"]);
   }
 
   if (bulk) {
@@ -460,6 +466,7 @@ export async function processLink({
   // remove polyfill attributes from payload
   delete payload["shortLink"];
   delete payload["qrCode"];
+  delete payload["prefix"];
 
   return {
     link: {
