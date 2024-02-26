@@ -748,6 +748,11 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
               description:
                 "The short link slug. If not provided, a random 7-character slug will be generated.",
             },
+            prefix: {
+              type: "string",
+              description:
+                "The prefix of the short link slug for randomly-generated keys (e.g. if prefix is `/c/`, generated keys will be in the `/c/:key` format). Will be ignored if `key` is provided.",
+            },
             url: {
               type: "string",
               description: "The destination URL of the short link.",
