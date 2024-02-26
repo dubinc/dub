@@ -17,7 +17,6 @@ import {
   NumberTooltip,
   Popover,
   SimpleTooltipContent,
-  Tick,
   Tooltip,
   TooltipContent,
   useIntersectionObserver,
