@@ -8,9 +8,6 @@ const REDIRECT_SEGMENTS = [
   "_static",
 ];
 
-const path = require("path");
-const { NormalModuleReplacementPlugin } = require("webpack");
-
 /** @type {import('next').NextConfig} */
 module.exports = {
   reactStrictMode: false,
