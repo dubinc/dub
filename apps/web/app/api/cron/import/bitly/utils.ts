@@ -160,7 +160,7 @@ export const importLinksFromBitly = async ({
       prisma.tag.deleteMany({
         where: {
           projectId,
-          linksNew: {
+          links: {
             none: {},
           },
         },

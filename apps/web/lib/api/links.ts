@@ -618,19 +618,19 @@ export async function bulkCreateLinks({
   // split links into domains
   const linksByDomain: Record<string, Record<string, RedisLinkProps>> = {};
 
-  const [validTagIds, ..._rest] = await Promise.all([
-    prisma.tag
-      .findMany({
-        where: {
-          id: {
-            in: linkTags.map(({ tagId }) => tagId),
-          },
+  const [validTags, ..._rest] = await Promise.all([
+    prisma.tag.findMany({
+      where: {
+        id: {
+          in: linkTags.map(({ tagId }) => tagId),
         },
-        select: {
-          id: true,
-        },
-      })
-      .then((tags) => tags.map(({ id }) => id)),
+      },
+      select: {
+        id: true,
+        name: true,
+        color: true,
+      },
+    }),
     ...createdLinks.map(async (link) => {
       const { domain, key } = link;
 
@@ -650,12 +650,16 @@ export async function bulkCreateLinks({
     pipeline.hset(domain, links);
   });
 
+  const validLinkTags = linkTags.filter(({ tagId }) =>
+    validTags.map(({ id }) => id).includes(tagId),
+  );
+
   await Promise.all([
     pipeline.exec(),
     // create link tags for valid tagIds
     linkTags.length > 0 &&
       prisma.linkTag.createMany({
-        data: linkTags.filter(({ tagId }) => validTagIds.includes(tagId)),
+        data: validLinkTags,
         skipDuplicates: true,
       }),
   ]);
@@ -665,10 +669,17 @@ export async function bulkCreateLinks({
       domain: link.domain,
       key: link.key,
     });
+    const linkTags = validLinkTags.filter(({ linkId }) => linkId === link.id);
+    const tags = validTags.filter(({ id }) =>
+      linkTags.map(({ tagId }) => tagId).includes(id),
+    );
+
     return {
       ...link,
       shortLink,
       qrCode: `https://api.dub.co/qr?url=${shortLink}`,
+      tags,
+      tagId: tags?.[0]?.id ?? null,
     };
   });
 }
