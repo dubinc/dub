@@ -102,28 +102,30 @@ export default function ProjectBillingClient() {
               )}
             </p>
           </div>
-          <div>
-            <Button
-              text="Manage Subscription"
-              variant="secondary"
-              className="h-9"
-              onClick={() => {
-                setClicked(true);
-                fetch(`/api/projects/${slug}/billing/manage`, {
-                  method: "POST",
-                })
-                  .then(async (res) => {
-                    const url = await res.json();
-                    router.push(url);
+          {plan !== "free" && (
+            <div>
+              <Button
+                text="Manage Subscription"
+                variant="secondary"
+                className="h-9"
+                onClick={() => {
+                  setClicked(true);
+                  fetch(`/api/projects/${slug}/billing/manage`, {
+                    method: "POST",
                   })
-                  .catch((err) => {
-                    alert(err);
-                    setClicked(false);
-                  });
-              }}
-              loading={clicked}
-            />
-          </div>
+                    .then(async (res) => {
+                      const url = await res.json();
+                      router.push(url);
+                    })
+                    .catch((err) => {
+                      alert(err);
+                      setClicked(false);
+                    });
+                }}
+                loading={clicked}
+              />
+            </div>
+          )}
         </div>
         <div className="grid divide-y divide-gray-200 border-y border-gray-200">
           <UsageCategory
