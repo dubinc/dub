@@ -116,6 +116,7 @@ export const getAnalytics = async ({
   // get all-time clicks count if:
   // 1. endpoint is /clicks
   // 2. interval is not defined
+  // 3. linkId is defined
   if (endpoint === "clicks" && !interval && linkId) {
     let response = await conn.execute(
       "SELECT clicks FROM Link WHERE `id` = ?",
@@ -127,14 +128,14 @@ export const getAnalytics = async ({
         [linkId],
       );
       if (response.rows.length === 0) {
-        return "0";
+        return 0;
       }
       return response.rows[0]["clicks"];
     }
   }
 
   let url = new URL(
-    `https://api.us-east.tinybird.co/v0/pipes/${endpoint}.json`,
+    `${process.env.TINYBIRD_API_URL}/v0/pipes/${endpoint}.json`,
   );
   if (projectId) {
     url.searchParams.append("projectId", projectId);
@@ -182,7 +183,7 @@ export const getAnalytics = async ({
       if (endpoint === "clicks") {
         try {
           const clicks = data[0]["count()"];
-          return clicks || "0";
+          return clicks || 0;
         } catch (e) {
           console.log(e);
         }

@@ -20,10 +20,10 @@ export default function Layout({ children }: { children: ReactNode }) {
           <MaxWidthWrapper>
             <div className="flex h-16 items-center justify-between">
               <div className="flex items-center">
-                <Link href="/">
+                <Link href="/" className="hidden sm:block">
                   <Logo className="h-8 w-8 transition-all duration-75 active:scale-95" />
                 </Link>
-                <Divider className="h-8 w-8 text-gray-200 sm:ml-3" />
+                <Divider className="hidden h-8 w-8 text-gray-200 sm:ml-3 sm:block" />
                 <ProjectSelect />
                 <UpgradeBanner />
               </div>

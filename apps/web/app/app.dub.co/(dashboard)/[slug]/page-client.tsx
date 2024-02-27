@@ -11,6 +11,7 @@ import {
   TooltipContent,
   useRouterStuff,
 } from "@dub/ui";
+import { getNextPlan } from "@dub/utils";
 import { ChevronDown, FilePlus2, Sheet } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -39,7 +40,7 @@ export default function ProjectLinksClient() {
 
 const AddLinkOptions = () => {
   const router = useRouter();
-  const { slug, plan, exceededLinks } = useProject();
+  const { slug, nextPlan, exceededLinks } = useProject();
   const [openPopover, setOpenPopover] = useState(false);
   const { queryParams } = useRouterStuff();
 
@@ -53,12 +54,12 @@ const AddLinkOptions = () => {
                 content={
                   <TooltipContent
                     title="Your project has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
-                    cta={`Upgrade to ${plan === "free" ? "Pro" : "Business"}`}
+                    cta={`Upgrade to ${nextPlan.name}`}
                     onClick={() => {
                       setOpenPopover(false);
                       queryParams({
                         set: {
-                          upgrade: plan === "free" ? "pro" : "business",
+                          upgrade: nextPlan.name.toLowerCase(),
                         },
                       });
                     }}
@@ -103,12 +104,12 @@ const AddLinkOptions = () => {
                 content={
                   <TooltipContent
                     title="Your project has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
-                    cta={`Upgrade to ${plan === "free" ? "Pro" : "Business"}`}
+                    cta={`Upgrade to ${nextPlan.name}`}
                     onClick={() => {
                       setOpenPopover(false);
                       queryParams({
                         set: {
-                          upgrade: plan === "free" ? "pro" : "business",
+                          upgrade: nextPlan.name.toLowerCase(),
                         },
                       });
                     }}
@@ -153,12 +154,12 @@ const AddLinkOptions = () => {
                 content={
                   <TooltipContent
                     title="Your project has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
-                    cta={`Upgrade to ${plan === "free" ? "Pro" : "Business"}`}
+                    cta={`Upgrade to ${nextPlan.name}`}
                     onClick={() => {
                       setOpenPopover(false);
                       queryParams({
                         set: {
-                          upgrade: plan === "free" ? "pro" : "business",
+                          upgrade: nextPlan.name.toLowerCase(),
                         },
                       });
                     }}

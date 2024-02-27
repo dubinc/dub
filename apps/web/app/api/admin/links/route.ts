@@ -42,6 +42,17 @@ export const GET = withAdmin(async ({ searchParams }) => {
     },
     include: {
       user: true,
+      tags: {
+        include: {
+          tag: {
+            select: {
+              id: true,
+              name: true,
+              color: true,
+            },
+          },
+        },
+      },
     },
     orderBy: {
       [sort]: "desc",
@@ -52,5 +63,10 @@ export const GET = withAdmin(async ({ searchParams }) => {
     }),
   });
 
-  return NextResponse.json(response);
+  const links = response.map((link) => ({
+    ...link,
+    tags: link.tags.map(({ tag }) => tag),
+  }));
+
+  return NextResponse.json(links);
 });

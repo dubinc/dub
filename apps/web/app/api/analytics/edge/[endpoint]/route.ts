@@ -57,12 +57,12 @@ export const GET = async (
     const project =
       link?.projectId && (await getProjectViaEdge(link.projectId));
     if (
-      !project ||
-      (project.plan === "free" && (interval === "all" || interval === "90d"))
+      (!project || project.plan === "free") &&
+      (interval === "all" || interval === "90d")
     ) {
       return new Response("Unauthorized: Need higher plan.", { status: 403 });
     }
-    if (project.usage > project.usageLimit) {
+    if (project && project.usage > project.usageLimit) {
       return new Response(
         exceededLimitError({
           plan: project.plan,

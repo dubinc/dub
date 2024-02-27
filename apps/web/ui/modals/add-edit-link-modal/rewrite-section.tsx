@@ -1,4 +1,5 @@
 import useProject from "@/lib/swr/use-project";
+import { LinkProps } from "@/lib/types";
 import {
   InfoTooltip,
   SimpleTooltipContent,
@@ -7,7 +8,6 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { HOME_DOMAIN } from "@dub/utils";
-import { type Link as LinkProps } from "@prisma/client";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 export default function RewriteSection({

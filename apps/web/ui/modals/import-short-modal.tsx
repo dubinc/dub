@@ -59,6 +59,7 @@ function ImportShortModal({
     ImportedDomainCountProps[]
   >([]);
 
+  const [importTags, setImportTags] = useState<boolean>(false);
   const [importing, setImporting] = useState(false);
 
   useEffect(() => {
@@ -105,7 +106,7 @@ function ImportShortModal({
         </p>
       </div>
 
-      <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:rounded-b-2xl sm:px-16">
+      <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16">
         {isLoading ? (
           <button className="flex flex-col items-center justify-center space-y-4 bg-none">
             <LoadingSpinner />
@@ -124,6 +125,7 @@ function ImportShortModal({
                   },
                   body: JSON.stringify({
                     selectedDomains,
+                    importTags,
                   }),
                 }).then(async (res) => {
                   if (res.ok) {
@@ -178,6 +180,13 @@ function ImportShortModal({
                   />
                 </div>
               ))}
+              <div className="flex items-center justify-between space-x-2 rounded-md py-1 pl-2 pr-4">
+                <p className="text-xs text-gray-500">Import all tags?</p>
+                <Switch
+                  fn={() => setImportTags(!importTags)}
+                  checked={importTags}
+                />
+              </div>
             </div>
             <Button
               text="Confirm import"

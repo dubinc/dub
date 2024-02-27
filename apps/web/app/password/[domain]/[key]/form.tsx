@@ -2,11 +2,13 @@
 
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { Button, useMediaQuery } from "@dub/ui";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { verifyPassword } from "./action";
 
 const initialState = {
+  redirect: null,
   error: null,
 };
 
@@ -16,6 +18,14 @@ export default function PasswordForm() {
     key: string;
   };
   const [state, formAction] = useFormState(verifyPassword, initialState);
+
+  const router = useRouter();
+
+  useEffect(() => {
+    if (state.redirect) {
+      router.push(state.redirect);
+    }
+  }, [state]);
 
   const { isMobile } = useMediaQuery();
 
@@ -39,12 +49,12 @@ export default function PasswordForm() {
             autoFocus={!isMobile}
             required
             className={`${
-              state?.error
+              state.error
                 ? "border-red-300 pr-10 text-red-500 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                 : "border-gray-300 text-gray-900 placeholder-gray-300 focus:border-gray-500 focus:ring-gray-500"
             } block w-full rounded-md focus:outline-none sm:text-sm`}
           />
-          {state?.error && (
+          {state.error && (
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
               <AlertCircleFill
                 className="h-5 w-5 text-red-500"
@@ -53,7 +63,7 @@ export default function PasswordForm() {
             </div>
           )}
         </div>
-        {state?.error && (
+        {state.error && (
           <p className="mt-2 text-sm text-red-600" id="slug-error">
             Incorrect password
           </p>

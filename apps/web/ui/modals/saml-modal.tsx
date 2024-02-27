@@ -56,7 +56,7 @@ function SAMLModal({
         </p>
       </div>
 
-      <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:rounded-b-2xl sm:px-16">
+      <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16">
         <form
           onSubmit={async (e) => {
             e.preventDefault();
