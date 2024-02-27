@@ -60,7 +60,7 @@ export default function RegisterPage() {
         >
           <BlurImage
             alt="Dub.co Analytics"
-            src="https://d2vwwcvoksz7ty.cloudfront.net/features/analytics.png"
+            src="https://assets.dub.co/features/analytics.png"
             width={1735}
             height={990}
             className="h-full rounded-xl border border-gray-200 object-cover shadow-md"

@@ -55,9 +55,8 @@ export const ADMIN_HOSTNAMES = new Set([
   "admin.localhost:8888",
 ]);
 
-export const DUB_LOGO = "https://d2vwwcvoksz7ty.cloudfront.net/logo.png";
-export const DUB_THUMBNAIL =
-  "https://d2vwwcvoksz7ty.cloudfront.net/thumbnail.png";
+export const DUB_LOGO = "https://assets.dub.co/logo.png";
+export const DUB_THUMBNAIL = "https://assets.dub.co/thumbnail.png";
 
 export const DEMO_LINK_ID = "clqo10sum0006js08vutzfxt3";
 export const DUB_PROJECT_ID = "cl7pj5kq4006835rbjlt2ofka";
