@@ -307,16 +307,6 @@ export async function processLink({
         code: "forbidden",
       };
     }
-    // can't use `/` in key on free plan
-    if (key?.includes("/") || payload["prefix"]) {
-      return {
-        link: payload,
-        error:
-          "Key cannot contain '/'. You can only use key prefixes on a Pro plan and above. Upgrade to Pro to use this feature.",
-        status: 422,
-        code: "unprocessable_entity",
-      };
-    }
   }
 
   // if domain is not defined, set it to the project's primary domain

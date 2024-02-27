@@ -2,12 +2,12 @@
 
 import { ALL_TOOLS, COMPARE_PAGES } from "@dub/utils";
 import va from "@vercel/analytics";
+import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { FEATURES_LIST } from "./content";
 import { Github, LinkedIn, LogoType, Twitter, YouTube } from "./icons";
 import { MaxWidthWrapper } from "./max-width-wrapper";
-import Image from "next/image";
 
 const navigation = {
   features: FEATURES_LIST.map(({ shortTitle, slug }) => ({
@@ -240,7 +240,7 @@ export function Footer() {
           </div>
         </div>
         <Image
-          src="https://d2vwwcvoksz7ty.cloudfront.net/footer.png"
+          src="https://assets.dub.co/footer.png"
           alt="Dub Technologies, Inc. Logo"
           width={1959}
           height={625}

@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
           flexDirection: "column",
           alignItems: "center",
           backgroundColor: "white",
-          backgroundImage: `url(https://d2vwwcvoksz7ty.cloudfront.net/background.png)`,
+          backgroundImage: `url(https://assets.dub.co/background.png)`,
           backgroundSize: "100% 100%",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",

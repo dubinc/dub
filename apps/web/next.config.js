@@ -62,7 +62,7 @@ module.exports = {
         hostname: "pbs.twimg.com",
       },
       {
-        hostname: "d2vwwcvoksz7ty.cloudfront.net",
+        hostname: "assets.dub.co",
       },
       {
         hostname: "lh3.googleusercontent.com",
