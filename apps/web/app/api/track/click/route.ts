@@ -1,5 +1,7 @@
 import { recordClick } from "@/lib/tinybird";
 import { NextRequest, NextResponse } from "next/server";
+import { internal_runWithWaitUntil as waitUntil } from "next/dist/server/web/internal-edge-wait-until";
+import { nanoid } from "@dub/utils";
 
 export const runtime = "edge";
 
@@ -25,10 +27,19 @@ export const POST = async (req: NextRequest) => {
   // @ts-expect-error
   const { id, url } = body;
 
-  const response = await recordClick({
-    req,
-    id,
-    url,
+  const click_id = nanoid(16);
+
+  waitUntil(async () => {
+    // auth
+    // record click
+    const response = await recordClick({
+      req,
+      id,
+      url,
+    });
   });
-  return NextResponse.json(response);
+
+  return NextResponse.json({
+    click_id,
+  });
 };
