@@ -223,6 +223,8 @@ function AddProjectModalHelper({
               } block w-full rounded-r-md focus:outline-none sm:text-sm`}
               placeholder="acme"
               value={slug}
+              min={3}
+              max={48}
               onChange={(e) => {
                 setSlugError(null);
                 setData({ ...data, slug: e.target.value });

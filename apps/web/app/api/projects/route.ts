@@ -48,8 +48,12 @@ export const POST = withSession(async ({ req, session }) => {
   }
   let slugError: string | null = null;
 
-  // check if slug is too long
-  if (slug.length > 48) {
+  // check if slug is too short
+  if (slug.length < 3) {
+    slugError = "Slug must be at least 3 characters";
+
+    // check if slug is too long
+  } else if (slug.length > 48) {
     slugError = "Slug must be less than 48 characters";
 
     // check if slug is valid
