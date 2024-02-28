@@ -31,11 +31,12 @@ export default function LoginForm() {
       <div className="flex space-x-2">
         <Button
           variant="secondary"
-          onClick={() => {
+          onClick={async () => {
             setClickedGoogle(true);
-            signIn("google", {
+            await signIn("google", {
               ...(next && next.length > 0 ? { callbackUrl: next } : {}),
             });
+            setClickedGoogle(false);
           }}
           loading={clickedGoogle}
           disabled={clickedEmail || clickedSSO}
@@ -43,11 +44,12 @@ export default function LoginForm() {
         />
         <Button
           variant="secondary"
-          onClick={() => {
+          onClick={async () => {
             setClickedGithub(true);
-            signIn("github", {
+            await signIn("github", {
               ...(next && next.length > 0 ? { callbackUrl: next } : {}),
             });
+            setClickedGithub(false);
           }}
           loading={clickedGitub}
           disabled={clickedEmail || clickedSSO}

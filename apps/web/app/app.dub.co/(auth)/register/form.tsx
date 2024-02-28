@@ -17,22 +17,24 @@ export default function RegisterForm() {
       <Button
         variant="secondary"
         text="Continue with Google"
-        onClick={() => {
+        onClick={async () => {
           setClickedGoogle(true);
-          signIn("google", {
+          await signIn("google", {
             ...(next && next.length > 0 ? { callbackUrl: next } : {}),
           });
+          setClickedGoogle(false);
         }}
         loading={clickedGoogle}
         icon={<Google className="h-4 w-4" />}
       />
       <Button
         text="Continue with GitHub"
-        onClick={() => {
+        onClick={async () => {
           setClickedGithub(true);
-          signIn("github", {
+          await signIn("github", {
             ...(next && next.length > 0 ? { callbackUrl: next } : {}),
           });
+          setClickedGithub(false);
         }}
         loading={clickedGitub}
         icon={<Github className="h-4 w-4" />}
