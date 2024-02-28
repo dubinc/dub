@@ -130,3 +130,29 @@ export async function recordLink({
     },
   ).then((res) => res.json());
 }
+
+export async function recordTrack({
+  eventName,
+  properties,
+  clickId,
+}: {
+  eventName: string;
+  properties: Record<string, any>;
+  clickId: string;
+}) {
+  return await fetch(
+    `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_track_events&wait=true`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
+      },
+      body: JSON.stringify({
+        timestamp: new Date(Date.now()).toISOString(),
+        click_id: clickId,
+        event_name: eventName,
+        properties: properties,
+      }),
+    },
+  ).then((res) => res.json());
+}
