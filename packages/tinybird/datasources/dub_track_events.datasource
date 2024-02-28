@@ -1,0 +1,10 @@
+
+SCHEMA >
+    `timestamp` DateTime64(3) `json:$.timestamp`,
+    `click_id` String `json:$.click_id`,
+    `event_name` String `json:$.event_name`,
+    `properties` String `json:$.properties`,
+
+ENGINE "MergeTree"
+ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
+ENGINE_SORTING_KEY "timestamp, click_id, event_name"
