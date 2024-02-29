@@ -85,7 +85,8 @@
     "topojson-client": "^3.1.0",
     "unsplash-js": "^7.0.18",
     "use-debounce": "^8.0.4",
-    "vaul": "^0.6.8"
+    "vaul": "^0.6.8",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/dotenv-flow": "^3.3.2",
