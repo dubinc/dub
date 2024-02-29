@@ -3,39 +3,34 @@ import { NextResponse } from "next/server";
 import { internal_runWithWaitUntil as waitUntil } from "next/dist/server/web/internal-edge-wait-until";
 import { nanoid } from "@dub/utils";
 import { withAuthEdge } from "@/lib/auth-edge";
+import { redis } from "@/lib/upstash";
+import { RedisLinkProps } from "@/lib/types";
+import { parseUrl } from "@/lib/middleware/utils";
+import { z } from 'zod';
 
 export const runtime = "edge";
 
-/**
-vercel.com?via=zach
-no dclid cookie:
--> POST /api/analytics/click
-- records the origin location/ua/device of the click
-- get back dclid (set to cookie)
-
-vercel.link/zach -> vercel.com?via=zach
-2 click events:
-- middleware
-- POST /api/track/click
-**/
+const ClickEventSchema = z.object({
+  url: z.string().url(),
+});
 
 // POST /api/track/click – post click event
 export const POST = withAuthEdge(async ({ req }) => {
-  // Add Auth to check API key to make sure it's a valid project on Dub
+  const body = ClickEventSchema.parse(await req.json());
+  const { url } = body;
+  const { domain, key } = parseUrl(url);
 
-  // zod for body validation
-  const body = req.json();
-  // @ts-expect-error
-  const { id, url } = body;
-
+  // TODO: check if url is a short link or a url with a via parameter
+  let link = await redis.hget<RedisLinkProps>(domain, key);
+  if (!link) {
+    return NextResponse.json("Link not found", { status: 404 });
+  }
   const click_id = nanoid(16);
 
   waitUntil(async () => {
-    // auth
-    // record click
-    const response = await recordClick({
+    await recordClick({
       req,
-      id,
+      id: link!.id,
       url,
     });
   });
