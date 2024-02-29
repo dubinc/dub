@@ -14,7 +14,7 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
       contact: {
         email: "support@dub.co",
         name: "Dub.co Support",
-        url: "https://dub.co/help",
+        url: "https://dub.co/api",
       },
       version: "0.0.1",
     },
