@@ -1,7 +1,8 @@
 import { recordClick } from "@/lib/tinybird";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { internal_runWithWaitUntil as waitUntil } from "next/dist/server/web/internal-edge-wait-until";
 import { nanoid } from "@dub/utils";
+import { withAuthEdge } from "@/lib/auth-edge";
 
 export const runtime = "edge";
 
@@ -19,7 +20,7 @@ vercel.link/zach -> vercel.com?via=zach
 **/
 
 // POST /api/track/click – post click event
-export const POST = async (req: NextRequest) => {
+export const POST = withAuthEdge(async ({ req }) => {
   // Add Auth to check API key to make sure it's a valid project on Dub
 
   // zod for body validation
@@ -42,4 +43,4 @@ export const POST = async (req: NextRequest) => {
   return NextResponse.json({
     click_id,
   });
-};
+}, {});
