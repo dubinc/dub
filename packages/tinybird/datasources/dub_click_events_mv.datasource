@@ -4,6 +4,7 @@ SCHEMA >
     `timestamp` DateTime64(3),
     `click_id` String,
     `link_id` String,
+    `affiliate_id` String,
     `url` String,
     `country` LowCardinality(String),
     `city` String,
