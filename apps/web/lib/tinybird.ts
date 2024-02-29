@@ -135,7 +135,7 @@ export async function recordLink({
   ).then((res) => res.json());
 }
 
-export async function recordTrack({
+export async function recordConversion({
   eventName,
   properties,
   clickId,
@@ -145,7 +145,7 @@ export async function recordTrack({
   clickId: string;
 }) {
   return await fetch(
-    `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_track_events&wait=true`,
+    `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_conversion_events&wait=true`,
     {
       method: "POST",
       headers: {
