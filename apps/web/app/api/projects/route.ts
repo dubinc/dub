@@ -21,7 +21,7 @@ const createProjectSchema = z.object({
   name: z.string().min(1),
   slug: z
     .string()
-    .min(1)
+    .min(3, "Slug must be at least 3 characters")
     .max(48, "Slug must be less than 48 characters")
     .transform((v) => v.toLowerCase())
     .refine((v) => validSlugRegex.test(v), { message: "Invalid slug format" })
