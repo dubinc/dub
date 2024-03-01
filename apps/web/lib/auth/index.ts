@@ -367,7 +367,6 @@ export const withAuth =
 
     // plan checks
     if (!requiredPlan.includes(project.plan)) {
-      // return res.status(403).end("Unauthorized: Need higher plan.");
       return new Response("Unauthorized: Need higher plan.", {
         status: 403,
         headers,

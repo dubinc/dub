@@ -73,6 +73,5 @@ export const POST = withAuth(
   },
   {
     needNotExceededLinks: true,
-    requiredPlan: ["pro", "business", "enterprise"],
   },
 );

@@ -595,10 +595,7 @@ export async function bulkCreateLinks({
         linkTags.push(
           ...combinedTagIds.map((tagId) => ({ tagId, linkId: data.id })),
         );
-        return {
-          ...data,
-          tagIds: combinedTagIds,
-        };
+        return data;
       }),
     )) as LinkWithTagIdsProps[];
   }
@@ -648,6 +645,17 @@ export async function bulkCreateLinks({
         data: linkTags.filter(({ tagId }) => validTagIds.includes(tagId)),
         skipDuplicates: true,
       }),
+    // update links usage
+    prisma.project.update({
+      where: {
+        id: createdLinks[0].projectId!, // this will always be present
+      },
+      data: {
+        linksUsage: {
+          increment: createdLinks.length,
+        },
+      },
+    }),
   ]);
 
   return createdLinks.map((link) => {
