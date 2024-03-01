@@ -1,9 +1,9 @@
 import { intervals } from "@/lib/analytics";
 import z from "@/lib/zod";
 import { booleanQuerySchema } from ".";
+import { COUNTRIES } from "@dub/utils";
 
-// TODO:
-// Use COUNTRIES code enum
+const countryCodes = Object.keys(COUNTRIES) as [string, ...string[]];
 
 export const getAnalyticsQuerySchema = z.object({
   projectSlug: z
@@ -20,7 +20,7 @@ export const getAnalyticsQuerySchema = z.object({
     .default("24h")
     .describe("The interval to retrieve analytics for."),
   country: z
-    .string()
+    .enum(countryCodes)
     .optional()
     .describe("The country to retrieve analytics for."),
   city: z.string().optional().describe("The city to retrieve analytics for."),
