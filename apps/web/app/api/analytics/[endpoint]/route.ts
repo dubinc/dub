@@ -8,7 +8,7 @@ import { NextResponse } from "next/server";
 
 const endpointSchema = z.object({
   endpoint: z.enum(VALID_TINYBIRD_ENDPOINTS, {
-    errorMap: (issue, ctx) => {
+    errorMap: (_issue, _ctx) => {
       return {
         message: `Invalid endpoint. Valid endpoints are: ${VALID_TINYBIRD_ENDPOINTS.join(", ")}`,
       };
