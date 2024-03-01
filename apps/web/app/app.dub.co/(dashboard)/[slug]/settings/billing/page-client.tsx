@@ -22,6 +22,7 @@ export default function ProjectBillingClient() {
   const {
     slug,
     plan,
+    stripeId,
     nextPlan,
     usage,
     usageLimit,
@@ -102,7 +103,7 @@ export default function ProjectBillingClient() {
               )}
             </p>
           </div>
-          {plan !== "free" && (
+          {stripeId && (
             <div>
               <Button
                 text="Manage Subscription"
