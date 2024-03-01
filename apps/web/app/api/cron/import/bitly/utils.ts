@@ -51,6 +51,9 @@ export const importLinksFromBitly = async ({
       custom_bitlinks,
       tags,
     }) => {
+      if (!id || !url) {
+        return [];
+      }
       const [domain, key] = id.split("/");
       // if domain is not in project domains, skip (could be a bit.ly link or old short domain)
       if (!domains.includes(domain)) {
@@ -97,7 +100,7 @@ export const importLinksFromBitly = async ({
   );
 
   // bulk create links
-  await bulkCreateLinks({ links: importedLinks });
+  // await bulkCreateLinks({ links: importedLinks });
 
   count += importedLinks.length;
 
