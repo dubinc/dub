@@ -178,7 +178,7 @@ export const PLANS = [
       {
         text: "Advanced link features",
         footnote:
-          "Custom social media cards, password-protected links, link expiration, link cloaking, device targeting, geo targeting, link aliases, link monitoring etc.",
+          "Custom social media cards, password-protected links, link expiration, link cloaking, device targeting, geo targeting etc.",
       },
     ],
   },
