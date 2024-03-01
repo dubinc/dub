@@ -706,6 +706,8 @@ export async function editLink({
     ...rest
   } = updatedLink;
 
+  const combinedTagIds = combineTagIds({ tagId, tagIds });
+
   if (proxy && image) {
     // only upload image to cloudinary if proxy is true and there's an image
     if (uploadedImage) {
@@ -724,7 +726,7 @@ export async function editLink({
     });
   }
 
-  const [response, ...effects] = await Promise.all([
+  const [response, ..._effects] = await Promise.all([
     prisma.link.update({
       where: {
         id,
@@ -745,10 +747,10 @@ export async function editLink({
         tags: {
           deleteMany: {
             tagId: {
-              notIn: tagIds,
+              notIn: combinedTagIds,
             },
           },
-          connectOrCreate: tagIds.map((tagId) => ({
+          connectOrCreate: combinedTagIds.map((tagId) => ({
             where: { linkId_tagId: { linkId: id, tagId } },
             create: { tagId },
           })),
