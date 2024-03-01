@@ -493,7 +493,7 @@ export async function addLink(link: LinkWithTagIdsProps) {
   const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
     getParamsFromURL(url);
 
-  if (proxy && image) {
+  if (proxy && image && uploadedImage) {
     const { secure_url } = await cloudinary.v2.uploader.upload(image, {
       public_id: key,
       folder: domain,
@@ -511,7 +511,7 @@ export async function addLink(link: LinkWithTagIdsProps) {
       key,
       title: truncate(title, 120),
       description: truncate(description, 240),
-      image: uploadedImage ? undefined : image,
+      image,
       utm_source,
       utm_medium,
       utm_campaign,
@@ -672,7 +672,7 @@ export async function editLink({
   key: string;
   updatedLink: LinkWithTagIdsProps;
 }) {
-  const {
+  let {
     id,
     domain,
     key,
@@ -706,6 +706,24 @@ export async function editLink({
     ...rest
   } = updatedLink;
 
+  if (proxy && image) {
+    // only upload image to cloudinary if proxy is true and there's an image
+    if (uploadedImage) {
+      const { secure_url } = await cloudinary.v2.uploader.upload(image, {
+        public_id: key,
+        folder: domain,
+        overwrite: true,
+        invalidate: true,
+      });
+      image = secure_url;
+    }
+    // if there's no proxy enabled or no image, delete the image in Cloudinary
+  } else {
+    await cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
+      invalidate: true,
+    });
+  }
+
   const [response, ...effects] = await Promise.all([
     prisma.link.update({
       where: {
@@ -716,7 +734,7 @@ export async function editLink({
         key,
         title: truncate(title, 120),
         description: truncate(description, 240),
-        image: uploadedImage ? undefined : image,
+        image,
         utm_source,
         utm_medium,
         utm_campaign,
@@ -737,21 +755,6 @@ export async function editLink({
         },
       },
     }),
-    ...(process.env.CLOUDINARY_URL
-      ? [
-          // only upload image to cloudinary if proxy is true and there's an image
-          proxy && image
-            ? cloudinary.v2.uploader.upload(image, {
-                public_id: key,
-                folder: domain,
-                overwrite: true,
-                invalidate: true,
-              })
-            : cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
-                invalidate: true,
-              }),
-        ]
-      : []),
     // if key is changed: rename resource in Cloudinary, delete the old key in Redis and change the clicks key name
     ...(changedDomain || changedKey
       ? [
@@ -768,18 +771,6 @@ export async function editLink({
         ]
       : []),
   ]);
-  if (proxy && image) {
-    const { secure_url } = effects[0];
-    response.image = secure_url;
-    await prisma.link.update({
-      where: {
-        id,
-      },
-      data: {
-        image: secure_url,
-      },
-    });
-  }
 
   const shortLink = linkConstructor({
     domain: response.domain,
