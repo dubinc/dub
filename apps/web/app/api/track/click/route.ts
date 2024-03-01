@@ -7,6 +7,7 @@ import { redis } from "@/lib/upstash";
 import { RedisLinkProps } from "@/lib/types";
 import { parseUrl } from "@/lib/middleware/utils";
 import { z } from 'zod';
+import { getLinkViaEdgeByURL } from "@/lib/planetscale";
 
 export const runtime = "edge";
 
@@ -20,8 +21,12 @@ export const POST = withAuthEdge(async ({ req }) => {
   const { url } = body;
   const { domain, key } = parseUrl(url);
 
-  // TODO: check if url is a short link or a url with a via parameter
-  let link = await redis.hget<RedisLinkProps>(domain, key);
+  let link;
+  if (url.includes("via=")) {
+    link = await getLinkViaEdgeByURL(url);
+  } else {
+    link = await redis.hget<RedisLinkProps>(domain, key);
+  }
   if (!link) {
     return NextResponse.json("Link not found", { status: 404 });
   }
