@@ -1,5 +1,6 @@
 import { withAuth } from "@/lib/auth";
 import { handleAndReturnErrorResponse } from "@/lib/errors";
+import { getDomainOrLink } from "@/lib/planetscale";
 import prisma from "@/lib/prisma";
 import z, { domainKeySchema } from "@/lib/zod";
 import { NextResponse } from "next/server";
@@ -12,17 +13,7 @@ const updatePublicStatsSchema = z.object({
 export const GET = withAuth(async ({ searchParams }) => {
   try {
     const { domain, key } = domainKeySchema.parse(searchParams);
-    const response = await prisma.link.findUnique({
-      where: {
-        domain_key: {
-          domain,
-          key,
-        },
-      },
-      select: {
-        publicStats: true,
-      },
-    });
+    const response = await getDomainOrLink({ domain, key });
     return NextResponse.json(response);
   } catch (error) {
     return handleAndReturnErrorResponse(error);
@@ -34,17 +25,16 @@ export const PUT = withAuth(async ({ req, searchParams }) => {
   try {
     const { domain, key } = domainKeySchema.parse(searchParams);
     const { publicStats } = updatePublicStatsSchema.parse(await req.json());
-    const response = await prisma.link.update({
-      where: {
-        domain_key: {
-          domain,
-          key,
-        },
-      },
-      data: {
-        publicStats,
-      },
-    });
+    const response =
+      key === "_root"
+        ? await prisma.domain.update({
+            where: { slug: domain },
+            data: { publicStats },
+          })
+        : await prisma.link.update({
+            where: { domain_key: { domain, key } },
+            data: { publicStats },
+          });
     return NextResponse.json(response);
   } catch (error) {
     return handleAndReturnErrorResponse(error);
