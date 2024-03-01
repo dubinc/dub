@@ -181,6 +181,7 @@ export const updateLinkBodySchema = createLinkBodySchema.partial();
 
 export const bulkCreateLinksBodySchema = z
   .array(createLinkBodySchema)
+  .min(1, "No links created – you must provide at least one link.")
   .max(100, "You can only create up to 100 links at a time.");
 
 export const getLinksCountParamsSchema = z.object({
