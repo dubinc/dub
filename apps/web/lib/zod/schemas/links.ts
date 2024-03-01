@@ -1,7 +1,7 @@
 import z from "@/lib/zod";
 import { booleanQuerySchema } from ".";
 
-export const getLinksQuerySchema = z.object({
+const LinksQuerySchema = {
   projectSlug: z
     .string()
     .describe(
@@ -20,17 +20,6 @@ export const getLinksQuerySchema = z.object({
     .describe(
       "The search term to filter the links by. The search term will be matched against the short link slug and the destination url.",
     ),
-  sort: z
-    .enum(["createdAt", "clicks", "lastClicked"])
-    .optional()
-    .default("createdAt")
-    .describe(
-      "The field to sort the links by. The default is `createdAt`, and sort order is always descending.",
-    ),
-  page: z.coerce
-    .number()
-    .optional()
-    .describe("The page number for pagination (each page contains 100 links)."),
   userId: z.string().optional().describe("The user ID to filter the links by."),
   showArchived: booleanQuerySchema
     .optional()
@@ -44,6 +33,29 @@ export const getLinksQuerySchema = z.object({
     .describe(
       "Whether to include tags in the response. Defaults to `false` if not provided.",
     ),
+};
+
+export const getLinksQuerySchema = z.object({
+  ...LinksQuerySchema,
+  sort: z
+    .enum(["createdAt", "clicks", "lastClicked"])
+    .optional()
+    .default("createdAt")
+    .describe(
+      "The field to sort the links by. The default is `createdAt`, and sort order is always descending.",
+    ),
+  page: z.coerce
+    .number()
+    .optional()
+    .describe("The page number for pagination (each page contains 100 links)."),
+});
+
+export const getLinksCountQuerySchema = z.object({
+  ...LinksQuerySchema,
+  groupBy: z
+    .union([z.literal("domain"), z.literal("tagId")])
+    .optional()
+    .describe("The field to group the links by."),
 });
 
 export const getLinkInfoQuerySchema = z.object({
@@ -183,15 +195,6 @@ export const bulkCreateLinksBodySchema = z
   .array(createLinkBodySchema)
   .min(1, "No links created – you must provide at least one link.")
   .max(100, "You can only create up to 100 links at a time.");
-
-export const getLinksCountParamsSchema = z.object({
-  userId: z.string().optional(),
-  tagId: z.string().optional(),
-  domain: z.string().optional(),
-  showArchived: booleanQuerySchema.optional(),
-  search: z.string().optional(),
-  groupBy: z.union([z.literal("domain"), z.literal("tagId")]).optional(),
-});
 
 export const LinkSchema = z
   .object({

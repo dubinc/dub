@@ -7,7 +7,7 @@ import {
 import prisma from "@/lib/prisma";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import {
-  getLinksCountParamsSchema,
+  getLinksCountQuerySchema,
   getLinksQuerySchema,
 } from "@/lib/zod/schemas/links";
 import {
@@ -116,19 +116,12 @@ export async function getLinksCount({
   projectId,
   userId,
 }: {
-  searchParams: z.infer<typeof getLinksCountParamsSchema>;
+  searchParams: z.infer<typeof getLinksCountQuerySchema>;
   projectId: string;
   userId?: string | null;
 }) {
-  let { groupBy, search, domain, tagId, showArchived, withTags } =
-    searchParams as {
-      groupBy?: "domain" | "tagId";
-      search?: string;
-      domain?: string;
-      tagId?: string;
-      showArchived?: boolean;
-      withTags?: boolean;
-    };
+  const { groupBy, search, domain, tagId, showArchived, withTags } =
+    searchParams;
 
   const tagIds = tagId ? tagId.split(",") : [];
 
