@@ -35,17 +35,17 @@ export async function recordClick({
   const ua = userAgent(req);
   const referer = req.headers.get("referer");
   const ip = ipAddress(req) || LOCALHOST_IP;
+  // combine IP + UA to create a unique identifier for the user (for deduplication)
+  const identity_hash = await hashStringSHA256(`${ip}-${ua.ua}`);
   // if in production / preview env, deduplicate clicks from the same IP & link ID – only record 1 click per hour
   if (process.env.VERCEL === "1") {
     const { success } = await ratelimit(2, "1 h").limit(
-      `recordClick:${ip}:${id}`,
+      `recordClick:${identity_hash}:${id}`,
     );
     if (!success) {
       return null;
     }
   }
-  // combine IP + UA to create a unique identifier for the user (for deduplication)
-  const identity_hash = await hashStringSHA256(`${ip}-${ua.ua}`);
 
   return await Promise.allSettled([
     fetch(

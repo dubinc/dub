@@ -396,8 +396,8 @@ function AddEditLinkModal({
                     router.push("/links");
                     setShowAddEditLinkModal(false);
                   }
-                  // copy shortlink to clipboard when adding a new link
-                  if (!props) {
+                  // copy shortlink to clipboard when adding a new link (if document is focused)
+                  if (!props && document.hasFocus()) {
                     await navigator.clipboard.writeText(
                       linkConstructor({
                         // remove leading and trailing slashes
