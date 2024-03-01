@@ -89,6 +89,26 @@ export const getLinkViaEdgeByURL = async (url: string) => {
     : null;
 }
 
+export const getAffiliateViaEdge = async (projectId: string, username: string) => {
+  if (!process.env.DATABASE_URL) return null;
+
+  const { rows } =
+    (await conn.execute(
+      "SELECT * FROM Affiliate WHERE projectId = ? AND username = ?",
+      [projectId, username],
+    )) || {};
+
+  return rows && Array.isArray(rows) && rows.length > 0
+    ? (rows[0] as {
+        id: string;
+        username: string;
+        email: string;
+        projectId: string;
+        userId?: string;
+      })
+    : null;
+}
+
 export async function getDomainOrLink({
   domain,
   key,

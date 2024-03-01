@@ -4,7 +4,6 @@ import {
   capitalize,
   getDomainWithoutWWW,
   hashStringSHA256,
-  nanoid,
 } from "@dub/utils";
 import { ipAddress } from "@vercel/edge";
 import { NextRequest, userAgent } from "next/server";
@@ -12,6 +11,7 @@ import { detectBot } from "./middleware/utils";
 import { conn } from "./planetscale";
 import { LinkProps } from "./types";
 import { ratelimit } from "./upstash";
+import { generateClickId } from "./analytics";
 
 /**
  * Recording clicks with geo, ua, referer and timestamp data
@@ -21,11 +21,15 @@ export async function recordClick({
   id,
   url,
   root,
+  clickId,
+  affiliateId,
 }: {
   req: NextRequest;
   id: string;
   url?: string;
   root?: boolean;
+  clickId?: string;
+  affiliateId?: string;
 }) {
   const isBot = detectBot(req);
   if (isBot) {
@@ -58,9 +62,10 @@ export async function recordClick({
         body: JSON.stringify({
           timestamp: new Date(Date.now()).toISOString(),
           identity_hash,
-          click_id: nanoid(16),
+          click_id: clickId || generateClickId(),
           link_id: id,
           alias_link_id: "",
+          affiliate_id: affiliateId || "",
           url: url || "",
           country: geo?.country || "Unknown",
           city: geo?.city || "Unknown",
@@ -139,10 +144,12 @@ export async function recordConversion({
   eventName,
   properties,
   clickId,
+  affiliateId,
 }: {
   eventName: string;
   properties: Record<string, any>;
   clickId: string;
+  affiliateId?: string;
 }) {
   return await fetch(
     `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_conversion_events&wait=true`,
@@ -154,6 +161,7 @@ export async function recordConversion({
       body: JSON.stringify({
         timestamp: new Date(Date.now()).toISOString(),
         click_id: clickId,
+        affiliate_id: affiliateId || "",
         event_name: eventName,
         properties: properties,
       }),

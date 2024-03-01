@@ -48,7 +48,7 @@ export const parseUrl = (initialUrl: string) => {
   const key = decodeURIComponent(path.split("/")[1]); // key is the first part of the path (e.g. dub.co/stats/github -> stats)
   const fullKey = decodeURIComponent(path.slice(1)); // fullKey is the full path without the first slash (to account for multi-level subpaths, e.g. dub.sh/github/repo -> github/repo)
 
-  return { domain, path, fullPath, key, fullKey };
+  return { domain, path, fullPath, key, fullKey, searchParams: url.searchParams };
 };
 
 export const getFinalUrl = (url: string, { req }: { req: NextRequest }) => {

@@ -1,4 +1,5 @@
 import { conn } from "./planetscale";
+import { nanoid } from "@dub/utils";
 
 export type IntervalProps = "1h" | "24h" | "7d" | "30d" | "90d" | "all";
 
@@ -190,4 +191,8 @@ export const getAnalytics = async ({
       }
       return data;
     });
+};
+
+export const generateClickId = () => {
+  return nanoid(16);
 };
