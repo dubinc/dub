@@ -5,7 +5,7 @@ import { isAdmin } from "app/admin.dub.co/actions";
 import { createHash } from "crypto";
 import { getServerSession } from "next-auth/next";
 import { exceededLimitError } from "../api/errors";
-import { DubApiError, handleAndReturnErrorResponse } from "../errors";
+import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { PlanProps, ProjectProps } from "../types";
 import { ratelimit } from "../upstash";
 import { authOptions } from "./options";

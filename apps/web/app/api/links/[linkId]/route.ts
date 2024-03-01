@@ -5,7 +5,7 @@ import {
   DubApiError,
   ErrorCodes,
   handleAndReturnErrorResponse,
-} from "@/lib/errors";
+} from "@/lib/api/errors";
 import { LinkWithTagIdsProps } from "@/lib/types";
 import { updateLinkBodySchema } from "@/lib/zod/schemas/links";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";

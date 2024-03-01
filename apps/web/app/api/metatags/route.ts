@@ -1,4 +1,4 @@
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/errors";
+import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { ratelimit } from "@/lib/upstash";
 import z from "@/lib/zod";
 import { LOCALHOST_IP, isValidUrl } from "@dub/utils";

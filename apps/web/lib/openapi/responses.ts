@@ -1,4 +1,4 @@
-import { errorSchemaFactory } from "../errors";
+import { errorSchemaFactory } from "@/lib/api/errors";
 
 export const openApiErrorResponses = {
   400: {

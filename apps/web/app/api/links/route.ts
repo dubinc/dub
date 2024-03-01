@@ -5,7 +5,7 @@ import {
   DubApiError,
   ErrorCodes,
   handleAndReturnErrorResponse,
-} from "@/lib/errors";
+} from "@/lib/api/errors";
 import { LinkWithTagIdsProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import {

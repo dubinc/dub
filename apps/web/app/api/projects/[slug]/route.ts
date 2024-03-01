@@ -1,7 +1,7 @@
 import { deleteProject } from "@/lib/api/projects";
 import { withAuth } from "@/lib/auth";
 import { isReservedKey } from "@/lib/edge-config";
-import { ErrorResponse, handleAndReturnErrorResponse } from "@/lib/errors";
+import { ErrorResponse, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import prisma from "@/lib/prisma";
 import z from "@/lib/zod";
 import { DEFAULT_REDIRECTS, validSlugRegex } from "@dub/utils";

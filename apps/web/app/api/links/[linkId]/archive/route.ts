@@ -1,6 +1,6 @@
 import { archiveLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
-import { handleAndReturnErrorResponse } from "@/lib/errors";
+import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { NextResponse } from "next/server";
 
 // POST /api/links/[linkId]/archive – archive a link

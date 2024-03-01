@@ -1,6 +1,6 @@
 import { getLinksCount } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
-import { handleAndReturnErrorResponse } from "@/lib/errors";
+import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { getLinksCountParamsSchema } from "@/lib/zod/schemas/links";
 import { NextResponse } from "next/server";
 

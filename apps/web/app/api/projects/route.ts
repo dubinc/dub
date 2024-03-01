@@ -5,7 +5,7 @@ import {
 } from "@/lib/api/domains";
 import { withSession } from "@/lib/auth";
 import { isReservedKey } from "@/lib/edge-config";
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/errors";
+import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import prisma from "@/lib/prisma";
 import z from "@/lib/zod";
 import {

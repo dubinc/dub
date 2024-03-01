@@ -1,5 +1,5 @@
 import { withAuth } from "@/lib/auth";
-import { handleAndReturnErrorResponse } from "@/lib/errors";
+import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import prisma from "@/lib/prisma";
 import z from "@/lib/zod";
 import cloudinary from "cloudinary";

@@ -1,6 +1,6 @@
 import { VALID_TINYBIRD_ENDPOINTS, getAnalytics } from "@/lib/analytics";
 import { withAuth } from "@/lib/auth";
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/errors";
+import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { getDomainViaEdge } from "@/lib/planetscale";
 import z from "@/lib/zod";
 import { getAnalyticsQuerySchema } from "@/lib/zod/schemas/analytics";

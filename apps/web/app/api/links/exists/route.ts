@@ -1,6 +1,6 @@
 import { checkIfKeyExists } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
-import { handleAndReturnErrorResponse } from "@/lib/errors";
+import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { domainKeySchema } from "@/lib/zod";
 import { NextResponse } from "next/server";
 

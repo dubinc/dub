@@ -1,5 +1,5 @@
 import { withAuth } from "@/lib/auth";
-import { handleAndReturnErrorResponse } from "@/lib/errors";
+import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import jackson, { samlAudience } from "@/lib/jackson";
 import z from "@/lib/zod";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";

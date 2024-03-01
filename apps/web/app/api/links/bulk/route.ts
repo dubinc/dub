@@ -1,7 +1,7 @@
 import { exceededLimitError } from "@/lib/api/errors";
 import { bulkCreateLinks, processLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/errors";
+import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { LinkWithTagIdsProps } from "@/lib/types";
 import { bulkCreateLinksBodySchema } from "@/lib/zod/schemas/links";
 import { NextResponse } from "next/server";

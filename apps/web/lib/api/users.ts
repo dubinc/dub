@@ -5,7 +5,7 @@ import { TWO_WEEKS_IN_SECONDS } from "@dub/utils";
 import { randomBytes } from "crypto";
 import { sendEmail } from "emails";
 import ProjectInvite from "emails/project-invite";
-import { DubApiError } from "../errors";
+import { DubApiError } from "./errors";
 
 export async function inviteUser({
   email,
