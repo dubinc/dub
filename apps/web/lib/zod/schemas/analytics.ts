@@ -16,7 +16,6 @@ export const getAnalyticsQuerySchema = z.object({
   key: z.string().optional().describe("The short link slug."),
   interval: z
     .enum(intervals)
-    .default("24h")
     .optional()
     .describe("The interval to retrieve analytics for."),
   country: z
@@ -39,7 +38,6 @@ export const getAnalyticsQuerySchema = z.object({
     .describe("The referer to retrieve analytics for."),
   url: z.string().optional().describe("The URL to retrieve analytics for."),
   excludeRoot: booleanQuerySchema
-    .default("false")
     .optional()
     .describe("Whether to exclude the root link from the response."),
 });
