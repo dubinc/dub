@@ -26,17 +26,26 @@ export default function LoginForm() {
 
   const { isMobile } = useMediaQuery();
 
+  useEffect(() => {
+    // when leave page, reset state
+    return () => {
+      setClickedGoogle(false);
+      setClickedGithub(false);
+      setClickedEmail(false);
+      setClickedSSO(false);
+    };
+  }, []);
+
   return (
     <>
       <div className="flex space-x-2">
         <Button
           variant="secondary"
-          onClick={async () => {
+          onClick={() => {
             setClickedGoogle(true);
-            await signIn("google", {
+            signIn("google", {
               ...(next && next.length > 0 ? { callbackUrl: next } : {}),
             });
-            setClickedGoogle(false);
           }}
           loading={clickedGoogle}
           disabled={clickedEmail || clickedSSO}
@@ -44,12 +53,11 @@ export default function LoginForm() {
         />
         <Button
           variant="secondary"
-          onClick={async () => {
+          onClick={() => {
             setClickedGithub(true);
-            await signIn("github", {
+            signIn("github", {
               ...(next && next.length > 0 ? { callbackUrl: next } : {}),
             });
-            setClickedGithub(false);
           }}
           loading={clickedGitub}
           disabled={clickedEmail || clickedSSO}

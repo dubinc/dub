@@ -4,7 +4,7 @@ import { Button, Github, Google } from "@dub/ui";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function RegisterForm() {
   const searchParams = useSearchParams();
@@ -12,29 +12,35 @@ export default function RegisterForm() {
   const [clickedGoogle, setClickedGoogle] = useState(false);
   const [clickedGitub, setClickedGithub] = useState(false);
 
+  useEffect(() => {
+    // when leave page, reset state
+    return () => {
+      setClickedGoogle(false);
+      setClickedGithub(false);
+    };
+  }, []);
+
   return (
     <>
       <Button
         variant="secondary"
         text="Continue with Google"
-        onClick={async () => {
+        onClick={() => {
           setClickedGoogle(true);
-          await signIn("google", {
+          signIn("google", {
             ...(next && next.length > 0 ? { callbackUrl: next } : {}),
           });
-          setClickedGoogle(false);
         }}
         loading={clickedGoogle}
         icon={<Google className="h-4 w-4" />}
       />
       <Button
         text="Continue with GitHub"
-        onClick={async () => {
+        onClick={() => {
           setClickedGithub(true);
-          await signIn("github", {
+          signIn("github", {
             ...(next && next.length > 0 ? { callbackUrl: next } : {}),
           });
-          setClickedGithub(false);
         }}
         loading={clickedGitub}
         icon={<Github className="h-4 w-4" />}
