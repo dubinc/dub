@@ -143,7 +143,6 @@ export async function POST(req: Request) {
       linkId,
       endpoint: "clicks",
       interval: "30d",
-      excludeRoot: false,
     });
 
     // update old and new project usage
