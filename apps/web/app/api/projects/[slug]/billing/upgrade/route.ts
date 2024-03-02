@@ -16,13 +16,15 @@ export const POST = withAuth(async ({ req, project, session }) => {
     lookup_keys: [`${plan}_${period}`],
   });
 
-  // if the user already has a subscription, create billing portal to upgrade
-  if (project.stripeId) {
-    const subscription = await stripe.subscriptions.list({
-      customer: project.stripeId,
-      status: "active",
-    });
+  const subscription = project.stripeId
+    ? await stripe.subscriptions.list({
+        customer: project.stripeId,
+        status: "active",
+      })
+    : null;
 
+  // if the user already has a subscription, create billing portal to upgrade
+  if (project.stripeId && subscription && subscription.data.length > 0) {
     const { url } = await stripe.billingPortal.sessions.create({
       customer: project.stripeId,
       return_url: `${baseUrl}?upgrade=${plan}`,
@@ -47,6 +49,7 @@ export const POST = withAuth(async ({ req, project, session }) => {
             },
           },
     });
+
     return NextResponse.json(url);
 
     // if the user does not have a subscription, create a new checkout session
