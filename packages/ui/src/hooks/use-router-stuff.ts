@@ -28,15 +28,19 @@ export default function useRouterStuff() {
     del,
     replace,
     getNewPath,
+    arrayDelimiter = ",",
   }: {
-    set?: Record<string, string>;
+    set?: Record<string, string | string[]>;
     del?: string | string[];
     replace?: boolean;
     getNewPath?: boolean;
+    arrayDelimiter?: string;
   }) => {
     const newParams = new URLSearchParams(searchParams);
     if (set) {
-      Object.entries(set).forEach(([k, v]) => newParams.set(k, v));
+      Object.entries(set).forEach(([k, v]) =>
+        newParams.set(k, Array.isArray(v) ? v.join(arrayDelimiter) : v),
+      );
     }
     if (del) {
       if (Array.isArray(del)) {

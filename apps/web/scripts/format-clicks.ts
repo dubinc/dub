@@ -1,7 +1,7 @@
+import { nanoid } from "@dub/utils";
 import "dotenv-flow/config";
 import * as fs from "fs";
 import * as Papa from "papaparse";
-import { nanoid } from "./utils";
 
 function createLinksMapFromFile(filePath: string) {
   const fileContent = fs.readFileSync(filePath, { encoding: "utf-8" });

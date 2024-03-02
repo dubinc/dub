@@ -1,4 +1,5 @@
 import useProjects from "@/lib/swr/use-projects";
+import { LinkProps } from "@/lib/types";
 import {
   BlurImage,
   Button,
@@ -14,7 +15,6 @@ import {
   isDubDomain,
   linkConstructor,
 } from "@dub/utils";
-import { type Link as LinkProps } from "@prisma/client";
 import { useParams } from "next/navigation";
 import {
   Dispatch,
@@ -67,6 +67,7 @@ function TransferLinkModal({
     <Modal
       showModal={showTransferLinkModal}
       setShowModal={setShowTransferLinkModal}
+      className="overflow-visible"
     >
       <form
         onSubmit={async (e) => {

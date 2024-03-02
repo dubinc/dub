@@ -100,13 +100,13 @@ export default async function LinkMiddleware(
   if (password) {
     const pw = req.nextUrl.searchParams.get("pw");
 
-    // rewrite to auth page (/protected/[domain]/[key]) if:
+    // rewrite to auth page (/password/[domain]/[key]) if:
     // - no `pw` param is provided
     // - the `pw` param is incorrect
     // this will also ensure that no clicks are tracked unless the password is correct
     if (!pw || (await getLinkViaEdge(domain, key))?.password !== pw) {
       return NextResponse.rewrite(
-        new URL(`/protected/${domain}/${encodeURIComponent(key)}`, req.url),
+        new URL(`/password/${domain}/${encodeURIComponent(key)}`, req.url),
       );
     } else if (pw) {
       // strip it from the URL if it's correct

@@ -1,6 +1,6 @@
 "use server";
 
-import { deleteProject } from "@/lib/api/projects";
+import { deleteProjectAdmin } from "@/lib/api/projects";
 import { getSession, hashToken } from "@/lib/auth";
 import { unsubscribe } from "@/lib/flodesk";
 import prisma from "@/lib/prisma";
@@ -175,7 +175,7 @@ export async function banUser(data: FormData) {
 
   await Promise.allSettled(
     user.projects.map(({ project }) =>
-      deleteProject({
+      deleteProjectAdmin({
         id: project.id,
         slug: project.slug,
         stripeId: project.stripeId || undefined,

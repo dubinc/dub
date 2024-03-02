@@ -1,9 +1,11 @@
 import { getStripe } from "@/lib/stripe/client";
+import useProject from "@/lib/swr/use-project";
 import { CheckCircleFill } from "@/ui/shared/icons";
 import {
   Badge,
   Button,
   IconMenu,
+  LoadingSpinner,
   Logo,
   Modal,
   Popover,
@@ -11,6 +13,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import {
+  APP_DOMAIN,
   HOME_DOMAIN,
   SELF_SERVE_PAID_PLANS,
   STAGGER_CHILD_VARIANTS,
@@ -52,8 +55,9 @@ function UpgradePlanModal({
   const welcomeFlow = pathname === "/welcome";
   const slug = welcomeFlow ? searchParams?.get("slug") : params.slug;
 
+  const { plan: currentPlan } = useProject();
   const plan = searchParams.get("upgrade") ?? "pro";
-  const currentPlan =
+  const selectedPlan =
     SELF_SERVE_PAID_PLANS.find((p) => p.name.toLowerCase() === plan) ??
     SELF_SERVE_PAID_PLANS[0];
   const [openPlanSelector, setOpenPlanSelector] = useState(false);
@@ -62,6 +66,7 @@ function UpgradePlanModal({
   const [openPeriodSelector, setOpenPeriodSelector] = useState(false);
 
   const [clicked, setClicked] = useState(false);
+  const [clickedCompare, setClickedCompare] = useState(false);
   const { queryParams } = useRouterStuff();
 
   return (
@@ -99,13 +104,14 @@ function UpgradePlanModal({
           className="text-lg font-medium"
           variants={STAGGER_CHILD_VARIANTS}
         >
-          Upgrade to {currentPlan.name}
+          Upgrade to {selectedPlan.name}
         </motion.h3>
         <motion.p
           className="text-center text-sm text-gray-500"
           variants={STAGGER_CHILD_VARIANTS}
         >
-          Enjoy higher limits and extra features with Dub.co {currentPlan.name}
+          Enjoy higher limits and extra features <br /> with Dub.co{" "}
+          {selectedPlan.name}
         </motion.p>
       </motion.div>
       <div className="bg-gray-50 px-4 py-6 text-left sm:px-16">
@@ -149,12 +155,12 @@ function UpgradePlanModal({
               className="mr-2 flex w-56 items-center justify-between space-x-2 rounded-md bg-white px-3 py-2.5 shadow transition-all duration-75 hover:shadow-md active:scale-[98%]"
             >
               <IconMenu
-                text={currentPlan.name}
+                text={selectedPlan.name}
                 icon={
                   <div
                     className={cn(
                       "h-2 w-2 rounded-full",
-                      currentPlan.colors.bg,
+                      selectedPlan.colors.bg,
                     )}
                   />
                 }
@@ -219,13 +225,13 @@ function UpgradePlanModal({
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <h4 className="font-medium text-gray-900">
-                {currentPlan.name} {capitalize(period)}
+                {selectedPlan.name} {capitalize(period)}
               </h4>
               <Badge
                 variant="neutral"
                 className="text-sm font-normal normal-case"
               >
-                ${currentPlan.price[period].toString()}
+                ${selectedPlan.price[period].toString()}
                 /mo
                 <span className="hidden sm:inline-block">
                   , billed {period}
@@ -245,7 +251,7 @@ function UpgradePlanModal({
             animate="show"
             className="my-4 flex flex-col space-y-2"
           >
-            {currentPlan.features.map(({ text }, i) => (
+            {selectedPlan.features.map(({ text }, i) => (
               <motion.div
                 key={i}
                 variants={STAGGER_CHILD_VARIANTS}
@@ -257,21 +263,31 @@ function UpgradePlanModal({
             ))}
           </motion.div>
           <Button
-            text={`Upgrade to ${currentPlan.name} ${capitalize(period)}`}
+            text={`Upgrade to ${selectedPlan.name} ${capitalize(period)}`}
             loading={clicked}
             onClick={() => {
               setClicked(true);
-              fetch(
-                `/api/projects/${slug}/billing/upgrade?plan=${plan}_${period}`,
-                {
-                  method: "POST",
+              fetch(`/api/projects/${slug}/billing/upgrade`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
                 },
-              )
+                body: JSON.stringify({
+                  plan,
+                  period,
+                  baseUrl: `${APP_DOMAIN}${pathname}`,
+                }),
+              })
                 .then(async (res) => {
-                  const data = await res.json();
-                  const { id: sessionId } = data;
-                  const stripe = await getStripe();
-                  stripe?.redirectToCheckout({ sessionId });
+                  if (currentPlan === "free") {
+                    const data = await res.json();
+                    const { id: sessionId } = data;
+                    const stripe = await getStripe();
+                    stripe?.redirectToCheckout({ sessionId });
+                  } else {
+                    const url = await res.json();
+                    router.push(url);
+                  }
                 })
                 .catch((err) => {
                   alert(err);
@@ -280,13 +296,53 @@ function UpgradePlanModal({
             }}
           />
           <div className="mt-2 flex items-center justify-center space-x-2">
-            <a
-              href={`${HOME_DOMAIN}/pricing`}
-              target="_blank"
-              className="text-center text-xs text-gray-500 underline-offset-4 transition-all hover:text-gray-800 hover:underline"
-            >
-              Compare plans
-            </a>
+            {currentPlan === "free" ? (
+              <a
+                href={`${HOME_DOMAIN}/pricing`}
+                target="_blank"
+                className="text-center text-xs text-gray-500 underline-offset-4 transition-all hover:text-gray-800 hover:underline"
+              >
+                Compare plans
+              </a>
+            ) : (
+              <button
+                onClick={() => {
+                  setClickedCompare(true);
+                  fetch(`/api/projects/${slug}/billing/upgrade`, {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      plan,
+                      period,
+                      baseUrl: `${APP_DOMAIN}${pathname}`,
+                      comparePlans: true,
+                    }),
+                  })
+                    .then(async (res) => {
+                      const url = await res.json();
+                      router.push(url);
+                    })
+                    .catch((err) => {
+                      alert(err);
+                      setClicked(false);
+                    });
+                }}
+                disabled={clickedCompare}
+                className={cn(
+                  "flex items-center space-x-2 text-center text-xs text-gray-500",
+                  clickedCompare
+                    ? "cursor-not-allowed"
+                    : "underline-offset-4 transition-all hover:text-gray-800 hover:underline",
+                )}
+              >
+                {clickedCompare && (
+                  <LoadingSpinner className="h-4 w-4" aria-hidden="true" />
+                )}
+                <p>Compare plans</p>
+              </button>
+            )}
             <p className="text-gray-500">•</p>
             {welcomeFlow ? (
               <Link

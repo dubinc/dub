@@ -3,7 +3,8 @@ import { ReactNode } from "react";
 import { LoadingSpinner } from "./icons";
 import { Tooltip } from "./tooltip";
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   text?: string;
   variant?:
     | "primary"
@@ -86,7 +87,7 @@ export function Button({
       {...props}
     >
       {loading ? <LoadingSpinner /> : icon ? icon : null}
-      <p className={cn(shortcut && "flex-1 text-left")}>{text}</p>
+      {text && <p className={cn(shortcut && "flex-1 text-left")}>{text}</p>}
       {shortcut && (
         <kbd
           className={cn(

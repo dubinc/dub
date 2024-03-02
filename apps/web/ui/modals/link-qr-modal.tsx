@@ -155,7 +155,7 @@ export function QRCodePicker({
         <h3 className="text-lg font-medium">Download QR Code</h3>
       </div>
 
-      <div className="flex flex-col space-y-6 bg-gray-50 py-6 text-left sm:rounded-b-2xl">
+      <div className="flex flex-col space-y-6 bg-gray-50 py-6 text-left">
         <div className="mx-auto rounded-lg border-2 border-gray-200 bg-white p-4">
           <QRCodeSVG
             value={qrData.value}

@@ -53,7 +53,11 @@ export default function UserDropdown() {
       <Popover
         content={
           <div className="flex w-full flex-col space-y-px rounded-md bg-white p-3 sm:w-56">
-            <div className="p-2">
+            <Link
+              href="/"
+              className="p-2"
+              onClick={() => setOpenPopover(false)}
+            >
               {session?.user?.name && (
                 <p className="truncate text-sm font-medium text-gray-900">
                   {session?.user?.name}
@@ -62,11 +66,11 @@ export default function UserDropdown() {
               <p className="truncate text-sm text-gray-500">
                 {session?.user?.email}
               </p>
-            </div>
+            </Link>
             <Link
               href={`${HOME_DOMAIN}/help`}
+              onClick={() => setOpenPopover(false)}
               target="_blank"
-              rel="noopener noreferrer"
               className="w-full rounded-md p-2 text-sm transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
             >
               <IconMenu
@@ -95,6 +99,7 @@ export default function UserDropdown() {
             </button>
             <Link
               href="/settings"
+              onClick={() => setOpenPopover(false)}
               className="block w-full rounded-md p-2 text-sm transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
             >
               <IconMenu
@@ -106,9 +111,10 @@ export default function UserDropdown() {
               href={`${HOME_DOMAIN}/changelog`}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={() =>
-                Cookies.set("lastReadChangelog", new Date().toISOString())
-              }
+              onClick={() => {
+                Cookies.set("lastReadChangelog", new Date().toISOString());
+                setOpenPopover(false);
+              }}
               className="flex w-full justify-between rounded-md p-2 text-sm transition-all duration-75 hover:bg-gray-100 active:bg-gray-200"
             >
               <IconMenu text="Changelog" icon={<Edit3 className="h-4 w-4" />} />

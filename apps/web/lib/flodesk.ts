@@ -14,9 +14,8 @@ export async function subscribe({
     body: JSON.stringify({
       email,
       ...(name && {
-        custom_fields: {
-          name,
-        },
+        first_name: name.split(" ")[0],
+        last_name: name.split(" ").slice(1).join(" "),
       }),
     }),
   }).then((res) => res.json());

@@ -10,7 +10,7 @@ export function BlurImage(props: ImageProps) {
   const handleLoad = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     setLoading(false);
     const target = e.target as HTMLImageElement;
-    if (target.naturalWidth < 20 && target.naturalHeight < 20) {
+    if (target.naturalWidth <= 16 && target.naturalHeight <= 16) {
       setSrc(`https://avatar.vercel.sh/${encodeURIComponent(props.alt)}`);
     }
   };

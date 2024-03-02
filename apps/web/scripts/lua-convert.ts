@@ -1,5 +1,5 @@
+import { redis } from "@/lib/upstash";
 import "dotenv-flow/config";
-import { redis } from "./utils";
 
 async function main() {
   const script = `

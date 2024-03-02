@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { redis } from "@/lib/upstash";
 import { FREE_PLAN, getPlanFromPriceId, log } from "@dub/utils";
-import { resend, sendEmail } from "emails";
+import { sendEmail } from "emails";
 import UpgradeEmail from "emails/upgrade-email";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
@@ -54,7 +54,7 @@ export const POST = async (req: Request) => {
 
         if (!plan) {
           await log({
-            message: "Invalid price ID in checkout.session.completed event",
+            message: `Invalid price ID in checkout.session.completed event: ${priceId}`,
             type: "errors",
           });
           return;
@@ -126,7 +126,7 @@ export const POST = async (req: Request) => {
 
         if (!plan) {
           await log({
-            message: "Invalid price ID in customer.subscription.updated event",
+            message: `Invalid price ID in customer.subscription.updated event: ${priceId}`,
             type: "errors",
           });
           return;
@@ -256,12 +256,13 @@ export const POST = async (req: Request) => {
             type: "cron",
             mention: true,
           }),
-          resend.emails.send({
-            from: "Steven from Dub.co <steven@dub.co>",
-            to: projectUsers,
-            subject: "Feedback on your Dub.co experience?",
-            text: "Hey!\n\nI noticed you recently cancelled your Dub.co subscription – we're sorry to see you go!\n\nI'd love to hear your feedback on your experience with Dub – what could we have done better?\n\nThanks!\n\nSteven Tey\nFounder, Dub.co",
-          }),
+          projectUsers.map((email) =>
+            sendEmail({
+              email,
+              subject: "Feedback on your Dub.co experience?",
+              text: "Hey!\n\nI noticed you recently cancelled your Dub.co subscription – we're sorry to see you go!\n\nI'd love to hear your feedback on your experience with Dub – what could we have done better?\n\nThanks!\n\nSteven Tey\nFounder, Dub.co",
+            }),
+          ),
         ]);
       }
     } catch (error) {

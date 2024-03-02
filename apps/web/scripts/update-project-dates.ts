@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma";
+import { redis } from "@/lib/upstash";
 import "dotenv-flow/config";
-import { redis } from "./utils";
 
 async function main() {
   // original hash was migrated_links_users, we archived it to migrated_links_users_archived

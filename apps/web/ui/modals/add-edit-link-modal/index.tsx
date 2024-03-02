@@ -25,8 +25,12 @@ import {
   linkConstructor,
   truncate,
 } from "@dub/utils";
-import { type Link as LinkProps } from "@prisma/client";
-import { useParams, usePathname, useRouter } from "next/navigation";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import punycode from "punycode/";
 import {
   Dispatch,
@@ -51,6 +55,7 @@ import PasswordSection from "./password-section";
 import Preview from "./preview";
 import RewriteSection from "./rewrite-section";
 import TagsSection from "./tags-section";
+import { LinkWithTagsProps } from "@/lib/types";
 import UTMSection from "./utm-section";
 
 function AddEditLinkModal({
@@ -62,8 +67,8 @@ function AddEditLinkModal({
 }: {
   showAddEditLinkModal: boolean;
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
-  props?: LinkProps;
-  duplicateProps?: LinkProps;
+  props?: LinkWithTagsProps;
+  duplicateProps?: LinkWithTagsProps;
   homepageDemo?: boolean;
 }) {
   const params = useParams() as { slug?: string };
@@ -82,15 +87,19 @@ function AddEditLinkModal({
     defaultDomains,
   } = useDomains();
 
-  const [data, setData] = useState<LinkProps>(
-    props ||
-      duplicateProps || {
-        ...(DEFAULT_LINK_PROPS as LinkProps),
-        domain: primaryDomain,
-        key: "",
-        url: "",
-      },
+  const [data, setData] = useState<LinkWithTagsProps>(
+    props || duplicateProps || DEFAULT_LINK_PROPS,
   );
+
+  useEffect(() => {
+    // for a new link (no props or duplicateProps), set the domain to the primary domain
+    if (primaryDomain && !props && !duplicateProps) {
+      setData((prev) => ({
+        ...prev,
+        domain: primaryDomain,
+      }));
+    }
+  }, [primaryDomain, props, duplicateProps]);
 
   const { domain, key, url, password, proxy } = data;
 
@@ -302,18 +311,36 @@ function AddEditLinkModal({
 
   const { isMobile } = useMediaQuery();
 
+  const searchParams = useSearchParams();
+  const { queryParams } = useRouterStuff();
+
   return (
     <Modal
       showModal={showAddEditLinkModal}
       setShowModal={setShowAddEditLinkModal}
       className="max-w-screen-lg"
       preventDefaultClose={homepageDemo ? false : true}
-      {...(welcomeFlow && { onClose: () => router.back() })}
+      onClose={() => {
+        if (welcomeFlow) {
+          router.back();
+        } else if (searchParams.has("newLink")) {
+          queryParams({
+            del: ["newLink"],
+          });
+        }
+      }}
     >
       <div className="scrollbar-hide grid max-h-[90vh] w-full divide-x divide-gray-100 overflow-auto md:grid-cols-2 md:overflow-hidden">
         {!welcomeFlow && !homepageDemo && (
           <button
-            onClick={() => setShowAddEditLinkModal(false)}
+            onClick={() => {
+              setShowAddEditLinkModal(false);
+              if (searchParams.has("newLink")) {
+                queryParams({
+                  del: ["newLink"],
+                });
+              }
+            }}
             className="group absolute right-0 top-0 z-20 m-3 hidden rounded-full p-2 text-gray-500 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 md:block"
           >
             <X className="h-5 w-5" />
@@ -344,13 +371,18 @@ function AddEditLinkModal({
               e.preventDefault();
               setSaving(true);
               // @ts-ignore – exclude the extra `user` attribute from `data` object before sending to API
-              const { user, ...rest } = data;
+              const { user, tags, ...rest } = data;
+              const bodyData = {
+                ...rest,
+                // Map tags to tagIds
+                tagIds: tags.map(({ id }) => id),
+              };
               fetch(endpoint.url, {
                 method: endpoint.method,
                 headers: {
                   "Content-Type": "application/json",
                 },
-                body: JSON.stringify(rest),
+                body: JSON.stringify(bodyData),
               }).then(async (res) => {
                 if (res.status === 200) {
                   await mutate(
@@ -584,7 +616,7 @@ function AddEditLinkModal({
             <div
               className={`${
                 atBottom ? "" : "md:shadow-[0_-20px_30px_-10px_rgba(0,0,0,0.1)]"
-              } z-10 bg-gray-50 px-4 py-8 transition-all sm:rounded-b-2xl md:sticky  md:bottom-0 md:px-16`}
+              } z-10 bg-gray-50 px-4 py-8 transition-all md:sticky  md:bottom-0 md:px-16`}
             >
               {homepageDemo ? (
                 <Button
@@ -614,7 +646,7 @@ function AddEditLinkButton({
 }: {
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { plan, exceededLinks } = useProject();
+  const { plan, nextPlan, exceededLinks } = useProject();
   const { queryParams } = useRouterStuff();
 
   const onKeyDown = useCallback((e: KeyboardEvent) => {
@@ -680,11 +712,11 @@ function AddEditLinkButton({
         exceededLinks ? (
           <TooltipContent
             title="Your project has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
-            cta={`Upgrade to ${plan === "free" ? "Pro" : "Business"}`}
+            cta={`Upgrade to ${nextPlan.name}`}
             onClick={() => {
               queryParams({
                 set: {
-                  upgrade: plan === "free" ? "pro" : "business",
+                  upgrade: nextPlan.name.toLowerCase(),
                 },
               });
             }}
@@ -701,8 +733,8 @@ export function useAddEditLinkModal({
   duplicateProps,
   homepageDemo,
 }: {
-  props?: LinkProps;
-  duplicateProps?: LinkProps;
+  props?: LinkWithTagsProps;
+  duplicateProps?: LinkWithTagsProps;
   homepageDemo?: boolean;
 } = {}) {
   const [showAddEditLinkModal, setShowAddEditLinkModal] = useState(false);

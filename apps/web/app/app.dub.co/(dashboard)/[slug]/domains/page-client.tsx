@@ -18,11 +18,12 @@ import {
 import { DUB_DOMAINS, HOME_DOMAIN } from "@dub/utils";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export default function ProjectDomainsClient() {
   const { id: projectId } = useProject();
 
-  const { AddEditDomainModal, AddEditDomainButton } = useAddEditDomainModal();
+  const { AddEditDomainModal, AddDomainButton } = useAddEditDomainModal();
   const { projectDomains, archivedProjectDomains } = useDomains();
   const [showArchivedDomains, setShowArchivedDomains] = useState(false);
 
@@ -46,7 +47,7 @@ export default function ProjectDomainsClient() {
               />
             </div>
             <div className="flex">
-              <AddEditDomainButton />
+              <AddDomainButton />
               <DefaultDomains />
             </div>
           </div>
@@ -63,7 +64,7 @@ export default function ProjectDomainsClient() {
               ))}
             </ul>
           ) : (
-            <NoDomainsPlaceholder AddEditDomainButton={AddEditDomainButton} />
+            <NoDomainsPlaceholder AddDomainButton={AddDomainButton} />
           )
         ) : (
           <DomainCardPlaceholder />
@@ -107,12 +108,18 @@ const DefaultDomains = () => {
           onSubmit={async (e) => {
             e.preventDefault();
             setSubmitting(true);
-            await fetch(`/api/projects/${slug}`, {
+            fetch(`/api/projects/${slug}`, {
               method: "PUT",
               body: JSON.stringify({ defaultDomains }),
+            }).then(async (res) => {
+              setSubmitting(false);
+              if (res.ok) {
+                await Promise.all([mutate(), mutateDomains()]);
+              } else {
+                const error = await res.text();
+                toast.error(error);
+              }
             });
-            await Promise.all([mutate(), mutateDomains()]);
-            setSubmitting(false);
           }}
         >
           <div className="p-2 text-xs text-gray-500">Default Domains</div>
