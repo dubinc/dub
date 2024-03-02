@@ -130,3 +130,5 @@ export const DUB_DOMAINS = [
       ]
     : []),
 ];
+
+export const DUB_DOMAINS_ARRAY = DUB_DOMAINS.map((domain) => domain.slug);

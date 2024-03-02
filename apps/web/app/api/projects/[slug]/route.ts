@@ -4,7 +4,11 @@ import { isReservedKey } from "@/lib/edge-config";
 import { ErrorResponse, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import prisma from "@/lib/prisma";
 import z from "@/lib/zod";
-import { DEFAULT_REDIRECTS, validSlugRegex } from "@dub/utils";
+import {
+  DEFAULT_REDIRECTS,
+  DUB_DOMAINS_ARRAY,
+  validSlugRegex,
+} from "@dub/utils";
 import { NextResponse } from "next/server";
 
 const updateProjectSchema = z.object({
@@ -24,7 +28,9 @@ const updateProjectSchema = z.object({
       { message: "Cannot use reserved slugs" },
     )
     .optional(),
-  defaultDomains: z.array(z.string()).optional(),
+  defaultDomains: z
+    .array(z.enum(DUB_DOMAINS_ARRAY as [string, ...string[]]))
+    .optional(),
 });
 
 // GET /api/projects/[slug] – get a specific project
