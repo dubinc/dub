@@ -98,7 +98,7 @@ export default function Preview({
             )}
           </div>
           {hostname && (
-            <p className="mt-2 text-[0.8rem] text-[#606770]">From {hostname}</p>
+            <p className="mt-2 text-[0.8rem] text-[#606770]">{hostname}</p>
           )}
         </div>
 
