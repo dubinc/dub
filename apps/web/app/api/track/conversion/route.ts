@@ -6,7 +6,7 @@ import { getAffiliateViaEdge } from "@/lib/planetscale";
 
 export const runtime = "edge";
 
-const ConversionEventSchema = z.object({
+const conversionEventSchema = z.object({
   eventName: z.string(),
   properties: z.record(z.unknown()),
   clickId: z.string(),
@@ -15,25 +15,33 @@ const ConversionEventSchema = z.object({
 
 // POST /api/track/conversion – post conversion event
 export const POST = async (req: NextRequest) => {
-  const body = ConversionEventSchema.parse(await req.json());
-  const { eventName, properties, clickId, affiliateUsername } = body;
-
-  let affiliateId;
-  if (affiliateUsername) {
-    const affiliate = await getAffiliateViaEdge('link.project_id', affiliateUsername);
-    affiliateId = affiliate?.id;
-  }
-
-  waitUntil(async () => {
-    await recordConversion({
-      eventName,
-      properties,
-      clickId,
-      affiliateId,
+  try {
+    const body = conversionEventSchema.parse(await req.json());
+    const { eventName, properties, clickId, affiliateUsername } = body;
+    
+    waitUntil(async () => {
+      let affiliateId;
+      if (affiliateUsername) {
+        const affiliate = await getAffiliateViaEdge('link.project_id', affiliateUsername);
+        affiliateId = affiliate?.id;
+      }
+      
+      await recordConversion({
+        eventName,
+        properties,
+        clickId,
+        affiliateId,
+      });
     });
-  });
-  
-  return NextResponse.json({
-    success: true,
-  });
+    
+    return NextResponse.json({
+      success: true,
+    });
+  } catch (e) {
+    // TODO: update with handleAndReturnErrorResponse
+    return NextResponse.json({
+      success: false,
+      error: e.message,
+    });
+  }
 };

@@ -9,46 +9,58 @@ import { z } from 'zod';
 import { getAffiliateViaEdge, getLinkViaEdgeByURL } from "@/lib/planetscale";
 import { generateClickId } from "@/lib/analytics";
 
-export const runtime = "edge";
+// export const runtime = "edge";
 
-const ClickEventSchema = z.object({
+const clickEventSchema = z.object({
   url: z.string().url(),
   affiliateParamKey: z.string().optional(),
 });
 
 // POST /api/track/click – post click event
 export const POST = withAuthEdge(async ({ req }) => {
-  const body = ClickEventSchema.parse(await req.json());
-  const { url, affiliateParamKey } = body;
-  const { domain, key, searchParams } = parseUrl(url);
+  try {
 
-  let affiliateUsername;
-  let link;
-  if (affiliateParamKey && url.includes(`${affiliateParamKey}=`)) {
-    link = await getLinkViaEdgeByURL(url);
-    affiliateUsername = searchParams.get(affiliateParamKey);
-  } else {
-    link = await redis.hget<RedisLinkProps>(domain, key);
-    affiliateUsername = key
-  }
-  if (!link) {
-    return NextResponse.json("Link not found", { status: 404 });
-  }
-  const clickId = generateClickId();
-  const affiliate = await getAffiliateViaEdge(link.project_id, affiliateUsername);
-  const affiliateId = affiliate?.id;
-
-  waitUntil(async () => {
-    await recordClick({
-      req,
-      id: link!.id,
-      url,
-      clickId,
-      affiliateId,
+    const body = clickEventSchema.parse(await req.json());
+    const { url, affiliateParamKey } = body;
+    const { domain, key, searchParams } = parseUrl(url);
+  
+    const clickId = generateClickId();
+    
+    waitUntil(async () => {
+      let affiliateUsername;
+      let link;
+      
+      if (affiliateParamKey && url.includes(`${affiliateParamKey}=`)) {
+        link = await getLinkViaEdgeByURL(url);
+        affiliateUsername = searchParams.get(affiliateParamKey);
+      } else {
+        link = await redis.hget<RedisLinkProps>(domain, key);
+        affiliateUsername = key
+      }
+      if (!link) {
+        return NextResponse.json("Link not found", { status: 404 });
+      }
+      const affiliate = await getAffiliateViaEdge(link.project_id, affiliateUsername);
+      const affiliateId = affiliate?.id;
+      
+      await recordClick({
+        req,
+        id: link!.id,
+        url,
+        clickId,
+        affiliateId,
+      });
     });
-  });
-
-  return NextResponse.json({
-    clickId,
-  });
+  
+    return NextResponse.json({
+      success: true,
+      clickId,
+    });
+  } catch (e) {
+    // TODO: update with handleAndReturnErrorResponse
+    return NextResponse.json({
+      success: false,
+      error: e.message,
+    }, { status: 400 });
+  }
 }, {});
