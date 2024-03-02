@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getSearchParams } from "@dub/utils";
 import { Session, hashToken } from "@/lib/auth";
 import { ratelimit } from "@/lib/upstash";
+import { getUserFromApiKeyViaEdge, updateApiKeyViaEdge } from "../planetscale";
 
 interface WithAuthHandler {
   ({
@@ -25,30 +26,25 @@ export const withAuthEdge =
     req: NextRequest,
     { params }: { params: Record<string, string> | undefined },
   ) => {
-    const apiKey = req.headers.get("x-api-key");
-    if (!apiKey) {
-      return new Response("Unauthorized: Missing API key.", {
-        status: 401,
-      });
+    const authorizationHeader = req.headers.get("Authorization");
+    if (!authorizationHeader || !authorizationHeader.includes("Bearer ")) {
+      return new Response(
+        "Misconfigured authorization header. Did you forget to add 'Bearer '? Learn more: https://dub.sh/auth ",
+        {
+          status: 400,
+        },
+      );
     }
+
+    const apiKey = authorizationHeader.replace("Bearer ", "");
     const hashedKey = hashToken(apiKey, {
       noSecret: true,
     });
 
-    const user = await prisma.user.findFirst({
-      where: {
-        tokens: {
-          some: {
-            hashedKey,
-          },
-        },
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-      },
-    });
+    console.log('hashedKey', hashedKey)
+
+    const user = await getUserFromApiKeyViaEdge(hashedKey);
+    console.log('user', user)
     if (!user) {
       return new Response("Unauthorized: Invalid API key.", {
         status: 401,
@@ -66,6 +62,7 @@ export const withAuthEdge =
       "X-RateLimit-Remaining": remaining.toString(),
       "X-RateLimit-Reset": reset.toString(),
     };
+    console.log('success', success, 'limit', limit, 'reset', reset, 'remaining', remaining)
 
     if (!success) {
       return new Response("Too many requests.", {
@@ -73,14 +70,8 @@ export const withAuthEdge =
         headers,
       });
     }
-    await prisma.token.update({
-      where: {
-        hashedKey,
-      },
-      data: {
-        lastUsed: new Date(),
-      },
-    });
+
+    await updateApiKeyViaEdge(hashedKey, new Date());
     const session = {
       user: {
         id: user.id,
@@ -88,6 +79,7 @@ export const withAuthEdge =
         email: user.email || "",
       },
     };
+    console.log('session', session)
 
     return handler({
       req,

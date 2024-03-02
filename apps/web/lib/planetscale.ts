@@ -109,6 +109,33 @@ export const getAffiliateViaEdge = async (projectId: string, username: string) =
     : null;
 }
 
+export const getUserFromApiKeyViaEdge = async (hashedKey: string) => {
+  if (!process.env.DATABASE_URL) return null;
+
+  const { rows } =
+    (await conn.execute(
+      "SELECT * FROM User u INNER JOIN Token t ON u.id = t.userId WHERE hashedKey = ? LIMIT 1",
+      [hashedKey],
+    )) || {};
+
+  return rows && Array.isArray(rows) && rows.length > 0
+    ? (rows[0] as {
+        id: string;
+        name: string;
+        email: string;
+      })
+    : null;
+}
+
+export const updateApiKeyViaEdge = async (hashedKey: string, lastUsed: Date) => {
+  if (!process.env.DATABASE_URL) return null;
+
+  return await conn.execute(
+    "UPDATE Token SET lastUsed = ? WHERE hashedKey = ?",
+    [lastUsed, hashedKey],
+  );
+}
+
 export async function getDomainOrLink({
   domain,
   key,
