@@ -1,6 +1,8 @@
 import { hashToken, withSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { nanoid } from "@dub/utils";
+import { sendEmail } from "emails";
+import APIKeyCreated from "emails/api-key-created";
 import { NextResponse } from "next/server";
 
 // GET /api/user/tokens – get all tokens for a specific user
@@ -37,14 +39,24 @@ export const POST = withSession(async ({ req, session }) => {
   });
   // take first 3 and last 4 characters of the key
   const partialKey = `${token.slice(0, 3)}...${token.slice(-4)}`;
-  await prisma.token.create({
-    data: {
-      name,
-      hashedKey,
-      partialKey,
-      userId: session.user.id,
-    },
-  });
+  await Promise.all([
+    prisma.token.create({
+      data: {
+        name,
+        hashedKey,
+        partialKey,
+        userId: session.user.id,
+      },
+    }),
+    sendEmail({
+      email: session.user.email,
+      subject: "New API Key Created",
+      react: APIKeyCreated({
+        email: session.user.email,
+        apiKeyName: name,
+      }),
+    }),
+  ]);
   return NextResponse.json({ token });
 });
 
