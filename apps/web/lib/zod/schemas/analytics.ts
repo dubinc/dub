@@ -1,4 +1,4 @@
-import { intervals } from "@/lib/analytics";
+import { intervals, VALID_TINYBIRD_ENDPOINTS } from "@/lib/analytics";
 import z from "@/lib/zod";
 import { booleanQuerySchema } from ".";
 import { COUNTRIES } from "@dub/utils";
@@ -42,4 +42,18 @@ export const getAnalyticsQuerySchema = z.object({
     .optional()
     .default("false")
     .describe("Whether to exclude the root link from the response."),
+});
+
+export const getAnalyticsEdgeQuerySchema = getAnalyticsQuerySchema.required({
+  domain: true,
+});
+
+export const analyticsEndpointSchema = z.object({
+  endpoint: z.enum(VALID_TINYBIRD_ENDPOINTS, {
+    errorMap: (_issue, _ctx) => {
+      return {
+        message: `Invalid endpoint. Valid endpoints are: ${VALID_TINYBIRD_ENDPOINTS.join(", ")}`,
+      };
+    },
+  }),
 });

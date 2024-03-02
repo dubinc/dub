@@ -1,26 +1,18 @@
-import { VALID_TINYBIRD_ENDPOINTS, getAnalytics } from "@/lib/analytics";
+import { getAnalytics } from "@/lib/analytics";
 import { withAuth } from "@/lib/auth";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { getDomainViaEdge } from "@/lib/planetscale";
-import z from "@/lib/zod";
-import { getAnalyticsQuerySchema } from "@/lib/zod/schemas/analytics";
+import {
+  getAnalyticsQuerySchema,
+  analyticsEndpointSchema,
+} from "@/lib/zod/schemas/analytics";
 import { NextResponse } from "next/server";
-
-const endpointSchema = z.object({
-  endpoint: z.enum(VALID_TINYBIRD_ENDPOINTS, {
-    errorMap: (_issue, _ctx) => {
-      return {
-        message: `Invalid endpoint. Valid endpoints are: ${VALID_TINYBIRD_ENDPOINTS.join(", ")}`,
-      };
-    },
-  }),
-});
 
 // GET /api/analytics/[endpoint] – get analytics for a specific endpoint
 export const GET = withAuth(
   async ({ params, searchParams, project, link }) => {
     try {
-      const { endpoint } = endpointSchema.parse(params);
+      const { endpoint } = analyticsEndpointSchema.parse(params);
       const parsedParams = getAnalyticsQuerySchema.parse(searchParams);
       const { domain, key, interval } = parsedParams;
 
