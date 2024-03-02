@@ -3,6 +3,7 @@ import {
   LOCALHOST_IP,
   capitalize,
   getDomainWithoutWWW,
+  hashStringSHA256,
   nanoid,
 } from "@dub/utils";
 import { ipAddress } from "@vercel/edge";
@@ -34,10 +35,12 @@ export async function recordClick({
   const ua = userAgent(req);
   const referer = req.headers.get("referer");
   const ip = ipAddress(req) || LOCALHOST_IP;
-  // if in production / preview env, deduplicate clicks from the same IP & link ID – only record 1 click per hour
+  // combine IP + UA to create a unique identifier for the user (for deduplication)
+  const identity_hash = await hashStringSHA256(`${ip}-${ua.ua}`);
+  // if in production / preview env, deduplicate clicks from the same IP & link ID – only record 1 click per hour
   if (process.env.VERCEL === "1") {
     const { success } = await ratelimit(2, "1 h").limit(
-      `recordClick:${ip}:${id}`,
+      `recordClick:${identity_hash}:${id}`,
     );
     if (!success) {
       return null;
@@ -54,6 +57,7 @@ export async function recordClick({
         },
         body: JSON.stringify({
           timestamp: new Date(Date.now()).toISOString(),
+          identity_hash,
           click_id: nanoid(16),
           link_id: id,
           alias_link_id: "",

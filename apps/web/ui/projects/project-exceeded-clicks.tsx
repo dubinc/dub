@@ -5,7 +5,7 @@ import { MaxWidthWrapper, useRouterStuff } from "@dub/ui";
 import { Lock } from "lucide-react";
 
 export default function ProjectExceededClicks() {
-  const { plan } = useProject();
+  const { nextPlan } = useProject();
   const { queryParams } = useRouterStuff();
 
   return (
@@ -32,13 +32,13 @@ export default function ProjectExceededClicks() {
           onClick={() =>
             queryParams({
               set: {
-                upgrade: plan === "free" ? "pro" : "business",
+                upgrade: nextPlan.name.toLowerCase(),
               },
             })
           }
           className="z-10 rounded-md border border-black bg-black px-10 py-2 text-sm font-medium text-white transition-all duration-75 hover:bg-white hover:text-black"
         >
-          Upgrade now
+          Upgrade to {nextPlan.name}
         </button>
       </div>
     </MaxWidthWrapper>

@@ -46,7 +46,12 @@ export const POST = withAuth(
 
     const processedLinks = await Promise.all(
       links.map(async (link) =>
-        processLink({ payload: link, project, session, bulk: true }),
+        processLink({
+          payload: link,
+          project,
+          userId: session.user.id,
+          bulk: true,
+        }),
       ),
     );
 
@@ -68,6 +73,5 @@ export const POST = withAuth(
   },
   {
     needNotExceededLinks: true,
-    requiredPlan: ["pro", "business", "enterprise"],
   },
 );

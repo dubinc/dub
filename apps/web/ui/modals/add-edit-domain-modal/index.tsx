@@ -4,6 +4,7 @@ import { Lock } from "@/ui/shared/icons";
 import {
   BlurImage,
   Button,
+  ButtonProps,
   InfoTooltip,
   Logo,
   Modal,
@@ -366,12 +367,14 @@ function AddEditDomainModal({
   );
 }
 
-function AddEditDomainButton({
+function AddDomainButton({
   setShowAddEditDomainModal,
+  buttonProps,
 }: {
   setShowAddEditDomainModal: Dispatch<SetStateAction<boolean>>;
+  buttonProps?: Partial<ButtonProps>;
 }) {
-  const { plan, domainsLimit, exceededDomains } = useProject();
+  const { plan, nextPlan, domainsLimit, exceededDomains } = useProject();
   const { queryParams } = useRouterStuff();
 
   return (
@@ -388,7 +391,7 @@ function AddEditDomainButton({
               onClick={() => {
                 queryParams({
                   set: {
-                    upgrade: plan === "free" ? "pro" : "business",
+                    upgrade: nextPlan.name.toLowerCase(),
                   },
                 });
               }}
@@ -396,12 +399,16 @@ function AddEditDomainButton({
           ) : undefined
         }
         onClick={() => setShowAddEditDomainModal(true)}
+        {...buttonProps}
       />
     </div>
   );
 }
 
-export function useAddEditDomainModal({ props }: { props?: DomainProps } = {}) {
+export function useAddEditDomainModal({
+  props,
+  buttonProps,
+}: { props?: DomainProps; buttonProps?: Partial<ButtonProps> } = {}) {
   const [showAddEditDomainModal, setShowAddEditDomainModal] = useState(false);
 
   const AddEditDomainModalCallback = useCallback(() => {
@@ -414,24 +421,25 @@ export function useAddEditDomainModal({ props }: { props?: DomainProps } = {}) {
     );
   }, [showAddEditDomainModal, setShowAddEditDomainModal]);
 
-  const AddEditDomainButtonCallback = useCallback(() => {
+  const AddDomainButtonCallback = useCallback(() => {
     return (
-      <AddEditDomainButton
+      <AddDomainButton
         setShowAddEditDomainModal={setShowAddEditDomainModal}
+        buttonProps={buttonProps}
       />
     );
-  }, [setShowAddEditDomainModal]);
+  }, [setShowAddEditDomainModal, buttonProps]);
 
   return useMemo(
     () => ({
       setShowAddEditDomainModal,
       AddEditDomainModal: AddEditDomainModalCallback,
-      AddEditDomainButton: AddEditDomainButtonCallback,
+      AddDomainButton: AddDomainButtonCallback,
     }),
     [
       setShowAddEditDomainModal,
       AddEditDomainModalCallback,
-      AddEditDomainButtonCallback,
+      AddDomainButtonCallback,
     ],
   );
 }

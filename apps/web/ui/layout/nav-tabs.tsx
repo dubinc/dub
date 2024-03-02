@@ -24,8 +24,8 @@ export default function NavTabs() {
     { name: "Settings", href: `/${slug}/settings` },
   ];
 
-  const { verified, loading: loadingDomains } = useDomains();
-  const { data: count } = useLinksCount();
+  const { loading: loadingDomains } = useDomains();
+  const { data: linksCount } = useLinksCount();
 
   if (!slug || error) return null;
 
@@ -55,7 +55,7 @@ export default function NavTabs() {
         !error &&
         !loadingDomains &&
         !domain &&
-        (!verified || count === 0) && <OnboardingChecklist />}
+        linksCount === 0 && <OnboardingChecklist />}
     </div>
   );
 }

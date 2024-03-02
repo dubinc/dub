@@ -1,3 +1,4 @@
+import { COLORS_LIST } from "@/ui/links/tag-badge";
 import { NextResponse } from "next/server";
 import { OpenAPIV3 } from "openapi-types";
 
@@ -13,7 +14,7 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
       contact: {
         email: "support@dub.co",
         name: "Dub.co Support",
-        url: "https://dub.co/help",
+        url: "https://dub.co/api",
       },
       version: "0.0.1",
     },
@@ -62,12 +63,22 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
             },
             {
               name: "tagId",
-              description: "The tag ID to filter the links by.",
+              description: "The tag ID(s) to filter the links by.",
               in: "query",
               required: false,
+              explode: false,
               schema: {
-                description: "The tag ID to filter the links by.",
-                type: "string",
+                oneOf: [
+                  {
+                    type: "string",
+                  },
+                  {
+                    type: "array",
+                    items: {
+                      type: "string",
+                    },
+                  },
+                ],
               },
             },
             {
@@ -675,7 +686,14 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
                       type: "string",
                       description: "The name of the tag to create.",
                     },
+                    color: {
+                      type: "string",
+                      enum: COLORS_LIST.map(({ color }) => color),
+                      description:
+                        "The color of the tag (random if not provided).",
+                    },
                   },
+                  required: ["tag"],
                 },
               },
             },
@@ -729,6 +747,11 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
               type: "string",
               description:
                 "The short link slug. If not provided, a random 7-character slug will be generated.",
+            },
+            prefix: {
+              type: "string",
+              description:
+                "The prefix of the short link slug for randomly-generated keys (e.g. if prefix is `/c/`, generated keys will be in the `/c/:key` format). Will be ignored if `key` is provided.",
             },
             url: {
               type: "string",
@@ -821,9 +844,18 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
               type: "string",
               format: "cuid",
               description:
-                "The unique id of the tag assigned to the short link.",
-              default: null,
-              nullable: true,
+                "The unique ID of the tag assigned to the short link.",
+              deprecated: true,
+            },
+            tagIds: {
+              type: "array",
+              items: {
+                type: "string",
+                format: "cuid",
+              },
+              description:
+                "The unique IDs of the tags assigned to the short link.",
+              default: [],
             },
             comments: {
               type: "string",
@@ -877,6 +909,14 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
               description: "The UTM content of the short link.",
               default: null,
               nullable: true,
+            },
+            tags: {
+              type: "array",
+              items: {
+                $ref: "#/components/schemas/Tag",
+              },
+              description: "The tags assigned to the short link.",
+              default: [],
             },
             userId: {
               type: "string",
@@ -1051,5 +1091,5 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
         },
       },
     },
-  });
+  } as OpenAPIV3.Document);
 }

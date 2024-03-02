@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
   const includeMargin =
     req.nextUrl.searchParams.get("includeMargin") || DEFAULT_INCLUDEMARGIN;
 
-  // const logo = req.nextUrl.searchParams.get("logo") || "https://d2vwwcvoksz7ty.cloudfront.net/logo.png";
+  // const logo = req.nextUrl.searchParams.get("logo") || "https://assets.dub.co/logo.png";
 
   return new ImageResponse(
     QRCodeSVG({

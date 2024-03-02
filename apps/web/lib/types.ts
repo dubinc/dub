@@ -1,6 +1,16 @@
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
+import { Link } from "@prisma/client";
 
-export { type Link as LinkProps } from "@prisma/client";
+export type LinkProps = Link;
+
+export interface LinkWithTagsProps extends LinkProps {
+  tags: TagProps[];
+}
+
+export interface LinkWithTagIdsProps extends LinkProps {
+  tagIds: string[];
+}
+
 export interface SimpleLinkProps {
   domain: string;
   key: string;
@@ -58,7 +68,14 @@ export type TagColorProps =
   | "pink"
   | "brown";
 
-export type PlanProps = "free" | "pro" | "business" | "enterprise";
+export type PlanProps =
+  | "free"
+  | "pro"
+  | "business"
+  | "business plus"
+  | "business extra"
+  | "business max"
+  | "enterprise";
 
 export interface ProjectProps {
   id: string;

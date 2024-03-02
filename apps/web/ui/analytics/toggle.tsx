@@ -3,7 +3,7 @@ import useDomains from "@/lib/swr/use-domains";
 import useProject from "@/lib/swr/use-project";
 import { DomainProps } from "@/lib/types";
 import {
-  Badge,
+  BadgeTooltip,
   BlurImage,
   Copy,
   ExpandingArrow,
@@ -96,19 +96,11 @@ export default function Toggle() {
               {primaryDomain}
             </h2>
             {allDomains && allDomains.length > 1 && (
-              <Tooltip
+              <BadgeTooltip
                 content={<DomainsFilterTooltip domains={allDomains} />}
-                side="bottom"
               >
-                <div className="flex cursor-pointer items-center">
-                  <Badge
-                    variant="gray"
-                    className="border-gray-300 transition-all hover:bg-gray-200"
-                  >
-                    +{allDomains.length - 1}
-                  </Badge>
-                </div>
-              </Tooltip>
+                +{allDomains.length - 1}
+              </BadgeTooltip>
             )}
           </div>
         )}
@@ -139,8 +131,7 @@ export default function Toggle() {
                                   setOpenDatePopover(false);
                                   queryParams({
                                     set: {
-                                      upgrade:
-                                        plan === "free" ? "pro" : "business",
+                                      upgrade: "pro",
                                     },
                                   });
                                 },

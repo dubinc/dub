@@ -59,7 +59,7 @@ export const POST = withAuth(
     const { link, error, status } = await processLink({
       payload: body,
       project,
-      session,
+      ...(session && { userId: session.user.id }),
     });
 
     if (error) {

@@ -1,5 +1,6 @@
 "use server";
 
+import { addDomainToVercel, removeDomainFromVercel } from "@/lib/api/domains";
 import { deleteProjectAdmin } from "@/lib/api/projects";
 import { getSession, hashToken } from "@/lib/auth";
 import { unsubscribe } from "@/lib/flodesk";
@@ -214,6 +215,23 @@ export async function banUser(data: FormData) {
       },
     ),
   ]);
+
+  return true;
+}
+
+export async function refreshDomain(data: FormData) {
+  const domain = data.get("domain") as string;
+
+  if (!(await isAdmin())) {
+    return {
+      error: "Unauthorized",
+    };
+  }
+
+  const remove = await removeDomainFromVercel(domain);
+  const add = await addDomainToVercel(domain);
+
+  console.log({ remove, add });
 
   return true;
 }
