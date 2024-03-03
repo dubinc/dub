@@ -26,6 +26,16 @@ export default function LoginForm() {
 
   const { isMobile } = useMediaQuery();
 
+  useEffect(() => {
+    // when leave page, reset state
+    return () => {
+      setClickedGoogle(false);
+      setClickedGithub(false);
+      setClickedEmail(false);
+      setClickedSSO(false);
+    };
+  }, []);
+
   return (
     <>
       <div className="flex space-x-2">
