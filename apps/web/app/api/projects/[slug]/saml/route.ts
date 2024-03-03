@@ -1,5 +1,4 @@
 import { withAuth } from "@/lib/auth";
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import jackson, { samlAudience } from "@/lib/jackson";
 import z from "@/lib/zod";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -48,25 +47,21 @@ export const GET = withAuth(async ({ project }) => {
 // POST /api/projects/[slug]/saml – create a new SAML connection
 export const POST = withAuth(
   async ({ req, project }) => {
-    try {
-      const { metadataUrl, encodedRawMetadata } =
-        createSAMLConnectionSchema.parse(await req.json());
+    const { metadataUrl, encodedRawMetadata } =
+      createSAMLConnectionSchema.parse(await req.json());
 
-      const { apiController } = await jackson();
+    const { apiController } = await jackson();
 
-      const data = await apiController.createSAMLConnection({
-        encodedRawMetadata: encodedRawMetadata!,
-        metadataUrl: metadataUrl!,
-        defaultRedirectUrl: `${process.env.NEXTAUTH_URL}/auth/saml`,
-        redirectUrl: process.env.NEXTAUTH_URL as string,
-        tenant: project.id,
-        product: "Dub",
-      });
+    const data = await apiController.createSAMLConnection({
+      encodedRawMetadata: encodedRawMetadata!,
+      metadataUrl: metadataUrl!,
+      defaultRedirectUrl: `${process.env.NEXTAUTH_URL}/auth/saml`,
+      redirectUrl: process.env.NEXTAUTH_URL as string,
+      tenant: project.id,
+      product: "Dub",
+    });
 
-      return NextResponse.json(data);
-    } catch (error) {
-      return handleAndReturnErrorResponse(error);
-    }
+    return NextResponse.json(data);
   },
   {
     requiredRole: ["owner"],
@@ -78,21 +73,17 @@ export const POST = withAuth(
 
 export const DELETE = withAuth(
   async ({ searchParams }) => {
-    try {
-      const { clientID, clientSecret } =
-        deleteSAMLConnectionSchema.parse(searchParams);
+    const { clientID, clientSecret } =
+      deleteSAMLConnectionSchema.parse(searchParams);
 
-      const { apiController } = await jackson();
+    const { apiController } = await jackson();
 
-      await apiController.deleteConnections({
-        clientID,
-        clientSecret,
-      });
+    await apiController.deleteConnections({
+      clientID,
+      clientSecret,
+    });
 
-      return NextResponse.json({ response: "removed SAML connection" });
-    } catch (error) {
-      return handleAndReturnErrorResponse(error);
-    }
+    return NextResponse.json({ response: "removed SAML connection" });
   },
   {
     requiredRole: ["owner"],

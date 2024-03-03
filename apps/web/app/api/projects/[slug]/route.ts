@@ -1,7 +1,7 @@
 import { deleteProject } from "@/lib/api/projects";
 import { withAuth } from "@/lib/auth";
 import { isReservedKey } from "@/lib/edge-config";
-import { ErrorResponse, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { DubApiError } from "@/lib/api/errors";
 import prisma from "@/lib/prisma";
 import z from "@/lib/zod";
 import {
@@ -63,17 +63,13 @@ export const PUT = withAuth(
       return NextResponse.json(response);
     } catch (error) {
       if (error.code === "P2002") {
-        return NextResponse.json<ErrorResponse>(
-          {
-            error: {
-              code: "conflict",
-              message: "Project slug already exists.",
-            },
-          },
-          { status: 422 },
-        );
+        throw new DubApiError({
+          code: "conflict",
+          message: "Project slug already exists.",
+        });
       }
-      return handleAndReturnErrorResponse(error);
+
+      throw error;
     }
   },
   {

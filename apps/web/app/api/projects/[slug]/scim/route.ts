@@ -1,5 +1,5 @@
 import { withAuth } from "@/lib/auth";
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { DubApiError } from "@/lib/api/errors";
 import jackson from "@/lib/jackson";
 import z from "@/lib/zod";
 import { NextResponse } from "next/server";
@@ -17,51 +17,43 @@ const deleteDirectorySchema = z.object({
 export const GET = withAuth(async ({ project }) => {
   const { directorySyncController } = await jackson();
 
-  try {
-    const { data, error } =
-      await directorySyncController.directories.getByTenantAndProduct(
-        project.id,
-        "Dub",
-      );
-    if (error) {
-      throw new DubApiError({
-        code: "internal_server_error",
-        message: error.message,
-      });
-    }
-
-    return NextResponse.json({
-      directories: data,
+  const { data, error } =
+    await directorySyncController.directories.getByTenantAndProduct(
+      project.id,
+      "Dub",
+    );
+  if (error) {
+    throw new DubApiError({
+      code: "internal_server_error",
+      message: error.message,
     });
-  } catch (error) {
-    return handleAndReturnErrorResponse(error);
   }
+
+  return NextResponse.json({
+    directories: data,
+  });
 });
 
 // POST /api/projects/[slug]/scim – create a new SCIM directory
 export const POST = withAuth(
   async ({ req, project }) => {
-    try {
-      const { provider = "okta-scim-v2", currentDirectoryId } =
-        createDirectorySchema.parse(await req.json());
+    const { provider = "okta-scim-v2", currentDirectoryId } =
+      createDirectorySchema.parse(await req.json());
 
-      const { directorySyncController } = await jackson();
+    const { directorySyncController } = await jackson();
 
-      const [data, _] = await Promise.all([
-        directorySyncController.directories.create({
-          name: "Dub SCIM Directory",
-          tenant: project.id,
-          product: "Dub",
-          type: provider,
-        }),
-        currentDirectoryId &&
-          directorySyncController.directories.delete(currentDirectoryId),
-      ]);
+    const [data, _] = await Promise.all([
+      directorySyncController.directories.create({
+        name: "Dub SCIM Directory",
+        tenant: project.id,
+        product: "Dub",
+        type: provider,
+      }),
+      currentDirectoryId &&
+        directorySyncController.directories.delete(currentDirectoryId),
+    ]);
 
-      return NextResponse.json(data);
-    } catch (error) {
-      return handleAndReturnErrorResponse(error);
-    }
+    return NextResponse.json(data);
   },
   {
     requiredRole: ["owner"],
@@ -73,25 +65,21 @@ export const POST = withAuth(
 
 export const DELETE = withAuth(
   async ({ searchParams }) => {
-    try {
-      const { directoryId } = deleteDirectorySchema.parse(searchParams);
+    const { directoryId } = deleteDirectorySchema.parse(searchParams);
 
-      const { directorySyncController } = await jackson();
+    const { directorySyncController } = await jackson();
 
-      const { error, data } =
-        await directorySyncController.directories.delete(directoryId);
+    const { error, data } =
+      await directorySyncController.directories.delete(directoryId);
 
-      if (error) {
-        throw new DubApiError({
-          code: "bad_request",
-          message: error.message,
-        });
-      }
-
-      return NextResponse.json(data);
-    } catch (error) {
-      return handleAndReturnErrorResponse(error);
+    if (error) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: error.message,
+      });
     }
+
+    return NextResponse.json(data);
   },
   {
     requiredRole: ["owner"],

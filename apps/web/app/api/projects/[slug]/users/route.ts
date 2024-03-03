@@ -1,5 +1,5 @@
 import { withAuth } from "@/lib/auth";
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { DubApiError } from "@/lib/api/errors";
 import prisma from "@/lib/prisma";
 import { roles } from "@/lib/types";
 import z from "@/lib/zod";
@@ -48,23 +48,19 @@ export const GET = withAuth(async ({ project }) => {
 // PUT /api/projects/[slug]/users – update a user's role for a specific project
 export const PUT = withAuth(
   async ({ req, project }) => {
-    try {
-      const { userId, role } = updateRoleSchema.parse(await req.json());
-      const response = await prisma.projectUsers.update({
-        where: {
-          userId_projectId: {
-            projectId: project.id,
-            userId,
-          },
+    const { userId, role } = updateRoleSchema.parse(await req.json());
+    const response = await prisma.projectUsers.update({
+      where: {
+        userId_projectId: {
+          projectId: project.id,
+          userId,
         },
-        data: {
-          role,
-        },
-      });
-      return NextResponse.json(response);
-    } catch (error) {
-      return handleAndReturnErrorResponse(error);
-    }
+      },
+      data: {
+        role,
+      },
+    });
+    return NextResponse.json(response);
   },
   {
     requiredRole: ["owner"],
@@ -75,44 +71,40 @@ export const PUT = withAuth(
 
 export const DELETE = withAuth(
   async ({ searchParams, project }) => {
-    try {
-      const { userId } = removeUserSchema.parse(searchParams);
-      const projectUser = await prisma.projectUsers.findUnique({
-        where: {
-          userId_projectId: {
-            projectId: project.id,
-            userId,
-          },
+    const { userId } = removeUserSchema.parse(searchParams);
+    const projectUser = await prisma.projectUsers.findUnique({
+      where: {
+        userId_projectId: {
+          projectId: project.id,
+          userId,
         },
-        select: {
-          role: true,
-        },
+      },
+      select: {
+        role: true,
+      },
+    });
+    if (!projectUser) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "User not found",
       });
-      if (!projectUser) {
-        throw new DubApiError({
-          code: "not_found",
-          message: "User not found",
-        });
-      }
-      if (projectUser.role === "owner") {
-        throw new DubApiError({
-          code: "bad_request",
-          message:
-            "Cannot remove owner from project. Please transfer ownership to another user first.",
-        });
-      }
-      const response = await prisma.projectUsers.delete({
-        where: {
-          userId_projectId: {
-            projectId: project.id,
-            userId,
-          },
-        },
-      });
-      return NextResponse.json(response);
-    } catch (error) {
-      return handleAndReturnErrorResponse(error);
     }
+    if (projectUser.role === "owner") {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "Cannot remove owner from project. Please transfer ownership to another user first.",
+      });
+    }
+    const response = await prisma.projectUsers.delete({
+      where: {
+        userId_projectId: {
+          projectId: project.id,
+          userId,
+        },
+      },
+    });
+    return NextResponse.json(response);
   },
   {
     requiredRole: ["owner"],

@@ -5,7 +5,7 @@ import {
 } from "@/lib/api/domains";
 import { withSession } from "@/lib/auth";
 import { isReservedKey } from "@/lib/edge-config";
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { DubApiError } from "@/lib/api/errors";
 import prisma from "@/lib/prisma";
 import z from "@/lib/zod";
 import {
@@ -62,97 +62,93 @@ export const GET = withSession(async ({ session }) => {
 });
 
 export const POST = withSession(async ({ req, session }) => {
-  try {
-    const { name, slug, domain } = await createProjectSchema.parseAsync(
-      await req.json(),
-    );
+  const { name, slug, domain } = await createProjectSchema.parseAsync(
+    await req.json(),
+  );
 
-    const freeProjects = await prisma.project.count({
+  const freeProjects = await prisma.project.count({
+    where: {
+      plan: "free",
+      users: {
+        some: {
+          userId: session.user.id,
+          role: "owner",
+        },
+      },
+    },
+  });
+
+  if (freeProjects >= FREE_PROJECTS_LIMIT) {
+    throw new DubApiError({
+      code: "exceeded_limit",
+      message: `You can only create up to ${FREE_PROJECTS_LIMIT} free projects. Additional projects require a paid plan.`,
+    });
+  }
+
+  const [slugExist, domainExist] = await Promise.all([
+    prisma.project.findUnique({
       where: {
-        plan: "free",
+        slug,
+      },
+      select: {
+        slug: true,
+      },
+    }),
+    domain ? domainExists(domain) : false,
+  ]);
+
+  if (slugExist) {
+    throw new DubApiError({
+      code: "unprocessable_entity",
+      message: "Slug is already in use.",
+    });
+  }
+
+  if (domainExist) {
+    throw new DubApiError({
+      code: "unprocessable_entity",
+      message: "Domain is already in use.",
+    });
+  }
+
+  const [projectResponse, domainRepsonse] = await Promise.all([
+    prisma.project.create({
+      data: {
+        name,
+        slug,
         users: {
-          some: {
+          create: {
             userId: session.user.id,
             role: "owner",
           },
         },
-      },
-    });
-
-    if (freeProjects >= FREE_PROJECTS_LIMIT) {
-      throw new DubApiError({
-        code: "exceeded_limit",
-        message: `You can only create up to ${FREE_PROJECTS_LIMIT} free projects. Additional projects require a paid plan.`,
-      });
-    }
-
-    const [slugExist, domainExist] = await Promise.all([
-      prisma.project.findUnique({
-        where: {
-          slug,
-        },
-        select: {
-          slug: true,
-        },
-      }),
-      domain ? domainExists(domain) : false,
-    ]);
-
-    if (slugExist) {
-      throw new DubApiError({
-        code: "unprocessable_entity",
-        message: "Slug is already in use.",
-      });
-    }
-
-    if (domainExist) {
-      throw new DubApiError({
-        code: "unprocessable_entity",
-        message: "Domain is already in use.",
-      });
-    }
-
-    const [projectResponse, domainRepsonse] = await Promise.all([
-      prisma.project.create({
-        data: {
-          name,
-          slug,
-          users: {
+        ...(domain && {
+          domains: {
             create: {
-              userId: session.user.id,
-              role: "owner",
+              slug: domain,
+              primary: true,
             },
           },
-          ...(domain && {
-            domains: {
-              create: {
-                slug: domain,
-                primary: true,
-              },
-            },
-          }),
-          billingCycleStart: new Date().getDate(),
-          inviteCode: nanoid(24),
-        },
-        include: {
-          domains: true,
-        },
-      }),
-      domain && addDomainToVercel(domain),
-    ]);
+        }),
+        billingCycleStart: new Date().getDate(),
+        inviteCode: nanoid(24),
+      },
+      include: {
+        domains: true,
+      },
+    }),
+    domain && addDomainToVercel(domain),
+  ]);
 
-    // if domain is specified and it was successfully added to Vercel
-    // update it in Redis cache
-    if (domain && domainRepsonse && !domainRepsonse.error) {
-      await setRootDomain({
-        id: projectResponse.domains[0].id,
-        domain,
-        projectId: projectResponse.id,
-      });
-    }
-
-    return NextResponse.json(projectResponse);
-  } catch (error) {
-    return handleAndReturnErrorResponse(error);
+  // if domain is specified and it was successfully added to Vercel
+  // update it in Redis cache
+  if (domain && domainRepsonse && !domainRepsonse.error) {
+    await setRootDomain({
+      id: projectResponse.domains[0].id,
+      domain,
+      projectId: projectResponse.id,
+    });
   }
+
+  return NextResponse.json(projectResponse);
 });
