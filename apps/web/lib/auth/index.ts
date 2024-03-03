@@ -57,36 +57,36 @@ interface WithAuthHandler {
     link?: LinkProps;
   }): Promise<Response>;
 }
-export const withAuth =
-  (
-    handler: WithAuthHandler,
-    {
-      requiredPlan = [
-        "free",
-        "pro",
-        "business",
-        "business plus",
-        "business max",
-        "business extra",
-        "enterprise",
-      ], // if the action needs a specific plan
-      requiredRole = ["owner", "member"],
-      needNotExceededClicks, // if the action needs the user to not have exceeded their clicks usage
-      needNotExceededLinks, // if the action needs the user to not have exceeded their links usage
-      allowAnonymous, // special case for /api/links (POST /api/links) – allow no session
-      allowSelf, // special case for removing yourself from a project
-      skipLinkChecks, // special case for /api/links/exists – skip link checks
-    }: {
-      requiredPlan?: Array<PlanProps>;
-      requiredRole?: Array<"owner" | "member">;
-      needNotExceededClicks?: boolean;
-      needNotExceededLinks?: boolean;
-      allowAnonymous?: boolean;
-      allowSelf?: boolean;
-      skipLinkChecks?: boolean;
-    } = {},
-  ) =>
-  async (
+
+export const withAuth = (
+  handler: WithAuthHandler,
+  {
+    requiredPlan = [
+      "free",
+      "pro",
+      "business",
+      "business plus",
+      "business max",
+      "business extra",
+      "enterprise",
+    ], // if the action needs a specific plan
+    requiredRole = ["owner", "member"],
+    needNotExceededClicks, // if the action needs the user to not have exceeded their clicks usage
+    needNotExceededLinks, // if the action needs the user to not have exceeded their links usage
+    allowAnonymous, // special case for /api/links (POST /api/links) – allow no session
+    allowSelf, // special case for removing yourself from a project
+    skipLinkChecks, // special case for /api/links/exists – skip link checks
+  }: {
+    requiredPlan?: Array<PlanProps>;
+    requiredRole?: Array<"owner" | "member">;
+    needNotExceededClicks?: boolean;
+    needNotExceededLinks?: boolean;
+    allowAnonymous?: boolean;
+    allowSelf?: boolean;
+    skipLinkChecks?: boolean;
+  } = {},
+) => {
+  return async (
     req: Request,
     { params }: { params: Record<string, string> | undefined },
   ) => {
@@ -399,7 +399,7 @@ export const withAuth =
         }
       }
 
-      return handler({
+      return await handler({
         req,
         params: params || {},
         searchParams,
@@ -410,9 +410,11 @@ export const withAuth =
         link,
       });
     } catch (error) {
+      console.error("withAuth Error -->", error.message);
       return handleAndReturnErrorResponse(error);
     }
   };
+};
 
 interface WithSessionHandler {
   ({
@@ -515,8 +517,9 @@ export const withSession =
       }
 
       const searchParams = getSearchParams(req.url);
-      return handler({ req, params, searchParams, session });
+      return await handler({ req, params, searchParams, session });
     } catch (error) {
+      console.error("withSession Error -->", error.message);
       return handleAndReturnErrorResponse(error);
     }
   };
