@@ -58,6 +58,7 @@ import TagsSection from "./tags-section";
 import { LinkWithTagsProps } from "@/lib/types";
 import UTMSection from "./utm-section";
 import { Globe } from "lucide-react";
+import LinkLogo from "@/ui/links/link-logo";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
@@ -219,29 +220,6 @@ function AddEditLinkModal({
     }
   }, [debouncedUrl, password, showAddEditLinkModal, proxy]);
 
-  const logo = useMemo(() => {
-    // if the link is password protected, or if it's a new link and there's no URL yet, return the default Dub logo
-    // otherwise, get the favicon of the URL
-    const url = password || !debouncedUrl ? null : debouncedUrl || props?.url;
-    const apexDomain = url ? getApexDomain(url) : null;
-
-    return url ? apexDomain ? (
-      <BlurImage
-        src={`${GOOGLE_FAVICON_URL}${apexDomain}`}
-        alt="Logo"
-        className="h-10 w-10 rounded-full"
-        width={20}
-        height={20}
-      />
-    ) : (
-      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100">
-        <Globe className="h-5 w-5 text-gray-600" />
-      </div>
-    ) : (
-      <Logo />
-    );
-  }, [password, debouncedUrl, props]);
-
   const endpoint = useMemo(() => {
     if (props?.key) {
       return {
@@ -358,7 +336,7 @@ function AddEditLinkModal({
           onScroll={handleScroll}
         >
           <div className="z-10 flex flex-col items-center justify-center space-y-3 border-b border-gray-200 bg-white px-4 pb-8 pt-8 transition-all md:sticky md:top-0 md:px-16">
-            {logo}
+            <LinkLogo apexDomain={getApexDomain(url)} />
             <h3 className="max-w-sm truncate text-lg font-medium">
               {props
                 ? `Edit ${linkConstructor({
