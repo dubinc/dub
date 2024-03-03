@@ -1,7 +1,7 @@
 import { TopLinksTabs } from "@/lib/analytics";
 import { LoadingSpinner, Modal, Switch, useRouterStuff } from "@dub/ui";
 import { fetcher, linkConstructor } from "@dub/utils";
-import { Link2, Maximize, X } from "lucide-react";
+import { Maximize, X } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
