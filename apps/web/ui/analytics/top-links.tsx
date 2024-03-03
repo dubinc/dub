@@ -39,7 +39,7 @@ export default function TopLinks() {
       tab={tab}
       data={
         data?.map((d) => ({
-          icon: <Link2 className="h-4 w-4" />,
+          icon: null,
           title: d[tab],
           href: queryParams({
             set: {
