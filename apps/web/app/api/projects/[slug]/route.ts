@@ -10,23 +10,19 @@ import {
   validSlugRegex,
 } from "@dub/utils";
 import { NextResponse } from "next/server";
+import slugify from "@sindresorhus/slugify";
 
 const updateProjectSchema = z.object({
-  name: z.string().max(32).optional(),
+  name: z.string().min(1).max(32).optional(),
   slug: z
     .string()
-    .max(48, { message: "Slug must be less than 48 characters" })
-    .regex(validSlugRegex, { message: "Invalid slug" })
-    .refine(
-      async (slug) => {
-        if ((await isReservedKey(slug)) || DEFAULT_REDIRECTS[slug]) {
-          return false;
-        }
-
-        return true;
-      },
-      { message: "Cannot use reserved slugs" },
-    )
+    .min(3, "Slug must be at least 3 characters")
+    .max(48, "Slug must be less than 48 characters")
+    .transform((v) => slugify(v))
+    .refine((v) => validSlugRegex.test(v), { message: "Invalid slug format" })
+    .refine(async (v) => !((await isReservedKey(v)) || DEFAULT_REDIRECTS[v]), {
+      message: "Cannot use reserved slugs",
+    })
     .optional(),
   defaultDomains: z
     .array(z.enum(DUB_DOMAINS_ARRAY as [string, ...string[]]))

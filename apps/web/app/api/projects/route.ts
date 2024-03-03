@@ -16,14 +16,15 @@ import {
   validSlugRegex,
 } from "@dub/utils";
 import { NextResponse } from "next/server";
+import slugify from "@sindresorhus/slugify";
 
 const createProjectSchema = z.object({
-  name: z.string().min(1),
+  name: z.string().min(1).max(32),
   slug: z
     .string()
     .min(3, "Slug must be at least 3 characters")
     .max(48, "Slug must be less than 48 characters")
-    .transform((v) => v.toLowerCase())
+    .transform((v) => slugify(v))
     .refine((v) => validSlugRegex.test(v), { message: "Invalid slug format" })
     .refine(async (v) => !((await isReservedKey(v)) || DEFAULT_REDIRECTS[v]), {
       message: "Cannot use reserved slugs",
@@ -99,14 +100,14 @@ export const POST = withSession(async ({ req, session }) => {
 
   if (slugExist) {
     throw new DubApiError({
-      code: "unprocessable_entity",
+      code: "conflict",
       message: "Slug is already in use.",
     });
   }
 
   if (domainExist) {
     throw new DubApiError({
-      code: "unprocessable_entity",
+      code: "conflict",
       message: "Domain is already in use.",
     });
   }
