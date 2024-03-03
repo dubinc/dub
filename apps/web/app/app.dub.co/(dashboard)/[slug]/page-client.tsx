@@ -11,7 +11,6 @@ import {
   TooltipContent,
   useRouterStuff,
 } from "@dub/ui";
-import { getNextPlan } from "@dub/utils";
 import { ChevronDown, FilePlus2, Sheet } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";

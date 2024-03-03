@@ -2,8 +2,6 @@ import { hashToken, withSession } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK, nanoid } from "@dub/utils";
-import { sendEmail } from "emails";
-import APIKeyCreated from "emails/api-key-created";
 import { NextResponse } from "next/server";
 
 // GET /api/user/tokens – get all tokens for a specific user

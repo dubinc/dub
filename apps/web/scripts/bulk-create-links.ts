@@ -1,8 +1,8 @@
 import { qstash } from "@/lib/cron";
+import { redis } from "@/lib/upstash";
 import "dotenv-flow/config";
 import * as fs from "fs";
 import * as Papa from "papaparse";
-import { redis } from "@/lib/upstash";
 
 const projectId = "xxx";
 const userId = "xxx";

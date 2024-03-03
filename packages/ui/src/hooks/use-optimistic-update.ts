@@ -1,6 +1,6 @@
-import useSWR from "swr";
 import { fetcher } from "@dub/utils";
 import { toast } from "sonner";
+import useSWR from "swr";
 
 export default function useOptimisticUpdate<T>(
   url: string,

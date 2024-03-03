@@ -2,6 +2,7 @@
 
 import useDomains from "@/lib/swr/use-domains";
 import useProject from "@/lib/swr/use-project";
+import { LinkWithTagsProps } from "@/lib/types";
 import { AlertCircleFill, Lock, Random, X } from "@/ui/shared/icons";
 import {
   BlurImage,
@@ -55,7 +56,6 @@ import PasswordSection from "./password-section";
 import Preview from "./preview";
 import RewriteSection from "./rewrite-section";
 import TagsSection from "./tags-section";
-import { LinkWithTagsProps } from "@/lib/types";
 import UTMSection from "./utm-section";
 
 function AddEditLinkModal({
