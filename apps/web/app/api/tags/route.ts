@@ -1,6 +1,6 @@
 import { exceededLimitError } from "@/lib/api/errors";
 import { withAuth } from "@/lib/auth";
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { DubApiError } from "@/lib/api/errors";
 import prisma from "@/lib/prisma";
 import { createTagBodySchema } from "@/lib/zod/schemas/tags";
 import { COLORS_LIST, randomBadgeColor } from "@/ui/links/tag-badge";
@@ -26,58 +26,49 @@ export const GET = withAuth(async ({ project, headers }) => {
 
 // POST /api/projects/[slug]/tags - create a tag for a project
 export const POST = withAuth(async ({ req, project, headers }) => {
-  try {
-    const tagsCount = await prisma.tag.count({
-      where: {
-        projectId: project.id,
-      },
+  const tagsCount = await prisma.tag.count({
+    where: {
+      projectId: project.id,
+    },
+  });
+
+  if (tagsCount >= project.tagsLimit) {
+    throw new DubApiError({
+      code: "exceeded_limit",
+      message: exceededLimitError({
+        plan: project.plan,
+        limit: project.tagsLimit,
+        type: "tags",
+      }),
     });
-
-    if (tagsCount >= project.tagsLimit) {
-      throw new DubApiError({
-        code: "exceeded_limit",
-        message: exceededLimitError({
-          plan: project.plan,
-          limit: project.tagsLimit,
-          type: "tags",
-        }),
-      });
-    }
-
-    const { tag, color } = createTagBodySchema.parse(await req.json());
-
-    const existingTag = await prisma.tag.findFirst({
-      where: {
-        projectId: project.id,
-        name: tag,
-      },
-    });
-
-    if (existingTag) {
-      throw new DubApiError({
-        code: "conflict",
-        message: "A tag with that name already exists.",
-      });
-    }
-
-    const response = await prisma.tag.create({
-      data: {
-        name: tag,
-        color:
-          color && COLORS_LIST.map(({ color }) => color).includes(color)
-            ? color
-            : randomBadgeColor(),
-        projectId: project.id,
-      },
-    });
-
-    return NextResponse.json(response, { headers, status: 201 });
-  } catch (error) {
-    if (error.code === "P2002") {
-      error.code = "conflict";
-      error.message = "A tag with that name already exists.";
-    }
-
-    return handleAndReturnErrorResponse(error);
   }
+
+  const { tag, color } = createTagBodySchema.parse(await req.json());
+
+  const existingTag = await prisma.tag.findFirst({
+    where: {
+      projectId: project.id,
+      name: tag,
+    },
+  });
+
+  if (existingTag) {
+    throw new DubApiError({
+      code: "conflict",
+      message: "A tag with that name already exists.",
+    });
+  }
+
+  const response = await prisma.tag.create({
+    data: {
+      name: tag,
+      color:
+        color && COLORS_LIST.map(({ color }) => color).includes(color)
+          ? color
+          : randomBadgeColor(),
+      projectId: project.id,
+    },
+  });
+
+  return NextResponse.json(response, { headers, status: 201 });
 });
