@@ -1,10 +1,4 @@
-import {
-  DUB_LOGO,
-  PLANS,
-  capitalize,
-  getNextPlan,
-  nFormatter,
-} from "@dub/utils";
+import { DUB_LOGO, capitalize, getNextPlan, nFormatter } from "@dub/utils";
 import {
   Body,
   Container,

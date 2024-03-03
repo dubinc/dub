@@ -164,18 +164,6 @@ export const POST = async (req: Request) => {
             usersLimit: plan.limits.users!,
             plan: plan.name.toLowerCase(),
           },
-          select: {
-            users: {
-              select: {
-                user: {
-                  select: {
-                    name: true,
-                    email: true,
-                  },
-                },
-              },
-            },
-          },
         });
       }
 
