@@ -3,6 +3,7 @@ import { GOOGLE_FAVICON_URL, getApexDomain, linkConstructor } from "@dub/utils";
 import Script from "next/script";
 import ReportButton from "./report";
 import { Globe } from "lucide-react";
+import LinkLogo from "@/ui/links/link-logo";
 
 export default function LinkInspectorCard({
   domain,
@@ -20,19 +21,7 @@ export default function LinkInspectorCard({
       <Script src="https://tally.so/widgets/embed.js" strategy="lazyOnload" />
       <div className="flex w-full items-center justify-between rounded-md border border-gray-300 bg-white p-3">
         <div className="flex items-center space-x-3">
-          {apexDomain ? (
-            <BlurImage
-              src={`${GOOGLE_FAVICON_URL}${apexDomain}`}
-              alt={apexDomain}
-              className="pointer-events-none h-10 w-10 rounded-full"
-              width={20}
-              height={20}
-            />
-          ) : (
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100">
-              <Globe className="h-5 w-5 text-gray-600" />
-            </div>
-          )}
+          <LinkLogo apexDomain={apexDomain} />
           <div>
             <div className="flex items-center space-x-1 sm:space-x-2">
               <a
