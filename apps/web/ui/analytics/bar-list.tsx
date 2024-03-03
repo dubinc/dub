@@ -33,6 +33,7 @@ import {
 } from "react";
 import useSWR from "swr";
 import LinkPreviewTooltip from "./link-preview";
+import LinkLogo from "../links/link-logo";
 
 export default function BarList({
   tab,
@@ -168,26 +169,17 @@ export function LineItem({
         : getApexDomain(title);
     return (
       <div className="z-10 flex items-center space-x-2 px-2">
-        {tab === "link" && apexDomain ? (
+        {tab === "link" ? (
           data ? (
-            <BlurImage
-              src={`${GOOGLE_FAVICON_URL}${apexDomain}`}
-              alt={apexDomain}
-              className="h-5 w-5 rounded-full"
-              width={20}
-              height={20}
+            <LinkLogo
+              apexDomain={apexDomain}
+              className="h-5 w-5 sm:h-5 sm:w-5"
             />
           ) : (
             <div className="h-5 w-5 animate-pulse rounded-full bg-gray-100" />
           )
-        ) : tab === "url" && apexDomain ? (
-          <BlurImage
-            src={`${GOOGLE_FAVICON_URL}${apexDomain}`}
-            alt={apexDomain}
-            className="h-5 w-5 rounded-full"
-            width={20}
-            height={20}
-          />
+        ) : tab === "url" ? (
+          <LinkLogo apexDomain={apexDomain} className="h-5 w-5 sm:h-5 sm:w-5" />
         ) : (
           icon
         )}
