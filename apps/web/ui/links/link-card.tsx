@@ -10,7 +10,6 @@ import { Chart, Delete, ThreeDots } from "@/ui/shared/icons";
 import {
   Avatar,
   BadgeTooltip,
-  BlurImage,
   Button,
   CopyButton,
   IconMenu,
@@ -24,7 +23,6 @@ import {
 } from "@dub/ui";
 import { LinkifyTooltipContent } from "@dub/ui/src/tooltip";
 import {
-  GOOGLE_FAVICON_URL,
   HOME_DOMAIN,
   cn,
   fetcher,
@@ -45,7 +43,6 @@ import {
   QrCode,
   TimerOff,
   Lock,
-  Globe,
   Copy,
   CopyCheck,
 } from "lucide-react";
@@ -56,6 +53,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
 import { useTransferLinkModal } from "../modals/transfer-link-modal";
+import LinkLogo from "./link-logo";
 
 export default function LinkCard({
   props,
@@ -281,18 +279,8 @@ export default function LinkCard({
                 )}
               </div>
             </Tooltip>
-          ) : apexDomain ? (
-            <BlurImage
-              src={`${GOOGLE_FAVICON_URL}${apexDomain}`}
-              alt={apexDomain}
-              className="h-8 w-8 rounded-full sm:h-10 sm:w-10"
-              width={20}
-              height={20}
-            />
           ) : (
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 px-0 sm:h-10 sm:w-10">
-              <Globe className="h-4 w-4 text-gray-600 sm:h-5 sm:w-5" />
-            </div>
+            <LinkLogo apexDomain={apexDomain} />
           )}
           {/* 
             Here, we're manually setting ml-* values because if we do space-x-* in the parent div, 
