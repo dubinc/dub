@@ -160,7 +160,12 @@ export function LineItem({
   const { queryParams } = useRouterStuff();
 
   const lineItem = useMemo(() => {
-    const apexDomain = tab === "link" ? data ? getApexDomain(data.url) : null : getApexDomain(title);
+    const apexDomain =
+      tab === "link"
+        ? data
+          ? getApexDomain(data.url)
+          : null
+        : getApexDomain(title);
     return (
       <div className="z-10 flex items-center space-x-2 px-2">
         {tab === "link" && apexDomain ? (

@@ -3,12 +3,11 @@
 import useDomains from "@/lib/swr/use-domains";
 import useProject from "@/lib/swr/use-project";
 import { LinkWithTagsProps } from "@/lib/types";
+import LinkLogo from "@/ui/links/link-logo";
 import { AlertCircleFill, Lock, Random, X } from "@/ui/shared/icons";
 import {
-  BlurImage,
   Button,
   LoadingCircle,
-  Logo,
   Modal,
   TooltipContent,
   useMediaQuery,
@@ -16,7 +15,6 @@ import {
 } from "@dub/ui";
 import {
   DEFAULT_LINK_PROPS,
-  GOOGLE_FAVICON_URL,
   cn,
   deepEqual,
   getApexDomain,
@@ -57,8 +55,6 @@ import Preview from "./preview";
 import RewriteSection from "./rewrite-section";
 import TagsSection from "./tags-section";
 import UTMSection from "./utm-section";
-import { Globe } from "lucide-react";
-import LinkLogo from "@/ui/links/link-logo";
 
 function AddEditLinkModal({
   showAddEditLinkModal,

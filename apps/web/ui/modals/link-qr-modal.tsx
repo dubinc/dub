@@ -5,10 +5,8 @@ import useProject from "@/lib/swr/use-project";
 import { QRLinkProps } from "@/lib/types";
 import { Clipboard, Download } from "@/ui/shared/icons";
 import {
-  BlurImage,
   IconMenu,
   InfoTooltip,
-  Logo,
   Modal,
   Photo,
   Popover,
@@ -21,7 +19,6 @@ import {
 import {
   APP_HOSTNAMES,
   FADE_IN_ANIMATION_SETTINGS,
-  GOOGLE_FAVICON_URL,
   HOME_DOMAIN,
   getApexDomain,
   linkConstructor,
