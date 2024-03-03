@@ -34,17 +34,17 @@ import {
 } from "@dub/utils";
 import {
   Archive,
+  Copy,
+  CopyCheck,
   CopyPlus,
   Edit3,
   EyeOff,
   FolderInput,
+  Lock,
   Mail,
   MessageCircle,
   QrCode,
   TimerOff,
-  Lock,
-  Copy,
-  CopyCheck,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";

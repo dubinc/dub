@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
-import "dotenv-flow/config";
 import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
+import "dotenv-flow/config";
 
 const domain = "song.fyi";
 

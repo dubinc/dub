@@ -1,12 +1,12 @@
 "use client";
 
-import { Button, LoadingSpinner } from "@dub/ui";
+import { LoadingSpinner } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
-import { banUser, getUserOrProjectOwner, refreshDomain } from "../actions";
-import UserInfo, { UserInfoProps } from "./user-info";
+import { refreshDomain } from "../actions";
+import { UserInfoProps } from "./user-info";
 
 export default function RefreshDomain() {
   const [data, setData] = useState<UserInfoProps | null>(null);
