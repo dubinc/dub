@@ -14,12 +14,12 @@ export const openApiObject: ZodOpenApiObject = {
   info: {
     title: "Dub.co API",
     description:
-      "Dub is an open-source link management tool for modern marketing teams to create, share, and track short links.",
+      "Dub is link management infrastructure for companies to create marketing campaigns, link sharing features, and referral programs.",
     version: "0.0.1",
     contact: {
       name: "Dub.co Support",
       email: "support@dub.co",
-      url: "https://dub.co/help",
+      url: "https://dub.co/api",
     },
     license: {
       name: "AGPL-3.0 license",

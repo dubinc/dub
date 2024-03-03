@@ -70,7 +70,7 @@ export const PUT = withAuth(
 // DELETE /api/projects/[slug]/users – remove a user from a project
 
 export const DELETE = withAuth(
-  async ({ searchParams, project }) => {
+  async ({ searchParams, project, session }) => {
     const { userId } = removeUserSchema.parse(searchParams);
     const projectUser = await prisma.projectUsers.findUnique({
       where: {
@@ -89,7 +89,7 @@ export const DELETE = withAuth(
         message: "User not found",
       });
     }
-    if (projectUser.role === "owner") {
+    if (projectUser.role === "owner" && userId === session.user.id) {
       throw new DubApiError({
         code: "bad_request",
         message:
