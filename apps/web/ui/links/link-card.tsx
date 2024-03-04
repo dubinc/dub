@@ -47,7 +47,7 @@ import {
   TimerOff,
 } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import punycode from "punycode/";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -78,14 +78,31 @@ export default function LinkCard({
     user,
   } = props;
 
+  const searchParams = useSearchParams();
+
   const [primaryTags, additionalTags] = useMemo(() => {
     const primaryTagsCount = 1;
 
+    const filteredTagIds =
+      searchParams?.get("tagId")?.split(",")?.filter(Boolean) ?? [];
+
+    /*
+      Sort tags so that the filtered tags are first. The most recently selected
+      filtered tag (last in array) should be displayed first.
+    */
+    const sortedTags =
+      filteredTagIds.length > 0
+        ? [...tags].sort(
+            (a, b) =>
+              filteredTagIds.indexOf(b.id) - filteredTagIds.indexOf(a.id),
+          )
+        : tags;
+
     return [
-      tags.filter((_, idx) => idx < primaryTagsCount),
-      tags.filter((_, idx) => idx >= primaryTagsCount),
+      sortedTags.filter((_, idx) => idx < primaryTagsCount),
+      sortedTags.filter((_, idx) => idx >= primaryTagsCount),
     ];
-  }, [tags]);
+  }, [tags, searchParams]);
 
   const apexDomain = getApexDomain(url);
 
