@@ -468,6 +468,18 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
               },
             },
             {
+              name: "logo",
+              description:
+                "The Logo URL to generate a QR code for. Defaults to `https://d2vwwcvoksz7ty.cloudfront.net/logo.png` if not provided.",
+              in: "query",
+              required: false,
+              schema: {
+                description:
+                  "The Logo URL to generate a QR code for. Defaults to `https://d2vwwcvoksz7ty.cloudfront.net/logo.png` if not provided.",
+                type: "string",
+              },
+            },
+            {
               name: "size",
               description:
                 "The size of the QR code in pixels. Defaults to `600` if not provided.",

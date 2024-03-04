@@ -7,7 +7,7 @@ import {
 } from "@/lib/qr/constants";
 import { QRCodeSVG } from "@/lib/qr/utils";
 import { ratelimit } from "@/lib/upstash";
-import { LOCALHOST_IP } from "@dub/utils";
+import { DUB_LOGO, LOCALHOST_IP } from "@dub/utils";
 import { ipAddress } from "@vercel/edge";
 import { getToken } from "next-auth/jwt";
 import { ImageResponse } from "next/og";
@@ -30,6 +30,7 @@ export async function GET(req: NextRequest) {
   }
 
   const url = req.nextUrl.searchParams.get("url") || "https://dub.co";
+
   const size = parseInt(req.nextUrl.searchParams.get("size") || "600", 10);
   const level = req.nextUrl.searchParams.get("level") || DEFAULT_LEVEL;
   if (!QR_LEVELS.includes(level)) {
@@ -41,26 +42,25 @@ export async function GET(req: NextRequest) {
   const includeMargin =
     req.nextUrl.searchParams.get("includeMargin") || DEFAULT_INCLUDEMARGIN;
 
-  // const logo = req.nextUrl.searchParams.get("logo") || "https://assets.dub.co/logo.png";
+  const logo_url = req.nextUrl.searchParams.get("logo") || DUB_LOGO;
 
-  return new ImageResponse(
-    QRCodeSVG({
-      value: url,
-      size,
-      level,
-      includeMargin: includeMargin === "true",
-      fgColor,
-      bgColor,
-      // imageSettings: {
-      //   src: logo,
-      //   height: size / 4,
-      //   width: size / 4,
-      //   excavate: true,
-      // },
-    }),
-    {
-      width: size,
-      height: size,
+  const res = QRCodeSVG({
+    value: url,
+    size,
+    level,
+    includeMargin: includeMargin === "true",
+    fgColor,
+    bgColor,
+    imageSettings: {
+      src: logo_url,
+      height: size / 4,
+      width: size / 4,
+      excavate: true,
     },
-  );
+  });
+
+  return new ImageResponse(res, {
+    width: size,
+    height: size,
+  });
 }
