@@ -547,6 +547,7 @@ export async function addLink(link: LinkWithTagIdsProps) {
   });
   return {
     ...response,
+    id: `link_${response.id}`,
     shortLink,
     qrCode: `https://api.dub.co/qr?url=${shortLink}`,
   };
@@ -677,6 +678,7 @@ export async function bulkCreateLinks({
     });
     return {
       ...link,
+      id: `link_${link.id}`,
       shortLink,
       qrCode: `https://api.dub.co/qr?url=${shortLink}`,
     };
@@ -801,6 +803,7 @@ export async function editLink({
 
   return {
     ...response,
+    id: `link_${response.id}`,
     shortLink,
     qrCode: `https://api.dub.co/qr?url=${shortLink}`,
   };
