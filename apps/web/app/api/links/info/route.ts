@@ -9,7 +9,7 @@ export const GET = withAuth(async ({ headers, searchParams }) => {
   if (!domain || !key) {
     return new Response("Missing domain or key", { status: 400 });
   }
-  const response = await prisma.link.findUnique({
+  const link = await prisma.link.findUnique({
     where: {
       domain_key: {
         domain,
@@ -20,7 +20,7 @@ export const GET = withAuth(async ({ headers, searchParams }) => {
       user: true,
     },
   });
-  if (!response) {
+  if (!link) {
     return new Response("Link not found.", {
       status: 404,
       headers,
@@ -28,10 +28,11 @@ export const GET = withAuth(async ({ headers, searchParams }) => {
   }
   return NextResponse.json(
     {
-      ...response,
+      ...link,
+      id: `link_${link.id}`,
       shortLink: linkConstructor({
-        domain: response.domain,
-        key: response.key,
+        domain: link.domain,
+        key: link.key,
       }),
     },
     {
