@@ -50,7 +50,9 @@ export async function getLinksForProject({
   showArchived?: boolean;
   withTags?: boolean;
 }): Promise<LinkProps[]> {
-  const tagIds = tagId ? tagId.split(",") : [];
+  const tagIds = tagId
+    ? tagId.split(",").map((tagId) => tagId.replace("tag_", ""))
+    : [];
 
   const links = await prisma.link.findMany({
     where: {
@@ -137,7 +139,9 @@ export async function getLinksCount({
       withTags?: boolean;
     };
 
-  const tagIds = tagId ? tagId.split(",") : [];
+  const tagIds = tagId
+    ? tagId.split(",").map((tagId) => tagId.replace("tag_", ""))
+    : [];
 
   const linksWhere = {
     projectId,
@@ -175,7 +179,7 @@ export async function getLinksCount({
     });
     return tagsCount.map((tag) => ({
       ...tag,
-      id: `tag_${tag.tagId}`,
+      tagId: `tag_${tag.tagId}`,
     }));
   } else {
     const where = {
