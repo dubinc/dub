@@ -1,15 +1,28 @@
 import { deleteLink, editLink, processLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, linkConstructor } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/links/[linkId] – get a link
 export const GET = withAuth(async ({ headers, link }) => {
   // link is guaranteed to exist because if not we will return 404
-  return NextResponse.json(link!, {
-    headers,
+  const { id, domain, key } = link!;
+  const shortLink = linkConstructor({
+    domain,
+    key,
   });
+  return NextResponse.json(
+    {
+      ...link,
+      id: `link_${id}`,
+      shortLink,
+      qrCode: `https://api.dub.co/qr?url=${shortLink}`,
+    },
+    {
+      headers,
+    },
+  );
 });
 
 // PUT /api/links/[linkId] – update a link

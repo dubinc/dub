@@ -18,6 +18,17 @@ export const GET = withAuth(async ({ headers, searchParams }) => {
     },
     include: {
       user: true,
+      tags: {
+        include: {
+          tag: {
+            select: {
+              id: true,
+              name: true,
+              color: true,
+            },
+          },
+        },
+      },
     },
   });
   if (!link) {
@@ -26,14 +37,16 @@ export const GET = withAuth(async ({ headers, searchParams }) => {
       headers,
     });
   }
+  const shortLink = linkConstructor({
+    domain: link.domain,
+    key: link.key,
+  });
   return NextResponse.json(
     {
       ...link,
-      id: `link_${link.id}`,
-      shortLink: linkConstructor({
-        domain: link.domain,
-        key: link.key,
-      }),
+      tags: link.tags.map(({ tag }) => tag),
+      shortLink,
+      qrCode: `https://api.dub.co/qr?url=${shortLink}`,
     },
     {
       headers,
