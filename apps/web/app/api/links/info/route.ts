@@ -44,7 +44,10 @@ export const GET = withAuth(async ({ headers, searchParams }) => {
   return NextResponse.json(
     {
       ...link,
-      tags: link.tags.map(({ tag }) => tag),
+      tags: link.tags.map(({ tag }) => ({
+        ...tag,
+        id: `tag_${tag.id}`,
+      })),
       shortLink,
       qrCode: `https://api.dub.co/qr?url=${shortLink}`,
     },

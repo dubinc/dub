@@ -19,7 +19,13 @@ export const GET = withAuth(async ({ project, headers }) => {
       name: "asc",
     },
   });
-  return NextResponse.json(tags, { headers });
+  return NextResponse.json(
+    tags.map((tag) => ({
+      ...tag,
+      id: `tag_${tag.id}`,
+    })),
+    { headers },
+  );
 });
 
 // POST /api/projects/[slug]/tags - create a tag for a project
@@ -53,7 +59,13 @@ export const POST = withAuth(async ({ req, project, headers }) => {
         projectId: project.id,
       },
     });
-    return NextResponse.json(response, { headers });
+    return NextResponse.json(
+      {
+        ...response,
+        id: `tag_${response.id}`,
+      },
+      { headers },
+    );
   } catch (error) {
     if (error.code === "P2002") {
       return new Response("A tag with the same name already exists.", {

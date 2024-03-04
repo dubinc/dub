@@ -108,7 +108,10 @@ export async function getLinksForProject({
     return {
       ...link,
       id: `link_${link.id}`,
-      tags: link.tags.map(({ tag }) => tag),
+      tags: link.tags.map(({ tag }) => ({
+        ...tag,
+        id: `tag_${tag.id}`,
+      })),
       shortLink,
       qrCode: `https://api.dub.co/qr?url=${shortLink}`,
     };
@@ -158,7 +161,7 @@ export async function getLinksCount({
   };
 
   if (groupBy === "tagId") {
-    return await prisma.linkTag.groupBy({
+    const tagsCount = await prisma.linkTag.groupBy({
       by: ["tagId"],
       where: {
         link: linksWhere,
@@ -170,6 +173,10 @@ export async function getLinksCount({
         },
       },
     });
+    return tagsCount.map((tag) => ({
+      ...tag,
+      id: `tag_${tag.tagId}`,
+    }));
   } else {
     const where = {
       ...linksWhere,
@@ -476,9 +483,9 @@ function combineTagIds({
 }): string[] {
   // Use tagIds if present, fall back to tagId
   if (tagIds && Array.isArray(tagIds) && tagIds.length > 0) {
-    return tagIds;
+    return tagIds.map((tagId) => tagId.replace("tag_", ""));
   }
-  return tagId ? [tagId] : [];
+  return tagId ? [tagId.replace("tag_", "")] : [];
 }
 
 export async function addLink(link: LinkWithTagIdsProps) {
