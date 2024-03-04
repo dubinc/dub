@@ -13,7 +13,7 @@ export default function robots(): MetadataRoute.Robots {
 
   return {
     rules: {
-      userAgent: "*",
+      userAgent: "Googlebot",
       allow: ["/$", "/api/og/"], // allow the home page and the OG image API
       disallow: "/", // disallow everything else
     },
