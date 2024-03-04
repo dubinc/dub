@@ -1,4 +1,4 @@
-import { DubApiError } from "@/lib/api/errors";
+import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { ratelimit } from "@/lib/upstash";
 import z from "@/lib/zod";
 import { LOCALHOST_IP, isValidUrl } from "@dub/utils";
@@ -14,34 +14,38 @@ const getMetaTagQuerySchema = z.object({
 export const runtime = "edge";
 
 export async function GET(req: NextRequest) {
-  const { url } = getMetaTagQuerySchema.parse({
-    url: req.nextUrl.searchParams.get("url"),
-  });
+  try {
+    const { url } = getMetaTagQuerySchema.parse({
+      url: req.nextUrl.searchParams.get("url"),
+    });
 
-  // Rate limit if user is not logged in
-  const session = await getToken({
-    req,
-    secret: process.env.NEXTAUTH_SECRET,
-  });
-  if (!session?.email) {
-    const ip = ipAddress(req) || LOCALHOST_IP;
-    const { success } = await ratelimit().limit(ip);
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message: "Don't DDoS me pls 🥺",
-      });
+    // Rate limit if user is not logged in
+    const session = await getToken({
+      req,
+      secret: process.env.NEXTAUTH_SECRET,
+    });
+    if (!session?.email) {
+      const ip = ipAddress(req) || LOCALHOST_IP;
+      const { success } = await ratelimit().limit(ip);
+      if (!success) {
+        throw new DubApiError({
+          code: "rate_limit_exceeded",
+          message: "Don't DDoS me pls 🥺",
+        });
+      }
     }
-  }
 
-  const metatags = await getMetaTags(url);
-  return new Response(JSON.stringify(metatags), {
-    status: 200,
-    headers: {
-      "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
-    },
-  });
+    const metatags = await getMetaTags(url);
+    return new Response(JSON.stringify(metatags), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
+  } catch (error) {
+    return handleAndReturnErrorResponse(error);
+  }
 }
 
 export function OPTIONS() {
