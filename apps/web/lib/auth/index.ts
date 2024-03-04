@@ -90,7 +90,10 @@ export const withAuth =
     { params }: { params: Record<string, string> | undefined },
   ) => {
     const searchParams = getSearchParams(req.url);
-    const { linkId } = params || {};
+    let { linkId } = params || {};
+    if (linkId) {
+      linkId = linkId.replace("link_", ""); // remove the `link_` prefix
+    }
     const slug = params?.slug || searchParams.projectSlug;
 
     const domain = params?.domain || searchParams.domain;

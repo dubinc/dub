@@ -107,6 +107,7 @@ export async function getLinksForProject({
     });
     return {
       ...link,
+      id: `link_${link.id}`,
       tags: link.tags.map(({ tag }) => tag),
       shortLink,
       qrCode: `https://api.dub.co/qr?url=${shortLink}`,
