@@ -1,5 +1,6 @@
 import z from "@/lib/zod";
 import { booleanQuerySchema } from ".";
+import { tagSchema } from "./tags";
 
 const LinksQuerySchema = {
   projectSlug: z
@@ -178,6 +179,9 @@ export const createLinkBodySchema = z.object({
     .optional()
     .default(false)
     .describe("Whether the short link's stats are publicly accessible."),
+  /**
+   * @deprecated use tagIds instead
+   */
   tagId: z
     .string()
     .nullish()
@@ -276,10 +280,10 @@ export const LinkSchema = z
       .boolean()
       .default(false)
       .describe("Whether the short link's stats are publicly accessible."),
-    tagId: z
-      .string()
+    tags: tagSchema
+      .array()
       .nullable()
-      .describe("The unique id of the tag assigned to the short link."),
+      .describe("The tags assigned to the short link."),
     comments: z
       .string()
       .nullable()
