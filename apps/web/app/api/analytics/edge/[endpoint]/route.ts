@@ -4,16 +4,11 @@ import {
   exceededLimitError,
   handleAndReturnErrorResponse,
 } from "@/lib/api/errors";
+import { getIdentityHash } from "@/lib/edge";
 import { isBlacklistedReferrer } from "@/lib/edge-config";
 import { getDomainOrLink, getProjectViaEdge } from "@/lib/planetscale";
 import { ratelimit } from "@/lib/upstash";
-import {
-  DEMO_LINK_ID,
-  DUB_PROJECT_ID,
-  LOCALHOST_IP,
-  getSearchParams,
-} from "@dub/utils";
-import { ipAddress } from "@vercel/edge";
+import { DEMO_LINK_ID, DUB_PROJECT_ID, getSearchParams } from "@dub/utils";
 import { NextResponse, type NextRequest } from "next/server";
 import {
   getAnalyticsEdgeQuerySchema,
@@ -44,11 +39,11 @@ export const GET = async (
             message: "Don't DDoS me pls 🥺",
           });
         }
-        const ip = ipAddress(req) || LOCALHOST_IP;
+        const identity_hash = await getIdentityHash(req);
         const { success } = await ratelimit(
           15,
           endpoint === "clicks" ? "10 s" : "1 h",
-        ).limit(`${ip}:${domain}:${key}:${endpoint}`);
+        ).limit(`demo-analytics:${identity_hash}:${endpoint}`);
 
         if (!success) {
           throw new DubApiError({
@@ -57,7 +52,6 @@ export const GET = async (
           });
         }
       }
-
       link = {
         id: DEMO_LINK_ID,
         projectId: DUB_PROJECT_ID,

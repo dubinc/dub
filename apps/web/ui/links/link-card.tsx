@@ -360,14 +360,14 @@ export default function LinkCard({
                 </Tooltip>
               )}
               {primaryTags.map((tag) => (
-                <TagButton {...tag} />
+                <TagButton key={tag.id} {...tag} />
               ))}
               {additionalTags.length > 0 && (
                 <BadgeTooltip
                   content={
                     <div className="flex flex-wrap gap-1.5 p-3">
                       {additionalTags.map((tag) => (
-                        <TagButton {...tag} />
+                        <TagButton key={tag.id} {...tag} />
                       ))}
                     </div>
                   }

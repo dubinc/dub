@@ -92,13 +92,29 @@ export const withAuth = (
   ) => {
     const searchParams = getSearchParams(req.url);
     const { linkId } = params || {};
-    const slug = params?.slug || searchParams.projectSlug;
+
+    let apiKey: string | undefined = undefined;
+
+    const authorizationHeader = req.headers.get("Authorization");
+    if (authorizationHeader) {
+      if (!authorizationHeader.includes("Bearer ")) {
+        return new Response(
+          "Misconfigured authorization header. Did you forget to add 'Bearer '? Learn more: https://d.to/auth ",
+          {
+            status: 400,
+          },
+        );
+      }
+      apiKey = authorizationHeader.replace("Bearer ", "");
+    }
 
     const domain = params?.domain || searchParams.domain;
     const key = searchParams.key;
 
     let session: Session | undefined;
     let headers = {};
+
+    const slug = params?.slug || searchParams.projectSlug;
 
     try {
       // if there's no projectSlug defined
@@ -120,18 +136,7 @@ export const withAuth = (
         }
       }
 
-      const authorizationHeader = req.headers.get("Authorization");
-      if (authorizationHeader) {
-        if (!authorizationHeader.includes("Bearer ")) {
-          throw new DubApiError({
-            code: "bad_request",
-            message:
-              "Misconfigured authorization header. Did you forget to add 'Bearer '?",
-            docUrl: "https://dub.sh/auth",
-          });
-        }
-        const apiKey = authorizationHeader.replace("Bearer ", "");
-
+      if (apiKey) {
         const url = new URL(req.url || "", API_DOMAIN);
 
         if (url.pathname.includes("/analytics")) {
@@ -443,7 +448,7 @@ export const withSession =
           throw new DubApiError({
             code: "bad_request",
             message:
-              "Misconfigured authorization header. Did you forget to add 'Bearer '? Learn more: https://dub.sh/auth ",
+              "Misconfigured authorization header. Did you forget to add 'Bearer '? Learn more: https://d.to/auth ",
           });
         }
         const apiKey = authorizationHeader.replace("Bearer ", "");
