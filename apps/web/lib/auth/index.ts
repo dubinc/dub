@@ -119,7 +119,8 @@ export const withAuth = (
     try {
       // if there's no projectSlug defined
       if (!slug) {
-        if (allowAnonymous) {
+        // for /api/links (POST /api/links) – allow no session (but warn if user provides apiKey)
+        if (allowAnonymous && !apiKey) {
           // @ts-expect-error
           return handler({
             req,
