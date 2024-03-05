@@ -289,9 +289,23 @@ function StatusBadge() {
     <Link
       href="https://status.dub.co"
       target="_blank"
-      className="flex max-w-fit items-center space-x-2 rounded-md border border-gray-200 bg-white px-3 py-2 transition-colors hover:bg-gray-100"
+      className="group flex max-w-fit items-center space-x-2 rounded-md border border-gray-200 bg-white px-3 py-2 transition-colors hover:bg-gray-100"
     >
-      <div className={cn("h-3 w-3 rounded-full", color)} />
+      <div className="relative h-3 w-3">
+        <div
+          className={cn(
+            "absolute inset-0 m-auto h-3 w-3 animate-ping items-center justify-center rounded-full group-hover:animate-none",
+            color,
+            status === "Loading status..." && "animate-none",
+          )}
+        />
+        <div
+          className={cn(
+            "absolute inset-0 z-10 m-auto h-3 w-3 rounded-full",
+            color,
+          )}
+        />
+      </div>
       <p className="text-sm font-medium text-gray-800">{status}</p>
     </Link>
   );
