@@ -69,13 +69,13 @@ export const getLinkInfoQuerySchema = z.object({
     .string()
     .min(1, "Domain is required.")
     .describe(
-      "The domain of the link to retrieve. E.g. for `dub.sh/github`, the domain is `dub.sh`.",
+      "The domain of the link to retrieve. E.g. for `d.to/github`, the domain is `d.to`.",
     ),
   key: z
     .string()
     .min(1, "Key is required.")
     .describe(
-      "The key of the link to retrieve. E.g. for `dub.sh/github`, the key is `github`.",
+      "The key of the link to retrieve. E.g. for `d.to/github`, the key is `github`.",
     ),
 });
 
@@ -270,7 +270,7 @@ export const LinkSchema = z
       .record(z.string())
       .nullable()
       .describe(
-        "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`. Learn more: https://dub.sh/geo",
+        "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`. Learn more: https://d.to/geo",
       ),
     publicStats: z
       .boolean()
