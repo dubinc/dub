@@ -1,3 +1,4 @@
+import { bulkCreateLinks } from "@/lib/api/links";
 import { qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
@@ -99,7 +100,7 @@ export const importLinksFromBitly = async ({
   );
 
   // bulk create links
-  // await bulkCreateLinks({ links: importedLinks });
+  await bulkCreateLinks({ links: importedLinks });
 
   count += importedLinks.length;
 
