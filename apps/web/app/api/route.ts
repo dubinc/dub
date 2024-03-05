@@ -248,24 +248,24 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
             {
               name: "domain",
               description:
-                "The domain of the link to retrieve. E.g. for `dub.sh/github`, the domain is `dub.sh`.",
+                "The domain of the link to retrieve. E.g. for `d.to/github`, the domain is `dub.sh`.",
               in: "query",
               required: true,
               schema: {
                 description:
-                  "The domain of the link to retrieve. E.g. for `dub.sh/github`, the domain is `dub.sh`.",
+                  "The domain of the link to retrieve. E.g. for `d.to/github`, the domain is `dub.sh`.",
                 type: "string",
               },
             },
             {
               name: "key",
               description:
-                "The key of the link to retrieve. E.g. for `dub.sh/github`, the key is `github`.",
+                "The key of the link to retrieve. E.g. for `d.to/github`, the key is `github`.",
               in: "query",
               required: true,
               schema: {
                 description:
-                  "The key of the link to retrieve. E.g. for `dub.sh/github`, the key is `github`.",
+                  "The key of the link to retrieve. E.g. for `d.to/github`, the key is `github`.",
                 type: "string",
               },
             },
@@ -826,7 +826,7 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
             geo: {
               type: "object",
               description:
-                "Geo targeting information for the short link in JSON format {[COUNTRY]: `https://example.com` }. Learn more: `https://dub.sh/geo`",
+                "Geo targeting information for the short link in JSON format {[COUNTRY]: `https://example.com` }. Learn more: `https://d.to/geo`",
               additionalProperties: {
                 type: "string",
                 format: "uri",
@@ -871,13 +871,13 @@ export function GET(): NextResponse<OpenAPIV3.Document> {
             shortLink: {
               type: "string",
               description:
-                "The full URL of the short link, including the https protocol (e.g. `https://dub.sh/try`).",
+                "The full URL of the short link, including the https protocol (e.g. `https://d.to/try`).",
               readOnly: true,
             },
             qrCode: {
               type: "string",
               description:
-                "The full URL of the QR code for the short link (e.g. `https://api.dub.co/qr?url=https://dub.sh/try`).",
+                "The full URL of the QR code for the short link (e.g. `https://api.dub.co/qr?url=https://d.to/try`).",
               readOnly: true,
             },
             utm_source: {
