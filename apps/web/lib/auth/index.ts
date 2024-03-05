@@ -91,7 +91,21 @@ export const withAuth =
   ) => {
     const searchParams = getSearchParams(req.url);
     const { linkId } = params || {};
-    const slug = params?.slug || searchParams.projectSlug;
+
+    let apiKey: string | undefined = undefined;
+
+    const authorizationHeader = req.headers.get("Authorization");
+    if (authorizationHeader) {
+      if (!authorizationHeader.includes("Bearer ")) {
+        return new Response(
+          "Misconfigured authorization header. Did you forget to add 'Bearer '? Learn more: https://dub.sh/auth ",
+          {
+            status: 400,
+          },
+        );
+      }
+      apiKey = authorizationHeader.replace("Bearer ", "");
+    }
 
     const domain = params?.domain || searchParams.domain;
     const key = searchParams.key;
@@ -99,9 +113,12 @@ export const withAuth =
     let session: Session | undefined;
     let headers = {};
 
+    const slug = params?.slug || searchParams.projectSlug;
+
     // if there's no projectSlug defined
     if (!slug) {
-      if (allowAnonymous) {
+      // for /api/links (POST /api/links) – allow no session (but warn if user provides apiKey)
+      if (allowAnonymous && !apiKey) {
         // @ts-expect-error
         return handler({
           req,
@@ -119,18 +136,7 @@ export const withAuth =
       }
     }
 
-    const authorizationHeader = req.headers.get("Authorization");
-    if (authorizationHeader) {
-      if (!authorizationHeader.includes("Bearer ")) {
-        return new Response(
-          "Misconfigured authorization header. Did you forget to add 'Bearer '? Learn more: https://d.to/auth ",
-          {
-            status: 400,
-          },
-        );
-      }
-      const apiKey = authorizationHeader.replace("Bearer ", "");
-
+    if (apiKey) {
       const url = new URL(req.url || "", API_DOMAIN);
 
       if (url.pathname.includes("/analytics")) {
