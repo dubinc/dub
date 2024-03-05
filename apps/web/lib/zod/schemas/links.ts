@@ -14,7 +14,11 @@ const LinksQuerySchema = {
     .describe(
       "The domain to filter the links by. E.g. `ac.me`. If not provided, all links for the project will be returned.",
     ),
-  tagId: z.string().optional().describe("The tag ID to filter the links by."),
+  tagId: z
+    .string()
+    .optional()
+    .describe("The tag ID to filter the links by.")
+    .openapi({ deprecated: true }),
   tagIds: z
     .array(z.string())
     .optional()
@@ -183,13 +187,11 @@ export const createLinkBodySchema = z.object({
     .optional()
     .default(false)
     .describe("Whether the short link's stats are publicly accessible."),
-  /**
-   * @deprecated use tagIds instead
-   */
   tagId: z
     .string()
     .nullish()
-    .describe("The unique ID of the tag assigned to the short link."),
+    .describe("The unique ID of the tag assigned to the short link.")
+    .openapi({ deprecated: true }),
   tagIds: z
     .array(z.string())
     .nullish()
