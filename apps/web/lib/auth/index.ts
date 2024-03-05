@@ -98,7 +98,7 @@ export const withAuth =
     if (authorizationHeader) {
       if (!authorizationHeader.includes("Bearer ")) {
         return new Response(
-          "Misconfigured authorization header. Did you forget to add 'Bearer '? Learn more: https://dub.sh/auth ",
+          "Misconfigured authorization header. Did you forget to add 'Bearer '? Learn more: https://d.to/auth ",
           {
             status: 400,
           },
