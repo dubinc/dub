@@ -7,9 +7,6 @@ import { userAgent } from "next/server";
  */
 export async function getIdentityHash(req: Request) {
   const ip = ipAddress(req) || LOCALHOST_IP;
-  console.log(ip);
   const ua = userAgent(req);
-  const hash = await hashStringSHA256(`${ip}-${ua.ua}`);
-  console.log(hash);
-  return hash;
+  return await hashStringSHA256(`${ip}-${ua.ua}`);
 }
