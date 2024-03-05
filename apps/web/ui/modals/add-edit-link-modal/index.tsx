@@ -502,9 +502,10 @@ function AddEditLinkModal({
                     onChange={(e) => {
                       setData({ ...data, domain: e.target.value });
                     }}
-                    className={`${
-                      props && lockKey ? "cursor-not-allowed" : ""
-                    } w-40 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-5 text-sm text-gray-500 focus:border-gray-300 focus:outline-none focus:ring-0`}
+                    className={cn(
+                      "min-w-[6rem] max-w-[16rem] rounded-l-md border border-r-0 border-gray-300 bg-gray-50 pl-4 pr-8 text-sm text-gray-500 focus:border-gray-300 focus:outline-none focus:ring-0",
+                      props && lockKey && "cursor-not-allowed",
+                    )}
                   >
                     {domains?.map(({ slug }) => (
                       <option key={slug} value={slug}>
