@@ -107,13 +107,13 @@ export const withAuth =
       apiKey = authorizationHeader.replace("Bearer ", "");
     }
 
-    const slug = params?.slug || searchParams.projectSlug;
-
     const domain = params?.domain || searchParams.domain;
     const key = searchParams.key;
 
     let session: Session | undefined;
     let headers = {};
+
+    const slug = params?.slug || searchParams.projectSlug;
 
     // if there's no projectSlug defined
     if (!slug) {
