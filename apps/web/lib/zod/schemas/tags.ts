@@ -25,7 +25,7 @@ export const updateTagBodySchema = z.object({
   color: tagColorSchema.optional(),
 });
 
-export const tagSchema = z
+export const TagSchema = z
   .object({
     id: z.string().describe("The unique ID of the tag."),
     name: z.string().describe("The name of the tag."),

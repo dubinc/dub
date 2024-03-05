@@ -1,8 +1,8 @@
 import { ZodOpenApiObject } from "zod-openapi";
 
 import { LinkSchema } from "@/lib/zod/schemas/links";
-import { projectSchema } from "@/lib/zod/schemas/projects";
-import { tagSchema } from "@/lib/zod/schemas/tags";
+import { ProjectSchema } from "@/lib/zod/schemas/projects";
+import { TagSchema } from "@/lib/zod/schemas/tags";
 import { API_DOMAIN } from "@dub/utils";
 import { analyticsPaths } from "./analytics";
 import { linksPaths } from "./links";
@@ -43,8 +43,8 @@ export const openApiObject: ZodOpenApiObject = {
   components: {
     schemas: {
       LinkSchema,
-      projectSchema,
-      tagSchema,
+      ProjectSchema,
+      TagSchema,
     },
     securitySchemes: {
       bearerToken: {

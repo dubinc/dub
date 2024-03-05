@@ -1,6 +1,6 @@
 import z from "@/lib/zod";
 import { booleanQuerySchema } from ".";
-import { tagSchema } from "./tags";
+import { TagSchema } from "./tags";
 
 const LinksQuerySchema = {
   projectSlug: z
@@ -286,8 +286,7 @@ export const LinkSchema = z
       .boolean()
       .default(false)
       .describe("Whether the short link's stats are publicly accessible."),
-    tags: tagSchema
-      .array()
+    tags: TagSchema.array()
       .nullable()
       .describe("The tags assigned to the short link."),
     comments: z
