@@ -26,13 +26,13 @@ import {
 import cloudinary from "cloudinary";
 import { getLinkViaEdge } from "../planetscale";
 import { recordLink } from "../tinybird";
-import z from "../zod";
 import {
   LinkProps,
   LinkWithTagIdsProps,
   ProjectProps,
   RedisLinkProps,
 } from "../types";
+import z from "../zod";
 
 export async function getLinksForProject({
   projectId,
@@ -516,6 +516,19 @@ export async function addLink(link: LinkWithTagIdsProps) {
         },
       }),
     },
+    include: {
+      tags: {
+        select: {
+          tag: {
+            select: {
+              id: true,
+              name: true,
+              color: true,
+            },
+          },
+        },
+      },
+    },
   });
 
   const shortLink = linkConstructor({
@@ -524,6 +537,7 @@ export async function addLink(link: LinkWithTagIdsProps) {
   });
   return {
     ...response,
+    tags: response.tags.map(({ tag }) => tag),
     shortLink,
     qrCode: `https://api.dub.co/qr?url=${shortLink}`,
   };
@@ -753,6 +767,19 @@ export async function editLink({
           })),
         },
       },
+      include: {
+        tags: {
+          select: {
+            tag: {
+              select: {
+                id: true,
+                name: true,
+                color: true,
+              },
+            },
+          },
+        },
+      },
     }),
     // if key is changed: rename resource in Cloudinary, delete the old key in Redis and change the clicks key name
     ...(changedDomain || changedKey
@@ -778,6 +805,7 @@ export async function editLink({
 
   return {
     ...response,
+    tags: response.tags.map(({ tag }) => tag),
     shortLink,
     qrCode: `https://api.dub.co/qr?url=${shortLink}`,
   };
