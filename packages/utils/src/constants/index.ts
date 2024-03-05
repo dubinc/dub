@@ -48,7 +48,7 @@ export const API_DOMAIN =
   process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
     ? `https://api.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
-      ? `https://api.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
+      ? `https://api-staging.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
       : "http://api.localhost:8888";
 
 export const ADMIN_HOSTNAMES = new Set([

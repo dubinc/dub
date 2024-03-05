@@ -66,17 +66,17 @@ export type TopLinksTabs = "link" | "url";
 export type DeviceTabs = "device" | "browser" | "os" | "ua";
 
 export const VALID_TINYBIRD_ENDPOINTS = [
-  "timeseries",
   "clicks",
-  "top_links",
-  "top_urls",
-  // "top_aliases",
+  "timeseries",
   "country",
   "city",
   "device",
   "browser",
   "os",
   "referer",
+  "top_links",
+  "top_urls",
+  // "top_aliases",
 ] as const;
 
 export const VALID_ANALYTICS_FILTERS = [

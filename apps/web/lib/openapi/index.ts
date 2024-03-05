@@ -3,6 +3,7 @@ import { ZodOpenApiObject } from "zod-openapi";
 import { LinkSchema } from "@/lib/zod/schemas/links";
 import { projectSchema } from "@/lib/zod/schemas/projects";
 import { tagSchema } from "@/lib/zod/schemas/tags";
+import { API_DOMAIN } from "@dub/utils";
 import { analyticsPaths } from "./analytics";
 import { linksPaths } from "./links";
 import { projectsPaths } from "./projects";
@@ -28,7 +29,7 @@ export const openApiObject: ZodOpenApiObject = {
   },
   servers: [
     {
-      url: "https://api.dub.co",
+      url: API_DOMAIN,
       description: "Production API",
     },
   ],
