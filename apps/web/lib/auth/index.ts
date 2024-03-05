@@ -1,3 +1,4 @@
+import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import prisma from "@/lib/prisma";
 import { API_DOMAIN, getSearchParams, isDubDomain } from "@dub/utils";
 import { Link as LinkProps } from "@prisma/client";
@@ -5,7 +6,6 @@ import { isAdmin } from "app/admin.dub.co/actions";
 import { createHash } from "crypto";
 import { getServerSession } from "next-auth/next";
 import { exceededLimitError } from "../api/errors";
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { PlanProps, ProjectProps } from "../types";
 import { ratelimit } from "../upstash";
 import { authOptions } from "./options";
@@ -138,15 +138,6 @@ export const withAuth = (
       }
 
       if (apiKey) {
-        const url = new URL(req.url || "", API_DOMAIN);
-
-        if (url.pathname.includes("/analytics")) {
-          throw new DubApiError({
-            code: "forbidden",
-            message: "API access is not available for Analytics yet.",
-          });
-        }
-
         const hashedKey = hashToken(apiKey, {
           noSecret: true,
         });
@@ -373,6 +364,19 @@ export const withAuth = (
         throw new DubApiError({
           code: "forbidden",
           message: "Unauthorized: Need higher plan.",
+        });
+      }
+
+      // analytics API checks
+      const url = new URL(req.url || "", API_DOMAIN);
+      if (
+        project.plan === "free" &&
+        apiKey &&
+        url.pathname.includes("/analytics")
+      ) {
+        throw new DubApiError({
+          code: "forbidden",
+          message: "Analytics API is only available on paid plans.",
         });
       }
 

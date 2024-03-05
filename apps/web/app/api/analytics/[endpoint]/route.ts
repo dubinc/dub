@@ -1,10 +1,10 @@
 import { getAnalytics } from "@/lib/analytics";
-import { withAuth } from "@/lib/auth";
 import { DubApiError } from "@/lib/api/errors";
+import { withAuth } from "@/lib/auth";
 import { getDomainViaEdge } from "@/lib/planetscale";
 import {
-  getAnalyticsQuerySchema,
   analyticsEndpointSchema,
+  getAnalyticsQuerySchema,
 } from "@/lib/zod/schemas/analytics";
 import { NextResponse } from "next/server";
 
