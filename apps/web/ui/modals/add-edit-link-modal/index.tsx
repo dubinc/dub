@@ -503,7 +503,7 @@ function AddEditLinkModal({
                       setData({ ...data, domain: e.target.value });
                     }}
                     className={cn(
-                      "min-w-[6rem] max-w-[16rem] rounded-l-md border border-r-0 border-gray-300 bg-gray-50 pl-4 pr-8 text-sm text-gray-500 focus:border-gray-300 focus:outline-none focus:ring-0",
+                      "max-w-[16rem] rounded-l-md border border-r-0 border-gray-300 bg-gray-50 pl-4 pr-8 text-sm text-gray-500 focus:border-gray-300 focus:outline-none focus:ring-0",
                       props && lockKey && "cursor-not-allowed",
                     )}
                   >
