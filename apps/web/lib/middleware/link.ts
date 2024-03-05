@@ -1,13 +1,7 @@
 import { detectBot, getFinalUrl, parse } from "@/lib/middleware/utils";
 import { recordClick } from "@/lib/tinybird";
 import { formatRedisLink, ratelimit, redis } from "@/lib/upstash";
-import {
-  DUB_HEADERS,
-  LEGAL_PROJECT_ID,
-  LOCALHOST_GEO_DATA,
-  LOCALHOST_IP,
-} from "@dub/utils";
-import { ipAddress } from "@vercel/edge";
+import { DUB_HEADERS, LEGAL_PROJECT_ID, LOCALHOST_GEO_DATA } from "@dub/utils";
 import {
   NextFetchEvent,
   NextRequest,
@@ -17,6 +11,7 @@ import {
 import { isBlacklistedReferrer } from "../edge-config";
 import { getLinkViaEdge } from "../planetscale";
 import { RedisLinkProps } from "../types";
+import { getIdentityHash } from "../edge";
 
 export default async function LinkMiddleware(
   req: NextRequest,
@@ -39,9 +34,9 @@ export default async function LinkMiddleware(
     if (await isBlacklistedReferrer(req.headers.get("referer"))) {
       return new Response("Don't DDoS me pls 🥺", { status: 429 });
     }
-    const ip = ipAddress(req) || LOCALHOST_IP;
+    const identity_hash = await getIdentityHash(req);
     const { success } = await ratelimit(10, "1 d").limit(
-      `${ip}:${domain}:${key}`,
+      `demo-click:${identity_hash}`,
     );
 
     if (!success) {

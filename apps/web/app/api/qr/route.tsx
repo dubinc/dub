@@ -1,3 +1,4 @@
+import { getIdentityHash } from "@/lib/edge";
 import {
   DEFAULT_BGCOLOR,
   DEFAULT_FGCOLOR,
@@ -7,8 +8,6 @@ import {
 } from "@/lib/qr/constants";
 import { QRCodeSVG } from "@/lib/qr/utils";
 import { ratelimit } from "@/lib/upstash";
-import { LOCALHOST_IP } from "@dub/utils";
-import { ipAddress } from "@vercel/edge";
 import { getToken } from "next-auth/jwt";
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
@@ -22,8 +21,8 @@ export async function GET(req: NextRequest) {
     secret: process.env.NEXTAUTH_SECRET,
   });
   if (!session?.email) {
-    const ip = ipAddress(req) || LOCALHOST_IP;
-    const { success } = await ratelimit().limit(ip);
+    const identity_hash = await getIdentityHash(req);
+    const { success } = await ratelimit().limit(`qr:${identity_hash}`);
     if (!success) {
       return new Response("Don't DDoS me pls 🥺", { status: 429 });
     }
