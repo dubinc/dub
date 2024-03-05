@@ -35,8 +35,8 @@ export const openApiObject: ZodOpenApiObject = {
   ],
   paths: {
     ...linksPaths,
-    ...analyticsPaths,
     ...qrCodePaths,
+    ...analyticsPaths,
     ...projectsPaths,
     ...tagsPaths,
   },

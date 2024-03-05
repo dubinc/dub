@@ -88,6 +88,10 @@
       ]
     },
     {
+      "group": "QR Codes",
+      "pages": ["api-reference/endpoint/retrieve-a-qr-code"]
+    },
+    {
       "group": "Analytics",
       "pages": [
         "api-reference/endpoint/retrieve-clicks",
@@ -101,10 +105,6 @@
         "api-reference/endpoint/retrieve-top-links",
         "api-reference/endpoint/retrieve-top-urls"
       ]
-    },
-    {
-      "group": "QR Codes",
-      "pages": ["api-reference/endpoint/retrieve-a-qr-code"]
     },
     {
       "group": "Projects",
