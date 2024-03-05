@@ -39,6 +39,7 @@ export const APP_DOMAIN_WITH_NGROK =
 
 export const API_HOSTNAMES = new Set([
   `api.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
+  `api-staging.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
   `api.${SHORT_DOMAIN}`,
   "api.localhost:8888",
 ]);
