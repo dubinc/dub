@@ -30,8 +30,6 @@ const config: Config = {
         // Modal
         "scale-in": "scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
         "fade-in": "fade-in 0.2s ease-out forwards",
-        // Sheet
-        "slide-in-right": "slide-in-right 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
         // Popover, Tooltip
         "slide-up-fade": "slide-up-fade 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
         "slide-right-fade":
@@ -64,11 +62,6 @@ const config: Config = {
         "fade-in": {
           "0%": { opacity: "0" },
           "100%": { opacity: "1" },
-        },
-        // Sheet
-        "slide-in-right": {
-          "0%": { transform: "translateX(250px)" },
-          "100%": { transform: "translateX(0)" },
         },
         // Popover, Tooltip
         "slide-up-fade": {
