@@ -15,6 +15,10 @@ const LinksQuerySchema = {
       "The domain to filter the links by. E.g. `ac.me`. If not provided, all links for the project will be returned.",
     ),
   tagId: z.string().optional().describe("The tag ID to filter the links by."),
+  tagIds: z
+    .array(z.string())
+    .optional()
+    .describe("The tag IDs to filter the links by."),
   search: z
     .string()
     .optional()
