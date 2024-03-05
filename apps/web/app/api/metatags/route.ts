@@ -1,9 +1,9 @@
 import { ratelimit } from "@/lib/upstash";
-import { LOCALHOST_IP, isValidUrl } from "@dub/utils";
-import { ipAddress } from "@vercel/edge";
+import { isValidUrl } from "@dub/utils";
 import { getToken } from "next-auth/jwt";
 import { NextRequest } from "next/server";
 import { getMetaTags } from "./utils";
+import { getIdentityHash } from "@/lib/edge";
 
 export const runtime = "edge";
 
@@ -19,8 +19,8 @@ export async function GET(req: NextRequest) {
     secret: process.env.NEXTAUTH_SECRET,
   });
   if (!session?.email) {
-    const ip = ipAddress(req) || LOCALHOST_IP;
-    const { success } = await ratelimit().limit(ip);
+    const identity_hash = await getIdentityHash(req);
+    const { success } = await ratelimit().limit(`metatags:${identity_hash}`);
     if (!success) {
       return new Response("Don't DDoS me pls 🥺", { status: 429 });
     }
