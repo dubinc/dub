@@ -29,7 +29,7 @@
     "name": "Dashboard",
     "url": "https://app.dub.co"
   },
-  "openapi": "https://api-staging.dub.co",
+  "openapi": "https://api.dub.co",
   "tabs": [
     {
       "name": "API Reference",

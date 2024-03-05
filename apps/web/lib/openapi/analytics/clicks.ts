@@ -2,7 +2,7 @@ import { openApiErrorResponses } from "@/lib/openapi/responses";
 import { getAnalyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
-export const getClickAnalytics: ZodOpenApiOperationObject = {
+export const getClicksAnalytics: ZodOpenApiOperationObject = {
   operationId: "getClicksAnalytics",
   summary: "Retrieve clicks analytics",
   description:

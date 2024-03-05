@@ -1,9 +1,7 @@
 import { intervals, VALID_TINYBIRD_ENDPOINTS } from "@/lib/analytics";
 import z from "@/lib/zod";
+import { COUNTRY_CODES } from "@dub/utils";
 import { booleanQuerySchema } from ".";
-import { COUNTRIES } from "@dub/utils";
-
-const countryCodes = Object.keys(COUNTRIES) as [string, ...string[]];
 
 export const getAnalyticsQuerySchema = z.object({
   projectSlug: z
@@ -19,7 +17,7 @@ export const getAnalyticsQuerySchema = z.object({
     .optional()
     .describe("The interval to retrieve analytics for."),
   country: z
-    .enum(countryCodes)
+    .enum(COUNTRY_CODES)
     .optional()
     .describe("The country to retrieve analytics for."),
   city: z.string().optional().describe("The city to retrieve analytics for."),
