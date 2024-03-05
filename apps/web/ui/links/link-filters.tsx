@@ -434,12 +434,15 @@ const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
     props: tag,
   });
 
+  const { queryParams } = useRouterStuff();
+
   const handleDelete = async () => {
     setProcessing(true);
     fetch(`/api/tags/${tag.id}?projectSlug=${slug}`, {
       method: "DELETE",
     }).then(async (res) => {
       if (res.ok) {
+        queryParams({ del: "tagId" });
         await Promise.all([
           mutate(`/api/tags?projectSlug=${slug}`),
           mutate(
