@@ -299,7 +299,7 @@ function AddEditLinkModal({
       showModal={showAddEditLinkModal}
       setShowModal={setShowAddEditLinkModal}
       className="max-w-screen-lg"
-      preventDefaultClose={homepageDemo ? false : true}
+      sheet
       onClose={() => {
         if (welcomeFlow) {
           router.back();
@@ -310,7 +310,7 @@ function AddEditLinkModal({
         }
       }}
     >
-      <div className="scrollbar-hide grid max-h-[90vh] w-full divide-x divide-gray-100 overflow-auto md:grid-cols-2 md:overflow-hidden">
+      <div className="scrollbar-hide grid max-h-[100vh] w-full divide-x divide-gray-100 overflow-auto md:grid-cols-2 md:overflow-hidden">
         {!welcomeFlow && !homepageDemo && (
           <button
             onClick={() => {
@@ -328,7 +328,7 @@ function AddEditLinkModal({
         )}
 
         <div
-          className="scrollbar-hide rounded-l-2xl md:max-h-[90vh] md:overflow-auto"
+          className="scrollbar-hide rounded-l-2xl md:max-h-[100vh] md:overflow-auto"
           onScroll={handleScroll}
         >
           <div className="z-10 flex flex-col items-center justify-center space-y-3 border-b border-gray-200 bg-white px-4 pb-8 pt-8 transition-all md:sticky md:top-0 md:px-16">
@@ -613,7 +613,7 @@ function AddEditLinkModal({
             </div>
           </form>
         </div>
-        <div className="scrollbar-hide rounded-r-2xl md:max-h-[90vh] md:overflow-auto">
+        <div className="scrollbar-hide rounded-r-2xl md:max-h-[100vh] md:overflow-auto">
           <Preview data={data} generatingMetatags={generatingMetatags} />
         </div>
       </div>
