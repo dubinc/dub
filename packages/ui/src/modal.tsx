@@ -14,7 +14,6 @@ export function Modal({
   setShowModal,
   onClose,
   desktopOnly,
-  sheet,
   preventDefaultClose,
 }: {
   children: React.ReactNode;
@@ -23,7 +22,6 @@ export function Modal({
   setShowModal?: Dispatch<SetStateAction<boolean>>;
   onClose?: () => void;
   desktopOnly?: boolean;
-  sheet?: boolean;
   preventDefaultClose?: boolean;
 }) {
   const router = useRouter();
@@ -93,10 +91,7 @@ export function Modal({
           onOpenAutoFocus={(e) => e.preventDefault()}
           onCloseAutoFocus={(e) => e.preventDefault()}
           className={cn(
-            "fixed z-40 m-auto max-h-fit w-full max-w-md overflow-hidden border border-gray-200 bg-white p-0 shadow-xl sm:rounded-2xl",
-            sheet
-              ? "animate-enter-from-right inset-y-0 right-0 border-y-0 border-r-0 sm:rounded-r-none"
-              : "animate-scale-in inset-0",
+            "animate-scale-in fixed inset-0 z-40 m-auto max-h-fit w-full max-w-md overflow-hidden border border-gray-200 bg-white p-0 shadow-xl sm:rounded-2xl",
             className,
           )}
         >
