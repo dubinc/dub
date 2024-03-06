@@ -1,9 +1,33 @@
 import { deleteProject } from "@/lib/api/projects";
 import { withAuth } from "@/lib/auth";
 import { isReservedKey } from "@/lib/edge-config";
+import { DubApiError } from "@/lib/api/errors";
 import prisma from "@/lib/prisma";
-import { DEFAULT_REDIRECTS, validSlugRegex } from "@dub/utils";
+import z from "@/lib/zod";
+import {
+  DEFAULT_REDIRECTS,
+  DUB_DOMAINS_ARRAY,
+  validSlugRegex,
+} from "@dub/utils";
 import { NextResponse } from "next/server";
+import slugify from "@sindresorhus/slugify";
+
+const updateProjectSchema = z.object({
+  name: z.string().min(1).max(32).optional(),
+  slug: z
+    .string()
+    .min(3, "Slug must be at least 3 characters")
+    .max(48, "Slug must be less than 48 characters")
+    .transform((v) => slugify(v))
+    .refine((v) => validSlugRegex.test(v), { message: "Invalid slug format" })
+    .refine(async (v) => !((await isReservedKey(v)) || DEFAULT_REDIRECTS[v]), {
+      message: "Cannot use reserved slugs",
+    })
+    .optional(),
+  defaultDomains: z
+    .array(z.enum(DUB_DOMAINS_ARRAY as [string, ...string[]]))
+    .optional(),
+});
 
 // GET /api/projects/[slug] – get a specific project
 export const GET = withAuth(async ({ project, headers }) => {
@@ -13,27 +37,10 @@ export const GET = withAuth(async ({ project, headers }) => {
 // PUT /api/projects/[slug] – update a specific project
 export const PUT = withAuth(
   async ({ req, project }) => {
-    const { name, slug, defaultDomains } = await req.json();
-
-    // if slug is defined, do some checks
-    if (slug) {
-      // check if slug is too long
-      if (slug.length > 48) {
-        return new Response("Slug must be less than 48 characters", {
-          status: 400,
-        });
-
-        // check if slug is valid
-      } else if (!validSlugRegex.test(slug)) {
-        return new Response("Invalid slug", { status: 400 });
-
-        // check if slug is reserved
-      } else if ((await isReservedKey(slug)) || DEFAULT_REDIRECTS[slug]) {
-        return new Response("Cannot use reserved slugs", { status: 422 });
-      }
-    }
-
     try {
+      const { name, slug, defaultDomains } =
+        await updateProjectSchema.parseAsync(await req.json());
+
       const response = await prisma.project.update({
         where: {
           slug: project.slug,
@@ -52,9 +59,13 @@ export const PUT = withAuth(
       return NextResponse.json(response);
     } catch (error) {
       if (error.code === "P2002") {
-        return new Response("Project slug already exists.", { status: 422 });
+        throw new DubApiError({
+          code: "conflict",
+          message: "Project slug already exists.",
+        });
       }
-      return new Response(error.message, { status: 500 });
+
+      throw error;
     }
   },
   {

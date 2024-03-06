@@ -1,6 +1,22 @@
 import { withAuth } from "@/lib/auth";
+import { DubApiError } from "@/lib/api/errors";
 import prisma from "@/lib/prisma";
+import { roles } from "@/lib/types";
+import z from "@/lib/zod";
 import { NextResponse } from "next/server";
+
+const updateRoleSchema = z.object({
+  userId: z.string().min(1),
+  role: z.enum(roles, {
+    errorMap: () => ({
+      message: `Role must be either "owner" or "member".`,
+    }),
+  }),
+});
+
+const removeUserSchema = z.object({
+  userId: z.string().min(1),
+});
 
 // GET /api/projects/[slug]/users – get users for a specific project
 export const GET = withAuth(async ({ project }) => {
@@ -32,10 +48,7 @@ export const GET = withAuth(async ({ project }) => {
 // PUT /api/projects/[slug]/users – update a user's role for a specific project
 export const PUT = withAuth(
   async ({ req, project }) => {
-    const { userId, role } = await req.json();
-    if (!userId || !role) {
-      return new Response("Missing userId or role", { status: 400 });
-    }
+    const { userId, role } = updateRoleSchema.parse(await req.json());
     const response = await prisma.projectUsers.update({
       where: {
         userId_projectId: {
@@ -57,11 +70,8 @@ export const PUT = withAuth(
 // DELETE /api/projects/[slug]/users – remove a user from a project
 
 export const DELETE = withAuth(
-  async ({ searchParams, project }) => {
-    const { userId } = searchParams;
-    if (!userId) {
-      return new Response("Missing userId", { status: 400 });
-    }
+  async ({ searchParams, project, session }) => {
+    const { userId } = removeUserSchema.parse(searchParams);
     const projectUser = await prisma.projectUsers.findUnique({
       where: {
         userId_projectId: {
@@ -73,11 +83,18 @@ export const DELETE = withAuth(
         role: true,
       },
     });
-    if (projectUser?.role === "owner") {
-      return new Response(
-        "Cannot remove owner from project. Please transfer ownership to another user first.",
-        { status: 400 },
-      );
+    if (!projectUser) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "User not found",
+      });
+    }
+    if (projectUser.role === "owner" && userId === session.user.id) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "Cannot remove owner from project. Please transfer ownership to another user first.",
+      });
     }
     const response = await prisma.projectUsers.delete({
       where: {

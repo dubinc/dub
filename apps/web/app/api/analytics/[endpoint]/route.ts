@@ -1,20 +1,29 @@
 import { getAnalytics } from "@/lib/analytics";
+import { DubApiError } from "@/lib/api/errors";
 import { withAuth } from "@/lib/auth";
 import { getDomainViaEdge } from "@/lib/planetscale";
+import {
+  analyticsEndpointSchema,
+  getAnalyticsQuerySchema,
+} from "@/lib/zod/schemas/analytics";
 import { NextResponse } from "next/server";
 
 // GET /api/analytics/[endpoint] – get analytics for a specific endpoint
 export const GET = withAuth(
   async ({ params, searchParams, project, link }) => {
-    const { endpoint } = params;
-    let { domain, key, interval } = searchParams;
+    const { endpoint } = analyticsEndpointSchema.parse(params);
+    const parsedParams = getAnalyticsQuerySchema.parse(searchParams);
+    const { domain, key, interval } = parsedParams;
 
     // return 403 if project is on the free plan and interval is 90d or all
     if (
       project?.plan === "free" &&
       (interval === "all" || interval === "90d")
     ) {
-      return new Response(`Require higher plan`, { status: 403 });
+      throw new DubApiError({
+        code: "forbidden",
+        message: "Require higher plan",
+      });
     }
 
     const linkId = link
@@ -26,10 +35,8 @@ export const GET = withAuth(
     const response = await getAnalytics({
       projectId: project.id,
       ...(linkId && { linkId }),
-      domain,
       endpoint,
-      interval,
-      ...searchParams,
+      ...parsedParams,
     });
     return NextResponse.json(response);
   },

@@ -146,22 +146,20 @@ function AddProjectModalHelper({
                 toast.success("Successfully created project!");
                 setShowAddProjectModal(false);
               }
-            } else if (res.status === 422) {
-              const {
-                slugError: slugErrorResponse,
-                domainError: domainErrorResponse,
-              } = await res.json();
-
-              if (slugErrorResponse) {
-                setSlugError(slugErrorResponse);
-                toast.error(slugErrorResponse);
-              }
-              if (domainErrorResponse) {
-                setDomainError(domainErrorResponse);
-                toast.error(domainErrorResponse);
-              }
             } else {
-              toast.error(await res.text());
+              const { error } = await res.json();
+              const message = error.message;
+
+              if (message.toLowerCase().includes("slug")) {
+                alert(message);
+                setSlugError(message);
+              }
+
+              if (message.toLowerCase().includes("domain")) {
+                setDomainError(message);
+              }
+
+              toast.error(error.message);
             }
             setSaving(false);
           });

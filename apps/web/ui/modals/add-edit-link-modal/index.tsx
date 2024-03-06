@@ -391,16 +391,14 @@ function AddEditLinkModal({
                   }
                   setShowAddEditLinkModal(false);
                 } else {
-                  const error = await res.text();
+                  const { error } = await res.json();
                   if (error) {
-                    toast.error(error);
-                    if (error.toLowerCase().includes("key")) {
-                      setKeyError(error);
-                    } else if (error.toLowerCase().includes("url")) {
-                      setUrlError(error);
+                    toast.error(error.message);
+                    if (error.message.toLowerCase().includes("key")) {
+                      setKeyError(error.message);
+                    } else if (error.message.toLowerCase().includes("url")) {
+                      setUrlError(error.message);
                     }
-                  } else {
-                    toast.error(await res.text());
                   }
                 }
                 setSaving(false);

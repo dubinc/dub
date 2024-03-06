@@ -1,12 +1,17 @@
 import { withAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import z from "@/lib/zod";
 import cloudinary from "cloudinary";
 import { NextResponse } from "next/server";
+
+const uploadLogoSchema = z.object({
+  image: z.string().url(),
+});
 
 // POST /api/projects/[slug]/logo – upload a new project logo
 export const POST = withAuth(
   async ({ req, project }) => {
-    const { image } = await req.json();
+    const { image } = uploadLogoSchema.parse(await req.json());
 
     const { secure_url } = await cloudinary.v2.uploader.upload(image, {
       public_id: project.id,

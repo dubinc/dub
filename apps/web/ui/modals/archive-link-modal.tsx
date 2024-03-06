@@ -68,7 +68,8 @@ function ArchiveLinkModal({
     setArchiving(false);
 
     if (!res.ok) {
-      toast.error(await res.text());
+      const { error } = await res.json();
+      toast.error(error.message);
       return;
     }
 

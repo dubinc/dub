@@ -2,18 +2,40 @@ import {
   addDomainToVercel,
   domainExists,
   setRootDomain,
-  validateDomain,
 } from "@/lib/api/domains";
 import { withSession } from "@/lib/auth";
 import { isReservedKey } from "@/lib/edge-config";
+import { DubApiError } from "@/lib/api/errors";
 import prisma from "@/lib/prisma";
+import z from "@/lib/zod";
 import {
   DEFAULT_REDIRECTS,
   FREE_PROJECTS_LIMIT,
+  validDomainRegex,
   nanoid,
   validSlugRegex,
 } from "@dub/utils";
 import { NextResponse } from "next/server";
+import slugify from "@sindresorhus/slugify";
+
+const createProjectSchema = z.object({
+  name: z.string().min(1).max(32),
+  slug: z
+    .string()
+    .min(3, "Slug must be at least 3 characters")
+    .max(48, "Slug must be less than 48 characters")
+    .transform((v) => slugify(v))
+    .refine((v) => validSlugRegex.test(v), { message: "Invalid slug format" })
+    .refine(async (v) => !((await isReservedKey(v)) || DEFAULT_REDIRECTS[v]), {
+      message: "Cannot use reserved slugs",
+    }),
+  domain: z
+    .string()
+    .refine((v) => validDomainRegex.test(v), {
+      message: "Invalid domain format",
+    })
+    .optional(),
+});
 
 // GET /api/projects - get all projects for the current user
 export const GET = withSession(async ({ session }) => {
@@ -41,42 +63,9 @@ export const GET = withSession(async ({ session }) => {
 });
 
 export const POST = withSession(async ({ req, session }) => {
-  const { name, slug, domain } = await req.json();
-
-  if (!name || !slug) {
-    return new Response("Missing name or slug", { status: 422 });
-  }
-  let slugError: string | null = null;
-
-  // check if slug is too short
-  if (slug.length < 3) {
-    slugError = "Slug must be at least 3 characters";
-
-    // check if slug is too long
-  } else if (slug.length > 48) {
-    slugError = "Slug must be less than 48 characters";
-
-    // check if slug is valid
-  } else if (!validSlugRegex.test(slug)) {
-    slugError = "Invalid slug";
-
-    // check if slug is reserved
-  } else if ((await isReservedKey(slug)) || DEFAULT_REDIRECTS[slug]) {
-    slugError = "Cannot use reserved slugs";
-  }
-
-  if (domain) {
-    const validDomain = await validateDomain(domain);
-    if (slugError || validDomain !== true) {
-      return NextResponse.json(
-        {
-          slugError,
-          domainError: validDomain === true ? null : validDomain,
-        },
-        { status: 422 },
-      );
-    }
-  }
+  const { name, slug, domain } = await createProjectSchema.parseAsync(
+    await req.json(),
+  );
 
   const freeProjects = await prisma.project.count({
     where: {
@@ -91,10 +80,10 @@ export const POST = withSession(async ({ req, session }) => {
   });
 
   if (freeProjects >= FREE_PROJECTS_LIMIT) {
-    return new Response(
-      `You can only create up to ${FREE_PROJECTS_LIMIT} free projects. Additional projects require a paid plan.`,
-      { status: 403 },
-    );
+    throw new DubApiError({
+      code: "exceeded_limit",
+      message: `You can only create up to ${FREE_PROJECTS_LIMIT} free projects. Additional projects require a paid plan.`,
+    });
   }
 
   const [slugExist, domainExist] = await Promise.all([
@@ -108,15 +97,21 @@ export const POST = withSession(async ({ req, session }) => {
     }),
     domain ? domainExists(domain) : false,
   ]);
-  if (slugExist || domainExist) {
-    return NextResponse.json(
-      {
-        slugError: slugExist ? "Slug is already in use." : null,
-        domainError: domainExist ? "Domain is already in use." : null,
-      },
-      { status: 422 },
-    );
+
+  if (slugExist) {
+    throw new DubApiError({
+      code: "conflict",
+      message: "Slug is already in use.",
+    });
   }
+
+  if (domainExist) {
+    throw new DubApiError({
+      code: "conflict",
+      message: "Domain is already in use.",
+    });
+  }
+
   const [projectResponse, domainRepsonse] = await Promise.all([
     prisma.project.create({
       data: {
@@ -148,7 +143,7 @@ export const POST = withSession(async ({ req, session }) => {
 
   // if domain is specified and it was successfully added to Vercel
   // update it in Redis cache
-  if (domain && !domainRepsonse.error) {
+  if (domain && domainRepsonse && !domainRepsonse.error) {
     await setRootDomain({
       id: projectResponse.domains[0].id,
       domain,

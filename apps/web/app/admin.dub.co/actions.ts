@@ -5,7 +5,7 @@ import { deleteProjectAdmin } from "@/lib/api/projects";
 import { getSession, hashToken } from "@/lib/auth";
 import { unsubscribe } from "@/lib/flodesk";
 import prisma from "@/lib/prisma";
-import { DUB_DOMAINS, DUB_PROJECT_ID } from "@dub/utils";
+import { DUB_DOMAINS_ARRAY, DUB_PROJECT_ID } from "@dub/utils";
 import { get } from "@vercel/edge-config";
 import cloudinary from "cloudinary";
 import { randomBytes } from "crypto";
@@ -74,7 +74,7 @@ export async function getUserOrProjectOwner(data: FormData) {
       links: {
         where: {
           domain: {
-            in: DUB_DOMAINS.map((domain) => domain.slug),
+            in: DUB_DOMAINS_ARRAY,
           },
         },
         select: {
@@ -179,8 +179,8 @@ export async function banUser(data: FormData) {
       deleteProjectAdmin({
         id: project.id,
         slug: project.slug,
-        stripeId: project.stripeId || undefined,
-        logo: project.logo || undefined,
+        stripeId: project.stripeId || null,
+        logo: project.logo || null,
       }),
     ),
   );

@@ -7,6 +7,10 @@ import {
 import prisma from "@/lib/prisma";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import {
+  getLinksCountQuerySchema,
+  getLinksQuerySchema,
+} from "@/lib/zod/schemas/links";
+import {
   DEFAULT_REDIRECTS,
   DUB_DOMAINS,
   SHORT_DOMAIN,
@@ -28,6 +32,7 @@ import {
   ProjectProps,
   RedisLinkProps,
 } from "../types";
+import z from "../zod";
 
 export async function getLinksForProject({
   projectId,
@@ -39,16 +44,8 @@ export async function getLinksForProject({
   userId,
   showArchived,
   withTags,
-}: {
+}: Omit<z.infer<typeof getLinksQuerySchema>, "projectSlug"> & {
   projectId: string;
-  domain?: string;
-  tagId?: string;
-  search?: string;
-  sort?: "createdAt" | "clicks" | "lastClicked"; // descending for all
-  page?: string;
-  userId?: string | null;
-  showArchived?: boolean;
-  withTags?: boolean;
 }): Promise<LinkProps[]> {
   const tagIds = tagId ? tagId.split(",") : [];
 
@@ -96,7 +93,7 @@ export async function getLinksForProject({
     },
     take: 100,
     ...(page && {
-      skip: (parseInt(page) - 1) * 100,
+      skip: (page - 1) * 100,
     }),
   });
 
@@ -119,19 +116,12 @@ export async function getLinksCount({
   projectId,
   userId,
 }: {
-  searchParams: Record<string, string>;
+  searchParams: z.infer<typeof getLinksCountQuerySchema>;
   projectId: string;
   userId?: string | null;
 }) {
-  let { groupBy, search, domain, tagId, showArchived, withTags } =
-    searchParams as {
-      groupBy?: "domain" | "tagId";
-      search?: string;
-      domain?: string;
-      tagId?: string;
-      showArchived?: boolean;
-      withTags?: boolean;
-    };
+  const { groupBy, search, domain, tagId, showArchived, withTags } =
+    searchParams;
 
   const tagIds = tagId ? tagId.split(",") : [];
 
@@ -285,7 +275,7 @@ export async function processLink({
     return {
       link: payload,
       error: "Missing destination url.",
-      status: 400,
+      code: "bad_request",
     };
   }
   const processedUrl = getUrlFromString(url);
@@ -293,7 +283,7 @@ export async function processLink({
     return {
       link: payload,
       error: "Invalid destination url.",
-      status: 422,
+      code: "unprocessable_entity",
     };
   }
 
@@ -304,7 +294,7 @@ export async function processLink({
         link: payload,
         error:
           "You can only use custom social media cards, password-protection, link cloaking, link expiration, device and geo targeting on a Pro plan and above. Upgrade to Pro to use these features.",
-        status: 403,
+        code: "forbidden",
       };
     }
   }
@@ -321,7 +311,7 @@ export async function processLink({
       return {
         link: payload,
         error: "Invalid key.",
-        status: 422,
+        code: "unprocessable_entity",
       };
     }
     const domainBlacklisted = await isBlacklistedDomain(url);
@@ -329,7 +319,7 @@ export async function processLink({
       return {
         link: payload,
         error: "Invalid url.",
-        status: 422,
+        code: "unprocessable_entity",
       };
     }
 
@@ -344,7 +334,7 @@ export async function processLink({
         error: `Invalid url. You can only use ${domain} short links for URLs starting with ${allowedHostnames
           .map((d) => `\`${d}\``)
           .join(", ")}.`,
-        status: 422,
+        code: "unprocessable_entity",
       };
     }
 
@@ -353,7 +343,7 @@ export async function processLink({
     return {
       link: payload,
       error: "Domain does not belong to project.",
-      status: 403,
+      code: "forbidden",
     };
   }
 
@@ -366,14 +356,14 @@ export async function processLink({
       return {
         link: payload,
         error: "You cannot set custom social cards with bulk link creation.",
-        status: 422,
+        code: "unprocessable_entity",
       };
     }
     if (rewrite) {
       return {
         link: payload,
         error: "You cannot use link cloaking with bulk link creation.",
-        status: 422,
+        code: "unprocessable_entity",
       };
     }
     // we check if a key exists in bulk creation because
@@ -383,7 +373,7 @@ export async function processLink({
       return {
         link: payload,
         error: `Link already exists.`,
-        status: 409,
+        code: "conflict",
       };
     }
 
@@ -419,7 +409,7 @@ export async function processLink({
     return {
       link: payload,
       error: "Missing Cloudinary environment variable.",
-      status: 400,
+      code: "bad_request",
     };
   }
 
@@ -430,7 +420,7 @@ export async function processLink({
       return {
         link: payload,
         error: "Invalid expiry date. Expiry date must be in ISO-8601 format.",
-        status: 422,
+        code: "unprocessable_entity",
       };
     }
     // check if expiresAt is in the future
@@ -438,7 +428,7 @@ export async function processLink({
       return {
         link: payload,
         error: "Expiry date must be in the future.",
-        status: 422,
+        code: "unprocessable_entity",
       };
     }
   }
@@ -462,7 +452,6 @@ export async function processLink({
       }),
     },
     error: null,
-    status: 200,
   };
 }
 
@@ -527,6 +516,19 @@ export async function addLink(link: LinkWithTagIdsProps) {
         },
       }),
     },
+    include: {
+      tags: {
+        select: {
+          tag: {
+            select: {
+              id: true,
+              name: true,
+              color: true,
+            },
+          },
+        },
+      },
+    },
   });
 
   const shortLink = linkConstructor({
@@ -535,6 +537,7 @@ export async function addLink(link: LinkWithTagIdsProps) {
   });
   return {
     ...response,
+    tags: response.tags.map(({ tag }) => tag),
     shortLink,
     qrCode: `https://api.dub.co/qr?url=${shortLink}`,
   };
@@ -764,6 +767,19 @@ export async function editLink({
           })),
         },
       },
+      include: {
+        tags: {
+          select: {
+            tag: {
+              select: {
+                id: true,
+                name: true,
+                color: true,
+              },
+            },
+          },
+        },
+      },
     }),
     // if key is changed: rename resource in Cloudinary, delete the old key in Redis and change the clicks key name
     ...(changedDomain || changedKey
@@ -789,6 +805,7 @@ export async function editLink({
 
   return {
     ...response,
+    tags: response.tags.map(({ tag }) => tag),
     shortLink,
     qrCode: `https://api.dub.co/qr?url=${shortLink}`,
   };

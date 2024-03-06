@@ -74,7 +74,7 @@ function DeleteLinkModal({
               toast.success("Successfully deleted shortlink!");
             } else {
               const { error } = await res.json();
-              toast.error(error);
+              toast.error(error.message);
             }
             setDeleting(false);
           });

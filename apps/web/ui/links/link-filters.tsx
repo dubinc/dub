@@ -453,7 +453,8 @@ const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
         ]);
         toast.success("Tag deleted");
       } else {
-        toast.error("Something went wrong");
+        const { error } = await res.json();
+        toast.error(error.message);
       }
       setProcessing(false);
     });
