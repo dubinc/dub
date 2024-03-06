@@ -35,7 +35,16 @@ export const GET = withAuth(async ({ headers, searchParams, project }) => {
 // POST /api/links – create a new link
 export const POST = withAuth(
   async ({ req, headers, session, project }) => {
-    const body = createLinkBodySchema.parse(await req.json());
+    let bodyRaw;
+    try {
+      bodyRaw = await req.json();
+    } catch (error) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Invalid body – body must be a valid JSON.",
+      });
+    }
+    const body = createLinkBodySchema.parse(bodyRaw);
 
     if (!session) {
       const ip = req.headers.get("x-forwarded-for") || LOCALHOST_IP;
