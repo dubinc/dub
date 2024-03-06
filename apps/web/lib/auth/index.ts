@@ -122,7 +122,7 @@ export const withAuth = (
         // for /api/links (POST /api/links) – allow no session (but warn if user provides apiKey)
         if (allowAnonymous && !apiKey) {
           // @ts-expect-error
-          return handler({
+          return await handler({
             req,
             params: params || {},
             searchParams,
