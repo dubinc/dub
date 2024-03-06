@@ -17,10 +17,13 @@ const LinksQuerySchema = {
   tagId: z
     .string()
     .optional()
-    .describe("The tag ID to filter the links by.")
+    .describe(
+      "[DEPRECATED (use tagIds instead)]: The tag ID to filter the links by.",
+    )
     .openapi({ deprecated: true }),
   tagIds: z
-    .array(z.string())
+    .string()
+    .transform((v) => v.split(",").filter(Boolean))
     .optional()
     .describe("The tag IDs to filter the links by."),
   search: z
@@ -190,7 +193,9 @@ export const createLinkBodySchema = z.object({
   tagId: z
     .string()
     .nullish()
-    .describe("The unique ID of the tag assigned to the short link.")
+    .describe(
+      "[DEPRECATED (use tagIds instead)]: The unique ID of the tag assigned to the short link.",
+    )
     .openapi({ deprecated: true }),
   tagIds: z
     .array(z.string())
