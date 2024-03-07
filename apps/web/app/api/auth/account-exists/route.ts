@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
 
   const { email } = (await req.json()) as { email: string };
 
-  if (!process.env.DATABASE_URL) {
+  if (!process.env.PLANETSCALE_DATABASE_URL) {
     return new Response("Database connection not established", {
       status: 500,
     });
