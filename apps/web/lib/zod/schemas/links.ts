@@ -22,8 +22,8 @@ const LinksQuerySchema = {
     )
     .openapi({ deprecated: true }),
   tagIds: z
-    .string()
-    .transform((v) => v.split(",").filter(Boolean))
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional()
     .describe("The tag IDs to filter the links by."),
   search: z

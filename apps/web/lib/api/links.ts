@@ -48,7 +48,7 @@ export async function getLinksForProject({
 }: Omit<z.infer<typeof getLinksQuerySchema>, "projectSlug"> & {
   projectId: string;
 }): Promise<LinkProps[]> {
-  const finalTagIds = combineTagIds({ tagId, tagIds });
+  const combinedTagIds = combineTagIds({ tagId, tagIds });
 
   const links = await prisma.link.findMany({
     where: {
@@ -70,8 +70,8 @@ export async function getLinksForProject({
           some: {},
         },
       }),
-      ...(finalTagIds.length > 0 && {
-        tags: { some: { tagId: { in: finalTagIds } } },
+      ...(combinedTagIds.length > 0 && {
+        tags: { some: { tagId: { in: combinedTagIds } } },
       }),
       ...(userId && { userId }),
     },
@@ -121,10 +121,10 @@ export async function getLinksCount({
   projectId: string;
   userId?: string | null;
 }) {
-  const { groupBy, search, domain, tagId, showArchived, withTags } =
+  const { groupBy, search, domain, tagId, tagIds, showArchived, withTags } =
     searchParams;
 
-  const tagIds = tagId ? tagId.split(",") : [];
+  const combinedTagIds = combineTagIds({ tagId, tagIds });
 
   const linksWhere = {
     projectId,
@@ -168,7 +168,7 @@ export async function getLinksCount({
           some: {},
         },
       }),
-      ...(tagIds.length > 0 && {
+      ...(combinedTagIds.length > 0 && {
         tags: {
           some: {
             tagId: {
