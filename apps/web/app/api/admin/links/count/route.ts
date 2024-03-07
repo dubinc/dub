@@ -1,6 +1,6 @@
 import { withAdmin } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { DUB_DOMAINS, LEGAL_USER_ID } from "@dub/utils";
+import { DUB_DOMAINS_ARRAY, LEGAL_USER_ID } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/admin/links/count
@@ -24,7 +24,7 @@ export const GET = withAdmin(async ({ searchParams }) => {
         }
       : {
           domain: {
-            in: DUB_DOMAINS.map((domain) => domain.slug),
+            in: DUB_DOMAINS_ARRAY,
           },
         }),
     userId: {

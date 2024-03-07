@@ -1,6 +1,8 @@
 import { exceededLimitError } from "@/lib/api/errors";
 import { withAuth } from "@/lib/auth";
+import { DubApiError } from "@/lib/api/errors";
 import prisma from "@/lib/prisma";
+import { createTagBodySchema } from "@/lib/zod/schemas/tags";
 import { COLORS_LIST, randomBadgeColor } from "@/ui/links/tag-badge";
 import { NextResponse } from "next/server";
 
@@ -29,37 +31,44 @@ export const POST = withAuth(async ({ req, project, headers }) => {
       projectId: project.id,
     },
   });
+
   if (tagsCount >= project.tagsLimit) {
-    return new Response(
-      exceededLimitError({
+    throw new DubApiError({
+      code: "exceeded_limit",
+      message: exceededLimitError({
         plan: project.plan,
         limit: project.tagsLimit,
         type: "tags",
       }),
-      {
-        status: 403,
-      },
-    );
-  }
-  const { tag, color } = await req.json();
-  try {
-    const response = await prisma.tag.create({
-      data: {
-        name: tag,
-        color:
-          color && COLORS_LIST.map(({ color }) => color).includes(color)
-            ? color
-            : randomBadgeColor(),
-        projectId: project.id,
-      },
     });
-    return NextResponse.json(response, { headers });
-  } catch (error) {
-    if (error.code === "P2002") {
-      return new Response("A tag with the same name already exists.", {
-        status: 409,
-      });
-    }
-    return new Response(error.message, { status: 400 });
   }
+
+  const { tag, color } = createTagBodySchema.parse(await req.json());
+
+  const existingTag = await prisma.tag.findFirst({
+    where: {
+      projectId: project.id,
+      name: tag,
+    },
+  });
+
+  if (existingTag) {
+    throw new DubApiError({
+      code: "conflict",
+      message: "A tag with that name already exists.",
+    });
+  }
+
+  const response = await prisma.tag.create({
+    data: {
+      name: tag,
+      color:
+        color && COLORS_LIST.map(({ color }) => color).includes(color)
+          ? color
+          : randomBadgeColor(),
+      projectId: project.id,
+    },
+  });
+
+  return NextResponse.json(response, { headers, status: 201 });
 });

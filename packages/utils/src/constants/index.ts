@@ -39,6 +39,7 @@ export const APP_DOMAIN_WITH_NGROK =
 
 export const API_HOSTNAMES = new Set([
   `api.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
+  `api-staging.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
   `api.${SHORT_DOMAIN}`,
   "api.localhost:8888",
 ]);
@@ -47,7 +48,7 @@ export const API_DOMAIN =
   process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
     ? `https://api.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
-      ? `https://api.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
+      ? `https://api-staging.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
       : "http://api.localhost:8888";
 
 export const ADMIN_HOSTNAMES = new Set([
@@ -55,9 +56,8 @@ export const ADMIN_HOSTNAMES = new Set([
   "admin.localhost:8888",
 ]);
 
-export const DUB_LOGO = "https://d2vwwcvoksz7ty.cloudfront.net/logo.png";
-export const DUB_THUMBNAIL =
-  "https://d2vwwcvoksz7ty.cloudfront.net/thumbnail.png";
+export const DUB_LOGO = "https://assets.dub.co/logo.png";
+export const DUB_THUMBNAIL = "https://assets.dub.co/thumbnail.png";
 
 export const DEMO_LINK_ID = "clqo10sum0006js08vutzfxt3";
 export const DUB_PROJECT_ID = "cl7pj5kq4006835rbjlt2ofka";
@@ -131,3 +131,5 @@ export const DUB_DOMAINS = [
       ]
     : []),
 ];
+
+export const DUB_DOMAINS_ARRAY = DUB_DOMAINS.map((domain) => domain.slug);

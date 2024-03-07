@@ -1,13 +1,15 @@
 "use client";
 
-import { ALL_TOOLS, COMPARE_PAGES } from "@dub/utils";
+import { ALL_TOOLS, COMPARE_PAGES, cn, fetcher } from "@dub/utils";
 import va from "@vercel/analytics";
+import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import useSWR from "swr";
 import { FEATURES_LIST } from "./content";
 import { Github, LinkedIn, LogoType, Twitter, YouTube } from "./icons";
 import { MaxWidthWrapper } from "./max-width-wrapper";
-import Image from "next/image";
 
 const navigation = {
   features: FEATURES_LIST.map(({ shortTitle, slug }) => ({
@@ -47,7 +49,7 @@ export function Footer() {
     <footer>
       <MaxWidthWrapper className="relative z-10 overflow-hidden border border-b-0 border-gray-200 bg-white/50 pb-60 pt-16 backdrop-blur-lg md:rounded-t-2xl">
         <div className="xl:grid xl:grid-cols-3 xl:gap-8">
-          <div className="space-y-8">
+          <div className="space-y-6">
             <Link
               href={createHref("/")}
               {...(domain !== "dub.co" && {
@@ -76,7 +78,7 @@ export function Footer() {
                 href="https://twitter.com/dubdotco"
                 target="_blank"
                 rel="noreferrer"
-                className="group rounded-full border border-gray-200 p-2 transition-colors hover:bg-gray-100 active:bg-gray-200"
+                className="group rounded-full border border-gray-200 p-2 transition-colors hover:bg-gray-100"
               >
                 <span className="sr-only">Twitter</span>
                 <Twitter className="h-4 w-4 text-gray-600" />
@@ -85,7 +87,7 @@ export function Footer() {
                 href="https://github.com/dubinc/dub"
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-full border border-gray-200 p-2 transition-colors hover:bg-gray-100 active:bg-gray-200"
+                className="rounded-full border border-gray-200 p-2 transition-colors hover:bg-gray-100"
               >
                 <span className="sr-only">Github</span>
                 <Github className="h-4 w-4 text-gray-600" />
@@ -94,7 +96,7 @@ export function Footer() {
                 href="https://www.linkedin.com/company/dubinc"
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-full border border-gray-200 p-2 transition-colors hover:bg-gray-100 active:bg-gray-200"
+                className="rounded-full border border-gray-200 p-2 transition-colors hover:bg-gray-100"
               >
                 <span className="sr-only">LinkedIn</span>
                 <LinkedIn className="h-4 w-4 text-gray-600" />
@@ -103,12 +105,13 @@ export function Footer() {
                 href="https://www.youtube.com/@dubdotco"
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-full border border-gray-200 p-2 transition-colors hover:bg-gray-100 active:bg-gray-200"
+                className="rounded-full border border-gray-200 p-2 transition-colors hover:bg-gray-100"
               >
                 <span className="sr-only">YouTube</span>
                 <YouTube className="h-4 w-4 text-gray-600" />
               </a>
             </div>
+            <StatusBadge />
           </div>
           <div className="mt-16 grid grid-cols-2 gap-4 xl:col-span-2 xl:mt-0">
             <div className="md:grid md:grid-cols-2">
@@ -240,7 +243,7 @@ export function Footer() {
           </div>
         </div>
         <Image
-          src="https://d2vwwcvoksz7ty.cloudfront.net/footer.png"
+          src="https://assets.dub.co/footer.png"
           alt="Dub Technologies, Inc. Logo"
           width={1959}
           height={625}
@@ -248,5 +251,62 @@ export function Footer() {
         />
       </MaxWidthWrapper>
     </footer>
+  );
+}
+
+function StatusBadge() {
+  const { data } = useSWR<{
+    ongoing_incidents: {
+      name: string;
+      current_worst_impact:
+        | "degraded_performance"
+        | "partial_outage"
+        | "full_outage";
+    }[];
+  }>("https://status.dub.co/api/v1/summary", fetcher);
+
+  const [color, setColor] = useState("bg-gray-200");
+  const [status, setStatus] = useState("Loading status...");
+
+  useEffect(() => {
+    if (!data) return;
+    const { ongoing_incidents } = data;
+    if (ongoing_incidents.length > 0) {
+      const { current_worst_impact, name } = ongoing_incidents[0];
+      const color =
+        current_worst_impact === "degraded_performance"
+          ? "bg-yellow-500"
+          : "bg-red-500";
+      setStatus(name);
+      setColor(color);
+    } else {
+      setStatus("All systems operational");
+      setColor("bg-green-500");
+    }
+  }, [data]);
+
+  return (
+    <Link
+      href="https://status.dub.co"
+      target="_blank"
+      className="group flex max-w-fit items-center space-x-2 rounded-md border border-gray-200 bg-white px-3 py-2 transition-colors hover:bg-gray-100"
+    >
+      <div className="relative h-3 w-3">
+        <div
+          className={cn(
+            "absolute inset-0 m-auto h-3 w-3 animate-ping items-center justify-center rounded-full group-hover:animate-none",
+            color,
+            status === "Loading status..." && "animate-none",
+          )}
+        />
+        <div
+          className={cn(
+            "absolute inset-0 z-10 m-auto h-3 w-3 rounded-full",
+            color,
+          )}
+        />
+      </div>
+      <p className="text-sm font-medium text-gray-800">{status}</p>
+    </Link>
   );
 }

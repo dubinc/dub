@@ -124,7 +124,7 @@ export const updateUsage = async (skip?: number) => {
                 projectId: project.id,
                 endpoint: "top_links",
                 interval: "30d",
-                excludeRoot: "true",
+                excludeRoot: true,
               }).then(async (data) => {
                 const topFive = data.slice(0, 5);
                 return await Promise.all(
@@ -196,7 +196,7 @@ export const updateUsage = async (skip?: number) => {
           ? usage < usageLimit * 2
           : plan === "pro"
             ? usage < usageLimit * 1.5
-            : plan === "business"
+            : plan.startsWith("business")
               ? usage < usageLimit * 1.2
               : true;
 

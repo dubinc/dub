@@ -10,7 +10,6 @@ import { Chart, Delete, ThreeDots } from "@/ui/shared/icons";
 import {
   Avatar,
   BadgeTooltip,
-  BlurImage,
   Button,
   CopyButton,
   IconMenu,
@@ -24,7 +23,6 @@ import {
 } from "@dub/ui";
 import { LinkifyTooltipContent } from "@dub/ui/src/tooltip";
 import {
-  GOOGLE_FAVICON_URL,
   HOME_DOMAIN,
   cn,
   fetcher,
@@ -36,23 +34,26 @@ import {
 } from "@dub/utils";
 import {
   Archive,
+  Copy,
+  CopyCheck,
   CopyPlus,
   Edit3,
   EyeOff,
   FolderInput,
+  Lock,
   Mail,
   MessageCircle,
   QrCode,
   TimerOff,
-  Lock,
 } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import punycode from "punycode/";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
 import { useTransferLinkModal } from "../modals/transfer-link-modal";
+import LinkLogo from "./link-logo";
 
 export default function LinkCard({
   props,
@@ -77,14 +78,31 @@ export default function LinkCard({
     user,
   } = props;
 
+  const searchParams = useSearchParams();
+
   const [primaryTags, additionalTags] = useMemo(() => {
     const primaryTagsCount = 1;
 
+    const filteredTagIds =
+      searchParams?.get("tagId")?.split(",")?.filter(Boolean) ?? [];
+
+    /*
+      Sort tags so that the filtered tags are first. The most recently selected
+      filtered tag (last in array) should be displayed first.
+    */
+    const sortedTags =
+      filteredTagIds.length > 0
+        ? [...tags].sort(
+            (a, b) =>
+              filteredTagIds.indexOf(b.id) - filteredTagIds.indexOf(a.id),
+          )
+        : tags;
+
     return [
-      tags.filter((_, idx) => idx < primaryTagsCount),
-      tags.filter((_, idx) => idx >= primaryTagsCount),
+      sortedTags.filter((_, idx) => idx < primaryTagsCount),
+      sortedTags.filter((_, idx) => idx >= primaryTagsCount),
     ];
-  }, [tags]);
+  }, [tags, searchParams]);
 
   const apexDomain = getApexDomain(url);
 
@@ -187,6 +205,15 @@ export default function LinkCard({
     };
   }, [handlClickOnLinkCard]);
 
+  const [copiedLinkId, setCopiedLinkId] = useState(false);
+
+  const copyLinkId = () => {
+    navigator.clipboard.writeText(id);
+    setCopiedLinkId(true);
+    toast.success("Link ID copied!");
+    setTimeout(() => setCopiedLinkId(false), 3000);
+  };
+
   const onKeyDown = (e: any) => {
     // only run shortcut logic if:
     // - usage is not exceeded
@@ -195,7 +222,7 @@ export default function LinkCard({
     // - there is no existing modal backdrop
     if (
       (selected || openPopover) &&
-      ["e", "d", "q", "a", "t", "x"].includes(e.key)
+      ["e", "d", "q", "a", "t", "i", "x"].includes(e.key)
     ) {
       setSelected(false);
       e.preventDefault();
@@ -216,6 +243,9 @@ export default function LinkCard({
           if (isDubDomain(domain)) {
             setShowTransferLinkModal(true);
           }
+          break;
+        case "i":
+          copyLinkId();
           break;
         case "x":
           setShowDeleteLinkModal(true);
@@ -267,13 +297,7 @@ export default function LinkCard({
               </div>
             </Tooltip>
           ) : (
-            <BlurImage
-              src={`${GOOGLE_FAVICON_URL}${apexDomain}`}
-              alt={apexDomain}
-              className="h-8 w-8 rounded-full sm:h-10 sm:w-10"
-              width={20}
-              height={20}
-            />
+            <LinkLogo apexDomain={apexDomain} />
           )}
           {/* 
             Here, we're manually setting ml-* values because if we do space-x-* in the parent div, 
@@ -336,14 +360,14 @@ export default function LinkCard({
                 </Tooltip>
               )}
               {primaryTags.map((tag) => (
-                <TagButton {...tag} />
+                <TagButton key={tag.id} {...tag} />
               ))}
               {additionalTags.length > 0 && (
                 <BadgeTooltip
                   content={
                     <div className="flex flex-wrap gap-1.5 p-3">
                       {additionalTags.map((tag) => (
-                        <TagButton {...tag} />
+                        <TagButton key={tag.id} {...tag} />
                       ))}
                     </div>
                   }
@@ -493,25 +517,32 @@ export default function LinkCard({
                   shortcut="A"
                   className="h-9 px-2 font-medium"
                 />
+                {isDubDomain(domain) && (
+                  <Button
+                    text="Transfer"
+                    variant="outline"
+                    onClick={() => {
+                      setOpenPopover(false);
+                      setShowTransferLinkModal(true);
+                    }}
+                    icon={<FolderInput className="h-4 w-4" />}
+                    shortcut="T"
+                    className="h-9 px-2 font-medium"
+                  />
+                )}
                 <Button
-                  text="Transfer"
+                  text="Copy Link ID"
                   variant="outline"
-                  onClick={() => {
-                    setOpenPopover(false);
-                    setShowTransferLinkModal(true);
-                  }}
-                  icon={<FolderInput className="h-4 w-4" />}
-                  shortcut="T"
+                  onClick={() => copyLinkId()}
+                  icon={
+                    copiedLinkId ? (
+                      <CopyCheck className="h-4 w-4" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )
+                  }
+                  shortcut="I"
                   className="h-9 px-2 font-medium"
-                  {...(!isDubDomain(domain) && {
-                    disabledTooltip: (
-                      <SimpleTooltipContent
-                        title="You cannot transfer custom domain links between projects."
-                        cta="Learn more."
-                        href={`${HOME_DOMAIN}/help/article/how-to-transfer-links`}
-                      />
-                    ),
-                  })}
                 />
                 <Button
                   text="Delete"

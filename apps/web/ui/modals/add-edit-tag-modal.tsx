@@ -115,7 +115,7 @@ function AddEditTagModal({
               color: data.color,
             }),
           }).then(async (res) => {
-            if (res.status === 200) {
+            if (res.status === 200 || res.status === 201) {
               va.track(props ? "Edited Tag" : "Created Tag");
               await Promise.all([
                 mutate(`/api/tags?projectSlug=${projectSlug}`),
@@ -131,7 +131,8 @@ function AddEditTagModal({
               toast.success(endpoint.successMessage);
               setShowAddEditTagModal(false);
             } else {
-              toast.error(await res.text());
+              const { error } = await res.json();
+              toast.error(error.message);
             }
             setSaving(false);
           });
@@ -209,10 +210,9 @@ function AddTagButton({
 }: {
   setShowAddEditTagModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { plan, tagsLimit } = useProject();
+  const { plan, nextPlan, tagsLimit } = useProject();
   const { tags } = useTags();
   const { queryParams } = useRouterStuff();
-
   const exceededTags = tags && tagsLimit && tags.length >= tagsLimit;
 
   return (
@@ -231,7 +231,7 @@ function AddTagButton({
               onClick={() => {
                 queryParams({
                   set: {
-                    upgrade: plan === "free" ? "pro" : "business",
+                    upgrade: nextPlan.name.toLowerCase(),
                   },
                 });
               }}

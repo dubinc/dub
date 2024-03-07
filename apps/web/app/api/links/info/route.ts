@@ -1,14 +1,14 @@
 import { withAuth } from "@/lib/auth";
+import { DubApiError } from "@/lib/api/errors";
 import prisma from "@/lib/prisma";
+import { getLinkInfoQuerySchema } from "@/lib/zod/schemas/links";
 import { linkConstructor } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/links/info – get the info for a link
 export const GET = withAuth(async ({ headers, searchParams }) => {
-  const { domain, key } = searchParams;
-  if (!domain || !key) {
-    return new Response("Missing domain or key", { status: 400 });
-  }
+  const { domain, key } = getLinkInfoQuerySchema.parse(searchParams);
+
   const response = await prisma.link.findUnique({
     where: {
       domain_key: {
@@ -20,12 +20,14 @@ export const GET = withAuth(async ({ headers, searchParams }) => {
       user: true,
     },
   });
+
   if (!response) {
-    return new Response("Link not found.", {
-      status: 404,
-      headers,
+    throw new DubApiError({
+      code: "not_found",
+      message: "Link not found.",
     });
   }
+
   return NextResponse.json(
     {
       ...response,

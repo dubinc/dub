@@ -1,4 +1,4 @@
-export const DEFAULT_LINK_PROPS = {
+export const DEFAULT_LINK_PROPS: any = {
   key: "",
   url: "",
   domain: "",
@@ -17,6 +17,7 @@ export const DEFAULT_LINK_PROPS = {
   userId: "",
 
   proxy: false,
+  tags: [],
 };
 
 export const GOOGLE_FAVICON_URL =

@@ -1,16 +1,15 @@
 import {
   LOCALHOST_GEO_DATA,
-  LOCALHOST_IP,
   capitalize,
   getDomainWithoutWWW,
   nanoid,
 } from "@dub/utils";
-import { ipAddress } from "@vercel/edge";
 import { NextRequest, userAgent } from "next/server";
 import { detectBot } from "./middleware/utils";
 import { conn } from "./planetscale";
 import { LinkProps } from "./types";
 import { ratelimit } from "./upstash";
+import { getIdentityHash } from "./edge";
 
 /**
  * Recording clicks with geo, ua, referer and timestamp data
@@ -33,11 +32,11 @@ export async function recordClick({
   const geo = process.env.VERCEL === "1" ? req.geo : LOCALHOST_GEO_DATA;
   const ua = userAgent(req);
   const referer = req.headers.get("referer");
-  const ip = ipAddress(req) || LOCALHOST_IP;
-  // if in production / preview env, deduplicate clicks from the same IP & link ID – only record 1 click per hour
+  const identity_hash = await getIdentityHash(req);
+  // if in production / preview env, deduplicate clicks from the same IP & link ID – only record 1 click per hour
   if (process.env.VERCEL === "1") {
     const { success } = await ratelimit(2, "1 h").limit(
-      `recordClick:${ip}:${id}`,
+      `recordClick:${identity_hash}:${id}`,
     );
     if (!success) {
       return null;
@@ -54,6 +53,7 @@ export async function recordClick({
         },
         body: JSON.stringify({
           timestamp: new Date(Date.now()).toISOString(),
+          identity_hash,
           click_id: nanoid(16),
           link_id: id,
           alias_link_id: "",

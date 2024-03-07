@@ -54,12 +54,12 @@
     "js-cookie": "^3.0.5",
     "lucide-react": "^0.299.0",
     "nanoid": "^5.0.1",
-    "next": "14.1.1-canary.70",
+    "next": "14.2.0-canary.5",
     "next-auth": "^4.24.4",
     "node-html-parser": "^6.1.4",
     "nodemailer": "^6.9.3",
-    "npm": "^9.1.2",
     "openapi-types": "^12.1.3",
+    "openapi3-ts": "^4.2.1",
     "postmark": "^4.0.2",
     "prisma": "^5.9.1",
     "punycode": "^2.3.0",
@@ -85,7 +85,10 @@
     "topojson-client": "^3.1.0",
     "unsplash-js": "^7.0.18",
     "use-debounce": "^8.0.4",
-    "vaul": "^0.6.8"
+    "vaul": "^0.6.8",
+    "zod": "^3.22.4",
+    "zod-error": "^1.5.0",
+    "zod-openapi": "^2.12.0"
   },
   "devDependencies": {
     "@types/dotenv-flow": "^3.3.2",
