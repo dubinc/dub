@@ -30,7 +30,7 @@ In this guide, we'll use `acme.com` as a placeholder for your custom domain, and
 
 First, clone the [Dub repo](https://d.to/github) into a public GitHub repository. If you are planning to distribute the code, make sure to keep the source code public to comply with our [AGPLv3 license](https://d.to/license).
 
-    ```bash
+    ```bash Terminal Terminal
     git clone https://github.com/dubinc/dub.git
     ```
 
@@ -40,7 +40,7 @@ First, clone the [Dub repo](https://d.to/github) into a public GitHub repository
 
     Run the following command to install the dependencies:
 
-    ```bash
+    ```bash Terminal
     pnpm i
     ```
 
@@ -50,13 +50,13 @@ First, clone the [Dub repo](https://d.to/github) into a public GitHub repository
 
     Delete the `apps/docs` directory since it's not needed for self-hosting:
 
-    ```bash
+    ```bash Terminal
     rm -rf apps/docs
     ```
 
     Delete the `apps/web/vercel.json` file since cron jobs are not required for the self-hosted version:
 
-    ```bash
+    ```bash Terminal
     rm apps/web/vercel.json
     ```
 
@@ -66,7 +66,7 @@ First, clone the [Dub repo](https://d.to/github) into a public GitHub repository
 
     Convert the `.env.example` file to `.env`. You can start filling in the first few environment variables:
 
-    ```bash
+    ```bash Terminal
     # The domain that your app will be hosted on
     NEXT_PUBLIC_APP_DOMAIN=acme.com
     # The short domain that your app will be using (could be the same as the above)
@@ -111,7 +111,7 @@ In your newly-cloned Dub.co repo, navigate to the `packages/tinybird` directory.
 
     Run `tb push` to publish the datasource and endpoints in the `packages/tinybird` directory. You should see the following output (truncated for brevity):
 
-    ```bash
+    ```bash Terminal
     $ tb push
 
     ** Processing ./datasources/click_events.datasource
@@ -137,13 +137,13 @@ In your newly-cloned Dub.co repo, navigate to the `packages/tinybird` directory.
 
     From the previous step, take note of the **Test endpoint** URL. It should look something like this:
 
-    ```
+    ```bash Terminal
     Test endpoint at https://api.us-east.tinybird.co/v0/pipes/device.json
     ```
 
     Copy the base URL and paste it as the `TINYBIRD_API_URL` environment variable in your `.env` file.
 
-    ```bash
+    ```bash Terminal
     TINYBIRD_API_URL=https://api.us-east.tinybird.co
     ```
 
@@ -207,24 +207,28 @@ Next, you'll need to set up the Planetscale MySQL database:
 
   <Step title="Generate Prisma client and create database tables">
 
-In your Dub.co codebase, navigate to `apps/web/prisma/schema.prisma` and change the `metadata` field under the `Project` model to use your custom short domain:
+In your Dub.co codebase, navigate to `apps/web/prisma/schema.prisma` and replace all the columns in the `DefaultDomains` model to the normalized version of your custom short domain (removing the `.` character).
 
-    ```prisma
-    model Project {
-      ...
-      metadata  Json?    @default("{\"defaultDomains\":[\"ac.me\"]}")
+For example, if your custom short domain is `ac.me`, your `DefaultDomains` model should look like this:
+
+    ```prisma apps/web/prisma/schema.prisma
+    model DefaultDomains {
+      id          String   @id @default(cuid())
+      acme        Boolean  @default(true)
+      projectId   String   @unique
+      project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
     }
     ```
 
     In the terminal, navigate to the `apps/web` directory and run the following command to generate the Prisma client:
 
-    ```bash
+    ```bash Terminal
     npx prisma generate
     ```
 
     Then, create the database tables with the following command:
 
-    ```bash
+    ```bash Terminal
     npx prisma db push
     ```
 
@@ -275,7 +279,7 @@ Once you've set up all of the above services, you can now deploy your app to Ver
   <Step title="Deploy code to GitHub">
     If you haven't already, push up your cloned repository to GitHub by running the following commands:
 
-    ```bash
+    ```bash Terminal
     git add .
     git commit -m "Initial commit"
     git push origin main

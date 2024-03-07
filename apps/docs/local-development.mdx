@@ -74,7 +74,7 @@ To run Dub.co locally, you'll need to set up the following:
 
 First, clone the [Dub.co repo](https://d.to/github) into a public GitHub repository.
 
-    ```bash
+    ```bash Terminal
     git clone https://github.com/dubinc/dub.git
     ```
 
@@ -84,7 +84,7 @@ First, clone the [Dub.co repo](https://d.to/github) into a public GitHub reposit
 
     Run the following command to install the dependencies:
 
-    ```bash
+    ```bash Terminal
     pnpm i
     ```
 
@@ -94,7 +94,7 @@ First, clone the [Dub.co repo](https://d.to/github) into a public GitHub reposit
 
     If you're planning to make changes to [Dub.co's Docs](/docs), you'll need to install the [Mintlify CLI](https://mintlify.com/docs/development) to build the documentation site.
 
-    ```bash
+    ```bash Terminal
     pnpm install -g mintlify
     ```
 
@@ -130,7 +130,7 @@ In your newly-cloned Dub.co repo, navigate to the `packages/tinybird` directory.
 
     Run `tb push` to publish the datasource and endpoints in the `packages/tinybird` directory. You should see the following output (truncated for brevity):
 
-    ```bash
+    ```bash Terminal
     $ tb push
 
     ** Processing ./datasources/click_events.datasource
@@ -156,13 +156,13 @@ In your newly-cloned Dub.co repo, navigate to the `packages/tinybird` directory.
 
     From the previous step, take note of the **Test endpoint** URL. It should look something like this:
 
-    ```
+    ```bash Terminal
     Test endpoint at https://api.us-east.tinybird.co/v0/pipes/device.json
     ```
 
     Copy the base URL and paste it as the `TINYBIRD_API_URL` environment variable in your `.env` file.
 
-    ```bash
+    ```bash Terminal
     TINYBIRD_API_URL=https://api.us-east.tinybird.co
     ```
 
@@ -204,7 +204,7 @@ Navigate to the [QStash tab](https://console.upstash.com/qstash) and copy the `Q
 
     Follow [these steps](https://ngrok.com/docs/getting-started/) to setup `ngrok`, and then run the following command to start an Ngrok tunnel at port `8888`:
 
-    ```bash
+    ```bash Terminal
     ngrok http 8888
     ```
 
@@ -242,13 +242,13 @@ Next, you'll need to set up the Planetscale MySQL database:
 
     In the terminal, navigate to the `apps/web` directory and run the following command to generate the Prisma client:
 
-    ```bash
+    ```bash Terminal
     npx prisma generate
     ```
 
     Then, create the database tables with the following command:
 
-    ```bash
+    ```bash Terminal
     npx prisma db push
     ```
 
@@ -272,7 +272,7 @@ Once your GitHub App is created, copy the `Client ID` and `Client Secret` into y
 
 Finally, you can start the development server. This will build the packages + start the app servers.
 
-```bash
+```bash Terminal
 pnpm dev
 ```
 
