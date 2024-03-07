@@ -101,32 +101,6 @@ function AddEditLinkModal({
 
   const { domain, key, url, password, proxy } = data;
 
-  const [debouncedKey] = useDebounce(key, 500);
-  useEffect(() => {
-    /**
-     * Only check if key exists if:
-     * - modal is open
-     * - key is not empty
-     * - key is not the same as the original key
-     **/
-    if (
-      showAddEditLinkModal &&
-      debouncedKey.length > 0 &&
-      debouncedKey.toLowerCase() !== props?.key.toLowerCase()
-    ) {
-      fetch(
-        `/api/links/exists?domain=${domain}&key=${debouncedKey}&projectSlug=${slug}`,
-      ).then(async (res) => {
-        if (res.status === 200) {
-          const exists = await res.json();
-          setKeyError(
-            exists ? "Duplicate key: This short link already exists." : null,
-          );
-        }
-      });
-    }
-  }, [debouncedKey, domain]);
-
   const generateRandomKey = useCallback(async () => {
     setKeyError(null);
     setGeneratingKey(true);
@@ -553,11 +527,23 @@ function AddEditLinkModal({
                     </div>
                   )}
                 </div>
-                {keyError && (
-                  <p className="mt-2 text-sm text-red-600" id="key-error">
-                    {keyError}
-                  </p>
-                )}
+                {keyError &&
+                  (keyError.includes("Upgrade to Pro") ? (
+                    <p className="mt-2 text-sm text-red-600" id="key-error">
+                      {keyError.split("Upgrade to Pro")[0]}
+                      <span
+                        className="cursor-pointer underline"
+                        onClick={() => queryParams({ set: { upgrade: "pro" } })}
+                      >
+                        Upgrade to Pro
+                      </span>
+                      {keyError.split("Upgrade to Pro")[1]}
+                    </p>
+                  ) : (
+                    <p className="mt-2 text-sm text-red-600" id="key-error">
+                      {keyError}
+                    </p>
+                  ))}
               </div>
             </div>
 
