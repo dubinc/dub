@@ -2,7 +2,7 @@ import { DomainProps } from "@/lib/types";
 import { DUB_DOMAINS, SHORT_DOMAIN, fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
-import useProject from "./use-project";
+import useDefaultDomains from "./use-default-domains";
 
 export default function useDomains({ domain }: { domain?: string } = {}) {
   const { slug } = useParams() as {
@@ -21,7 +21,7 @@ export default function useDomains({ domain }: { domain?: string } = {}) {
   const projectDomains = data?.filter((domain) => !domain.archived);
   const archivedProjectDomains = data?.filter((domain) => domain.archived);
 
-  const { defaultDomains: projectDefaultDomains } = useProject();
+  const { defaultDomains: projectDefaultDomains } = useDefaultDomains();
 
   const defaultDomains =
     (projectDefaultDomains &&

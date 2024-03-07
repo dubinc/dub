@@ -256,7 +256,6 @@ export const withAuth = (
               },
             },
             inviteCode: true,
-            metadata: true,
           },
         }),
         linkId

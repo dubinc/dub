@@ -5,15 +5,14 @@ import {
   handleAndReturnErrorResponse,
 } from "@/lib/api/errors";
 import { getIdentityHash } from "@/lib/edge";
-import { isBlacklistedReferrer } from "@/lib/edge-config";
 import { getDomainOrLink, getProjectViaEdge } from "@/lib/planetscale";
 import { ratelimit } from "@/lib/upstash";
-import { DEMO_LINK_ID, DUB_PROJECT_ID, getSearchParams } from "@dub/utils";
-import { NextResponse, type NextRequest } from "next/server";
 import {
-  getAnalyticsEdgeQuerySchema,
   analyticsEndpointSchema,
+  getAnalyticsEdgeQuerySchema,
 } from "@/lib/zod/schemas/analytics";
+import { DUB_DEMO_LINKS, DUB_PROJECT_ID, getSearchParams } from "@dub/utils";
+import { NextResponse, type NextRequest } from "next/server";
 
 export const runtime = "edge";
 
@@ -29,21 +28,19 @@ export const GET = async (
 
     let link;
 
-    // demo link (dub.sh/try)
-    if (domain === "dub.sh" && key === "try") {
+    const demoLink = DUB_DEMO_LINKS.find(
+      (l) => l.domain === domain && l.key === key,
+    );
+
+    // if it's a demo link
+    if (demoLink) {
       // Rate limit in production
       if (process.env.NODE_ENV !== "development") {
-        if (await isBlacklistedReferrer(req.headers.get("referer"))) {
-          throw new DubApiError({
-            code: "rate_limit_exceeded",
-            message: "Don't DDoS me pls 🥺",
-          });
-        }
         const identity_hash = await getIdentityHash(req);
         const { success } = await ratelimit(
           15,
-          endpoint === "clicks" ? "10 s" : "1 h",
-        ).limit(`demo-analytics:${identity_hash}:${endpoint}`);
+          endpoint === "clicks" ? "10 s" : "1 m",
+        ).limit(`demo-analytics:${demoLink.id}:${identity_hash}:${endpoint}`);
 
         if (!success) {
           throw new DubApiError({
@@ -53,7 +50,7 @@ export const GET = async (
         }
       }
       link = {
-        id: DEMO_LINK_ID,
+        id: demoLink.id,
         projectId: DUB_PROJECT_ID,
       };
     } else {
