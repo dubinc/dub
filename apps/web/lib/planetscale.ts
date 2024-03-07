@@ -2,14 +2,14 @@ import { connect } from "@planetscale/database";
 import { DomainProps, ProjectProps } from "./types";
 
 export const pscale_config = {
-  url: process.env.PLANETSCALE_DATABASE_URL,
+  url: process.env.PLANET_SCALE_DATABASE_URL,
 };
 
 export const conn = connect(pscale_config);
 
 export const getProjectViaEdge = async (projectId: string) => {
-  console.log('process.env.PLANETSCALE_DATABASE_URL', process.env.PLANETSCALE_DATABASE_URL)
-  if (!process.env.PLANETSCALE_DATABASE_URL) return null;
+  console.log('process.env.PLANET_SCALE_DATABASE_URL', process.env.PLANET_SCALE_DATABASE_URL)
+  if (!process.env.PLANET_SCALE_DATABASE_URL) return null;
 
   const { rows } =
     (await conn.execute("SELECT * FROM Project WHERE id = ?", [projectId])) ||
@@ -21,7 +21,7 @@ export const getProjectViaEdge = async (projectId: string) => {
 };
 
 export const getDomainViaEdge = async (domain: string) => {
-  if (!process.env.PLANETSCALE_DATABASE_URL) return null;
+  if (!process.env.PLANET_SCALE_DATABASE_URL) return null;
 
   const { rows } =
     (await conn.execute("SELECT * FROM Domain WHERE slug = ?", [domain])) || {};
@@ -32,7 +32,7 @@ export const getDomainViaEdge = async (domain: string) => {
 };
 
 export const getLinkViaEdge = async (domain: string, key: string) => {
-  if (!process.env.PLANETSCALE_DATABASE_URL) return null;
+  if (!process.env.PLANET_SCALE_DATABASE_URL) return null;
 
   const { rows } =
     (await conn.execute(
