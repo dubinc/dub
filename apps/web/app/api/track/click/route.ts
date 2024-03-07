@@ -63,4 +63,4 @@ export const POST = withAuthEdge(async ({ req }) => {
       error: e.message,
     }, { status: 400 });
   }
-}, {});
+});

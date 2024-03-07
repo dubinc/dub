@@ -21,7 +21,7 @@ interface WithAuthHandler {
 }
 
 export const withAuthEdge =
-  (handler: WithAuthHandler, {}) =>
+  (handler: WithAuthHandler) =>
   async (
     req: NextRequest,
     { params }: { params: Record<string, string> | undefined },
