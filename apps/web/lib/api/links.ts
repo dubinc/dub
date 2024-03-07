@@ -227,7 +227,7 @@ export async function keyChecks({
 
     if (key.length <= 3 && (!project || project.plan === "free")) {
       return {
-        error: `You can only use keys shorter than 3 characters on a Pro plan and above. Upgrade to Pro to register a ${key.length}-character key.`,
+        error: `You can only use keys that are 3 characters or less on a Pro plan and above. Upgrade to Pro to register a ${key.length}-character key.`,
         code: "forbidden",
       };
     }
