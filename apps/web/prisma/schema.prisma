@@ -111,7 +111,7 @@ model Project {
   updatedAt DateTime @updatedAt
 
   inviteCode  String? @unique
-  metadata    Json?    @default("{\"defaultDomains\":[\"dub.sh\",\"chatg.pt\",\"spti.fi\",\"amzn.id\"]}")
+  metadata    Json?    @default("{\"defaultDomains\":[\"dub.sh\",\"chatg.pt\",\"spti.fi\",\"git.new\",\"amzn.id\"]}")
 }
 
 model ProjectInvite {
