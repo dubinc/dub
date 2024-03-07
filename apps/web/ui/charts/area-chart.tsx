@@ -3,9 +3,10 @@ import { LinearGradient } from "@visx/gradient";
 import { Group } from "@visx/group";
 import { ParentSize } from "@visx/responsive";
 import { scaleLinear, scaleUtc } from "@visx/scale";
-import { Area, AreaClosed, Circle, Line } from "@visx/shape";
-import { createContext, useContext, useMemo } from "react";
+import { Area, AreaClosed, Bar, Circle, Line } from "@visx/shape";
+import { Fragment, createContext, useContext, useMemo } from "react";
 import { ChartContext, Datum } from "./types";
+import { useTooltip } from "./useTooltip";
 
 const ChartContext = createContext<ChartContext | null>(null);
 
@@ -15,31 +16,32 @@ function useChartContext<T extends Datum>(): ChartContext<T> {
   return chartContext;
 }
 
-export default function AreaChart<T extends Datum>(props: ChartContext<T>) {
+type AreaChartProps<T extends Datum> = Omit<
+  ChartContext<T>,
+  "width" | "height" | "xScale" | "yScale"
+>;
+
+export default function AreaChart<T extends Datum>(props: AreaChartProps<T>) {
   return (
-    <ChartContext.Provider value={props}>
-      <ParentSize>
-        {({ width, height }) => {
-          return <AreaChartInner {...props} width={width} height={height} />;
-        }}
-      </ParentSize>
-    </ChartContext.Provider>
+    <ParentSize className="relative">
+      {({ width, height }) => {
+        return <AreaChartInner {...props} width={width} height={height} />;
+      }}
+    </ParentSize>
   );
 }
 
 function AreaChartInner<T extends Datum>({
   width: outerWidth,
   height: outerHeight,
+  ...outerProps
 }: {
   width: number;
   height: number;
-}) {
-  const chartContext = useChartContext<T>();
+} & AreaChartProps<T>) {
   const {
     data,
     series,
-    startDate,
-    endDate,
     tickFormat = (date) =>
       date.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
     tooltipContent,
@@ -54,12 +56,21 @@ function AreaChartInner<T extends Datum>({
       bottom: 0.1,
     },
     xIntervalEveryCount = 1,
-  } = chartContext;
+  } = outerProps;
 
   const width = outerWidth - margin.left - margin.right;
   const height = outerHeight - margin.top - margin.bottom;
 
-  // Find min and max y values for all series
+  const { startDate, endDate } = useMemo(() => {
+    const dates = data.map(({ date }) => date);
+    const times = dates.map((d) => d.getTime());
+
+    return {
+      startDate: dates[times.indexOf(Math.min(...times))],
+      endDate: dates[times.indexOf(Math.max(...times))],
+    };
+  }, data);
+
   const { minY, maxY } = useMemo(() => {
     const values = series
       .filter(({ isActive }) => isActive !== false)
@@ -93,19 +104,27 @@ function AreaChartInner<T extends Datum>({
     };
   }, [startDate, endDate, minY, maxY, height, width, margin]);
 
+  const chartContext = { ...outerProps, width, height, xScale, yScale };
+  const {
+    tooltipData,
+    TooltipWrapper,
+    tooltipLeft,
+    tooltipTop,
+    handleTooltip,
+    hideTooltip,
+    containerRef,
+  } = useTooltip({
+    seriesId: series[0].id,
+    chartContext,
+  });
+
   return (
-    <>
-      <svg width={outerWidth} height={outerHeight}>
+    <ChartContext.Provider value={chartContext}>
+      <svg width={outerWidth} height={outerHeight} ref={containerRef}>
         <Group left={margin.left}>
-          <Group
-            top={margin.top}
-            // onTouchStart={handleTooltip}
-            // onTouchMove={handleTooltip}
-            // onMouseMove={handleTooltip}
-            // onMouseLeave={hideTooltip}
-          >
+          <Group top={margin.top}>
             {series.map((s) => (
-              <>
+              <Fragment key={s.id}>
                 <LinearGradient
                   className="text-blue-500"
                   id={`${s.id}-background`}
@@ -131,21 +150,23 @@ function AreaChartInner<T extends Datum>({
                   data={data}
                   x={(d) => xScale(d.date)}
                   y={(d) => yScale(s.accessorFn(d) ?? 0)}
-                  className="text-blue-800"
+                  className="text-blue-700"
                   stroke="currentColor"
                   strokeOpacity={0.8}
                   strokeWidth={2}
                 />
 
                 {/* Latest value dot */}
-                <Circle
-                  cx={xScale(data.at(-1)!.date)}
-                  cy={yScale(s.accessorFn(data.at(-1)!))}
-                  r={3}
-                  className="text-blue-700"
-                  fill="currentColor"
-                />
-              </>
+                {!tooltipData && (
+                  <Circle
+                    cx={xScale(data.at(-1)!.date)}
+                    cy={yScale(s.accessorFn(data.at(-1)!))}
+                    r={4}
+                    className="text-blue-700"
+                    fill="currentColor"
+                  />
+                )}
+              </Fragment>
             ))}
 
             {/* Vertical grid lines */}
@@ -154,15 +175,57 @@ function AreaChartInner<T extends Datum>({
                 .filter((_, idx) => idx % xIntervalEveryCount === 0)
                 .map((d, idx, { length }) => (
                   <Line
+                    key={d.date.toString()}
                     x1={xScale(d.date)}
                     x2={xScale(d.date)}
                     y1={height}
                     y2={0}
-                    stroke="#00000026"
+                    stroke={
+                      d.date === tooltipData?.date ? "transparent" : "#00000026"
+                    }
                     strokeWidth={1}
                     strokeDasharray={idx !== length - 1 ? 5 : 0}
                   />
                 ))}
+
+            {/* Tooltip hover line + circle */}
+            {tooltipData && (
+              <>
+                <Line
+                  x1={xScale(tooltipData.date)}
+                  x2={xScale(tooltipData.date)}
+                  y1={height}
+                  y2={0}
+                  strokeOpacity={0.1}
+                  stroke="black"
+                  strokeWidth={2}
+                />
+
+                {series.map((s) => (
+                  <Circle
+                    key={s.id}
+                    cx={xScale(tooltipData.date)}
+                    cy={yScale(s.accessorFn(tooltipData))}
+                    r={4}
+                    className="text-blue-800"
+                    fill="currentColor"
+                  />
+                ))}
+              </>
+            )}
+
+            {/* Tooltip hover region */}
+            <Bar
+              x={0}
+              y={0}
+              width={width}
+              height={height}
+              onTouchStart={handleTooltip}
+              onTouchMove={handleTooltip}
+              onMouseMove={handleTooltip}
+              onMouseLeave={hideTooltip}
+              fill="transparent"
+            />
           </Group>
           <AxisBottom
             top={margin.top + height}
@@ -171,15 +234,38 @@ function AreaChartInner<T extends Datum>({
             hideTicks
             stroke="#00000026"
             tickFormat={(date) => tickFormat(date as Date)}
-            tickLabelProps={(_, idx, { length }) => ({
+            tickLabelProps={(date, idx, { length }) => ({
+              className: "transition-colors",
               textAnchor:
                 idx === 0 ? "start" : idx === length - 1 ? "end" : "middle",
               fontSize: 12,
-              fill: idx === length - 1 ? "#000" : "#00000066",
+              fill: (
+                tooltipData ? tooltipData.date === date : idx === length - 1
+              )
+                ? "#000"
+                : "#00000066",
             })}
           />
         </Group>
       </svg>
-    </>
+      <div className="pointer-events-none absolute inset-0">
+        {tooltipData && (
+          <TooltipWrapper
+            key={tooltipData.date.toString()}
+            left={(tooltipLeft ?? 0) + margin.left}
+            top={(tooltipTop ?? 0) + margin.top}
+            offsetLeft={8}
+            offsetTop={0}
+            className="absolute"
+            unstyled={true}
+          >
+            <div className="pointer-events-none rounded-md border border-gray-200 bg-white px-4 py-2 text-base shadow-sm">
+              {tooltipContent?.(tooltipData) ??
+                series[0].accessorFn(tooltipData)}
+            </div>
+          </TooltipWrapper>
+        )}
+      </div>
+    </ChartContext.Provider>
   );
 }

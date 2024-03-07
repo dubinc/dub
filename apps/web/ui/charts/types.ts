@@ -1,3 +1,4 @@
+import { ScaleTypeToD3Scale } from "@visx/scale";
 import { ReactElement } from "react";
 
 export type Datum = Record<string, any>;
@@ -24,9 +25,6 @@ export type ChartContext<T extends Datum = any> = {
   data: Data<T>;
   series: Series<T>[];
 
-  startDate: Date;
-  endDate: Date;
-
   tickFormat?: (date: Date) => string;
 
   tooltipContent?: (datum: TimeSeriesDatum<T>) => ReactElement;
@@ -51,4 +49,11 @@ export type ChartContext<T extends Datum = any> = {
   };
 
   xIntervalEveryCount?: number;
+
+  // Props determined by AreaChartInner
+
+  width: number;
+  height: number;
+  xScale: ScaleTypeToD3Scale<number>["utc"];
+  yScale: ScaleTypeToD3Scale<number>["linear"];
 };

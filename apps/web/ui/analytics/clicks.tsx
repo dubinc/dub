@@ -13,7 +13,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useContext } from "react";
 import { AnalyticsContext } from ".";
-import AreaChart from "../charts/area-chart";
+import ClicksChart from "./clicks-chart";
 
 export default function Clicks() {
   const { totalClicks } = useContext(AnalyticsContext);
@@ -101,23 +101,7 @@ export default function Clicks() {
           })}
         </div>
       </div>
-      {/* <BarChart /> */}
-      <div className="h-72 w-full">
-        <AreaChart
-          data={[
-            { date: new Date("2024-02-25"), values: { clicks: 20 } },
-            { date: new Date("2024-02-26"), values: { clicks: 17 } },
-            { date: new Date("2024-02-27"), values: { clicks: 23 } },
-            { date: new Date("2024-02-28"), values: { clicks: 20 } },
-            { date: new Date("2024-02-29"), values: { clicks: 25 } },
-            { date: new Date("2024-03-01"), values: { clicks: 35 } },
-            { date: new Date("2024-03-02"), values: { clicks: 30 } },
-          ]}
-          series={[{ id: "clicks", accessorFn: (d) => d.values.clicks }]}
-          startDate={new Date("2024-02-25")}
-          endDate={new Date("2024-03-02")}
-        />
-      </div>
+      <ClicksChart />
     </div>
   );
 }
