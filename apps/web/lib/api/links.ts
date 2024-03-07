@@ -349,6 +349,18 @@ export async function processLink({
 
   if (!key) {
     key = await getRandomKey(domain, payload["prefix"]);
+
+    // restrict key length to at least 4 characters for free plan
+  } else if (
+    isDubDomain(domain) &&
+    key.length <= 3 &&
+    (!project || project.plan === "free")
+  ) {
+    return {
+      link: payload,
+      error: `You can only use keys shorter than 3 characters on a Pro plan and above. Upgrade to Pro to register a ${key.length}-character key.`,
+      code: "forbidden",
+    };
   }
 
   if (bulk) {
