@@ -41,8 +41,8 @@ export default function TagsSection({
         toast.success(`Successfully created tag!`);
         setCreatingTag(false);
       } else {
-        const error = await res.text();
-        toast.error(error);
+        const { error } = await res.json();
+        toast.error(error.message);
       }
     });
   };

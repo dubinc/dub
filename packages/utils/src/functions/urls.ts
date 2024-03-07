@@ -8,7 +8,7 @@ export const isValidUrl = (url: string) => {
 };
 
 export const getUrlFromString = (str: string) => {
-  if (isValidUrl(str)) return new URL(str).toString();
+  if (isValidUrl(str)) return str;
   try {
     if (str.includes(".") && !str.includes(" ")) {
       return new URL(`https://${str}`).toString();

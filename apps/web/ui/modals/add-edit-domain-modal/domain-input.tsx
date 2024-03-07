@@ -75,7 +75,7 @@ export default function DomainInput({
               aria-invalid="true"
             />
             <span className="inline-flex flex-1 items-center rounded-r-md border border-l-0 border-gray-300 bg-gray-50 px-3 text-gray-500 sm:text-sm">
-              {apexDomain}
+              .{apexDomain}
             </span>
           </div>
         ) : (

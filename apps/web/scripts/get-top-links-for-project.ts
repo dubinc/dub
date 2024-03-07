@@ -38,7 +38,7 @@ async function main() {
     projectId: project.id,
     endpoint: "top_links",
     interval: "30d",
-    excludeRoot: "true",
+    excludeRoot: true,
   }).then(async (data) => {
     const topFive = data.slice(0, 5);
     return await Promise.all(

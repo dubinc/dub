@@ -1,13 +1,12 @@
 import { detectBot, getFinalUrl, parse } from "@/lib/middleware/utils";
 import { recordClick } from "@/lib/tinybird";
-import { formatRedisLink, ratelimit, redis } from "@/lib/upstash";
+import { formatRedisLink, redis } from "@/lib/upstash";
 import {
+  DUB_DEMO_LINKS,
   DUB_HEADERS,
   LEGAL_PROJECT_ID,
   LOCALHOST_GEO_DATA,
-  LOCALHOST_IP,
 } from "@dub/utils";
-import { ipAddress } from "@vercel/edge";
 import {
   NextFetchEvent,
   NextRequest,
@@ -31,22 +30,17 @@ export default async function LinkMiddleware(
   // links on Dub are case insensitive by default
   key = key.toLowerCase();
 
+  const demoLink = DUB_DEMO_LINKS.find(
+    (l) => l.domain === domain && l.key === key,
+  );
+
+  // if it's a demo link, block bad referrers in production
   if (
     process.env.NODE_ENV !== "development" &&
-    domain === "dub.sh" &&
-    key === "try"
+    demoLink &&
+    (await isBlacklistedReferrer(req.headers.get("referer")))
   ) {
-    if (await isBlacklistedReferrer(req.headers.get("referer"))) {
-      return new Response("Don't DDoS me pls 🥺", { status: 429 });
-    }
-    const ip = ipAddress(req) || LOCALHOST_IP;
-    const { success } = await ratelimit(10, "1 d").limit(
-      `${ip}:${domain}:${key}`,
-    );
-
-    if (!success) {
-      return new Response("Don't DDoS me pls 🥺", { status: 429 });
-    }
+    return new Response("Don't DDoS me pls 🥺", { status: 429 });
   }
 
   const inspectMode = key.endsWith("+");

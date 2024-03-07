@@ -11,6 +11,7 @@ import { useImportBitlyModal } from "@/ui/modals/import-bitly-modal";
 import { useImportShortModal } from "@/ui/modals/import-short-modal";
 import { useUpgradePlanModal } from "@/ui/modals/upgrade-plan-modal";
 import { useCookies } from "@dub/ui";
+import { useSearchParams } from "next/navigation";
 import {
   Dispatch,
   ReactNode,
@@ -21,7 +22,6 @@ import {
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { useImportRebrandlyModal } from "./import-rebrandly-modal";
-import { useSearchParams } from "next/navigation";
 
 export const ModalContext = createContext<{
   setShowAddProjectModal: Dispatch<SetStateAction<boolean>>;

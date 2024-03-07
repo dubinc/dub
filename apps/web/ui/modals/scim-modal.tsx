@@ -95,8 +95,8 @@ function SCIMModal({
                 await mutate();
                 toast.success("Successfully configured SCIM");
               } else {
-                const err = await res.text();
-                toast.error(err);
+                const { error } = await res.json();
+                toast.error(error.message);
               }
               setSubmitting(false);
             });

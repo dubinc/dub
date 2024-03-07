@@ -1,7 +1,7 @@
 "use client";
 /* 
   This Stats component lives in 3 different places:
-  1. Project link page, e.g. app.dub.co/dub/dub.sh/github
+  1. Project link page, e.g. app.dub.co/dub/d.to/github
   2. Generic Dub.co link page, e.g. app.dub.co/links/steven
   3. Public stats page, e.g. dub.co/stats/github, stey.me/stats/weathergpt
 
