@@ -31,7 +31,7 @@ export const getDomainViaEdge = async (domain: string) => {
 };
 
 export const checkIfKeyExists = async (domain: string, key: string) => {
-  if (!process.env.DATABASE_URL) return null;
+  if (!process.env.PLANETSCALE_DATABASE_URL) return null;
 
   const { rows } =
     (await conn.execute(
