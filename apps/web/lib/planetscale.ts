@@ -2,13 +2,13 @@ import { connect } from "@planetscale/database";
 import { DomainProps, ProjectProps } from "./types";
 
 export const pscale_config = {
-  url: process.env.PLANET_SCALE_DATABASE_URL,
+  url: process.env.PLANETSCALE_DATABASE_URL,
 };
 
 export const conn = connect(pscale_config);
 
 export const getProjectViaEdge = async (projectId: string) => {
-  if (!process.env.PLANET_SCALE_DATABASE_URL) return null;
+  if (!process.env.PLANETSCALE_DATABASE_URL) return null;
 
   const { rows } =
     (await conn.execute("SELECT * FROM Project WHERE id = ?", [projectId])) ||
@@ -20,7 +20,7 @@ export const getProjectViaEdge = async (projectId: string) => {
 };
 
 export const getDomainViaEdge = async (domain: string) => {
-  if (!process.env.PLANET_SCALE_DATABASE_URL) return null;
+  if (!process.env.PLANETSCALE_DATABASE_URL) return null;
 
   const { rows } =
     (await conn.execute("SELECT * FROM Domain WHERE slug = ?", [domain])) || {};
@@ -43,7 +43,7 @@ export const checkIfKeyExists = async (domain: string, key: string) => {
 };
 
 export const getLinkViaEdge = async (domain: string, key: string) => {
-  if (!process.env.PLANET_SCALE_DATABASE_URL) return null;
+  if (!process.env.PLANETSCALE_DATABASE_URL) return null;
 
   const { rows } =
     (await conn.execute(
