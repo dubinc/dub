@@ -3,20 +3,20 @@ import {
   domainExists,
   setRootDomain,
 } from "@/lib/api/domains";
+import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
 import { isReservedKey } from "@/lib/edge-config";
-import { DubApiError } from "@/lib/api/errors";
 import prisma from "@/lib/prisma";
 import z from "@/lib/zod";
 import {
   DEFAULT_REDIRECTS,
   FREE_PROJECTS_LIMIT,
-  validDomainRegex,
   nanoid,
+  validDomainRegex,
   validSlugRegex,
 } from "@dub/utils";
-import { NextResponse } from "next/server";
 import slugify from "@sindresorhus/slugify";
+import { NextResponse } from "next/server";
 
 const createProjectSchema = z.object({
   name: z.string().min(1).max(32),
@@ -133,6 +133,9 @@ export const POST = withSession(async ({ req, session }) => {
         }),
         billingCycleStart: new Date().getDate(),
         inviteCode: nanoid(24),
+        defaultDomains: {
+          create: {}, // by default, we give users all the default domains when they create a project
+        },
       },
       include: {
         domains: true,

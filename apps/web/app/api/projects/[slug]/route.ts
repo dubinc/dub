@@ -1,16 +1,12 @@
+import { DubApiError } from "@/lib/api/errors";
 import { deleteProject } from "@/lib/api/projects";
 import { withAuth } from "@/lib/auth";
 import { isReservedKey } from "@/lib/edge-config";
-import { DubApiError } from "@/lib/api/errors";
 import prisma from "@/lib/prisma";
 import z from "@/lib/zod";
-import {
-  DEFAULT_REDIRECTS,
-  DUB_DOMAINS_ARRAY,
-  validSlugRegex,
-} from "@dub/utils";
-import { NextResponse } from "next/server";
+import { DEFAULT_REDIRECTS, validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
+import { NextResponse } from "next/server";
 
 const updateProjectSchema = z.object({
   name: z.string().min(1).max(32).optional(),
@@ -24,9 +20,6 @@ const updateProjectSchema = z.object({
       message: "Cannot use reserved slugs",
     })
     .optional(),
-  defaultDomains: z
-    .array(z.enum(DUB_DOMAINS_ARRAY as [string, ...string[]]))
-    .optional(),
 });
 
 // GET /api/projects/[slug] – get a specific project
@@ -38,8 +31,9 @@ export const GET = withAuth(async ({ project, headers }) => {
 export const PUT = withAuth(
   async ({ req, project }) => {
     try {
-      const { name, slug, defaultDomains } =
-        await updateProjectSchema.parseAsync(await req.json());
+      const { name, slug } = await updateProjectSchema.parseAsync(
+        await req.json(),
+      );
 
       const response = await prisma.project.update({
         where: {
@@ -48,12 +42,6 @@ export const PUT = withAuth(
         data: {
           ...(name && { name }),
           ...(slug && { slug }),
-          ...(defaultDomains && {
-            metadata: {
-              ...project.metadata,
-              defaultDomains,
-            },
-          }),
         },
       });
       return NextResponse.json(response);

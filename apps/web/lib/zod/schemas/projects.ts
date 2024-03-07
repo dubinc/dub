@@ -42,9 +42,6 @@ export const ProjectSchema = z
         }),
       )
       .describe("The domains of the project."),
-    metadata: z.object({
-      defaultDomains: z.array(z.string()),
-    }),
   })
   .openapi({
     title: "Project",
