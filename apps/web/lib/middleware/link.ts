@@ -1,7 +1,12 @@
 import { detectBot, getFinalUrl, parse } from "@/lib/middleware/utils";
 import { recordClick } from "@/lib/tinybird";
-import { formatRedisLink, ratelimit, redis } from "@/lib/upstash";
-import { DUB_HEADERS, LEGAL_PROJECT_ID, LOCALHOST_GEO_DATA } from "@dub/utils";
+import { formatRedisLink, redis } from "@/lib/upstash";
+import {
+  DUB_DEMO_LINKS,
+  DUB_HEADERS,
+  LEGAL_PROJECT_ID,
+  LOCALHOST_GEO_DATA,
+} from "@dub/utils";
 import {
   NextFetchEvent,
   NextRequest,
@@ -11,7 +16,6 @@ import {
 import { isBlacklistedReferrer } from "../edge-config";
 import { getLinkViaEdge } from "../planetscale";
 import { RedisLinkProps } from "../types";
-import { getIdentityHash } from "../edge";
 
 export default async function LinkMiddleware(
   req: NextRequest,
@@ -26,22 +30,17 @@ export default async function LinkMiddleware(
   // links on Dub are case insensitive by default
   key = key.toLowerCase();
 
+  const demoLink = DUB_DEMO_LINKS.find(
+    (l) => l.domain === domain && l.key === key,
+  );
+
+  // if it's a demo link, block bad referrers in production
   if (
     process.env.NODE_ENV !== "development" &&
-    domain === "dub.sh" &&
-    key === "try"
+    demoLink &&
+    (await isBlacklistedReferrer(req.headers.get("referer")))
   ) {
-    if (await isBlacklistedReferrer(req.headers.get("referer"))) {
-      return new Response("Don't DDoS me pls 🥺", { status: 429 });
-    }
-    const identity_hash = await getIdentityHash(req);
-    const { success } = await ratelimit(10, "1 d").limit(
-      `demo-click:${identity_hash}`,
-    );
-
-    if (!success) {
-      return new Response("Don't DDoS me pls 🥺", { status: 429 });
-    }
+    return new Response("Don't DDoS me pls 🥺", { status: 429 });
   }
 
   const inspectMode = key.endsWith("+");

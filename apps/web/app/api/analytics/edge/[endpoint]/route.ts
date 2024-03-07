@@ -5,7 +5,6 @@ import {
   handleAndReturnErrorResponse,
 } from "@/lib/api/errors";
 import { getIdentityHash } from "@/lib/edge";
-import { isBlacklistedReferrer } from "@/lib/edge-config";
 import { getDomainOrLink, getProjectViaEdge } from "@/lib/planetscale";
 import { ratelimit } from "@/lib/upstash";
 import {
@@ -37,16 +36,10 @@ export const GET = async (
     if (demoLink) {
       // Rate limit in production
       if (process.env.NODE_ENV !== "development") {
-        if (await isBlacklistedReferrer(req.headers.get("referer"))) {
-          throw new DubApiError({
-            code: "rate_limit_exceeded",
-            message: "Don't DDoS me pls 🥺",
-          });
-        }
         const identity_hash = await getIdentityHash(req);
         const { success } = await ratelimit(
           15,
-          endpoint === "clicks" ? "10 s" : "1 h",
+          endpoint === "clicks" ? "10 s" : "1 m",
         ).limit(`demo-analytics:${demoLink.id}:${identity_hash}:${endpoint}`);
 
         if (!success) {
