@@ -18,6 +18,7 @@ export async function updateLinkOrDomain({
       [clicks, id],
     );
   }
+  console.log(res);
 
   return res;
 }
