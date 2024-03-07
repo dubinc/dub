@@ -1,0 +1,36 @@
+# This is meant for local development only. Do not use this in production.
+version: "3.8"
+services:
+  ps-mysql:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: planetscale
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+    command:
+      [
+        "--max_connections=1000",
+        "--default-authentication-plugin=mysql_native_password",
+      ]
+    ports:
+      - 3306:3306
+    volumes:
+      - ps-mysql:/var/lib/mysql
+  planetscale-proxy:
+    image: ghcr.io/mattrobenolt/ps-http-sim:latest
+    command:
+      [
+        "-mysql-no-pass",
+        "-listen-port=3900",
+        "-mysql-dbname=planetscale",
+        "-mysql-addr=ps-mysql",
+      ]
+    depends_on:
+      - ps-mysql
+    ports:
+      - 3900:3900
+    links:
+      - ps-mysql
+volumes:
+  ps-mysql:
