@@ -1,6 +1,14 @@
 {
   "crons": [
     {
+      "path": "/api/cron/clicks",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/clicks/usage",
+      "schedule": "0 * * * *"
+    },
+    {
       "path": "/api/cron/domains",
       "schedule": "0 */3 * * *"
     },

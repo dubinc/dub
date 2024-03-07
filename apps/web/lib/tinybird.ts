@@ -5,11 +5,10 @@ import {
   nanoid,
 } from "@dub/utils";
 import { NextRequest, userAgent } from "next/server";
+import { getIdentityHash } from "./edge";
 import { detectBot } from "./middleware/utils";
-import { conn } from "./planetscale";
 import { LinkProps } from "./types";
 import { ratelimit } from "./upstash";
-import { getIdentityHash } from "./edge";
 
 /**
  * Recording clicks with geo, ua, referer and timestamp data
@@ -43,65 +42,44 @@ export async function recordClick({
     }
   }
 
-  return await Promise.allSettled([
-    fetch(
-      `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_click_events&wait=true`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
-        },
-        body: JSON.stringify({
-          timestamp: new Date(Date.now()).toISOString(),
-          identity_hash,
-          click_id: nanoid(16),
-          link_id: id,
-          alias_link_id: "",
-          url: url || "",
-          country: geo?.country || "Unknown",
-          city: geo?.city || "Unknown",
-          region: geo?.region || "Unknown",
-          latitude: geo?.latitude || "Unknown",
-          longitude: geo?.longitude || "Unknown",
-          device: ua.device.type ? capitalize(ua.device.type) : "Desktop",
-          device_vendor: ua.device.vendor || "Unknown",
-          device_model: ua.device.model || "Unknown",
-          browser: ua.browser.name || "Unknown",
-          browser_version: ua.browser.version || "Unknown",
-          engine: ua.engine.name || "Unknown",
-          engine_version: ua.engine.version || "Unknown",
-          os: ua.os.name || "Unknown",
-          os_version: ua.os.version || "Unknown",
-          cpu_architecture: ua.cpu?.architecture || "Unknown",
-          ua: ua.ua || "Unknown",
-          bot: ua.isBot,
-          referer: referer
-            ? getDomainWithoutWWW(referer) || "(direct)"
-            : "(direct)",
-          referer_url: referer || "(direct)",
-        }),
+  return await fetch(
+    `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_click_events&wait=true`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
       },
-    ).then((res) => res.json()),
-
-    // increment the click count for the link or domain (based on their ID)
-    // also increment the usage count for the project (if it's a link click)
-    // and then we have a cron that will reset it at the start of new billing cycle
-    root
-      ? conn.execute(
-          "UPDATE Domain SET clicks = clicks + 1, lastClicked = NOW() WHERE id = ?",
-          [id],
-        )
-      : [
-          conn.execute(
-            "UPDATE Link SET clicks = clicks + 1, lastClicked = NOW() WHERE id = ?",
-            [id],
-          ),
-          conn.execute(
-            "UPDATE Project p JOIN Link l ON p.id = l.projectId SET p.usage = p.usage + 1 WHERE l.id = ?",
-            [id],
-          ),
-        ],
-  ]);
+      body: JSON.stringify({
+        timestamp: new Date(Date.now()).toISOString(),
+        identity_hash,
+        click_id: nanoid(16),
+        link_id: id,
+        alias_link_id: "",
+        url: url || "",
+        country: geo?.country || "Unknown",
+        city: geo?.city || "Unknown",
+        region: geo?.region || "Unknown",
+        latitude: geo?.latitude || "Unknown",
+        longitude: geo?.longitude || "Unknown",
+        device: ua.device.type ? capitalize(ua.device.type) : "Desktop",
+        device_vendor: ua.device.vendor || "Unknown",
+        device_model: ua.device.model || "Unknown",
+        browser: ua.browser.name || "Unknown",
+        browser_version: ua.browser.version || "Unknown",
+        engine: ua.engine.name || "Unknown",
+        engine_version: ua.engine.version || "Unknown",
+        os: ua.os.name || "Unknown",
+        os_version: ua.os.version || "Unknown",
+        cpu_architecture: ua.cpu?.architecture || "Unknown",
+        ua: ua.ua || "Unknown",
+        bot: ua.isBot,
+        referer: referer
+          ? getDomainWithoutWWW(referer) || "(direct)"
+          : "(direct)",
+        referer_url: referer || "(direct)",
+      }),
+    },
+  ).then((res) => res.json());
 }
 
 export async function recordLink({
