@@ -216,7 +216,11 @@ Navigate to the [QStash tab](https://console.upstash.com/qstash) and copy the `Q
 
 ### Step 4: Set up Planetscale database
 
-Next, you'll need to set up the Planetscale MySQL database:
+Next, you'll need to set up the MySQL database that is compatible with Planetscale. This will be used to store user data and link metadata. There are two options:
+
+**Option 1: PlanetScale hosted database**
+
+You can use a PlanetScale hosted database. Note they've removed the free tier, so you'll need to pay for this option.
 
 <Steps>
 
@@ -235,6 +239,56 @@ Next, you'll need to set up the Planetscale MySQL database:
     Then, you'll have to create a new password for your database. Once the password is created, scroll down to the **Add credentials to .env** section and copy the `DATABASE_URL` into your `.env` file.
 
     ![Planetscale add credentials](/images/planetscale-add-credentials.png)
+
+  </Step>
+
+  <Step title="Generate Prisma client and create database tables">
+
+    In the terminal, navigate to the `apps/web` directory and run the following command to generate the Prisma client:
+
+    ```bash Terminal
+    npx prisma generate
+    ```
+
+    Then, create the database tables with the following command:
+
+    ```bash Terminal
+    npx prisma db push
+    ```
+
+  </Step>
+
+</Steps>
+
+**Option 2: Local MySQL database with PlanetScale simulator**
+
+You can use a local MySQL database with a PlanetScale simulator. This is the recommended option for local development.
+
+Prerequisites:
+- [Docker](https://www.docker.com/products/docker-desktop)
+- [Docker Compose](https://docs.docker.com/compose/install/)
+
+<Steps>
+
+  <Step title="Spin up the docker-compose stack">
+
+    In the terminal, navigate to the `apps/web` directory and run the following command to start the Docker Compose stack:
+
+    ```bash Terminal
+    docker-compose up
+    ```
+
+    This will start two containers: one for the MySQL database and another for the PlanetScale simulator.
+  </Step>
+
+  <Step title="Set up database environment variables">
+
+    **Add credentials to .env** section.
+
+    ```
+    PLANETSCALE_DATABASE_URL="http://root:unused@localhost:3900"
+    DATABASE_URL="mysql://root:@localhost:3306/planetscale"
+    ```
 
   </Step>
 
