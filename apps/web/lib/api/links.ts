@@ -739,7 +739,7 @@ export async function editLink({
       image = secure_url;
     }
     // if there's no proxy enabled or no image, delete the image in Cloudinary
-  } else {
+  } else if (process.env.CLOUDINARY_URL) {
     await cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
       invalidate: true,
     });
