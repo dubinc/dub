@@ -6,7 +6,7 @@ import { booleanQuerySchema } from ".";
 export const getAnalyticsQuerySchema = z.object({
   projectSlug: z
     .string()
-    .min(1, "Project slug is required.")
+    .optional()
     .describe(
       "The slug for the project that the link belongs to. E.g. for `app.dub.co/acme`, the projectSlug is `acme`.",
     ),
