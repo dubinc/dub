@@ -8,7 +8,6 @@ export const pscale_config = {
 export const conn = connect(pscale_config);
 
 export const getProjectViaEdge = async (projectId: string) => {
-  console.log('process.env.PLANET_SCALE_DATABASE_URL', process.env.PLANET_SCALE_DATABASE_URL)
   if (!process.env.PLANET_SCALE_DATABASE_URL) return null;
 
   const { rows } =
