@@ -24,7 +24,7 @@ export async function GET(req: Request) {
     clicks: number;
   }[];
 
-  await Promise.all(
+  await Promise.allSettled(
     data.map(({ link_id: id, clicks }) =>
       updateLinkOrDomain({
         id,
