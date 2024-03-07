@@ -147,7 +147,11 @@ function AddEditLinkModal({
 
       // if there's no key, generate a random key
       if (!key) {
-        generateRandomKey();
+        // this fixes the race condition in create link when user types destination url
+        const timer = setTimeout(() => {
+            generateRandomKey();
+        }, 1000);
+        return () => clearTimeout(timer);
       }
     }
   }, [showAddEditLinkModal, url]);
