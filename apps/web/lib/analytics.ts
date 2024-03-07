@@ -130,8 +130,8 @@ export const getAnalytics = async ({
       if (response.rows.length === 0) {
         return 0;
       }
-      return response.rows[0]["clicks"];
     }
+    return response.rows[0]["clicks"];
   }
 
   let url = new URL(
