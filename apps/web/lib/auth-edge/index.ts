@@ -62,7 +62,6 @@ export const withAuthEdge =
       "X-RateLimit-Remaining": remaining.toString(),
       "X-RateLimit-Reset": reset.toString(),
     };
-    console.log('success', success, 'limit', limit, 'reset', reset, 'remaining', remaining)
 
     if (!success) {
       return new Response("Too many requests.", {
