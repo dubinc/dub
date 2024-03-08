@@ -25,7 +25,7 @@ export default function ProjectDomainsClient() {
   const { id: projectId } = useProject();
 
   const { AddEditDomainModal, AddDomainButton } = useAddEditDomainModal();
-  const { projectDomains, archivedProjectDomains } = useDomains();
+  const { activeProjectDomains, archivedProjectDomains } = useDomains();
   const [showArchivedDomains, setShowArchivedDomains] = useState(false);
 
   return (
@@ -55,10 +55,10 @@ export default function ProjectDomainsClient() {
         </MaxWidthWrapper>
       </div>
       <MaxWidthWrapper className="py-10">
-        {projectDomains ? (
-          projectDomains.length > 0 ? (
+        {activeProjectDomains ? (
+          activeProjectDomains.length > 0 ? (
             <ul className="grid grid-cols-1 gap-3">
-              {projectDomains.map((domain) => (
+              {activeProjectDomains.map((domain) => (
                 <li key={domain.slug}>
                   <DomainCard props={domain} />
                 </li>
@@ -113,7 +113,7 @@ const DefaultDomains = () => {
           onSubmit={async (e) => {
             e.preventDefault();
             setSubmitting(true);
-            fetch(`/api/projects/${slug}/domains/default`, {
+            fetch(`/api/domains/default?projectSlug=${slug}`, {
               method: "PUT",
               body: JSON.stringify({ defaultDomains }),
             }).then(async (res) => {

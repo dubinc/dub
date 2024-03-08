@@ -4,7 +4,7 @@ import z from "@/lib/zod";
 import { DUB_DOMAINS_ARRAY } from "@dub/utils";
 import { NextResponse } from "next/server";
 
-// GET /api/projects/[slug]/domains/default - get default domains
+// GET /api/domains/default - get default domains
 export const GET = withAuth(async ({ project }) => {
   const defaultDomains = await prisma.defaultDomains.findUnique({
     where: {
@@ -36,7 +36,7 @@ const updateDefaultDomainsSchema = z.object({
   defaultDomains: z.array(z.enum(DUB_DOMAINS_ARRAY as [string, ...string[]])),
 });
 
-// PUT /api/projects/[slug]/domains/default - edit default domains
+// PUT /api/domains/default - edit default domains
 export const PUT = withAuth(async ({ req, project }) => {
   const { defaultDomains } = await updateDefaultDomainsSchema.parseAsync(
     await req.json(),

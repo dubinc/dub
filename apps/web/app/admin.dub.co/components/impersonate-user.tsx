@@ -5,7 +5,6 @@ import { cn } from "@dub/utils";
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
-import { banUser, getUserOrProjectOwner } from "../actions";
 import UserInfo, { UserInfoProps } from "./user-info";
 
 export default function ImpersonateUser() {
@@ -14,22 +13,28 @@ export default function ImpersonateUser() {
   return (
     <div className="flex flex-col space-y-5">
       <form
-        action={(data) =>
-          getUserOrProjectOwner(data).then((res) => {
-            if (res.error) {
-              toast.error(res.error);
-            } else {
-              // @ts-ignore
-              setData(res);
-            }
+        action={async (formData) => {
+          await fetch("/api/admin/impersonate", {
+            method: "POST",
+            body: JSON.stringify({
+              email: formData.get("email"),
+            }),
           })
-        }
+            .then((res) => res.json())
+            .then((res) => {
+              if (res.error) {
+                toast.error(res.error);
+              } else {
+                setData(res);
+              }
+            });
+        }}
       >
         <Form />
       </form>
       {data && (
         <form
-          action={(formData) => {
+          action={async (formData) => {
             if (
               !confirm(
                 `This will ban the user ${data.email} and delete all their workspaces and links. Are you sure?`,
@@ -37,8 +42,18 @@ export default function ImpersonateUser() {
             ) {
               return;
             }
-            banUser(formData).then(() => {
-              toast.success("Successfully banned user");
+            await fetch("/api/admin/ban", {
+              method: "POST",
+              body: JSON.stringify({
+                email: data.email,
+              }),
+            }).then(async (res) => {
+              if (res.ok) {
+                toast.success("User has been banned");
+              } else {
+                const error = await res.text();
+                toast.error(error);
+              }
             });
           }}
         >

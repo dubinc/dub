@@ -91,13 +91,13 @@ function AddEditDomainModal({
     if (props) {
       return {
         method: "PUT",
-        url: `/api/projects/${slug}/domains/${domain}`,
+        url: `/api/domains/${domain}?projectSlug=${slug}`,
         successMessage: "Successfully updated domain!",
       };
     } else {
       return {
         method: "POST",
-        url: `/api/projects/${slug}/domains`,
+        url: `/api/domains?projectSlug=${slug}`,
         successMessage: "Successfully added domain!",
       };
     }
@@ -105,15 +105,11 @@ function AddEditDomainModal({
 
   async function deleteDomain() {
     setDeleting(true);
-    fetch(`/api/projects/${slug}/domains/${domain}`, {
+    fetch(`/api/domains/${domain}?projectSlug=${slug}`, {
       method: "DELETE",
     }).then(async (res) => {
       if (res.status === 200) {
-        await mutate(
-          (key) => typeof key === "string" && key.startsWith(`/api/projects`),
-          undefined,
-          { revalidate: true },
-        );
+        await mutate(`/api/domains?projectSlug=${slug}`);
         setShowAddEditDomainModal(false);
         toast.success("Successfully deleted domain!");
       } else {
@@ -157,7 +153,7 @@ function AddEditDomainModal({
             body: JSON.stringify(data),
           }).then(async (res) => {
             if (res.status === 200) {
-              await mutate(`/api/projects/${slug}/domains`);
+              await mutate(`/api/domains?projectSlug=${slug}`);
               setShowAddEditDomainModal(false);
               toast.success(endpoint.successMessage);
               if (!props) {

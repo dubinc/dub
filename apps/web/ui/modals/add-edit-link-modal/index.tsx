@@ -82,7 +82,7 @@ function AddEditLinkModal({
   const {
     allActiveDomains: domains,
     primaryDomain,
-    defaultDomains,
+    activeDefaultDomains,
   } = useDomains();
 
   const [data, setData] = useState<LinkWithTagsProps>(
@@ -116,10 +116,10 @@ function AddEditLinkModal({
     // when someone pastes a URL
     if (showAddEditLinkModal && url.length > 0) {
       // if it's a new link and there are matching default domains, set it as the domain
-      if (!props && defaultDomains) {
+      if (!props && activeDefaultDomains) {
         const urlDomain = getDomainWithoutWWW(url) || "";
-        const defaultDomain = defaultDomains.find(({ allowedHostnames }) =>
-          allowedHostnames.includes(urlDomain),
+        const defaultDomain = activeDefaultDomains.find(
+          ({ allowedHostnames }) => allowedHostnames.includes(urlDomain),
         );
         if (defaultDomain) {
           setData((prev) => ({ ...prev, domain: defaultDomain.slug }));

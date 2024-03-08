@@ -33,7 +33,7 @@ export default function ProjectCard({
   logo,
   usage,
   plan,
-  domains: projectDomains,
+  domains: activeProjectDomains,
   primaryDomain: projectPrimaryDomain,
   metadata,
 }: ProjectWithDomainProps) {
@@ -52,7 +52,8 @@ export default function ProjectCard({
     ? DUB_DOMAINS.filter((d) => metadata?.defaultDomains?.includes(d.slug))
     : DUB_DOMAINS;
 
-  const domains = projectDomains.length > 0 ? projectDomains : defaultDomains;
+  const domains =
+    activeProjectDomains.length > 0 ? activeProjectDomains : defaultDomains;
 
   const primaryDomain = projectPrimaryDomain || defaultDomains[0];
 
