@@ -1,3 +1,5 @@
+"use client";
+
 import { cn } from "@dub/utils";
 import { motion } from "framer-motion";
 

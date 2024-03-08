@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { cn } from "@dub/utils";
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
