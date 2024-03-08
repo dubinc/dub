@@ -35,8 +35,8 @@ export default function SettingsPageClient() {
               update();
               toast.success("Successfully updated your name!");
             } else {
-              const errorMessage = await res.text();
-              toast.error(errorMessage || "Something went wrong");
+              const { error } = await res.json();
+              toast.error(error.message);
             }
           })
         }
@@ -46,6 +46,7 @@ export default function SettingsPageClient() {
         description={`This will be the email you use to log in to ${APP_NAME} and receive notifications.`}
         inputAttrs={{
           name: "email",
+          type: "email",
           defaultValue: session?.user?.email || undefined,
           placeholder: "panic@thedis.co",
         }}
@@ -63,8 +64,8 @@ export default function SettingsPageClient() {
               update();
               toast.success("Successfully updated your email!");
             } else {
-              const errorMessage = await res.text();
-              toast.error(errorMessage || "Something went wrong");
+              const { error } = await res.json();
+              toast.error(error.message);
             }
           })
         }

@@ -14,5 +14,6 @@ export * from "./log";
 export * from "./nanoid";
 export * from "./nformatter";
 export * from "./time-ago";
+export * from "./trim";
 export * from "./truncate";
 export * from "./urls";
