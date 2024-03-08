@@ -2,7 +2,10 @@ import { fetcher } from "@dub/utils";
 import { useCallback, useContext, useMemo } from "react";
 import useSWR from "swr";
 import { AnalyticsContext } from ".";
-import AreaChart from "../charts/area-chart";
+import Areas from "../charts/areas";
+import GridLines from "../charts/grid-lines";
+import TimeSeriesChart from "../charts/time-series-chart";
+import XAxis from "../charts/x-axis";
 
 export default function ClicksChart() {
   const { baseApiPath, queryString, interval } = useContext(AnalyticsContext);
@@ -41,11 +44,10 @@ export default function ClicksChart() {
   return (
     <div className="h-72 w-full">
       {chartData !== null && (
-        <AreaChart
+        <TimeSeriesChart
           key={queryString}
           data={chartData}
           series={[{ id: "clicks", accessorFn: (d) => d.values.clicks }]}
-          tickFormat={dateFormatter}
           tooltipContent={(d) => (
             <>
               <p className="text-gray-600">
@@ -55,7 +57,11 @@ export default function ClicksChart() {
               <p className="text-sm text-gray-400">{dateFormatter(d.date)}</p>
             </>
           )}
-        />
+        >
+          <GridLines />
+          <Areas />
+          <XAxis tickFormat={dateFormatter} />
+        </TimeSeriesChart>
       )}
     </div>
   );

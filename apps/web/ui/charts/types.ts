@@ -1,5 +1,8 @@
 import { ScaleTypeToD3Scale } from "@visx/scale";
-import { ReactElement } from "react";
+import { TooltipWithBounds } from "@visx/tooltip";
+import { UseTooltipParams } from "@visx/tooltip/lib/hooks/useTooltip";
+import { TooltipInPortalProps } from "@visx/tooltip/lib/hooks/useTooltipInPortal";
+import { FC, ReactElement } from "react";
 
 export type Datum = Record<string, any>;
 
@@ -21,13 +24,13 @@ export type Series<T extends Datum = any, TValue = number> = {
 
 export type Data<T extends Datum> = TimeSeriesDatum<T>[];
 
-export type ChartContext<T extends Datum = any> = {
+type ChartRequiredProps<T extends Datum = any> = {
   data: Data<T>;
   series: Series<T>[];
+};
 
-  tickFormat?: (date: Date) => string;
-
-  tooltipContent?: (datum: TimeSeriesDatum<T>) => ReactElement;
+type ChartOptionalProps<T extends Datum = any> = {
+  tooltipContent?: (datum: TimeSeriesDatum<T>) => ReactElement | string;
 
   /**
    * Absolute pixel values for margins around the chart area.
@@ -49,11 +52,25 @@ export type ChartContext<T extends Datum = any> = {
   };
 
   maxTicks?: number;
+};
 
-  // Props determined by AreaChartInner
+export type ChartProps<T extends Datum = any> = ChartRequiredProps<T> &
+  ChartOptionalProps<T>;
 
+export type ChartContext<T extends Datum = any> = Required<ChartProps<T>> & {
   width: number;
   height: number;
+  startDate: Date;
+  endDate: Date;
   xScale: ScaleTypeToD3Scale<number>["utc"];
   yScale: ScaleTypeToD3Scale<number>["linear"];
+  xTickInterval: number;
 };
+
+export type ChartTooltipContext<T extends Datum = any> = {
+  handleTooltip: (
+    event: React.TouchEvent<SVGRectElement> | React.MouseEvent<SVGRectElement>,
+  ) => void;
+  TooltipWrapper: FC<TooltipInPortalProps> | typeof TooltipWithBounds;
+  containerRef: (element: SVGElement | HTMLElement | null) => void;
+} & UseTooltipParams<TimeSeriesDatum<T>>;
