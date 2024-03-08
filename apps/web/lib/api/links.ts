@@ -236,7 +236,8 @@ export async function keyChecks({
       (!project || project.plan === "free")
     ) {
       return {
-        error: `This is a premium username. You can only use this username on a Pro plan and above. Upgrade to Pro to register this username.`,
+        error:
+          "This is a premium key. You can only use this key on a Pro plan and above. Upgrade to Pro to register this key.",
         code: "forbidden",
       };
     }
