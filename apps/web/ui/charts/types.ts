@@ -48,7 +48,7 @@ export type ChartContext<T extends Datum = any> = {
     bottom: number;
   };
 
-  xIntervalEveryCount?: number;
+  maxTicks?: number;
 
   // Props determined by AreaChartInner
 

@@ -1,11 +1,13 @@
+import { cn } from "@dub/utils";
 import { AxisBottom } from "@visx/axis";
 import { LinearGradient } from "@visx/gradient";
 import { Group } from "@visx/group";
 import { ParentSize } from "@visx/responsive";
 import { scaleLinear, scaleUtc } from "@visx/scale";
 import { Area, AreaClosed, Bar, Circle, Line } from "@visx/shape";
+import { motion } from "framer-motion";
 import { Fragment, createContext, useContext, useMemo } from "react";
-import { ChartContext, Datum } from "./types";
+import { ChartContext, Data, Datum, TimeSeriesDatum } from "./types";
 import { useTooltip } from "./useTooltip";
 
 const ChartContext = createContext<ChartContext | null>(null);
@@ -16,6 +18,9 @@ function useChartContext<T extends Datum>(): ChartContext<T> {
   return chartContext;
 }
 
+const factors = (number) =>
+  [...Array(number + 1).keys()].filter((i) => number % i === 0);
+
 type AreaChartProps<T extends Datum> = Omit<
   ChartContext<T>,
   "width" | "height" | "xScale" | "yScale"
@@ -25,7 +30,12 @@ export default function AreaChart<T extends Datum>(props: AreaChartProps<T>) {
   return (
     <ParentSize className="relative">
       {({ width, height }) => {
-        return <AreaChartInner {...props} width={width} height={height} />;
+        return (
+          width > 0 &&
+          height > 0 && (
+            <AreaChartInner {...props} width={width} height={height} />
+          )
+        );
       }}
     </ParentSize>
   );
@@ -47,15 +57,15 @@ function AreaChartInner<T extends Datum>({
     tooltipContent,
     margin = {
       top: 2,
-      right: 3,
+      right: 4,
       bottom: 32,
-      left: 3,
+      left: 4,
     },
     padding = {
       top: 0.1,
       bottom: 0.1,
     },
-    xIntervalEveryCount = 1,
+    maxTicks: maxTicksProp,
   } = outerProps;
 
   const width = outerWidth - margin.left - margin.right;
@@ -104,6 +114,18 @@ function AreaChartInner<T extends Datum>({
     };
   }, [startDate, endDate, minY, maxY, height, width, margin]);
 
+  const zeroedData = useMemo(() => {
+    return data.map((d) => ({
+      ...d,
+      values: Object.fromEntries(Object.keys(d.values).map((key) => [key, 0])),
+    })) as Data<T>;
+  }, [data]);
+
+  const maxTicks = maxTicksProp ?? width < 450 ? 6 : width < 900 ? 8 : 12;
+
+  const xTickInterval =
+    factors(data.length).find((f) => data.length / f < maxTicks) ?? 1;
+
   const chartContext = { ...outerProps, width, height, xScale, yScale };
   const {
     tooltipData,
@@ -136,25 +158,40 @@ function AreaChartInner<T extends Datum>({
                   x={0}
                   y1={1}
                 />
+
                 {/* Area */}
-                <AreaClosed
-                  data={data}
+                <AreaClosed<TimeSeriesDatum<T>>
                   x={(d) => xScale(d.date)}
                   y={(d) => yScale(s.accessorFn(d) ?? 0)}
                   yScale={yScale}
-                  fill={`url(#${s.id}-background)`}
-                />
+                >
+                  {({ path }) => {
+                    return (
+                      <motion.path
+                        initial={{ d: path(zeroedData) || "" }}
+                        animate={{ d: path(data) || "" }}
+                        fill={`url(#${s.id}-background)`}
+                      />
+                    );
+                  }}
+                </AreaClosed>
 
                 {/* Line */}
-                <Area
-                  data={data}
+                <Area<TimeSeriesDatum<T>>
                   x={(d) => xScale(d.date)}
                   y={(d) => yScale(s.accessorFn(d) ?? 0)}
-                  className="text-blue-700"
-                  stroke="currentColor"
-                  strokeOpacity={0.8}
-                  strokeWidth={2}
-                />
+                >
+                  {({ path }) => (
+                    <motion.path
+                      initial={{ d: path(zeroedData) || "" }}
+                      animate={{ d: path(data) || "" }}
+                      className="text-blue-700"
+                      stroke="currentColor"
+                      strokeOpacity={0.8}
+                      strokeWidth={2}
+                    />
+                  )}
+                </Area>
 
                 {/* Latest value dot */}
                 {!tooltipData && (
@@ -172,7 +209,7 @@ function AreaChartInner<T extends Datum>({
             {/* Vertical grid lines */}
             {data.length > 0 &&
               data
-                .filter((_, idx) => idx % xIntervalEveryCount === 0)
+                .filter((_, idx) => idx % xTickInterval === 0)
                 .map((d, idx, { length }) => (
                   <Line
                     key={d.date.toString()}
@@ -184,7 +221,7 @@ function AreaChartInner<T extends Datum>({
                       d.date === tooltipData?.date ? "transparent" : "#00000026"
                     }
                     strokeWidth={1}
-                    strokeDasharray={idx !== length - 1 ? 5 : 0}
+                    strokeDasharray={d.date !== endDate ? 5 : 0}
                   />
                 ))}
 
@@ -235,7 +272,10 @@ function AreaChartInner<T extends Datum>({
             stroke="#00000026"
             tickFormat={(date) => tickFormat(date as Date)}
             tickLabelProps={(date, idx, { length }) => ({
-              className: "transition-colors",
+              className: cn(
+                "transition-colors",
+                idx % xTickInterval !== 0 && "hidden",
+              ),
               textAnchor:
                 idx === 0 ? "start" : idx === length - 1 ? "end" : "middle",
               fontSize: 12,
@@ -248,6 +288,8 @@ function AreaChartInner<T extends Datum>({
           />
         </Group>
       </svg>
+
+      {/* Tooltips */}
       <div className="pointer-events-none absolute inset-0">
         {tooltipData && (
           <TooltipWrapper
