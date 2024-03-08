@@ -1,7 +1,8 @@
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import z, { projectOrWorkspaceSchema } from "@/lib/zod";
+import z from "@/lib/zod";
+import { projectOrWorkspaceSchema } from "@/lib/zod/schemas/projects";
 import { TagSchema } from "@/lib/zod/schemas/tags";
 
 export const getTags: ZodOpenApiOperationObject = {
