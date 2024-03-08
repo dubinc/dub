@@ -115,6 +115,7 @@ export const withAuth = (
     let headers = {};
 
     const slug = params?.slug || searchParams.projectSlug;
+    const workspaceId = searchParams?.workspaceId;
 
     try {
       // if there's no projectSlug defined
@@ -128,13 +129,15 @@ export const withAuth = (
             searchParams,
             headers,
           });
-        } else {
-          throw new DubApiError({
-            code: "not_found",
-            message:
-              "Project slug not found. Did you forget to include a `projectSlug` query parameter?",
-          });
         }
+      }
+
+      if (!slug && !workspaceId) {
+        throw new DubApiError({
+          code: "not_found",
+          message:
+            "Workspace id not found. Did you forget to include a `workspaceId` query parameter?",
+        });
       }
 
       if (apiKey) {
@@ -209,7 +212,8 @@ export const withAuth = (
       let [project, link] = (await Promise.all([
         prisma.project.findUnique({
           where: {
-            slug,
+            slug: slug || undefined,
+            id: workspaceId || undefined,
           },
           select: {
             id: true,
