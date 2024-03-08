@@ -19,15 +19,14 @@ export default function ImpersonateUser() {
             body: JSON.stringify({
               email: formData.get("email"),
             }),
-          })
-            .then((res) => res.json())
-            .then((res) => {
-              if (res.error) {
-                toast.error(res.error);
-              } else {
-                setData(res);
-              }
-            });
+          }).then(async (res) => {
+            if (res.ok) {
+              setData(await res.json());
+            } else {
+              const error = await res.text();
+              toast.error(error);
+            }
+          });
         }}
       >
         <Form />

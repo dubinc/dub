@@ -19,15 +19,14 @@ export default function ImpersonateProject() {
             body: JSON.stringify({
               slug: formData.get("slug"),
             }),
-          })
-            .then((res) => res.json())
-            .then((res) => {
-              if (res.error) {
-                toast.error(res.error);
-              } else {
-                setData(res);
-              }
-            });
+          }).then(async (res) => {
+            if (res.ok) {
+              setData(await res.json());
+            } else {
+              const error = await res.text();
+              toast.error(error);
+            }
+          });
         }}
       >
         <Form />
