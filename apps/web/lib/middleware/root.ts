@@ -43,7 +43,7 @@ export default async function RootMiddleware(
 
   if (!url) {
     // rewrite to placeholder page unless the user defines a site to redirect to
-    return NextResponse.rewrite(new URL(`/${domain}`, req.url));
+    return NextResponse.rewrite(new URL(`/${domain}`, req.url), DUB_HEADERS);
   }
 
   if (rewrite) {
@@ -57,6 +57,8 @@ export default async function RootMiddleware(
       return NextResponse.rewrite(url, DUB_HEADERS);
     }
   } else {
-    return NextResponse.redirect(url, DUB_HEADERS);
+    // Dub redirects are 302 by default, but for root links that have a destination URL,
+    // we want to use 301 (for SEO purposes)
+    return NextResponse.redirect(url, { ...DUB_HEADERS, status: 301 });
   }
 }
