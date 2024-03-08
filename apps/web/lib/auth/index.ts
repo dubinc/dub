@@ -443,7 +443,8 @@ interface WithSessionHandler {
   }): Promise<Response>;
 }
 
-export const withSession = (handler: WithSessionHandler) => {
+export const withSession =
+  (handler: WithSessionHandler) =>
   async (req: Request, { params }: { params: Record<string, string> }) => {
     try {
       let session: Session | undefined;
@@ -535,7 +536,6 @@ export const withSession = (handler: WithSessionHandler) => {
       return handleAndReturnErrorResponse(error);
     }
   };
-};
 
 // Internal use only (for admin portal)
 interface WithAdminHandler {
