@@ -1,6 +1,6 @@
+import { getAnalytics } from "@/lib/analytics";
 import { limiter, qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
-import { getStats } from "@/lib/stats";
 import { ProjectProps } from "@/lib/types";
 import {
   APP_DOMAIN_WITH_NGROK,
@@ -120,11 +120,11 @@ export const updateUsage = async (skip?: number) => {
       ) {
         const topLinks =
           project.usage > 0
-            ? await getStats({
+            ? await getAnalytics({
                 projectId: project.id,
                 endpoint: "top_links",
                 interval: "30d",
-                excludeRoot: "true",
+                excludeRoot: true,
               }).then(async (data) => {
                 const topFive = data.slice(0, 5);
                 return await Promise.all(
@@ -195,10 +195,10 @@ export const updateUsage = async (skip?: number) => {
         plan === "free"
           ? usage < usageLimit * 2
           : plan === "pro"
-          ? usage < usageLimit * 1.5
-          : plan === "business"
-          ? usage < usageLimit * 1.2
-          : true;
+            ? usage < usageLimit * 1.5
+            : plan.startsWith("business")
+              ? usage < usageLimit * 1.2
+              : true;
 
       return await prisma.project.update({
         where: {

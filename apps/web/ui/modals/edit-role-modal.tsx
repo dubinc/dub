@@ -79,8 +79,8 @@ function EditRoleModal({
                   `Successfully changed ${name || email}'s role to ${role}.`,
                 );
               } else {
-                const error = await res.text();
-                toast.error(error);
+                const { error } = await res.json();
+                toast.error(error.message);
               }
               setEditing(false);
             });

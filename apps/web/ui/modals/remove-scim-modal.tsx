@@ -89,8 +89,8 @@ function RemoveSCIMModal({
                 setShowRemoveSCIMModal(false);
                 toast.success("SCIM directory removed successfully");
               } else {
-                const error = await res.text();
-                toast.error(error);
+                const { error } = await res.json();
+                toast.error(error.message);
               }
               setRemoving(false);
             });

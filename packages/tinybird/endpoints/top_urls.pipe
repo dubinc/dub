@@ -1,0 +1,35 @@
+DESCRIPTION >
+	Top URLs for a given link
+
+
+TOKEN "top_urls_endpoint_read_2067" READ
+
+NODE endpoint
+SQL >
+
+    %
+    SELECT url, COUNT(*) AS clicks
+    FROM dub_click_events_mv
+    WHERE
+        link_id
+        = {{
+            String(
+                linkId,
+                'clsdzhhlq0003vskwcaz6nm39',
+                description="The ID of the link",
+                required=True,
+            )
+        }}
+        {% if defined(country) %} AND country = {{ country }} {% end %}
+        {% if defined(city) %} AND city = {{ city }} {% end %}
+        {% if defined(url) %} AND url = {{ url }} {% end %}
+        {% if defined(device) %} AND device = {{ device }} {% end %}
+        {% if defined(browser) %} AND browser = {{ browser }} {% end %}
+        {% if defined(os) %} AND os = {{ os }} {% end %}
+        {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+        {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
+        {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
+    GROUP BY url
+    ORDER BY clicks DESC
+
+

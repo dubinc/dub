@@ -139,7 +139,7 @@ export const importLinksFromRebrandly = async ({
       prisma.tag.deleteMany({
         where: {
           projectId,
-          links: {
+          linksNew: {
             none: {},
           },
         },
@@ -170,9 +170,19 @@ export const importLinksFromRebrandly = async ({
     const importedLinks = links
       .map(
         ({ title, slashtag: key, destination, tags, createdAt, updatedAt }) => {
-          // if tagsToId is provided and tags array is not empty, get the tagId
-          const tagId =
-            tagsToId && tags.length > 0 ? tagsToId[tags[0].name] : null;
+          // if tagsToId is provided and tags array is not empty, get the tagIds
+          const tagIds =
+            tagsToId && tags.length > 0
+              ? tags.map(
+                  (tag: {
+                    id: string;
+                    name: string;
+                    color: string;
+                    active: boolean;
+                    clicks: number;
+                  }) => tagsToId[tag.name],
+                )
+              : [];
 
           return {
             projectId,
@@ -183,7 +193,7 @@ export const importLinksFromRebrandly = async ({
             title,
             createdAt,
             updatedAt,
-            ...(tagId ? { tagId } : {}),
+            tagIds,
           };
         },
       )

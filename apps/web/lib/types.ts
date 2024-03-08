@@ -1,6 +1,18 @@
+import z from "@/lib/zod";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
+import { Link } from "@prisma/client";
+import { createLinkBodySchema } from "./zod/schemas/links";
 
-export { type Link as LinkProps } from "@prisma/client";
+export type LinkProps = Link;
+
+export interface LinkWithTagsProps extends LinkProps {
+  tags: TagProps[];
+}
+
+export interface LinkWithTagIdsProps extends LinkProps {
+  tagIds: string[];
+}
+
 export interface SimpleLinkProps {
   domain: string;
   key: string;
@@ -49,22 +61,17 @@ export interface TagProps {
   color: TagColorProps;
 }
 
-export type TagColorProps =
-  | "red"
-  | "yellow"
-  | "green"
-  | "blue"
-  | "purple"
-  | "pink"
-  | "brown";
+export type TagColorProps = (typeof tagColors)[number];
 
-export type PlanProps = "free" | "pro" | "business" | "enterprise";
+export type PlanProps = (typeof plans)[number];
+
+export type RoleProps = (typeof roles)[number];
 
 export interface ProjectProps {
   id: string;
   name: string;
   slug: string;
-  logo?: string;
+  logo: string | null;
   usage: number;
   usageLimit: number;
   linksUsage: number;
@@ -73,7 +80,7 @@ export interface ProjectProps {
   tagsLimit: number;
   usersLimit: number;
   plan: PlanProps;
-  stripeId?: string;
+  stripeId: string | null;
   billingCycleStart: number;
   createdAt: Date;
   domains: {
@@ -81,11 +88,12 @@ export interface ProjectProps {
     primary: boolean;
   }[];
   users: {
-    role: "owner" | "member";
+    role: RoleProps;
   }[];
   metadata?: {
     defaultDomains?: string[];
   };
+  inviteCode: string;
 }
 
 export interface ProjectWithDomainProps extends ProjectProps {
@@ -99,7 +107,7 @@ export interface UserProps {
   email: string;
   image?: string;
   createdAt: Date;
-  role: "owner" | "member";
+  role: RoleProps;
   projects?: { projectId: string }[];
 }
 
@@ -117,6 +125,7 @@ export interface DomainProps {
   verified: boolean;
   primary: boolean;
   archived: boolean;
+  publicStats: boolean;
   target?: string;
   type: string;
   placeholder?: string;
@@ -154,3 +163,27 @@ export interface SAMLProviderProps {
     token: string;
   };
 }
+
+export type NewLinkProps = z.infer<typeof createLinkBodySchema>;
+
+export const plans = [
+  "free",
+  "pro",
+  "business",
+  "business plus",
+  "business extra",
+  "business max",
+  "enterprise",
+] as const;
+
+export const roles = ["owner", "member"] as const;
+
+export const tagColors = [
+  "red",
+  "yellow",
+  "green",
+  "blue",
+  "purple",
+  "pink",
+  "brown",
+] as const;

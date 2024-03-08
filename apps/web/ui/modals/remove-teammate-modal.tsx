@@ -53,23 +53,23 @@ function RemoveTeammateModal({
           {invite
             ? "Revoke Invitation"
             : session?.user?.email === email
-            ? "Leave Project"
-            : "Remove Teammate"}
+              ? "Leave Project"
+              : "Remove Teammate"}
         </h3>
         <p className="text-center text-sm text-gray-500">
           {invite
             ? "This will revoke "
             : session?.user?.email === email
-            ? "You're about to leave "
-            : "This will remove "}
+              ? "You're about to leave "
+              : "This will remove "}
           <span className="font-semibold text-black">
             {session?.user?.email === email ? projectName : name || email}
           </span>
           {invite
             ? "'s invitation to join your project. "
             : session?.user?.email === email
-            ? ". You will lose all access to this project. "
-            : " from your project. "}
+              ? ". You will lose all access to this project. "
+              : " from your project. "}
           Are you sure you want to continue?
         </p>
       </div>
@@ -91,7 +91,7 @@ function RemoveTeammateModal({
             setRemoving(true);
             fetch(
               `/api/projects/${slug}/${
-                invite ? `invites?email=${email}` : `users?userId=${id}`
+                invite ? `invites?email=${encodeURIComponent(email)}` : `users?userId=${id}`
               }`,
               {
                 method: "DELETE",
@@ -112,12 +112,12 @@ function RemoveTeammateModal({
                   session?.user?.email === email
                     ? "You have left the project!"
                     : invite
-                    ? "Successfully revoked invitation!"
-                    : "Successfully removed teammate!",
+                      ? "Successfully revoked invitation!"
+                      : "Successfully removed teammate!",
                 );
               } else {
-                const error = await res.text();
-                toast.error(error);
+                const { error } = await res.json();
+                toast.error(error.message);
               }
               setRemoving(false);
             });

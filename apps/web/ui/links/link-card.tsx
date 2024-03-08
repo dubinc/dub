@@ -1,7 +1,6 @@
 import useDomains from "@/lib/swr/use-domains";
 import useProject from "@/lib/swr/use-project";
-import useTags from "@/lib/swr/use-tags";
-import { UserProps } from "@/lib/types";
+import { LinkWithTagsProps, TagProps, UserProps } from "@/lib/types";
 import TagBadge from "@/ui/links/tag-badge";
 import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
 import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
@@ -10,7 +9,8 @@ import { useLinkQRModal } from "@/ui/modals/link-qr-modal";
 import { Chart, Delete, ThreeDots } from "@/ui/shared/icons";
 import {
   Avatar,
-  BlurImage,
+  BadgeTooltip,
+  Button,
   CopyButton,
   IconMenu,
   NumberTooltip,
@@ -23,37 +23,42 @@ import {
 } from "@dub/ui";
 import { LinkifyTooltipContent } from "@dub/ui/src/tooltip";
 import {
-  GOOGLE_FAVICON_URL,
   HOME_DOMAIN,
   cn,
   fetcher,
   getApexDomain,
+  isDubDomain,
   linkConstructor,
   nFormatter,
   timeAgo,
 } from "@dub/utils";
-import { type Link as LinkProps } from "@prisma/client";
 import {
   Archive,
+  Copy,
+  CopyCheck,
   CopyPlus,
   Edit3,
   EyeOff,
+  FolderInput,
+  Lock,
   Mail,
   MessageCircle,
   QrCode,
   TimerOff,
 } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import punycode from "punycode/";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
+import { useTransferLinkModal } from "../modals/transfer-link-modal";
+import LinkLogo from "./link-logo";
 
 export default function LinkCard({
   props,
 }: {
-  props: LinkProps & {
+  props: LinkWithTagsProps & {
     user: UserProps;
   };
 }) {
@@ -63,22 +68,46 @@ export default function LinkCard({
     domain,
     url,
     rewrite,
+    password,
     expiresAt,
     createdAt,
     lastClicked,
     archived,
-    tagId,
+    tags,
     comments,
     user,
   } = props;
-  const { tags } = useTags();
-  const tag = useMemo(() => tags?.find((t) => t.id === tagId), [tags, tagId]);
+
+  const searchParams = useSearchParams();
+
+  const [primaryTags, additionalTags] = useMemo(() => {
+    const primaryTagsCount = 1;
+
+    const filteredTagIds =
+      searchParams?.get("tagId")?.split(",")?.filter(Boolean) ?? [];
+
+    /*
+      Sort tags so that the filtered tags are first. The most recently selected
+      filtered tag (last in array) should be displayed first.
+    */
+    const sortedTags =
+      filteredTagIds.length > 0
+        ? [...tags].sort(
+            (a, b) =>
+              filteredTagIds.indexOf(b.id) - filteredTagIds.indexOf(a.id),
+          )
+        : tags;
+
+    return [
+      sortedTags.filter((_, idx) => idx < primaryTagsCount),
+      sortedTags.filter((_, idx) => idx >= primaryTagsCount),
+    ];
+  }, [tags, searchParams]);
 
   const apexDomain = getApexDomain(url);
 
   const params = useParams() as { slug?: string };
   const { slug } = params;
-  const { queryParams } = useRouterStuff();
 
   const { exceededClicks } = useProject();
   const { verified, loading } = useDomains({ domain });
@@ -92,7 +121,7 @@ export default function LinkCard({
     isVisible &&
       slug &&
       !exceededClicks &&
-      `/api/projects/${slug}/stats/clicks?domain=${domain}&key=${key}`,
+      `/api/analytics/clicks?projectSlug=${slug}&domain=${domain}&key=${key}`,
     fetcher,
     {
       fallbackData: props.clicks,
@@ -132,6 +161,9 @@ export default function LinkCard({
   const { setShowArchiveLinkModal, ArchiveLinkModal } = useArchiveLinkModal({
     props,
     archived: !archived,
+  });
+  const { setShowTransferLinkModal, TransferLinkModal } = useTransferLinkModal({
+    props,
   });
   const { setShowDeleteLinkModal, DeleteLinkModal } = useDeleteLinkModal({
     props,
@@ -173,6 +205,15 @@ export default function LinkCard({
     };
   }, [handlClickOnLinkCard]);
 
+  const [copiedLinkId, setCopiedLinkId] = useState(false);
+
+  const copyLinkId = () => {
+    navigator.clipboard.writeText(id);
+    setCopiedLinkId(true);
+    toast.success("Link ID copied!");
+    setTimeout(() => setCopiedLinkId(false), 3000);
+  };
+
   const onKeyDown = (e: any) => {
     // only run shortcut logic if:
     // - usage is not exceeded
@@ -181,7 +222,7 @@ export default function LinkCard({
     // - there is no existing modal backdrop
     if (
       (selected || openPopover) &&
-      ["e", "d", "q", "a", "x"].includes(e.key)
+      ["e", "d", "q", "a", "t", "i", "x"].includes(e.key)
     ) {
       setSelected(false);
       e.preventDefault();
@@ -197,6 +238,14 @@ export default function LinkCard({
           break;
         case "a":
           setShowArchiveLinkModal(true);
+          break;
+        case "t":
+          if (isDubDomain(domain)) {
+            setShowTransferLinkModal(true);
+          }
+          break;
+        case "i":
+          copyLinkId();
           break;
         case "x":
           setShowDeleteLinkModal(true);
@@ -225,6 +274,7 @@ export default function LinkCard({
           <AddEditLinkModal />
           <DuplicateLinkModal />
           <ArchiveLinkModal />
+          <TransferLinkModal />
           <DeleteLinkModal />
         </>
       )}
@@ -247,20 +297,14 @@ export default function LinkCard({
               </div>
             </Tooltip>
           ) : (
-            <BlurImage
-              src={`${GOOGLE_FAVICON_URL}${apexDomain}`}
-              alt={apexDomain || encodeURIComponent(url)}
-              className="h-8 w-8 rounded-full sm:h-10 sm:w-10"
-              width={20}
-              height={20}
-            />
+            <LinkLogo apexDomain={apexDomain} />
           )}
           {/* 
             Here, we're manually setting ml-* values because if we do space-x-* in the parent div, 
             it messes up the tooltip positioning.
           */}
           <div className="ml-2 sm:ml-4">
-            <div className="flex max-w-fit items-center space-x-2">
+            <div className="flex max-w-fit flex-wrap items-center gap-x-2">
               {!verified && !loading ? (
                 <Tooltip
                   content={
@@ -271,7 +315,7 @@ export default function LinkCard({
                     />
                   }
                 >
-                  <div className="w-24 -translate-x-2 cursor-not-allowed truncate text-sm font-semibold text-gray-400 line-through sm:w-full sm:text-base">
+                  <div className="max-w-[140px] -translate-x-2 cursor-not-allowed truncate text-sm font-semibold text-gray-400 line-through sm:max-w-[300px] sm:text-base md:max-w-[360px] xl:max-w-[500px]">
                     {linkConstructor({
                       key,
                       domain: punycode.toUnicode(domain || ""),
@@ -282,7 +326,7 @@ export default function LinkCard({
               ) : (
                 <a
                   className={cn(
-                    "w-full max-w-[140px] truncate text-sm font-semibold text-blue-800 sm:max-w-[300px] sm:text-base md:max-w-[360px] xl:max-w-[500px]",
+                    "max-w-[140px] truncate text-sm font-semibold text-blue-800 sm:max-w-[300px] sm:text-base md:max-w-[360px] xl:max-w-[500px]",
                     {
                       "text-gray-500": archived || expired,
                     },
@@ -315,19 +359,22 @@ export default function LinkCard({
                   </button>
                 </Tooltip>
               )}
-              {tag?.color && (
-                <button
-                  onClick={() => {
-                    queryParams({
-                      set: {
-                        tagId: tag.id,
-                      },
-                    });
-                  }}
-                  className="transition-all duration-75 hover:scale-105 active:scale-100"
+              {primaryTags.map((tag) => (
+                <TagButton key={tag.id} {...tag} />
+              ))}
+              {additionalTags.length > 0 && (
+                <BadgeTooltip
+                  content={
+                    <div className="flex flex-wrap gap-1.5 p-3">
+                      {additionalTags.map((tag) => (
+                        <TagButton key={tag.id} {...tag} />
+                      ))}
+                    </div>
+                  }
+                  side="top"
                 >
-                  <TagBadge {...tag} withIcon />
-                </button>
+                  +{additionalTags.length}
+                </BadgeTooltip>
               )}
             </div>
             <div className="flex max-w-fit items-center space-x-1">
@@ -385,6 +432,19 @@ export default function LinkCard({
                   <EyeOff className="xs:block hidden h-4 w-4 text-gray-500" />
                 </Tooltip>
               )}
+              {password && (
+                <Tooltip
+                  content={
+                    <SimpleTooltipContent
+                      title="This link is password-protected."
+                      cta="Learn more."
+                      href={`${HOME_DOMAIN}/help/article/password-protected-links`}
+                    />
+                  }
+                >
+                  <Lock className="xs:block hidden h-4 w-4 text-gray-500" />
+                </Tooltip>
+              )}
               <a
                 href={url}
                 target="_blank"
@@ -413,78 +473,88 @@ export default function LinkCard({
           <Popover
             content={
               <div className="grid w-full gap-px p-2 sm:w-48">
-                <button
+                <Button
+                  text="Edit"
+                  variant="outline"
                   onClick={() => {
                     setOpenPopover(false);
                     setShowAddEditLinkModal(true);
                   }}
-                  className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
-                >
-                  <IconMenu text="Edit" icon={<Edit3 className="h-4 w-4" />} />
-                  <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 transition-all duration-75 group-hover:bg-gray-200 sm:inline-block">
-                    E
-                  </kbd>
-                </button>
-                <button
+                  icon={<Edit3 className="h-4 w-4" />}
+                  shortcut="E"
+                  className="h-9 px-2 font-medium"
+                />
+                <Button
+                  text="Duplicate"
+                  variant="outline"
                   onClick={() => {
                     setOpenPopover(false);
                     setShowDuplicateLinkModal(true);
                   }}
-                  className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
-                >
-                  <IconMenu
-                    text="Duplicate"
-                    icon={<CopyPlus className="h-4 w-4" />}
-                  />
-                  <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 transition-all duration-75 group-hover:bg-gray-200 sm:inline-block">
-                    D
-                  </kbd>
-                </button>
-                <button
+                  icon={<CopyPlus className="h-4 w-4" />}
+                  shortcut="D"
+                  className="h-9 px-2 font-medium"
+                />
+                <Button
+                  text="QR Code"
+                  variant="outline"
                   onClick={() => {
                     setOpenPopover(false);
                     setShowLinkQRModal(true);
                   }}
-                  className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
-                >
-                  <IconMenu
-                    text="QR Code"
-                    icon={<QrCode className="h-4 w-4" />}
-                  />
-                  <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 transition-all duration-75 group-hover:bg-gray-200 sm:inline-block">
-                    Q
-                  </kbd>
-                </button>
-                <button
+                  icon={<QrCode className="h-4 w-4" />}
+                  shortcut="Q"
+                  className="h-9 px-2 font-medium"
+                />
+                <Button
+                  text={archived ? "Unarchive" : "Archive"}
+                  variant="outline"
                   onClick={() => {
                     setOpenPopover(false);
                     setShowArchiveLinkModal(true);
                   }}
-                  className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-gray-500 transition-all duration-75 hover:bg-gray-100"
-                >
-                  <IconMenu
-                    text={archived ? "Unarchive" : "Archive"}
-                    icon={<Archive className="h-4 w-4" />}
+                  icon={<Archive className="h-4 w-4" />}
+                  shortcut="A"
+                  className="h-9 px-2 font-medium"
+                />
+                {isDubDomain(domain) && (
+                  <Button
+                    text="Transfer"
+                    variant="outline"
+                    onClick={() => {
+                      setOpenPopover(false);
+                      setShowTransferLinkModal(true);
+                    }}
+                    icon={<FolderInput className="h-4 w-4" />}
+                    shortcut="T"
+                    className="h-9 px-2 font-medium"
                   />
-                  <kbd className="hidden rounded bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 transition-all duration-75 group-hover:bg-gray-200 sm:inline-block">
-                    A
-                  </kbd>
-                </button>
-                <button
+                )}
+                <Button
+                  text="Copy Link ID"
+                  variant="outline"
+                  onClick={() => copyLinkId()}
+                  icon={
+                    copiedLinkId ? (
+                      <CopyCheck className="h-4 w-4" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )
+                  }
+                  shortcut="I"
+                  className="h-9 px-2 font-medium"
+                />
+                <Button
+                  text="Delete"
+                  variant="danger-outline"
                   onClick={() => {
                     setOpenPopover(false);
                     setShowDeleteLinkModal(true);
                   }}
-                  className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-red-600 transition-all duration-75 hover:bg-red-600 hover:text-white"
-                >
-                  <IconMenu
-                    text="Delete"
-                    icon={<Delete className="h-4 w-4" />}
-                  />
-                  <kbd className="hidden rounded bg-red-100 px-2 py-0.5 text-xs font-light text-red-600 transition-all duration-75 group-hover:bg-red-500 group-hover:text-white sm:inline-block">
-                    X
-                  </kbd>
-                </button>
+                  icon={<Delete className="h-4 w-4" />}
+                  shortcut="X"
+                  className="h-9 px-2 font-medium"
+                />
                 {!slug && ( // this is only shown in admin mode (where there's no slug)
                   <button
                     onClick={() => {
@@ -542,5 +612,24 @@ export default function LinkCard({
         </div>
       </div>
     </li>
+  );
+}
+
+function TagButton(tag: TagProps) {
+  const { queryParams } = useRouterStuff();
+
+  return (
+    <button
+      onClick={() => {
+        queryParams({
+          set: {
+            tagId: tag.id,
+          },
+        });
+      }}
+      className="transition-all duration-75 hover:scale-105 active:scale-100"
+    >
+      <TagBadge {...tag} withIcon />
+    </button>
   );
 }

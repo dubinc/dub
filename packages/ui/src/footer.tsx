@@ -1,11 +1,14 @@
 "use client";
 
-import { ALL_TOOLS } from "@dub/utils";
+import { ALL_TOOLS, COMPARE_PAGES, cn, fetcher } from "@dub/utils";
 import va from "@vercel/analytics";
+import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import useSWR from "swr";
 import { FEATURES_LIST } from "./content";
-import { Github, LinkedIn, LogoType, Twitter } from "./icons";
+import { Github, LinkedIn, LogoType, Twitter, YouTube } from "./icons";
 import { MaxWidthWrapper } from "./max-width-wrapper";
 
 const navigation = {
@@ -16,11 +19,15 @@ const navigation = {
   product: [
     { name: "Blog", href: "/blog" },
     { name: "Changelog", href: "/changelog" },
-    { name: "Customer Stories", href: "/customers" },
+    { name: "Customers", href: "/customers" },
     { name: "Pricing", href: "/pricing" },
     { name: "Enterprise", href: "/enterprise" },
     { name: "Help Center", href: "/help" },
   ],
+  compare: COMPARE_PAGES.map(({ name, slug }) => ({
+    name,
+    href: `/compare/${slug}`,
+  })),
   legal: [
     { name: "Privacy", href: "/privacy" },
     { name: "Terms", href: "/terms" },
@@ -39,10 +46,10 @@ export function Footer() {
     domain === "dub.co" ? href : `https://dub.co${href}`;
 
   return (
-    <footer className="z-10 border-t border-gray-200 bg-white/50 py-8 backdrop-blur-lg">
-      <MaxWidthWrapper className="pt-10">
+    <footer>
+      <MaxWidthWrapper className="relative z-10 overflow-hidden border border-b-0 border-gray-200 bg-white/50 pb-60 pt-16 backdrop-blur-lg md:rounded-t-2xl">
         <div className="xl:grid xl:grid-cols-3 xl:gap-8">
-          <div className="space-y-8">
+          <div className="space-y-6">
             <Link
               href={createHref("/")}
               {...(domain !== "dub.co" && {
@@ -57,48 +64,59 @@ export function Footer() {
               <span className="sr-only">
                 {process.env.NEXT_PUBLIC_APP_NAME} Logo
               </span>
-              <LogoType className="h-7 text-gray-600" />
+              <LogoType className="h-7 text-gray-800" />
             </Link>
             <p className="max-w-xs text-sm text-gray-500">
               Giving modern marketing teams superpowers with short links that
               stand out.
             </p>
-            <div className="flex items-center space-x-2">
+            <p className="text-sm leading-5 text-gray-400">
+              © {new Date().getFullYear()} Dub Technologies, Inc.
+            </p>
+            <div className="flex items-center space-x-3">
               <a
                 href="https://twitter.com/dubdotco"
                 target="_blank"
                 rel="noreferrer"
-                className="group rounded-md p-2 transition-colors hover:bg-gray-100 active:bg-gray-200"
+                className="group rounded-full border border-gray-200 p-2 transition-colors hover:bg-gray-100"
               >
                 <span className="sr-only">Twitter</span>
-                <Twitter className="h-5 w-5 text-gray-600" />
+                <Twitter className="h-4 w-4 text-gray-600" />
               </a>
-              <div className="h-8 border-l border-gray-200" />
               <a
                 href="https://github.com/dubinc/dub"
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-md p-2 transition-colors hover:bg-gray-100 active:bg-gray-200"
+                className="rounded-full border border-gray-200 p-2 transition-colors hover:bg-gray-100"
               >
                 <span className="sr-only">Github</span>
-                <Github className="h-5 w-5 text-gray-600" />
+                <Github className="h-4 w-4 text-gray-600" />
               </a>
-              <div className="h-8 border-l border-gray-200" />
               <a
-                href="https://www.linkedin.com/company/dubinc/"
+                href="https://www.linkedin.com/company/dubinc"
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-md p-2 transition-colors hover:bg-gray-100 active:bg-gray-200"
+                className="rounded-full border border-gray-200 p-2 transition-colors hover:bg-gray-100"
               >
                 <span className="sr-only">LinkedIn</span>
-                <LinkedIn className="h-5 w-5" fill="#52525B" />
+                <LinkedIn className="h-4 w-4 text-gray-600" />
+              </a>
+              <a
+                href="https://www.youtube.com/@dubdotco"
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-full border border-gray-200 p-2 transition-colors hover:bg-gray-100"
+              >
+                <span className="sr-only">YouTube</span>
+                <YouTube className="h-4 w-4 text-gray-600" />
               </a>
             </div>
+            <StatusBadge />
           </div>
           <div className="mt-16 grid grid-cols-2 gap-4 xl:col-span-2 xl:mt-0">
             <div className="md:grid md:grid-cols-2">
               <div>
-                <h3 className="text-sm font-semibold text-gray-900">
+                <h3 className="text-sm font-semibold text-gray-800">
                   Features
                 </h3>
                 <ul role="list" className="mt-4 space-y-4">
@@ -114,7 +132,7 @@ export function Footer() {
                             });
                           },
                         })}
-                        className="text-sm text-gray-500 hover:text-gray-900"
+                        className="text-sm text-gray-500 hover:text-gray-800"
                       >
                         {item.name}
                       </Link>
@@ -123,7 +141,7 @@ export function Footer() {
                 </ul>
               </div>
               <div className="mt-10 md:mt-0">
-                <h3 className="text-sm font-semibold text-gray-600">Product</h3>
+                <h3 className="text-sm font-semibold text-gray-800">Product</h3>
                 <ul role="list" className="mt-4 space-y-4">
                   {navigation.product.map((item) => (
                     <li key={item.name}>
@@ -137,7 +155,7 @@ export function Footer() {
                             });
                           },
                         })}
-                        className="text-sm text-gray-500 hover:text-gray-900"
+                        className="text-sm text-gray-500 hover:text-gray-800"
                       >
                         {item.name}
                       </Link>
@@ -147,32 +165,59 @@ export function Footer() {
               </div>
             </div>
             <div className="md:grid md:grid-cols-2">
-              <div>
-                <h3 className="text-sm font-semibold text-gray-600">Legal</h3>
-                <ul role="list" className="mt-4 space-y-4">
-                  {navigation.legal.map((item) => (
-                    <li key={item.name}>
-                      <Link
-                        href={createHref(item.href)}
-                        {...(domain !== "dub.co" && {
-                          onClick: () => {
-                            va.track("Referred from custom domain", {
-                              domain,
-                              medium: `footer item (${item.name})`,
-                            });
-                          },
-                        })}
-                        className="text-sm text-gray-500 hover:text-gray-900"
-                      >
-                        {item.name}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
+              <div className="flex flex-col space-y-8">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-800">
+                    Compare
+                  </h3>
+                  <ul role="list" className="mt-4 space-y-4">
+                    {navigation.compare.map((item) => (
+                      <li key={item.name}>
+                        <Link
+                          href={createHref(item.href)}
+                          {...(domain !== "dub.co" && {
+                            onClick: () => {
+                              va.track("Referred from custom domain", {
+                                domain,
+                                medium: `footer item (${item.name})`,
+                              });
+                            },
+                          })}
+                          className="text-sm text-gray-500 hover:text-gray-800"
+                        >
+                          {item.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-800">Legal</h3>
+                  <ul role="list" className="mt-4 space-y-4">
+                    {navigation.legal.map((item) => (
+                      <li key={item.name}>
+                        <Link
+                          href={createHref(item.href)}
+                          {...(domain !== "dub.co" && {
+                            onClick: () => {
+                              va.track("Referred from custom domain", {
+                                domain,
+                                medium: `footer item (${item.name})`,
+                              });
+                            },
+                          })}
+                          className="text-sm text-gray-500 hover:text-gray-800"
+                        >
+                          {item.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
 
               <div className="mt-10 md:mt-0">
-                <h3 className="text-sm font-semibold text-gray-600">Tools</h3>
+                <h3 className="text-sm font-semibold text-gray-800">Tools</h3>
                 <ul role="list" className="mt-4 space-y-4">
                   {navigation.tools.map((item) => (
                     <li key={item.name}>
@@ -186,7 +231,7 @@ export function Footer() {
                             });
                           },
                         })}
-                        className="text-sm text-gray-500 hover:text-gray-900"
+                        className="text-sm text-gray-500 hover:text-gray-800"
                       >
                         {item.name}
                       </Link>
@@ -197,13 +242,71 @@ export function Footer() {
             </div>
           </div>
         </div>
-        <div className="mt-16 border-t border-gray-900/10 pt-8 sm:mt-20 lg:mt-24">
-          <p className="text-sm leading-5 text-gray-500">
-            © {new Date().getFullYear()} {process.env.NEXT_PUBLIC_APP_NAME},
-            Inc.
-          </p>
-        </div>
+        <Image
+          src="https://assets.dub.co/footer.png"
+          alt="Dub Technologies, Inc. Logo"
+          width={1959}
+          height={625}
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-0"
+        />
       </MaxWidthWrapper>
     </footer>
+  );
+}
+
+function StatusBadge() {
+  const { data } = useSWR<{
+    ongoing_incidents: {
+      name: string;
+      current_worst_impact:
+        | "degraded_performance"
+        | "partial_outage"
+        | "full_outage";
+    }[];
+  }>("https://status.dub.co/api/v1/summary", fetcher);
+
+  const [color, setColor] = useState("bg-gray-200");
+  const [status, setStatus] = useState("Loading status...");
+
+  useEffect(() => {
+    if (!data) return;
+    const { ongoing_incidents } = data;
+    if (ongoing_incidents.length > 0) {
+      const { current_worst_impact, name } = ongoing_incidents[0];
+      const color =
+        current_worst_impact === "degraded_performance"
+          ? "bg-yellow-500"
+          : "bg-red-500";
+      setStatus(name);
+      setColor(color);
+    } else {
+      setStatus("All systems operational");
+      setColor("bg-green-500");
+    }
+  }, [data]);
+
+  return (
+    <Link
+      href="https://status.dub.co"
+      target="_blank"
+      className="group flex max-w-fit items-center space-x-2 rounded-md border border-gray-200 bg-white px-3 py-2 transition-colors hover:bg-gray-100"
+    >
+      <div className="relative h-3 w-3">
+        <div
+          className={cn(
+            "absolute inset-0 m-auto h-3 w-3 animate-ping items-center justify-center rounded-full group-hover:animate-none",
+            color,
+            status === "Loading status..." && "animate-none",
+          )}
+        />
+        <div
+          className={cn(
+            "absolute inset-0 z-10 m-auto h-3 w-3 rounded-full",
+            color,
+          )}
+        />
+      </div>
+      <p className="text-sm font-medium text-gray-800">{status}</p>
+    </Link>
   );
 }

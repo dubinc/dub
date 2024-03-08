@@ -1,11 +1,11 @@
 "use client";
 
 import useProject from "@/lib/swr/use-project";
-import { BlurImage, MaxWidthWrapper, useRouterStuff } from "@dub/ui";
+import { MaxWidthWrapper, useRouterStuff } from "@dub/ui";
 import { Lock } from "lucide-react";
 
 export default function ProjectExceededClicks() {
-  const { plan } = useProject();
+  const { nextPlan } = useProject();
   const { queryParams } = useRouterStuff();
 
   return (
@@ -21,7 +21,7 @@ export default function ProjectExceededClicks() {
           Your project has exceeded your monthly clicks limits. We're still
           collecting data on your links, but you need to upgrade to view them.
         </p>
-        <BlurImage
+        <img
           src="/_static/illustrations/video-park.svg"
           alt="No links yet"
           width={400}
@@ -32,13 +32,13 @@ export default function ProjectExceededClicks() {
           onClick={() =>
             queryParams({
               set: {
-                upgrade: plan === "free" ? "pro" : "business",
+                upgrade: nextPlan.name.toLowerCase(),
               },
             })
           }
           className="z-10 rounded-md border border-black bg-black px-10 py-2 text-sm font-medium text-white transition-all duration-75 hover:bg-white hover:text-black"
         >
-          Upgrade now
+          Upgrade to {nextPlan.name}
         </button>
       </div>
     </MaxWidthWrapper>

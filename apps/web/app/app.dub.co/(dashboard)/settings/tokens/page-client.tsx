@@ -27,13 +27,13 @@ export default function TokensPageClient() {
       <Form
         title="Create New API Key"
         description="Enter a unique name for your API key to differentiate it from other keys."
-        inputData={{
+        inputAttrs={{
           name: "name",
           defaultValue: "",
           placeholder: "Jetpack API Key",
           maxLength: 140,
         }}
-        helpText="<a href='https://dub.sh/api' target='_blank'>Learn more about Dub's API.</a>"
+        helpText="<a href='https://d.to/api' target='_blank'>Learn more about Dub's API.</a>"
         buttonText="Submit"
         handleSubmit={(data) =>
           fetch("/api/user/tokens", {

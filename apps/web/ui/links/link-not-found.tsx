@@ -1,4 +1,4 @@
-import { BlurImage, MaxWidthWrapper } from "@dub/ui";
+import { MaxWidthWrapper } from "@dub/ui";
 import { FileX2 } from "lucide-react";
 import Link from "next/link";
 
@@ -16,7 +16,7 @@ export default function LinkNotFound() {
           Bummer! The link you are looking for does not exist. You either typed
           in the wrong URL or don't have access to this link.
         </p>
-        <BlurImage
+        <img
           src="/_static/illustrations/coffee-call.svg"
           alt="No links yet"
           width={400}

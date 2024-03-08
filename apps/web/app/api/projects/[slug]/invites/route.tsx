@@ -1,8 +1,14 @@
 import { exceededLimitError } from "@/lib/api/errors";
 import { inviteUser } from "@/lib/api/users";
 import { withAuth } from "@/lib/auth";
+import { DubApiError } from "@/lib/api/errors";
 import prisma from "@/lib/prisma";
+import z from "@/lib/zod";
 import { NextResponse } from "next/server";
+
+const emailInviteSchema = z.object({
+  email: z.string().email(),
+});
 
 // GET /api/projects/[slug]/invites – get invites for a specific project
 export const GET = withAuth(async ({ project }) => {
@@ -21,56 +27,55 @@ export const GET = withAuth(async ({ project }) => {
 // POST /api/projects/[slug]/invites – invite a teammate
 export const POST = withAuth(
   async ({ req, project, session }) => {
-    const { email } = await req.json();
-    const alreadyInTeam = await prisma.projectUsers.findFirst({
-      where: {
-        projectId: project.id,
-        user: {
-          email,
-        },
-      },
-    });
+    const { email } = emailInviteSchema.parse(await req.json());
+
+    const [alreadyInTeam, projectUserCount, projectInviteCount] =
+      await Promise.all([
+        prisma.projectUsers.findFirst({
+          where: {
+            projectId: project.id,
+            user: {
+              email,
+            },
+          },
+        }),
+        prisma.projectUsers.count({
+          where: {
+            projectId: project.id,
+          },
+        }),
+        prisma.projectInvite.count({
+          where: {
+            projectId: project.id,
+          },
+        }),
+      ]);
+
     if (alreadyInTeam) {
-      return new Response("User already exists in this project.", {
-        status: 400,
+      throw new DubApiError({
+        code: "bad_request",
+        message: "User already exists in this project.",
       });
     }
 
-    const users = await prisma.projectUsers.count({
-      where: {
-        projectId: project.id,
-      },
-    });
-    const invites = await prisma.projectInvite.count({
-      where: {
-        projectId: project.id,
-      },
-    });
-    if (users + invites >= project.usersLimit) {
-      return new Response(
-        exceededLimitError({
+    if (projectUserCount + projectInviteCount >= project.usersLimit) {
+      throw new DubApiError({
+        code: "exceeded_limit",
+        message: exceededLimitError({
           plan: project.plan,
           limit: project.usersLimit,
           type: "users",
         }),
-        {
-          status: 403,
-        },
-      );
+      });
     }
 
-    try {
-      await inviteUser({
-        email,
-        project,
-        session,
-      });
-      return NextResponse.json({ message: "Invite sent" });
-    } catch (error) {
-      return new Response(error.message, {
-        status: 400,
-      });
-    }
+    await inviteUser({
+      email,
+      project,
+      session,
+    });
+
+    return NextResponse.json({ message: "Invite sent" });
   },
   {
     requiredRole: ["owner"],
@@ -80,12 +85,7 @@ export const POST = withAuth(
 // DELETE /api/projects/[slug]/invites – delete a pending invite
 export const DELETE = withAuth(
   async ({ searchParams, project }) => {
-    const { email } = searchParams;
-    if (!email) {
-      return new Response("Missing email", {
-        status: 400,
-      });
-    }
+    const { email } = emailInviteSchema.parse(searchParams);
     const response = await prisma.projectInvite.delete({
       where: {
         email_projectId: {

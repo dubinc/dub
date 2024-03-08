@@ -1,7 +1,7 @@
+import { getAnalytics } from "@/lib/analytics";
 import prisma from "@/lib/prisma";
-import { getStats } from "@/lib/stats";
+import { linkConstructor } from "@dub/utils";
 import "dotenv-flow/config";
-import { linkConstructor } from "./utils";
 
 async function main() {
   const project = await prisma.project.findUnique({
@@ -34,11 +34,11 @@ async function main() {
     console.log("No project found");
     return;
   }
-  const topLinks = await getStats({
+  const topLinks = await getAnalytics({
     projectId: project.id,
     endpoint: "top_links",
     interval: "30d",
-    excludeRoot: "true",
+    excludeRoot: true,
   }).then(async (data) => {
     const topFive = data.slice(0, 5);
     return await Promise.all(

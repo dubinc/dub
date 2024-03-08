@@ -10,6 +10,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
+import { subscribe } from "../flodesk";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
@@ -328,21 +329,7 @@ export const authOptions: NextAuthOptions = {
           process.env.NEXT_PUBLIC_IS_DUB
         ) {
           await Promise.allSettled([
-            fetch(
-              `https://api.resend.com/audiences/${process.env.RESEND_AUDIENCE_ID}/contacts`,
-              {
-                method: "POST",
-                headers: {
-                  Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  email,
-                  first_name: user.name?.split(" ")[0] || null,
-                  last_name: user.name?.split(" ")[1] || null,
-                }),
-              },
-            ),
+            subscribe({ email, name: user.name || undefined }),
             sendEmail({
               subject: "Welcome to Dub.co!",
               email,

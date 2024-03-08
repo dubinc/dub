@@ -1,9 +1,11 @@
 "use server";
 
-import { deleteProject } from "@/lib/api/projects";
+import { addDomainToVercel, removeDomainFromVercel } from "@/lib/api/domains";
+import { deleteProjectAdmin } from "@/lib/api/projects";
 import { getSession, hashToken } from "@/lib/auth";
+import { unsubscribe } from "@/lib/flodesk";
 import prisma from "@/lib/prisma";
-import { DUB_DOMAINS, DUB_PROJECT_ID } from "@dub/utils";
+import { DUB_DOMAINS_ARRAY, DUB_PROJECT_ID } from "@dub/utils";
 import { get } from "@vercel/edge-config";
 import cloudinary from "cloudinary";
 import { randomBytes } from "crypto";
@@ -72,7 +74,7 @@ export async function getUserOrProjectOwner(data: FormData) {
       links: {
         where: {
           domain: {
-            in: DUB_DOMAINS.map((domain) => domain.slug),
+            in: DUB_DOMAINS_ARRAY,
           },
         },
         select: {
@@ -164,7 +166,7 @@ export async function banUser(data: FormData) {
     },
   });
 
-  if (!user) {
+  if (!user?.email) {
     return {
       error: "No user found",
     };
@@ -174,11 +176,11 @@ export async function banUser(data: FormData) {
 
   await Promise.allSettled(
     user.projects.map(({ project }) =>
-      deleteProject({
+      deleteProjectAdmin({
         id: project.id,
         slug: project.slug,
-        stripeId: project.stripeId || undefined,
-        logo: project.logo || undefined,
+        stripeId: project.stripeId || null,
+        logo: project.logo || null,
       }),
     ),
   );
@@ -192,16 +194,7 @@ export async function banUser(data: FormData) {
     cloudinary.v2.uploader.destroy(`avatars/${user.id}`, {
       invalidate: true,
     }),
-    fetch(
-      `https://api.resend.com/audiences/${process.env.RESEND_AUDIENCE_ID}/contacts/${user.email}`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-      },
-    ),
+    unsubscribe(user.email),
     fetch(
       `https://api.vercel.com/v1/edge-config/${process.env.EDGE_CONFIG_ID}/items?teamId=${process.env.TEAM_ID_VERCEL}`,
       {
@@ -222,6 +215,23 @@ export async function banUser(data: FormData) {
       },
     ),
   ]);
+
+  return true;
+}
+
+export async function refreshDomain(data: FormData) {
+  const domain = data.get("domain") as string;
+
+  if (!(await isAdmin())) {
+    return {
+      error: "Unauthorized",
+    };
+  }
+
+  const remove = await removeDomainFromVercel(domain);
+  const add = await addDomainToVercel(domain);
+
+  console.log({ remove, add });
 
   return true;
 }

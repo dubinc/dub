@@ -1,10 +1,9 @@
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { type Link as LinkProps } from "@prisma/client";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
-import { UserProps } from "../types";
+import { LinkWithTagsProps, UserProps } from "../types";
 
 export default function useLinks() {
   const { slug } = useParams() as { slug?: string };
@@ -18,7 +17,7 @@ export default function useLinks() {
   }, []);
 
   const { data: links, isValidating } = useSWR<
-    (LinkProps & {
+    (LinkWithTagsProps & {
       user: UserProps;
     })[]
   >(
@@ -26,12 +25,12 @@ export default function useLinks() {
       ? `/api/links${getQueryString(
           { projectSlug: slug },
           {
-            ignore: ["import", "upgrade"],
+            ignore: ["import", "upgrade", "newLink"],
           },
         )}`
       : admin
-      ? `/api/admin/links${getQueryString()}`
-      : null,
+        ? `/api/admin/links${getQueryString()}`
+        : null,
     fetcher,
     {
       dedupingInterval: 20000,

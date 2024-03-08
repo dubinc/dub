@@ -1,3 +1,4 @@
+import { LinkProps } from "@/lib/types";
 import {
   BlurImage,
   Facebook,
@@ -7,7 +8,6 @@ import {
   Twitter,
 } from "@dub/ui";
 import { getDomainWithoutWWW } from "@dub/utils";
-import { type Link as LinkProps } from "@prisma/client";
 import { useMemo } from "react";
 import { useDebounce } from "use-debounce";
 
@@ -97,6 +97,9 @@ export default function Preview({
               </div>
             )}
           </div>
+          {hostname && (
+            <p className="mt-2 text-[0.8rem] text-[#606770]">{hostname}</p>
+          )}
         </div>
 
         {/* Facebook */}
@@ -157,7 +160,7 @@ export default function Preview({
             </div>
             <div className="relative flex justify-center">
               <div className="flex items-center space-x-2 bg-white px-3">
-                <LinkedIn className="h-4 w-4" />
+                <LinkedIn className="h-4 w-4 text-[#0077b5]" />
                 <p className="text-sm text-gray-400">LinkedIn</p>
               </div>
             </div>

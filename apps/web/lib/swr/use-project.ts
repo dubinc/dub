@@ -1,7 +1,8 @@
 import { ProjectProps } from "@/lib/types";
-import { fetcher } from "@dub/utils";
+import { PRO_PLAN, fetcher, getNextPlan } from "@dub/utils";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
+import useDefaultDomains from "./use-default-domains";
 
 export default function useProject() {
   const { slug } = useParams() as { slug?: string };
@@ -14,9 +15,12 @@ export default function useProject() {
     dedupingInterval: 30000,
   });
 
+  const { defaultDomains } = useDefaultDomains();
+
   return {
     ...project,
-    defaultDomains: project?.metadata?.defaultDomains || [],
+    nextPlan: project?.plan ? getNextPlan(project.plan) : PRO_PLAN,
+    defaultDomains: defaultDomains || [],
     isOwner: project?.users && project.users[0].role === "owner",
     exceededClicks: project && project.usage >= project.usageLimit,
     exceededLinks: project && project.linksUsage >= project.linksLimit,

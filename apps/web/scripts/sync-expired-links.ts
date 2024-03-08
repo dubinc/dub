@@ -1,7 +1,8 @@
 import prisma from "@/lib/prisma";
 import { RedisLinkProps } from "@/lib/types";
+import { redis } from "@/lib/upstash";
+import { chunk } from "@dub/utils";
 import "dotenv-flow/config";
-import { chunk, redis } from "./utils";
 
 async function main() {
   const allExpiredLinks = await prisma.link.findMany({

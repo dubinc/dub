@@ -10,8 +10,8 @@ export function BlurImage(props: ImageProps) {
   const handleLoad = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     setLoading(false);
     const target = e.target as HTMLImageElement;
-    if (target.naturalWidth < 20 && target.naturalHeight < 20) {
-      setSrc(`https://avatar.vercel.sh/${props.alt}`);
+    if (target.naturalWidth <= 16 && target.naturalHeight <= 16) {
+      setSrc(`https://avatar.vercel.sh/${encodeURIComponent(props.alt)}`);
     }
   };
 
@@ -23,7 +23,7 @@ export function BlurImage(props: ImageProps) {
       className={cn(loading ? "blur-[2px]" : "blur-0", props.className)}
       onLoad={handleLoad}
       onError={() => {
-        setSrc(`https://avatar.vercel.sh/${props.alt}`); // if the image fails to load, use the default avatar
+        setSrc(`https://avatar.vercel.sh/${encodeURIComponent(props.alt)}`); // if the image fails to load, use the default avatar
       }}
       unoptimized
     />
