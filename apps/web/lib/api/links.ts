@@ -19,12 +19,11 @@ import {
   getUrlFromString,
   isDubDomain,
   linkConstructor,
-  nanoid,
   truncate,
   validKeyRegex,
 } from "@dub/utils";
 import cloudinary from "cloudinary";
-import { checkIfKeyExists } from "../planetscale";
+import { checkIfKeyExists, getRandomKey } from "../planetscale";
 import { recordLink } from "../tinybird";
 import {
   LinkProps,
@@ -245,24 +244,6 @@ export async function keyChecks({
   return {
     error: null,
   };
-}
-
-export async function getRandomKey(
-  domain: string,
-  prefix?: string,
-): Promise<string> {
-  /* recursively get random key till it gets one that's available */
-  let key = nanoid();
-  if (prefix) {
-    key = `${prefix.replace(/^\/|\/$/g, "")}/${key}`;
-  }
-  const response = await keyChecks({ domain, key });
-  if (response.error) {
-    // by the off chance that key already exists
-    return getRandomKey(domain, prefix);
-  } else {
-    return key;
-  }
 }
 
 export function processKey(key: string) {
