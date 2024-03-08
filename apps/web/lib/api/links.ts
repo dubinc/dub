@@ -19,12 +19,11 @@ import {
   getUrlFromString,
   isDubDomain,
   linkConstructor,
-  nanoid,
   truncate,
   validKeyRegex,
 } from "@dub/utils";
 import cloudinary from "cloudinary";
-import { getLinkViaEdge } from "../planetscale";
+import { checkIfKeyExists, getRandomKey } from "../planetscale";
 import { recordLink } from "../tinybird";
 import {
   LinkProps,
@@ -197,38 +196,54 @@ export async function getLinksCount({
   }
 }
 
-export async function checkIfKeyExists(domain: string, key: string) {
-  // reserved keys for default short domain
-  if (domain === SHORT_DOMAIN) {
-    if ((await isReservedKey(key)) || DEFAULT_REDIRECTS[key]) {
-      return true;
-    }
-    // if it's a default Dub domain, check if the key is a reserved key
-  } else if (isDubDomain(domain)) {
-    if (await isReservedUsername(key)) {
-      return true;
-    }
+export async function keyChecks({
+  domain,
+  key,
+  project,
+}: {
+  domain: string;
+  key: string;
+  project?: ProjectProps;
+}) {
+  const link = await checkIfKeyExists(domain, key);
+  if (link) {
+    return {
+      error: "Duplicate key: This short link already exists.",
+      code: "conflict",
+    };
   }
-  const link = await getLinkViaEdge(domain, key);
-  return !!link;
-}
 
-export async function getRandomKey(
-  domain: string,
-  prefix?: string,
-): Promise<string> {
-  /* recursively get random key till it gets one that's available */
-  let key = nanoid();
-  if (prefix) {
-    key = `${prefix.replace(/^\/|\/$/g, "")}/${key}`;
+  if (isDubDomain(domain) && process.env.NEXT_PUBLIC_IS_DUB) {
+    if (
+      domain === SHORT_DOMAIN &&
+      (DEFAULT_REDIRECTS[key] || (await isReservedKey(key)))
+    ) {
+      return {
+        error: "Duplicate key: This short link already exists.",
+        code: "conflict",
+      };
+    }
+
+    if (key.length <= 3 && (!project || project.plan === "free")) {
+      return {
+        error: `You can only use keys that are 3 characters or less on a Pro plan and above. Upgrade to Pro to register a ${key.length}-character key.`,
+        code: "forbidden",
+      };
+    }
+    if (
+      (await isReservedUsername(key)) &&
+      (!project || project.plan === "free")
+    ) {
+      return {
+        error:
+          "This is a premium key. You can only use this key on a Pro plan and above. Upgrade to Pro to register this key.",
+        code: "forbidden",
+      };
+    }
   }
-  const response = await checkIfKeyExists(domain, key);
-  if (response) {
-    // by the off chance that key already exists
-    return getRandomKey(domain, prefix);
-  } else {
-    return key;
-  }
+  return {
+    error: null,
+  };
 }
 
 export function processKey(key: string) {
@@ -248,11 +263,13 @@ export async function processLink({
   project,
   userId,
   bulk = false,
+  skipKeyChecks = false, // only skip when key doesn't change (e.g. when editing a link)
 }: {
   payload: LinkWithTagIdsProps;
   project?: ProjectProps;
   userId?: string;
   bulk?: boolean;
+  skipKeyChecks?: boolean;
 }) {
   let {
     domain,
@@ -349,6 +366,24 @@ export async function processLink({
 
   if (!key) {
     key = await getRandomKey(domain, payload["prefix"]);
+  } else if (!skipKeyChecks) {
+    const processedKey = processKey(key);
+    if (!processedKey) {
+      return {
+        link: payload,
+        error: "Invalid key.",
+        code: "unprocessable_entity",
+      };
+    }
+    key = processedKey;
+
+    const response = await keyChecks({ domain, key, project });
+    if (response.error) {
+      return {
+        link: payload,
+        ...response,
+      };
+    }
   }
 
   if (bulk) {
@@ -364,16 +399,6 @@ export async function processLink({
         link: payload,
         error: "You cannot use link cloaking with bulk link creation.",
         code: "unprocessable_entity",
-      };
-    }
-    // we check if a key exists in bulk creation because
-    // for regular creation we check it in the addLink function
-    const exists = await checkIfKeyExists(domain, key);
-    if (exists) {
-      return {
-        link: payload,
-        error: `Link already exists.`,
-        code: "conflict",
       };
     }
 
@@ -473,9 +498,6 @@ export async function addLink(link: LinkWithTagIdsProps) {
   let { domain, key, url, expiresAt, title, description, image, proxy, geo } =
     link;
   const uploadedImage = image && image.startsWith("data:image") ? true : false;
-
-  const exists = await checkIfKeyExists(domain, key);
-  if (exists) return null;
 
   const combinedTagIds = combineTagIds(link);
 
@@ -699,10 +721,6 @@ export async function editLink({
   const changedDomain = domain !== oldDomain;
   const uploadedImage = image && image.startsWith("data:image") ? true : false;
 
-  if (changedDomain || changedKey) {
-    const exists = await checkIfKeyExists(domain, key);
-    if (exists) return null;
-  }
   const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
     getParamsFromURL(url);
 
