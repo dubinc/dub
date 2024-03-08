@@ -65,7 +65,7 @@ export default function ProjectCard({
           <div className="absolute -bottom-28 right-0 z-10 w-full max-w-[16rem] rounded-lg border border-gray-200 bg-white p-3 text-center text-sm shadow lg:-right-56">
             <p>
               Your <InlineSnippet>dub.sh</InlineSnippet> links have been
-              migrated to a custom project.
+              migrated to a custom workspace.
             </p>
             <a
               href={`${HOME_DOMAIN}/changelog/dub-links-updates`}
@@ -109,7 +109,7 @@ export default function ProjectCard({
                       title={
                         primaryDomain?.verified === false
                           ? "Please verify your domain to start adding links."
-                          : "Here are all the domains for this project."
+                          : "Here are all the domains for this workspace."
                       }
                       cta={
                         primaryDomain?.verified === false

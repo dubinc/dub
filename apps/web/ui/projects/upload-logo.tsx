@@ -57,7 +57,7 @@ export default function UploadLogo() {
               mutate("/api/projects"),
               mutate(`/api/projects/${slug}`),
             ]);
-            toast.success("Succesfully uploaded project logo!");
+            toast.success("Succesfully uploaded workspace logo!");
           } else {
             const { error } = await res.json();
             toast.error(error.message);
@@ -68,9 +68,9 @@ export default function UploadLogo() {
       className="rounded-lg border border-gray-200 bg-white"
     >
       <div className="flex flex-col space-y-3 p-5 sm:p-10">
-        <h2 className="text-xl font-medium">Project Logo</h2>
+        <h2 className="text-xl font-medium">Workspace Logo</h2>
         <p className="text-sm text-gray-500">
-          This is your project's logo on {process.env.NEXT_PUBLIC_APP_NAME}
+          This is your workspace's logo on {process.env.NEXT_PUBLIC_APP_NAME}
         </p>
         <div>
           <label
@@ -167,7 +167,7 @@ export default function UploadLogo() {
             disabled={!isOwner || !image || logo === image}
             {...(!isOwner && {
               disabledTooltip:
-                "Only project owners can change the project logo.",
+                "Only workspace owners can change the workspace logo.",
             })}
           />
         </div>

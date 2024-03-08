@@ -10,11 +10,11 @@ export default function ProjectNotFound() {
           <FileX2 className="h-6 w-6 text-gray-600" />
         </div>
         <h1 className="my-3 text-xl font-semibold text-gray-700">
-          Project Not Found
+          Workspace Not Found
         </h1>
         <p className="z-10 max-w-sm text-center text-sm text-gray-600">
-          Bummer! The project you are looking for does not exist. You either
-          typed in the wrong URL or don't have access to this project.
+          Bummer! The workspace you are looking for does not exist. You either
+          typed in the wrong URL or don't have access to this workspace.
         </p>
         <img
           src="/_static/illustrations/coffee-call.svg"
@@ -26,7 +26,7 @@ export default function ProjectNotFound() {
           href="/"
           className="z-10 rounded-md border border-black bg-black px-10 py-2 text-sm font-medium text-white transition-all duration-75 hover:bg-white hover:text-black"
         >
-          Back to my projects
+          Back to my workspaces
         </Link>
       </div>
     </MaxWidthWrapper>

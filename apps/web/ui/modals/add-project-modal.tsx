@@ -110,14 +110,14 @@ function AddProjectModalHelper({
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
         <Logo />
-        <h3 className="text-lg font-medium">Create a new project</h3>
+        <h3 className="text-lg font-medium">Create a new workspace</h3>
         <a
           href={`${HOME_DOMAIN}/help/article/what-is-a-project`}
           target="_blank"
           rel="noopener noreferrer"
           className="-translate-y-2 text-center text-xs text-gray-500 underline underline-offset-4 hover:text-gray-800"
         >
-          What is a project?
+          What is a workspace?
         </a>
       </div>
 
@@ -137,13 +137,13 @@ function AddProjectModalHelper({
           }).then(async (res) => {
             if (res.status === 200) {
               // track project creation event
-              va.track("Created Project");
+              va.track("Created Workspace");
               await mutate("/api/projects");
               if (welcomeFlow) {
                 router.push(`/welcome?type=upgrade&slug=${slug}`);
               } else {
                 router.push(`/${slug}`);
-                toast.success("Successfully created project!");
+                toast.success("Successfully created workspace!");
                 setShowAddProjectModal(false);
               }
             } else {
@@ -169,10 +169,10 @@ function AddProjectModalHelper({
         <div>
           <label htmlFor="name" className="flex items-center space-x-2">
             <p className="block text-sm font-medium text-gray-700">
-              Project Name
+              Workspace Name
             </p>
             <InfoTooltip
-              content={`This is the name of your project on ${process.env.NEXT_PUBLIC_APP_NAME}.`}
+              content={`This is the name of your workspace on ${process.env.NEXT_PUBLIC_APP_NAME}.`}
             />
           </label>
           <div className="mt-2 flex rounded-md shadow-sm">
@@ -197,10 +197,10 @@ function AddProjectModalHelper({
         <div>
           <label htmlFor="slug" className="flex items-center space-x-2">
             <p className="block text-sm font-medium text-gray-700">
-              Project Slug
+              Workspace Slug
             </p>
             <InfoTooltip
-              content={`This is your project's unique slug on ${process.env.NEXT_PUBLIC_APP_NAME}.`}
+              content={`This is your workspace's unique slug on ${process.env.NEXT_PUBLIC_APP_NAME}.`}
             />
           </label>
           <div className="relative mt-2 flex rounded-md shadow-sm">

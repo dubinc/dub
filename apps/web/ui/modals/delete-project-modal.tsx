@@ -56,9 +56,9 @@ function DeleteProjectModal({
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
         <Logo />
-        <h3 className="text-lg font-medium">Delete Project</h3>
+        <h3 className="text-lg font-medium">Delete Workspace</h3>
         <p className="text-center text-sm text-gray-500">
-          Warning: This will permanently delete your project, custom domain, and
+          Warning: This will permanently delete your workspace, custom domain, and
           all associated links and their respective stats.
         </p>
       </div>
@@ -67,8 +67,8 @@ function DeleteProjectModal({
         onSubmit={async (e) => {
           e.preventDefault();
           toast.promise(deleteProject(), {
-            loading: "Deleting project...",
-            success: "Project deleted successfully!",
+            loading: "Deleting workspace...",
+            success: "Workspace deleted successfully!",
             error: (err) => err,
           });
         }}
@@ -79,7 +79,7 @@ function DeleteProjectModal({
             htmlFor="project-slug"
             className="block text-sm font-medium text-gray-700"
           >
-            Enter the project slug{" "}
+            Enter the workspace slug{" "}
             <span className="font-semibold text-black">{slug}</span> to
             continue:
           </label>
@@ -106,7 +106,7 @@ function DeleteProjectModal({
           <label htmlFor="verification" className="block text-sm text-gray-700">
             To verify, type{" "}
             <span className="font-semibold text-black">
-              confirm delete project
+              confirm delete workspace
             </span>{" "}
             below
           </label>
@@ -115,7 +115,7 @@ function DeleteProjectModal({
               type="text"
               name="verification"
               id="verification"
-              pattern="confirm delete project"
+              pattern="confirm delete workspace"
               required
               autoComplete="off"
               disabled={!isOwner}
@@ -130,11 +130,11 @@ function DeleteProjectModal({
         </div>
 
         <Button
-          text="Confirm delete project"
+          text="Confirm delete workspace"
           variant="danger"
           loading={deleting}
           {...(!isOwner && {
-            disabledTooltip: "Only project owners can delete a project.",
+            disabledTooltip: "Only workspace owners can delete a workspace.",
           })}
         />
       </form>

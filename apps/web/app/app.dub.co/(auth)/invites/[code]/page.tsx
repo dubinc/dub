@@ -81,7 +81,7 @@ async function VerifyInvite({ code }: { code: string }) {
       <>
         <PageCopy
           title="Invalid Invite"
-          message="The invite link you are trying to use is invalid. Please contact the project owner for a new invite."
+          message="The invite link you are trying to use is invalid. Please contact the workspace owner for a new invite."
         />
       </>
     );
@@ -96,7 +96,7 @@ async function VerifyInvite({ code }: { code: string }) {
     return (
       <PageCopy
         title="User Limit Reached"
-        message="The project you are trying to join is currently full. Please contact the project owner for more information."
+        message="The workspace you are trying to join is currently full. Please contact the workspace owner for more information."
       />
     );
   }

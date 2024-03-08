@@ -15,17 +15,17 @@ export default function ProjectSettingsClient() {
   return (
     <>
       <Form
-        title="Project Name"
-        description={`This is the name of your project on ${process.env.NEXT_PUBLIC_APP_NAME}.`}
+        title="Workspace Name"
+        description={`This is the name of your workspace on ${process.env.NEXT_PUBLIC_APP_NAME}.`}
         inputAttrs={{
           name: "name",
           defaultValue: name,
-          placeholder: "My Project",
+          placeholder: "My Workspace",
           maxLength: 32,
         }}
         helpText="Max 32 characters."
         {...(!isOwner && {
-          disabledTooltip: "Only project owners can change the project name.",
+          disabledTooltip: "Only workspace owners can change the workspace name.",
         })}
         handleSubmit={(updateData) =>
           fetch(`/api/projects/${slug}`, {
@@ -40,9 +40,9 @@ export default function ProjectSettingsClient() {
                 mutate("/api/projects"),
                 mutate(`/api/projects/${slug}`),
               ]);
-              toast.success("Successfully updated project name!");
+              toast.success("Successfully updated workspace name!");
             } else if (res.status === 422) {
-              toast.error("Project slug already exists");
+              toast.error("Workspace slug already exists");
             } else {
               const errorMessage = await res.text();
               toast.error(errorMessage || "Something went wrong");
@@ -51,18 +51,18 @@ export default function ProjectSettingsClient() {
         }
       />
       <Form
-        title="Project Slug"
-        description={`This is your project's unique slug on ${process.env.NEXT_PUBLIC_APP_NAME}.`}
+        title="Workspace Slug"
+        description={`This is your workspace's unique slug on ${process.env.NEXT_PUBLIC_APP_NAME}.`}
         inputAttrs={{
           name: "slug",
           defaultValue: slug,
-          placeholder: "my-project",
+          placeholder: "my-workspace",
           pattern: "^[a-z0-9-]+$",
           maxLength: 48,
         }}
         helpText="Only lowercase letters, numbers, and dashes. Max 48 characters."
         {...(!isOwner && {
-          disabledTooltip: "Only project owners can change the project slug.",
+          disabledTooltip: "Only workspace owners can change the workspace slug.",
         })}
         handleSubmit={(data) =>
           fetch(`/api/projects/${slug}`, {
@@ -76,7 +76,7 @@ export default function ProjectSettingsClient() {
               const { slug: newSlug } = await res.json();
               await mutate("/api/projects");
               router.push(`/${newSlug}/settings`);
-              toast.success("Successfully updated project slug!");
+              toast.success("Successfully updated workspace slug!");
             } else {
               const error = await res.text();
               toast.error(error || "Something went wrong");

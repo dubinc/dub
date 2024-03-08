@@ -32,7 +32,7 @@ export default function ImpersonateUser() {
           action={(formData) => {
             if (
               !confirm(
-                `This will ban the user ${data.email} and delete all their projects and links. Are you sure?`,
+                `This will ban the user ${data.email} and delete all their workspaces and links. Are you sure?`,
               )
             ) {
               return;

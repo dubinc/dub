@@ -45,7 +45,7 @@ const SAMLSection = () => {
           />
         ),
         title: `${provider} SAML`,
-        description: "SAML SSO is configured for your project.",
+        description: "SAML SSO is configured for your workspace.",
       };
     } else
       return {
@@ -189,7 +189,7 @@ const SCIMSection = () => {
           />
         ),
         title: `${SAML_PROVIDERS.find((p) => p.scim === provider)!.name} SCIM`,
-        description: "SCIM directory sync is configured for your project.",
+        description: "SCIM directory sync is configured for your workspace.",
       };
     } else
       return {

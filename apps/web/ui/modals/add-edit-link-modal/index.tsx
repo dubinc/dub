@@ -676,7 +676,7 @@ function AddEditLinkButton({
       disabledTooltip={
         exceededLinks ? (
           <TooltipContent
-            title="Your project has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
+            title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
             cta={`Upgrade to ${nextPlan.name}`}
             onClick={() => {
               queryParams({

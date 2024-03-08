@@ -186,7 +186,7 @@ function AddEditDomainModal({
                 type="button"
                 onClick={() => {
                   window.confirm(
-                    "Warning: Changing your project's domain will break all existing short links and reset their analytics. Are you sure you want to continue?",
+                    "Warning: Changing your workspace's domain will break all existing short links and reset their analytics. Are you sure you want to continue?",
                   ) && setLockDomain(false);
                 }}
               >
@@ -355,7 +355,7 @@ function AddEditDomainModal({
               text="Delete domain"
               onClick={() => {
                 window.confirm(
-                  "Warning: Deleting your project's domain will delete all existing short links using the domain. Are you sure you want to continue?",
+                  "Warning: Deleting your workspace's domain will delete all existing short links using the domain. Are you sure you want to continue?",
                 ) && deleteDomain();
               }}
               loading={deleting}

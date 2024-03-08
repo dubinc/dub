@@ -37,7 +37,7 @@ function RemoveSCIMModal({
         {logo ? (
           <BlurImage
             src={logo}
-            alt="Project logo"
+            alt="Workspace logo"
             className="h-10 w-10 rounded-full"
             width={20}
             height={20}
@@ -48,7 +48,7 @@ function RemoveSCIMModal({
         <h3 className="text-lg font-medium">Remove SCIM Directory</h3>
         <p className="text-center text-sm text-gray-500">
           This will remove the currently configured SCIM directory from your
-          project. Are you sure you want to continue?
+          workspace. Are you sure you want to continue?
         </p>
       </div>
 

@@ -147,7 +147,7 @@ export default function ProjectBillingClient() {
             <UsageCategory
               title="Custom Domains"
               unit="domains"
-              tooltip="Number of custom domains added to your project."
+              tooltip="Number of custom domains added to your workspace."
               usage={domains?.length}
               usageLimit={domainsLimit}
               numberOnly
@@ -157,7 +157,7 @@ export default function ProjectBillingClient() {
             <UsageCategory
               title="Tags"
               unit="tags"
-              tooltip="Number of tags added to your project."
+              tooltip="Number of tags added to your workspace."
               usage={tags?.length}
               usageLimit={tagsLimit}
               numberOnly
@@ -165,7 +165,7 @@ export default function ProjectBillingClient() {
             <UsageCategory
               title="Teammates"
               unit="users"
-              tooltip="Number of users added to your project."
+              tooltip="Number of users added to your workspace."
               usage={users?.length}
               usageLimit={usersLimit}
               numberOnly

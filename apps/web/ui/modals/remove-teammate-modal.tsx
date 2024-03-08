@@ -41,7 +41,7 @@ function RemoveTeammateModal({
         {logo ? (
           <BlurImage
             src={logo}
-            alt="Project logo"
+            alt="Workspace logo"
             className="h-10 w-10 rounded-full"
             width={20}
             height={20}
@@ -53,7 +53,7 @@ function RemoveTeammateModal({
           {invite
             ? "Revoke Invitation"
             : session?.user?.email === email
-              ? "Leave Project"
+              ? "Leave Workspace"
               : "Remove Teammate"}
         </h3>
         <p className="text-center text-sm text-gray-500">
@@ -66,10 +66,10 @@ function RemoveTeammateModal({
             {session?.user?.email === email ? projectName : name || email}
           </span>
           {invite
-            ? "'s invitation to join your project. "
+            ? "'s invitation to join your workspace. "
             : session?.user?.email === email
-              ? ". You will lose all access to this project. "
-              : " from your project. "}
+              ? ". You will lose all access to this workspace. "
+              : " from your workspace. "}
           Are you sure you want to continue?
         </p>
       </div>
@@ -110,7 +110,7 @@ function RemoveTeammateModal({
                 }
                 toast.success(
                   session?.user?.email === email
-                    ? "You have left the project!"
+                    ? "You have left the workspace!"
                     : invite
                       ? "Successfully revoked invitation!"
                       : "Successfully removed teammate!",

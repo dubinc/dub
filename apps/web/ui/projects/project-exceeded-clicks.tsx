@@ -18,7 +18,7 @@ export default function ProjectExceededClicks() {
           Stats Locked
         </h1>
         <p className="z-10 max-w-sm text-center text-sm text-gray-600">
-          Your project has exceeded your monthly clicks limits. We're still
+          Your workspace has exceeded your monthly clicks limits. We're still
           collecting data on your links, but you need to upgrade to view them.
         </p>
         <img

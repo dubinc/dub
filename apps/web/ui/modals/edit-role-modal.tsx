@@ -34,7 +34,7 @@ function EditRoleModal({
         {logo ? (
           <BlurImage
             src={logo}
-            alt="Project logo"
+            alt="Workspace logo"
             className="h-10 w-10 rounded-full"
             width={20}
             height={20}

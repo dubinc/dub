@@ -18,9 +18,9 @@ export default function DeleteProject() {
     >
       <DeleteProjectModal />
       <div className="flex flex-col space-y-3 p-5 sm:p-10">
-        <h2 className="text-xl font-medium">Delete Project</h2>
+        <h2 className="text-xl font-medium">Delete Workspace</h2>
         <p className="text-sm text-gray-500">
-          Permanently delete your project, custom domain, and all associated
+          Permanently delete your workspace, custom domain, and all associated
           links + their stats. This action cannot be undone - please proceed
           with caution.
         </p>
@@ -34,11 +34,11 @@ export default function DeleteProject() {
       <div className="flex items-center justify-end px-5 py-4 sm:px-10">
         <div>
           <Button
-            text="Delete Project"
+            text="Delete Workspace"
             variant="danger"
             onClick={() => setShowDeleteProjectModal(true)}
             {...(!isOwner && {
-              disabledTooltip: "Only project owners can delete a project.",
+              disabledTooltip: "Only workspace owners can delete a workspace.",
             })}
           />
         </div>

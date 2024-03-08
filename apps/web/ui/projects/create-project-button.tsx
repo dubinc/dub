@@ -18,7 +18,7 @@ export default function CreateProjectButton() {
         disabledTooltip={
           exceedingFreeProjects ? (
             <TooltipContent
-              title={`You can only create up to ${FREE_PROJECTS_LIMIT} free projects. Additional projects require a paid plan.`}
+              title={`You can only create up to ${FREE_PROJECTS_LIMIT} free workspaces. Additional workspaces require a paid plan.`}
               cta="Upgrade to Pro"
               href={
                 freeProjects

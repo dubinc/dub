@@ -86,7 +86,7 @@ export default function Toggle() {
         ) : (
           <div className="flex items-center space-x-2">
             <BlurImage
-              alt={name || "Project Logo"}
+              alt={name || "Workspace Logo"}
               src={logo || DUB_LOGO}
               className="h-6 w-6 flex-shrink-0 overflow-hidden rounded-full"
               width={48}
@@ -119,7 +119,7 @@ export default function Toggle() {
                           title={
                             slug
                               ? `${display} stats can only be viewed on a Pro plan or higher. Upgrade now to view all-time stats.`
-                              : `${display} stats can only be viewed on a project with a Pro plan or higher. Create a project or navigate to an existing project to upgrade.`
+                              : `${display} stats can only be viewed on a workspace with a Pro plan or higher. Create a workspace or navigate to an existing workspace to upgrade.`
                           }
                           cta="Upgrade to Pro"
                           {...(isPublicStatsPage

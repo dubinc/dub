@@ -37,7 +37,7 @@ export default function ProjectPeopleClient() {
           <div className="flex flex-col space-y-3">
             <h2 className="text-xl font-medium">People</h2>
             <p className="text-sm text-gray-500">
-              Teammates that have access to this project.
+              Teammates that have access to this workspace.
             </p>
           </div>
           <div className="flex space-x-2">
@@ -195,7 +195,7 @@ const UserCard = ({
                   <IconMenu
                     text={
                       session?.user?.email === email
-                        ? "Leave project"
+                        ? "Leave workspace"
                         : currentTab === "Members"
                           ? "Remove teammate"
                           : "Revoke invite"
