@@ -84,7 +84,7 @@ export default function LinkCard({
     const primaryTagsCount = 1;
 
     const filteredTagIds =
-      searchParams?.get("tagId")?.split(",")?.filter(Boolean) ?? [];
+      searchParams?.get("tagIds")?.split(",")?.filter(Boolean) ?? [];
 
     /*
       Sort tags so that the filtered tags are first. The most recently selected
@@ -617,14 +617,28 @@ export default function LinkCard({
 
 function TagButton(tag: TagProps) {
   const { queryParams } = useRouterStuff();
+  const searchParams = useSearchParams();
+
+  const selectedTagIds =
+    searchParams?.get("tagIds")?.split(",")?.filter(Boolean) ?? [];
 
   return (
     <button
       onClick={() => {
+        let newTagIds = selectedTagIds.includes(tag.id)
+          ? selectedTagIds.filter((id) => id !== tag.id)
+          : [...selectedTagIds, tag.id];
+
         queryParams({
-          set: {
-            tagId: tag.id,
-          },
+          ...(newTagIds.length === 0
+            ? {
+                del: ["tagIds"],
+              }
+            : {
+                set: {
+                  tagIds: newTagIds.join(","),
+                },
+              }),
         });
       }}
       className="transition-all duration-75 hover:scale-105 active:scale-100"
