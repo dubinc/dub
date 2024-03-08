@@ -1,3 +1,4 @@
+import { nanoid } from "@dub/utils";
 import { connect } from "@planetscale/database";
 import { DomainProps, ProjectProps } from "./types";
 
@@ -90,5 +91,23 @@ export async function getDomainOrLink({
     };
   } else {
     return await getLinkViaEdge(domain, key);
+  }
+}
+
+export async function getRandomKey(
+  domain: string,
+  prefix?: string,
+): Promise<string> {
+  /* recursively get random key till it gets one that's available */
+  let key = nanoid();
+  if (prefix) {
+    key = `${prefix.replace(/^\/|\/$/g, "")}/${key}`;
+  }
+  const exists = await checkIfKeyExists(domain, key);
+  if (exists) {
+    // by the off chance that key already exists
+    return getRandomKey(domain, prefix);
+  } else {
+    return key;
   }
 }

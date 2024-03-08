@@ -19,12 +19,11 @@ import {
   getUrlFromString,
   isDubDomain,
   linkConstructor,
-  nanoid,
   truncate,
   validKeyRegex,
 } from "@dub/utils";
 import cloudinary from "cloudinary";
-import { checkIfKeyExists } from "../planetscale";
+import { checkIfKeyExists, getRandomKey } from "../planetscale";
 import { recordLink } from "../tinybird";
 import {
   LinkProps,
@@ -227,7 +226,7 @@ export async function keyChecks({
 
     if (key.length <= 3 && (!project || project.plan === "free")) {
       return {
-        error: `You can only use keys shorter than 3 characters on a Pro plan and above. Upgrade to Pro to register a ${key.length}-character key.`,
+        error: `You can only use keys that are 3 characters or less on a Pro plan and above. Upgrade to Pro to register a ${key.length}-character key.`,
         code: "forbidden",
       };
     }
@@ -236,7 +235,8 @@ export async function keyChecks({
       (!project || project.plan === "free")
     ) {
       return {
-        error: `This is a premium username. You can only use this username on a Pro plan and above. Upgrade to Pro to register this username.`,
+        error:
+          "This is a premium key. You can only use this key on a Pro plan and above. Upgrade to Pro to register this key.",
         code: "forbidden",
       };
     }
@@ -244,24 +244,6 @@ export async function keyChecks({
   return {
     error: null,
   };
-}
-
-export async function getRandomKey(
-  domain: string,
-  prefix?: string,
-): Promise<string> {
-  /* recursively get random key till it gets one that's available */
-  let key = nanoid();
-  if (prefix) {
-    key = `${prefix.replace(/^\/|\/$/g, "")}/${key}`;
-  }
-  const response = await keyChecks({ domain, key });
-  if (response.error) {
-    // by the off chance that key already exists
-    return getRandomKey(domain, prefix);
-  } else {
-    return key;
-  }
 }
 
 export function processKey(key: string) {
