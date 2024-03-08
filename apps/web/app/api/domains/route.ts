@@ -8,7 +8,7 @@ import { withAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-// GET /api/projects/[slug]/domains – get all domains for a project
+// GET /api/domains – get all domains for a project
 export const GET = withAuth(async ({ project }) => {
   const domains = await prisma.domain.findMany({
     where: {
@@ -28,7 +28,7 @@ export const GET = withAuth(async ({ project }) => {
   return NextResponse.json(domains);
 });
 
-// POST /api/projects/[slug]/domains - add a domain
+// POST /api/domains - add a domain
 export const POST = withAuth(async ({ req, project }) => {
   const { slug: domain, primary, archived, target, type } = await req.json();
 
@@ -52,12 +52,12 @@ export const POST = withAuth(async ({ req, project }) => {
     return new Response(vercelResponse.error.message, { status: 422 });
   }
   /* 
-        If the domain is being added, we need to:
-          1. Add the domain to Vercel
-          2. If there's a landing page set, update the root domain in Redis
-          3. If the domain is being set as the primary domain, set all other domains to not be the primary domain
-          4. Add the domain to the database along with its primary status
-      */
+          If the domain is being added, we need to:
+            1. Add the domain to Vercel
+            2. If there's a landing page set, update the root domain in Redis
+            3. If the domain is being set as the primary domain, set all other domains to not be the primary domain
+            4. Add the domain to the database along with its primary status
+        */
   const response = await Promise.all([
     prisma.domain.create({
       data: {
