@@ -206,7 +206,7 @@ const DomainsFilter = () => {
     return allActiveDomains
       .map((domain) => ({
         ...domain,
-        count: domains.find(({ domain: d }) => d === domain.slug)?._count || 0,
+        count: domains?.find(({ domain: d }) => d === domain.slug)?._count || 0,
       }))
       .sort((a, b) => b.count - a.count);
   }, [allActiveDomains, domains]);
