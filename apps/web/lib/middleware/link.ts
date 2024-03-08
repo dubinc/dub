@@ -57,7 +57,10 @@ export default async function LinkMiddleware(
     if (!linkData) {
       // short link not found, redirect to root
       // TODO: log 404s (https://github.com/dubinc/dub/issues/559)
-      return NextResponse.redirect(new URL("/", req.url), DUB_HEADERS);
+      return NextResponse.redirect(new URL("/", req.url), {
+        ...DUB_HEADERS,
+        status: 302,
+      });
     }
 
     // format link to fit the RedisLinkProps interface
@@ -157,21 +160,30 @@ export default async function LinkMiddleware(
 
     // redirect to iOS link if it is specified and the user is on an iOS device
   } else if (ios && userAgent(req).os?.name === "iOS") {
-    return NextResponse.redirect(getFinalUrl(ios, { req }), DUB_HEADERS);
+    return NextResponse.redirect(getFinalUrl(ios, { req }), {
+      ...DUB_HEADERS,
+      status: 302,
+    });
 
     // redirect to Android link if it is specified and the user is on an Android device
   } else if (android && userAgent(req).os?.name === "Android") {
-    return NextResponse.redirect(getFinalUrl(android, { req }), DUB_HEADERS);
+    return NextResponse.redirect(getFinalUrl(android, { req }), {
+      ...DUB_HEADERS,
+      status: 302,
+    });
 
     // redirect to geo-specific link if it is specified and the user is in the specified country
   } else if (geo && country && country in geo) {
-    return NextResponse.redirect(
-      getFinalUrl(geo[country], { req }),
-      DUB_HEADERS,
-    );
+    return NextResponse.redirect(getFinalUrl(geo[country], { req }), {
+      ...DUB_HEADERS,
+      status: 302,
+    });
 
     // regular redirect
   } else {
-    return NextResponse.redirect(getFinalUrl(url, { req }), DUB_HEADERS);
+    return NextResponse.redirect(getFinalUrl(url, { req }), {
+      ...DUB_HEADERS,
+      status: 302,
+    });
   }
 }

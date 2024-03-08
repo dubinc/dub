@@ -17,5 +17,4 @@ export const DUB_HEADERS = {
   headers: {
     "x-powered-by": "Dub.co - Link management for modern marketing teams",
   },
-  status: 302,
 };

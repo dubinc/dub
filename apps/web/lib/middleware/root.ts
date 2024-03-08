@@ -23,7 +23,7 @@ export default async function RootMiddleware(
 
     if (!linkData) {
       // rewrite to placeholder page if domain doesn't exist
-      return NextResponse.rewrite(new URL(`/${domain}`, req.url));
+      return NextResponse.rewrite(new URL(`/${domain}`, req.url), DUB_HEADERS);
     }
 
     // format link to fit the RedisLinkProps interface
@@ -57,8 +57,7 @@ export default async function RootMiddleware(
       return NextResponse.rewrite(url, DUB_HEADERS);
     }
   } else {
-    // Dub redirects are 302 by default, but for root links that have a destination URL,
-    // we want to use 301 (for SEO purposes)
+    // For root links that have a destination URL, use 301 status code (for SEO purposes)
     return NextResponse.redirect(url, { ...DUB_HEADERS, status: 301 });
   }
 }
