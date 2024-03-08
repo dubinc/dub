@@ -1,3 +1,5 @@
+"use client";
+
 import { RefObject, useEffect, useState } from "react";
 
 interface Args extends IntersectionObserverInit {

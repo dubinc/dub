@@ -13,7 +13,6 @@
   "dependencies": {
     "@boxyhq/saml-jackson": "^1.14.2",
     "@dub/tailwind-config": "workspace:*",
-    "@dub/ui": "workspace:*",
     "@dub/utils": "workspace:*",
     "@next-auth/prisma-adapter": "^1.0.5",
     "@planetscale/database": "^1.7.0",
@@ -89,6 +88,9 @@
     "zod": "^3.22.4",
     "zod-error": "^1.5.0",
     "zod-openapi": "^2.12.0"
+  },
+  "peerDependencies": {
+    "@dub/ui": "workspace:*"
   },
   "devDependencies": {
     "@types/dotenv-flow": "^3.3.2",

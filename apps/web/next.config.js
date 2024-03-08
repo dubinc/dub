@@ -20,6 +20,7 @@ module.exports = {
       "@react-email/tailwind",
     ],
   },
+  transpilePackages: ["@dub/ui"],
   webpack: (config, { webpack, isServer }) => {
     if (isServer) {
       config.plugins.push(
