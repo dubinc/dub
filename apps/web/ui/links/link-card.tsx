@@ -635,18 +635,6 @@ function TagButton(tag: TagProps) {
           },
           del: [...(newTagIds.length ? [] : ["tagIds"])],
         });
-
-        // queryParams({
-        //   ...(newTagIds.length === 0
-        //     ? {
-        //         del: ["tagIds"],
-        //       }
-        //     : {
-        //         set: {
-        //           tagIds: newTagIds.join(","),
-        //         },
-        //       }),
-        // });
       }}
       className="transition-all duration-75 hover:scale-105 active:scale-100"
     >
