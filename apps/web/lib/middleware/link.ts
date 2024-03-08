@@ -87,6 +87,7 @@ export default async function LinkMiddleware(
   if (inspectMode && !password) {
     return NextResponse.rewrite(
       new URL(`/inspect/${domain}/${encodeURIComponent(key)}+`, req.url),
+      DUB_HEADERS,
     );
   }
 
@@ -101,6 +102,7 @@ export default async function LinkMiddleware(
     if (!pw || (await getLinkViaEdge(domain, key))?.password !== pw) {
       return NextResponse.rewrite(
         new URL(`/password/${domain}/${encodeURIComponent(key)}`, req.url),
+        DUB_HEADERS,
       );
     } else if (pw) {
       // strip it from the URL if it's correct
@@ -110,12 +112,12 @@ export default async function LinkMiddleware(
 
   // if the link is banned
   if (link.projectId === LEGAL_PROJECT_ID) {
-    return NextResponse.rewrite(new URL("/banned", req.url));
+    return NextResponse.rewrite(new URL("/banned", req.url), DUB_HEADERS);
   }
 
   // if the link has expired
   if (expiresAt && new Date(expiresAt) < new Date()) {
-    return NextResponse.rewrite(new URL("/expired", req.url));
+    return NextResponse.rewrite(new URL("/expired", req.url), DUB_HEADERS);
   }
 
   const searchParams = req.nextUrl.searchParams;
@@ -138,6 +140,7 @@ export default async function LinkMiddleware(
   if (isBot && proxy) {
     return NextResponse.rewrite(
       new URL(`/proxy/${domain}/${encodeURIComponent(key)}`, req.url),
+      DUB_HEADERS,
     );
 
     // rewrite to target URL if link cloaking is enabled
