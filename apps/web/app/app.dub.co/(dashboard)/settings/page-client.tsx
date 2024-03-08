@@ -20,6 +20,9 @@ export default function SettingsPageClient() {
             status === "loading" ? undefined : session?.user?.name || "",
           placeholder: "Steve Jobs",
           maxLength: 32,
+          required: true,
+          type: "text",
+          pattern: ".*\S+.*"
         }}
         helpText="Max 32 characters."
         handleSubmit={(data) =>
@@ -47,6 +50,9 @@ export default function SettingsPageClient() {
           name: "email",
           defaultValue: session?.user?.email || undefined,
           placeholder: "panic@thedis.co",
+          required: true,
+          type: "email",
+          pattern: ".*\S+.*"
         }}
         helpText="Must be a valid email address."
         handleSubmit={(data) =>
