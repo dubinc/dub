@@ -42,6 +42,7 @@ export default function ClicksChart() {
     <div className="h-72 w-full">
       {chartData !== null && (
         <AreaChart
+          key={queryString}
           data={chartData}
           series={[{ id: "clicks", accessorFn: (d) => d.values.clicks }]}
           tickFormat={dateFormatter}
