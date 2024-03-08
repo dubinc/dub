@@ -8,7 +8,7 @@ export default function useDefaultDomains() {
   };
 
   const { data, error, mutate } = useSWR<string[]>(
-    slug && `/api/projects/${slug}/domains/default`,
+    slug && `/api/domains/default?projectSlug=${slug}`,
     fetcher,
     {
       dedupingInterval: 60000,
