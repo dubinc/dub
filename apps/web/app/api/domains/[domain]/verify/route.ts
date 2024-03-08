@@ -8,6 +8,8 @@ import prisma from "@/lib/prisma";
 import { DomainVerificationStatusProps } from "@/lib/types";
 import { NextResponse } from "next/server";
 
+export const maxDuration = 30;
+
 // GET /api/domains/[domain]/verify - get domain verification status
 export const GET = withAuth(async ({ domain }) => {
   let status: DomainVerificationStatusProps = "Valid Configuration";
