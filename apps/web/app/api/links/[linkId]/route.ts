@@ -27,7 +27,7 @@ export const PUT = withAuth(async ({ req, headers, project, link }) => {
   if (updatedLink.projectId !== link?.projectId) {
     throw new DubApiError({
       code: "forbidden",
-      message: "Transferring links to another project is not yet supported.",
+      message: "Transferring links to another workspace is not yet supported.",
     });
   }
 

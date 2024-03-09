@@ -93,7 +93,7 @@ export const DELETE = withAuth(
       throw new DubApiError({
         code: "bad_request",
         message:
-          "Cannot remove owner from project. Please transfer ownership to another user first.",
+          "Cannot remove owner from workspace. Please transfer ownership to another user first.",
       });
     }
     const response = await prisma.projectUsers.delete({

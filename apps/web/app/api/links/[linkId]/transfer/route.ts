@@ -35,14 +35,14 @@ export const POST = withAuth(async ({ req, headers, session, link }) => {
   if (!newProject || newProject.users.length === 0) {
     throw new DubApiError({
       code: "not_found",
-      message: "New project not found.",
+      message: "New workspace not found.",
     });
   }
 
   if (newProject.linksUsage >= newProject.linksLimit) {
     throw new DubApiError({
       code: "forbidden",
-      message: "New project has reached its link limit.",
+      message: "New workspace has reached its link limit.",
     });
   }
 

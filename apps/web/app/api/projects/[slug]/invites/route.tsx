@@ -54,7 +54,7 @@ export const POST = withAuth(
     if (alreadyInTeam) {
       throw new DubApiError({
         code: "bad_request",
-        message: "User already exists in this project.",
+        message: "User already exists in this workspace.",
       });
     }
 

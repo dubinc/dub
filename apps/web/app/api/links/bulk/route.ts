@@ -13,7 +13,7 @@ export const POST = withAuth(
       throw new DubApiError({
         code: "bad_request",
         message:
-          "Missing project. Bulk link creation is only available for custom domain projects.",
+          "Missing workspace. Bulk link creation is only available for custom domain workspaces.",
       });
     }
     const links = bulkCreateLinksBodySchema.parse(await req.json());
