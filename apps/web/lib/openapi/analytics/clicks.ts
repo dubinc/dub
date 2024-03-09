@@ -6,7 +6,7 @@ export const getClicksAnalytics: ZodOpenApiOperationObject = {
   operationId: "getClicksAnalytics",
   summary: "Retrieve clicks analytics",
   description:
-    "Retrieve the number of clicks for a link, a domain, or the authenticated project.",
+    "Retrieve the number of clicks for a link, a domain, or the authenticated workspace.",
   requestParams: {
     query: getAnalyticsQuerySchema,
   },

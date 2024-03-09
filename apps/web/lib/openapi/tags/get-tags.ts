@@ -2,15 +2,18 @@ import { ZodOpenApiOperationObject } from "zod-openapi";
 
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import z from "@/lib/zod";
-import { projectOrWorkspaceSchema } from "@/lib/zod/schemas/projects";
 import { TagSchema } from "@/lib/zod/schemas/tags";
 
 export const getTags: ZodOpenApiOperationObject = {
   operationId: "getTags",
   summary: "Retrieve a list of tags",
-  description: "Retrieve a list of tags for the authenticated project.",
+  description: "Retrieve a list of tags for the authenticated workspace.",
   requestParams: {
-    query: projectOrWorkspaceSchema,
+    query: z.object({
+      workspaceId: z
+        .string()
+        .describe("The ID of the workspace to retrieve the tags for."),
+    }),
   },
   responses: {
     "200": {

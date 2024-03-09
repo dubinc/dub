@@ -8,7 +8,7 @@ export const getCountryAnalytics: ZodOpenApiOperationObject = {
   operationId: "getCountryAnalytics",
   summary: "Retrieve country analytics",
   description:
-    "Retrieve the top countries by number of clicks for a link, a domain, or the authenticated project.",
+    "Retrieve the top countries by number of clicks for a link, a domain, or the authenticated workspace.",
   requestParams: {
     query: getAnalyticsQuerySchema,
   },

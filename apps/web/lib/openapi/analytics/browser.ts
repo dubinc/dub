@@ -7,7 +7,7 @@ export const getBrowserAnalytics: ZodOpenApiOperationObject = {
   operationId: "getBrowserAnalytics",
   summary: "Retrieve browser analytics",
   description:
-    "Retrieve the top browsers by number of clicks for a link, a domain, or the authenticated project.",
+    "Retrieve the top browsers by number of clicks for a link, a domain, or the authenticated workspace.",
   requestParams: {
     query: getAnalyticsQuerySchema,
   },

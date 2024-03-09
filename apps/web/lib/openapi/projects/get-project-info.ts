@@ -5,21 +5,17 @@ import z from "@/lib/zod";
 import { ProjectSchema } from "@/lib/zod/schemas/projects";
 
 export const getProjectInfo: ZodOpenApiOperationObject = {
-  operationId: "getProject",
-  summary: "Retrieve a project",
-  description: "Retrieve a project for the authenticated user.",
+  operationId: "getWorkspace",
+  summary: "Retrieve a workspace",
+  description: "Retrieve a workspace for the authenticated user.",
   requestParams: {
     path: z.object({
-      projectSlug: z
-        .string()
-        .describe(
-          "The slug for the project to retrieve. E.g. for `app.dub.co/acme`, the projectSlug is `acme`.",
-        ),
+      workspaceId: z.string().describe("The ID of the workspace to retrieve."),
     }),
   },
   responses: {
     "200": {
-      description: "The retrieved project",
+      description: "The retrieved workspace",
       content: {
         "application/json": {
           schema: ProjectSchema,
@@ -28,6 +24,6 @@ export const getProjectInfo: ZodOpenApiOperationObject = {
     },
     ...openApiErrorResponses,
   },
-  tags: ["Projects"],
+  tags: ["Workspaces"],
   security: [{ bearerToken: [] }],
 };

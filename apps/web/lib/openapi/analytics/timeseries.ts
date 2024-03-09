@@ -7,7 +7,7 @@ export const getTimeseriesAnalytics: ZodOpenApiOperationObject = {
   operationId: "getTimeseriesAnalytics",
   summary: "Retrieve timeseries analytics",
   description:
-    "Retrieve the number of clicks for a link, a domain, or the authenticated project over a period of time.",
+    "Retrieve the number of clicks for a link, a domain, or the authenticated workspace over a period of time.",
   requestParams: {
     query: getAnalyticsQuerySchema,
   },

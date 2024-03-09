@@ -3,16 +3,14 @@ import { booleanQuerySchema } from ".";
 import { TagSchema } from "./tags";
 
 const LinksQuerySchema = {
-  projectSlug: z
+  workspaceId: z
     .string()
-    .describe(
-      "The slug for the project that the link belongs to. E.g. for `app.dub.co/acme`, the projectSlug is `acme`.",
-    ),
+    .describe("The ID of the workspace that the link belongs to."),
   domain: z
     .string()
     .optional()
     .describe(
-      "The domain to filter the links by. E.g. `ac.me`. If not provided, all links for the project will be returned.",
+      "The domain to filter the links by. E.g. `ac.me`. If not provided, all links for the workspace will be returned.",
     ),
   tagId: z
     .string()
@@ -68,12 +66,10 @@ export const getLinksCountQuerySchema = z.object({
 });
 
 export const getLinkInfoQuerySchema = z.object({
-  projectSlug: z
+  workspaceId: z
     .string()
-    .min(1, "Project slug is required.")
-    .describe(
-      "The slug for the project that the link belongs to. E.g. for `app.dub.co/acme`, the projectSlug is `acme`.",
-    ),
+    .min(1, "Workspace id is required.")
+    .describe("The ID of the workspace to retrieve the links for."),
   domain: z
     .string()
     .min(1, "Domain is required.")
@@ -93,7 +89,7 @@ export const createLinkBodySchema = z.object({
     .string()
     .optional()
     .describe(
-      "The domain of the short link. If not provided, the primary domain for the project will be used (or `dub.sh` if the project has no domains).",
+      "The domain of the short link. If not provided, the primary domain for the workspace will be used (or `dub.sh` if the project has no domains).",
     ),
   key: z
     .string()
@@ -212,7 +208,7 @@ export const LinkSchema = z
     domain: z
       .string()
       .describe(
-        "The domain of the short link. If not provided, the primary domain for the project will be used (or `dub.sh` if the project has no domains).",
+        "The domain of the short link. If not provided, the primary domain for the workspace will be used (or `dub.sh` if the project has no domains).",
       ),
     key: z
       .string()
@@ -325,7 +321,7 @@ export const LinkSchema = z
     userId: z
       .string()
       .describe("The user ID of the creator of the short link."),
-    projectId: z.string().describe("The project ID of the short link."),
+    projectId: z.string().describe("The workspace ID of the short link."),
     clicks: z
       .number()
       .default(0)

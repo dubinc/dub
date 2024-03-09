@@ -4,10 +4,10 @@ import { getProjectInfo } from "./get-project-info";
 import { getProjects } from "./get-projects";
 
 export const projectsPaths: ZodOpenApiPathsObject = {
-  "/projects": {
+  "/workspaces": {
     get: getProjects,
   },
-  "/projects/{projectSlug}": {
+  "/workspaces/{workspaceId}": {
     get: getProjectInfo,
   },
 };
