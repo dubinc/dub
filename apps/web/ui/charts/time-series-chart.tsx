@@ -107,7 +107,7 @@ function TimeSeriesChartInner<T extends Datum>({
       factors(data.length).find((f) => data.length / f < maxTicks) ?? 1;
 
     return { maxTicks, xTickInterval };
-  }, [maxTicksProp]);
+  }, [width, maxTicksProp]);
 
   const chartContext: ChartContextType<T> = {
     width,
