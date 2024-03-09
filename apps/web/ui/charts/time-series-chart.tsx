@@ -102,7 +102,7 @@ function TimeSeriesChartInner<T extends Datum>({
   }, [startDate, endDate, minY, maxY, height, width, margin]);
 
   const { maxTicks, xTickInterval } = useMemo(() => {
-    const maxTicks = maxTicksProp ?? width < 450 ? 6 : width < 900 ? 8 : 12;
+    const maxTicks = maxTicksProp ?? width < 500 ? 6 : width < 800 ? 8 : 12;
     const xTickInterval =
       factors(data.length).find((f) => data.length / f < maxTicks) ?? 1;
 
