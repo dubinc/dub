@@ -119,8 +119,8 @@ export const withAuth = (
     let headers = {};
 
     const slug = params?.slug || searchParams.projectSlug;
-    const workspaceId = searchParams?.workspaceId;
-
+    const workspaceId = params?.workspaceId || searchParams.workspaceId;
+    console.log({ params, searchParams });
     try {
       // if there's no projectSlug defined
       if (!slug) {
@@ -280,7 +280,7 @@ export const withAuth = (
         // project doesn't exist
         throw new DubApiError({
           code: "not_found",
-          message: "Project not found.",
+          message: "Workspace not found.",
         });
       }
 
@@ -292,7 +292,7 @@ export const withAuth = (
       ) {
         throw new DubApiError({
           code: "forbidden",
-          message: "Domain does not belong to project.",
+          message: "Domain does not belong to workspace.",
         });
       }
 
@@ -312,17 +312,17 @@ export const withAuth = (
         if (!pendingInvites) {
           throw new DubApiError({
             code: "not_found",
-            message: "Project not found.",
+            message: "Workspace not found.",
           });
         } else if (pendingInvites.expires < new Date()) {
           throw new DubApiError({
             code: "invite_expired",
-            message: "Project invite expired.",
+            message: "Workspace invite expired.",
           });
         } else {
           throw new DubApiError({
             code: "invite_pending",
-            message: "Project invite pending.",
+            message: "Workspace invite pending.",
           });
         }
       }
@@ -427,7 +427,6 @@ export const withAuth = (
         link,
       });
     } catch (error) {
-      console.error("withAuth Error -->", error.message);
       return handleAndReturnErrorResponse(error);
     }
   };

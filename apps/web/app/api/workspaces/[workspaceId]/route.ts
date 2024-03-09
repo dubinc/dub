@@ -49,7 +49,7 @@ export const PUT = withAuth(
       if (error.code === "P2002") {
         throw new DubApiError({
           code: "conflict",
-          message: "Project slug already exists.",
+          message: "Workspace slug already exists.",
         });
       }
 

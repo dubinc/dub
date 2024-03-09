@@ -9,7 +9,7 @@ export async function POST(req: Request) {
 
   if (!slug) {
     return NextResponse.json(
-      { error: "No project slug provided." },
+      { error: "No workspace slug provided." },
       { status: 400 },
     );
   }
@@ -20,7 +20,10 @@ export async function POST(req: Request) {
   });
 
   if (!project) {
-    return NextResponse.json({ error: "Project not found." }, { status: 404 });
+    return NextResponse.json(
+      { error: "Workspace not found." },
+      { status: 404 },
+    );
   }
 
   const connections = await apiController.getConnections({
@@ -30,7 +33,7 @@ export async function POST(req: Request) {
 
   if (!connections || connections.length === 0) {
     return NextResponse.json(
-      { error: "No SSO connections found for this project." },
+      { error: "No SSO connections found for this workspace." },
       { status: 404 },
     );
   }
