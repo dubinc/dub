@@ -141,6 +141,14 @@
     {
       "source": "/self-hosting/guide",
       "destination": "/self-hosting"
+    },
+    {
+      "source": "/api-reference/endpoint/retrieve-a-project",
+      "destination": "/api-reference/endpoint/retrieve-a-workspace"
+    },
+    {
+      "source": "/api-reference/endpoint/retrieve-a-list-of-projects",
+      "destination": "/api-reference/endpoint/retrieve-a-list-of-workspaces"
     }
   ]
 }
