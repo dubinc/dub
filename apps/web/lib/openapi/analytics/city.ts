@@ -1,5 +1,5 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import z from "@/lib/zod";
+import z, { workspaceIdSchema } from "@/lib/zod";
 import { getAnalyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { COUNTRY_CODES } from "@dub/utils";
 import { ZodOpenApiOperationObject } from "zod-openapi";
@@ -10,7 +10,7 @@ export const getCityAnalytics: ZodOpenApiOperationObject = {
   description:
     "Retrieve the top countries by number of clicks for a link, a domain, or the authenticated workspace.",
   requestParams: {
-    query: getAnalyticsQuerySchema,
+    query: workspaceIdSchema.merge(getAnalyticsQuerySchema),
   },
   responses: {
     "200": {

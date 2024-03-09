@@ -12,7 +12,7 @@ export const deleteLink: ZodOpenApiOperationObject = {
     query: z.object({
       workspaceId: z
         .string()
-        .describe("The ID of the workspace to create the link for."),
+        .describe("The ID of the workspace that the link belongs to."),
     }),
     path: z.object({
       linkId: z.string().openapi({

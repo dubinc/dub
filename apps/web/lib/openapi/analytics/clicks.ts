@@ -1,4 +1,5 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
+import { workspaceIdSchema } from "@/lib/zod";
 import { getAnalyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
@@ -8,7 +9,7 @@ export const getClicksAnalytics: ZodOpenApiOperationObject = {
   description:
     "Retrieve the number of clicks for a link, a domain, or the authenticated workspace.",
   requestParams: {
-    query: getAnalyticsQuerySchema,
+    query: workspaceIdSchema.merge(getAnalyticsQuerySchema),
   },
   responses: {
     "200": {

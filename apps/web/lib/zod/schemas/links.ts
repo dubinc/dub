@@ -2,10 +2,7 @@ import z from "@/lib/zod";
 import { booleanQuerySchema } from ".";
 import { TagSchema } from "./tags";
 
-const LinksQuerySchema = {
-  workspaceId: z
-    .string()
-    .describe("The ID of the workspace that the link belongs to."),
+const LinksQuerySchema = z.object({
   domain: z
     .string()
     .optional()
@@ -40,36 +37,36 @@ const LinksQuerySchema = {
     .describe(
       "Whether to include tags in the response. Defaults to `false` if not provided.",
     ),
-};
-
-export const getLinksQuerySchema = z.object({
-  ...LinksQuerySchema,
-  sort: z
-    .enum(["createdAt", "clicks", "lastClicked"])
-    .optional()
-    .default("createdAt")
-    .describe(
-      "The field to sort the links by. The default is `createdAt`, and sort order is always descending.",
-    ),
-  page: z.coerce
-    .number()
-    .optional()
-    .describe("The page number for pagination (each page contains 100 links)."),
 });
 
-export const getLinksCountQuerySchema = z.object({
-  ...LinksQuerySchema,
-  groupBy: z
-    .union([z.literal("domain"), z.literal("tagId")])
-    .optional()
-    .describe("The field to group the links by."),
-});
+export const getLinksQuerySchema = LinksQuerySchema.merge(
+  z.object({
+    sort: z
+      .enum(["createdAt", "clicks", "lastClicked"])
+      .optional()
+      .default("createdAt")
+      .describe(
+        "The field to sort the links by. The default is `createdAt`, and sort order is always descending.",
+      ),
+    page: z.coerce
+      .number()
+      .optional()
+      .describe(
+        "The page number for pagination (each page contains 100 links).",
+      ),
+  }),
+);
+
+export const getLinksCountQuerySchema = LinksQuerySchema.merge(
+  z.object({
+    groupBy: z
+      .union([z.literal("domain"), z.literal("tagId")])
+      .optional()
+      .describe("The field to group the links by."),
+  }),
+);
 
 export const getLinkInfoQuerySchema = z.object({
-  workspaceId: z
-    .string()
-    .min(1, "Workspace id is required.")
-    .describe("The ID of the workspace to retrieve the links for."),
   domain: z
     .string()
     .min(1, "Domain is required.")

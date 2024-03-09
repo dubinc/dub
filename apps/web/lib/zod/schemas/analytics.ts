@@ -4,10 +4,6 @@ import { COUNTRY_CODES } from "@dub/utils";
 import { booleanQuerySchema } from ".";
 
 export const getAnalyticsQuerySchema = z.object({
-  workspaceId: z
-    .string()
-    .optional() // TODO: This should be required
-    .describe("The ID of the workspace that the link belongs to."),
   domain: z.string().optional().describe("The domain of the short link."),
   key: z.string().optional().describe("The short link slug."),
   interval: z
