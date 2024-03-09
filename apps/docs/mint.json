@@ -107,10 +107,10 @@
       ]
     },
     {
-      "group": "Projects",
+      "group": "Workspaces",
       "pages": [
-        "api-reference/endpoint/retrieve-a-project",
-        "api-reference/endpoint/retrieve-a-list-of-projects"
+        "api-reference/endpoint/retrieve-a-workspace",
+        "api-reference/endpoint/retrieve-a-list-of-workspaces"
       ]
     },
     {
