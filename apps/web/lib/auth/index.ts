@@ -123,7 +123,7 @@ export const withAuth = (
 
     try {
       // if there's no projectSlug defined
-      if (!slug) {
+      if (!slug && !workspaceId) {
         // for /api/links (POST /api/links) – allow no session (but warn if user provides apiKey)
         if (allowAnonymous && !apiKey) {
           // @ts-expect-error
@@ -133,15 +133,13 @@ export const withAuth = (
             searchParams,
             headers,
           });
+        } else {
+          throw new DubApiError({
+            code: "not_found",
+            message:
+              "Workspace id not found. Did you forget to include a `workspaceId` query parameter?",
+          });
         }
-      }
-
-      if (!slug && !workspaceId) {
-        throw new DubApiError({
-          code: "not_found",
-          message:
-            "Workspace id not found. Did you forget to include a `workspaceId` query parameter?",
-        });
       }
 
       if (apiKey) {
