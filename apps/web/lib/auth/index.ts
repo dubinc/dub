@@ -120,7 +120,7 @@ export const withAuth = (
 
     const slug = params?.slug || searchParams.projectSlug;
     const workspaceId = params?.workspaceId || searchParams.workspaceId;
-    console.log({ params, searchParams });
+
     try {
       // if there's no projectSlug defined
       if (!slug) {
@@ -535,7 +535,6 @@ export const withSession =
       const searchParams = getSearchParams(req.url);
       return await handler({ req, params, searchParams, session });
     } catch (error) {
-      console.error("withSession Error -->", error.message);
       return handleAndReturnErrorResponse(error);
     }
   };
