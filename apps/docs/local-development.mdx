@@ -218,27 +218,37 @@ Navigate to the [QStash tab](https://console.upstash.com/qstash) and copy the `Q
 
 Next, you'll need to set up the MySQL database that is compatible with Planetscale. This will be used to store user data and link metadata. There are two options:
 
-**Option 1: PlanetScale hosted database**
+**Option 1: Local MySQL database with PlanetScale simulator**
 
-You can use a PlanetScale hosted database. Note they've removed the free tier, so you'll need to pay for this option.
+You can use a local MySQL database with a PlanetScale simulator. This is the recommended option for local development.
+
+Prerequisites:
+
+- [Docker](https://www.docker.com/products/docker-desktop)
+- [Docker Compose](https://docs.docker.com/compose/install/)
 
 <Steps>
 
-  <Step title="Create Planetscale database">
+  <Step title="Spin up the docker-compose stack">
 
-    In your [Planetscale account](https://app.planetscale.com/), create a new database. You can use the free tier for this project.
+    In the terminal, navigate to the `apps/web` directory and run the following command to start the Docker Compose stack:
 
-    Once your database is created, you'll be prompted to select your language or Framework. Select **Prisma**.
+    ```bash Terminal
+    docker-compose up
+    ```
 
-    ![Planetscale choose framework](/images/planetscale-choose-framework.png)
+    This will start two containers: one for the MySQL database and another for the PlanetScale simulator.
 
   </Step>
 
-  <Step title="Set up Planetscale environment variables">
+  <Step title="Set up database environment variables">
 
-    Then, you'll have to create a new password for your database. Once the password is created, scroll down to the **Add credentials to .env** section and copy the `DATABASE_URL` into your `.env` file.
+    **Add credentials to .env** section.
 
-    ![Planetscale add credentials](/images/planetscale-add-credentials.png)
+    ```
+    PLANETSCALE_DATABASE_URL="http://root:unused@localhost:3900"
+    DATABASE_URL="mysql://root:@localhost:3306/planetscale"
+    ```
 
   </Step>
 
@@ -260,35 +270,27 @@ You can use a PlanetScale hosted database. Note they've removed the free tier, s
 
 </Steps>
 
-**Option 2: Local MySQL database with PlanetScale simulator**
+**Option 2: PlanetScale hosted database**
 
-You can use a local MySQL database with a PlanetScale simulator. This is the recommended option for local development.
-
-Prerequisites:
-- [Docker](https://www.docker.com/products/docker-desktop)
-- [Docker Compose](https://docs.docker.com/compose/install/)
+You can use a PlanetScale hosted database. Note they've removed the free tier, so you'll need to pay for this option.
 
 <Steps>
 
-  <Step title="Spin up the docker-compose stack">
+  <Step title="Create Planetscale database">
 
-    In the terminal, navigate to the `apps/web` directory and run the following command to start the Docker Compose stack:
+    In your [Planetscale account](https://app.planetscale.com/), create a new database. You can use the free tier for this project.
 
-    ```bash Terminal
-    docker-compose up
-    ```
+    Once your database is created, you'll be prompted to select your language or Framework. Select **Prisma**.
 
-    This will start two containers: one for the MySQL database and another for the PlanetScale simulator.
+    ![Planetscale choose framework](/images/planetscale-choose-framework.png)
+
   </Step>
 
-  <Step title="Set up database environment variables">
+  <Step title="Set up Planetscale environment variables">
 
-    **Add credentials to .env** section.
+    Then, you'll have to create a new password for your database. Once the password is created, scroll down to the **Add credentials to .env** section and copy the `DATABASE_URL` into your `.env` file.
 
-    ```
-    PLANETSCALE_DATABASE_URL="http://root:unused@localhost:3900"
-    DATABASE_URL="mysql://root:@localhost:3306/planetscale"
-    ```
+    ![Planetscale add credentials](/images/planetscale-add-credentials.png)
 
   </Step>
 
