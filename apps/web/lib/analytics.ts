@@ -1,4 +1,5 @@
 import { conn } from "./planetscale";
+import { nanoid } from "@dub/utils";
 import z from "./zod";
 import { getAnalyticsQuerySchema } from "./zod/schemas/analytics";
 
@@ -190,4 +191,8 @@ export const getAnalytics = async ({
       }
       return data;
     });
+};
+
+export const generateClickId = () => {
+  return nanoid(16);
 };
