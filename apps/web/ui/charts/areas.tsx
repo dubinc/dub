@@ -28,7 +28,8 @@ export default function Areas() {
             fromOpacity={0.01}
             to="currentColor"
             toOpacity={0.2}
-            x={0}
+            x1={0}
+            x2={0}
             y1={1}
           />
 
