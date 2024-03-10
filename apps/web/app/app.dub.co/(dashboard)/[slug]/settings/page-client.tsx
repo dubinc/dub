@@ -2,6 +2,7 @@
 
 import useProject from "@/lib/swr/use-project";
 import DeleteProject from "@/ui/projects/delete-project";
+import ProjectID from "@/ui/projects/project-id";
 import UploadLogo from "@/ui/projects/upload-logo";
 import { Form } from "@dub/ui";
 import { useRouter } from "next/navigation";
@@ -84,6 +85,7 @@ export default function ProjectSettingsClient() {
           })
         }
       />
+      <ProjectID />
       <UploadLogo />
       <DeleteProject />
     </>

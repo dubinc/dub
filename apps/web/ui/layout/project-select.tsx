@@ -138,7 +138,7 @@ function ProjectList({
 
   return (
     <div className="relative mt-1 max-h-72 w-full space-y-0.5 overflow-auto rounded-md bg-white p-2 text-base sm:w-60 sm:text-sm sm:shadow-lg">
-      <div className="p-2 text-xs text-gray-500">My Projects</div>
+      <div className="p-2 text-xs text-gray-500">My Workspaces</div>
       {projects.map(({ id, name, slug, logo, primaryDomain, metadata }) => {
         return (
           <Link
