@@ -33,6 +33,7 @@ import punycode from "punycode/";
 import { useContext, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AnalyticsContext } from ".";
+import TagSelector from "./tag-selector";
 
 export default function Toggle() {
   const { slug } = useParams() as { slug?: string };
@@ -104,8 +105,9 @@ export default function Toggle() {
             )}
           </div>
         )}
-        <div className="flex items-center">
+        <div className="flex items-center gap-2">
           {!isPublicStatsPage && key && <SharePopover />}
+          {!isPublicStatsPage && !key && <TagSelector />}
           <Popover
             content={
               <div className="grid w-full p-2 md:w-48">
@@ -339,7 +341,7 @@ const SharePopover = () => {
     >
       <button
         onClick={() => setopenSharePopoverPopover(!openSharePopover)}
-        className="mr-2 flex w-24 items-center justify-center space-x-2 rounded-md bg-white px-3 py-2.5 shadow transition-all duration-75 hover:shadow-md active:scale-95"
+        className="flex w-24 items-center justify-center space-x-2 rounded-md bg-white px-3 py-2.5 shadow transition-all duration-75 hover:shadow-md active:scale-95"
       >
         <IconMenu text="Share" icon={<Share2 className="h-4 w-4" />} />
       </button>
