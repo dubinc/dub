@@ -24,21 +24,29 @@ export default function ClicksChart() {
     [data],
   );
 
-  const dateFormatter = useCallback(
+  const formatDate = useCallback(
     (date: Date) => {
-      if (interval.endsWith("h")) {
-        return date.toLocaleTimeString("en-US", {
-          hour: "numeric",
-          minute: interval === "1h" ? "numeric" : undefined,
-        });
+      switch (interval) {
+        case "1h":
+        case "24h":
+          return date.toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "numeric",
+          });
+        case "90d":
+        case "all":
+          return date.toLocaleDateString("en-US", {
+            month: "short",
+            year: "numeric",
+          });
+        default:
+          return date.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          });
       }
-
-      return date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      });
     },
-    [interval],
+    [data, interval],
   );
 
   return (
@@ -54,12 +62,12 @@ export default function ClicksChart() {
                 <strong className="text-gray-700">{d.values.clicks}</strong>{" "}
                 clicks
               </p>
-              <p className="text-sm text-gray-400">{dateFormatter(d.date)}</p>
+              <p className="text-sm text-gray-400">{formatDate(d.date)}</p>
             </>
           )}
         >
           <Areas />
-          <XAxis tickFormat={dateFormatter} />
+          <XAxis tickFormat={formatDate} />
           <YAxis integerTicks showGridLines />
         </TimeSeriesChart>
       )}
