@@ -2,8 +2,10 @@ import { withSession } from "@/lib/auth";
 import { unsubscribe } from "@/lib/flodesk";
 import prisma from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
+import { trim } from "@dub/utils";
 import cloudinary from "cloudinary";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 // GET /api/user – get a specific user
 export const GET = withSession(async ({ session }) => {
@@ -22,9 +24,17 @@ export const GET = withSession(async ({ session }) => {
   });
 });
 
+const updateUserSchema = z.object({
+  name: z.preprocess(trim, z.string().min(1).max(64)).optional(),
+  email: z.preprocess(trim, z.string().email()).optional(),
+  image: z.string().url().optional(),
+});
+
 // PUT /api/user – edit a specific user
 export const PUT = withSession(async ({ req, session }) => {
-  let { name, email, image } = await req.json();
+  let { name, email, image } = await updateUserSchema.parseAsync(
+    await req.json(),
+  );
   try {
     if (image) {
       const { secure_url } = await cloudinary.v2.uploader.upload(image, {
