@@ -14,7 +14,7 @@ import { NextResponse } from "next/server";
 // GET /api/domains/[domain] – get a project's domain
 export const GET = withAuth(async ({ domain, project }) => {
   if (isDubDomain(domain) && project.id !== DUB_PROJECT_ID) {
-    return new Response("Domain does not belong to project.", {
+    return new Response("Domain does not belong to workspace.", {
       status: 403,
     });
   }
@@ -54,7 +54,7 @@ export const PUT = withAuth(async ({ req, project, domain }) => {
   } = await req.json();
 
   if (isDubDomain(domain) && project.id !== DUB_PROJECT_ID) {
-    return new Response("Domain does not belong to project.", {
+    return new Response("Domain does not belong to workspace.", {
       status: 403,
     });
   }
@@ -133,7 +133,7 @@ export const PUT = withAuth(async ({ req, project, domain }) => {
 // DELETE /api/domains/[domain] - delete a project's domain
 export const DELETE = withAuth(async ({ domain, project }) => {
   if (isDubDomain(domain) && project.id !== DUB_PROJECT_ID) {
-    return new Response("Domain does not belong to project.", {
+    return new Response("Domain does not belong to workspace.", {
       status: 403,
     });
   }

@@ -75,7 +75,7 @@ export const DELETE = withSession(async ({ session }) => {
   });
   if (userIsOwnerOfProjects.length > 0) {
     return new Response(
-      "You must transfer ownership of your projects or delete them before you can delete your account.",
+      "You must transfer ownership of your workspaces or delete them before you can delete your account.",
       { status: 422 },
     );
   } else {

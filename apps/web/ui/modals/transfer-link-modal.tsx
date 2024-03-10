@@ -115,7 +115,7 @@ function TransferLinkModal({
             selectedItem={selectedProject}
             setSelectedItem={setSelectedProject}
             inputAttrs={{
-              placeholder: "Select a project",
+              placeholder: "Select a workspace",
             }}
           />
           <Button

@@ -14,7 +14,7 @@ export default function CreateProjectButton() {
   return (
     <div>
       <Button
-        text="Create project"
+        text="Create workspace"
         disabledTooltip={
           exceedingFreeProjects ? (
             <TooltipContent

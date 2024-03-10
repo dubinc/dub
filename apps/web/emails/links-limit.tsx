@@ -62,7 +62,7 @@ export default function LinksLimitAlert({
               Dub.co Links Limit Alert
             </Heading>
             <Text className="text-sm leading-6 text-black">
-              Your Dub.co project,{" "}
+              Your Dub.co workspace,{" "}
               <Link
                 href={`https://app.dub.co/${slug}`}
                 className="text-black underline"

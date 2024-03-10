@@ -86,7 +86,7 @@ export const createLinkBodySchema = z.object({
     .string()
     .optional()
     .describe(
-      "The domain of the short link. If not provided, the primary domain for the workspace will be used (or `dub.sh` if the project has no domains).",
+      "The domain of the short link. If not provided, the primary domain for the workspace will be used (or `dub.sh` if the workspace has no domains).",
     ),
   key: z
     .string()
@@ -205,7 +205,7 @@ export const LinkSchema = z
     domain: z
       .string()
       .describe(
-        "The domain of the short link. If not provided, the primary domain for the workspace will be used (or `dub.sh` if the project has no domains).",
+        "The domain of the short link. If not provided, the primary domain for the workspace will be used (or `dub.sh` if the workspace has no domains).",
       ),
     key: z
       .string()

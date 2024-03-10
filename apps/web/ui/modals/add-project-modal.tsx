@@ -291,7 +291,7 @@ function AddProjectModalHelper({
         <Button
           disabled={slugError || domainError ? true : false}
           loading={saving}
-          text="Create project"
+          text="Create workspace"
         />
       </form>
     </Modal>

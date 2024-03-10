@@ -359,7 +359,7 @@ export async function processLink({
   } else if (!project?.domains?.find((d) => d.slug === domain)) {
     return {
       link: payload,
-      error: "Domain does not belong to project.",
+      error: "Domain does not belong to workspace.",
       code: "forbidden",
     };
   }

@@ -9,7 +9,7 @@ import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 const transferLinkBodySchema = z.object({
-  newProjectId: z.string().min(1, "Missing new project ID."),
+  newProjectId: z.string().min(1, "Missing new workspace ID."),
 });
 
 // POST /api/links/[linkId]/transfer – transfer a link to another project
