@@ -3,9 +3,9 @@ import { useCallback, useContext, useMemo } from "react";
 import useSWR from "swr";
 import { AnalyticsContext } from ".";
 import Areas from "../charts/areas";
-import GridLines from "../charts/grid-lines";
 import TimeSeriesChart from "../charts/time-series-chart";
 import XAxis from "../charts/x-axis";
+import YAxis from "../charts/y-axis";
 
 export default function ClicksChart() {
   const { baseApiPath, queryString, interval } = useContext(AnalyticsContext);
@@ -42,7 +42,7 @@ export default function ClicksChart() {
   );
 
   return (
-    <div className="h-72 w-full">
+    <div className="h-80 w-full">
       {chartData !== null && (
         <TimeSeriesChart
           key={queryString}
@@ -58,9 +58,9 @@ export default function ClicksChart() {
             </>
           )}
         >
-          <GridLines />
           <Areas />
           <XAxis tickFormat={dateFormatter} />
+          <YAxis integerTicks showGridLines />
         </TimeSeriesChart>
       )}
     </div>

@@ -41,6 +41,7 @@
     "@visx/responsive": "^2.10.0",
     "@visx/scale": "^3.3.0",
     "@visx/shape": "^2.12.2",
+    "@visx/text": "^3.3.0",
     "@visx/tooltip": "^2.16.0",
     "bottleneck": "^2.19.5",
     "cloudinary": "^1.40.0",

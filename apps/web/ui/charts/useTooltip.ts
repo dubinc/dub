@@ -16,7 +16,9 @@ import {
 
 const bisectDate = bisector<Datum, Date>((d) => new Date(d.date)).left;
 
-export type TooltipOptions = {
+export type TooltipOptions<T extends Datum> = {
+  seriesId?: Series["id"];
+  chartContext: ChartContext<T>;
   renderInPortal?: boolean;
   snapToX?: boolean;
   snapToY?: boolean;
@@ -28,11 +30,8 @@ export function useTooltip<T extends Datum>({
   renderInPortal = false,
   snapToY = false,
   snapToX = true,
-}: {
-  seriesId?: Series["id"];
-  chartContext: ChartContext<T>;
-} & TooltipOptions): ChartTooltipContext {
-  const { series, data, xScale, yScale } = chartContext;
+}: TooltipOptions<T>): ChartTooltipContext {
+  const { series, data, xScale, yScale, margin } = chartContext;
 
   const visxTooltipInPortal = useTooltipInPortal({
     scroll: true,
@@ -48,7 +47,8 @@ export function useTooltip<T extends Datum>({
         | React.TouchEvent<SVGRectElement>
         | React.MouseEvent<SVGRectElement>,
     ) => {
-      const { x } = localPoint(event) || { x: 0 };
+      const lp = localPoint(event) || { x: 0 };
+      const x = lp.x - margin.left;
       const x0 = xScale.invert(x);
       const index = bisectDate(data, x0, 1);
       const d0 = data[index - 1];

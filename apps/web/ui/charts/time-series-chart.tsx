@@ -2,7 +2,7 @@ import { Group } from "@visx/group";
 import { ParentSize } from "@visx/responsive";
 import { scaleLinear, scaleUtc } from "@visx/scale";
 import { Bar, Circle, Line } from "@visx/shape";
-import { PropsWithChildren, useMemo } from "react";
+import { PropsWithChildren, useMemo, useState } from "react";
 import { ChartContext, ChartTooltipContext } from "./chart-context";
 import {
   ChartProps,
@@ -10,9 +10,6 @@ import {
   type ChartContext as ChartContextType,
 } from "./types";
 import { useTooltip } from "./useTooltip";
-
-const factors = (number) =>
-  [...Array(number + 1).keys()].filter((i) => number % i === 0);
 
 type TimeSeriesChartProps<T extends Datum> = PropsWithChildren<ChartProps<T>>;
 
@@ -40,8 +37,8 @@ function TimeSeriesChartInner<T extends Datum>({
   data,
   series,
   tooltipContent = (d) => series[0].accessorFn(d).toString(),
-  margin = {
-    top: 2,
+  margin: marginProp = {
+    top: 12,
     right: 4,
     bottom: 32,
     left: 4,
@@ -50,11 +47,17 @@ function TimeSeriesChartInner<T extends Datum>({
     top: 0.1,
     bottom: 0.1,
   },
-  maxTicks: maxTicksProp,
 }: {
   width: number;
   height: number;
 } & TimeSeriesChartProps<T>) {
+  const [leftAxisMargin, setLeftAxisMargin] = useState<number>();
+
+  const margin = {
+    ...marginProp,
+    left: marginProp.left + (leftAxisMargin ?? 0),
+  };
+
   const width = outerWidth - margin.left - margin.right;
   const height = outerHeight - margin.top - margin.bottom;
 
@@ -75,21 +78,20 @@ function TimeSeriesChartInner<T extends Datum>({
       .flat()
       .filter((v): v is number => v != null);
 
-    const minY = Math.min(...values);
-    const maxY = Math.max(...values);
-
-    const range = maxY - minY;
-
     return {
-      minY: minY - range * (padding.bottom ?? 0),
-      maxY: maxY + range * (padding.top ?? 0),
+      minY: Math.min(...values),
+      maxY: Math.max(...values),
     };
   }, [data, series, padding?.bottom, padding?.top]);
 
   const { yScale, xScale } = useMemo(() => {
+    const rangeY = maxY - minY;
     return {
       yScale: scaleLinear<number>({
-        domain: [minY, maxY],
+        domain: [
+          minY - rangeY * (padding.bottom ?? 0),
+          maxY + rangeY * (padding.top ?? 0),
+        ],
         range: [height, 0],
         nice: true,
         clamp: true,
@@ -101,14 +103,6 @@ function TimeSeriesChartInner<T extends Datum>({
     };
   }, [startDate, endDate, minY, maxY, height, width, margin]);
 
-  const { maxTicks, xTickInterval } = useMemo(() => {
-    const maxTicks = maxTicksProp ?? width < 500 ? 6 : width < 800 ? 8 : 12;
-    const xTickInterval =
-      factors(data.length).find((f) => data.length / f < maxTicks) ?? 1;
-
-    return { maxTicks, xTickInterval };
-  }, [width, maxTicksProp]);
-
   const chartContext: ChartContextType<T> = {
     width,
     height,
@@ -118,11 +112,13 @@ function TimeSeriesChartInner<T extends Datum>({
     endDate,
     xScale,
     yScale,
+    minY,
+    maxY,
     margin,
     padding,
     tooltipContent,
-    maxTicks,
-    xTickInterval,
+    leftAxisMargin,
+    setLeftAxisMargin,
   };
 
   const tooltipContext = useTooltip({
