@@ -7,11 +7,11 @@ export default function PlanBadge({ plan }: { plan: PlanProps }) {
       variant={
         plan === "enterprise"
           ? "violet"
-          : plan === "business"
-          ? "sky"
-          : plan === "pro"
-          ? "blue"
-          : "black"
+          : plan.startsWith("business")
+            ? "sky"
+            : plan === "pro"
+              ? "blue"
+              : "black"
       }
     >
       {plan}

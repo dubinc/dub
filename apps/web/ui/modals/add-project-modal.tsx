@@ -98,7 +98,15 @@ function AddProjectModalHelper({
       showModal={showAddProjectModal}
       setShowModal={setShowAddProjectModal}
       preventDefaultClose={welcomeFlow}
-      {...(welcomeFlow && { onClose: () => router.back() })}
+      onClose={() => {
+        if (welcomeFlow) {
+          router.back();
+        } else if (searchParams.has("newProject")) {
+          queryParams({
+            del: ["newProject"],
+          });
+        }
+      }}
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
         <Logo />
@@ -138,22 +146,20 @@ function AddProjectModalHelper({
                 toast.success("Successfully created project!");
                 setShowAddProjectModal(false);
               }
-            } else if (res.status === 422) {
-              const {
-                slugError: slugErrorResponse,
-                domainError: domainErrorResponse,
-              } = await res.json();
-
-              if (slugErrorResponse) {
-                setSlugError(slugErrorResponse);
-                toast.error(slugErrorResponse);
-              }
-              if (domainErrorResponse) {
-                setDomainError(domainErrorResponse);
-                toast.error(domainErrorResponse);
-              }
             } else {
-              toast.error(await res.text());
+              const { error } = await res.json();
+              const message = error.message;
+
+              if (message.toLowerCase().includes("slug")) {
+                alert(message);
+                setSlugError(message);
+              }
+
+              if (message.toLowerCase().includes("domain")) {
+                setDomainError(message);
+              }
+
+              toast.error(error.message);
             }
             setSaving(false);
           });
@@ -215,6 +221,8 @@ function AddProjectModalHelper({
               } block w-full rounded-r-md focus:outline-none sm:text-sm`}
               placeholder="acme"
               value={slug}
+              minLength={3}
+              maxLength={48}
               onChange={(e) => {
                 setSlugError(null);
                 setData({ ...data, slug: e.target.value });

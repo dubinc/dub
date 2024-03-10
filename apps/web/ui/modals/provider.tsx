@@ -11,6 +11,7 @@ import { useImportBitlyModal } from "@/ui/modals/import-bitly-modal";
 import { useImportShortModal } from "@/ui/modals/import-short-modal";
 import { useUpgradePlanModal } from "@/ui/modals/upgrade-plan-modal";
 import { useCookies } from "@dub/ui";
+import { useSearchParams } from "next/navigation";
 import {
   Dispatch,
   ReactNode,
@@ -97,6 +98,18 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
       setShowAcceptInviteModal(true);
     }
   }, [error]);
+
+  const searchParams = useSearchParams();
+
+  // handle ?newProject and ?newLink query params
+  useEffect(() => {
+    if (searchParams.has("newProject")) {
+      setShowAddProjectModal(true);
+    }
+    if (searchParams.has("newLink")) {
+      setShowAddEditLinkModal(true);
+    }
+  }, []);
 
   return (
     <ModalContext.Provider

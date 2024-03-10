@@ -4,6 +4,7 @@ import { Lock } from "@/ui/shared/icons";
 import {
   BlurImage,
   Button,
+  ButtonProps,
   InfoTooltip,
   Logo,
   Modal,
@@ -90,13 +91,13 @@ function AddEditDomainModal({
     if (props) {
       return {
         method: "PUT",
-        url: `/api/projects/${slug}/domains/${domain}`,
+        url: `/api/domains/${domain}?projectSlug=${slug}`,
         successMessage: "Successfully updated domain!",
       };
     } else {
       return {
         method: "POST",
-        url: `/api/projects/${slug}/domains`,
+        url: `/api/domains?projectSlug=${slug}`,
         successMessage: "Successfully added domain!",
       };
     }
@@ -104,15 +105,11 @@ function AddEditDomainModal({
 
   async function deleteDomain() {
     setDeleting(true);
-    fetch(`/api/projects/${slug}/domains/${domain}`, {
+    fetch(`/api/domains/${domain}?projectSlug=${slug}`, {
       method: "DELETE",
     }).then(async (res) => {
       if (res.status === 200) {
-        await mutate(
-          (key) => typeof key === "string" && key.startsWith(`/api/projects`),
-          undefined,
-          { revalidate: true },
-        );
+        await mutate(`/api/domains?projectSlug=${slug}`);
         setShowAddEditDomainModal(false);
         toast.success("Successfully deleted domain!");
       } else {
@@ -156,7 +153,7 @@ function AddEditDomainModal({
             body: JSON.stringify(data),
           }).then(async (res) => {
             if (res.status === 200) {
-              await mutate(`/api/projects/${slug}/domains`);
+              await mutate(`/api/domains?projectSlug=${slug}`);
               setShowAddEditDomainModal(false);
               toast.success(endpoint.successMessage);
               if (!props) {
@@ -366,12 +363,14 @@ function AddEditDomainModal({
   );
 }
 
-function AddEditDomainButton({
+function AddDomainButton({
   setShowAddEditDomainModal,
+  buttonProps,
 }: {
   setShowAddEditDomainModal: Dispatch<SetStateAction<boolean>>;
+  buttonProps?: Partial<ButtonProps>;
 }) {
-  const { plan, domainsLimit, exceededDomains } = useProject();
+  const { plan, nextPlan, domainsLimit, exceededDomains } = useProject();
   const { queryParams } = useRouterStuff();
 
   return (
@@ -388,7 +387,7 @@ function AddEditDomainButton({
               onClick={() => {
                 queryParams({
                   set: {
-                    upgrade: plan === "free" ? "pro" : "business",
+                    upgrade: nextPlan.name.toLowerCase(),
                   },
                 });
               }}
@@ -396,12 +395,16 @@ function AddEditDomainButton({
           ) : undefined
         }
         onClick={() => setShowAddEditDomainModal(true)}
+        {...buttonProps}
       />
     </div>
   );
 }
 
-export function useAddEditDomainModal({ props }: { props?: DomainProps } = {}) {
+export function useAddEditDomainModal({
+  props,
+  buttonProps,
+}: { props?: DomainProps; buttonProps?: Partial<ButtonProps> } = {}) {
   const [showAddEditDomainModal, setShowAddEditDomainModal] = useState(false);
 
   const AddEditDomainModalCallback = useCallback(() => {
@@ -414,24 +417,25 @@ export function useAddEditDomainModal({ props }: { props?: DomainProps } = {}) {
     );
   }, [showAddEditDomainModal, setShowAddEditDomainModal]);
 
-  const AddEditDomainButtonCallback = useCallback(() => {
+  const AddDomainButtonCallback = useCallback(() => {
     return (
-      <AddEditDomainButton
+      <AddDomainButton
         setShowAddEditDomainModal={setShowAddEditDomainModal}
+        buttonProps={buttonProps}
       />
     );
-  }, [setShowAddEditDomainModal]);
+  }, [setShowAddEditDomainModal, buttonProps]);
 
   return useMemo(
     () => ({
       setShowAddEditDomainModal,
       AddEditDomainModal: AddEditDomainModalCallback,
-      AddEditDomainButton: AddEditDomainButtonCallback,
+      AddDomainButton: AddDomainButtonCallback,
     }),
     [
       setShowAddEditDomainModal,
       AddEditDomainModalCallback,
-      AddEditDomainButtonCallback,
+      AddDomainButtonCallback,
     ],
   );
 }

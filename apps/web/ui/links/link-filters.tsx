@@ -1,27 +1,31 @@
+import useDefaultDomains from "@/lib/swr/use-default-domains";
 import useDomains from "@/lib/swr/use-domains";
 import useLinks from "@/lib/swr/use-links";
 import useLinksCount from "@/lib/swr/use-links-count";
 import useTags from "@/lib/swr/use-tags";
-import { TagProps } from "@/lib/types";
-import TagBadge, { COLORS_LIST } from "@/ui/links/tag-badge";
-import { ThreeDots } from "@/ui/shared/icons";
+import { DomainProps, TagProps } from "@/lib/types";
+import TagBadge from "@/ui/links/tag-badge";
+import { useAddEditTagModal } from "@/ui/modals/add-edit-tag-modal";
+import { Delete, ThreeDots } from "@/ui/shared/icons";
 import {
-  IconMenu,
+  Button,
+  Copy,
   LoadingCircle,
   LoadingSpinner,
-  NumberTooltip,
   Popover,
   Switch,
-  useMediaQuery,
+  Tick,
   useRouterStuff,
+  useToastWithUndo,
 } from "@dub/ui";
 import {
   SWIPE_REVEAL_ANIMATION_SETTINGS,
+  isDubDomain,
   nFormatter,
   truncate,
 } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, ChevronRight, Search, Trash, XCircle } from "lucide-react";
+import { Archive, ChevronRight, Edit3, Search, XCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import {
   useParams,
@@ -34,6 +38,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { useDebouncedCallback } from "use-debounce";
+import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
 
 export default function LinkFilters() {
   const { data: domains } = useLinksCount({ groupBy: "domain" });
@@ -63,6 +68,7 @@ export default function LinkFilters() {
       "tagId",
       "showArchived",
       "page",
+      "withTags",
     ].some((param) => searchParams?.has(param));
   }, [searchParams]);
 
@@ -183,27 +189,31 @@ const DomainsFilter = () => {
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
   const { data: domains } = useLinksCount({ groupBy: "domain" });
-  const { primaryDomain } = useDomains();
+  const { allActiveDomains } = useDomains();
 
   const [collapsed, setCollapsed] = useState(false);
   const [showMore, setShowMore] = useState(false);
 
+  const { AddEditDomainModal, AddDomainButton } = useAddEditDomainModal({
+    buttonProps: {
+      text: "Add",
+      variant: "secondary",
+      className: "h-7 px-2",
+    },
+  });
+
   const options = useMemo(() => {
-    return domains?.length === 0
-      ? [
-          {
-            value: primaryDomain,
-            count: 0,
-          },
-        ]
-      : domains?.map(({ domain, _count }) => ({
-          value: domain,
-          count: _count,
-        })) || [];
-  }, [domains, primaryDomain]);
+    return allActiveDomains
+      .map((domain) => ({
+        ...domain,
+        count: domains?.find(({ domain: d }) => d === domain.slug)?._count || 0,
+      }))
+      .sort((a, b) => b.count - a.count);
+  }, [allActiveDomains, domains]);
 
   return (
     <fieldset className="overflow-hidden py-6">
+      <AddEditDomainModal />
       <div className="flex h-8 items-center justify-between">
         <button
           onClick={() => {
@@ -216,6 +226,7 @@ const DomainsFilter = () => {
           />
           <h4 className="font-medium text-gray-900">Domains</h4>
         </button>
+        <AddDomainButton />
       </div>
       <AnimatePresence initial={false}>
         {!collapsed && (
@@ -223,42 +234,35 @@ const DomainsFilter = () => {
             className="mt-4 grid gap-2"
             {...SWIPE_REVEAL_ANIMATION_SETTINGS}
           >
-            {options
-              .slice(0, showMore ? options.length : 4)
-              .map(({ value, count }) => (
-                <div
-                  key={value}
-                  className="relative flex cursor-pointer items-center space-x-3 rounded-md bg-gray-50 transition-all hover:bg-gray-100"
+            {options.slice(0, showMore ? options.length : 4).map((domain) => (
+              <div
+                key={domain.id}
+                className="group relative flex cursor-pointer items-center space-x-3 rounded-md bg-gray-50 transition-all hover:bg-gray-100"
+              >
+                <input
+                  id={domain.id}
+                  name={domain.slug}
+                  checked={searchParams?.get("domain") === domain.slug}
+                  onChange={() => {
+                    queryParams({
+                      set: {
+                        domain: domain.slug,
+                      },
+                      del: "page",
+                    });
+                  }}
+                  type="radio"
+                  className="ml-3 h-4 w-4 cursor-pointer rounded-full border-gray-300 text-black focus:outline-none focus:ring-0"
+                />
+                <label
+                  htmlFor={domain.slug}
+                  className="flex w-full cursor-pointer justify-between px-3 py-2 pl-0 text-sm font-medium text-gray-700"
                 >
-                  <input
-                    id={value}
-                    name={value}
-                    checked={
-                      searchParams?.get("domain") === value ||
-                      domains?.length <= 1
-                    }
-                    onChange={() => {
-                      queryParams({
-                        set: {
-                          domain: value,
-                        },
-                        del: "page",
-                      });
-                    }}
-                    type="radio"
-                    className="ml-3 h-4 w-4 cursor-pointer rounded-full border-gray-300 text-black focus:outline-none focus:ring-0"
-                  />
-                  <label
-                    htmlFor={value}
-                    className="flex w-full cursor-pointer justify-between px-3 py-2 pl-0 text-sm font-medium text-gray-700"
-                  >
-                    <p>{truncate(punycode.toUnicode(value || ""), 24)}</p>
-                    <NumberTooltip value={count} unit="links">
-                      <p className="text-gray-500">{nFormatter(count)}</p>
-                    </NumberTooltip>
-                  </label>
-                </div>
-              ))}
+                  <p>{truncate(punycode.toUnicode(domain.slug || ""), 24)}</p>
+                  <DomainPopover domain={domain} count={domain.count} />
+                </label>
+              </div>
+            ))}
             {options.length > 4 && (
               <button
                 onClick={() => setShowMore(!showMore)}
@@ -274,6 +278,172 @@ const DomainsFilter = () => {
   );
 };
 
+const DomainPopover = ({
+  domain,
+  count,
+}: {
+  domain: DomainProps;
+  count: number;
+}) => {
+  const { slug } = useParams() as { slug?: string };
+  const [openPopover, setOpenPopover] = useState(false);
+  const [processing, setProcessing] = useState(false);
+  const { mutate: mutateDomains } = useDomains();
+  const { defaultDomains, mutate: mutateDefaultDomains } = useDefaultDomains();
+
+  const { AddEditDomainModal, setShowAddEditDomainModal } =
+    useAddEditDomainModal({
+      props: domain,
+    });
+
+  const toastWithUndo = useToastWithUndo();
+
+  const archiveProjectDomain = (archive: boolean) => {
+    return fetch(`/api/domains/${domain.slug}?projectSlug=${slug}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...domain,
+        archived: archive,
+      }),
+    });
+  };
+
+  const archiveDefaultDomain = (archive: boolean) => {
+    const newDefaultDomains = archive
+      ? defaultDomains?.filter((d) => d !== domain.slug)
+      : [...(defaultDomains || []), domain.slug];
+    return fetch(`/api/domains/default?projectSlug=${slug}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        defaultDomains: newDefaultDomains,
+      }),
+    });
+  };
+
+  const handleArchiveRequest = async () => {
+    setProcessing(true);
+    if (isDubDomain(domain.slug)) {
+      const res = await archiveDefaultDomain(true);
+      if (res.ok) {
+        await mutateDefaultDomains();
+        toastWithUndo({
+          id: "domain-archive-undo-toast",
+          message: `Successfully archived domain!`,
+          undo: async () => {
+            toast.promise(archiveDefaultDomain(false), {
+              loading: "Undo in progress...",
+              error: "Failed to roll back changes. An error occurred.",
+              success: async () => {
+                await mutateDefaultDomains();
+                return "Undo successful! Changes reverted.";
+              },
+            });
+          },
+          duration: 5000,
+        });
+      } else {
+        const { error } = await res.json();
+        setProcessing(false);
+        toast.error(error.message);
+      }
+    } else {
+      const res = await archiveProjectDomain(true);
+      if (res.ok) {
+        await mutateDomains();
+        toastWithUndo({
+          id: "domain-archive-undo-toast",
+          message: `Successfully archived domain!`,
+          undo: async () => {
+            toast.promise(archiveProjectDomain(false), {
+              loading: "Undo in progress...",
+              error: "Failed to roll back changes. An error occurred.",
+              success: async () => {
+                await mutateDomains();
+                return "Undo successful! Changes reverted.";
+              },
+            });
+          },
+          duration: 5000,
+        });
+      } else {
+        const { error } = await res.json();
+        setProcessing(false);
+        toast.error(error.message);
+      }
+    }
+  };
+
+  return processing ? (
+    <div className="flex h-6 items-center justify-center">
+      <LoadingCircle />
+    </div>
+  ) : (
+    <>
+      <Popover
+        content={
+          <div className="grid w-full gap-px p-2 sm:w-48">
+            {(!isDubDomain(domain.slug) || slug === "dub") && (
+              <Button
+                type="button"
+                text="Edit"
+                variant="outline"
+                onClick={() => {
+                  setOpenPopover(false);
+                  setShowAddEditDomainModal(true);
+                }}
+                icon={<Edit3 className="h-4 w-4" />}
+                className="h-9 w-full justify-start px-2 font-medium"
+              />
+            )}
+            <Button
+              type="button"
+              text="Archive"
+              variant="outline"
+              onClick={() => {
+                setOpenPopover(false);
+                handleArchiveRequest();
+              }}
+              icon={<Archive className="h-4 w-4" />}
+              className="h-9 w-full justify-start px-2 font-medium"
+            />
+          </div>
+        }
+        align="end"
+        openPopover={openPopover}
+        setOpenPopover={setOpenPopover}
+      >
+        <button
+          type="button"
+          onClick={() => setOpenPopover(!openPopover)}
+          className={`${
+            openPopover ? "bg-gray-200" : "hover:bg-gray-200"
+          } -mr-1 flex h-6 w-5 items-center justify-center rounded-md transition-colors`}
+        >
+          <ThreeDots
+            className={`h-4 w-4 text-gray-500 ${
+              openPopover ? "" : "hidden group-hover:block"
+            }`}
+          />
+          <p
+            className={`text-gray-500 ${
+              openPopover ? "hidden" : "group-hover:hidden"
+            }`}
+          >
+            {nFormatter(count)}
+          </p>
+        </button>
+      </Popover>
+      <AddEditDomainModal />
+    </>
+  );
+};
+
 const TagsFilter = ({
   tags,
   tagsCount,
@@ -286,6 +456,30 @@ const TagsFilter = ({
   const [collapsed, setCollapsed] = useState(tags.length === 0 ? true : false);
   const [search, setSearch] = useState("");
   const [showMore, setShowMore] = useState(false);
+
+  const { AddEditTagModal, AddTagButton } = useAddEditTagModal();
+
+  const selectedTagIds =
+    searchParams?.get("tagId")?.split(",")?.filter(Boolean) ?? [];
+
+  const onCheckboxChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newTags = e.target.checked
+        ? [...selectedTagIds, e.target.id]
+        : selectedTagIds.filter((tagId) => tagId !== e.target.id) ?? [];
+      queryParams({
+        set: {
+          tagId: newTags,
+        },
+        del: [
+          "page",
+          // Remove tagId from params if empty
+          ...(newTags.length ? [] : ["tagId"]),
+        ],
+      });
+    },
+    [selectedTagIds],
+  );
 
   const options = useMemo(() => {
     const initialOptions = tags
@@ -304,6 +498,7 @@ const TagsFilter = ({
 
   return (
     <fieldset className="overflow-hidden py-6">
+      <AddEditTagModal />
       <div className="flex h-8 items-center justify-between">
         <button
           onClick={() => {
@@ -316,6 +511,7 @@ const TagsFilter = ({
           />
           <h4 className="font-medium text-gray-900">Tags</h4>
         </button>
+        <AddTagButton />
       </div>
       <AnimatePresence initial={false}>
         {!collapsed && (
@@ -356,16 +552,9 @@ const TagsFilter = ({
                   <input
                     id={id}
                     name={id}
-                    checked={searchParams?.get("tagId") === id}
-                    onChange={() => {
-                      queryParams({
-                        set: {
-                          tagId: id,
-                        },
-                        del: "page",
-                      });
-                    }}
-                    type="radio"
+                    checked={selectedTagIds.includes(id)}
+                    onChange={onCheckboxChange}
+                    type="checkbox"
                     className="ml-3 h-4 w-4 cursor-pointer rounded-full border-gray-300 text-black focus:outline-none focus:ring-0"
                   />
                   <label
@@ -394,30 +583,14 @@ const TagsFilter = ({
 
 const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
   const { slug } = useParams() as { slug?: string };
-  const [data, setData] = useState(tag);
   const [openPopover, setOpenPopover] = useState(false);
   const [processing, setProcessing] = useState(false);
 
-  const handleEdit = async (e) => {
-    e.stopPropagation();
-    e.preventDefault();
-    setProcessing(true);
-    fetch(`/api/tags/${tag.id}?projectSlug=${slug}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    }).then(async (res) => {
-      setProcessing(false);
-      if (res.ok) {
-        await mutate(`/api/tags?projectSlug=${slug}`);
-        toast.success("Tag updated");
-      } else {
-        toast.error("Something went wrong");
-      }
-    });
-  };
+  const { AddEditTagModal, setShowAddEditTagModal } = useAddEditTagModal({
+    props: tag,
+  });
+
+  const { queryParams } = useRouterStuff();
 
   const handleDelete = async () => {
     setProcessing(true);
@@ -425,113 +598,103 @@ const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
       method: "DELETE",
     }).then(async (res) => {
       if (res.ok) {
-        await mutate(`/api/tags?projectSlug=${slug}`);
+        queryParams({ del: "tagId" });
+        await Promise.all([
+          mutate(`/api/tags?projectSlug=${slug}`),
+          mutate(
+            (key) => typeof key === "string" && key.startsWith("/api/links"),
+            undefined,
+            { revalidate: true },
+          ),
+        ]);
         toast.success("Tag deleted");
       } else {
-        toast.error("Something went wrong");
+        const { error } = await res.json();
+        toast.error(error.message);
       }
       setProcessing(false);
     });
   };
 
-  const { isMobile } = useMediaQuery();
+  const [copied, setCopied] = useState(false);
 
   return processing ? (
     <div className="flex h-6 items-center justify-center">
       <LoadingCircle />
     </div>
   ) : (
-    <Popover
-      content={
-        <div className="flex w-48 flex-col divide-y divide-gray-200">
-          <div className="p-2">
-            <form
-              onClick={(e) => e.stopPropagation()} // prevent triggering <Command.Item> onClick
-              onKeyDown={(e) => e.stopPropagation()} // prevent triggering <Command.Item> onKeyDown
-              onSubmit={handleEdit}
-              className="relative py-1"
-            >
-              <div className="my-2 flex items-center justify-between px-3">
-                <p className="text-xs text-gray-500">Edit Tag</p>
-                {data !== tag && (
-                  <button className="text-xs text-gray-500">Save</button>
-                )}
-              </div>
-              <input
-                type="text"
-                autoFocus={!isMobile}
-                required
-                onKeyDown={(e) => {
-                  // if ESC key pressed, close popover
-                  if (e.key === "Escape") {
-                    setOpenPopover(false);
-                  }
-                }}
-                value={data.name}
-                onChange={(e) => setData({ ...data, name: e.target.value })}
-                className="block w-full rounded-md border-gray-300 py-1 pr-7 text-sm text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500"
-              />
-              <div className="grid grid-cols-3 gap-3 p-3 pb-0">
-                {COLORS_LIST.map(({ color, css }) => (
-                  <button
-                    key={color}
-                    type="button"
-                    className={`mx-auto flex h-6 w-6 items-center justify-center rounded-full transition-all duration-75 hover:scale-110 active:scale-90 ${css}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setData({ ...data, color });
-                    }}
-                  >
-                    {data.color === color && <Check className="h-4 w-4" />}
-                  </button>
-                ))}
-              </div>
-            </form>
-          </div>
-          <div className="p-2">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
+    <>
+      <Popover
+        content={
+          <div className="grid w-full gap-px p-2 sm:w-48">
+            <Button
+              type="button"
+              text="Edit"
+              variant="outline"
+              onClick={() => setShowAddEditTagModal(true)}
+              icon={<Edit3 className="h-4 w-4" />}
+              className="h-9 w-full justify-start px-2 font-medium"
+            />
+            <Button
+              type="button"
+              text="Copy Tag ID"
+              variant="outline"
+              onClick={() => {
+                navigator.clipboard.writeText(tag.id);
+                setCopied(true);
+                toast.success("Tag ID copied");
+                setTimeout(() => setCopied(false), 3000);
+              }}
+              icon={
+                copied ? (
+                  <Tick className="h-4 w-4" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )
+              }
+              className="h-9 w-full justify-start px-2 font-medium"
+            />
+            <Button
+              type="button"
+              text="Delete"
+              variant="danger-outline"
+              onClick={() => {
                 confirm(
                   "Are you sure you want to delete this tag? All tagged links will be untagged, but they won't be deleted.",
                 ) && handleDelete();
               }}
-              className="flex w-full items-center space-x-2 rounded-md p-2 text-red-600 transition-colors hover:bg-red-100 active:bg-red-200"
-            >
-              <IconMenu
-                text="Delete Tag"
-                icon={<Trash className="h-4 w-4 text-red-600" />}
-              />
-            </button>
+              icon={<Delete className="h-4 w-4" />}
+              className="h-9 w-full justify-start px-2 font-medium"
+            />
           </div>
-        </div>
-      }
-      align="end"
-      openPopover={openPopover}
-      setOpenPopover={setOpenPopover}
-    >
-      <button
-        type="button"
-        onClick={() => setOpenPopover(!openPopover)}
-        className={`${
-          openPopover ? "bg-gray-200" : "hover:bg-gray-200"
-        } -mr-1 flex h-6 w-5 items-center justify-center rounded-md transition-colors`}
+        }
+        align="end"
+        openPopover={openPopover}
+        setOpenPopover={setOpenPopover}
       >
-        <ThreeDots
-          className={`h-4 w-4 text-gray-500 ${
-            openPopover ? "" : "hidden group-hover:block"
-          }`}
-        />
-        <p
-          className={`text-gray-500 ${
-            openPopover ? "hidden" : "group-hover:hidden"
-          }`}
+        <button
+          type="button"
+          onClick={() => setOpenPopover(!openPopover)}
+          className={`${
+            openPopover ? "bg-gray-200" : "hover:bg-gray-200"
+          } -mr-1 flex h-6 w-5 items-center justify-center rounded-md transition-colors`}
         >
-          {nFormatter(count)}
-        </p>
-      </button>
-    </Popover>
+          <ThreeDots
+            className={`h-4 w-4 text-gray-500 ${
+              openPopover ? "" : "hidden group-hover:block"
+            }`}
+          />
+          <p
+            className={`text-gray-500 ${
+              openPopover ? "hidden" : "group-hover:hidden"
+            }`}
+          >
+            {nFormatter(count)}
+          </p>
+        </button>
+      </Popover>
+      <AddEditTagModal />
+    </>
   );
 };
 

@@ -3,17 +3,10 @@ import { HOME_DOMAIN } from "@dub/utils";
 import { NextRequest, NextResponse } from "next/server";
 
 export default function ApiMiddleware(req: NextRequest) {
-  const { path, fullPath, domain } = parse(req);
-  if (fullPath === "/" && domain === "api.dub.co") {
-    return NextResponse.redirect(
-      `${HOME_DOMAIN}/docs/api-reference/introduction`,
-      {
-        status: 307,
-      },
-    );
+  const { path, fullPath } = parse(req);
 
-    // special case for /metatags
-  } else if (path === "/metatags") {
+  // special case for /metatags
+  if (path === "/metatags") {
     const url = req.nextUrl.searchParams.get("url");
     if (!url) {
       return NextResponse.redirect(`${HOME_DOMAIN}/tools/metatags`, {

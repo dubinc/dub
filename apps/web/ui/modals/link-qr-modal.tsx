@@ -5,10 +5,8 @@ import useProject from "@/lib/swr/use-project";
 import { QRLinkProps } from "@/lib/types";
 import { Clipboard, Download } from "@/ui/shared/icons";
 import {
-  BlurImage,
   IconMenu,
   InfoTooltip,
-  Logo,
   Modal,
   Photo,
   Popover,
@@ -21,7 +19,6 @@ import {
 import {
   APP_HOSTNAMES,
   FADE_IN_ANIMATION_SETTINGS,
-  GOOGLE_FAVICON_URL,
   HOME_DOMAIN,
   getApexDomain,
   linkConstructor,
@@ -40,6 +37,7 @@ import {
 import { HexColorInput, HexColorPicker } from "react-colorful";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
+import LinkLogo from "../links/link-logo";
 
 function LinkQRModalHelper({
   showLinkQRModal,
@@ -66,21 +64,7 @@ export function QRCodePicker({
 }) {
   const anchorRef = useRef<HTMLAnchorElement>(null);
   const { logo, plan } = useProject();
-  const { avatarUrl, apexDomain } = useMemo(() => {
-    try {
-      if (!props.url) return { avatarUrl: null, apexDomain: null };
-      const apexDomain = getApexDomain(props.url);
-      return {
-        avatarUrl: `${GOOGLE_FAVICON_URL}${apexDomain}`,
-        apexDomain,
-      };
-    } catch (e) {
-      return {
-        avatarUrl: null,
-        apexDomain: null,
-      };
-    }
-  }, [props]);
+  const apexDomain = props.url ? getApexDomain(props.url) : null;
 
   const qrLogoUrl = useMemo(() => {
     if (logo && plan !== "free") return logo;
@@ -141,17 +125,7 @@ export function QRCodePicker({
   return (
     <>
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
-        {avatarUrl ? (
-          <BlurImage
-            src={avatarUrl}
-            alt={apexDomain}
-            className="h-10 w-10 rounded-full"
-            width={40}
-            height={40}
-          />
-        ) : (
-          <Logo />
-        )}
+        <LinkLogo apexDomain={apexDomain} />
         <h3 className="text-lg font-medium">Download QR Code</h3>
       </div>
 

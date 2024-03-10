@@ -65,6 +65,7 @@ export const POST = withAuth(async ({ req, session, project }) => {
         userId: session.user.id,
         projectId: project.id,
         publicStats: false,
+        tagIds: [],
       })),
       skipPrismaCreate: true,
     }),

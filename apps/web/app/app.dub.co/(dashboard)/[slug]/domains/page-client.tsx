@@ -1,5 +1,6 @@
 "use client";
 
+import useDefaultDomains from "@/lib/swr/use-default-domains";
 import useDomains from "@/lib/swr/use-domains";
 import useProject from "@/lib/swr/use-project";
 import DomainCard from "@/ui/domains/domain-card";
@@ -17,13 +18,14 @@ import {
 } from "@dub/ui";
 import { DUB_DOMAINS, HOME_DOMAIN } from "@dub/utils";
 import { ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function ProjectDomainsClient() {
   const { id: projectId } = useProject();
 
-  const { AddEditDomainModal, AddEditDomainButton } = useAddEditDomainModal();
-  const { projectDomains, archivedProjectDomains } = useDomains();
+  const { AddEditDomainModal, AddDomainButton } = useAddEditDomainModal();
+  const { activeProjectDomains, archivedProjectDomains } = useDomains();
   const [showArchivedDomains, setShowArchivedDomains] = useState(false);
 
   return (
@@ -46,24 +48,24 @@ export default function ProjectDomainsClient() {
               />
             </div>
             <div className="flex">
-              <AddEditDomainButton />
+              <AddDomainButton />
               <DefaultDomains />
             </div>
           </div>
         </MaxWidthWrapper>
       </div>
       <MaxWidthWrapper className="py-10">
-        {projectDomains ? (
-          projectDomains.length > 0 ? (
+        {activeProjectDomains ? (
+          activeProjectDomains.length > 0 ? (
             <ul className="grid grid-cols-1 gap-3">
-              {projectDomains.map((domain) => (
+              {activeProjectDomains.map((domain) => (
                 <li key={domain.slug}>
                   <DomainCard props={domain} />
                 </li>
               ))}
             </ul>
           ) : (
-            <NoDomainsPlaceholder AddEditDomainButton={AddEditDomainButton} />
+            <NoDomainsPlaceholder AddDomainButton={AddDomainButton} />
           )
         ) : (
           <DomainCardPlaceholder />
@@ -91,11 +93,15 @@ export default function ProjectDomainsClient() {
 }
 
 const DefaultDomains = () => {
-  const { slug, defaultDomains: initialDefaultDomains, mutate } = useProject();
-  const { mutate: mutateDomains } = useDomains();
-  const [defaultDomains, setDefaultDomains] = useState(
-    initialDefaultDomains || [],
-  );
+  const { slug } = useProject();
+  const { defaultDomains: initialDefaultDomains, mutate } = useDefaultDomains();
+  const [defaultDomains, setDefaultDomains] = useState<string[]>([]);
+  useEffect(() => {
+    if (initialDefaultDomains) {
+      setDefaultDomains(initialDefaultDomains);
+    }
+  }, [initialDefaultDomains]);
+
   const [openPopover, setOpenPopover] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -107,12 +113,18 @@ const DefaultDomains = () => {
           onSubmit={async (e) => {
             e.preventDefault();
             setSubmitting(true);
-            await fetch(`/api/projects/${slug}`, {
+            fetch(`/api/domains/default?projectSlug=${slug}`, {
               method: "PUT",
               body: JSON.stringify({ defaultDomains }),
+            }).then(async (res) => {
+              setSubmitting(false);
+              if (res.ok) {
+                await mutate();
+              } else {
+                const error = await res.text();
+                toast.error(error);
+              }
             });
-            await Promise.all([mutate(), mutateDomains()]);
-            setSubmitting(false);
           }}
         >
           <div className="p-2 text-xs text-gray-500">Default Domains</div>

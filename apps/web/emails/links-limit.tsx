@@ -1,4 +1,4 @@
-import { DUB_LOGO, PLANS, capitalize, nFormatter } from "@dub/utils";
+import { DUB_LOGO, capitalize, getNextPlan, nFormatter } from "@dub/utils";
 import {
   Body,
   Container,
@@ -37,8 +37,7 @@ export default function LinksLimitAlert({
     plan: string;
   };
   const percentage = Math.round((linksUsage / linksLimit) * 100);
-  const nextPlan =
-    PLANS[PLANS.findIndex((p) => p.name.toLowerCase() === plan) + 1];
+  const nextPlan = getNextPlan(plan as string);
 
   return (
     <Html>
@@ -78,7 +77,7 @@ export default function LinksLimitAlert({
               links) in your current billing cycle.
             </Text>
 
-            {plan === "business" || plan === "enterprise" ? (
+            {plan === "business-max" || plan === "enterprise" ? (
               <Text className="text-sm leading-6 text-black">
                 Since you're on the {capitalize(plan)} plan, you will still be
                 able to create links even after you hit your limit. We're
@@ -113,11 +112,7 @@ export default function LinksLimitAlert({
             <Section className="mb-8 text-center">
               <Link
                 className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                href={
-                  plan === "free"
-                    ? `https://app.dub.co/${slug}?upgrade=pro`
-                    : `https://app.dub.co/${slug}/settings/billing`
-                }
+                href={`https://app.dub.co/${slug}?upgrade=${nextPlan.name.toLowerCase()}}`}
               >
                 Upgrade my plan
               </Link>

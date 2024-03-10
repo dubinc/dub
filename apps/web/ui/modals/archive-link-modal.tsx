@@ -1,6 +1,6 @@
 import { LinkProps } from "@/lib/types";
-import { BlurImage, Button, Modal, useToastWithUndo } from "@dub/ui";
-import { GOOGLE_FAVICON_URL, getApexDomain, linkConstructor } from "@dub/utils";
+import { Button, Modal, useToastWithUndo } from "@dub/ui";
+import { getApexDomain, linkConstructor } from "@dub/utils";
 import { useParams } from "next/navigation";
 import {
   Dispatch,
@@ -12,6 +12,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import LinkLogo from "../links/link-logo";
 
 const sendArchiveRequest = (archived: boolean, id: string, slug?: string) => {
   const baseUrl = `/api/links/${id}/archive`;
@@ -67,7 +68,8 @@ function ArchiveLinkModal({
     setArchiving(false);
 
     if (!res.ok) {
-      toast.error(await res.text());
+      const { error } = await res.json();
+      toast.error(error.message);
       return;
     }
 
@@ -98,13 +100,7 @@ function ArchiveLinkModal({
       setShowModal={setShowArchiveLinkModal}
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 text-center sm:px-16">
-        <BlurImage
-          src={`${GOOGLE_FAVICON_URL}${apexDomain}`}
-          alt={apexDomain}
-          className="h-10 w-10 rounded-full"
-          width={20}
-          height={20}
-        />
+        <LinkLogo apexDomain={apexDomain} />
         <h3 className="text-lg font-medium">
           {archived ? "Archive" : "Unarchive"} {shortlink}
         </h3>

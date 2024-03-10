@@ -7,12 +7,14 @@ export const client = new Client(process.env.POSTMARK_API_KEY as string);
 export const sendEmail = async ({
   email,
   subject,
+  from,
   text,
   react,
   marketing,
 }: {
   email: string;
   subject: string;
+  from?: string;
   text?: string;
   react?: ReactElement<any, string | JSXElementConstructor<any>>;
   marketing?: boolean;
@@ -25,11 +27,12 @@ export const sendEmail = async ({
   }
 
   return client.sendEmail({
-    From: marketing
-      ? "steven@ship.dub.co"
-      : process.env.NEXT_PUBLIC_IS_DUB
-        ? "system@dub.co"
-        : `${process.env.NEXT_PUBLIC_APP_NAME} <system@${process.env.NEXT_PUBLIC_APP_DOMAIN}>`,
+    From:
+      from || marketing
+        ? "steven@ship.dub.co"
+        : process.env.NEXT_PUBLIC_IS_DUB
+          ? "system@dub.co"
+          : `${process.env.NEXT_PUBLIC_APP_NAME} <system@${process.env.NEXT_PUBLIC_APP_DOMAIN}>`,
     To: email,
     Subject: subject,
     ...(text && { TextBody: text }),

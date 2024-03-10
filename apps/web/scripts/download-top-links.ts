@@ -10,7 +10,7 @@ async function main() {
     projectId: "xxx",
     endpoint: "top_links",
     interval: "30d",
-    excludeRoot: "true",
+    excludeRoot: true,
   }).then(async (data) => {
     return await Promise.all(
       data.map(

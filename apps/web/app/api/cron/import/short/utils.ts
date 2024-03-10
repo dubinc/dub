@@ -2,6 +2,7 @@ import { bulkCreateLinks } from "@/lib/api/links";
 import { qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
+import { randomBadgeColor } from "@/ui/links/tag-badge";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { sendEmail } from "emails";
 import LinksImported from "emails/links-imported";
@@ -11,6 +12,7 @@ export const importLinksFromShort = async ({
   userId,
   domainId,
   domain,
+  importTags,
   pageToken = null,
   count = 0,
   shortApiKey,
@@ -19,6 +21,7 @@ export const importLinksFromShort = async ({
   userId: string;
   domainId: number;
   domain: string;
+  importTags?: boolean;
   pageToken?: string | null;
   count?: number;
   shortApiKey: string;
@@ -36,6 +39,9 @@ export const importLinksFromShort = async ({
   ).then((res) => res.json());
   const { links, nextPageToken } = data;
 
+  let tagsToCreate = new Set<string>();
+  let allTags: { id: string; name: string }[] = [];
+
   // convert links to format that can be imported into database
   const importedLinks = links
     .map(
@@ -46,12 +52,14 @@ export const importLinksFromShort = async ({
         iphoneURL,
         androidURL,
         archived,
+        tags,
         createdAt,
       }) => {
         // skip the root domain
         if (path.length === 0) {
           return null;
         }
+        tags.forEach((tag: string) => tagsToCreate.add(tag));
         return {
           projectId,
           userId,
@@ -62,14 +70,61 @@ export const importLinksFromShort = async ({
           ios: iphoneURL,
           android: androidURL,
           archived,
+          tags,
           createdAt,
         };
       },
     )
     .filter(Boolean);
 
+  // import tags into database
+  if (importTags && tagsToCreate.size > 0) {
+    const existingTags = await prisma.tag.findMany({
+      where: {
+        projectId,
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+    await prisma.tag.createMany({
+      data: Array.from(tagsToCreate)
+        // filter out existing tags with the same name
+        .filter((tag) => !existingTags.some((t) => t.name === tag))
+        .map((tag) => ({
+          name: tag,
+          color: randomBadgeColor(),
+          projectId,
+        })),
+      skipDuplicates: true,
+    });
+    allTags = await prisma.tag.findMany({
+      where: {
+        projectId,
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+  }
+
   // bulk create links
-  await bulkCreateLinks({ links: importedLinks });
+  await bulkCreateLinks({
+    links: importedLinks.map(({ tags, ...rest }) => {
+      return {
+        ...rest,
+        ...(importTags && {
+          tagIds: tags
+            .map(
+              (tag: string) => allTags.find((t) => t.name === tag)?.id ?? null,
+            )
+            .filter(Boolean),
+        }),
+      };
+    }),
+  });
 
   count += importedLinks.length;
 

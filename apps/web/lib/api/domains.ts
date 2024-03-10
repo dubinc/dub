@@ -88,7 +88,7 @@ export const removeDomainFromVercel = async (domain: string) => {
     },
   });
   if (domainCount > 1) {
-    // the apex domain is being used by other domains
+    // the apex domain is being used by other domains on Dub
     // so we should only remove it from our Vercel project
     return await fetch(
       `https://api.vercel.com/v9/projects/${process.env.PROJECT_ID_VERCEL}/domains/${domain}?teamId=${process.env.TEAM_ID_VERCEL}`,

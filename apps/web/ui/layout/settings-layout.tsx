@@ -21,13 +21,13 @@ export default function SettingsLayout({
           </div>
         </MaxWidthWrapper>
       </div>
-      <MaxWidthWrapper className="grid items-start gap-5 py-10 md:grid-cols-5">
-        <div className="top-36 flex gap-1 md:sticky md:grid">
+      <MaxWidthWrapper className="grid items-start gap-5 py-10 lg:grid-cols-5">
+        <div className="top-36 flex gap-1 lg:sticky lg:grid">
           {tabs.map(({ name, segment }) => (
             <NavLink segment={segment}>{name}</NavLink>
           ))}
         </div>
-        <div className="grid gap-5 md:col-span-4">{children}</div>
+        <div className="grid gap-5 lg:col-span-4">{children}</div>
       </MaxWidthWrapper>
     </div>
   );

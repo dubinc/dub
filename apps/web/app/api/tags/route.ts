@@ -1,7 +1,9 @@
 import { exceededLimitError } from "@/lib/api/errors";
 import { withAuth } from "@/lib/auth";
+import { DubApiError } from "@/lib/api/errors";
 import prisma from "@/lib/prisma";
-import { randomBadgeColor } from "@/ui/links/tag-badge";
+import { createTagBodySchema } from "@/lib/zod/schemas/tags";
+import { COLORS_LIST, randomBadgeColor } from "@/ui/links/tag-badge";
 import { NextResponse } from "next/server";
 
 // GET /api/projects/[slug]/tags - get all tags for a project
@@ -29,25 +31,44 @@ export const POST = withAuth(async ({ req, project, headers }) => {
       projectId: project.id,
     },
   });
+
   if (tagsCount >= project.tagsLimit) {
-    return new Response(
-      exceededLimitError({
+    throw new DubApiError({
+      code: "exceeded_limit",
+      message: exceededLimitError({
         plan: project.plan,
         limit: project.tagsLimit,
         type: "tags",
       }),
-      {
-        status: 403,
-      },
-    );
+    });
   }
-  const { tag } = await req.json();
+
+  const { tag, color } = createTagBodySchema.parse(await req.json());
+
+  const existingTag = await prisma.tag.findFirst({
+    where: {
+      projectId: project.id,
+      name: tag,
+    },
+  });
+
+  if (existingTag) {
+    throw new DubApiError({
+      code: "conflict",
+      message: "A tag with that name already exists.",
+    });
+  }
+
   const response = await prisma.tag.create({
     data: {
       name: tag,
-      color: randomBadgeColor(),
+      color:
+        color && COLORS_LIST.map(({ color }) => color).includes(color)
+          ? color
+          : randomBadgeColor(),
       projectId: project.id,
     },
   });
-  return NextResponse.json(response, { headers });
+
+  return NextResponse.json(response, { headers, status: 201 });
 });

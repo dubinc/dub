@@ -8,9 +8,6 @@ const REDIRECT_SEGMENTS = [
   "_static",
 ];
 
-const path = require("path");
-const { NormalModuleReplacementPlugin } = require("webpack");
-
 /** @type {import('next').NextConfig} */
 module.exports = {
   reactStrictMode: false,
@@ -62,7 +59,7 @@ module.exports = {
         hostname: "pbs.twimg.com",
       },
       {
-        hostname: "d2vwwcvoksz7ty.cloudfront.net",
+        hostname: "assets.dub.co",
       },
       {
         hostname: "lh3.googleusercontent.com",

@@ -1,27 +1,23 @@
 import { transferLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import { DubApiError } from "@/lib/api/errors";
 import prisma from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
+import z from "@/lib/zod";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
 
+const transferLinkBodySchema = z.object({
+  newProjectId: z.string().min(1, "Missing new project ID."),
+});
+
 // POST /api/links/[linkId]/transfer – transfer a link to another project
 export const POST = withAuth(async ({ req, headers, session, link }) => {
-  let body: { newProjectId: string };
-
-  try {
-    body = await req.json();
-  } catch (error) {
-    return new Response("Missing or invalid body.", { status: 400, headers });
-  }
-
-  if (!body.newProjectId) {
-    return new Response("Missing new project ID.", { status: 400, headers });
-  }
+  const { newProjectId } = transferLinkBodySchema.parse(await req.json());
 
   const newProject = await prisma.project.findUnique({
-    where: { id: body.newProjectId },
+    where: { id: newProjectId },
     select: {
       linksUsage: true,
       linksLimit: true,
@@ -37,20 +33,23 @@ export const POST = withAuth(async ({ req, headers, session, link }) => {
   });
 
   if (!newProject || newProject.users.length === 0) {
-    return new Response("New project not found.", { status: 404, headers });
+    throw new DubApiError({
+      code: "not_found",
+      message: "New project not found.",
+    });
   }
 
   if (newProject.linksUsage >= newProject.linksLimit) {
-    return new Response("New project has reached its link limit.", {
-      status: 403,
-      headers,
+    throw new DubApiError({
+      code: "forbidden",
+      message: "New project has reached its link limit.",
     });
   }
 
   const response = await Promise.all([
     transferLink({
       linkId: link!.id,
-      newProjectId: body.newProjectId,
+      newProjectId,
     }),
     // set this in redis so we can use it in the event cron job
     redis.set(`transfer:${link!.id}:oldProjectId`, link!.projectId),

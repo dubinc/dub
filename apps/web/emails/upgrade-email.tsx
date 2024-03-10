@@ -1,4 +1,4 @@
-import { DUB_LOGO, SELF_SERVE_PAID_PLANS } from "@dub/utils";
+import { DUB_LOGO, getPlanDetails } from "@dub/utils";
 import {
   Body,
   Container,
@@ -23,7 +23,7 @@ export default function UpgradeEmail({
   email: string;
   plan: string;
 }) {
-  const planDetails = SELF_SERVE_PAID_PLANS.find((p) => p.name === plan)!;
+  const planDetails = getPlanDetails(plan);
   return (
     <Html>
       <Head />
@@ -67,14 +67,14 @@ export default function UpgradeEmail({
             <Text className="text-sm leading-6 text-black">
               As you might already know, we are a{" "}
               <Link
-                href="https://dub.sh/mission"
+                href="https://d.to/mission"
                 className="font-medium text-blue-600 no-underline"
               >
                 100% bootstrapped
               </Link>{" "}
               and{" "}
               <Link
-                href="https://dub.sh/github"
+                href="https://d.to/github"
                 className="font-medium text-blue-600 no-underline"
               >
                 open-source
