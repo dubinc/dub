@@ -6,13 +6,41 @@ import { LinkWithTagIdsProps } from "@/lib/types";
 import { updateLinkBodySchema } from "@/lib/zod/schemas/links";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
 
 // GET /api/links/[linkId] – get a link
 export const GET = withAuth(async ({ headers, link }) => {
-  // link is guaranteed to exist because if not we will return 404
-  return NextResponse.json(link!, {
-    headers,
+  if (!link) {
+    throw new DubApiError({
+      code: "not_found",
+      message: "Link not found.",
+    });
+  }
+
+  const tags = await prisma.tag.findMany({
+    where: {
+      links: {
+        some: {
+          id: link.id,
+        },
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+      color: true,
+    },
   });
+  // link is guaranteed to exist because if not we will return 404
+  return NextResponse.json(
+    {
+      ...link,
+      tags,
+    },
+    {
+      headers,
+    },
+  );
 });
 
 // PUT /api/links/[linkId] – update a link

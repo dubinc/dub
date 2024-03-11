@@ -11,7 +11,6 @@ export interface LinkWithTagsProps extends LinkProps {
 
 export interface LinkWithTagIdsProps extends LinkProps {
   tagIds: string[];
-  tagId?: string;
 }
 
 export interface SimpleLinkProps {

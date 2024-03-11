@@ -58,7 +58,7 @@ interface WithAuthHandler {
     session: Session;
     project: ProjectProps;
     domain: string;
-    link?: LinkProps & { tags: TagProps[] };
+    link?: LinkProps;
   }): Promise<Response>;
 }
 
@@ -210,20 +210,6 @@ export const withAuth = (
         }
       }
 
-      const includeTags = {
-        tags: {
-          include: {
-            tag: {
-              select: {
-                id: true,
-                name: true,
-                color: true,
-              },
-            },
-          },
-        },
-      };
-
       let [project, link] = (await Promise.all([
         prisma.project.findUnique({
           where: {
@@ -267,7 +253,6 @@ export const withAuth = (
               where: {
                 id: linkId,
               },
-              include: includeTags,
             })
           : domain &&
             key &&
@@ -284,12 +269,8 @@ export const withAuth = (
                       key,
                     },
                   },
-                  include: includeTags,
                 })),
-      ])) as [
-        ProjectProps,
-        (LinkProps & { tags?: { tag: TagProps }[] }) | undefined,
-      ];
+      ])) as [ProjectProps, LinkProps | undefined];
 
       if (!project || !project.users) {
         // project doesn't exist
@@ -439,10 +420,7 @@ export const withAuth = (
         session,
         project,
         domain,
-        link: link && {
-          ...link,
-          tags: link?.tags?.map(({ tag }) => tag) ?? [],
-        },
+        link,
       });
     } catch (error) {
       console.error("withAuth Error -->", error.message);

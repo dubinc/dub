@@ -28,6 +28,7 @@ import { recordLink } from "../tinybird";
 import {
   LinkProps,
   LinkWithTagIdsProps,
+  LinkWithTagsProps,
   ProjectProps,
   RedisLinkProps,
   TagProps,
@@ -106,9 +107,11 @@ export async function getLinksForProject({
       domain: link.domain,
       key: link.key,
     });
+    const tags = link.tags.map(({ tag }) => tag);
     return {
       ...link,
-      tags: link.tags.map(({ tag }) => tag),
+      tagId: tags?.[0]?.id ?? null, // backwards compatibility
+      tags,
       shortLink,
       qrCode: `https://api.dub.co/qr?url=${shortLink}`,
     };
@@ -550,8 +553,10 @@ export async function addLink(link: LinkWithTagIdsProps) {
     domain: response.domain,
     key: response.key,
   });
+  const tags = response.tags.map(({ tag }) => tag);
   return {
     ...response,
+    tagId: tags?.[0]?.id ?? null, // backwards compatibility
     tags: response.tags.map(({ tag }) => tag),
     shortLink,
     qrCode: `https://api.dub.co/qr?url=${shortLink}`,
@@ -567,11 +572,11 @@ export async function bulkCreateLinks({
 }) {
   if (links.length === 0) return [];
 
-  let createdLinks: LinkProps[] = [];
+  let createdLinks: LinkWithTagsProps[] = [];
   let linkTags: { tagId: string; linkId: string }[] = [];
 
   if (skipPrismaCreate) {
-    createdLinks = links;
+    createdLinks = links as unknown as LinkWithTagsProps[];
   } else {
     await prisma.link.createMany({
       data: links.map(({ tagId, tagIds, ...link }) => {
@@ -816,10 +821,12 @@ export async function editLink({
     domain: response.domain,
     key: response.key,
   });
+  const tags = response.tags.map(({ tag }) => tag);
 
   return {
     ...response,
-    tags: response.tags.map(({ tag }) => tag),
+    tags,
+    tagId: tags?.[0]?.id ?? null, // backwards compatibility
     shortLink,
     qrCode: `https://api.dub.co/qr?url=${shortLink}`,
   };
