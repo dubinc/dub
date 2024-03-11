@@ -1,4 +1,4 @@
-import { conn } from "./planetscale";
+import { DATABASE_URL, conn } from "./planetscale";
 import z from "./zod";
 import { getAnalyticsQuerySchema } from "./zod/schemas/analytics";
 
@@ -106,7 +106,7 @@ export const getAnalytics = async ({
   // Note: we're using decodeURIComponent in this function because that's how we store it in MySQL and Tinybird
 
   if (
-    !process.env.DATABASE_URL ||
+    !DATABASE_URL ||
     !process.env.TINYBIRD_API_KEY ||
     !VALID_TINYBIRD_ENDPOINTS.includes(endpoint)
   ) {
