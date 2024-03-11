@@ -102,9 +102,13 @@ export async function getLinksForProject({
       domain: link.domain,
       key: link.key,
     });
+
+    const tags = link.tags.map(({ tag }) => tag);
+
     return {
       ...link,
-      tags: link.tags.map(({ tag }) => tag),
+      tagId: tags?.[0]?.id ?? null, // backwards compatibility
+      tags,
       shortLink,
       qrCode: `https://api.dub.co/qr?url=${shortLink}`,
     };
@@ -558,8 +562,10 @@ export async function addLink(link: LinkWithTagIdsProps) {
     domain: response.domain,
     key: response.key,
   });
+  const tags = response.tags.map(({ tag }) => tag);
   return {
     ...response,
+    tagId: tags?.[0]?.id ?? null, // backwards compatibility
     tags: response.tags.map(({ tag }) => tag),
     shortLink,
     qrCode: `https://api.dub.co/qr?url=${shortLink}`,
@@ -822,9 +828,12 @@ export async function editLink({
     key: response.key,
   });
 
+  const tags = response.tags.map(({ tag }) => tag);
+
   return {
     ...response,
-    tags: response.tags.map(({ tag }) => tag),
+    tagId: tags?.[0]?.id ?? null, // backwards compatibility
+    tags,
     shortLink,
     qrCode: `https://api.dub.co/qr?url=${shortLink}`,
   };
