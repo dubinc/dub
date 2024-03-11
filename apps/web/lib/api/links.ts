@@ -252,6 +252,8 @@ export function processKey(key: string) {
   }
   // remove all leading and trailing slashes from key
   key = key.replace(/^\/+|\/+$/g, "");
+  // replace all special characters 
+  key = key.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   if (key.length === 0) {
     return null;
   }
