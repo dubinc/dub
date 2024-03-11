@@ -35,6 +35,7 @@ export const GET = withAuth(async ({ headers, link }) => {
   return NextResponse.json(
     {
       ...link,
+      tagId: tags?.[0]?.id ?? null, // backwards compatibility
       tags,
     },
     {
