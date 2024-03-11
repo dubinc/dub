@@ -36,7 +36,7 @@ function TimeSeriesChartInner<T extends Datum>({
   children,
   data,
   series,
-  tooltipContent = (d) => series[0].accessorFn(d).toString(),
+  tooltipContent = (d) => series[0].valueAccessor(d).toString(),
   margin: marginProp = {
     top: 12,
     right: 4,
@@ -74,7 +74,7 @@ function TimeSeriesChartInner<T extends Datum>({
   const { minY, maxY } = useMemo(() => {
     const values = series
       .filter(({ isActive }) => isActive !== false)
-      .map(({ accessorFn }) => data.map((d) => accessorFn(d)))
+      .map(({ valueAccessor }) => data.map((d) => valueAccessor(d)))
       .flat()
       .filter((v): v is number => v != null);
 
@@ -159,7 +159,7 @@ function TimeSeriesChartInner<T extends Datum>({
                   <Circle
                     key={s.id}
                     cx={xScale(tooltipData.date)}
-                    cy={yScale(s.accessorFn(tooltipData))}
+                    cy={yScale(s.valueAccessor(tooltipData))}
                     r={4}
                     className="text-blue-800"
                     fill="currentColor"
@@ -197,7 +197,7 @@ function TimeSeriesChartInner<T extends Datum>({
             >
               <div className="pointer-events-none rounded-md border border-gray-200 bg-white px-4 py-2 text-base shadow-sm">
                 {tooltipContent?.(tooltipData) ??
-                  series[0].accessorFn(tooltipData)}
+                  series[0].valueAccessor(tooltipData)}
               </div>
             </TooltipWrapper>
           )}

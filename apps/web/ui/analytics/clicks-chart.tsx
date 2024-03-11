@@ -55,7 +55,7 @@ export default function ClicksChart() {
         <TimeSeriesChart
           key={queryString}
           data={chartData}
-          series={[{ id: "clicks", accessorFn: (d) => d.values.clicks }]}
+          series={[{ id: "clicks", valueAccessor: (d) => d.values.clicks }]}
           tooltipContent={(d) => (
             <>
               <p className="text-gray-600">

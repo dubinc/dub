@@ -18,7 +18,7 @@ export type AccessorFn<T extends Datum, TValue = number> = (
 export type Series<T extends Datum = any, TValue = number> = {
   id: string;
   isActive?: boolean;
-  accessorFn: AccessorFn<T, TValue>;
+  valueAccessor: AccessorFn<T, TValue>;
   color?: string | AccessorFn<T, string>;
 };
 

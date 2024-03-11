@@ -64,7 +64,7 @@ export function useTooltip<T extends Datum>({
         tooltipData: d,
         tooltipLeft: snapToX ? xScale(d.date) : x,
         tooltipTop: snapToY
-          ? yScale(series.find((s) => s.id === seriesId)!.accessorFn(d))
+          ? yScale(series.find((s) => s.id === seriesId)!.valueAccessor(d))
           : 0,
       });
     },

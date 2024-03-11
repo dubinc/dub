@@ -39,7 +39,7 @@ export default function Areas() {
           <AreaClosed
             data={data}
             x={(d) => xScale(d.date)}
-            y={(d) => yScale(s.accessorFn(d) ?? 0)}
+            y={(d) => yScale(s.valueAccessor(d) ?? 0)}
             yScale={yScale}
           >
             {({ path }) => {
@@ -57,7 +57,7 @@ export default function Areas() {
           <Area
             data={data}
             x={(d) => xScale(d.date)}
-            y={(d) => yScale(s.accessorFn(d) ?? 0)}
+            y={(d) => yScale(s.valueAccessor(d) ?? 0)}
           >
             {({ path }) => (
               <motion.path
@@ -75,7 +75,7 @@ export default function Areas() {
           {!tooltipData && (
             <Circle
               cx={xScale(data.at(-1)!.date)}
-              cy={yScale(s.accessorFn(data.at(-1)!))}
+              cy={yScale(s.valueAccessor(data.at(-1)!))}
               r={4}
               className="text-blue-700"
               fill="currentColor"
