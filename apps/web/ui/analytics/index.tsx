@@ -114,7 +114,7 @@ export default function Analytics({
         key: key ? decodeURIComponent(key) : undefined, // link key (e.g. github, weathergpt, etc.)
         url: staticUrl, // url for the link (only for public stats pages)
         interval, // time interval (e.g. 24h, 7d, 30d, etc.)
-        tagId,
+        tagId, // id of a single tag
         totalClicks, // total clicks for the link
       }}
     >
