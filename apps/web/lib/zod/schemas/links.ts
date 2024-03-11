@@ -198,8 +198,9 @@ export const createLinkBodySchema = z.object({
     )
     .openapi({ deprecated: true }),
   tagIds: z
-    .array(z.string())
-    .nullish()
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional()
     .describe("The unique IDs of the tags assigned to the short link."),
   comments: z.string().nullish().describe("The comments for the short link."),
 });
