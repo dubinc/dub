@@ -1,8 +1,12 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import prisma from "@/lib/prisma";
-import { API_DOMAIN, getSearchParams, isDubDomain } from "@dub/utils";
+import {
+  API_DOMAIN,
+  DUB_PROJECT_ID,
+  getSearchParams,
+  isDubDomain,
+} from "@dub/utils";
 import { Link as LinkProps } from "@prisma/client";
-import { isAdmin } from "app/admin.dub.co/actions";
 import { createHash } from "crypto";
 import { getServerSession } from "next-auth/next";
 import { exceededLimitError } from "../api/errors";
@@ -571,7 +575,20 @@ interface WithAdminHandler {
 export const withAdmin =
   (handler: WithAdminHandler) =>
   async (req: Request, { params }: { params: Record<string, string> }) => {
-    if (!(await isAdmin())) {
+    const session = await getSession();
+    if (!session?.user) {
+      return new Response("Unauthorized: Login required.", { status: 401 });
+    }
+
+    const response = await prisma.projectUsers.findUnique({
+      where: {
+        userId_projectId: {
+          userId: session.user.id,
+          projectId: DUB_PROJECT_ID,
+        },
+      },
+    });
+    if (!response) {
       return new Response("Unauthorized: Not an admin.", { status: 401 });
     }
 

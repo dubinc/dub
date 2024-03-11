@@ -1,6 +1,6 @@
 import { getIdentityHash } from "@/lib/edge";
 import { isWhitelistedEmail } from "@/lib/edge-config";
-import { conn } from "@/lib/planetscale";
+import { DATABASE_URL, conn } from "@/lib/planetscale";
 import { ratelimit } from "@/lib/upstash";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
 
   const { email } = (await req.json()) as { email: string };
 
-  if (!process.env.DATABASE_URL) {
+  if (!DATABASE_URL) {
     return new Response("Database connection not established", {
       status: 500,
     });

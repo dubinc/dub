@@ -15,7 +15,7 @@ Before you begin, make sure you have the following:
 - A [GitHub](https://github.com/) account
 - A [Tinybird](https://www.tinybird.co/) account
 - An [Upstash](https://upstash.com/) account
-- A [Planetscale](https://planetscale.com/) account
+- A [PlanetScale](https://planetscale.com/) account
 - A [Vercel](https://vercel.com/) account
 
 You'll also need a custom domain that you will be using for your Dub.co instance, with an optional custom short domain for your links.
@@ -23,6 +23,8 @@ You'll also need a custom domain that you will be using for your Dub.co instance
 In this guide, we'll use `acme.com` as a placeholder for your custom domain, and `ac.me` as a placeholder for your custom short domain.
 
 ## Step 1: Local setup
+
+First, you'll need to clone the Dub.co repo and install the dependencies.
 
 <Steps>
 
@@ -83,9 +85,9 @@ First, clone the [Dub repo](https://d.to/github) into a public GitHub repository
 
 </Steps>
 
-## Step 2: Set up Tinybird database
+## Step 2: Set up Tinybird Clickhouse database
 
-Next, you'll need to set up Tinybird for the analytics database:
+Next, you'll need to set up the [Tinybird](https://tinybird.co) Clickhouse database. This will be used to store time-series click events data.
 
 <Steps>
 
@@ -153,7 +155,7 @@ In your newly-cloned Dub.co repo, navigate to the `packages/tinybird` directory.
 
 ## Step 3: Set up Upstash Redis database
 
-Next, you'll need to set up the Upstash Redis database:
+Next, you'll need to set up the [Upstash](https://upstash.com) Redis database. This will be used to cache link metadata and serve link redirects.
 
 <Steps>
 
@@ -181,27 +183,38 @@ Navigate to the [QStash tab](https://console.upstash.com/qstash) and copy the `Q
 
 </Steps>
 
-## Step 4: Set up Planetscale database
+## Step 4: Set up PlanetScale MySQL database
 
-Next, you'll need to set up the Planetscale MySQL database:
+Next, you'll need to set up a [PlanetScale](https://planetscale.com/)-compatible MySQL database. This will be used to store user data and link metadata.
+
+{/* prettier-ignore */}
+<Note>
+  PlanetScale recently [removed their free
+  tier](https://planetscale.com/blog/planetscale-forever), so you'll need to pay
+  for this option. A cheaper alternative is to use a [MySQL database on
+  Railway](https://railway.app/template/mysql) ($5/month).
+  
+  For [local development](local-development), we recommend using a [local MySQL database
+  with PlanetScale simulator](local-development#option-1-local-mysql-database-with-planetscale-simulator-recommended) (100% free).
+</Note>
 
 <Steps>
 
-  <Step title="Create Planetscale database">
+  <Step title="Create PlanetScale database">
 
-    In your [Planetscale account](https://app.planetscale.com/), create a new database. You can use the free tier for this project.
+    In your [PlanetScale account](https://app.planetscale.com/), create a new database.
 
     Once your database is created, you'll be prompted to select your language or Framework. Select **Prisma**.
 
-    ![Planetscale choose framework](/images/planetscale-choose-framework.png)
+    ![PlanetScale choose framework](/images/planetscale-choose-framework.png)
 
   </Step>
 
-  <Step title="Set up Planetscale environment variables">
+  <Step title="Set up PlanetScale environment variables">
 
     Then, you'll have to create a new password for your database. Once the password is created, scroll down to the **Add credentials to .env** section and copy the `DATABASE_URL` into your `.env` file.
 
-    ![Planetscale add credentials](/images/planetscale-add-credentials.png)
+    ![PlanetScale add credentials](/images/planetscale-add-credentials.png)
 
   </Step>
 
@@ -337,7 +350,7 @@ This guide is meant to be a starting point for self-hosting Dub.co. It currently
 
 - [Tinybird](https://www.tinybird.co/) for the analytics database
 - [Upstash](https://upstash.com/) for the Redis database
-- [Planetscale](https://planetscale.com/) for the MySQL database
+- [PlanetScale](https://planetscale.com/) for the MySQL database
 - [Vercel](https://vercel.com/) for hosting & [Edge Middleware](https://vercel.com/docs/functions/edge-middleware)
 
 In the future, we plan to make it easier to self-host Dub.co by making these dependencies optional by swapping them out for native databases (e.g. mysql, redis, clickhouse, [GeoLite2](https://github.com/GitSquared/node-geolite2-redist) etc.)

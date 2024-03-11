@@ -45,7 +45,7 @@ export function Form({
         {typeof inputAttrs.defaultValue === "string" ? (
           <input
             {...inputAttrs}
-            type="text"
+            type={inputAttrs.type || "text"}
             required
             disabled={disabledTooltip ? true : false}
             onChange={(e) => setValue(e.target.value)}

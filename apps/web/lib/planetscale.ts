@@ -1,14 +1,18 @@
+import { nanoid } from "@dub/utils";
 import { connect } from "@planetscale/database";
 import { DomainProps, ProjectProps } from "./types";
 
+export const DATABASE_URL =
+  process.env.PLANETSCALE_DATABASE_URL || process.env.DATABASE_URL;
+
 export const pscale_config = {
-  url: process.env.DATABASE_URL,
+  url: DATABASE_URL,
 };
 
 export const conn = connect(pscale_config);
 
 export const getProjectViaEdge = async (projectId: string) => {
-  if (!process.env.DATABASE_URL) return null;
+  if (!DATABASE_URL) return null;
 
   const { rows } =
     (await conn.execute("SELECT * FROM Project WHERE id = ?", [projectId])) ||
@@ -20,7 +24,7 @@ export const getProjectViaEdge = async (projectId: string) => {
 };
 
 export const getDomainViaEdge = async (domain: string) => {
-  if (!process.env.DATABASE_URL) return null;
+  if (!DATABASE_URL) return null;
 
   const { rows } =
     (await conn.execute("SELECT * FROM Domain WHERE slug = ?", [domain])) || {};
@@ -31,7 +35,7 @@ export const getDomainViaEdge = async (domain: string) => {
 };
 
 export const checkIfKeyExists = async (domain: string, key: string) => {
-  if (!process.env.DATABASE_URL) return null;
+  if (!DATABASE_URL) return null;
 
   const { rows } =
     (await conn.execute(
@@ -43,7 +47,7 @@ export const checkIfKeyExists = async (domain: string, key: string) => {
 };
 
 export const getLinkViaEdge = async (domain: string, key: string) => {
-  if (!process.env.DATABASE_URL) return null;
+  if (!DATABASE_URL) return null;
 
   const { rows } =
     (await conn.execute(
@@ -90,5 +94,23 @@ export async function getDomainOrLink({
     };
   } else {
     return await getLinkViaEdge(domain, key);
+  }
+}
+
+export async function getRandomKey(
+  domain: string,
+  prefix?: string,
+): Promise<string> {
+  /* recursively get random key till it gets one that's available */
+  let key = nanoid();
+  if (prefix) {
+    key = `${prefix.replace(/^\/|\/$/g, "")}/${key}`;
+  }
+  const exists = await checkIfKeyExists(domain, key);
+  if (exists) {
+    // by the off chance that key already exists
+    return getRandomKey(domain, prefix);
+  } else {
+    return key;
   }
 }

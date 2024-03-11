@@ -58,7 +58,7 @@ function AcceptInviteModal({
                   await Promise.all([
                     mutate("/api/projects"),
                     mutate(`/api/projects/${slug}`),
-                    mutate(`/api/projects/${slug}/domains`),
+                    mutate(`/api/domains?projectSlug=${slug}`),
                   ]);
                   setShowAcceptInviteModal(false);
                   toast.success("You now are a part of this project!");
