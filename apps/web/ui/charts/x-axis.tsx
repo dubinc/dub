@@ -40,6 +40,7 @@ export default function XAxis({
       getFactors(data.length).find((f) => (data.length + 1) / f <= maxTicks) ??
       1;
 
+    // If the interval would result in < 2 ticks, just use the first and last date instead
     const twoTicks = data.length / tickInterval < 2;
 
     return data

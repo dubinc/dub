@@ -9,6 +9,7 @@ export default function Areas() {
   const { data, series, margin, xScale, yScale } = useChartContext();
   const { tooltipData } = useChartTooltipContext();
 
+  // Data with all values set to zero to animate from
   const zeroedData = useMemo(() => {
     return data.map((d) => ({
       ...d,
@@ -20,6 +21,7 @@ export default function Areas() {
     <Group left={margin.left} top={margin.top}>
       {series.map((s) => (
         <Fragment key={s.id}>
+          {/* Area background gradient */}
           <LinearGradient
             className="text-blue-500"
             id={`${s.id}-background`}
