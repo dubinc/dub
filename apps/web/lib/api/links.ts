@@ -230,6 +230,10 @@ export async function keyChecks({
         code: "forbidden",
       };
     }
+
+    // replace all special characters for premium key checks
+    key = key.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
     if (
       (await isReservedUsername(key)) &&
       (!project || project.plan === "free")
@@ -252,8 +256,6 @@ export function processKey(key: string) {
   }
   // remove all leading and trailing slashes from key
   key = key.replace(/^\/+|\/+$/g, "");
-  // replace all special characters 
-  key = key.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   if (key.length === 0) {
     return null;
   }
