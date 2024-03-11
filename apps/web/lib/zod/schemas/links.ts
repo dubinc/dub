@@ -1,6 +1,7 @@
 import z from "@/lib/zod";
 import { booleanQuerySchema } from ".";
 import { TagSchema } from "./tags";
+import { getRandomKey } from "@/lib/planetscale";
 
 const LinksQuerySchema = {
   projectSlug: z
@@ -26,6 +27,13 @@ const LinksQuerySchema = {
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional()
     .describe("The tag IDs to filter the links by."),
+  tagNames: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional()
+    .describe(
+      "The unique name of the tags assigned to the short link (case insensitive).",
+    ),
   search: z
     .string()
     .optional()
@@ -198,9 +206,17 @@ export const createLinkBodySchema = z.object({
     )
     .openapi({ deprecated: true }),
   tagIds: z
-    .array(z.string())
-    .nullish()
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional()
     .describe("The unique IDs of the tags assigned to the short link."),
+  tagNames: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional()
+    .describe(
+      "The unique name of the tags assigned to the short link (case insensitive).",
+    ),
   comments: z.string().nullish().describe("The comments for the short link."),
 });
 

@@ -17,6 +17,7 @@ export const GET = withAuth(async ({ headers, searchParams, project }) => {
     domain,
     tagId,
     tagIds,
+    tagNames,
     search,
     sort,
     page,
@@ -30,6 +31,7 @@ export const GET = withAuth(async ({ headers, searchParams, project }) => {
     domain,
     tagId,
     tagIds,
+    tagNames,
     search,
     sort,
     page,
@@ -70,7 +72,7 @@ export const POST = withAuth(
     }
 
     const { link, error, code } = await processLink({
-      payload: body as LinkWithTagIdsProps,
+      payload: body,
       project,
       ...(session && { userId: session.user.id }),
     });

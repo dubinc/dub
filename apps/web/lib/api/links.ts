@@ -7,6 +7,7 @@ import {
 import prisma from "@/lib/prisma";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import {
+  createLinkBodySchema,
   getLinksCountQuerySchema,
   getLinksQuerySchema,
 } from "@/lib/zod/schemas/links";
@@ -54,6 +55,7 @@ export async function getLinksForProject({
   domain,
   tagId,
   tagIds,
+  tagNames,
   search,
   sort = "createdAt",
   page,
@@ -85,9 +87,23 @@ export async function getLinksForProject({
           some: {},
         },
       }),
-      ...(combinedTagIds.length > 0 && {
-        tags: { some: { tagId: { in: combinedTagIds } } },
-      }),
+      ...(combinedTagIds.length > 0
+        ? {
+            tags: { some: { tagId: { in: combinedTagIds } } },
+          }
+        : tagNames
+          ? {
+              tags: {
+                some: {
+                  tag: {
+                    name: {
+                      in: tagNames,
+                    },
+                  },
+                },
+              },
+            }
+          : {}),
       ...(userId && { userId }),
     },
     include: {
@@ -223,14 +239,19 @@ export async function keyChecks({
   }
 
   if (isDubDomain(domain) && process.env.NEXT_PUBLIC_IS_DUB) {
-    if (
-      domain === SHORT_DOMAIN &&
-      (DEFAULT_REDIRECTS[key] || (await isReservedKey(key)))
-    ) {
-      return {
-        error: "Duplicate key: This short link already exists.",
-        code: "conflict",
-      };
+    if (domain === SHORT_DOMAIN) {
+      if (DEFAULT_REDIRECTS[key] || (await isReservedKey(key))) {
+        return {
+          error: "Duplicate key: This short link already exists.",
+          code: "conflict",
+        };
+      }
+      if (await isBlacklistedKey(key)) {
+        return {
+          error: "Invalid key.",
+          code: "unprocessable_entity",
+        };
+      }
     }
 
     if (key.length <= 3 && (!project || project.plan === "free")) {
@@ -274,7 +295,7 @@ export async function processLink({
   bulk = false,
   skipKeyChecks = false, // only skip when key doesn't change (e.g. when editing a link)
 }: {
-  payload: LinkWithTagIdsProps;
+  payload: z.infer<typeof createLinkBodySchema>;
   project?: ProjectProps;
   userId?: string;
   bulk?: boolean;
@@ -292,6 +313,7 @@ export async function processLink({
     ios,
     android,
     geo,
+    tagNames,
   } = payload;
 
   const tagIds = combineTagIds(payload);
@@ -332,14 +354,6 @@ export async function processLink({
 
   // checks for default short domain
   if (domain === SHORT_DOMAIN) {
-    const keyBlacklisted = await isBlacklistedKey(key);
-    if (keyBlacklisted) {
-      return {
-        link: payload,
-        error: "Invalid key.",
-        code: "unprocessable_entity",
-      };
-    }
     const domainBlacklisted = await isBlacklistedDomain(url);
     if (domainBlacklisted) {
       return {
@@ -419,7 +433,10 @@ export async function processLink({
       select: {
         id: true,
       },
-      where: { projectId: project?.id, id: { in: tagIds } },
+      where: {
+        projectId: project?.id,
+        id: { in: tagIds },
+      },
     });
 
     if (tags.length !== tagIds.length) {
@@ -430,6 +447,31 @@ export async function processLink({
           tagIds
             .filter(
               (tagId) => tags.find(({ id }) => tagId === id) === undefined,
+            )
+            .join(", "),
+        status: 422,
+      };
+    }
+  } else if (tagNames && tagNames.length > 0) {
+    const tags = await prisma.tag.findMany({
+      select: {
+        name: true,
+      },
+      where: {
+        projectId: project?.id,
+        name: { in: tagNames },
+      },
+    });
+
+    if (tags.length !== tagNames.length) {
+      return {
+        link: payload,
+        error:
+          "Invalid tagNames detected: " +
+          tagNames
+            .filter(
+              (tagName) =>
+                tags.find(({ name }) => tagName === name) === undefined,
             )
             .join(", "),
         status: 422,
@@ -529,8 +571,8 @@ export async function addLink(link: LinkWithTagIdsProps) {
     data: {
       ...rest,
       key,
-      title: truncate(title, 120),
-      description: truncate(description, 240),
+      title: truncate(title || "", 120),
+      description: truncate(description || "", 240),
       image,
       utm_source,
       utm_medium,
