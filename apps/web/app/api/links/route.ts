@@ -84,13 +84,6 @@ export const POST = withAuth(
 
     const response = await addLink(link);
 
-    if (response === null) {
-      throw new DubApiError({
-        code: "conflict",
-        message: "Duplicate key: This short link already exists.",
-      });
-    }
-
     await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/event`,
       body: {

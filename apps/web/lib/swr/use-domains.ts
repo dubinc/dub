@@ -2,7 +2,7 @@ import { DomainProps } from "@/lib/types";
 import { DUB_DOMAINS, SHORT_DOMAIN, fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
-import useProject from "./use-project";
+import useDefaultDomains from "./use-default-domains";
 
 export default function useDomains({ domain }: { domain?: string } = {}) {
   const { slug } = useParams() as {
@@ -10,53 +10,50 @@ export default function useDomains({ domain }: { domain?: string } = {}) {
   };
 
   const { data, error, mutate } = useSWR<DomainProps[]>(
-    slug && `/api/projects/${slug}/domains`,
+    slug && `/api/domains?projectSlug=${slug}`,
     fetcher,
     {
       dedupingInterval: 60000,
     },
   );
+  const { defaultDomains: projectDefaultDomains } = useDefaultDomains();
 
   const allProjectDomains = data || [];
-  const projectDomains = data?.filter((domain) => !domain.archived);
+  const activeProjectDomains = data?.filter((domain) => !domain.archived);
   const archivedProjectDomains = data?.filter((domain) => domain.archived);
 
-  const { defaultDomains: projectDefaultDomains } = useProject();
-
-  const defaultDomains =
+  const activeDefaultDomains =
     (projectDefaultDomains &&
       DUB_DOMAINS.filter((d) => projectDefaultDomains?.includes(d.slug))) ||
     DUB_DOMAINS;
 
   const allDomains = [
-    ...(data || []),
-    ...(slug !== "dub" ? defaultDomains : []),
+    ...allProjectDomains,
+    ...(slug === "dub" ? [] : DUB_DOMAINS),
   ];
   const allActiveDomains = [
-    ...(projectDomains || []),
-    ...(slug !== "dub" ? defaultDomains : []),
+    ...(activeProjectDomains || []),
+    ...(slug === "dub" ? [] : activeDefaultDomains),
   ];
 
   const primaryDomain =
-    projectDomains?.find((domain) => domain.primary)?.slug ||
-    defaultDomains.find((domain) => domain.primary)?.slug ||
+    activeProjectDomains?.find((domain) => domain.primary)?.slug ||
+    activeDefaultDomains.find((domain) => domain.primary)?.slug ||
     SHORT_DOMAIN;
 
   const verified = domain
     ? // If a domain is passed, check if it's verified
-      [...allActiveDomains, ...(archivedProjectDomains || [])].find(
-        (d) => d.slug === domain,
-      )?.verified
+      allDomains.find((d) => d.slug === domain)?.verified
     : // If no domain is passed, check if any of the project domains are verified
-      projectDomains?.some((d) => d.verified);
+      activeProjectDomains?.some((d) => d.verified);
 
   return {
-    projectDomains,
-    archivedProjectDomains,
-    defaultDomains,
-    allProjectDomains,
-    allActiveDomains,
-    allDomains,
+    activeProjectDomains, // active project domains
+    archivedProjectDomains, // archived project domains
+    activeDefaultDomains, // active default Dub domains
+    allProjectDomains, // all project domains (active + archived)
+    allActiveDomains, // all active domains (active project domains + active default Dub domains)
+    allDomains, // all domains (all project domains + all default Dub domains)
     primaryDomain,
     verified,
     loading: !data && !error,

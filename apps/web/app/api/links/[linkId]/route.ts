@@ -1,7 +1,7 @@
+import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { deleteLink, editLink, processLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
-import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { LinkWithTagIdsProps } from "@/lib/types";
 import { updateLinkBodySchema } from "@/lib/zod/schemas/links";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -38,6 +38,10 @@ export const PUT = withAuth(async ({ req, headers, project, link }) => {
   } = await processLink({
     payload: updatedLink as LinkWithTagIdsProps,
     project,
+    // if domain and key are the same, we don't need to check if the key exists
+    skipKeyChecks:
+      link!.domain === updatedLink.domain &&
+      link!.key.toLowerCase() === updatedLink.key?.toLowerCase(),
   });
 
   if (error) {
@@ -63,13 +67,6 @@ export const PUT = withAuth(async ({ req, headers, project, link }) => {
     }),
     // @ts-ignore
   ]).then((results) => results.map((result) => result.value));
-
-  if (response === null) {
-    throw new DubApiError({
-      code: "conflict",
-      message: "Duplicate key: This short link already exists.",
-    });
-  }
 
   return NextResponse.json(response, {
     headers,

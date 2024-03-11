@@ -35,7 +35,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
   }>(
     slug &&
       !showLinkQRModal && // Don't fetch if QR modal is open – it'll cause it to re-render
-      `/api/projects/${slug}/domains/${domain}/verify`,
+      `/api/domains/${domain}/verify?projectSlug=${slug}`,
     fetcher,
     {
       revalidateOnMount: true,
@@ -111,7 +111,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
               variant="secondary"
               loading={isValidating}
               onClick={() => {
-                mutate(`/api/projects/${slug}/domains/${domain}/verify`);
+                mutate(`/api/domains/${domain}/verify?projectSlug=${slug}`);
               }}
             />
             <Button

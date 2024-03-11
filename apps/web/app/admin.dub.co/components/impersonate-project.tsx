@@ -5,7 +5,6 @@ import { cn } from "@dub/utils";
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
-import { getUserOrProjectOwner } from "../actions";
 import UserInfo, { UserInfoProps } from "./user-info";
 
 export default function ImpersonateProject() {
@@ -14,16 +13,21 @@ export default function ImpersonateProject() {
   return (
     <div className="flex flex-col space-y-5">
       <form
-        action={(data) =>
-          getUserOrProjectOwner(data).then((res) => {
-            if (res.error) {
-              toast.error(res.error);
+        action={async (formData) => {
+          await fetch("/api/admin/impersonate", {
+            method: "POST",
+            body: JSON.stringify({
+              slug: formData.get("slug"),
+            }),
+          }).then(async (res) => {
+            if (res.ok) {
+              setData(await res.json());
             } else {
-              // @ts-ignore
-              setData(res);
+              const error = await res.text();
+              toast.error(error);
             }
-          })
-        }
+          });
+        }}
       >
         <Form />
       </form>

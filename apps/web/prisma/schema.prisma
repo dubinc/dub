@@ -111,7 +111,7 @@ model Project {
   updatedAt DateTime @updatedAt
 
   inviteCode  String? @unique
-  metadata    Json?    @default("{\"defaultDomains\":[\"dub.sh\",\"chatg.pt\",\"spti.fi\",\"amzn.id\"]}")
+  defaultDomains DefaultDomains[]
 }
 
 model ProjectInvite {
@@ -124,6 +124,18 @@ model ProjectInvite {
   @@unique([email, projectId])
   @@index([projectId])
 }
+
+model DefaultDomains {
+  id          String   @id @default(cuid())
+  dubsh       Boolean  @default(true)
+  chatgpt     Boolean  @default(true)
+  sptifi      Boolean  @default(true)
+  gitnew      Boolean  @default(true)
+  amznid      Boolean  @default(true)
+  projectId   String   @unique
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
 
 enum Role {
   owner

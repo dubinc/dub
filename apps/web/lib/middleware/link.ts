@@ -1,7 +1,12 @@
 import { detectBot, getFinalUrl, parse } from "@/lib/middleware/utils";
 import { recordClick } from "@/lib/tinybird";
-import { formatRedisLink, ratelimit, redis } from "@/lib/upstash";
-import { DUB_HEADERS, LEGAL_PROJECT_ID, LOCALHOST_GEO_DATA } from "@dub/utils";
+import { formatRedisLink, redis } from "@/lib/upstash";
+import {
+  DUB_DEMO_LINKS,
+  DUB_HEADERS,
+  LEGAL_PROJECT_ID,
+  LOCALHOST_GEO_DATA,
+} from "@dub/utils";
 import {
   NextFetchEvent,
   NextRequest,
@@ -11,7 +16,6 @@ import {
 import { isBlacklistedReferrer } from "../edge-config";
 import { getLinkViaEdge } from "../planetscale";
 import { RedisLinkProps } from "../types";
-import { getIdentityHash } from "../edge";
 
 export default async function LinkMiddleware(
   req: NextRequest,
@@ -26,22 +30,17 @@ export default async function LinkMiddleware(
   // links on Dub are case insensitive by default
   key = key.toLowerCase();
 
+  const demoLink = DUB_DEMO_LINKS.find(
+    (l) => l.domain === domain && l.key === key,
+  );
+
+  // if it's a demo link, block bad referrers in production
   if (
     process.env.NODE_ENV !== "development" &&
-    domain === "dub.sh" &&
-    key === "try"
+    demoLink &&
+    (await isBlacklistedReferrer(req.headers.get("referer")))
   ) {
-    if (await isBlacklistedReferrer(req.headers.get("referer"))) {
-      return new Response("Don't DDoS me pls 🥺", { status: 429 });
-    }
-    const identity_hash = await getIdentityHash(req);
-    const { success } = await ratelimit(10, "1 d").limit(
-      `demo-click:${identity_hash}`,
-    );
-
-    if (!success) {
-      return new Response("Don't DDoS me pls 🥺", { status: 429 });
-    }
+    return new Response("Don't DDoS me pls 🥺", { status: 429 });
   }
 
   const inspectMode = key.endsWith("+");
@@ -58,7 +57,10 @@ export default async function LinkMiddleware(
     if (!linkData) {
       // short link not found, redirect to root
       // TODO: log 404s (https://github.com/dubinc/dub/issues/559)
-      return NextResponse.redirect(new URL("/", req.url), DUB_HEADERS);
+      return NextResponse.redirect(new URL("/", req.url), {
+        ...DUB_HEADERS,
+        status: 302,
+      });
     }
 
     // format link to fit the RedisLinkProps interface
@@ -88,6 +90,7 @@ export default async function LinkMiddleware(
   if (inspectMode && !password) {
     return NextResponse.rewrite(
       new URL(`/inspect/${domain}/${encodeURIComponent(key)}+`, req.url),
+      DUB_HEADERS,
     );
   }
 
@@ -102,6 +105,7 @@ export default async function LinkMiddleware(
     if (!pw || (await getLinkViaEdge(domain, key))?.password !== pw) {
       return NextResponse.rewrite(
         new URL(`/password/${domain}/${encodeURIComponent(key)}`, req.url),
+        DUB_HEADERS,
       );
     } else if (pw) {
       // strip it from the URL if it's correct
@@ -111,12 +115,12 @@ export default async function LinkMiddleware(
 
   // if the link is banned
   if (link.projectId === LEGAL_PROJECT_ID) {
-    return NextResponse.rewrite(new URL("/banned", req.url));
+    return NextResponse.rewrite(new URL("/banned", req.url), DUB_HEADERS);
   }
 
   // if the link has expired
   if (expiresAt && new Date(expiresAt) < new Date()) {
-    return NextResponse.rewrite(new URL("/expired", req.url));
+    return NextResponse.rewrite(new URL("/expired", req.url), DUB_HEADERS);
   }
 
   const searchParams = req.nextUrl.searchParams;
@@ -139,6 +143,7 @@ export default async function LinkMiddleware(
   if (isBot && proxy) {
     return NextResponse.rewrite(
       new URL(`/proxy/${domain}/${encodeURIComponent(key)}`, req.url),
+      DUB_HEADERS,
     );
 
     // rewrite to target URL if link cloaking is enabled
@@ -155,21 +160,30 @@ export default async function LinkMiddleware(
 
     // redirect to iOS link if it is specified and the user is on an iOS device
   } else if (ios && userAgent(req).os?.name === "iOS") {
-    return NextResponse.redirect(getFinalUrl(ios, { req }), DUB_HEADERS);
+    return NextResponse.redirect(getFinalUrl(ios, { req }), {
+      ...DUB_HEADERS,
+      status: 302,
+    });
 
     // redirect to Android link if it is specified and the user is on an Android device
   } else if (android && userAgent(req).os?.name === "Android") {
-    return NextResponse.redirect(getFinalUrl(android, { req }), DUB_HEADERS);
+    return NextResponse.redirect(getFinalUrl(android, { req }), {
+      ...DUB_HEADERS,
+      status: 302,
+    });
 
     // redirect to geo-specific link if it is specified and the user is in the specified country
   } else if (geo && country && country in geo) {
-    return NextResponse.redirect(
-      getFinalUrl(geo[country], { req }),
-      DUB_HEADERS,
-    );
+    return NextResponse.redirect(getFinalUrl(geo[country], { req }), {
+      ...DUB_HEADERS,
+      status: 302,
+    });
 
     // regular redirect
   } else {
-    return NextResponse.redirect(getFinalUrl(url, { req }), DUB_HEADERS);
+    return NextResponse.redirect(getFinalUrl(url, { req }), {
+      ...DUB_HEADERS,
+      status: 302,
+    });
   }
 }

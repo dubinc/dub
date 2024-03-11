@@ -4,6 +4,8 @@ title: "Local Development"
 description: "A guide on how to run Dub.co's codebase locally."
 ---
 
+![Dub.co Thumbnail](/images/thumbnail.png)
+
 ## Introduction
 
 Dub's codebase is set up in a monorepo (via [Turborepo](https://turbo.build/repo)) and is fully [open-source on GitHub](https://github.com/dubinc/dub).
@@ -64,9 +66,11 @@ To run Dub.co locally, you'll need to set up the following:
 
 - A [Tinybird](https://www.tinybird.co/) account
 - An [Upstash](https://upstash.com/) account
-- A [Planetscale](https://planetscale.com/) account
+- A [PlanetScale](https://planetscale.com/)-compatible MySQL database
 
-### Step 1: Local setup
+## Step 1: Local setup
+
+First, you'll need to clone the Dub.co repo and install the dependencies.
 
 <Steps>
 
@@ -74,7 +78,7 @@ To run Dub.co locally, you'll need to set up the following:
 
 First, clone the [Dub.co repo](https://d.to/github) into a public GitHub repository.
 
-    ```bash
+    ```bash Terminal
     git clone https://github.com/dubinc/dub.git
     ```
 
@@ -84,7 +88,7 @@ First, clone the [Dub.co repo](https://d.to/github) into a public GitHub reposit
 
     Run the following command to install the dependencies:
 
-    ```bash
+    ```bash Terminal
     pnpm i
     ```
 
@@ -94,7 +98,7 @@ First, clone the [Dub.co repo](https://d.to/github) into a public GitHub reposit
 
     If you're planning to make changes to [Dub.co's Docs](/docs), you'll need to install the [Mintlify CLI](https://mintlify.com/docs/development) to build the documentation site.
 
-    ```bash
+    ```bash Terminal
     pnpm install -g mintlify
     ```
 
@@ -102,9 +106,9 @@ First, clone the [Dub.co repo](https://d.to/github) into a public GitHub reposit
 
 </Steps>
 
-### Step 2: Set up Tinybird database
+## Step 2: Set up Tinybird Clickhouse database
 
-Next, you'll need to set up Tinybird for the analytics database:
+Next, you'll need to set up the [Tinybird](https://tinybird.co) Clickhouse database. This will be used to store time-series click events data.
 
 <Steps>
 
@@ -130,7 +134,7 @@ In your newly-cloned Dub.co repo, navigate to the `packages/tinybird` directory.
 
     Run `tb push` to publish the datasource and endpoints in the `packages/tinybird` directory. You should see the following output (truncated for brevity):
 
-    ```bash
+    ```bash Terminal
     $ tb push
 
     ** Processing ./datasources/click_events.datasource
@@ -156,13 +160,13 @@ In your newly-cloned Dub.co repo, navigate to the `packages/tinybird` directory.
 
     From the previous step, take note of the **Test endpoint** URL. It should look something like this:
 
-    ```
+    ```bash Terminal
     Test endpoint at https://api.us-east.tinybird.co/v0/pipes/device.json
     ```
 
     Copy the base URL and paste it as the `TINYBIRD_API_URL` environment variable in your `.env` file.
 
-    ```bash
+    ```bash Terminal
     TINYBIRD_API_URL=https://api.us-east.tinybird.co
     ```
 
@@ -170,9 +174,9 @@ In your newly-cloned Dub.co repo, navigate to the `packages/tinybird` directory.
   
 </Steps>
 
-### Step 3: Set up Upstash Redis database
+## Step 3: Set up Upstash Redis database
 
-Next, you'll need to set up the Upstash Redis database:
+Next, you'll need to set up the [Upstash](https://upstash.com) Redis database. This will be used to cache link metadata and serve link redirects.
 
 <Steps>
 
@@ -204,7 +208,7 @@ Navigate to the [QStash tab](https://console.upstash.com/qstash) and copy the `Q
 
     Follow [these steps](https://ngrok.com/docs/getting-started/) to setup `ngrok`, and then run the following command to start an Ngrok tunnel at port `8888`:
 
-    ```bash
+    ```bash Terminal
     ngrok http 8888
     ```
 
@@ -214,27 +218,47 @@ Navigate to the [QStash tab](https://console.upstash.com/qstash) and copy the `Q
 
 </Steps>
 
-### Step 4: Set up Planetscale database
+## Step 4: Set up PlanetScale MySQL database
 
-Next, you'll need to set up the Planetscale MySQL database:
+Next, you'll need to set up a [PlanetScale](https://planetscale.com/)-compatible MySQL database. This will be used to store user data and link metadata. There are two options:
+
+### Option 1: Local MySQL database with PlanetScale simulator (recommended)
+
+You can use a local MySQL database with a PlanetScale simulator. This is the recommended option for local development since it's 100% free.
+
+Prerequisites:
+
+- [Docker](https://www.docker.com/products/docker-desktop)
+- [Docker Compose](https://docs.docker.com/compose/install/)
 
 <Steps>
 
-  <Step title="Create Planetscale database">
+  <Step title="Spin up the docker-compose stack">
 
-    In your [Planetscale account](https://app.planetscale.com/), create a new database. You can use the free tier for this project.
+    In the terminal, navigate to the `apps/web` directory and run the following command to start the Docker Compose stack:
 
-    Once your database is created, you'll be prompted to select your language or Framework. Select **Prisma**.
+    ```bash Terminal
+    docker-compose up
+    ```
 
-    ![Planetscale choose framework](/images/planetscale-choose-framework.png)
+    This will start two containers: one for the MySQL database and another for the PlanetScale simulator.
 
   </Step>
 
-  <Step title="Set up Planetscale environment variables">
+  <Step title="Set up database environment variables">
 
-    Then, you'll have to create a new password for your database. Once the password is created, scroll down to the **Add credentials to .env** section and copy the `DATABASE_URL` into your `.env` file.
+    Add the following credentials to your `.env` file:
 
-    ![Planetscale add credentials](/images/planetscale-add-credentials.png)
+    ```
+    PLANETSCALE_DATABASE_URL="http://root:unused@localhost:3900"
+    DATABASE_URL="mysql://root:@localhost:3306/planetscale"
+    ```
+
+    Here, we are using the open-source [PlanetScale simulator](https://github.com/mattrobenolt/ps-http-sim) so the application can continue to use the `@planetscale/database` SDK.
+
+    <Tip>
+      While we're using two different values in local development, in production or staging environments, you'll only need the `DATABASE_URL` value.
+    </Tip>
 
   </Step>
 
@@ -242,13 +266,13 @@ Next, you'll need to set up the Planetscale MySQL database:
 
     In the terminal, navigate to the `apps/web` directory and run the following command to generate the Prisma client:
 
-    ```bash
+    ```bash Terminal
     npx prisma generate
     ```
 
     Then, create the database tables with the following command:
 
-    ```bash
+    ```bash Terminal
     npx prisma db push
     ```
 
@@ -256,7 +280,54 @@ Next, you'll need to set up the Planetscale MySQL database:
 
 </Steps>
 
-### Step 5: Set up GitHub OAuth
+### Option 2: PlanetScale hosted database
+
+<Note>
+  PlanetScale recently [removed their free
+  tier](https://planetscale.com/blog/planetscale-forever), so you'll need to pay
+  for this option. A cheaper alternative is to use a [MySQL database on
+  Railway](https://railway.app/template/mysql) ($5/month).
+</Note>
+
+<Steps>
+
+  <Step title="Create PlanetScale database">
+
+    In your [PlanetScale account](https://app.planetscale.com/), create a new database.
+
+    Once your database is created, you'll be prompted to select your language or Framework. Select **Prisma**.
+
+    ![PlanetScale choose framework](/images/planetscale-choose-framework.png)
+
+  </Step>
+
+  <Step title="Set up PlanetScale environment variables">
+
+    Then, you'll have to create a new password for your database. Once the password is created, scroll down to the **Add credentials to .env** section and copy the `DATABASE_URL` into your `.env` file.
+
+    ![PlanetScale add credentials](/images/planetscale-add-credentials.png)
+
+  </Step>
+
+  <Step title="Generate Prisma client and create database tables">
+
+    In the terminal, navigate to the `apps/web` directory and run the following command to generate the Prisma client:
+
+    ```bash Terminal
+    npx prisma generate
+    ```
+
+    Then, create the database tables with the following command:
+
+    ```bash Terminal
+    npx prisma db push
+    ```
+
+  </Step>
+
+</Steps>
+
+## Step 5: Set up GitHub OAuth
 
 Next, follow [these steps](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps) to create a GitHub App. This will allow you to sign in to Dub.co with your GitHub account.
 
@@ -268,11 +339,11 @@ http://localhost:8888/api/auth/callback/github
 
 Once your GitHub App is created, copy the `Client ID` and `Client Secret` into your `.env` file as the `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` environment variables.
 
-### Step 6: Start the development server
+## Step 6: Start the development server
 
 Finally, you can start the development server. This will build the packages + start the app servers.
 
-```bash
+```bash Terminal
 pnpm dev
 ```
 
