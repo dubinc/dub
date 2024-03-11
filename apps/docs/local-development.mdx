@@ -272,7 +272,13 @@ Once your GitHub App is created, copy the `Client ID` and `Client Secret` into y
 
 Second, generate a `NEXTAUTH_SECRET` [here](https://generate-secret.vercel.app/32). Paste the generated value into the `.env` file. 
 
-### Step 6: Start the development server
+### Step 6: Add your Postmark API key
+
+Add your Postmark API key to the `.env` file as the `POSTMARK_API_KEY` environment variable. 
+
+You'll need a work email to [sign up for a Postmark account](https://account.postmarkapp.com/sign_up). 
+
+### Step 7: Start the development server
 
 Finally, you can start the development server. This will build the packages + start the app servers.
 
