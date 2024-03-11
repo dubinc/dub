@@ -103,13 +103,13 @@ function TransferLinkModal({
           <InputSelect
             items={
               projects
-                ? projects
-                    .filter((project) => project.id !== props.projectId)
-                    .map((project) => ({
-                      id: project.id,
-                      value: project.name,
-                      image: project.logo || DUB_LOGO,
-                    }))
+                ? projects.map((project) => ({
+                    id: project.id,
+                    value: project.name,
+                    image: project.logo || DUB_LOGO,
+                    disabled: project.id === props.projectId,
+                    label: project.id === props.projectId ? "Current" : "",
+                  }))
                 : []
             }
             selectedItem={selectedProject}
