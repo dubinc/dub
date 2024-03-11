@@ -65,7 +65,7 @@ export default function LinkFilters() {
       "search",
       "domain",
       "userId",
-      "tagId",
+      "tagIds",
       "showArchived",
       "page",
       "withTags",
@@ -460,7 +460,7 @@ const TagsFilter = ({
   const { AddEditTagModal, AddTagButton } = useAddEditTagModal();
 
   const selectedTagIds =
-    searchParams?.get("tagId")?.split(",")?.filter(Boolean) ?? [];
+    searchParams?.get("tagIds")?.split(",")?.filter(Boolean) ?? [];
 
   const onCheckboxChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -469,12 +469,12 @@ const TagsFilter = ({
         : selectedTagIds.filter((tagId) => tagId !== e.target.id) ?? [];
       queryParams({
         set: {
-          tagId: newTags,
+          tagIds: newTags,
         },
         del: [
           "page",
           // Remove tagId from params if empty
-          ...(newTags.length ? [] : ["tagId"]),
+          ...(newTags.length ? [] : ["tagIds"]),
         ],
       });
     },
@@ -598,7 +598,7 @@ const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
       method: "DELETE",
     }).then(async (res) => {
       if (res.ok) {
-        queryParams({ del: "tagId" });
+        queryParams({ del: "tagIds" });
         await Promise.all([
           mutate(`/api/tags?projectSlug=${slug}`),
           mutate(

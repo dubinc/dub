@@ -11,15 +11,25 @@ import {
 import { APP_DOMAIN_WITH_NGROK, LOCALHOST_IP } from "@dub/utils";
 import { NextResponse } from "next/server";
 
-// GET /api/links – get all user links
+// GET /api/links – get all links for a project
 export const GET = withAuth(async ({ headers, searchParams, project }) => {
-  const { domain, tagId, search, sort, page, userId, showArchived, withTags } =
-    getLinksQuerySchema.parse(searchParams);
+  const {
+    domain,
+    tagId,
+    tagIds,
+    search,
+    sort,
+    page,
+    userId,
+    showArchived,
+    withTags,
+  } = getLinksQuerySchema.parse(searchParams);
 
   const response = await getLinksForProject({
     projectId: project.id,
     domain,
     tagId,
+    tagIds,
     search,
     sort,
     page,
