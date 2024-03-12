@@ -28,6 +28,7 @@ export const AnalyticsContext = createContext<{
   url?: string;
   queryString: string;
   interval: string;
+  tagId?: string;
   totalClicks?: number;
 }>({
   basePath: "",
@@ -55,6 +56,8 @@ export default function Analytics({
   // key can be a path param (public stats pages) or a query param (stats pages in app)
   key = searchParams?.get("key") || key;
   const interval = searchParams?.get("interval") || "24h";
+
+  const tagId = searchParams?.get("tagId") ?? undefined;
 
   const { basePath, domain, baseApiPath } = useMemo(() => {
     // Project link analytics page, e.g. app.dub.co/dub/analytics?domain=dub.sh&key=github
@@ -90,8 +93,9 @@ export default function Analytics({
       ...(key && { key }),
       ...availableFilterParams,
       ...(interval && { interval }),
+      ...(tagId && { tagId }),
     }).toString();
-  }, [slug, domain, key, searchParams, interval]);
+  }, [slug, domain, key, searchParams, interval, tagId]);
 
   const { data: totalClicks } = useSWR<number>(
     `${baseApiPath}/clicks?${queryString}`,
@@ -110,6 +114,7 @@ export default function Analytics({
         key: key ? decodeURIComponent(key) : undefined, // link key (e.g. github, weathergpt, etc.)
         url: staticUrl, // url for the link (only for public stats pages)
         interval, // time interval (e.g. 24h, 7d, 30d, etc.)
+        tagId, // id of a single tag
         totalClicks, // total clicks for the link
       }}
     >

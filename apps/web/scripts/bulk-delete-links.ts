@@ -16,6 +16,7 @@ async function main() {
       key: true,
       url: true,
       projectId: true,
+      tags: true,
     },
   });
   const response = await Promise.all([

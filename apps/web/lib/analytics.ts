@@ -89,6 +89,7 @@ export const VALID_ANALYTICS_FILTERS = [
   "os",
   "referer",
   "excludeRoot",
+  "tagId",
 ];
 
 export const getAnalytics = async ({
