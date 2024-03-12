@@ -1,4 +1,4 @@
-import { fetcher } from "@dub/utils";
+import { fetcher, nFormatter } from "@dub/utils";
 import { useCallback, useContext, useMemo } from "react";
 import useSWR from "swr";
 import { AnalyticsContext } from ".";
@@ -58,11 +58,13 @@ export default function ClicksChart() {
           series={[{ id: "clicks", valueAccessor: (d) => d.values.clicks }]}
           tooltipContent={(d) => (
             <>
-              <p className="text-gray-600">
-                <strong className="text-gray-700">{d.values.clicks}</strong>{" "}
+              <p className="text-gray-700">
+                <strong className="text-gray-800">
+                  {nFormatter(d.values.clicks, { full: true })}
+                </strong>{" "}
                 clicks
               </p>
-              <p className="text-sm text-gray-400">{formatDate(d.date)}</p>
+              <p className="text-sm text-gray-500">{formatDate(d.date)}</p>
             </>
           )}
         >

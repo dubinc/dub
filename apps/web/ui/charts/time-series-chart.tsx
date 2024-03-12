@@ -150,7 +150,6 @@ function TimeSeriesChartInner<T extends Datum>({
                   x2={xScale(tooltipData.date)}
                   y1={height}
                   y2={0}
-                  strokeOpacity={0.1}
                   stroke="black"
                   strokeWidth={2}
                 />
@@ -191,11 +190,11 @@ function TimeSeriesChartInner<T extends Datum>({
               left={(tooltipLeft ?? 0) + margin.left}
               top={(tooltipTop ?? 0) + margin.top}
               offsetLeft={8}
-              offsetTop={0}
+              offsetTop={16}
               className="absolute"
               unstyled={true}
             >
-              <div className="pointer-events-none rounded-md border border-gray-200 bg-white px-4 py-2 text-base shadow-sm">
+              <div className="pointer-events-none rounded-md border border-gray-200 bg-white px-4 py-2 text-base shadow-md">
                 {tooltipContent?.(tooltipData) ??
                   series[0].valueAccessor(tooltipData)}
               </div>
