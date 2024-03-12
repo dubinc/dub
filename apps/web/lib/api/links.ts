@@ -849,9 +849,6 @@ export async function deleteLink(link: LinkProps) {
         id: link.id,
       },
     }),
-    cloudinary.v2.uploader.destroy(`${link.domain}/${link.key}`, {
-      invalidate: true,
-    }),
     redis.hdel(link.domain, link.key.toLowerCase()),
     recordLink({ link, deleted: true }),
     link.projectId &&
@@ -864,6 +861,11 @@ export async function deleteLink(link: LinkProps) {
             decrement: 1,
           },
         },
+      }),
+    link.proxy &&
+      link.image &&
+      cloudinary.v2.uploader.destroy(`${link.domain}/${link.key}`, {
+        invalidate: true,
       }),
   ]);
 }

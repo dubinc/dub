@@ -2,6 +2,7 @@ import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { deleteLink, editLink, processLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import prisma from "@/lib/prisma";
 import { LinkWithTagIdsProps } from "@/lib/types";
 import { updateLinkBodySchema } from "@/lib/zod/schemas/links";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -9,10 +10,38 @@ import { NextResponse } from "next/server";
 
 // GET /api/links/[linkId] – get a link
 export const GET = withAuth(async ({ headers, link }) => {
-  // link is guaranteed to exist because if not we will return 404
-  return NextResponse.json(link!, {
-    headers,
+  if (!link) {
+    throw new DubApiError({
+      code: "not_found",
+      message: "Link not found.",
+    });
+  }
+
+  const tags = await prisma.tag.findMany({
+    where: {
+      linksNew: {
+        some: {
+          linkId: link.id,
+        },
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+      color: true,
+    },
   });
+  // link is guaranteed to exist because if not we will return 404
+  return NextResponse.json(
+    {
+      ...link,
+      tagId: tags?.[0]?.id ?? null, // backwards compatibility
+      tags,
+    },
+    {
+      headers,
+    },
+  );
 });
 
 // PUT /api/links/[linkId] – update a link
