@@ -91,9 +91,9 @@ export default function Analytics({
       ...(slug && { projectSlug: slug }),
       ...(domain && { domain }),
       ...(key && { key }),
-      ...availableFilterParams,
       ...(interval && { interval }),
       ...(tagId && { tagId }),
+      ...availableFilterParams,
     }).toString();
   }, [slug, domain, key, searchParams, interval, tagId]);
 

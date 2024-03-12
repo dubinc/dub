@@ -4,10 +4,19 @@ import { useParams } from "next/navigation";
 import useSWR from "swr";
 import useDefaultDomains from "./use-default-domains";
 
-export default function useDomains({ domain }: { domain?: string } = {}) {
-  const { slug } = useParams() as {
-    slug: string;
-  };
+export default function useDomains({
+  slug: projectSlug,
+  domain,
+}: { slug?: string; domain?: string } = {}) {
+  let slug: string | undefined = undefined;
+  if (projectSlug) {
+    slug = projectSlug;
+  } else {
+    const { slug: paramSlug } = useParams() as {
+      slug: string;
+    };
+    slug = paramSlug;
+  }
 
   const { data, error, mutate } = useSWR<DomainProps[]>(
     slug && `/api/domains?projectSlug=${slug}`,

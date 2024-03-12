@@ -1,4 +1,5 @@
 import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics";
+import useTags from "@/lib/swr/use-tags";
 import { Chart } from "@/ui/shared/icons";
 import { NumberTooltip, useRouterStuff } from "@dub/ui";
 import {
@@ -20,7 +21,9 @@ export default function Clicks() {
   const searchParams = useSearchParams();
   const domain = searchParams?.get("domain");
   const key = searchParams?.get("key");
+  const tagId = searchParams?.get("tagId");
   const { queryParams } = useRouterStuff();
+  const { tags } = useTags();
 
   return (
     <div className="max-w-4xl overflow-hidden border border-gray-200 bg-white p-5 sm:rounded-lg sm:border-gray-100 sm:p-10 sm:shadow-lg">
@@ -75,9 +78,27 @@ export default function Clicks() {
                 <X className="h-4 w-4" />
               </Link>
             ))}
+          {tags && tagId && (
+            <Link
+              href={
+                queryParams({
+                  del: "tagId",
+                  getNewPath: true,
+                }) as string
+              }
+              className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-500 transition-all hover:bg-gray-100"
+            >
+              <p>Tag</p>
+              <strong className="text-gray-800">
+                {tags.find((tag) => tag.id === tagId)?.name || tagId}
+              </strong>
+              <X className="h-4 w-4" />
+            </Link>
+          )}
           {VALID_ANALYTICS_FILTERS.map((filter) => {
+            if (filter === "excludeRoot" || filter === "tagId") return null;
             const value = searchParams?.get(filter);
-            if (!value || filter === "excludeRoot") return null;
+            if (!value) return null;
             return (
               <Link
                 key={filter}

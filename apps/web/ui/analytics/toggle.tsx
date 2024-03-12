@@ -1,7 +1,6 @@
 import { INTERVALS } from "@/lib/analytics";
 import useDomains from "@/lib/swr/use-domains";
 import useProject from "@/lib/swr/use-project";
-import { DomainProps } from "@/lib/types";
 import {
   BadgeTooltip,
   BlurImage,
@@ -46,7 +45,7 @@ export default function Toggle() {
 
   const scrolled = useScroll(80);
   const { name, plan, logo } = useProject();
-  const { allDomains, primaryDomain } = useDomains();
+  const { allActiveDomains, primaryDomain } = useDomains();
 
   const isPublicStatsPage = basePath.startsWith("/stats");
 
@@ -93,16 +92,14 @@ export default function Toggle() {
             <h2 className="text-lg font-semibold text-gray-800">
               {primaryDomain}
             </h2>
-            {allDomains && allDomains.length > 1 && (
-              <BadgeTooltip
-                content={<DomainsFilterTooltip domains={allDomains} />}
-              >
-                +{allDomains.length - 1}
+            {allActiveDomains && allActiveDomains.length > 1 && (
+              <BadgeTooltip content={<DomainsFilterTooltip />}>
+                +{allActiveDomains.length - 1}
               </BadgeTooltip>
             )}
           </div>
         )}
-        <div className="flex items-center gap-2">
+        <div className="flex w-full items-center justify-end gap-2">
           {!isPublicStatsPage && key && <SharePopover />}
           {!isPublicStatsPage && !key && <TagSelector />}
           <Popover
@@ -187,15 +184,17 @@ export default function Toggle() {
   );
 }
 
-const DomainsFilterTooltip = ({ domains }: { domains: DomainProps[] }) => {
+const DomainsFilterTooltip = () => {
+  const { allActiveDomains } = useDomains();
   const searchParams = useSearchParams();
   const domain = searchParams?.get("domain");
   const key = searchParams?.get("key");
   const { queryParams } = useRouterStuff();
+
   return (
     <div className="flex w-full flex-col items-start space-y-2 divide-y divide-gray-200 p-2 md:w-48">
       <div className="flex w-full flex-col">
-        {domains.map(({ slug, target }) => (
+        {allActiveDomains.map(({ slug, target }) => (
           <Link
             key={slug}
             href={

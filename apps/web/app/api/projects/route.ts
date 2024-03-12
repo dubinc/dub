@@ -48,7 +48,6 @@ export const GET = withSession(async ({ session }) => {
       },
     },
     include: {
-      domains: true,
       users: {
         where: {
           userId: session.user.id,

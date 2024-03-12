@@ -96,11 +96,6 @@ export interface ProjectProps {
   inviteCode: string;
 }
 
-export interface ProjectWithDomainProps extends ProjectProps {
-  domains: DomainProps[];
-  primaryDomain?: DomainProps;
-}
-
 export interface UserProps {
   id: string;
   name: string;
