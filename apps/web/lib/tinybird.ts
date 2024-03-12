@@ -124,7 +124,7 @@ export async function recordLink({
         domain: link.domain,
         key: link.key,
         url: link.url,
-        tag_ids: [],
+        tagIds: [],
         project_id: link.projectId || "",
         deleted: deleted ? 1 : 0,
       }),
