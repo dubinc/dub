@@ -151,7 +151,7 @@ function TimeSeriesChartInner<T extends Datum>({
                   y1={height}
                   y2={0}
                   stroke="black"
-                  strokeWidth={2}
+                  strokeWidth={1.5}
                 />
 
                 {series.map((s) => (
@@ -190,7 +190,7 @@ function TimeSeriesChartInner<T extends Datum>({
               left={(tooltipLeft ?? 0) + margin.left}
               top={(tooltipTop ?? 0) + margin.top}
               offsetLeft={8}
-              offsetTop={16}
+              offsetTop={12}
               className="absolute"
               unstyled={true}
             >
