@@ -17,10 +17,11 @@ import { AnalyticsContext } from ".";
 import BarChart from "./bar-chart";
 
 export default function Clicks() {
-  const { totalClicks, tagId } = useContext(AnalyticsContext);
+  const { totalClicks } = useContext(AnalyticsContext);
   const searchParams = useSearchParams();
   const domain = searchParams?.get("domain");
   const key = searchParams?.get("key");
+  const tagId = searchParams?.get("tagId");
   const { queryParams } = useRouterStuff();
   const { tags } = useTags();
 

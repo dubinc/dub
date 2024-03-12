@@ -2,15 +2,16 @@ import useTags from "@/lib/swr/use-tags";
 import { IconMenu, Popover, Tick, useRouterStuff } from "@dub/ui";
 import { ChevronDown, Tag } from "lucide-react";
 import Link from "next/link";
-import { useContext, useState } from "react";
-import { AnalyticsContext } from ".";
+import { useSearchParams } from "next/navigation";
+import { useState } from "react";
 import TagBadge from "../links/tag-badge";
 
 export default function TagSelector() {
   const { queryParams } = useRouterStuff();
 
   const { tags } = useTags();
-  const { tagId: selectedTagId } = useContext(AnalyticsContext);
+  const searchParams = useSearchParams();
+  const selectedTagId = searchParams?.get("tagId");
 
   const [openPopover, setOpenPopover] = useState(false);
 
