@@ -102,7 +102,7 @@ export default function Toggle() {
             )}
           </div>
         )}
-        <div className="flex items-center gap-2">
+        <div className="flex w-full items-center justify-end gap-2">
           {!isPublicStatsPage && key && <SharePopover />}
           {!isPublicStatsPage && !key && <TagSelector />}
           <Popover
