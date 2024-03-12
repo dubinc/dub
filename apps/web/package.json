@@ -58,7 +58,7 @@
     "js-cookie": "^3.0.5",
     "lucide-react": "^0.299.0",
     "nanoid": "^5.0.1",
-    "next": "14.2.0-canary.5",
+    "next": "14.2.0-canary.16",
     "next-auth": "^4.24.4",
     "node-html-parser": "^6.1.4",
     "nodemailer": "^6.9.3",
