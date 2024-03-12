@@ -111,7 +111,7 @@ model Project {
   updatedAt DateTime @updatedAt
 
   inviteCode  String? @unique
-  metadata    Json?    @default("{\"defaultDomains\":[\"dub.sh\",\"chatg.pt\",\"spti.fi\",\"amzn.id\"]}")
+  defaultDomains DefaultDomains[]
 }
 
 model ProjectInvite {
@@ -124,6 +124,18 @@ model ProjectInvite {
   @@unique([email, projectId])
   @@index([projectId])
 }
+
+model DefaultDomains {
+  id          String   @id @default(cuid())
+  dubsh       Boolean  @default(true)
+  chatgpt     Boolean  @default(true)
+  sptifi      Boolean  @default(true)
+  gitnew      Boolean  @default(true)
+  amznid      Boolean  @default(true)
+  projectId   String   @unique
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
 
 enum Role {
   owner
@@ -192,7 +204,7 @@ model Link {
   proxy       Boolean @default(false) // Proxy to use custom OG tags (stored on redis) – if false, will use OG tags from target url
   title       String? // OG title for the link (e.g. Dub.co - Open-Source Link Management Infrastructure)
   description String? @db.VarChar(280) // OG description for the link (e.g. An open-source link management tool for modern marketing teams to create, share, and track short links.)
-  image       String? @db.LongText // OG image for the link (e.g. https://dub.sh/og-image.png)
+  image       String? @db.LongText // OG image for the link (e.g. https://d.to/og)
 
   // UTM parameters
   utm_source   String? // UTM source for the link (e.g. youtube.com)

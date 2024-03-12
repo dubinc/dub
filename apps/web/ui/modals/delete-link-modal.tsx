@@ -1,7 +1,7 @@
 import { LinkProps } from "@/lib/types";
-import { BlurImage, Button, Modal, useMediaQuery } from "@dub/ui";
-import { GOOGLE_FAVICON_URL, getApexDomain, linkConstructor } from "@dub/utils";
-import { useParams, useSearchParams } from "next/navigation";
+import { Button, Modal, useMediaQuery } from "@dub/ui";
+import { getApexDomain, linkConstructor } from "@dub/utils";
+import { useParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -11,6 +11,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import LinkLogo from "../links/link-logo";
 
 function DeleteLinkModal({
   showDeleteLinkModal,
@@ -23,7 +24,6 @@ function DeleteLinkModal({
 }) {
   const params = useParams() as { slug?: string };
   const { slug } = params;
-  const searchParams = useSearchParams();
   const [deleting, setDeleting] = useState(false);
   const apexDomain = getApexDomain(props.url);
 
@@ -45,13 +45,7 @@ function DeleteLinkModal({
       setShowModal={setShowDeleteLinkModal}
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 text-center sm:px-16">
-        <BlurImage
-          src={`${GOOGLE_FAVICON_URL}${apexDomain}`}
-          alt={apexDomain}
-          className="h-10 w-10 rounded-full"
-          width={20}
-          height={20}
-        />
+        <LinkLogo apexDomain={apexDomain} />
         <h3 className="text-lg font-medium">Delete {shortlink}</h3>
         <p className="text-sm text-gray-500">
           Warning: Deleting this link will remove all of its stats. This action
@@ -80,7 +74,7 @@ function DeleteLinkModal({
               toast.success("Successfully deleted shortlink!");
             } else {
               const { error } = await res.json();
-              toast.error(error);
+              toast.error(error.message);
             }
             setDeleting(false);
           });

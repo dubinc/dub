@@ -132,7 +132,7 @@ function ImportBitlyModal({
                   }),
                 }).then(async (res) => {
                   if (res.ok) {
-                    await mutate(`/api/projects/${slug}/domains`);
+                    await mutate(`/api/domains?projectSlug=${slug}`);
                     router.push(`/${slug}`);
                   } else {
                     setImporting(false);

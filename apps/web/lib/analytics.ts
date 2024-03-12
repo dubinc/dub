@@ -1,6 +1,10 @@
-import { conn } from "./planetscale";
+import { DATABASE_URL, conn } from "./planetscale";
+import z from "./zod";
+import { getAnalyticsQuerySchema } from "./zod/schemas/analytics";
 
-export type IntervalProps = "1h" | "24h" | "7d" | "30d" | "90d" | "all";
+export const intervals = ["1h", "24h", "7d", "30d", "90d", "all"] as const;
+
+export type IntervalProps = (typeof intervals)[number];
 
 export const INTERVALS = [
   {
@@ -61,19 +65,19 @@ export type LocationTabs = "country" | "city";
 export type TopLinksTabs = "link" | "url";
 export type DeviceTabs = "device" | "browser" | "os" | "ua";
 
-const VALID_TINYBIRD_ENDPOINTS = [
-  "timeseries",
+export const VALID_TINYBIRD_ENDPOINTS = [
   "clicks",
-  "top_links",
-  "top_urls",
-  // "top_aliases",
+  "timeseries",
   "country",
   "city",
   "device",
   "browser",
   "os",
   "referer",
-];
+  "top_links",
+  "top_urls",
+  // "top_aliases",
+] as const;
 
 export const VALID_ANALYTICS_FILTERS = [
   "country",
@@ -94,19 +98,15 @@ export const getAnalytics = async ({
   endpoint,
   interval,
   ...rest
-}: {
+}: Omit<z.infer<typeof getAnalyticsQuerySchema>, "projectSlug"> & {
   projectId?: string;
   linkId?: string;
-  domain?: string;
-  endpoint: string;
-  interval?: string;
-} & {
-  [key in (typeof VALID_ANALYTICS_FILTERS)[number]]: string;
+  endpoint: (typeof VALID_TINYBIRD_ENDPOINTS)[number];
 }) => {
   // Note: we're using decodeURIComponent in this function because that's how we store it in MySQL and Tinybird
 
   if (
-    !process.env.DATABASE_URL ||
+    !DATABASE_URL ||
     !process.env.TINYBIRD_API_KEY ||
     !VALID_TINYBIRD_ENDPOINTS.includes(endpoint)
   ) {
@@ -130,8 +130,8 @@ export const getAnalytics = async ({
       if (response.rows.length === 0) {
         return 0;
       }
-      return response.rows[0]["clicks"];
     }
+    return response.rows[0]["clicks"];
   }
 
   let url = new URL(

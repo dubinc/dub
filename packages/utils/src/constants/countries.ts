@@ -250,3 +250,5 @@ export const COUNTRIES: { [key: string]: string } = {
   SS: "South Sudan",
   XK: "Kosovo",
 };
+
+export const COUNTRY_CODES = Object.keys(COUNTRIES) as [string, ...string[]];

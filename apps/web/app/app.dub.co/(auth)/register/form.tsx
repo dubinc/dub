@@ -4,13 +4,21 @@ import { Button, Github, Google } from "@dub/ui";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function RegisterForm() {
   const searchParams = useSearchParams();
   const next = searchParams?.get("next");
   const [clickedGoogle, setClickedGoogle] = useState(false);
   const [clickedGitub, setClickedGithub] = useState(false);
+
+  useEffect(() => {
+    // when leave page, reset state
+    return () => {
+      setClickedGoogle(false);
+      setClickedGithub(false);
+    };
+  }, []);
 
   return (
     <>

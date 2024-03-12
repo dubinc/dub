@@ -1,6 +1,9 @@
+import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { deleteLink, editLink, processLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import { LinkWithTagIdsProps } from "@/lib/types";
+import { updateLinkBodySchema } from "@/lib/zod/schemas/links";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -14,15 +17,7 @@ export const GET = withAuth(async ({ headers, link }) => {
 
 // PUT /api/links/[linkId] – update a link
 export const PUT = withAuth(async ({ req, headers, project, link }) => {
-  let body;
-  try {
-    body = await req.json();
-  } catch (error) {
-    return new Response("Missing or invalid body.", { status: 400, headers });
-  }
-  if (Object.keys(body).length === 0) {
-    return new Response("No fields to update.", { status: 304, headers });
-  }
+  const body = updateLinkBodySchema.parse(await req.json());
 
   const updatedLink = {
     ...link,
@@ -30,26 +25,30 @@ export const PUT = withAuth(async ({ req, headers, project, link }) => {
   };
 
   if (updatedLink.projectId !== link?.projectId) {
-    return new Response(
-      "Transferring links to another project is not yet supported.",
-      {
-        status: 403,
-        headers,
-      },
-    );
+    throw new DubApiError({
+      code: "forbidden",
+      message: "Transferring links to another project is not yet supported.",
+    });
   }
 
   const {
     link: processedLink,
     error,
-    status,
+    code,
   } = await processLink({
-    payload: updatedLink,
+    payload: updatedLink as LinkWithTagIdsProps,
     project,
+    // if domain and key are the same, we don't need to check if the key exists
+    skipKeyChecks:
+      link!.domain === updatedLink.domain &&
+      link!.key.toLowerCase() === updatedLink.key?.toLowerCase(),
   });
 
   if (error) {
-    return new Response(error, { status, headers });
+    throw new DubApiError({
+      code: code as ErrorCodes,
+      message: error,
+    });
   }
 
   const [response, _] = await Promise.allSettled([
@@ -57,7 +56,7 @@ export const PUT = withAuth(async ({ req, headers, project, link }) => {
       // link is guaranteed to exist because if not we will return 404
       domain: link!.domain,
       key: link!.key,
-      updatedLink: processedLink,
+      updatedLink: processedLink as any, // TODO: fix types
     }),
     qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/event`,
@@ -68,13 +67,6 @@ export const PUT = withAuth(async ({ req, headers, project, link }) => {
     }),
     // @ts-ignore
   ]).then((results) => results.map((result) => result.value));
-
-  if (response === null) {
-    return new Response("Duplicate key: This short link already exists.", {
-      status: 409,
-      headers,
-    });
-  }
 
   return NextResponse.json(response, {
     headers,

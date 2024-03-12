@@ -81,7 +81,7 @@ export const isReservedKey = async (key: string) => {
   } catch (e) {
     reservedKeys = [];
   }
-  return reservedKeys.includes(key);
+  return reservedKeys.includes(key.toLowerCase());
 };
 
 export const isReservedUsername = async (key: string) => {
@@ -94,5 +94,5 @@ export const isReservedUsername = async (key: string) => {
   } catch (e) {
     reservedUsernames = [];
   }
-  return reservedUsernames.includes(key);
+  return reservedUsernames.includes(key.toLowerCase());
 };

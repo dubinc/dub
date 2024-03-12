@@ -67,14 +67,14 @@ export default function UpgradeEmail({
             <Text className="text-sm leading-6 text-black">
               As you might already know, we are a{" "}
               <Link
-                href="https://dub.sh/mission"
+                href="https://d.to/mission"
                 className="font-medium text-blue-600 no-underline"
               >
                 100% bootstrapped
               </Link>{" "}
               and{" "}
               <Link
-                href="https://dub.sh/github"
+                href="https://d.to/github"
                 className="font-medium text-blue-600 no-underline"
               >
                 open-source

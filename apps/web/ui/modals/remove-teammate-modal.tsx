@@ -91,7 +91,7 @@ function RemoveTeammateModal({
             setRemoving(true);
             fetch(
               `/api/projects/${slug}/${
-                invite ? `invites?email=${email}` : `users?userId=${id}`
+                invite ? `invites?email=${encodeURIComponent(email)}` : `users?userId=${id}`
               }`,
               {
                 method: "DELETE",
@@ -116,8 +116,8 @@ function RemoveTeammateModal({
                       : "Successfully removed teammate!",
                 );
               } else {
-                const error = await res.text();
-                toast.error(error);
+                const { error } = await res.json();
+                toast.error(error.message);
               }
               setRemoving(false);
             });

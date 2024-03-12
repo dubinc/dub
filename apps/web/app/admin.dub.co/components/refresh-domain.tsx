@@ -1,12 +1,11 @@
 "use client";
 
-import { Button, LoadingSpinner } from "@dub/ui";
+import { LoadingSpinner } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
-import { banUser, getUserOrProjectOwner, refreshDomain } from "../actions";
-import UserInfo, { UserInfoProps } from "./user-info";
+import { UserInfoProps } from "./user-info";
 
 export default function RefreshDomain() {
   const [data, setData] = useState<UserInfoProps | null>(null);
@@ -14,10 +13,21 @@ export default function RefreshDomain() {
   return (
     <div className="flex flex-col space-y-5">
       <form
-        action={(data) =>
-          refreshDomain(data).then(() => {
-            toast.success("Domain refreshed");
+        action={async (data) =>
+          await fetch("/api/admin/refresh-domain", {
+            method: "POST",
+            body: JSON.stringify({
+              domain: data.get("domain"),
+            }),
           })
+            .then((res) => res.json())
+            .then((res) => {
+              if (res.error) {
+                toast.error(res.error);
+              } else {
+                toast.success("Domain has been refreshed");
+              }
+            })
         }
       >
         <Form />

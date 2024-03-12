@@ -5,6 +5,7 @@ import { TWO_WEEKS_IN_SECONDS } from "@dub/utils";
 import { randomBytes } from "crypto";
 import { sendEmail } from "emails";
 import ProjectInvite from "emails/project-invite";
+import { DubApiError } from "./errors";
 
 export async function inviteUser({
   email,
@@ -32,7 +33,10 @@ export async function inviteUser({
     });
   } catch (error) {
     if (error.code === "P2002") {
-      throw new Error("User has already been invited to this project");
+      throw new DubApiError({
+        code: "conflict",
+        message: "User has already been invited to this project.",
+      });
     }
   }
 

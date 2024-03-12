@@ -22,7 +22,7 @@ export function NavMobile() {
     }
   }, [open]);
 
-  const { data: session, isLoading } = useSWR(
+  const { data: session } = useSWR(
     domain === "dub.co" && "/api/auth/session",
     fetcher,
     {

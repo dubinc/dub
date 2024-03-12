@@ -10,7 +10,6 @@ import { Chart, Delete, ThreeDots } from "@/ui/shared/icons";
 import {
   Avatar,
   BadgeTooltip,
-  BlurImage,
   Button,
   CopyButton,
   IconMenu,
@@ -24,7 +23,6 @@ import {
 } from "@dub/ui";
 import { LinkifyTooltipContent } from "@dub/ui/src/tooltip";
 import {
-  GOOGLE_FAVICON_URL,
   HOME_DOMAIN,
   cn,
   fetcher,
@@ -36,25 +34,26 @@ import {
 } from "@dub/utils";
 import {
   Archive,
+  Copy,
+  CopyCheck,
   CopyPlus,
   Edit3,
   EyeOff,
   FolderInput,
+  Lock,
   Mail,
   MessageCircle,
   QrCode,
   TimerOff,
-  Lock,
-  Copy,
-  CopyCheck,
 } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import punycode from "punycode/";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
 import { useTransferLinkModal } from "../modals/transfer-link-modal";
+import LinkLogo from "./link-logo";
 
 export default function LinkCard({
   props,
@@ -79,14 +78,31 @@ export default function LinkCard({
     user,
   } = props;
 
+  const searchParams = useSearchParams();
+
   const [primaryTags, additionalTags] = useMemo(() => {
     const primaryTagsCount = 1;
 
+    const filteredTagIds =
+      searchParams?.get("tagId")?.split(",")?.filter(Boolean) ?? [];
+
+    /*
+      Sort tags so that the filtered tags are first. The most recently selected
+      filtered tag (last in array) should be displayed first.
+    */
+    const sortedTags =
+      filteredTagIds.length > 0
+        ? [...tags].sort(
+            (a, b) =>
+              filteredTagIds.indexOf(b.id) - filteredTagIds.indexOf(a.id),
+          )
+        : tags;
+
     return [
-      tags.filter((_, idx) => idx < primaryTagsCount),
-      tags.filter((_, idx) => idx >= primaryTagsCount),
+      sortedTags.filter((_, idx) => idx < primaryTagsCount),
+      sortedTags.filter((_, idx) => idx >= primaryTagsCount),
     ];
-  }, [tags]);
+  }, [tags, searchParams]);
 
   const apexDomain = getApexDomain(url);
 
@@ -281,13 +297,7 @@ export default function LinkCard({
               </div>
             </Tooltip>
           ) : (
-            <BlurImage
-              src={`${GOOGLE_FAVICON_URL}${apexDomain}`}
-              alt={apexDomain}
-              className="h-8 w-8 rounded-full sm:h-10 sm:w-10"
-              width={20}
-              height={20}
-            />
+            <LinkLogo apexDomain={apexDomain} />
           )}
           {/* 
             Here, we're manually setting ml-* values because if we do space-x-* in the parent div, 
@@ -350,14 +360,14 @@ export default function LinkCard({
                 </Tooltip>
               )}
               {primaryTags.map((tag) => (
-                <TagButton {...tag} />
+                <TagButton key={tag.id} {...tag} />
               ))}
               {additionalTags.length > 0 && (
                 <BadgeTooltip
                   content={
                     <div className="flex flex-wrap gap-1.5 p-3">
                       {additionalTags.map((tag) => (
-                        <TagButton {...tag} />
+                        <TagButton key={tag.id} {...tag} />
                       ))}
                     </div>
                   }

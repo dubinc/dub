@@ -1,7 +1,27 @@
 import { withAuth } from "@/lib/auth";
 import jackson, { samlAudience } from "@/lib/jackson";
+import z from "@/lib/zod";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
+
+const createSAMLConnectionSchema = z
+  .object({
+    metadataUrl: z.string().url(),
+    encodedRawMetadata: z.string(),
+  })
+  .partial()
+  .refine(
+    ({ metadataUrl, encodedRawMetadata }) =>
+      metadataUrl != undefined || encodedRawMetadata != undefined,
+    {
+      message: "metadataUrl or encodedRawMetadata is required",
+    },
+  );
+
+const deleteSAMLConnectionSchema = z.object({
+  clientID: z.string().min(1),
+  clientSecret: z.string().min(1),
+});
 
 // GET /api/projects/[slug]/saml – get SAML connections for a specific project
 export const GET = withAuth(async ({ project }) => {
@@ -27,24 +47,21 @@ export const GET = withAuth(async ({ project }) => {
 // POST /api/projects/[slug]/saml – create a new SAML connection
 export const POST = withAuth(
   async ({ req, project }) => {
-    const { metadataUrl, encodedRawMetadata } = await req.json();
+    const { metadataUrl, encodedRawMetadata } =
+      createSAMLConnectionSchema.parse(await req.json());
 
     const { apiController } = await jackson();
 
-    try {
-      const data = await apiController.createSAMLConnection({
-        encodedRawMetadata,
-        metadataUrl,
-        defaultRedirectUrl: `${process.env.NEXTAUTH_URL}/auth/saml`,
-        redirectUrl: process.env.NEXTAUTH_URL as string,
-        tenant: project.id,
-        product: "Dub",
-      });
+    const data = await apiController.createSAMLConnection({
+      encodedRawMetadata: encodedRawMetadata!,
+      metadataUrl: metadataUrl!,
+      defaultRedirectUrl: `${process.env.NEXTAUTH_URL}/auth/saml`,
+      redirectUrl: process.env.NEXTAUTH_URL as string,
+      tenant: project.id,
+      product: "Dub",
+    });
 
-      return NextResponse.json(data);
-    } catch (error) {
-      return new Response(error.message, { status: 400 });
-    }
+    return NextResponse.json(data);
   },
   {
     requiredRole: ["owner"],
@@ -56,7 +73,8 @@ export const POST = withAuth(
 
 export const DELETE = withAuth(
   async ({ searchParams }) => {
-    const { clientID, clientSecret } = searchParams;
+    const { clientID, clientSecret } =
+      deleteSAMLConnectionSchema.parse(searchParams);
 
     const { apiController } = await jackson();
 

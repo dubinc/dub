@@ -100,7 +100,7 @@ export const importLinksFromBitly = async ({
   );
 
   // bulk create links
-  // await bulkCreateLinks({ links: importedLinks });
+  await bulkCreateLinks({ links: importedLinks });
 
   count += importedLinks.length;
 

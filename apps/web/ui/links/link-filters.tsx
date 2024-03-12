@@ -1,8 +1,9 @@
+import useDefaultDomains from "@/lib/swr/use-default-domains";
 import useDomains from "@/lib/swr/use-domains";
 import useLinks from "@/lib/swr/use-links";
 import useLinksCount from "@/lib/swr/use-links-count";
 import useTags from "@/lib/swr/use-tags";
-import { TagProps } from "@/lib/types";
+import { DomainProps, TagProps } from "@/lib/types";
 import TagBadge from "@/ui/links/tag-badge";
 import { useAddEditTagModal } from "@/ui/modals/add-edit-tag-modal";
 import { Delete, ThreeDots } from "@/ui/shared/icons";
@@ -11,19 +12,20 @@ import {
   Copy,
   LoadingCircle,
   LoadingSpinner,
-  NumberTooltip,
   Popover,
   Switch,
   Tick,
   useRouterStuff,
+  useToastWithUndo,
 } from "@dub/ui";
 import {
   SWIPE_REVEAL_ANIMATION_SETTINGS,
+  isDubDomain,
   nFormatter,
   truncate,
 } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronRight, Edit3, Search, XCircle } from "lucide-react";
+import { Archive, ChevronRight, Edit3, Search, XCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import {
   useParams,
@@ -187,7 +189,7 @@ const DomainsFilter = () => {
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
   const { data: domains } = useLinksCount({ groupBy: "domain" });
-  const { primaryDomain } = useDomains();
+  const { allActiveDomains } = useDomains();
 
   const [collapsed, setCollapsed] = useState(false);
   const [showMore, setShowMore] = useState(false);
@@ -201,18 +203,13 @@ const DomainsFilter = () => {
   });
 
   const options = useMemo(() => {
-    return domains?.length === 0
-      ? [
-          {
-            value: primaryDomain,
-            count: 0,
-          },
-        ]
-      : domains?.map(({ domain, _count }) => ({
-          value: domain,
-          count: _count,
-        })) || [];
-  }, [domains, primaryDomain]);
+    return allActiveDomains
+      .map((domain) => ({
+        ...domain,
+        count: domains?.find(({ domain: d }) => d === domain.slug)?._count || 0,
+      }))
+      .sort((a, b) => b.count - a.count);
+  }, [allActiveDomains, domains]);
 
   return (
     <fieldset className="overflow-hidden py-6">
@@ -237,42 +234,35 @@ const DomainsFilter = () => {
             className="mt-4 grid gap-2"
             {...SWIPE_REVEAL_ANIMATION_SETTINGS}
           >
-            {options
-              .slice(0, showMore ? options.length : 4)
-              .map(({ value, count }) => (
-                <div
-                  key={value}
-                  className="relative flex cursor-pointer items-center space-x-3 rounded-md bg-gray-50 transition-all hover:bg-gray-100"
+            {options.slice(0, showMore ? options.length : 4).map((domain) => (
+              <div
+                key={domain.id}
+                className="group relative flex cursor-pointer items-center space-x-3 rounded-md bg-gray-50 transition-all hover:bg-gray-100"
+              >
+                <input
+                  id={domain.id}
+                  name={domain.slug}
+                  checked={searchParams?.get("domain") === domain.slug}
+                  onChange={() => {
+                    queryParams({
+                      set: {
+                        domain: domain.slug,
+                      },
+                      del: "page",
+                    });
+                  }}
+                  type="radio"
+                  className="ml-3 h-4 w-4 cursor-pointer rounded-full border-gray-300 text-black focus:outline-none focus:ring-0"
+                />
+                <label
+                  htmlFor={domain.slug}
+                  className="flex w-full cursor-pointer justify-between px-3 py-2 pl-0 text-sm font-medium text-gray-700"
                 >
-                  <input
-                    id={value}
-                    name={value}
-                    checked={
-                      searchParams?.get("domain") === value ||
-                      domains?.length <= 1
-                    }
-                    onChange={() => {
-                      queryParams({
-                        set: {
-                          domain: value,
-                        },
-                        del: "page",
-                      });
-                    }}
-                    type="radio"
-                    className="ml-3 h-4 w-4 cursor-pointer rounded-full border-gray-300 text-black focus:outline-none focus:ring-0"
-                  />
-                  <label
-                    htmlFor={value}
-                    className="flex w-full cursor-pointer justify-between px-3 py-2 pl-0 text-sm font-medium text-gray-700"
-                  >
-                    <p>{truncate(punycode.toUnicode(value || ""), 24)}</p>
-                    <NumberTooltip value={count} unit="links">
-                      <p className="text-gray-500">{nFormatter(count)}</p>
-                    </NumberTooltip>
-                  </label>
-                </div>
-              ))}
+                  <p>{truncate(punycode.toUnicode(domain.slug || ""), 24)}</p>
+                  <DomainPopover domain={domain} count={domain.count} />
+                </label>
+              </div>
+            ))}
             {options.length > 4 && (
               <button
                 onClick={() => setShowMore(!showMore)}
@@ -285,6 +275,172 @@ const DomainsFilter = () => {
         )}
       </AnimatePresence>
     </fieldset>
+  );
+};
+
+const DomainPopover = ({
+  domain,
+  count,
+}: {
+  domain: DomainProps;
+  count: number;
+}) => {
+  const { slug } = useParams() as { slug?: string };
+  const [openPopover, setOpenPopover] = useState(false);
+  const [processing, setProcessing] = useState(false);
+  const { mutate: mutateDomains } = useDomains();
+  const { defaultDomains, mutate: mutateDefaultDomains } = useDefaultDomains();
+
+  const { AddEditDomainModal, setShowAddEditDomainModal } =
+    useAddEditDomainModal({
+      props: domain,
+    });
+
+  const toastWithUndo = useToastWithUndo();
+
+  const archiveProjectDomain = (archive: boolean) => {
+    return fetch(`/api/domains/${domain.slug}?projectSlug=${slug}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...domain,
+        archived: archive,
+      }),
+    });
+  };
+
+  const archiveDefaultDomain = (archive: boolean) => {
+    const newDefaultDomains = archive
+      ? defaultDomains?.filter((d) => d !== domain.slug)
+      : [...(defaultDomains || []), domain.slug];
+    return fetch(`/api/domains/default?projectSlug=${slug}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        defaultDomains: newDefaultDomains,
+      }),
+    });
+  };
+
+  const handleArchiveRequest = async () => {
+    setProcessing(true);
+    if (isDubDomain(domain.slug)) {
+      const res = await archiveDefaultDomain(true);
+      if (res.ok) {
+        await mutateDefaultDomains();
+        toastWithUndo({
+          id: "domain-archive-undo-toast",
+          message: `Successfully archived domain!`,
+          undo: async () => {
+            toast.promise(archiveDefaultDomain(false), {
+              loading: "Undo in progress...",
+              error: "Failed to roll back changes. An error occurred.",
+              success: async () => {
+                await mutateDefaultDomains();
+                return "Undo successful! Changes reverted.";
+              },
+            });
+          },
+          duration: 5000,
+        });
+      } else {
+        const { error } = await res.json();
+        setProcessing(false);
+        toast.error(error.message);
+      }
+    } else {
+      const res = await archiveProjectDomain(true);
+      if (res.ok) {
+        await mutateDomains();
+        toastWithUndo({
+          id: "domain-archive-undo-toast",
+          message: `Successfully archived domain!`,
+          undo: async () => {
+            toast.promise(archiveProjectDomain(false), {
+              loading: "Undo in progress...",
+              error: "Failed to roll back changes. An error occurred.",
+              success: async () => {
+                await mutateDomains();
+                return "Undo successful! Changes reverted.";
+              },
+            });
+          },
+          duration: 5000,
+        });
+      } else {
+        const { error } = await res.json();
+        setProcessing(false);
+        toast.error(error.message);
+      }
+    }
+  };
+
+  return processing ? (
+    <div className="flex h-6 items-center justify-center">
+      <LoadingCircle />
+    </div>
+  ) : (
+    <>
+      <Popover
+        content={
+          <div className="grid w-full gap-px p-2 sm:w-48">
+            {(!isDubDomain(domain.slug) || slug === "dub") && (
+              <Button
+                type="button"
+                text="Edit"
+                variant="outline"
+                onClick={() => {
+                  setOpenPopover(false);
+                  setShowAddEditDomainModal(true);
+                }}
+                icon={<Edit3 className="h-4 w-4" />}
+                className="h-9 w-full justify-start px-2 font-medium"
+              />
+            )}
+            <Button
+              type="button"
+              text="Archive"
+              variant="outline"
+              onClick={() => {
+                setOpenPopover(false);
+                handleArchiveRequest();
+              }}
+              icon={<Archive className="h-4 w-4" />}
+              className="h-9 w-full justify-start px-2 font-medium"
+            />
+          </div>
+        }
+        align="end"
+        openPopover={openPopover}
+        setOpenPopover={setOpenPopover}
+      >
+        <button
+          type="button"
+          onClick={() => setOpenPopover(!openPopover)}
+          className={`${
+            openPopover ? "bg-gray-200" : "hover:bg-gray-200"
+          } -mr-1 flex h-6 w-5 items-center justify-center rounded-md transition-colors`}
+        >
+          <ThreeDots
+            className={`h-4 w-4 text-gray-500 ${
+              openPopover ? "" : "hidden group-hover:block"
+            }`}
+          />
+          <p
+            className={`text-gray-500 ${
+              openPopover ? "hidden" : "group-hover:hidden"
+            }`}
+          >
+            {nFormatter(count)}
+          </p>
+        </button>
+      </Popover>
+      <AddEditDomainModal />
+    </>
   );
 };
 
@@ -434,12 +590,15 @@ const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
     props: tag,
   });
 
+  const { queryParams } = useRouterStuff();
+
   const handleDelete = async () => {
     setProcessing(true);
     fetch(`/api/tags/${tag.id}?projectSlug=${slug}`, {
       method: "DELETE",
     }).then(async (res) => {
       if (res.ok) {
+        queryParams({ del: "tagId" });
         await Promise.all([
           mutate(`/api/tags?projectSlug=${slug}`),
           mutate(
@@ -450,7 +609,8 @@ const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
         ]);
         toast.success("Tag deleted");
       } else {
-        toast.error("Something went wrong");
+        const { error } = await res.json();
+        toast.error(error.message);
       }
       setProcessing(false);
     });

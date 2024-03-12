@@ -13,9 +13,9 @@ export default function robots(): MetadataRoute.Robots {
 
   return {
     rules: {
-      userAgent: "*",
-      disallow: "/api/",
-      allow: "/api/og/",
+      userAgent: "Googlebot",
+      allow: ["/$", "/api/og/"], // allow the home page and the OG image API
+      disallow: "/", // disallow everything else
     },
     sitemap: `https://${domain}/sitemap.xml`,
   };

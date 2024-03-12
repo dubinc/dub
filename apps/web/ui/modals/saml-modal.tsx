@@ -78,8 +78,8 @@ function SAMLModal({
                 setShowSAMLModal(false);
                 toast.success("Successfully configured SAML");
               } else {
-                const err = await res.text();
-                toast.error(err);
+                const { error } = await res.json();
+                toast.error(error.message);
               }
               setSubmitting(false);
             });

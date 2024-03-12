@@ -69,7 +69,11 @@
     },
     {
       "group": "API Reference",
-      "pages": ["api-reference/introduction", "api-reference/rate-limits"]
+      "pages": [
+        "api-reference/introduction",
+        "api-reference/rate-limits",
+        "api-reference/errors"
+      ]
     },
     {
       "group": "Links",
@@ -79,12 +83,28 @@
         "api-reference/endpoint/edit-a-link",
         "api-reference/endpoint/delete-a-link",
         "api-reference/endpoint/retrieve-a-list-of-links",
+        "api-reference/endpoint/retrieve-number-of-links",
         "api-reference/endpoint/bulk-create-links"
       ]
     },
     {
       "group": "QR Codes",
       "pages": ["api-reference/endpoint/retrieve-a-qr-code"]
+    },
+    {
+      "group": "Analytics",
+      "pages": [
+        "api-reference/endpoint/retrieve-clicks",
+        "api-reference/endpoint/retrieve-timeseries",
+        "api-reference/endpoint/retrieve-country",
+        "api-reference/endpoint/retrieve-city",
+        "api-reference/endpoint/retrieve-device",
+        "api-reference/endpoint/retrieve-browser",
+        "api-reference/endpoint/retrieve-os",
+        "api-reference/endpoint/retrieve-referer",
+        "api-reference/endpoint/retrieve-top-links",
+        "api-reference/endpoint/retrieve-top-urls"
+      ]
     },
     {
       "group": "Projects",

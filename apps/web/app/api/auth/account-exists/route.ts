@@ -1,22 +1,23 @@
+import { getIdentityHash } from "@/lib/edge";
 import { isWhitelistedEmail } from "@/lib/edge-config";
-import { conn } from "@/lib/planetscale";
+import { DATABASE_URL, conn } from "@/lib/planetscale";
 import { ratelimit } from "@/lib/upstash";
-import { LOCALHOST_IP } from "@dub/utils";
-import { ipAddress } from "@vercel/edge";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "edge";
 
 export async function POST(req: NextRequest) {
-  const ip = ipAddress(req) || LOCALHOST_IP;
-  const { success } = await ratelimit(5, "1 m").limit(ip);
+  const identity_hash = await getIdentityHash(req);
+  const { success } = await ratelimit(5, "1 m").limit(
+    `account-exists:${identity_hash}`,
+  );
   if (!success) {
     return new Response("Don't DDoS me pls 🥺", { status: 429 });
   }
 
   const { email } = (await req.json()) as { email: string };
 
-  if (!process.env.DATABASE_URL) {
+  if (!DATABASE_URL) {
     return new Response("Database connection not established", {
       status: 500,
     });

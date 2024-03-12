@@ -1,23 +1,21 @@
+import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { addLink, getLinksForProject, processLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import { LinkWithTagIdsProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
+import {
+  createLinkBodySchema,
+  getLinksQuerySchema,
+} from "@/lib/zod/schemas/links";
 import { APP_DOMAIN_WITH_NGROK, LOCALHOST_IP } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/links – get all user links
 export const GET = withAuth(async ({ headers, searchParams, project }) => {
   const { domain, tagId, search, sort, page, userId, showArchived, withTags } =
-    searchParams as {
-      domain?: string;
-      tagId?: string;
-      search?: string;
-      sort?: "createdAt" | "clicks" | "lastClicked";
-      page?: string;
-      userId?: string;
-      showArchived?: string;
-      withTags?: string;
-    };
+    getLinksQuerySchema.parse(searchParams);
+
   const response = await getLinksForProject({
     projectId: project.id,
     domain,
@@ -26,8 +24,8 @@ export const GET = withAuth(async ({ headers, searchParams, project }) => {
     sort,
     page,
     userId,
-    showArchived: showArchived === "true" ? true : false,
-    withTags: withTags === "true" ? true : false,
+    showArchived,
+    withTags,
   });
   return NextResponse.json(response, {
     headers,
@@ -37,43 +35,44 @@ export const GET = withAuth(async ({ headers, searchParams, project }) => {
 // POST /api/links – create a new link
 export const POST = withAuth(
   async ({ req, headers, session, project }) => {
-    let body;
+    let bodyRaw;
     try {
-      body = await req.json();
+      bodyRaw = await req.json();
     } catch (error) {
-      return new Response("Missing or invalid body.", { status: 400, headers });
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Invalid body – body must be a valid JSON.",
+      });
     }
+    const body = createLinkBodySchema.parse(bodyRaw);
 
     if (!session) {
       const ip = req.headers.get("x-forwarded-for") || LOCALHOST_IP;
       const { success } = await ratelimit(10, "1 d").limit(ip);
 
       if (!success) {
-        return new Response(
-          "Rate limited – you can only create up to 10 links per day without an account.",
-          { status: 429 },
-        );
+        throw new DubApiError({
+          code: "rate_limit_exceeded",
+          message:
+            "Rate limited – you can only create up to 10 links per day without an account.",
+        });
       }
     }
 
-    const { link, error, status } = await processLink({
-      payload: body,
+    const { link, error, code } = await processLink({
+      payload: body as LinkWithTagIdsProps,
       project,
       ...(session && { userId: session.user.id }),
     });
 
     if (error) {
-      return new Response(error, { status, headers });
+      throw new DubApiError({
+        code: code as ErrorCodes,
+        message: error,
+      });
     }
 
     const response = await addLink(link);
-
-    if (response === null) {
-      return new Response("Duplicate key: This short link already exists.", {
-        status: 409,
-        headers,
-      });
-    }
 
     await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/event`,

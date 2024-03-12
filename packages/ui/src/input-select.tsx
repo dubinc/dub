@@ -1,5 +1,6 @@
 "use client";
 import { Command, useCommandState } from "cmdk";
+import { Check, ChevronDown, Search, X } from "lucide-react";
 import {
   Dispatch,
   InputHTMLAttributes,
@@ -9,12 +10,14 @@ import {
   useRef,
   useState,
 } from "react";
-import { Check, ChevronDown, Search, X } from "lucide-react";
+import { Badge } from "./badge";
 
 export interface InputSelectItemProps {
   id: string;
   value: string;
   image: string;
+  disabled?: boolean;
+  label?: string;
 }
 
 export function InputSelect({
@@ -117,12 +120,13 @@ export function InputSelect({
             <Command.Item
               key={item.id}
               value={item.value}
+              disabled={item.disabled}
               onSelect={() => {
                 setSelectedItem(item);
                 setInputValue(item.value);
                 setOpenCommandList(false);
               }}
-              className="group flex cursor-pointer items-center justify-between rounded-md px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 aria-selected:bg-gray-100 aria-selected:text-gray-900"
+              className="group flex cursor-pointer items-center justify-between rounded-md px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 aria-disabled:cursor-not-allowed aria-disabled:opacity-75 aria-disabled:hover:bg-white aria-selected:bg-gray-100 aria-selected:text-gray-900"
             >
               <div className="flex items-center space-x-2">
                 <img
@@ -131,6 +135,11 @@ export function InputSelect({
                   className="h-4 w-4 rounded-full"
                 />
                 <p>{item.value}</p>
+                {item.label && (
+                  <Badge className="text-xs" variant="neutral">
+                    {item.label}
+                  </Badge>
+                )}
               </div>
               <Check className="invisible h-5 w-5 text-gray-500 aria-selected:visible" />
             </Command.Item>

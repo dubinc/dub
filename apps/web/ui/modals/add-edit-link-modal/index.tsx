@@ -2,12 +2,12 @@
 
 import useDomains from "@/lib/swr/use-domains";
 import useProject from "@/lib/swr/use-project";
+import { LinkWithTagsProps } from "@/lib/types";
+import LinkLogo from "@/ui/links/link-logo";
 import { AlertCircleFill, Lock, Random, X } from "@/ui/shared/icons";
 import {
-  BlurImage,
   Button,
   LoadingCircle,
-  Logo,
   Modal,
   TooltipContent,
   useMediaQuery,
@@ -15,7 +15,6 @@ import {
 } from "@dub/ui";
 import {
   DEFAULT_LINK_PROPS,
-  GOOGLE_FAVICON_URL,
   cn,
   deepEqual,
   getApexDomain,
@@ -55,7 +54,6 @@ import PasswordSection from "./password-section";
 import Preview from "./preview";
 import RewriteSection from "./rewrite-section";
 import TagsSection from "./tags-section";
-import { LinkWithTagsProps } from "@/lib/types";
 import UTMSection from "./utm-section";
 
 function AddEditLinkModal({
@@ -84,7 +82,7 @@ function AddEditLinkModal({
   const {
     allActiveDomains: domains,
     primaryDomain,
-    defaultDomains,
+    activeDefaultDomains,
   } = useDomains();
 
   const [data, setData] = useState<LinkWithTagsProps>(
@@ -103,32 +101,6 @@ function AddEditLinkModal({
 
   const { domain, key, url, password, proxy } = data;
 
-  const [debouncedKey] = useDebounce(key, 500);
-  useEffect(() => {
-    /**
-     * Only check if key exists if:
-     * - modal is open
-     * - key is not empty
-     * - key is not the same as the original key
-     **/
-    if (
-      showAddEditLinkModal &&
-      debouncedKey.length > 0 &&
-      debouncedKey.toLowerCase() !== props?.key.toLowerCase()
-    ) {
-      fetch(
-        `/api/links/exists?domain=${domain}&key=${debouncedKey}&projectSlug=${slug}`,
-      ).then(async (res) => {
-        if (res.status === 200) {
-          const exists = await res.json();
-          setKeyError(
-            exists ? "Duplicate key: This short link already exists." : null,
-          );
-        }
-      });
-    }
-  }, [debouncedKey, domain]);
-
   const generateRandomKey = useCallback(async () => {
     setKeyError(null);
     setGeneratingKey(true);
@@ -144,10 +116,10 @@ function AddEditLinkModal({
     // when someone pastes a URL
     if (showAddEditLinkModal && url.length > 0) {
       // if it's a new link and there are matching default domains, set it as the domain
-      if (!props && defaultDomains) {
+      if (!props && activeDefaultDomains) {
         const urlDomain = getDomainWithoutWWW(url) || "";
-        const defaultDomain = defaultDomains.find(({ allowedHostnames }) =>
-          allowedHostnames.includes(urlDomain),
+        const defaultDomain = activeDefaultDomains.find(
+          ({ allowedHostnames }) => allowedHostnames.includes(urlDomain),
         );
         if (defaultDomain) {
           setData((prev) => ({ ...prev, domain: defaultDomain.slug }));
@@ -217,24 +189,6 @@ function AddEditLinkModal({
       setGeneratingMetatags(false);
     }
   }, [debouncedUrl, password, showAddEditLinkModal, proxy]);
-
-  const logo = useMemo(() => {
-    // if the link is password protected, or if it's a new link and there's no URL yet, return the default Dub logo
-    // otherwise, get the favicon of the URL
-    const url = password || !debouncedUrl ? null : debouncedUrl || props?.url;
-
-    return url ? (
-      <BlurImage
-        src={`${GOOGLE_FAVICON_URL}${getApexDomain(url)}`}
-        alt="Logo"
-        className="h-10 w-10 rounded-full"
-        width={20}
-        height={20}
-      />
-    ) : (
-      <Logo />
-    );
-  }, [password, debouncedUrl, props]);
 
   const endpoint = useMemo(() => {
     if (props?.key) {
@@ -330,7 +284,7 @@ function AddEditLinkModal({
         }
       }}
     >
-      <div className="scrollbar-hide grid max-h-[90vh] w-full divide-x divide-gray-100 overflow-auto md:grid-cols-2 md:overflow-hidden">
+      <div className="scrollbar-hide grid max-h-[95vh] w-full divide-x divide-gray-100 overflow-auto md:grid-cols-2 md:overflow-hidden">
         {!welcomeFlow && !homepageDemo && (
           <button
             onClick={() => {
@@ -348,11 +302,11 @@ function AddEditLinkModal({
         )}
 
         <div
-          className="scrollbar-hide rounded-l-2xl md:max-h-[90vh] md:overflow-auto"
+          className="scrollbar-hide rounded-l-2xl md:max-h-[95vh] md:overflow-auto"
           onScroll={handleScroll}
         >
           <div className="z-10 flex flex-col items-center justify-center space-y-3 border-b border-gray-200 bg-white px-4 pb-8 pt-8 transition-all md:sticky md:top-0 md:px-16">
-            {logo}
+            <LinkLogo apexDomain={getApexDomain(url)} />
             <h3 className="max-w-sm truncate text-lg font-medium">
               {props
                 ? `Edit ${linkConstructor({
@@ -411,16 +365,14 @@ function AddEditLinkModal({
                   }
                   setShowAddEditLinkModal(false);
                 } else {
-                  const error = await res.text();
+                  const { error } = await res.json();
                   if (error) {
-                    toast.error(error);
-                    if (error.toLowerCase().includes("key")) {
-                      setKeyError(error);
-                    } else if (error.toLowerCase().includes("url")) {
-                      setUrlError(error);
+                    toast.error(error.message);
+                    if (error.message.toLowerCase().includes("key")) {
+                      setKeyError(error.message);
+                    } else if (error.message.toLowerCase().includes("url")) {
+                      setUrlError(error.message);
                     }
-                  } else {
-                    toast.error(await res.text());
                   }
                 }
                 setSaving(false);
@@ -522,9 +474,10 @@ function AddEditLinkModal({
                     onChange={(e) => {
                       setData({ ...data, domain: e.target.value });
                     }}
-                    className={`${
-                      props && lockKey ? "cursor-not-allowed" : ""
-                    } w-40 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-5 text-sm text-gray-500 focus:border-gray-300 focus:outline-none focus:ring-0`}
+                    className={cn(
+                      "max-w-[16rem] rounded-l-md border border-r-0 border-gray-300 bg-gray-50 pl-4 pr-8 text-sm text-gray-500 focus:border-gray-300 focus:outline-none focus:ring-0",
+                      props && lockKey && "cursor-not-allowed",
+                    )}
                   >
                     {domains?.map(({ slug }) => (
                       <option key={slug} value={slug}>
@@ -574,11 +527,23 @@ function AddEditLinkModal({
                     </div>
                   )}
                 </div>
-                {keyError && (
-                  <p className="mt-2 text-sm text-red-600" id="key-error">
-                    {keyError}
-                  </p>
-                )}
+                {keyError &&
+                  (keyError.includes("Upgrade to Pro") ? (
+                    <p className="mt-2 text-sm text-red-600" id="key-error">
+                      {keyError.split("Upgrade to Pro")[0]}
+                      <span
+                        className="cursor-pointer underline"
+                        onClick={() => queryParams({ set: { upgrade: "pro" } })}
+                      >
+                        Upgrade to Pro
+                      </span>
+                      {keyError.split("Upgrade to Pro")[1]}
+                    </p>
+                  ) : (
+                    <p className="mt-2 text-sm text-red-600" id="key-error">
+                      {keyError}
+                    </p>
+                  ))}
               </div>
             </div>
 
@@ -633,7 +598,7 @@ function AddEditLinkModal({
             </div>
           </form>
         </div>
-        <div className="scrollbar-hide rounded-r-2xl md:max-h-[90vh] md:overflow-auto">
+        <div className="scrollbar-hide rounded-r-2xl md:max-h-[95vh] md:overflow-auto">
           <Preview data={data} generatingMetatags={generatingMetatags} />
         </div>
       </div>
