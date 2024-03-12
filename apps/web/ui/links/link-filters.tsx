@@ -240,7 +240,7 @@ const DomainsFilter = () => {
                 className="group relative flex cursor-pointer items-center space-x-3 rounded-md bg-gray-50 transition-all hover:bg-gray-100"
               >
                 <input
-                  id={domain.id}
+                  id={domain.slug}
                   name={domain.slug}
                   checked={searchParams?.get("domain") === domain.slug}
                   onChange={() => {
