@@ -260,6 +260,9 @@ export function processKey(key: string) {
   if (key.length === 0) {
     return null;
   }
+  // replace all special characters
+  key = key.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
   return key;
 }
 
