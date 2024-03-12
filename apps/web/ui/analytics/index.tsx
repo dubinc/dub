@@ -88,8 +88,8 @@ export default function Analytics({
       ...(slug && { projectSlug: slug }),
       ...(domain && { domain }),
       ...(key && { key }),
-      ...availableFilterParams,
       ...(interval && { interval }),
+      ...availableFilterParams,
     }).toString();
   }, [slug, domain, key, searchParams, interval]);
 

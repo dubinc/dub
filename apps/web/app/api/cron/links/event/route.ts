@@ -34,6 +34,9 @@ export async function POST(req: Request) {
     where: {
       id: linkId,
     },
+    include: {
+      tags: true,
+    },
   });
 
   if (!link) {

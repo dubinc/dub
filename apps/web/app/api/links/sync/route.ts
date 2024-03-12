@@ -1,8 +1,8 @@
 import { exceededLimitError } from "@/lib/api/errors";
-import { bulkCreateLinks } from "@/lib/api/links";
+import { propagateBulkLinkChanges } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { LinkProps, SimpleLinkProps } from "@/lib/types";
+import { SimpleLinkProps } from "@/lib/types";
 import { NextResponse } from "next/server";
 
 // POST /api/links/sync – sync user's publicly created links to their accounts
@@ -17,7 +17,7 @@ export const POST = withAuth(async ({ req, session, project }) => {
     return new Response("Invalid request body.", { status: 400 });
   }
 
-  const unclaimedLinks = (await Promise.all(
+  const unclaimedLinks = await Promise.all(
     links.map(async (link) => {
       return await prisma.link.findUnique({
         where: {
@@ -27,9 +27,12 @@ export const POST = withAuth(async ({ req, session, project }) => {
           },
           userId: null,
         },
+        include: {
+          tags: true,
+        },
       });
     }),
-  )) as LinkProps[];
+  ).then((links) => links.filter((link) => link !== null));
 
   if (unclaimedLinks.length === 0) {
     return new Response("No links created.", { status: 400 });
@@ -50,7 +53,7 @@ export const POST = withAuth(async ({ req, session, project }) => {
     prisma.link.updateMany({
       where: {
         id: {
-          in: unclaimedLinks.map((link) => link.id),
+          in: unclaimedLinks.map((link) => link!.id),
         },
       },
       data: {
@@ -59,27 +62,14 @@ export const POST = withAuth(async ({ req, session, project }) => {
         publicStats: false,
       },
     }),
-    bulkCreateLinks({
-      links: unclaimedLinks.map((link) => ({
-        ...link,
+    propagateBulkLinkChanges(
+      unclaimedLinks.map((link) => ({
+        ...link!,
         userId: session.user.id,
         projectId: project.id,
         publicStats: false,
-        tagIds: [],
       })),
-      skipPrismaCreate: true,
-    }),
-    prisma.project.update({
-      where: {
-        id: project.id,
-      },
-      data: {
-        // TODO: sync clicks usage as well
-        linksUsage: {
-          increment: unclaimedLinks.length,
-        },
-      },
-    }),
+    ),
   ]);
 
   return NextResponse.json(response);
