@@ -37,6 +37,7 @@ export async function getLinksForProject({
   projectId,
   domain,
   tagId,
+  tagIds,
   search,
   sort = "createdAt",
   page,
@@ -46,7 +47,7 @@ export async function getLinksForProject({
 }: Omit<z.infer<typeof getLinksQuerySchema>, "projectSlug"> & {
   projectId: string;
 }): Promise<LinkProps[]> {
-  const tagIds = tagId ? tagId.split(",") : [];
+  const combinedTagIds = combineTagIds({ tagId, tagIds });
 
   const links = await prisma.link.findMany({
     where: {
@@ -68,8 +69,8 @@ export async function getLinksForProject({
           some: {},
         },
       }),
-      ...(tagIds.length > 0 && {
-        tags: { some: { tagId: { in: tagIds } } },
+      ...(combinedTagIds.length > 0 && {
+        tags: { some: { tagId: { in: combinedTagIds } } },
       }),
       ...(userId && { userId }),
     },
@@ -101,9 +102,13 @@ export async function getLinksForProject({
       domain: link.domain,
       key: link.key,
     });
+
+    const tags = link.tags.map(({ tag }) => tag);
+
     return {
       ...link,
-      tags: link.tags.map(({ tag }) => tag),
+      tagId: tags?.[0]?.id ?? null, // backwards compatibility
+      tags,
       shortLink,
       qrCode: `https://api.dub.co/qr?url=${shortLink}`,
     };
@@ -119,10 +124,10 @@ export async function getLinksCount({
   projectId: string;
   userId?: string | null;
 }) {
-  const { groupBy, search, domain, tagId, showArchived, withTags } =
+  const { groupBy, search, domain, tagId, tagIds, showArchived, withTags } =
     searchParams;
 
-  const tagIds = tagId ? tagId.split(",") : [];
+  const combinedTagIds = combineTagIds({ tagId, tagIds });
 
   const linksWhere = {
     projectId,
@@ -166,7 +171,7 @@ export async function getLinksCount({
           some: {},
         },
       }),
-      ...(tagIds.length > 0 && {
+      ...(combinedTagIds.length > 0 && {
         tags: {
           some: {
             tagId: {
@@ -560,8 +565,10 @@ export async function addLink(link: LinkWithTagIdsProps) {
     domain: response.domain,
     key: response.key,
   });
+  const tags = response.tags.map(({ tag }) => tag);
   return {
     ...response,
+    tagId: tags?.[0]?.id ?? null, // backwards compatibility
     tags: response.tags.map(({ tag }) => tag),
     shortLink,
     qrCode: `https://api.dub.co/qr?url=${shortLink}`,
@@ -824,9 +831,12 @@ export async function editLink({
     key: response.key,
   });
 
+  const tags = response.tags.map(({ tag }) => tag);
+
   return {
     ...response,
-    tags: response.tags.map(({ tag }) => tag),
+    tagId: tags?.[0]?.id ?? null, // backwards compatibility
+    tags,
     shortLink,
     qrCode: `https://api.dub.co/qr?url=${shortLink}`,
   };
