@@ -50,7 +50,7 @@ export default function ClicksChart() {
   );
 
   return (
-    <div className="h-80 w-full">
+    <div className="h-96 w-full">
       {chartData !== null && (
         <TimeSeriesChart
           key={queryString}
@@ -70,7 +70,7 @@ export default function ClicksChart() {
         >
           <Areas />
           <XAxis tickFormat={formatDate} />
-          <YAxis integerTicks showGridLines />
+          <YAxis integerTicks showGridLines tickFormat={nFormatter} />
         </TimeSeriesChart>
       )}
     </div>
