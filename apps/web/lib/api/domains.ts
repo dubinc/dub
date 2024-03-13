@@ -256,6 +256,7 @@ export async function deleteDomainAndLinks(
       },
       select: {
         id: true,
+        domain: true,
         key: true,
         url: true,
         projectId: true,
