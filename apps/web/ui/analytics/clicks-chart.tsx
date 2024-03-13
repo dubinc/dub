@@ -70,7 +70,7 @@ export default function ClicksChart() {
         >
           <Areas />
           <XAxis tickFormat={formatDate} />
-          <YAxis integerTicks showGridLines tickFormat={nFormatter} />
+          <YAxis showGridLines tickFormat={nFormatter} />
         </TimeSeriesChart>
       )}
     </div>
