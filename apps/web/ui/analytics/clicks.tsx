@@ -14,7 +14,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useContext } from "react";
 import { AnalyticsContext } from ".";
-import BarChart from "./bar-chart";
+import ClicksChart from "./clicks-chart";
 
 export default function Clicks() {
   const { totalClicks } = useContext(AnalyticsContext);
@@ -26,7 +26,7 @@ export default function Clicks() {
   const { tags } = useTags();
 
   return (
-    <div className="max-w-4xl border border-gray-200 bg-white p-5 sm:rounded-lg sm:border-gray-100 sm:p-10 sm:shadow-lg">
+    <div className="max-w-4xl overflow-hidden border border-gray-200 bg-white p-5 sm:rounded-lg sm:border-gray-100 sm:p-10 sm:shadow-lg">
       <div className="mb-5 flex items-start justify-between space-x-4">
         <div className="flex-none">
           <div className="flex items-end space-x-1">
@@ -122,7 +122,7 @@ export default function Clicks() {
           })}
         </div>
       </div>
-      <BarChart />
+      <ClicksChart />
     </div>
   );
 }
