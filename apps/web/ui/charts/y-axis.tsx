@@ -97,18 +97,23 @@ export default function YAxis({
       {showGridLines && (
         <Group left={margin.left} top={margin.top}>
           {tickValues.length > 0 &&
-            tickValues.map((value) => (
-              <Line
-                key={value.toString()}
-                y1={yScale(value)}
-                y2={yScale(value)}
-                x1={0}
-                x2={width}
-                stroke="#00000026"
-                strokeWidth={1}
-                strokeDasharray={5}
-              />
-            ))}
+            tickValues.map((value) => {
+              const y = yScale(value);
+              if (y === height) return undefined; // Don't draw grid line at bottom of chart area
+
+              return (
+                <Line
+                  key={value.toString()}
+                  y1={y}
+                  y2={y}
+                  x1={0}
+                  x2={width}
+                  stroke="#00000026"
+                  strokeWidth={1}
+                  strokeDasharray={5}
+                />
+              );
+            })}
         </Group>
       )}
     </>
