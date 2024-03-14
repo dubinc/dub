@@ -46,7 +46,7 @@ export default function ClicksChart() {
           });
       }
     },
-    [data, interval],
+    [interval],
   );
 
   return (

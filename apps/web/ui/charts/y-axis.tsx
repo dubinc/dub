@@ -2,7 +2,7 @@ import { AxisLeft } from "@visx/axis";
 import { Group } from "@visx/group";
 import { Line } from "@visx/shape";
 import { getStringWidth } from "@visx/text";
-import { useEffect, useMemo } from "react";
+import { useLayoutEffect, useMemo } from "react";
 import { useChartContext } from "./chart-context";
 
 export type YAxisProps = {
@@ -66,7 +66,7 @@ export default function YAxis({
     );
   }, [tickValuesProp, numTicksProp, height, yScale, integerTicks]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const maxWidth =
       Math.max(
         ...tickValues.map(

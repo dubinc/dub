@@ -45,8 +45,8 @@ export default function Areas() {
             {({ path }) => {
               return (
                 <motion.path
-                  initial={{ d: path(zeroedData) || "" }}
-                  animate={{ d: path(data) || "" }}
+                  initial={{ d: path(zeroedData) || "", opacity: 0 }}
+                  animate={{ d: path(data) || "", opacity: 1 }}
                   fill={`url(#${s.id}-background)`}
                 />
               );
