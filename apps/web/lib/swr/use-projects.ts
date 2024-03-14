@@ -1,9 +1,9 @@
-import { ProjectWithDomainProps } from "@/lib/types";
+import { ProjectProps } from "@/lib/types";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 
 export default function useProjects() {
-  const { data, error } = useSWR<ProjectWithDomainProps[]>(
+  const { data: projects, error } = useSWR<ProjectProps[]>(
     "/api/projects",
     fetcher,
     {
@@ -11,15 +11,11 @@ export default function useProjects() {
     },
   );
 
-  const projects = data?.map((project) => ({
-    ...project,
-    isOwner: project?.users && project.users[0].role === "owner",
-    primaryDomain:
-      project.domains.find((domain) => domain.primary) || project.domains[0],
-  }));
-
   const freeProjects = projects?.filter(
-    (project) => project.plan === "free" && project.isOwner,
+    (project) =>
+      project.plan === "free" &&
+      project?.users &&
+      project.users[0].role === "owner",
   );
 
   return {

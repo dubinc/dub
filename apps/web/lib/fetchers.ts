@@ -1,7 +1,6 @@
 import { cache } from "react";
 import { getSession } from "./auth";
 import prisma from "./prisma";
-import { ProjectWithDomainProps } from "./types";
 
 export const getProjects = cache(async () => {
   const session = await getSession();
@@ -22,11 +21,7 @@ export const getProjects = cache(async () => {
     },
   });
 
-  return projects.map((project) => ({
-    ...project,
-    primaryDomain:
-      project.domains.find((domain) => domain.primary) || project.domains[0],
-  })) as ProjectWithDomainProps[];
+  return projects;
 });
 
 export const getProject = cache(async ({ slug }: { slug: string }) => {

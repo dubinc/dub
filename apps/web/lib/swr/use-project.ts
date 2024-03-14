@@ -1,11 +1,15 @@
 import { ProjectProps } from "@/lib/types";
 import { PRO_PLAN, fetcher, getNextPlan } from "@dub/utils";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import useSWR from "swr";
 import useDefaultDomains from "./use-default-domains";
 
 export default function useProject() {
-  const { slug } = useParams() as { slug?: string };
+  let { slug } = useParams() as { slug: string | null };
+  const searchParams = useSearchParams();
+  if (!slug) {
+    slug = searchParams.get("slug");
+  }
 
   const {
     data: project,

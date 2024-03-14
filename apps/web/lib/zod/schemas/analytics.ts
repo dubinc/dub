@@ -32,6 +32,10 @@ export const getAnalyticsQuerySchema = z.object({
   excludeRoot: booleanQuerySchema
     .optional()
     .describe("Whether to exclude the root link from the response."),
+  tagId: z
+    .string()
+    .optional()
+    .describe("The tag ID to retrieve analytics for."),
 });
 
 export const getAnalyticsEdgeQuerySchema = getAnalyticsQuerySchema.required({

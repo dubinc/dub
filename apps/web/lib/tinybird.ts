@@ -108,7 +108,9 @@ export async function recordLink({
   link,
   deleted,
 }: {
-  link: Partial<LinkProps>;
+  link: Partial<LinkProps> & {
+    tags?: { tagId: string }[];
+  };
   deleted?: boolean;
 }) {
   return await fetch(
@@ -124,6 +126,7 @@ export async function recordLink({
         domain: link.domain,
         key: link.key,
         url: link.url,
+        tagIds: link.tags?.map(({ tagId }) => tagId) || [],
         project_id: link.projectId || "",
         deleted: deleted ? 1 : 0,
       }),

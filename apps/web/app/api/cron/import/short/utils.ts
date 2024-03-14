@@ -59,7 +59,9 @@ export const importLinksFromShort = async ({
         if (path.length === 0) {
           return null;
         }
-        tags.forEach((tag: string) => tagsToCreate.add(tag));
+        if (tags) {
+          tags.forEach((tag: string) => tagsToCreate.add(tag));
+        }
         return {
           projectId,
           userId,

@@ -3,7 +3,7 @@ import { LinkProps } from "@/lib/types";
 import { Button, InputSelect, InputSelectItemProps, Modal } from "@dub/ui";
 import {
   APP_NAME,
-  DUB_LOGO,
+  DICEBEAR_AVATAR_URL,
   getApexDomain,
   isDubDomain,
   linkConstructor,
@@ -103,13 +103,14 @@ function TransferLinkModal({
           <InputSelect
             items={
               projects
-                ? projects
-                    .filter((project) => project.id !== props.projectId)
-                    .map((project) => ({
-                      id: project.id,
-                      value: project.name,
-                      image: project.logo || DUB_LOGO,
-                    }))
+                ? projects.map((project) => ({
+                    id: project.id,
+                    value: project.name,
+                    image:
+                      project.logo || `${DICEBEAR_AVATAR_URL}${project.name}`,
+                    disabled: project.id === props.projectId,
+                    label: project.id === props.projectId ? "Current" : "",
+                  }))
                 : []
             }
             selectedItem={selectedProject}
