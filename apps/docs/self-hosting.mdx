@@ -4,7 +4,9 @@ title: "Self-hosting Dub.co"
 description: "An end-to-end guide on how to self-host Dub.co – the open-source link management platform."
 ---
 
-![Dub.co Thumbnail](/images/thumbnail.png)
+<Frame>
+  <img src="/images/thumbnail.png" alt="Dub.co Thumbnail" />
+</Frame>
 
 You can self-host Dub.co on your own servers and cloud infrastructure for greater control over your data and design. This guide will walk you through the entire process of setting up Dub.co on your own servers.
 
@@ -165,7 +167,7 @@ In your [Upstash account](https://console.upstash.com/), create a new database.
 
 For better performance & read times, we recommend setting up a global database with several read regions.
 
-![Upstash Redis database](/images/upstash-create-db.png)
+<Frame>![Upstash Redis database](/images/upstash-create-db.png)</Frame>
 
   </Step>
 
@@ -173,12 +175,13 @@ For better performance & read times, we recommend setting up a global database w
 
 Once your database is created, copy the `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` from the **REST API** section into your `.env` file.
 
-![Upstash Redis tokens](/images/upstash-redis-tokens.png)
+<Frame>![Upstash Redis tokens](/images/upstash-redis-tokens.png)</Frame>
 
 Navigate to the [QStash tab](https://console.upstash.com/qstash) and copy the `QSTASH_TOKEN`, `QSTASH_CURRENT_SIGNING_KEY`, and `QSTASH_NEXT_SIGNING_KEY` from the **Request Builder** section into your `.env` file.
 
+<Frame>
 ![Upstash QStash tokens](/images/upstash-qstash-tokens.png)
-
+</Frame>
   </Step>
 
 </Steps>
@@ -206,7 +209,9 @@ Next, you'll need to set up a [PlanetScale](https://planetscale.com/)-compatible
 
     Once your database is created, you'll be prompted to select your language or Framework. Select **Prisma**.
 
-    ![PlanetScale choose framework](/images/planetscale-choose-framework.png)
+    <Frame>
+      ![PlanetScale choose framework](/images/planetscale-choose-framework.png)
+    </Frame>
 
   </Step>
 
@@ -214,7 +219,9 @@ Next, you'll need to set up a [PlanetScale](https://planetscale.com/)-compatible
 
     Then, you'll have to create a new password for your database. Once the password is created, scroll down to the **Add credentials to .env** section and copy the `DATABASE_URL` into your `.env` file.
 
+    <Frame>
     ![PlanetScale add credentials](/images/planetscale-add-credentials.png)
+    </Frame>
 
   </Step>
 
@@ -305,7 +312,9 @@ Once you've set up all of the above services, you can now deploy your app to Ver
 
     Make sure that your **Framework Preset** is set to **Next.js** and the **Root Directory** is set to `apps/web`.
 
+    <Frame>
     ![Vercel Framework Preset and Root Directory](/images/vercel-framework-preset.png)
+    </Frame>
 
     In the **Environment Variables** section, add all of the environment variables from your `.env` file by copying all of them and pasting it into the first input field. A few notes:
 
@@ -319,7 +328,9 @@ Once you've set up all of the above services, you can now deploy your app to Ver
       completed` error, make sure that your [Vercel deployment
       settings](https://vercel.com/docs/deployments/configure-a-build) to make sure that they match the following:
 
+    <Frame>
     ![Vercel Deploy settings](/images/vercel-deploy-settings.png)
+    </Frame>
 
     </Tip>
 
@@ -338,7 +349,7 @@ Add both the `NEXT_PUBLIC_APP_DOMAIN` and `NEXT_PUBLIC_APP_SHORT_DOMAIN` as doma
   
   Once the deployment is complete, you should be able to visit your app domain (e.g. `https://app.acme.com`) and see the following login page:
 
-![Whitelabeled Login](/images/whitelabeled-login.png)
+<Frame>![Whitelabeled Login](/images/whitelabeled-login.png)</Frame>
 
 </Step>
 

@@ -4,7 +4,9 @@ title: "Local Development"
 description: "A guide on how to run Dub.co's codebase locally."
 ---
 
-![Dub.co Thumbnail](/images/thumbnail.png)
+<Frame>
+  <img src="/images/thumbnail.png" alt="Dub.co Thumbnail" />
+</Frame>
 
 ## Introduction
 
@@ -186,7 +188,7 @@ In your [Upstash account](https://console.upstash.com/), create a new database.
 
 For better performance & read times, we recommend setting up a global database with several read regions.
 
-![Upstash Redis database](/images/upstash-create-db.png)
+<Frame>![Upstash Redis database](/images/upstash-create-db.png)</Frame>
 
   </Step>
 
@@ -194,11 +196,11 @@ For better performance & read times, we recommend setting up a global database w
 
 Once your database is created, copy the `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` from the **REST API** section into your `.env` file.
 
-![Upstash Redis tokens](/images/upstash-redis-tokens.png)
+<Frame>![Upstash Redis tokens](/images/upstash-redis-tokens.png)</Frame>
 
 Navigate to the [QStash tab](https://console.upstash.com/qstash) and copy the `QSTASH_TOKEN`, `QSTASH_CURRENT_SIGNING_KEY`, and `QSTASH_NEXT_SIGNING_KEY` from the **Request Builder** section into your `.env` file.
 
-![Upstash QStash tokens](/images/upstash-qstash-tokens.png)
+<Frame>![Upstash QStash tokens](/images/upstash-qstash-tokens.png)</Frame>
 
   </Step>
 
@@ -297,7 +299,9 @@ Prerequisites:
 
     Once your database is created, you'll be prompted to select your language or Framework. Select **Prisma**.
 
+    <Frame>
     ![PlanetScale choose framework](/images/planetscale-choose-framework.png)
+    </Frame>
 
   </Step>
 
@@ -305,7 +309,9 @@ Prerequisites:
 
     Then, you'll have to create a new password for your database. Once the password is created, scroll down to the **Add credentials to .env** section and copy the `DATABASE_URL` into your `.env` file.
 
+    <Frame>
     ![PlanetScale add credentials](/images/planetscale-add-credentials.png)
+    </Frame>
 
   </Step>
 
