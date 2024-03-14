@@ -1,12 +1,17 @@
 "use client";
 
-import { Logout } from "@/ui/shared/icons";
 import { Avatar, Badge, IconMenu, LoadingCircle, Popover } from "@dub/ui";
 import { HOME_DOMAIN } from "@dub/utils";
 import va from "@vercel/analytics";
 import { Crisp } from "crisp-sdk-web";
 import Cookies from "js-cookie";
-import { Edit3, HelpCircle, MessageCircle, Settings } from "lucide-react";
+import {
+  Edit3,
+  HelpCircle,
+  LogOut,
+  MessageCircle,
+  Settings,
+} from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -132,7 +137,7 @@ export default function UserDropdown() {
                 va.track("Logout");
               }}
             >
-              <IconMenu text="Logout" icon={<Logout className="h-4 w-4" />} />
+              <IconMenu text="Logout" icon={<LogOut className="h-4 w-4" />} />
             </button>
           </div>
         }
