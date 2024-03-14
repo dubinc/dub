@@ -12,7 +12,7 @@ export const editLink: ZodOpenApiOperationObject = {
     query: z.object({
       workspaceId: z
         .string()
-        .describe("The ID of the workspace that the link belongs to."),
+        .describe("The ID of the workspace the link belongs to."),
     }),
     path: z.object({
       linkId: z.string().openapi({
