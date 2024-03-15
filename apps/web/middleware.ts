@@ -42,7 +42,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
     return ApiMiddleware(req);
   }
 
-  // for public stats pages (e.g. dub.sh/stats/try)
+  // for public stats pages (e.g. d.to/stats/try)
   if (path.startsWith("/stats/")) {
     return NextResponse.rewrite(new URL(`/${domain}${path}`, req.url));
   }
