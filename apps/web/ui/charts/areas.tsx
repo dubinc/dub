@@ -6,7 +6,8 @@ import { Fragment, useMemo } from "react";
 import { useChartContext, useChartTooltipContext } from "./chart-context";
 
 export default function Areas() {
-  const { data, series, margin, xScale, yScale } = useChartContext();
+  const { data, series, margin, xScale, yScale, startDate, endDate } =
+    useChartContext();
   const { tooltipData } = useChartTooltipContext();
 
   // Data with all values set to zero to animate from
@@ -20,7 +21,8 @@ export default function Areas() {
   return (
     <Group left={margin.left} top={margin.top}>
       {series.map((s) => (
-        <Fragment key={s.id}>
+        // Prevent ugly x-scale animations when start/end dates change with unique key
+        <Fragment key={`${s.id}_${startDate.toString()}_${endDate.toString()}`}>
           {/* Area background gradient */}
           <LinearGradient
             className="text-blue-500"
@@ -67,6 +69,7 @@ export default function Areas() {
                 stroke="currentColor"
                 strokeOpacity={0.8}
                 strokeWidth={2}
+                fill="transparent"
               />
             )}
           </Area>
