@@ -26,6 +26,7 @@ export async function deleteProject(
         },
       },
       select: {
+        id: true,
         domain: true,
         key: true,
         proxy: true,
@@ -60,8 +61,8 @@ export async function deleteProject(
     // delete all default domain links from redis
     pipeline.exec(),
     // remove all images from R2
-    ...defaultDomainLinks.map(({ domain, key, proxy }) =>
-      proxy ? r2.delete(`${domain}/${key}`) : Promise.resolve(),
+    ...defaultDomainLinks.map(({ id, proxy }) =>
+      proxy ? r2.delete(`images/${id}`) : Promise.resolve(),
     ),
   ]);
 

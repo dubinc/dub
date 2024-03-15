@@ -748,7 +748,7 @@ export async function editLink({
     }
   } else {
     // if there's no proxy enabled or no image, delete the image in R2
-    await r2.delete(`${domain}/${key}`);
+    await r2.delete(`images/${id}`);
   }
 
   const [response, ..._effects] = await Promise.all([
@@ -843,7 +843,7 @@ export async function deleteLink(linkId: string) {
         id: link.id,
       },
     }),
-    r2.delete(`${link.domain}/${link.key}`),
+    r2.delete(`images/${link.id}`),
     redis.hdel(link.domain, link.key.toLowerCase()),
     recordLink({ link, deleted: true }),
     link.projectId &&

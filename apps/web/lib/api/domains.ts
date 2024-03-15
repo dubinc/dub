@@ -7,7 +7,6 @@ import {
   validDomainRegex,
 } from "@dub/utils";
 import cloudinary from "cloudinary";
-import { r2 } from "../r2";
 import { recordLink } from "../tinybird";
 
 export const validateDomain = async (domain: string) => {
@@ -202,28 +201,6 @@ export async function setRootDomain({
       },
     }),
   ]);
-}
-
-/* Change the domain for all images for a given project on Cloudinary */
-export async function changeDomainForImages(domain: string, newDomain: string) {
-  const links = await prisma.link.findMany({
-    where: {
-      domain,
-    },
-    select: {
-      key: true,
-    },
-  });
-  if (links.length === 0) return null;
-  try {
-    return await Promise.all(
-      links.map(({ key }) =>
-        r2.rename(`${domain}/${key}`, `${newDomain}/${key}`),
-      ),
-    );
-  } catch (e) {
-    return null;
-  }
 }
 
 /* Delete a domain and all links & images associated with it */
