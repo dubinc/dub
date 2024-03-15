@@ -25,6 +25,7 @@ import {
 import { Prisma } from "@prisma/client";
 import cloudinary from "cloudinary";
 import { checkIfKeyExists, getRandomKey } from "../planetscale";
+import { R2 } from "../r2";
 import { recordLink } from "../tinybird";
 import {
   LinkProps,
@@ -33,7 +34,6 @@ import {
   RedisLinkProps,
 } from "../types";
 import z from "../zod";
-import { R2 } from "../r2";
 
 const r2Client = new R2();
 
@@ -840,15 +840,12 @@ export async function deleteLink(linkId: string) {
     },
   });
   return await Promise.all([
-<<<<<<< Updated upstream
-=======
     prisma.link.delete({
       where: {
         id: link.id,
       },
     }),
     r2Client.delete(`${link.domain}/${link.key}`),
->>>>>>> Stashed changes
     redis.hdel(link.domain, link.key.toLowerCase()),
     recordLink({ link, deleted: true }),
     link.projectId &&
