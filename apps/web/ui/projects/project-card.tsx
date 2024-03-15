@@ -18,7 +18,13 @@ import {
   fetcher,
   nFormatter,
 } from "@dub/utils";
-import { BarChart2, ExternalLink, Globe, Link2 } from "lucide-react";
+import {
+  BarChart2,
+  ExternalLink,
+  Globe,
+  Link2,
+  MinusCircle,
+} from "lucide-react";
 import Link from "next/link";
 import punycode from "punycode/";
 import useSWR from "swr";
@@ -35,7 +41,7 @@ export default function ProjectCard({
   plan,
 }: ProjectProps) {
   const {
-    allActiveDomains: domains,
+    allProjectDomains: domains,
     primaryDomain,
     verified,
     loading,
@@ -109,14 +115,18 @@ export default function ProjectCard({
                       <DomainsTooltip
                         domains={domains}
                         title={
-                          verified === false
-                            ? "Please verify your domain to start adding links."
-                            : "Here are all the domains for this project."
+                          domains.length === 0
+                            ? "No domains added yet – currently using Dub default domains."
+                            : verified === false
+                              ? "Please verify your domain to start adding links."
+                              : "Here are all the domains for this project."
                         }
                         cta={
-                          verified === false
-                            ? "Verify Domain"
-                            : `Manage Domain${domains.length > 1 ? "s" : ""}`
+                          domains.length === 0
+                            ? "Add Domain"
+                            : verified === false
+                              ? "Verify Domain"
+                              : `Manage Domain${domains.length > 1 ? "s" : ""}`
                         }
                         href={`/${slug}/domains`}
                       />
@@ -130,6 +140,11 @@ export default function ProjectCard({
                         >
                           +{domains.length - 1}
                         </Badge>
+                      ) : domains.length === 0 ? (
+                        <MinusCircle
+                          fill="rgb(209 213 219)"
+                          className="h-5 w-5 text-white"
+                        />
                       ) : verified ? (
                         <CheckCircleFill className="h-5 w-5 text-blue-500" />
                       ) : verified === false ? (
@@ -194,7 +209,7 @@ const DomainsTooltip = ({
     >
       <p className="px-2 text-sm text-gray-500">{title}</p>
       <div className="flex w-full flex-col">
-        {domains.map(({ slug, verified }) => (
+        {domains.slice(0, 8).map(({ slug, verified }) => (
           <a
             key={slug}
             href={`https://${slug}`}
@@ -215,6 +230,17 @@ const DomainsTooltip = ({
             <ExternalLink className="h-4 w-4 text-gray-500 md:invisible md:group-hover:visible" />
           </a>
         ))}
+        {domains.length > 8 && (
+          <Link
+            href={href}
+            className="flex items-center space-x-1 rounded-md p-2 transition-all hover:bg-gray-100"
+          >
+            <p className="text-sm font-semibold text-gray-500">
+              +{domains.length - 8} more
+            </p>
+            <ExternalLink className="h-4 w-4 text-gray-500 md:invisible" />
+          </Link>
+        )}
       </div>
 
       <div className="mt-2 w-full px-2">
