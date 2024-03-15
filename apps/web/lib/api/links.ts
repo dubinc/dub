@@ -25,7 +25,7 @@ import {
 import { Prisma } from "@prisma/client";
 import cloudinary from "cloudinary";
 import { checkIfKeyExists, getRandomKey } from "../planetscale";
-import { R2 } from "../r2";
+import { r2 } from "../r2";
 import { recordLink } from "../tinybird";
 import {
   LinkProps,
@@ -34,8 +34,6 @@ import {
   RedisLinkProps,
 } from "../types";
 import z from "../zod";
-
-const r2Client = new R2();
 
 export async function getLinksForProject({
   projectId,
@@ -750,7 +748,7 @@ export async function editLink({
     }
   } else {
     // if there's no proxy enabled or no image, delete the image in R2
-    await r2Client.delete(`${domain}/${key}`);
+    await r2.delete(`${domain}/${key}`);
   }
 
   const [response, ..._effects] = await Promise.all([
@@ -845,7 +843,7 @@ export async function deleteLink(linkId: string) {
         id: link.id,
       },
     }),
-    r2Client.delete(`${link.domain}/${link.key}`),
+    r2.delete(`${link.domain}/${link.key}`),
     redis.hdel(link.domain, link.key.toLowerCase()),
     recordLink({ link, deleted: true }),
     link.projectId &&

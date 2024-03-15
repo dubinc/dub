@@ -1,14 +1,12 @@
 import { withSession } from "@/lib/auth";
 import { unsubscribe } from "@/lib/flodesk";
 import prisma from "@/lib/prisma";
-import { R2 } from "@/lib/r2";
+import { r2 } from "@/lib/r2";
 import { redis } from "@/lib/upstash";
 import { trim } from "@dub/utils";
 import cloudinary from "cloudinary";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-
-const r2Client = new R2();
 
 // GET /api/user – get a specific user
 export const GET = withSession(async ({ session }) => {
@@ -88,7 +86,7 @@ export const DELETE = withSession(async ({ session }) => {
           id: session.user.id,
         },
       }),
-      r2Client.delete(`avatars/${session.user.id}`),
+      r2.delete(`avatars/${session.user.id}`),
       unsubscribe(session.user.email),
     ]);
     return NextResponse.json(response);

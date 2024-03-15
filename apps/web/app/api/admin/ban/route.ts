@@ -2,11 +2,9 @@ import { deleteProjectAdmin } from "@/lib/api/projects";
 import { withAdmin } from "@/lib/auth";
 import { unsubscribe } from "@/lib/flodesk";
 import prisma from "@/lib/prisma";
-import { R2 } from "@/lib/r2";
+import { r2 } from "@/lib/r2";
 import { get } from "@vercel/edge-config";
 import { NextResponse } from "next/server";
-
-const r2Client = new R2();
 
 // POST /api/admin/ban
 export const POST = withAdmin(async ({ req }) => {
@@ -60,7 +58,7 @@ export const POST = withAdmin(async ({ req }) => {
         id: user.id,
       },
     }),
-    r2Client.delete(`avatars/${user.id}`),
+    r2.delete(`avatars/${user.id}`),
     unsubscribe(user.email),
     fetch(
       `https://api.vercel.com/v1/edge-config/${process.env.EDGE_CONFIG_ID}/items?teamId=${process.env.TEAM_ID_VERCEL}`,
