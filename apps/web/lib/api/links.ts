@@ -32,6 +32,9 @@ import {
   RedisLinkProps,
 } from "../types";
 import z from "../zod";
+import { R2 } from "../r2";
+
+const r2Client = new R2();
 
 export async function getLinksForProject({
   projectId,
@@ -734,7 +737,7 @@ export async function editLink({
   const combinedTagIds = combineTagIds({ tagId, tagIds });
 
   if (proxy && image) {
-    // only upload image to cloudinary if proxy is true and there's an image
+    // only upload image to R2 if proxy is true and there's an image
     if (uploadedImage) {
       const { secure_url } = await cloudinary.v2.uploader.upload(image, {
         public_id: key,
@@ -744,11 +747,9 @@ export async function editLink({
       });
       image = secure_url;
     }
-    // if there's no proxy enabled or no image, delete the image in Cloudinary
   } else {
-    await cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
-      invalidate: true,
-    });
+    // if there's no proxy enabled or no image, delete the image in R2
+    await r2Client.delete(`${domain}/${key}`);
   }
 
   const [response, ..._effects] = await Promise.all([
@@ -838,6 +839,15 @@ export async function deleteLink(linkId: string) {
     },
   });
   return await Promise.all([
+<<<<<<< Updated upstream
+=======
+    prisma.link.delete({
+      where: {
+        id: link.id,
+      },
+    }),
+    r2Client.delete(`${link.domain}/${link.key}`),
+>>>>>>> Stashed changes
     redis.hdel(link.domain, link.key.toLowerCase()),
     recordLink({ link, deleted: true }),
     link.projectId &&

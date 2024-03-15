@@ -2,9 +2,11 @@ import { deleteDomainAndLinks } from "@/lib/api/domains";
 import prisma from "@/lib/prisma";
 import { cancelSubscription } from "@/lib/stripe";
 import { DUB_DOMAINS_ARRAY, LEGAL_PROJECT_ID, LEGAL_USER_ID } from "@dub/utils";
-import cloudinary from "cloudinary";
 import { ProjectProps } from "../types";
 import { redis } from "../upstash";
+import { R2 } from "../r2";
+
+const r2Client = new R2();
 
 export async function deleteProject(
   project: Pick<ProjectProps, "id" | "slug" | "stripeId" | "logo">,
@@ -59,22 +61,17 @@ export async function deleteProject(
     ),
     // delete all default domain links from redis
     pipeline.exec(),
-    // remove all images from cloudinary
+    // remove all images from R2
     ...defaultDomainLinks.map(({ domain, key, proxy }) =>
       proxy
-        ? cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
-            invalidate: true,
-          })
+        ? r2Client.delete(`${domain}/${key}`) 
         : Promise.resolve(),
     ),
   ]);
 
   const deleteProjectResponse = await Promise.all([
-    // delete project logo from Cloudinary
-    project.logo &&
-      cloudinary.v2.uploader.destroy(`logos/${project.id}`, {
-        invalidate: true,
-      }),
+    // delete project logo from R2
+    project.logo && r2Client.delete(`logos/${project.id}`),
     // if they have a Stripe subscription, cancel it
     project.stripeId && cancelSubscription(project.stripeId),
     // delete the project
@@ -128,11 +125,8 @@ export async function deleteProjectAdmin(
   ]);
 
   const deleteProjectResponse = await Promise.all([
-    // delete project logo from Cloudinary
-    project.logo &&
-      cloudinary.v2.uploader.destroy(`logos/${project.id}`, {
-        invalidate: true,
-      }),
+    // delete project logo from R2
+    project.logo && r2Client.delete(`logos/${project.id}`),
     // if they have a Stripe subscription, cancel it
     project.stripeId && cancelSubscription(project.stripeId),
     // delete the project

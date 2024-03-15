@@ -8,6 +8,9 @@ import {
 } from "@dub/utils";
 import cloudinary from "cloudinary";
 import { recordLink } from "../tinybird";
+import { R2 } from "../r2";
+
+const r2Client = new R2();
 
 export const validateDomain = async (domain: string) => {
   if (!domain || typeof domain !== "string") {
@@ -217,13 +220,7 @@ export async function changeDomainForImages(domain: string, newDomain: string) {
   try {
     return await Promise.all(
       links.map(({ key }) =>
-        cloudinary.v2.uploader.rename(
-          `${domain}/${key}`,
-          `${newDomain}/${key}`,
-          {
-            invalidate: true,
-          },
-        ),
+        r2Client.rename(`${domain}/${key}`, `${newDomain}/${key}`),
       ),
     );
   } catch (e) {
