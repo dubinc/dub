@@ -324,8 +324,8 @@ function AddEditLinkModal({
             onSubmit={async (e) => {
               e.preventDefault();
               setSaving(true);
-              // @ts-ignore – exclude the extra `user` attribute from `data` object before sending to API
-              const { user, tags, ...rest } = data;
+              // @ts-ignore – exclude extra attributes from `data` object before sending to API
+              const { user, tags, tagId, ...rest } = data;
               const bodyData = {
                 ...rest,
                 // Map tags to tagIds
