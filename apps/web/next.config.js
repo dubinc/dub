@@ -4,7 +4,6 @@ const REDIRECT_SEGMENTS = [
   "help",
   "changelog",
   "tools",
-  "stats",
   "_static",
 ];
 
