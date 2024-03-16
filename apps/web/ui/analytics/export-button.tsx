@@ -19,9 +19,10 @@ export default function ExportButton() {
 
   const exportData = async () => {
     const zipFile = new zip();
-    for (const endpoint of exportableEndpoints) {
-      try {
-        const data = await fetch(
+
+    try {
+      for (const endpoint of exportableEndpoints) {
+        const response = await fetch(
           `${baseApiPath}/${endpoint}/export?${queryString}`,
           {
             method: "GET",
@@ -29,12 +30,19 @@ export default function ExportButton() {
               "Content-Type": "application/json",
             },
           },
-        ).then((res) => res.blob());
-        zipFile.file(`${endpoint}.csv`, data);
-      } catch (error) {
-        console.error(error);
-        toast.error("Failed to export");
+        );
+
+        if (response.status === 200) {
+          const data = await response.blob();
+          zipFile.file(`${endpoint}.csv`, data);
+        } else {
+          throw new Error("Failed to export");
+        }
       }
+    } catch (error) {
+      console.error(error);
+      toast.error(error.message);
+      return;
     }
 
     zipFile.generateAsync({ type: "blob" }).then((blob) => {
@@ -43,6 +51,7 @@ export default function ExportButton() {
       a.href = url;
       a.download = "analytics-export.zip";
       a.click();
+      toast.success("Exported successfully");
     });
   };
 
@@ -56,7 +65,6 @@ export default function ExportButton() {
           setLoading(true);
           await exportData();
           setLoading(false);
-          toast.success("Exported successfully");
         }}
       >
         <IconMenu text="Export" icon={<Download className="h-4 w-4" />} />
@@ -70,7 +78,6 @@ export default function ExportButton() {
         setLoading(true);
         await exportData();
         setLoading(false);
-        toast.success("Exported successfully");
       }}
     >
       {loading ? (

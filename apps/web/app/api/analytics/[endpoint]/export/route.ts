@@ -39,11 +39,11 @@ export const GET = withAuth(
       ...parsedParams,
     });
 
-    // convert the response to csv
+    // convert the response to CSV
     const csv = json2csv(
       endpoint === "timeseries"
         ? response.map((entry: { start: Date; clicks: number }) => ({
-            Date: entry.start,
+            date: entry.start,
             clicks: entry.clicks,
           }))
         : response,
@@ -58,7 +58,6 @@ export const GET = withAuth(
       },
     );
 
-    // return the csv as a response
     return new Response(csv, {
       headers: {
         "Content-Type": "text/csv",
