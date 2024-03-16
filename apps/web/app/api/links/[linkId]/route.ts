@@ -110,14 +110,7 @@ export const PUT = withAuth(async ({ req, headers, project, link }) => {
 
 // DELETE /api/links/[linkId] – delete a link
 export const DELETE = withAuth(async ({ headers, link }) => {
-  if (!link) {
-    throw new DubApiError({
-      code: "not_found",
-      message: "Link not found.",
-    });
-  }
-  const response = await deleteLink(link.id);
-
+  const response = await deleteLink(link!.id);
   return NextResponse.json(response[0], {
     headers,
   });

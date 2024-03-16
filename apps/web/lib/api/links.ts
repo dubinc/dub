@@ -832,12 +832,7 @@ export async function deleteLink(linkId: string) {
       tags: true,
     },
   });
-  return await Promise.all([
-    prisma.link.delete({
-      where: {
-        id: link.id,
-      },
-    }),
+  return await Promise.allSettled([
     link.proxy && link.image && storage.delete(`images/${link.id}`),
     redis.hdel(link.domain, link.key.toLowerCase()),
     recordLink({ link, deleted: true }),
