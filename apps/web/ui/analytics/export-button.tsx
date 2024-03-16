@@ -49,7 +49,7 @@ export default function ExportButton() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "analytics-export.zip";
+      a.download = `Dubco Analytics Export - ${new Date().toISOString()}.zip`;
       a.click();
       toast.success("Exported successfully");
     });
