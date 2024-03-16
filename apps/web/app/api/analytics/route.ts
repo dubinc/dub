@@ -1,4 +1,4 @@
-import { withAuth } from "@/lib/auth";
+import { withAuth } from "@/lib/auth/utils";
 import { getDomainOrLink } from "@/lib/planetscale";
 import prisma from "@/lib/prisma";
 import z, { domainKeySchema } from "@/lib/zod";

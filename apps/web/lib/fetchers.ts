@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth";
 import { cache } from "react";
 import prisma from "./prisma";
 

@@ -1,4 +1,4 @@
-import { withSession } from "@/lib/auth";
+import { withSession } from "@/lib/auth/utils";
 import { isReservedKey } from "@/lib/edge-config";
 import prisma from "@/lib/prisma";
 import { DEFAULT_REDIRECTS } from "@dub/utils";

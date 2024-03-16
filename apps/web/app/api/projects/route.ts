@@ -4,7 +4,7 @@ import {
   setRootDomain,
 } from "@/lib/api/domains";
 import { DubApiError } from "@/lib/api/errors";
-import { withSession } from "@/lib/auth";
+import { withSession } from "@/lib/auth/utils";
 import { isReservedKey } from "@/lib/edge-config";
 import prisma from "@/lib/prisma";
 import z from "@/lib/zod";

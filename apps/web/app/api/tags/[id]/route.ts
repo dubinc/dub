@@ -1,5 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
-import { withAuth } from "@/lib/auth";
+import { withAuth } from "@/lib/auth/utils";
 import prisma from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { updateTagBodySchema } from "@/lib/zod/schemas/tags";

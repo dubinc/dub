@@ -1,6 +1,6 @@
 import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { bulkCreateLinks, combineTagIds, processLink } from "@/lib/api/links";
-import { withAuth } from "@/lib/auth";
+import { withAuth } from "@/lib/auth/utils";
 import prisma from "@/lib/prisma";
 import { LinkWithTagIdsProps } from "@/lib/types";
 import { bulkCreateLinksBodySchema } from "@/lib/zod/schemas/links";

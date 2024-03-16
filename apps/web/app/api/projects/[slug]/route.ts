@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { deleteProject } from "@/lib/api/projects";
-import { withAuth } from "@/lib/auth";
+import { withAuth } from "@/lib/auth/utils";
 import { isReservedKey } from "@/lib/edge-config";
 import prisma from "@/lib/prisma";
 import z from "@/lib/zod";

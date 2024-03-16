@@ -1,5 +1,5 @@
 import { exceededLimitError } from "@/lib/api/errors";
-import { withSession } from "@/lib/auth";
+import { withSession } from "@/lib/auth/utils";
 import prisma from "@/lib/prisma";
 import { PlanProps } from "@/lib/types";
 import { NextResponse } from "next/server";

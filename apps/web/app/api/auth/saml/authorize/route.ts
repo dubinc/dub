@@ -2,8 +2,6 @@ import jackson from "@/lib/jackson";
 import { getSearchParams } from "@dub/utils";
 import { NextResponse } from "next/server";
 
-export const runtime = "nodejs";
-
 const handler = async (req: Request) => {
   const { oauthController } = await jackson();
 

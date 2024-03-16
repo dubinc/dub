@@ -1,5 +1,5 @@
-import { auth } from "@/auth";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import {
   API_DOMAIN,
@@ -8,9 +8,9 @@ import {
   isDubDomain,
 } from "@dub/utils";
 import { Link as LinkProps } from "@prisma/client";
-import { exceededLimitError } from "./api/errors";
-import { PlanProps, ProjectProps } from "./types";
-import { ratelimit } from "./upstash";
+import { exceededLimitError } from "../api/errors";
+import { PlanProps, ProjectProps } from "../types";
+import { ratelimit } from "../upstash";
 
 export interface Session {
   user: {

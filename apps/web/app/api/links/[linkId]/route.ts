@@ -1,6 +1,6 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { deleteLink, editLink, processLink } from "@/lib/api/links";
-import { withAuth } from "@/lib/auth";
+import { withAuth } from "@/lib/auth/utils";
 import { qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { LinkWithTagIdsProps } from "@/lib/types";

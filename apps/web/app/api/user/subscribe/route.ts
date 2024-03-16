@@ -1,4 +1,4 @@
-import { withSession } from "@/lib/auth";
+import { withSession } from "@/lib/auth/utils";
 import { subscribe, unsubscribe } from "@/lib/flodesk";
 import prisma from "@/lib/prisma";
 import { log } from "@dub/utils";

@@ -1,4 +1,4 @@
-import { withAuth } from "@/lib/auth";
+import { withAuth } from "@/lib/auth/utils";
 import prisma from "@/lib/prisma";
 import z from "@/lib/zod";
 import { DUB_DOMAINS_ARRAY } from "@dub/utils";

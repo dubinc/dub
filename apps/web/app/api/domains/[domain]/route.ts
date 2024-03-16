@@ -5,7 +5,7 @@ import {
   setRootDomain,
   validateDomain,
 } from "@/lib/api/domains";
-import { withAuth } from "@/lib/auth";
+import { withAuth } from "@/lib/auth/utils";
 import prisma from "@/lib/prisma";
 import { DUB_PROJECT_ID, isDubDomain } from "@dub/utils";
 import { NextResponse } from "next/server";

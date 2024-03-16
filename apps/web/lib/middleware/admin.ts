@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth";
 import { parse } from "@/lib/middleware/utils";
 import prisma from "@/lib/prisma";
 import { DUB_PROJECT_ID } from "@dub/utils";

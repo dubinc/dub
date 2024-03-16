@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth";
 import { parse } from "@/lib/middleware/utils";
 import { NextRequest, NextResponse } from "next/server";
 

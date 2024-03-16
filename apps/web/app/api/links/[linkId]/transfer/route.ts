@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { transferLink } from "@/lib/api/links";
-import { withAuth } from "@/lib/auth";
+import { withAuth } from "@/lib/auth/utils";
 import { qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { redis } from "@/lib/upstash";

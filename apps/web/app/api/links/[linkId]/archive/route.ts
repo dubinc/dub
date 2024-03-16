@@ -1,5 +1,5 @@
 import { archiveLink } from "@/lib/api/links";
-import { withAuth } from "@/lib/auth";
+import { withAuth } from "@/lib/auth/utils";
 import { NextResponse } from "next/server";
 
 // POST /api/links/[linkId]/archive – archive a link

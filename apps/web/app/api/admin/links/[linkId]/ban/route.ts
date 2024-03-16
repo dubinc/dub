@@ -1,4 +1,4 @@
-import { withAdmin } from "@/lib/auth";
+import { withAdmin } from "@/lib/auth/utils";
 import prisma from "@/lib/prisma";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import {

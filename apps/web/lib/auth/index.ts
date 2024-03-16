@@ -21,23 +21,6 @@ export const config = {
       clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
       allowDangerousEmailAccountLinking: true,
     }),
-    // // @ts-expect-error
-    // {
-    //   id: "email",
-    //   type: "email",
-    //   async sendVerificationRequest({ identifier, url }) {
-    //     if (process.env.NODE_ENV === "development") {
-    //       console.log(`Login link: ${url}`);
-    //       return;
-    //     } else {
-    //       sendEmail({
-    //         email: identifier,
-    //         subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
-    //         react: LoginLink({ url, email: identifier }),
-    //       });
-    //     }
-    //   },
-    // },
   ],
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
@@ -223,6 +206,4 @@ export const config = {
   },
 } satisfies NextAuthConfig;
 
-export const { handlers, auth, signIn, signOut } = NextAuth(
-  config as NextAuthConfig,
-);
+export const { handlers, auth, signIn, signOut } = NextAuth(config);

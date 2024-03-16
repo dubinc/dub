@@ -1,4 +1,4 @@
-import { withSession } from "@/lib/auth";
+import { withSession } from "@/lib/auth/utils";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 

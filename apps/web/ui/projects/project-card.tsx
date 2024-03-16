@@ -1,6 +1,6 @@
 "use client";
 
-import { Session } from "@/lib/auth";
+import { Session } from "@/lib/auth/utils";
 import useDomains from "@/lib/swr/use-domains";
 import { DomainProps, ProjectProps } from "@/lib/types";
 import { CheckCircleFill, XCircleFill } from "@/ui/shared/icons";

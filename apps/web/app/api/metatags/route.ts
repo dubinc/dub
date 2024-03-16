@@ -1,5 +1,5 @@
-import { auth } from "@/auth";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { auth } from "@/lib/auth";
 import { getIdentityHash } from "@/lib/edge";
 import { ratelimit } from "@/lib/upstash";
 import z from "@/lib/zod";

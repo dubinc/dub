@@ -3,6 +3,8 @@ import { Background } from "@dub/ui";
 import { constructMetadata } from "@dub/utils";
 import PlaceholderContent from "./placeholder";
 
+export const runtime = "nodejs";
+
 export async function generateMetadata({
   params,
 }: {

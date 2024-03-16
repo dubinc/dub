@@ -1,5 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
-import { withAuth } from "@/lib/auth";
+import { withAuth } from "@/lib/auth/utils";
 import prisma from "@/lib/prisma";
 import { roles } from "@/lib/types";
 import z from "@/lib/zod";

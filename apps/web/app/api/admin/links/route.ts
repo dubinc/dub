@@ -1,4 +1,4 @@
-import { withAdmin } from "@/lib/auth";
+import { withAdmin } from "@/lib/auth/utils";
 import prisma from "@/lib/prisma";
 import { DUB_DOMAINS_ARRAY } from "@dub/utils";
 import { NextResponse } from "next/server";

@@ -4,7 +4,7 @@ import {
   validateDomain,
 } from "@/lib/api/domains";
 import { exceededLimitError } from "@/lib/api/errors";
-import { withAuth } from "@/lib/auth";
+import { withAuth } from "@/lib/auth/utils";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 

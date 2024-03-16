@@ -1,5 +1,5 @@
 import { addDomainToVercel } from "@/lib/api/domains";
-import { withAuth } from "@/lib/auth";
+import { withAuth } from "@/lib/auth/utils";
 import { qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { BitlyGroupProps } from "@/lib/types";

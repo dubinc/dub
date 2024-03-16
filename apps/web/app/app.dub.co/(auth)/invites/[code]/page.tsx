@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { LoadingSpinner, Logo } from "@dub/ui";
 import { APP_NAME } from "@dub/utils";

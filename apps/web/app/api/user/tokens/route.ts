@@ -1,4 +1,4 @@
-import { hashToken, withSession } from "@/lib/auth";
+import { hashToken, withSession } from "@/lib/auth/utils";
 import { qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK, nanoid } from "@dub/utils";

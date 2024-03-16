@@ -1,5 +1,5 @@
 import { deleteProjectAdmin } from "@/lib/api/projects";
-import { withAdmin } from "@/lib/auth";
+import { withAdmin } from "@/lib/auth/utils";
 import { unsubscribe } from "@/lib/flodesk";
 import prisma from "@/lib/prisma";
 import { get } from "@vercel/edge-config";

@@ -1,5 +1,5 @@
 import { addDomainToVercel } from "@/lib/api/domains";
-import { withAdmin } from "@/lib/auth";
+import { withAdmin } from "@/lib/auth/utils";
 import { NextResponse } from "next/server";
 
 // POST /api/admin/refresh-domain

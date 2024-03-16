@@ -9,8 +9,6 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 import { useDebounce } from "use-debounce";
 
-export const runtime = "nodejs";
-
 export default function PlaceholderContent() {
   const { domain } = useParams() as { domain: string };
   const [loading, setLoading] = useState(true);

@@ -1,4 +1,4 @@
-import { withSession } from "@/lib/auth";
+import { withSession } from "@/lib/auth/utils";
 import { unsubscribe } from "@/lib/flodesk";
 import prisma from "@/lib/prisma";
 import { redis } from "@/lib/upstash";

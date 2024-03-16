@@ -1,4 +1,4 @@
-import { Session, hashToken } from "@/lib/auth";
+import { Session, hashToken } from "@/lib/auth/utils";
 import prisma from "@/lib/prisma";
 import { ProjectProps } from "@/lib/types";
 import { TWO_WEEKS_IN_SECONDS, generateRandomString } from "@dub/utils";
