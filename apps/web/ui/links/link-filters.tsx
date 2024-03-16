@@ -716,8 +716,7 @@ const MyLinksFilter = () => {
               ? { del: "userId" }
               : {
                   set: {
-                    // @ts-ignore
-                    userId: session?.user?.id,
+                    userId: session?.user?.id as string,
                   },
                 },
           )
