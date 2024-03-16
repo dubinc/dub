@@ -22,7 +22,7 @@ export default function TagSelector() {
       content={
         <Command>
           <div className="grid w-full p-2 md:w-48">
-            {tags.length > 4 && (
+            {tags.length > 10 && (
               <div className="relative mb-2">
                 <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center">
                   <Search className="h-4 w-4 text-gray-400" />
