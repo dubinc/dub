@@ -10,7 +10,7 @@ import { Link as LinkProps } from "@prisma/client";
 import { createHash } from "crypto";
 import { getServerSession } from "next-auth/next";
 import { exceededLimitError } from "../api/errors";
-import { PlanProps, ProjectProps, TagProps } from "../types";
+import { PlanProps, ProjectProps } from "../types";
 import { ratelimit } from "../upstash";
 import { authOptions } from "./options";
 

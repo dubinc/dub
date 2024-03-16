@@ -28,8 +28,8 @@ import { checkIfKeyExists, getRandomKey } from "../planetscale";
 import { recordLink } from "../tinybird";
 import {
   LinkProps,
-  LinkWithTagIdsProps,
   NewLinkProps,
+  ProcessedLinkProps,
   ProjectProps,
   RedisLinkProps,
 } from "../types";
@@ -530,7 +530,7 @@ export async function processLink({
       ...(userId && {
         userId,
       }),
-    },
+    } as ProcessedLinkProps,
     error: null,
   };
 }
@@ -549,7 +549,7 @@ export function combineTagIds({
   return tagId ? [tagId] : [];
 }
 
-export async function addLink(link: LinkWithTagIdsProps) {
+export async function addLink(link: ProcessedLinkProps) {
   let { domain, key, url, expiresAt, title, description, image, proxy, geo } =
     link;
   const uploadedImage = image && image.startsWith("data:image") ? true : false;
@@ -613,7 +613,7 @@ export async function addLink(link: LinkWithTagIdsProps) {
 export async function bulkCreateLinks({
   links,
 }: {
-  links: LinkWithTagIdsProps[];
+  links: ProcessedLinkProps[];
 }) {
   if (links.length === 0) return [];
 
@@ -736,7 +736,7 @@ export async function editLink({
 }: {
   domain?: string;
   key: string;
-  updatedLink: LinkWithTagIdsProps;
+  updatedLink: LinkProps & ProcessedLinkProps;
 }) {
   let {
     id,

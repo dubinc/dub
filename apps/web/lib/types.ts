@@ -9,10 +9,6 @@ export interface LinkWithTagsProps extends LinkProps {
   tags: TagProps[];
 }
 
-export interface LinkWithTagIdsProps extends LinkProps {
-  tagIds: string[];
-}
-
 export interface SimpleLinkProps {
   domain: string;
   key: string;
@@ -160,6 +156,10 @@ export interface SAMLProviderProps {
 }
 
 export type NewLinkProps = z.infer<typeof createLinkBodySchema>;
+
+type ProcessedLinkOverrides = "domain" | "key" | "url" | "projectId" | "userId";
+export type ProcessedLinkProps = Omit<NewLinkProps, ProcessedLinkOverrides> &
+  Pick<LinkProps, ProcessedLinkOverrides>;
 
 export const plans = [
   "free",

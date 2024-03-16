@@ -3,6 +3,7 @@ import { deleteLink, editLink, processLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
+import { NewLinkProps } from "@/lib/types";
 import { updateLinkBodySchema } from "@/lib/zod/schemas/links";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -56,6 +57,11 @@ export const PUT = withAuth(async ({ req, headers, project, link }) => {
 
   const updatedLink = {
     ...link,
+    expiresAt:
+      link.expiresAt instanceof Date
+        ? link.expiresAt.toISOString()
+        : link.expiresAt,
+    geo: link.geo as NewLinkProps["geo"],
     ...body,
   };
 
