@@ -8,6 +8,8 @@ import {
 } from "@/lib/zod/schemas/analytics";
 import { NextResponse } from "next/server";
 
+export const runtime = "edge";
+
 // GET /api/analytics/[endpoint] – get analytics for a specific endpoint
 export const GET = withAuth(
   async ({ params, searchParams, project, link }) => {

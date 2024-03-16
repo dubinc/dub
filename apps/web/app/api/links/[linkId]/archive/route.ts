@@ -2,6 +2,8 @@ import { archiveLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
+export const runtime = "edge";
+
 // POST /api/links/[linkId]/archive – archive a link
 export const POST = withAuth(async ({ headers, link }) => {
   const response = await archiveLink({ linkId: link!.id, archived: true });

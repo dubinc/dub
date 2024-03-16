@@ -6,6 +6,8 @@ import { LinkWithTagIdsProps } from "@/lib/types";
 import { bulkCreateLinksBodySchema } from "@/lib/zod/schemas/links";
 import { NextResponse } from "next/server";
 
+export const runtime = "edge";
+
 // POST /api/links/bulk – bulk create up to 100 links
 export const POST = withAuth(
   async ({ req, headers, session, project }) => {

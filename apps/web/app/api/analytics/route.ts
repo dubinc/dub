@@ -4,15 +4,17 @@ import prisma from "@/lib/prisma";
 import z, { domainKeySchema } from "@/lib/zod";
 import { NextResponse } from "next/server";
 
-const updatePublicStatsSchema = z.object({
-  publicStats: z.boolean(),
-});
+export const runtime = "edge";
 
 // GET /api/analytics – get the publicStats setting for a link
 export const GET = withAuth(async ({ searchParams }) => {
   const { domain, key } = domainKeySchema.parse(searchParams);
   const response = await getDomainOrLink({ domain, key });
   return NextResponse.json(response);
+});
+
+const updatePublicStatsSchema = z.object({
+  publicStats: z.boolean(),
 });
 
 // PUT /api/analytics – update the publicStats setting for a link

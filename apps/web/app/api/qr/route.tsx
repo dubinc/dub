@@ -1,10 +1,10 @@
+import { auth } from "@/auth";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { getIdentityHash } from "@/lib/edge";
 import { QRCodeSVG } from "@/lib/qr/utils";
 import { ratelimit } from "@/lib/upstash";
 import { getQRCodeQuerySchema } from "@/lib/zod/schemas/qr";
 import { getSearchParams } from "@dub/utils";
-import { getToken } from "next-auth/jwt";
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
 
@@ -13,11 +13,8 @@ export const runtime = "edge";
 export async function GET(req: NextRequest) {
   try {
     // Rate limit if user is not logged in
-    const session = await getToken({
-      req,
-      secret: process.env.NEXTAUTH_SECRET,
-    });
-    if (!session?.email) {
+    const session = await auth();
+    if (!session) {
       const identity_hash = await getIdentityHash(req);
       const { success } = await ratelimit().limit(`qr:${identity_hash}`);
       if (!success) {

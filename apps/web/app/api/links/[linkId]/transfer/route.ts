@@ -1,12 +1,14 @@
+import { DubApiError } from "@/lib/api/errors";
 import { transferLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
-import { DubApiError } from "@/lib/api/errors";
 import prisma from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import z from "@/lib/zod";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
+
+export const runtime = "edge";
 
 const transferLinkBodySchema = z.object({
   newProjectId: z.string().min(1, "Missing new project ID."),

@@ -3,6 +3,8 @@ import { withAuth } from "@/lib/auth";
 import { getLinksCountQuerySchema } from "@/lib/zod/schemas/links";
 import { NextResponse } from "next/server";
 
+export const runtime = "edge";
+
 // GET /api/links/count – get the number of links for a project
 export const GET = withAuth(async ({ headers, searchParams, project }) => {
   const { userId, ...params } = getLinksCountQuerySchema.parse(searchParams);

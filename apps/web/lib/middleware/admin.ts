@@ -1,31 +1,28 @@
+import { auth } from "@/auth";
 import { parse } from "@/lib/middleware/utils";
+import prisma from "@/lib/prisma";
 import { DUB_PROJECT_ID } from "@dub/utils";
-import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
-import { conn } from "../planetscale";
-import { UserProps } from "../types";
 
 export default async function AdminMiddleware(req: NextRequest) {
   const { path } = parse(req);
   let isAdmin = false;
 
-  const session = (await getToken({
-    req,
-    secret: process.env.NEXTAUTH_SECRET,
-  })) as {
-    id?: string;
-    email?: string;
-    user?: UserProps;
-  };
+  const session = await auth();
 
-  const response = await conn
-    .execute("SELECT projectId FROM ProjectUsers WHERE userId = ?", [
-      session?.user?.id,
-    ])
-    .then((res) => res.rows[0] as { projectId: string } | undefined);
+  if (session?.user?.id) {
+    const response = await prisma.projectUsers.findUnique({
+      where: {
+        userId_projectId: {
+          userId: session.user.id,
+          projectId: DUB_PROJECT_ID,
+        },
+      },
+    });
 
-  if (response?.projectId === DUB_PROJECT_ID) {
-    isAdmin = true;
+    if (response?.projectId === DUB_PROJECT_ID) {
+      isAdmin = true;
+    }
   }
 
   if (path === "/login" && isAdmin) {

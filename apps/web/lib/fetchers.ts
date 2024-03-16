@@ -1,10 +1,10 @@
+import { auth } from "@/auth";
 import { cache } from "react";
-import { getSession } from "./auth";
 import prisma from "./prisma";
 
 export const getProjects = cache(async () => {
-  const session = await getSession();
-  if (!session) {
+  const session = await auth();
+  if (!session?.user?.id) {
     return null;
   }
   const projects = await prisma.project.findMany({
@@ -25,8 +25,8 @@ export const getProjects = cache(async () => {
 });
 
 export const getProject = cache(async ({ slug }: { slug: string }) => {
-  const session = await getSession();
-  if (!session) {
+  const session = await auth();
+  if (!session?.user?.id) {
     return null;
   }
   return await prisma.project.findUnique({

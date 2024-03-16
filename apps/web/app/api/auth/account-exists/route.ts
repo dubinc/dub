@@ -1,6 +1,7 @@
 import { getIdentityHash } from "@/lib/edge";
 import { isWhitelistedEmail } from "@/lib/edge-config";
-import { DATABASE_URL, conn } from "@/lib/planetscale";
+import { DATABASE_URL } from "@/lib/planetscale";
+import prisma from "@/lib/prisma";
 import { ratelimit } from "@/lib/upstash";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -27,9 +28,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ exists: true });
   }
 
-  const user = await conn
-    .execute("SELECT email FROM User WHERE email = ?", [email])
-    .then((res) => res.rows[0]);
+  const user = await prisma.user.findUnique({
+    where: {
+      email,
+    },
+  });
 
   if (user) {
     return NextResponse.json({ exists: true });

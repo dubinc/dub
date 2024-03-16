@@ -9,6 +9,8 @@ import {
 import { get } from "@vercel/edge-config";
 import { NextResponse } from "next/server";
 
+export const runtime = "edge";
+
 // DELETE /api/admin/links/[linkId]/ban – ban a link
 export const DELETE = withAdmin(async ({ params }) => {
   const { linkId } = params as { linkId: string };

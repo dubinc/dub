@@ -1,23 +1,34 @@
 import { isBlacklistedEmail } from "@/lib/edge-config";
-import jackson from "@/lib/jackson";
+import { subscribe } from "@/lib/flodesk";
 import prisma from "@/lib/prisma";
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import { PrismaAdapter } from "@auth/prisma-adapter";
 import { sendEmail } from "emails";
 import LoginLink from "emails/login-link";
 import WelcomeEmail from "emails/welcome-email";
-import { type NextAuthOptions } from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
-import EmailProvider from "next-auth/providers/email";
+import type { NextAuthConfig } from "next-auth";
+import NextAuth from "next-auth";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
-import { subscribe } from "../flodesk";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
-export const authOptions: NextAuthOptions = {
+export const config = {
   providers: [
-    EmailProvider({
-      sendVerificationRequest({ identifier, url }) {
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID as string,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      allowDangerousEmailAccountLinking: true,
+    }),
+    GithubProvider({
+      clientId: process.env.GITHUB_CLIENT_ID as string,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
+      allowDangerousEmailAccountLinking: true,
+    }),
+    // @ts-expect-error
+    {
+      id: "email",
+      type: "email",
+      async sendVerificationRequest({ identifier, url }) {
         if (process.env.NODE_ENV === "development") {
           console.log(`Login link: ${url}`);
           return;
@@ -29,136 +40,7 @@ export const authOptions: NextAuthOptions = {
           });
         }
       },
-    }),
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID as string,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-      allowDangerousEmailAccountLinking: true,
-    }),
-    GithubProvider({
-      clientId: process.env.GITHUB_CLIENT_ID as string,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
-      allowDangerousEmailAccountLinking: true,
-    }),
-    {
-      id: "saml",
-      name: "BoxyHQ",
-      type: "oauth",
-      version: "2.0",
-      checks: ["pkce", "state"],
-      authorization: {
-        url: `${process.env.NEXTAUTH_URL}/api/auth/saml/authorize`,
-        params: {
-          scope: "",
-          response_type: "code",
-          provider: "saml",
-        },
-      },
-      token: {
-        url: `${process.env.NEXTAUTH_URL}/api/auth/saml/token`,
-        params: { grant_type: "authorization_code" },
-      },
-      userinfo: `${process.env.NEXTAUTH_URL}/api/auth/saml/userinfo`,
-      profile: async (profile) => {
-        let existingUser = await prisma.user.findUnique({
-          where: { email: profile.email },
-        });
-
-        // user is authorized but doesn't have a Dub account, create one for them
-        if (!existingUser) {
-          existingUser = await prisma.user.create({
-            data: {
-              email: profile.email,
-              name: `${profile.firstName || ""} ${
-                profile.lastName || ""
-              }`.trim(),
-            },
-          });
-        }
-
-        const { id, name, email, image } = existingUser;
-
-        return {
-          id,
-          name,
-          email,
-          image,
-        };
-      },
-      options: {
-        clientId: "dummy",
-        clientSecret: process.env.NEXTAUTH_SECRET as string,
-      },
-      allowDangerousEmailAccountLinking: true,
     },
-    CredentialsProvider({
-      id: "saml-idp",
-      name: "IdP Login",
-      credentials: {
-        code: {},
-      },
-      async authorize(credentials) {
-        if (!credentials) {
-          return null;
-        }
-
-        const { code } = credentials;
-
-        if (!code) {
-          return null;
-        }
-
-        const { oauthController } = await jackson();
-
-        // Fetch access token
-        const { access_token } = await oauthController.token({
-          code,
-          grant_type: "authorization_code",
-          redirect_uri: process.env.NEXTAUTH_URL as string,
-          client_id: "dummy",
-          client_secret: process.env.NEXTAUTH_SECRET as string,
-        });
-
-        if (!access_token) {
-          return null;
-        }
-
-        // Fetch user info
-        const userInfo = await oauthController.userInfo(access_token);
-
-        if (!userInfo) {
-          return null;
-        }
-
-        let existingUser = await prisma.user.findUnique({
-          where: { email: userInfo.email },
-        });
-
-        // user is authorized but doesn't have a Dub account, create one for them
-        if (!existingUser) {
-          existingUser = await prisma.user.create({
-            data: {
-              email: userInfo.email,
-              name: `${userInfo.firstName || ""} ${
-                userInfo.lastName || ""
-              }`.trim(),
-            },
-          });
-        }
-
-        const { id, name, email, image } = existingUser;
-
-        return {
-          id,
-          email,
-          name,
-          email_verified: true,
-          image,
-          // adding profile here so we can access it in signIn callback
-          profile: userInfo,
-        };
-      },
-    }),
   ],
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
@@ -179,6 +61,7 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     error: "/login",
+    newUser: "/welcome",
   },
   callbacks: {
     signIn: async ({ user, account, profile }) => {
@@ -198,7 +81,6 @@ export const authOptions: NextAuthOptions = {
             where: { email: user.email },
             data: {
               ...(userExists.name ? {} : { name: profile.name }),
-              // @ts-expect-error - this is a bug in the types, `picture` is a valid on the `Profile` type
               ...(userExists.image ? {} : { image: profile.picture }),
             },
           });
@@ -214,12 +96,10 @@ export const authOptions: NextAuthOptions = {
           await prisma.user.update({
             where: { email: user.email },
             data: {
-              ...(userExists.name
-                ? {}
-                : // @ts-expect-error - this is a bug in the types, `login` is a valid on the `Profile` type
-                  { name: profile.name || profile.login }),
-              // @ts-expect-error - this is a bug in the types, `avatar_url` is a valid on the `Profile` type
-              ...(userExists.image ? {} : { image: profile.avatar_url }),
+              ...(!userExists.name && {
+                name: (profile.name || profile.login) as string,
+              }),
+              ...(!userExists.image && { image: profile.avatar_url as string }),
             },
           });
         }
@@ -254,13 +134,13 @@ export const authOptions: NextAuthOptions = {
               where: {
                 userId_projectId: {
                   projectId: project.id,
-                  userId: user.id,
+                  userId: user.id!,
                 },
               },
               update: {},
               create: {
                 projectId: project.id,
-                userId: user.id,
+                userId: user.id!,
               },
             }),
             // delete any pending invites for this user
@@ -344,4 +224,8 @@ export const authOptions: NextAuthOptions = {
       }
     },
   },
-};
+} satisfies NextAuthConfig;
+
+export const { handlers, auth, signIn, signOut } = NextAuth(
+  config as NextAuthConfig,
+);

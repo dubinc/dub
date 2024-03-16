@@ -1,3 +1,4 @@
+import { auth } from "@/auth";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import prisma from "@/lib/prisma";
 import {
@@ -7,27 +8,20 @@ import {
   isDubDomain,
 } from "@dub/utils";
 import { Link as LinkProps } from "@prisma/client";
-import { createHash } from "crypto";
-import { getServerSession } from "next-auth/next";
-import { exceededLimitError } from "../api/errors";
-import { PlanProps, ProjectProps } from "../types";
-import { ratelimit } from "../upstash";
-import { authOptions } from "./options";
+import { exceededLimitError } from "./api/errors";
+import { PlanProps, ProjectProps } from "./types";
+import { ratelimit } from "./upstash";
 
 export interface Session {
   user: {
-    email: string;
     id: string;
     name: string;
+    email: string;
     image?: string;
   };
 }
 
-export const getSession = async () => {
-  return getServerSession(authOptions) as Promise<Session>;
-};
-
-export const hashToken = (
+export const hashToken = async (
   token: string,
   {
     noSecret = false,
@@ -35,9 +29,14 @@ export const hashToken = (
     noSecret?: boolean;
   } = {},
 ) => {
-  return createHash("sha256")
-    .update(`${token}${noSecret ? "" : process.env.NEXTAUTH_SECRET}`)
-    .digest("hex");
+  const encoder = new TextEncoder();
+  const data = encoder.encode(
+    `${token}${noSecret ? "" : process.env.NEXTAUTH_SECRET}`,
+  );
+  const hash = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(hash))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
 };
 
 interface WithAuthHandler {
@@ -115,7 +114,7 @@ export const withAuth = (
     const domain = params?.domain || searchParams.domain;
     const key = searchParams.key;
 
-    let session: Session | undefined;
+    let session: Session | null = null;
     let headers = {};
 
     const slug = params?.slug || searchParams.projectSlug;
@@ -142,7 +141,7 @@ export const withAuth = (
       }
 
       if (apiKey) {
-        const hashedKey = hashToken(apiKey, {
+        const hashedKey = await hashToken(apiKey, {
           noSecret: true,
         });
 
@@ -201,13 +200,14 @@ export const withAuth = (
           },
         };
       } else {
-        session = await getSession();
-        if (!session?.user?.id) {
-          throw new DubApiError({
-            code: "unauthorized",
-            message: "Unauthorized: Login required.",
-          });
-        }
+        session = (await auth()) as Session;
+      }
+
+      if (!session?.user) {
+        throw new DubApiError({
+          code: "unauthorized",
+          message: "Unauthorized: Login required.",
+        });
       }
 
       let [project, link] = (await Promise.all([
@@ -297,7 +297,7 @@ export const withAuth = (
         const pendingInvites = await prisma.projectInvite.findUnique({
           where: {
             email_projectId: {
-              email: session.user.email,
+              email: session.user.email!,
               projectId: project.id,
             },
           },
@@ -447,7 +447,7 @@ export const withSession =
   (handler: WithSessionHandler) =>
   async (req: Request, { params }: { params: Record<string, string> }) => {
     try {
-      let session: Session | undefined;
+      let session: Session | null;
       let headers = {};
 
       const authorizationHeader = req.headers.get("Authorization");
@@ -461,7 +461,7 @@ export const withSession =
         }
         const apiKey = authorizationHeader.replace("Bearer ", "");
 
-        const hashedKey = hashToken(apiKey, {
+        const hashedKey = await hashToken(apiKey, {
           noSecret: true,
         });
 
@@ -520,13 +520,14 @@ export const withSession =
           },
         };
       } else {
-        session = await getSession();
-        if (!session?.user.id) {
-          throw new DubApiError({
-            code: "unauthorized",
-            message: "Unauthorized: Login required.",
-          });
-        }
+        session = (await auth()) as Session;
+      }
+
+      if (!session?.user?.id) {
+        throw new DubApiError({
+          code: "unauthorized",
+          message: "Unauthorized: Login required.",
+        });
       }
 
       const searchParams = getSearchParams(req.url);
@@ -553,8 +554,8 @@ interface WithAdminHandler {
 export const withAdmin =
   (handler: WithAdminHandler) =>
   async (req: Request, { params }: { params: Record<string, string> }) => {
-    const session = await getSession();
-    if (!session?.user) {
+    const session = await auth();
+    if (!session?.user?.id) {
       return new Response("Unauthorized: Login required.", { status: 401 });
     }
 

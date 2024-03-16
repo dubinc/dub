@@ -6,7 +6,6 @@ import {
   isIframeable,
   validDomainRegex,
 } from "@dub/utils";
-import cloudinary from "cloudinary";
 import { recordLink } from "../tinybird";
 
 export const validateDomain = async (domain: string) => {
@@ -203,34 +202,6 @@ export async function setRootDomain({
   ]);
 }
 
-/* Change the domain for all images for a given project on Cloudinary */
-export async function changeDomainForImages(domain: string, newDomain: string) {
-  const links = await prisma.link.findMany({
-    where: {
-      domain,
-    },
-    select: {
-      key: true,
-    },
-  });
-  if (links.length === 0) return null;
-  try {
-    return await Promise.all(
-      links.map(({ key }) =>
-        cloudinary.v2.uploader.rename(
-          `${domain}/${key}`,
-          `${newDomain}/${key}`,
-          {
-            invalidate: true,
-          },
-        ),
-      ),
-    );
-  } catch (e) {
-    return null;
-  }
-}
-
 /* Delete a domain and all links & images associated with it */
 export async function deleteDomainAndLinks(
   domain: string,
@@ -288,7 +259,7 @@ export async function deleteDomainAndLinks(
       }),
     ),
     // remove all images from cloudinary
-    cloudinary.v2.api.delete_resources_by_prefix(domain),
+    // cloudinary.v2.api.delete_resources_by_prefix(domain),
     // remove the domain from Vercel
     removeDomainFromVercel(domain),
     !skipPrismaDelete &&

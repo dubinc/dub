@@ -23,7 +23,6 @@ import {
   validKeyRegex,
 } from "@dub/utils";
 import { Prisma } from "@prisma/client";
-import cloudinary from "cloudinary";
 import { checkIfKeyExists, getRandomKey } from "../planetscale";
 import { recordLink } from "../tinybird";
 import {
@@ -513,15 +512,15 @@ export async function addLink(link: LinkWithTagIdsProps) {
   const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
     getParamsFromURL(url);
 
-  if (proxy && image && uploadedImage) {
-    const { secure_url } = await cloudinary.v2.uploader.upload(image, {
-      public_id: key,
-      folder: domain,
-      overwrite: true,
-      invalidate: true,
-    });
-    image = secure_url;
-  }
+  // if (proxy && image && uploadedImage) {
+  //   const { secure_url } = await cloudinary.v2.uploader.upload(image, {
+  //     public_id: key,
+  //     folder: domain,
+  //     overwrite: true,
+  //     invalidate: true,
+  //   });
+  //   image = secure_url;
+  // }
 
   const { tagId, tagIds, ...rest } = link;
 
@@ -734,23 +733,23 @@ export async function editLink({
 
   const combinedTagIds = combineTagIds({ tagId, tagIds });
 
-  if (proxy && image) {
-    // only upload image to cloudinary if proxy is true and there's an image
-    if (uploadedImage) {
-      const { secure_url } = await cloudinary.v2.uploader.upload(image, {
-        public_id: key,
-        folder: domain,
-        overwrite: true,
-        invalidate: true,
-      });
-      image = secure_url;
-    }
-    // if there's no proxy enabled or no image, delete the image in Cloudinary
-  } else {
-    await cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
-      invalidate: true,
-    });
-  }
+  // if (proxy && image) {
+  //   // only upload image to cloudinary if proxy is true and there's an image
+  //   if (uploadedImage) {
+  //     const { secure_url } = await cloudinary.v2.uploader.upload(image, {
+  //       public_id: key,
+  //       folder: domain,
+  //       overwrite: true,
+  //       invalidate: true,
+  //     });
+  //     image = secure_url;
+  //   }
+  //   // if there's no proxy enabled or no image, delete the image in Cloudinary
+  // } else {
+  //   await cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
+  //     invalidate: true,
+  //   });
+  // }
 
   const [response, ..._effects] = await Promise.all([
     prisma.link.update({
@@ -799,15 +798,15 @@ export async function editLink({
     // if key is changed: rename resource in Cloudinary, delete the old key in Redis and change the clicks key name
     ...(changedDomain || changedKey
       ? [
-          ...(process.env.CLOUDINARY_URL
-            ? [
-                cloudinary.v2.uploader
-                  .destroy(`${oldDomain}/${oldKey}`, {
-                    invalidate: true,
-                  })
-                  .catch(() => {}),
-              ]
-            : []),
+          // ...(process.env.CLOUDINARY_URL
+          //   ? [
+          //       cloudinary.v2.uploader
+          //         .destroy(`${oldDomain}/${oldKey}`, {
+          //           invalidate: true,
+          //         })
+          //         .catch(() => {}),
+          //     ]
+          //   : []),
           redis.hdel(oldDomain, oldKey.toLowerCase()),
         ]
       : []),
@@ -852,11 +851,11 @@ export async function deleteLink(linkId: string) {
           },
         },
       }),
-    link.proxy &&
-      link.image &&
-      cloudinary.v2.uploader.destroy(`${link.domain}/${link.key}`, {
-        invalidate: true,
-      }),
+    // link.proxy &&
+    //   link.image &&
+    //   cloudinary.v2.uploader.destroy(`${link.domain}/${link.key}`, {
+    //     invalidate: true,
+    //   }),
   ]);
 }
 

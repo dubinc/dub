@@ -1,11 +1,11 @@
+import { Client } from "@planetscale/database";
+import { PrismaPlanetScale } from "@prisma/adapter-planetscale";
 import { PrismaClient } from "@prisma/client";
 
-declare global {
-  var prisma: PrismaClient | undefined;
-}
+const client = new Client({ url: process.env.DATABASE_URL });
 
-const prisma = global.prisma || new PrismaClient();
+const adapter = new PrismaPlanetScale(client);
 
-if (process.env.NODE_ENV === "development") global.prisma = prisma;
+const prisma = new PrismaClient({ adapter });
 
 export default prisma;
