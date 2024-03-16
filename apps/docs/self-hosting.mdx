@@ -19,6 +19,7 @@ Before you begin, make sure you have the following:
 - An [Upstash](https://upstash.com/) account
 - A [PlanetScale](https://planetscale.com/) account
 - A [Vercel](https://vercel.com/) account
+- Either a [Cloudflare](https://www.cloudflare.com/) or [AWS](https://aws.com) account
 
 You'll also need a custom domain that you will be using for your Dub.co instance, with an optional custom short domain for your links.
 
@@ -284,14 +285,78 @@ Next, you'll need to set up Postmark for transactional emails (e.g. magic link e
 2. Copy the API key into your `.env` file as the `POSTMARK_API_KEY` environment variable.
 3. You'll then need to set up DKIM records and for your domain to start working. You can [follow this guide](https://postmarkapp.com/support/article/1002-getting-started-with-postmark) to learn how to do so.
 
-## Step 7: Set up Cloudinary & Unsplash (optional)
+## Step 7: Set up a storage bucket
 
-If you want to enable the [Custom Social Media Cards](https://dub.co/help/article/custom-social-media-cards) feature, you'll need to set up Cloudinary and Unsplash:
+Dub stores project logos and user avatars in via either S3 or S3-compatible services like [Cloudflare R2](https://cloudflare.com/r2).
 
-- [How to set up `CLOUDINARY_URL` env var](https://cloudinary.com/documentation/node_quickstart#set_your_api_environment_variable)
+We recommend using [Cloudflare R2](https://cloudflare.com/r2) for a cheaper and simploer alternative. Here is how you set it up:
+
+<Steps>
+
+  <Step title="Create R2 bucket">
+
+_Note: You'll need to subscribe to the R2 service if you haven't already._
+
+In your [Cloudflare account](https://dash.cloudflare.com/), create a new R2 bucket.
+
+<Frame>![Cloudflare R2 bucket](/images/cloudflare-r2-create-bucket.png)</Frame>
+
+  </Step>
+
+  <Step title="Set up access to R2">
+
+From the R2 main page, click "Manage R2 API Tokens" on the right-hand side. Then, click "Create API Token".
+
+Make sure to name it something relevant to the service that will be using the token. 
+
+Give it "Object Read & Write" permissions. 
+
+And we recommend only applying ito to a single bucket.
+
+After you create you token, copy the `Access Key ID`, `Secret Access Key` and `Endpoints for S3 clients`.
+
+<Frame>![Cloudflare R2 API token](/images/cloudflare-r2-create-api-token.png)</Frame>
+
+  </Step>
+
+
+<Step title="Set up R2 environment variables">
+
+Once you have your credentials, set them in your `.env` file:
+
+```bash
+STORAGE_ACCESS_KEY={Access Key ID}
+STORAGE_SECRET_KEY={Secret Access Key}
+STORAGE_ENDPOINT={Storage Endpoint}/{Bucket Name}
+```
+
+</Step>
+
+<Step title="Set up R2 domain">
+
+In order for your images to be publically accessible in R2 you need to setup a domain. You can either use your own domain or an R2.dev subdomain. 
+
+To use your own domain, you'll need to create a CNAME record in your DNS settings that points to your R2 bucket.
+
+In you plan to use an R2.dev subdomain, make sure you "Allow Access".
+
+Then set the `STORAGE_DOMAIN` in your `.env` file to the domain you chose.
+
+```bash
+STORAGE_DOMAIN={Your Domain}
+```
+
+<Frame>![Cloudflare R2 domain](/images/cloudflare-r2-public-domain.png)</Frame>
+
+</Step>
+
+</Steps>
+
+## Step 8: Set up Unsplash (optional)
+
 - [How to set up `UNSPLASH_ACCESS_KEY` env var](https://unsplash.com/documentation#creating-a-developer-account)
 
-## Step 8: Deploy to Vercel
+## Step 9: Deploy to Vercel
 
 Once you've set up all of the above services, you can now deploy your app to Vercel.
 

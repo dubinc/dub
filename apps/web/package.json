@@ -11,7 +11,6 @@
     "script": "tsx ./scripts/run.ts"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.534.0",
     "@boxyhq/saml-jackson": "^1.14.2",
     "@dub/tailwind-config": "workspace:*",
     "@dub/ui": "workspace:*",
@@ -44,6 +43,7 @@
     "@visx/shape": "^2.12.2",
     "@visx/text": "^3.3.0",
     "@visx/tooltip": "^2.16.0",
+    "aws4fetch": "^1.0.18",
     "bottleneck": "^2.19.5",
     "cloudinary": "^1.40.0",
     "cmdk": "^0.2.0",

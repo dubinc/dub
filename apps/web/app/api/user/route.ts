@@ -1,10 +1,9 @@
 import { withSession } from "@/lib/auth";
 import { unsubscribe } from "@/lib/flodesk";
 import prisma from "@/lib/prisma";
-import { r2 } from "@/lib/r2";
+import { storage } from "@/lib/storage";
 import { redis } from "@/lib/upstash";
 import { trim } from "@dub/utils";
-import cloudinary from "cloudinary";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -38,13 +37,8 @@ export const PUT = withSession(async ({ req, session }) => {
   );
   try {
     if (image) {
-      const { secure_url } = await cloudinary.v2.uploader.upload(image, {
-        public_id: session.user.id,
-        folder: "avatars",
-        overwrite: true,
-        invalidate: true,
-      });
-      image = secure_url;
+      const { url } = await storage.upload(`avatars/${session.user.id}`, image);
+      image = url;
     }
     const response = await prisma.user.update({
       where: {
@@ -86,7 +80,7 @@ export const DELETE = withSession(async ({ session }) => {
           id: session.user.id,
         },
       }),
-      r2.delete(`avatars/${session.user.id}`),
+      storage.delete(`avatars/${session.user.id}`),
       unsubscribe(session.user.email),
     ]);
     return NextResponse.json(response);

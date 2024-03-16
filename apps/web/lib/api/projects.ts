@@ -2,7 +2,7 @@ import { deleteDomainAndLinks } from "@/lib/api/domains";
 import prisma from "@/lib/prisma";
 import { cancelSubscription } from "@/lib/stripe";
 import { DUB_DOMAINS_ARRAY, LEGAL_PROJECT_ID, LEGAL_USER_ID } from "@dub/utils";
-import { r2 } from "../r2";
+import { storage } from "@/lib/storage";
 import { ProjectProps } from "../types";
 import { redis } from "../upstash";
 
@@ -60,15 +60,15 @@ export async function deleteProject(
     ),
     // delete all default domain links from redis
     pipeline.exec(),
-    // remove all images from R2
+    // remove all images
     ...defaultDomainLinks.map(({ id, proxy }) =>
-      proxy ? r2.delete(`images/${id}`) : Promise.resolve(),
+      proxy ? storage.delete(`images/${id}`) : Promise.resolve(),
     ),
   ]);
 
   const deleteProjectResponse = await Promise.all([
-    // delete project logo from R2
-    project.logo && r2.delete(`logos/${project.id}`),
+    // delete project logo
+    project.logo && storage.delete(`logos/${project.id}`),
     // if they have a Stripe subscription, cancel it
     project.stripeId && cancelSubscription(project.stripeId),
     // delete the project
@@ -122,8 +122,8 @@ export async function deleteProjectAdmin(
   ]);
 
   const deleteProjectResponse = await Promise.all([
-    // delete project logo from R2
-    project.logo && r2.delete(`logos/${project.id}`),
+    // delete project logo
+    project.logo && storage.delete(`logos/${project.id}`),
     // if they have a Stripe subscription, cancel it
     project.stripeId && cancelSubscription(project.stripeId),
     // delete the project

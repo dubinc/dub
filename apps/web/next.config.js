@@ -52,7 +52,7 @@ module.exports = {
         hostname: "api.dicebear.com",
       },
       {
-        hostname: "res.cloudinary.com",
+        hostname: "res.cloudinary.com", // Keep for now until we move to dubassets
       },
       {
         hostname: "pbs.twimg.com",
@@ -69,6 +69,9 @@ module.exports = {
       {
         hostname: "media.cleanshot.cloud", // only for staging purposes
       },
+      {
+        hostname: "dubassets.com",
+      }
     ],
   },
   async headers() {

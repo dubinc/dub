@@ -25,7 +25,7 @@ import {
 import { Prisma } from "@prisma/client";
 import cloudinary from "cloudinary";
 import { checkIfKeyExists, getRandomKey } from "../planetscale";
-import { r2 } from "../r2";
+import { storage } from "@/lib/storage";
 import { recordLink } from "../tinybird";
 import {
   LinkProps,
@@ -515,13 +515,8 @@ export async function addLink(link: LinkWithTagIdsProps) {
     getParamsFromURL(url);
 
   if (proxy && image && uploadedImage) {
-    const { secure_url } = await cloudinary.v2.uploader.upload(image, {
-      public_id: key,
-      folder: domain,
-      overwrite: true,
-      invalidate: true,
-    });
-    image = secure_url;
+    const { url } = await storage.upload(`images/${key}`, image);
+    image = url;
   }
 
   const { tagId, tagIds, ...rest } = link;
@@ -736,19 +731,14 @@ export async function editLink({
   const combinedTagIds = combineTagIds({ tagId, tagIds });
 
   if (proxy && image) {
-    // only upload image to R2 if proxy is true and there's an image
+    // only upload image if proxy is true and there's an image
     if (uploadedImage) {
-      const { secure_url } = await cloudinary.v2.uploader.upload(image, {
-        public_id: key,
-        folder: domain,
-        overwrite: true,
-        invalidate: true,
-      });
-      image = secure_url;
+      const { url } = await storage.upload(`images/${key}`, image);
+      image = url;
     }
   } else {
-    // if there's no proxy enabled or no image, delete the image in R2
-    await r2.delete(`images/${id}`);
+    // if there's no proxy enabled or no image, delete the image
+    await storage.delete(`images/${id}`);
   }
 
   const [response, ..._effects] = await Promise.all([
@@ -843,7 +833,7 @@ export async function deleteLink(linkId: string) {
         id: link.id,
       },
     }),
-    r2.delete(`images/${link.id}`),
+    storage.delete(`images/${link.id}`),
     redis.hdel(link.domain, link.key.toLowerCase()),
     recordLink({ link, deleted: true }),
     link.projectId &&
@@ -856,11 +846,6 @@ export async function deleteLink(linkId: string) {
             decrement: 1,
           },
         },
-      }),
-    link.proxy &&
-      link.image &&
-      cloudinary.v2.uploader.destroy(`${link.domain}/${link.key}`, {
-        invalidate: true,
       }),
   ]);
 }
