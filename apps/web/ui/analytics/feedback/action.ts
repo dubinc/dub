@@ -1,7 +1,7 @@
 "use server";
 
+import { postmark } from "@/lib/postmark";
 import { render } from "@react-email/render";
-import { client } from "emails";
 import FeedbackEmail from "emails/feedback-email";
 
 export async function submitFeedback(data: FormData) {
@@ -10,7 +10,7 @@ export async function submitFeedback(data: FormData) {
 
   const emailHtml = render(FeedbackEmail({ email, feedback }));
 
-  return await client.sendEmail({
+  return await postmark.sendEmail({
     From: "feedback@dub.co",
     To: "steven@dub.co",
     ...(email && { ReplyTo: email }),
