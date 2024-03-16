@@ -39,8 +39,6 @@ export const GET = withAuth(
       ...parsedParams,
     });
 
-    console.log(response.length);
-
     // if there is no data to export so return 204
     if (response.length === 0) {
       return new Response(undefined, {
