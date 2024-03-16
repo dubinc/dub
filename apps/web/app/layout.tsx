@@ -6,7 +6,6 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Toaster } from "sonner";
 
-// set all layouts & pages to edge runtime 🚀 (thank you Prisma)
 export const runtime = "edge";
 export const metadata = constructMetadata();
 

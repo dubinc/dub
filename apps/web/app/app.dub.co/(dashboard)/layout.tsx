@@ -9,6 +9,8 @@ import Link from "next/link";
 import { ReactNode, Suspense } from "react";
 import Providers from "./providers";
 
+export const runtime = "nodejs";
+export const dynamic = "force-static";
 export const metadata = constructMetadata();
 
 export default function Layout({ children }: { children: ReactNode }) {

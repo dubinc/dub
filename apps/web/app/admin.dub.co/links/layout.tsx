@@ -3,6 +3,7 @@ import { constructMetadata } from "@dub/utils";
 import Link from "next/link";
 import { ReactNode } from "react";
 
+export const dynamic = "force-static";
 export const metadata = constructMetadata();
 
 export default function Layout({ children }: { children: ReactNode }) {
