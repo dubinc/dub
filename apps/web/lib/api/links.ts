@@ -14,6 +14,7 @@ import {
 import {
   DEFAULT_REDIRECTS,
   DUB_DOMAINS,
+  DUB_THUMBNAIL,
   SHORT_DOMAIN,
   getDomainWithoutWWW,
   getParamsFromURL,
@@ -504,19 +505,13 @@ export function combineTagIds({
 }
 
 export async function addLink(link: LinkWithTagIdsProps) {
-  let { domain, key, url, expiresAt, title, description, image, proxy, geo } =
-    link;
+  let { key, url, expiresAt, title, description, image, proxy, geo } = link;
   const uploadedImage = image && image.startsWith("data:image") ? true : false;
 
   const combinedTagIds = combineTagIds(link);
 
   const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
     getParamsFromURL(url);
-
-  if (proxy && image && uploadedImage) {
-    const { url } = await storage.upload(`images/${key}`, image);
-    image = url;
-  }
 
   const { tagId, tagIds, ...rest } = link;
 
@@ -526,7 +521,9 @@ export async function addLink(link: LinkWithTagIdsProps) {
       key,
       title: truncate(title, 120),
       description: truncate(description, 240),
-      image,
+      // if there's an uploaded image, we put a placeholder image URL
+      // since we'll update this in the callback event after we get the link ID
+      image: uploadedImage ? DUB_THUMBNAIL : image,
       utm_source,
       utm_medium,
       utm_campaign,
@@ -557,6 +554,12 @@ export async function addLink(link: LinkWithTagIdsProps) {
     },
   });
 
+  if (proxy && image && uploadedImage) {
+    const { url } = await storage.upload(`images/${response.id}`, image);
+    image = url;
+    console.log("image", image);
+  }
+
   const shortLink = linkConstructor({
     domain: response.domain,
     key: response.key,
@@ -564,6 +567,7 @@ export async function addLink(link: LinkWithTagIdsProps) {
   const tags = response.tags.map(({ tag }) => tag);
   return {
     ...response,
+    image, // return the uploaded image URL (instead of the placeholder one)
     tagId: tags?.[0]?.id ?? null, // backwards compatibility
     tags,
     shortLink,
@@ -732,7 +736,7 @@ export async function editLink({
   if (proxy && image) {
     // only upload image if proxy is true and there's an image
     if (uploadedImage) {
-      const { url } = await storage.upload(`images/${key}`, image);
+      const { url } = await storage.upload(`images/${id}`, image);
       image = url;
     }
   } else {
