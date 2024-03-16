@@ -3,7 +3,6 @@ import { withAdmin } from "@/lib/auth";
 import { unsubscribe } from "@/lib/flodesk";
 import prisma from "@/lib/prisma";
 import { get } from "@vercel/edge-config";
-import cloudinary from "cloudinary";
 import { NextResponse } from "next/server";
 
 // POST /api/admin/ban
@@ -58,9 +57,9 @@ export const POST = withAdmin(async ({ req }) => {
         id: user.id,
       },
     }),
-    cloudinary.v2.uploader.destroy(`avatars/${user.id}`, {
-      invalidate: true,
-    }),
+    // cloudinary.v2.uploader.destroy(`avatars/${user.id}`, {
+    //   invalidate: true,
+    // }),
     unsubscribe(user.email),
     fetch(
       `https://api.vercel.com/v1/edge-config/${process.env.EDGE_CONFIG_ID}/items?teamId=${process.env.TEAM_ID_VERCEL}`,

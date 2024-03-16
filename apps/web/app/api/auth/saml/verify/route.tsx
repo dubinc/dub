@@ -2,6 +2,8 @@ import jackson from "@/lib/jackson";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
+export const runtime = "nodejs";
+
 export async function POST(req: Request) {
   const { apiController } = await jackson();
 
