@@ -32,6 +32,8 @@ export const config = {
     // ref: https://nextjs.org/docs/messages/edge-dynamic-code-evaluation
     "/node_modules/react-email/**",
     "/node_modules/@react-email/**",
+    "/node_modules/.pnpm/**/react-email/**",
+    "/node_modules/.pnpm/**/@react-email/**",
   ],
 };
 
