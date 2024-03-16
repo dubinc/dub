@@ -287,7 +287,7 @@ Next, you'll need to set up Postmark for transactional emails (e.g. magic link e
 
 ## Step 7: Set up a storage bucket
 
-Dub stores project logos and user avatars in via either S3 or S3-compatible services like [Cloudflare R2](https://cloudflare.com/r2).
+Dub stores project logos, user avatars, and images for the [Custom Social Media Cards](https://dub.co/help/article/custom-social-media-cards) feature in either S3 or S3-compatible services like [Cloudflare R2](https://cloudflare.com/r2).
 
 We recommend using [Cloudflare R2](https://cloudflare.com/r2) for a cheaper and simploer alternative. Here is how you set it up:
 
@@ -307,18 +307,19 @@ In your [Cloudflare account](https://dash.cloudflare.com/), create a new R2 buck
 
 From the R2 main page, click "Manage R2 API Tokens" on the right-hand side. Then, click "Create API Token".
 
-Make sure to name it something relevant to the service that will be using the token. 
+Make sure to name it something relevant to the service that will be using the token.
 
-Give it "Object Read & Write" permissions. 
+Give it "Object Read & Write" permissions.
 
 And we recommend only applying ito to a single bucket.
 
 After you create you token, copy the `Access Key ID`, `Secret Access Key` and `Endpoints for S3 clients`.
 
-<Frame>![Cloudflare R2 API token](/images/cloudflare-r2-create-api-token.png)</Frame>
+<Frame>
+  ![Cloudflare R2 API token](/images/cloudflare-r2-create-api-token.png)
+</Frame>
 
   </Step>
-
 
 <Step title="Set up R2 environment variables">
 
@@ -334,7 +335,7 @@ STORAGE_ENDPOINT={Storage Endpoint}/{Bucket Name}
 
 <Step title="Set up R2 domain">
 
-In order for your images to be publically accessible in R2 you need to setup a domain. You can either use your own domain or an R2.dev subdomain. 
+In order for your images to be publically accessible in R2 you need to setup a domain. You can either use your own domain or an R2.dev subdomain.
 
 To use your own domain, you'll need to create a CNAME record in your DNS settings that points to your R2 bucket.
 
