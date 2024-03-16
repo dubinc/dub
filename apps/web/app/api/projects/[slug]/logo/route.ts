@@ -4,6 +4,8 @@ import z from "@/lib/zod";
 import cloudinary from "cloudinary";
 import { NextResponse } from "next/server";
 
+export const runtime = "nodejs";
+
 const uploadLogoSchema = z.object({
   image: z.string().url(),
 });

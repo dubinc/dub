@@ -9,6 +9,8 @@ import type {
 import { getSearchParams } from "@dub/utils";
 import { NextResponse } from "next/server";
 
+export const runtime = "nodejs";
+
 const handler = async (
   req: Request,
   { params }: { params: Record<string, string> },
