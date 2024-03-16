@@ -157,7 +157,7 @@ export const config = {
       }
       return true;
     },
-    jwt: async ({ token, account, user, trigger }) => {
+    jwt: async ({ token, user, trigger }) => {
       // force log out banned users
       if (!token.email || (await isBlacklistedEmail(token.email))) {
         return {};

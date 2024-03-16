@@ -1,4 +1,4 @@
-import { Hr, Tailwind, Text } from "@react-email/components";
+import { Hr, Text } from "@react-email/components";
 
 export default function Footer({
   email,
@@ -12,14 +12,23 @@ export default function Footer({
   }
 
   return (
-    <Tailwind>
-      <Hr className="mx-0 my-6 w-full border border-gray-200" />
-      <Text className="text-[12px] leading-6 text-gray-500">
-        This email was intended for <span className="text-black">{email}</span>.
-        If you were not expecting this email, you can ignore this email. If you
-        are concerned about your account's safety, please reply to this email to
-        get in touch with us.
+    <>
+      <Hr
+        style={{
+          margin: "0",
+          marginTop: "1.5rem",
+          marginBottom: "1.5rem",
+          width: "100%",
+          borderColor: "#e5e7eb",
+        }}
+      />
+      <Text style={{ fontSize: "12px", lineHeight: "1.5", color: "#6b7280" }}>
+        This email was intended for{" "}
+        <span style={{ color: "black" }}>{email}</span>. If you were not
+        expecting this email, you can ignore this email. If you are concerned
+        about your account's safety, please reply to this email to get in touch
+        with us.
       </Text>
-    </Tailwind>
+    </>
   );
 }
