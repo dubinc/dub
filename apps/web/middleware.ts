@@ -27,6 +27,9 @@ export const config = {
      */
     "/((?!api/|_next/|_proxy/|_static|_vercel|[\\w-]+\\.\\w+).*)",
   ],
+  unstable_allowDynamic: [
+    "/node_modules/@react-email/**", // use a glob to allow anything in the @react-email 3rd party module
+  ],
 };
 
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
