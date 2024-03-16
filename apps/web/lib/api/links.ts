@@ -5,6 +5,7 @@ import {
   isReservedUsername,
 } from "@/lib/edge-config";
 import prisma from "@/lib/prisma";
+import { storage } from "@/lib/storage";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import {
   getLinksCountQuerySchema,
@@ -23,9 +24,7 @@ import {
   validKeyRegex,
 } from "@dub/utils";
 import { Prisma } from "@prisma/client";
-import cloudinary from "cloudinary";
 import { checkIfKeyExists, getRandomKey } from "../planetscale";
-import { storage } from "@/lib/storage";
 import { recordLink } from "../tinybird";
 import {
   LinkProps,
@@ -785,21 +784,9 @@ export async function editLink({
         },
       },
     }),
-    // if key is changed: rename resource in Cloudinary, delete the old key in Redis and change the clicks key name
-    ...(changedDomain || changedKey
-      ? [
-          ...(process.env.CLOUDINARY_URL
-            ? [
-                cloudinary.v2.uploader
-                  .destroy(`${oldDomain}/${oldKey}`, {
-                    invalidate: true,
-                  })
-                  .catch(() => {}),
-              ]
-            : []),
-          redis.hdel(oldDomain, oldKey.toLowerCase()),
-        ]
-      : []),
+    // if key is changed: delete the old key in Redis
+    (changedDomain || changedKey) &&
+      redis.hdel(oldDomain, oldKey.toLowerCase()),
   ]);
 
   const shortLink = linkConstructor({
