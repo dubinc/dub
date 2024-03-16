@@ -15,6 +15,7 @@ import { useSearchParams } from "next/navigation";
 import { useContext } from "react";
 import { AnalyticsContext } from ".";
 import ClicksChart from "./clicks-chart";
+import ExportButton from "./export-button";
 
 export default function Clicks() {
   const { totalClicks } = useContext(AnalyticsContext);
@@ -120,6 +121,7 @@ export default function Clicks() {
               </Link>
             );
           })}
+          <ExportButton />
         </div>
       </div>
       <ClicksChart />

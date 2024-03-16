@@ -28,7 +28,6 @@ import { useParams, useSearchParams } from "next/navigation";
 import punycode from "punycode/";
 import { useContext, useMemo, useState } from "react";
 import { AnalyticsContext } from ".";
-import ExportButton from "./export-button";
 import SharePopover from "./share-popover";
 import TagSelector from "./tag-selector";
 
@@ -179,7 +178,6 @@ export default function Toggle() {
               />
             </button>
           </Popover>
-          <ExportButton />
         </div>
       </div>
     </div>

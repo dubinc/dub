@@ -1,4 +1,4 @@
-import { IconMenu, Tooltip, TooltipContent } from "@dub/ui";
+import { IconMenu, LoadingSpinner, Tooltip, TooltipContent } from "@dub/ui";
 import zip from "jszip";
 import { Download } from "lucide-react";
 import { useContext, useState } from "react";
@@ -51,7 +51,7 @@ export default function ExportButton() {
     <Tooltip content={<TooltipContent title="No data available" />}>
       <button
         disabled={loading || totalClicks === 0 || !totalClicks}
-        className="flex cursor-not-allowed items-center justify-center space-x-2 rounded-md bg-white p-4 px-3 py-2.5 text-sm text-gray-400 shadow"
+        className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-300"
         onClick={async () => {
           setLoading(true);
           await exportData();
@@ -65,7 +65,7 @@ export default function ExportButton() {
   ) : (
     <button
       disabled={loading}
-      className="disabled: flex items-center justify-center space-x-2 rounded-md bg-white p-4 px-3 py-2.5 text-sm shadow transition-all duration-75 hover:shadow-md active:scale-95 disabled:cursor-progress disabled:text-gray-400 disabled:hover:shadow disabled:active:scale-100"
+      className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-500 transition-all hover:bg-gray-100 active:scale-95 disabled:cursor-progress disabled:text-gray-400 disabled:hover:shadow disabled:active:scale-100"
       onClick={async () => {
         setLoading(true);
         await exportData();
@@ -74,14 +74,7 @@ export default function ExportButton() {
       }}
     >
       {loading ? (
-        <IconMenu
-          text="Export"
-          icon={
-            <div className="relative h-4 w-4 animate-spin rounded-full border-[1.5px] border-black">
-              <div className="absolute -right-0.5 -top-0.5 z-10 h-1/2 w-1/2 bg-white" />
-            </div>
-          }
-        />
+        <IconMenu text="Export" icon={<LoadingSpinner className="h-4 w-4" />} />
       ) : (
         <IconMenu text="Export" icon={<Download className="h-4 w-4" />} />
       )}
