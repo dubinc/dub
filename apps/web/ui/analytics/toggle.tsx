@@ -28,6 +28,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import punycode from "punycode/";
 import { useContext, useMemo, useState } from "react";
 import { AnalyticsContext } from ".";
+import ExportButton from "./export-button";
 import SharePopover from "./share-popover";
 import TagSelector from "./tag-selector";
 
@@ -38,6 +39,7 @@ export default function Toggle() {
   const { basePath, domain, key, url, interval } = useContext(AnalyticsContext);
 
   const [openDatePopover, setOpenDatePopover] = useState(false);
+  const [openMorePopover, setOpenMorePopover] = useState(false);
 
   const selectedInterval = useMemo(() => {
     return INTERVALS.find((s) => s.value === interval) || INTERVALS[1];
@@ -178,6 +180,26 @@ export default function Toggle() {
               />
             </button>
           </Popover>
+
+          {!isPublicStatsPage && (
+            <Popover
+              align="end"
+              content={
+                <div className="grid w-full p-2 md:w-48">
+                  <ExportButton />
+                </div>
+              }
+              openPopover={openMorePopover}
+              setOpenPopover={setOpenMorePopover}
+            >
+              <button
+                onClick={() => setOpenMorePopover(!openMorePopover)}
+                className="flex h-10 w-10 items-center justify-center rounded-md bg-white shadow transition-all hover:shadow-md"
+              >
+                ...
+              </button>
+            </Popover>
+          )}
         </div>
       </div>
     </div>

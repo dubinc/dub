@@ -15,6 +15,10 @@ export default function ExportButton() {
     "top_urls",
     "device",
     "referer",
+    "city",
+    "browser",
+    "os",
+    "top_links",
   ];
 
   const exportData = async () => {
@@ -32,7 +36,9 @@ export default function ExportButton() {
           },
         );
 
-        if (response.status === 200) {
+        if (response.ok) {
+          if (response.status === 204) continue;
+
           const data = await response.blob();
           zipFile.file(`${endpoint}.csv`, data);
         } else {
@@ -60,7 +66,7 @@ export default function ExportButton() {
     <Tooltip content={<TooltipContent title="No data available" />}>
       <button
         disabled={loading || totalClicks === 0 || !totalClicks}
-        className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-300"
+        className="flex w-full items-center justify-between space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-white disabled:active:bg-white"
         onClick={async () => {
           setLoading(true);
           await exportData();
@@ -73,7 +79,7 @@ export default function ExportButton() {
   ) : (
     <button
       disabled={loading}
-      className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-500 transition-all hover:bg-gray-100 active:scale-95 disabled:cursor-progress disabled:text-gray-400 disabled:hover:shadow disabled:active:scale-100"
+      className="flex w-full items-center justify-between space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-progress disabled:text-gray-400 disabled:hover:bg-white disabled:active:bg-white"
       onClick={async () => {
         setLoading(true);
         await exportData();

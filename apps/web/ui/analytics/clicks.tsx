@@ -15,18 +15,15 @@ import { useSearchParams } from "next/navigation";
 import { useContext } from "react";
 import { AnalyticsContext } from ".";
 import ClicksChart from "./clicks-chart";
-import ExportButton from "./export-button";
 
 export default function Clicks() {
-  const { totalClicks, basePath } = useContext(AnalyticsContext);
+  const { totalClicks } = useContext(AnalyticsContext);
   const searchParams = useSearchParams();
   const domain = searchParams?.get("domain");
   const key = searchParams?.get("key");
   const tagId = searchParams?.get("tagId");
   const { queryParams } = useRouterStuff();
   const { tags } = useTags();
-
-  const isPublicStatsPage = basePath.startsWith("/stats");
 
   return (
     <div className="max-w-4xl overflow-hidden border border-gray-200 bg-white p-5 sm:rounded-lg sm:border-gray-100 sm:p-10 sm:shadow-lg">
@@ -123,7 +120,6 @@ export default function Clicks() {
               </Link>
             );
           })}
-          {!isPublicStatsPage && <ExportButton />}
         </div>
       </div>
       <ClicksChart />
