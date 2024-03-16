@@ -575,8 +575,8 @@ export async function addLink(link: ProcessedLinkProps) {
     data: {
       ...rest,
       key,
-      title: truncate(title || "", 120),
-      description: truncate(description || "", 240),
+      title: truncate(title, 120),
+      description: truncate(description, 240),
       image,
       utm_source,
       utm_medium,
