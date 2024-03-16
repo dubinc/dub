@@ -17,34 +17,26 @@ export default function TagSelector() {
   const [openPopover, setOpenPopover] = useState(false);
   const [filterValue, setFilterValue] = useState("");
 
-  // filter the tags through the search input
-  const filteredTags = tags
-    ? tags!.filter((tag) =>
-        tag.name.toLowerCase().includes(filterValue.toLowerCase()),
-      )
-    : [];
-
   return tags && tags.length > 0 ? (
     <Popover
       content={
         <Command>
           <div className="grid w-full p-2 md:w-48">
-            {tags.length > 10 && (
+            {tags.length > 4 && (
               <div className="relative mb-2">
-                <div className="pointer-events-none absolute inset-y-0 left-3.5 flex items-center">
+                <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center">
                   <Search className="h-4 w-4 text-gray-400" />
                 </div>
-
                 <Command.Input
                   value={filterValue}
                   autoFocus
                   onValueChange={(search: string) => setFilterValue(search)}
-                  placeholder="Filter tags..."
-                  className="w-full rounded-md border border-gray-300 py-1.5 pl-10 text-black placeholder:text-gray-400 focus:border-black focus:outline-none focus:ring-gray-600 sm:text-sm"
+                  placeholder="Filter tags"
+                  className="w-full rounded-md border border-gray-300 py-1.5 pl-9 text-black placeholder:text-gray-400 focus:border-black focus:outline-none focus:ring-0 focus:ring-gray-600 sm:text-sm"
                 />
               </div>
             )}
-            <Command.List className="max-h-96 overflow-y-scroll">
+            <Command.List className="dub-scrollbar max-h-96 overflow-y-auto">
               {/* All tags selection should be shown all the time */}
               <Link
                 href={
@@ -60,23 +52,27 @@ export default function TagSelector() {
                   <Tick className="h-4 w-4" aria-hidden="true" />
                 )}
               </Link>
-              {filteredTags.map((tag) => (
-                <Link
-                  key={tag.id}
-                  href={
-                    queryParams({
-                      set: { tagId: tag.id },
-                      getNewPath: true,
-                    }) as string
-                  }
-                  className="flex w-full items-center justify-between space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
-                >
-                  <TagBadge {...tag} />
-                  {selectedTagId === tag.id && (
-                    <Tick className="h-4 w-4" aria-hidden="true" />
-                  )}
-                </Link>
-              ))}
+              {tags
+                .filter((tag) =>
+                  tag.name.toLowerCase().includes(filterValue.toLowerCase()),
+                )
+                .map((tag) => (
+                  <Link
+                    key={tag.id}
+                    href={
+                      queryParams({
+                        set: { tagId: tag.id },
+                        getNewPath: true,
+                      }) as string
+                    }
+                    className="flex w-full items-center justify-between space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
+                  >
+                    <TagBadge {...tag} />
+                    {selectedTagId === tag.id && (
+                      <Tick className="h-4 w-4" aria-hidden="true" />
+                    )}
+                  </Link>
+                ))}
             </Command.List>
           </div>
         </Command>
