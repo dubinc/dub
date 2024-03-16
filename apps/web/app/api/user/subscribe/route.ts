@@ -4,6 +4,8 @@ import prisma from "@/lib/prisma";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 
+export const runtime = "edge";
+
 // GET /api/user/subscribe – get a specific user
 export const GET = withSession(async ({ session }) => {
   const user = await prisma.user.findUnique({

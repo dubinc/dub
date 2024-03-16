@@ -2,7 +2,6 @@ import { deleteDomainAndLinks } from "@/lib/api/domains";
 import prisma from "@/lib/prisma";
 import { cancelSubscription } from "@/lib/stripe";
 import { DUB_DOMAINS_ARRAY, LEGAL_PROJECT_ID, LEGAL_USER_ID } from "@dub/utils";
-import cloudinary from "cloudinary";
 import { ProjectProps } from "../types";
 import { redis } from "../upstash";
 
@@ -60,21 +59,21 @@ export async function deleteProject(
     // delete all default domain links from redis
     pipeline.exec(),
     // remove all images from cloudinary
-    ...defaultDomainLinks.map(({ domain, key, proxy }) =>
-      proxy
-        ? cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
-            invalidate: true,
-          })
-        : Promise.resolve(),
-    ),
+    // ...defaultDomainLinks.map(({ domain, key, proxy }) =>
+    //   proxy
+    //     ? cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
+    //         invalidate: true,
+    //       })
+    //     : Promise.resolve(),
+    // ),
   ]);
 
   const deleteProjectResponse = await Promise.all([
     // delete project logo from Cloudinary
-    project.logo &&
-      cloudinary.v2.uploader.destroy(`logos/${project.id}`, {
-        invalidate: true,
-      }),
+    // project.logo &&
+    //   cloudinary.v2.uploader.destroy(`logos/${project.id}`, {
+    //     invalidate: true,
+    //   }),
     // if they have a Stripe subscription, cancel it
     project.stripeId && cancelSubscription(project.stripeId),
     // delete the project
@@ -129,10 +128,10 @@ export async function deleteProjectAdmin(
 
   const deleteProjectResponse = await Promise.all([
     // delete project logo from Cloudinary
-    project.logo &&
-      cloudinary.v2.uploader.destroy(`logos/${project.id}`, {
-        invalidate: true,
-      }),
+    // project.logo &&
+    //   cloudinary.v2.uploader.destroy(`logos/${project.id}`, {
+    //     invalidate: true,
+    //   }),
     // if they have a Stripe subscription, cancel it
     project.stripeId && cancelSubscription(project.stripeId),
     // delete the project

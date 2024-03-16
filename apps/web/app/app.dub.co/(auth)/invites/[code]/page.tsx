@@ -1,11 +1,9 @@
-import { getSession } from "@/lib/auth";
+import { auth } from "@/auth";
 import prisma from "@/lib/prisma";
 import { LoadingSpinner, Logo } from "@dub/ui";
 import { APP_NAME } from "@dub/utils";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-
-export const runtime = "nodejs";
 
 const PageCopy = ({ title, message }: { title: string; message: string }) => {
   return (
@@ -46,9 +44,9 @@ export default function InvitesPage({
 }
 
 async function VerifyInvite({ code }: { code: string }) {
-  const session = await getSession();
+  const session = await auth();
 
-  if (!session) {
+  if (!session?.user?.id) {
     redirect("/login");
   }
 

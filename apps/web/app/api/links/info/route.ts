@@ -5,6 +5,8 @@ import { getLinkInfoQuerySchema } from "@/lib/zod/schemas/links";
 import { linkConstructor } from "@dub/utils";
 import { NextResponse } from "next/server";
 
+export const runtime = "edge";
+
 // GET /api/links/info – get the info for a link
 export const GET = withAuth(async ({ headers, searchParams }) => {
   const { domain, key } = getLinkInfoQuerySchema.parse(searchParams);

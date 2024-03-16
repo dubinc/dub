@@ -5,6 +5,8 @@ import prisma from "@/lib/prisma";
 import { SimpleLinkProps } from "@/lib/types";
 import { NextResponse } from "next/server";
 
+export const runtime = "edge";
+
 // POST /api/links/sync – sync user's publicly created links to their accounts
 export const POST = withAuth(async ({ req, session, project }) => {
   let links: SimpleLinkProps[] = [];

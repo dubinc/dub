@@ -5,9 +5,7 @@ import prisma from "@/lib/prisma";
 import z from "@/lib/zod";
 import { NextResponse } from "next/server";
 
-const emailInviteSchema = z.object({
-  email: z.string().email(),
-});
+export const runtime = "edge";
 
 // GET /api/projects/[slug]/invites – get invites for a specific project
 export const GET = withAuth(async ({ project }) => {
@@ -21,6 +19,10 @@ export const GET = withAuth(async ({ project }) => {
     },
   });
   return NextResponse.json(invites);
+});
+
+const emailInviteSchema = z.object({
+  email: z.string().email(),
 });
 
 // POST /api/projects/[slug]/invites – invite a teammate

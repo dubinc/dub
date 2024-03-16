@@ -5,6 +5,8 @@ import { roles } from "@/lib/types";
 import z from "@/lib/zod";
 import { NextResponse } from "next/server";
 
+export const runtime = "edge";
+
 const updateRoleSchema = z.object({
   userId: z.string().min(1),
   role: z.enum(roles, {

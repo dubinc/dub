@@ -7,6 +7,8 @@ import cloudinary from "cloudinary";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+export const runtime = "edge";
+
 // GET /api/user – get a specific user
 export const GET = withSession(async ({ session }) => {
   const migratedProject = await redis.hget(
@@ -36,15 +38,15 @@ export const PUT = withSession(async ({ req, session }) => {
     await req.json(),
   );
   try {
-    if (image) {
-      const { secure_url } = await cloudinary.v2.uploader.upload(image, {
-        public_id: session.user.id,
-        folder: "avatars",
-        overwrite: true,
-        invalidate: true,
-      });
-      image = secure_url;
-    }
+    // if (image) {
+    //   const { secure_url } = await cloudinary.v2.uploader.upload(image, {
+    //     public_id: session.user.id,
+    //     folder: "avatars",
+    //     overwrite: true,
+    //     invalidate: true,
+    //   });
+    //   image = secure_url;
+    // }
     const response = await prisma.user.update({
       where: {
         id: session.user.id,

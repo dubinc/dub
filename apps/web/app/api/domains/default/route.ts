@@ -4,6 +4,8 @@ import z from "@/lib/zod";
 import { DUB_DOMAINS_ARRAY } from "@dub/utils";
 import { NextResponse } from "next/server";
 
+export const runtime = "edge";
+
 // GET /api/domains/default - get default domains
 export const GET = withAuth(async ({ project }) => {
   const defaultDomains = await prisma.defaultDomains.findUnique({

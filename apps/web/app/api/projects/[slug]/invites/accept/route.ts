@@ -4,6 +4,8 @@ import prisma from "@/lib/prisma";
 import { PlanProps } from "@/lib/types";
 import { NextResponse } from "next/server";
 
+export const runtime = "edge";
+
 // POST /api/projects/[slug]/invites/accept – accept a project invite
 export const POST = withSession(async ({ session, params }) => {
   const invite = await prisma.projectInvite.findFirst({

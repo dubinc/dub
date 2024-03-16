@@ -10,6 +10,8 @@ import prisma from "@/lib/prisma";
 import { DUB_PROJECT_ID, isDubDomain } from "@dub/utils";
 import { NextResponse } from "next/server";
 
+export const runtime = "edge";
+
 // GET /api/domains/[domain] – get a project's domain
 export const GET = withAuth(async ({ domain, project }) => {
   if (isDubDomain(domain) && project.id !== DUB_PROJECT_ID) {

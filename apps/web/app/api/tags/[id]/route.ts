@@ -5,6 +5,8 @@ import { recordLink } from "@/lib/tinybird";
 import { updateTagBodySchema } from "@/lib/zod/schemas/tags";
 import { NextResponse } from "next/server";
 
+export const runtime = "edge";
+
 // PUT /api/projects/[slug]/tags/[id] – update a tag for a project
 export const PUT = withAuth(async ({ req, params }) => {
   const { id } = params;
