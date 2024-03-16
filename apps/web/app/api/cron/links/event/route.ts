@@ -6,7 +6,6 @@ import { ProjectProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import {
   APP_DOMAIN_WITH_NGROK,
-  DUB_THUMBNAIL,
   GOOGLE_FAVICON_URL,
   getApexDomain,
   log,
@@ -26,9 +25,10 @@ export async function POST(req: Request) {
     }
   }
 
-  const { linkId, type } = body as {
+  const { linkId, type, imageToUpload } = body as {
     linkId: string;
     type: "create" | "edit" | "transfer";
+    imageToUpload?: string;
   };
 
   const link = await prisma.link.findUnique({
@@ -81,16 +81,6 @@ export async function POST(req: Request) {
 
   // increment links usage and send alert if needed
   if (type === "create" && link.projectId) {
-    if (link.image === DUB_THUMBNAIL) {
-      await prisma.link.update({
-        where: {
-          id: link.id,
-        },
-        data: {
-          image: `https://${process.env.STORAGE_DOMAIN}/images/${link.id}`,
-        },
-      });
-    }
     const project = await prisma.project.update({
       where: {
         id: link.projectId,

@@ -14,7 +14,6 @@ import {
 import {
   DEFAULT_REDIRECTS,
   DUB_DOMAINS,
-  DUB_THUMBNAIL,
   SHORT_DOMAIN,
   getDomainWithoutWWW,
   getParamsFromURL,
@@ -440,10 +439,10 @@ export async function processLink({
 
   // custom social media image checks
   const uploadedImage = image && image.startsWith("data:image") ? true : false;
-  if (uploadedImage && !process.env.CLOUDINARY_URL) {
+  if (uploadedImage && !process.env.STORAGE_SECRET_ACCESS_KEY) {
     return {
       link: payload,
-      error: "Missing Cloudinary environment variable.",
+      error: "Missing storage access key.",
       code: "bad_request",
     };
   }
@@ -521,9 +520,8 @@ export async function addLink(link: LinkWithTagIdsProps) {
       key,
       title: truncate(title, 120),
       description: truncate(description, 240),
-      // if there's an uploaded image, we put a placeholder image URL
-      // since we'll update this in the callback event after we get the link ID
-      image: uploadedImage ? DUB_THUMBNAIL : image,
+      // if it's an uploaded image, make this null first because we'll update it later
+      image: uploadedImage ? null : image,
       utm_source,
       utm_medium,
       utm_campaign,
@@ -554,10 +552,22 @@ export async function addLink(link: LinkWithTagIdsProps) {
     },
   });
 
+  const uploadedImageUrl = `https://${process.env.STORAGE_DOMAIN}/images/${response.id}`;
+
   if (proxy && image && uploadedImage) {
-    const { url } = await storage.upload(`images/${response.id}`, image);
-    image = url;
-    console.log("image", image);
+    await Promise.all([
+      // upload image to storage
+      storage.upload(`images/${response.id}`, image),
+      // update the null image we set earlier to the uploaded image URL
+      prisma.link.update({
+        where: {
+          id: response.id,
+        },
+        data: {
+          image: uploadedImageUrl,
+        },
+      }),
+    ]);
   }
 
   const shortLink = linkConstructor({
@@ -567,7 +577,8 @@ export async function addLink(link: LinkWithTagIdsProps) {
   const tags = response.tags.map(({ tag }) => tag);
   return {
     ...response,
-    image, // return the uploaded image URL (instead of the placeholder one)
+    // set the image URL to the uploaded image URL
+    image: uploadedImage ? uploadedImageUrl : response.image,
     tagId: tags?.[0]?.id ?? null, // backwards compatibility
     tags,
     shortLink,
@@ -693,12 +704,14 @@ export async function propagateBulkLinkChanges(
 }
 
 export async function editLink({
-  domain: oldDomain = SHORT_DOMAIN,
-  key: oldKey,
+  oldDomain = SHORT_DOMAIN,
+  oldKey,
+  oldImage,
   updatedLink,
 }: {
-  domain?: string;
-  key: string;
+  oldDomain?: string;
+  oldKey: string;
+  oldImage?: string;
   updatedLink: LinkWithTagIdsProps;
 }) {
   let {
@@ -736,11 +749,10 @@ export async function editLink({
   if (proxy && image) {
     // only upload image if proxy is true and there's an image
     if (uploadedImage) {
-      const { url } = await storage.upload(`images/${id}`, image);
-      image = url;
+      await storage.upload(`images/${id}`, image);
     }
-  } else {
     // if there's no proxy enabled or no image, delete the image
+  } else if (oldImage?.startsWith(`https://${process.env.STORAGE_DOMAIN}`)) {
     await storage.delete(`images/${id}`);
   }
 
@@ -754,7 +766,9 @@ export async function editLink({
         key,
         title: truncate(title, 120),
         description: truncate(description, 240),
-        image,
+        image: uploadedImage
+          ? `https://${process.env.STORAGE_DOMAIN}/images/${id}`
+          : image,
         utm_source,
         utm_medium,
         utm_campaign,
@@ -824,7 +838,7 @@ export async function deleteLink(linkId: string) {
         id: link.id,
       },
     }),
-    storage.delete(`images/${link.id}`),
+    link.proxy && link.image && storage.delete(`images/${link.id}`),
     redis.hdel(link.domain, link.key.toLowerCase()),
     recordLink({ link, deleted: true }),
     link.projectId &&
