@@ -8,8 +8,6 @@ import { withAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-export const runtime = "edge";
-
 // GET /api/domains – get all domains for a project
 export const GET = withAuth(async ({ project }) => {
   const domains = await prisma.domain.findMany({

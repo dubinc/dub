@@ -3,8 +3,6 @@ import prisma from "@/lib/prisma";
 import { DUB_DOMAINS_ARRAY } from "@dub/utils";
 import { NextResponse } from "next/server";
 
-export const runtime = "edge";
-
 // GET /api/admin/links/count
 export const GET = withAdmin(async ({ searchParams }) => {
   let { groupBy, search, domain, tagId } = searchParams as {

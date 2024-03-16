@@ -4,8 +4,6 @@ import prisma from "@/lib/prisma";
 import { DEFAULT_REDIRECTS } from "@dub/utils";
 import { NextResponse } from "next/server";
 
-export const runtime = "edge";
-
 // GET /api/projects/[slug]/exists – check if a project exists
 export const GET = withSession(async ({ params }) => {
   const { slug } = params;

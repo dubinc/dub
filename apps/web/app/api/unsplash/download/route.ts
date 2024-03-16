@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { unsplash } from "../utils";
 
-export const runtime = "edge";
-
 export async function POST(req: Request) {
   const { url } = await req.json();
   if (!url) return new Response("Missing url", { status: 400 });

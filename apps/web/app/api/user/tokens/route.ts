@@ -4,8 +4,6 @@ import prisma from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK, nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 
-export const runtime = "edge";
-
 // GET /api/user/tokens – get all tokens for a specific user
 export const GET = withSession(async ({ session }) => {
   const tokens = await prisma.token.findMany({

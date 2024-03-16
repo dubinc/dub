@@ -9,8 +9,6 @@ import {
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
 
-export const runtime = "edge";
-
 export async function GET(req: NextRequest) {
   const interMedium = await fetch(
     new URL("@/styles/Inter-Medium.ttf", import.meta.url),

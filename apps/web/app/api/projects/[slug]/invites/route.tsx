@@ -5,8 +5,6 @@ import prisma from "@/lib/prisma";
 import z from "@/lib/zod";
 import { NextResponse } from "next/server";
 
-export const runtime = "edge";
-
 // GET /api/projects/[slug]/invites – get invites for a specific project
 export const GET = withAuth(async ({ project }) => {
   const invites = await prisma.projectInvite.findMany({

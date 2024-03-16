@@ -4,8 +4,6 @@ import { DUB_DOMAINS_ARRAY } from "@dub/utils";
 import { randomBytes } from "crypto";
 import { NextResponse } from "next/server";
 
-export const runtime = "edge";
-
 // POST /api/admin/impersonate
 export const POST = withAdmin(async ({ req }) => {
   const { email, slug } = await req.json();

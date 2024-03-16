@@ -8,8 +8,6 @@ import { updateLinkBodySchema } from "@/lib/zod/schemas/links";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
 
-export const runtime = "edge";
-
 // GET /api/links/[linkId] – get a link
 export const GET = withAuth(async ({ headers, link }) => {
   if (!link) {

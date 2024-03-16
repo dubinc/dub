@@ -1,9 +1,7 @@
+import { getIdentityHash } from "@/lib/edge";
 import { ratelimit } from "@/lib/upstash";
 import { NextResponse } from "next/server";
 import { unsplash } from "../utils";
-import { getIdentityHash } from "@/lib/edge";
-
-export const runtime = "edge";
 
 export async function GET(req: Request) {
   const searchParams = new URL(req.url).searchParams;

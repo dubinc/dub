@@ -8,8 +8,6 @@ import { getSearchParams } from "@dub/utils";
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
 
-export const runtime = "edge";
-
 export async function GET(req: NextRequest) {
   try {
     // Rate limit if user is not logged in

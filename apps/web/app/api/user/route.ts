@@ -6,8 +6,6 @@ import { trim } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-export const runtime = "edge";
-
 // GET /api/user – get a specific user
 export const GET = withSession(async ({ session }) => {
   const migratedProject = await redis.hget(

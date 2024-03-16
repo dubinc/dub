@@ -4,8 +4,6 @@ import prisma from "@/lib/prisma";
 import z, { domainKeySchema } from "@/lib/zod";
 import { NextResponse } from "next/server";
 
-export const runtime = "edge";
-
 // GET /api/analytics – get the publicStats setting for a link
 export const GET = withAuth(async ({ searchParams }) => {
   const { domain, key } = domainKeySchema.parse(searchParams);

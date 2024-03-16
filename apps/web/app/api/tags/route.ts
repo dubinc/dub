@@ -5,8 +5,6 @@ import { createTagBodySchema } from "@/lib/zod/schemas/tags";
 import { COLORS_LIST, randomBadgeColor } from "@/ui/links/tag-badge";
 import { NextResponse } from "next/server";
 
-export const runtime = "edge";
-
 // GET /api/projects/[slug]/tags - get all tags for a project
 export const GET = withAuth(async ({ project, headers }) => {
   const tags = await prisma.tag.findMany({

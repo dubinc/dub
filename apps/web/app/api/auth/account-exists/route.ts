@@ -5,8 +5,6 @@ import prisma from "@/lib/prisma";
 import { ratelimit } from "@/lib/upstash";
 import { NextRequest, NextResponse } from "next/server";
 
-export const runtime = "edge";
-
 export async function POST(req: NextRequest) {
   const identity_hash = await getIdentityHash(req);
   const { success } = await ratelimit(5, "1 m").limit(

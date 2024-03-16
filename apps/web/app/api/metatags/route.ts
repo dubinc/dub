@@ -11,8 +11,6 @@ const getMetaTagQuerySchema = z.object({
   url: z.string().refine((v) => isValidUrl(v), { message: "Invalid URL" }),
 });
 
-export const runtime = "edge";
-
 export async function GET(req: NextRequest) {
   try {
     const { url } = getMetaTagQuerySchema.parse({

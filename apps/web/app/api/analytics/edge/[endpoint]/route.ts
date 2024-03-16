@@ -14,8 +14,6 @@ import {
 import { DUB_DEMO_LINKS, DUB_PROJECT_ID, getSearchParams } from "@dub/utils";
 import { NextResponse, type NextRequest } from "next/server";
 
-export const runtime = "edge";
-
 export const GET = async (
   req: NextRequest,
   { params }: { params: Record<string, string> },

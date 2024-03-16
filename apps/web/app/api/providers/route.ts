@@ -4,8 +4,6 @@ import { ratelimit } from "@/lib/upstash";
 import { fetchWithTimeout, getUrlFromString } from "@dub/utils";
 import { NextRequest, NextResponse } from "next/server";
 
-export const runtime = "edge";
-
 export async function GET(req: NextRequest) {
   // Rate limit if user is not logged in
   const session = await auth();

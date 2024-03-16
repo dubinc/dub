@@ -9,7 +9,6 @@ import { DomainVerificationStatusProps } from "@/lib/types";
 import { NextResponse } from "next/server";
 
 export const maxDuration = 30;
-export const runtime = "edge";
 
 // GET /api/domains/[domain]/verify - get domain verification status
 export const GET = withAuth(async ({ domain }) => {

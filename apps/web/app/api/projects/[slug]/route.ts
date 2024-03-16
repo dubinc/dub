@@ -8,8 +8,6 @@ import { DEFAULT_REDIRECTS, validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { NextResponse } from "next/server";
 
-export const runtime = "edge";
-
 const updateProjectSchema = z.object({
   name: z.string().min(1).max(32).optional(),
   slug: z

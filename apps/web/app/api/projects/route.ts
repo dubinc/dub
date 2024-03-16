@@ -18,8 +18,6 @@ import {
 import slugify from "@sindresorhus/slugify";
 import { NextResponse } from "next/server";
 
-export const runtime = "edge";
-
 // GET /api/projects - get all projects for the current user
 export const GET = withSession(async ({ session }) => {
   const projects = await prisma.project.findMany({

@@ -11,8 +11,6 @@ import {
 import { APP_DOMAIN_WITH_NGROK, LOCALHOST_IP } from "@dub/utils";
 import { NextResponse } from "next/server";
 
-export const runtime = "edge";
-
 // GET /api/links – get all links for a project
 export const GET = withAuth(async ({ headers, searchParams, project }) => {
   const {
