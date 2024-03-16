@@ -2,8 +2,6 @@ import { isBlacklistedEmail } from "@/lib/edge-config";
 import { subscribe } from "@/lib/flodesk";
 import prisma from "@/lib/prisma";
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import { sendEmail } from "emails";
-import WelcomeEmail from "emails/welcome-email";
 import type { NextAuthConfig } from "next-auth";
 import NextAuth from "next-auth";
 import GithubProvider from "next-auth/providers/github";
@@ -209,15 +207,15 @@ export const config = {
         ) {
           await Promise.allSettled([
             subscribe({ email, name: user.name || undefined }),
-            sendEmail({
-              subject: "Welcome to Dub.co!",
-              email,
-              react: WelcomeEmail({
-                email,
-                name: user.name || null,
-              }),
-              marketing: true,
-            }),
+            // sendEmail({
+            //   subject: "Welcome to Dub.co!",
+            //   email,
+            //   react: WelcomeEmail({
+            //     email,
+            //     name: user.name || null,
+            //   }),
+            //   marketing: true,
+            // }),
           ]);
         }
       }
