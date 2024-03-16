@@ -1,7 +1,8 @@
 "use client";
 
 import { Session } from "@/lib/auth";
-import { DomainProps, ProjectWithDomainProps } from "@/lib/types";
+import useDomains from "@/lib/swr/use-domains";
+import { DomainProps, ProjectProps } from "@/lib/types";
 import { CheckCircleFill, XCircleFill } from "@/ui/shared/icons";
 import {
   Badge,
@@ -11,14 +12,19 @@ import {
   Tooltip,
 } from "@dub/ui";
 import {
-  DUB_DOMAINS,
-  GOOGLE_FAVICON_URL,
+  DICEBEAR_AVATAR_URL,
   HOME_DOMAIN,
   cn,
   fetcher,
   nFormatter,
 } from "@dub/utils";
-import { BarChart2, ExternalLink, Globe, Link2 } from "lucide-react";
+import {
+  BarChart2,
+  ExternalLink,
+  Globe,
+  Link2,
+  MinusCircle,
+} from "lucide-react";
 import Link from "next/link";
 import punycode from "punycode/";
 import useSWR from "swr";
@@ -33,10 +39,14 @@ export default function ProjectCard({
   logo,
   usage,
   plan,
-  domains: activeProjectDomains,
-  primaryDomain: projectPrimaryDomain,
-  metadata,
-}: ProjectWithDomainProps) {
+}: ProjectProps) {
+  const {
+    allProjectDomains: domains,
+    primaryDomain,
+    verified,
+    loading,
+  } = useDomains({ slug });
+
   const { data: count } = useSWR<number>(
     `/api/links/count?projectSlug=${slug}`,
     fetcher,
@@ -47,15 +57,6 @@ export default function ProjectCard({
   >(`/api/user`, fetcher);
 
   const isMigratedProject = user?.migratedProject === id;
-
-  const defaultDomains = metadata?.defaultDomains
-    ? DUB_DOMAINS.filter((d) => metadata?.defaultDomains?.includes(d.slug))
-    : DUB_DOMAINS;
-
-  const domains =
-    activeProjectDomains.length > 0 ? activeProjectDomains : defaultDomains;
-
-  const primaryDomain = projectPrimaryDomain || defaultDomains[0];
 
   return (
     <div className="group relative">
@@ -91,7 +92,7 @@ export default function ProjectCard({
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-3">
             <BlurImage
-              src={logo || `${GOOGLE_FAVICON_URL}${primaryDomain?.slug}`}
+              src={logo || `${DICEBEAR_AVATAR_URL}${name}`}
               alt={id}
               className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full"
               width={48}
@@ -101,42 +102,58 @@ export default function ProjectCard({
               <h2 className="max-w-[200px] truncate text-lg font-medium text-gray-700">
                 {name}
               </h2>
-              <div className="flex items-center">
-                <p className="text-gray-500">{primaryDomain?.slug}</p>
-                <Tooltip
-                  content={
-                    <DomainsTooltip
-                      domains={domains}
-                      title={
-                        primaryDomain?.verified === false
-                          ? "Please verify your domain to start adding links."
-                          : "Here are all the domains for this project."
-                      }
-                      cta={
-                        primaryDomain?.verified === false
-                          ? "Verify Domain"
-                          : `Manage Domain${domains.length > 1 ? "s" : ""}`
-                      }
-                      href={`/${slug}/domains`}
-                    />
-                  }
-                >
-                  <div className="ml-1 flex items-center">
-                    {domains.length > 1 ? (
-                      <Badge
-                        variant="gray"
-                        className="border-gray-300 transition-all hover:bg-gray-200"
-                      >
-                        +{domains.length - 1}
-                      </Badge>
-                    ) : primaryDomain?.verified ? (
-                      <CheckCircleFill className="h-5 w-5 text-blue-500" />
-                    ) : primaryDomain?.verified === false ? (
-                      <XCircleFill className="h-5 w-5 text-gray-300" />
-                    ) : null}
-                  </div>
-                </Tooltip>
-              </div>
+              {loading ? (
+                <div className="mt-1 flex items-center space-x-2">
+                  <div className="h-5 w-20 animate-pulse rounded-md bg-gray-200" />
+                  <div className="h-5 w-5 animate-pulse rounded-full bg-gray-200" />
+                </div>
+              ) : (
+                <div className="flex items-center">
+                  <p className="text-gray-500">{primaryDomain}</p>
+                  <Tooltip
+                    content={
+                      <DomainsTooltip
+                        domains={domains}
+                        title={
+                          domains.length === 0
+                            ? "No domains added yet – currently using Dub default domains."
+                            : verified === false
+                              ? "Please verify your domain to start adding links."
+                              : "Here are all the domains for this project."
+                        }
+                        cta={
+                          domains.length === 0
+                            ? "Add Domain"
+                            : verified === false
+                              ? "Verify Domain"
+                              : `Manage Domain${domains.length > 1 ? "s" : ""}`
+                        }
+                        href={`/${slug}/domains`}
+                      />
+                    }
+                  >
+                    <div className="ml-1 flex items-center">
+                      {domains.length > 1 ? (
+                        <Badge
+                          variant="gray"
+                          className="border-gray-300 transition-all hover:bg-gray-200"
+                        >
+                          +{domains.length - 1}
+                        </Badge>
+                      ) : domains.length === 0 ? (
+                        <MinusCircle
+                          fill="rgb(209 213 219)"
+                          className="h-5 w-5 text-white"
+                        />
+                      ) : verified ? (
+                        <CheckCircleFill className="h-5 w-5 text-blue-500" />
+                      ) : verified === false ? (
+                        <XCircleFill className="h-5 w-5 text-gray-300" />
+                      ) : null}
+                    </div>
+                  </Tooltip>
+                </div>
+              )}
             </div>
           </div>
           <PlanBadge plan={plan} />
@@ -192,7 +209,7 @@ const DomainsTooltip = ({
     >
       <p className="px-2 text-sm text-gray-500">{title}</p>
       <div className="flex w-full flex-col">
-        {domains.map(({ slug, verified }) => (
+        {domains.slice(0, 8).map(({ slug, verified }) => (
           <a
             key={slug}
             href={`https://${slug}`}
@@ -213,6 +230,17 @@ const DomainsTooltip = ({
             <ExternalLink className="h-4 w-4 text-gray-500 md:invisible md:group-hover:visible" />
           </a>
         ))}
+        {domains.length > 8 && (
+          <Link
+            href={href}
+            className="flex items-center space-x-1 rounded-md p-2 transition-all hover:bg-gray-100"
+          >
+            <p className="text-sm font-semibold text-gray-500">
+              +{domains.length - 8} more
+            </p>
+            <ExternalLink className="h-4 w-4 text-gray-500 md:invisible" />
+          </Link>
+        )}
       </div>
 
       <div className="mt-2 w-full px-2">

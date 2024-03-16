@@ -25,22 +25,27 @@ export const GET = withAuth(async ({ project }) => {
   }
 
   const domains = await Promise.all(
-    data.map(async ({ id, hostname }: { id: number; hostname: string }) => ({
-      id,
-      domain: hostname,
-      links: await fetchWithTimeout(
-        `https://api-v2.short.cm/statistics/domain/${id}?period=total`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: accessToken as string,
-          },
-        },
+    data
+      .filter(
+        // exclude default short.io domains
+        ({ hostname }: { hostname: string }) => !hostname.endsWith(".short.gy"),
       )
-        .then((r) => r.json())
-        .then((data) => data.links - 1) // subtract 1 to exclude root domain
-        .catch(() => 0),
-    })),
+      .map(async ({ id, hostname }: { id: number; hostname: string }) => ({
+        id,
+        domain: hostname,
+        links: await fetchWithTimeout(
+          `https://api-v2.short.cm/statistics/domain/${id}?period=total`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: accessToken as string,
+            },
+          },
+        )
+          .then((r) => r.json())
+          .then((data) => data.links - 1) // subtract 1 to exclude root domain
+          .catch(() => 0),
+      })),
   );
 
   return NextResponse.json(domains);

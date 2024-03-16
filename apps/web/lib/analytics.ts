@@ -52,7 +52,7 @@ export const intervalData = {
   },
   "90d": {
     startDate: new Date(Date.now() - 7776000000),
-    granularity: "month",
+    granularity: "day",
   },
   all: {
     // Dub.co founding date
@@ -89,6 +89,7 @@ export const VALID_ANALYTICS_FILTERS = [
   "os",
   "referer",
   "excludeRoot",
+  "tagId",
 ];
 
 export const getAnalytics = async ({

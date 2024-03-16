@@ -240,7 +240,7 @@ const DomainsFilter = () => {
                 className="group relative flex cursor-pointer items-center space-x-3 rounded-md bg-gray-50 transition-all hover:bg-gray-100"
               >
                 <input
-                  id={domain.id}
+                  id={domain.slug}
                   name={domain.slug}
                   checked={searchParams?.get("domain") === domain.slug}
                   onChange={() => {
@@ -256,7 +256,7 @@ const DomainsFilter = () => {
                 />
                 <label
                   htmlFor={domain.slug}
-                  className="flex w-full cursor-pointer justify-between px-3 py-2 pl-0 text-sm font-medium text-gray-700"
+                  className="flex w-full cursor-pointer items-center justify-between px-3 py-2 pl-0 text-sm font-medium text-gray-700"
                 >
                   <p>{truncate(punycode.toUnicode(domain.slug || ""), 24)}</p>
                   <DomainPopover domain={domain} count={domain.count} />

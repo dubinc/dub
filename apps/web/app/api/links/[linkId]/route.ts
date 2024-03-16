@@ -2,11 +2,10 @@ import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { deleteLink, editLink, processLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
-import { LinkWithTagIdsProps } from "@/lib/types";
+import prisma from "@/lib/prisma";
 import { updateLinkBodySchema } from "@/lib/zod/schemas/links";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
 
 // GET /api/links/[linkId] – get a link
 export const GET = withAuth(async ({ headers, link }) => {
@@ -21,7 +20,7 @@ export const GET = withAuth(async ({ headers, link }) => {
     where: {
       links: {
         some: {
-          id: link.id,
+          linkId: link.id,
         },
       },
     },
@@ -46,6 +45,13 @@ export const GET = withAuth(async ({ headers, link }) => {
 
 // PUT /api/links/[linkId] – update a link
 export const PUT = withAuth(async ({ req, headers, project, link }) => {
+  if (!link) {
+    throw new DubApiError({
+      code: "not_found",
+      message: "Link not found.",
+    });
+  }
+
   const body = updateLinkBodySchema.parse(await req.json());
 
   const updatedLink = {
@@ -65,7 +71,7 @@ export const PUT = withAuth(async ({ req, headers, project, link }) => {
     error,
     code,
   } = await processLink({
-    payload: updatedLink as LinkWithTagIdsProps,
+    payload: updatedLink,
     project,
     // if domain and key are the same, we don't need to check if the key exists
     skipKeyChecks:
@@ -105,7 +111,7 @@ export const PUT = withAuth(async ({ req, headers, project, link }) => {
 // DELETE /api/links/[linkId] – delete a link
 export const DELETE = withAuth(async ({ headers, link }) => {
   // link is guaranteed to exist because if not we will return 404
-  const response = await deleteLink(link!);
+  const response = await deleteLink(link!.id);
 
   return NextResponse.json(response[0], {
     headers,

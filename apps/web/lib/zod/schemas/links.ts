@@ -307,6 +307,13 @@ export const LinkSchema = z
       .boolean()
       .default(false)
       .describe("Whether the short link's stats are publicly accessible."),
+    tagId: z
+      .string()
+      .nullable()
+      .describe(
+        "[DEPRECATED (use `tags` instead)]: The unique ID of the tag assigned to the short link.",
+      )
+      .openapi({ deprecated: true }),
     tags: TagSchema.array()
       .nullable()
       .describe("The tags assigned to the short link."),

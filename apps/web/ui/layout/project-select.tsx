@@ -1,11 +1,11 @@
 "use client";
 
 import useProjects from "@/lib/swr/use-projects";
-import { PlanProps, ProjectWithDomainProps } from "@/lib/types";
+import { PlanProps, ProjectProps } from "@/lib/types";
 import { ModalContext } from "@/ui/modals/provider";
 import PlanBadge from "@/ui/projects/plan-badge";
 import { BlurImage, Popover, Tick } from "@dub/ui";
-import { GOOGLE_FAVICON_URL, SHORT_DOMAIN } from "@dub/utils";
+import { DICEBEAR_AVATAR_URL } from "@dub/utils";
 import { ChevronsUpDown, PlusCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -27,10 +27,8 @@ export default function ProjectSelect() {
       return {
         ...selectedProject,
         image:
-          selectedProject?.logo ||
-          `${GOOGLE_FAVICON_URL}${
-            selectedProject?.primaryDomain?.slug || SHORT_DOMAIN
-          }`,
+          selectedProject.logo ||
+          `${DICEBEAR_AVATAR_URL}${selectedProject.name}`,
       };
 
       // return personal account selector if there's no project or error (user doesn't have access to project)
@@ -116,7 +114,7 @@ function ProjectList({
     image: string;
     plan: PlanProps;
   };
-  projects: ProjectWithDomainProps[];
+  projects: ProjectProps[];
   setOpenPopover: (open: boolean) => void;
 }) {
   const { setShowAddProjectModal } = useContext(ModalContext);
@@ -139,7 +137,7 @@ function ProjectList({
   return (
     <div className="relative mt-1 max-h-72 w-full space-y-0.5 overflow-auto rounded-md bg-white p-2 text-base sm:w-60 sm:text-sm sm:shadow-lg">
       <div className="p-2 text-xs text-gray-500">My Projects</div>
-      {projects.map(({ id, name, slug, logo, primaryDomain, metadata }) => {
+      {projects.map(({ id, name, slug, logo }) => {
         return (
           <Link
             key={slug}
@@ -151,10 +149,7 @@ function ProjectList({
             onClick={() => setOpenPopover(false)}
           >
             <BlurImage
-              src={
-                logo ||
-                `${GOOGLE_FAVICON_URL}${primaryDomain?.slug || SHORT_DOMAIN}`
-              }
+              src={logo || `${DICEBEAR_AVATAR_URL}${name}`}
               width={20}
               height={20}
               alt={id}

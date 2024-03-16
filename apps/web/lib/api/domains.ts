@@ -256,9 +256,11 @@ export async function deleteDomainAndLinks(
       },
       select: {
         id: true,
+        domain: true,
         key: true,
         url: true,
         projectId: true,
+        tags: true,
       },
     }),
   ]);
@@ -279,15 +281,9 @@ export async function deleteDomainAndLinks(
       },
       deleted: true,
     }),
-    ...allLinks.map(({ id, key, url, projectId }) =>
+    ...allLinks.map((link) =>
       recordLink({
-        link: {
-          id,
-          domain,
-          key,
-          url,
-          projectId,
-        },
+        link,
         deleted: true,
       }),
     ),
