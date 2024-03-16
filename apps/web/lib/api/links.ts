@@ -22,6 +22,7 @@ import {
   truncate,
   validKeyRegex,
 } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import cloudinary from "cloudinary";
 import { checkIfKeyExists, getRandomKey } from "../planetscale";
 import { recordLink } from "../tinybird";
@@ -537,7 +538,7 @@ export async function addLink(link: LinkWithTagIdsProps) {
       utm_term,
       utm_content,
       expiresAt: expiresAt ? new Date(expiresAt) : null,
-      geo: geo || undefined,
+      geo: geo || Prisma.JsonNull,
       ...(combinedTagIds.length > 0 && {
         tags: {
           createMany: {
@@ -768,7 +769,7 @@ export async function editLink({
         utm_term,
         utm_content,
         expiresAt: expiresAt ? new Date(expiresAt) : null,
-        geo: geo || undefined,
+        geo: geo || Prisma.JsonNull,
         tags: {
           deleteMany: {
             tagId: {

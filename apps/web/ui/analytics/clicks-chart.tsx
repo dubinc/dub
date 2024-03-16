@@ -33,7 +33,6 @@ export default function ClicksChart() {
             hour: "numeric",
             minute: "numeric",
           });
-        case "90d":
         case "all":
           return date.toLocaleDateString("en-US", {
             month: "short",
