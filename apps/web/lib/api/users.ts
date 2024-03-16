@@ -1,8 +1,7 @@
 import { Session, hashToken } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { ProjectProps } from "@/lib/types";
-import { TWO_WEEKS_IN_SECONDS } from "@dub/utils";
-import { randomBytes } from "crypto";
+import { TWO_WEEKS_IN_SECONDS, generateRandomString } from "@dub/utils";
 import { sendEmail } from "emails";
 import ProjectInvite from "emails/project-invite";
 import { DubApiError } from "./errors";
@@ -17,7 +16,7 @@ export async function inviteUser({
   session?: Session;
 }) {
   // same method of generating a token as next-auth
-  const token = randomBytes(32).toString("hex");
+  const token = generateRandomString(32);
   const expires = new Date(Date.now() + TWO_WEEKS_IN_SECONDS * 1000);
 
   // create a project invite record and a verification request token that lasts for a week
@@ -43,7 +42,7 @@ export async function inviteUser({
   await prisma.verificationToken.create({
     data: {
       identifier: email,
-      token: hashToken(token),
+      token: await hashToken(token),
       expires,
     },
   });

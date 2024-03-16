@@ -31,3 +31,14 @@ export async function hashStringSHA256(str: string) {
 
   return hashHex;
 }
+
+export function generateRandomString(length = 64) {
+  // Ensure the length is an even number since two hex digits represent a byte
+  const adjustedLength = Math.ceil(length / 2);
+  const array = new Uint8Array(adjustedLength);
+  crypto.getRandomValues(array);
+  return Array.from(array)
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("")
+    .substring(0, length); // Ensure the string is exactly the requested length
+}
