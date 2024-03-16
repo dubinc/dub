@@ -556,7 +556,7 @@ export async function addLink(link: LinkWithTagIdsProps) {
 
   if (proxy && image && uploadedImage) {
     await Promise.all([
-      // upload image to storage
+      // upload image to R2
       storage.upload(`images/${response.id}`, image),
       // update the null image we set earlier to the uploaded image URL
       prisma.link.update({
@@ -751,7 +751,7 @@ export async function editLink({
     if (uploadedImage) {
       await storage.upload(`images/${id}`, image);
     }
-    // if there's no proxy enabled or no image, delete the image
+    // if there's an image in R2, delete it
   } else if (oldImage?.startsWith(`https://${process.env.STORAGE_DOMAIN}`)) {
     await storage.delete(`images/${id}`);
   }
@@ -833,7 +833,10 @@ export async function deleteLink(linkId: string) {
     },
   });
   return await Promise.allSettled([
-    link.proxy && link.image && storage.delete(`images/${link.id}`),
+    // if the image is stored in Cloudflare R2, delete it
+    link.proxy &&
+      link.image?.startsWith(`https://${process.env.STORAGE_DOMAIN}`) &&
+      storage.delete(`images/${link.id}`),
     redis.hdel(link.domain, link.key.toLowerCase()),
     recordLink({ link, deleted: true }),
     link.projectId &&

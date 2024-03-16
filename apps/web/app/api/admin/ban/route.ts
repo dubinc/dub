@@ -17,6 +17,7 @@ export const POST = withAdmin(async ({ req }) => {
     select: {
       id: true,
       email: true,
+      image: true,
       projects: {
         where: {
           role: "owner",
@@ -58,7 +59,9 @@ export const POST = withAdmin(async ({ req }) => {
         id: user.id,
       },
     }),
-    storage.delete(`avatars/${user.id}`),
+    // if the user has a custom avatar, delete it
+    user.image?.startsWith(`https://${process.env.STORAGE_DOMAIN}`) &&
+      storage.delete(`avatars/${user.id}`),
     unsubscribe(user.email),
     fetch(
       `https://api.vercel.com/v1/edge-config/${process.env.EDGE_CONFIG_ID}/items?teamId=${process.env.TEAM_ID_VERCEL}`,

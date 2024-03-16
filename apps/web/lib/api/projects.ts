@@ -1,8 +1,8 @@
 import { deleteDomainAndLinks } from "@/lib/api/domains";
 import prisma from "@/lib/prisma";
+import { storage } from "@/lib/storage";
 import { cancelSubscription } from "@/lib/stripe";
 import { DUB_DOMAINS_ARRAY, LEGAL_PROJECT_ID, LEGAL_USER_ID } from "@dub/utils";
-import { storage } from "@/lib/storage";
 import { ProjectProps } from "../types";
 import { redis } from "../upstash";
 
@@ -30,6 +30,7 @@ export async function deleteProject(
         domain: true,
         key: true,
         proxy: true,
+        image: true,
       },
     }),
   ]);
@@ -60,15 +61,18 @@ export async function deleteProject(
     ),
     // delete all default domain links from redis
     pipeline.exec(),
-    // remove all images
-    ...defaultDomainLinks.map(({ id, proxy }) =>
-      proxy ? storage.delete(`images/${id}`) : Promise.resolve(),
+    // remove all images from R2
+    ...defaultDomainLinks.map(({ id, proxy, image }) =>
+      proxy && image?.startsWith(`https://${process.env.STORAGE_DOMAIN}`)
+        ? storage.delete(`images/${id}`)
+        : Promise.resolve(),
     ),
   ]);
 
   const deleteProjectResponse = await Promise.all([
-    // delete project logo
-    project.logo && storage.delete(`logos/${project.id}`),
+    // delete project logo if it's a custom logo stored in R2
+    project.logo?.startsWith(`https://${process.env.STORAGE_DOMAIN}`) &&
+      storage.delete(`logos/${project.id}`),
     // if they have a Stripe subscription, cancel it
     project.stripeId && cancelSubscription(project.stripeId),
     // delete the project
@@ -122,8 +126,9 @@ export async function deleteProjectAdmin(
   ]);
 
   const deleteProjectResponse = await Promise.all([
-    // delete project logo
-    project.logo && storage.delete(`logos/${project.id}`),
+    // delete project logo if it's a custom logo stored in R2
+    project.logo?.startsWith(`https://${process.env.STORAGE_DOMAIN}`) &&
+      storage.delete(`logos/${project.id}`),
     // if they have a Stripe subscription, cancel it
     project.stripeId && cancelSubscription(project.stripeId),
     // delete the project

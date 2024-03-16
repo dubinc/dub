@@ -74,13 +74,15 @@ export const DELETE = withSession(async ({ session }) => {
       { status: 422 },
     );
   } else {
+    const user = await prisma.user.delete({
+      where: {
+        id: session.user.id,
+      },
+    });
     const response = await Promise.allSettled([
-      prisma.user.delete({
-        where: {
-          id: session.user.id,
-        },
-      }),
-      storage.delete(`avatars/${session.user.id}`),
+      // if the user has a custom avatar, delete it
+      user.image?.startsWith(`https://${process.env.STORAGE_DOMAIN}`) &&
+        storage.delete(`avatars/${session.user.id}`),
       unsubscribe(session.user.email),
     ]);
     return NextResponse.json(response);
