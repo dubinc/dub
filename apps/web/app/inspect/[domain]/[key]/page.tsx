@@ -17,8 +17,6 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import LinkInspectorCard from "./card";
 
-export const runtime = "edge";
-
 export async function generateMetadata({
   params,
 }: {

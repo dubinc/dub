@@ -2,8 +2,6 @@ import { Background, Footer, Nav } from "@dub/ui";
 import { constructMetadata } from "@dub/utils";
 import { TimerOff } from "lucide-react";
 
-export const runtime = "edge";
-
 export const metadata = constructMetadata({
   title: "Expired Link – Dub.co",
   description:

@@ -5,8 +5,6 @@ import {
 } from "@dub/utils";
 import { getMetaTags } from "app/api/metatags/utils";
 
-export const runtime = "edge";
-
 export async function generateMetadata({
   params,
 }: {

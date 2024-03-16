@@ -2,8 +2,6 @@ import { Background, Footer, Nav } from "@dub/ui";
 import { constructMetadata } from "@dub/utils";
 import { ShieldBan } from "lucide-react";
 
-export const runtime = "edge";
-
 export const metadata = constructMetadata({
   title: "Banned Link – Dub.co",
   description: "This link has been banned for violating our terms of service.",

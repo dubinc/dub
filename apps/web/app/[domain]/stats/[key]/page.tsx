@@ -4,8 +4,6 @@ import { constructMetadata } from "@dub/utils";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
-export const runtime = "edge";
-
 export async function generateMetadata({
   params,
 }: {
