@@ -22,7 +22,7 @@ export default function Footer({
           borderColor: "#e5e7eb",
         }}
       />
-      <Text style={{ fontSize: "12px", lineHeight: "1.5", color: "#6b7280" }}>
+      <Text style={{ fontSize: "12px", lineHeight: "2", color: "#6b7280" }}>
         This email was intended for{" "}
         <span style={{ color: "black" }}>{email}</span>. If you were not
         expecting this email, you can ignore this email. If you are concerned
