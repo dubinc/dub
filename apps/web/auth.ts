@@ -3,7 +3,6 @@ import { subscribe } from "@/lib/flodesk";
 import prisma from "@/lib/prisma";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { sendEmail } from "emails";
-import LoginLink from "emails/login-link";
 import WelcomeEmail from "emails/welcome-email";
 import type { NextAuthConfig } from "next-auth";
 import NextAuth from "next-auth";
@@ -24,23 +23,23 @@ export const config = {
       clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
       allowDangerousEmailAccountLinking: true,
     }),
-    // @ts-expect-error
-    {
-      id: "email",
-      type: "email",
-      async sendVerificationRequest({ identifier, url }) {
-        if (process.env.NODE_ENV === "development") {
-          console.log(`Login link: ${url}`);
-          return;
-        } else {
-          sendEmail({
-            email: identifier,
-            subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
-            react: LoginLink({ url, email: identifier }),
-          });
-        }
-      },
-    },
+    // // @ts-expect-error
+    // {
+    //   id: "email",
+    //   type: "email",
+    //   async sendVerificationRequest({ identifier, url }) {
+    //     if (process.env.NODE_ENV === "development") {
+    //       console.log(`Login link: ${url}`);
+    //       return;
+    //     } else {
+    //       sendEmail({
+    //         email: identifier,
+    //         subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
+    //         react: LoginLink({ url, email: identifier }),
+    //       });
+    //     }
+    //   },
+    // },
   ],
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
