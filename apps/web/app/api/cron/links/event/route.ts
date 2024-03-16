@@ -25,10 +25,9 @@ export async function POST(req: Request) {
     }
   }
 
-  const { linkId, type, imageToUpload } = body as {
+  const { linkId, type } = body as {
     linkId: string;
     type: "create" | "edit" | "transfer";
-    imageToUpload?: string;
   };
 
   const link = await prisma.link.findUnique({
