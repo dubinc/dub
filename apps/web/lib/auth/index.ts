@@ -117,13 +117,18 @@ export const withAuth = (
 
     let session: Session | undefined;
     let headers = {};
+    let id: string | undefined;
+    let slug: string | undefined;
 
-    const slug = params?.slug || searchParams.projectSlug;
-    const workspaceId = params?.workspaceId || searchParams.workspaceId;
+    const idOrSlug =
+      params?.slug ||
+      searchParams.projectSlug ||
+      params?.workspaceId ||
+      searchParams.workspaceId;
 
     try {
-      // if there's no projectSlug defined
-      if (!slug && !workspaceId) {
+      // if there's no projectSlug & id defined
+      if (!idOrSlug) {
         // for /api/links (POST /api/links) – allow no session (but warn if user provides apiKey)
         if (allowAnonymous && !apiKey) {
           // @ts-expect-error
@@ -140,6 +145,12 @@ export const withAuth = (
               "Workspace id not found. Did you forget to include a `workspaceId` query parameter?",
           });
         }
+      }
+
+      if (idOrSlug.startsWith("w_")) {
+        id = idOrSlug.replace("w_", "");
+      } else {
+        slug = idOrSlug;
       }
 
       if (apiKey) {
@@ -215,7 +226,7 @@ export const withAuth = (
         prisma.project.findUnique({
           where: {
             slug: slug || undefined,
-            id: workspaceId || undefined,
+            id: id || undefined,
           },
           select: {
             id: true,

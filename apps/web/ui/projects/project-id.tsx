@@ -5,6 +5,7 @@ import { CopyButton } from "@dub/ui";
 
 export default function ProjectID() {
   const { id } = useProject();
+  const workspaceId = `w_${id}`
 
   return (
     <>
@@ -17,8 +18,8 @@ export default function ProjectID() {
             </p>
           </div>
           <div className="flex w-full max-w-md items-center justify-between rounded-md border border-gray-300 bg-white p-2">
-            <p className="text-sm text-gray-500">{id}</p>
-            <CopyButton value={id!} className="rounded-md" />
+            <p className="text-sm text-gray-500">{workspaceId}</p>
+            <CopyButton value={workspaceId} className="rounded-md" />
           </div>
         </div>
         <div className="flex items-center justify-between rounded-b-lg border-t border-gray-200 bg-gray-50 px-3 py-5 sm:px-10">
