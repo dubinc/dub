@@ -190,7 +190,7 @@ export const authOptions: NextAuthOptions = {
       if (account?.provider === "google" || account?.provider === "github") {
         const userExists = await prisma.user.findUnique({
           where: { email: user.email },
-          select: { name: true, image: true },
+          select: { id: true, name: true, image: true },
         });
         if (!userExists || !profile) {
           return true;
@@ -207,10 +207,9 @@ export const authOptions: NextAuthOptions = {
             profilePic
           ) {
             const { url } = await storage.upload(
-              `avatars/${user.id}`,
+              `avatars/${userExists.id}`,
               profilePic,
             );
-            console.log({ url });
             newAvatar = url;
           }
           await prisma.user.update({
