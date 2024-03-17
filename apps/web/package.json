@@ -45,7 +45,6 @@
     "@visx/tooltip": "^2.16.0",
     "aws4fetch": "^1.0.18",
     "bottleneck": "^2.19.5",
-    "cloudinary": "^1.40.0",
     "cmdk": "^0.2.0",
     "cobe": "^0.6.3",
     "concurrently": "^8.0.1",

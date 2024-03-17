@@ -44,10 +44,12 @@ export const POST = withAuth(async ({ req, project }) => {
   }
 
   const validDomain = await validateDomain(domain);
+
   if (validDomain !== true) {
     return new Response(validDomain, { status: 422 });
   }
   const vercelResponse = await addDomainToVercel(domain);
+
   if (vercelResponse.error) {
     return new Response(vercelResponse.error.message, { status: 422 });
   }

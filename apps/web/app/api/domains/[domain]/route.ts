@@ -134,5 +134,6 @@ export const DELETE = withAuth(async ({ domain, project }) => {
   }
 
   const response = await deleteDomainAndLinks(domain);
+
   return NextResponse.json(response);
 });

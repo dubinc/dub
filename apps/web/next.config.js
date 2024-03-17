@@ -56,9 +56,6 @@ module.exports = {
         hostname: "api.dicebear.com",
       },
       {
-        hostname: "res.cloudinary.com", // Keep for now until we move to dubassets
-      },
-      {
         hostname: "pbs.twimg.com",
       },
       {

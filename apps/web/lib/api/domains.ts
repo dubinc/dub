@@ -6,7 +6,7 @@ import {
   isIframeable,
   validDomainRegex,
 } from "@dub/utils";
-import cloudinary from "cloudinary";
+import { storage } from "../storage";
 import { recordLink } from "../tinybird";
 
 export const validateDomain = async (domain: string) => {
@@ -253,14 +253,13 @@ export async function deleteDomainAndLinks(
       },
       deleted: true,
     }),
-    ...allLinks.map((link) =>
+    ...allLinks.flatMap((link) => [
       recordLink({
         link,
         deleted: true,
       }),
-    ),
-    // remove all images from cloudinary
-    cloudinary.v2.api.delete_resources_by_prefix(domain),
+      storage.delete(`images/${link.id}`),
+    ]),
     // remove the domain from Vercel
     removeDomainFromVercel(domain),
     !skipPrismaDelete &&
