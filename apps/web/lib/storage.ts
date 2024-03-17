@@ -94,11 +94,15 @@ class StorageClient {
 
   private async urlToBlob(url: string, opts?: imageOptions): Promise<Blob> {
     let response: Response;
-    if (opts?.height && opts?.width) {
+    if (opts?.height || opts?.width) {
       try {
-        response = await fetchWithTimeout(
-          `https://wsrv.nl/?w=${opts.width}&h=${opts.height}&fit=cover&url=${url}`,
-        );
+        const proxyUrl = new URL("https://wsrv.nl");
+        proxyUrl.searchParams.set("url", url);
+        if (opts.width) proxyUrl.searchParams.set("w", opts.width.toString());
+        if (opts.height) proxyUrl.searchParams.set("h", opts.height.toString());
+        proxyUrl.searchParams.set("fit", "cover");
+        console.log(proxyUrl.toString());
+        response = await fetchWithTimeout(proxyUrl.toString());
       } catch (error) {
         response = await fetch(url);
       }
