@@ -11,8 +11,6 @@ const REDIRECT_SEGMENTS = [
 module.exports = {
   reactStrictMode: false,
   experimental: {
-    useDeploymentId: true,
-    useDeploymentIdServerActions: true,
     serverComponentsExternalPackages: [
       "@react-email/components",
       "@react-email/render",
@@ -40,6 +38,12 @@ module.exports = {
   images: {
     remotePatterns: [
       {
+        hostname: "assets.dub.co", // for Dub's static assets
+      },
+      {
+        hostname: "dubassets.com", // for Dub's user generated images
+      },
+      {
         hostname: "www.google.com",
       },
       {
@@ -52,13 +56,10 @@ module.exports = {
         hostname: "api.dicebear.com",
       },
       {
-        hostname: "res.cloudinary.com",
+        hostname: "res.cloudinary.com", // Keep for now until we move to dubassets
       },
       {
         hostname: "pbs.twimg.com",
-      },
-      {
-        hostname: "assets.dub.co",
       },
       {
         hostname: "lh3.googleusercontent.com",

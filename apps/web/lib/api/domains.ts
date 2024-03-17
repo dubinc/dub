@@ -203,34 +203,6 @@ export async function setRootDomain({
   ]);
 }
 
-/* Change the domain for all images for a given project on Cloudinary */
-export async function changeDomainForImages(domain: string, newDomain: string) {
-  const links = await prisma.link.findMany({
-    where: {
-      domain,
-    },
-    select: {
-      key: true,
-    },
-  });
-  if (links.length === 0) return null;
-  try {
-    return await Promise.all(
-      links.map(({ key }) =>
-        cloudinary.v2.uploader.rename(
-          `${domain}/${key}`,
-          `${newDomain}/${key}`,
-          {
-            invalidate: true,
-          },
-        ),
-      ),
-    );
-  } catch (e) {
-    return null;
-  }
-}
-
 /* Delete a domain and all links & images associated with it */
 export async function deleteDomainAndLinks(
   domain: string,

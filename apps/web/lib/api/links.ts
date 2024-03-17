@@ -5,6 +5,7 @@ import {
   isReservedUsername,
 } from "@/lib/edge-config";
 import prisma from "@/lib/prisma";
+import { isStored, storage } from "@/lib/storage";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import {
   getLinksCountQuerySchema,
@@ -23,7 +24,6 @@ import {
   validKeyRegex,
 } from "@dub/utils";
 import { Prisma } from "@prisma/client";
-import cloudinary from "cloudinary";
 import { checkIfKeyExists, getRandomKey } from "../planetscale";
 import { recordLink } from "../tinybird";
 import {
@@ -437,12 +437,11 @@ export async function processLink({
     }
   }
 
-  // custom social media image checks
-  const uploadedImage = image && image.startsWith("data:image") ? true : false;
-  if (uploadedImage && !process.env.CLOUDINARY_URL) {
+  // custom social media image checks (see if R2 is configured)
+  if (proxy && !process.env.STORAGE_SECRET_ACCESS_KEY) {
     return {
       link: payload,
-      error: "Missing Cloudinary environment variable.",
+      error: "Missing storage access key.",
       code: "bad_request",
     };
   }
@@ -504,24 +503,12 @@ export function combineTagIds({
 }
 
 export async function addLink(link: LinkWithTagIdsProps) {
-  let { domain, key, url, expiresAt, title, description, image, proxy, geo } =
-    link;
-  const uploadedImage = image && image.startsWith("data:image") ? true : false;
+  let { key, url, expiresAt, title, description, image, proxy, geo } = link;
 
   const combinedTagIds = combineTagIds(link);
 
   const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
     getParamsFromURL(url);
-
-  if (proxy && image && uploadedImage) {
-    const { secure_url } = await cloudinary.v2.uploader.upload(image, {
-      public_id: key,
-      folder: domain,
-      overwrite: true,
-      invalidate: true,
-    });
-    image = secure_url;
-  }
 
   const { tagId, tagIds, ...rest } = link;
 
@@ -531,7 +518,8 @@ export async function addLink(link: LinkWithTagIdsProps) {
       key,
       title: truncate(title, 120),
       description: truncate(description, 240),
-      image,
+      // if it's an uploaded image, make this null first because we'll update it later
+      image: proxy && image && !isStored(image) ? null : image,
       utm_source,
       utm_medium,
       utm_campaign,
@@ -562,6 +550,27 @@ export async function addLink(link: LinkWithTagIdsProps) {
     },
   });
 
+  const uploadedImageUrl = `${process.env.STORAGE_BASE_URL}/images/${response.id}`;
+
+  if (proxy && image && !isStored(image)) {
+    await Promise.all([
+      // upload image to R2
+      storage.upload(`images/${response.id}`, image, {
+        width: 1200,
+        height: 630,
+      }),
+      // update the null image we set earlier to the uploaded image URL
+      prisma.link.update({
+        where: {
+          id: response.id,
+        },
+        data: {
+          image: uploadedImageUrl,
+        },
+      }),
+    ]);
+  }
+
   const shortLink = linkConstructor({
     domain: response.domain,
     key: response.key,
@@ -569,6 +578,9 @@ export async function addLink(link: LinkWithTagIdsProps) {
   const tags = response.tags.map(({ tag }) => tag);
   return {
     ...response,
+    // optimistically set the image URL to the uploaded image URL
+    image:
+      proxy && image && !isStored(image) ? uploadedImageUrl : response.image,
     tagId: tags?.[0]?.id ?? null, // backwards compatibility
     tags,
     shortLink,
@@ -694,12 +706,14 @@ export async function propagateBulkLinkChanges(
 }
 
 export async function editLink({
-  domain: oldDomain = SHORT_DOMAIN,
-  key: oldKey,
+  oldDomain = SHORT_DOMAIN,
+  oldKey,
+  oldImage,
   updatedLink,
 }: {
-  domain?: string;
-  key: string;
+  oldDomain?: string;
+  oldKey: string;
+  oldImage?: string;
   updatedLink: LinkWithTagIdsProps;
 }) {
   let {
@@ -716,7 +730,6 @@ export async function editLink({
   } = updatedLink;
   const changedKey = key.toLowerCase() !== oldKey.toLowerCase();
   const changedDomain = domain !== oldDomain;
-  const uploadedImage = image && image.startsWith("data:image") ? true : false;
 
   const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
     getParamsFromURL(url);
@@ -734,22 +747,15 @@ export async function editLink({
 
   const combinedTagIds = combineTagIds({ tagId, tagIds });
 
-  if (proxy && image) {
-    // only upload image to cloudinary if proxy is true and there's an image
-    if (uploadedImage) {
-      const { secure_url } = await cloudinary.v2.uploader.upload(image, {
-        public_id: key,
-        folder: domain,
-        overwrite: true,
-        invalidate: true,
-      });
-      image = secure_url;
-    }
-    // if there's no proxy enabled or no image, delete the image in Cloudinary
-  } else {
-    await cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
-      invalidate: true,
+  if (proxy && image && !isStored(image)) {
+    // only upload image if proxy is true and image is not stored in R2
+    await storage.upload(`images/${id}`, image, {
+      width: 1200,
+      height: 630,
     });
+    // if there's an image in R2, delete it
+  } else if (oldImage?.startsWith(process.env.STORAGE_BASE_URL as string)) {
+    await storage.delete(`images/${id}`);
   }
 
   const [response, ..._effects] = await Promise.all([
@@ -762,7 +768,10 @@ export async function editLink({
         key,
         title: truncate(title, 120),
         description: truncate(description, 240),
-        image,
+        image:
+          proxy && image && !isStored(image)
+            ? `${process.env.STORAGE_BASE_URL}/images/${id}`
+            : image,
         utm_source,
         utm_medium,
         utm_campaign,
@@ -796,21 +805,9 @@ export async function editLink({
         },
       },
     }),
-    // if key is changed: rename resource in Cloudinary, delete the old key in Redis and change the clicks key name
-    ...(changedDomain || changedKey
-      ? [
-          ...(process.env.CLOUDINARY_URL
-            ? [
-                cloudinary.v2.uploader
-                  .destroy(`${oldDomain}/${oldKey}`, {
-                    invalidate: true,
-                  })
-                  .catch(() => {}),
-              ]
-            : []),
-          redis.hdel(oldDomain, oldKey.toLowerCase()),
-        ]
-      : []),
+    // if key is changed: delete the old key in Redis
+    (changedDomain || changedKey) &&
+      redis.hdel(oldDomain, oldKey.toLowerCase()),
   ]);
 
   const shortLink = linkConstructor({
@@ -838,7 +835,11 @@ export async function deleteLink(linkId: string) {
       tags: true,
     },
   });
-  return await Promise.all([
+  return await Promise.allSettled([
+    // if the image is stored in Cloudflare R2, delete it
+    link.proxy &&
+      link.image?.startsWith(process.env.STORAGE_BASE_URL as string) &&
+      storage.delete(`images/${link.id}`),
     redis.hdel(link.domain, link.key.toLowerCase()),
     recordLink({ link, deleted: true }),
     link.projectId &&
@@ -851,11 +852,6 @@ export async function deleteLink(linkId: string) {
             decrement: 1,
           },
         },
-      }),
-    link.proxy &&
-      link.image &&
-      cloudinary.v2.uploader.destroy(`${link.domain}/${link.key}`, {
-        invalidate: true,
       }),
   ]);
 }

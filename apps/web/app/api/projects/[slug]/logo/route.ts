@@ -1,7 +1,7 @@
 import { withAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { storage } from "@/lib/storage";
 import z from "@/lib/zod";
-import cloudinary from "cloudinary";
 import { NextResponse } from "next/server";
 
 const uploadLogoSchema = z.object({
@@ -13,16 +13,11 @@ export const POST = withAuth(
   async ({ req, project }) => {
     const { image } = uploadLogoSchema.parse(await req.json());
 
-    const { secure_url } = await cloudinary.v2.uploader.upload(image, {
-      public_id: project.id,
-      folder: "logos",
-      overwrite: true,
-      invalidate: true,
-    });
-
+    const { url } = await storage.upload(`logos/${project.id}`, image);
+        
     const response = await prisma.project.update({
       where: { id: project.id },
-      data: { logo: secure_url },
+      data: { logo: url },
     });
 
     return NextResponse.json(response);
