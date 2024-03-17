@@ -39,7 +39,6 @@ export default function Toggle() {
   const { basePath, domain, key, url, interval } = useContext(AnalyticsContext);
 
   const [openDatePopover, setOpenDatePopover] = useState(false);
-  const [openMorePopover, setOpenMorePopover] = useState(false);
 
   const selectedInterval = useMemo(() => {
     return INTERVALS.find((s) => s.value === interval) || INTERVALS[1];
@@ -167,11 +166,11 @@ export default function Toggle() {
           >
             <button
               onClick={() => setOpenDatePopover(!openDatePopover)}
-              className="flex w-full items-center justify-between space-x-2 rounded-md bg-white px-3 py-2.5 shadow transition-all hover:shadow-md md:w-48"
+              className="flex w-full items-center justify-between space-x-2 truncate rounded-md bg-white px-3 py-2.5 shadow transition-all hover:shadow-md md:w-48"
             >
               <IconMenu
                 text={selectedInterval.display}
-                icon={<Calendar className="h-4 w-4" />}
+                icon={<Calendar className="h-4 w-4 flex-shrink-0" />}
               />
               <ChevronDown
                 className={`h-5 w-5 text-gray-400 ${
@@ -181,25 +180,7 @@ export default function Toggle() {
             </button>
           </Popover>
 
-          {!isPublicStatsPage && (
-            <Popover
-              align="end"
-              content={
-                <div className="grid w-full p-2 md:w-48">
-                  <ExportButton />
-                </div>
-              }
-              openPopover={openMorePopover}
-              setOpenPopover={setOpenMorePopover}
-            >
-              <button
-                onClick={() => setOpenMorePopover(!openMorePopover)}
-                className="flex h-10 w-10 items-center justify-center rounded-md bg-white shadow transition-all hover:shadow-md"
-              >
-                ...
-              </button>
-            </Popover>
-          )}
+          {!isPublicStatsPage && <ExportButton />}
         </div>
       </div>
     </div>

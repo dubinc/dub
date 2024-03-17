@@ -1,4 +1,4 @@
-import { IconMenu, LoadingSpinner, Tooltip, TooltipContent } from "@dub/ui";
+import { LoadingSpinner, Tooltip, TooltipContent } from "@dub/ui";
 import zip from "jszip";
 import { Download } from "lucide-react";
 import { useContext, useState } from "react";
@@ -65,21 +65,21 @@ export default function ExportButton() {
   return totalClicks === 0 || !totalClicks ? (
     <Tooltip content={<TooltipContent title="No data available" />}>
       <button
-        disabled={loading || totalClicks === 0 || !totalClicks}
-        className="flex w-full items-center justify-between space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-white disabled:active:bg-white"
+        disabled={true}
+        className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md bg-white shadow transition-all hover:shadow-md disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-white disabled:active:bg-white"
         onClick={async () => {
           setLoading(true);
           await exportData();
           setLoading(false);
         }}
       >
-        <IconMenu text="Export" icon={<Download className="h-4 w-4" />} />
+        <Download className="h-4 w-4" />
       </button>
     </Tooltip>
   ) : (
     <button
       disabled={loading}
-      className="flex w-full items-center justify-between space-x-2 rounded-md p-2 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-progress disabled:text-gray-400 disabled:hover:bg-white disabled:active:bg-white"
+      className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md bg-white shadow transition-all hover:shadow-md disabled:cursor-progress disabled:text-gray-400 disabled:hover:bg-white disabled:active:bg-white"
       onClick={async () => {
         setLoading(true);
         await exportData();
@@ -87,9 +87,9 @@ export default function ExportButton() {
       }}
     >
       {loading ? (
-        <IconMenu text="Export" icon={<LoadingSpinner className="h-4 w-4" />} />
+        <LoadingSpinner className="h-4 w-4" />
       ) : (
-        <IconMenu text="Export" icon={<Download className="h-4 w-4" />} />
+        <Download className="h-4 w-4" />
       )}
     </button>
   );

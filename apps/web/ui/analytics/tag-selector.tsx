@@ -20,9 +20,9 @@ export default function TagSelector() {
   return tags && tags.length > 0 ? (
     <Popover
       content={
-        <Command>
+        <Command className="w-full md:w-48">
           <div className="grid w-full p-2 md:w-48">
-            {tags.length > 10 && (
+            {tags.length > 4 && (
               <div className="relative mb-2">
                 <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center">
                   <Search className="h-4 w-4 text-gray-400" />
@@ -82,7 +82,7 @@ export default function TagSelector() {
     >
       <button
         onClick={(o) => setOpenPopover(!o)}
-        className="flex w-full items-center justify-between space-x-2 rounded-md bg-white px-3 py-2.5 shadow transition-all hover:shadow-md md:w-48"
+        className="flex w-full items-center justify-between space-x-2 truncate rounded-md bg-white px-3 py-2.5 shadow transition-all hover:shadow-md md:w-48"
       >
         <IconMenu
           text={tags.find(({ id }) => id === selectedTagId)?.name || "All tags"}
