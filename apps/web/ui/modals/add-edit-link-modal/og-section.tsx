@@ -167,7 +167,7 @@ export default function OGSection({
             </div>
             <label
               htmlFor="image"
-              className="group relative mt-1 flex h-[14rem] cursor-pointer flex-col items-center justify-center rounded-md border border-gray-300 bg-white shadow-sm transition-all hover:bg-gray-50"
+              className="group relative mt-1 flex aspect-[1200/630] h-[14rem] cursor-pointer flex-col items-center justify-center rounded-md border border-gray-300 bg-white shadow-sm transition-all hover:bg-gray-50"
             >
               {generatingMetatags && (
                 <div className="absolute z-[5] flex h-full w-full items-center justify-center rounded-md bg-white">
