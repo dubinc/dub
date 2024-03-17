@@ -5,7 +5,7 @@ import {
   isReservedUsername,
 } from "@/lib/edge-config";
 import prisma from "@/lib/prisma";
-import { storage } from "@/lib/storage";
+import { isStored, storage } from "@/lib/storage";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import {
   getLinksCountQuerySchema,
@@ -437,9 +437,8 @@ export async function processLink({
     }
   }
 
-  // custom social media image checks
-  const uploadedImage = image && image.startsWith("data:image") ? true : false;
-  if (uploadedImage && !process.env.STORAGE_SECRET_ACCESS_KEY) {
+  // custom social media image checks (see if R2 is configured)
+  if (proxy && !process.env.STORAGE_SECRET_ACCESS_KEY) {
     return {
       link: payload,
       error: "Missing storage access key.",
@@ -505,7 +504,6 @@ export function combineTagIds({
 
 export async function addLink(link: LinkWithTagIdsProps) {
   let { key, url, expiresAt, title, description, image, proxy, geo } = link;
-  const uploadedImage = image && image.startsWith("data:image") ? true : false;
 
   const combinedTagIds = combineTagIds(link);
 
@@ -521,7 +519,7 @@ export async function addLink(link: LinkWithTagIdsProps) {
       title: truncate(title, 120),
       description: truncate(description, 240),
       // if it's an uploaded image, make this null first because we'll update it later
-      image: uploadedImage ? null : image,
+      image: proxy && image && !isStored(image) ? null : image,
       utm_source,
       utm_medium,
       utm_campaign,
@@ -554,7 +552,7 @@ export async function addLink(link: LinkWithTagIdsProps) {
 
   const uploadedImageUrl = `${process.env.STORAGE_BASE_URL}/images/${response.id}`;
 
-  if (proxy && image && uploadedImage) {
+  if (proxy && image && !isStored(image)) {
     await Promise.all([
       // upload image to R2
       storage.upload(`images/${response.id}`, image),
@@ -577,8 +575,9 @@ export async function addLink(link: LinkWithTagIdsProps) {
   const tags = response.tags.map(({ tag }) => tag);
   return {
     ...response,
-    // set the image URL to the uploaded image URL
-    image: uploadedImage ? uploadedImageUrl : response.image,
+    // optimistically set the image URL to the uploaded image URL
+    image:
+      proxy && image && !isStored(image) ? uploadedImageUrl : response.image,
     tagId: tags?.[0]?.id ?? null, // backwards compatibility
     tags,
     shortLink,
@@ -728,7 +727,6 @@ export async function editLink({
   } = updatedLink;
   const changedKey = key.toLowerCase() !== oldKey.toLowerCase();
   const changedDomain = domain !== oldDomain;
-  const uploadedImage = image && image.startsWith("data:image") ? true : false;
 
   const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
     getParamsFromURL(url);
@@ -746,11 +744,9 @@ export async function editLink({
 
   const combinedTagIds = combineTagIds({ tagId, tagIds });
 
-  if (proxy && image) {
-    // only upload image if proxy is true and there's an image
-    if (uploadedImage) {
-      await storage.upload(`images/${id}`, image);
-    }
+  if (proxy && image && !isStored(image)) {
+    // only upload image if proxy is true and image is not stored in R2
+    await storage.upload(`images/${id}`, image);
     // if there's an image in R2, delete it
   } else if (oldImage?.startsWith(process.env.STORAGE_BASE_URL as string)) {
     await storage.delete(`images/${id}`);
@@ -766,9 +762,10 @@ export async function editLink({
         key,
         title: truncate(title, 120),
         description: truncate(description, 240),
-        image: uploadedImage
-          ? `${process.env.STORAGE_BASE_URL}/images/${id}`
-          : image,
+        image:
+          proxy && image && !isStored(image)
+            ? `${process.env.STORAGE_BASE_URL}/images/${id}`
+            : image,
         utm_source,
         utm_medium,
         utm_campaign,

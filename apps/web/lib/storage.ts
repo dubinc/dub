@@ -103,3 +103,7 @@ class StorageClient {
 }
 
 export const storage = new StorageClient();
+
+export const isStored = (url: string) => {
+  return url.startsWith(process.env.STORAGE_BASE_URL || "");
+};
