@@ -1,9 +1,9 @@
 import { withSession } from "@/lib/auth";
 import { unsubscribe } from "@/lib/flodesk";
 import prisma from "@/lib/prisma";
+import { storage } from "@/lib/storage";
 import { redis } from "@/lib/upstash";
 import { trim } from "@dub/utils";
-import cloudinary from "cloudinary";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -37,13 +37,8 @@ export const PUT = withSession(async ({ req, session }) => {
   );
   try {
     if (image) {
-      const { secure_url } = await cloudinary.v2.uploader.upload(image, {
-        public_id: session.user.id,
-        folder: "avatars",
-        overwrite: true,
-        invalidate: true,
-      });
-      image = secure_url;
+      const { url } = await storage.upload(`avatars/${session.user.id}`, image);
+      image = url;
     }
     const response = await prisma.user.update({
       where: {
@@ -79,15 +74,15 @@ export const DELETE = withSession(async ({ session }) => {
       { status: 422 },
     );
   } else {
+    const user = await prisma.user.delete({
+      where: {
+        id: session.user.id,
+      },
+    });
     const response = await Promise.allSettled([
-      prisma.user.delete({
-        where: {
-          id: session.user.id,
-        },
-      }),
-      cloudinary.v2.uploader.destroy(`avatars/${session?.user?.id}`, {
-        invalidate: true,
-      }),
+      // if the user has a custom avatar, delete it
+      user.image?.startsWith(process.env.STORAGE_BASE_URL as string) &&
+        storage.delete(`avatars/${session.user.id}`),
       unsubscribe(session.user.email),
     ]);
     return NextResponse.json(response);

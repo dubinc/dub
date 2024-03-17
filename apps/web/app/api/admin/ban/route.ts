@@ -2,8 +2,8 @@ import { deleteProjectAdmin } from "@/lib/api/projects";
 import { withAdmin } from "@/lib/auth";
 import { unsubscribe } from "@/lib/flodesk";
 import prisma from "@/lib/prisma";
+import { storage } from "@/lib/storage";
 import { get } from "@vercel/edge-config";
-import cloudinary from "cloudinary";
 import { NextResponse } from "next/server";
 
 // POST /api/admin/ban
@@ -17,6 +17,7 @@ export const POST = withAdmin(async ({ req }) => {
     select: {
       id: true,
       email: true,
+      image: true,
       projects: {
         where: {
           role: "owner",
@@ -58,9 +59,9 @@ export const POST = withAdmin(async ({ req }) => {
         id: user.id,
       },
     }),
-    cloudinary.v2.uploader.destroy(`avatars/${user.id}`, {
-      invalidate: true,
-    }),
+    // if the user has a custom avatar, delete it
+    user.image?.startsWith(process.env.STORAGE_BASE_URL as string) &&
+      storage.delete(`avatars/${user.id}`),
     unsubscribe(user.email),
     fetch(
       `https://api.vercel.com/v1/edge-config/${process.env.EDGE_CONFIG_ID}/items?teamId=${process.env.TEAM_ID_VERCEL}`,
