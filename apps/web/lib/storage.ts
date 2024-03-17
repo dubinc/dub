@@ -101,7 +101,6 @@ class StorageClient {
         if (opts.width) proxyUrl.searchParams.set("w", opts.width.toString());
         if (opts.height) proxyUrl.searchParams.set("h", opts.height.toString());
         proxyUrl.searchParams.set("fit", "cover");
-        console.log(proxyUrl.toString());
         response = await fetchWithTimeout(proxyUrl.toString());
       } catch (error) {
         response = await fetch(url);
