@@ -555,7 +555,10 @@ export async function addLink(link: LinkWithTagIdsProps) {
   if (proxy && image && !isStored(image)) {
     await Promise.all([
       // upload image to R2
-      storage.upload(`images/${response.id}`, image),
+      storage.upload(`images/${response.id}`, image, {
+        width: 1200,
+        height: 630,
+      }),
       // update the null image we set earlier to the uploaded image URL
       prisma.link.update({
         where: {
@@ -746,7 +749,10 @@ export async function editLink({
 
   if (proxy && image && !isStored(image)) {
     // only upload image if proxy is true and image is not stored in R2
-    await storage.upload(`images/${id}`, image);
+    await storage.upload(`images/${id}`, image, {
+      width: 1200,
+      height: 630,
+    });
     // if there's an image in R2, delete it
   } else if (oldImage?.startsWith(process.env.STORAGE_BASE_URL as string)) {
     await storage.delete(`images/${id}`);

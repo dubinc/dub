@@ -1,4 +1,11 @@
+import { fetchWithTimeout } from "@dub/utils";
 import { AwsClient } from "aws4fetch";
+
+interface imageOptions {
+  contentType?: string;
+  width?: number;
+  height?: number;
+}
 
 class StorageClient {
   private client: AwsClient;
@@ -12,17 +19,13 @@ class StorageClient {
     });
   }
 
-  async upload(
-    key: string,
-    body: Blob | Buffer | string,
-    contentType?: string,
-  ) {
+  async upload(key: string, body: Blob | Buffer | string, opts?: imageOptions) {
     let uploadBody;
     if (typeof body === "string") {
       if (this.isBase64(body)) {
-        uploadBody = this.base64ToArrayBuffer(body, contentType);
+        uploadBody = this.base64ToArrayBuffer(body, opts);
       } else if (this.isUrl(body)) {
-        uploadBody = await this.urlToBlob(body, contentType);
+        uploadBody = await this.urlToBlob(body, opts);
       } else {
         throw new Error("Invalid input: Not a base64 string or a valid URL");
       }
@@ -33,7 +36,7 @@ class StorageClient {
     const headers = {
       "Content-Length": uploadBody.size.toString(),
     };
-    if (contentType) headers["Content-Type"] = contentType;
+    if (opts?.contentType) headers["Content-Type"] = opts.contentType;
 
     try {
       await this.client.fetch(`${process.env.STORAGE_ENDPOINT}/${key}`, {
@@ -58,7 +61,7 @@ class StorageClient {
     return { success: true };
   }
 
-  private base64ToArrayBuffer(base64: string, contentType?: string) {
+  private base64ToArrayBuffer(base64: string, opts?: imageOptions) {
     const base64Data = base64.replace(/^data:.+;base64,/, "");
     const paddedBase64Data = base64Data.padEnd(
       base64Data.length + ((4 - (base64Data.length % 4)) % 4),
@@ -70,9 +73,9 @@ class StorageClient {
     for (let i = 0; i < binaryString.length; i++) {
       byteArray[i] = binaryString.charCodeAt(i);
     }
-    const opts = {};
-    if (contentType) opts["type"] = contentType;
-    return new Blob([byteArray], opts);
+    const blobProps = {};
+    if (opts?.contentType) blobProps["type"] = opts.contentType;
+    return new Blob([byteArray], blobProps);
   }
 
   private isBase64(str: string): boolean {
@@ -89,14 +92,25 @@ class StorageClient {
     }
   }
 
-  private async urlToBlob(url: string, contentType?: string): Promise<Blob> {
-    const response = await fetch(url);
+  private async urlToBlob(url: string, opts?: imageOptions): Promise<Blob> {
+    let response: Response;
+    if (opts?.height && opts?.width) {
+      try {
+        response = await fetchWithTimeout(
+          `https://wsrv.nl/?w=${opts.width}&h=${opts.height}&fit=cover&url=${url}`,
+        );
+      } catch (error) {
+        response = await fetch(url);
+      }
+    } else {
+      response = await fetch(url);
+    }
     if (!response.ok) {
       throw new Error(`Failed to fetch URL: ${response.statusText}`);
     }
     const blob = await response.blob();
-    if (contentType) {
-      return new Blob([blob], { type: contentType });
+    if (opts?.contentType) {
+      return new Blob([blob], { type: opts.contentType });
     }
     return blob;
   }
