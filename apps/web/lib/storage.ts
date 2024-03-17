@@ -18,12 +18,13 @@ class StorageClient {
     contentType?: string,
   ) {
     let uploadBody;
-
     if (typeof body === "string") {
-      try {
-        uploadBody = this.base64ToArrayBuffer(body);
-      } catch (error) {
-        throw new Error(`Invalid base64 string: ${error.message}`);
+      if (this.isBase64(body)) {
+        uploadBody = this.base64ToArrayBuffer(body, contentType);
+      } else if (this.isUrl(body)) {
+        uploadBody = await this.urlToBlob(body, contentType);
+      } else {
+        throw new Error("Invalid input: Not a base64 string or a valid URL");
       }
     } else {
       uploadBody = body;
@@ -34,15 +35,19 @@ class StorageClient {
     };
     if (contentType) headers["Content-Type"] = contentType;
 
-    await this.client.fetch(`${process.env.STORAGE_ENDPOINT}/${key}`, {
-      method: "PUT",
-      headers,
-      body: uploadBody,
-    });
+    try {
+      await this.client.fetch(`${process.env.STORAGE_ENDPOINT}/${key}`, {
+        method: "PUT",
+        headers,
+        body: uploadBody,
+      });
 
-    return {
-      url: `${process.env.STORAGE_BASE_URL}/${key}`,
-    };
+      return {
+        url: `${process.env.STORAGE_BASE_URL}/${key}`,
+      };
+    } catch (error) {
+      throw new Error(`Failed to upload file: ${error.message}`);
+    }
   }
 
   async delete(key: string) {
@@ -68,6 +73,32 @@ class StorageClient {
     const opts = {};
     if (contentType) opts["type"] = contentType;
     return new Blob([byteArray], opts);
+  }
+
+  private isBase64(str: string): boolean {
+    const regex = /^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+);base64,([^\s]*)$/;
+    return regex.test(str);
+  }
+
+  private isUrl(str: string): boolean {
+    try {
+      new URL(str);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  private async urlToBlob(url: string, contentType?: string): Promise<Blob> {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch URL: ${response.statusText}`);
+    }
+    const blob = await response.blob();
+    if (contentType) {
+      return new Blob([blob], { type: contentType });
+    }
+    return blob;
   }
 }
 
