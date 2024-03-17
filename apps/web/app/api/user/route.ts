@@ -81,7 +81,7 @@ export const DELETE = withSession(async ({ session }) => {
     });
     const response = await Promise.allSettled([
       // if the user has a custom avatar, delete it
-      user.image?.startsWith(`https://${process.env.STORAGE_DOMAIN}`) &&
+      user.image?.startsWith(process.env.STORAGE_BASE_URL as string) &&
         storage.delete(`avatars/${session.user.id}`),
       unsubscribe(session.user.email),
     ]);

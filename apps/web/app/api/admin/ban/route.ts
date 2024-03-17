@@ -60,7 +60,7 @@ export const POST = withAdmin(async ({ req }) => {
       },
     }),
     // if the user has a custom avatar, delete it
-    user.image?.startsWith(`https://${process.env.STORAGE_DOMAIN}`) &&
+    user.image?.startsWith(process.env.STORAGE_BASE_URL as string) &&
       storage.delete(`avatars/${user.id}`),
     unsubscribe(user.email),
     fetch(

@@ -552,7 +552,7 @@ export async function addLink(link: LinkWithTagIdsProps) {
     },
   });
 
-  const uploadedImageUrl = `https://${process.env.STORAGE_DOMAIN}/images/${response.id}`;
+  const uploadedImageUrl = `${process.env.STORAGE_BASE_URL}/images/${response.id}`;
 
   if (proxy && image && uploadedImage) {
     await Promise.all([
@@ -752,7 +752,7 @@ export async function editLink({
       await storage.upload(`images/${id}`, image);
     }
     // if there's an image in R2, delete it
-  } else if (oldImage?.startsWith(`https://${process.env.STORAGE_DOMAIN}`)) {
+  } else if (oldImage?.startsWith(process.env.STORAGE_BASE_URL as string)) {
     await storage.delete(`images/${id}`);
   }
 
@@ -767,7 +767,7 @@ export async function editLink({
         title: truncate(title, 120),
         description: truncate(description, 240),
         image: uploadedImage
-          ? `https://${process.env.STORAGE_DOMAIN}/images/${id}`
+          ? `${process.env.STORAGE_BASE_URL}/images/${id}`
           : image,
         utm_source,
         utm_medium,
@@ -835,7 +835,7 @@ export async function deleteLink(linkId: string) {
   return await Promise.allSettled([
     // if the image is stored in Cloudflare R2, delete it
     link.proxy &&
-      link.image?.startsWith(`https://${process.env.STORAGE_DOMAIN}`) &&
+      link.image?.startsWith(process.env.STORAGE_BASE_URL as string) &&
       storage.delete(`images/${link.id}`),
     redis.hdel(link.domain, link.key.toLowerCase()),
     recordLink({ link, deleted: true }),

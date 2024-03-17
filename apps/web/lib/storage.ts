@@ -41,7 +41,7 @@ class StorageClient {
     });
 
     return {
-      url: `${process.env.STORAGE_DOMAIN}/${key}`,
+      url: `${process.env.STORAGE_BASE_URL}/${key}`,
     };
   }
 

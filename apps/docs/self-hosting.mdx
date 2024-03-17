@@ -341,10 +341,10 @@ To use your own domain, you'll need to create a CNAME record in your DNS setting
 
 In you plan to use an R2.dev subdomain, make sure you "Allow Access".
 
-Then set the `STORAGE_DOMAIN` in your `.env` file to the domain you chose.
+Then set the `STORAGE_BASE_URL` in your `.env` file to the domain you chose.
 
 ```bash
-STORAGE_DOMAIN={Your Domain}
+STORAGE_BASE_URL={URL your assets as available at} # https://static.example.copm
 ```
 
 <Frame>![Cloudflare R2 domain](/images/cloudflare-r2-public-domain.png)</Frame>

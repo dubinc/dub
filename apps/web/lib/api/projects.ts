@@ -63,7 +63,7 @@ export async function deleteProject(
     pipeline.exec(),
     // remove all images from R2
     ...defaultDomainLinks.map(({ id, proxy, image }) =>
-      proxy && image?.startsWith(`https://${process.env.STORAGE_DOMAIN}`)
+      proxy && image?.startsWith(process.env.STORAGE_BASE_URL as string)
         ? storage.delete(`images/${id}`)
         : Promise.resolve(),
     ),
@@ -71,7 +71,7 @@ export async function deleteProject(
 
   const deleteProjectResponse = await Promise.all([
     // delete project logo if it's a custom logo stored in R2
-    project.logo?.startsWith(`https://${process.env.STORAGE_DOMAIN}`) &&
+    project.logo?.startsWith(process.env.STORAGE_BASE_URL as string) &&
       storage.delete(`logos/${project.id}`),
     // if they have a Stripe subscription, cancel it
     project.stripeId && cancelSubscription(project.stripeId),
@@ -127,7 +127,7 @@ export async function deleteProjectAdmin(
 
   const deleteProjectResponse = await Promise.all([
     // delete project logo if it's a custom logo stored in R2
-    project.logo?.startsWith(`https://${process.env.STORAGE_DOMAIN}`) &&
+    project.logo?.startsWith(process.env.STORAGE_BASE_URL as string) &&
       storage.delete(`logos/${project.id}`),
     // if they have a Stripe subscription, cancel it
     project.stripeId && cancelSubscription(project.stripeId),
