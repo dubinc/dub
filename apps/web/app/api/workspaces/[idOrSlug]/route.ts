@@ -8,7 +8,7 @@ import { DEFAULT_REDIRECTS, validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { NextResponse } from "next/server";
 
-const updateProjectSchema = z.object({
+const updateWorkspaceSchema = z.object({
   name: z.string().min(1).max(32).optional(),
   slug: z
     .string()
@@ -37,7 +37,7 @@ export const GET = withAuth(async ({ workspace, headers }) => {
 export const PUT = withAuth(
   async ({ req, workspace }) => {
     try {
-      const { name, slug } = await updateProjectSchema.parseAsync(
+      const { name, slug } = await updateWorkspaceSchema.parseAsync(
         await req.json(),
       );
 

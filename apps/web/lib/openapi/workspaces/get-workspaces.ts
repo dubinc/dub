@@ -2,9 +2,9 @@ import { ZodOpenApiOperationObject } from "zod-openapi";
 
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import z from "@/lib/zod";
-import { ProjectSchema } from "@/lib/zod/schemas/projects";
+import { WorkspaceSchema } from "@/lib/zod/schemas/workspaces";
 
-export const getProjects: ZodOpenApiOperationObject = {
+export const getWorkspaces: ZodOpenApiOperationObject = {
   operationId: "getWorkspaces",
   summary: "Retrieve a list of workspaces",
   description: "Retrieve a list of workspaces for the authenticated user.",
@@ -13,7 +13,7 @@ export const getProjects: ZodOpenApiOperationObject = {
       description: "A list of workspaces",
       content: {
         "application/json": {
-          schema: z.array(ProjectSchema),
+          schema: z.array(WorkspaceSchema),
         },
       },
     },

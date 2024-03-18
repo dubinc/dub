@@ -18,7 +18,7 @@ import {
 import slugify from "@sindresorhus/slugify";
 import { NextResponse } from "next/server";
 
-const createProjectSchema = z.object({
+const createWorkspaceSchema = z.object({
   name: z.string().min(1).max(32),
   slug: z
     .string()
@@ -64,7 +64,7 @@ export const GET = withSession(async ({ session }) => {
 });
 
 export const POST = withSession(async ({ req, session }) => {
-  const { name, slug, domain } = await createProjectSchema.parseAsync(
+  const { name, slug, domain } = await createWorkspaceSchema.parseAsync(
     await req.json(),
   );
 

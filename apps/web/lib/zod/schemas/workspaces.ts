@@ -1,7 +1,7 @@
 import z from "@/lib/zod";
 import { planSchema, roleSchema } from ".";
 
-export const ProjectSchema = z
+export const WorkspaceSchema = z
   .object({
     id: z.string().describe("The unique ID of the workspace."),
     name: z.string().describe("The name of the workspace."),

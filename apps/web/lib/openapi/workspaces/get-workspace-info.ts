@@ -2,15 +2,15 @@ import { ZodOpenApiOperationObject } from "zod-openapi";
 
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import z from "@/lib/zod";
-import { ProjectSchema } from "@/lib/zod/schemas/projects";
+import { WorkspaceSchema } from "@/lib/zod/schemas/workspaces";
 
-export const getProjectInfo: ZodOpenApiOperationObject = {
+export const getWorkspaceInfo: ZodOpenApiOperationObject = {
   operationId: "getWorkspace",
   summary: "Retrieve a workspace",
   description: "Retrieve a workspace for the authenticated user.",
   requestParams: {
     path: z.object({
-      workspaceId: z.string().describe("The ID of the workspace to retrieve."),
+      idOrSlug: z.string().describe("The ID or slug of the workspace."),
     }),
   },
   responses: {
@@ -18,7 +18,7 @@ export const getProjectInfo: ZodOpenApiOperationObject = {
       description: "The retrieved workspace",
       content: {
         "application/json": {
-          schema: ProjectSchema,
+          schema: WorkspaceSchema,
         },
       },
     },
