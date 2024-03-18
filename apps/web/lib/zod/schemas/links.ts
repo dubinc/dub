@@ -331,7 +331,7 @@ export const LinkSchema = z
     userId: z
       .string()
       .describe("The user ID of the creator of the short link."),
-    projectId: z.string().describe("The workspace ID of the short link."),
+    workspaceId: z.string().describe("The workspace ID of the short link."),
     clicks: z
       .number()
       .default(0)
@@ -346,5 +346,11 @@ export const LinkSchema = z
     updatedAt: z
       .string()
       .describe("The date and time when the short link was last updated."),
+    projectId: z
+      .string()
+      .describe(
+        "[DEPRECATED (use workspaceId instead)]: The project ID of the short link.",
+      )
+      .openapi({ deprecated: true }),
   })
   .openapi({ title: "Link" });

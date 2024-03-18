@@ -35,7 +35,7 @@ import {
 import z from "../zod";
 
 export async function getLinksForWorkspace({
-  projectId,
+  workspaceId,
   domain,
   tagId,
   tagIds,
@@ -46,13 +46,13 @@ export async function getLinksForWorkspace({
   showArchived,
   withTags,
 }: Omit<z.infer<typeof getLinksQuerySchema>, "projectSlug"> & {
-  projectId: string;
+  workspaceId: string;
 }) {
   const combinedTagIds = combineTagIds({ tagId, tagIds });
 
   const links = await prisma.link.findMany({
     where: {
-      projectId,
+      projectId: workspaceId,
       archived: showArchived ? undefined : false,
       ...(domain && { domain }),
       ...(search && {
@@ -112,6 +112,7 @@ export async function getLinksForWorkspace({
       tags,
       shortLink,
       qrCode: `https://api.dub.co/qr?url=${shortLink}`,
+      workspaceId: `ws_${link.projectId}`,
     };
   });
 }
@@ -585,6 +586,7 @@ export async function addLink(link: LinkWithTagIdsProps) {
     tags,
     shortLink,
     qrCode: `https://api.dub.co/qr?url=${shortLink}`,
+    workspaceId: `ws_${response.projectId}`,
   };
 }
 
@@ -656,6 +658,7 @@ export async function bulkCreateLinks({
       tagId: tags?.[0]?.id ?? null, // backwards compatibility
       tags,
       qrCode: `https://api.dub.co/qr?url=${shortLink}`,
+      workspaceId: `ws_${link.projectId}`,
     };
   });
 }
@@ -823,6 +826,7 @@ export async function editLink({
     tags,
     shortLink,
     qrCode: `https://api.dub.co/qr?url=${shortLink}`,
+    workspaceId: `ws_${response.projectId}`,
   };
 }
 

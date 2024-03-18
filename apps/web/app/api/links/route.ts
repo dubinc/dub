@@ -26,7 +26,7 @@ export const GET = withAuth(async ({ headers, searchParams, workspace }) => {
   } = getLinksQuerySchema.parse(searchParams);
 
   const response = await getLinksForWorkspace({
-    projectId: workspace.id,
+    workspaceId: workspace.id,
     domain,
     tagId,
     tagIds,
@@ -37,6 +37,7 @@ export const GET = withAuth(async ({ headers, searchParams, workspace }) => {
     showArchived,
     withTags,
   });
+  console.log(response);
   return NextResponse.json(response, {
     headers,
   });
