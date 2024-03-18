@@ -2,7 +2,6 @@
 
 import { LinkProps, UserProps } from "@/lib/types";
 import {
-  BlurImage,
   NumberTooltip,
   Tooltip,
   useIntersectionObserver,
@@ -11,7 +10,6 @@ import {
 } from "@dub/ui";
 import { LinkifyTooltipContent } from "@dub/ui/src/tooltip";
 import {
-  GOOGLE_FAVICON_URL,
   cn,
   fetcher,
   getApexDomain,
@@ -32,8 +30,8 @@ import {
   useState,
 } from "react";
 import useSWR from "swr";
-import LinkPreviewTooltip from "./link-preview";
 import LinkLogo from "../links/link-logo";
+import LinkPreviewTooltip from "./link-preview";
 
 export default function BarList({
   tab,

@@ -9,7 +9,7 @@ import { getIdentityHash } from "./edge";
 import { detectBot } from "./middleware/utils";
 import { conn } from "./planetscale";
 import { LinkProps } from "./types";
-import { ratelimit } from "./upstash";
+import { ratelimit } from "./unkey";
 
 /**
  * Recording clicks with geo, ua, referer and timestamp data

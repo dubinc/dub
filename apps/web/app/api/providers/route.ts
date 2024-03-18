@@ -1,5 +1,5 @@
 import { getIdentityHash } from "@/lib/edge";
-import { ratelimit } from "@/lib/upstash";
+import { ratelimit } from "@/lib/unkey";
 import { fetchWithTimeout, getUrlFromString } from "@dub/utils";
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";

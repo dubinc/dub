@@ -11,7 +11,7 @@ import { createHash } from "crypto";
 import { getServerSession } from "next-auth/next";
 import { exceededLimitError } from "../api/errors";
 import { PlanProps, ProjectProps } from "../types";
-import { ratelimit } from "../upstash";
+import { ratelimit } from "../unkey";
 import { authOptions } from "./options";
 
 export interface Session {

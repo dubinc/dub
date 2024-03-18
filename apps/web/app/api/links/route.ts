@@ -3,7 +3,7 @@ import { addLink, getLinksForProject, processLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { LinkWithTagIdsProps } from "@/lib/types";
-import { ratelimit } from "@/lib/upstash";
+import { ratelimit } from "@/lib/unkey";
 import {
   createLinkBodySchema,
   getLinksQuerySchema,

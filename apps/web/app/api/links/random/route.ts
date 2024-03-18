@@ -1,7 +1,7 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { getIdentityHash } from "@/lib/edge";
 import { getRandomKey } from "@/lib/planetscale";
-import { ratelimit } from "@/lib/upstash";
+import { ratelimit } from "@/lib/unkey";
 import { domainKeySchema } from "@/lib/zod";
 import { getSearchParams } from "@dub/utils";
 import { getToken } from "next-auth/jwt";

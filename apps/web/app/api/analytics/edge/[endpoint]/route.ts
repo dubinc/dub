@@ -6,7 +6,7 @@ import {
 } from "@/lib/api/errors";
 import { getIdentityHash } from "@/lib/edge";
 import { getDomainOrLink, getProjectViaEdge } from "@/lib/planetscale";
-import { ratelimit } from "@/lib/upstash";
+import { ratelimit } from "@/lib/unkey";
 import {
   analyticsEndpointSchema,
   getAnalyticsEdgeQuerySchema,
