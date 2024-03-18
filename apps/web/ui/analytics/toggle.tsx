@@ -112,11 +112,7 @@ export default function Toggle() {
                       key={value}
                       content={
                         <TooltipContent
-                          title={
-                            slug
-                              ? `${display} stats can only be viewed on a Pro plan or higher. Upgrade now to view all-time stats.`
-                              : `${display} stats can only be viewed on a workspace with a Pro plan or higher. Create a workspace or navigate to an existing workspace to upgrade.`
-                          }
+                          title={`${display} stats can only be viewed on a Pro plan or higher. Upgrade now to view all-time stats.`}
                           cta="Upgrade to Pro"
                           {...(isPublicStatsPage
                             ? {

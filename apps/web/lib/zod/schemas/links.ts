@@ -13,7 +13,7 @@ const LinksQuerySchema = z.object({
     .string()
     .optional()
     .describe(
-      "[DEPRECATED (use tagIds instead)]: The tag ID to filter the links by.",
+      "[DEPRECATED] (use tagIds instead): The tag ID to filter the links by.",
     )
     .openapi({ deprecated: true }),
   tagIds: z
@@ -187,7 +187,7 @@ export const createLinkBodySchema = z.object({
     .string()
     .nullish()
     .describe(
-      "[DEPRECATED (use tagIds instead)]: The unique ID of the tag assigned to the short link.",
+      "[DEPRECATED] (use tagIds instead): The unique ID of the tag assigned to the short link.",
     )
     .openapi({ deprecated: true }),
   tagIds: z
@@ -289,7 +289,7 @@ export const LinkSchema = z
       .string()
       .nullable()
       .describe(
-        "[DEPRECATED (use `tags` instead)]: The unique ID of the tag assigned to the short link.",
+        "[DEPRECATED] (use `tags` instead): The unique ID of the tag assigned to the short link.",
       )
       .openapi({ deprecated: true }),
     tags: TagSchema.array()
@@ -349,7 +349,7 @@ export const LinkSchema = z
     projectId: z
       .string()
       .describe(
-        "[DEPRECATED (use workspaceId instead)]: The project ID of the short link.",
+        "[DEPRECATED] (use workspaceId instead): The project ID of the short link.",
       )
       .openapi({ deprecated: true }),
   })
