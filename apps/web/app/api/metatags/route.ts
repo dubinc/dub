@@ -1,11 +1,11 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { getIdentityHash } from "@/lib/edge";
 import { ratelimit } from "@/lib/unkey";
 import z from "@/lib/zod";
 import { isValidUrl } from "@dub/utils";
 import { getToken } from "next-auth/jwt";
 import { NextRequest } from "next/server";
 import { getMetaTags } from "./utils";
+import { getIdentityHash } from "@/lib/edge";
 
 const getMetaTagQuerySchema = z.object({
   url: z.string().refine((v) => isValidUrl(v), { message: "Invalid URL" }),
