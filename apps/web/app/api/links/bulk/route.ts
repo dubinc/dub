@@ -8,8 +8,8 @@ import { NextResponse } from "next/server";
 
 // POST /api/links/bulk – bulk create up to 100 links
 export const POST = withAuth(
-  async ({ req, headers, session, project }) => {
-    if (!project) {
+  async ({ req, headers, session, workspace }) => {
+    if (!workspace) {
       throw new DubApiError({
         code: "bad_request",
         message:
@@ -18,14 +18,14 @@ export const POST = withAuth(
     }
     const links = bulkCreateLinksBodySchema.parse(await req.json());
     if (
-      project.linksUsage + links.length > project.linksLimit &&
-      (project.plan === "free" || project.plan === "pro")
+      workspace.linksUsage + links.length > workspace.linksLimit &&
+      (workspace.plan === "free" || workspace.plan === "pro")
     ) {
       throw new DubApiError({
         code: "exceeded_limit",
         message: exceededLimitError({
-          plan: project.plan,
-          limit: project.linksLimit,
+          plan: workspace.plan,
+          limit: workspace.linksLimit,
           type: "links",
         }),
       });
@@ -52,7 +52,7 @@ export const POST = withAuth(
       links.map(async (link) =>
         processLink({
           payload: link as LinkWithTagIdsProps,
-          project,
+          workspace,
           userId: session.user.id,
           bulk: true,
         }),
@@ -71,10 +71,10 @@ export const POST = withAuth(
         code,
       }));
 
-    // filter out tags that don't belong to the project
+    // filter out tags that don't belong to the workspace
     const projectTags = await prisma.tag.findMany({
       where: {
-        projectId: project.id,
+        projectId: workspace.id,
       },
       select: {
         id: true,
