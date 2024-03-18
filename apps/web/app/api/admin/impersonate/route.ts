@@ -72,7 +72,7 @@ export const POST = withAdmin(async ({ req }) => {
       },
       {} as Record<string, number>,
     ),
-    projects: response.projects.map(({ project }) => ({
+    workspaces: response.projects.map(({ project }) => ({
       ...project,
       clicks: project.usage,
       domains: project._count.domains,
