@@ -11,6 +11,7 @@ const REDIRECT_SEGMENTS = [
 module.exports = {
   reactStrictMode: false,
   experimental: {
+    optimizePackageImports: ["@dub/ui", "@dub/utils"],
     serverComponentsExternalPackages: [
       "@react-email/components",
       "@react-email/render",
