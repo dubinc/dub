@@ -59,7 +59,7 @@ export const GET = withSession(async ({ session }) => {
     },
   });
   return NextResponse.json(
-    projects.map((project) => ({ ...project, id: `w_${project.id}` })),
+    projects.map((project) => ({ ...project, id: `ws_${project.id}` })),
   );
 });
 

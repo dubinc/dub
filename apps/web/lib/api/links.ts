@@ -875,17 +875,17 @@ export async function archiveLink({
 
 export async function transferLink({
   linkId,
-  newProjectId,
+  newWorkspaceId,
 }: {
   linkId: string;
-  newProjectId: string;
+  newWorkspaceId: string;
 }) {
   return await prisma.link.update({
     where: {
       id: linkId,
     },
     data: {
-      projectId: newProjectId,
+      projectId: newWorkspaceId,
       // remove tags when transferring link
       tags: {
         deleteMany: {},

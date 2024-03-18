@@ -147,8 +147,8 @@ export const withAuth = (
         }
       }
 
-      if (idOrSlug.startsWith("w_")) {
-        id = idOrSlug.replace("w_", "");
+      if (idOrSlug.startsWith("ws_")) {
+        id = idOrSlug.replace("ws_", "");
       } else {
         slug = idOrSlug;
       }

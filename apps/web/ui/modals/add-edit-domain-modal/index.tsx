@@ -91,13 +91,13 @@ function AddEditDomainModal({
     if (props) {
       return {
         method: "PUT",
-        url: `/api/domains/${domain}?projectSlug=${slug}`,
+        url: `/api/domains/${domain}?workspaceId=${id}`,
         successMessage: "Successfully updated domain!",
       };
     } else {
       return {
         method: "POST",
-        url: `/api/domains?projectSlug=${slug}`,
+        url: `/api/domains?workspaceId=${id}`,
         successMessage: "Successfully added domain!",
       };
     }
@@ -105,7 +105,7 @@ function AddEditDomainModal({
 
   async function deleteDomain() {
     setDeleting(true);
-    fetch(`/api/domains/${domain}?projectSlug=${slug}`, {
+    fetch(`/api/domains/${domain}?workspaceId=${id}`, {
       method: "DELETE",
     }).then(async (res) => {
       if (res.status === 200) {

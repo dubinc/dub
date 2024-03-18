@@ -1,7 +1,7 @@
+import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
 import { Button, Modal, useToastWithUndo } from "@dub/ui";
 import { getApexDomain, linkConstructor } from "@dub/utils";
-import { useParams } from "next/navigation";
 import {
   Dispatch,
   MouseEvent,
@@ -14,9 +14,13 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 import LinkLogo from "../links/link-logo";
 
-const sendArchiveRequest = (archived: boolean, id: string, slug?: string) => {
+const sendArchiveRequest = (
+  archived: boolean,
+  id: string,
+  workspaceId?: string,
+) => {
   const baseUrl = `/api/links/${id}/archive`;
-  return fetch(`${baseUrl}?projectSlug=${slug}`, {
+  return fetch(`${baseUrl}?workspaceId=${workspaceId}`, {
     method: archived ? "POST" : "DELETE",
     headers: {
       "Content-Type": "application/json",
@@ -45,8 +49,7 @@ function ArchiveLinkModal({
 }) {
   const toastWithUndo = useToastWithUndo();
 
-  const params = useParams() as { slug?: string };
-  const { slug } = params;
+  const { id: workspaceId } = useWorkspace();
   const [archiving, setArchiving] = useState(false);
   const apexDomain = getApexDomain(props.url);
 
@@ -64,7 +67,7 @@ function ArchiveLinkModal({
     event.preventDefault();
 
     setArchiving(true);
-    const res = await sendArchiveRequest(archived, props.id, slug);
+    const res = await sendArchiveRequest(archived, props.id, workspaceId);
     setArchiving(false);
 
     if (!res.ok) {
@@ -84,7 +87,7 @@ function ArchiveLinkModal({
   };
 
   const undoAction = () => {
-    toast.promise(sendArchiveRequest(!archived, props.id, slug), {
+    toast.promise(sendArchiveRequest(!archived, props.id, workspaceId), {
       loading: "Undo in progress...",
       error: "Failed to roll back changes. An error occurred.",
       success: () => {

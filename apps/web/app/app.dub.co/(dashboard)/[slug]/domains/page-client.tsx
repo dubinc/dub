@@ -93,7 +93,7 @@ export default function ProjectDomainsClient() {
 }
 
 const DefaultDomains = () => {
-  const { slug } = useWorkspace();
+  const { id } = useWorkspace();
   const { defaultDomains: initialDefaultDomains, mutate } = useDefaultDomains();
   const [defaultDomains, setDefaultDomains] = useState<string[]>([]);
   useEffect(() => {
@@ -113,7 +113,7 @@ const DefaultDomains = () => {
           onSubmit={async (e) => {
             e.preventDefault();
             setSubmitting(true);
-            fetch(`/api/domains/default?projectSlug=${slug}`, {
+            fetch(`/api/domains/default?workspaceId=${id}`, {
               method: "PUT",
               body: JSON.stringify({ defaultDomains }),
             }).then(async (res) => {

@@ -109,7 +109,7 @@ export default function LinkCard({
   const params = useParams() as { slug?: string };
   const { slug } = params;
 
-  const { exceededClicks } = useWorkspace();
+  const { id: workspaceId, exceededClicks } = useWorkspace();
   const { verified, loading } = useDomains({ domain });
 
   const linkRef = useRef<any>();
@@ -119,9 +119,9 @@ export default function LinkCard({
   const { data: clicks } = useSWR<number>(
     // only fetch clicks if the link is visible and there's a slug and the usage is not exceeded
     isVisible &&
-      slug &&
+      workspaceId &&
       !exceededClicks &&
-      `/api/analytics/clicks?projectSlug=${slug}&domain=${domain}&key=${key}`,
+      `/api/analytics/clicks?workspaceId=${workspaceId}&domain=${domain}&key=${key}`,
     fetcher,
     {
       fallbackData: props.clicks,

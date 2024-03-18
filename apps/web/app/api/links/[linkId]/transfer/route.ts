@@ -1,7 +1,7 @@
+import { DubApiError } from "@/lib/api/errors";
 import { transferLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
-import { DubApiError } from "@/lib/api/errors";
 import prisma from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import z from "@/lib/zod";
@@ -9,15 +9,19 @@ import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 const transferLinkBodySchema = z.object({
-  newProjectId: z.string().min(1, "Missing new workspace ID."),
+  newWorkspaceId: z
+    .string()
+    .min(1, "Missing new workspace ID.")
+    // replace "ws_" with "" to get the workspace ID
+    .transform((v) => v.replace("ws_", "")),
 });
 
-// POST /api/links/[linkId]/transfer – transfer a link to another project
+// POST /api/links/[linkId]/transfer – transfer a link to another workspace
 export const POST = withAuth(async ({ req, headers, session, link }) => {
-  const { newProjectId } = transferLinkBodySchema.parse(await req.json());
+  const { newWorkspaceId } = transferLinkBodySchema.parse(await req.json());
 
   const newProject = await prisma.project.findUnique({
-    where: { id: newProjectId },
+    where: { id: newWorkspaceId },
     select: {
       linksUsage: true,
       linksLimit: true,
@@ -49,7 +53,7 @@ export const POST = withAuth(async ({ req, headers, session, link }) => {
   const response = await Promise.all([
     transferLink({
       linkId: link!.id,
-      newProjectId,
+      newWorkspaceId,
     }),
     // set this in redis so we can use it in the event cron job
     redis.set(`transfer:${link!.id}:oldProjectId`, link!.projectId),

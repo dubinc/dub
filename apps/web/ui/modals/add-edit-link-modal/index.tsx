@@ -73,6 +73,7 @@ function AddEditLinkModal({
   const { slug } = params;
   const router = useRouter();
   const pathname = usePathname();
+  const { id: workspaceId } = useWorkspace();
 
   const [keyError, setKeyError] = useState<string | null>(null);
   const [urlError, setUrlError] = useState<string | null>(null);
@@ -105,7 +106,7 @@ function AddEditLinkModal({
     setKeyError(null);
     setGeneratingKey(true);
     const res = await fetch(
-      `/api/links/random?domain=${domain}&projectSlug=${slug}`,
+      `/api/links/random?domain=${domain}&workspaceId=${workspaceId}`,
     );
     const key = await res.json();
     setData((prev) => ({ ...prev, key }));
@@ -194,12 +195,12 @@ function AddEditLinkModal({
     if (props?.key) {
       return {
         method: "PUT",
-        url: `/api/links/${props.id}?projectSlug=${slug}`,
+        url: `/api/links/${props.id}?workspaceId=${workspaceId}`,
       };
     } else {
       return {
         method: "POST",
-        url: `/api/links?projectSlug=${slug}`,
+        url: `/api/links?workspaceId=${workspaceId}`,
       };
     }
   }, [props, slug, domain]);
@@ -611,7 +612,7 @@ function AddEditLinkButton({
 }: {
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { plan, nextPlan, exceededLinks } = useWorkspace();
+  const { nextPlan, exceededLinks } = useWorkspace();
   const { queryParams } = useRouterStuff();
 
   const onKeyDown = useCallback((e: KeyboardEvent) => {
@@ -622,7 +623,7 @@ function AddEditLinkButton({
     // - user is not pressing cmd/ctrl + c
     // - user is not typing in an input or textarea
     // - there is no existing modal backdrop (i.e. no other modal is open)
-    // - project has not exceeded links limit
+    // - workspace has not exceeded links limit
     if (
       e.key === "c" &&
       !e.metaKey &&
@@ -647,7 +648,7 @@ function AddEditLinkButton({
     // - pasted content is a valid URL
     // - user is not typing in an input or textarea
     // - there is no existing modal backdrop (i.e. no other modal is open)
-    // - project has not exceeded links limit
+    // - workspace has not exceeded links limit
     if (
       pastedContent &&
       isValidUrl(pastedContent) &&

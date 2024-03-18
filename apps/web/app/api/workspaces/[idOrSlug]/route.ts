@@ -27,7 +27,7 @@ export const GET = withAuth(async ({ project, headers }) => {
   return NextResponse.json(
     {
       ...project,
-      id: `w_${project.id}`,
+      id: `ws_${project.id}`,
     },
     { headers },
   );

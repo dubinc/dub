@@ -63,12 +63,12 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
     domain: !!process.env.NEXT_PUBLIC_VERCEL_URL ? ".dub.co" : undefined,
   });
 
-  const { slug, error } = useWorkspace();
+  const { id, error } = useWorkspace();
 
   useEffect(() => {
-    if (hashes.length > 0 && slug) {
+    if (hashes.length > 0 && id) {
       toast.promise(
-        fetch(`/api/links/sync?projectSlug=${slug}`, {
+        fetch(`/api/links/sync?workspaceId=${id}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -91,7 +91,7 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
         },
       );
     }
-  }, [hashes, slug]);
+  }, [hashes, id]);
 
   // handle invite and oauth modals
   useEffect(() => {

@@ -3,6 +3,7 @@ import useDomains from "@/lib/swr/use-domains";
 import useLinks from "@/lib/swr/use-links";
 import useLinksCount from "@/lib/swr/use-links-count";
 import useTags from "@/lib/swr/use-tags";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainProps, TagProps } from "@/lib/types";
 import TagBadge from "@/ui/links/tag-badge";
 import { useAddEditTagModal } from "@/ui/modals/add-edit-tag-modal";
@@ -285,7 +286,7 @@ const DomainPopover = ({
   domain: DomainProps;
   count: number;
 }) => {
-  const { slug } = useParams() as { slug?: string };
+  const { id, slug } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
   const [processing, setProcessing] = useState(false);
   const { mutate: mutateDomains } = useDomains();
@@ -299,7 +300,7 @@ const DomainPopover = ({
   const toastWithUndo = useToastWithUndo();
 
   const archiveProjectDomain = (archive: boolean) => {
-    return fetch(`/api/domains/${domain.slug}?projectSlug=${slug}`, {
+    return fetch(`/api/domains/${domain.slug}?workspaceId=${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -315,7 +316,7 @@ const DomainPopover = ({
     const newDefaultDomains = archive
       ? defaultDomains?.filter((d) => d !== domain.slug)
       : [...(defaultDomains || []), domain.slug];
-    return fetch(`/api/domains/default?projectSlug=${slug}`, {
+    return fetch(`/api/domains/default?workspaceId=${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -582,7 +583,7 @@ const TagsFilter = ({
 };
 
 const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
-  const { slug } = useParams() as { slug?: string };
+  const { id } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
   const [processing, setProcessing] = useState(false);
 
@@ -594,13 +595,13 @@ const TagPopover = ({ tag, count }: { tag: TagProps; count: number }) => {
 
   const handleDelete = async () => {
     setProcessing(true);
-    fetch(`/api/tags/${tag.id}?projectSlug=${slug}`, {
+    fetch(`/api/tags/${tag.id}?workspaceId=${id}`, {
       method: "DELETE",
     }).then(async (res) => {
       if (res.ok) {
         queryParams({ del: "tagIds" });
         await Promise.all([
-          mutate(`/api/tags?projectSlug=${slug}`),
+          mutate(`/api/tags?workspaceId=${id}`),
           mutate(
             (key) => typeof key === "string" && key.startsWith("/api/links"),
             undefined,

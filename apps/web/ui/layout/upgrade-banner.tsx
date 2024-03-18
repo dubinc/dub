@@ -17,9 +17,9 @@ export default function UpgradeBanner() {
   useEffect(() => {
     if (plan) {
       Crisp.session.setData({
-        projectId: id,
-        projectName: name,
-        projectSlug: slug,
+        workspaceId: id,
+        workspaceName: name,
+        workspaceSlug: slug,
         plan,
         ...(stripeId && { stripeId }),
       });
