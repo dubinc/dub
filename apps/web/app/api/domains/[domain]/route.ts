@@ -7,12 +7,12 @@ import {
 } from "@/lib/api/domains";
 import { withAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { DUB_PROJECT_ID, isDubDomain } from "@dub/utils";
+import { DUB_WORKSPACE_ID, isDubDomain } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/domains/[domain] – get a workspace's domain
 export const GET = withAuth(async ({ domain, workspace }) => {
-  if (isDubDomain(domain) && workspace.id !== DUB_PROJECT_ID) {
+  if (isDubDomain(domain) && workspace.id !== DUB_WORKSPACE_ID) {
     return new Response("Domain does not belong to workspace.", {
       status: 403,
     });
@@ -52,7 +52,7 @@ export const PUT = withAuth(async ({ req, workspace, domain }) => {
     archived,
   } = await req.json();
 
-  if (isDubDomain(domain) && workspace.id !== DUB_PROJECT_ID) {
+  if (isDubDomain(domain) && workspace.id !== DUB_WORKSPACE_ID) {
     return new Response("Domain does not belong to workspace.", {
       status: 403,
     });
@@ -127,7 +127,7 @@ export const PUT = withAuth(async ({ req, workspace, domain }) => {
 
 // DELETE /api/domains/[domain] - delete a workspace's domain
 export const DELETE = withAuth(async ({ domain, workspace }) => {
-  if (isDubDomain(domain) && workspace.id !== DUB_PROJECT_ID) {
+  if (isDubDomain(domain) && workspace.id !== DUB_WORKSPACE_ID) {
     return new Response("Domain does not belong to workspace.", {
       status: 403,
     });

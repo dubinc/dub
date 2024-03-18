@@ -11,7 +11,7 @@ import {
   analyticsEndpointSchema,
   getAnalyticsEdgeQuerySchema,
 } from "@/lib/zod/schemas/analytics";
-import { DUB_DEMO_LINKS, DUB_PROJECT_ID, getSearchParams } from "@dub/utils";
+import { DUB_DEMO_LINKS, DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
 import { NextResponse, type NextRequest } from "next/server";
 
 export const runtime = "edge";
@@ -51,7 +51,7 @@ export const GET = async (
       }
       link = {
         id: demoLink.id,
-        projectId: DUB_PROJECT_ID,
+        projectId: DUB_WORKSPACE_ID,
       };
     } else {
       link = await getDomainOrLink({ domain, key });

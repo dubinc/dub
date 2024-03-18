@@ -2,7 +2,7 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import prisma from "@/lib/prisma";
 import {
   API_DOMAIN,
-  DUB_PROJECT_ID,
+  DUB_WORKSPACE_ID,
   getSearchParams,
   isDubDomain,
 } from "@dub/utils";
@@ -573,7 +573,7 @@ export const withAdmin =
       where: {
         userId_projectId: {
           userId: session.user.id,
-          projectId: DUB_PROJECT_ID,
+          projectId: DUB_WORKSPACE_ID,
         },
       },
     });

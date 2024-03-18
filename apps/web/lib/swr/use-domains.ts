@@ -1,5 +1,10 @@
 import { DomainProps } from "@/lib/types";
-import { DUB_DOMAINS, DUB_PROJECT_ID, SHORT_DOMAIN, fetcher } from "@dub/utils";
+import {
+  DUB_DOMAINS,
+  DUB_WORKSPACE_ID,
+  SHORT_DOMAIN,
+  fetcher,
+} from "@dub/utils";
 import useSWR from "swr";
 import useDefaultDomains from "./use-default-domains";
 import useWorkspace from "./use-workspace";
@@ -36,11 +41,11 @@ export default function useDomains({
 
   const allDomains = [
     ...allProjectDomains,
-    ...(id === DUB_PROJECT_ID ? [] : DUB_DOMAINS),
+    ...(id === DUB_WORKSPACE_ID ? [] : DUB_DOMAINS),
   ];
   const allActiveDomains = [
     ...(activeProjectDomains || []),
-    ...(id === DUB_PROJECT_ID ? [] : activeDefaultDomains),
+    ...(id === DUB_WORKSPACE_ID ? [] : activeDefaultDomains),
   ];
 
   const primaryDomain =
