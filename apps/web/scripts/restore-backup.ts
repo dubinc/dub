@@ -1,12 +1,12 @@
 import { bulkCreateLinks } from "@/lib/api/links";
 import prisma from "@/lib/prisma";
-import { LinkWithTagIdsProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import "dotenv-flow/config";
 
 const domain = "xxx";
 
 async function main() {
+  // TODO: Figure out the right way to type this (do we need to run processLink for these before creating?)
   const restoredData = await redis.lrange<LinkWithTagIdsProps>(
     "restoredData",
     0,
