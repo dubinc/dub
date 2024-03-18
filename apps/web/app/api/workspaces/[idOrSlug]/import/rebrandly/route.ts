@@ -70,13 +70,13 @@ export const POST = withAuth(async ({ req, workspace, session }) => {
 
   // check if there are domains that are not in the workspace
   // if yes, add them to the workspace
-  const domainsNotInProject = selectedDomains.filter(
+  const domainsNotInWorkspace = selectedDomains.filter(
     ({ domain }) => !workspace.domains?.find((d) => d.slug === domain),
   );
-  if (domainsNotInProject.length > 0) {
+  if (domainsNotInWorkspace.length > 0) {
     await Promise.allSettled([
       prisma.domain.createMany({
-        data: domainsNotInProject.map(({ domain }) => ({
+        data: domainsNotInWorkspace.map(({ domain }) => ({
           slug: domain,
           target: null,
           type: "redirect",
@@ -85,7 +85,7 @@ export const POST = withAuth(async ({ req, workspace, session }) => {
         })),
         skipDuplicates: true,
       }),
-      domainsNotInProject.map(({ domain }) => addDomainToVercel(domain)),
+      domainsNotInWorkspace.map(({ domain }) => addDomainToVercel(domain)),
     ]);
   }
 
@@ -94,7 +94,7 @@ export const POST = withAuth(async ({ req, workspace, session }) => {
       qstash.publishJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/rebrandly`,
         body: {
-          projectId: workspace.id,
+          workspaceId: workspace.id,
           userId: session?.user?.id,
           domainId: id,
           domain,

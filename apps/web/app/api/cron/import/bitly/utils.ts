@@ -8,7 +8,7 @@ import LinksImported from "emails/links-imported";
 
 // Note: rate limit for /groups/{group_guid}/bitlinks is 1500 per hour or 150 per minute
 export const importLinksFromBitly = async ({
-  projectId,
+  workspaceId,
   userId,
   bitlyGroup,
   domains,
@@ -17,7 +17,7 @@ export const importLinksFromBitly = async ({
   searchAfter = null,
   count = 0,
 }: {
-  projectId: string;
+  workspaceId: string;
   userId: string;
   bitlyGroup: string;
   domains: string[];
@@ -55,14 +55,14 @@ export const importLinksFromBitly = async ({
         return [];
       }
       const [domain, key] = id.split("/");
-      // if domain is not in project domains, skip (could be a bit.ly link or old short domain)
+      // if domain is not in workspace domains, skip (could be a bit.ly link or old short domain)
       if (!domains.includes(domain)) {
         return [];
       }
       const createdAt = new Date(created_at).toISOString();
       const tagIds = tagsToId ? tags.map((tag: string) => tagsToId[tag]) : [];
       const linkDetails = {
-        projectId,
+        projectId: workspaceId,
         userId,
         domain,
         key,
@@ -80,7 +80,7 @@ export const importLinksFromBitly = async ({
           ?.filter((customBitlink: string) => {
             const customDomain = new URL(customBitlink).hostname;
             // only import custom bitlinks that have the same domain as the domains
-            // that were previously imported into the project from bitly
+            // that were previously imported into the workspace from bitly
             return domains.includes(customDomain);
           })
           .map((customBitlink: string) => {
@@ -114,9 +114,9 @@ export const importLinksFromBitly = async ({
   await new Promise((resolve) => setTimeout(resolve, 500));
 
   if (nextSearchAfter === "") {
-    const project = await prisma.project.findUnique({
+    const workspace = await prisma.project.findUnique({
       where: {
-        id: projectId,
+        id: workspaceId,
       },
       select: {
         name: true,
@@ -151,18 +151,18 @@ export const importLinksFromBitly = async ({
         },
       },
     });
-    const ownerEmail = project?.users[0].user.email ?? "";
-    const links = project?.links ?? [];
+    const ownerEmail = workspace?.users[0].user.email ?? "";
+    const links = workspace?.links ?? [];
 
     await Promise.all([
       // delete keys from redis
-      redis.del(`import:bitly:${projectId}`),
-      redis.del(`import:bitly:${projectId}:tags`),
+      redis.del(`import:bitly:${workspaceId}`),
+      redis.del(`import:bitly:${workspaceId}:tags`),
 
       // delete tags that have no links
       prisma.tag.deleteMany({
         where: {
-          projectId,
+          projectId: workspaceId,
           linksNew: {
             none: {},
           },
@@ -179,8 +179,8 @@ export const importLinksFromBitly = async ({
           count,
           links,
           domains,
-          projectName: project?.name ?? "",
-          projectSlug: project?.slug ?? "",
+          workspaceName: workspace?.name ?? "",
+          workspaceSlug: workspace?.slug ?? "",
         }),
       }),
     ]);
@@ -189,7 +189,7 @@ export const importLinksFromBitly = async ({
     return await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/bitly`,
       body: {
-        projectId,
+        workspaceId,
         userId,
         bitlyGroup,
         domains,

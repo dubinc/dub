@@ -19,7 +19,7 @@ export async function POST(req: Request) {
 
   try {
     const {
-      projectId,
+      workspaceId,
       userId,
       domainId,
       domain,
@@ -28,10 +28,10 @@ export async function POST(req: Request) {
       count,
     } = body;
     const shortApiKey = (await redis.get(
-      `import:short:${projectId}`,
+      `import:short:${workspaceId}`,
     )) as string;
     await importLinksFromShort({
-      projectId,
+      workspaceId,
       userId,
       domainId,
       domain,
@@ -44,9 +44,9 @@ export async function POST(req: Request) {
       response: "success",
     });
   } catch (error) {
-    const project = await prisma.project.findUnique({
+    const workspace = await prisma.project.findUnique({
       where: {
-        id: body.projectId,
+        id: body.workspaceId,
       },
       select: {
         slug: true,
@@ -54,8 +54,8 @@ export async function POST(req: Request) {
     });
 
     await log({
-      message: `Import Short.io cron for project ${
-        project?.slug || body.projectId
+      message: `Import Short.io cron for workspace ${
+        workspace?.slug || body.workspaceId
       } failed. Error: ${error.message}`,
       type: "errors",
     });
