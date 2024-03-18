@@ -1,3 +1,4 @@
+import { LoadingSpinner } from "@dub/ui";
 import { fetcher, nFormatter } from "@dub/utils";
 import { useCallback, useContext, useMemo } from "react";
 import useSWR from "swr";
@@ -49,8 +50,8 @@ export default function ClicksChart() {
   );
 
   return (
-    <div className="h-96 w-full">
-      {chartData !== null && (
+    <div className="flex h-96 w-full items-center justify-center">
+      {chartData ? (
         <TimeSeriesChart
           key={queryString}
           data={chartData}
@@ -71,6 +72,8 @@ export default function ClicksChart() {
           <XAxis tickFormat={formatDate} />
           <YAxis showGridLines tickFormat={nFormatter} />
         </TimeSeriesChart>
+      ) : (
+        <LoadingSpinner />
       )}
     </div>
   );
