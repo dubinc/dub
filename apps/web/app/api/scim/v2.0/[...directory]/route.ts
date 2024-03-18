@@ -58,13 +58,13 @@ export { handler as DELETE, handler as GET, handler as POST, handler as PUT };
 const handleEvents = async (event: DirectorySyncEvent) => {
   const { event: action, tenant: projectId, data } = event;
 
-  const project = (await prisma.project.findUnique({
+  const workspace = (await prisma.project.findUnique({
     where: {
       id: projectId,
     },
   })) as unknown as WorkspaceProps;
 
-  if (!project || project.plan !== "enterprise" || !("email" in data)) {
+  if (!workspace || workspace.plan !== "enterprise" || !("email" in data)) {
     return;
   }
 
@@ -93,7 +93,7 @@ const handleEvents = async (event: DirectorySyncEvent) => {
   if (action === "user.created" && !userInProject && !userInvited) {
     await inviteUser({
       email: data.email,
-      project,
+      workspace,
     });
   }
 
@@ -106,7 +106,7 @@ const handleEvents = async (event: DirectorySyncEvent) => {
     if (!userInProject && !userInvited) {
       await inviteUser({
         email: data.email,
-        project,
+        workspace,
       });
     }
   }

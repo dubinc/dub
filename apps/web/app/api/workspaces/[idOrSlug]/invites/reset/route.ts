@@ -7,7 +7,7 @@ export const POST = withAuth(
   async ({ workspace }) => {
     const response = await prisma.project.update({
       where: {
-        id: project.id,
+        id: workspace.id,
       },
       data: {
         inviteCode: nanoid(24),
