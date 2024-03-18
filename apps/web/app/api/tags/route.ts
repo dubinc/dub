@@ -1,5 +1,6 @@
-import { DubApiError, exceededLimitError } from "@/lib/api/errors";
+import { exceededLimitError } from "@/lib/api/errors";
 import { withAuth } from "@/lib/auth";
+import { DubApiError } from "@/lib/api/errors";
 import prisma from "@/lib/prisma";
 import { createTagBodySchema } from "@/lib/zod/schemas/tags";
 import { COLORS_LIST, randomBadgeColor } from "@/ui/links/tag-badge";

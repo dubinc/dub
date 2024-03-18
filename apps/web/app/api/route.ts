@@ -1,6 +1,6 @@
-import { openApiObject } from "@/lib/openapi";
 import { NextResponse } from "next/server";
 import { createDocument } from "zod-openapi";
+import { openApiObject } from "@/lib/openapi";
 
 export const runtime = "edge";
 
