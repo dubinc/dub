@@ -91,9 +91,7 @@ function RemoveTeammateModal({
             setRemoving(true);
             fetch(
               `/api/projects/${slug}/${
-                invite
-                  ? `invites?email=${encodeURIComponent(email)}`
-                  : `users?userId=${id}`
+                invite ? `invites?email=${encodeURIComponent(email)}` : `users?userId=${id}`
               }`,
               {
                 method: "DELETE",
