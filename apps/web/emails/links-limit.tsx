@@ -12,7 +12,7 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import { ProjectProps } from "../lib/types";
+import { WorkspaceProps } from "../lib/types";
 import Footer from "./components/footer";
 
 export default function LinksLimitAlert({
@@ -27,7 +27,7 @@ export default function LinksLimitAlert({
   },
 }: {
   email: string;
-  project: Partial<ProjectProps>;
+  project: Partial<WorkspaceProps>;
 }) {
   const { slug, name, linksUsage, linksLimit, plan } = project as {
     slug: string;

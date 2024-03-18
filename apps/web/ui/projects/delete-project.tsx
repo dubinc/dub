@@ -1,6 +1,6 @@
 "use client";
 
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { useDeleteProjectModal } from "@/ui/modals/delete-project-modal";
 import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -9,7 +9,7 @@ export default function DeleteProject() {
   const { setShowDeleteProjectModal, DeleteProjectModal } =
     useDeleteProjectModal();
 
-  const { plan, isOwner } = useProject();
+  const { plan, isOwner } = useWorkspace();
   return (
     <div
       className={cn("rounded-lg border border-red-600 bg-white", {

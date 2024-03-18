@@ -1,7 +1,7 @@
 import { getAnalytics } from "@/lib/analytics";
 import { limiter, qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
-import { ProjectProps } from "@/lib/types";
+import { WorkspaceProps } from "@/lib/types";
 import {
   APP_DOMAIN_WITH_NGROK,
   capitalize,
@@ -232,7 +232,7 @@ export const updateUsage = async (skip?: number) => {
 
 const sendUsageLimitEmail = async (
   emails: string[],
-  project: ProjectProps,
+  project: WorkspaceProps,
   type: "first" | "second",
 ) => {
   return await Promise.allSettled([

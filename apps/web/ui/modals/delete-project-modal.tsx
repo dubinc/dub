@@ -1,4 +1,4 @@
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, Logo, Modal, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useParams, useRouter } from "next/navigation";
@@ -21,7 +21,7 @@ function DeleteProjectModal({
 }) {
   const router = useRouter();
   const { slug } = useParams() as { slug: string };
-  const { plan, isOwner } = useProject();
+  const { plan, isOwner } = useWorkspace();
 
   const [deleting, setDeleting] = useState(false);
 
@@ -58,8 +58,8 @@ function DeleteProjectModal({
         <Logo />
         <h3 className="text-lg font-medium">Delete Workspace</h3>
         <p className="text-center text-sm text-gray-500">
-          Warning: This will permanently delete your workspace, custom domain, and
-          all associated links and their respective stats.
+          Warning: This will permanently delete your workspace, custom domain,
+          and all associated links and their respective stats.
         </p>
       </div>
 

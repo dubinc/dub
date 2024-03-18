@@ -10,7 +10,7 @@ import { Link as LinkProps } from "@prisma/client";
 import { createHash } from "crypto";
 import { getServerSession } from "next-auth/next";
 import { exceededLimitError } from "../api/errors";
-import { PlanProps, ProjectProps } from "../types";
+import { PlanProps, WorkspaceProps } from "../types";
 import { ratelimit } from "../upstash";
 import { authOptions } from "./options";
 
@@ -56,7 +56,7 @@ interface WithAuthHandler {
     searchParams: Record<string, string>;
     headers?: Record<string, string>;
     session: Session;
-    project: ProjectProps;
+    project: WorkspaceProps;
     domain: string;
     link?: LinkProps;
   }): Promise<Response>;
@@ -126,15 +126,8 @@ export const withAuth = (
       params?.slug ||
       searchParams.projectSlug;
 
-    console.log(
-      params?.idOrSlug,
-      searchParams.workspaceId,
-      params?.slug,
-      searchParams.projectSlug,
-    );
-
     try {
-      // if there's no projectSlug & id defined
+      // if there's no workspace ID or slug
       if (!idOrSlug) {
         // for /api/links (POST /api/links) – allow no session (but warn if user provides apiKey)
         if (allowAnonymous && !apiKey) {
@@ -232,8 +225,8 @@ export const withAuth = (
       let [project, link] = (await Promise.all([
         prisma.project.findUnique({
           where: {
-            slug: slug || undefined,
             id: id || undefined,
+            slug: slug || undefined,
           },
           select: {
             id: true,
@@ -290,7 +283,7 @@ export const withAuth = (
                     },
                   },
                 })),
-      ])) as [ProjectProps, LinkProps | undefined];
+      ])) as [WorkspaceProps, LinkProps | undefined];
 
       if (!project || !project.users) {
         // project doesn't exist

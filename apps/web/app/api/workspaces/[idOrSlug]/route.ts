@@ -24,7 +24,13 @@ const updateProjectSchema = z.object({
 
 // GET /api/workspaces/[idOrSlug] – get a specific workspace by id or slug
 export const GET = withAuth(async ({ project, headers }) => {
-  return NextResponse.json(project, { headers });
+  return NextResponse.json(
+    {
+      ...project,
+      id: `w_${project.id}`,
+    },
+    { headers },
+  );
 });
 
 // PUT /api/workspaces/[idOrSlug] – update a specific workspace by id or slug

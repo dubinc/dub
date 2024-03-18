@@ -1,25 +1,23 @@
 import { DomainProps } from "@/lib/types";
-import { DUB_DOMAINS, SHORT_DOMAIN, fetcher } from "@dub/utils";
-import { useParams } from "next/navigation";
+import { DUB_DOMAINS, DUB_PROJECT_ID, SHORT_DOMAIN, fetcher } from "@dub/utils";
 import useSWR from "swr";
 import useDefaultDomains from "./use-default-domains";
+import useWorkspace from "./use-workspace";
 
 export default function useDomains({
-  slug: projectSlug,
+  id: workspaceId,
   domain,
-}: { slug?: string; domain?: string } = {}) {
-  let slug: string | undefined = undefined;
-  if (projectSlug) {
-    slug = projectSlug;
+}: { id?: string; domain?: string } = {}) {
+  let id: string | undefined = undefined;
+  if (workspaceId) {
+    id = workspaceId;
   } else {
-    const { slug: paramSlug } = useParams() as {
-      slug: string;
-    };
-    slug = paramSlug;
+    const { id: paramsId } = useWorkspace();
+    id = paramsId;
   }
 
   const { data, error, mutate } = useSWR<DomainProps[]>(
-    slug && `/api/domains?projectSlug=${slug}`,
+    id && `/api/domains?workspaceId=${id}`,
     fetcher,
     {
       dedupingInterval: 60000,
@@ -38,11 +36,11 @@ export default function useDomains({
 
   const allDomains = [
     ...allProjectDomains,
-    ...(slug === "dub" ? [] : DUB_DOMAINS),
+    ...(id === DUB_PROJECT_ID ? [] : DUB_DOMAINS),
   ];
   const allActiveDomains = [
     ...(activeProjectDomains || []),
-    ...(slug === "dub" ? [] : activeDefaultDomains),
+    ...(id === DUB_PROJECT_ID ? [] : activeDefaultDomains),
   ];
 
   const primaryDomain =

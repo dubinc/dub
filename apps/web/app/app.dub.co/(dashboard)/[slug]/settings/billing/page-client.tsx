@@ -1,8 +1,8 @@
 "use client";
 
-import useProject from "@/lib/swr/use-project";
 import useTags from "@/lib/swr/use-tags";
 import useUsers from "@/lib/swr/use-users";
+import useWorkspace from "@/lib/swr/use-workspace";
 import PlanBadge from "@/ui/projects/plan-badge";
 import { Divider } from "@/ui/shared/icons";
 import ProgressBar from "@/ui/shared/progress-bar";
@@ -33,7 +33,7 @@ export default function ProjectBillingClient() {
     tagsLimit,
     usersLimit,
     billingCycleStart,
-  } = useProject();
+  } = useWorkspace();
 
   const { tags } = useTags();
   const { users } = useUsers();

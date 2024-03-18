@@ -1,6 +1,6 @@
 "use client";
 
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import LinksContainer from "@/ui/links/links-container";
 import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
 import {
@@ -39,7 +39,7 @@ export default function ProjectLinksClient() {
 
 const AddLinkOptions = () => {
   const router = useRouter();
-  const { slug, nextPlan, exceededLinks } = useProject();
+  const { slug, nextPlan, exceededLinks } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
   const { queryParams } = useRouterStuff();
 

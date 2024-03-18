@@ -1,7 +1,7 @@
 import { bulkCreateLinks, processLink } from "@/lib/api/links";
 import { qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
-import { LinkWithTagIdsProps, ProjectProps } from "@/lib/types";
+import { LinkWithTagIdsProps, WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { sendEmail } from "emails";
@@ -31,7 +31,7 @@ export const importLinksFromCSV = async ({
     where: {
       id: projectId,
     },
-  })) as unknown as ProjectProps;
+  })) as unknown as WorkspaceProps;
 
   const processedLinks = await Promise.all(
     links.map(async (link) =>

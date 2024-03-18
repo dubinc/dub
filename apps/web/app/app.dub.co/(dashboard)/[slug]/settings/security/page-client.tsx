@@ -1,8 +1,8 @@
 "use client";
 
-import useProject from "@/lib/swr/use-project";
 import useSAML from "@/lib/swr/use-saml";
 import useSCIM from "@/lib/swr/use-scim";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { useRemoveSAMLModal } from "@/ui/modals/remove-saml-modal";
 import { useRemoveSCIMModal } from "@/ui/modals/remove-scim-modal";
 import { useSAMLModal } from "@/ui/modals/saml-modal";
@@ -23,7 +23,7 @@ export default function ProjectSecurityClient() {
 }
 
 const SAMLSection = () => {
-  const { plan } = useProject();
+  const { plan } = useWorkspace();
   const { SAMLModal, setShowSAMLModal } = useSAMLModal();
   const { RemoveSAMLModal, setShowRemoveSAMLModal } = useRemoveSAMLModal();
   const { provider, configured, loading } = useSAML();
@@ -166,7 +166,7 @@ const SAMLSection = () => {
 };
 
 const SCIMSection = () => {
-  const { plan } = useProject();
+  const { plan } = useWorkspace();
   const { SCIMModal, setShowSCIMModal } = useSCIMModal();
   const { RemoveSCIMModal, setShowRemoveSCIMModal } = useRemoveSCIMModal();
 

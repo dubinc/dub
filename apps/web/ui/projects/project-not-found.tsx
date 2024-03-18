@@ -2,7 +2,7 @@ import { MaxWidthWrapper } from "@dub/ui";
 import { FileX2 } from "lucide-react";
 import Link from "next/link";
 
-export default function ProjectNotFound() {
+export default function WorkspaceNotFound() {
   return (
     <MaxWidthWrapper>
       <div className="my-10 flex flex-col items-center justify-center rounded-md border border-gray-200 bg-white py-12">

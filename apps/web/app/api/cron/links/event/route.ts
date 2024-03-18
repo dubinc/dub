@@ -2,7 +2,7 @@ import { getAnalytics } from "@/lib/analytics";
 import { limiter, qstash, receiver } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
-import { ProjectProps } from "@/lib/types";
+import { WorkspaceProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import {
   APP_DOMAIN_WITH_NGROK,
@@ -121,7 +121,7 @@ export async function POST(req: Request) {
               email,
               react: LinksLimitAlert({
                 email,
-                project: project as Partial<ProjectProps>,
+                project: project as Partial<WorkspaceProps>,
               }),
             }),
           );

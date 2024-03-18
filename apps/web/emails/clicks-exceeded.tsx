@@ -12,7 +12,7 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import { ProjectProps } from "../lib/types";
+import { WorkspaceProps } from "../lib/types";
 import Footer from "./components/footer";
 
 export default function ClicksExceeded({
@@ -28,7 +28,7 @@ export default function ClicksExceeded({
   type = "first",
 }: {
   email: string;
-  project: Partial<ProjectProps>;
+  project: Partial<WorkspaceProps>;
   type: "first" | "second";
 }) {
   const { slug, name, usage, usageLimit, plan } = project;

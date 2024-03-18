@@ -1,4 +1,4 @@
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { BlurImage, Button, Logo, Modal, useMediaQuery } from "@dub/ui";
 import va from "@vercel/analytics";
 import { useParams } from "next/navigation";
@@ -22,7 +22,7 @@ function InviteTeammateModal({
   const { slug } = useParams() as { slug: string };
   const [inviting, setInviting] = useState(false);
   const [email, setEmail] = useState("");
-  const { logo } = useProject();
+  const { logo } = useWorkspace();
   const { isMobile } = useMediaQuery();
 
   return (

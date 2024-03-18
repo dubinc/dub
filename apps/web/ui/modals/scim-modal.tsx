@@ -1,5 +1,5 @@
-import useProject from "@/lib/swr/use-project";
 import useSCIM from "@/lib/swr/use-scim";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { SAMLProviderProps } from "@/lib/types";
 import {
   Button,
@@ -28,7 +28,7 @@ function SCIMModal({
   showSCIMModal: boolean;
   setShowSCIMModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { slug } = useProject();
+  const { slug } = useWorkspace();
   const [submitting, setSubmitting] = useState(false);
   const { scim, provider, configured, mutate } = useSCIM();
   const [selectedProvider, setSelectedProvider] = useState<

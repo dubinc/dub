@@ -1,6 +1,6 @@
 import { INTERVALS } from "@/lib/analytics";
 import useDomains from "@/lib/swr/use-domains";
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import {
   BadgeTooltip,
   BlurImage,
@@ -44,7 +44,7 @@ export default function Toggle() {
   }, [interval]);
 
   const scrolled = useScroll(80);
-  const { name, plan, logo } = useProject();
+  const { name, plan, logo } = useWorkspace();
   const { allActiveDomains, primaryDomain } = useDomains();
 
   const isPublicStatsPage = basePath.startsWith("/stats");

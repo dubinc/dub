@@ -1,6 +1,6 @@
 "use client";
 
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { Badge, useRouterStuff } from "@dub/ui";
 import { Crisp } from "crisp-sdk-web";
 import Cookies from "js-cookie";
@@ -11,7 +11,7 @@ import ProBanner from "../projects/pro-banner";
 export default function UpgradeBanner() {
   const { slug } = useParams() as { slug?: string };
 
-  const { id, name, plan, stripeId, createdAt } = useProject();
+  const { id, name, plan, stripeId, createdAt } = useWorkspace();
   const [showProBanner, setShowProBanner] = useState<boolean | null>(null);
 
   useEffect(() => {

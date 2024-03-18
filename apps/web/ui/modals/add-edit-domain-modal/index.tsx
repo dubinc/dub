@@ -1,4 +1,4 @@
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainProps } from "@/lib/types";
 import { Lock } from "@/ui/shared/icons";
 import {
@@ -39,7 +39,7 @@ function AddEditDomainModal({
 }) {
   const router = useRouter();
   const { slug } = useParams() as { slug: string };
-  const { id, logo, plan } = useProject();
+  const { id, logo, plan } = useWorkspace();
   const { queryParams } = useRouterStuff();
 
   const [data, setData] = useState<DomainProps>(
@@ -370,7 +370,7 @@ function AddDomainButton({
   setShowAddEditDomainModal: Dispatch<SetStateAction<boolean>>;
   buttonProps?: Partial<ButtonProps>;
 }) {
-  const { plan, nextPlan, domainsLimit, exceededDomains } = useProject();
+  const { plan, nextPlan, domainsLimit, exceededDomains } = useWorkspace();
   const { queryParams } = useRouterStuff();
 
   return (

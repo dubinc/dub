@@ -1,9 +1,9 @@
-import { ProjectProps } from "@/lib/types";
+import { WorkspaceProps } from "@/lib/types";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 
 export default function useWorkspaces() {
-  const { data: workspaces, error } = useSWR<ProjectProps[]>(
+  const { data: workspaces, error } = useSWR<WorkspaceProps[]>(
     "/api/workspaces",
     fetcher,
     {

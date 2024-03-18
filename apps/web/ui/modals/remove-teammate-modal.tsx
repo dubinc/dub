@@ -1,4 +1,4 @@
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { UserProps } from "@/lib/types";
 import { Avatar, BlurImage, Button, Logo, Modal, useMediaQuery } from "@dub/ui";
 import { useSession } from "next-auth/react";
@@ -27,7 +27,7 @@ function RemoveTeammateModal({
   const router = useRouter();
   const { slug } = useParams() as { slug: string };
   const [removing, setRemoving] = useState(false);
-  const { name: projectName, logo } = useProject();
+  const { name: projectName, logo } = useWorkspace();
   const { data: session } = useSession();
   const { id, name, email } = user;
   const { isMobile } = useMediaQuery();
@@ -91,7 +91,9 @@ function RemoveTeammateModal({
             setRemoving(true);
             fetch(
               `/api/projects/${slug}/${
-                invite ? `invites?email=${encodeURIComponent(email)}` : `users?userId=${id}`
+                invite
+                  ? `invites?email=${encodeURIComponent(email)}`
+                  : `users?userId=${id}`
               }`,
               {
                 method: "DELETE",

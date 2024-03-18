@@ -1,11 +1,10 @@
 "use client";
 
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { CopyButton } from "@dub/ui";
 
-export default function ProjectID() {
-  const { id } = useProject();
-  const workspaceId = `w_${id}`
+export default function WorkspaceId() {
+  const { id } = useWorkspace();
 
   return (
     <>
@@ -17,10 +16,14 @@ export default function ProjectID() {
               {`You'll need this ID to interact with the ${process.env.NEXT_PUBLIC_APP_NAME} API.`}
             </p>
           </div>
-          <div className="flex w-full max-w-md items-center justify-between rounded-md border border-gray-300 bg-white p-2">
-            <p className="text-sm text-gray-500">{workspaceId}</p>
-            <CopyButton value={workspaceId} className="rounded-md" />
-          </div>
+          {id ? (
+            <div className="flex w-full max-w-md items-center justify-between rounded-md border border-gray-300 bg-white p-2">
+              <p className="text-sm text-gray-500">{id}</p>
+              <CopyButton value={id} className="rounded-md" />
+            </div>
+          ) : (
+            <div className="h-[2.35rem] w-full max-w-md animate-pulse rounded-md bg-gray-200" />
+          )}
         </div>
         <div className="flex items-center justify-between rounded-b-lg border-t border-gray-200 bg-gray-50 px-3 py-5 sm:px-10">
           <a

@@ -1,11 +1,11 @@
 "use client";
 
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { MaxWidthWrapper, useRouterStuff } from "@dub/ui";
 import { Lock } from "lucide-react";
 
 export default function ProjectExceededClicks() {
-  const { nextPlan } = useProject();
+  const { nextPlan } = useWorkspace();
   const { queryParams } = useRouterStuff();
 
   return (

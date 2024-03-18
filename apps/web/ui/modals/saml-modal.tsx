@@ -1,5 +1,5 @@
-import useProject from "@/lib/swr/use-project";
 import useSAML from "@/lib/swr/use-saml";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { SAMLProviderProps } from "@/lib/types";
 import {
   Button,
@@ -26,7 +26,7 @@ function SAMLModal({
   showSAMLModal: boolean;
   setShowSAMLModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { slug } = useProject();
+  const { slug } = useWorkspace();
   const [selectedProvider, setSelectedProvider] = useState<
     SAMLProviderProps["saml"] | undefined
   >();

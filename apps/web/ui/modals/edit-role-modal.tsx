@@ -1,4 +1,4 @@
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { UserProps } from "@/lib/types";
 import { Avatar, BlurImage, Button, Logo, Modal } from "@dub/ui";
 import { useParams } from "next/navigation";
@@ -25,7 +25,7 @@ function EditRoleModal({
 }) {
   const { slug } = useParams() as { slug: string };
   const [editing, setEditing] = useState(false);
-  const { name: projectName, logo } = useProject();
+  const { name: projectName, logo } = useWorkspace();
   const { id, name, email, image } = user;
 
   return (

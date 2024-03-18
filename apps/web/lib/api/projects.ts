@@ -3,11 +3,11 @@ import prisma from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { cancelSubscription } from "@/lib/stripe";
 import { DUB_DOMAINS_ARRAY, LEGAL_PROJECT_ID, LEGAL_USER_ID } from "@dub/utils";
-import { ProjectProps } from "../types";
+import { WorkspaceProps } from "../types";
 import { redis } from "../upstash";
 
 export async function deleteProject(
-  project: Pick<ProjectProps, "id" | "slug" | "stripeId" | "logo">,
+  project: Pick<WorkspaceProps, "id" | "slug" | "stripeId" | "logo">,
 ) {
   const [customDomains, defaultDomainLinks] = await Promise.all([
     prisma.domain.findMany({
@@ -90,7 +90,7 @@ export async function deleteProject(
 }
 
 export async function deleteProjectAdmin(
-  project: Pick<ProjectProps, "id" | "slug" | "stripeId" | "logo">,
+  project: Pick<WorkspaceProps, "id" | "slug" | "stripeId" | "logo">,
 ) {
   const [customDomains, _] = await Promise.all([
     prisma.domain.findMany({

@@ -1,5 +1,5 @@
 import useDomains from "@/lib/swr/use-domains";
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkWithTagsProps, TagProps, UserProps } from "@/lib/types";
 import TagBadge from "@/ui/links/tag-badge";
 import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
@@ -109,7 +109,7 @@ export default function LinkCard({
   const params = useParams() as { slug?: string };
   const { slug } = params;
 
-  const { exceededClicks } = useProject();
+  const { exceededClicks } = useWorkspace();
   const { verified, loading } = useDomains({ domain });
 
   const linkRef = useRef<any>();

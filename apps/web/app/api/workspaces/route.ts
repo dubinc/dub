@@ -58,7 +58,9 @@ export const GET = withSession(async ({ session }) => {
       },
     },
   });
-  return NextResponse.json(projects);
+  return NextResponse.json(
+    projects.map((project) => ({ ...project, id: `w_${project.id}` })),
+  );
 });
 
 export const POST = withSession(async ({ req, session }) => {

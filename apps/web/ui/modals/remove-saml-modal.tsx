@@ -1,5 +1,5 @@
-import useProject from "@/lib/swr/use-project";
 import useSAML from "@/lib/swr/use-saml";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { BlurImage, Button, Logo, Modal } from "@dub/ui";
 import { SAML_PROVIDERS } from "@dub/utils";
 import {
@@ -19,7 +19,7 @@ function RemoveSAMLModal({
   setShowRemoveSAMLModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const [removing, setRemoving] = useState(false);
-  const { slug, logo } = useProject();
+  const { slug, logo } = useWorkspace();
   const { saml, provider, mutate } = useSAML();
 
   return (

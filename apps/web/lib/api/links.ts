@@ -29,8 +29,8 @@ import { recordLink } from "../tinybird";
 import {
   LinkProps,
   LinkWithTagIdsProps,
-  ProjectProps,
   RedisLinkProps,
+  WorkspaceProps,
 } from "../types";
 import z from "../zod";
 
@@ -209,7 +209,7 @@ export async function keyChecks({
 }: {
   domain: string;
   key: string;
-  project?: ProjectProps;
+  project?: WorkspaceProps;
 }) {
   const link = await checkIfKeyExists(domain, key);
   if (link) {
@@ -275,7 +275,7 @@ export async function processLink({
   skipKeyChecks = false, // only skip when key doesn't change (e.g. when editing a link)
 }: {
   payload: LinkWithTagIdsProps;
-  project?: ProjectProps;
+  project?: WorkspaceProps;
   userId?: string;
   bulk?: boolean;
   skipKeyChecks?: boolean;

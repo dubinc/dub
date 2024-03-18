@@ -1,7 +1,7 @@
 "use client";
 
 import useDomains from "@/lib/swr/use-domains";
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkWithTagsProps } from "@/lib/types";
 import LinkLogo from "@/ui/links/link-logo";
 import { AlertCircleFill, Lock, Random, X } from "@/ui/shared/icons";
@@ -611,7 +611,7 @@ function AddEditLinkButton({
 }: {
   setShowAddEditLinkModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { plan, nextPlan, exceededLinks } = useProject();
+  const { plan, nextPlan, exceededLinks } = useWorkspace();
   const { queryParams } = useRouterStuff();
 
   const onKeyDown = useCallback((e: KeyboardEvent) => {

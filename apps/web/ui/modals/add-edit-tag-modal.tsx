@@ -1,5 +1,5 @@
-import useProject from "@/lib/swr/use-project";
 import useTags from "@/lib/swr/use-tags";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { TagColorProps, TagProps } from "@/lib/types";
 import {
   Button,
@@ -36,7 +36,7 @@ function AddEditTagModal({
   setShowAddEditTagModal: Dispatch<SetStateAction<boolean>>;
   props?: TagProps;
 }) {
-  const { slug: projectSlug } = useProject();
+  const { slug: projectSlug } = useWorkspace();
   const { isMobile } = useMediaQuery();
 
   const [saving, setSaving] = useState(false);
@@ -210,7 +210,7 @@ function AddTagButton({
 }: {
   setShowAddEditTagModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { plan, nextPlan, tagsLimit } = useProject();
+  const { plan, nextPlan, tagsLimit } = useWorkspace();
   const { tags } = useTags();
   const { queryParams } = useRouterStuff();
   const exceededTags = tags && tagsLimit && tags.length >= tagsLimit;

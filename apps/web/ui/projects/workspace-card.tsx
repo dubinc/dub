@@ -2,7 +2,7 @@
 
 import { Session } from "@/lib/auth";
 import useDomains from "@/lib/swr/use-domains";
-import { DomainProps, ProjectProps } from "@/lib/types";
+import { DomainProps, WorkspaceProps } from "@/lib/types";
 import { CheckCircleFill, XCircleFill } from "@/ui/shared/icons";
 import {
   Badge,
@@ -39,16 +39,16 @@ export default function WorkspaceCard({
   logo,
   usage,
   plan,
-}: ProjectProps) {
+}: WorkspaceProps) {
   const {
     allProjectDomains: domains,
     primaryDomain,
     verified,
     loading,
-  } = useDomains({ slug });
+  } = useDomains({ id });
 
   const { data: count } = useSWR<number>(
-    `/api/links/count?projectSlug=${slug}`,
+    `/api/links/count?workspaceId=${id}`,
     fetcher,
   );
 
@@ -161,9 +161,13 @@ export default function WorkspaceCard({
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-1 text-gray-500">
             <Globe className="h-4 w-4" />
-            <h2 className="whitespace-nowrap text-sm">
-              {nFormatter(domains.length)} domain{domains.length != 1 && "s"}
-            </h2>
+            {loading ? (
+              <div className="h-4 w-16 animate-pulse rounded-md bg-gray-200" />
+            ) : (
+              <h2 className="whitespace-nowrap text-sm">
+                {nFormatter(domains.length)} domain{domains.length != 1 && "s"}
+              </h2>
+            )}
           </div>
           <div className="flex items-center space-x-1 text-gray-500">
             <Link2 className="h-4 w-4" />
@@ -174,7 +178,7 @@ export default function WorkspaceCard({
                 </h2>
               </NumberTooltip>
             ) : (
-              <div className="h-4 w-8 animate-pulse rounded-md bg-gray-200" />
+              <div className="h-4 w-16 animate-pulse rounded-md bg-gray-200" />
             )}
           </div>
           <div className="flex items-center space-x-1 text-gray-500">

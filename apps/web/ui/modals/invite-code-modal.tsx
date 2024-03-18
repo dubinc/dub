@@ -1,4 +1,4 @@
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, CopyButton, Logo, Modal } from "@dub/ui";
 import { APP_DOMAIN } from "@dub/utils";
 import {
@@ -16,7 +16,7 @@ function InviteCodeModal({
   showInviteCodeModal: boolean;
   setShowInviteCodeModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { slug, inviteCode, mutate } = useProject();
+  const { slug, inviteCode, mutate } = useWorkspace();
 
   const inviteLink = useMemo(() => {
     return `${APP_DOMAIN}/invites/${inviteCode}`;

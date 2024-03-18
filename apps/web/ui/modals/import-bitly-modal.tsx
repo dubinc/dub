@@ -1,4 +1,4 @@
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { BitlyGroupProps } from "@/lib/types";
 import {
   Button,
@@ -33,7 +33,7 @@ function ImportBitlyModal({
   const router = useRouter();
   const { slug } = useParams() as { slug?: string };
   const searchParams = useSearchParams();
-  const { id: projectId } = useProject();
+  const { id: projectId } = useWorkspace();
 
   const [redirecting, setRedirecting] = useState(false);
 

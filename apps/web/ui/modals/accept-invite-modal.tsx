@@ -1,4 +1,4 @@
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { LoadingDots, Logo, Modal } from "@dub/ui";
 import va from "@vercel/analytics";
 import Link from "next/link";
@@ -23,7 +23,7 @@ function AcceptInviteModal({
   const router = useRouter();
   const { slug } = useParams() as { slug: string };
   const [accepting, setAccepting] = useState(false);
-  const { error } = useProject();
+  const { error } = useWorkspace();
 
   return (
     <Modal
@@ -79,7 +79,9 @@ function AcceptInviteModal({
         <>
           <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
             <Logo />
-            <h3 className="text-lg font-medium">Workspace Invitation Expired</h3>
+            <h3 className="text-lg font-medium">
+              Workspace Invitation Expired
+            </h3>
             <p className="text-center text-sm text-gray-500">
               This invite has expired or is no longer valid.
             </p>

@@ -1,7 +1,7 @@
 import { inviteUser } from "@/lib/api/users";
 import jackson from "@/lib/jackson";
 import prisma from "@/lib/prisma";
-import { ProjectProps } from "@/lib/types";
+import { WorkspaceProps } from "@/lib/types";
 import type {
   DirectorySyncEvent,
   DirectorySyncRequest,
@@ -62,7 +62,7 @@ const handleEvents = async (event: DirectorySyncEvent) => {
     where: {
       id: projectId,
     },
-  })) as unknown as ProjectProps;
+  })) as unknown as WorkspaceProps;
 
   if (!project || project.plan !== "enterprise" || !("email" in data)) {
     return;

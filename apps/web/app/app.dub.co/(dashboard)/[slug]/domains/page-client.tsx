@@ -2,7 +2,7 @@
 
 import useDefaultDomains from "@/lib/swr/use-default-domains";
 import useDomains from "@/lib/swr/use-domains";
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import DomainCard from "@/ui/domains/domain-card";
 import DomainCardPlaceholder from "@/ui/domains/domain-card-placeholder";
 import NoDomainsPlaceholder from "@/ui/domains/no-domains-placeholder";
@@ -22,7 +22,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function ProjectDomainsClient() {
-  const { id: projectId } = useProject();
+  const { id: projectId } = useWorkspace();
 
   const { AddEditDomainModal, AddDomainButton } = useAddEditDomainModal();
   const { activeProjectDomains, archivedProjectDomains } = useDomains();
@@ -93,7 +93,7 @@ export default function ProjectDomainsClient() {
 }
 
 const DefaultDomains = () => {
-  const { slug } = useProject();
+  const { slug } = useWorkspace();
   const { defaultDomains: initialDefaultDomains, mutate } = useDefaultDomains();
   const [defaultDomains, setDefaultDomains] = useState<string[]>([]);
   useEffect(() => {

@@ -1,7 +1,7 @@
 "use client";
 
 import useWorkspaces from "@/lib/swr/use-workspaces";
-import { PlanProps, ProjectProps } from "@/lib/types";
+import { PlanProps, WorkspaceProps } from "@/lib/types";
 import { ModalContext } from "@/ui/modals/provider";
 import PlanBadge from "@/ui/projects/plan-badge";
 import { BlurImage, Popover, Tick } from "@dub/ui";
@@ -116,7 +116,7 @@ function WorkspaceList({
     image: string;
     plan: PlanProps;
   };
-  workspaces: ProjectProps[];
+  workspaces: WorkspaceProps[];
   setOpenPopover: (open: boolean) => void;
 }) {
   const { setShowAddWorkspaceModal } = useContext(ModalContext);

@@ -1,8 +1,8 @@
 "use client";
 
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import DeleteProject from "@/ui/projects/delete-project";
-import ProjectID from "@/ui/projects/project-id";
+import WorkspaceId from "@/ui/projects/project-id";
 import UploadLogo from "@/ui/projects/upload-logo";
 import { Form } from "@dub/ui";
 import { useRouter } from "next/navigation";
@@ -11,7 +11,7 @@ import { mutate } from "swr";
 
 export default function ProjectSettingsClient() {
   const router = useRouter();
-  const { name, slug, plan, isOwner } = useProject();
+  const { name, slug, isOwner } = useWorkspace();
 
   return (
     <>
@@ -26,7 +26,8 @@ export default function ProjectSettingsClient() {
         }}
         helpText="Max 32 characters."
         {...(!isOwner && {
-          disabledTooltip: "Only workspace owners can change the workspace name.",
+          disabledTooltip:
+            "Only workspace owners can change the workspace name.",
         })}
         handleSubmit={(updateData) =>
           fetch(`/api/projects/${slug}`, {
@@ -63,7 +64,8 @@ export default function ProjectSettingsClient() {
         }}
         helpText="Only lowercase letters, numbers, and dashes. Max 48 characters."
         {...(!isOwner && {
-          disabledTooltip: "Only workspace owners can change the workspace slug.",
+          disabledTooltip:
+            "Only workspace owners can change the workspace slug.",
         })}
         handleSubmit={(data) =>
           fetch(`/api/projects/${slug}`, {
@@ -85,7 +87,7 @@ export default function ProjectSettingsClient() {
           })
         }
       />
-      <ProjectID />
+      <WorkspaceId />
       <UploadLogo />
       <DeleteProject />
     </>

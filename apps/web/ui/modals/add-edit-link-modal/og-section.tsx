@@ -1,5 +1,5 @@
 import { resizeImage } from "@/lib/images";
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
 import { UploadCloud } from "@/ui/shared/icons";
 import {
@@ -31,7 +31,7 @@ export default function OGSection({
   setData: Dispatch<SetStateAction<LinkProps>>;
   generatingMetatags: boolean;
 }) {
-  const { plan } = useProject();
+  const { plan } = useWorkspace();
   const { queryParams } = useRouterStuff();
 
   const { title, description, image, proxy } = data;

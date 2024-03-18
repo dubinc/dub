@@ -1,6 +1,6 @@
 import { nanoid } from "@dub/utils";
 import { connect } from "@planetscale/database";
-import { DomainProps, ProjectProps } from "./types";
+import { DomainProps, WorkspaceProps } from "./types";
 
 export const DATABASE_URL =
   process.env.PLANETSCALE_DATABASE_URL || process.env.DATABASE_URL;
@@ -19,7 +19,7 @@ export const getProjectViaEdge = async (projectId: string) => {
     {};
 
   return rows && Array.isArray(rows) && rows.length > 0
-    ? (rows[0] as ProjectProps)
+    ? (rows[0] as WorkspaceProps)
     : null;
 };
 

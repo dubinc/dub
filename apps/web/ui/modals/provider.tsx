@@ -1,6 +1,6 @@
 "use client";
 
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { SimpleLinkProps } from "@/lib/types";
 import { useAcceptInviteModal } from "@/ui/modals/accept-invite-modal";
 import { useAddEditDomainModal } from "@/ui/modals/add-edit-domain-modal";
@@ -63,7 +63,7 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
     domain: !!process.env.NEXT_PUBLIC_VERCEL_URL ? ".dub.co" : undefined,
   });
 
-  const { slug, error } = useProject();
+  const { slug, error } = useWorkspace();
 
   useEffect(() => {
     if (hashes.length > 0 && slug) {

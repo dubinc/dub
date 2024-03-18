@@ -1,5 +1,5 @@
-import useProject from "@/lib/swr/use-project";
 import useSCIM from "@/lib/swr/use-scim";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { SAMLProviderProps } from "@/lib/types";
 import { BlurImage, Button, Logo, Modal } from "@dub/ui";
 import { SAML_PROVIDERS } from "@dub/utils";
@@ -20,7 +20,7 @@ function RemoveSCIMModal({
   setShowRemoveSCIMModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const [removing, setRemoving] = useState(false);
-  const { slug, logo } = useProject();
+  const { slug, logo } = useWorkspace();
   const { scim, provider, mutate } = useSCIM();
 
   const currentProvider = useMemo(

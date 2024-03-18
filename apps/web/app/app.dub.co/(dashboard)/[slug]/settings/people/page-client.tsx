@@ -1,7 +1,7 @@
 "use client";
 
-import useProject from "@/lib/swr/use-project";
 import useUsers from "@/lib/swr/use-users";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { UserProps } from "@/lib/types";
 import { useEditRoleModal } from "@/ui/modals/edit-role-modal";
 import { useInviteCodeModal } from "@/ui/modals/invite-code-modal";
@@ -111,7 +111,7 @@ const UserCard = ({
 }) => {
   const [openPopover, setOpenPopover] = useState(false);
 
-  const { plan, isOwner } = useProject();
+  const { plan, isOwner } = useWorkspace();
 
   const { name, email, createdAt, role: currentRole } = user;
 
