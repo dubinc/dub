@@ -2,6 +2,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { LoadingDots, Logo, Modal } from "@dub/ui";
 import va from "@vercel/analytics";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -19,7 +20,8 @@ function AcceptInviteModal({
   showAcceptInviteModal: boolean;
   setShowAcceptInviteModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { id, slug } = useWorkspace();
+  const { slug } = useParams() as { slug: string };
+  const { id } = useWorkspace();
   const [accepting, setAccepting] = useState(false);
   const { error } = useWorkspace();
 

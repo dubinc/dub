@@ -37,7 +37,7 @@ export const GET = withAuth(async ({ headers, searchParams, workspace }) => {
     showArchived,
     withTags,
   });
-  console.log(response);
+
   return NextResponse.json(response, {
     headers,
   });
