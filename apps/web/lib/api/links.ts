@@ -292,19 +292,24 @@ export function processKey(key: string) {
   return key;
 }
 
-export async function processLink({
+export async function processLink<T extends Record<string, any>>({
   payload,
   project,
   userId,
   bulk = false,
   skipKeyChecks = false, // only skip when key doesn't change (e.g. when editing a link)
 }: {
-  payload: NewLinkProps;
+  payload: NewLinkProps & T;
   project?: ProjectProps;
   userId?: string;
   bulk?: boolean;
   skipKeyChecks?: boolean;
-}) {
+}): Promise<{
+  link: NewLinkProps & T;
+  error?: string | null;
+  code?: string;
+  status?: number;
+}> {
   let {
     domain,
     key,
@@ -530,7 +535,7 @@ export async function processLink({
       ...(userId && {
         userId,
       }),
-    } as ProcessedLinkProps,
+    } as NewLinkProps & T,
     error: null,
   };
 }
@@ -736,7 +741,8 @@ export async function editLink({
 }: {
   domain?: string;
   key: string;
-  updatedLink: LinkProps & ProcessedLinkProps;
+  updatedLink: ProcessedLinkProps &
+    Pick<LinkProps, "id" | "clicks" | "lastClicked" | "updatedAt">;
 }) {
   let {
     id,

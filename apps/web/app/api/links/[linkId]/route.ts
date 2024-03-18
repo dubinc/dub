@@ -55,6 +55,7 @@ export const PUT = withAuth(async ({ req, headers, project, link }) => {
 
   const body = updateLinkBodySchema.parse(await req.json());
 
+  // Add body onto existing link but maintain NewLinkProps form for processLink
   const updatedLink = {
     ...link,
     expiresAt:
@@ -97,7 +98,7 @@ export const PUT = withAuth(async ({ req, headers, project, link }) => {
       // link is guaranteed to exist because if not we will return 404
       domain: link!.domain,
       key: link!.key,
-      updatedLink: processedLink as any, // TODO: fix types
+      updatedLink: processedLink,
     }),
     qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/event`,
