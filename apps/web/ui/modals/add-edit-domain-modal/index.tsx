@@ -109,7 +109,7 @@ function AddEditDomainModal({
       method: "DELETE",
     }).then(async (res) => {
       if (res.status === 200) {
-        await mutate(`/api/domains?projectSlug=${slug}`);
+        await mutate(`/api/domains?workspaceId=${id}`);
         setShowAddEditDomainModal(false);
         toast.success("Successfully deleted domain!");
       } else {
@@ -153,7 +153,7 @@ function AddEditDomainModal({
             body: JSON.stringify(data),
           }).then(async (res) => {
             if (res.status === 200) {
-              await mutate(`/api/domains?projectSlug=${slug}`);
+              await mutate(`/api/domains?workspaceId=${id}`);
               setShowAddEditDomainModal(false);
               toast.success(endpoint.successMessage);
               if (!props) {

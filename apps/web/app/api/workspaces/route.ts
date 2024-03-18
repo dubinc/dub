@@ -37,7 +37,7 @@ const createProjectSchema = z.object({
     .optional(),
 });
 
-// GET /api/projects - get all projects for the current user
+// GET /api/workspaces - get all projects for the current user
 export const GET = withSession(async ({ session }) => {
   const projects = await prisma.project.findMany({
     where: {

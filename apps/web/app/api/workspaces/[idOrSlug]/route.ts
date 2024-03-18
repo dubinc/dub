@@ -1,5 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
-import { deleteProject } from "@/lib/api/projects";
+import { deleteWorkspace } from "@/lib/api/workspaces";
 import { withAuth } from "@/lib/auth";
 import { isReservedKey } from "@/lib/edge-config";
 import prisma from "@/lib/prisma";
@@ -67,10 +67,10 @@ export const PUT = withAuth(
   },
 );
 
-// DELETE /api/projects/[slug] – delete a specific project
+// DELETE /api/workspaces/[idOrSlug] – delete a specific project
 export const DELETE = withAuth(
   async ({ project }) => {
-    const response = await deleteProject(project);
+    const response = await deleteWorkspace(project);
     return NextResponse.json(response);
   },
   {

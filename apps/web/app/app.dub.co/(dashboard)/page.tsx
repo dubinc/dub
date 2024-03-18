@@ -1,5 +1,5 @@
-import CreateWorkspaceButton from "@/ui/projects/create-workspace-button";
-import WorkspaceList from "@/ui/projects/workspace-list";
+import CreateWorkspaceButton from "@/ui/workspaces/create-workspace-button";
+import WorkspaceList from "@/ui/workspaces/workspace-list";
 import { MaxWidthWrapper } from "@dub/ui";
 
 export default function App() {

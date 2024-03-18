@@ -20,7 +20,7 @@ function RemoveSCIMModal({
   setShowRemoveSCIMModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const [removing, setRemoving] = useState(false);
-  const { slug, logo } = useWorkspace();
+  const { id: workspaceId, logo } = useWorkspace();
   const { scim, provider, mutate } = useSCIM();
 
   const currentProvider = useMemo(
@@ -81,7 +81,7 @@ function RemoveSCIMModal({
               directoryId: id,
             });
 
-            fetch(`/api/projects/${slug}/scim?${params}`, {
+            fetch(`/api/workspaces/${workspaceId}/scim?${params}`, {
               method: "DELETE",
             }).then(async (res) => {
               if (res.ok) {

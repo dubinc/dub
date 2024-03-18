@@ -26,7 +26,7 @@ function SAMLModal({
   showSAMLModal: boolean;
   setShowSAMLModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { slug } = useWorkspace();
+  const { id } = useWorkspace();
   const [selectedProvider, setSelectedProvider] = useState<
     SAMLProviderProps["saml"] | undefined
   >();
@@ -61,7 +61,7 @@ function SAMLModal({
           onSubmit={async (e) => {
             e.preventDefault();
             setSubmitting(true);
-            fetch(`/api/projects/${slug}/saml`, {
+            fetch(`/api/workspaces/${id}/saml`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",

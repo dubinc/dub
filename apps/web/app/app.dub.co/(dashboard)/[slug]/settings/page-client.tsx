@@ -1,9 +1,9 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import DeleteProject from "@/ui/projects/delete-project";
-import WorkspaceId from "@/ui/projects/project-id";
-import UploadLogo from "@/ui/projects/upload-logo";
+import DeleteWorkspace from "@/ui/workspaces/delete-workspace";
+import UploadLogo from "@/ui/workspaces/upload-logo";
+import WorkspaceId from "@/ui/workspaces/workspace-id";
 import { Form } from "@dub/ui";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -11,7 +11,7 @@ import { mutate } from "swr";
 
 export default function ProjectSettingsClient() {
   const router = useRouter();
-  const { name, slug, isOwner } = useWorkspace();
+  const { id, name, slug, isOwner } = useWorkspace();
 
   return (
     <>
@@ -30,7 +30,7 @@ export default function ProjectSettingsClient() {
             "Only workspace owners can change the workspace name.",
         })}
         handleSubmit={(updateData) =>
-          fetch(`/api/projects/${slug}`, {
+          fetch(`/api/workspaces/${id}`, {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
@@ -39,8 +39,8 @@ export default function ProjectSettingsClient() {
           }).then(async (res) => {
             if (res.status === 200) {
               await Promise.all([
-                mutate("/api/projects"),
-                mutate(`/api/projects/${slug}`),
+                mutate("/api/workspaces"),
+                mutate(`/api/workspaces/${id}`),
               ]);
               toast.success("Successfully updated workspace name!");
             } else if (res.status === 422) {
@@ -68,7 +68,7 @@ export default function ProjectSettingsClient() {
             "Only workspace owners can change the workspace slug.",
         })}
         handleSubmit={(data) =>
-          fetch(`/api/projects/${slug}`, {
+          fetch(`/api/workspaces/${id}`, {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
@@ -77,7 +77,7 @@ export default function ProjectSettingsClient() {
           }).then(async (res) => {
             if (res.status === 200) {
               const { slug: newSlug } = await res.json();
-              await mutate("/api/projects");
+              await mutate("/api/workspaces");
               router.push(`/${newSlug}/settings`);
               toast.success("Successfully updated workspace slug!");
             } else {
@@ -89,7 +89,7 @@ export default function ProjectSettingsClient() {
       />
       <WorkspaceId />
       <UploadLogo />
-      <DeleteProject />
+      <DeleteWorkspace />
     </>
   );
 }

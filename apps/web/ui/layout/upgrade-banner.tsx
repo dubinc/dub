@@ -6,7 +6,7 @@ import { Crisp } from "crisp-sdk-web";
 import Cookies from "js-cookie";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import ProBanner from "../projects/pro-banner";
+import ProBanner from "../workspaces/pro-banner";
 
 export default function UpgradeBanner() {
   const { slug } = useParams() as { slug?: string };

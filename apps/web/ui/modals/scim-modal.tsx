@@ -28,7 +28,7 @@ function SCIMModal({
   showSCIMModal: boolean;
   setShowSCIMModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { slug } = useWorkspace();
+  const { id } = useWorkspace();
   const [submitting, setSubmitting] = useState(false);
   const { scim, provider, configured, mutate } = useSCIM();
   const [selectedProvider, setSelectedProvider] = useState<
@@ -79,7 +79,7 @@ function SCIMModal({
           onSubmit={async (e) => {
             e.preventDefault();
             setSubmitting(true);
-            fetch(`/api/projects/${slug}/scim`, {
+            fetch(`/api/workspaces/${id}/scim`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",

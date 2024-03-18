@@ -1,3 +1,4 @@
+import useWorkspace from "@/lib/swr/use-workspace";
 import { ImportedDomainCountProps } from "@/lib/types";
 import {
   Button,
@@ -12,7 +13,7 @@ import {
 } from "@dub/ui";
 import { fetcher, nFormatter } from "@dub/utils";
 import { ArrowRight } from "lucide-react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -32,7 +33,7 @@ function ImportRebrandlyModal({
   setShowImportRebrandlyModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const router = useRouter();
-  const { slug } = useParams() as { slug?: string };
+  const { id, slug } = useWorkspace();
   const searchParams = useSearchParams();
 
   const {
@@ -45,9 +46,7 @@ function ImportRebrandlyModal({
     domains: ImportedDomainCountProps[] | null;
     tagsCount: number | null;
   }>(
-    slug &&
-      showImportRebrandlyModal &&
-      `/api/projects/${slug}/import/rebrandly`,
+    id && showImportRebrandlyModal && `/api/workspaces/${id}/import/rebrandly`,
     fetcher,
     {
       revalidateOnFocus: false,
@@ -75,7 +74,7 @@ function ImportRebrandlyModal({
 
   useEffect(() => {
     if (searchParams?.get("import") === "rebrandly") {
-      mutate(`/api/projects/${slug}/import/rebrandly`);
+      mutate(`/api/workspaces/${id}/import/rebrandly`);
       setShowImportRebrandlyModal(true);
     } else {
       setShowImportRebrandlyModal(false);
@@ -129,7 +128,7 @@ function ImportRebrandlyModal({
               e.preventDefault();
               setImporting(true);
               toast.promise(
-                fetch(`/api/projects/${slug}/import/rebrandly`, {
+                fetch(`/api/workspaces/${id}/import/rebrandly`, {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",
@@ -140,7 +139,7 @@ function ImportRebrandlyModal({
                   }),
                 }).then(async (res) => {
                   if (res.ok) {
-                    await mutate(`/api/domains?projectSlug=${slug}`);
+                    await mutate(`/api/domains?workspaceId=${id}`);
                     router.push(`/${slug}`);
                   } else {
                     setImporting(false);
@@ -215,7 +214,7 @@ function ImportRebrandlyModal({
             onSubmit={async (e) => {
               e.preventDefault();
               setSubmitting(true);
-              fetch(`/api/projects/${slug}/import/rebrandly`, {
+              fetch(`/api/workspaces/${id}/import/rebrandly`, {
                 method: "PUT",
                 headers: {
                   "Content-Type": "application/json",
@@ -225,7 +224,7 @@ function ImportRebrandlyModal({
                 }),
               }).then(async (res) => {
                 if (res.ok) {
-                  await mutate(`/api/projects/${slug}/import/rebrandly`);
+                  await mutate(`/api/workspaces/${id}/import/rebrandly`);
                   toast.success("Successfully added API key");
                 } else {
                   toast.error("Error adding API key");

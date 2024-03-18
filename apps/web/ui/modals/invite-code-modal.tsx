@@ -16,7 +16,7 @@ function InviteCodeModal({
   showInviteCodeModal: boolean;
   setShowInviteCodeModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { slug, inviteCode, mutate } = useWorkspace();
+  const { id, inviteCode, mutate } = useWorkspace();
 
   const inviteLink = useMemo(() => {
     return `${APP_DOMAIN}/invites/${inviteCode}`;
@@ -50,7 +50,7 @@ function InviteCodeModal({
           loading={resetting}
           onClick={() => {
             setResetting(true);
-            fetch(`/api/projects/${slug}/invites/reset`, {
+            fetch(`/api/workspaces/${id}/invites/reset`, {
               method: "POST",
             }).then(async () => {
               await mutate();

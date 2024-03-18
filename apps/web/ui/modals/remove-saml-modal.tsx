@@ -19,7 +19,7 @@ function RemoveSAMLModal({
   setShowRemoveSAMLModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const [removing, setRemoving] = useState(false);
-  const { slug, logo } = useWorkspace();
+  const { id, logo } = useWorkspace();
   const { saml, provider, mutate } = useSAML();
 
   return (
@@ -76,7 +76,7 @@ function RemoveSAMLModal({
               clientSecret,
             });
 
-            fetch(`/api/projects/${slug}/saml?${params}`, {
+            fetch(`/api/workspaces/${id}/saml?${params}`, {
               method: "DELETE",
             }).then(async (res) => {
               if (res.ok) {

@@ -3,9 +3,9 @@
 import useTags from "@/lib/swr/use-tags";
 import useUsers from "@/lib/swr/use-users";
 import useWorkspace from "@/lib/swr/use-workspace";
-import PlanBadge from "@/ui/projects/plan-badge";
 import { Divider } from "@/ui/shared/icons";
 import ProgressBar from "@/ui/shared/progress-bar";
+import PlanBadge from "@/ui/workspaces/plan-badge";
 import { Button, InfoTooltip, NumberTooltip, useRouterStuff } from "@dub/ui";
 import { HOME_DOMAIN, getFirstAndLastDay, nFormatter } from "@dub/utils";
 import va from "@vercel/analytics";
@@ -20,7 +20,7 @@ export default function ProjectBillingClient() {
   const searchParams = useSearchParams();
 
   const {
-    slug,
+    id,
     plan,
     stripeId,
     nextPlan,
@@ -64,7 +64,7 @@ export default function ProjectBillingClient() {
       toast.success("Upgrade success!");
       setConfetti(true);
       setTimeout(() => {
-        mutate(`/api/projects/${slug}`);
+        mutate(`/api/workspaces/${id}`);
         // track upgrade event
         plan &&
           va.track("Upgraded Plan", {
@@ -111,7 +111,7 @@ export default function ProjectBillingClient() {
                 className="h-9"
                 onClick={() => {
                   setClicked(true);
-                  fetch(`/api/projects/${slug}/billing/manage`, {
+                  fetch(`/api/workspaces/${id}/billing/manage`, {
                     method: "POST",
                   })
                     .then(async (res) => {

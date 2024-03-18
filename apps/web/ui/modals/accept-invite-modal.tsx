@@ -2,7 +2,6 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { LoadingDots, Logo, Modal } from "@dub/ui";
 import va from "@vercel/analytics";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -20,8 +19,7 @@ function AcceptInviteModal({
   showAcceptInviteModal: boolean;
   setShowAcceptInviteModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const router = useRouter();
-  const { slug } = useParams() as { slug: string };
+  const { id, slug } = useWorkspace();
   const [accepting, setAccepting] = useState(false);
   const { error } = useWorkspace();
 
@@ -48,17 +46,19 @@ function AcceptInviteModal({
             <button
               onClick={() => {
                 setAccepting(true);
-                fetch(`/api/projects/${slug}/invites/accept`, {
+                fetch(`/api/workspaces/${id}/invites/accept`, {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                 }).then(async () => {
-                  va.track("User accepted workspace invite", {
-                    project: slug,
-                  });
+                  if (slug) {
+                    va.track("User accepted workspace invite", {
+                      workspace: slug,
+                    });
+                  }
                   await Promise.all([
-                    mutate("/api/projects"),
-                    mutate(`/api/projects/${slug}`),
-                    mutate(`/api/domains?projectSlug=${slug}`),
+                    mutate("/api/workspaces"),
+                    mutate(`/api/workspaces/${id}`),
+                    mutate(`/api/domains?workspaceId=${id}`),
                   ]);
                   setShowAcceptInviteModal(false);
                   toast.success("You now are a part of this workspace!");

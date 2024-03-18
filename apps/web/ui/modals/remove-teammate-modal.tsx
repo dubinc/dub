@@ -2,7 +2,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { UserProps } from "@/lib/types";
 import { Avatar, BlurImage, Button, Logo, Modal, useMediaQuery } from "@dub/ui";
 import { useSession } from "next-auth/react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -25,9 +25,8 @@ function RemoveTeammateModal({
   invite?: boolean;
 }) {
   const router = useRouter();
-  const { slug } = useParams() as { slug: string };
   const [removing, setRemoving] = useState(false);
-  const { name: projectName, logo } = useWorkspace();
+  const { id: workspaceId, slug, name: projectName, logo } = useWorkspace();
   const { data: session } = useSession();
   const { id, name, email } = user;
   const { isMobile } = useMediaQuery();
@@ -90,7 +89,7 @@ function RemoveTeammateModal({
           onClick={() => {
             setRemoving(true);
             fetch(
-              `/api/projects/${slug}/${
+              `/api/workspaces/${workspaceId}/${
                 invite
                   ? `invites?email=${encodeURIComponent(email)}`
                   : `users?userId=${id}`
@@ -102,10 +101,10 @@ function RemoveTeammateModal({
             ).then(async (res) => {
               if (res.status === 200) {
                 await mutate(
-                  `/api/projects/${slug}/${invite ? "invites" : "users"}`,
+                  `/api/workspaces/${workspaceId}/${invite ? "invites" : "users"}`,
                 );
                 if (session?.user?.email === email) {
-                  await mutate("/api/projects");
+                  await mutate("/api/workspaces");
                   router.push("/");
                 } else {
                   setShowRemoveTeammateModal(false);

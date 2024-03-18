@@ -267,7 +267,7 @@ function UpgradePlanModal({
             loading={clicked}
             onClick={() => {
               setClicked(true);
-              fetch(`/api/projects/${slug}/billing/upgrade`, {
+              fetch(`/api/workspaces/${slug}/billing/upgrade`, {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
@@ -308,7 +308,7 @@ function UpgradePlanModal({
               <button
                 onClick={() => {
                   setClickedCompare(true);
-                  fetch(`/api/projects/${slug}/billing/upgrade`, {
+                  fetch(`/api/workspaces/${slug}/billing/upgrade`, {
                     method: "POST",
                     headers: {
                       "Content-Type": "application/json",

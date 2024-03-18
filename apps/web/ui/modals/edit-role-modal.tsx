@@ -1,7 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { UserProps } from "@/lib/types";
 import { Avatar, BlurImage, Button, Logo, Modal } from "@dub/ui";
-import { useParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -23,10 +22,9 @@ function EditRoleModal({
   user: UserProps;
   role: "owner" | "member";
 }) {
-  const { slug } = useParams() as { slug: string };
   const [editing, setEditing] = useState(false);
-  const { name: projectName, logo } = useWorkspace();
-  const { id, name, email, image } = user;
+  const { id, name: projectName, logo } = useWorkspace();
+  const { id: userId, name, email } = user;
 
   return (
     <Modal showModal={showEditRoleModal} setShowModal={setShowEditRoleModal}>
@@ -64,16 +62,16 @@ function EditRoleModal({
           loading={editing}
           onClick={() => {
             setEditing(true);
-            fetch(`/api/projects/${slug}/users`, {
+            fetch(`/api/workspaces/${id}/users`, {
               method: "PUT",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                userId: id,
+                userId,
                 role,
               }),
             }).then(async (res) => {
               if (res.status === 200) {
-                await mutate(`/api/projects/${slug}/users`);
+                await mutate(`/api/workspaces/${id}/users`);
                 setShowEditRoleModal(false);
                 toast.success(
                   `Successfully changed ${name || email}'s role to ${role}.`,

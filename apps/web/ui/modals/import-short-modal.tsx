@@ -1,3 +1,4 @@
+import useWorkspace from "@/lib/swr/use-workspace";
 import { ImportedDomainCountProps } from "@/lib/types";
 import {
   Button,
@@ -12,7 +13,7 @@ import {
 } from "@dub/ui";
 import { HOME_DOMAIN, fetcher, nFormatter } from "@dub/utils";
 import { ArrowRight } from "lucide-react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -32,11 +33,11 @@ function ImportShortModal({
   setShowImportShortModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const router = useRouter();
-  const { slug } = useParams() as { slug?: string };
+  const { id, slug } = useWorkspace();
   const searchParams = useSearchParams();
 
   const { data: domains, isLoading } = useSWR<ImportedDomainCountProps[]>(
-    slug && showImportShortModal && `/api/projects/${slug}/import/short`,
+    id && showImportShortModal && `/api/workspaces/${id}/import/short`,
     fetcher,
     {
       revalidateOnFocus: false,
@@ -64,7 +65,7 @@ function ImportShortModal({
 
   useEffect(() => {
     if (searchParams?.get("import") === "short") {
-      mutate(`/api/projects/${slug}/import/short`);
+      mutate(`/api/workspaces/${id}/import/short`);
       setShowImportShortModal(true);
     } else {
       setShowImportShortModal(false);
@@ -118,7 +119,7 @@ function ImportShortModal({
               e.preventDefault();
               setImporting(true);
               toast.promise(
-                fetch(`/api/projects/${slug}/import/short`, {
+                fetch(`/api/workspaces/${id}/import/short`, {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",
@@ -129,7 +130,7 @@ function ImportShortModal({
                   }),
                 }).then(async (res) => {
                   if (res.ok) {
-                    await mutate(`/api/domains?projectSlug=${slug}`);
+                    await mutate(`/api/domains?workspaceId=${id}`);
                     router.push(`/${slug}`);
                   } else {
                     setImporting(false);
@@ -200,7 +201,7 @@ function ImportShortModal({
             onSubmit={async (e) => {
               e.preventDefault();
               setSubmitting(true);
-              fetch(`/api/projects/${slug}/import/short`, {
+              fetch(`/api/workspaces/${id}/import/short`, {
                 method: "PUT",
                 headers: {
                   "Content-Type": "application/json",
@@ -210,7 +211,7 @@ function ImportShortModal({
                 }),
               }).then(async (res) => {
                 if (res.ok) {
-                  await mutate(`/api/projects/${slug}/import/short`);
+                  await mutate(`/api/workspaces/${id}/import/short`);
                   toast.success("Successfully added API key");
                 } else {
                   toast.error("Error adding API key");

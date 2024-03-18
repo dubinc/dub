@@ -1,12 +1,11 @@
-import { exceededLimitError } from "@/lib/api/errors";
+import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { withAuth } from "@/lib/auth";
-import { DubApiError } from "@/lib/api/errors";
 import prisma from "@/lib/prisma";
 import { createTagBodySchema } from "@/lib/zod/schemas/tags";
 import { COLORS_LIST, randomBadgeColor } from "@/ui/links/tag-badge";
 import { NextResponse } from "next/server";
 
-// GET /api/projects/[slug]/tags - get all tags for a project
+// GET /api/tags - get all tags for a workspace
 export const GET = withAuth(async ({ project, headers }) => {
   const tags = await prisma.tag.findMany({
     where: {
@@ -24,7 +23,7 @@ export const GET = withAuth(async ({ project, headers }) => {
   return NextResponse.json(tags, { headers });
 });
 
-// POST /api/projects/[slug]/tags - create a tag for a project
+// POST /api/workspaces/[idOrSlug]/tags - create a tag for a project
 export const POST = withAuth(async ({ req, project, headers }) => {
   const tagsCount = await prisma.tag.count({
     where: {
