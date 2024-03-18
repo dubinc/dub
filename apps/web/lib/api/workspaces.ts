@@ -2,7 +2,11 @@ import { deleteDomainAndLinks } from "@/lib/api/domains";
 import prisma from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { cancelSubscription } from "@/lib/stripe";
-import { DUB_DOMAINS_ARRAY, LEGAL_PROJECT_ID, LEGAL_USER_ID } from "@dub/utils";
+import {
+  DUB_DOMAINS_ARRAY,
+  LEGAL_USER_ID,
+  LEGAL_WORKSPACE_ID,
+} from "@dub/utils";
 import { WorkspaceProps } from "../types";
 import { redis } from "../upstash";
 
@@ -110,7 +114,7 @@ export async function deleteWorkspaceAdmin(
       },
       data: {
         userId: LEGAL_USER_ID,
-        projectId: LEGAL_PROJECT_ID,
+        projectId: LEGAL_WORKSPACE_ID,
       },
     }),
   ]);

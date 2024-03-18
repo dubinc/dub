@@ -60,7 +60,7 @@ export const DUB_LOGO = "https://assets.dub.co/logo.png";
 export const DUB_THUMBNAIL = "https://assets.dub.co/thumbnail.png";
 
 export const DUB_WORKSPACE_ID = "cl7pj5kq4006835rbjlt2ofka";
-export const LEGAL_PROJECT_ID = "clrflia0j0000vs7sqfhz9c7q";
+export const LEGAL_WORKSPACE_ID = "clrflia0j0000vs7sqfhz9c7q";
 export const LEGAL_USER_ID = "clqei1lgc0000vsnzi01pbf47";
 
 export const DUB_DOMAINS = [
