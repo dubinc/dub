@@ -73,7 +73,7 @@ export const handleDomainUpdates = async ({
     });
     return;
   }
-  const projectSlug = project.slug;
+  const workspaceSlug = project.slug;
   const sentEmails = project.sentEmails.map((email) => email.type);
   const emails = project.users.map((user) => user.user.email) as string[];
 
@@ -116,7 +116,7 @@ export const handleDomainUpdates = async ({
         if (remainingDomains === 0) {
           return prisma.project.delete({
             where: {
-              slug: projectSlug,
+              slug: workspaceSlug,
             },
           });
           // if the deleted domain was primary, make another domain primary
@@ -151,7 +151,7 @@ export const handleDomainUpdates = async ({
             react: DomainDeleted({
               email,
               domain,
-              projectSlug,
+              workspaceSlug,
             }),
           }),
         ),
@@ -165,7 +165,7 @@ export const handleDomainUpdates = async ({
     );
     if (!sentSecondDomainInvalidEmail) {
       return sendDomainInvalidEmail({
-        projectSlug,
+        workspaceSlug,
         domain,
         invalidDays,
         emails,
@@ -180,7 +180,7 @@ export const handleDomainUpdates = async ({
     );
     if (!sentFirstDomainInvalidEmail) {
       return sendDomainInvalidEmail({
-        projectSlug,
+        workspaceSlug,
         domain,
         invalidDays,
         emails,
@@ -192,13 +192,13 @@ export const handleDomainUpdates = async ({
 };
 
 const sendDomainInvalidEmail = async ({
-  projectSlug,
+  workspaceSlug,
   domain,
   invalidDays,
   emails,
   type,
 }: {
-  projectSlug: string;
+  workspaceSlug: string;
   domain: string;
   invalidDays: number;
   emails: string[];
@@ -217,7 +217,7 @@ const sendDomainInvalidEmail = async ({
           react: InvalidDomain({
             email,
             domain,
-            projectSlug,
+            workspaceSlug,
             invalidDays,
           }),
         }),
@@ -227,7 +227,7 @@ const sendDomainInvalidEmail = async ({
       data: {
         project: {
           connect: {
-            slug: projectSlug,
+            slug: workspaceSlug,
           },
         },
         type: `${type}DomainInvalidEmail:${domain}`,

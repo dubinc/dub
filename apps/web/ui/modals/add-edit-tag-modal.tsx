@@ -36,7 +36,7 @@ function AddEditTagModal({
   setShowAddEditTagModal: Dispatch<SetStateAction<boolean>>;
   props?: TagProps;
 }) {
-  const { slug: projectSlug } = useWorkspace();
+  const { id: workspaceId } = useWorkspace();
   const { isMobile } = useMediaQuery();
 
   const [saving, setSaving] = useState(false);
@@ -65,12 +65,12 @@ function AddEditTagModal({
       id
         ? {
             method: "PUT",
-            url: `/api/tags/${id}?projectSlug=${projectSlug}`,
+            url: `/api/tags/${id}?workspaceId=${workspaceId}`,
             successMessage: "Successfully updated tag!",
           }
         : {
             method: "POST",
-            url: `/api/tags?projectSlug=${projectSlug}`,
+            url: `/api/tags?workspaceId=${workspaceId}`,
             successMessage: "Successfully added tag!",
           },
     [id],
@@ -118,7 +118,7 @@ function AddEditTagModal({
             if (res.status === 200 || res.status === 201) {
               va.track(props ? "Edited Tag" : "Created Tag");
               await Promise.all([
-                mutate(`/api/tags?projectSlug=${projectSlug}`),
+                mutate(`/api/tags?workspaceId=${workspaceId}`),
                 props
                   ? mutate(
                       (key) =>

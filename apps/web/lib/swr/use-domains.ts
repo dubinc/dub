@@ -41,11 +41,11 @@ export default function useDomains({
 
   const allDomains = [
     ...allProjectDomains,
-    ...(id === DUB_WORKSPACE_ID ? [] : DUB_DOMAINS),
+    ...(id === `ws_${DUB_WORKSPACE_ID}` ? [] : DUB_DOMAINS),
   ];
   const allActiveDomains = [
     ...(activeProjectDomains || []),
-    ...(id === DUB_WORKSPACE_ID ? [] : activeDefaultDomains),
+    ...(id === `ws_${DUB_WORKSPACE_ID}` ? [] : activeDefaultDomains),
   ];
 
   const primaryDomain =

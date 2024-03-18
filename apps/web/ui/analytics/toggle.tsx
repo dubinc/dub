@@ -24,7 +24,7 @@ import {
 } from "@dub/utils";
 import { Calendar, ChevronDown, Lock } from "lucide-react";
 import Link from "next/link";
-import { useParams, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import punycode from "punycode/";
 import { useContext, useMemo, useState } from "react";
 import { AnalyticsContext } from ".";
@@ -32,7 +32,6 @@ import SharePopover from "./share-popover";
 import TagSelector from "./tag-selector";
 
 export default function Toggle() {
-  const { slug } = useParams() as { slug?: string };
   const { queryParams } = useRouterStuff();
 
   const { basePath, domain, key, url, interval } = useContext(AnalyticsContext);

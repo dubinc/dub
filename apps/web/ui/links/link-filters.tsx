@@ -106,7 +106,7 @@ const ClearButton = ({ searchInputRef }) => {
   return (
     <button
       onClick={() => {
-        router.replace(`/${slug || "links"}`);
+        router.replace(`/${slug}`);
         searchInputRef.current.value = "";
       }}
       className="group flex items-center justify-center space-x-1 rounded-md border border-gray-400 px-2 py-1 transition-all hover:border-gray-600 active:bg-gray-100"

@@ -9,6 +9,7 @@
 */
 
 import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { fetcher } from "@dub/utils";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
 import { createContext, useMemo } from "react";
@@ -47,9 +48,9 @@ export default function Analytics({
 }) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  const { id, slug } = useWorkspace();
 
-  let { slug, key } = useParams() as {
-    slug?: string;
+  let { key } = useParams() as {
     key?: string;
   };
   const domainSlug = searchParams?.get("domain");
@@ -88,14 +89,14 @@ export default function Analytics({
       {},
     );
     return new URLSearchParams({
-      ...(slug && { projectSlug: slug }),
+      ...(id && { workspaceId: id }),
       ...(domain && { domain }),
       ...(key && { key }),
       ...(interval && { interval }),
       ...(tagId && { tagId }),
       ...availableFilterParams,
     }).toString();
-  }, [slug, domain, key, searchParams, interval, tagId]);
+  }, [id, domain, key, searchParams, interval, tagId]);
 
   const { data: totalClicks } = useSWR<number>(
     `${baseApiPath}/clicks?${queryString}`,

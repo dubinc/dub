@@ -76,7 +76,7 @@ function DeleteWorkspaceModal({
       >
         <div>
           <label
-            htmlFor="project-slug"
+            htmlFor="workspace-slug"
             className="block text-sm font-medium text-gray-700"
           >
             Enter the workspace slug{" "}
@@ -86,8 +86,8 @@ function DeleteWorkspaceModal({
           <div className="relative mt-1 rounded-md shadow-sm">
             <input
               type="text"
-              name="project-slug"
-              id="project-slug"
+              name="workspace-slug"
+              id="workspace-slug"
               autoFocus={!isMobile}
               autoComplete="off"
               pattern={slug}
