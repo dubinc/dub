@@ -1,7 +1,7 @@
 import { bulkCreateLinks, processLink } from "@/lib/api/links";
 import { qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
-import { LinkWithTagIdsProps, ProjectProps } from "@/lib/types";
+import { NewLinkProps, ProcessedLinkProps, ProjectProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { sendEmail } from "emails";
@@ -19,11 +19,7 @@ export const importLinksFromCSV = async ({
   count?: number;
 }) => {
   const [links, totalCount] = await Promise.all([
-    redis.lrange<LinkWithTagIdsProps>(
-      `import:csv:${projectId}`,
-      count,
-      count + 100,
-    ),
+    redis.lrange<NewLinkProps>(`import:csv:${projectId}`, count, count + 100),
     redis.llen(`import:csv:${projectId}`),
   ]);
 
@@ -40,10 +36,12 @@ export const importLinksFromCSV = async ({
   );
 
   const validLinks = processedLinks
-    .filter(({ error }) => !error)
+    .filter(({ error }) => error != null)
     .map(({ link }) => link);
 
-  const importedLinks = await bulkCreateLinks({ links: validLinks });
+  const importedLinks = await bulkCreateLinks({
+    links: validLinks as ProcessedLinkProps[],
+  });
 
   count += importedLinks.length;
 

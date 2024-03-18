@@ -2,7 +2,6 @@ import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { addLink, getLinksForProject, processLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
-import { ProcessedLinkProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import {
   createLinkBodySchema,
@@ -77,14 +76,14 @@ export const POST = withAuth(
       ...(session && { userId: session.user.id }),
     });
 
-    if (error) {
+    if (error != null) {
       throw new DubApiError({
         code: code as ErrorCodes,
         message: error,
       });
     }
 
-    const response = await addLink(link as ProcessedLinkProps);
+    const response = await addLink(link);
 
     await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/event`,

@@ -304,12 +304,20 @@ export async function processLink<T extends Record<string, any>>({
   userId?: string;
   bulk?: boolean;
   skipKeyChecks?: boolean;
-}): Promise<{
-  link: NewLinkProps & T;
-  error?: string | null;
-  code?: string;
-  status?: number;
-}> {
+}): Promise<
+  | {
+      link: NewLinkProps & T;
+      error: string;
+      code?: string;
+      status?: number;
+    }
+  | {
+      link: ProcessedLinkProps & T;
+      error: null;
+      code?: never;
+      status?: never;
+    }
+> {
   let {
     domain,
     key,
@@ -529,13 +537,10 @@ export async function processLink<T extends Record<string, any>>({
       domain,
       key,
       url: processedUrl,
+      userId: userId || null,
       // make sure projectId is set to the current project
       projectId: project?.id || null,
-      // if userId is passed, set it (we don't change the userId if it's already set, e.g. when editing a link)
-      ...(userId && {
-        userId,
-      }),
-    } as NewLinkProps & T,
+    },
     error: null,
   };
 }
