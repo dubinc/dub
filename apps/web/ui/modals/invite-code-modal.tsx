@@ -33,7 +33,7 @@ function InviteCodeModal({
         <Logo />
         <h3 className="text-lg font-medium">Invite Link</h3>
         <p className="text-center text-sm text-gray-500">
-          Allow other people to join your project through the link below.
+          Allow other people to join your workspace through the link below.
         </p>
       </div>
 
