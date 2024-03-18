@@ -236,7 +236,7 @@ const DomainsFilter = () => {
           >
             {options.slice(0, showMore ? options.length : 4).map((domain) => (
               <div
-                key={domain.id}
+                key={domain.slug}
                 className="group relative flex cursor-pointer items-center space-x-3 rounded-md bg-gray-50 transition-all hover:bg-gray-100"
               >
                 <input
