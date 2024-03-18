@@ -11,11 +11,13 @@ import {
   useState,
 } from "react";
 import { Badge } from "./badge";
+import { cn } from "@dub/utils";
 
 export interface InputSelectItemProps {
   id: string;
   value: string;
-  image: string;
+  color?: string;
+  image?: string;
   disabled?: boolean;
   label?: string;
 }
@@ -24,18 +26,20 @@ export function InputSelect({
   items,
   selectedItem,
   setSelectedItem,
+  className,
   icon,
   inputAttrs,
 }: {
-  items: InputSelectItemProps[];
+  items: InputSelectItemProps[] | [];
   selectedItem: InputSelectItemProps | null;
   setSelectedItem: Dispatch<SetStateAction<InputSelectItemProps | null>>;
+  className?: string;
   icon?: ReactNode;
   inputAttrs?: InputHTMLAttributes<HTMLInputElement>;
 }) {
   const commandRef = useRef<HTMLDivElement | null>(null);
   const [openCommandList, setOpenCommandList] = useState(false);
-  const [inputValue, setInputValue] = useState("");
+  const [inputValue, setInputValue] = useState(selectedItem?.value || "");
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -55,36 +59,43 @@ export function InputSelect({
   const CommandInput = () => {
     const isEmpty = useCommandState((state: any) => state.filtered.count === 0);
     return (
-      <Command.Input
-        placeholder={inputAttrs?.placeholder || "Search..."}
-        // hack to focus on the input when the dropdown opens
-        autoFocus={openCommandList}
-        // when focus on the input. only show the dropdown if there are tags and the tagValue is not empty
-        onFocus={() => setOpenCommandList(true)}
-        value={inputValue}
-        onValueChange={setInputValue}
-        onKeyDown={(e) => {
-          if (e.key === "Escape") {
-            e.preventDefault();
-            setOpenCommandList(false);
-            // listen for cases where empty results and enter is pressed
-          } else if (e.key === "Enter" && isEmpty) {
-            setOpenCommandList(false);
-            // if it's a letter or a number and there's no meta key pressed, openCommandList dropdown
-          } else if (e.key.match(/^[a-z0-9]$/i) && !e.metaKey) {
-            setOpenCommandList(true);
-          }
-        }}
-        className="block w-full rounded-md border-none px-0 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 sm:text-sm"
-      />
+      <>
+        <Command.Input
+          placeholder={inputAttrs?.placeholder || "Search..."}
+          // hack to focus on the input when the dropdown opens
+          autoFocus={openCommandList}
+          // when focus on the input. only show the dropdown if there are tags and the tagValue is not empty
+          onFocus={() => setOpenCommandList(true)}
+          value={selectedItem?.value === "" ? "" : inputValue}
+          onValueChange={setInputValue}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              e.preventDefault();
+              setOpenCommandList(false);
+              // listen for cases where empty results and enter is pressed
+            } else if (e.key === "Enter" && isEmpty) {
+              setOpenCommandList(false);
+              // if it's a letter or a number and there's no meta key pressed, openCommandList dropdown
+            } else if (e.key.match(/^[a-z0-9]$/i) && !e.metaKey) {
+              setOpenCommandList(true);
+            }
+          }}
+          className="block w-full rounded-md border-none px-0 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 sm:text-sm"
+        />
+      </>
     );
   };
 
   return (
-    <Command ref={commandRef} className="relative w-full" loop>
-      <div className="group rounded-md border border-gray-300 bg-white px-1 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500">
+    <Command ref={commandRef} className="relative" loop>
+      <div
+        className={cn(
+          "group rounded-md border border-gray-300 bg-white px-1 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500",
+          className,
+        )}
+      >
         <div className="absolute inset-y-0 left-0 flex items-center justify-center pl-3 text-gray-400">
-          {selectedItem ? (
+          {selectedItem && selectedItem.image ? (
             <img
               src={selectedItem.image}
               alt={selectedItem.value}
@@ -94,9 +105,9 @@ export function InputSelect({
             icon || <Search className="h-4 w-4 text-gray-400" />
           )}
         </div>
-        <div className="flex h-9 px-8">
+        <div className="flex h-10 px-8">
           <CommandInput />
-          {inputValue ? (
+          {inputValue && selectedItem?.value !== "" ? (
             <button
               onClick={() => {
                 setSelectedItem(null);
@@ -112,7 +123,7 @@ export function InputSelect({
         </div>
       </div>
       {openCommandList && (
-        <Command.List className="absolute z-20 mt-2 h-[calc(var(--cmdk-list-height)+17px)] max-h-[300px] w-full overflow-auto rounded-md border border-gray-200 bg-white p-2 shadow-md transition-all">
+        <Command.List className="dub-scrollbar absolute z-20 mt-2 h-[calc(var(--cmdk-list-height)+17px)] max-h-[300px] w-full overflow-auto rounded-md border border-gray-200 bg-white p-2 shadow-md transition-all">
           <Command.Empty className="px-4 py-2 text-sm text-gray-600">
             No results found for "{inputValue}"
           </Command.Empty>
@@ -129,18 +140,33 @@ export function InputSelect({
               className="group flex cursor-pointer items-center justify-between rounded-md px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 aria-disabled:cursor-not-allowed aria-disabled:opacity-75 aria-disabled:hover:bg-white aria-selected:bg-gray-100 aria-selected:text-gray-900"
             >
               <div className="flex items-center space-x-2">
-                <img
-                  src={item.image}
-                  alt={item.value}
-                  className="h-4 w-4 rounded-full"
-                />
-                <p>{item.value}</p>
+                {item.image && (
+                  <img
+                    src={item.image}
+                    alt={item.value}
+                    className="h-4 w-4 rounded-full"
+                  />
+                )}
+                <p
+                  className={cn(
+                    "my-auto whitespace-nowrap rounded-md px-2 py-0.5 text-sm",
+                    item.color === "red" && "bg-red-100 text-red-600",
+                    item.color === "yellow" && "bg-yellow-100 text-yellow-600",
+                    item.color === "green" && "bg-green-100 text-green-600",
+                    item.color === "blue" && "bg-blue-100 text-blue-600",
+                    item.color === "purple" && "bg-purple-100 text-purple-600",
+                    item.color === "brown" && "bg-brown-100 text-brown-600",
+                  )}
+                >
+                  {item.value}
+                </p>
                 {item.label && (
                   <Badge className="text-xs" variant="neutral">
                     {item.label}
                   </Badge>
                 )}
               </div>
+
               <Check className="invisible h-5 w-5 text-gray-500 aria-selected:visible" />
             </Command.Item>
           ))}
