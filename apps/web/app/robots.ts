@@ -12,11 +12,17 @@ export default function robots(): MetadataRoute.Robots {
   }
 
   return {
-    rules: {
-      userAgent: "Googlebot",
-      allow: ["/$", "/api/og/"], // allow the home page and the OG image API
-      disallow: "/", // disallow everything else
-    },
+    rules: [
+      {
+        userAgent: "Googlebot", // for Googlebot
+        allow: ["/$", "/api/og/"], // allow the home page and the OG image API
+        disallow: "/", // disallow everything else
+      },
+      {
+        userAgent: "LinkedInBot", // for LinkedInBot
+        allow: "/", // allow everything
+      },
+    ],
     sitemap: `https://${domain}/sitemap.xml`,
   };
 }
