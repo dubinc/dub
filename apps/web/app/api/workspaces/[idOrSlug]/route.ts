@@ -23,11 +23,11 @@ const updateProjectSchema = z.object({
 });
 
 // GET /api/workspaces/[idOrSlug] – get a specific workspace by id or slug
-export const GET = withAuth(async ({ project, headers }) => {
+export const GET = withAuth(async ({ workspace, headers }) => {
   return NextResponse.json(
     {
-      ...project,
-      id: `ws_${project.id}`,
+      ...workspace,
+      id: `ws_${workspace.id}`,
     },
     { headers },
   );
@@ -35,7 +35,7 @@ export const GET = withAuth(async ({ project, headers }) => {
 
 // PUT /api/workspaces/[idOrSlug] – update a specific workspace by id or slug
 export const PUT = withAuth(
-  async ({ req, project }) => {
+  async ({ req, workspace }) => {
     try {
       const { name, slug } = await updateProjectSchema.parseAsync(
         await req.json(),
@@ -43,7 +43,7 @@ export const PUT = withAuth(
 
       const response = await prisma.project.update({
         where: {
-          slug: project.slug,
+          slug: workspace.slug,
         },
         data: {
           ...(name && { name }),
@@ -69,8 +69,8 @@ export const PUT = withAuth(
 
 // DELETE /api/workspaces/[idOrSlug] – delete a specific project
 export const DELETE = withAuth(
-  async ({ project }) => {
-    const response = await deleteWorkspace(project);
+  async ({ workspace }) => {
+    const response = await deleteWorkspace(workspace);
     return NextResponse.json(response);
   },
   {

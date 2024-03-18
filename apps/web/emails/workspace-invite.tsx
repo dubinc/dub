@@ -14,26 +14,26 @@ import {
 } from "@react-email/components";
 import Footer from "./components/footer";
 
-export default function ProjectInvite({
+export default function WorkspaceInvite({
   email = "panicking@thedis.co",
   appName = "Dub.co",
   url = "http://localhost:8888/api/auth/callback/email?callbackUrl=http%3A%2F%2Fapp.localhost%3A3000%2Flogin&token=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&email=youremail@gmail.com",
-  projectName = "Acme",
-  projectUser = "Brendon Urie",
-  projectUserEmail = "panic@thedis.co",
+  workspaceName = "Acme",
+  workspaceUser = "Brendon Urie",
+  workspaceUserEmail = "panic@thedis.co",
 }: {
   email: string;
   appName: string;
   url: string;
-  projectName: string;
-  projectUser: string | null;
-  projectUserEmail: string | null;
+  workspaceName: string;
+  workspaceUser: string | null;
+  workspaceUserEmail: string | null;
 }) {
   return (
     <Html>
       <Head />
       <Preview>
-        Join {projectName} on {appName}
+        Join {workspaceName} on {appName}
       </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
@@ -48,24 +48,24 @@ export default function ProjectInvite({
               />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-center text-xl font-semibold text-black">
-              Join {projectName} on {appName}
+              Join {workspaceName} on {appName}
             </Heading>
-            {projectUser && projectUserEmail ? (
+            {workspaceUser && workspaceUserEmail ? (
               <Text className="text-sm leading-6 text-black">
-                <strong>{projectUser}</strong> (
+                <strong>{workspaceUser}</strong> (
                 <Link
                   className="text-blue-600 no-underline"
-                  href={`mailto:${projectUserEmail}`}
+                  href={`mailto:${workspaceUserEmail}`}
                 >
-                  {projectUserEmail}
+                  {workspaceUserEmail}
                 </Link>
-                ) has invited you to join the <strong>{projectName}</strong>{" "}
-                project on {appName}!
+                ) has invited you to join the <strong>{workspaceName}</strong>{" "}
+                workspace on {appName}!
               </Text>
             ) : (
               <Text className="text-sm leading-6 text-black">
-                You have been invited to join the <strong>{projectName}</strong>{" "}
-                project on {appName}!
+                You have been invited to join the{" "}
+                <strong>{workspaceName}</strong> workspace on {appName}!
               </Text>
             )}
             <Section className="mb-8 text-center">
@@ -73,7 +73,7 @@ export default function ProjectInvite({
                 className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
                 href={url}
               >
-                Join Project
+                Join Workspace
               </Link>
             </Section>
             <Text className="text-sm leading-6 text-black">

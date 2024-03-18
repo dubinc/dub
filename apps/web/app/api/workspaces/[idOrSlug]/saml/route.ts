@@ -23,12 +23,12 @@ const deleteSAMLConnectionSchema = z.object({
   clientSecret: z.string().min(1),
 });
 
-// GET /api/workspaces/[idOrSlug]/saml – get SAML connections for a specific project
-export const GET = withAuth(async ({ project }) => {
+// GET /api/workspaces/[idOrSlug]/saml – get SAML connections for a specific workspace
+export const GET = withAuth(async ({ workspace }) => {
   const { apiController } = await jackson();
 
   const connections = await apiController.getConnections({
-    tenant: project.id,
+    tenant: workspace.id,
     product: "Dub",
   });
 
@@ -46,7 +46,7 @@ export const GET = withAuth(async ({ project }) => {
 
 // POST /api/workspaces/[idOrSlug]/saml – create a new SAML connection
 export const POST = withAuth(
-  async ({ req, project }) => {
+  async ({ req, workspace }) => {
     const { metadataUrl, encodedRawMetadata } =
       createSAMLConnectionSchema.parse(await req.json());
 
@@ -57,7 +57,7 @@ export const POST = withAuth(
       metadataUrl: metadataUrl!,
       defaultRedirectUrl: `${process.env.NEXTAUTH_URL}/auth/saml`,
       redirectUrl: process.env.NEXTAUTH_URL as string,
-      tenant: project.id,
+      tenant: workspace.id,
       product: "Dub",
     });
 

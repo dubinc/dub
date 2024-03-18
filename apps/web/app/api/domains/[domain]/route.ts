@@ -10,9 +10,9 @@ import prisma from "@/lib/prisma";
 import { DUB_PROJECT_ID, isDubDomain } from "@dub/utils";
 import { NextResponse } from "next/server";
 
-// GET /api/domains/[domain] – get a project's domain
-export const GET = withAuth(async ({ domain, project }) => {
-  if (isDubDomain(domain) && project.id !== DUB_PROJECT_ID) {
+// GET /api/domains/[domain] – get a workspace's domain
+export const GET = withAuth(async ({ domain, workspace }) => {
+  if (isDubDomain(domain) && workspace.id !== DUB_PROJECT_ID) {
     return new Response("Domain does not belong to workspace.", {
       status: 403,
     });
@@ -41,8 +41,8 @@ export const GET = withAuth(async ({ domain, project }) => {
   });
 });
 
-// PUT /api/domains/[domain] – edit a project's domain
-export const PUT = withAuth(async ({ req, project, domain }) => {
+// PUT /api/domains/[domain] – edit a workspace's domain
+export const PUT = withAuth(async ({ req, workspace, domain }) => {
   const {
     slug: newDomain,
     target,
@@ -52,7 +52,7 @@ export const PUT = withAuth(async ({ req, project, domain }) => {
     archived,
   } = await req.json();
 
-  if (isDubDomain(domain) && project.id !== DUB_PROJECT_ID) {
+  if (isDubDomain(domain) && workspace.id !== DUB_PROJECT_ID) {
     return new Response("Domain does not belong to workspace.", {
       status: 403,
     });
@@ -80,7 +80,7 @@ export const PUT = withAuth(async ({ req, project, domain }) => {
           slug: newDomain,
         }),
         // same logic as the redis part above
-        ...(project.plan !== "free" &&
+        ...(workspace.plan !== "free" &&
           (target
             ? {
                 target,
@@ -98,7 +98,7 @@ export const PUT = withAuth(async ({ req, project, domain }) => {
     primary &&
       prisma.domain.updateMany({
         where: {
-          projectId: project.id,
+          projectId: workspace.id,
           primary: true,
         },
         data: {
@@ -112,22 +112,22 @@ export const PUT = withAuth(async ({ req, project, domain }) => {
   await setRootDomain({
     id: response[0].id,
     domain,
-    ...(project.plan !== "free" && {
+    ...(workspace.plan !== "free" && {
       url: target,
     }),
     rewrite: type === "rewrite",
     ...(newDomain !== domain && {
       newDomain,
     }),
-    projectId: project.id,
+    projectId: workspace.id,
   });
 
   return NextResponse.json(response);
 });
 
-// DELETE /api/domains/[domain] - delete a project's domain
-export const DELETE = withAuth(async ({ domain, project }) => {
-  if (isDubDomain(domain) && project.id !== DUB_PROJECT_ID) {
+// DELETE /api/domains/[domain] - delete a workspace's domain
+export const DELETE = withAuth(async ({ domain, workspace }) => {
+  if (isDubDomain(domain) && workspace.id !== DUB_PROJECT_ID) {
     return new Response("Domain does not belong to workspace.", {
       status: 403,
     });

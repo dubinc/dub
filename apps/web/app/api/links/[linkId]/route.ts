@@ -44,7 +44,7 @@ export const GET = withAuth(async ({ headers, link }) => {
 });
 
 // PUT /api/links/[linkId] – update a link
-export const PUT = withAuth(async ({ req, headers, project, link }) => {
+export const PUT = withAuth(async ({ req, headers, workspace, link }) => {
   if (!link) {
     throw new DubApiError({
       code: "not_found",
@@ -72,7 +72,7 @@ export const PUT = withAuth(async ({ req, headers, project, link }) => {
     code,
   } = await processLink({
     payload: updatedLink as LinkWithTagIdsProps,
-    project,
+    workspace,
     // if domain and key are the same, we don't need to check if the key exists
     skipKeyChecks:
       link.domain === updatedLink.domain &&

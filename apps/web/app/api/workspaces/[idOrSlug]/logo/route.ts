@@ -8,15 +8,15 @@ const uploadLogoSchema = z.object({
   image: z.string().url(),
 });
 
-// POST /api/workspaces/[idOrSlug]/logo – upload a new project logo
+// POST /api/workspaces/[idOrSlug]/logo – upload a new workspace logo
 export const POST = withAuth(
-  async ({ req, project }) => {
+  async ({ req, workspace }) => {
     const { image } = uploadLogoSchema.parse(await req.json());
 
-    const { url } = await storage.upload(`logos/${project.id}`, image);
+    const { url } = await storage.upload(`logos/${workspace.id}`, image);
 
     const response = await prisma.project.update({
-      where: { id: project.id },
+      where: { id: workspace.id },
       data: { logo: url },
     });
 

@@ -14,12 +14,12 @@ const deleteDirectorySchema = z.object({
 });
 
 // GET /api/workspaces/[idOrSlug]/scim – get all SCIM directories
-export const GET = withAuth(async ({ project }) => {
+export const GET = withAuth(async ({ workspace }) => {
   const { directorySyncController } = await jackson();
 
   const { data, error } =
     await directorySyncController.directories.getByTenantAndProduct(
-      project.id,
+      workspace.id,
       "Dub",
     );
   if (error) {
@@ -36,7 +36,7 @@ export const GET = withAuth(async ({ project }) => {
 
 // POST /api/workspaces/[idOrSlug]/scim – create a new SCIM directory
 export const POST = withAuth(
-  async ({ req, project }) => {
+  async ({ req, workspace }) => {
     const { provider = "okta-scim-v2", currentDirectoryId } =
       createDirectorySchema.parse(await req.json());
 
@@ -45,7 +45,7 @@ export const POST = withAuth(
     const [data, _] = await Promise.all([
       directorySyncController.directories.create({
         name: "Dub SCIM Directory",
-        tenant: project.id,
+        tenant: workspace.id,
         product: "Dub",
         type: provider,
       }),

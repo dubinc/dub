@@ -4,7 +4,7 @@ import { nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 export const POST = withAuth(
-  async ({ project }) => {
+  async ({ workspace }) => {
     const response = await prisma.project.update({
       where: {
         id: project.id,

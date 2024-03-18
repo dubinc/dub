@@ -18,11 +18,11 @@ const removeUserSchema = z.object({
   userId: z.string().min(1),
 });
 
-// GET /api/workspaces/[idOrSlug]/users – get users for a specific project
-export const GET = withAuth(async ({ project }) => {
+// GET /api/workspaces/[idOrSlug]/users – get users for a specific workspace
+export const GET = withAuth(async ({ workspace }) => {
   const users = await prisma.projectUsers.findMany({
     where: {
-      projectId: project.id,
+      projectId: workspace.id,
     },
     select: {
       role: true,
@@ -45,14 +45,14 @@ export const GET = withAuth(async ({ project }) => {
   );
 });
 
-// PUT /api/workspaces/[idOrSlug]/users – update a user's role for a specific project
+// PUT /api/workspaces/[idOrSlug]/users – update a user's role for a specific workspace
 export const PUT = withAuth(
-  async ({ req, project }) => {
+  async ({ req, workspace }) => {
     const { userId, role } = updateRoleSchema.parse(await req.json());
     const response = await prisma.projectUsers.update({
       where: {
         userId_projectId: {
-          projectId: project.id,
+          projectId: workspace.id,
           userId,
         },
       },
@@ -67,15 +67,15 @@ export const PUT = withAuth(
   },
 );
 
-// DELETE /api/workspaces/[idOrSlug]/users – remove a user from a project
+// DELETE /api/workspaces/[idOrSlug]/users – remove a user from a workspace
 
 export const DELETE = withAuth(
-  async ({ searchParams, project, session }) => {
+  async ({ searchParams, workspace, session }) => {
     const { userId } = removeUserSchema.parse(searchParams);
     const projectUser = await prisma.projectUsers.findUnique({
       where: {
         userId_projectId: {
-          projectId: project.id,
+          projectId: workspace.id,
           userId,
         },
       },
@@ -99,7 +99,7 @@ export const DELETE = withAuth(
     const response = await prisma.projectUsers.delete({
       where: {
         userId_projectId: {
-          projectId: project.id,
+          projectId: workspace.id,
           userId,
         },
       },

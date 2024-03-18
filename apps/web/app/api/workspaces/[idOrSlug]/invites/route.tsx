@@ -9,11 +9,11 @@ const emailInviteSchema = z.object({
   email: z.string().email(),
 });
 
-// GET /api/workspaces/[idOrSlug]/invites – get invites for a specific project
-export const GET = withAuth(async ({ project }) => {
+// GET /api/workspaces/[idOrSlug]/invites – get invites for a specific workspace
+export const GET = withAuth(async ({ workspace }) => {
   const invites = await prisma.projectInvite.findMany({
     where: {
-      projectId: project.id,
+      projectId: workspace.id,
     },
     select: {
       email: true,
@@ -25,14 +25,14 @@ export const GET = withAuth(async ({ project }) => {
 
 // POST /api/workspaces/[idOrSlug]/invites – invite a teammate
 export const POST = withAuth(
-  async ({ req, project, session }) => {
+  async ({ req, workspace, session }) => {
     const { email } = emailInviteSchema.parse(await req.json());
 
     const [alreadyInTeam, projectUserCount, projectInviteCount] =
       await Promise.all([
         prisma.projectUsers.findFirst({
           where: {
-            projectId: project.id,
+            projectId: workspace.id,
             user: {
               email,
             },
@@ -40,12 +40,12 @@ export const POST = withAuth(
         }),
         prisma.projectUsers.count({
           where: {
-            projectId: project.id,
+            projectId: workspace.id,
           },
         }),
         prisma.projectInvite.count({
           where: {
-            projectId: project.id,
+            projectId: workspace.id,
           },
         }),
       ]);
@@ -57,12 +57,12 @@ export const POST = withAuth(
       });
     }
 
-    if (projectUserCount + projectInviteCount >= project.usersLimit) {
+    if (projectUserCount + projectInviteCount >= workspace.usersLimit) {
       throw new DubApiError({
         code: "exceeded_limit",
         message: exceededLimitError({
-          plan: project.plan,
-          limit: project.usersLimit,
+          plan: workspace.plan,
+          limit: workspace.usersLimit,
           type: "users",
         }),
       });
@@ -70,7 +70,7 @@ export const POST = withAuth(
 
     await inviteUser({
       email,
-      project,
+      workspace,
       session,
     });
 
@@ -83,13 +83,13 @@ export const POST = withAuth(
 
 // DELETE /api/workspaces/[idOrSlug]/invites – delete a pending invite
 export const DELETE = withAuth(
-  async ({ searchParams, project }) => {
+  async ({ searchParams, workspace }) => {
     const { email } = emailInviteSchema.parse(searchParams);
     const response = await prisma.projectInvite.delete({
       where: {
         email_projectId: {
           email,
-          projectId: project.id,
+          projectId: workspace.id,
         },
       },
     });

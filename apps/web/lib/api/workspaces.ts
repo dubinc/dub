@@ -7,12 +7,12 @@ import { WorkspaceProps } from "../types";
 import { redis } from "../upstash";
 
 export async function deleteWorkspace(
-  project: Pick<WorkspaceProps, "id" | "slug" | "stripeId" | "logo">,
+  workspace: Pick<WorkspaceProps, "id" | "slug" | "stripeId" | "logo">,
 ) {
   const [customDomains, defaultDomainLinks] = await Promise.all([
     prisma.domain.findMany({
       where: {
-        projectId: project.id,
+        projectId: workspace.id,
       },
       select: {
         slug: true,
@@ -20,7 +20,7 @@ export async function deleteWorkspace(
     }),
     prisma.link.findMany({
       where: {
-        projectId: project.id,
+        projectId: workspace.id,
         domain: {
           in: DUB_DOMAINS_ARRAY,
         },
@@ -51,11 +51,11 @@ export async function deleteWorkspace(
     pipeline.hdel(domain, ...links);
   });
 
-  // delete all domains, links, and uploaded images associated with the project
+  // delete all domains, links, and uploaded images associated with the workspace
   const deleteDomainsLinksResponse = await Promise.allSettled([
     ...customDomains.map(({ slug }) =>
       deleteDomainAndLinks(slug, {
-        // here, we don't need to delete in prisma because we're deleting the project later and have onDelete: CASCADE set
+        // here, we don't need to delete in prisma because we're deleting the workspace later and have onDelete: CASCADE set
         skipPrismaDelete: true,
       }),
     ),
@@ -70,15 +70,15 @@ export async function deleteWorkspace(
   ]);
 
   const deleteWorkspaceResponse = await Promise.all([
-    // delete project logo if it's a custom logo stored in R2
-    project.logo?.startsWith(process.env.STORAGE_BASE_URL as string) &&
-      storage.delete(`logos/${project.id}`),
+    // delete workspace logo if it's a custom logo stored in R2
+    workspace.logo?.startsWith(process.env.STORAGE_BASE_URL as string) &&
+      storage.delete(`logos/${workspace.id}`),
     // if they have a Stripe subscription, cancel it
-    project.stripeId && cancelSubscription(project.stripeId),
-    // delete the project
+    workspace.stripeId && cancelSubscription(workspace.stripeId),
+    // delete the workspace
     prisma.project.delete({
       where: {
-        slug: project.slug,
+        slug: workspace.slug,
       },
     }),
   ]);
@@ -90,12 +90,12 @@ export async function deleteWorkspace(
 }
 
 export async function deleteWorkspaceAdmin(
-  project: Pick<WorkspaceProps, "id" | "slug" | "stripeId" | "logo">,
+  workspace: Pick<WorkspaceProps, "id" | "slug" | "stripeId" | "logo">,
 ) {
   const [customDomains, _] = await Promise.all([
     prisma.domain.findMany({
       where: {
-        projectId: project.id,
+        projectId: workspace.id,
       },
       select: {
         slug: true,
@@ -103,7 +103,7 @@ export async function deleteWorkspaceAdmin(
     }),
     prisma.link.updateMany({
       where: {
-        projectId: project.id,
+        projectId: workspace.id,
         domain: {
           in: DUB_DOMAINS_ARRAY,
         },
@@ -115,26 +115,26 @@ export async function deleteWorkspaceAdmin(
     }),
   ]);
 
-  // delete all domains, links, and uploaded images associated with the project
+  // delete all domains, links, and uploaded images associated with the workspace
   const deleteDomainsLinksResponse = await Promise.allSettled([
     ...customDomains.map(({ slug }) =>
       deleteDomainAndLinks(slug, {
-        // here, we don't need to delete in prisma because we're deleting the project later and have onDelete: CASCADE set
+        // here, we don't need to delete in prisma because we're deleting the workspace later and have onDelete: CASCADE set
         skipPrismaDelete: true,
       }),
     ),
   ]);
 
   const deleteWorkspaceResponse = await Promise.all([
-    // delete project logo if it's a custom logo stored in R2
-    project.logo?.startsWith(process.env.STORAGE_BASE_URL as string) &&
-      storage.delete(`logos/${project.id}`),
+    // delete workspace logo if it's a custom logo stored in R2
+    workspace.logo?.startsWith(process.env.STORAGE_BASE_URL as string) &&
+      storage.delete(`logos/${workspace.id}`),
     // if they have a Stripe subscription, cancel it
-    project.stripeId && cancelSubscription(project.stripeId),
-    // delete the project
+    workspace.stripeId && cancelSubscription(workspace.stripeId),
+    // delete the workspace
     prisma.project.delete({
       where: {
-        slug: project.slug,
+        slug: workspace.slug,
       },
     }),
   ]);

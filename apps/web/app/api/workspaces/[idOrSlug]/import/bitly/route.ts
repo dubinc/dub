@@ -7,9 +7,9 @@ import { redis } from "@/lib/upstash";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
 
-// GET /api/workspaces/[idOrSlug]/import/bitly – get all bitly groups for a project
-export const GET = withAuth(async ({ project }) => {
-  const accessToken = await redis.get(`import:bitly:${project.id}`);
+// GET /api/workspaces/[idOrSlug]/import/bitly – get all bitly groups for a workspace
+export const GET = withAuth(async ({ workspace }) => {
+  const accessToken = await redis.get(`import:bitly:${workspace.id}`);
   if (!accessToken) {
     return new Response("No Bitly access token found", { status: 400 });
   }
@@ -49,13 +49,13 @@ export const GET = withAuth(async ({ project }) => {
 });
 
 // POST /api/workspaces/[idOrSlug]/import/bitly - create job to import links from bitly
-export const POST = withAuth(async ({ req, project, session }) => {
+export const POST = withAuth(async ({ req, workspace, session }) => {
   const { selectedDomains, selectedGroupTags } = await req.json();
 
-  // check if there are domains that are not in the project
-  // if yes, add them to the project
+  // check if there are domains that are not in the workspace
+  // if yes, add them to the workspace
   const domainsNotInProject = selectedDomains.filter(
-    ({ domain }) => !project.domains?.find((d) => d.slug === domain),
+    ({ domain }) => !workspace.domains?.find((d) => d.slug === domain),
   );
   if (domainsNotInProject.length > 0) {
     await Promise.allSettled([
@@ -64,7 +64,7 @@ export const POST = withAuth(async ({ req, project, session }) => {
           slug: domain,
           target: null,
           type: "redirect",
-          projectId: project.id,
+          projectId: workspace.id,
           primary: false,
         })),
         skipDuplicates: true,
@@ -96,7 +96,7 @@ export const POST = withAuth(async ({ req, project, session }) => {
         qstash.publishJSON({
           url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/bitly`,
           body: {
-            projectId: project.id,
+            projectId: workspace.id,
             userId: session?.user?.id,
             bitlyGroup,
             domains,

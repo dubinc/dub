@@ -6,10 +6,10 @@ import { COLORS_LIST, randomBadgeColor } from "@/ui/links/tag-badge";
 import { NextResponse } from "next/server";
 
 // GET /api/tags - get all tags for a workspace
-export const GET = withAuth(async ({ project, headers }) => {
+export const GET = withAuth(async ({ workspace, headers }) => {
   const tags = await prisma.tag.findMany({
     where: {
-      projectId: project.id,
+      projectId: workspace.id,
     },
     select: {
       id: true,
@@ -23,20 +23,20 @@ export const GET = withAuth(async ({ project, headers }) => {
   return NextResponse.json(tags, { headers });
 });
 
-// POST /api/workspaces/[idOrSlug]/tags - create a tag for a project
-export const POST = withAuth(async ({ req, project, headers }) => {
+// POST /api/workspaces/[idOrSlug]/tags - create a tag for a workspace
+export const POST = withAuth(async ({ req, workspace, headers }) => {
   const tagsCount = await prisma.tag.count({
     where: {
-      projectId: project.id,
+      projectId: workspace.id,
     },
   });
 
-  if (tagsCount >= project.tagsLimit) {
+  if (tagsCount >= workspace.tagsLimit) {
     throw new DubApiError({
       code: "exceeded_limit",
       message: exceededLimitError({
-        plan: project.plan,
-        limit: project.tagsLimit,
+        plan: workspace.plan,
+        limit: workspace.tagsLimit,
         type: "tags",
       }),
     });
@@ -46,7 +46,7 @@ export const POST = withAuth(async ({ req, project, headers }) => {
 
   const existingTag = await prisma.tag.findFirst({
     where: {
-      projectId: project.id,
+      projectId: workspace.id,
       name: tag,
     },
   });
@@ -65,7 +65,7 @@ export const POST = withAuth(async ({ req, project, headers }) => {
         color && COLORS_LIST.map(({ color }) => color).includes(color)
           ? color
           : randomBadgeColor(),
-      projectId: project.id,
+      projectId: workspace.id,
     },
   });
 

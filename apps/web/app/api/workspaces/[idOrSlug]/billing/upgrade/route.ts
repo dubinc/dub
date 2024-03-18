@@ -3,7 +3,7 @@ import { stripe } from "@/lib/stripe";
 import { APP_DOMAIN } from "@dub/utils";
 import { NextResponse } from "next/server";
 
-export const POST = withAuth(async ({ req, project, session }) => {
+export const POST = withAuth(async ({ req, workspace, session }) => {
   let { plan, period, baseUrl, comparePlans } = await req.json();
 
   if (!plan || !period) {
@@ -16,17 +16,17 @@ export const POST = withAuth(async ({ req, project, session }) => {
     lookup_keys: [`${plan}_${period}`],
   });
 
-  const subscription = project.stripeId
+  const subscription = workspace.stripeId
     ? await stripe.subscriptions.list({
-        customer: project.stripeId,
+        customer: workspace.stripeId,
         status: "active",
       })
     : null;
 
   // if the user already has a subscription, create billing portal to upgrade
-  if (project.stripeId && subscription && subscription.data.length > 0) {
+  if (workspace.stripeId && subscription && subscription.data.length > 0) {
     const { url } = await stripe.billingPortal.sessions.create({
-      customer: project.stripeId,
+      customer: workspace.stripeId,
       return_url: `${baseUrl}?upgrade=${plan}`,
       flow_data: comparePlans
         ? {
@@ -57,7 +57,7 @@ export const POST = withAuth(async ({ req, project, session }) => {
     const stripeSession = await stripe.checkout.sessions.create({
       customer_email: session.user.email,
       billing_address_collection: "required",
-      success_url: `${APP_DOMAIN}/${project.slug}/settings/billing?success=true`,
+      success_url: `${APP_DOMAIN}/${workspace.slug}/settings/billing?success=true`,
       cancel_url: `${baseUrl}?upgrade=${plan}`,
       line_items: [{ price: prices.data[0].id, quantity: 1 }],
       automatic_tax: {
@@ -68,7 +68,7 @@ export const POST = withAuth(async ({ req, project, session }) => {
       },
       mode: "subscription",
       allow_promotion_codes: true,
-      client_reference_id: project.id,
+      client_reference_id: workspace.id,
     });
 
     return NextResponse.json(stripeSession);

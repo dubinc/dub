@@ -1,5 +1,5 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
-import { addLink, getLinksForProject, processLink } from "@/lib/api/links";
+import { addLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { LinkWithTagIdsProps } from "@/lib/types";
@@ -11,8 +11,8 @@ import {
 import { APP_DOMAIN_WITH_NGROK, LOCALHOST_IP } from "@dub/utils";
 import { NextResponse } from "next/server";
 
-// GET /api/links – get all links for a project
-export const GET = withAuth(async ({ headers, searchParams, project }) => {
+// GET /api/links – get all links for a workspace
+export const GET = withAuth(async ({ headers, searchParams, workspace }) => {
   const {
     domain,
     tagId,
@@ -25,8 +25,8 @@ export const GET = withAuth(async ({ headers, searchParams, project }) => {
     withTags,
   } = getLinksQuerySchema.parse(searchParams);
 
-  const response = await getLinksForProject({
-    projectId: project.id,
+  const response = await getLinksForWorkspace({
+    projectId: workspace.id,
     domain,
     tagId,
     tagIds,
@@ -44,7 +44,7 @@ export const GET = withAuth(async ({ headers, searchParams, project }) => {
 
 // POST /api/links – create a new link
 export const POST = withAuth(
-  async ({ req, headers, session, project }) => {
+  async ({ req, headers, session, workspace }) => {
     let bodyRaw;
     try {
       bodyRaw = await req.json();
@@ -71,7 +71,7 @@ export const POST = withAuth(
 
     const { link, error, code } = await processLink({
       payload: body as LinkWithTagIdsProps,
-      project,
+      workspace,
       ...(session && { userId: session.user.id }),
     });
 

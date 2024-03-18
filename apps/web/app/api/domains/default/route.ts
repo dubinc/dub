@@ -5,10 +5,10 @@ import { DUB_DOMAINS_ARRAY } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/domains/default - get default domains
-export const GET = withAuth(async ({ project }) => {
+export const GET = withAuth(async ({ workspace }) => {
   const defaultDomains = await prisma.defaultDomains.findUnique({
     where: {
-      projectId: project.id,
+      projectId: workspace.id,
     },
     select: {
       dubsh: true,
@@ -37,14 +37,14 @@ const updateDefaultDomainsSchema = z.object({
 });
 
 // PUT /api/domains/default - edit default domains
-export const PUT = withAuth(async ({ req, project }) => {
+export const PUT = withAuth(async ({ req, workspace }) => {
   const { defaultDomains } = await updateDefaultDomainsSchema.parseAsync(
     await req.json(),
   );
 
   const response = await prisma.defaultDomains.update({
     where: {
-      projectId: project.id,
+      projectId: workspace.id,
     },
     data: {
       dubsh: defaultDomains.includes("dub.sh"),

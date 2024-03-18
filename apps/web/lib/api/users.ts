@@ -4,23 +4,23 @@ import { WorkspaceProps } from "@/lib/types";
 import { TWO_WEEKS_IN_SECONDS } from "@dub/utils";
 import { randomBytes } from "crypto";
 import { sendEmail } from "emails";
-import ProjectInvite from "emails/project-invite";
+import WorkspaceInvite from "emails/workspace-invite";
 import { DubApiError } from "./errors";
 
 export async function inviteUser({
   email,
-  project,
+  workspace,
   session,
 }: {
   email: string;
-  project: WorkspaceProps;
+  workspace: WorkspaceProps;
   session?: Session;
 }) {
   // same method of generating a token as next-auth
   const token = randomBytes(32).toString("hex");
   const expires = new Date(Date.now() + TWO_WEEKS_IN_SECONDS * 1000);
 
-  // create a project invite record and a verification request token that lasts for a week
+  // create a workspace invite record and a verification request token that lasts for a week
   // here we use a try catch to account for the case where the user has already been invited
   // for which `prisma.projectInvite.create()` will throw a unique constraint error
   try {
@@ -28,7 +28,7 @@ export async function inviteUser({
       data: {
         email,
         expires,
-        projectId: project.id,
+        projectId: workspace.id,
       },
     });
   } catch (error) {
@@ -49,7 +49,7 @@ export async function inviteUser({
   });
 
   const params = new URLSearchParams({
-    callbackUrl: `${process.env.NEXTAUTH_URL}/${project.slug}`,
+    callbackUrl: `${process.env.NEXTAUTH_URL}/${workspace.slug}`,
     email,
     token,
   });
@@ -57,15 +57,15 @@ export async function inviteUser({
   const url = `${process.env.NEXTAUTH_URL}/api/auth/callback/email?${params}`;
 
   return await sendEmail({
-    subject: `You've been invited to join a project on ${process.env.NEXT_PUBLIC_APP_NAME}`,
+    subject: `You've been invited to join a workspace on ${process.env.NEXT_PUBLIC_APP_NAME}`,
     email,
-    react: ProjectInvite({
+    react: WorkspaceInvite({
       email,
       appName: process.env.NEXT_PUBLIC_APP_NAME as string,
       url,
-      projectName: project.name,
-      projectUser: session?.user.name || null,
-      projectUserEmail: session?.user.email || null,
+      workspaceName: workspace.name,
+      workspaceUser: session?.user.name || null,
+      workspaceUserEmail: session?.user.email || null,
     }),
   });
 }
