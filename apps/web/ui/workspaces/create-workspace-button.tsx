@@ -9,20 +9,20 @@ import { useContext } from "react";
 
 export default function CreateWorkspaceButton() {
   const { setShowAddWorkspaceModal } = useContext(ModalContext);
-  const { freeWorkspces, exceedingFreeWorkspces } = useWorkspaces();
+  const { freeWorkspaces, exceedingFreeWorkspaces } = useWorkspaces();
 
   return (
     <div>
       <Button
         text="Create workspace"
         disabledTooltip={
-          exceedingFreeWorkspces ? (
+          exceedingFreeWorkspaces ? (
             <TooltipContent
               title={`You can only create up to ${FREE_PROJECTS_LIMIT} free workspaces. Additional workspaces require a paid plan.`}
               cta="Upgrade to Pro"
               href={
-                freeWorkspces
-                  ? `/${freeWorkspces[0].slug}/settings/billing?upgrade=pro`
+                freeWorkspaces
+                  ? `/${freeWorkspaces[0].slug}/settings/billing?upgrade=pro`
                   : `${HOME_DOMAIN}/pricing`
               }
             />

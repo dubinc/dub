@@ -11,7 +11,7 @@ export default function useWorkspaces() {
     },
   );
 
-  const freeWorkspces = workspaces?.filter(
+  const freeWorkspaces = workspaces?.filter(
     (workspace) =>
       workspace.plan === "free" &&
       workspace?.users &&
@@ -20,8 +20,8 @@ export default function useWorkspaces() {
 
   return {
     workspaces,
-    freeWorkspces,
-    exceedingFreeWorkspces: freeWorkspces && freeWorkspces.length >= 2,
+    freeWorkspaces,
+    exceedingFreeWorkspaces: freeWorkspaces && freeWorkspaces.length >= 2,
     error,
     loading: !workspaces && !error,
   };
