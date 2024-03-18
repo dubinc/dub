@@ -1,7 +1,7 @@
 import NavTabs from "@/ui/layout/nav-tabs";
-import ProjectSelect from "@/ui/layout/project-select";
 import UpgradeBanner from "@/ui/layout/upgrade-banner";
 import UserDropdown from "@/ui/layout/user-dropdown";
+import WorkspacePicker from "@/ui/layout/workspace-picker";
 import { Divider } from "@/ui/shared/icons";
 import { Logo, MaxWidthWrapper } from "@dub/ui";
 import { HOME_DOMAIN, constructMetadata } from "@dub/utils";
@@ -24,7 +24,7 @@ export default function Layout({ children }: { children: ReactNode }) {
                   <Logo className="h-8 w-8 transition-all duration-75 active:scale-95" />
                 </Link>
                 <Divider className="hidden h-8 w-8 text-gray-200 sm:ml-3 sm:block" />
-                <ProjectSelect />
+                <WorkspacePicker />
                 <UpgradeBanner />
               </div>
               <div className="flex items-center space-x-6">

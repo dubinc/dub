@@ -12,26 +12,26 @@ export default function useProject() {
   }
 
   const {
-    data: project,
+    data: workspace,
     error,
     mutate,
-  } = useSWR<ProjectProps>(slug && `/api/projects/${slug}`, fetcher, {
+  } = useSWR<ProjectProps>(slug && `/api/workspaces/${slug}`, fetcher, {
     dedupingInterval: 30000,
   });
 
   const { defaultDomains } = useDefaultDomains();
 
   return {
-    ...project,
-    nextPlan: project?.plan ? getNextPlan(project.plan) : PRO_PLAN,
+    ...workspace,
+    nextPlan: workspace?.plan ? getNextPlan(workspace.plan) : PRO_PLAN,
     defaultDomains: defaultDomains || [],
-    isOwner: project?.users && project.users[0].role === "owner",
-    exceededClicks: project && project.usage >= project.usageLimit,
-    exceededLinks: project && project.linksUsage >= project.linksLimit,
+    isOwner: workspace?.users && workspace.users[0].role === "owner",
+    exceededClicks: workspace && workspace.usage >= workspace.usageLimit,
+    exceededLinks: workspace && workspace.linksUsage >= workspace.linksLimit,
     exceededDomains:
-      project?.domains && project.domains.length >= project.domainsLimit,
+      workspace?.domains && workspace.domains.length >= workspace.domainsLimit,
     error,
     mutate,
-    loading: slug && !project && !error ? true : false,
+    loading: slug && !workspace && !error ? true : false,
   };
 }

@@ -31,12 +31,12 @@ import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
 import DomainInput from "./add-edit-domain-modal/domain-input";
 
-function AddProjectModalHelper({
-  showAddProjectModal,
-  setShowAddProjectModal,
+function AddWorkspaceModalHelper({
+  showAddWorkspaceModal,
+  setShowAddWorkspaceModal,
 }: {
-  showAddProjectModal: boolean;
-  setShowAddProjectModal: Dispatch<SetStateAction<boolean>>;
+  showAddWorkspaceModal: boolean;
+  setShowAddWorkspaceModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -59,7 +59,7 @@ function AddProjectModalHelper({
   const [debouncedSlug] = useDebounce(slug, 500);
   useEffect(() => {
     if (debouncedSlug.length > 0 && !slugError) {
-      fetch(`/api/projects/${slug}/exists`).then(async (res) => {
+      fetch(`/api/workspaces/${slug}/exists`).then(async (res) => {
         if (res.status === 200) {
           const exists = await res.json();
           setSlugError(exists === 1 ? "Slug is already in use." : null);
@@ -95,15 +95,15 @@ function AddProjectModalHelper({
 
   return (
     <Modal
-      showModal={showAddProjectModal}
-      setShowModal={setShowAddProjectModal}
+      showModal={showAddWorkspaceModal}
+      setShowModal={setShowAddWorkspaceModal}
       preventDefaultClose={welcomeFlow}
       onClose={() => {
         if (welcomeFlow) {
           router.back();
-        } else if (searchParams.has("newProject")) {
+        } else if (searchParams.has("newWorkspace")) {
           queryParams({
-            del: ["newProject"],
+            del: ["newWorkspace"],
           });
         }
       }}
@@ -112,7 +112,7 @@ function AddProjectModalHelper({
         <Logo />
         <h3 className="text-lg font-medium">Create a new workspace</h3>
         <a
-          href={`${HOME_DOMAIN}/help/article/what-is-a-project`}
+          href={`${HOME_DOMAIN}/help/article/what-is-a-workspace`}
           target="_blank"
           rel="noopener noreferrer"
           className="-translate-y-2 text-center text-xs text-gray-500 underline underline-offset-4 hover:text-gray-800"
@@ -125,7 +125,7 @@ function AddProjectModalHelper({
         onSubmit={async (e: FormEvent<HTMLFormElement>) => {
           e.preventDefault();
           setSaving(true);
-          fetch("/api/projects", {
+          fetch("/api/workspaces", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -136,15 +136,15 @@ function AddProjectModalHelper({
             }),
           }).then(async (res) => {
             if (res.status === 200) {
-              // track project creation event
+              // track workspace creation event
               va.track("Created Workspace");
-              await mutate("/api/projects");
+              await mutate("/api/workspace");
               if (welcomeFlow) {
                 router.push(`/welcome?type=upgrade&slug=${slug}`);
               } else {
                 router.push(`/${slug}`);
                 toast.success("Successfully created workspace!");
-                setShowAddProjectModal(false);
+                setShowAddWorkspaceModal(false);
               }
             } else {
               const { error } = await res.json();
@@ -298,20 +298,20 @@ function AddProjectModalHelper({
   );
 }
 
-export function useAddProjectModal() {
-  const [showAddProjectModal, setShowAddProjectModal] = useState(false);
+export function useAddWorkspaceModal() {
+  const [showAddWorkspaceModal, setShowAddWorkspaceModal] = useState(false);
 
-  const AddProjectModal = useCallback(() => {
+  const AddWorkspaceModal = useCallback(() => {
     return (
-      <AddProjectModalHelper
-        showAddProjectModal={showAddProjectModal}
-        setShowAddProjectModal={setShowAddProjectModal}
+      <AddWorkspaceModalHelper
+        showAddWorkspaceModal={showAddWorkspaceModal}
+        setShowAddWorkspaceModal={setShowAddWorkspaceModal}
       />
     );
-  }, [showAddProjectModal, setShowAddProjectModal]);
+  }, [showAddWorkspaceModal, setShowAddWorkspaceModal]);
 
   return useMemo(
-    () => ({ setShowAddProjectModal, AddProjectModal }),
-    [setShowAddProjectModal, AddProjectModal],
+    () => ({ setShowAddWorkspaceModal, AddWorkspaceModal }),
+    [setShowAddWorkspaceModal, AddWorkspaceModal],
   );
 }

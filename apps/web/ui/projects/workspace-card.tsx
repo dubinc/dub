@@ -32,7 +32,7 @@ import useSWRImmutable from "swr/immutable";
 import PlanBadge from "./plan-badge";
 import ProjectArrow from "./project-arrow";
 
-export default function ProjectCard({
+export default function WorkspaceCard({
   id,
   name,
   slug,

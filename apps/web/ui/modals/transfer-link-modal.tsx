@@ -1,4 +1,4 @@
-import useProjects from "@/lib/swr/use-projects";
+import useWorkspaces from "@/lib/swr/use-workspaces";
 import { LinkProps } from "@/lib/types";
 import { Button, InputSelect, InputSelectItemProps, Modal } from "@dub/ui";
 import {
@@ -31,7 +31,7 @@ function TransferLinkModal({
 }) {
   const params = useParams() as { slug?: string };
   const { slug } = params;
-  const { projects } = useProjects();
+  const { workspaces } = useWorkspaces();
   const [transferring, setTransferring] = useState(false);
   const [selectedProject, setSelectedProject] =
     useState<InputSelectItemProps | null>(null);
@@ -94,22 +94,23 @@ function TransferLinkModal({
           <LinkLogo apexDomain={apexDomain} />
           <h3 className="text-lg font-medium">Transfer {shortlink}</h3>
           <p className="text-sm text-gray-500">
-            Transfer this link and its analytics to another {APP_NAME} project.
-            Link tags will not be transferred.
+            Transfer this link and its analytics to another {APP_NAME}{" "}
+            workspace. Link tags will not be transferred.
           </p>
         </div>
 
         <div className="flex flex-col space-y-28 bg-gray-50 px-4 py-8 text-left sm:space-y-3 sm:rounded-b-2xl sm:px-16">
           <InputSelect
             items={
-              projects
-                ? projects.map((project) => ({
-                    id: project.id,
-                    value: project.name,
+              workspaces
+                ? workspaces.map((workspace) => ({
+                    id: workspace.id,
+                    value: workspace.name,
                     image:
-                      project.logo || `${DICEBEAR_AVATAR_URL}${project.name}`,
-                    disabled: project.id === props.projectId,
-                    label: project.id === props.projectId ? "Current" : "",
+                      workspace.logo ||
+                      `${DICEBEAR_AVATAR_URL}${workspace.name}`,
+                    disabled: workspace.id === props.projectId,
+                    label: workspace.id === props.projectId ? "Current" : "",
                   }))
                 : []
             }

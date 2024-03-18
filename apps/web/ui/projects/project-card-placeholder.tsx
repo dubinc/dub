@@ -1,4 +1,4 @@
-export default function ProjectCardPlaceholder() {
+export default function WorkspaceCardPlaceholder() {
   return (
     <div className="flex flex-col space-y-[46px] rounded-lg border border-gray-100 bg-white p-6 shadow transition-all hover:shadow-md">
       <div className="flex items-center space-x-3">

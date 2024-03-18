@@ -1,1 +1,1 @@
-export * from "../../../workspaces/[workspaceId]/route";
+export * from "../../../workspaces/[idOrSlug]/route";

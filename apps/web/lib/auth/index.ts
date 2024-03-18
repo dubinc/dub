@@ -121,10 +121,17 @@ export const withAuth = (
     let slug: string | undefined;
 
     const idOrSlug =
+      params?.idOrSlug ||
+      searchParams.workspaceId ||
       params?.slug ||
-      searchParams.projectSlug ||
-      params?.workspaceId ||
-      searchParams.workspaceId;
+      searchParams.projectSlug;
+
+    console.log(
+      params?.idOrSlug,
+      searchParams.workspaceId,
+      params?.slug,
+      searchParams.projectSlug,
+    );
 
     try {
       // if there's no projectSlug & id defined

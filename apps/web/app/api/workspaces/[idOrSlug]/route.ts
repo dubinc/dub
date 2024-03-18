@@ -22,12 +22,12 @@ const updateProjectSchema = z.object({
     .optional(),
 });
 
-// GET /api/projects/[slug] – get a specific project
+// GET /api/workspaces/[idOrSlug] – get a specific workspace by id or slug
 export const GET = withAuth(async ({ project, headers }) => {
   return NextResponse.json(project, { headers });
 });
 
-// PUT /api/projects/[slug] – update a specific project
+// PUT /api/workspaces/[idOrSlug] – update a specific workspace by id or slug
 export const PUT = withAuth(
   async ({ req, project }) => {
     try {

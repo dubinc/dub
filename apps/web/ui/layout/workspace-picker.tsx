@@ -1,6 +1,6 @@
 "use client";
 
-import useProjects from "@/lib/swr/use-projects";
+import useWorkspaces from "@/lib/swr/use-workspaces";
 import { PlanProps, ProjectProps } from "@/lib/types";
 import { ModalContext } from "@/ui/modals/provider";
 import PlanBadge from "@/ui/projects/plan-badge";
@@ -12,8 +12,8 @@ import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { useCallback, useContext, useMemo, useState } from "react";
 
-export default function ProjectSelect() {
-  const { projects } = useProjects();
+export default function WorkspacePicker() {
+  const { workspaces } = useWorkspaces();
   const { data: session, status } = useSession();
   const { slug, key } = useParams() as {
     slug?: string;
@@ -21,9 +21,11 @@ export default function ProjectSelect() {
   };
 
   const selected = useMemo(() => {
-    const selectedProject = projects?.find((project) => project.slug === slug);
+    const selectedProject = workspaces?.find(
+      (project) => project.slug === slug,
+    );
 
-    if (slug && projects && selectedProject) {
+    if (slug && workspaces && selectedProject) {
       return {
         ...selectedProject,
         image:
@@ -42,7 +44,7 @@ export default function ProjectSelect() {
         plan: "free",
       };
     }
-  }, [slug, projects, session]) as {
+  }, [slug, workspaces, session]) as {
     id?: string;
     name: string;
     slug: string;
@@ -52,17 +54,17 @@ export default function ProjectSelect() {
 
   const [openPopover, setOpenPopover] = useState(false);
 
-  if (!projects || status === "loading") {
-    return <ProjectSelectPlaceholder />;
+  if (!workspaces || status === "loading") {
+    return <WorkspacePickerPlaceholder />;
   }
 
   return (
     <div>
       <Popover
         content={
-          <ProjectList
+          <WorkspaceList
             selected={selected}
-            projects={projects}
+            workspaces={workspaces}
             setOpenPopover={setOpenPopover}
           />
         }
@@ -103,9 +105,9 @@ export default function ProjectSelect() {
   );
 }
 
-function ProjectList({
+function WorkspaceList({
   selected,
-  projects,
+  workspaces,
   setOpenPopover,
 }: {
   selected: {
@@ -114,10 +116,10 @@ function ProjectList({
     image: string;
     plan: PlanProps;
   };
-  projects: ProjectProps[];
+  workspaces: ProjectProps[];
   setOpenPopover: (open: boolean) => void;
 }) {
-  const { setShowAddProjectModal } = useContext(ModalContext);
+  const { setShowAddWorkspaceModal } = useContext(ModalContext);
   const { domain, key } = useParams() as { domain?: string; key?: string };
   const pathname = usePathname();
 
@@ -137,7 +139,7 @@ function ProjectList({
   return (
     <div className="relative mt-1 max-h-72 w-full space-y-0.5 overflow-auto rounded-md bg-white p-2 text-base sm:w-60 sm:text-sm sm:shadow-lg">
       <div className="p-2 text-xs text-gray-500">My Workspaces</div>
-      {projects.map(({ id, name, slug, logo }) => {
+      {workspaces.map(({ id, name, slug, logo }) => {
         return (
           <Link
             key={slug}
@@ -174,7 +176,7 @@ function ProjectList({
         key="add"
         onClick={() => {
           setOpenPopover(false);
-          setShowAddProjectModal(true);
+          setShowAddWorkspaceModal(true);
         }}
         className="flex w-full cursor-pointer items-center space-x-2 rounded-md p-2 transition-all duration-75 hover:bg-gray-100"
       >
@@ -185,7 +187,7 @@ function ProjectList({
   );
 }
 
-function ProjectSelectPlaceholder() {
+function WorkspacePickerPlaceholder() {
   return (
     <div className="flex animate-pulse items-center space-x-1.5 rounded-lg px-1.5 py-2 sm:w-60">
       <div className="h-8 w-8 animate-pulse rounded-full bg-gray-200" />
