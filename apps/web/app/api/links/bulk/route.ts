@@ -72,7 +72,7 @@ export const POST = withAuth(
       }));
 
     // filter out tags that don't belong to the workspace
-    const projectTags = await prisma.tag.findMany({
+    const workspaceTags = await prisma.tag.findMany({
       where: {
         projectId: workspace.id,
       },
@@ -80,14 +80,14 @@ export const POST = withAuth(
         id: true,
       },
     });
-    const projectTagIds = projectTags.map(({ id }) => id);
+    const workspaceTagIds = workspaceTags.map(({ id }) => id);
     validLinks.forEach((link, index) => {
       const combinedTagIds = combineTagIds({
         tagId: link.tagId,
         tagIds: link.tagIds,
       });
       const invalidTagIds = combinedTagIds.filter(
-        (id) => !projectTagIds.includes(id),
+        (id) => !workspaceTagIds.includes(id),
       );
       if (invalidTagIds.length > 0) {
         // remove link from validLinks and add error to errorLinks

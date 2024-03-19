@@ -20,7 +20,7 @@ const transferLinkBodySchema = z.object({
 export const POST = withAuth(async ({ req, headers, session, link }) => {
   const { newWorkspaceId } = transferLinkBodySchema.parse(await req.json());
 
-  const newProject = await prisma.project.findUnique({
+  const newWorkspace = await prisma.project.findUnique({
     where: { id: newWorkspaceId },
     select: {
       linksUsage: true,
@@ -36,14 +36,14 @@ export const POST = withAuth(async ({ req, headers, session, link }) => {
     },
   });
 
-  if (!newProject || newProject.users.length === 0) {
+  if (!newWorkspace || newWorkspace.users.length === 0) {
     throw new DubApiError({
       code: "not_found",
       message: "New workspace not found.",
     });
   }
 
-  if (newProject.linksUsage >= newProject.linksLimit) {
+  if (newWorkspace.linksUsage >= newWorkspace.linksLimit) {
     throw new DubApiError({
       code: "forbidden",
       message: "New workspace has reached its link limit.",
@@ -56,7 +56,7 @@ export const POST = withAuth(async ({ req, headers, session, link }) => {
       newWorkspaceId,
     }),
     // set this in redis so we can use it in the event cron job
-    redis.set(`transfer:${link!.id}:oldProjectId`, link!.projectId),
+    redis.set(`transfer:${link!.id}:oldWorkspaceId`, link!.projectId),
   ]);
 
   await qstash.publishJSON({

@@ -10,7 +10,7 @@ import prisma from "@/lib/prisma";
 import z from "@/lib/zod";
 import {
   DEFAULT_REDIRECTS,
-  FREE_PROJECTS_LIMIT,
+  FREE_WORKSPACES_LIMIT,
   nanoid,
   validDomainRegex,
   validSlugRegex,
@@ -80,10 +80,10 @@ export const POST = withSession(async ({ req, session }) => {
     },
   });
 
-  if (freeProjects >= FREE_PROJECTS_LIMIT) {
+  if (freeProjects >= FREE_WORKSPACES_LIMIT) {
     throw new DubApiError({
       code: "exceeded_limit",
-      message: `You can only create up to ${FREE_PROJECTS_LIMIT} free workspaces. Additional workspaces require a paid plan.`,
+      message: `You can only create up to ${FREE_WORKSPACES_LIMIT} free workspaces. Additional workspaces require a paid plan.`,
     });
   }
 

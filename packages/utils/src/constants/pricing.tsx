@@ -303,7 +303,7 @@ export const SELF_SERVE_PAID_PLANS = PLANS.filter(
   (p) => p.name !== "Free" && p.name !== "Enterprise",
 );
 
-export const FREE_PROJECTS_LIMIT = 2;
+export const FREE_WORKSPACES_LIMIT = 2;
 
 export const getPlanFromPriceId = (priceId: string) => {
   return PLANS.find((plan) => plan.price.ids?.includes(priceId)) || null;

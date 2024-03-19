@@ -3,7 +3,7 @@ import { getSearchParams, log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { updateUsage } from "./utils";
 
-// Cron to update the usage stats of each project.
+// Cron to update the usage stats of each workspace.
 // Runs once every day at 7AM PST (0 14 * * *)
 
 export async function GET(req: Request) {

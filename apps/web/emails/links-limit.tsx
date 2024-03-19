@@ -17,7 +17,7 @@ import Footer from "./components/footer";
 
 export default function LinksLimitAlert({
   email = "panic@thedis.co",
-  project = {
+  workspace = {
     id: "ckqf1q3xw0000gk5u2q1q2q1q",
     name: "Acme",
     slug: "acme",
@@ -27,9 +27,9 @@ export default function LinksLimitAlert({
   },
 }: {
   email: string;
-  project: Partial<WorkspaceProps>;
+  workspace: Partial<WorkspaceProps>;
 }) {
-  const { slug, name, linksUsage, linksLimit, plan } = project as {
+  const { slug, name, linksUsage, linksLimit, plan } = workspace as {
     slug: string;
     name: string;
     linksUsage: number;
@@ -43,8 +43,8 @@ export default function LinksLimitAlert({
     <Html>
       <Head />
       <Preview>
-        Your Dub project, {name} has used {percentage.toString()}% of its links
-        limit for the month.
+        Your Dub workspace, {name} has used {percentage.toString()}% of its
+        links limit for the month.
       </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">

@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma";
 import { PlanProps } from "@/lib/types";
 import { NextResponse } from "next/server";
 
-// POST /api/workspaces/[idOrSlug]/invites/accept – accept a project invite
+// POST /api/workspaces/[idOrSlug]/invites/accept – accept a workspace invite
 export const POST = withSession(async ({ session, params }) => {
   const invite = await prisma.projectInvite.findFirst({
     where: {
@@ -37,13 +37,13 @@ export const POST = withSession(async ({ session, params }) => {
     return new Response("Invite expired", { status: 410 });
   }
 
-  const project = invite.project;
+  const workspace = invite.project;
 
-  if (project._count.users >= project.usersLimit) {
+  if (workspace._count.users >= workspace.usersLimit) {
     return new Response(
       exceededLimitError({
-        plan: project.plan as PlanProps,
-        limit: project.usersLimit,
+        plan: workspace.plan as PlanProps,
+        limit: workspace.usersLimit,
         type: "users",
       }),
       {
@@ -57,14 +57,14 @@ export const POST = withSession(async ({ session, params }) => {
       data: {
         userId: session.user.id,
         role: "member",
-        projectId: project.id,
+        projectId: workspace.id,
       },
     }),
     prisma.projectInvite.delete({
       where: {
         email_projectId: {
           email: session.user.email,
-          projectId: project.id,
+          projectId: workspace.id,
         },
       },
     }),

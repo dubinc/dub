@@ -80,7 +80,7 @@ export async function POST(req: Request) {
 
   // increment links usage and send alert if needed
   if (type === "create" && link.projectId) {
-    const project = await prisma.project.update({
+    const workspace = await prisma.project.update({
       where: {
         id: link.projectId,
       },
@@ -92,7 +92,7 @@ export async function POST(req: Request) {
     });
 
     const percentage = Math.round(
-      (project.linksUsage / project.linksLimit) * 100,
+      (workspace.linksUsage / workspace.linksLimit) * 100,
     );
 
     if (percentage === 80 || percentage === 100) {
@@ -100,7 +100,7 @@ export async function POST(req: Request) {
         where: {
           projects: {
             some: {
-              projectId: project.id,
+              projectId: workspace.id,
             },
           },
         },
@@ -116,30 +116,30 @@ export async function POST(req: Request) {
           limiter.schedule(() =>
             sendEmail({
               subject: `${process.env.NEXT_PUBLIC_APP_NAME} Alert: ${
-                project.name
+                workspace.name
               } has used ${percentage.toString()}% of its links limit for the month.`,
               email,
               react: LinksLimitAlert({
                 email,
-                project: project as Partial<WorkspaceProps>,
+                workspace: workspace as Partial<WorkspaceProps>,
               }),
             }),
           );
         }),
         log({
           message: `*${
-            project.slug
+            workspace.slug
           }* has used ${percentage.toString()}% of its links limit for the month.`,
-          type: project.plan === "free" ? "cron" : "alerts",
-          mention: project.plan !== "free",
+          type: workspace.plan === "free" ? "cron" : "alerts",
+          mention: workspace.plan !== "free",
         }),
       ]);
     }
   }
 
   if (type === "transfer") {
-    const oldProjectId = await redis.get<string>(
-      `transfer:${linkId}:oldProjectId`,
+    const oldWorkspaceId = await redis.get<string>(
+      `transfer:${linkId}:oldWorkspaceId`,
     );
 
     const linkClicks = await getAnalytics({
@@ -150,10 +150,10 @@ export async function POST(req: Request) {
 
     // update old and new project usage
     await Promise.all([
-      oldProjectId &&
+      oldWorkspaceId &&
         prisma.project.update({
           where: {
-            id: oldProjectId,
+            id: oldWorkspaceId,
           },
           data: {
             usage: {

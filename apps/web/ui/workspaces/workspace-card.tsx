@@ -41,7 +41,7 @@ export default function WorkspaceCard({
   plan,
 }: WorkspaceProps) {
   const {
-    allProjectDomains: domains,
+    allWorkspaceDomains: domains,
     primaryDomain,
     verified,
     loading,

@@ -17,7 +17,7 @@ import Footer from "./components/footer";
 
 export default function ClicksExceeded({
   email = "panic@thedis.co",
-  project = {
+  workspace = {
     id: "ckqf1q3xw0000gk5u2q1q2q1q",
     name: "Acme",
     slug: "acme",
@@ -28,10 +28,10 @@ export default function ClicksExceeded({
   type = "first",
 }: {
   email: string;
-  project: Partial<WorkspaceProps>;
+  workspace: Partial<WorkspaceProps>;
   type: "first" | "second";
 }) {
-  const { slug, name, usage, usageLimit, plan } = project;
+  const { slug, name, usage, usageLimit, plan } = workspace;
   const nextPlan = getNextPlan(plan as string);
 
   return (

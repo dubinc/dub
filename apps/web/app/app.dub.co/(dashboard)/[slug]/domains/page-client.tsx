@@ -21,16 +21,16 @@ import { ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-export default function ProjectDomainsClient() {
-  const { id: projectId } = useWorkspace();
+export default function WorkspaceDomainsClient() {
+  const { id: workspaceId } = useWorkspace();
 
   const { AddEditDomainModal, AddDomainButton } = useAddEditDomainModal();
-  const { activeProjectDomains, archivedProjectDomains } = useDomains();
+  const { activeWorkspaceDomains, archivedWorkspaceDomains } = useDomains();
   const [showArchivedDomains, setShowArchivedDomains] = useState(false);
 
   return (
     <>
-      {projectId && <AddEditDomainModal />}
+      {workspaceId && <AddEditDomainModal />}
       <div className="flex h-36 items-center border-b border-gray-200 bg-white">
         <MaxWidthWrapper>
           <div className="flex items-center justify-between">
@@ -55,10 +55,10 @@ export default function ProjectDomainsClient() {
         </MaxWidthWrapper>
       </div>
       <MaxWidthWrapper className="py-10">
-        {activeProjectDomains ? (
-          activeProjectDomains.length > 0 ? (
+        {activeWorkspaceDomains ? (
+          activeWorkspaceDomains.length > 0 ? (
             <ul className="grid grid-cols-1 gap-3">
-              {activeProjectDomains.map((domain) => (
+              {activeWorkspaceDomains.map((domain) => (
                 <li key={domain.slug}>
                   <DomainCard props={domain} />
                 </li>
@@ -70,17 +70,17 @@ export default function ProjectDomainsClient() {
         ) : (
           <DomainCardPlaceholder />
         )}
-        {archivedProjectDomains && archivedProjectDomains.length > 0 && (
+        {archivedWorkspaceDomains && archivedWorkspaceDomains.length > 0 && (
           <ul className="mt-3 grid grid-cols-1 gap-3">
             {showArchivedDomains &&
-              archivedProjectDomains?.map((domain) => (
+              archivedWorkspaceDomains?.map((domain) => (
                 <li key={domain.slug}>
                   <DomainCard props={domain} />
                 </li>
               ))}
             <Button
               text={`${showArchivedDomains ? "Hide" : "Show"} ${
-                archivedProjectDomains.length
+                archivedWorkspaceDomains.length
               } archived domains`}
               variant="secondary"
               onClick={() => setShowArchivedDomains(!showArchivedDomains)}

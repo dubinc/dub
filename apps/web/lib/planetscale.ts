@@ -11,11 +11,11 @@ export const pscale_config = {
 
 export const conn = connect(pscale_config);
 
-export const getProjectViaEdge = async (projectId: string) => {
+export const getWorkspaceViaEdge = async (workspaceId: string) => {
   if (!DATABASE_URL) return null;
 
   const { rows } =
-    (await conn.execute("SELECT * FROM Project WHERE id = ?", [projectId])) ||
+    (await conn.execute("SELECT * FROM Project WHERE id = ?", [workspaceId])) ||
     {};
 
   return rows && Array.isArray(rows) && rows.length > 0

@@ -15,7 +15,7 @@ import { ChevronDown, FilePlus2, Sheet } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export default function ProjectLinksClient() {
+export default function WorkspaceLinksClient() {
   const { AddEditLinkModal, AddEditLinkButton } = useAddEditLinkModal();
 
   return (

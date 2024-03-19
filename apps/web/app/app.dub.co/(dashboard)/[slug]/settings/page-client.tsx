@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
-export default function ProjectSettingsClient() {
+export default function WorkspaceSettingsClient() {
   const router = useRouter();
   const { id, name, slug, isOwner } = useWorkspace();
 

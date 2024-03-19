@@ -9,18 +9,18 @@ import { z } from "zod";
 
 // GET /api/user – get a specific user
 export const GET = withSession(async ({ session }) => {
-  const migratedProject = await redis.hget(
+  const migratedWorkspace = await redis.hget(
     "migrated_links_users",
     session.user.id,
   );
 
-  if (migratedProject) {
+  if (migratedWorkspace) {
     await redis.hdel("migrated_links_users", session.user.id);
   }
 
   return NextResponse.json({
     ...session.user,
-    migratedProject,
+    migratedWorkspace,
   });
 });
 
@@ -62,13 +62,13 @@ export const PUT = withSession(async ({ req, session }) => {
 
 // DELETE /api/user – delete a specific user
 export const DELETE = withSession(async ({ session }) => {
-  const userIsOwnerOfProjects = await prisma.projectUsers.findMany({
+  const userIsOwnerOfWorkspaces = await prisma.projectUsers.findMany({
     where: {
       userId: session.user.id,
       role: "owner",
     },
   });
-  if (userIsOwnerOfProjects.length > 0) {
+  if (userIsOwnerOfWorkspaces.length > 0) {
     return new Response(
       "You must transfer ownership of your workspaces or delete them before you can delete your account.",
       { status: 422 },

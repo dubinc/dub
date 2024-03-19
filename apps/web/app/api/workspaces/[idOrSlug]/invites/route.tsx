@@ -28,7 +28,7 @@ export const POST = withAuth(
   async ({ req, workspace, session }) => {
     const { email } = emailInviteSchema.parse(await req.json());
 
-    const [alreadyInTeam, projectUserCount, projectInviteCount] =
+    const [alreadyInWorkspace, workspaceUserCount, workspaceInviteCount] =
       await Promise.all([
         prisma.projectUsers.findFirst({
           where: {
@@ -50,14 +50,14 @@ export const POST = withAuth(
         }),
       ]);
 
-    if (alreadyInTeam) {
+    if (alreadyInWorkspace) {
       throw new DubApiError({
         code: "bad_request",
         message: "User already exists in this workspace.",
       });
     }
 
-    if (projectUserCount + projectInviteCount >= workspace.usersLimit) {
+    if (workspaceUserCount + workspaceInviteCount >= workspace.usersLimit) {
       throw new DubApiError({
         code: "exceeded_limit",
         message: exceededLimitError({

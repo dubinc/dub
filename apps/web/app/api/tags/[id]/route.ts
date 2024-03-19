@@ -5,7 +5,7 @@ import { recordLink } from "@/lib/tinybird";
 import { updateTagBodySchema } from "@/lib/zod/schemas/tags";
 import { NextResponse } from "next/server";
 
-// PUT /api/workspaces/[idOrSlug]/tags/[id] – update a tag for a project
+// PUT /api/workspaces/[idOrSlug]/tags/[id] – update a tag for a workspace
 export const PUT = withAuth(async ({ req, params }) => {
   const { id } = params;
   const { name, color } = updateTagBodySchema.parse(await req.json());
@@ -46,7 +46,7 @@ export const PUT = withAuth(async ({ req, params }) => {
   }
 });
 
-// DELETE /api/workspaces/[idOrSlug]/tags/[id] – delete a tag for a project
+// DELETE /api/workspaces/[idOrSlug]/tags/[id] – delete a tag for a workspace
 export const DELETE = withAuth(async ({ params }) => {
   const { id } = params;
   try {
