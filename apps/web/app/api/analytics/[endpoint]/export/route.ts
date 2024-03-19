@@ -11,7 +11,10 @@ import { linkConstructor } from "@dub/utils";
 import { json2csv } from "json-2-csv";
 
 // converts data to CSV and returns a Response object
-const respondCSV = (data: Record<string, string>[], filename: string) => {
+const respondCSV = (
+  data: Record<string, string | number>[],
+  filename: string,
+) => {
   const csv = json2csv(data, {
     parseValue(fieldValue, defaultParser) {
       if (fieldValue instanceof Date) {
@@ -30,14 +33,14 @@ const respondCSV = (data: Record<string, string>[], filename: string) => {
 
 // GET /api/analytics/[endpoint]/export – get export data for analytics
 export const GET = withAuth(
-  async ({ params, searchParams, project, link }) => {
+  async ({ params, searchParams, workspace, link }) => {
     const { endpoint } = analyticsEndpointSchema.parse(params);
     const parsedParams = getAnalyticsQuerySchema.parse(searchParams);
     const { domain, key, interval } = parsedParams;
 
     // return 403 if project is on the free plan and interval is 90d or all
     if (
-      project?.plan === "free" &&
+      workspace?.plan === "free" &&
       (interval === "all" || interval === "90d")
     ) {
       throw new DubApiError({
@@ -53,49 +56,64 @@ export const GET = withAuth(
         : null;
 
     if (endpoint === "top_links") {
-      const topLinks = await getAnalytics({
-        projectId: project.id,
+      const data = await getAnalytics({
+        workspaceId: workspace.id,
         endpoint: "top_links",
         ...parsedParams,
-      }).then(async (data) => {
-        // if project is on the free plan, only return the first 100 links
-        const links = project?.plan === "free" ? data.slice(0, 100) : data;
-
-        return await Promise.all(
-          links.map(
-            async ({
-              link: linkId,
-              clicks,
-            }: {
-              link: string;
-              clicks: number;
-            }) => {
-              const link = await prisma.link.findUnique({
-                where: {
-                  id: linkId,
-                },
-                select: {
-                  domain: true,
-                  key: true,
-                  url: true,
-                },
-              });
-              if (!link) return;
-              return {
-                linkId,
-                shortLink: linkConstructor({
-                  domain: link.domain,
-                  key: link.key,
-                }),
-                domain: link.domain,
-                key: link.key,
-                url: link.url,
-                clicks,
-              };
-            },
-          ),
-        );
       });
+
+      const links = await prisma.link.findMany({
+        where: {
+          projectId: workspace.id,
+          id: {
+            in: data.map(({ link }) => link),
+          },
+        },
+        select: {
+          id: true,
+          domain: true,
+          key: true,
+          clicks: true,
+          url: true,
+        },
+      });
+
+      const domainLinks = await prisma.domain.findMany({
+        where: {
+          projectId: workspace.id,
+          id: {
+            in: data.map(({ link }) => link),
+          },
+        },
+        select: {
+          id: true,
+          slug: true,
+          clicks: true,
+        },
+      });
+
+      const topLinks = links.map((link) => ({
+        linkId: link.id,
+        shortLink: linkConstructor({
+          domain: link.domain,
+          key: link.key,
+        }),
+        domain: link.domain,
+        key: link.key,
+        url: link.url,
+        clicks: link.clicks,
+      }));
+
+      topLinks.push(
+        ...domainLinks.map((domain) => ({
+          linkId: domain.id,
+          shortLink: domain.slug,
+          domain: domain.slug,
+          key: "_root",
+          url: "",
+          clicks: domain.clicks,
+        })),
+      );
 
       if (!topLinks) {
         return new Response(undefined, {
@@ -106,7 +124,7 @@ export const GET = withAuth(
       return respondCSV(topLinks, "top_links.csv");
     } else {
       const response = await getAnalytics({
-        projectId: project.id,
+        workspaceId: workspace.id,
         ...(linkId && { linkId }),
         endpoint,
         ...parsedParams,
