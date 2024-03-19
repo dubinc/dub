@@ -56,6 +56,13 @@ export function InputSelect({
     }
   }, [commandRef, openCommandList]);
 
+  // hacks the input value to be empty when the selectedItem is empty
+  useEffect(() => {
+    if (!selectedItem?.value) {
+      setInputValue("");
+    }
+  }, [selectedItem?.value]);
+
   const CommandInput = () => {
     const isEmpty = useCommandState((state: any) => state.filtered.count === 0);
     return (
@@ -66,7 +73,7 @@ export function InputSelect({
           autoFocus={openCommandList}
           // when focus on the input. only show the dropdown if there are tags and the tagValue is not empty
           onFocus={() => setOpenCommandList(true)}
-          value={selectedItem?.value === "" ? "" : inputValue}
+          value={inputValue}
           onValueChange={setInputValue}
           onKeyDown={(e) => {
             if (e.key === "Escape") {
