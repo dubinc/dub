@@ -83,7 +83,7 @@ export default function ClicksSummary({
               Your 30-day {appName} summary for {workspaceName}
             </Heading>
             <Text className="text-sm leading-6 text-black">
-              In the last 30 days, your {appName} project,{" "}
+              In the last 30 days, your {appName} workspace,{" "}
               <strong>{workspaceName}</strong> received{" "}
               <strong>{nFormatter(totalClicks)} link clicks</strong>. You also
               created <strong>{createdLinks} new links</strong> during that

@@ -53,14 +53,14 @@ export default function WorkspaceCard({
   );
 
   const { data: user } = useSWRImmutable<
-    Session["user"] & { migratedProject: string | null }
+    Session["user"] & { migratedWorkspace: string | null }
   >(`/api/user`, fetcher);
 
-  const isMigratedProject = user?.migratedProject === id;
+  const isMigratedWorkspace = user?.migratedWorkspace === id;
 
   return (
     <div className="group relative">
-      {isMigratedProject && (
+      {isMigratedWorkspace && (
         <>
           <div className="absolute -inset-1 rounded-lg bg-gradient-to-r from-red-600 to-violet-600 opacity-25 blur-lg transition duration-1000 group-hover:opacity-75 group-hover:duration-200" />
           <WorkspaceArrow className="absolute -bottom-20 right-56 z-10 text-violet-600 lg:right-0" />
@@ -85,7 +85,7 @@ export default function WorkspaceCard({
         className={cn(
           "relative flex flex-col justify-between space-y-10 rounded-lg border border-gray-100 bg-white p-6 shadow transition-all hover:shadow-lg",
           {
-            "border-violet-600": isMigratedProject,
+            "border-violet-600": isMigratedWorkspace,
           },
         )}
       >

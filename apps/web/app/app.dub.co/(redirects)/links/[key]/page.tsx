@@ -8,9 +8,9 @@ export default async function OldLinksStatsPage({
     key: string;
   };
 }) {
-  const projects = await getWorkspaces();
-  if (!projects || projects.length === 0) {
+  const workspaces = await getWorkspaces();
+  if (!workspaces || workspaces.length === 0) {
     redirect("/");
   }
-  redirect(`/${projects[0].slug}/analytics?domain=dub.sh&key=${params.key}`);
+  redirect(`/${workspaces[0].slug}/analytics?domain=dub.sh&key=${params.key}`);
 }

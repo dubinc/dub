@@ -299,7 +299,7 @@ const DomainPopover = ({
 
   const toastWithUndo = useToastWithUndo();
 
-  const archiveProjectDomain = (archive: boolean) => {
+  const archiveDomain = (archive: boolean) => {
     return fetch(`/api/domains/${domain.slug}?workspaceId=${id}`, {
       method: "PUT",
       headers: {
@@ -354,14 +354,14 @@ const DomainPopover = ({
         toast.error(error.message);
       }
     } else {
-      const res = await archiveProjectDomain(true);
+      const res = await archiveDomain(true);
       if (res.ok) {
         await mutateDomains();
         toastWithUndo({
           id: "domain-archive-undo-toast",
           message: `Successfully archived domain!`,
           undo: async () => {
-            toast.promise(archiveProjectDomain(false), {
+            toast.promise(archiveDomain(false), {
               loading: "Undo in progress...",
               error: "Failed to roll back changes. An error occurred.",
               success: async () => {
@@ -520,7 +520,7 @@ const TagsFilter = ({
             className="mt-4 grid gap-2"
             {...SWIPE_REVEAL_ANIMATION_SETTINGS}
           >
-            {tags?.length === 0 ? ( // if the project has no tags
+            {tags?.length === 0 ? ( // if the workspace has no tags
               <p className="text-center text-sm text-gray-500">No tags yet.</p>
             ) : (
               <>

@@ -6,8 +6,8 @@ export default async function OldLinksAnalytics({
 }: {
   searchParams: { [key: string]: string };
 }) {
-  const projects = await getWorkspaces();
-  if (!projects || projects.length === 0) {
+  const workspaces = await getWorkspaces();
+  if (!workspaces || workspaces.length === 0) {
     redirect("/");
   }
 
@@ -21,6 +21,6 @@ export default async function OldLinksAnalytics({
   const queryString = newParams.toString();
 
   redirect(
-    `/${projects[0].slug}/analytics${queryString ? `?${queryString}` : ""}`,
+    `/${workspaces[0].slug}/analytics${queryString ? `?${queryString}` : ""}`,
   );
 }

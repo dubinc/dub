@@ -23,7 +23,7 @@ function EditRoleModal({
   role: "owner" | "member";
 }) {
   const [editing, setEditing] = useState(false);
-  const { id, name: projectName, logo } = useWorkspace();
+  const { id, name: workspaceName, logo } = useWorkspace();
   const { id: userId, name, email } = user;
 
   return (
@@ -43,7 +43,7 @@ function EditRoleModal({
         <h3 className="text-lg font-medium">Change Teammate Role</h3>
         <p className="text-center text-sm text-gray-500">
           This will change <b className="text-gray-800">{name || email}</b>'s
-          role in <b className="text-gray-800">{projectName}</b> to{" "}
+          role in <b className="text-gray-800">{workspaceName}</b> to{" "}
           <b className="text-gray-800">{role}</b>. Are you sure you want to
           continue?
         </p>

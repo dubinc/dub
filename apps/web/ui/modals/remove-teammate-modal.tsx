@@ -26,7 +26,7 @@ function RemoveTeammateModal({
 }) {
   const router = useRouter();
   const [removing, setRemoving] = useState(false);
-  const { id: workspaceId, slug, name: projectName, logo } = useWorkspace();
+  const { id: workspaceId, name: workspaceName, logo } = useWorkspace();
   const { data: session } = useSession();
   const { id, name, email } = user;
   const { isMobile } = useMediaQuery();
@@ -62,7 +62,7 @@ function RemoveTeammateModal({
               ? "You're about to leave "
               : "This will remove "}
           <span className="font-semibold text-black">
-            {session?.user?.email === email ? projectName : name || email}
+            {session?.user?.email === email ? workspaceName : name || email}
           </span>
           {invite
             ? "'s invitation to join your workspace. "

@@ -25,8 +25,8 @@ export default function UpgradeBanner() {
       });
       /* show pro banner if:
           - free plan
-          - not hidden by user for this project 
-          - project is created more than 24 hours ago
+          - not hidden by user for this workspace 
+          - workspace is created more than 24 hours ago
       */
       if (
         plan === "free" &&
