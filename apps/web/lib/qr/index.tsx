@@ -3,7 +3,6 @@
  * Copyright (c) Paul O'Shannessy
  * SPDX-License-Identifier: ISC
  */
-import { escape } from "html-escaper";
 import { useEffect, useRef, useState } from "react";
 import qrcodegen from "./codegen";
 import {
@@ -191,7 +190,7 @@ export function getQRAsSVGDataUri(props: QRProps) {
     if (calculatedImageSettings.excavation != null)
       cells = excavateModules(cells, calculatedImageSettings.excavation);
     image = [
-      `<image href="${escape(imageSettings.src)}"`,
+      `<image href="${imageSettings.src}"`,
       `height="${calculatedImageSettings.h}"`,
       `width="${calculatedImageSettings.w}"`,
       `x="${calculatedImageSettings.x + margin}"`,
