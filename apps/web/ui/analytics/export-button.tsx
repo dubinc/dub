@@ -67,11 +67,6 @@ export default function ExportButton() {
       <button
         disabled={true}
         className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md bg-white shadow transition-all hover:shadow-md disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-white disabled:active:bg-white"
-        onClick={async () => {
-          setLoading(true);
-          await exportData();
-          setLoading(false);
-        }}
       >
         <Download className="h-4 w-4" />
       </button>
