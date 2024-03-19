@@ -93,14 +93,14 @@ export const VALID_ANALYTICS_FILTERS = [
 ];
 
 export const getAnalytics = async ({
-  projectId,
+  workspaceId,
   linkId,
   domain,
   endpoint,
   interval,
   ...rest
-}: Omit<z.infer<typeof getAnalyticsQuerySchema>, "projectSlug"> & {
-  projectId?: string;
+}: z.infer<typeof getAnalyticsQuerySchema> & {
+  workspaceId?: string;
   linkId?: string;
   endpoint: (typeof VALID_TINYBIRD_ENDPOINTS)[number];
 }) => {
@@ -138,8 +138,8 @@ export const getAnalytics = async ({
   let url = new URL(
     `${process.env.TINYBIRD_API_URL}/v0/pipes/${endpoint}.json`,
   );
-  if (projectId) {
-    url.searchParams.append("projectId", projectId);
+  if (workspaceId) {
+    url.searchParams.append("projectId", workspaceId);
   }
   if (linkId) {
     url.searchParams.append("linkId", linkId);

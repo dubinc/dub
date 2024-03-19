@@ -4,7 +4,7 @@ import { linkConstructor } from "@dub/utils";
 import "dotenv-flow/config";
 
 async function main() {
-  const project = await prisma.project.findUnique({
+  const workspace = await prisma.project.findUnique({
     where: {
       slug: "dub",
     },
@@ -30,12 +30,12 @@ async function main() {
       createdAt: true,
     },
   });
-  if (!project) {
-    console.log("No project found");
+  if (!workspace) {
+    console.log("No workspace found");
     return;
   }
   const topLinks = await getAnalytics({
-    projectId: project.id,
+    projectId: workspace.id,
     endpoint: "top_links",
     interval: "30d",
     excludeRoot: true,

@@ -2,7 +2,7 @@ import prisma from "@/lib/prisma";
 import "dotenv-flow/config";
 
 async function main() {
-  const projects = await prisma.project.findMany({
+  const workspaces = await prisma.project.findMany({
     select: {
       slug: true,
       plan: true,
@@ -18,7 +18,7 @@ async function main() {
     },
     take: 100,
   });
-  console.table(projects, ["slug", "plan", "usage", "_count"]);
+  console.table(workspaces, ["slug", "plan", "usage", "_count"]);
 }
 
 main();

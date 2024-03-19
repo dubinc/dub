@@ -45,7 +45,7 @@ export async function getLinksForWorkspace({
   userId,
   showArchived,
   withTags,
-}: Omit<z.infer<typeof getLinksQuerySchema>, "projectSlug"> & {
+}: z.infer<typeof getLinksQuerySchema> & {
   workspaceId: string;
 }) {
   const combinedTagIds = combineTagIds({ tagId, tagIds });

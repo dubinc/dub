@@ -121,7 +121,7 @@ export const updateUsage = async (skip?: number) => {
         const topLinks =
           workspace.usage > 0
             ? await getAnalytics({
-                projectId: workspace.id,
+                workspaceId: workspace.id,
                 endpoint: "top_links",
                 interval: "30d",
                 excludeRoot: true,

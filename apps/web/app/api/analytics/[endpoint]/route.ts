@@ -33,7 +33,7 @@ export const GET = withAuth(
         : null;
 
     const response = await getAnalytics({
-      projectId: workspace.id,
+      workspaceId: workspace.id,
       ...(linkId && { linkId }),
       endpoint,
       ...parsedParams,
