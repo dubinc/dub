@@ -13,7 +13,7 @@ import { HOME_DOMAIN, SAML_PROVIDERS } from "@dub/utils";
 import { FolderSync, Lock, ShieldOff } from "lucide-react";
 import { useMemo, useState } from "react";
 
-export default function ProjectSecurityClient() {
+export default function WorkspaceSecurityClient() {
   return (
     <>
       <SAMLSection />

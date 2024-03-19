@@ -20,7 +20,7 @@ import Confetti from "react-dom-confetti";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
-export default function ProjectBillingClient() {
+export default function WorkspaceBillingClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
 

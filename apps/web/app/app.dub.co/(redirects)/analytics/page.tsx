@@ -1,4 +1,4 @@
-import { getProjects } from "@/lib/fetchers";
+import { getWorkspaces } from "@/lib/fetchers";
 import { redirect } from "next/navigation";
 
 export default async function OldLinksAnalytics({
@@ -6,7 +6,7 @@ export default async function OldLinksAnalytics({
 }: {
   searchParams: { [key: string]: string };
 }) {
-  const projects = await getProjects();
+  const projects = await getWorkspaces();
   if (!projects || projects.length === 0) {
     redirect("/");
   }

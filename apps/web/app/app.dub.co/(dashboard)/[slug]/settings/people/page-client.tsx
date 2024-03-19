@@ -16,7 +16,7 @@ import { useState } from "react";
 
 const tabs: Array<"Members" | "Invitations"> = ["Members", "Invitations"];
 
-export default function ProjectPeopleClient() {
+export default function WorkspacePeopleClient() {
   const { setShowInviteTeammateModal, InviteTeammateModal } =
     useInviteTeammateModal();
 

@@ -3,7 +3,7 @@ import LayoutLoader from "@/ui/layout/layout-loader";
 import { Suspense } from "react";
 import AnalyticsClient from "./client";
 
-export default function ProjectAnalytics() {
+export default function WorkspaceAnalytics() {
   return (
     <Suspense fallback={<LayoutLoader />}>
       <AnalyticsClient>

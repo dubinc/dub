@@ -1,5 +1,5 @@
-import ProjectSecurityClient from "./page-client";
+import WorkspaceSecurityClient from "./page-client";
 
-export default function ProjectSecurity() {
-  return <ProjectSecurityClient />;
+export default function WorkspaceSecurity() {
+  return <WorkspaceSecurityClient />;
 }
