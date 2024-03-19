@@ -57,7 +57,7 @@ export async function GET(req: Request) {
       orderBy: {
         lastChecked: "asc",
       },
-      take: 100,
+      take: 30,
     });
 
     const results = await Promise.allSettled(
