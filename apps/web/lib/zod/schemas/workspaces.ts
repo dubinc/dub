@@ -1,4 +1,11 @@
+import { isReservedKey } from "@/lib/edge-config";
 import z from "@/lib/zod";
+import {
+  DEFAULT_REDIRECTS,
+  validDomainRegex,
+  validSlugRegex,
+} from "@dub/utils";
+import slugify from "@sindresorhus/slugify";
 import { planSchema, roleSchema } from ".";
 
 export const WorkspaceSchema = z
@@ -46,3 +53,22 @@ export const WorkspaceSchema = z
   .openapi({
     title: "Workspace",
   });
+
+export const createWorkspaceSchema = z.object({
+  name: z.string().min(1).max(32),
+  slug: z
+    .string()
+    .min(3, "Slug must be at least 3 characters")
+    .max(48, "Slug must be less than 48 characters")
+    .transform((v) => slugify(v))
+    .refine((v) => validSlugRegex.test(v), { message: "Invalid slug format" })
+    .refine(async (v) => !((await isReservedKey(v)) || DEFAULT_REDIRECTS[v]), {
+      message: "Cannot use reserved slugs",
+    }),
+  domain: z
+    .string()
+    .refine((v) => validDomainRegex.test(v), {
+      message: "Invalid domain format",
+    })
+    .optional(),
+});

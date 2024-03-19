@@ -5,37 +5,10 @@ import {
 } from "@/lib/api/domains";
 import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
-import { isReservedKey } from "@/lib/edge-config";
 import prisma from "@/lib/prisma";
-import z from "@/lib/zod";
-import {
-  DEFAULT_REDIRECTS,
-  FREE_WORKSPACES_LIMIT,
-  nanoid,
-  validDomainRegex,
-  validSlugRegex,
-} from "@dub/utils";
-import slugify from "@sindresorhus/slugify";
+import { createWorkspaceSchema } from "@/lib/zod/schemas/workspaces";
+import { FREE_WORKSPACES_LIMIT, nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
-
-const createWorkspaceSchema = z.object({
-  name: z.string().min(1).max(32),
-  slug: z
-    .string()
-    .min(3, "Slug must be at least 3 characters")
-    .max(48, "Slug must be less than 48 characters")
-    .transform((v) => slugify(v))
-    .refine((v) => validSlugRegex.test(v), { message: "Invalid slug format" })
-    .refine(async (v) => !((await isReservedKey(v)) || DEFAULT_REDIRECTS[v]), {
-      message: "Cannot use reserved slugs",
-    }),
-  domain: z
-    .string()
-    .refine((v) => validDomainRegex.test(v), {
-      message: "Invalid domain format",
-    })
-    .optional(),
-});
 
 // GET /api/workspaces - get all projects for the current user
 export const GET = withSession(async ({ session }) => {

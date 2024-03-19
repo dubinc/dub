@@ -109,6 +109,7 @@
     {
       "group": "Workspaces",
       "pages": [
+        "api-reference/endpoint/create-a-new-workspace",
         "api-reference/endpoint/retrieve-a-workspace",
         "api-reference/endpoint/retrieve-a-list-of-workspaces"
       ]
