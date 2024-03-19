@@ -5,8 +5,13 @@ import useTags from "@/lib/swr/use-tags";
 import useUsers from "@/lib/swr/use-users";
 import PlanBadge from "@/ui/projects/plan-badge";
 import { Divider } from "@/ui/shared/icons";
-import ProgressBar from "@/ui/shared/progress-bar";
-import { Button, InfoTooltip, NumberTooltip, useRouterStuff } from "@dub/ui";
+import {
+  Button,
+  InfoTooltip,
+  NumberTooltip,
+  ProgressBar,
+  useRouterStuff,
+} from "@dub/ui";
 import { HOME_DOMAIN, getFirstAndLastDay, nFormatter } from "@dub/utils";
 import va from "@vercel/analytics";
 import { useRouter, useSearchParams } from "next/navigation";

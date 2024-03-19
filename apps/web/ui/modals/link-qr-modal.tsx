@@ -66,13 +66,6 @@ export function QRCodePicker({
   const { logo, plan } = useProject();
   const apexDomain = props.url ? getApexDomain(props.url) : null;
 
-  const qrLogoUrl = useMemo(() => {
-    if (logo && plan !== "free") return logo;
-    return typeof window !== "undefined" && window.location.origin
-      ? new URL("/_static/logo.svg", window.location.origin).href
-      : "https://dub.co/_static/logo.svg";
-  }, [logo, plan]);
-
   function download(url: string, extension: string) {
     if (!anchorRef.current) return;
     anchorRef.current.href = url;
@@ -95,14 +88,15 @@ export function QRCodePicker({
       level: "Q", // QR Code error correction level: https://blog.qrstuff.com/general/qr-code-error-correction
       ...(showLogo && {
         imageSettings: {
-          src: qrLogoUrl,
+          src:
+            logo && plan !== "free" ? logo : "https://dub.co/_static/logo.svg",
           height: 256,
           width: 256,
           excavate: true,
         },
       }),
     }),
-    [props, fgColor, showLogo, qrLogoUrl],
+    [props, fgColor, showLogo],
   );
 
   const [copiedImage, setCopiedImage] = useState(false);
@@ -235,7 +229,10 @@ export function QRCodePicker({
                       ...(qrData.imageSettings && {
                         imageSettings: {
                           ...qrData.imageSettings,
-                          src: logo || "https://dub.co/_static/logo.svg",
+                          src:
+                            logo && plan !== "free"
+                              ? logo
+                              : "https://dub.co/_static/logo.svg",
                         },
                       }),
                     }),

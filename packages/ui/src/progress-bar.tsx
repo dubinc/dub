@@ -3,7 +3,7 @@
 import { cn } from "@dub/utils";
 import { motion } from "framer-motion";
 
-export default function ProgressBar({
+export function ProgressBar({
   value = 0,
   max = 100,
   className,

@@ -1,6 +1,5 @@
 import {
   addDomainToVercel,
-  changeDomainForImages,
   deleteDomainAndLinks,
   removeDomainFromVercel,
   setRootDomain,
@@ -95,12 +94,6 @@ export const PUT = withAuth(async ({ req, project, domain }) => {
         archived,
       },
     }),
-    ...(newDomain !== domain
-      ? [
-          removeDomainFromVercel(domain),
-          changeDomainForImages(domain, newDomain),
-        ]
-      : []),
     // if the domain is being set as the primary domain, set the current primary domain to false
     primary &&
       prisma.domain.updateMany({
@@ -112,6 +105,8 @@ export const PUT = withAuth(async ({ req, project, domain }) => {
           primary: false,
         },
       }),
+    // remove old domain from Vercel
+    newDomain !== domain && removeDomainFromVercel(domain),
   ]);
 
   await setRootDomain({
@@ -139,5 +134,6 @@ export const DELETE = withAuth(async ({ domain, project }) => {
   }
 
   const response = await deleteDomainAndLinks(domain);
+
   return NextResponse.json(response);
 });

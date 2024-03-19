@@ -1,3 +1,4 @@
+import { isStored } from "@/lib/storage";
 import { LinkProps } from "@/lib/types";
 import {
   BlurImage,
@@ -34,7 +35,7 @@ export default function Preview({
       );
     }
     if (image) {
-      if (image.startsWith("https://res.cloudinary.com")) {
+      if (isStored(image)) {
         return (
           <BlurImage
             src={image}

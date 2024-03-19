@@ -31,7 +31,6 @@ export const GET = withAuth(async ({ headers, link }) => {
       color: true,
     },
   });
-  // link is guaranteed to exist because if not we will return 404
   return NextResponse.json(
     {
       ...link,
@@ -82,8 +81,8 @@ export const PUT = withAuth(async ({ req, headers, project, link }) => {
     project,
     // if domain and key are the same, we don't need to check if the key exists
     skipKeyChecks:
-      link!.domain === updatedLink.domain &&
-      link!.key.toLowerCase() === updatedLink.key?.toLowerCase(),
+      link.domain === updatedLink.domain &&
+      link.key.toLowerCase() === updatedLink.key?.toLowerCase(),
   });
 
   if (error) {
@@ -95,15 +94,15 @@ export const PUT = withAuth(async ({ req, headers, project, link }) => {
 
   const [response, _] = await Promise.allSettled([
     editLink({
-      // link is guaranteed to exist because if not we will return 404
-      domain: link!.domain,
-      key: link!.key,
+      oldDomain: link.domain,
+      oldKey: link.key,
+      oldImage: link.image || undefined,
       updatedLink: processedLink,
     }),
     qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/event`,
       body: {
-        linkId: link!.id,
+        linkId: link.id,
         type: "edit",
       },
     }),
@@ -117,9 +116,7 @@ export const PUT = withAuth(async ({ req, headers, project, link }) => {
 
 // DELETE /api/links/[linkId] – delete a link
 export const DELETE = withAuth(async ({ headers, link }) => {
-  // link is guaranteed to exist because if not we will return 404
   const response = await deleteLink(link!.id);
-
   return NextResponse.json(response[0], {
     headers,
   });

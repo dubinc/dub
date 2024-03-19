@@ -11,6 +11,7 @@ import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import { subscribe } from "../flodesk";
+import { isStored, storage } from "../storage";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
@@ -186,40 +187,37 @@ export const authOptions: NextAuthOptions = {
       if (!user.email || (await isBlacklistedEmail(user.email))) {
         return false;
       }
-      if (account?.provider === "google") {
+      if (account?.provider === "google" || account?.provider === "github") {
         const userExists = await prisma.user.findUnique({
           where: { email: user.email },
-          select: { name: true, image: true },
+          select: { id: true, name: true, image: true },
         });
-        // if the user already exists via email,
-        // update the user with their name and image from Google
-        if (userExists && profile) {
-          await prisma.user.update({
-            where: { email: user.email },
-            data: {
-              ...(userExists.name ? {} : { name: profile.name }),
-              // @ts-expect-error - this is a bug in the types, `picture` is a valid on the `Profile` type
-              ...(userExists.image ? {} : { image: profile.picture }),
-            },
-          });
+        if (!userExists || !profile) {
+          return true;
         }
-      } else if (account?.provider === "github") {
-        const userExists = await prisma.user.findUnique({
-          where: { email: user.email },
-          select: { name: true, image: true },
-        });
         // if the user already exists via email,
-        // update the user with their name and image from Github
+        // update the user with their name and image
         if (userExists && profile) {
+          const profilePic =
+            profile[account.provider === "google" ? "picture" : "avatar_url"];
+          let newAvatar: string | null = null;
+          // if the existing user doesn't have an image or the image is not stored in R2
+          if (
+            (!userExists.image || !isStored(userExists.image)) &&
+            profilePic
+          ) {
+            const { url } = await storage.upload(
+              `avatars/${userExists.id}`,
+              profilePic,
+            );
+            newAvatar = url;
+          }
           await prisma.user.update({
             where: { email: user.email },
             data: {
-              ...(userExists.name
-                ? {}
-                : // @ts-expect-error - this is a bug in the types, `login` is a valid on the `Profile` type
-                  { name: profile.name || profile.login }),
-              // @ts-expect-error - this is a bug in the types, `avatar_url` is a valid on the `Profile` type
-              ...(userExists.image ? {} : { image: profile.avatar_url }),
+              // @ts-expect-error - this is a bug in the types, `login` is a valid on the `Profile` type
+              ...(!userExists.name && { name: profile.name || profile.login }),
+              ...(newAvatar && { image: newAvatar }),
             },
           });
         }
@@ -277,7 +275,7 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
-    jwt: async ({ token, account, user, trigger }) => {
+    jwt: async ({ token, user, trigger }) => {
       // force log out banned users
       if (!token.email || (await isBlacklistedEmail(token.email))) {
         return {};
@@ -341,6 +339,22 @@ export const authOptions: NextAuthOptions = {
             }),
           ]);
         }
+      }
+      // lazily backup user avatar to R2
+      const currentImage = message.user.image;
+      if (currentImage && !isStored(currentImage)) {
+        const { url } = await storage.upload(
+          `avatars/${message.user.id}`,
+          currentImage,
+        );
+        await prisma.user.update({
+          where: {
+            id: message.user.id,
+          },
+          data: {
+            image: url,
+          },
+        });
       }
     },
   },
