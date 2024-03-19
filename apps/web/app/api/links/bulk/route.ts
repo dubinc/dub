@@ -60,11 +60,11 @@ export const POST = withAuth(
     );
 
     let validLinks = processedLinks
-      .filter(({ error }) => error != null)
+      .filter(({ error }) => error == null)
       .map(({ link }) => link);
 
     let errorLinks = processedLinks
-      .filter(({ error }) => error)
+      .filter(({ error }) => error != null)
       .map(({ link, error, code }) => ({
         link,
         error,
