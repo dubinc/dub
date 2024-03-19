@@ -38,16 +38,6 @@
   ],
   "anchors": [
     {
-      "name": "Documentation",
-      "icon": "book-open-cover",
-      "url": "introduction"
-    },
-    {
-      "name": "API Reference",
-      "icon": "rectangle-terminal",
-      "url": "api-reference"
-    },
-    {
       "name": "Help Center",
       "icon": "question",
       "url": "https://dub.co/help"

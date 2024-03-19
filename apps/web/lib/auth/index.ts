@@ -142,7 +142,7 @@ export const withAuth = (
           throw new DubApiError({
             code: "not_found",
             message:
-              "Workspace id not found. Did you forget to include a `workspaceId` query parameter?",
+              "Workspace id not found. Did you forget to include a `workspaceId` query parameter? Learn more: https://d.to/id",
           });
         }
       }
@@ -468,7 +468,7 @@ export const withSession =
           throw new DubApiError({
             code: "bad_request",
             message:
-              "Misconfigured authorization header. Did you forget to add 'Bearer '? Learn more: https://d.to/auth ",
+              "Misconfigured authorization header. Did you forget to add 'Bearer '? Learn more: https://d.to/auth",
           });
         }
         const apiKey = authorizationHeader.replace("Bearer ", "");
