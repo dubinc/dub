@@ -12,12 +12,12 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import { ProjectProps } from "../lib/types";
+import { WorkspaceProps } from "../lib/types";
 import Footer from "./components/footer";
 
 export default function ClicksExceeded({
   email = "panic@thedis.co",
-  project = {
+  workspace = {
     id: "ckqf1q3xw0000gk5u2q1q2q1q",
     name: "Acme",
     slug: "acme",
@@ -28,17 +28,17 @@ export default function ClicksExceeded({
   type = "first",
 }: {
   email: string;
-  project: Partial<ProjectProps>;
+  workspace: Partial<WorkspaceProps>;
   type: "first" | "second";
 }) {
-  const { slug, name, usage, usageLimit, plan } = project;
+  const { slug, name, usage, usageLimit, plan } = workspace;
   const nextPlan = getNextPlan(plan as string);
 
   return (
     <Html>
       <Head />
       <Preview>
-        Your Dub.co project, {name || ""} has exceeded the{" "}
+        Your Dub.co workspace, {name || ""} has exceeded the{" "}
         {capitalize(plan) || ""} Plan limit of {nFormatter(usageLimit)} link
         clicks/month.
       </Preview>
@@ -58,7 +58,7 @@ export default function ClicksExceeded({
               Clicks Limit Exceeded
             </Heading>
             <Text className="text-sm leading-6 text-black">
-              Your Dub.co project,{" "}
+              Your Dub.co workspace,{" "}
               <Link
                 href={`https://app.dub.co/${slug}`}
                 className="text-black underline"

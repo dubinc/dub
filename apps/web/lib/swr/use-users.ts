@@ -1,18 +1,16 @@
 import { UserProps } from "@/lib/types";
 import { fetcher } from "@dub/utils";
-import { useParams } from "next/navigation";
 import useSWR from "swr";
+import useWorkspace from "./use-workspace";
 
 export default function useUsers({ invites }: { invites?: boolean } = {}) {
-  const { slug } = useParams() as {
-    slug: string;
-  };
+  const { id } = useWorkspace();
 
   const { data: users, error } = useSWR<UserProps[]>(
-    slug &&
+    id &&
       (invites
-        ? `/api/projects/${slug}/invites`
-        : `/api/projects/${slug}/users`),
+        ? `/api/workspaces/${id}/invites`
+        : `/api/workspaces/${id}/users`),
     fetcher,
   );
 

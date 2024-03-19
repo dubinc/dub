@@ -1,6 +1,6 @@
 "use client";
 
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import LinksContainer from "@/ui/links/links-container";
 import { useAddEditLinkModal } from "@/ui/modals/add-edit-link-modal";
 import {
@@ -15,7 +15,7 @@ import { ChevronDown, FilePlus2, Sheet } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export default function ProjectLinksClient() {
+export default function WorkspaceLinksClient() {
   const { AddEditLinkModal, AddEditLinkButton } = useAddEditLinkModal();
 
   return (
@@ -39,7 +39,7 @@ export default function ProjectLinksClient() {
 
 const AddLinkOptions = () => {
   const router = useRouter();
-  const { slug, nextPlan, exceededLinks } = useProject();
+  const { slug, nextPlan, exceededLinks } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
   const { queryParams } = useRouterStuff();
 
@@ -52,7 +52,7 @@ const AddLinkOptions = () => {
               <Tooltip
                 content={
                   <TooltipContent
-                    title="Your project has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
+                    title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
                     cta={`Upgrade to ${nextPlan.name}`}
                     onClick={() => {
                       setOpenPopover(false);
@@ -102,7 +102,7 @@ const AddLinkOptions = () => {
               <Tooltip
                 content={
                   <TooltipContent
-                    title="Your project has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
+                    title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
                     cta={`Upgrade to ${nextPlan.name}`}
                     onClick={() => {
                       setOpenPopover(false);
@@ -152,7 +152,7 @@ const AddLinkOptions = () => {
               <Tooltip
                 content={
                   <TooltipContent
-                    title="Your project has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
+                    title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
                     cta={`Upgrade to ${nextPlan.name}`}
                     onClick={() => {
                       setOpenPopover(false);

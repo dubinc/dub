@@ -1,3 +1,4 @@
+import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainProps, DomainVerificationStatusProps } from "@/lib/types";
 import {
   AlertCircleFill,
@@ -10,7 +11,6 @@ import { Button, LoadingCircle, LoadingDots, NumberTooltip } from "@dub/ui";
 import { capitalize, fetcher, nFormatter, truncate } from "@dub/utils";
 import { QrCode } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
 import punycode from "punycode/";
 import useSWR, { mutate } from "swr";
 import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
@@ -18,7 +18,7 @@ import { useLinkQRModal } from "../modals/link-qr-modal";
 import DomainConfiguration from "./domain-configuration";
 
 export default function DomainCard({ props }: { props: DomainProps }) {
-  const { slug } = useParams() as { slug: string };
+  const { id, slug } = useWorkspace();
 
   const { slug: domain, primary, target, type, verified } = props || {};
 
@@ -33,9 +33,9 @@ export default function DomainCard({ props }: { props: DomainProps }) {
     status: DomainVerificationStatusProps;
     response: any;
   }>(
-    slug &&
+    id &&
       !showLinkQRModal && // Don't fetch if QR modal is open – it'll cause it to re-render
-      `/api/domains/${domain}/verify?projectSlug=${slug}`,
+      `/api/domains/${domain}/verify?workspaceId=${id}`,
     fetcher,
     {
       revalidateOnMount: true,
@@ -44,8 +44,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
   );
 
   const { data: clicks } = useSWR<number>(
-    slug &&
-      `/api/analytics/clicks?projectSlug=${slug}&domain=${domain}&key=_root`,
+    id && `/api/analytics/clicks?workspaceId=${id}&domain=${domain}&key=_root`,
     fetcher,
     {
       fallbackData: props.clicks,
@@ -111,7 +110,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
               variant="secondary"
               loading={isValidating}
               onClick={() => {
-                mutate(`/api/domains/${domain}/verify?projectSlug=${slug}`);
+                mutate(`/api/domains/${domain}/verify?workspaceId=${id}`);
               }}
             />
             <Button

@@ -1,4 +1,4 @@
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainProps } from "@/lib/types";
 import { Lock } from "@/ui/shared/icons";
 import {
@@ -39,7 +39,7 @@ function AddEditDomainModal({
 }) {
   const router = useRouter();
   const { slug } = useParams() as { slug: string };
-  const { id, logo, plan } = useProject();
+  const { id, logo, plan } = useWorkspace();
   const { queryParams } = useRouterStuff();
 
   const [data, setData] = useState<DomainProps>(
@@ -91,13 +91,13 @@ function AddEditDomainModal({
     if (props) {
       return {
         method: "PUT",
-        url: `/api/domains/${domain}?projectSlug=${slug}`,
+        url: `/api/domains/${domain}?workspaceId=${id}`,
         successMessage: "Successfully updated domain!",
       };
     } else {
       return {
         method: "POST",
-        url: `/api/domains?projectSlug=${slug}`,
+        url: `/api/domains?workspaceId=${id}`,
         successMessage: "Successfully added domain!",
       };
     }
@@ -105,11 +105,11 @@ function AddEditDomainModal({
 
   async function deleteDomain() {
     setDeleting(true);
-    fetch(`/api/domains/${domain}?projectSlug=${slug}`, {
+    fetch(`/api/domains/${domain}?workspaceId=${id}`, {
       method: "DELETE",
     }).then(async (res) => {
       if (res.status === 200) {
-        await mutate(`/api/domains?projectSlug=${slug}`);
+        await mutate(`/api/domains?workspaceId=${id}`);
         setShowAddEditDomainModal(false);
         toast.success("Successfully deleted domain!");
       } else {
@@ -153,7 +153,7 @@ function AddEditDomainModal({
             body: JSON.stringify(data),
           }).then(async (res) => {
             if (res.status === 200) {
-              await mutate(`/api/domains?projectSlug=${slug}`);
+              await mutate(`/api/domains?workspaceId=${id}`);
               setShowAddEditDomainModal(false);
               toast.success(endpoint.successMessage);
               if (!props) {
@@ -182,7 +182,7 @@ function AddEditDomainModal({
                 type="button"
                 onClick={() => {
                   window.confirm(
-                    "Warning: Changing your project's domain will break all existing short links and reset their analytics. Are you sure you want to continue?",
+                    "Warning: Changing your workspace's domain will break all existing short links and reset their analytics. Are you sure you want to continue?",
                   ) && setLockDomain(false);
                 }}
               >
@@ -351,7 +351,7 @@ function AddEditDomainModal({
               text="Delete domain"
               onClick={() => {
                 window.confirm(
-                  "Warning: Deleting your project's domain will delete all existing short links using the domain. Are you sure you want to continue?",
+                  "Warning: Deleting your workspace's domain will delete all existing short links using the domain. Are you sure you want to continue?",
                 ) && deleteDomain();
               }}
               loading={deleting}
@@ -370,7 +370,7 @@ function AddDomainButton({
   setShowAddEditDomainModal: Dispatch<SetStateAction<boolean>>;
   buttonProps?: Partial<ButtonProps>;
 }) {
-  const { plan, nextPlan, domainsLimit, exceededDomains } = useProject();
+  const { plan, nextPlan, domainsLimit, exceededDomains } = useWorkspace();
   const { queryParams } = useRouterStuff();
 
   return (

@@ -8,9 +8,15 @@ export const getCityAnalytics: ZodOpenApiOperationObject = {
   operationId: "getCityAnalytics",
   summary: "Retrieve city analytics",
   description:
-    "Retrieve the top countries by number of clicks for a link, a domain, or the authenticated project.",
+    "Retrieve the top countries by number of clicks for a link, a domain, or the authenticated workspace.",
   requestParams: {
-    query: getAnalyticsQuerySchema,
+    query: z
+      .object({
+        workspaceId: z
+          .string()
+          .describe("The ID of the workspace the link belongs to."),
+      })
+      .merge(getAnalyticsQuerySchema),
   },
   responses: {
     "200": {

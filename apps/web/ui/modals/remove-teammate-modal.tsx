@@ -1,8 +1,8 @@
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { UserProps } from "@/lib/types";
 import { Avatar, BlurImage, Button, Logo, Modal, useMediaQuery } from "@dub/ui";
 import { useSession } from "next-auth/react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -25,9 +25,8 @@ function RemoveTeammateModal({
   invite?: boolean;
 }) {
   const router = useRouter();
-  const { slug } = useParams() as { slug: string };
   const [removing, setRemoving] = useState(false);
-  const { name: projectName, logo } = useProject();
+  const { id: workspaceId, name: workspaceName, logo } = useWorkspace();
   const { data: session } = useSession();
   const { id, name, email } = user;
   const { isMobile } = useMediaQuery();
@@ -41,7 +40,7 @@ function RemoveTeammateModal({
         {logo ? (
           <BlurImage
             src={logo}
-            alt="Project logo"
+            alt="Workspace logo"
             className="h-10 w-10 rounded-full"
             width={20}
             height={20}
@@ -53,7 +52,7 @@ function RemoveTeammateModal({
           {invite
             ? "Revoke Invitation"
             : session?.user?.email === email
-              ? "Leave Project"
+              ? "Leave Workspace"
               : "Remove Teammate"}
         </h3>
         <p className="text-center text-sm text-gray-500">
@@ -63,13 +62,13 @@ function RemoveTeammateModal({
               ? "You're about to leave "
               : "This will remove "}
           <span className="font-semibold text-black">
-            {session?.user?.email === email ? projectName : name || email}
+            {session?.user?.email === email ? workspaceName : name || email}
           </span>
           {invite
-            ? "'s invitation to join your project. "
+            ? "'s invitation to join your workspace. "
             : session?.user?.email === email
-              ? ". You will lose all access to this project. "
-              : " from your project. "}
+              ? ". You will lose all access to this workspace. "
+              : " from your workspace. "}
           Are you sure you want to continue?
         </p>
       </div>
@@ -90,8 +89,10 @@ function RemoveTeammateModal({
           onClick={() => {
             setRemoving(true);
             fetch(
-              `/api/projects/${slug}/${
-                invite ? `invites?email=${encodeURIComponent(email)}` : `users?userId=${id}`
+              `/api/workspaces/${workspaceId}/${
+                invite
+                  ? `invites?email=${encodeURIComponent(email)}`
+                  : `users?userId=${id}`
               }`,
               {
                 method: "DELETE",
@@ -100,17 +101,17 @@ function RemoveTeammateModal({
             ).then(async (res) => {
               if (res.status === 200) {
                 await mutate(
-                  `/api/projects/${slug}/${invite ? "invites" : "users"}`,
+                  `/api/workspaces/${workspaceId}/${invite ? "invites" : "users"}`,
                 );
                 if (session?.user?.email === email) {
-                  await mutate("/api/projects");
+                  await mutate("/api/workspaces");
                   router.push("/");
                 } else {
                   setShowRemoveTeammateModal(false);
                 }
                 toast.success(
                   session?.user?.email === email
-                    ? "You have left the project!"
+                    ? "You have left the workspace!"
                     : invite
                       ? "Successfully revoked invitation!"
                       : "Successfully removed teammate!",

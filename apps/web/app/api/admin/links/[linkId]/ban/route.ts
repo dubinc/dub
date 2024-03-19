@@ -2,8 +2,8 @@ import { withAdmin } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import {
-  LEGAL_PROJECT_ID,
   LEGAL_USER_ID,
+  LEGAL_WORKSPACE_ID,
   getDomainWithoutWWW,
 } from "@dub/utils";
 import { get } from "@vercel/edge-config";
@@ -32,13 +32,13 @@ export const DELETE = withAdmin(async ({ params }) => {
       },
       data: {
         userId: LEGAL_USER_ID,
-        projectId: LEGAL_PROJECT_ID,
+        projectId: LEGAL_WORKSPACE_ID,
       },
     }),
     redis.hset(link.domain, {
       [link.key.toLowerCase()]: {
         ...(await formatRedisLink(link)),
-        projectId: LEGAL_PROJECT_ID,
+        projectId: LEGAL_WORKSPACE_ID,
       },
     }),
     fetch(

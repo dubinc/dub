@@ -1,17 +1,17 @@
 "use client";
 
 import useDomains from "@/lib/swr/use-domains";
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import LayoutLoader from "@/ui/layout/layout-loader";
 import LinkNotFound from "@/ui/links/link-not-found";
-import ProjectExceededClicks from "@/ui/projects/project-exceeded-clicks";
+import WorkspaceExceededClicks from "@/ui/workspaces/workspace-exceeded-clicks";
 import { useSearchParams } from "next/navigation";
 import { ReactNode } from "react";
 
 export default function AnalyticsClient({ children }: { children: ReactNode }) {
-  const { exceededClicks, loading } = useProject();
+  const { exceededClicks, loading } = useWorkspace();
   if (exceededClicks) {
-    return <ProjectExceededClicks />;
+    return <WorkspaceExceededClicks />;
   }
   const { allDomains, loading: loadingDomains } = useDomains();
   const searchParams = useSearchParams();

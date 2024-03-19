@@ -1,5 +1,5 @@
-import CreateProjectButton from "@/ui/projects/create-project-button";
-import ProjectList from "@/ui/projects/project-list";
+import CreateWorkspaceButton from "@/ui/workspaces/create-workspace-button";
+import WorkspaceList from "@/ui/workspaces/workspace-list";
 import { MaxWidthWrapper } from "@dub/ui";
 
 export default function App() {
@@ -8,14 +8,14 @@ export default function App() {
       <div className="flex h-36 items-center border-b border-gray-200 bg-white">
         <MaxWidthWrapper>
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl text-gray-600">My Projects</h1>
-            <CreateProjectButton />
+            <h1 className="text-2xl text-gray-600">My Workspaces</h1>
+            <CreateWorkspaceButton />
           </div>
         </MaxWidthWrapper>
       </div>
       <MaxWidthWrapper>
         <div className="my-10 grid grid-cols-1 gap-5 lg:grid-cols-2 xl:grid-cols-3">
-          <ProjectList />
+          <WorkspaceList />
         </div>
       </MaxWidthWrapper>
     </>

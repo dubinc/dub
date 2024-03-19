@@ -11,8 +11,8 @@ import { handleDomainUpdates } from "./utils";
 
 /**
  * Cron to check if domains are verified.
- * If a domain is invalid for more than 14 days, we send a reminder email to the project owner.
- * If a domain is invalid for more than 28 days, we send a second and final reminder email to the project owner.
+ * If a domain is invalid for more than 14 days, we send a reminder email to the workspace owner.
+ * If a domain is invalid for more than 28 days, we send a second and final reminder email to the workspace owner.
  * If a domain is invalid for more than 30 days, we delete it from the database.
  **/
 // Runs every 3 hours (0 */3 * * *)
@@ -57,7 +57,7 @@ export async function GET(req: Request) {
       orderBy: {
         lastChecked: "asc",
       },
-      take: 100,
+      take: 30,
     });
 
     const results = await Promise.allSettled(

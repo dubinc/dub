@@ -1,7 +1,7 @@
 import SettingsLayout from "@/ui/layout/settings-layout";
 import { ReactNode } from "react";
 
-export default function ProjectSettingsLayout({
+export default function WorkspaceSettingsLayout({
   children,
 }: {
   children: ReactNode;

@@ -1,41 +1,41 @@
 import { bulkCreateLinks, processLink } from "@/lib/api/links";
 import { qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
-import { LinkWithTagIdsProps, ProjectProps } from "@/lib/types";
+import { LinkWithTagIdsProps, WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { sendEmail } from "emails";
 import LinksImported from "emails/links-imported";
 
 export const importLinksFromCSV = async ({
-  projectId,
+  workspaceId,
   userId,
   domain,
   count = 0,
 }: {
-  projectId: string;
+  workspaceId: string;
   userId: string;
   domain: string;
   count?: number;
 }) => {
   const [links, totalCount] = await Promise.all([
     redis.lrange<LinkWithTagIdsProps>(
-      `import:csv:${projectId}`,
+      `import:csv:${workspaceId}`,
       count,
       count + 100,
     ),
-    redis.llen(`import:csv:${projectId}`),
+    redis.llen(`import:csv:${workspaceId}`),
   ]);
 
-  const project = (await prisma.project.findUnique({
+  const workspace = (await prisma.project.findUnique({
     where: {
-      id: projectId,
+      id: workspaceId,
     },
-  })) as unknown as ProjectProps;
+  })) as unknown as WorkspaceProps;
 
   const processedLinks = await Promise.all(
     links.map(async (link) =>
-      processLink({ payload: link, project, userId, bulk: true }),
+      processLink({ payload: link, workspace, userId, bulk: true }),
     ),
   );
 
@@ -56,9 +56,9 @@ export const importLinksFromCSV = async ({
   await new Promise((resolve) => setTimeout(resolve, 500));
 
   if (count >= totalCount) {
-    const project = await prisma.project.findUnique({
+    const workspace = await prisma.project.findUnique({
       where: {
-        id: projectId,
+        id: workspaceId,
       },
       select: {
         name: true,
@@ -91,12 +91,12 @@ export const importLinksFromCSV = async ({
         },
       },
     });
-    const ownerEmail = project?.users[0].user.email ?? "";
-    const links = project?.links ?? [];
+    const ownerEmail = workspace?.users[0].user.email ?? "";
+    const links = workspace?.links ?? [];
 
     await Promise.all([
       // delete key from redis
-      redis.del(`import:csv:${projectId}`),
+      redis.del(`import:csv:${workspaceId}`),
 
       // send email to user
       sendEmail({
@@ -108,8 +108,8 @@ export const importLinksFromCSV = async ({
           count,
           links,
           domains: [domain],
-          projectName: project?.name ?? "",
-          projectSlug: project?.slug ?? "",
+          workspaceName: workspace?.name ?? "",
+          workspaceSlug: workspace?.slug ?? "",
         }),
       }),
     ]);
@@ -119,7 +119,7 @@ export const importLinksFromCSV = async ({
     return await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/csv`,
       body: {
-        projectId,
+        workspaceId,
         userId,
         domain,
         count,

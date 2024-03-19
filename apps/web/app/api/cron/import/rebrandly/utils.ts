@@ -8,11 +8,11 @@ import { sendEmail } from "emails";
 import LinksImported from "emails/links-imported";
 
 export const importTagsFromRebrandly = async ({
-  projectId,
+  workspaceId,
   rebrandlyApiKey,
   lastTagId = null,
 }: {
-  projectId: string;
+  workspaceId: string;
   rebrandlyApiKey: string;
   lastTagId?: string | null;
 }) => {
@@ -44,7 +44,7 @@ export const importTagsFromRebrandly = async ({
     data: tags.map((tag) => ({
       name: tag.name,
       color: randomBadgeColor(),
-      projectId,
+      projectId: workspaceId,
     })),
     skipDuplicates: true,
   });
@@ -53,14 +53,14 @@ export const importTagsFromRebrandly = async ({
   await new Promise((resolve) => setTimeout(resolve, 500));
 
   return await importTagsFromRebrandly({
-    projectId,
+    workspaceId,
     rebrandlyApiKey,
     lastTagId: newLastTagId,
   });
 };
 
 export const importLinksFromRebrandly = async ({
-  projectId,
+  workspaceId,
   userId,
   domainId,
   domain,
@@ -69,7 +69,7 @@ export const importLinksFromRebrandly = async ({
   lastLinkId = null,
   count = 0,
 }: {
-  projectId: string;
+  workspaceId: string;
   userId: string;
   domainId: number;
   domain: string;
@@ -92,9 +92,9 @@ export const importLinksFromRebrandly = async ({
 
   // if no more links, meaning import is complete
   if (links.length === 0) {
-    const project = await prisma.project.findUnique({
+    const workspace = await prisma.project.findUnique({
       where: {
-        id: projectId,
+        id: workspaceId,
       },
       select: {
         name: true,
@@ -127,18 +127,18 @@ export const importLinksFromRebrandly = async ({
         },
       },
     });
-    const ownerEmail = project?.users[0].user.email ?? "";
-    const links = project?.links ?? [];
+    const ownerEmail = workspace?.users[0].user.email ?? "";
+    const links = workspace?.links ?? [];
 
     await Promise.all([
       // delete keys from redis
-      redis.del(`import:rebrandly:${projectId}`),
-      redis.del(`import:rebrandly:${projectId}:tags`),
+      redis.del(`import:rebrandly:${workspaceId}`),
+      redis.del(`import:rebrandly:${workspaceId}:tags`),
 
       // delete tags that have no links
       prisma.tag.deleteMany({
         where: {
-          projectId,
+          projectId: workspaceId,
           linksNew: {
             none: {},
           },
@@ -155,8 +155,8 @@ export const importLinksFromRebrandly = async ({
           count,
           links,
           domains: [domain],
-          projectName: project?.name ?? "",
-          projectSlug: project?.slug ?? "",
+          workspaceName: workspace?.name ?? "",
+          workspaceSlug: workspace?.slug ?? "",
         }),
       }),
     ]);
@@ -185,7 +185,7 @@ export const importLinksFromRebrandly = async ({
               : [];
 
           return {
-            projectId,
+            projectId: workspaceId,
             userId,
             domain,
             key,
@@ -216,7 +216,7 @@ export const importLinksFromRebrandly = async ({
     return await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/rebrandly`,
       body: {
-        projectId,
+        workspaceId,
         userId,
         domainId,
         domain,

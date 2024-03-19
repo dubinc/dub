@@ -44,7 +44,7 @@ export const GET = withAuth(async ({ headers, link }) => {
 });
 
 // PUT /api/links/[linkId] – update a link
-export const PUT = withAuth(async ({ req, headers, project, link }) => {
+export const PUT = withAuth(async ({ req, headers, workspace, link }) => {
   if (!link) {
     throw new DubApiError({
       code: "not_found",
@@ -62,7 +62,8 @@ export const PUT = withAuth(async ({ req, headers, project, link }) => {
   if (updatedLink.projectId !== link?.projectId) {
     throw new DubApiError({
       code: "forbidden",
-      message: "Transferring links to another project is not yet supported.",
+      message:
+        "Transferring links to another workspace is only allowed via the /links/[linkId]transfer endpoint.",
     });
   }
 
@@ -72,7 +73,7 @@ export const PUT = withAuth(async ({ req, headers, project, link }) => {
     code,
   } = await processLink({
     payload: updatedLink as LinkWithTagIdsProps,
-    project,
+    workspace,
     // if domain and key are the same, we don't need to check if the key exists
     skipKeyChecks:
       link.domain === updatedLink.domain &&

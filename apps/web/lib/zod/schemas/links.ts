@@ -2,23 +2,18 @@ import z from "@/lib/zod";
 import { booleanQuerySchema } from ".";
 import { TagSchema } from "./tags";
 
-const LinksQuerySchema = {
-  projectSlug: z
-    .string()
-    .describe(
-      "The slug for the project that the link belongs to. E.g. for `app.dub.co/acme`, the projectSlug is `acme`.",
-    ),
+const LinksQuerySchema = z.object({
   domain: z
     .string()
     .optional()
     .describe(
-      "The domain to filter the links by. E.g. `ac.me`. If not provided, all links for the project will be returned.",
+      "The domain to filter the links by. E.g. `ac.me`. If not provided, all links for the workspace will be returned.",
     ),
   tagId: z
     .string()
     .optional()
     .describe(
-      "[DEPRECATED (use tagIds instead)]: The tag ID to filter the links by.",
+      "[DEPRECATED] (use tagIds instead): The tag ID to filter the links by.",
     )
     .openapi({ deprecated: true }),
   tagIds: z
@@ -45,38 +40,36 @@ const LinksQuerySchema = {
     .describe(
       "Whether to include tags in the response. Defaults to `false` if not provided.",
     ),
-};
-
-export const getLinksQuerySchema = z.object({
-  ...LinksQuerySchema,
-  sort: z
-    .enum(["createdAt", "clicks", "lastClicked"])
-    .optional()
-    .default("createdAt")
-    .describe(
-      "The field to sort the links by. The default is `createdAt`, and sort order is always descending.",
-    ),
-  page: z.coerce
-    .number()
-    .optional()
-    .describe("The page number for pagination (each page contains 100 links)."),
 });
 
-export const getLinksCountQuerySchema = z.object({
-  ...LinksQuerySchema,
-  groupBy: z
-    .union([z.literal("domain"), z.literal("tagId")])
-    .optional()
-    .describe("The field to group the links by."),
-});
+export const getLinksQuerySchema = LinksQuerySchema.merge(
+  z.object({
+    sort: z
+      .enum(["createdAt", "clicks", "lastClicked"])
+      .optional()
+      .default("createdAt")
+      .describe(
+        "The field to sort the links by. The default is `createdAt`, and sort order is always descending.",
+      ),
+    page: z.coerce
+      .number()
+      .optional()
+      .describe(
+        "The page number for pagination (each page contains 100 links).",
+      ),
+  }),
+);
+
+export const getLinksCountQuerySchema = LinksQuerySchema.merge(
+  z.object({
+    groupBy: z
+      .union([z.literal("domain"), z.literal("tagId")])
+      .optional()
+      .describe("The field to group the links by."),
+  }),
+);
 
 export const getLinkInfoQuerySchema = z.object({
-  projectSlug: z
-    .string()
-    .min(1, "Project slug is required.")
-    .describe(
-      "The slug for the project that the link belongs to. E.g. for `app.dub.co/acme`, the projectSlug is `acme`.",
-    ),
   domain: z
     .string()
     .min(1, "Domain is required.")
@@ -96,7 +89,7 @@ export const createLinkBodySchema = z.object({
     .string()
     .optional()
     .describe(
-      "The domain of the short link. If not provided, the primary domain for the project will be used (or `dub.sh` if the project has no domains).",
+      "The domain of the short link. If not provided, the primary domain for the workspace will be used (or `dub.sh` if the workspace has no domains).",
     ),
   key: z
     .string()
@@ -194,7 +187,7 @@ export const createLinkBodySchema = z.object({
     .string()
     .nullish()
     .describe(
-      "[DEPRECATED (use tagIds instead)]: The unique ID of the tag assigned to the short link.",
+      "[DEPRECATED] (use tagIds instead): The unique ID of the tag assigned to the short link.",
     )
     .openapi({ deprecated: true }),
   tagIds: z
@@ -218,7 +211,7 @@ export const LinkSchema = z
     domain: z
       .string()
       .describe(
-        "The domain of the short link. If not provided, the primary domain for the project will be used (or `dub.sh` if the project has no domains).",
+        "The domain of the short link. If not provided, the primary domain for the workspace will be used (or `dub.sh` if the workspace has no domains).",
       ),
     key: z
       .string()
@@ -296,7 +289,7 @@ export const LinkSchema = z
       .string()
       .nullable()
       .describe(
-        "[DEPRECATED (use `tags` instead)]: The unique ID of the tag assigned to the short link.",
+        "[DEPRECATED] (use `tags` instead): The unique ID of the tag assigned to the short link.",
       )
       .openapi({ deprecated: true }),
     tags: TagSchema.array()
@@ -338,7 +331,7 @@ export const LinkSchema = z
     userId: z
       .string()
       .describe("The user ID of the creator of the short link."),
-    projectId: z.string().describe("The project ID of the short link."),
+    workspaceId: z.string().describe("The workspace ID of the short link."),
     clicks: z
       .number()
       .default(0)
@@ -353,5 +346,11 @@ export const LinkSchema = z
     updatedAt: z
       .string()
       .describe("The date and time when the short link was last updated."),
+    projectId: z
+      .string()
+      .describe(
+        "[DEPRECATED] (use workspaceId instead): The project ID of the short link.",
+      )
+      .openapi({ deprecated: true }),
   })
   .openapi({ title: "Link" });

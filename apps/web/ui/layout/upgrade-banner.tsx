@@ -1,32 +1,32 @@
 "use client";
 
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { Badge, useRouterStuff } from "@dub/ui";
 import { Crisp } from "crisp-sdk-web";
 import Cookies from "js-cookie";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import ProBanner from "../projects/pro-banner";
+import ProBanner from "../workspaces/pro-banner";
 
 export default function UpgradeBanner() {
   const { slug } = useParams() as { slug?: string };
 
-  const { id, name, plan, stripeId, createdAt } = useProject();
+  const { id, name, plan, stripeId, createdAt } = useWorkspace();
   const [showProBanner, setShowProBanner] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (plan) {
       Crisp.session.setData({
-        projectId: id,
-        projectName: name,
-        projectSlug: slug,
+        workspaceId: id,
+        workspaceName: name,
+        workspaceSlug: slug,
         plan,
         ...(stripeId && { stripeId }),
       });
       /* show pro banner if:
           - free plan
-          - not hidden by user for this project 
-          - project is created more than 24 hours ago
+          - not hidden by user for this workspace 
+          - workspace is created more than 24 hours ago
       */
       if (
         plan === "free" &&

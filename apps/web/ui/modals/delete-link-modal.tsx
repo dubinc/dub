@@ -1,7 +1,7 @@
+import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
 import { getApexDomain, linkConstructor } from "@dub/utils";
-import { useParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -22,8 +22,7 @@ function DeleteLinkModal({
   setShowDeleteLinkModal: Dispatch<SetStateAction<boolean>>;
   props: LinkProps;
 }) {
-  const params = useParams() as { slug?: string };
-  const { slug } = params;
+  const { id } = useWorkspace();
   const [deleting, setDeleting] = useState(false);
   const apexDomain = getApexDomain(props.url);
 
@@ -57,7 +56,7 @@ function DeleteLinkModal({
         onSubmit={async (e) => {
           e.preventDefault();
           setDeleting(true);
-          fetch(`/api/links/${props.id}?projectSlug=${slug}`, {
+          fetch(`/api/links/${props.id}?workspaceId=${id}`, {
             method: "DELETE",
             headers: {
               "Content-Type": "application/json",

@@ -1,8 +1,8 @@
 "use client";
 
+import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps, UserProps } from "@/lib/types";
 import {
-  BlurImage,
   NumberTooltip,
   Tooltip,
   useIntersectionObserver,
@@ -11,7 +11,6 @@ import {
 } from "@dub/ui";
 import { LinkifyTooltipContent } from "@dub/ui/src/tooltip";
 import {
-  GOOGLE_FAVICON_URL,
   cn,
   fetcher,
   getApexDomain,
@@ -22,7 +21,6 @@ import {
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
 import {
   Dispatch,
   ReactNode,
@@ -32,8 +30,8 @@ import {
   useState,
 } from "react";
 import useSWR from "swr";
-import LinkPreviewTooltip from "./link-preview";
 import LinkLogo from "../links/link-logo";
+import LinkPreviewTooltip from "./link-preview";
 
 export default function BarList({
   tab,
@@ -143,7 +141,7 @@ export function LineItem({
   const entry = useIntersectionObserver(itemRef, {});
   const isVisible = !!entry?.isIntersecting;
 
-  const { slug } = useParams() as { slug?: string };
+  const { id } = useWorkspace();
   const { data } = useSWR<
     LinkProps & {
       user: UserProps;
@@ -151,7 +149,7 @@ export function LineItem({
   >(
     tab === "link" &&
       isVisible &&
-      `/api/links/${title}?projectSlug=${slug}&checkDomain=true`,
+      `/api/links/${title}?workspaceId=${id}&checkDomain=true`,
     fetcher,
     {
       dedupingInterval: 60000,

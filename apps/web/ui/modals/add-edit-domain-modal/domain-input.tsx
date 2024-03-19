@@ -130,7 +130,7 @@ export default function DomainInput({
             >
               Contact us
             </a>{" "}
-            if you'd like to use this domain for your project.
+            if you'd like to use this domain for your workspace.
           </p>
         ) : (
           <p className="mt-2 text-sm text-red-600" id="domain-error">

@@ -1,5 +1,5 @@
-import useProject from "@/lib/swr/use-project";
 import useSAML from "@/lib/swr/use-saml";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { SAMLProviderProps } from "@/lib/types";
 import {
   Button,
@@ -26,7 +26,7 @@ function SAMLModal({
   showSAMLModal: boolean;
   setShowSAMLModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { slug } = useProject();
+  const { id } = useWorkspace();
   const [selectedProvider, setSelectedProvider] = useState<
     SAMLProviderProps["saml"] | undefined
   >();
@@ -52,7 +52,7 @@ function SAMLModal({
         <h3 className="text-lg font-medium">Configure SAML</h3>
         <p className="text-center text-sm text-gray-500">
           Select a provider to configure SAML for your{" "}
-          {process.env.NEXT_PUBLIC_APP_NAME} project.
+          {process.env.NEXT_PUBLIC_APP_NAME} workspace.
         </p>
       </div>
 
@@ -61,7 +61,7 @@ function SAMLModal({
           onSubmit={async (e) => {
             e.preventDefault();
             setSubmitting(true);
-            fetch(`/api/projects/${slug}/saml`, {
+            fetch(`/api/workspaces/${id}/saml`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",

@@ -1,8 +1,8 @@
 "use client";
 
-import useProject from "@/lib/swr/use-project";
 import useSAML from "@/lib/swr/use-saml";
 import useSCIM from "@/lib/swr/use-scim";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { useRemoveSAMLModal } from "@/ui/modals/remove-saml-modal";
 import { useRemoveSCIMModal } from "@/ui/modals/remove-scim-modal";
 import { useSAMLModal } from "@/ui/modals/saml-modal";
@@ -13,7 +13,7 @@ import { HOME_DOMAIN, SAML_PROVIDERS } from "@dub/utils";
 import { FolderSync, Lock, ShieldOff } from "lucide-react";
 import { useMemo, useState } from "react";
 
-export default function ProjectSecurityClient() {
+export default function WorkspaceSecurityClient() {
   return (
     <>
       <SAMLSection />
@@ -23,7 +23,7 @@ export default function ProjectSecurityClient() {
 }
 
 const SAMLSection = () => {
-  const { plan } = useProject();
+  const { plan } = useWorkspace();
   const { SAMLModal, setShowSAMLModal } = useSAMLModal();
   const { RemoveSAMLModal, setShowRemoveSAMLModal } = useRemoveSAMLModal();
   const { provider, configured, loading } = useSAML();
@@ -45,7 +45,7 @@ const SAMLSection = () => {
           />
         ),
         title: `${provider} SAML`,
-        description: "SAML SSO is configured for your project.",
+        description: "SAML SSO is configured for your workspace.",
       };
     } else
       return {
@@ -166,7 +166,7 @@ const SAMLSection = () => {
 };
 
 const SCIMSection = () => {
-  const { plan } = useProject();
+  const { plan } = useWorkspace();
   const { SCIMModal, setShowSCIMModal } = useSCIMModal();
   const { RemoveSCIMModal, setShowRemoveSCIMModal } = useRemoveSCIMModal();
 
@@ -189,7 +189,7 @@ const SCIMSection = () => {
           />
         ),
         title: `${SAML_PROVIDERS.find((p) => p.scim === provider)!.name} SCIM`,
-        description: "SCIM directory sync is configured for your project.",
+        description: "SCIM directory sync is configured for your workspace.",
       };
     } else
       return {

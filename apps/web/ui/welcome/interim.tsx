@@ -54,7 +54,7 @@ export default function Interim() {
         className="grid w-full grid-cols-1 divide-y divide-gray-100 overflow-hidden rounded-md border border-gray-200 bg-white md:grid-cols-2 md:divide-x"
       >
         <button
-          onClick={() => router.push("/welcome?type=project")}
+          onClick={() => router.push("/welcome?type=workspace")}
           className="flex flex-col items-center justify-center overflow-hidden p-5 transition-colors hover:bg-gray-50 md:p-10"
         >
           <img
@@ -68,7 +68,7 @@ export default function Interim() {
         </button>
         <button
           onClick={() =>
-            router.push("/welcome?type=project&useDefaultDomain=true")
+            router.push("/welcome?type=workspace&useDefaultDomain=true")
           }
           className="flex flex-col items-center justify-center overflow-hidden p-5 transition-colors hover:bg-gray-50 md:p-10"
         >

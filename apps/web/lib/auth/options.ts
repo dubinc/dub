@@ -240,24 +240,24 @@ export const authOptions: NextAuthOptions = {
         if (!samlProfile?.requested?.tenant) {
           return false;
         }
-        const project = await prisma.project.findUnique({
+        const workspace = await prisma.project.findUnique({
           where: {
             id: samlProfile.requested.tenant,
           },
         });
-        if (project) {
+        if (workspace) {
           await Promise.allSettled([
-            // add user to project
+            // add user to workspace
             prisma.projectUsers.upsert({
               where: {
                 userId_projectId: {
-                  projectId: project.id,
+                  projectId: workspace.id,
                   userId: user.id,
                 },
               },
               update: {},
               create: {
-                projectId: project.id,
+                projectId: workspace.id,
                 userId: user.id,
               },
             }),
@@ -266,7 +266,7 @@ export const authOptions: NextAuthOptions = {
               where: {
                 email_projectId: {
                   email: user.email,
-                  projectId: project.id,
+                  projectId: workspace.id,
                 },
               },
             }),

@@ -40,7 +40,7 @@ export const handleDomainUpdates = async ({
   // do nothing if domain is invalid for less than 14 days
   if (invalidDays < 14) return;
 
-  const project = await prisma.project.findFirst({
+  const workspace = await prisma.project.findFirst({
     where: {
       domains: {
         some: {
@@ -65,17 +65,17 @@ export const handleDomainUpdates = async ({
       },
     },
   });
-  if (!project) {
+  if (!workspace) {
     await log({
-      message: `Domain *${domain}* is invalid but not associated with any project, skipping.`,
+      message: `Domain *${domain}* is invalid but not associated with any workspace, skipping.`,
       type: "cron",
       mention: true,
     });
     return;
   }
-  const projectSlug = project.slug;
-  const sentEmails = project.sentEmails.map((email) => email.type);
-  const emails = project.users.map((user) => user.user.email) as string[];
+  const workspaceSlug = workspace.slug;
+  const sentEmails = workspace.sentEmails.map((email) => email.type);
+  const emails = workspace.users.map((user) => user.user.email) as string[];
 
   // if domain is invalid for more than 30 days, check if we can delete it
   if (invalidDays >= 30) {
@@ -106,24 +106,24 @@ export const handleDomainUpdates = async ({
     // else, delete the domain
     return await Promise.allSettled([
       deleteDomainAndLinks(domain).then(async () => {
-        // check if there are any domains left for the project
+        // check if there are any domains left for the workspace
         const remainingDomains = await prisma.domain.count({
           where: {
-            projectId: project.id,
+            projectId: workspace.id,
           },
         });
-        // if the deleted domain was the only domain, delete the project as well
+        // if the deleted domain was the only domain, delete the workspace as well
         if (remainingDomains === 0) {
           return prisma.project.delete({
             where: {
-              slug: projectSlug,
+              slug: workspaceSlug,
             },
           });
           // if the deleted domain was primary, make another domain primary
         } else if (primary) {
           const anotherDomain = await prisma.domain.findFirst({
             where: {
-              projectId: project.id,
+              projectId: workspace.id,
             },
           });
           if (!anotherDomain) return;
@@ -151,7 +151,7 @@ export const handleDomainUpdates = async ({
             react: DomainDeleted({
               email,
               domain,
-              projectSlug,
+              workspaceSlug,
             }),
           }),
         ),
@@ -165,7 +165,7 @@ export const handleDomainUpdates = async ({
     );
     if (!sentSecondDomainInvalidEmail) {
       return sendDomainInvalidEmail({
-        projectSlug,
+        workspaceSlug,
         domain,
         invalidDays,
         emails,
@@ -180,7 +180,7 @@ export const handleDomainUpdates = async ({
     );
     if (!sentFirstDomainInvalidEmail) {
       return sendDomainInvalidEmail({
-        projectSlug,
+        workspaceSlug,
         domain,
         invalidDays,
         emails,
@@ -192,13 +192,13 @@ export const handleDomainUpdates = async ({
 };
 
 const sendDomainInvalidEmail = async ({
-  projectSlug,
+  workspaceSlug,
   domain,
   invalidDays,
   emails,
   type,
 }: {
-  projectSlug: string;
+  workspaceSlug: string;
   domain: string;
   invalidDays: number;
   emails: string[];
@@ -217,7 +217,7 @@ const sendDomainInvalidEmail = async ({
           react: InvalidDomain({
             email,
             domain,
-            projectSlug,
+            workspaceSlug,
             invalidDays,
           }),
         }),
@@ -227,7 +227,7 @@ const sendDomainInvalidEmail = async ({
       data: {
         project: {
           connect: {
-            slug: projectSlug,
+            slug: workspaceSlug,
           },
         },
         type: `${type}DomainInvalidEmail:${domain}`,

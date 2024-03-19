@@ -29,13 +29,13 @@ import { recordLink } from "../tinybird";
 import {
   LinkProps,
   LinkWithTagIdsProps,
-  ProjectProps,
   RedisLinkProps,
+  WorkspaceProps,
 } from "../types";
 import z from "../zod";
 
-export async function getLinksForProject({
-  projectId,
+export async function getLinksForWorkspace({
+  workspaceId,
   domain,
   tagId,
   tagIds,
@@ -45,14 +45,14 @@ export async function getLinksForProject({
   userId,
   showArchived,
   withTags,
-}: Omit<z.infer<typeof getLinksQuerySchema>, "projectSlug"> & {
-  projectId: string;
+}: z.infer<typeof getLinksQuerySchema> & {
+  workspaceId: string;
 }) {
   const combinedTagIds = combineTagIds({ tagId, tagIds });
 
   const links = await prisma.link.findMany({
     where: {
-      projectId,
+      projectId: workspaceId,
       archived: showArchived ? undefined : false,
       ...(domain && { domain }),
       ...(search && {
@@ -112,17 +112,18 @@ export async function getLinksForProject({
       tags,
       shortLink,
       qrCode: `https://api.dub.co/qr?url=${shortLink}`,
+      workspaceId: `ws_${link.projectId}`,
     };
   });
 }
 
 export async function getLinksCount({
   searchParams,
-  projectId,
+  workspaceId,
   userId,
 }: {
   searchParams: z.infer<typeof getLinksCountQuerySchema>;
-  projectId: string;
+  workspaceId: string;
   userId?: string | null;
 }) {
   const { groupBy, search, domain, tagId, tagIds, showArchived, withTags } =
@@ -131,7 +132,7 @@ export async function getLinksCount({
   const combinedTagIds = combineTagIds({ tagId, tagIds });
 
   const linksWhere = {
-    projectId,
+    projectId: workspaceId,
     archived: showArchived ? undefined : false,
     ...(userId && { userId }),
     ...(search && {
@@ -205,11 +206,11 @@ export async function getLinksCount({
 export async function keyChecks({
   domain,
   key,
-  project,
+  workspace,
 }: {
   domain: string;
   key: string;
-  project?: ProjectProps;
+  workspace?: WorkspaceProps;
 }) {
   const link = await checkIfKeyExists(domain, key);
   if (link) {
@@ -230,7 +231,7 @@ export async function keyChecks({
       };
     }
 
-    if (key.length <= 3 && (!project || project.plan === "free")) {
+    if (key.length <= 3 && (!workspace || workspace.plan === "free")) {
       return {
         error: `You can only use keys that are 3 characters or less on a Pro plan and above. Upgrade to Pro to register a ${key.length}-character key.`,
         code: "forbidden",
@@ -238,7 +239,7 @@ export async function keyChecks({
     }
     if (
       (await isReservedUsername(key)) &&
-      (!project || project.plan === "free")
+      (!workspace || workspace.plan === "free")
     ) {
       return {
         error:
@@ -269,13 +270,13 @@ export function processKey(key: string) {
 
 export async function processLink({
   payload,
-  project,
+  workspace,
   userId,
   bulk = false,
   skipKeyChecks = false, // only skip when key doesn't change (e.g. when editing a link)
 }: {
   payload: LinkWithTagIdsProps;
-  project?: ProjectProps;
+  workspace?: WorkspaceProps;
   userId?: string;
   bulk?: boolean;
   skipKeyChecks?: boolean;
@@ -314,7 +315,7 @@ export async function processLink({
   }
 
   // free plan restrictions
-  if (!project || project.plan === "free") {
+  if (!workspace || workspace.plan === "free") {
     if (proxy || password || rewrite || expiresAt || ios || android || geo) {
       return {
         link: payload,
@@ -325,9 +326,9 @@ export async function processLink({
     }
   }
 
-  // if domain is not defined, set it to the project's primary domain
+  // if domain is not defined, set it to the workspace's primary domain
   if (!domain) {
-    domain = project?.domains?.find((d) => d.primary)?.slug || SHORT_DOMAIN;
+    domain = workspace?.domains?.find((d) => d.primary)?.slug || SHORT_DOMAIN;
   }
 
   // checks for default short domain
@@ -364,11 +365,11 @@ export async function processLink({
       };
     }
 
-    // else, check if the domain belongs to the project
-  } else if (!project?.domains?.find((d) => d.slug === domain)) {
+    // else, check if the domain belongs to the workspace
+  } else if (!workspace?.domains?.find((d) => d.slug === domain)) {
     return {
       link: payload,
-      error: "Domain does not belong to project.",
+      error: "Domain does not belong to workspace.",
       code: "forbidden",
     };
   }
@@ -386,7 +387,7 @@ export async function processLink({
     }
     key = processedKey;
 
-    const response = await keyChecks({ domain, key, project });
+    const response = await keyChecks({ domain, key, workspace });
     if (response.error) {
       return {
         link: payload,
@@ -419,7 +420,7 @@ export async function processLink({
       select: {
         id: true,
       },
-      where: { projectId: project?.id, id: { in: tagIds } },
+      where: { projectId: workspace?.id, id: { in: tagIds } },
     });
 
     if (tags.length !== tagIds.length) {
@@ -477,8 +478,8 @@ export async function processLink({
       domain,
       key,
       url: processedUrl,
-      // make sure projectId is set to the current project
-      projectId: project?.id || null,
+      // make sure projectId is set to the current workspace
+      projectId: workspace?.id || null,
       // if userId is passed, set it (we don't change the userId if it's already set, e.g. when editing a link)
       ...(userId && {
         userId,
@@ -585,6 +586,7 @@ export async function addLink(link: LinkWithTagIdsProps) {
     tags,
     shortLink,
     qrCode: `https://api.dub.co/qr?url=${shortLink}`,
+    workspaceId: `ws_${response.projectId}`,
   };
 }
 
@@ -656,6 +658,7 @@ export async function bulkCreateLinks({
       tagId: tags?.[0]?.id ?? null, // backwards compatibility
       tags,
       qrCode: `https://api.dub.co/qr?url=${shortLink}`,
+      workspaceId: `ws_${link.projectId}`,
     };
   });
 }
@@ -691,7 +694,7 @@ export async function propagateBulkLinkChanges(
   await Promise.all([
     // update Redis
     pipeline.exec(),
-    // update links usage for project
+    // update links usage for workspace
     prisma.project.update({
       where: {
         id: links[0].projectId!, // this will always be present
@@ -823,6 +826,7 @@ export async function editLink({
     tags,
     shortLink,
     qrCode: `https://api.dub.co/qr?url=${shortLink}`,
+    workspaceId: `ws_${response.projectId}`,
   };
 }
 
@@ -875,17 +879,17 @@ export async function archiveLink({
 
 export async function transferLink({
   linkId,
-  newProjectId,
+  newWorkspaceId,
 }: {
   linkId: string;
-  newProjectId: string;
+  newWorkspaceId: string;
 }) {
   return await prisma.link.update({
     where: {
       id: linkId,
     },
     data: {
-      projectId: newProjectId,
+      projectId: newWorkspaceId,
       // remove tags when transferring link
       tags: {
         deleteMany: {},

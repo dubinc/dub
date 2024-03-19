@@ -1,14 +1,12 @@
 "use client";
 /* 
-  This Stats component lives in 3 different places:
-  1. Project link page, e.g. app.dub.co/dub/d.to/github
-  2. Generic Dub.co link page, e.g. app.dub.co/links/steven
-  3. Public stats page, e.g. dub.co/stats/github, stey.me/stats/weathergpt
-
-  We use the `useEndpoint()` hook to get the correct layout
+  This Analytics component lives in 2 different places:
+  1. Workspace analytics page, e.g. app.dub.co/dub/analytics
+  2. Public stats page, e.g. dub.co/stats/github, stey.me/stats/weathergpt
 */
 
 import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { fetcher } from "@dub/utils";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
 import { createContext, useMemo } from "react";
@@ -47,9 +45,9 @@ export default function Analytics({
 }) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  const { id, slug } = useWorkspace();
 
-  let { slug, key } = useParams() as {
-    slug?: string;
+  let { key } = useParams() as {
     key?: string;
   };
   const domainSlug = searchParams?.get("domain");
@@ -60,7 +58,7 @@ export default function Analytics({
   const tagId = searchParams?.get("tagId") ?? undefined;
 
   const { basePath, domain, baseApiPath } = useMemo(() => {
-    // Project link analytics page, e.g. app.dub.co/dub/analytics?domain=dub.sh&key=github
+    // Workspace analytics page, e.g. app.dub.co/dub/analytics?domain=dub.sh&key=github
     if (slug) {
       return {
         basePath: `/${slug}/analytics`,
@@ -88,14 +86,14 @@ export default function Analytics({
       {},
     );
     return new URLSearchParams({
-      ...(slug && { projectSlug: slug }),
+      ...(id && { workspaceId: id }),
       ...(domain && { domain }),
       ...(key && { key }),
       ...(interval && { interval }),
       ...(tagId && { tagId }),
       ...availableFilterParams,
     }).toString();
-  }, [slug, domain, key, searchParams, interval, tagId]);
+  }, [id, domain, key, searchParams, interval, tagId]);
 
   const { data: totalClicks } = useSWR<number>(
     `${baseApiPath}/clicks?${queryString}`,

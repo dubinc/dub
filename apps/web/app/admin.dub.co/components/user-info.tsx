@@ -9,7 +9,7 @@ import { toast } from "sonner";
 export interface UserInfoProps {
   email: string;
   defaultDomainLinks: Record<string, number>;
-  projects: {
+  workspaces: {
     name: string;
     slug: string;
     plan: string;
@@ -67,33 +67,35 @@ export default function UserInfo({ data }: { data: UserInfoProps }) {
         </div>
       )}
       <div className="mt-2 grid grid-cols-2 gap-4">
-        {data.projects.map((project) => (
+        {data.workspaces.map((workspace) => (
           <div
-            key={project.slug}
+            key={workspace.slug}
             className="flex flex-col space-y-2 rounded-lg border border-gray-200 p-2"
           >
             <div className="flex items-center space-x-2">
-              <p className="font-semibold">{project.name}</p>
-              <Badge className="lowercase">{project.slug}</Badge>
+              <p className="font-semibold">{workspace.name}</p>
+              <Badge className="lowercase">{workspace.slug}</Badge>
             </div>
             <div className="flex justify-between text-sm">
               <span className="font-medium text-gray-700">Plan</span>
-              <span className="text-gray-500">{capitalize(project.plan)}</span>
+              <span className="text-gray-500">
+                {capitalize(workspace.plan)}
+              </span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="font-medium text-gray-700">Domains</span>
-              <span className="text-gray-500">{project.domains}</span>
+              <span className="text-gray-500">{workspace.domains}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="font-medium text-gray-700">Links</span>
               <span className="text-gray-500">
-                {nFormatter(project.links, { full: true })}
+                {nFormatter(workspace.links, { full: true })}
               </span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="font-medium text-gray-700">Clicks</span>
               <span className="text-gray-500">
-                {nFormatter(project.clicks, { full: true })}
+                {nFormatter(workspace.clicks, { full: true })}
               </span>
             </div>
           </div>
