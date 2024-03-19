@@ -13,7 +13,7 @@ export const GET = withAuth(
   async ({ params, searchParams, project, link }) => {
     const { endpoint } = analyticsEndpointSchema.parse(params);
     const parsedParams = getAnalyticsQuerySchema.parse(searchParams);
-    const { domain, key, interval } = parsedParams;
+    const { domain, key, interval, url } = parsedParams;
 
     // return 403 if project is on the free plan and interval is 90d or all
     if (
@@ -53,7 +53,16 @@ export const GET = withAuth(
             date: entry.start,
             clicks: entry.clicks,
           }))
-        : response,
+        : endpoint === "top_links"
+          ? response.map((entry: { link: string; clicks: number }) => ({
+              linkId: entry.link,
+              shortLink: `https://${domain}.dub.co/${key}`,
+              domain: domain,
+              key: key,
+              url: url,
+              clicks: entry.clicks,
+            }))
+          : response,
       {
         parseValue(fieldValue, defaultParser) {
           if (fieldValue instanceof Date) {
