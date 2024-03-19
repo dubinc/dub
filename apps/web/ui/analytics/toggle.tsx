@@ -34,7 +34,8 @@ import TagSelector from "./tag-selector";
 export default function Toggle() {
   const { queryParams } = useRouterStuff();
 
-  const { basePath, domain, key, url, interval } = useContext(AnalyticsContext);
+  const { basePath, domain, key, url, interval, admin } =
+    useContext(AnalyticsContext);
 
   const [openDatePopover, setOpenDatePopover] = useState(false);
 
@@ -52,6 +53,7 @@ export default function Toggle() {
     <div
       className={cn("sticky top-[6.85rem] z-10 mb-5 bg-gray-50 py-3 md:py-5", {
         "top-14": isPublicStatsPage,
+        "top-0": admin,
         "shadow-md": scrolled,
       })}
     >
@@ -106,7 +108,8 @@ export default function Toggle() {
               <div className="grid w-full p-2 md:w-48">
                 {INTERVALS.map(({ display, value }) =>
                   (value === "all" || value === "90d") &&
-                  (!plan || plan === "free") ? (
+                  (!plan || plan === "free") &&
+                  !admin ? (
                     <Tooltip
                       key={value}
                       content={

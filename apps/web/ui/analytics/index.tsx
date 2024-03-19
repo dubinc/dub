@@ -28,20 +28,24 @@ export const AnalyticsContext = createContext<{
   interval: string;
   tagId?: string;
   totalClicks?: number;
+  admin?: boolean;
 }>({
   basePath: "",
   baseApiPath: "",
   domain: "",
   queryString: "",
   interval: "",
+  admin: false,
 });
 
 export default function Analytics({
   staticDomain,
   staticUrl,
+  admin,
 }: {
   staticDomain?: string;
   staticUrl?: string;
+  admin?: boolean;
 }) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -59,7 +63,13 @@ export default function Analytics({
 
   const { basePath, domain, baseApiPath } = useMemo(() => {
     // Workspace analytics page, e.g. app.dub.co/dub/analytics?domain=dub.sh&key=github
-    if (slug) {
+    if (admin) {
+      return {
+        basePath: `/analytics`,
+        baseApiPath: `/api/admin/analytics`,
+        domain: domainSlug,
+      };
+    } else if (slug) {
       return {
         basePath: `/${slug}/analytics`,
         baseApiPath: `/api/analytics`,
@@ -73,7 +83,7 @@ export default function Analytics({
         domain: staticDomain,
       };
     }
-  }, [slug, pathname, staticDomain, domainSlug, key]);
+  }, [admin, slug, pathname, staticDomain, domainSlug, key]);
 
   const queryString = useMemo(() => {
     const availableFilterParams = VALID_ANALYTICS_FILTERS.reduce(
@@ -114,6 +124,7 @@ export default function Analytics({
         interval, // time interval (e.g. 24h, 7d, 30d, etc.)
         tagId, // id of a single tag
         totalClicks, // total clicks for the link
+        admin, // whether the user is an admin
       }}
     >
       <div className="bg-gray-50 py-10">

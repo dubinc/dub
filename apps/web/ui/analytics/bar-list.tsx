@@ -25,11 +25,13 @@ import {
   Dispatch,
   ReactNode,
   SetStateAction,
+  useContext,
   useMemo,
   useRef,
   useState,
 } from "react";
 import useSWR from "swr";
+import { AnalyticsContext } from ".";
 import LinkLogo from "../links/link-logo";
 import LinkPreviewTooltip from "./link-preview";
 
@@ -142,6 +144,9 @@ export function LineItem({
   const isVisible = !!entry?.isIntersecting;
 
   const { id } = useWorkspace();
+
+  const { admin } = useContext(AnalyticsContext);
+
   const { data } = useSWR<
     LinkProps & {
       user: UserProps;
@@ -149,7 +154,9 @@ export function LineItem({
   >(
     tab === "link" &&
       isVisible &&
-      `/api/links/${title}?workspaceId=${id}&checkDomain=true`,
+      (admin
+        ? `/api/admin/links/${title}`
+        : `/api/links/${title}?workspaceId=${id}&checkDomain=true`),
     fetcher,
     {
       dedupingInterval: 60000,
@@ -195,13 +202,13 @@ export function LineItem({
                   key: data.key,
                   pretty: true,
                 }),
-                48,
+                36,
               )
             ) : (
               <div className="h-4 w-20 animate-pulse rounded bg-gray-100" />
             )
           ) : (
-            truncate(title, 48)
+            truncate(title, 36)
           )}
         </div>
       </div>
