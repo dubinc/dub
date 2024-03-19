@@ -36,7 +36,7 @@ export const importLinksFromCSV = async ({
   );
 
   const validLinks = processedLinks
-    .filter(({ error }) => error != null)
+    .filter(({ error }) => error == null)
     .map(({ link }) => link);
 
   const importedLinks = await bulkCreateLinks({
