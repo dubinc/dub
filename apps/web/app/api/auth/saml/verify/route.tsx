@@ -14,12 +14,12 @@ export async function POST(req: Request) {
     );
   }
 
-  const project = await prisma.project.findUnique({
+  const workspace = await prisma.project.findUnique({
     where: { slug },
     select: { id: true },
   });
 
-  if (!project) {
+  if (!workspace) {
     return NextResponse.json(
       { error: "Workspace not found." },
       { status: 404 },
@@ -27,7 +27,7 @@ export async function POST(req: Request) {
   }
 
   const connections = await apiController.getConnections({
-    tenant: project.id,
+    tenant: workspace.id,
     product: "Dub",
   });
 
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
   }
 
   const data = {
-    projectId: project.id,
+    workspaceId: workspace.id,
   };
 
   return NextResponse.json({ data });

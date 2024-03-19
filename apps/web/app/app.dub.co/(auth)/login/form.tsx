@@ -152,7 +152,7 @@ export default function LoginForm() {
               return;
             }
             await signIn("saml", undefined, {
-              tenant: data.projectId,
+              tenant: data.workspaceId,
               product: "Dub",
             });
           });
