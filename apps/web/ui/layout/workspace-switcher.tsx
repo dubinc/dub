@@ -12,7 +12,7 @@ import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { useCallback, useContext, useMemo, useState } from "react";
 
-export default function WorkspacePicker() {
+export default function WorkspaceSwitcher() {
   const { workspaces } = useWorkspaces();
   const { data: session, status } = useSession();
   const { slug, key } = useParams() as {
@@ -21,19 +21,19 @@ export default function WorkspacePicker() {
   };
 
   const selected = useMemo(() => {
-    const selectedProject = workspaces?.find(
-      (project) => project.slug === slug,
+    const selectedWorkspace = workspaces?.find(
+      (workspace) => workspace.slug === slug,
     );
 
-    if (slug && workspaces && selectedProject) {
+    if (slug && workspaces && selectedWorkspace) {
       return {
-        ...selectedProject,
+        ...selectedWorkspace,
         image:
-          selectedProject.logo ||
-          `${DICEBEAR_AVATAR_URL}${selectedProject.name}`,
+          selectedWorkspace.logo ||
+          `${DICEBEAR_AVATAR_URL}${selectedWorkspace.name}`,
       };
 
-      // return personal account selector if there's no project or error (user doesn't have access to project)
+      // return personal account selector if there's no workspace or error (user doesn't have access to workspace)
     } else {
       return {
         name: session?.user?.name || session?.user?.email,
@@ -55,7 +55,7 @@ export default function WorkspacePicker() {
   const [openPopover, setOpenPopover] = useState(false);
 
   if (!workspaces || status === "loading") {
-    return <WorkspacePickerPlaceholder />;
+    return <WorkspaceSwitcherPlaceholder />;
   }
 
   return (
@@ -126,7 +126,7 @@ function WorkspaceList({
   const href = useCallback(
     (slug: string) => {
       if (domain || key || selected.slug === "/") {
-        // if we're on a link page, navigate back to the project root
+        // if we're on a link page, navigate back to the workspace root
         return `/${slug}`;
       } else {
         // else, we keep the path but remove all query params
@@ -187,7 +187,7 @@ function WorkspaceList({
   );
 }
 
-function WorkspacePickerPlaceholder() {
+function WorkspaceSwitcherPlaceholder() {
   return (
     <div className="flex animate-pulse items-center space-x-1.5 rounded-lg px-1.5 py-2 sm:w-60">
       <div className="h-8 w-8 animate-pulse rounded-full bg-gray-200" />

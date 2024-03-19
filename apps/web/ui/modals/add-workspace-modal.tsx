@@ -138,7 +138,7 @@ function AddWorkspaceModalHelper({
             if (res.status === 200) {
               // track workspace creation event
               va.track("Created Workspace");
-              await mutate("/api/workspace");
+              await mutate("/api/workspaces");
               if (welcomeFlow) {
                 router.push(`/welcome?type=upgrade&slug=${slug}`);
               } else {
