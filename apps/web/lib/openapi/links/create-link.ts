@@ -1,18 +1,19 @@
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import {
-  LinkSchema,
-  createLinkBodySchema,
-  getLinkInfoQuerySchema,
-} from "@/lib/zod/schemas/links";
+import z from "@/lib/zod";
+import { LinkSchema, createLinkBodySchema } from "@/lib/zod/schemas/links";
 
 export const createLink: ZodOpenApiOperationObject = {
   operationId: "createLink",
   summary: "Create a new link",
-  description: "Create a new link for the authenticated project.",
+  description: "Create a new link for the authenticated workspace.",
   requestParams: {
-    query: getLinkInfoQuerySchema.pick({ projectSlug: true }),
+    query: z.object({
+      workspaceId: z
+        .string()
+        .describe("The ID of the workspace to create the link for."),
+    }),
   },
   requestBody: {
     content: {

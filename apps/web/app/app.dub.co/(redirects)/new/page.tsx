@@ -1,10 +1,10 @@
-import { getProjects } from "@/lib/fetchers";
+import { getWorkspaces } from "@/lib/fetchers";
 import { redirect } from "next/navigation";
 
 export default async function NewLinkPage() {
-  const projects = await getProjects();
-  if (!projects || projects.length === 0) {
-    redirect("/?newProject=true");
+  const workspaces = await getWorkspaces();
+  if (!workspaces || workspaces.length === 0) {
+    redirect("/?newWorkspace=true");
   }
-  redirect(`/${projects[0].slug}?newLink=true`);
+  redirect(`/${workspaces[0].slug}?newLink=true`);
 }

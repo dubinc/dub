@@ -48,8 +48,8 @@ export default function LinksImported({
       createdAt: new Date("2023-05-16T00:00:00.000Z"),
     },
   ],
-  projectName = "Acme",
-  projectSlug = "acme",
+  workspaceName = "Acme",
+  workspaceSlug = "acme",
   domains = ["ac.me"],
 }: {
   email: string;
@@ -60,8 +60,8 @@ export default function LinksImported({
     key: string;
     createdAt: Date;
   }[];
-  projectName: string;
-  projectSlug: string;
+  workspaceName: string;
+  workspaceSlug: string;
   domains: string[];
 }) {
   return (
@@ -88,12 +88,12 @@ export default function LinksImported({
               <strong>
                 imported {Intl.NumberFormat("en-us").format(count)} links
               </strong>{" "}
-              from {provider} into your Dub.co project,{" "}
+              from {provider} into your Dub.co workspace,{" "}
               <Link
-                href={`https://app.dub.co/${projectSlug}`}
+                href={`https://app.dub.co/${workspaceSlug}`}
                 className="font-medium text-blue-600 no-underline"
               >
-                {projectName}↗
+                {workspaceName}↗
               </Link>{" "}
               , for the domain{domains.length > 1 ? "s" : ""}{" "}
               <strong>{domains.join(", ")}</strong>.
@@ -133,7 +133,7 @@ export default function LinksImported({
               <Section className="my-8 text-center">
                 <Link
                   className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                  href={`https://app.dub.co/${projectSlug}`}
+                  href={`https://app.dub.co/${workspaceSlug}`}
                 >
                   View {Intl.NumberFormat("en-us").format(count - 5)} more links
                 </Link>

@@ -5,6 +5,7 @@ import {
   isReservedUsername,
 } from "@/lib/edge-config";
 import prisma from "@/lib/prisma";
+import { isStored, storage } from "@/lib/storage";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import {
   getLinksCountQuerySchema,
@@ -23,19 +24,18 @@ import {
   validKeyRegex,
 } from "@dub/utils";
 import { Prisma } from "@prisma/client";
-import cloudinary from "cloudinary";
 import { checkIfKeyExists, getRandomKey } from "../planetscale";
 import { recordLink } from "../tinybird";
 import {
   LinkProps,
   LinkWithTagIdsProps,
-  ProjectProps,
   RedisLinkProps,
+  WorkspaceProps,
 } from "../types";
 import z from "../zod";
 
-export async function getLinksForProject({
-  projectId,
+export async function getLinksForWorkspace({
+  workspaceId,
   domain,
   tagId,
   tagIds,
@@ -45,14 +45,14 @@ export async function getLinksForProject({
   userId,
   showArchived,
   withTags,
-}: Omit<z.infer<typeof getLinksQuerySchema>, "projectSlug"> & {
-  projectId: string;
+}: z.infer<typeof getLinksQuerySchema> & {
+  workspaceId: string;
 }) {
   const combinedTagIds = combineTagIds({ tagId, tagIds });
 
   const links = await prisma.link.findMany({
     where: {
-      projectId,
+      projectId: workspaceId,
       archived: showArchived ? undefined : false,
       ...(domain && { domain }),
       ...(search && {
@@ -112,17 +112,18 @@ export async function getLinksForProject({
       tags,
       shortLink,
       qrCode: `https://api.dub.co/qr?url=${shortLink}`,
+      workspaceId: `ws_${link.projectId}`,
     };
   });
 }
 
 export async function getLinksCount({
   searchParams,
-  projectId,
+  workspaceId,
   userId,
 }: {
   searchParams: z.infer<typeof getLinksCountQuerySchema>;
-  projectId: string;
+  workspaceId: string;
   userId?: string | null;
 }) {
   const { groupBy, search, domain, tagId, tagIds, showArchived, withTags } =
@@ -131,7 +132,7 @@ export async function getLinksCount({
   const combinedTagIds = combineTagIds({ tagId, tagIds });
 
   const linksWhere = {
-    projectId,
+    projectId: workspaceId,
     archived: showArchived ? undefined : false,
     ...(userId && { userId }),
     ...(search && {
@@ -205,11 +206,11 @@ export async function getLinksCount({
 export async function keyChecks({
   domain,
   key,
-  project,
+  workspace,
 }: {
   domain: string;
   key: string;
-  project?: ProjectProps;
+  workspace?: WorkspaceProps;
 }) {
   const link = await checkIfKeyExists(domain, key);
   if (link) {
@@ -230,7 +231,7 @@ export async function keyChecks({
       };
     }
 
-    if (key.length <= 3 && (!project || project.plan === "free")) {
+    if (key.length <= 3 && (!workspace || workspace.plan === "free")) {
       return {
         error: `You can only use keys that are 3 characters or less on a Pro plan and above. Upgrade to Pro to register a ${key.length}-character key.`,
         code: "forbidden",
@@ -238,7 +239,7 @@ export async function keyChecks({
     }
     if (
       (await isReservedUsername(key)) &&
-      (!project || project.plan === "free")
+      (!workspace || workspace.plan === "free")
     ) {
       return {
         error:
@@ -269,13 +270,13 @@ export function processKey(key: string) {
 
 export async function processLink({
   payload,
-  project,
+  workspace,
   userId,
   bulk = false,
   skipKeyChecks = false, // only skip when key doesn't change (e.g. when editing a link)
 }: {
   payload: LinkWithTagIdsProps;
-  project?: ProjectProps;
+  workspace?: WorkspaceProps;
   userId?: string;
   bulk?: boolean;
   skipKeyChecks?: boolean;
@@ -314,7 +315,7 @@ export async function processLink({
   }
 
   // free plan restrictions
-  if (!project || project.plan === "free") {
+  if (!workspace || workspace.plan === "free") {
     if (proxy || password || rewrite || expiresAt || ios || android || geo) {
       return {
         link: payload,
@@ -325,9 +326,9 @@ export async function processLink({
     }
   }
 
-  // if domain is not defined, set it to the project's primary domain
+  // if domain is not defined, set it to the workspace's primary domain
   if (!domain) {
-    domain = project?.domains?.find((d) => d.primary)?.slug || SHORT_DOMAIN;
+    domain = workspace?.domains?.find((d) => d.primary)?.slug || SHORT_DOMAIN;
   }
 
   // checks for default short domain
@@ -364,11 +365,11 @@ export async function processLink({
       };
     }
 
-    // else, check if the domain belongs to the project
-  } else if (!project?.domains?.find((d) => d.slug === domain)) {
+    // else, check if the domain belongs to the workspace
+  } else if (!workspace?.domains?.find((d) => d.slug === domain)) {
     return {
       link: payload,
-      error: "Domain does not belong to project.",
+      error: "Domain does not belong to workspace.",
       code: "forbidden",
     };
   }
@@ -386,7 +387,7 @@ export async function processLink({
     }
     key = processedKey;
 
-    const response = await keyChecks({ domain, key, project });
+    const response = await keyChecks({ domain, key, workspace });
     if (response.error) {
       return {
         link: payload,
@@ -419,7 +420,7 @@ export async function processLink({
       select: {
         id: true,
       },
-      where: { projectId: project?.id, id: { in: tagIds } },
+      where: { projectId: workspace?.id, id: { in: tagIds } },
     });
 
     if (tags.length !== tagIds.length) {
@@ -437,12 +438,11 @@ export async function processLink({
     }
   }
 
-  // custom social media image checks
-  const uploadedImage = image && image.startsWith("data:image") ? true : false;
-  if (uploadedImage && !process.env.CLOUDINARY_URL) {
+  // custom social media image checks (see if R2 is configured)
+  if (proxy && !process.env.STORAGE_SECRET_ACCESS_KEY) {
     return {
       link: payload,
-      error: "Missing Cloudinary environment variable.",
+      error: "Missing storage access key.",
       code: "bad_request",
     };
   }
@@ -478,8 +478,8 @@ export async function processLink({
       domain,
       key,
       url: processedUrl,
-      // make sure projectId is set to the current project
-      projectId: project?.id || null,
+      // make sure projectId is set to the current workspace
+      projectId: workspace?.id || null,
       // if userId is passed, set it (we don't change the userId if it's already set, e.g. when editing a link)
       ...(userId && {
         userId,
@@ -504,24 +504,12 @@ export function combineTagIds({
 }
 
 export async function addLink(link: LinkWithTagIdsProps) {
-  let { domain, key, url, expiresAt, title, description, image, proxy, geo } =
-    link;
-  const uploadedImage = image && image.startsWith("data:image") ? true : false;
+  let { key, url, expiresAt, title, description, image, proxy, geo } = link;
 
   const combinedTagIds = combineTagIds(link);
 
   const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
     getParamsFromURL(url);
-
-  if (proxy && image && uploadedImage) {
-    const { secure_url } = await cloudinary.v2.uploader.upload(image, {
-      public_id: key,
-      folder: domain,
-      overwrite: true,
-      invalidate: true,
-    });
-    image = secure_url;
-  }
 
   const { tagId, tagIds, ...rest } = link;
 
@@ -531,7 +519,8 @@ export async function addLink(link: LinkWithTagIdsProps) {
       key,
       title: truncate(title, 120),
       description: truncate(description, 240),
-      image,
+      // if it's an uploaded image, make this null first because we'll update it later
+      image: proxy && image && !isStored(image) ? null : image,
       utm_source,
       utm_medium,
       utm_campaign,
@@ -562,6 +551,27 @@ export async function addLink(link: LinkWithTagIdsProps) {
     },
   });
 
+  const uploadedImageUrl = `${process.env.STORAGE_BASE_URL}/images/${response.id}`;
+
+  if (proxy && image && !isStored(image)) {
+    await Promise.all([
+      // upload image to R2
+      storage.upload(`images/${response.id}`, image, {
+        width: 1200,
+        height: 630,
+      }),
+      // update the null image we set earlier to the uploaded image URL
+      prisma.link.update({
+        where: {
+          id: response.id,
+        },
+        data: {
+          image: uploadedImageUrl,
+        },
+      }),
+    ]);
+  }
+
   const shortLink = linkConstructor({
     domain: response.domain,
     key: response.key,
@@ -569,10 +579,14 @@ export async function addLink(link: LinkWithTagIdsProps) {
   const tags = response.tags.map(({ tag }) => tag);
   return {
     ...response,
+    // optimistically set the image URL to the uploaded image URL
+    image:
+      proxy && image && !isStored(image) ? uploadedImageUrl : response.image,
     tagId: tags?.[0]?.id ?? null, // backwards compatibility
     tags,
     shortLink,
     qrCode: `https://api.dub.co/qr?url=${shortLink}`,
+    workspaceId: `ws_${response.projectId}`,
   };
 }
 
@@ -644,6 +658,7 @@ export async function bulkCreateLinks({
       tagId: tags?.[0]?.id ?? null, // backwards compatibility
       tags,
       qrCode: `https://api.dub.co/qr?url=${shortLink}`,
+      workspaceId: `ws_${link.projectId}`,
     };
   });
 }
@@ -679,7 +694,7 @@ export async function propagateBulkLinkChanges(
   await Promise.all([
     // update Redis
     pipeline.exec(),
-    // update links usage for project
+    // update links usage for workspace
     prisma.project.update({
       where: {
         id: links[0].projectId!, // this will always be present
@@ -694,12 +709,14 @@ export async function propagateBulkLinkChanges(
 }
 
 export async function editLink({
-  domain: oldDomain = SHORT_DOMAIN,
-  key: oldKey,
+  oldDomain = SHORT_DOMAIN,
+  oldKey,
+  oldImage,
   updatedLink,
 }: {
-  domain?: string;
-  key: string;
+  oldDomain?: string;
+  oldKey: string;
+  oldImage?: string;
   updatedLink: LinkWithTagIdsProps;
 }) {
   let {
@@ -716,7 +733,6 @@ export async function editLink({
   } = updatedLink;
   const changedKey = key.toLowerCase() !== oldKey.toLowerCase();
   const changedDomain = domain !== oldDomain;
-  const uploadedImage = image && image.startsWith("data:image") ? true : false;
 
   const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
     getParamsFromURL(url);
@@ -734,22 +750,15 @@ export async function editLink({
 
   const combinedTagIds = combineTagIds({ tagId, tagIds });
 
-  if (proxy && image) {
-    // only upload image to cloudinary if proxy is true and there's an image
-    if (uploadedImage) {
-      const { secure_url } = await cloudinary.v2.uploader.upload(image, {
-        public_id: key,
-        folder: domain,
-        overwrite: true,
-        invalidate: true,
-      });
-      image = secure_url;
-    }
-    // if there's no proxy enabled or no image, delete the image in Cloudinary
-  } else {
-    await cloudinary.v2.uploader.destroy(`${domain}/${key}`, {
-      invalidate: true,
+  if (proxy && image && !isStored(image)) {
+    // only upload image if proxy is true and image is not stored in R2
+    await storage.upload(`images/${id}`, image, {
+      width: 1200,
+      height: 630,
     });
+    // if there's an image in R2, delete it
+  } else if (oldImage?.startsWith(process.env.STORAGE_BASE_URL as string)) {
+    await storage.delete(`images/${id}`);
   }
 
   const [response, ..._effects] = await Promise.all([
@@ -762,7 +771,10 @@ export async function editLink({
         key,
         title: truncate(title, 120),
         description: truncate(description, 240),
-        image,
+        image:
+          proxy && image && !isStored(image)
+            ? `${process.env.STORAGE_BASE_URL}/images/${id}`
+            : image,
         utm_source,
         utm_medium,
         utm_campaign,
@@ -796,21 +808,9 @@ export async function editLink({
         },
       },
     }),
-    // if key is changed: rename resource in Cloudinary, delete the old key in Redis and change the clicks key name
-    ...(changedDomain || changedKey
-      ? [
-          ...(process.env.CLOUDINARY_URL
-            ? [
-                cloudinary.v2.uploader
-                  .destroy(`${oldDomain}/${oldKey}`, {
-                    invalidate: true,
-                  })
-                  .catch(() => {}),
-              ]
-            : []),
-          redis.hdel(oldDomain, oldKey.toLowerCase()),
-        ]
-      : []),
+    // if key is changed: delete the old key in Redis
+    (changedDomain || changedKey) &&
+      redis.hdel(oldDomain, oldKey.toLowerCase()),
   ]);
 
   const shortLink = linkConstructor({
@@ -826,6 +826,7 @@ export async function editLink({
     tags,
     shortLink,
     qrCode: `https://api.dub.co/qr?url=${shortLink}`,
+    workspaceId: `ws_${response.projectId}`,
   };
 }
 
@@ -838,7 +839,11 @@ export async function deleteLink(linkId: string) {
       tags: true,
     },
   });
-  return await Promise.all([
+  return await Promise.allSettled([
+    // if the image is stored in Cloudflare R2, delete it
+    link.proxy &&
+      link.image?.startsWith(process.env.STORAGE_BASE_URL as string) &&
+      storage.delete(`images/${link.id}`),
     redis.hdel(link.domain, link.key.toLowerCase()),
     recordLink({ link, deleted: true }),
     link.projectId &&
@@ -851,11 +856,6 @@ export async function deleteLink(linkId: string) {
             decrement: 1,
           },
         },
-      }),
-    link.proxy &&
-      link.image &&
-      cloudinary.v2.uploader.destroy(`${link.domain}/${link.key}`, {
-        invalidate: true,
       }),
   ]);
 }
@@ -879,17 +879,17 @@ export async function archiveLink({
 
 export async function transferLink({
   linkId,
-  newProjectId,
+  newWorkspaceId,
 }: {
   linkId: string;
-  newProjectId: string;
+  newWorkspaceId: string;
 }) {
   return await prisma.link.update({
     where: {
       id: linkId,
     },
     data: {
-      projectId: newProjectId,
+      projectId: newWorkspaceId,
       // remove tags when transferring link
       tags: {
         deleteMany: {},

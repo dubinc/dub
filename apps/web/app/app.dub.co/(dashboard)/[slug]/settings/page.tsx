@@ -1,5 +1,5 @@
-import ProjectSettingsClient from "./page-client";
+import WorkspaceSettingsClient from "./page-client";
 
-export default function ProjectSettings() {
-  return <ProjectSettingsClient />;
+export default function WorkspaceSettings() {
+  return <WorkspaceSettingsClient />;
 }

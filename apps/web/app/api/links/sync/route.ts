@@ -6,7 +6,7 @@ import { SimpleLinkProps } from "@/lib/types";
 import { NextResponse } from "next/server";
 
 // POST /api/links/sync – sync user's publicly created links to their accounts
-export const POST = withAuth(async ({ req, session, project }) => {
+export const POST = withAuth(async ({ req, session, workspace }) => {
   let links: SimpleLinkProps[] = [];
   try {
     links = await req.json();
@@ -38,11 +38,11 @@ export const POST = withAuth(async ({ req, session, project }) => {
     return new Response("No links created.", { status: 400 });
   }
 
-  if (project.linksUsage + unclaimedLinks.length > project.linksLimit) {
+  if (workspace.linksUsage + unclaimedLinks.length > workspace.linksLimit) {
     return new Response(
       exceededLimitError({
-        plan: project.plan,
-        limit: project.linksLimit,
+        plan: workspace.plan,
+        limit: workspace.linksLimit,
         type: "links",
       }),
       { status: 403 },
@@ -58,7 +58,7 @@ export const POST = withAuth(async ({ req, session, project }) => {
       },
       data: {
         userId: session.user.id,
-        projectId: project.id,
+        projectId: workspace.id,
         publicStats: false,
       },
     }),
@@ -66,7 +66,7 @@ export const POST = withAuth(async ({ req, session, project }) => {
       unclaimedLinks.map((link) => ({
         ...link!,
         userId: session.user.id,
-        projectId: project.id,
+        projectId: workspace.id,
         publicStats: false,
       })),
     ),

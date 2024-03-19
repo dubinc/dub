@@ -4,7 +4,7 @@ import { formatRedisLink, redis } from "@/lib/upstash";
 import {
   DUB_DEMO_LINKS,
   DUB_HEADERS,
-  LEGAL_PROJECT_ID,
+  LEGAL_WORKSPACE_ID,
   LOCALHOST_GEO_DATA,
 } from "@dub/utils";
 import {
@@ -114,7 +114,7 @@ export default async function LinkMiddleware(
   }
 
   // if the link is banned
-  if (link.projectId === LEGAL_PROJECT_ID) {
+  if (link.projectId === LEGAL_WORKSPACE_ID) {
     return NextResponse.rewrite(new URL("/banned", req.url), DUB_HEADERS);
   }
 

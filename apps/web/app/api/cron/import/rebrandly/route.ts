@@ -18,9 +18,9 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { projectId, importTags } = body;
+    const { workspaceId, importTags } = body;
     const rebrandlyApiKey = await redis.get<string>(
-      `import:rebrandly:${projectId}`,
+      `import:rebrandly:${workspaceId}`,
     );
 
     if (!rebrandlyApiKey) {
@@ -30,22 +30,22 @@ export async function POST(req: Request) {
     let tagsToId: Record<string, string> | null = null;
     if (importTags === true) {
       const tagsImported = await redis.get(
-        `import:rebrandly:${projectId}:tags`,
+        `import:rebrandly:${workspaceId}:tags`,
       );
 
       if (!tagsImported) {
         await importTagsFromRebrandly({
-          projectId,
+          workspaceId,
           rebrandlyApiKey,
         });
 
-        await redis.set(`import:rebrandly:${projectId}:tags`, "true");
+        await redis.set(`import:rebrandly:${workspaceId}:tags`, "true");
       }
 
       tagsToId = await prisma.tag
         .findMany({
           where: {
-            projectId,
+            projectId: workspaceId,
           },
           select: {
             id: true,
@@ -68,9 +68,9 @@ export async function POST(req: Request) {
       response: "success",
     });
   } catch (error) {
-    const project = await prisma.project.findUnique({
+    const workspace = await prisma.project.findUnique({
       where: {
-        id: body.projectId,
+        id: body.workspaceId,
       },
       select: {
         slug: true,
@@ -78,8 +78,8 @@ export async function POST(req: Request) {
     });
 
     await log({
-      message: `Import Rebrandly cron for project ${
-        project?.slug || body.projectId
+      message: `Import Rebrandly cron for workspace ${
+        workspace?.slug || body.workspaceId
       } failed. Error: ${error.message}`,
       type: "errors",
     });

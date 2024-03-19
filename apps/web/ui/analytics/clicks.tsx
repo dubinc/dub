@@ -1,14 +1,8 @@
 import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics";
 import useTags from "@/lib/swr/use-tags";
 import { Chart } from "@/ui/shared/icons";
-import { NumberTooltip, useRouterStuff } from "@dub/ui";
-import {
-  COUNTRIES,
-  capitalize,
-  linkConstructor,
-  nFormatter,
-  truncate,
-} from "@dub/utils";
+import { CountingNumbers, NumberTooltip, useRouterStuff } from "@dub/ui";
+import { COUNTRIES, capitalize, linkConstructor, truncate } from "@dub/utils";
 import { X } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -32,9 +26,12 @@ export default function Clicks() {
           <div className="flex items-end space-x-1">
             {totalClicks || totalClicks === 0 ? (
               <NumberTooltip value={totalClicks}>
-                <h1 className="text-3xl font-bold sm:text-4xl">
-                  {nFormatter(totalClicks)}
-                </h1>
+                <CountingNumbers
+                  as="h1"
+                  className="text-3xl font-bold sm:text-4xl"
+                >
+                  {totalClicks}
+                </CountingNumbers>
               </NumberTooltip>
             ) : (
               <div className="h-10 w-12 animate-pulse rounded-md bg-gray-200" />

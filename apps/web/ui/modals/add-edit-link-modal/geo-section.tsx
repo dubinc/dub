@@ -1,4 +1,4 @@
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
 import {
   InfoTooltip,
@@ -21,7 +21,7 @@ export default function GeoSection({
   data: LinkProps;
   setData: Dispatch<SetStateAction<LinkProps>>;
 }) {
-  const { plan } = useProject();
+  const { plan } = useWorkspace();
   const { queryParams } = useRouterStuff();
   const { geo } = data;
   const [enabled, setEnabled] = useState(!!geo);

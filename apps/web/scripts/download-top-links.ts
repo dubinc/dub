@@ -7,7 +7,7 @@ import * as Papa from "papaparse";
 
 async function main() {
   const topLinks = await getAnalytics({
-    projectId: "xxx",
+    workspaceId: "xxx",
     endpoint: "top_links",
     interval: "30d",
     excludeRoot: true,

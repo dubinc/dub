@@ -19,12 +19,12 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { projectId, bitlyGroup, importTags } = body;
-    const bitlyApiKey = await redis.get(`import:bitly:${projectId}`);
+    const { workspaceId, bitlyGroup, importTags } = body;
+    const bitlyApiKey = await redis.get(`import:bitly:${workspaceId}`);
 
     let tagsToId: Record<string, string> | null = null;
     if (importTags === true) {
-      const tagsImported = await redis.get(`import:bitly:${projectId}:tags`);
+      const tagsImported = await redis.get(`import:bitly:${workspaceId}:tags`);
 
       if (!tagsImported) {
         const tags = (await fetch(
@@ -43,17 +43,17 @@ export async function POST(req: Request) {
           data: tags.map((tag) => ({
             name: tag,
             color: randomBadgeColor(),
-            projectId,
+            projectId: workspaceId,
           })),
           skipDuplicates: true,
         });
-        await redis.set(`import:bitly:${projectId}:tags`, "true");
+        await redis.set(`import:bitly:${workspaceId}:tags`, "true");
       }
 
       tagsToId = await prisma.tag
         .findMany({
           where: {
-            projectId,
+            projectId: workspaceId,
           },
           select: {
             id: true,
@@ -76,9 +76,9 @@ export async function POST(req: Request) {
       response: "success",
     });
   } catch (error) {
-    const project = await prisma.project.findUnique({
+    const workspace = await prisma.project.findUnique({
       where: {
-        id: body.projectId,
+        id: body.workspaceId,
       },
       select: {
         slug: true,
@@ -86,8 +86,8 @@ export async function POST(req: Request) {
     });
 
     await log({
-      message: `Import Bitly cron for project ${
-        project?.slug || body.projectId
+      message: `Import Bitly cron for workspace ${
+        workspace?.slug || body.workspaceId
       } failed. Error: ${error.message}`,
       type: "errors",
     });

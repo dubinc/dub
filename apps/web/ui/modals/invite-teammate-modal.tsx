@@ -1,7 +1,6 @@
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { BlurImage, Button, Logo, Modal, useMediaQuery } from "@dub/ui";
 import va from "@vercel/analytics";
-import { useParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -19,10 +18,9 @@ function InviteTeammateModal({
   showInviteTeammateModal: boolean;
   setShowInviteTeammateModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { slug } = useParams() as { slug: string };
   const [inviting, setInviting] = useState(false);
   const [email, setEmail] = useState("");
-  const { logo } = useProject();
+  const { id, slug, logo } = useWorkspace();
   const { isMobile } = useMediaQuery();
 
   return (
@@ -44,25 +42,26 @@ function InviteTeammateModal({
         )}
         <h3 className="text-lg font-medium">Invite Teammate</h3>
         <p className="text-center text-sm text-gray-500">
-          Invite a teammate to join your project. Invitations will be valid for
-          14 days.
+          Invite a teammate to join your workspace. Invitations will be valid
+          for 14 days.
         </p>
       </div>
       <form
         onSubmit={async (e) => {
           e.preventDefault();
           setInviting(true);
-          fetch(`/api/projects/${slug}/invites`, {
+          fetch(`/api/workspaces/${id}/invites`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email }),
           }).then(async (res) => {
             if (res.status === 200) {
-              await mutate(`/api/projects/${slug}/invites`);
+              await mutate(`/api/workspaces/${id}/invites`);
               toast.success("Invitation sent!");
-              va.track("User invited teammate", {
-                project: slug,
-              });
+              slug &&
+                va.track("User invited teammate", {
+                  workspace: slug,
+                });
               setShowInviteTeammateModal(false);
             } else {
               const { error } = await res.json();

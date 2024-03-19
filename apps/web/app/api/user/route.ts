@@ -1,26 +1,26 @@
 import { withSession } from "@/lib/auth";
 import { unsubscribe } from "@/lib/flodesk";
 import prisma from "@/lib/prisma";
+import { storage } from "@/lib/storage";
 import { redis } from "@/lib/upstash";
 import { trim } from "@dub/utils";
-import cloudinary from "cloudinary";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 // GET /api/user – get a specific user
 export const GET = withSession(async ({ session }) => {
-  const migratedProject = await redis.hget(
+  const migratedWorkspace = await redis.hget(
     "migrated_links_users",
     session.user.id,
   );
 
-  if (migratedProject) {
+  if (migratedWorkspace) {
     await redis.hdel("migrated_links_users", session.user.id);
   }
 
   return NextResponse.json({
     ...session.user,
-    migratedProject,
+    migratedWorkspace,
   });
 });
 
@@ -37,13 +37,8 @@ export const PUT = withSession(async ({ req, session }) => {
   );
   try {
     if (image) {
-      const { secure_url } = await cloudinary.v2.uploader.upload(image, {
-        public_id: session.user.id,
-        folder: "avatars",
-        overwrite: true,
-        invalidate: true,
-      });
-      image = secure_url;
+      const { url } = await storage.upload(`avatars/${session.user.id}`, image);
+      image = url;
     }
     const response = await prisma.user.update({
       where: {
@@ -67,27 +62,27 @@ export const PUT = withSession(async ({ req, session }) => {
 
 // DELETE /api/user – delete a specific user
 export const DELETE = withSession(async ({ session }) => {
-  const userIsOwnerOfProjects = await prisma.projectUsers.findMany({
+  const userIsOwnerOfWorkspaces = await prisma.projectUsers.findMany({
     where: {
       userId: session.user.id,
       role: "owner",
     },
   });
-  if (userIsOwnerOfProjects.length > 0) {
+  if (userIsOwnerOfWorkspaces.length > 0) {
     return new Response(
-      "You must transfer ownership of your projects or delete them before you can delete your account.",
+      "You must transfer ownership of your workspaces or delete them before you can delete your account.",
       { status: 422 },
     );
   } else {
+    const user = await prisma.user.delete({
+      where: {
+        id: session.user.id,
+      },
+    });
     const response = await Promise.allSettled([
-      prisma.user.delete({
-        where: {
-          id: session.user.id,
-        },
-      }),
-      cloudinary.v2.uploader.destroy(`avatars/${session?.user?.id}`, {
-        invalidate: true,
-      }),
+      // if the user has a custom avatar, delete it
+      user.image?.startsWith(process.env.STORAGE_BASE_URL as string) &&
+        storage.delete(`avatars/${session.user.id}`),
       unsubscribe(session.user.email),
     ]);
     return NextResponse.json(response);

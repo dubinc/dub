@@ -1,9 +1,11 @@
-import useProject from "@/lib/swr/use-project";
+import { resizeImage } from "@/lib/images";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
 import { UploadCloud } from "@/ui/shared/icons";
 import {
   InfoTooltip,
   LoadingCircle,
+  LoadingSpinner,
   Popover,
   SimpleTooltipContent,
   Switch,
@@ -14,13 +16,7 @@ import { TooltipContent } from "@dub/ui/src/tooltip";
 import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "@dub/utils";
 import { motion } from "framer-motion";
 import { Link2 } from "lucide-react";
-import {
-  Dispatch,
-  SetStateAction,
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import UnsplashSearch from "./unsplash-search";
 
@@ -35,34 +31,25 @@ export default function OGSection({
   setData: Dispatch<SetStateAction<LinkProps>>;
   generatingMetatags: boolean;
 }) {
-  const { plan } = useProject();
+  const { plan } = useWorkspace();
   const { queryParams } = useRouterStuff();
 
   const { title, description, image, proxy } = data;
 
-  const [fileError, setFileError] = useState<string | null>(null);
+  const [resizing, setResizing] = useState(false);
   const [dragActive, setDragActive] = useState(false);
 
-  const onChangePicture = useCallback(
-    (e) => {
-      setFileError(null);
-      const file = e.target.files[0];
-      if (file) {
-        if (file.size / 1024 / 1024 > 5) {
-          setFileError("File size too big (max 5MB)");
-        } else if (file.type !== "image/png" && file.type !== "image/jpeg") {
-          setFileError("File type not supported (.png or .jpg only)");
-        } else {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            setData((prev) => ({ ...prev, image: e.target?.result as string }));
-          };
-          reader.readAsDataURL(file);
-        }
-      }
-    },
-    [setData],
-  );
+  const onChangePicture = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    setResizing(true);
+    const image = await resizeImage(file);
+    setData((prev) => ({ ...prev, image }));
+    // delay to prevent flickering
+    setTimeout(() => {
+      setResizing(false);
+    }, 500);
+  };
 
   useEffect(() => {
     if (proxy && props) {
@@ -143,48 +130,44 @@ export default function OGSection({
           <div>
             <div className="flex items-center justify-between">
               <p className="block text-sm font-medium text-gray-700">Image</p>
-              {fileError ? (
-                <p className="text-sm text-red-500">{fileError}</p>
-              ) : (
-                <div className="flex items-center justify-between">
-                  <button
-                    className="mr-1 flex h-6 w-6 items-center justify-center rounded-md transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200"
-                    type="button"
-                    onClick={() => {
-                      const image = window.prompt(
-                        "Paste a URL to an image (max 5MB)",
-                        "https://",
-                      );
-                      if (image) {
-                        setData((prev) => ({ ...prev, image }));
-                      }
-                    }}
-                  >
-                    <Link2 className="h-4 w-4 text-gray-500" />
-                  </button>
-                  <Popover
-                    content={
-                      <UnsplashSearch
-                        setData={setData}
-                        setOpenPopover={handleSet}
-                      />
+              <div className="flex items-center justify-between">
+                <button
+                  className="mr-1 flex h-6 w-6 items-center justify-center rounded-md transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200"
+                  type="button"
+                  onClick={() => {
+                    const image = window.prompt(
+                      "Paste a URL to an image.",
+                      "https://",
+                    );
+                    if (image) {
+                      setData((prev) => ({ ...prev, image }));
                     }
-                    openPopover={openPopover}
-                    setOpenPopover={handleSet}
+                  }}
+                >
+                  <Link2 className="h-4 w-4 text-gray-500" />
+                </button>
+                <Popover
+                  content={
+                    <UnsplashSearch
+                      setData={setData}
+                      setOpenPopover={handleSet}
+                    />
+                  }
+                  openPopover={openPopover}
+                  setOpenPopover={handleSet}
+                >
+                  <div
+                    onClick={handleSet}
+                    className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-md transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200"
                   >
-                    <div
-                      onClick={handleSet}
-                      className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-md transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200"
-                    >
-                      <Unsplash className="h-3 w-3 text-gray-500" />
-                    </div>
-                  </Popover>
-                </div>
-              )}
+                    <Unsplash className="h-3 w-3 text-gray-500" />
+                  </div>
+                </Popover>
+              </div>
             </div>
             <label
               htmlFor="image"
-              className="group relative mt-1 flex h-[14rem] cursor-pointer flex-col items-center justify-center rounded-md border border-gray-300 bg-white shadow-sm transition-all hover:bg-gray-50"
+              className="group relative mt-1 flex aspect-[1200/630] w-full cursor-pointer flex-col items-center justify-center rounded-md border border-gray-300 bg-white shadow-sm transition-all hover:bg-gray-50"
             >
               {generatingMetatags && (
                 <div className="absolute z-[5] flex h-full w-full items-center justify-center rounded-md bg-white">
@@ -208,33 +191,19 @@ export default function OGSection({
                   e.stopPropagation();
                   setDragActive(false);
                 }}
-                onDrop={(e) => {
+                onDrop={async (e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   setDragActive(false);
-                  setFileError(null);
                   const file = e.dataTransfer.files && e.dataTransfer.files[0];
-                  if (file) {
-                    if (file.size / 1024 / 1024 > 5) {
-                      setFileError("File size too big (max 5MB)");
-                    } else if (
-                      file.type !== "image/png" &&
-                      file.type !== "image/jpeg"
-                    ) {
-                      setFileError(
-                        "File type not supported (.png or .jpg only)",
-                      );
-                    } else {
-                      const reader = new FileReader();
-                      reader.onload = (e) => {
-                        setData((prev) => ({
-                          ...prev,
-                          image: e.target?.result as string,
-                        }));
-                      };
-                      reader.readAsDataURL(file);
-                    }
-                  }
+                  if (!file) return;
+                  setResizing(true);
+                  const image = await resizeImage(file);
+                  setData((prev) => ({ ...prev, image }));
+                  // delay to prevent flickering
+                  setTimeout(() => {
+                    setResizing(false);
+                  }, 500);
                 }}
               />
               <div
@@ -248,17 +217,28 @@ export default function OGSection({
                     : "group-hover:bg-gray-50"
                 }`}
               >
-                <UploadCloud
-                  className={`${
-                    dragActive ? "scale-110" : "scale-100"
-                  } h-7 w-7 text-gray-500 transition-all duration-75 group-hover:scale-110 group-active:scale-95`}
-                />
-                <p className="mt-2 text-center text-sm text-gray-500">
-                  Drag and drop or click to upload.
-                </p>
-                <p className="mt-2 text-center text-sm text-gray-500">
-                  Recommended: 1200 x 630 pixels (max 5MB)
-                </p>
+                {resizing ? (
+                  <>
+                    <LoadingSpinner />
+                    <p className="mt-2 text-center text-sm text-gray-500">
+                      Resizing image...
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <UploadCloud
+                      className={`${
+                        dragActive ? "scale-110" : "scale-100"
+                      } h-7 w-7 text-gray-500 transition-all duration-75 group-hover:scale-110 group-active:scale-95`}
+                    />
+                    <p className="mt-2 text-center text-sm text-gray-500">
+                      Drag and drop or click to upload.
+                    </p>
+                    <p className="mt-2 text-center text-sm text-gray-500">
+                      Recommended: 1200 x 630 pixels
+                    </p>
+                  </>
+                )}
                 <span className="sr-only">OG image upload</span>
               </div>
               {image && (

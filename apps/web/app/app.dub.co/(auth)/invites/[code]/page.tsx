@@ -52,7 +52,7 @@ async function VerifyInvite({ code }: { code: string }) {
     redirect("/login");
   }
 
-  const project = await prisma.project.findUnique({
+  const workspace = await prisma.project.findUnique({
     where: {
       inviteCode: code,
     },
@@ -76,27 +76,27 @@ async function VerifyInvite({ code }: { code: string }) {
     },
   });
 
-  if (!project) {
+  if (!workspace) {
     return (
       <>
         <PageCopy
           title="Invalid Invite"
-          message="The invite link you are trying to use is invalid. Please contact the project owner for a new invite."
+          message="The invite link you are trying to use is invalid. Please contact the workspace owner for a new invite."
         />
       </>
     );
   }
 
-  // check if user is already in the project
-  if (project.users.length > 0) {
-    redirect(`/${project.slug}`);
+  // check if user is already in the workspace
+  if (workspace.users.length > 0) {
+    redirect(`/${workspace.slug}`);
   }
 
-  if (project._count.users >= project.usersLimit) {
+  if (workspace._count.users >= workspace.usersLimit) {
     return (
       <PageCopy
         title="User Limit Reached"
-        message="The project you are trying to join is currently full. Please contact the project owner for more information."
+        message="The workspace you are trying to join is currently full. Please contact the workspace owner for more information."
       />
     );
   }
@@ -104,9 +104,9 @@ async function VerifyInvite({ code }: { code: string }) {
   await prisma.projectUsers.create({
     data: {
       userId: session.user.id,
-      projectId: project.id,
+      projectId: workspace.id,
     },
   });
 
-  redirect(`/${project.slug}`);
+  redirect(`/${workspace.slug}`);
 }

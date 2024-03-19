@@ -7,14 +7,12 @@ import { createTagBodySchema, TagSchema } from "@/lib/zod/schemas/tags";
 export const createTag: ZodOpenApiOperationObject = {
   operationId: "createTag",
   summary: "Create a new tag",
-  description: "Create a new tag for the authenticated project.",
+  description: "Create a new tag for the authenticated workspace.",
   requestParams: {
     query: z.object({
-      projectSlug: z
+      workspaceId: z
         .string()
-        .describe(
-          "The slug for the project to create tags for. E.g. for `app.dub.co/acme`, the `projectSlug` is `acme`.",
-        ),
+        .describe("The ID of the workspace to create the tag for."),
     }),
   },
   requestBody: {

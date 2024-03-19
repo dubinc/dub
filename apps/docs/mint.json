@@ -38,16 +38,6 @@
   ],
   "anchors": [
     {
-      "name": "Documentation",
-      "icon": "book-open-cover",
-      "url": "introduction"
-    },
-    {
-      "name": "API Reference",
-      "icon": "rectangle-terminal",
-      "url": "api-reference"
-    },
-    {
       "name": "Help Center",
       "icon": "question",
       "url": "https://dub.co/help"
@@ -107,10 +97,11 @@
       ]
     },
     {
-      "group": "Projects",
+      "group": "Workspaces",
       "pages": [
-        "api-reference/endpoint/retrieve-a-project",
-        "api-reference/endpoint/retrieve-a-list-of-projects"
+        "api-reference/endpoint/create-a-new-workspace",
+        "api-reference/endpoint/retrieve-a-workspace",
+        "api-reference/endpoint/retrieve-a-list-of-workspaces"
       ]
     },
     {
@@ -141,6 +132,14 @@
     {
       "source": "/self-hosting/guide",
       "destination": "/self-hosting"
+    },
+    {
+      "source": "/api-reference/endpoint/retrieve-a-project",
+      "destination": "/api-reference/endpoint/retrieve-a-workspace"
+    },
+    {
+      "source": "/api-reference/endpoint/retrieve-a-list-of-projects",
+      "destination": "/api-reference/endpoint/retrieve-a-list-of-workspaces"
     }
   ]
 }

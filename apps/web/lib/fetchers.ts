@@ -2,12 +2,12 @@ import { cache } from "react";
 import { getSession } from "./auth";
 import prisma from "./prisma";
 
-export const getProjects = cache(async () => {
+export const getWorkspaces = cache(async () => {
   const session = await getSession();
   if (!session) {
     return null;
   }
-  const projects = await prisma.project.findMany({
+  const workspaces = await prisma.project.findMany({
     where: {
       users: {
         some: {
@@ -21,10 +21,10 @@ export const getProjects = cache(async () => {
     },
   });
 
-  return projects;
+  return workspaces;
 });
 
-export const getProject = cache(async ({ slug }: { slug: string }) => {
+export const getWorkspace = cache(async ({ slug }: { slug: string }) => {
   const session = await getSession();
   if (!session) {
     return null;

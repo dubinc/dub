@@ -9,7 +9,13 @@ export const getTopURLs: ZodOpenApiOperationObject = {
   description:
     "Retrieve the top URLs by number of clicks for a given short link.",
   requestParams: {
-    query: getAnalyticsQuerySchema,
+    query: z
+      .object({
+        workspaceId: z
+          .string()
+          .describe("The ID of the workspace the link belongs to."),
+      })
+      .merge(getAnalyticsQuerySchema),
   },
   responses: {
     "200": {

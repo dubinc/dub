@@ -1,5 +1,5 @@
 import { getStripe } from "@/lib/stripe/client";
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { CheckCircleFill } from "@/ui/shared/icons";
 import {
   Badge,
@@ -55,7 +55,7 @@ function UpgradePlanModal({
   const welcomeFlow = pathname === "/welcome";
   const slug = welcomeFlow ? searchParams?.get("slug") : params.slug;
 
-  const { plan: currentPlan } = useProject();
+  const { plan: currentPlan } = useWorkspace();
   const plan = searchParams.get("upgrade") ?? "pro";
   const selectedPlan =
     SELF_SERVE_PAID_PLANS.find((p) => p.name.toLowerCase() === plan) ??
@@ -267,7 +267,7 @@ function UpgradePlanModal({
             loading={clicked}
             onClick={() => {
               setClicked(true);
-              fetch(`/api/projects/${slug}/billing/upgrade`, {
+              fetch(`/api/workspaces/${slug}/billing/upgrade`, {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
@@ -308,7 +308,7 @@ function UpgradePlanModal({
               <button
                 onClick={() => {
                   setClickedCompare(true);
-                  fetch(`/api/projects/${slug}/billing/upgrade`, {
+                  fetch(`/api/workspaces/${slug}/billing/upgrade`, {
                     method: "POST",
                     headers: {
                       "Content-Type": "application/json",

@@ -1,12 +1,17 @@
 "use client";
 
-import useProject from "@/lib/swr/use-project";
 import useTags from "@/lib/swr/use-tags";
 import useUsers from "@/lib/swr/use-users";
-import PlanBadge from "@/ui/projects/plan-badge";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { Divider } from "@/ui/shared/icons";
-import ProgressBar from "@/ui/shared/progress-bar";
-import { Button, InfoTooltip, NumberTooltip, useRouterStuff } from "@dub/ui";
+import PlanBadge from "@/ui/workspaces/plan-badge";
+import {
+  Button,
+  InfoTooltip,
+  NumberTooltip,
+  ProgressBar,
+  useRouterStuff,
+} from "@dub/ui";
 import { HOME_DOMAIN, getFirstAndLastDay, nFormatter } from "@dub/utils";
 import va from "@vercel/analytics";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -15,12 +20,12 @@ import Confetti from "react-dom-confetti";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
-export default function ProjectBillingClient() {
+export default function WorkspaceBillingClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const {
-    slug,
+    id,
     plan,
     stripeId,
     nextPlan,
@@ -33,7 +38,7 @@ export default function ProjectBillingClient() {
     tagsLimit,
     usersLimit,
     billingCycleStart,
-  } = useProject();
+  } = useWorkspace();
 
   const { tags } = useTags();
   const { users } = useUsers();
@@ -64,7 +69,7 @@ export default function ProjectBillingClient() {
       toast.success("Upgrade success!");
       setConfetti(true);
       setTimeout(() => {
-        mutate(`/api/projects/${slug}`);
+        mutate(`/api/workspaces/${id}`);
         // track upgrade event
         plan &&
           va.track("Upgraded Plan", {
@@ -111,7 +116,7 @@ export default function ProjectBillingClient() {
                 className="h-9"
                 onClick={() => {
                   setClicked(true);
-                  fetch(`/api/projects/${slug}/billing/manage`, {
+                  fetch(`/api/workspaces/${id}/billing/manage`, {
                     method: "POST",
                   })
                     .then(async (res) => {
@@ -147,7 +152,7 @@ export default function ProjectBillingClient() {
             <UsageCategory
               title="Custom Domains"
               unit="domains"
-              tooltip="Number of custom domains added to your project."
+              tooltip="Number of custom domains added to your workspace."
               usage={domains?.length}
               usageLimit={domainsLimit}
               numberOnly
@@ -157,7 +162,7 @@ export default function ProjectBillingClient() {
             <UsageCategory
               title="Tags"
               unit="tags"
-              tooltip="Number of tags added to your project."
+              tooltip="Number of tags added to your workspace."
               usage={tags?.length}
               usageLimit={tagsLimit}
               numberOnly
@@ -165,7 +170,7 @@ export default function ProjectBillingClient() {
             <UsageCategory
               title="Teammates"
               unit="users"
-              tooltip="Number of users added to your project."
+              tooltip="Number of users added to your workspace."
               usage={users?.length}
               usageLimit={usersLimit}
               numberOnly

@@ -10,14 +10,14 @@ import { NextResponse } from "next/server";
 
 // GET /api/analytics/[endpoint] – get analytics for a specific endpoint
 export const GET = withAuth(
-  async ({ params, searchParams, project, link }) => {
+  async ({ params, searchParams, workspace, link }) => {
     const { endpoint } = analyticsEndpointSchema.parse(params);
     const parsedParams = getAnalyticsQuerySchema.parse(searchParams);
     const { domain, key, interval } = parsedParams;
 
-    // return 403 if project is on the free plan and interval is 90d or all
+    // return 403 if workspace is on the free plan and interval is 90d or all
     if (
-      project?.plan === "free" &&
+      workspace?.plan === "free" &&
       (interval === "all" || interval === "90d")
     ) {
       throw new DubApiError({
@@ -33,7 +33,7 @@ export const GET = withAuth(
         : null;
 
     const response = await getAnalytics({
-      projectId: project.id,
+      workspaceId: workspace.id,
       ...(linkId && { linkId }),
       endpoint,
       ...parsedParams,

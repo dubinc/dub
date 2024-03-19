@@ -7,9 +7,15 @@ export const getLinksCount: ZodOpenApiOperationObject = {
   operationId: "getLinksCount",
   summary: "Retrieve the number of links",
   description:
-    "Retrieve the number of links for the authenticated project. The provided query parameters allow filtering the returned links.",
+    "Retrieve the number of links for the authenticated workspace. The provided query parameters allow filtering the returned links.",
   requestParams: {
-    query: getLinksCountQuerySchema,
+    query: z
+      .object({
+        workspaceId: z
+          .string()
+          .describe("The ID of the workspace the link belongs to."),
+      })
+      .merge(getLinksCountQuerySchema),
   },
   responses: {
     "200": {

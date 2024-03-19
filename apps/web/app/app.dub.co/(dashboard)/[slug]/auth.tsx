@@ -1,19 +1,19 @@
 "use client";
 
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import LayoutLoader from "@/ui/layout/layout-loader";
-import ProjectNotFound from "@/ui/projects/project-not-found";
+import WorkspaceNotFound from "@/ui/workspaces/workspace-not-found";
 import { ReactNode } from "react";
 
-export default function ProjectAuth({ children }: { children: ReactNode }) {
-  const { loading, error } = useProject();
+export default function WorkspaceAuth({ children }: { children: ReactNode }) {
+  const { loading, error } = useWorkspace();
 
   if (loading) {
     return <LayoutLoader />;
   }
 
   if (error) {
-    return <ProjectNotFound />;
+    return <WorkspaceNotFound />;
   }
 
   return children;

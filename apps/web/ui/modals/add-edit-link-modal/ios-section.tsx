@@ -1,4 +1,4 @@
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
 import {
   InfoTooltip,
@@ -20,7 +20,7 @@ export default function IOSSection({
   data: LinkProps;
   setData: Dispatch<SetStateAction<LinkProps>>;
 }) {
-  const { plan } = useProject();
+  const { plan } = useWorkspace();
   const { queryParams } = useRouterStuff();
   const { ios } = data;
   const [enabled, setEnabled] = useState(!!ios);

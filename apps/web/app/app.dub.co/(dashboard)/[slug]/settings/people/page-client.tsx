@@ -1,7 +1,7 @@
 "use client";
 
-import useProject from "@/lib/swr/use-project";
 import useUsers from "@/lib/swr/use-users";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { UserProps } from "@/lib/types";
 import { useEditRoleModal } from "@/ui/modals/edit-role-modal";
 import { useInviteCodeModal } from "@/ui/modals/invite-code-modal";
@@ -16,7 +16,7 @@ import { useState } from "react";
 
 const tabs: Array<"Members" | "Invitations"> = ["Members", "Invitations"];
 
-export default function ProjectPeopleClient() {
+export default function WorkspacePeopleClient() {
   const { setShowInviteTeammateModal, InviteTeammateModal } =
     useInviteTeammateModal();
 
@@ -37,7 +37,7 @@ export default function ProjectPeopleClient() {
           <div className="flex flex-col space-y-3">
             <h2 className="text-xl font-medium">People</h2>
             <p className="text-sm text-gray-500">
-              Teammates that have access to this project.
+              Teammates that have access to this workspace.
             </p>
           </div>
           <div className="flex space-x-2">
@@ -111,7 +111,7 @@ const UserCard = ({
 }) => {
   const [openPopover, setOpenPopover] = useState(false);
 
-  const { plan, isOwner } = useProject();
+  const { plan, isOwner } = useWorkspace();
 
   const { name, email, createdAt, role: currentRole } = user;
 
@@ -195,7 +195,7 @@ const UserCard = ({
                   <IconMenu
                     text={
                       session?.user?.email === email
-                        ? "Leave project"
+                        ? "Leave workspace"
                         : currentTab === "Members"
                           ? "Remove teammate"
                           : "Revoke invite"

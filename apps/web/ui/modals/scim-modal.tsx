@@ -1,5 +1,5 @@
-import useProject from "@/lib/swr/use-project";
 import useSCIM from "@/lib/swr/use-scim";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { SAMLProviderProps } from "@/lib/types";
 import {
   Button,
@@ -28,7 +28,7 @@ function SCIMModal({
   showSCIMModal: boolean;
   setShowSCIMModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { slug } = useProject();
+  const { id } = useWorkspace();
   const [submitting, setSubmitting] = useState(false);
   const { scim, provider, configured, mutate } = useSCIM();
   const [selectedProvider, setSelectedProvider] = useState<
@@ -69,8 +69,8 @@ function SCIMModal({
         </h3>
         <p className="text-center text-sm text-gray-500">
           {currentProvider
-            ? "Your project is currently syncing with your SCIM directory."
-            : `Select a provider to configure directory sync for your ${process.env.NEXT_PUBLIC_APP_NAME} project.`}
+            ? "Your workspace is currently syncing with your SCIM directory."
+            : `Select a provider to configure directory sync for your ${process.env.NEXT_PUBLIC_APP_NAME} workspace.`}
         </p>
       </div>
 
@@ -79,7 +79,7 @@ function SCIMModal({
           onSubmit={async (e) => {
             e.preventDefault();
             setSubmitting(true);
-            fetch(`/api/projects/${slug}/scim`, {
+            fetch(`/api/workspaces/${id}/scim`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",

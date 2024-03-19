@@ -7,9 +7,15 @@ export const getLinks: ZodOpenApiOperationObject = {
   operationId: "getLinks",
   summary: "Retrieve a list of links",
   description:
-    "Retrieve a list of links for the authenticated project. The list will be paginated and the provided query parameters allow filtering the returned links.",
+    "Retrieve a list of links for the authenticated workspace. The list will be paginated and the provided query parameters allow filtering the returned links.",
   requestParams: {
-    query: getLinksQuerySchema,
+    query: z
+      .object({
+        workspaceId: z
+          .string()
+          .describe("The ID of the workspace the link belongs to."),
+      })
+      .merge(getLinksQuerySchema),
   },
   responses: {
     "200": {

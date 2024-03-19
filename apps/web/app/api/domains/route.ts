@@ -8,11 +8,11 @@ import { withAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-// GET /api/domains – get all domains for a project
-export const GET = withAuth(async ({ project }) => {
+// GET /api/domains – get all domains for a workspace
+export const GET = withAuth(async ({ workspace }) => {
   const domains = await prisma.domain.findMany({
     where: {
-      projectId: project.id,
+      projectId: workspace.id,
     },
     select: {
       slug: true,
@@ -29,14 +29,14 @@ export const GET = withAuth(async ({ project }) => {
 });
 
 // POST /api/domains - add a domain
-export const POST = withAuth(async ({ req, project }) => {
+export const POST = withAuth(async ({ req, workspace }) => {
   const { slug: domain, primary, archived, target, type } = await req.json();
 
-  if (project.domains.length >= project.domainsLimit) {
+  if (workspace.domains.length >= workspace.domainsLimit) {
     return new Response(
       exceededLimitError({
-        plan: project.plan,
-        limit: project.domainsLimit,
+        plan: workspace.plan,
+        limit: workspace.domainsLimit,
         type: "domains",
       }),
       { status: 403 },
@@ -44,10 +44,12 @@ export const POST = withAuth(async ({ req, project }) => {
   }
 
   const validDomain = await validateDomain(domain);
+
   if (validDomain !== true) {
     return new Response(validDomain, { status: 422 });
   }
   const vercelResponse = await addDomainToVercel(domain);
+
   if (vercelResponse.error) {
     return new Response(vercelResponse.error.message, { status: 422 });
   }
@@ -64,15 +66,15 @@ export const POST = withAuth(async ({ req, project }) => {
         slug: domain,
         target,
         type,
-        projectId: project.id,
-        primary: primary || project.domains.length === 0,
+        projectId: workspace.id,
+        primary: primary || workspace.domains.length === 0,
         archived,
       },
     }),
     primary &&
       prisma.domain.updateMany({
         where: {
-          projectId: project.id,
+          projectId: workspace.id,
           primary: true,
         },
         data: {
@@ -84,8 +86,8 @@ export const POST = withAuth(async ({ req, project }) => {
   await setRootDomain({
     id: response[0].id,
     domain,
-    projectId: project.id,
-    ...(project.plan !== "free" && {
+    projectId: workspace.id,
+    ...(workspace.plan !== "free" && {
       url: target,
     }),
     rewrite: type === "rewrite",

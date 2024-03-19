@@ -1,7 +1,7 @@
 import { inviteUser } from "@/lib/api/users";
 import jackson from "@/lib/jackson";
 import prisma from "@/lib/prisma";
-import { ProjectProps } from "@/lib/types";
+import { WorkspaceProps } from "@/lib/types";
 import type {
   DirectorySyncEvent,
   DirectorySyncRequest,
@@ -56,25 +56,25 @@ export { handler as DELETE, handler as GET, handler as POST, handler as PUT };
 
 // Handle the SCIM events
 const handleEvents = async (event: DirectorySyncEvent) => {
-  const { event: action, tenant: projectId, data } = event;
+  const { event: action, tenant: workspaceId, data } = event;
 
-  const project = (await prisma.project.findUnique({
+  const workspace = (await prisma.project.findUnique({
     where: {
-      id: projectId,
+      id: workspaceId,
     },
-  })) as unknown as ProjectProps;
+  })) as unknown as WorkspaceProps;
 
-  if (!project || project.plan !== "enterprise" || !("email" in data)) {
+  if (!workspace || workspace.plan !== "enterprise" || !("email" in data)) {
     return;
   }
 
-  const [userInProject, userInvited] = await Promise.all([
+  const [userInWorkspace, userInvited] = await Promise.all([
     prisma.user.findFirst({
       where: {
         email: data.email,
         projects: {
           some: {
-            projectId,
+            projectId: workspaceId,
           },
         },
       },
@@ -83,17 +83,17 @@ const handleEvents = async (event: DirectorySyncEvent) => {
       where: {
         email_projectId: {
           email: data.email,
-          projectId,
+          projectId: workspaceId,
         },
       },
     }),
   ]);
 
   // User has been activated for the first time
-  if (action === "user.created" && !userInProject && !userInvited) {
+  if (action === "user.created" && !userInWorkspace && !userInvited) {
     await inviteUser({
       email: data.email,
-      project,
+      workspace,
     });
   }
 
@@ -103,10 +103,10 @@ const handleEvents = async (event: DirectorySyncEvent) => {
     // @ts-ignore – data.active can be a string (from Azure AD)
     (data.active === true || data.active === "True")
   ) {
-    if (!userInProject && !userInvited) {
+    if (!userInWorkspace && !userInvited) {
       await inviteUser({
         email: data.email,
-        project,
+        workspace,
       });
     }
   }
@@ -118,12 +118,12 @@ const handleEvents = async (event: DirectorySyncEvent) => {
       (data.active === false || data.active === "False")) ||
     action === "user.deleted"
   ) {
-    if (userInProject) {
+    if (userInWorkspace) {
       await prisma.projectUsers.delete({
         where: {
           userId_projectId: {
-            userId: userInProject.id,
-            projectId,
+            userId: userInWorkspace.id,
+            projectId: workspaceId,
           },
         },
       });
@@ -133,7 +133,7 @@ const handleEvents = async (event: DirectorySyncEvent) => {
         where: {
           email_projectId: {
             email: data.email,
-            projectId,
+            projectId: workspaceId,
           },
         },
       });

@@ -13,7 +13,7 @@ export default function DeleteAccountSection() {
         <h2 className="text-xl font-medium">Delete Account</h2>
         <p className="text-sm text-gray-500">
           Permanently delete your {process.env.NEXT_PUBLIC_APP_NAME} account,
-          all of your projects, links and their respective stats. This action
+          all of your workspaces, links and their respective stats. This action
           cannot be undone - please proceed with caution.
         </p>
       </div>
