@@ -102,7 +102,7 @@ export default function ModalProvider({ children }: { children: ReactNode }) {
 
   const searchParams = useSearchParams();
 
-  // handle ?newProject and ?newLink query params
+  // handle ?newWorkspace and ?newLink query params
   useEffect(() => {
     if (searchParams.has("newWorkspace")) {
       setShowAddWorkspaceModal(true);

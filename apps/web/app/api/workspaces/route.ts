@@ -68,7 +68,7 @@ export const POST = withSession(async ({ req, session }) => {
     await req.json(),
   );
 
-  const freeProjects = await prisma.project.count({
+  const freeWorkspaces = await prisma.project.count({
     where: {
       plan: "free",
       users: {
@@ -80,7 +80,7 @@ export const POST = withSession(async ({ req, session }) => {
     },
   });
 
-  if (freeProjects >= FREE_WORKSPACES_LIMIT) {
+  if (freeWorkspaces >= FREE_WORKSPACES_LIMIT) {
     throw new DubApiError({
       code: "exceeded_limit",
       message: `You can only create up to ${FREE_WORKSPACES_LIMIT} free workspaces. Additional workspaces require a paid plan.`,
