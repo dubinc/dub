@@ -37,10 +37,10 @@ export const importLinksFromCSV = async ({
 
   const validLinks = processedLinks
     .filter(({ error }) => error == null)
-    .map(({ link }) => link);
+    .map(({ link }) => link) as ProcessedLinkProps[];
 
   const importedLinks = await bulkCreateLinks({
-    links: validLinks as ProcessedLinkProps[],
+    links: validLinks,
   });
 
   count += importedLinks.length;

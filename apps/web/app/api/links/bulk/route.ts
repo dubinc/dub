@@ -61,7 +61,7 @@ export const POST = withAuth(
 
     let validLinks = processedLinks
       .filter(({ error }) => error == null)
-      .map(({ link }) => link);
+      .map(({ link }) => link) as ProcessedLinkProps[];
 
     let errorLinks = processedLinks
       .filter(({ error }) => error != null)
@@ -101,9 +101,7 @@ export const POST = withAuth(
     });
 
     const validLinksResponse =
-      validLinks.length > 0
-        ? await bulkCreateLinks({ links: validLinks as ProcessedLinkProps[] })
-        : [];
+      validLinks.length > 0 ? await bulkCreateLinks({ links: validLinks }) : [];
 
     return NextResponse.json([...validLinksResponse, ...errorLinks], {
       headers,
