@@ -21,7 +21,6 @@ function AcceptInviteModal({
   setShowAcceptInviteModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const { slug } = useParams() as { slug: string };
-  const { id } = useWorkspace();
   const [accepting, setAccepting] = useState(false);
   const { error } = useWorkspace();
 
@@ -48,7 +47,7 @@ function AcceptInviteModal({
             <button
               onClick={() => {
                 setAccepting(true);
-                fetch(`/api/workspaces/${id}/invites/accept`, {
+                fetch(`/api/workspaces/${slug}/invites/accept`, {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                 }).then(async () => {
@@ -59,8 +58,7 @@ function AcceptInviteModal({
                   }
                   await Promise.all([
                     mutate("/api/workspaces"),
-                    mutate(`/api/workspaces/${id}`),
-                    mutate(`/api/domains?workspaceId=${id}`),
+                    mutate(`/api/workspaces/${slug}`),
                   ]);
                   setShowAcceptInviteModal(false);
                   toast.success("You now are a part of this workspace!");
