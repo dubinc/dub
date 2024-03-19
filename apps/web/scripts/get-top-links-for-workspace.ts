@@ -35,7 +35,7 @@ async function main() {
     return;
   }
   const topLinks = await getAnalytics({
-    projectId: workspace.id,
+    workspaceId: workspace.id,
     endpoint: "top_links",
     interval: "30d",
     excludeRoot: true,
