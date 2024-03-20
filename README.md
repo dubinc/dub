@@ -1,10 +1,21 @@
 <a href="https://dub.co">
-  <img alt="Dub – an open-source link management tool for modern marketing teams to create, share, and track short links." src="https://github.com/dubinc/dub/assets/28986134/8f70a87f-4f13-426a-9785-a47f77433edd">
-  <h1 align="center">Dub</h1>
+  <img alt="Dub.co is the open-source link management infrastructure for modern marketing teams." src="https://github.com/dubinc/dub/assets/28986134/3815d859-afaa-48f9-a9b3-c09964e4d404">
 </a>
 
+
+<h3 align="center">Dub.co</h3>
+
 <p align="center">
-  An open-source link management tool for modern marketing teams to create, share, and track short links.
+    The open-source Bitly successor.
+    <br />
+    <a href="https://dub.co"><strong>Learn more »</strong></a>
+    <br />
+    <br />
+    <a href="#introduction"><strong>Introduction</strong></a> ·
+    <a href="#features"><strong>Features</strong></a> ·
+    <a href="#tech-stack"><strong>Tech Stack</strong></a> ·
+    <a href="#self-hosting"><strong>Self-hosting</strong></a> ·
+    <a href="#contributing"><strong>Contributing</strong></a>
 </p>
 
 <p align="center">
@@ -17,13 +28,6 @@
   </a>
 </p>
 
-<p align="center">
-  <a href="#introduction"><strong>Introduction</strong></a> ·
-  <a href="#features"><strong>Features</strong></a> ·
-  <a href="#tech-stack"><strong>Tech Stack</strong></a> ·
-  <a href="#self-hosting"><strong>Self-hosting</strong></a> ·
-  <a href="#contributing"><strong>Contributing</strong></a>
-</p>
 <br/>
 
 ## Introduction
