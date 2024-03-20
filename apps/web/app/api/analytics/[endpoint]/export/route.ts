@@ -62,59 +62,60 @@ export const GET = withAuth(
         ...parsedParams,
       });
 
-      const topLinks = await Promise.all(
-        data.map(async ({ linkId }) => {
-          const link = await prisma.link.findUnique({
-            where: {
-              projectId: workspace.id,
-              id: linkId,
+      const [links, domains] = await Promise.all([
+        prisma.link.findMany({
+          where: {
+            projectId: workspace.id,
+            id: {
+              in: data.map(({ link }) => link),
             },
-            select: {
-              id: true,
-              domain: true,
-              key: true,
-              clicks: true,
-              url: true,
-            },
-          });
-
-          if (link && link.key !== "_root")
-            return {
-              linkId: link.id,
-              shortLink: linkConstructor({
-                domain: link.domain,
-                key: link.key,
-              }),
-              domain: link.domain,
-              key: link.key,
-              url: link.url,
-              clicks: link.clicks,
-            };
-          else {
-            const domainLink = await prisma.domain.findUnique({
-              where: {
-                projectId: workspace.id,
-                id: linkId,
-              },
-              select: {
-                id: true,
-                slug: true,
-                clicks: true,
-              },
-            });
-
-            if (domainLink)
-              return {
-                linkId: domainLink.id,
-                shortLink: domainLink.slug,
-                domain: domainLink.slug,
-                key: "_root",
-                url: `https://${domainLink.slug}`,
-                clicks: domainLink.clicks,
-              };
-          }
+          },
+          select: {
+            id: true,
+            domain: true,
+            key: true,
+            url: true,
+          },
         }),
-      );
+        prisma.domain.findMany({
+          where: {
+            projectId: workspace.id,
+            id: {
+              in: data.map(({ link }) => link),
+            },
+          },
+          select: {
+            id: true,
+            slug: true,
+            target: true,
+          },
+        }),
+      ]);
+
+      const allLinks = [
+        ...links.map((link) => ({
+          linkId: link.id,
+          shortLink: linkConstructor({
+            domain: link.domain,
+            key: link.key,
+            pretty: true,
+          }),
+          url: link.url,
+        })),
+        ...domains.map((domain) => ({
+          linkId: domain.id,
+          shortLink: linkConstructor({
+            domain: domain.slug,
+            pretty: true,
+          }),
+          url: domain.target || "",
+        })),
+      ];
+
+      const topLinks = data.map((d) => ({
+        ...allLinks.find((l) => l.linkId === d.link),
+        clicks: d.clicks,
+      }));
 
       if (!topLinks) {
         return new Response(undefined, {
