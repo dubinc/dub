@@ -50,7 +50,6 @@ export default function useDomains({
 
   const primaryDomain =
     activeWorkspaceDomains?.find((domain) => domain.primary)?.slug ||
-    activeDefaultDomains.find((domain) => domain.primary)?.slug ||
     SHORT_DOMAIN;
 
   const verified = domain

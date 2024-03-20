@@ -40,7 +40,7 @@ export default function WorkspaceDomainsClient() {
                 content={
                   <TooltipContent
                     title="Learn more about how to add, configure, and verify custom domains on Dub."
-                    href={`${HOME_DOMAIN}/help/article/how-to-add-custom-domain`}
+                    href={`${HOME_DOMAIN}/help/category/custom-domains`}
                     target="_blank"
                     cta="Learn more"
                   />
