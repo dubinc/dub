@@ -164,7 +164,7 @@ export default function Toggle() {
           >
             <button
               onClick={() => setOpenDatePopover(!openDatePopover)}
-              className="flex items-center justify-between space-x-2 truncate rounded-md bg-white px-3 py-2.5 shadow transition-all hover:shadow-md md:w-48"
+              className="flex w-full items-center justify-between space-x-2 truncate rounded-md bg-white px-3 py-2.5 shadow transition-all hover:shadow-md md:w-48"
             >
               <IconMenu
                 text={selectedInterval.display}

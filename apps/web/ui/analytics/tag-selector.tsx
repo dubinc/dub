@@ -13,6 +13,7 @@ export default function TagSelector() {
 
   return tags && tags.length > 0 ? (
     <InputSelect
+      adjustForMobile
       items={tags.map(({ id, name, color }) => ({
         id,
         color,
