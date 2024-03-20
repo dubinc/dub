@@ -227,7 +227,7 @@ export function InputSelect({
                 </div>
               </div>
               {openCommandList && (
-                <Command.List className="dub-scrollbar h-[calc(var(--cmdk-list-height)+17px)] max-h-[80vh] p-2">
+                <Command.List className="dub-scrollbar h-[calc(var(--cmdk-list-height)+17px)] min-h-[70vh] p-2">
                   <Command.Empty className="px-4 py-2 text-sm text-gray-600">
                     No results found for "{inputValue}"
                   </Command.Empty>
