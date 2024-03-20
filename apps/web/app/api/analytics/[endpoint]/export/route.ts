@@ -62,57 +62,58 @@ export const GET = withAuth(
         ...parsedParams,
       });
 
-      const links = await prisma.link.findMany({
-        where: {
-          projectId: workspace.id,
-          id: {
-            in: data.map(({ link }) => link),
-          },
-        },
-        select: {
-          id: true,
-          domain: true,
-          key: true,
-          clicks: true,
-          url: true,
-        },
-      });
+      const topLinks = await Promise.all(
+        data.map(async ({ linkId }) => {
+          const link = await prisma.link.findUnique({
+            where: {
+              projectId: workspace.id,
+              id: linkId,
+            },
+            select: {
+              id: true,
+              domain: true,
+              key: true,
+              clicks: true,
+              url: true,
+            },
+          });
 
-      const domainLinks = await prisma.domain.findMany({
-        where: {
-          projectId: workspace.id,
-          id: {
-            in: data.map(({ link }) => link),
-          },
-        },
-        select: {
-          id: true,
-          slug: true,
-          clicks: true,
-        },
-      });
+          if (link && link.key !== "_root")
+            return {
+              linkId: link.id,
+              shortLink: linkConstructor({
+                domain: link.domain,
+                key: link.key,
+              }),
+              domain: link.domain,
+              key: link.key,
+              url: link.url,
+              clicks: link.clicks,
+            };
+          else {
+            const domainLink = await prisma.domain.findUnique({
+              where: {
+                projectId: workspace.id,
+                id: linkId,
+              },
+              select: {
+                id: true,
+                slug: true,
+                clicks: true,
+              },
+            });
 
-      const topLinks = links.map((link) => ({
-        linkId: link.id,
-        shortLink: linkConstructor({
-          domain: link.domain,
-          key: link.key,
+            if (domainLink)
+              return {
+                linkId: domainLink.id,
+                shortLink: domainLink.slug,
+                domain: domainLink.slug,
+                key: "_root",
+                url: `https://${domainLink.slug}`,
+                clicks: domainLink.clicks,
+              };
+          }
         }),
-        domain: link.domain,
-        key: link.key,
-        url: link.url,
-        clicks: link.clicks,
-      }));
-
-      topLinks.push(
-        ...domainLinks.map((domain) => ({
-          linkId: domain.id,
-          shortLink: domain.slug,
-          domain: domain.slug,
-          key: "_root",
-          url: `https://${domain.slug}`,
-          clicks: domain.clicks,
-        })),
       );
 
       if (!topLinks) {
