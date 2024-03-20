@@ -164,14 +164,14 @@ export default function Toggle() {
           >
             <button
               onClick={() => setOpenDatePopover(!openDatePopover)}
-              className="flex w-full items-center justify-between space-x-2 truncate rounded-md bg-white px-3 py-2.5 shadow transition-all hover:shadow-md md:w-48"
+              className="flex items-center justify-between space-x-2 truncate rounded-md bg-white px-3 py-2.5 shadow transition-all hover:shadow-md md:w-48"
             >
               <IconMenu
                 text={selectedInterval.display}
                 icon={<Calendar className="h-4 w-4 flex-shrink-0" />}
               />
               <ChevronDown
-                className={`h-5 w-5 text-gray-400 ${
+                className={`h-4 w-4 text-gray-400 ${
                   openDatePopover ? "rotate-180 transform" : ""
                 } transition-all duration-75`}
               />
