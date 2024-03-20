@@ -25,11 +25,11 @@ export default function ClicksExceeded({
     usageLimit: 1000,
     plan: "business",
   },
-  type = "first",
+  type = "firstUsageLimitEmail",
 }: {
   email: string;
   workspace: Partial<WorkspaceProps>;
-  type: "first" | "second";
+  type: "firstUsageLimitEmail" | "secondUsageLimitEmail";
 }) {
   const { slug, name, usage, usageLimit, plan } = workspace;
   const nextPlan = getNextPlan(plan as string);
@@ -94,7 +94,7 @@ export default function ClicksExceeded({
             </Section>
             <Text className="text-sm leading-6 text-black">
               To respect your inbox,{" "}
-              {type === "first"
+              {type === "firstUsageLimitEmail"
                 ? "we will only send you one more email about this in 3 days"
                 : "this will be the last time we'll email you about this for the current billing cycle"}
               . Feel free to ignore this email if you don't plan on upgrading,
