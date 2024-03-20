@@ -13,7 +13,10 @@ export const POST = withAuth(
   async ({ req, workspace }) => {
     const { image } = uploadLogoSchema.parse(await req.json());
 
-    const { url } = await storage.upload(`logos/${workspace.id}`, image);
+    const { url } = await storage.upload(
+      `workspaces/${workspace.id}/logo`,
+      image,
+    );
 
     const response = await prisma.project.update({
       where: { id: workspace.id },

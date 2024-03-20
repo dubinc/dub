@@ -76,7 +76,7 @@ export async function deleteWorkspace(
   const deleteWorkspaceResponse = await Promise.all([
     // delete workspace logo if it's a custom logo stored in R2
     workspace.logo?.startsWith(process.env.STORAGE_BASE_URL as string) &&
-      storage.delete(`logos/${workspace.id}`),
+      storage.delete(`workspaces/${workspace.id}/logo`),
     // if they have a Stripe subscription, cancel it
     workspace.stripeId && cancelSubscription(workspace.stripeId),
     // delete the workspace
@@ -132,7 +132,7 @@ export async function deleteWorkspaceAdmin(
   const deleteWorkspaceResponse = await Promise.all([
     // delete workspace logo if it's a custom logo stored in R2
     workspace.logo?.startsWith(process.env.STORAGE_BASE_URL as string) &&
-      storage.delete(`logos/${workspace.id}`),
+      storage.delete(`workspaces/${workspace.id}/logo`),
     // if they have a Stripe subscription, cancel it
     workspace.stripeId && cancelSubscription(workspace.stripeId),
     // delete the workspace
