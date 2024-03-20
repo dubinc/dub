@@ -110,7 +110,7 @@ export const GET = withAuth(
           shortLink: domain.slug,
           domain: domain.slug,
           key: "_root",
-          url: "",
+          url: `https://${domain.slug}`,
           clicks: domain.clicks,
         })),
       );
