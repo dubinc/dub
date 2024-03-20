@@ -1,5 +1,5 @@
 "use client";
-import { Command, useCommandState } from "cmdk";
+import { Command, CommandList, useCommandState } from "cmdk";
 import { Check, ChevronDown, Search, X } from "lucide-react";
 import {
   Dispatch,
@@ -99,12 +99,58 @@ export function InputSelect({
     );
   };
 
+  // renders a reusable list of items
+  const SelectorList = () =>
+    items.map((item) => (
+      <Command.Item
+        key={item.id}
+        value={item.value}
+        disabled={item.disabled}
+        onSelect={() => {
+          setSelectedItem(item);
+          setInputValue(item.value);
+          setOpenCommandList(false);
+        }}
+        className="group flex cursor-pointer items-center justify-between rounded-md px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 aria-disabled:cursor-not-allowed aria-disabled:opacity-75 aria-disabled:hover:bg-white aria-selected:bg-gray-100 aria-selected:text-gray-900"
+      >
+        <div className="flex items-center space-x-2">
+          {item.image && (
+            <img
+              src={item.image}
+              alt={item.value}
+              className="h-4 w-4 rounded-full"
+            />
+          )}
+          <p
+            className={cn(
+              "my-auto whitespace-nowrap rounded-md px-2 py-0.5 text-sm",
+              item.color === "red" && "bg-red-100 text-red-600",
+              item.color === "yellow" && "bg-yellow-100 text-yellow-600",
+              item.color === "green" && "bg-green-100 text-green-600",
+              item.color === "blue" && "bg-blue-100 text-blue-600",
+              item.color === "purple" && "bg-purple-100 text-purple-600",
+              item.color === "brown" && "bg-brown-100 text-brown-600",
+            )}
+          >
+            {item.value}
+          </p>
+          {item.label && (
+            <Badge className="text-xs" variant="neutral">
+              {item.label}
+            </Badge>
+          )}
+        </div>
+
+        <Check className="invisible h-5 w-5 text-gray-500 aria-selected:visible" />
+      </Command.Item>
+    ));
+
   // when adjustForMobile is true, render the input as a drawer
   if (isMobile && adjustForMobile) {
     return (
       <Drawer.Root open={openCommandList} onOpenChange={setOpenCommandList}>
         <Drawer.Trigger className="sm:hidden" asChild>
-          <Command ref={commandRef} className="relative flex-shrink-0" loop>
+          <Command ref={commandRef} className="relative" loop>
             <div
               className={cn(
                 "group relative rounded-md border border-gray-300 bg-white px-1 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500",
@@ -126,7 +172,8 @@ export function InputSelect({
                 <CommandInput />
                 {inputValue && selectedItem?.value !== "" ? (
                   <button
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.preventDefault();
                       setSelectedItem(null);
                       setInputValue("");
                     }}
@@ -184,54 +231,7 @@ export function InputSelect({
                   <Command.Empty className="px-4 py-2 text-sm text-gray-600">
                     No results found for "{inputValue}"
                   </Command.Empty>
-                  {items.map((item) => (
-                    <Command.Item
-                      key={item.id}
-                      value={item.value}
-                      disabled={item.disabled}
-                      onSelect={() => {
-                        setSelectedItem(item);
-                        setInputValue(item.value);
-                        setOpenCommandList(false);
-                      }}
-                      className="group flex cursor-pointer items-center justify-between rounded-md px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 aria-disabled:cursor-not-allowed aria-disabled:opacity-75 aria-disabled:hover:bg-white aria-selected:bg-gray-100 aria-selected:text-gray-900"
-                    >
-                      <div className="flex items-center space-x-2">
-                        {item.image && (
-                          <img
-                            src={item.image}
-                            alt={item.value}
-                            className="h-4 w-4 rounded-full"
-                          />
-                        )}
-                        <p
-                          className={cn(
-                            "my-auto whitespace-nowrap rounded-md px-2 py-0.5 text-sm",
-                            item.color === "red" && "bg-red-100 text-red-600",
-                            item.color === "yellow" &&
-                              "bg-yellow-100 text-yellow-600",
-                            item.color === "green" &&
-                              "bg-green-100 text-green-600",
-                            item.color === "blue" &&
-                              "bg-blue-100 text-blue-600",
-                            item.color === "purple" &&
-                              "bg-purple-100 text-purple-600",
-                            item.color === "brown" &&
-                              "bg-brown-100 text-brown-600",
-                          )}
-                        >
-                          {item.value}
-                        </p>
-                        {item.label && (
-                          <Badge className="text-xs" variant="neutral">
-                            {item.label}
-                          </Badge>
-                        )}
-                      </div>
-
-                      <Check className="invisible h-5 w-5 text-gray-500 aria-selected:visible" />
-                    </Command.Item>
-                  ))}
+                  <SelectorList />
                 </Command.List>
               )}
             </Command>
@@ -283,49 +283,7 @@ export function InputSelect({
           <Command.Empty className="px-4 py-2 text-sm text-gray-600">
             No results found for "{inputValue}"
           </Command.Empty>
-          {items.map((item) => (
-            <Command.Item
-              key={item.id}
-              value={item.value}
-              disabled={item.disabled}
-              onSelect={() => {
-                setSelectedItem(item);
-                setInputValue(item.value);
-                setOpenCommandList(false);
-              }}
-              className="group flex cursor-pointer items-center justify-between rounded-md px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 aria-disabled:cursor-not-allowed aria-disabled:opacity-75 aria-disabled:hover:bg-white aria-selected:bg-gray-100 aria-selected:text-gray-900"
-            >
-              <div className="flex items-center space-x-2">
-                {item.image && (
-                  <img
-                    src={item.image}
-                    alt={item.value}
-                    className="h-4 w-4 rounded-full"
-                  />
-                )}
-                <p
-                  className={cn(
-                    "my-auto whitespace-nowrap rounded-md px-2 py-0.5 text-sm",
-                    item.color === "red" && "bg-red-100 text-red-600",
-                    item.color === "yellow" && "bg-yellow-100 text-yellow-600",
-                    item.color === "green" && "bg-green-100 text-green-600",
-                    item.color === "blue" && "bg-blue-100 text-blue-600",
-                    item.color === "purple" && "bg-purple-100 text-purple-600",
-                    item.color === "brown" && "bg-brown-100 text-brown-600",
-                  )}
-                >
-                  {item.value}
-                </p>
-                {item.label && (
-                  <Badge className="text-xs" variant="neutral">
-                    {item.label}
-                  </Badge>
-                )}
-              </div>
-
-              <Check className="invisible h-5 w-5 text-gray-500 aria-selected:visible" />
-            </Command.Item>
-          ))}
+          <SelectorList />
         </Command.List>
       )}
     </Command>
