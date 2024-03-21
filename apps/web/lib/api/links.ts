@@ -756,9 +756,6 @@ export async function editLink({
       width: 1200,
       height: 630,
     });
-    // if there's an image in R2, delete it
-  } else if (oldImage?.startsWith(process.env.STORAGE_BASE_URL as string)) {
-    await storage.delete(`images/${id}`);
   }
 
   const [response, ..._effects] = await Promise.all([
