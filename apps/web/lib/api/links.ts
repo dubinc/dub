@@ -49,7 +49,7 @@ const includeTags = {
   },
 };
 
-export async function getLinksForProject({
+export async function getLinksForWorkspace({
   workspaceId,
   domain,
   tagId,
