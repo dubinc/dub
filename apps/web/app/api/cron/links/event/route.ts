@@ -1,5 +1,6 @@
 import { getAnalytics } from "@/lib/analytics";
 import { qstash, receiver, sendLimitEmail } from "@/lib/cron";
+import { getPangeaDomainIntel, getPangeaURLIntel } from "@/lib/pangea";
 import prisma from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { WorkspaceProps } from "@/lib/types";
@@ -43,16 +44,27 @@ export async function POST(req: Request) {
 
   // if the link is a dub.sh link (and is not a transfer event), do some checks
   if (link.domain === "dub.sh" && type !== "transfer") {
-    const invalidFavicon = await fetch(
-      `${GOOGLE_FAVICON_URL}${getApexDomain(link.url)}`,
-    ).then((res) => !res.ok);
-
-    if (invalidFavicon) {
+    // Check if domain is suspicious. We're going to do a broad check if domain is suspicious then proceed with a URL scan for accuracy
+    // The best way to flag domains is using mutlipe dataset providers
+    const domainScanRes = await getPangeaDomainIntel(link.domain);
+    if (domainScanRes === "malicious" || domainScanRes === "suspicious") {
       await log({
         message: `Suspicious link detected: ${link.domain}/${link.key} → ${link.url}`,
         type: "links",
         mention: true,
       });
+
+      // Suspicious domain detected, so run a URL scan to check if URL is malicious
+      const urlScanRes = await getPangeaURLIntel(link.url);
+      if (urlScanRes === "malicious") {
+        await log({
+          message: `Malicious link detected: ${link.domain}/${link.key} → ${link.url}`,
+          type: "links",
+          mention: true,
+        });
+
+        // TODO: Block or flag URL
+      }
     }
   }
 
