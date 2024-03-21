@@ -152,7 +152,7 @@ export function InputSelect({
           <Command ref={commandRef} className="relative" loop>
             <div
               className={cn(
-                "group relative rounded-md border border-gray-300 bg-white px-1 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500",
+                "group relative min-w-[136px] rounded-md border border-gray-300 bg-white px-1 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500",
                 className,
               )}
             >
@@ -193,7 +193,7 @@ export function InputSelect({
             <Command ref={commandRef} className="relative" loop>
               <div
                 className={cn(
-                  "group relative mb-2 rounded-t-md border border-gray-300 bg-white px-1 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500",
+                  "group relative mb-2 rounded-t-md border border-gray-300 bg-white px-1 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-200",
                   className,
                 )}
               >
@@ -226,7 +226,7 @@ export function InputSelect({
                 </div>
               </div>
               {openCommandList && (
-                <Command.List className="dub-scrollbar h-[calc(var(--cmdk-list-height)+17px)] min-h-[70vh] p-2">
+                <Command.List className="dub-scrollbar h-[70vh] overflow-y-auto p-2">
                   <Command.Empty className="px-4 py-2 text-sm text-gray-600">
                     No results found for "{inputValue}"
                   </Command.Empty>
