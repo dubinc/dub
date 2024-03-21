@@ -33,12 +33,12 @@ function ProductHuntChild() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ y: 250 }}
         >
-          <div className="xs:visible invisible absolute right-4 top-4 h-3 w-3 group-hover:invisible">
+          <div className="invisible absolute right-4 top-4 h-3 w-3 group-hover:invisible sm:visible">
             <div className="absolute inset-0 m-auto h-3 w-3 animate-ping items-center justify-center rounded-full bg-green-500" />
             <div className="absolute inset-0 z-10 m-auto h-3 w-3 rounded-full bg-green-500" />
           </div>
           <button
-            className="xs:invisible visible absolute right-2.5 top-2.5 rounded-full p-1 transition-colors hover:bg-gray-100 active:scale-90 group-hover:visible"
+            className="visible absolute right-2.5 top-2.5 rounded-full p-1 transition-colors hover:bg-gray-100 active:scale-90 group-hover:visible sm:invisible"
             onClick={handleClose}
           >
             <X className="h-4 w-4 text-gray-500" />
