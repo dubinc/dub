@@ -1,5 +1,4 @@
-"use client";
-import { Command, CommandList, useCommandState } from "cmdk";
+import { Command, useCommandState } from "cmdk";
 import { Check, ChevronDown, Search, X } from "lucide-react";
 import {
   Dispatch,

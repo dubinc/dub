@@ -48,7 +48,7 @@ const BUSINESS_PLAN_MODIFIER = ({
   },
   featureTitle: "Everything in Pro, plus:",
   features: [
-    { text: `${nFormatter(links, { full: true })} links/mo` },
+    { text: `${nFormatter(links, { full: true })} new links/mo` },
     {
       text: `${nFormatter(clicks)} tracked clicks/mo`,
     },
@@ -102,7 +102,7 @@ export const PLANS = [
     },
     featureTitle: "What's included:",
     features: [
-      { text: "25 links/mo" },
+      { text: "25 new links/mo" },
       {
         text: "1K tracked clicks/mo",
       },
@@ -158,7 +158,7 @@ export const PLANS = [
     },
     featureTitle: "Everything in Free, plus:",
     features: [
-      { text: "1,000 links/mo" },
+      { text: "1,000 new links/mo" },
       {
         text: "50K tracked clicks/mo",
       },

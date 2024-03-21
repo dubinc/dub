@@ -1,5 +1,5 @@
 import { getAnalytics } from "@/lib/analytics";
-import { limiter, qstash } from "@/lib/cron";
+import { limiter, qstash, sendLimitEmail } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import {
@@ -10,7 +10,6 @@ import {
   log,
 } from "@dub/utils";
 import { sendEmail } from "emails";
-import ClicksExceeded from "emails/clicks-exceeded";
 import ClicksSummary from "emails/clicks-summary";
 
 const limit = 250;
@@ -24,16 +23,7 @@ export const updateUsage = async (skip?: number) => {
         },
       },
     },
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      usage: true,
-      usageLimit: true,
-      linksUsage: true,
-      linksLimit: true,
-      plan: true,
-      billingCycleStart: true,
+    include: {
       users: {
         select: {
           user: true,
@@ -45,7 +35,6 @@ export const updateUsage = async (skip?: number) => {
         },
       },
       sentEmails: true,
-      createdAt: true,
     },
     skip: skip || 0,
     take: limit,
@@ -88,8 +77,11 @@ export const updateUsage = async (skip?: number) => {
         (email) => email.type === "firstUsageLimitEmail",
       );
       if (!sentFirstUsageLimitEmail) {
-        // @ts-ignore
-        sendUsageLimitEmail(emails, workspace, "first");
+        sendLimitEmail({
+          emails,
+          workspace: workspace as unknown as WorkspaceProps,
+          type: "firstUsageLimitEmail",
+        });
       } else {
         const sentSecondUsageLimitEmail = sentEmails.some(
           (email) => email.type === "secondUsageLimitEmail",
@@ -101,8 +93,11 @@ export const updateUsage = async (skip?: number) => {
               (1000 * 3600 * 24),
           );
           if (daysSinceFirstEmail >= 3) {
-            // @ts-ignore
-            sendUsageLimitEmail(emails, workspace, "second");
+            sendLimitEmail({
+              emails,
+              workspace: workspace as unknown as WorkspaceProps,
+              type: "secondUsageLimitEmail",
+            });
           }
         }
       }
@@ -215,7 +210,12 @@ export const updateUsage = async (skip?: number) => {
           sentEmails: {
             deleteMany: {
               type: {
-                in: ["firstUsageLimitEmail", "secondUsageLimitEmail"],
+                in: [
+                  "firstUsageLimitEmail",
+                  "secondUsageLimitEmail",
+                  "firstLinksLimitEmail",
+                  "secondLinksLimitEmail",
+                ],
               },
             },
           },
@@ -230,36 +230,4 @@ export const updateUsage = async (skip?: number) => {
     }`,
     method: "GET",
   });
-};
-
-const sendUsageLimitEmail = async (
-  emails: string[],
-  workspace: WorkspaceProps,
-  type: "first" | "second",
-) => {
-  return await Promise.allSettled([
-    emails.map((email) => {
-      limiter.schedule(() =>
-        sendEmail({
-          subject: `${process.env.NEXT_PUBLIC_APP_NAME} Alert: Clicks Limit Exceeded`,
-          email,
-          react: ClicksExceeded({
-            email,
-            workspace,
-            type,
-          }),
-        }),
-      );
-    }),
-    prisma.sentEmail.create({
-      data: {
-        project: {
-          connect: {
-            slug: workspace.slug,
-          },
-        },
-        type: `${type}UsageLimitEmail`,
-      },
-    }),
-  ]);
 };
