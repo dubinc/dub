@@ -63,7 +63,7 @@ export type PlanProps = (typeof plans)[number];
 
 export type RoleProps = (typeof roles)[number];
 
-export interface ProjectProps {
+export interface WorkspaceProps {
   id: string;
   name: string;
   slug: string;

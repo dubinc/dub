@@ -1,14 +1,12 @@
 import { fetcher } from "@dub/utils";
-import { useParams } from "next/navigation";
 import useSWR from "swr";
+import useWorkspace from "./use-workspace";
 
 export default function useDefaultDomains() {
-  const { slug } = useParams() as {
-    slug: string;
-  };
+  const { id } = useWorkspace();
 
   const { data, error, mutate } = useSWR<string[]>(
-    slug && `/api/domains/default?projectSlug=${slug}`,
+    id && `/api/domains/default?workspaceId=${id}`,
     fetcher,
     {
       dedupingInterval: 60000,

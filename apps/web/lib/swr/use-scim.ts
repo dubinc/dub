@@ -1,16 +1,14 @@
 import type { Directory } from "@boxyhq/saml-jackson";
 import { fetcher } from "@dub/utils";
-import { useParams } from "next/navigation";
 import { useMemo } from "react";
 import useSWR from "swr";
+import useWorkspace from "./use-workspace";
 
 export default function useSCIM() {
-  const { slug } = useParams() as {
-    slug?: string;
-  };
+  const { id } = useWorkspace();
 
   const { data, isLoading, mutate } = useSWR<{ directories: Directory[] }>(
-    slug && `/api/projects/${slug}/scim`,
+    id && `/api/workspaces/${id}/scim`,
     fetcher,
     {
       keepPreviousData: true,
@@ -25,7 +23,7 @@ export default function useSCIM() {
     scim: data as { directories: Directory[] },
     provider: configured ? data!.directories[0].type : null,
     configured,
-    loading: !slug || isLoading,
+    loading: isLoading,
     mutate,
   };
 }

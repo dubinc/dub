@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
-import ProjectAuth from "./auth";
+import WorkspaceAuth from "./auth";
 
-export default function ProjectLayout({ children }: { children: ReactNode }) {
-  return <ProjectAuth>{children}</ProjectAuth>;
+export default function WorkspaceLayout({ children }: { children: ReactNode }) {
+  return <WorkspaceAuth>{children}</WorkspaceAuth>;
 }

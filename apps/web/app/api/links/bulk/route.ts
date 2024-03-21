@@ -8,24 +8,24 @@ import { NextResponse } from "next/server";
 
 // POST /api/links/bulk – bulk create up to 100 links
 export const POST = withAuth(
-  async ({ req, headers, session, project }) => {
-    if (!project) {
+  async ({ req, headers, session, workspace }) => {
+    if (!workspace) {
       throw new DubApiError({
         code: "bad_request",
         message:
-          "Missing project. Bulk link creation is only available for custom domain projects.",
+          "Missing workspace. Bulk link creation is only available for custom domain workspaces.",
       });
     }
     const links = bulkCreateLinksBodySchema.parse(await req.json());
     if (
-      project.linksUsage + links.length > project.linksLimit &&
-      (project.plan === "free" || project.plan === "pro")
+      workspace.linksUsage + links.length > workspace.linksLimit &&
+      (workspace.plan === "free" || workspace.plan === "pro")
     ) {
       throw new DubApiError({
         code: "exceeded_limit",
         message: exceededLimitError({
-          plan: project.plan,
-          limit: project.linksLimit,
+          plan: workspace.plan,
+          limit: workspace.linksLimit,
           type: "links",
         }),
       });
@@ -52,7 +52,7 @@ export const POST = withAuth(
       links.map(async (link) =>
         processLink({
           payload: link,
-          project,
+          workspace,
           userId: session.user.id,
           bulk: true,
         }),
@@ -71,23 +71,23 @@ export const POST = withAuth(
         code,
       }));
 
-    // filter out tags that don't belong to the project
-    const projectTags = await prisma.tag.findMany({
+    // filter out tags that don't belong to the workspace
+    const workspaceTags = await prisma.tag.findMany({
       where: {
-        projectId: project.id,
+        projectId: workspace.id,
       },
       select: {
         id: true,
       },
     });
-    const projectTagIds = projectTags.map(({ id }) => id);
+    const workspaceTagIds = workspaceTags.map(({ id }) => id);
     validLinks.forEach((link, index) => {
       const combinedTagIds = combineTagIds({
         tagId: link.tagId,
         tagIds: link.tagIds,
       });
       const invalidTagIds = combinedTagIds.filter(
-        (id) => !projectTagIds.includes(id),
+        (id) => !workspaceTagIds.includes(id),
       );
       if (invalidTagIds.length > 0) {
         // remove link from validLinks and add error to errorLinks

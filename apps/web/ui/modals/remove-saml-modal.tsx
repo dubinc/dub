@@ -1,5 +1,5 @@
-import useProject from "@/lib/swr/use-project";
 import useSAML from "@/lib/swr/use-saml";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { BlurImage, Button, Logo, Modal } from "@dub/ui";
 import { SAML_PROVIDERS } from "@dub/utils";
 import {
@@ -19,7 +19,7 @@ function RemoveSAMLModal({
   setShowRemoveSAMLModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const [removing, setRemoving] = useState(false);
-  const { slug, logo } = useProject();
+  const { id, logo } = useWorkspace();
   const { saml, provider, mutate } = useSAML();
 
   return (
@@ -31,7 +31,7 @@ function RemoveSAMLModal({
         {logo ? (
           <BlurImage
             src={logo}
-            alt="Project logo"
+            alt="Workspace logo"
             className="h-10 w-10 rounded-full"
             width={20}
             height={20}
@@ -41,7 +41,7 @@ function RemoveSAMLModal({
         )}
         <h3 className="text-lg font-medium">Remove SAML</h3>
         <p className="text-center text-sm text-gray-500">
-          This will remove SAML from your project. Are you sure you want to
+          This will remove SAML from your workspace. Are you sure you want to
           continue?
         </p>
       </div>
@@ -76,7 +76,7 @@ function RemoveSAMLModal({
               clientSecret,
             });
 
-            fetch(`/api/projects/${slug}/saml?${params}`, {
+            fetch(`/api/workspaces/${id}/saml?${params}`, {
               method: "DELETE",
             }).then(async (res) => {
               if (res.ok) {

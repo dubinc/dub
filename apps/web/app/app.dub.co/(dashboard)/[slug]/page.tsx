@@ -1,5 +1,5 @@
-import ProjectLinksClient from "./page-client";
+import WorkspaceLinksClient from "./page-client";
 
-export default function ProjectLinks() {
-  return <ProjectLinksClient />;
+export default function WorkspaceLinks() {
+  return <WorkspaceLinksClient />;
 }

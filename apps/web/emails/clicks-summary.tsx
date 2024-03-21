@@ -22,8 +22,8 @@ export default function ClicksSummary({
   email = "panic@thedis.co",
   appName = "Dub.co",
   appDomain = "dub.co",
-  projectName = "Acme",
-  projectSlug = "acme",
+  workspaceName = "Acme",
+  workspaceSlug = "acme",
   totalClicks = 63689,
   createdLinks = 25,
   topLinks = [
@@ -52,8 +52,8 @@ export default function ClicksSummary({
   email: string;
   appName: string;
   appDomain: string;
-  projectName: string;
-  projectSlug: string;
+  workspaceName: string;
+  workspaceSlug: string;
   totalClicks: number;
   createdLinks: number;
   topLinks: {
@@ -65,7 +65,7 @@ export default function ClicksSummary({
     <Html>
       <Head />
       <Preview>
-        Your 30-day {appName} summary for {projectName}
+        Your 30-day {appName} summary for {workspaceName}
       </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
@@ -80,11 +80,11 @@ export default function ClicksSummary({
               />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-center text-xl font-semibold text-black">
-              Your 30-day {appName} summary for {projectName}
+              Your 30-day {appName} summary for {workspaceName}
             </Heading>
             <Text className="text-sm leading-6 text-black">
-              In the last 30 days, your {appName} project,{" "}
-              <strong>{projectName}</strong> received{" "}
+              In the last 30 days, your {appName} workspace,{" "}
+              <strong>{workspaceName}</strong> received{" "}
               <strong>{nFormatter(totalClicks)} link clicks</strong>. You also
               created <strong>{createdLinks} new links</strong> during that
               time.
@@ -152,7 +152,7 @@ export default function ClicksSummary({
                 <Section className="my-8 text-center">
                   <Link
                     className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                    href={`https://app.${appDomain}/${projectSlug}`}
+                    href={`https://app.${appDomain}/${workspaceSlug}`}
                   >
                     Start creating links
                   </Link>
@@ -166,7 +166,7 @@ export default function ClicksSummary({
                 <Section className="my-8 text-center">
                   <Link
                     className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                    href={`https://app.${appDomain}/${projectSlug}/analytics?interval=30d`}
+                    href={`https://app.${appDomain}/${workspaceSlug}/analytics?interval=30d`}
                   >
                     View my stats
                   </Link>

@@ -1,7 +1,7 @@
 "use client";
 
 import { QRCodeSVG, getQRAsCanvas, getQRAsSVGDataUri } from "@/lib/qr";
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { QRLinkProps } from "@/lib/types";
 import { Clipboard, Download } from "@/ui/shared/icons";
 import {
@@ -63,7 +63,7 @@ export function QRCodePicker({
   setShowLinkQRModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const anchorRef = useRef<HTMLAnchorElement>(null);
-  const { logo, plan } = useProject();
+  const { logo, plan } = useWorkspace();
   const apexDomain = props.url ? getApexDomain(props.url) : null;
 
   function download(url: string, extension: string) {
@@ -288,7 +288,7 @@ function AdvancedSettings({
   setShowLinkQRModal,
 }) {
   const { slug } = useParams() as { slug?: string };
-  const { plan, logo } = useProject();
+  const { plan, logo } = useWorkspace();
   const [expanded, setExpanded] = useState(false);
 
   const debouncedSetFgColor = useDebouncedCallback((color) => {

@@ -1,14 +1,15 @@
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
+import useWorkspace from "./use-workspace";
+
 export default function useLinksCount({
   groupBy,
 }: {
   groupBy?: "domain" | "tagId";
 } = {}) {
-  const { slug } = useParams() as { slug?: string };
+  const { id } = useWorkspace();
   const { getQueryString } = useRouterStuff();
 
   const [admin, setAdmin] = useState(false);
@@ -19,10 +20,10 @@ export default function useLinksCount({
   }, []);
 
   const { data, error } = useSWR<any>(
-    slug
+    id
       ? `/api/links/count${getQueryString(
           {
-            projectSlug: slug,
+            workspaceId: id,
             ...(groupBy && { groupBy }),
           },
           {

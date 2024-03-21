@@ -57,10 +57,10 @@ export const ADMIN_HOSTNAMES = new Set([
 ]);
 
 export const DUB_LOGO = "https://assets.dub.co/logo.png";
-export const DUB_THUMBNAIL = "https://assets.dub.co/thumbnail.png";
+export const DUB_THUMBNAIL = "https://assets.dub.co/thumbnail.jpg";
 
-export const DUB_PROJECT_ID = "cl7pj5kq4006835rbjlt2ofka";
-export const LEGAL_PROJECT_ID = "clrflia0j0000vs7sqfhz9c7q";
+export const DUB_WORKSPACE_ID = "cl7pj5kq4006835rbjlt2ofka";
+export const LEGAL_WORKSPACE_ID = "clrflia0j0000vs7sqfhz9c7q";
 export const LEGAL_USER_ID = "clqei1lgc0000vsnzi01pbf47";
 
 export const DUB_DOMAINS = [
@@ -76,7 +76,7 @@ export const DUB_DOMAINS = [
     placeholder: "https://dub.co/help/article/what-is-dub",
     clicks: 0,
     allowedHostnames: [],
-    projectId: DUB_PROJECT_ID,
+    projectId: DUB_WORKSPACE_ID,
   },
   ...(process.env.NEXT_PUBLIC_IS_DUB
     ? [
@@ -92,7 +92,7 @@ export const DUB_DOMAINS = [
           placeholder: "https://chat.openai.com/g/g-UGjKKONEe-domainsgpt",
           clicks: 0,
           allowedHostnames: ["chat.openai.com"],
-          projectId: DUB_PROJECT_ID,
+          projectId: DUB_WORKSPACE_ID,
         },
         {
           id: "cloxw8y2u0003js08a7mqg1j8",
@@ -106,7 +106,7 @@ export const DUB_DOMAINS = [
           placeholder: "https://open.spotify.com/album/1SCyi9a5pOasikidToUY5y",
           clicks: 0,
           allowedHostnames: ["open.spotify.com"],
-          projectId: DUB_PROJECT_ID,
+          projectId: DUB_WORKSPACE_ID,
         },
         {
           id: "cltgtd6s5000341itdszz20u2",
@@ -120,7 +120,7 @@ export const DUB_DOMAINS = [
           placeholder: "https://github.com/dubinc/dub",
           clicks: 0,
           allowedHostnames: ["github.com", "gist.github.com"],
-          projectId: DUB_PROJECT_ID,
+          projectId: DUB_WORKSPACE_ID,
         },
         {
           id: "cloxw8qtk000bjt08n9b812vs",
@@ -139,7 +139,7 @@ export const DUB_DOMAINS = [
             "amazon.ca",
             "amazon.es",
           ],
-          projectId: DUB_PROJECT_ID,
+          projectId: DUB_WORKSPACE_ID,
         },
       ]
     : []),

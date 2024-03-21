@@ -1,6 +1,6 @@
 import { INTERVALS } from "@/lib/analytics";
 import useDomains from "@/lib/swr/use-domains";
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import {
   BadgeTooltip,
   BlurImage,
@@ -24,7 +24,7 @@ import {
 } from "@dub/utils";
 import { Calendar, ChevronDown, Lock } from "lucide-react";
 import Link from "next/link";
-import { useParams, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import punycode from "punycode/";
 import { useContext, useMemo, useState } from "react";
 import { AnalyticsContext } from ".";
@@ -32,10 +32,10 @@ import SharePopover from "./share-popover";
 import TagSelector from "./tag-selector";
 
 export default function Toggle() {
-  const { slug } = useParams() as { slug?: string };
   const { queryParams } = useRouterStuff();
 
-  const { basePath, domain, key, url, interval } = useContext(AnalyticsContext);
+  const { basePath, domain, key, url, interval, admin } =
+    useContext(AnalyticsContext);
 
   const [openDatePopover, setOpenDatePopover] = useState(false);
 
@@ -44,7 +44,7 @@ export default function Toggle() {
   }, [interval]);
 
   const scrolled = useScroll(80);
-  const { name, plan, logo } = useProject();
+  const { name, plan, logo } = useWorkspace();
   const { allActiveDomains, primaryDomain } = useDomains();
 
   const isPublicStatsPage = basePath.startsWith("/stats");
@@ -53,6 +53,7 @@ export default function Toggle() {
     <div
       className={cn("sticky top-[6.85rem] z-10 mb-5 bg-gray-50 py-3 md:py-5", {
         "top-14": isPublicStatsPage,
+        "top-0": admin,
         "shadow-md": scrolled,
       })}
     >
@@ -83,7 +84,7 @@ export default function Toggle() {
         ) : (
           <div className="flex items-center space-x-2">
             <BlurImage
-              alt={name || "Project Logo"}
+              alt={name || "Workspace Logo"}
               src={logo || DUB_LOGO}
               className="h-6 w-6 flex-shrink-0 overflow-hidden rounded-full"
               width={48}
@@ -107,16 +108,13 @@ export default function Toggle() {
               <div className="grid w-full p-2 md:w-48">
                 {INTERVALS.map(({ display, value }) =>
                   (value === "all" || value === "90d") &&
-                  (!plan || plan === "free") ? (
+                  (!plan || plan === "free") &&
+                  !admin ? (
                     <Tooltip
                       key={value}
                       content={
                         <TooltipContent
-                          title={
-                            slug
-                              ? `${display} stats can only be viewed on a Pro plan or higher. Upgrade now to view all-time stats.`
-                              : `${display} stats can only be viewed on a project with a Pro plan or higher. Create a project or navigate to an existing project to upgrade.`
-                          }
+                          title={`${display} stats can only be viewed on a Pro plan or higher. Upgrade now to view all-time stats.`}
                           cta="Upgrade to Pro"
                           {...(isPublicStatsPage
                             ? {

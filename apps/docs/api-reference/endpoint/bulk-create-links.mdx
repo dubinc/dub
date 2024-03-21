@@ -1,7 +1,7 @@
 ---
 openapi: post /links/bulk
 og:title: 'Bulk create links with the Dub.co API - API Reference'
-description: Bulk create up to 100 links for the authenticated project.
+description: Bulk create up to 100 links for the authenticated workspace.
 ---
 
 <Warning>
@@ -13,7 +13,7 @@ description: Bulk create up to 100 links for the authenticated project.
 <RequestExample>
 ```bash cURL
 curl --request POST \
-  --url https://api.dub.co/links/bulk?projectSlug={YOUR_PROJECT_SLUG} \
+  --url https://api.dub.co/links/bulk?workspaceId={WORKSPACE_ID} \
   --header 'Authorization: Bearer {YOUR_TOKEN}' \
   --header 'Content-Type: application/json' \
   --data '[
@@ -45,7 +45,7 @@ const options = {
   ])
 };
 
-fetch('https://api.dub.co/projects/steven/links/bulk', options)
+fetch('https://api.dub.co/links/bulk?workspaceId={WORKSPACE_ID}', options)
   .then(response => response.json())
   .then(response => console.log(response))
   .catch(err => console.error(err));

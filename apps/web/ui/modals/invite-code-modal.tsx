@@ -1,4 +1,4 @@
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, CopyButton, Logo, Modal } from "@dub/ui";
 import { APP_DOMAIN } from "@dub/utils";
 import {
@@ -16,7 +16,7 @@ function InviteCodeModal({
   showInviteCodeModal: boolean;
   setShowInviteCodeModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { slug, inviteCode, mutate } = useProject();
+  const { id, inviteCode, mutate } = useWorkspace();
 
   const inviteLink = useMemo(() => {
     return `${APP_DOMAIN}/invites/${inviteCode}`;
@@ -33,7 +33,7 @@ function InviteCodeModal({
         <Logo />
         <h3 className="text-lg font-medium">Invite Link</h3>
         <p className="text-center text-sm text-gray-500">
-          Allow other people to join your project through the link below.
+          Allow other people to join your workspace through the link below.
         </p>
       </div>
 
@@ -50,7 +50,7 @@ function InviteCodeModal({
           loading={resetting}
           onClick={() => {
             setResetting(true);
-            fetch(`/api/projects/${slug}/invites/reset`, {
+            fetch(`/api/workspaces/${id}/invites/reset`, {
               method: "POST",
             }).then(async () => {
               await mutate();

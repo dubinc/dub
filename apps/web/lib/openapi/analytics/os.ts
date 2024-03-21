@@ -7,9 +7,15 @@ export const getOSAnalytics: ZodOpenApiOperationObject = {
   operationId: "getOSAnalytics",
   summary: "Retrieve OS analytics",
   description:
-    "Retrieve the top OS by number of clicks for a link, a domain, or the authenticated project.",
+    "Retrieve the top OS by number of clicks for a link, a domain, or the authenticated workspace.",
   requestParams: {
-    query: getAnalyticsQuerySchema,
+    query: z
+      .object({
+        workspaceId: z
+          .string()
+          .describe("The ID of the workspace the link belongs to."),
+      })
+      .merge(getAnalyticsQuerySchema),
   },
   responses: {
     "200": {

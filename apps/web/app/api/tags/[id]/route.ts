@@ -5,14 +5,15 @@ import { recordLink } from "@/lib/tinybird";
 import { updateTagBodySchema } from "@/lib/zod/schemas/tags";
 import { NextResponse } from "next/server";
 
-// PUT /api/projects/[slug]/tags/[id] – update a tag for a project
-export const PUT = withAuth(async ({ req, params }) => {
+// PUT /api/workspaces/[idOrSlug]/tags/[id] – update a tag for a workspace
+export const PUT = withAuth(async ({ req, params, workspace }) => {
   const { id } = params;
   const { name, color } = updateTagBodySchema.parse(await req.json());
 
-  const tag = await prisma.tag.findUnique({
+  const tag = await prisma.tag.findFirst({
     where: {
       id,
+      projectId: workspace.id,
     },
   });
 
@@ -46,18 +47,26 @@ export const PUT = withAuth(async ({ req, params }) => {
   }
 });
 
-// DELETE /api/projects/[slug]/tags/[id] – delete a tag for a project
-export const DELETE = withAuth(async ({ params }) => {
+// DELETE /api/workspaces/[idOrSlug]/tags/[id] – delete a tag for a workspace
+export const DELETE = withAuth(async ({ params, workspace }) => {
   const { id } = params;
   try {
     const response = await prisma.tag.delete({
       where: {
         id,
+        projectId: workspace.id,
       },
       include: {
         links: true,
       },
     });
+
+    if (!response) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Tag not found.",
+      });
+    }
 
     // update links metadata in tinybird after deleting a tag
     await Promise.all(

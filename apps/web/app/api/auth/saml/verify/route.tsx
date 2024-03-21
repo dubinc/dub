@@ -9,34 +9,37 @@ export async function POST(req: Request) {
 
   if (!slug) {
     return NextResponse.json(
-      { error: "No project slug provided." },
+      { error: "No workspace slug provided." },
       { status: 400 },
     );
   }
 
-  const project = await prisma.project.findUnique({
+  const workspace = await prisma.project.findUnique({
     where: { slug },
     select: { id: true },
   });
 
-  if (!project) {
-    return NextResponse.json({ error: "Project not found." }, { status: 404 });
+  if (!workspace) {
+    return NextResponse.json(
+      { error: "Workspace not found." },
+      { status: 404 },
+    );
   }
 
   const connections = await apiController.getConnections({
-    tenant: project.id,
+    tenant: workspace.id,
     product: "Dub",
   });
 
   if (!connections || connections.length === 0) {
     return NextResponse.json(
-      { error: "No SSO connections found for this project." },
+      { error: "No SSO connections found for this workspace." },
       { status: 404 },
     );
   }
 
   const data = {
-    projectId: project.id,
+    workspaceId: workspace.id,
   };
 
   return NextResponse.json({ data });

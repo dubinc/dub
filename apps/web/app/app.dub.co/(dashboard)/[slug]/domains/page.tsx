@@ -1,5 +1,5 @@
-import ProjectDomainsClient from "./page-client";
+import WorkspaceDomainsClient from "./page-client";
 
-export default function ProjectDomains() {
-  return <ProjectDomainsClient />;
+export default function WorkspaceDomains() {
+  return <WorkspaceDomainsClient />;
 }

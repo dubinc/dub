@@ -1,4 +1,4 @@
-import { deleteProjectAdmin } from "@/lib/api/projects";
+import { deleteWorkspaceAdmin } from "@/lib/api/workspaces";
 import { withAdmin } from "@/lib/auth";
 import { unsubscribe } from "@/lib/flodesk";
 import prisma from "@/lib/prisma";
@@ -44,7 +44,7 @@ export const POST = withAdmin(async ({ req }) => {
 
   await Promise.allSettled(
     user.projects.map(({ project }) =>
-      deleteProjectAdmin({
+      deleteWorkspaceAdmin({
         id: project.id,
         slug: project.slug,
         stripeId: project.stripeId || null,

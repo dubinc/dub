@@ -7,14 +7,12 @@ import { TagSchema } from "@/lib/zod/schemas/tags";
 export const getTags: ZodOpenApiOperationObject = {
   operationId: "getTags",
   summary: "Retrieve a list of tags",
-  description: "Retrieve a list of tags for the authenticated project.",
+  description: "Retrieve a list of tags for the authenticated workspace.",
   requestParams: {
     query: z.object({
-      projectSlug: z
+      workspaceId: z
         .string()
-        .describe(
-          "The slug for the project to retrieve tags for. E.g. for `app.dub.co/acme`, the `projectSlug` is `acme`.",
-        ),
+        .describe("The ID of the workspace to retrieve the tags for."),
     }),
   },
   responses: {

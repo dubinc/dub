@@ -2,7 +2,7 @@
 
 import useDefaultDomains from "@/lib/swr/use-default-domains";
 import useDomains from "@/lib/swr/use-domains";
-import useProject from "@/lib/swr/use-project";
+import useWorkspace from "@/lib/swr/use-workspace";
 import DomainCard from "@/ui/domains/domain-card";
 import DomainCardPlaceholder from "@/ui/domains/domain-card-placeholder";
 import NoDomainsPlaceholder from "@/ui/domains/no-domains-placeholder";
@@ -21,16 +21,16 @@ import { ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-export default function ProjectDomainsClient() {
-  const { id: projectId } = useProject();
+export default function WorkspaceDomainsClient() {
+  const { id: workspaceId } = useWorkspace();
 
   const { AddEditDomainModal, AddDomainButton } = useAddEditDomainModal();
-  const { activeProjectDomains, archivedProjectDomains } = useDomains();
+  const { activeWorkspaceDomains, archivedWorkspaceDomains } = useDomains();
   const [showArchivedDomains, setShowArchivedDomains] = useState(false);
 
   return (
     <>
-      {projectId && <AddEditDomainModal />}
+      {workspaceId && <AddEditDomainModal />}
       <div className="flex h-36 items-center border-b border-gray-200 bg-white">
         <MaxWidthWrapper>
           <div className="flex items-center justify-between">
@@ -40,7 +40,7 @@ export default function ProjectDomainsClient() {
                 content={
                   <TooltipContent
                     title="Learn more about how to add, configure, and verify custom domains on Dub."
-                    href={`${HOME_DOMAIN}/help/article/how-to-add-custom-domain`}
+                    href={`${HOME_DOMAIN}/help/category/custom-domains`}
                     target="_blank"
                     cta="Learn more"
                   />
@@ -55,10 +55,10 @@ export default function ProjectDomainsClient() {
         </MaxWidthWrapper>
       </div>
       <MaxWidthWrapper className="py-10">
-        {activeProjectDomains ? (
-          activeProjectDomains.length > 0 ? (
+        {activeWorkspaceDomains ? (
+          activeWorkspaceDomains.length > 0 ? (
             <ul className="grid grid-cols-1 gap-3">
-              {activeProjectDomains.map((domain) => (
+              {activeWorkspaceDomains.map((domain) => (
                 <li key={domain.slug}>
                   <DomainCard props={domain} />
                 </li>
@@ -70,17 +70,17 @@ export default function ProjectDomainsClient() {
         ) : (
           <DomainCardPlaceholder />
         )}
-        {archivedProjectDomains && archivedProjectDomains.length > 0 && (
+        {archivedWorkspaceDomains && archivedWorkspaceDomains.length > 0 && (
           <ul className="mt-3 grid grid-cols-1 gap-3">
             {showArchivedDomains &&
-              archivedProjectDomains?.map((domain) => (
+              archivedWorkspaceDomains?.map((domain) => (
                 <li key={domain.slug}>
                   <DomainCard props={domain} />
                 </li>
               ))}
             <Button
               text={`${showArchivedDomains ? "Hide" : "Show"} ${
-                archivedProjectDomains.length
+                archivedWorkspaceDomains.length
               } archived domains`}
               variant="secondary"
               onClick={() => setShowArchivedDomains(!showArchivedDomains)}
@@ -93,7 +93,7 @@ export default function ProjectDomainsClient() {
 }
 
 const DefaultDomains = () => {
-  const { slug } = useProject();
+  const { id } = useWorkspace();
   const { defaultDomains: initialDefaultDomains, mutate } = useDefaultDomains();
   const [defaultDomains, setDefaultDomains] = useState<string[]>([]);
   useEffect(() => {
@@ -113,7 +113,7 @@ const DefaultDomains = () => {
           onSubmit={async (e) => {
             e.preventDefault();
             setSubmitting(true);
-            fetch(`/api/domains/default?projectSlug=${slug}`, {
+            fetch(`/api/domains/default?workspaceId=${id}`, {
               method: "PUT",
               body: JSON.stringify({ defaultDomains }),
             }).then(async (res) => {

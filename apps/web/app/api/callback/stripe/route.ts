@@ -62,11 +62,11 @@ export const POST = async (req: Request) => {
 
         const stripeId = checkoutSession.customer.toString();
 
-        // when the project subscribes to a plan, set their stripe customer ID
+        // when the workspace subscribes to a plan, set their stripe customer ID
         // in the database for easy identification in future webhook events
         // also update the billingCycleStart to today's date
 
-        const project = await prisma.project.update({
+        const workspace = await prisma.project.update({
           where: {
             id: checkoutSession.client_reference_id,
           },
@@ -94,7 +94,7 @@ export const POST = async (req: Request) => {
           },
         });
 
-        const users = project.users.map(({ user }) => ({
+        const users = workspace.users.map(({ user }) => ({
           name: user.name,
           email: user.email,
         }));
@@ -134,16 +134,16 @@ export const POST = async (req: Request) => {
 
         const stripeId = subscriptionUpdated.customer.toString();
 
-        const project = await prisma.project.findUnique({
+        const workspace = await prisma.project.findUnique({
           where: {
             stripeId,
           },
         });
 
-        if (!project) {
+        if (!workspace) {
           await log({
             message:
-              "Project with Stripe ID *`" +
+              "Workspace with Stripe ID *`" +
               stripeId +
               "`* not found in Stripe webhook `customer.subscription.updated` callback",
             type: "errors",
@@ -151,7 +151,7 @@ export const POST = async (req: Request) => {
           return NextResponse.json({ received: true });
         }
 
-        // If a project upgrades/downgrades their subscription, update their usage limit in the database.
+        // If a workspace upgrades/downgrades their subscription, update their usage limit in the database.
         await prisma.project.update({
           where: {
             stripeId,
@@ -167,15 +167,15 @@ export const POST = async (req: Request) => {
         });
       }
 
-      // If project cancels their subscription
+      // If workspace cancels their subscription
       if (event.type === "customer.subscription.deleted") {
         const subscriptionDeleted = event.data.object as Stripe.Subscription;
 
         const stripeId = subscriptionDeleted.customer.toString();
 
-        // If a project deletes their subscription, reset their usage limit in the database to 1000.
+        // If a workspace deletes their subscription, reset their usage limit in the database to 1000.
         // Also remove the root domain redirect for all their domains from Redis.
-        const project = await prisma.project.findUnique({
+        const workspace = await prisma.project.findUnique({
           where: {
             stripeId,
           },
@@ -195,10 +195,10 @@ export const POST = async (req: Request) => {
           },
         });
 
-        if (!project) {
+        if (!workspace) {
           await log({
             message:
-              "Project with Stripe ID *`" +
+              "Workspace with Stripe ID *`" +
               stripeId +
               "`* not found in Stripe webhook `customer.subscription.deleted` callback",
             type: "errors",
@@ -206,17 +206,17 @@ export const POST = async (req: Request) => {
           return NextResponse.json({ received: true });
         }
 
-        const projectUsers = project.users.map(
+        const workspaceUsers = workspace.users.map(
           ({ user }) => user.email as string,
         );
 
         const pipeline = redis.pipeline();
         // remove root domain redirect for all domains
-        project.domains.forEach((domain) => {
+        workspace.domains.forEach((domain) => {
           pipeline.hset(domain.slug, {
             _root: {
               id: domain.id,
-              projectId: project.id,
+              projectId: workspace.id,
             },
           });
         });
@@ -238,13 +238,13 @@ export const POST = async (req: Request) => {
           pipeline.exec(),
           log({
             message:
-              ":cry: Project *`" +
-              project.slug +
+              ":cry: Workspace *`" +
+              workspace.slug +
               "`* deleted their subscription",
             type: "cron",
             mention: true,
           }),
-          projectUsers.map((email) =>
+          workspaceUsers.map((email) =>
             sendEmail({
               email,
               from: "steven@dub.co",

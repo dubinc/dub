@@ -1,12 +1,12 @@
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
 import { LinkWithTagsProps, UserProps } from "../types";
+import useWorkspace from "./use-workspace";
 
 export default function useLinks() {
-  const { slug } = useParams() as { slug?: string };
+  const { id } = useWorkspace();
   const { getQueryString } = useRouterStuff();
 
   const [admin, setAdmin] = useState(false);
@@ -21,9 +21,9 @@ export default function useLinks() {
       user: UserProps;
     })[]
   >(
-    slug
+    id
       ? `/api/links${getQueryString(
-          { projectSlug: slug },
+          { workspaceId: id },
           {
             ignore: ["import", "upgrade", "newLink"],
           },

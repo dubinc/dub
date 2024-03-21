@@ -1,8 +1,8 @@
 "use client";
 
+import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps, UserProps } from "@/lib/types";
 import {
-  BlurImage,
   NumberTooltip,
   Tooltip,
   useIntersectionObserver,
@@ -11,7 +11,6 @@ import {
 } from "@dub/ui";
 import { LinkifyTooltipContent } from "@dub/ui/src/tooltip";
 import {
-  GOOGLE_FAVICON_URL,
   cn,
   fetcher,
   getApexDomain,
@@ -22,18 +21,19 @@ import {
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
 import {
   Dispatch,
   ReactNode,
   SetStateAction,
+  useContext,
   useMemo,
   useRef,
   useState,
 } from "react";
 import useSWR from "swr";
-import LinkPreviewTooltip from "./link-preview";
+import { AnalyticsContext } from ".";
 import LinkLogo from "../links/link-logo";
+import LinkPreviewTooltip from "./link-preview";
 
 export default function BarList({
   tab,
@@ -143,7 +143,10 @@ export function LineItem({
   const entry = useIntersectionObserver(itemRef, {});
   const isVisible = !!entry?.isIntersecting;
 
-  const { slug } = useParams() as { slug?: string };
+  const { id } = useWorkspace();
+
+  const { admin } = useContext(AnalyticsContext);
+
   const { data } = useSWR<
     LinkProps & {
       user: UserProps;
@@ -151,7 +154,9 @@ export function LineItem({
   >(
     tab === "link" &&
       isVisible &&
-      `/api/links/${title}?projectSlug=${slug}&checkDomain=true`,
+      (admin
+        ? `/api/admin/links/${title}`
+        : `/api/links/${title}?workspaceId=${id}&checkDomain=true`),
     fetcher,
     {
       dedupingInterval: 60000,
@@ -197,13 +202,13 @@ export function LineItem({
                   key: data.key,
                   pretty: true,
                 }),
-                48,
+                36,
               )
             ) : (
               <div className="h-4 w-20 animate-pulse rounded bg-gray-100" />
             )
           ) : (
-            truncate(title, 48)
+            truncate(title, 36)
           )}
         </div>
       </div>

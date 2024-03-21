@@ -6,9 +6,9 @@ import { NextResponse } from "next/server";
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
 
-  // get code and project id from query params
+  // get code and workspace id from query params
   const code = searchParams.get("code") as string;
-  const projectId = searchParams.get("state") as string;
+  const workspaceId = searchParams.get("state") as string;
 
   // get access token from bitly
   const response = await fetch("https://api-ssl.bitly.com/oauth/access_token", {
@@ -25,22 +25,22 @@ export async function GET(req: Request) {
 
   const params = new URLSearchParams(response);
 
-  const [project, _] = await Promise.all([
-    // get project slug from projectId
+  const [workspace, _] = await Promise.all([
+    // get workspace slug from workspaceId
     prisma.project.findUnique({
       where: {
-        id: projectId,
+        id: workspaceId,
       },
       select: {
         slug: true,
       },
     }),
     // store access token in redis
-    redis.set(`import:bitly:${projectId}`, params.get("access_token")),
+    redis.set(`import:bitly:${workspaceId}`, params.get("access_token")),
   ]);
 
-  // redirect to project page with import query param
+  // redirect to workspace page with import query param
   return NextResponse.redirect(
-    `${APP_DOMAIN}${project ? `/${project.slug}?import=bitly` : ""}`,
+    `${APP_DOMAIN}${workspace ? `/${workspace.slug}?import=bitly` : ""}`,
   );
 }

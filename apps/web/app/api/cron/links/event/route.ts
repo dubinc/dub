@@ -1,8 +1,8 @@
 import { getAnalytics } from "@/lib/analytics";
-import { limiter, qstash, receiver } from "@/lib/cron";
+import { qstash, receiver, sendLimitEmail } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
-import { ProjectProps } from "@/lib/types";
+import { WorkspaceProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import {
   APP_DOMAIN_WITH_NGROK,
@@ -10,8 +10,6 @@ import {
   getApexDomain,
   log,
 } from "@dub/utils";
-import { sendEmail } from "emails";
-import LinksLimitAlert from "emails/links-limit";
 
 export async function POST(req: Request) {
   const body = await req.json();
@@ -80,7 +78,7 @@ export async function POST(req: Request) {
 
   // increment links usage and send alert if needed
   if (type === "create" && link.projectId) {
-    const project = await prisma.project.update({
+    const workspace = await prisma.project.update({
       where: {
         id: link.projectId,
       },
@@ -92,54 +90,63 @@ export async function POST(req: Request) {
     });
 
     const percentage = Math.round(
-      (project.linksUsage / project.linksLimit) * 100,
+      (workspace.linksUsage / workspace.linksLimit) * 100,
     );
 
+    // send alert if 80% or 100% of links limit is reached
     if (percentage === 80 || percentage === 100) {
-      const users = await prisma.user.findMany({
+      // check if the alert has already been sent
+      const sentNotification = await prisma.sentEmail.findFirst({
         where: {
-          projects: {
-            some: {
-              projectId: project.id,
-            },
-          },
-        },
-        select: {
-          email: true,
+          projectId: workspace.id,
+          type:
+            percentage === 80
+              ? "firstLinksLimitEmail"
+              : "secondLinksLimitEmail",
         },
       });
 
-      const emails = users.map(({ email }) => email) as string[];
+      // if not, send the alert
+      if (!sentNotification) {
+        const users = await prisma.user.findMany({
+          where: {
+            projects: {
+              some: {
+                projectId: workspace.id,
+              },
+            },
+          },
+          select: {
+            email: true,
+          },
+        });
 
-      await Promise.allSettled([
-        emails.map((email) => {
-          limiter.schedule(() =>
-            sendEmail({
-              subject: `${process.env.NEXT_PUBLIC_APP_NAME} Alert: ${
-                project.name
-              } has used ${percentage.toString()}% of its links limit for the month.`,
-              email,
-              react: LinksLimitAlert({
-                email,
-                project: project as Partial<ProjectProps>,
-              }),
-            }),
-          );
-        }),
-        log({
-          message: `*${
-            project.slug
-          }* has used ${percentage.toString()}% of its links limit for the month.`,
-          type: project.plan === "free" ? "cron" : "alerts",
-          mention: project.plan !== "free",
-        }),
-      ]);
+        const emails = users.map(({ email }) => email) as string[];
+
+        await Promise.all([
+          sendLimitEmail({
+            emails,
+            workspace: workspace as unknown as WorkspaceProps,
+            type:
+              percentage === 80
+                ? "firstLinksLimitEmail"
+                : "secondLinksLimitEmail",
+          }),
+          log({
+            message: `*${
+              workspace.slug
+            }* has used ${percentage.toString()}% of its links limit for the month.`,
+            type: workspace.plan === "free" ? "cron" : "alerts",
+            mention: workspace.plan !== "free",
+          }),
+        ]);
+      }
     }
   }
 
   if (type === "transfer") {
-    const oldProjectId = await redis.get<string>(
-      `transfer:${linkId}:oldProjectId`,
+    const oldWorkspaceId = await redis.get<string>(
+      `transfer:${linkId}:oldWorkspaceId`,
     );
 
     const linkClicks = await getAnalytics({
@@ -150,10 +157,10 @@ export async function POST(req: Request) {
 
     // update old and new project usage
     await Promise.all([
-      oldProjectId &&
+      oldWorkspaceId &&
         prisma.project.update({
           where: {
-            id: oldProjectId,
+            id: oldWorkspaceId,
           },
           data: {
             usage: {

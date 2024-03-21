@@ -2,7 +2,7 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import prisma from "@/lib/prisma";
 import {
   API_DOMAIN,
-  DUB_PROJECT_ID,
+  DUB_WORKSPACE_ID,
   getSearchParams,
   isDubDomain,
 } from "@dub/utils";
@@ -10,7 +10,7 @@ import { Link as LinkProps } from "@prisma/client";
 import { createHash } from "crypto";
 import { getServerSession } from "next-auth/next";
 import { exceededLimitError } from "../api/errors";
-import { PlanProps, ProjectProps } from "../types";
+import { PlanProps, WorkspaceProps } from "../types";
 import { ratelimit } from "../upstash";
 import { authOptions } from "./options";
 
@@ -47,7 +47,7 @@ interface WithAuthHandler {
     searchParams,
     headers,
     session,
-    project,
+    workspace,
     domain,
     link,
   }: {
@@ -56,7 +56,7 @@ interface WithAuthHandler {
     searchParams: Record<string, string>;
     headers?: Record<string, string>;
     session: Session;
-    project: ProjectProps;
+    workspace: WorkspaceProps;
     domain: string;
     link?: LinkProps;
   }): Promise<Response>;
@@ -78,7 +78,7 @@ export const withAuth = (
     needNotExceededClicks, // if the action needs the user to not have exceeded their clicks usage
     needNotExceededLinks, // if the action needs the user to not have exceeded their links usage
     allowAnonymous, // special case for /api/links (POST /api/links) – allow no session
-    allowSelf, // special case for removing yourself from a project
+    allowSelf, // special case for removing yourself from a workspace
     skipLinkChecks, // special case for /api/links/exists – skip link checks
   }: {
     requiredPlan?: Array<PlanProps>;
@@ -117,12 +117,18 @@ export const withAuth = (
 
     let session: Session | undefined;
     let headers = {};
+    let id: string | undefined;
+    let slug: string | undefined;
 
-    const slug = params?.slug || searchParams.projectSlug;
+    const idOrSlug =
+      params?.idOrSlug ||
+      searchParams.workspaceId ||
+      params?.slug ||
+      searchParams.projectSlug;
 
     try {
-      // if there's no projectSlug defined
-      if (!slug) {
+      // if there's no workspace ID or slug
+      if (!idOrSlug) {
         // for /api/links (POST /api/links) – allow no session (but warn if user provides apiKey)
         if (allowAnonymous && !apiKey) {
           // @ts-expect-error
@@ -136,9 +142,15 @@ export const withAuth = (
           throw new DubApiError({
             code: "not_found",
             message:
-              "Project slug not found. Did you forget to include a `projectSlug` query parameter?",
+              "Workspace id not found. Did you forget to include a `workspaceId` query parameter? Learn more: https://d.to/id",
           });
         }
+      }
+
+      if (idOrSlug.startsWith("ws_")) {
+        id = idOrSlug.replace("ws_", "");
+      } else {
+        slug = idOrSlug;
       }
 
       if (apiKey) {
@@ -210,10 +222,11 @@ export const withAuth = (
         }
       }
 
-      let [project, link] = (await Promise.all([
+      let [workspace, link] = (await Promise.all([
         prisma.project.findUnique({
           where: {
-            slug,
+            id: id || undefined,
+            slug: slug || undefined,
           },
           select: {
             id: true,
@@ -270,35 +283,35 @@ export const withAuth = (
                     },
                   },
                 })),
-      ])) as [ProjectProps, LinkProps | undefined];
+      ])) as [WorkspaceProps, LinkProps | undefined];
 
-      if (!project || !project.users) {
-        // project doesn't exist
+      if (!workspace || !workspace.users) {
+        // workspace doesn't exist
         throw new DubApiError({
           code: "not_found",
-          message: "Project not found.",
+          message: "Workspace not found.",
         });
       }
 
-      // prevent unauthorized access to domains that don't belong to the project
+      // prevent unauthorized access to domains that don't belong to the workspace
       if (
         domain &&
         !isDubDomain(domain) &&
-        !project.domains.find((d) => d.slug === domain)
+        !workspace.domains.find((d) => d.slug === domain)
       ) {
         throw new DubApiError({
           code: "forbidden",
-          message: "Domain does not belong to project.",
+          message: "Domain does not belong to workspace.",
         });
       }
 
-      // project exists but user is not part of it
-      if (project.users.length === 0) {
+      // workspace exists but user is not part of it
+      if (workspace.users.length === 0) {
         const pendingInvites = await prisma.projectInvite.findUnique({
           where: {
             email_projectId: {
               email: session.user.email,
-              projectId: project.id,
+              projectId: workspace.id,
             },
           },
           select: {
@@ -308,24 +321,24 @@ export const withAuth = (
         if (!pendingInvites) {
           throw new DubApiError({
             code: "not_found",
-            message: "Project not found.",
+            message: "Workspace not found.",
           });
         } else if (pendingInvites.expires < new Date()) {
           throw new DubApiError({
             code: "invite_expired",
-            message: "Project invite expired.",
+            message: "Workspace invite expired.",
           });
         } else {
           throw new DubApiError({
             code: "invite_pending",
-            message: "Project invite pending.",
+            message: "Workspace invite pending.",
           });
         }
       }
 
-      // project role checks
+      // workspace role checks
       if (
-        !requiredRole.includes(project.users[0].role) &&
+        !requiredRole.includes(workspace.users[0].role) &&
         !(allowSelf && searchParams.userId === session.user.id)
       ) {
         throw new DubApiError({
@@ -335,12 +348,12 @@ export const withAuth = (
       }
 
       // clicks usage overage checks
-      if (needNotExceededClicks && project.usage > project.usageLimit) {
+      if (needNotExceededClicks && workspace.usage > workspace.usageLimit) {
         throw new DubApiError({
           code: "forbidden",
           message: exceededLimitError({
-            plan: project.plan,
-            limit: project.usageLimit,
+            plan: workspace.plan,
+            limit: workspace.usageLimit,
             type: "clicks",
           }),
         });
@@ -349,21 +362,21 @@ export const withAuth = (
       // links usage overage checks
       if (
         needNotExceededLinks &&
-        project.linksUsage > project.linksLimit &&
-        (project.plan === "free" || project.plan === "pro")
+        workspace.linksUsage > workspace.linksLimit &&
+        (workspace.plan === "free" || workspace.plan === "pro")
       ) {
         throw new DubApiError({
           code: "forbidden",
           message: exceededLimitError({
-            plan: project.plan,
-            limit: project.linksLimit,
+            plan: workspace.plan,
+            limit: workspace.linksLimit,
             type: "links",
           }),
         });
       }
 
       // plan checks
-      if (!requiredPlan.includes(project.plan)) {
+      if (!requiredPlan.includes(workspace.plan)) {
         throw new DubApiError({
           code: "forbidden",
           message: "Unauthorized: Need higher plan.",
@@ -373,7 +386,7 @@ export const withAuth = (
       // analytics API checks
       const url = new URL(req.url || "", API_DOMAIN);
       if (
-        project.plan === "free" &&
+        workspace.plan === "free" &&
         apiKey &&
         url.pathname.includes("/analytics")
       ) {
@@ -403,8 +416,8 @@ export const withAuth = (
           }
         }
 
-        // make sure the link is owned by the project
-        if (!link || link.projectId !== project?.id) {
+        // make sure the link is owned by the workspace
+        if (!link || link.projectId !== workspace?.id) {
           throw new DubApiError({
             code: "not_found",
             message: "Link not found.",
@@ -418,12 +431,11 @@ export const withAuth = (
         searchParams,
         headers,
         session,
-        project,
+        workspace,
         domain,
         link,
       });
     } catch (error) {
-      console.error("withAuth Error -->", error.message);
       return handleAndReturnErrorResponse(error);
     }
   };
@@ -456,7 +468,7 @@ export const withSession =
           throw new DubApiError({
             code: "bad_request",
             message:
-              "Misconfigured authorization header. Did you forget to add 'Bearer '? Learn more: https://d.to/auth ",
+              "Misconfigured authorization header. Did you forget to add 'Bearer '? Learn more: https://d.to/auth",
           });
         }
         const apiKey = authorizationHeader.replace("Bearer ", "");
@@ -532,7 +544,6 @@ export const withSession =
       const searchParams = getSearchParams(req.url);
       return await handler({ req, params, searchParams, session });
     } catch (error) {
-      console.error("withSession Error -->", error.message);
       return handleAndReturnErrorResponse(error);
     }
   };
@@ -562,7 +573,7 @@ export const withAdmin =
       where: {
         userId_projectId: {
           userId: session.user.id,
-          projectId: DUB_PROJECT_ID,
+          projectId: DUB_WORKSPACE_ID,
         },
       },
     });

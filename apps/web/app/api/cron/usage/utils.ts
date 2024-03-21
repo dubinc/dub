@@ -1,7 +1,7 @@
 import { getAnalytics } from "@/lib/analytics";
-import { limiter, qstash } from "@/lib/cron";
+import { limiter, qstash, sendLimitEmail } from "@/lib/cron";
 import prisma from "@/lib/prisma";
-import { ProjectProps } from "@/lib/types";
+import { WorkspaceProps } from "@/lib/types";
 import {
   APP_DOMAIN_WITH_NGROK,
   capitalize,
@@ -10,13 +10,12 @@ import {
   log,
 } from "@dub/utils";
 import { sendEmail } from "emails";
-import ClicksExceeded from "emails/clicks-exceeded";
 import ClicksSummary from "emails/clicks-summary";
 
 const limit = 250;
 
 export const updateUsage = async (skip?: number) => {
-  const projects = await prisma.project.findMany({
+  const workspaces = await prisma.project.findMany({
     where: {
       domains: {
         some: {
@@ -24,16 +23,7 @@ export const updateUsage = async (skip?: number) => {
         },
       },
     },
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      usage: true,
-      usageLimit: true,
-      linksUsage: true,
-      linksLimit: true,
-      plan: true,
-      billingCycleStart: true,
+    include: {
       users: {
         select: {
           user: true,
@@ -45,34 +35,33 @@ export const updateUsage = async (skip?: number) => {
         },
       },
       sentEmails: true,
-      createdAt: true,
     },
     skip: skip || 0,
     take: limit,
   });
 
-  // if no projects left, meaning cron is complete
-  if (projects.length === 0) {
+  // if no workspaces left, meaning cron is complete
+  if (workspaces.length === 0) {
     return;
   }
 
-  // Reset billing cycles for projects that have
+  // Reset billing cycles for workspaces that have
   // adjustedBillingCycleStart that matches today's date
-  const billingReset = projects.filter(
+  const billingReset = workspaces.filter(
     ({ billingCycleStart }) =>
       getAdjustedBillingCycleStart(billingCycleStart as number) ===
       new Date().getDate(),
   );
 
-  // Get all projects that have exceeded usage
-  const exceedingUsage = projects.filter(
+  // Get all workspaces that have exceeded usage
+  const exceedingUsage = workspaces.filter(
     ({ usage, usageLimit }) => usage > usageLimit,
   );
 
   // Send email to notify overages
   await Promise.allSettled(
-    exceedingUsage.map(async (project) => {
-      const { slug, plan, usage, usageLimit, users, sentEmails } = project;
+    exceedingUsage.map(async (workspace) => {
+      const { slug, plan, usage, usageLimit, users, sentEmails } = workspace;
       const emails = users.map((user) => user.user.email) as string[];
 
       await log({
@@ -88,8 +77,11 @@ export const updateUsage = async (skip?: number) => {
         (email) => email.type === "firstUsageLimitEmail",
       );
       if (!sentFirstUsageLimitEmail) {
-        // @ts-ignore
-        sendUsageLimitEmail(emails, project, "first");
+        sendLimitEmail({
+          emails,
+          workspace: workspace as unknown as WorkspaceProps,
+          type: "firstUsageLimitEmail",
+        });
       } else {
         const sentSecondUsageLimitEmail = sentEmails.some(
           (email) => email.type === "secondUsageLimitEmail",
@@ -101,27 +93,30 @@ export const updateUsage = async (skip?: number) => {
               (1000 * 3600 * 24),
           );
           if (daysSinceFirstEmail >= 3) {
-            // @ts-ignore
-            sendUsageLimitEmail(emails, project, "second");
+            sendLimitEmail({
+              emails,
+              workspace: workspace as unknown as WorkspaceProps,
+              type: "secondUsageLimitEmail",
+            });
           }
         }
       }
     }),
   );
 
-  // Reset usage for projects that have billingCycleStart today
-  // also delete sentEmails for those projects
+  // Reset usage for workspaces that have billingCycleStart today
+  // also delete sentEmails for those workspaces
   await Promise.allSettled(
-    billingReset.map(async (project) => {
-      // Only send the 30-day summary email if the project was created more than 30 days ago
+    billingReset.map(async (workspace) => {
+      // Only send the 30-day summary email if the workspace was created more than 30 days ago
       if (
-        project.createdAt.getTime() <
+        workspace.createdAt.getTime() <
         new Date().getTime() - 30 * 24 * 60 * 60 * 1000
       ) {
         const topLinks =
-          project.usage > 0
+          workspace.usage > 0
             ? await getAnalytics({
-                projectId: project.id,
+                workspaceId: workspace.id,
                 endpoint: "top_links",
                 interval: "30d",
                 excludeRoot: true,
@@ -160,22 +155,24 @@ export const updateUsage = async (skip?: number) => {
               })
             : [];
 
-        const emails = project.users.map((user) => user.user.email) as string[];
+        const emails = workspace.users.map(
+          (user) => user.user.email,
+        ) as string[];
 
         await Promise.allSettled(
           emails.map((email) => {
             limiter.schedule(() =>
               sendEmail({
-                subject: `Your 30-day ${process.env.NEXT_PUBLIC_APP_NAME} summary for ${project.name}`,
+                subject: `Your 30-day ${process.env.NEXT_PUBLIC_APP_NAME} summary for ${workspace.name}`,
                 email,
                 react: ClicksSummary({
                   email,
                   appName: process.env.NEXT_PUBLIC_APP_NAME as string,
                   appDomain: process.env.NEXT_PUBLIC_APP_DOMAIN as string,
-                  projectName: project.name,
-                  projectSlug: project.slug,
-                  totalClicks: project.usage,
-                  createdLinks: project.linksUsage,
+                  workspaceName: workspace.name,
+                  workspaceSlug: workspace.slug,
+                  totalClicks: workspace.usage,
+                  createdLinks: workspace.linksUsage,
                   topLinks,
                 }),
               }),
@@ -184,7 +181,7 @@ export const updateUsage = async (skip?: number) => {
         );
       }
 
-      const { plan, usage, usageLimit } = project;
+      const { plan, usage, usageLimit } = workspace;
 
       // only reset clicks usage if it's not over usageLimit by:
       // 2x for free plan (2K clicks)
@@ -202,7 +199,7 @@ export const updateUsage = async (skip?: number) => {
 
       return await prisma.project.update({
         where: {
-          id: project.id,
+          id: workspace.id,
         },
         data: {
           ...(resetUsage && {
@@ -213,7 +210,12 @@ export const updateUsage = async (skip?: number) => {
           sentEmails: {
             deleteMany: {
               type: {
-                in: ["firstUsageLimitEmail", "secondUsageLimitEmail"],
+                in: [
+                  "firstUsageLimitEmail",
+                  "secondUsageLimitEmail",
+                  "firstLinksLimitEmail",
+                  "secondLinksLimitEmail",
+                ],
               },
             },
           },
@@ -228,36 +230,4 @@ export const updateUsage = async (skip?: number) => {
     }`,
     method: "GET",
   });
-};
-
-const sendUsageLimitEmail = async (
-  emails: string[],
-  project: ProjectProps,
-  type: "first" | "second",
-) => {
-  return await Promise.allSettled([
-    emails.map((email) => {
-      limiter.schedule(() =>
-        sendEmail({
-          subject: `${process.env.NEXT_PUBLIC_APP_NAME} Alert: Clicks Limit Exceeded`,
-          email,
-          react: ClicksExceeded({
-            email,
-            project,
-            type,
-          }),
-        }),
-      );
-    }),
-    prisma.sentEmail.create({
-      data: {
-        project: {
-          connect: {
-            slug: project.slug,
-          },
-        },
-        type: `${type}UsageLimitEmail`,
-      },
-    }),
-  ]);
 };

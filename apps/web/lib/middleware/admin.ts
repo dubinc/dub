@@ -1,5 +1,5 @@
 import { parse } from "@/lib/middleware/utils";
-import { DUB_PROJECT_ID } from "@dub/utils";
+import { DUB_WORKSPACE_ID } from "@dub/utils";
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
 import { conn } from "../planetscale";
@@ -24,7 +24,7 @@ export default async function AdminMiddleware(req: NextRequest) {
     ])
     .then((res) => res.rows[0] as { projectId: string } | undefined);
 
-  if (response?.projectId === DUB_PROJECT_ID) {
+  if (response?.projectId === DUB_WORKSPACE_ID) {
     isAdmin = true;
   }
 
