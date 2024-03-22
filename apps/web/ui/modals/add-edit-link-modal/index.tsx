@@ -306,9 +306,9 @@ function AddEditLinkModal({
           className="scrollbar-hide rounded-l-2xl md:max-h-[95vh] md:overflow-auto"
           onScroll={handleScroll}
         >
-          <div className="z-10 flex flex-col items-center justify-center space-y-3 border-b border-gray-200 bg-white px-4 pb-8 pt-8 transition-all md:sticky md:top-0 md:px-16">
+          <div className="sticky top-0 z-20 flex h-14 items-center justify-center gap-4 space-y-3 border-b border-gray-200 bg-white px-4 transition-all sm:h-24 md:px-16">
             <LinkLogo apexDomain={getApexDomain(url)} />
-            <h3 className="max-w-sm truncate text-lg font-medium">
+            <h3 className="!mt-0 max-w-sm truncate text-lg font-medium">
               {props
                 ? `Edit ${linkConstructor({
                     key: props.key,
@@ -557,7 +557,7 @@ function AddEditLinkModal({
                 <div className="w-full border-t border-gray-300" />
               </div>
               <div className="relative flex justify-center">
-                <span className="bg-gray-50 px-2 text-sm text-gray-500">
+                <span className="-translate-y-1 bg-gray-50 px-2 text-sm text-gray-500">
                   Optional
                 </span>
               </div>
