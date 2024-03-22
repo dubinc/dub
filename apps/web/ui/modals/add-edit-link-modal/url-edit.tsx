@@ -98,9 +98,12 @@ export default function URLEdit({ url, setURL }) {
             setURL(newURL);
           } else {
             let newURL = url;
+
+            if (newURL.endsWith("/")) newURL = newURL.slice(0, -1);
+
             Object.values(preset.settings).forEach((setting) => {
               if (setting.slug !== name) {
-                newURL = newURL.replace(setting.slug, "");
+                newURL = newURL.replace(`/${setting.slug}`, "");
               }
             });
 
