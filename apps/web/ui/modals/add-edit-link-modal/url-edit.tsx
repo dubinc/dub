@@ -2,7 +2,7 @@ import { useCallback } from "react";
 
 interface PresetConfig {
   id: string;
-  urlSchemas: string[];
+  urlSchemas: RegExp[];
   allowMultiple?: boolean;
   settings: {
     [key: string]: {
@@ -17,8 +17,8 @@ const presetConfig = [
   {
     id: "youtube",
     urlSchemas: [
-      "https://www.youtube.com/watch?v=",
-      "https://youtube.com/watch?v=",
+      new RegExp("https://www.youtube.com/watch\\?v=[^&]+"),
+      new RegExp("https://youtu.be/[^/]+"),
     ],
     allowMultiple: true,
     settings: {
@@ -41,16 +41,16 @@ const presetConfig = [
   },
   {
     id: "github",
-    urlSchemas: ["https://github.com/", "https://www.github.com/"],
+    urlSchemas: [new RegExp("https://github.com/[^/]+/[^/]+")],
     settings: {
       tabIssues: {
         description: "Tab: Issues",
-        slug: "/issues",
+        slug: "issues",
         type: "path",
       },
       tabPulls: {
         description: "Tab: Pull requests",
-        slug: "/pulls",
+        slug: "pulls",
         type: "path",
       },
     },
@@ -59,7 +59,7 @@ const presetConfig = [
 
 export default function URLEdit({ url, setURL }) {
   const preset = presetConfig.find((preset) => {
-    return preset.urlSchemas.some((schema) => url.includes(schema));
+    return preset.urlSchemas.some((schema) => schema.test(url));
   });
 
   if (url && preset) {
@@ -92,7 +92,9 @@ export default function URLEdit({ url, setURL }) {
           }
         } else if (type === "path") {
           if (preset.allowMultiple) {
-            const newURL = checked ? `${url}${name}` : url.replace(name, "");
+            const newURL = checked
+              ? `${url}/${name}`
+              : url.replace(`/${name}`, "");
             setURL(newURL);
           } else {
             let newURL = url;
@@ -102,8 +104,8 @@ export default function URLEdit({ url, setURL }) {
               }
             });
 
-            if (checked) newURL = `${newURL}${name}`;
-            else newURL = newURL.replace(name, "");
+            if (checked) newURL = `${newURL}/${name}`;
+            else newURL = newURL.replace(`/${name}`, "");
 
             setURL(newURL);
           }
