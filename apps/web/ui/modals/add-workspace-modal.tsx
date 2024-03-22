@@ -151,7 +151,6 @@ function AddWorkspaceModalHelper({
               const message = error.message;
 
               if (message.toLowerCase().includes("slug")) {
-                alert(message);
                 setSlugError(message);
               }
 
