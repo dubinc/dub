@@ -54,6 +54,7 @@ import PasswordSection from "./password-section";
 import Preview from "./preview";
 import RewriteSection from "./rewrite-section";
 import TagsSection from "./tags-section";
+import URLEdit from "./url-edit";
 import UTMSection from "./utm-section";
 
 function AddEditLinkModal({
@@ -430,6 +431,10 @@ function AddEditLinkModal({
                     </div>
                   )}
                 </div>
+                <URLEdit
+                  url={url}
+                  setURL={(url) => setData({ ...data, url })}
+                />
               </div>
               <div>
                 <div className="flex items-center justify-between">
