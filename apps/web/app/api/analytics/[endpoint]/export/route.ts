@@ -117,7 +117,7 @@ export const GET = withAuth(
         clicks: d.clicks,
       }));
 
-      if (!topLinks) {
+      if (!topLinks || topLinks.length === 0) {
         return new Response(undefined, {
           status: 204,
         });
