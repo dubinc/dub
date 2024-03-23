@@ -59,7 +59,7 @@ function ProductHuntChild() {
                 We're live on Product Hunt!
               </p>
               <p className="text-sm text-gray-500 underline-offset-4 transition-all group-hover:text-gray-800 group-hover:underline">
-                Join the conversation and help us get to #1 Product of the Day
+                Join the conversation and help us get to #1 Product of the Month
                 ↗
               </p>
             </div>
