@@ -353,14 +353,22 @@ function AddEditLinkModal({
                   }
                   // copy shortlink to clipboard when adding a new link (if document is focused)
                   if (!props && document.hasFocus()) {
-                    await navigator.clipboard.writeText(
-                      linkConstructor({
-                        // remove leading and trailing slashes
-                        key: data.key.replace(/^\/+|\/+$/g, ""),
-                        domain,
-                      }),
-                    );
-                    toast.success("Copied shortlink to clipboard!");
+                    try {
+                      await navigator.clipboard.writeText(
+                        linkConstructor({
+                          // remove leading and trailing slashes
+                          key: data.key.replace(/^\/+|\/+$/g, ""),
+                          domain,
+                        }),
+                      );
+                      toast.success("Copied shortlink to clipboard!");
+                    } catch (e) {
+                      console.error(
+                        "Failed to automatically copy shortlink to clipboard.",
+                        e,
+                      );
+                      toast.success("Successfully created link!");
+                    }
                   } else {
                     toast.success("Successfully updated shortlink!");
                   }
