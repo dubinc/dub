@@ -212,6 +212,22 @@ export async function keyChecks({
   key: string;
   workspace?: WorkspaceProps;
 }) {
+  if (key.length === 0) {
+    if (workspace?.plan === "free") {
+      return {
+        error:
+          "You can only set a redirect for your root domain on a Pro plan and above. Upgrade to Pro to unlock this feature.",
+        code: "forbidden",
+      };
+    } else {
+      return {
+        error:
+          "To set a redirect for your root domain, navigate to your Domains tab and click 'Edit' on the domain you want to update.",
+        code: "unprocessable_entity",
+      };
+    }
+  }
+
   const link = await checkIfKeyExists(domain, key);
   if (link) {
     return {
@@ -259,9 +275,6 @@ export function processKey(key: string) {
   }
   // remove all leading and trailing slashes from key
   key = key.replace(/^\/+|\/+$/g, "");
-  if (key.length === 0) {
-    return null;
-  }
   // replace all special characters
   key = key.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
@@ -378,7 +391,7 @@ export async function processLink({
     key = await getRandomKey(domain, payload["prefix"]);
   } else if (!skipKeyChecks) {
     const processedKey = processKey(key);
-    if (!processedKey) {
+    if (processedKey === null) {
       return {
         link: payload,
         error: "Invalid key.",

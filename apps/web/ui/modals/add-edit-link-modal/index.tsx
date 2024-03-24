@@ -369,9 +369,10 @@ function AddEditLinkModal({
                   const { error } = await res.json();
                   if (error) {
                     toast.error(error.message);
-                    if (error.message.toLowerCase().includes("key")) {
+                    const message = error.message.toLowerCase();
+                    if (message.includes("key") || message.includes("domain")) {
                       setKeyError(error.message);
-                    } else if (error.message.toLowerCase().includes("url")) {
+                    } else if (message.includes("url")) {
                       setUrlError(error.message);
                     }
                   }
