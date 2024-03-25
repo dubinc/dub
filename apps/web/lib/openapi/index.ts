@@ -1,5 +1,6 @@
 import { ZodOpenApiObject } from "zod-openapi";
 
+import { openApiErrorResponses } from "@/lib/openapi/responses";
 import { LinkSchema } from "@/lib/zod/schemas/links";
 import { TagSchema } from "@/lib/zod/schemas/tags";
 import { WorkspaceSchema } from "@/lib/zod/schemas/workspaces";
@@ -52,6 +53,9 @@ export const openApiObject: ZodOpenApiObject = {
         description: "Default authentication mechanism",
         scheme: "bearer",
       },
+    },
+    responses: {
+      ...openApiErrorResponses,
     },
   },
 };

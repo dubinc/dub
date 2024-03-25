@@ -106,21 +106,8 @@ export const handleDomainUpdates = async ({
     // else, delete the domain
     return await Promise.allSettled([
       deleteDomainAndLinks(domain).then(async () => {
-        // check if there are any domains left for the workspace
-        const remainingDomains = await prisma.domain.count({
-          where: {
-            projectId: workspace.id,
-          },
-        });
-        // if the deleted domain was the only domain, delete the workspace as well
-        if (remainingDomains === 0) {
-          return prisma.project.delete({
-            where: {
-              slug: workspaceSlug,
-            },
-          });
-          // if the deleted domain was primary, make another domain primary
-        } else if (primary) {
+        // if the deleted domain was primary, make another domain primary
+        if (primary) {
           const anotherDomain = await prisma.domain.findFirst({
             where: {
               projectId: workspace.id,

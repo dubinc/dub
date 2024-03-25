@@ -28,6 +28,7 @@ export default function CreateWorkspaceButton() {
             />
           ) : undefined
         }
+        className="flex-shrink-0 truncate"
         onClick={() => setShowAddWorkspaceModal(true)}
       />
     </div>

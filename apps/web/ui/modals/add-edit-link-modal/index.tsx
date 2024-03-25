@@ -306,9 +306,9 @@ function AddEditLinkModal({
           className="scrollbar-hide rounded-l-2xl md:max-h-[95vh] md:overflow-auto"
           onScroll={handleScroll}
         >
-          <div className="z-10 flex flex-col items-center justify-center space-y-3 border-b border-gray-200 bg-white px-4 pb-8 pt-8 transition-all md:sticky md:top-0 md:px-16">
+          <div className="sticky top-0 z-20 flex h-14 items-center justify-center gap-4 space-y-3 border-b border-gray-200 bg-white px-4 transition-all sm:h-24 md:px-16">
             <LinkLogo apexDomain={getApexDomain(url)} />
-            <h3 className="max-w-sm truncate text-lg font-medium">
+            <h3 className="!mt-0 max-w-sm truncate text-lg font-medium">
               {props
                 ? `Edit ${linkConstructor({
                     key: props.key,
@@ -351,16 +351,24 @@ function AddEditLinkModal({
                     router.push("/links");
                     setShowAddEditLinkModal(false);
                   }
-                  // copy shortlink to clipboard when adding a new link (if document is focused)
-                  if (!props && document.hasFocus()) {
-                    await navigator.clipboard.writeText(
-                      linkConstructor({
-                        // remove leading and trailing slashes
-                        key: data.key.replace(/^\/+|\/+$/g, ""),
-                        domain,
-                      }),
-                    );
-                    toast.success("Copied shortlink to clipboard!");
+                  // copy shortlink to clipboard when adding a new link
+                  if (!props) {
+                    try {
+                      await navigator.clipboard.writeText(
+                        linkConstructor({
+                          // remove leading and trailing slashes
+                          key: data.key.replace(/^\/+|\/+$/g, ""),
+                          domain,
+                        }),
+                      );
+                      toast.success("Copied shortlink to clipboard!");
+                    } catch (e) {
+                      console.error(
+                        "Failed to automatically copy shortlink to clipboard.",
+                        e,
+                      );
+                      toast.success("Successfully created link!");
+                    }
                   } else {
                     toast.success("Successfully updated shortlink!");
                   }
@@ -369,9 +377,10 @@ function AddEditLinkModal({
                   const { error } = await res.json();
                   if (error) {
                     toast.error(error.message);
-                    if (error.message.toLowerCase().includes("key")) {
+                    const message = error.message.toLowerCase();
+                    if (message.includes("key") || message.includes("domain")) {
                       setKeyError(error.message);
-                    } else if (error.message.toLowerCase().includes("url")) {
+                    } else if (message.includes("url")) {
                       setUrlError(error.message);
                     }
                   }
@@ -557,7 +566,7 @@ function AddEditLinkModal({
                 <div className="w-full border-t border-gray-300" />
               </div>
               <div className="relative flex justify-center">
-                <span className="bg-gray-50 px-2 text-sm text-gray-500">
+                <span className="-translate-y-1 bg-gray-50 px-2 text-sm text-gray-500">
                   Optional
                 </span>
               </div>
