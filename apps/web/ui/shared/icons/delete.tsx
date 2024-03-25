@@ -7,7 +7,7 @@ export default function Delete({ className }: { className: string }) {
       stroke="currentColor"
       strokeLinecap="round"
       strokeLinejoin="round"
-      strokeWidth="1.5"
+      strokeWidth="2"
       viewBox="0 0 24 24"
       width="24"
       className={className}
