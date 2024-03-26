@@ -120,18 +120,30 @@ function AddEditLinkModal({
   const generateAIKey = useCallback(async () => {
     setKeyError(null);
     setGeneratingAIKey(true);
+
     const res = await fetch(`/api/ai/shortlink?workspaceId=${workspaceId}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        // TODO: Add data to generate AI key
+        url,
+        domain,
       }),
+    }).then(async (res) => {
+      if (res.status !== 200) {
+        const error = await res.text();
+        setKeyError(error);
+        setGeneratingAIKey(false);
+        throw new Error(error);
+      }
+      return res.text();
     });
 
+    setData((prev) => ({ ...prev, key: res }));
+
     setGeneratingAIKey(false);
-  }, [workspaceId]);
+  }, [url, domain, slug]);
 
   useEffect(() => {
     // when someone pastes a URL
