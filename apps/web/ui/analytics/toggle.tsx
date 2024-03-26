@@ -82,7 +82,7 @@ export default function Toggle() {
             <ExpandingArrow className="h-5 w-5" />
           </a>
         ) : (
-          <div className="flex items-center space-x-2">
+          <div className="flex w-full md:justify-center items-center space-x-2">
             <BlurImage
               alt={name || "Workspace Logo"}
               src={logo || DUB_LOGO}
