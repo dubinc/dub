@@ -8,13 +8,16 @@ import { AlertCircleFill, Lock, Random, X } from "@/ui/shared/icons";
 import {
   Button,
   LoadingCircle,
+  Magic,
   Modal,
+  Tooltip,
   TooltipContent,
   useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
 import {
   DEFAULT_LINK_PROPS,
+  HOME_DOMAIN,
   cn,
   deepEqual,
   getApexDomain,
@@ -73,11 +76,12 @@ function AddEditLinkModal({
   const { slug } = params;
   const router = useRouter();
   const pathname = usePathname();
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, plan } = useWorkspace();
 
   const [keyError, setKeyError] = useState<string | null>(null);
   const [urlError, setUrlError] = useState<string | null>(null);
-  const [generatingKey, setGeneratingKey] = useState(false);
+  const [generatingRandomKey, setGeneratingRandomKey] = useState(false);
+  const [generatingAIKey, setGeneratingAIKey] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const {
@@ -104,14 +108,30 @@ function AddEditLinkModal({
 
   const generateRandomKey = useCallback(async () => {
     setKeyError(null);
-    setGeneratingKey(true);
+    setGeneratingRandomKey(true);
     const res = await fetch(
       `/api/links/random?domain=${domain}&workspaceId=${workspaceId}`,
     );
     const key = await res.json();
     setData((prev) => ({ ...prev, key }));
-    setGeneratingKey(false);
+    setGeneratingRandomKey(false);
   }, [domain, slug]);
+
+  const generateAIKey = useCallback(async () => {
+    setKeyError(null);
+    setGeneratingAIKey(true);
+    const res = await fetch(`/api/ai/shortlink?workspaceId=${workspaceId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        // TODO: Add data to generate AI key
+      }),
+    });
+
+    setGeneratingAIKey(false);
+  }, [workspaceId]);
 
   useEffect(() => {
     // when someone pastes a URL
@@ -448,34 +468,78 @@ function AddEditLinkModal({
                   >
                     Short Link
                   </label>
-                  {props && lockKey ? (
-                    <button
-                      className="flex items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
-                      type="button"
-                      onClick={() => {
-                        window.confirm(
-                          "Editing an existing short link could potentially break existing links. Are you sure you want to continue?",
-                        ) && setLockKey(false);
-                      }}
+                  <div className="flex items-center gap-2">
+                    {props && lockKey ? (
+                      <button
+                        className="flex items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
+                        type="button"
+                        onClick={() => {
+                          window.confirm(
+                            "Editing an existing short link could potentially break existing links. Are you sure you want to continue?",
+                          ) && setLockKey(false);
+                        }}
+                      >
+                        <Lock className="h-3 w-3" />
+                      </button>
+                    ) : (
+                      <Tooltip content="Generate a random key">
+                        <button
+                          className="flex items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
+                          onClick={generateRandomKey}
+                          disabled={generatingRandomKey || generatingAIKey}
+                          type="button"
+                        >
+                          {generatingRandomKey ? (
+                            <LoadingCircle />
+                          ) : (
+                            <Random className="h-3 w-3" />
+                          )}
+                        </button>
+                      </Tooltip>
+                    )}
+                    <Tooltip
+                      content={
+                        !plan || plan === "free" ? (
+                          <TooltipContent
+                            title={`AI Short Link generation is only available on ${process.env.NEXT_PUBLIC_APP_NAME}'s Pro plan. Upgrade to Pro to use this feature.`}
+                            cta="Upgrade to Pro"
+                            {...(plan === "free"
+                              ? {
+                                  onClick: () =>
+                                    queryParams({
+                                      set: {
+                                        upgrade: "pro",
+                                      },
+                                    }),
+                                }
+                              : {
+                                  href: `${HOME_DOMAIN}/pricing`,
+                                })}
+                          />
+                        ) : (
+                          "Create Short Link with AI"
+                        )
+                      }
                     >
-                      <Lock className="h-3 w-3" />
-                      <p>Unlock</p>
-                    </button>
-                  ) : (
-                    <button
-                      className="flex items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
-                      onClick={generateRandomKey}
-                      disabled={generatingKey}
-                      type="button"
-                    >
-                      {generatingKey ? (
-                        <LoadingCircle />
-                      ) : (
-                        <Random className="h-3 w-3" />
-                      )}
-                      <p>{generatingKey ? "Generating" : "Randomize"}</p>
-                    </button>
-                  )}
+                      <button
+                        className="flex items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
+                        onClick={generateAIKey}
+                        disabled={
+                          generatingAIKey ||
+                          generatingRandomKey ||
+                          !plan ||
+                          plan === "free"
+                        }
+                        type="button"
+                      >
+                        {generatingAIKey ? (
+                          <LoadingCircle />
+                        ) : (
+                          <Magic className="h-4 w-4" />
+                        )}
+                      </button>
+                    </Tooltip>
+                  </div>
                 </div>
                 <div className="relative mt-1 flex rounded-md shadow-sm">
                   <select
