@@ -340,17 +340,27 @@ Prerequisites:
 
 ## Step 5: Set up GitHub OAuth
 
-Next, follow [these steps](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps) to create a GitHub App. This will allow you to sign in to Dub.co with your GitHub account.
+This step will allow you to sign in to Dub.co with your GitHub account.
 
-Don't forget to set the following Callback URL:
+First, [create a GitHub App](https://github.com/settings/apps/new). Add the following callback URL for such:
 
 ```
 http://localhost:8888/api/auth/callback/github
 ```
 
+For the homepage URL, you can use `http://localhost:8888/`. If you set up this correctly, you will see your GitHub profile's avatar image once you run Dub on localhost. 
+
 Once your GitHub App is created, copy the `Client ID` and `Client Secret` into your `.env` file as the `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` environment variables.
 
-## Step 6: Start the development server
+Second, generate a `NEXTAUTH_SECRET` [here](https://generate-secret.vercel.app/32). Paste the generated value into the `.env` file. 
+
+### Step 6: Add your Postmark API key
+
+Add your Postmark API key to the `.env` file as the `POSTMARK_API_KEY` environment variable. 
+
+You'll need a work email to [sign up for a Postmark account](https://account.postmarkapp.com/sign_up). 
+
+### Step 7: Start the development server
 
 Finally, you can start the development server. This will build the packages + start the app servers.
 
