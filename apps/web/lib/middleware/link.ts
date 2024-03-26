@@ -150,7 +150,7 @@ export default async function LinkMiddleware(
   } else if (rewrite) {
     if (iframeable) {
       return NextResponse.rewrite(
-        new URL(`/rewrite/${encodeURIComponent(url)}`, req.url),
+        new URL(`/cloaked/${encodeURIComponent(url)}`, req.url),
         DUB_HEADERS,
       );
     } else {
