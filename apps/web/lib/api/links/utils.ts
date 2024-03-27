@@ -1,0 +1,130 @@
+import {
+  isBlacklistedDomain,
+  isBlacklistedKey,
+  isReservedKey,
+  isReservedUsername,
+} from "@/lib/edge-config";
+import prisma from "@/lib/prisma";
+import { isStored, storage } from "@/lib/storage";
+import { formatRedisLink, redis } from "@/lib/upstash";
+import {
+  getLinksCountQuerySchema,
+  getLinksQuerySchema,
+} from "@/lib/zod/schemas/links";
+import {
+  APP_DOMAIN_WITH_NGROK,
+  DEFAULT_REDIRECTS,
+  DUB_DOMAINS,
+  SHORT_DOMAIN,
+  getDomainWithoutWWW,
+  getParamsFromURL,
+  getUrlFromString,
+  isDubDomain,
+  isValidUrl,
+  linkConstructor,
+  truncate,
+  validKeyRegex,
+} from "@dub/utils";
+import { Prisma } from "@prisma/client";
+import { checkIfKeyExists, getRandomKey } from "@/lib/planetscale";
+import { recordLink } from "@/lib/tinybird";
+import {
+  LinkProps,
+  LinkWithTagIdsProps,
+  RedisLinkProps,
+  WorkspaceProps,
+} from "@/lib/types";
+import z from "@/lib/zod";
+import { qstash } from "@/lib/cron";
+
+export function combineTagIds({
+  tagId,
+  tagIds,
+}: {
+  tagId?: string | null;
+  tagIds?: string[];
+}): string[] {
+  // Use tagIds if present, fall back to tagId
+  if (tagIds && Array.isArray(tagIds) && tagIds.length > 0) {
+    return tagIds;
+  }
+  return tagId ? [tagId] : [];
+}
+
+export async function keyChecks({
+  domain,
+  key,
+  workspace,
+}: {
+  domain: string;
+  key: string;
+  workspace?: WorkspaceProps;
+}) {
+  if (key.length === 0) {
+    if (workspace?.plan === "free") {
+      return {
+        error:
+          "You can only set a redirect for your root domain on a Pro plan and above. Upgrade to Pro to unlock this feature.",
+        code: "forbidden",
+      };
+    } else {
+      return {
+        error:
+          "To set a redirect for your root domain, navigate to your Domains tab and click 'Edit' on the domain you want to update.",
+        code: "unprocessable_entity",
+      };
+    }
+  }
+
+  const link = await checkIfKeyExists(domain, key);
+  if (link) {
+    return {
+      error: "Duplicate key: This short link already exists.",
+      code: "conflict",
+    };
+  }
+
+  if (isDubDomain(domain) && process.env.NEXT_PUBLIC_IS_DUB) {
+    if (
+      domain === SHORT_DOMAIN &&
+      (DEFAULT_REDIRECTS[key] || (await isReservedKey(key)))
+    ) {
+      return {
+        error: "Duplicate key: This short link already exists.",
+        code: "conflict",
+      };
+    }
+
+    if (key.length <= 3 && (!workspace || workspace.plan === "free")) {
+      return {
+        error: `You can only use keys that are 3 characters or less on a Pro plan and above. Upgrade to Pro to register a ${key.length}-character key.`,
+        code: "forbidden",
+      };
+    }
+    if (
+      (await isReservedUsername(key)) &&
+      (!workspace || workspace.plan === "free")
+    ) {
+      return {
+        error:
+          "This is a premium key. You can only use this key on a Pro plan and above. Upgrade to Pro to register this key.",
+        code: "forbidden",
+      };
+    }
+  }
+  return {
+    error: null,
+  };
+}
+
+export function processKey(key: string) {
+  if (!validKeyRegex.test(key)) {
+    return null;
+  }
+  // remove all leading and trailing slashes from key
+  key = key.replace(/^\/+|\/+$/g, "");
+  // replace all special characters
+  key = key.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+  return key;
+}

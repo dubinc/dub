@@ -1,15 +1,7 @@
-import { getAnalytics } from "@/lib/analytics";
-import { qstash, receiver, sendLimitEmail } from "@/lib/cron";
+import { receiver, sendLimitEmail } from "@/lib/cron";
 import prisma from "@/lib/prisma";
-import { recordLink } from "@/lib/tinybird";
 import { WorkspaceProps } from "@/lib/types";
-import { formatRedisLink, redis } from "@/lib/upstash";
-import {
-  APP_DOMAIN_WITH_NGROK,
-  GOOGLE_FAVICON_URL,
-  getApexDomain,
-  log,
-} from "@dub/utils";
+import { GOOGLE_FAVICON_URL, getApexDomain, log } from "@dub/utils";
 
 export async function POST(req: Request) {
   const body = await req.json();
@@ -55,26 +47,6 @@ export async function POST(req: Request) {
       });
     }
   }
-
-  // for public links, delete after 30 mins (if not claimed)
-  if (!link.userId) {
-    await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/delete`,
-      // delete after 30 mins
-      delay: 30 * 60,
-      body: {
-        linkId,
-      },
-    });
-  }
-
-  // update redis and tinybird
-  await Promise.all([
-    redis.hset(link.domain, {
-      [link.key.toLowerCase()]: await formatRedisLink(link),
-    }),
-    recordLink({ link }),
-  ]);
 
   // increment links usage and send alert if needed
   if (type === "create" && link.projectId) {
@@ -142,50 +114,6 @@ export async function POST(req: Request) {
         ]);
       }
     }
-  }
-
-  if (type === "transfer") {
-    const oldWorkspaceId = await redis.get<string>(
-      `transfer:${linkId}:oldWorkspaceId`,
-    );
-
-    const linkClicks = await getAnalytics({
-      linkId,
-      endpoint: "clicks",
-      interval: "30d",
-    });
-
-    // update old and new project usage
-    await Promise.all([
-      oldWorkspaceId &&
-        prisma.project.update({
-          where: {
-            id: oldWorkspaceId,
-          },
-          data: {
-            usage: {
-              decrement: linkClicks,
-            },
-            linksUsage: {
-              decrement: 1,
-            },
-          },
-        }),
-      link.projectId &&
-        prisma.project.update({
-          where: {
-            id: link.projectId,
-          },
-          data: {
-            usage: {
-              increment: linkClicks,
-            },
-            linksUsage: {
-              increment: 1,
-            },
-          },
-        }),
-    ]);
   }
 
   return new Response("OK", { status: 200 });
