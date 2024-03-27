@@ -4,7 +4,7 @@ import { sendEmail } from "emails";
 import ClicksExceeded from "emails/clicks-exceeded";
 import LinksLimitAlert from "emails/links-limit";
 import prisma from "./prisma";
-import { WorkspaceProps } from "./types";
+import { Project } from "@prisma/client";
 
 export const limiter = new Bottleneck({
   maxConcurrent: 1, // maximum concurrent requests
@@ -44,7 +44,7 @@ export const sendLimitEmail = async ({
   type,
 }: {
   emails: string[];
-  workspace: WorkspaceProps;
+  workspace: Pick<Project, "id" | "name" | "linksUsage" | "linksLimit">;
   type:
     | "firstUsageLimitEmail"
     | "secondUsageLimitEmail"

@@ -79,7 +79,7 @@ export const updateUsage = async (skip?: number) => {
       if (!sentFirstUsageLimitEmail) {
         sendLimitEmail({
           emails,
-          workspace: workspace as unknown as WorkspaceProps,
+          workspace,
           type: "firstUsageLimitEmail",
         });
       } else {
@@ -95,7 +95,7 @@ export const updateUsage = async (skip?: number) => {
           if (daysSinceFirstEmail >= 3) {
             sendLimitEmail({
               emails,
-              workspace: workspace as unknown as WorkspaceProps,
+              workspace,
               type: "secondUsageLimitEmail",
             });
           }

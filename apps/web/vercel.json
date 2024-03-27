@@ -9,7 +9,7 @@
       "schedule": "0 14 * * *"
     },
     {
-      "path": "/api/links/usage",
+      "path": "/api/cron/links/usage",
       "schedule": "*/5 * * * *"
     }
   ],
