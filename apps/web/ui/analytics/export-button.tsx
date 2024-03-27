@@ -22,45 +22,50 @@ export default function ExportButton() {
     "top_links",
   ];
 
-  const exportData = async () => {
-    const zipFile = new zip();
+  async function exportData() {
+    return new Promise(async (resolve, reject) => {
+      setLoading(true);
+      const zipFile = new zip();
 
-    try {
-      for (const endpoint of exportableEndpoints) {
-        const response = await fetch(
-          `${baseApiPath}/${endpoint}/export?${queryString}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
+      try {
+        for (const endpoint of exportableEndpoints) {
+          const response = await fetch(
+            `${baseApiPath}/${endpoint}/export?${queryString}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+              },
             },
-          },
-        );
+          );
 
-        if (response.ok) {
-          if (response.status === 204) continue;
+          if (response.ok) {
+            if (response.status === 204) continue;
 
-          const data = await response.blob();
-          zipFile.file(`${endpoint}.csv`, data);
-        } else {
-          throw new Error("Failed to export");
+            const data = await response.blob();
+            zipFile.file(`${endpoint}.csv`, data);
+          } else {
+            const error = await response.json();
+            setLoading(false);
+            reject(error);
+          }
         }
+      } catch (error) {
+        setLoading(false);
+        reject(error);
       }
-    } catch (error) {
-      console.error(error);
-      toast.error(error.message);
-      return;
-    }
 
-    zipFile.generateAsync({ type: "blob" }).then((blob) => {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `Dub Analytics Export - ${new Date().toISOString()}.zip`;
-      a.click();
-      toast.success("Exported successfully");
+      zipFile.generateAsync({ type: "blob" }).then((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `Dub Analytics Export - ${new Date().toISOString()}.zip`;
+        a.click();
+        setLoading(false);
+        resolve(null);
+      });
     });
-  };
+  }
 
   // show a tooltip to make the user aware that there is no data to export if there is no data
   return totalClicks === 0 || !totalClicks ? (
@@ -85,9 +90,11 @@ export default function ExportButton() {
       disabled={loading}
       className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md border border-gray-200 bg-white transition-all focus:border-gray-500 focus:ring-4 focus:ring-gray-200 disabled:cursor-progress disabled:text-gray-400 disabled:hover:bg-white disabled:active:bg-white"
       onClick={async () => {
-        setLoading(true);
-        await exportData();
-        setLoading(false);
+        toast.promise(exportData(), {
+          loading: "Exporting data...",
+          success: "Exported successfully",
+          error: (error) => error,
+        });
       }}
     >
       {loading ? (
