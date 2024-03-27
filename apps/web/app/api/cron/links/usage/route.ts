@@ -1,7 +1,7 @@
 import { sendLimitEmail, verifySignature } from "@/lib/cron";
 import { log } from "@dub/utils";
-import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { WorkspaceProps } from "@/lib/types";
 
 // Cron to update the links usage of each workspace.
 // Runs once every 5 mins (*/5 * * * *)
@@ -22,6 +22,7 @@ export async function GET(req: Request) {
         linksUsage: true,
         linksLimit: true,
       },
+      take: 30,
     });
 
     for (const workspace of workspaces) {
@@ -66,7 +67,7 @@ export async function GET(req: Request) {
 
       await sendLimitEmail({
         emails,
-        workspace,
+        workspace: workspace as WorkspaceProps,
         type:
           percentage === 80 ? "firstLinksLimitEmail" : "secondLinksLimitEmail",
       });
