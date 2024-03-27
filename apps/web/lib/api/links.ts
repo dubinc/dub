@@ -19,6 +19,7 @@ import {
   getParamsFromURL,
   getUrlFromString,
   isDubDomain,
+  isValidUrl,
   linkConstructor,
   truncate,
   validKeyRegex,
@@ -319,7 +320,7 @@ export async function processLink({
     };
   }
   const processedUrl = getUrlFromString(url);
-  if (!processedUrl) {
+  if (!isValidUrl(processedUrl)) {
     return {
       link: payload,
       error: "Invalid destination url.",
