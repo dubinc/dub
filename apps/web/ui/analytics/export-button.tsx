@@ -10,61 +10,31 @@ export default function ExportButton() {
   const [loading, setLoading] = useState(false);
   const { totalClicks } = useContext(AnalyticsContext);
   const { baseApiPath, queryString } = useContext(AnalyticsContext);
-  const exportableEndpoints = [
-    "timeseries",
-    "country",
-    "top_urls",
-    "device",
-    "referer",
-    "city",
-    "browser",
-    "os",
-    "top_links",
-  ];
 
   async function exportData() {
-    return new Promise(async (resolve, reject) => {
-      setLoading(true);
-      const zipFile = new zip();
+    setLoading(true);
+    try {
+      const response = await fetch(`${baseApiPath}/export?${queryString}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-      try {
-        for (const endpoint of exportableEndpoints) {
-          const response = await fetch(
-            `${baseApiPath}/${endpoint}/export?${queryString}`,
-            {
-              method: "GET",
-              headers: {
-                "Content-Type": "application/json",
-              },
-            },
-          );
-
-          if (response.ok) {
-            if (response.status === 204) continue;
-
-            const data = await response.blob();
-            zipFile.file(`${endpoint}.csv`, data);
-          } else {
-            const error = await response.json();
-            setLoading(false);
-            reject(error);
-          }
-        }
-      } catch (error) {
-        setLoading(false);
-        reject(error);
+      if (!response.ok) {
+        throw new Error(response.statusText);
       }
 
-      zipFile.generateAsync({ type: "blob" }).then((blob) => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `Dub Analytics Export - ${new Date().toISOString()}.zip`;
-        a.click();
-        setLoading(false);
-        resolve(null);
-      });
-    });
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Dub Analytics Export - ${new Date().toISOString()}.zip`;
+      a.click();
+    } catch (error) {
+      throw new Error(error);
+    }
+    setLoading(false);
   }
 
   // show a tooltip to make the user aware that there is no data to export if there is no data
@@ -89,9 +59,9 @@ export default function ExportButton() {
     <button
       disabled={loading}
       className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md border border-gray-200 bg-white transition-all focus:border-gray-500 focus:ring-4 focus:ring-gray-200 disabled:cursor-progress disabled:text-gray-400 disabled:hover:bg-white disabled:active:bg-white"
-      onClick={async () => {
+      onClick={() => {
         toast.promise(exportData(), {
-          loading: "Exporting data...",
+          loading: "Exporting files...",
           success: "Exported successfully",
           error: (error) => error,
         });
