@@ -528,19 +528,22 @@ function AddEditLinkModal({
                                   href: `${HOME_DOMAIN}/pricing`,
                                 })}
                           />
+                        ) : !url ? (
+                          "Please enter a destination URL to generate AI Short Link."
                         ) : (
                           "Create Short Link with AI"
                         )
                       }
                     >
                       <button
-                        className="flex items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
+                        className="flex items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95 disabled:cursor-not-allowed"
                         onClick={generateAIKey}
                         disabled={
                           generatingAIKey ||
                           generatingRandomKey ||
                           !plan ||
-                          plan === "free"
+                          plan === "free" ||
+                          !url
                         }
                         type="button"
                       >
