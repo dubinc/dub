@@ -88,7 +88,7 @@ export const PUT = withAuth(async ({ req, headers, workspace, link }) => {
   const response = await editLink({
     oldDomain: link.domain,
     oldKey: link.key,
-    updatedLink: processedLink as any, // TODO: fix types
+    updatedLink: processedLink,
   });
 
   return NextResponse.json(response, {
