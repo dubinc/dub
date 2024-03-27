@@ -11,7 +11,7 @@ import {
   truncate,
 } from "@dub/utils";
 import { Prisma } from "@prisma/client";
-import { combineTagIds } from "./utils";
+import { combineTagIds, dubLinkChecks } from "./utils";
 
 export async function createLink(link: LinkWithTagIdsProps) {
   let { key, url, expiresAt, title, description, image, proxy, geo } = link;
@@ -118,6 +118,8 @@ export async function createLink(link: LinkWithTagIdsProps) {
           },
         },
       }),
+    // if the link is a dub.sh link, do some checks
+    link.domain === "dub.sh" && dubLinkChecks(link),
   ]);
 
   const shortLink = linkConstructor({

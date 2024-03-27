@@ -1,10 +1,13 @@
 import { isReservedKey, isReservedUsername } from "@/lib/edge-config";
 import { checkIfKeyExists } from "@/lib/planetscale";
-import { WorkspaceProps } from "@/lib/types";
+import { SimpleLinkProps, WorkspaceProps } from "@/lib/types";
 import {
   DEFAULT_REDIRECTS,
+  GOOGLE_FAVICON_URL,
   SHORT_DOMAIN,
+  getApexDomain,
   isDubDomain,
+  log,
   validKeyRegex,
 } from "@dub/utils";
 
@@ -98,4 +101,19 @@ export function processKey(key: string) {
   key = key.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
   return key;
+}
+
+export async function dubLinkChecks(link: SimpleLinkProps) {
+  const invalidFavicon = await fetch(
+    `${GOOGLE_FAVICON_URL}${getApexDomain(link.url)}`,
+  ).then((res) => !res.ok);
+
+  if (invalidFavicon) {
+    return await log({
+      message: `Suspicious link detected: ${link.domain}/${link.key} → ${link.url}`,
+      type: "links",
+      mention: true,
+    });
+  }
+  return null;
 }
