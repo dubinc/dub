@@ -1,6 +1,7 @@
 import { intervals, VALID_TINYBIRD_ENDPOINTS } from "@/lib/analytics";
 import z from "@/lib/zod";
 import { COUNTRY_CODES } from "@dub/utils";
+import { DateTime } from "luxon";
 import { booleanQuerySchema } from ".";
 
 export const getAnalyticsQuerySchema = z.object({
@@ -10,6 +11,13 @@ export const getAnalyticsQuerySchema = z.object({
     .enum(intervals)
     .optional()
     .describe("The interval to retrieve analytics for."),
+  timeZone: z
+    .string()
+    .refine((tz) => DateTime.local().setZone(tz).isValid)
+    .optional()
+    .describe(
+      "The IANA time zone code for aligning timeseries granularity (e.g. America/New_York)",
+    ),
   country: z
     .enum(COUNTRY_CODES)
     .optional()
