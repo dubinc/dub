@@ -4,6 +4,7 @@ import { Download } from "lucide-react";
 import { useContext, useState } from "react";
 import { toast } from "sonner";
 import { AnalyticsContext } from ".";
+import { HOME_DOMAIN } from "@dub/utils";
 
 export default function ExportButton() {
   const [loading, setLoading] = useState(false);
@@ -63,7 +64,15 @@ export default function ExportButton() {
 
   // show a tooltip to make the user aware that there is no data to export if there is no data
   return totalClicks === 0 || !totalClicks ? (
-    <Tooltip content={<TooltipContent title="No data available" />}>
+    <Tooltip
+      content={
+        <TooltipContent
+          title="There's no data available for download. Try adjusting your filter or date range settings."
+          cta="Learn more"
+          href={`${HOME_DOMAIN}/help/article/how-to-export-analytics`}
+        />
+      }
+    >
       <button
         disabled={true}
         className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md border border-gray-200 bg-white transition-all disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-white disabled:active:bg-white"
