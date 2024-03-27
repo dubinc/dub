@@ -1,41 +1,15 @@
-import {
-  isBlacklistedDomain,
-  isBlacklistedKey,
-  isReservedKey,
-  isReservedUsername,
-} from "@/lib/edge-config";
+import { isBlacklistedDomain, isBlacklistedKey } from "@/lib/edge-config";
+import { getRandomKey } from "@/lib/planetscale";
 import prisma from "@/lib/prisma";
-import { isStored, storage } from "@/lib/storage";
-import { formatRedisLink, redis } from "@/lib/upstash";
+import { LinkWithTagIdsProps, WorkspaceProps } from "@/lib/types";
 import {
-  getLinksCountQuerySchema,
-  getLinksQuerySchema,
-} from "@/lib/zod/schemas/links";
-import {
-  APP_DOMAIN_WITH_NGROK,
-  DEFAULT_REDIRECTS,
   DUB_DOMAINS,
   SHORT_DOMAIN,
   getDomainWithoutWWW,
-  getParamsFromURL,
   getUrlFromString,
   isDubDomain,
   isValidUrl,
-  linkConstructor,
-  truncate,
-  validKeyRegex,
 } from "@dub/utils";
-import { Prisma } from "@prisma/client";
-import { checkIfKeyExists, getRandomKey } from "@/lib/planetscale";
-import { recordLink } from "@/lib/tinybird";
-import {
-  LinkProps,
-  LinkWithTagIdsProps,
-  RedisLinkProps,
-  WorkspaceProps,
-} from "@/lib/types";
-import z from "@/lib/zod";
-import { qstash } from "@/lib/cron";
 import { combineTagIds, keyChecks, processKey } from "./utils";
 
 export async function processLink({

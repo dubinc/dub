@@ -1,6 +1,5 @@
 import { getAnalytics } from "@/lib/analytics";
 import { DubApiError } from "@/lib/api/errors";
-import { transferLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";

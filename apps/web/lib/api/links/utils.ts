@@ -1,41 +1,12 @@
+import { isReservedKey, isReservedUsername } from "@/lib/edge-config";
+import { checkIfKeyExists } from "@/lib/planetscale";
+import { WorkspaceProps } from "@/lib/types";
 import {
-  isBlacklistedDomain,
-  isBlacklistedKey,
-  isReservedKey,
-  isReservedUsername,
-} from "@/lib/edge-config";
-import prisma from "@/lib/prisma";
-import { isStored, storage } from "@/lib/storage";
-import { formatRedisLink, redis } from "@/lib/upstash";
-import {
-  getLinksCountQuerySchema,
-  getLinksQuerySchema,
-} from "@/lib/zod/schemas/links";
-import {
-  APP_DOMAIN_WITH_NGROK,
   DEFAULT_REDIRECTS,
-  DUB_DOMAINS,
   SHORT_DOMAIN,
-  getDomainWithoutWWW,
-  getParamsFromURL,
-  getUrlFromString,
   isDubDomain,
-  isValidUrl,
-  linkConstructor,
-  truncate,
   validKeyRegex,
 } from "@dub/utils";
-import { Prisma } from "@prisma/client";
-import { checkIfKeyExists, getRandomKey } from "@/lib/planetscale";
-import { recordLink } from "@/lib/tinybird";
-import {
-  LinkProps,
-  LinkWithTagIdsProps,
-  RedisLinkProps,
-  WorkspaceProps,
-} from "@/lib/types";
-import z from "@/lib/zod";
-import { qstash } from "@/lib/cron";
 
 export function combineTagIds({
   tagId,
