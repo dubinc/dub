@@ -41,7 +41,7 @@ export default function TagSelector() {
       inputAttrs={{
         placeholder: "Filter tags",
       }}
-      className="border-none shadow transition-all hover:shadow-md md:w-48"
+      className="md:w-48"
     />
   ) : undefined;
 }

@@ -66,7 +66,7 @@ export default function ExportButton() {
     <Tooltip content={<TooltipContent title="No data available" />}>
       <button
         disabled={true}
-        className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md bg-white shadow transition-all hover:shadow-md disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-white disabled:active:bg-white"
+        className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md border border-gray-200 bg-white transition-all disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-white disabled:active:bg-white"
       >
         <Download className="h-4 w-4" />
       </button>
@@ -74,7 +74,7 @@ export default function ExportButton() {
   ) : (
     <button
       disabled={loading}
-      className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md bg-white shadow transition-all hover:shadow-md disabled:cursor-progress disabled:text-gray-400 disabled:hover:bg-white disabled:active:bg-white"
+      className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md border border-gray-200 bg-white transition-all focus:border-gray-500 focus:ring-4 focus:ring-gray-200 disabled:cursor-progress disabled:text-gray-400 disabled:hover:bg-white disabled:active:bg-white"
       onClick={async () => {
         setLoading(true);
         await exportData();

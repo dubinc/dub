@@ -1,3 +1,4 @@
+import { cn } from "@dub/utils";
 import { Command, useCommandState } from "cmdk";
 import { Check, ChevronDown, Search, X } from "lucide-react";
 import {
@@ -9,10 +10,9 @@ import {
   useRef,
   useState,
 } from "react";
-import { Badge } from "./badge";
-import { cn } from "@dub/utils";
-import { useMediaQuery } from "./hooks";
 import { Drawer } from "vaul";
+import { Badge } from "./badge";
+import { useMediaQuery } from "./hooks";
 
 export interface InputSelectItemProps {
   id: string;
@@ -245,7 +245,7 @@ export function InputSelect({
     <Command ref={commandRef} className="relative" loop>
       <div
         className={cn(
-          "group rounded-md border border-gray-300 bg-white px-1 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500",
+          "group rounded-md border border-gray-200 bg-white px-1 transition-all focus-within:border-gray-500 focus-within:ring-4 focus-within:ring-gray-200",
           className,
         )}
       >
