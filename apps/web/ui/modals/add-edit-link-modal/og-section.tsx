@@ -320,7 +320,7 @@ export default function OGSection({
                   {title?.length || 0}/120
                 </p>
                 <button
-                  className="flex items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95 disabled:cursor-not-allowed"
+                  className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
                   onClick={() => generateMetaData("title")}
                   disabled={loadingMetaData.title}
                   type="button"
@@ -365,7 +365,7 @@ export default function OGSection({
                   {description?.length || 0}/240
                 </p>
                 <button
-                  className="flex items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95 disabled:cursor-not-allowed"
+                  className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
                   onClick={() => generateMetaData("description")}
                   disabled={loadingMetaData.description}
                   type="button"

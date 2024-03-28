@@ -486,7 +486,7 @@ function AddEditLinkModal({
                   >
                     Short Link
                   </label>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center">
                     {props && lockKey ? (
                       <button
                         className="flex items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
@@ -502,7 +502,7 @@ function AddEditLinkModal({
                     ) : (
                       <Tooltip content="Generate a random key">
                         <button
-                          className="flex items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
+                          className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
                           onClick={generateRandomKey}
                           disabled={generatingRandomKey || generatingAIKey}
                           type="button"
@@ -542,7 +542,7 @@ function AddEditLinkModal({
                       }
                     >
                       <button
-                        className="flex items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95 disabled:cursor-not-allowed"
+                        className="ml-2 flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
                         onClick={generateAIKey}
                         disabled={
                           generatingAIKey ||
