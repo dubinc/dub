@@ -109,9 +109,11 @@ model Project {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
+  usageLastChecked DateTime  @default(now())
   inviteCode  String? @unique
   defaultDomains DefaultDomains[]
+
+  @@index(usageLastChecked(sort: Asc))
 }
 
 model ProjectInvite {

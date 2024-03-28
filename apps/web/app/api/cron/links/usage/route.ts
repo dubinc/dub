@@ -7,8 +7,6 @@ import { Project } from "@prisma/client";
 // Cron to update the links usage of each workspace.
 // Runs once every 5 mins (*/5 * * * *)
 
-const take = 30;
-
 export async function GET(req: Request) {
   const validSignature = await verifySignature(req);
 
@@ -25,13 +23,26 @@ export async function GET(req: Request) {
       linksUsage: true,
       linksLimit: true,
     },
-    take,
+    orderBy: {
+      usageLastChecked: "asc",
+    },
+    take: 30,
   });
 
   try {
-    await Promise.allSettled(
-      workspaces.map((workspace) => sendUsageEmail(workspace)),
-    );
+    await Promise.allSettled([
+      prisma.project.updateMany({
+        where: {
+          id: {
+            in: workspaces.map(({ id }) => id),
+          },
+        },
+        data: {
+          usageLastChecked: new Date(),
+        },
+      }),
+      ...workspaces.map((workspace) => sendUsageEmail(workspace)),
+    ]);
 
     return new Response("OK");
   } catch (error) {
