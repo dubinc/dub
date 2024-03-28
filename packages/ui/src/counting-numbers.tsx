@@ -1,12 +1,12 @@
-import React, {
-  useState,
-  useEffect,
-  ElementType,
-  ReactNode,
-  ForwardedRef,
-} from "react";
-import { Slot } from "@radix-ui/react-slot";
 import { nFormatter } from "@dub/utils";
+import { Slot } from "@radix-ui/react-slot";
+import React, {
+  ElementType,
+  ForwardedRef,
+  ReactNode,
+  useEffect,
+  useState,
+} from "react";
 
 interface CountingNumbersProps {
   asChild?: boolean;

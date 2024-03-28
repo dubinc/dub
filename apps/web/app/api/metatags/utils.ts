@@ -64,7 +64,9 @@ export const getMetaTags = async (url: string) => {
     let { property, content } = metaTags[k];
 
     // !object[property] → (meaning we're taking the first instance of a metatag and ignoring the rest)
-    property && !object[property] && (object[property] = content && he.decode(content));
+    property &&
+      !object[property] &&
+      (object[property] = content && he.decode(content));
   }
 
   for (let m in linkTags) {

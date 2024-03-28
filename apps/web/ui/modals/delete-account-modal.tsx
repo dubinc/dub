@@ -55,8 +55,8 @@ function DeleteAccountModal({
         <Avatar user={session?.user} />
         <h3 className="text-lg font-medium">Delete Account</h3>
         <p className="text-center text-sm text-gray-500">
-          Warning: This will permanently delete your account, all your workspaces,
-          and all your short links.
+          Warning: This will permanently delete your account, all your
+          workspaces, and all your short links.
         </p>
       </div>
 

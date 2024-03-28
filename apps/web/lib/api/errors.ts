@@ -1,8 +1,8 @@
+import z from "@/lib/zod";
+import { capitalize } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { generateErrorMessage } from "zod-error";
-import z from "@/lib/zod";
-import { capitalize } from "@dub/utils";
 import { PlanProps } from "../types";
 
 export const ErrorCode = z.enum([

@@ -1,5 +1,5 @@
-import { withAuth } from "@/lib/auth";
 import { DubApiError } from "@/lib/api/errors";
+import { withAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { getLinkInfoQuerySchema } from "@/lib/zod/schemas/links";
 import { linkConstructor } from "@dub/utils";
