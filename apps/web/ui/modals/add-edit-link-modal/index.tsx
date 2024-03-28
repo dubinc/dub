@@ -58,6 +58,7 @@ import PasswordSection from "./password-section";
 import Preview from "./preview";
 import TagsSection from "./tags-section";
 import UTMSection from "./utm-section";
+import { useChat } from "ai/react";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
@@ -83,6 +84,24 @@ function AddEditLinkModal({
   const [generatingRandomKey, setGeneratingRandomKey] = useState(false);
   const [generatingAIKey, setGeneratingAIKey] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  const { messages, append, setMessages } = useChat({
+    api: `/api/ai/shortlink?workspaceId=${workspaceId}`,
+    onFinish(message) {
+      if (message.role === "assistant") {
+        setData((prev) => ({ ...prev, key: message.content }));
+      }
+    },
+    // initial system message
+    initialMessages: [
+      {
+        id: "initial-prop",
+        role: "system",
+        content:
+          "You are a helpful assistant and only answer in short link keys, e.g. you receive a question like 'What is the shortlink for meta-title Notion and meta-description The all in one workspace?' and you respond with e.g. 'notion-workspace'. Try to combine them in a shortlink that makes sense and is easy to share on social media. Don't use any special characters or spaces and only response with keys less than 20 characters long. If it makes sense, try to use shortnames for companies, e.g. techcrunch -> tc.",
+      },
+    ],
+  });
 
   const {
     allActiveDomains: domains,
@@ -117,39 +136,17 @@ function AddEditLinkModal({
     setGeneratingRandomKey(false);
   }, [domain, slug]);
 
-  const generateAIKey = useCallback(async () => {
+  const generateAIKey = async () => {
     setKeyError(null);
     setGeneratingAIKey(true);
 
-    const returnKey = async (doNotUseKey?) =>
-      await fetch(`/api/ai/shortlink?workspaceId=${workspaceId}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          metaTitle: data.title,
-          metaDescription: data.description,
-          doNotUseKey,
-        }),
-      }).then(async (res) => {
-        if (res.status !== 200) {
-          const error = await res.text();
-          setKeyError(error);
-          setGeneratingAIKey(false);
-          throw new Error(error);
-        }
-        return res.text();
-      });
-
-    let key = await returnKey();
-
-    if (key === data.key) key = await returnKey(key);
-
-    setData((prev) => ({ ...prev, key }));
+    await append({
+      role: "user",
+      content: `What is the shortlink for meta-title ${data.title} and meta-description ${data.description}? Please respond with a unique key you haven't used before.`,
+    });
 
     setGeneratingAIKey(false);
-  }, [data, workspaceId, slug]);
+  };
 
   useEffect(() => {
     // when someone pastes a URL

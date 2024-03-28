@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
   const searchParams = getSearchParams(req.url);
   const { workspaceId } = searchParams;
 
-  const { metaTitle, metaDescription, doNotUseKey } = await req.json();
+  const { messages } = await req.json();
 
   const workspace = await getWorkspaceViaEdge(workspaceId);
 
@@ -28,17 +28,7 @@ export async function POST(req: NextRequest) {
       model: "gpt-4",
       max_tokens: 100,
       stream: true,
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are a helpful assistant and only answer in short link keys, e.g. you receive a question like 'What is the shortlink for meta-title Notion and meta-description The all in one workspace?' and you respond with e.g. 'notion-workspace'. Try to combine them in a shortlink that makes sense and is easy to share on social media. Don't use any special characters or spaces. Please use acronyms if appropriate for a company name, for example techcrunch -> tc.",
-        },
-        {
-          role: "user",
-          content: `What is the shortlink for meta-title ${metaTitle} and meta-description ${metaDescription}?${doNotUseKey ? ` Don't use ${doNotUseKey}` : ""}`,
-        },
-      ],
+      messages,
     });
 
     const stream = OpenAIStream(response);
