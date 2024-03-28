@@ -102,6 +102,7 @@ export default function Analytics({
       ...(interval && { interval }),
       ...(tagId && { tagId }),
       ...availableFilterParams,
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     }).toString();
   }, [id, domain, key, searchParams, interval, tagId]);
 

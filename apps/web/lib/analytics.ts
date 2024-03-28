@@ -98,6 +98,7 @@ export const getAnalytics = async ({
   domain,
   endpoint,
   interval,
+  timeZone,
   ...rest
 }: z.infer<typeof getAnalyticsQuerySchema> & {
   workspaceId?: string;
@@ -160,6 +161,10 @@ export const getAnalytics = async ({
     );
 
     url.searchParams.append("granularity", intervalData[interval].granularity);
+  }
+
+  if (timeZone) {
+    url.searchParams.append("timeZone", timeZone);
   }
 
   VALID_ANALYTICS_FILTERS.forEach((filter) => {

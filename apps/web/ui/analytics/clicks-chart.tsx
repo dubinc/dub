@@ -62,7 +62,8 @@ export default function ClicksChart() {
                 <strong className="text-gray-800">
                   {nFormatter(d.values.clicks, { full: true })}
                 </strong>{" "}
-                clicks
+                click
+                {d.values.clicks !== 1 && "s"}
               </p>
               <p className="text-sm text-gray-500">{formatDate(d.date)}</p>
             </>

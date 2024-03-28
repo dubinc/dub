@@ -7,8 +7,8 @@ SQL >
 
     %
     WITH
-        toStartOfDay(toDateTime64({{ DateTime64(start, '2022-09-25 00:00:00.000') }}, 3)) AS start,
-        toStartOfDay(toDateTime64({{ DateTime64(end, '2022-12-20 00:00:00.000') }}, 3)) AS end
+        toStartOfDay(toDateTime64({{ DateTime64(start, '2022-09-25 00:00:00.000') }}, 3), {{ String(timeZone, 'UTC') }}) AS start,
+        toStartOfDay(toDateTime64({{ DateTime64(end, '2022-12-20 00:00:00.000') }}, 3), {{ String(timeZone, 'UTC') }}) AS end
     SELECT arrayJoin(arrayMap(x -> toDateTime64(x, 3), range(toUInt32(start + 86400), toUInt32(end + 86400), 86400))) as interval
 
 
@@ -18,8 +18,8 @@ SQL >
 
     %
     WITH
-        toStartOfHour(toDateTime64({{ DateTime64(start, '2022-12-19 00:00:00.000') }}, 3)) AS start,
-        toStartOfHour(toDateTime64({{ DateTime64(end, '2022-12-20 00:00:00.000') }}, 3)) AS end
+        toStartOfHour(toDateTime64({{ DateTime64(start, '2022-12-19 00:00:00.000') }}, 3), {{ String(timeZone, 'UTC') }}) AS start,
+        toStartOfHour(toDateTime64({{ DateTime64(end, '2022-12-20 00:00:00.000') }}, 3), {{ String(timeZone, 'UTC') }}) AS end
     SELECT arrayJoin(arrayMap(x -> toDateTime64(x, 3), range(toUInt32(start + 3600), toUInt32(end + 3600), 3600))) as interval
 
 
@@ -40,13 +40,13 @@ SQL >
 
     %
     SELECT  
-        toStartOfMonth(toDateTime64({{ DateTime64(start, '2023-02-23 20:45:02.959') }}, 3)) as interval
+        toStartOfMonth(toDateTime64({{ DateTime64(start, '2023-02-23 20:45:02.959') }}, 3), {{ String(timeZone, 'UTC') }}) as interval
     ORDER BY interval ASC
     WITH FILL
     FROM
-        toStartOfMonth(toDateTime64({{ DateTime64(start, '2023-02-23 20:45:02.959') }}, 3))
+        toStartOfMonth(toDateTime64({{ DateTime64(start, '2023-02-23 20:45:02.959') }}, 3), {{ String(timeZone, 'UTC') }})
     TO 
-        toStartOfMonth(addMonths(toDateTime64({{ DateTime64(end, '2023-06-06 20:45:02.959') }}, 3), 1))
+        toStartOfMonth(addMonths(toDateTime64({{ DateTime64(end, '2023-06-06 20:45:02.959') }}, 3), 1), {{ String(timeZone, 'UTC') }})
     STEP interval 1 month
 
 
@@ -60,9 +60,9 @@ SQL >
     %
     SELECT
         {% if granularity == "minute" %} toStartOfMinute(timestamp)
-        {% elif granularity == "hour" %} toStartOfHour(timestamp)
-        {% elif granularity == "month" %} toDateTime(toStartOfMonth(timestamp))
-        {% else %} toDateTime(toStartOfDay(timestamp))
+        {% elif granularity == "hour" %} toStartOfHour(timestamp, {{ String(timeZone, 'UTC') }})
+        {% elif granularity == "month" %} toDateTime(toStartOfMonth(timestamp, {{ String(timeZone, 'UTC') }}))
+        {% else %} toDateTime(toStartOfDay(timestamp, {{ String(timeZone, 'UTC') }}))
         {% end %} AS interval,
         uniq(*) as clicks
     FROM
