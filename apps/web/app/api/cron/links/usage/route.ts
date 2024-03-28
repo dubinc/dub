@@ -1,11 +1,13 @@
-import { sendLimitEmail, verifySignature } from "@/lib/cron";
-import { log } from "@dub/utils";
+import { sendLimitEmail, verifySignature, qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import { Project } from "@prisma/client";
+import { APP_DOMAIN_WITH_NGROK, getSearchParams, log } from "@dub/utils";
 
 // Cron to update the links usage of each workspace.
 // Runs once every 5 mins (*/5 * * * *)
+
+const limit = 30;
 
 export async function GET(req: Request) {
   const validSignature = await verifySignature(req);
@@ -13,6 +15,8 @@ export async function GET(req: Request) {
   if (!validSignature) {
     return new Response("Unauthorized", { status: 401 });
   }
+
+  const { skip } = getSearchParams(req.url);
 
   const workspaces = await prisma.project.findMany({
     select: {
@@ -23,26 +27,25 @@ export async function GET(req: Request) {
       linksUsage: true,
       linksLimit: true,
     },
-    orderBy: {
-      usageLastChecked: "asc",
-    },
-    take: 30,
+    take: limit,
+    skip: skip ? parseInt(skip) : 0,
   });
 
+  if (workspaces.length === 0) {
+    return new Response("OK");
+  }
+
   try {
-    await Promise.allSettled([
-      prisma.project.updateMany({
-        where: {
-          id: {
-            in: workspaces.map(({ id }) => id),
-          },
-        },
-        data: {
-          usageLastChecked: new Date(),
-        },
-      }),
-      ...workspaces.map((workspace) => sendUsageEmail(workspace)),
-    ]);
+    await Promise.allSettled(
+      workspaces.map((workspace) => sendUsageEmail(workspace)),
+    );
+
+    await qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/usage?skip=${
+        skip ? parseInt(skip) + limit : limit
+      }`,
+      method: "GET",
+    });
 
     return new Response("OK");
   } catch (error) {
