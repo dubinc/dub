@@ -1,17 +1,21 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { getIdentityHash } from "@/lib/edge";
 import { ratelimit } from "@/lib/upstash";
-import { getUrlQuerySchema } from "@/lib/zod/schemas/links";
+import {
+  getDomainQuerySchema,
+  getUrlQuerySchema,
+} from "@/lib/zod/schemas/links";
+import { isIframeable } from "@dub/utils";
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
-import { getMetaTags } from "./utils";
 
 export const runtime = "edge";
 
 export async function GET(req: NextRequest) {
   try {
-    const { url } = getUrlQuerySchema.parse({
+    const { url, domain } = getUrlQuerySchema.and(getDomainQuerySchema).parse({
       url: req.nextUrl.searchParams.get("url"),
+      domain: req.nextUrl.searchParams.get("domain"),
     });
 
     // Rate limit if user is not logged in
@@ -21,7 +25,9 @@ export async function GET(req: NextRequest) {
     });
     if (!session?.email) {
       const identity_hash = await getIdentityHash(req);
-      const { success } = await ratelimit().limit(`metatags:${identity_hash}`);
+      const { success } = await ratelimit().limit(
+        `iframeable:${identity_hash}`,
+      );
       if (!success) {
         throw new DubApiError({
           code: "rate_limit_exceeded",
@@ -30,23 +36,10 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    const metatags = await getMetaTags(url);
-    return NextResponse.json(metatags, {
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-      },
-    });
+    const iframeable = await isIframeable({ url, requestDomain: domain });
+
+    return NextResponse.json({ iframeable });
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
-}
-
-export function OPTIONS() {
-  return new Response(null, {
-    status: 204,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, OPTIONS",
-    },
-  });
 }

@@ -37,7 +37,7 @@ export default function DomainInput({
 
   const [domainType, setDomainType] = useState<string | undefined>(undefined);
   const apexDomain = useMemo(
-    () => getApexDomain(getUrlFromString(domain) || ""),
+    () => getApexDomain(getUrlFromString(domain)),
     [domain],
   );
 

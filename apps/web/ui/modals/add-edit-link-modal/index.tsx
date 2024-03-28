@@ -48,6 +48,7 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
 import AndroidSection from "./android-section";
+import CloakingSection from "./cloaking-section";
 import CommentsSection from "./comments-section";
 import ExpirationSection from "./expiration-section";
 import GeoSection from "./geo-section";
@@ -55,7 +56,6 @@ import IOSSection from "./ios-section";
 import OGSection from "./og-section";
 import PasswordSection from "./password-section";
 import Preview from "./preview";
-import RewriteSection from "./rewrite-section";
 import TagsSection from "./tags-section";
 import UTMSection from "./utm-section";
 
@@ -659,7 +659,7 @@ function AddEditLinkModal({
                 {...{ props, data, setData }}
                 generatingMetatags={generatingMetatags}
               />
-              <RewriteSection {...{ data, setData }} />
+              <CloakingSection {...{ data, setData }} />
               <PasswordSection {...{ props, data, setData }} />
               <ExpirationSection {...{ props, data, setData }} />
               <IOSSection {...{ props, data, setData }} />
