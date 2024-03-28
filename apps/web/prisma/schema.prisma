@@ -109,6 +109,7 @@ model Project {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
   inviteCode  String? @unique
   defaultDomains DefaultDomains[]
 }
