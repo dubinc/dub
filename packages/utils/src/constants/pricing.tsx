@@ -2,8 +2,8 @@ import { nFormatter } from "../functions";
 
 const BUSINESS_PLAN_MODIFIER = ({
   name = "Business",
-  monthly = 49,
-  yearly = 39,
+  monthly = 59,
+  yearly = 49,
   links = 5000,
   clicks = 150000,
   domains = 40,
@@ -184,19 +184,21 @@ export const PLANS = [
   },
   BUSINESS_PLAN_MODIFIER({
     name: "Business",
-    monthly: 49,
-    yearly: 39,
+    monthly: 59,
+    yearly: 49,
     links: 5000,
     clicks: 150000,
     domains: 40,
     tags: 150,
     users: 15,
     ids: [
-      "price_1LodLoAlJJEpqkPVJdwv5zrG", // old yearly
-      "price_1LoyrCAlJJEpqkPVZ32BV3wm", // new monthly (test)
-      "price_1LodLoAlJJEpqkPV9rD0rlNL", // old & new monthly (prod, no change)
-      "price_1OTcRzAlJJEpqkPV6G9iP0Tb", // new yearly (test)
-      "price_1OZgmnAlJJEpqkPVOj4kV64R", // new yearly (prod)
+      "price_1LodLoAlJJEpqkPV9rD0rlNL", // old monthly
+      "price_1LodLoAlJJEpqkPVJdwv5zrG", // oldest yearly
+      "price_1OZgmnAlJJEpqkPVOj4kV64R", // old yearly
+      "price_1OzNlmAlJJEpqkPV7s9HXNAC", // new monthly (test)
+      "price_1OzNmXAlJJEpqkPVYO89lTdx", // new yearly (test)
+      "price_1OzOFIAlJJEpqkPVJxzc9irl", // new monthly (prod)
+      "price_1OzOFIAlJJEpqkPVagHUG70D", // new yearly (prod)
     ],
   }),
   BUSINESS_PLAN_MODIFIER({
