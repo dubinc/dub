@@ -29,17 +29,33 @@ import { checkIfKeyExists, getRandomKey } from "../planetscale";
 import { recordLink } from "../tinybird";
 import {
   LinkProps,
-  LinkWithTagIdsProps,
+  NewLinkProps,
+  ProcessedLinkProps,
   RedisLinkProps,
   WorkspaceProps,
 } from "../types";
 import z from "../zod";
+
+const includeTags = {
+  tags: {
+    include: {
+      tag: {
+        select: {
+          id: true,
+          name: true,
+          color: true,
+        },
+      },
+    },
+  },
+};
 
 export async function getLinksForWorkspace({
   workspaceId,
   domain,
   tagId,
   tagIds,
+  tagNames,
   search,
   sort = "createdAt",
   page,
@@ -71,24 +87,28 @@ export async function getLinksForWorkspace({
           some: {},
         },
       }),
-      ...(combinedTagIds.length > 0 && {
-        tags: { some: { tagId: { in: combinedTagIds } } },
-      }),
+      ...(combinedTagIds.length > 0
+        ? {
+            tags: { some: { tagId: { in: combinedTagIds } } },
+          }
+        : tagNames
+          ? {
+              tags: {
+                some: {
+                  tag: {
+                    name: {
+                      in: tagNames,
+                    },
+                  },
+                },
+              },
+            }
+          : {}),
       ...(userId && { userId }),
     },
     include: {
       user: true,
-      tags: {
-        include: {
-          tag: {
-            select: {
-              id: true,
-              name: true,
-              color: true,
-            },
-          },
-        },
-      },
+      ...includeTags,
     },
     orderBy: {
       [sort]: "desc",
@@ -238,14 +258,19 @@ export async function keyChecks({
   }
 
   if (isDubDomain(domain) && process.env.NEXT_PUBLIC_IS_DUB) {
-    if (
-      domain === SHORT_DOMAIN &&
-      (DEFAULT_REDIRECTS[key] || (await isReservedKey(key)))
-    ) {
-      return {
-        error: "Duplicate key: This short link already exists.",
-        code: "conflict",
-      };
+    if (domain === SHORT_DOMAIN) {
+      if (DEFAULT_REDIRECTS[key] || (await isReservedKey(key))) {
+        return {
+          error: "Duplicate key: This short link already exists.",
+          code: "conflict",
+        };
+      }
+      if (await isBlacklistedKey(key)) {
+        return {
+          error: "Invalid key.",
+          code: "unprocessable_entity",
+        };
+      }
     }
 
     if (key.length <= 3 && (!workspace || workspace.plan === "free")) {
@@ -282,19 +307,32 @@ export function processKey(key: string) {
   return key;
 }
 
-export async function processLink({
+export async function processLink<T extends Record<string, any>>({
   payload,
   workspace,
   userId,
   bulk = false,
   skipKeyChecks = false, // only skip when key doesn't change (e.g. when editing a link)
 }: {
-  payload: LinkWithTagIdsProps;
+  payload: NewLinkProps & T;
   workspace?: WorkspaceProps;
   userId?: string;
   bulk?: boolean;
   skipKeyChecks?: boolean;
-}) {
+}): Promise<
+  | {
+      link: NewLinkProps & T;
+      error: string;
+      code?: string;
+      status?: number;
+    }
+  | {
+      link: ProcessedLinkProps & T;
+      error: null;
+      code?: never;
+      status?: never;
+    }
+> {
   let {
     domain,
     key,
@@ -307,6 +345,7 @@ export async function processLink({
     ios,
     android,
     geo,
+    tagNames,
   } = payload;
 
   const tagIds = combineTagIds(payload);
@@ -347,14 +386,6 @@ export async function processLink({
 
   // checks for default short domain
   if (domain === SHORT_DOMAIN) {
-    const keyBlacklisted = await isBlacklistedKey(key);
-    if (keyBlacklisted) {
-      return {
-        link: payload,
-        error: "Invalid key.",
-        code: "unprocessable_entity",
-      };
-    }
     const domainBlacklisted = await isBlacklistedDomain(url);
     if (domainBlacklisted) {
       return {
@@ -434,7 +465,10 @@ export async function processLink({
       select: {
         id: true,
       },
-      where: { projectId: workspace?.id, id: { in: tagIds } },
+      where: {
+        projectId: workspace?.id,
+        id: { in: tagIds },
+      },
     });
 
     if (tags.length !== tagIds.length) {
@@ -448,6 +482,31 @@ export async function processLink({
             )
             .join(", "),
         code: "unprocessable_entity",
+      };
+    }
+  } else if (tagNames && tagNames.length > 0) {
+    const tags = await prisma.tag.findMany({
+      select: {
+        name: true,
+      },
+      where: {
+        projectId: workspace?.id,
+        name: { in: tagNames },
+      },
+    });
+
+    if (tags.length !== tagNames.length) {
+      return {
+        link: payload,
+        error:
+          "Invalid tagNames detected: " +
+          tagNames
+            .filter(
+              (tagName) =>
+                tags.find(({ name }) => tagName === name) === undefined,
+            )
+            .join(", "),
+        status: 422,
       };
     }
   }
@@ -492,12 +551,9 @@ export async function processLink({
       domain,
       key,
       url: processedUrl,
-      // make sure projectId is set to the current workspace
+      userId: userId || null,
+      // make sure projectId is set to the current project
       projectId: workspace?.id || null,
-      // if userId is passed, set it (we don't change the userId if it's already set, e.g. when editing a link)
-      ...(userId && {
-        userId,
-      }),
     },
     error: null,
   };
@@ -517,7 +573,7 @@ export function combineTagIds({
   return tagId ? [tagId] : [];
 }
 
-export async function addLink(link: LinkWithTagIdsProps) {
+export async function addLink(link: ProcessedLinkProps) {
   let { key, url, expiresAt, title, description, image, proxy, geo } = link;
 
   const combinedTagIds = combineTagIds(link);
@@ -550,19 +606,7 @@ export async function addLink(link: LinkWithTagIdsProps) {
         },
       }),
     },
-    include: {
-      tags: {
-        select: {
-          tag: {
-            select: {
-              id: true,
-              name: true,
-              color: true,
-            },
-          },
-        },
-      },
-    },
+    include: includeTags,
   });
 
   const uploadedImageUrl = `${process.env.STORAGE_BASE_URL}/images/${response.id}`;
@@ -607,7 +651,7 @@ export async function addLink(link: LinkWithTagIdsProps) {
 export async function bulkCreateLinks({
   links,
 }: {
-  links: LinkWithTagIdsProps[];
+  links: ProcessedLinkProps[];
 }) {
   if (links.length === 0) return [];
 
@@ -665,7 +709,9 @@ export async function bulkCreateLinks({
       domain: link.domain,
       key: link.key,
     });
+
     const tags = link.tags.map(({ tag }) => tag);
+
     return {
       ...link,
       shortLink,
@@ -731,7 +777,8 @@ export async function editLink({
   oldDomain?: string;
   oldKey: string;
   oldImage?: string;
-  updatedLink: LinkWithTagIdsProps;
+  updatedLink: ProcessedLinkProps &
+    Pick<LinkProps, "id" | "clicks" | "lastClicked" | "updatedAt">;
 }) {
   let {
     id,
@@ -777,6 +824,7 @@ export async function editLink({
       where: {
         id,
       },
+      include: includeTags,
       data: {
         ...rest,
         key,
@@ -803,19 +851,6 @@ export async function editLink({
             where: { linkId_tagId: { linkId: id, tagId } },
             create: { tagId },
           })),
-        },
-      },
-      include: {
-        tags: {
-          select: {
-            tag: {
-              select: {
-                id: true,
-                name: true,
-                color: true,
-              },
-            },
-          },
         },
       },
     }),

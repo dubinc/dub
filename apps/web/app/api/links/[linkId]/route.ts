@@ -3,7 +3,7 @@ import { deleteLink, editLink, processLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
-import { LinkWithTagIdsProps } from "@/lib/types";
+import { NewLinkProps } from "@/lib/types";
 import { updateLinkBodySchema } from "@/lib/zod/schemas/links";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -19,7 +19,7 @@ export const GET = withAuth(async ({ headers, link }) => {
 
   const tags = await prisma.tag.findMany({
     where: {
-      linksNew: {
+      links: {
         some: {
           linkId: link.id,
         },
@@ -54,8 +54,14 @@ export const PUT = withAuth(async ({ req, headers, workspace, link }) => {
 
   const body = updateLinkBodySchema.parse(await req.json());
 
+  // Add body onto existing link but maintain NewLinkProps form for processLink
   const updatedLink = {
     ...link,
+    expiresAt:
+      link.expiresAt instanceof Date
+        ? link.expiresAt.toISOString()
+        : link.expiresAt,
+    geo: link.geo as NewLinkProps["geo"],
     ...body,
   };
 
@@ -72,7 +78,7 @@ export const PUT = withAuth(async ({ req, headers, workspace, link }) => {
     error,
     code,
   } = await processLink({
-    payload: updatedLink as LinkWithTagIdsProps,
+    payload: updatedLink,
     workspace,
     // if domain and key are the same, we don't need to check if the key exists
     skipKeyChecks:
@@ -92,7 +98,7 @@ export const PUT = withAuth(async ({ req, headers, workspace, link }) => {
       oldDomain: link.domain,
       oldKey: link.key,
       oldImage: link.image || undefined,
-      updatedLink: processedLink as any, // TODO: fix types
+      updatedLink: processedLink,
     }),
     qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/event`,

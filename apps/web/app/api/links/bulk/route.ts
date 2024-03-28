@@ -2,7 +2,7 @@ import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { bulkCreateLinks, combineTagIds, processLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { LinkWithTagIdsProps } from "@/lib/types";
+import { ProcessedLinkProps } from "@/lib/types";
 import { bulkCreateLinksBodySchema } from "@/lib/zod/schemas/links";
 import { NextResponse } from "next/server";
 
@@ -51,7 +51,7 @@ export const POST = withAuth(
     const processedLinks = await Promise.all(
       links.map(async (link) =>
         processLink({
-          payload: link as LinkWithTagIdsProps,
+          payload: link,
           workspace,
           userId: session.user.id,
           bulk: true,
@@ -60,11 +60,11 @@ export const POST = withAuth(
     );
 
     let validLinks = processedLinks
-      .filter(({ error }) => !error)
-      .map(({ link }) => link);
+      .filter(({ error }) => error == null)
+      .map(({ link }) => link) as ProcessedLinkProps[];
 
     let errorLinks = processedLinks
-      .filter(({ error }) => error)
+      .filter(({ error }) => error != null)
       .map(({ link, error, code }) => ({
         link,
         error,

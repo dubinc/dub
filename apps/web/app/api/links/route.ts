@@ -2,7 +2,6 @@ import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { addLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
-import { LinkWithTagIdsProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import {
   createLinkBodySchema,
@@ -17,6 +16,7 @@ export const GET = withAuth(async ({ headers, searchParams, workspace }) => {
     domain,
     tagId,
     tagIds,
+    tagNames,
     search,
     sort,
     page,
@@ -30,6 +30,7 @@ export const GET = withAuth(async ({ headers, searchParams, workspace }) => {
     domain,
     tagId,
     tagIds,
+    tagNames,
     search,
     sort,
     page,
@@ -71,12 +72,12 @@ export const POST = withAuth(
     }
 
     const { link, error, code } = await processLink({
-      payload: body as LinkWithTagIdsProps,
+      payload: body,
       workspace,
       ...(session && { userId: session.user.id }),
     });
 
-    if (error) {
+    if (error != null) {
       throw new DubApiError({
         code: code as ErrorCodes,
         message: error,

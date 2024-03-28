@@ -1,13 +1,13 @@
 import { bulkCreateLinks } from "@/lib/api/links";
 import prisma from "@/lib/prisma";
-import { LinkWithTagIdsProps } from "@/lib/types";
+import { ProcessedLinkProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import "dotenv-flow/config";
 
 const domain = "xxx";
 
 async function main() {
-  const restoredData = await redis.lrange<LinkWithTagIdsProps>(
+  const restoredData = await redis.lrange<ProcessedLinkProps>(
     "restoredData",
     0,
     -1,
