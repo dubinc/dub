@@ -121,29 +121,35 @@ function AddEditLinkModal({
     setKeyError(null);
     setGeneratingAIKey(true);
 
-    const res = await fetch(`/api/ai/shortlink?workspaceId=${workspaceId}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        url,
-        domain,
-      }),
-    }).then(async (res) => {
-      if (res.status !== 200) {
-        const error = await res.text();
-        setKeyError(error);
-        setGeneratingAIKey(false);
-        throw new Error(error);
-      }
-      return res.text();
-    });
+    const returnKey = async (doNotUseKey?) =>
+      await fetch(`/api/ai/shortlink?workspaceId=${workspaceId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          metaTitle: data.title,
+          metaDescription: data.description,
+          doNotUseKey,
+        }),
+      }).then(async (res) => {
+        if (res.status !== 200) {
+          const error = await res.text();
+          setKeyError(error);
+          setGeneratingAIKey(false);
+          throw new Error(error);
+        }
+        return res.text();
+      });
 
-    setData((prev) => ({ ...prev, key: res }));
+    let key = await returnKey();
+
+    if (key === data.key) key = await returnKey(key);
+
+    setData((prev) => ({ ...prev, key }));
 
     setGeneratingAIKey(false);
-  }, [url, domain, slug]);
+  }, [data, workspaceId, slug]);
 
   useEffect(() => {
     // when someone pastes a URL
@@ -480,7 +486,7 @@ function AddEditLinkModal({
                   >
                     Short Link
                   </label>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center">
                     {props && lockKey ? (
                       <button
                         className="flex items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
@@ -496,7 +502,7 @@ function AddEditLinkModal({
                     ) : (
                       <Tooltip content="Generate a random key">
                         <button
-                          className="flex items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
+                          className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
                           onClick={generateRandomKey}
                           disabled={generatingRandomKey || generatingAIKey}
                           type="button"
@@ -536,7 +542,7 @@ function AddEditLinkModal({
                       }
                     >
                       <button
-                        className="flex items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95 disabled:cursor-not-allowed"
+                        className="ml-2 flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
                         onClick={generateAIKey}
                         disabled={
                           generatingAIKey ||
