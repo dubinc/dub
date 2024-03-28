@@ -51,7 +51,7 @@
     "js-cookie": "^3.0.5",
     "linkify-react": "^4.1.3",
     "lucide-react": "^0.284.0",
-    "sonner": "^0.5.0",
+    "sonner": "^1.4.41",
     "swr": "^2.1.5",
     "use-debounce": "^8.0.4",
     "vaul": "^0.8.0"
