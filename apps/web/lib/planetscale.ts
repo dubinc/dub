@@ -15,8 +15,9 @@ export const getWorkspaceViaEdge = async (workspaceId: string) => {
   if (!DATABASE_URL) return null;
 
   const { rows } =
-    (await conn.execute("SELECT * FROM Project WHERE id = ?", [workspaceId])) ||
-    {};
+    (await conn.execute("SELECT * FROM Project WHERE id = ?", [
+      workspaceId.replace("ws_", ""),
+    ])) || {};
 
   return rows && Array.isArray(rows) && rows.length > 0
     ? (rows[0] as WorkspaceProps)
