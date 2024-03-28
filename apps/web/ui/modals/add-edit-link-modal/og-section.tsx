@@ -6,6 +6,7 @@ import {
   InfoTooltip,
   LoadingCircle,
   LoadingSpinner,
+  Magic,
   Popover,
   SimpleTooltipContent,
   Switch,
@@ -16,7 +17,13 @@ import { TooltipContent } from "@dub/ui/src/tooltip";
 import { FADE_IN_ANIMATION_SETTINGS, HOME_DOMAIN } from "@dub/utils";
 import { motion } from "framer-motion";
 import { Link2 } from "lucide-react";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import UnsplashSearch from "./unsplash-search";
 
@@ -31,13 +38,18 @@ export default function OGSection({
   setData: Dispatch<SetStateAction<LinkProps>>;
   generatingMetatags: boolean;
 }) {
-  const { plan } = useWorkspace();
+  const { plan, id: workspaceId } = useWorkspace();
   const { queryParams } = useRouterStuff();
 
   const { title, description, image, proxy } = data;
 
   const [resizing, setResizing] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+
+  const [loadingMetaData, setLoadingMetaData] = useState({
+    title: false,
+    description: false,
+  });
 
   const onChangePicture = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files && e.target.files[0];
@@ -75,6 +87,45 @@ export default function OGSection({
       setCooldown(false);
     }, 200);
   }
+
+  const generateMetaData = useCallback(
+    async (type: "title" | "description") => {
+      setLoadingMetaData((prev) => ({ ...prev, [type]: true }));
+
+      const returnKey = async (doNotUseString?) =>
+        await fetch(
+          `/api/ai/metadata?workspaceId=${workspaceId}&type=${type}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              metaTitle: data.title,
+              metaDescription: data.description,
+              doNotUseString,
+            }),
+          },
+        ).then(async (res) => {
+          if (res.status !== 200) {
+            const error = await res.text();
+            setLoadingMetaData((prev) => ({ ...prev, [type]: false }));
+            throw new Error(error);
+          }
+          return res.text();
+        });
+
+      let res = await returnKey();
+
+      if (res === data[type]) res = await returnKey(data[type]);
+
+      setData((prev) => ({ ...prev, [type]: res }));
+
+      setLoadingMetaData((prev) => ({ ...prev, [type]: false }));
+    },
+    [data],
+  );
+
   return (
     <div className="relative grid gap-5 border-b border-gray-200 pb-5">
       <div className="flex items-center justify-between">
@@ -264,7 +315,23 @@ export default function OGSection({
           <div>
             <div className="flex items-center justify-between">
               <p className="block text-sm font-medium text-gray-700">Title</p>
-              <p className="text-sm text-gray-500">{title?.length || 0}/120</p>
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-gray-500">
+                  {title?.length || 0}/120
+                </p>
+                <button
+                  className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
+                  onClick={() => generateMetaData("title")}
+                  disabled={loadingMetaData.title}
+                  type="button"
+                >
+                  {loadingMetaData.title ? (
+                    <LoadingCircle />
+                  ) : (
+                    <Magic className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
             </div>
             <div className="relative mt-1 flex rounded-md shadow-sm">
               {generatingMetatags && (
@@ -293,9 +360,23 @@ export default function OGSection({
               <p className="block text-sm font-medium text-gray-700">
                 Description
               </p>
-              <p className="text-sm text-gray-500">
-                {description?.length || 0}/240
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-gray-500">
+                  {description?.length || 0}/240
+                </p>
+                <button
+                  className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
+                  onClick={() => generateMetaData("description")}
+                  disabled={loadingMetaData.description}
+                  type="button"
+                >
+                  {loadingMetaData.description ? (
+                    <LoadingCircle />
+                  ) : (
+                    <Magic className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
             </div>
             <div className="relative mt-1 flex rounded-md shadow-sm">
               {generatingMetatags && (

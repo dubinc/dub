@@ -8,13 +8,16 @@ import { AlertCircleFill, Lock, Random, X } from "@/ui/shared/icons";
 import {
   Button,
   LoadingCircle,
+  Magic,
   Modal,
+  Tooltip,
   TooltipContent,
   useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
 import {
   DEFAULT_LINK_PROPS,
+  HOME_DOMAIN,
   cn,
   deepEqual,
   getApexDomain,
@@ -55,6 +58,7 @@ import PasswordSection from "./password-section";
 import Preview from "./preview";
 import TagsSection from "./tags-section";
 import UTMSection from "./utm-section";
+import { useChat } from "ai/react";
 
 function AddEditLinkModal({
   showAddEditLinkModal,
@@ -73,12 +77,31 @@ function AddEditLinkModal({
   const { slug } = params;
   const router = useRouter();
   const pathname = usePathname();
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, plan } = useWorkspace();
 
   const [keyError, setKeyError] = useState<string | null>(null);
   const [urlError, setUrlError] = useState<string | null>(null);
-  const [generatingKey, setGeneratingKey] = useState(false);
+  const [generatingRandomKey, setGeneratingRandomKey] = useState(false);
+  const [generatingAIKey, setGeneratingAIKey] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  const { messages, append, setMessages } = useChat({
+    api: `/api/ai/shortlink?workspaceId=${workspaceId}`,
+    onFinish(message) {
+      if (message.role === "assistant") {
+        setData((prev) => ({ ...prev, key: message.content }));
+      }
+    },
+    // initial system message
+    initialMessages: [
+      {
+        id: "initial-prop",
+        role: "system",
+        content:
+          "You are a helpful assistant and only answer in short link keys, e.g. you receive a question like 'What is the shortlink for meta-title Notion and meta-description The all in one workspace?' and you respond with e.g. 'notion-workspace'. Try to combine them in a shortlink that makes sense and is easy to share on social media. Don't use any special characters or spaces and only response with keys less than 20 characters long. If it makes sense, try to use shortnames for companies, e.g. techcrunch -> tc.",
+      },
+    ],
+  });
 
   const {
     allActiveDomains: domains,
@@ -104,14 +127,26 @@ function AddEditLinkModal({
 
   const generateRandomKey = useCallback(async () => {
     setKeyError(null);
-    setGeneratingKey(true);
+    setGeneratingRandomKey(true);
     const res = await fetch(
       `/api/links/random?domain=${domain}&workspaceId=${workspaceId}`,
     );
     const key = await res.json();
     setData((prev) => ({ ...prev, key }));
-    setGeneratingKey(false);
+    setGeneratingRandomKey(false);
   }, [domain, slug]);
+
+  const generateAIKey = async () => {
+    setKeyError(null);
+    setGeneratingAIKey(true);
+
+    await append({
+      role: "user",
+      content: `What is the shortlink for meta-title ${data.title} and meta-description ${data.description}? Please respond with a unique key you haven't used before.`,
+    });
+
+    setGeneratingAIKey(false);
+  };
 
   useEffect(() => {
     // when someone pastes a URL
@@ -448,34 +483,81 @@ function AddEditLinkModal({
                   >
                     Short Link
                   </label>
-                  {props && lockKey ? (
-                    <button
-                      className="flex items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
-                      type="button"
-                      onClick={() => {
-                        window.confirm(
-                          "Editing an existing short link could potentially break existing links. Are you sure you want to continue?",
-                        ) && setLockKey(false);
-                      }}
+                  <div className="flex items-center">
+                    {props && lockKey ? (
+                      <button
+                        className="flex items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
+                        type="button"
+                        onClick={() => {
+                          window.confirm(
+                            "Editing an existing short link could potentially break existing links. Are you sure you want to continue?",
+                          ) && setLockKey(false);
+                        }}
+                      >
+                        <Lock className="h-3 w-3" />
+                      </button>
+                    ) : (
+                      <Tooltip content="Generate a random key">
+                        <button
+                          className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
+                          onClick={generateRandomKey}
+                          disabled={generatingRandomKey || generatingAIKey}
+                          type="button"
+                        >
+                          {generatingRandomKey ? (
+                            <LoadingCircle />
+                          ) : (
+                            <Random className="h-3 w-3" />
+                          )}
+                        </button>
+                      </Tooltip>
+                    )}
+                    <Tooltip
+                      content={
+                        !plan || plan === "free" ? (
+                          <TooltipContent
+                            title={`AI Short Link generation is only available on ${process.env.NEXT_PUBLIC_APP_NAME}'s Pro plan. Upgrade to Pro to use this feature.`}
+                            cta="Upgrade to Pro"
+                            {...(plan === "free"
+                              ? {
+                                  onClick: () =>
+                                    queryParams({
+                                      set: {
+                                        upgrade: "pro",
+                                      },
+                                    }),
+                                }
+                              : {
+                                  href: `${HOME_DOMAIN}/pricing`,
+                                })}
+                          />
+                        ) : !url ? (
+                          "Please enter a destination URL to generate AI Short Link."
+                        ) : (
+                          "Create Short Link with AI"
+                        )
+                      }
                     >
-                      <Lock className="h-3 w-3" />
-                      <p>Unlock</p>
-                    </button>
-                  ) : (
-                    <button
-                      className="flex items-center space-x-2 text-sm text-gray-500 transition-all duration-75 hover:text-black active:scale-95"
-                      onClick={generateRandomKey}
-                      disabled={generatingKey}
-                      type="button"
-                    >
-                      {generatingKey ? (
-                        <LoadingCircle />
-                      ) : (
-                        <Random className="h-3 w-3" />
-                      )}
-                      <p>{generatingKey ? "Generating" : "Randomize"}</p>
-                    </button>
-                  )}
+                      <button
+                        className="ml-2 flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
+                        onClick={generateAIKey}
+                        disabled={
+                          generatingAIKey ||
+                          generatingRandomKey ||
+                          !plan ||
+                          plan === "free" ||
+                          !url
+                        }
+                        type="button"
+                      >
+                        {generatingAIKey ? (
+                          <LoadingCircle />
+                        ) : (
+                          <Magic className="h-4 w-4" />
+                        )}
+                      </button>
+                    </Tooltip>
+                  </div>
                 </div>
                 <div className="relative mt-1 flex rounded-md shadow-sm">
                   <select
