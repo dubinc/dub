@@ -22,7 +22,7 @@
     "@react-email/render": "^0.0.12",
     "@sindresorhus/slugify": "^2.2.1",
     "@splinetool/react-spline": "^2.2.6",
-    "@splinetool/runtime": "^0.9.481",
+    "@splinetool/runtime": "^1.0.87",
     "@stripe/stripe-js": "^1.44.1",
     "@upstash/qstash": "^2.3.0",
     "@upstash/ratelimit": "^0.3.6",
