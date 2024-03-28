@@ -198,7 +198,7 @@ export const PLANS = [
       "price_1OzNlmAlJJEpqkPV7s9HXNAC", // new monthly (test)
       "price_1OzNmXAlJJEpqkPVYO89lTdx", // new yearly (test)
       "price_1OzOFIAlJJEpqkPVJxzc9irl", // new monthly (prod)
-      "price_1OzOFIAlJJEpqkPVagHUG70D", // new yearly (prod)
+      "price_1OzOXMAlJJEpqkPV9ERrjjbw", // new yearly (prod)
     ],
   }),
   BUSINESS_PLAN_MODIFIER({
@@ -214,7 +214,7 @@ export const PLANS = [
       "price_1OnWu0AlJJEpqkPVWk4144ZG", // monthly (test)
       "price_1OnWu0AlJJEpqkPVkDWVriAB", // yearly (test)
       "price_1OnaK3AlJJEpqkPVaCfCPdHi", // monthly (prod)
-      "price_1OnaK3AlJJEpqkPVnKU97wxJ", // yearly (prod)
+      "price_1OzObrAlJJEpqkPVh6D9HWGO", // yearly (prod)
     ],
   }),
   BUSINESS_PLAN_MODIFIER({
@@ -230,7 +230,7 @@ export const PLANS = [
       "price_1OnWvCAlJJEpqkPVLzLHx5QD", // monthly (test)
       "price_1OnWvCAlJJEpqkPVHhCCvIOq", // yearly (test)
       "price_1OnaKJAlJJEpqkPVeJSvPfJb", // monthly (prod)
-      "price_1OnaKJAlJJEpqkPVcfQ5Rm06", // yearly (prod)
+      "price_1OzOg1AlJJEpqkPVPlsrxoWm", // yearly (prod)
     ],
   }),
   BUSINESS_PLAN_MODIFIER({
@@ -246,7 +246,7 @@ export const PLANS = [
       "price_1OnWwLAlJJEpqkPVXtJyPqLk", // monthly (test)
       "price_1OnWwLAlJJEpqkPV4eMbOkNh", // yearly (test)
       "price_1OnaKOAlJJEpqkPVV6gkZPgt", // monthly (prod)
-      "price_1OnaKOAlJJEpqkPVijIbAivj", // yearly (prod)
+      "price_1OzOh5AlJJEpqkPVtCSX7dlE", // yearly (prod)
     ],
   }),
   {
