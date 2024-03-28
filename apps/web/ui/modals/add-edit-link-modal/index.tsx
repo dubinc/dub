@@ -259,7 +259,7 @@ function AddEditLinkModal({
   const welcomeFlow = pathname === "/welcome";
   const keyRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
-    if (key && key.endsWith("-copy")) {
+    if (typeof key === 'string' && key.endsWith('-copy')) {
       keyRef.current?.select();
     }
   }, [key]);
