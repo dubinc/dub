@@ -10,7 +10,7 @@
     },
     {
       "path": "/api/cron/links/usage",
-      "schedule": "*/10 * * * *"
+      "schedule": "*/15 * * * *"
     }
   ],
   "functions": {

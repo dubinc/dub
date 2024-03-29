@@ -4,7 +4,7 @@ import { log } from "@dub/utils";
 import { sendLinksUsageEmail } from "./utils";
 
 // Cron to update the links usage of each workspace.
-// Runs once every 10 mins (*/10 * * * *)
+// Runs once every 15 mins (*/15 * * * *)
 
 export async function GET(req: Request) {
   const validSignature = await verifySignature(req);
@@ -13,11 +13,11 @@ export async function GET(req: Request) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  // get links created in the last 10 minutes
+  // get links created in the last 15 minutes
   const links = await prisma.link.findMany({
     where: {
       createdAt: {
-        gte: new Date(Date.now() - 10 * 60 * 1000),
+        gte: new Date(Date.now() - 15 * 60 * 1000),
       },
     },
     select: {
@@ -30,7 +30,7 @@ export async function GET(req: Request) {
     .filter(Boolean) as string[];
 
   console.log(
-    "Links created in the last 10 minutes: ",
+    "Links created in the last 15 minutes: ",
     links.length,
     "Workspaces to check: ",
     workspacesToCheck,
