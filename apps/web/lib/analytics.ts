@@ -137,7 +137,7 @@ export const getAnalytics = async ({
   }
 
   let url = new URL(
-    `${process.env.TINYBIRD_API_URL}/v0/pipes/${endpoint}.json`,
+    `${process.env.TINYBIRD_API_URL}/v0/pipes/${endpoint === "timeseries" ? "timeseries_new" : endpoint}.json`,
   );
   if (workspaceId) {
     url.searchParams.append("projectId", workspaceId);
