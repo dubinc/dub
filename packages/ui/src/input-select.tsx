@@ -161,7 +161,7 @@ export function InputSelect({
           <Command ref={commandRef} className="relative" loop>
             <div
               className={cn(
-                "group relative min-w-[136px] rounded-md border border-gray-300 bg-white px-1 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500",
+                "group relative min-w-[140px] rounded-md border border-gray-300 bg-white px-1 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500",
                 className,
               )}
             >
@@ -258,7 +258,10 @@ export function InputSelect({
           className,
         )}
       >
-        <div className="absolute inset-y-0 left-0 flex items-center justify-center pl-3 text-gray-400">
+        <div
+          onClick={() => setOpenCommandList((prev) => !prev)}
+          className="absolute inset-y-0 left-0 flex cursor-pointer items-center justify-center pl-3 text-gray-400"
+        >
           {selectedItem && selectedItem.image ? (
             <img
               src={selectedItem.image}
@@ -282,7 +285,12 @@ export function InputSelect({
               <X className="h-7 w-7 pr-3 text-gray-400" />
             </button>
           ) : (
-            <ChevronDown className="absolute inset-y-0 right-0 my-auto h-7 w-7 pr-3 text-gray-400 transition-all" />
+            <ChevronDown
+              onClick={() => setOpenCommandList((prev) => !prev)}
+              className={`absolute inset-y-0 right-0 my-auto mr-3 h-4 w-4 cursor-pointer text-gray-400 transition-all ${
+                openCommandList && "rotate-180"
+              }`}
+            />
           )}
         </div>
       </div>
