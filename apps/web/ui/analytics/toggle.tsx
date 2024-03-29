@@ -46,7 +46,15 @@ export default function Toggle() {
         "shadow-md": scrolled,
       })}
     >
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-2 space-y-3 px-2.5 md:h-24 md:space-y-0 lg:px-0">
+      <div
+        className={cn(
+          "mx-auto flex w-full max-w-4xl flex-col gap-2 space-y-3 px-2.5 md:space-y-0 lg:px-0 ",
+          {
+            "md:h-24": !key,
+            "md:h-10": key,
+          },
+        )}
+      >
         <div className="flex w-full items-center justify-between gap-2">
           {isPublicStatsPage ? (
             <a
@@ -86,12 +94,12 @@ export default function Toggle() {
             </div>
           )}
           <div className="flex items-center gap-2">
+            {!isPublicStatsPage && key && <SharePopover />}
             <DateRangePicker />
             {!isPublicStatsPage && <ExportButton />}
           </div>
         </div>
         <div className="flex w-full">
-          {!isPublicStatsPage && key && <SharePopover />}
           {!isPublicStatsPage && !key && <FilterBar />}
         </div>
       </div>
