@@ -1,11 +1,9 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { deleteLink, editLink, processLink } from "@/lib/api/links";
 import { withAuth } from "@/lib/auth";
-import { qstash } from "@/lib/cron";
 import prisma from "@/lib/prisma";
 import { LinkWithTagIdsProps } from "@/lib/types";
 import { updateLinkBodySchema } from "@/lib/zod/schemas/links";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/links/[linkId] – get a link
@@ -87,22 +85,11 @@ export const PUT = withAuth(async ({ req, headers, workspace, link }) => {
     });
   }
 
-  const [response, _] = await Promise.allSettled([
-    editLink({
-      oldDomain: link.domain,
-      oldKey: link.key,
-      oldImage: link.image || undefined,
-      updatedLink: processedLink as any, // TODO: fix types
-    }),
-    qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/event`,
-      body: {
-        linkId: link.id,
-        type: "edit",
-      },
-    }),
-    // @ts-ignore
-  ]).then((results) => results.map((result) => result.value));
+  const response = await editLink({
+    oldDomain: link.domain,
+    oldKey: link.key,
+    updatedLink: processedLink,
+  });
 
   return NextResponse.json(response, {
     headers,
