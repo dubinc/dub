@@ -129,14 +129,6 @@ export const POST = withAuth(
       }),
     ]);
 
-    await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/event`,
-      body: {
-        linkId: link!.id,
-        type: "transfer",
-      },
-    });
-
     return NextResponse.json(response, {
       headers,
     });
