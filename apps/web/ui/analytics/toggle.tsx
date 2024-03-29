@@ -1,32 +1,19 @@
-import { INTERVALS } from "@/lib/analytics";
 import useDomains from "@/lib/swr/use-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
-import {
-  BadgeTooltip,
-  BlurImage,
-  ExpandingArrow,
-  Tick,
-  useRouterStuff,
-  useScroll,
-} from "@dub/ui";
+import { BlurImage, ExpandingArrow, useScroll } from "@dub/ui";
 import {
   DUB_LOGO,
   GOOGLE_FAVICON_URL,
-  SHORT_DOMAIN,
   cn,
   getApexDomain,
   linkConstructor,
 } from "@dub/utils";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import punycode from "punycode/";
-import { useContext, useMemo, useState } from "react";
+import { useContext } from "react";
 import { AnalyticsContext } from ".";
 import ExportButton from "./export-button";
 import SharePopover from "./share-popover";
-import TagSelector from "./tag-selector";
 import DateRangePicker from "./date-range-picker";
-import FilterList from "./filter-bar";
 import FilterBar from "./filter-bar";
 
 export default function Toggle() {
@@ -119,9 +106,6 @@ export default function Toggle() {
             </div>
           </div>
         </div>
-        {/* <div className="flex w-full">
-          {!isPublicStatsPage && !key && <FilterBar />}
-        </div> */}
       </div>
     </div>
   );

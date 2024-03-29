@@ -23,8 +23,8 @@ export default function Clicks() {
   const { tags } = useTags();
 
   // Domain related
-  const domainId = searchParams?.get("domainId");
-  const { activeDefaultDomains: domains } = useDomains();
+  const domainSlug = searchParams?.get("domainSlug");
+  const { allActiveDomains: domains } = useDomains();
 
   return (
     <div className="max-w-4xl overflow-hidden border border-gray-200 bg-white p-5 sm:rounded-lg sm:border-gray-100 sm:p-10 sm:shadow-lg">
@@ -82,23 +82,6 @@ export default function Clicks() {
                 <X className="h-4 w-4" />
               </Link>
             ))}
-          {domainId && domains && (
-            <Link
-              href={
-                queryParams({
-                  del: "domainId",
-                  getNewPath: true,
-                }) as string
-              }
-              className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-500 transition-all hover:bg-gray-100"
-            >
-              <p>Domain</p>
-              <strong className="text-gray-800">
-                {domains.find(({ id }) => id === domainId)?.slug || domainId}
-              </strong>
-              <X className="h-4 w-4" />
-            </Link>
-          )}
           {tags && tagId && (
             <Link
               href={

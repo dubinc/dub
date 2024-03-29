@@ -10,9 +10,7 @@ export default function DomainSelector() {
 
   const { allActiveDomains: domains } = useDomains();
   const searchParams = useSearchParams();
-  const selectedDomainId = searchParams?.get("domainId");
-
-  console.log(domains);
+  const selecteddomain = searchParams?.get("domain");
 
   return domains && domains.length > 0 ? (
     <InputSelect
@@ -24,25 +22,26 @@ export default function DomainSelector() {
       }))}
       icon={<Globe className="h-4 w-4 text-black" />}
       selectedItem={{
-        id: selectedDomainId!,
-        value: domains.find(({ id }) => id === selectedDomainId)?.slug || "",
-        image: selectedDomainId
+        id: selecteddomain!,
+        value: domains.find(({ slug }) => slug === selecteddomain)?.slug || "",
+        image: selecteddomain
           ? `${GOOGLE_FAVICON_URL}${
-              domains.find(({ id }) => id === selectedDomainId)?.target
+              domains.find(({ slug }) => slug === selecteddomain)?.target
             }`
           : undefined,
       }}
       setSelectedItem={(domain) => {
-        if (domain && typeof domain !== "function" && domain.id) {
+        console.log(domain);
+        if (domain && typeof domain !== "function" && domain.value)
           router.push(
             queryParams({
-              set: { domainId: domain.id },
+              set: { domain: domain.value },
               getNewPath: true,
             }) as string,
           );
-        } else
+        else
           router.push(
-            queryParams({ del: "domainId", getNewPath: true }) as string,
+            queryParams({ del: "domain", getNewPath: true }) as string,
           );
       }}
       inputAttrs={{
