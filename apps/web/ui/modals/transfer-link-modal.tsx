@@ -63,7 +63,8 @@ function TransferLinkModal({
         setShowTransferLinkModal(false);
         return true;
       } else {
-        throw new Error((await res.json()).message);
+        const error = await res.json();
+        throw new Error(error.message);
       }
     });
   };
