@@ -15,6 +15,8 @@ export const GET = withAuth(
     const parsedParams = getAnalyticsQuerySchema.parse(searchParams);
     const { domain, key, interval } = parsedParams;
 
+    console.log(domain, key, interval);
+
     // return 403 if workspace is on the free plan and interval is 90d or all
     if (
       workspace?.plan === "free" &&

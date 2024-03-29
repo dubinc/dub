@@ -1,7 +1,7 @@
 import useDomains from "@/lib/swr/use-domains";
-import useTags from "@/lib/swr/use-tags";
 import { InputSelect, useRouterStuff } from "@dub/ui";
-import { Globe, Tag } from "lucide-react";
+import { GOOGLE_FAVICON_URL } from "@dub/utils";
+import { Globe } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function DomainSelector() {
@@ -23,6 +23,11 @@ export default function DomainSelector() {
       selectedItem={{
         id: selectedDomainId!,
         value: domains.find(({ id }) => id === selectedDomainId)?.slug || "",
+        image: selectedDomainId
+          ? `${GOOGLE_FAVICON_URL}${
+              domains.find(({ id }) => id === selectedDomainId)?.target
+            }`
+          : undefined,
       }}
       setSelectedItem={(domain) => {
         if (domain && typeof domain !== "function" && domain.id)
@@ -40,7 +45,7 @@ export default function DomainSelector() {
       inputAttrs={{
         placeholder: "Filter domains",
       }}
-      className="md:w-48"
+      className="md:w-auto"
     />
   ) : undefined;
 }

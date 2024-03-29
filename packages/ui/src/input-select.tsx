@@ -92,7 +92,16 @@ export function InputSelect({
               setOpenCommandList(true);
             }
           }}
-          className="block w-full rounded-md border-none px-0 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0"
+          // make the width dynamic to save space
+          style={{
+            width:
+              inputValue.length === 0
+                ? inputAttrs?.placeholder?.length
+                  ? `${inputAttrs?.placeholder?.length * 6 + 16}px`
+                  : "136px"
+                : `${inputValue.length * 6 + 16}px`,
+          }}
+          className="block w-full rounded-md border-none px-0 text-sm text-gray-900 placeholder-gray-400 outline-none outline-0 transition-all duration-300 focus:ring-0"
         />
       </>
     );
@@ -278,7 +287,7 @@ export function InputSelect({
         </div>
       </div>
       {openCommandList && (
-        <Command.List className="dub-scrollbar absolute z-20 mt-2 h-[calc(var(--cmdk-list-height)+17px)] max-h-[300px] w-full overflow-auto rounded-md border border-gray-200 bg-white p-2 shadow-md transition-all">
+        <Command.List className="dub-scrollbar absolute z-20 mt-2 h-[calc(var(--cmdk-list-height)+17px)] max-h-[300px] w-full min-w-[160px] overflow-auto rounded-md border border-gray-200 bg-white p-2 shadow-md transition-all duration-75">
           <Command.Empty className="px-4 py-2 text-sm text-gray-600">
             No results found for "{inputValue}"
           </Command.Empty>
