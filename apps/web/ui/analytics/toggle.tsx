@@ -26,6 +26,8 @@ import ExportButton from "./export-button";
 import SharePopover from "./share-popover";
 import TagSelector from "./tag-selector";
 import DateRangePicker from "./date-range-picker";
+import FilterList from "./filter-bar";
+import FilterBar from "./filter-bar";
 
 export default function Toggle() {
   const { basePath, domain, key, url, admin } = useContext(AnalyticsContext);
@@ -89,7 +91,7 @@ export default function Toggle() {
         )}
         <div className="flex w-full items-center justify-end gap-2">
           {!isPublicStatsPage && key && <SharePopover />}
-          {!isPublicStatsPage && !key && <TagSelector />}
+          {!isPublicStatsPage && !key && <FilterBar />}
           <DateRangePicker />
           {!isPublicStatsPage && <ExportButton />}
         </div>
