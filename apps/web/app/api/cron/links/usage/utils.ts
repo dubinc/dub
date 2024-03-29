@@ -10,7 +10,7 @@ export const sendLinksUsageEmail = async (
     Project,
     "id" | "name" | "slug" | "plan" | "linksUsage" | "linksLimit"
   > & {
-    sentEmails?: SentEmail[];
+    sentEmails: SentEmail[];
   },
 ) => {
   const percentage = Math.round(
@@ -19,12 +19,13 @@ export const sendLinksUsageEmail = async (
 
   // Skip if the workspace is below 80% of the limit
   if (percentage < 80) {
+    console.log(
+      `${workspace.slug} is below 80% of the links limit (${percentage}%), skipping...`,
+    );
     return;
   }
 
-  const sentEmails = workspace.sentEmails || [];
-
-  const sentNotification = sentEmails.some(
+  const sentNotification = workspace.sentEmails.some(
     (email) =>
       email.type ===
       (percentage >= 80 && percentage < 100
@@ -34,6 +35,7 @@ export const sendLinksUsageEmail = async (
 
   // Skip if the email has already been sent
   if (sentNotification) {
+    console.log(`${workspace.slug} has already been notified, skipping...`);
     return;
   }
 
@@ -55,7 +57,7 @@ export const sendLinksUsageEmail = async (
   await Promise.allSettled([
     sendLimitEmail({
       emails,
-      workspace: workspace as WorkspaceProps,
+      workspace: workspace as WorkspaceProps & { sentEmails: SentEmail[] },
       type:
         percentage >= 80 && percentage < 100
           ? "firstLinksLimitEmail"

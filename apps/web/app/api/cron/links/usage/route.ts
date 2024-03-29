@@ -13,11 +13,11 @@ export async function GET(req: Request) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  // get links created in the last 5 minutes
+  // get links created in the last 10 minutes
   const links = await prisma.link.findMany({
     where: {
       createdAt: {
-        gte: new Date(Date.now() - 5 * 60 * 1000),
+        gte: new Date(Date.now() - 10 * 60 * 1000),
       },
     },
     select: {
@@ -28,6 +28,13 @@ export async function GET(req: Request) {
   const workspacesToCheck = links
     .map((link) => link.projectId)
     .filter(Boolean) as string[];
+
+  console.log(
+    "Links created in the last 10 minutes: ",
+    links.length,
+    "Workspaces to check: ",
+    workspacesToCheck,
+  );
 
   const workspaces = await prisma.project.findMany({
     select: {
