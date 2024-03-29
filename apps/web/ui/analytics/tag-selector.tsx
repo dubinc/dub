@@ -41,7 +41,7 @@ export default function TagSelector() {
       inputAttrs={{
         placeholder: "Filter tags",
       }}
-      className="md:w-44"
+      className="lg:w-48"
     />
   ) : undefined;
 }

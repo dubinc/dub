@@ -47,7 +47,7 @@ export default function DomainSelector() {
       inputAttrs={{
         placeholder: "Filter domains",
       }}
-      className="md:w-44"
+      className="lg:w-48"
     />
   ) : undefined;
 }
