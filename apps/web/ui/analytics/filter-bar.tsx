@@ -6,7 +6,7 @@ import useDomains from "@/lib/swr/use-domains";
 export default function FilterBar() {
   const { allDomains } = useDomains();
   return (
-    <div className="flex w-full flex-wrap gap-1 rounded-lg bg-gray-100 p-1">
+    <div className="flex w-auto gap-1 rounded-lg bg-gray-100 p-1">
       {allDomains.length > 0 && <DomainSelector />}
       <TagSelector />
       {/* <button className="flex items-center justify-center gap-2 truncate rounded-md border border-gray-300 bg-white py-2 pl-2 pr-4 text-sm text-gray-400 sm:border-gray-200">

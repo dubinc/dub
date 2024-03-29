@@ -50,7 +50,7 @@ export default function Toggle() {
         className={cn(
           "mx-auto flex w-full max-w-4xl flex-col gap-2 space-y-3 px-2.5 md:space-y-0 lg:px-0 ",
           {
-            "md:h-24": !key,
+            // "md:h-24": !key,
             "md:h-10": key,
           },
         )}
@@ -94,14 +94,15 @@ export default function Toggle() {
             </div>
           )}
           <div className="flex items-center gap-2">
+            {!isPublicStatsPage && !key && <FilterBar />}
             {!isPublicStatsPage && key && <SharePopover />}
             <DateRangePicker />
             {!isPublicStatsPage && <ExportButton />}
           </div>
         </div>
-        <div className="flex w-full">
+        {/* <div className="flex w-full">
           {!isPublicStatsPage && !key && <FilterBar />}
-        </div>
+        </div> */}
       </div>
     </div>
   );
