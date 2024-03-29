@@ -7,7 +7,13 @@ import {
   ExternalLink,
   XCircleFill,
 } from "@/ui/shared/icons";
-import { Button, LoadingCircle, LoadingDots, NumberTooltip } from "@dub/ui";
+import {
+  Button,
+  LoadingCircle,
+  LoadingDots,
+  NumberTooltip,
+  useIntersectionObserver,
+} from "@dub/ui";
 import { capitalize, fetcher, nFormatter, truncate } from "@dub/utils";
 import { QrCode } from "lucide-react";
 import Link from "next/link";
@@ -16,6 +22,7 @@ import useSWR, { mutate } from "swr";
 import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
 import { useLinkQRModal } from "../modals/link-qr-modal";
 import DomainConfiguration from "./domain-configuration";
+import { useRef } from "react";
 
 export default function DomainCard({ props }: { props: DomainProps }) {
   const { id, slug } = useWorkspace();
@@ -29,17 +36,26 @@ export default function DomainCard({ props }: { props: DomainProps }) {
     },
   });
 
+  const domainRef = useRef<any>();
+  const entry = useIntersectionObserver(domainRef, {});
+  const isVisible = !!entry?.isIntersecting;
+
   const { data, isValidating } = useSWR<{
     status: DomainVerificationStatusProps;
     response: any;
   }>(
     id &&
+      isVisible &&
       !showLinkQRModal && // Don't fetch if QR modal is open – it'll cause it to re-render
       `/api/domains/${domain}/verify?workspaceId=${id}`,
     fetcher,
     {
+      revalidateOnFocus: true,
       revalidateOnMount: true,
-      refreshInterval: verified ? 0 : 5000, // Don't need to constantly refresh if domain is verified
+      revalidateOnReconnect: true,
+      refreshWhenOffline: false,
+      refreshWhenHidden: false,
+      refreshInterval: 0,
     },
   );
 
@@ -61,7 +77,10 @@ export default function DomainCard({ props }: { props: DomainProps }) {
     <>
       <AddEditDomainModal />
       <LinkQRModal />
-      <div className="flex flex-col space-y-3 rounded-lg border border-gray-200 bg-white px-5 py-8 sm:px-10">
+      <div
+        ref={domainRef}
+        className="flex flex-col space-y-3 rounded-lg border border-gray-200 bg-white px-5 py-8 sm:px-10"
+      >
         <div className="flex flex-col justify-between space-y-4 sm:flex-row sm:space-x-4">
           <div className="flex items-center space-x-2">
             <a
