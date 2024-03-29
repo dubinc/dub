@@ -1,3 +1,4 @@
+import useDomains from "@/lib/swr/use-domains";
 import useTags from "@/lib/swr/use-tags";
 import { InputSelect, useRouterStuff } from "@dub/ui";
 import { Globe, Tag } from "lucide-react";
@@ -7,35 +8,33 @@ export default function DomainSelector() {
   const router = useRouter();
   const { queryParams } = useRouterStuff();
 
-  const { tags } = useTags();
+  const { allActiveDomains: domains } = useDomains();
   const searchParams = useSearchParams();
-  const selectedTagId = searchParams?.get("tagId");
+  const selectedDomainId = searchParams?.get("domainId");
 
-  return tags && tags.length > 0 ? (
+  return domains && domains.length > 0 ? (
     <InputSelect
       adjustForMobile
-      items={tags.map(({ id, name, color }) => ({
+      items={domains.map(({ id, slug }) => ({
         id,
-        color,
-        value: name,
+        value: slug,
       }))}
       icon={<Globe className="h-4 w-4 text-black" />}
       selectedItem={{
-        id: selectedTagId!,
-        value: tags.find(({ id }) => id === selectedTagId)?.name || "",
-        color: tags.find(({ id }) => id === selectedTagId)?.color,
+        id: selectedDomainId!,
+        value: domains.find(({ id }) => id === selectedDomainId)?.slug || "",
       }}
-      setSelectedItem={(tag) => {
-        if (tag && typeof tag !== "function" && tag.id)
+      setSelectedItem={(domain) => {
+        if (domain && typeof domain !== "function" && domain.id)
           router.push(
             queryParams({
-              set: { tagId: tag.id },
+              set: { domainId: domain.id },
               getNewPath: true,
             }) as string,
           );
         else
           router.push(
-            queryParams({ del: "tagId", getNewPath: true }) as string,
+            queryParams({ del: "domainId", getNewPath: true }) as string,
           );
       }}
       inputAttrs={{

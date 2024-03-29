@@ -34,7 +34,7 @@ export default function Toggle() {
 
   const scrolled = useScroll(80);
   const { name, logo } = useWorkspace();
-  const { allActiveDomains, primaryDomain } = useDomains();
+  const { primaryDomain } = useDomains();
 
   const isPublicStatsPage = basePath.startsWith("/stats");
 
@@ -71,7 +71,7 @@ export default function Toggle() {
             <ExpandingArrow className="h-5 w-5" />
           </a>
         ) : (
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 pr-2">
             <BlurImage
               alt={name || "Workspace Logo"}
               src={logo || DUB_LOGO}
@@ -79,14 +79,9 @@ export default function Toggle() {
               width={48}
               height={48}
             />
-            <h2 className="text-lg font-semibold text-gray-800">
+            <h2 className="truncate text-lg font-semibold text-gray-800">
               {primaryDomain}
             </h2>
-            {allActiveDomains && allActiveDomains.length > 1 && (
-              <BadgeTooltip content={<DomainsFilterTooltip />}>
-                +{allActiveDomains.length - 1}
-              </BadgeTooltip>
-            )}
           </div>
         )}
         <div className="flex w-full items-center justify-end gap-2">
