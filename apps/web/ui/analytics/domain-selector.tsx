@@ -12,12 +12,15 @@ export default function DomainSelector() {
   const searchParams = useSearchParams();
   const selectedDomainId = searchParams?.get("domainId");
 
+  console.log(domains);
+
   return domains && domains.length > 0 ? (
     <InputSelect
       adjustForMobile
       items={domains.map(({ id, slug }) => ({
         id,
         value: slug,
+        image: `${GOOGLE_FAVICON_URL}${slug}`,
       }))}
       icon={<Globe className="h-4 w-4 text-black" />}
       selectedItem={{
@@ -30,14 +33,14 @@ export default function DomainSelector() {
           : undefined,
       }}
       setSelectedItem={(domain) => {
-        if (domain && typeof domain !== "function" && domain.id)
+        if (domain && typeof domain !== "function" && domain.id) {
           router.push(
             queryParams({
               set: { domainId: domain.id },
               getNewPath: true,
             }) as string,
           );
-        else
+        } else
           router.push(
             queryParams({ del: "domainId", getNewPath: true }) as string,
           );

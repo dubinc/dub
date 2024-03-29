@@ -48,14 +48,21 @@ export default function Toggle() {
     >
       <div
         className={cn(
-          "mx-auto flex w-full max-w-4xl flex-col gap-2 space-y-3 px-2.5 md:space-y-0 lg:px-0 ",
+          "mx-auto flex w-full max-w-4xl flex-col gap-2 space-y-3 px-2.5 md:space-y-0 lg:px-0",
           {
-            // "md:h-24": !key,
             "md:h-10": key,
           },
         )}
       >
-        <div className="flex w-full items-center justify-between gap-2">
+        <div
+          className={cn(
+            "flex w-full flex-col items-center justify-between gap-2 md:flex-row",
+            {
+              "flex-col md:flex-row": !key,
+              "items-center": key,
+            },
+          )}
+        >
           {isPublicStatsPage ? (
             <a
               className="group flex items-center text-lg font-semibold text-gray-800"
@@ -93,11 +100,23 @@ export default function Toggle() {
               </h2>
             </div>
           )}
-          <div className="flex items-center gap-2">
+          <div
+            className={cn("flex items-center gap-2", {
+              "flex-col min-[550px]:flex-row": !key,
+              "w-full md:w-auto": key,
+            })}
+          >
             {!isPublicStatsPage && !key && <FilterBar />}
             {!isPublicStatsPage && key && <SharePopover />}
-            <DateRangePicker />
-            {!isPublicStatsPage && <ExportButton />}
+            <div
+              className={cn("flex w-full items-center gap-2", {
+                "min-[550px]:w-auto": !key,
+                "justify-end": key,
+              })}
+            >
+              <DateRangePicker />
+              {!isPublicStatsPage && <ExportButton />}
+            </div>
           </div>
         </div>
         {/* <div className="flex w-full">

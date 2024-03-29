@@ -152,7 +152,7 @@ export function InputSelect({
           <Command ref={commandRef} className="relative" loop>
             <div
               className={cn(
-                "group relative min-w-[140px] rounded-md border border-gray-300 bg-white px-1 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500",
+                "group relative rounded-md border border-gray-300 bg-white px-1 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500 md:min-w-[140px]",
                 className,
               )}
             >
