@@ -46,7 +46,7 @@ export default function Toggle() {
         "shadow-md": scrolled,
       })}
     >
-      <div className="mx-auto flex h-20 w-full max-w-4xl flex-col gap-2 space-y-3 px-2.5 md:h-24 md:space-y-0 lg:px-0">
+      <div className="mx-auto flex w-full max-w-4xl flex-col gap-2 space-y-3 px-2.5 md:h-24 md:space-y-0 lg:px-0">
         <div className="flex w-full items-center justify-between gap-2">
           {isPublicStatsPage ? (
             <a
@@ -72,7 +72,7 @@ export default function Toggle() {
               <ExpandingArrow className="h-5 w-5" />
             </a>
           ) : (
-            <div className="flex items-center space-x-2 pr-2">
+            <div className="flex items-center space-x-2 truncate pr-2">
               <BlurImage
                 alt={name || "Workspace Logo"}
                 src={logo || DUB_LOGO}
