@@ -55,7 +55,7 @@ export default function useRouterStuff() {
     }`;
     if (getNewPath) return newPath;
     if (replace) {
-      router.replace(newPath);
+      router.replace(newPath, { scroll: false });
     } else {
       router.push(newPath);
     }
