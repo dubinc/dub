@@ -92,16 +92,7 @@ export function InputSelect({
               setOpenCommandList(true);
             }
           }}
-          // make the width dynamic to save space
-          style={{
-            width:
-              inputValue.length === 0
-                ? inputAttrs?.placeholder?.length
-                  ? `${inputAttrs?.placeholder?.length * 6 + 16}px`
-                  : "136px"
-                : `${inputValue.length * 6 + 16}px`,
-          }}
-          className="block w-full rounded-md border-none px-0 text-sm text-gray-900 placeholder-gray-400 outline-none outline-0 transition-all duration-300 focus:ring-0"
+          className="block w-full truncate rounded-md border-none px-0 text-sm text-gray-900 placeholder-gray-400 outline-none outline-0 transition-all duration-300 focus:ring-0 md:w-24"
         />
       </>
     );
