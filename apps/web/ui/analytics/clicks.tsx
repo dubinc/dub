@@ -9,15 +9,22 @@ import { useSearchParams } from "next/navigation";
 import { useContext } from "react";
 import { AnalyticsContext } from ".";
 import ClicksChart from "./clicks-chart";
+import useDomains from "@/lib/swr/use-domains";
 
 export default function Clicks() {
   const { totalClicks } = useContext(AnalyticsContext);
   const searchParams = useSearchParams();
   const domain = searchParams?.get("domain");
   const key = searchParams?.get("key");
-  const tagId = searchParams?.get("tagId");
   const { queryParams } = useRouterStuff();
+
+  // Tag related
+  const tagId = searchParams?.get("tagId");
   const { tags } = useTags();
+
+  // Domain related
+  const domainSlug = searchParams?.get("domainSlug");
+  const { allActiveDomains: domains } = useDomains();
 
   return (
     <div className="max-w-4xl overflow-hidden border border-gray-200 bg-white p-5 sm:rounded-lg sm:border-gray-100 sm:p-10 sm:shadow-lg">

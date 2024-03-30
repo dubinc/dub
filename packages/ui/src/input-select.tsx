@@ -12,6 +12,7 @@ import {
 } from "react";
 import { Drawer } from "vaul";
 import { Badge } from "./badge";
+import { BlurImage } from "./blur-image";
 import { useMediaQuery } from "./hooks";
 
 export interface InputSelectItemProps {
@@ -74,9 +75,8 @@ export function InputSelect({
       <>
         <Command.Input
           placeholder={inputAttrs?.placeholder || "Search..."}
-          // hack to focus on the input when the dropdown opens
-          autoFocus={openCommandList}
-          // when focus on the input. only show the dropdown if there are tags and the tagValue is not empty
+          // hack to focus on the input when the dropdown opens (only on desktop)
+          autoFocus={openCommandList && !isMobile}
           onFocus={() => setOpenCommandList(true)}
           value={inputValue}
           onValueChange={setInputValue}
@@ -92,7 +92,7 @@ export function InputSelect({
               setOpenCommandList(true);
             }
           }}
-          className="block w-full rounded-md border-none px-0 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0"
+          className="block w-full truncate rounded-md border-none px-0 text-base text-gray-900 placeholder-gray-400 outline-none outline-0 transition-all duration-300 focus:ring-0 md:text-sm"
         />
       </>
     );
@@ -114,15 +114,18 @@ export function InputSelect({
       >
         <div className="flex items-center space-x-2">
           {item.image && (
-            <img
+            <BlurImage
               src={item.image}
               alt={item.value}
               className="h-4 w-4 rounded-full"
+              width={16}
+              height={16}
             />
           )}
           <p
             className={cn(
-              "my-auto whitespace-nowrap rounded-md px-2 py-0.5 text-sm",
+              "whitespace-nowrap py-0.5 text-sm",
+              item.color && "rounded-md px-2",
               item.color === "red" && "bg-red-100 text-red-600",
               item.color === "yellow" && "bg-yellow-100 text-yellow-600",
               item.color === "green" && "bg-green-100 text-green-600",
@@ -152,7 +155,7 @@ export function InputSelect({
           <Command ref={commandRef} className="relative" loop>
             <div
               className={cn(
-                "group relative min-w-[140px] rounded-md border border-gray-300 bg-white px-1 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500",
+                "group relative rounded-md border border-gray-300 bg-white px-1 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500 md:min-w-[140px]",
                 className,
               )}
             >
@@ -189,11 +192,11 @@ export function InputSelect({
         </Drawer.Trigger>
         <Drawer.Overlay className="fixed inset-0 z-40 bg-gray-100 bg-opacity-10 backdrop-blur" />
         <Drawer.Portal>
-          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 mt-24 rounded-t-[10px] border-t border-gray-200 bg-white">
+          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 mt-24 rounded-t-lg border-t border-gray-200 bg-white">
             <Command ref={commandRef} className="relative" loop>
               <div
                 className={cn(
-                  "group relative mb-2 rounded-t-md border border-gray-300 bg-white px-1 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-200",
+                  "group relative mb-2 rounded-t-md border-b border-gray-300 bg-white p-1 sm:border sm:py-0 sm:focus-within:border-gray-500 sm:focus-within:ring-1 sm:focus-within:ring-gray-200",
                   className,
                 )}
               >
@@ -228,7 +231,7 @@ export function InputSelect({
               {openCommandList && (
                 <Command.List className="dub-scrollbar h-[70vh] overflow-y-auto p-2">
                   <Command.Empty className="px-4 py-2 text-sm text-gray-600">
-                    No results found for "{inputValue}"
+                    No results found.
                   </Command.Empty>
                   <SelectorList />
                 </Command.List>
@@ -286,9 +289,9 @@ export function InputSelect({
         </div>
       </div>
       {openCommandList && (
-        <Command.List className="dub-scrollbar absolute z-20 mt-2 h-[calc(var(--cmdk-list-height)+17px)] max-h-[300px] w-full overflow-auto rounded-md border border-gray-200 bg-white p-2 shadow-md transition-all">
+        <Command.List className="dub-scrollbar absolute z-20 mt-2 h-[calc(var(--cmdk-list-height)+17px)] max-h-[300px] w-full min-w-[160px] overflow-auto rounded-md border border-gray-200 bg-white p-2 shadow-md transition-all duration-75">
           <Command.Empty className="px-4 py-2 text-sm text-gray-600">
-            No results found for "{inputValue}"
+            No results found.
           </Command.Empty>
           <SelectorList />
         </Command.List>

@@ -11,7 +11,7 @@ export default function TagSelector() {
   const searchParams = useSearchParams();
   const selectedTagId = searchParams?.get("tagId");
 
-  return tags && tags.length > 0 ? (
+  return tags ? (
     <InputSelect
       adjustForMobile
       items={tags.map(({ id, name, color }) => ({
@@ -41,7 +41,9 @@ export default function TagSelector() {
       inputAttrs={{
         placeholder: "Filter tags",
       }}
-      className="md:w-48"
+      className="lg:w-48"
     />
-  ) : undefined;
+  ) : (
+    <div className="h-10.5 flex w-full animate-pulse items-center space-x-2 rounded-md bg-gray-200 opacity-50 md:w-48" />
+  );
 }
