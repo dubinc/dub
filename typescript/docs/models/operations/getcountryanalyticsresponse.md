@@ -1,0 +1,9 @@
+# GetCountryAnalyticsResponse
+
+
+## Fields
+
+| Field                                                                                                      | Type                                                                                                       | Required                                                                                                   | Description                                                                                                |
+| ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `httpMeta`                                                                                                 | [components.HTTPMetadata](../../models/components/httpmetadata.md)                                         | :heavy_check_mark:                                                                                         | N/A                                                                                                        |
+| `responseBodies`                                                                                           | [operations.GetCountryAnalyticsResponseBody](../../models/operations/getcountryanalyticsresponsebody.md)[] | :heavy_minus_sign:                                                                                         | The top countries by number of clicks                                                                      |

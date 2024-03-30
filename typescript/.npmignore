@@ -1,0 +1,8 @@
+/*
+/docs/**/*.md
+!/**/*.ts
+!/**/*.js
+!/**/*.map
+
+/.eslintrc.js
+/cjs

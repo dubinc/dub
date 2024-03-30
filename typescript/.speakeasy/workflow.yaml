@@ -1,0 +1,9 @@
+workflowVersion: 1.0.0
+sources:
+    my-first-source:
+        inputs:
+            - location: ../openapi.json
+targets:
+    my-first-target:
+        target: typescript
+        source: my-first-source
