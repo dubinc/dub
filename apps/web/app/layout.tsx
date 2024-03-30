@@ -6,6 +6,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Toaster } from "sonner";
 import { PostHogProvider } from "./providers";
+import PostHogPageView from "@/ui/layout/posthog-page-view";
 
 export const metadata = constructMetadata();
 
@@ -20,6 +21,7 @@ export default function RootLayout({
         <TooltipProvider>
           <Toaster closeButton />
           <PostHogProvider>
+            <PostHogPageView /> 
             {children}
           </PostHogProvider>
           <Analytics />
