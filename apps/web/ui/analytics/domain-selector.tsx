@@ -10,42 +10,48 @@ export default function DomainSelector() {
 
   const { allActiveDomains: domains } = useDomains();
   const searchParams = useSearchParams();
-  const selectedDomainId = searchParams?.get("domainId");
+  const selecteddomain = searchParams?.get("domain");
 
   return domains && domains.length > 0 ? (
     <InputSelect
       adjustForMobile
-      items={domains.map(({ id, slug }) => ({
-        id,
-        value: slug,
-      }))}
+      items={domains // order by primary domain first
+        .sort((a, b) => (a.primary ? -1 : b.primary ? 1 : 0))
+        .map(({ id, slug, primary }) => ({
+          id,
+          value: slug,
+          image: `${GOOGLE_FAVICON_URL}${slug}`,
+        }))}
       icon={<Globe className="h-4 w-4 text-black" />}
       selectedItem={{
-        id: selectedDomainId!,
-        value: domains.find(({ id }) => id === selectedDomainId)?.slug || "",
-        image: selectedDomainId
+        id: selecteddomain!,
+        value: domains.find(({ slug }) => slug === selecteddomain)?.slug || "",
+        image: selecteddomain
           ? `${GOOGLE_FAVICON_URL}${
-              domains.find(({ id }) => id === selectedDomainId)?.target
+              domains.find(({ slug }) => slug === selecteddomain)?.target
             }`
           : undefined,
       }}
       setSelectedItem={(domain) => {
-        if (domain && typeof domain !== "function" && domain.id)
+        console.log(domain);
+        if (domain && typeof domain !== "function" && domain.value)
           router.push(
             queryParams({
-              set: { domainId: domain.id },
+              set: { domain: domain.value },
               getNewPath: true,
             }) as string,
           );
         else
           router.push(
-            queryParams({ del: "domainId", getNewPath: true }) as string,
+            queryParams({ del: "domain", getNewPath: true }) as string,
           );
       }}
       inputAttrs={{
-        placeholder: "Filter domains",
+        placeholder: "All domains",
       }}
-      className="md:w-44"
+      className="w-full lg:w-48"
     />
-  ) : undefined;
+  ) : (
+    <div className="h-10.5 flex w-full animate-pulse items-center space-x-2 rounded-md bg-gray-200 opacity-50 md:w-48" />
+  );
 }

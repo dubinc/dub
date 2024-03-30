@@ -92,7 +92,8 @@ export function InputSelect({
               setOpenCommandList(true);
             }
           }}
-          className="block w-full truncate rounded-md border-none px-0 text-sm text-gray-900 placeholder-gray-400 outline-none outline-0 transition-all duration-300 focus:ring-0"
+          style={{ fontSize: isMobile ? "16px" : undefined }}
+          className="block w-full truncate rounded-md border-none px-0 text-gray-900 placeholder-gray-400 outline-none outline-0 transition-all duration-300 focus:ring-0 md:text-sm"
         />
       </>
     );
@@ -152,7 +153,7 @@ export function InputSelect({
           <Command ref={commandRef} className="relative" loop>
             <div
               className={cn(
-                "group relative min-w-[140px] rounded-md border border-gray-300 bg-white px-1 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500",
+                "group relative rounded-md border border-gray-300 bg-white px-1 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500 md:min-w-[140px]",
                 className,
               )}
             >
