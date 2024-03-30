@@ -63,7 +63,9 @@ export async function recordClick({
           alias_link_id: "",
           url: url || "",
           ip:
-            ip &&
+            // only record IP if it's a valid IP and not from EU
+            typeof ip === "string" &&
+            ip.trim().length > 0 &&
             (!geo?.country ||
               (geo?.country && !EU_COUNTRY_CODES.includes(geo.country)))
               ? ip
