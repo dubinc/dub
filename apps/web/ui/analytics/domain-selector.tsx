@@ -19,9 +19,8 @@ export default function DomainSelector() {
         .sort((a, b) => (a.primary ? -1 : b.primary ? 1 : 0))
         .map(({ id, slug, primary }) => ({
           id,
-          value: slug + (primary ? " (Primary)" : ""),
+          value: slug,
           image: `${GOOGLE_FAVICON_URL}${slug}`,
-          color: primary ? "blue" : "black",
         }))}
       icon={<Globe className="h-4 w-4 text-black" />}
       selectedItem={{
