@@ -199,6 +199,9 @@ importers:
       openapi3-ts:
         specifier: ^4.2.1
         version: 4.2.1
+      posthog-js:
+        specifier: ^1.116.6
+        version: 1.116.6
       postmark:
         specifier: ^4.0.2
         version: 4.0.2
@@ -9627,6 +9630,10 @@ packages:
       bser: 2.1.1
     dev: false
 
+  /fflate@0.4.8:
+    resolution: {integrity: sha512-FJqqoDBR00Mdj9ppamLa/Y7vxm+PRmNWA67N846RvsoYVMKB4q3y/de5PA7gUmRMYK/8CMz2GDZQmCRN1wBcWA==}
+    dev: false
+
   /fflate@0.7.4:
     resolution: {integrity: sha512-5u2V/CDW15QM1XbbgS+0DfPxVB+jUKhWEKuuFuHncbk3tEEqzmoXL+2KyOFuKGqOnmdIy0/davWF1CkuwtibCw==}
     dev: false
@@ -12937,6 +12944,13 @@ packages:
       xtend: 4.0.2
     dev: false
 
+  /posthog-js@1.116.6:
+    resolution: {integrity: sha512-rvt8HxzJD4c2B/xsUa4jle8ApdqljeBI2Qqjp4XJMohQf18DXRyM6b96H5/UMs8jxYuZG14Er0h/kEIWeU6Fmw==}
+    dependencies:
+      fflate: 0.4.8
+      preact: 10.20.1
+    dev: false
+
   /postmark@4.0.2:
     resolution: {integrity: sha512-2zlCv+KVVQ0KoamXZHE7d+gXzLlr8tPE+PxQmtUaIZhbHzZAq4D6yH2b+ykhA8wYCc5ISodcx8U1aNLenXBs9g==}
     dependencies:
@@ -12956,6 +12970,10 @@ packages:
 
   /preact@10.18.1:
     resolution: {integrity: sha512-mKUD7RRkQQM6s7Rkmi7IFkoEHjuFqRQUaXamO61E6Nn7vqF/bo7EZCmSyrUnp2UWHw0O7XjZ2eeXis+m7tf4lg==}
+    dev: false
+
+  /preact@10.20.1:
+    resolution: {integrity: sha512-JIFjgFg9B2qnOoGiYMVBtrcFxHqn+dNXbq76bVmcaHYJFYR4lW67AOcXgAYQQTDYXDOg/kTZrKPNCdRgJ2UJmw==}
     dev: false
 
   /prelude-ls@1.2.1:
