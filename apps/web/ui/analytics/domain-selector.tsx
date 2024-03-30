@@ -1,35 +1,39 @@
 import useDomains from "@/lib/swr/use-domains";
 import { InputSelect, useRouterStuff } from "@dub/ui";
-import { GOOGLE_FAVICON_URL } from "@dub/utils";
+import { DUB_LOGO, GOOGLE_FAVICON_URL, getApexDomain } from "@dub/utils";
 import { Globe } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useMemo } from "react";
 
 export default function DomainSelector() {
   const router = useRouter();
   const { queryParams } = useRouterStuff();
 
-  const { allActiveDomains: domains } = useDomains();
+  const { allWorkspaceDomains: domains } = useDomains();
   const searchParams = useSearchParams();
-  const selecteddomain = searchParams?.get("domain");
+  const selectedDomain = useMemo(() => {
+    const domain = searchParams.get("domain");
+    return domains.find(({ slug }) => slug === domain);
+  }, [searchParams, domains]);
 
-  return domains && domains.length > 0 ? (
+  return domains ? (
     <InputSelect
       adjustForMobile
       items={domains // order by primary domain first
         .sort((a, b) => (a.primary ? -1 : b.primary ? 1 : 0))
-        .map(({ id, slug, primary }) => ({
+        .map(({ id, slug }) => ({
           id,
           value: slug,
           image: `${GOOGLE_FAVICON_URL}${slug}`,
         }))}
       icon={<Globe className="h-4 w-4 text-black" />}
       selectedItem={{
-        id: selecteddomain!,
-        value: domains.find(({ slug }) => slug === selecteddomain)?.slug || "",
-        image: selecteddomain
-          ? `${GOOGLE_FAVICON_URL}${
-              domains.find(({ slug }) => slug === selecteddomain)?.target
-            }`
+        id: selectedDomain?.id || "",
+        value: selectedDomain?.slug || "",
+        image: selectedDomain
+          ? selectedDomain.target
+            ? `${GOOGLE_FAVICON_URL}${getApexDomain(selectedDomain.target)}`
+            : DUB_LOGO
           : undefined,
       }}
       setSelectedItem={(domain) => {
@@ -47,7 +51,7 @@ export default function DomainSelector() {
           );
       }}
       inputAttrs={{
-        placeholder: "All domains",
+        placeholder: "Filter domains",
       }}
       className="w-full lg:w-48"
     />

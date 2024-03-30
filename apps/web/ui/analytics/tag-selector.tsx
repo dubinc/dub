@@ -11,7 +11,7 @@ export default function TagSelector() {
   const searchParams = useSearchParams();
   const selectedTagId = searchParams?.get("tagId");
 
-  return tags && tags.length > 0 ? (
+  return tags ? (
     <InputSelect
       adjustForMobile
       items={tags.map(({ id, name, color }) => ({
