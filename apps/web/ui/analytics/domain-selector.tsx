@@ -15,11 +15,14 @@ export default function DomainSelector() {
   return domains && domains.length > 0 ? (
     <InputSelect
       adjustForMobile
-      items={domains.map(({ id, slug }) => ({
-        id,
-        value: slug,
-        image: `${GOOGLE_FAVICON_URL}${slug}`,
-      }))}
+      items={domains // order by primary domain first
+        .sort((a, b) => (a.primary ? -1 : b.primary ? 1 : 0))
+        .map(({ id, slug, primary }) => ({
+          id,
+          value: slug + (primary ? " (Primary)" : ""),
+          image: `${GOOGLE_FAVICON_URL}${slug}`,
+          color: primary ? "blue" : "black",
+        }))}
       icon={<Globe className="h-4 w-4 text-black" />}
       selectedItem={{
         id: selecteddomain!,
@@ -45,9 +48,11 @@ export default function DomainSelector() {
           );
       }}
       inputAttrs={{
-        placeholder: "Filter domains",
+        placeholder: "All domains",
       }}
-      className="lg:w-48"
+      className="w-full lg:w-48"
     />
-  ) : undefined;
+  ) : (
+    <div className="h-10.5 flex w-full animate-pulse items-center space-x-2 rounded-md bg-gray-200 opacity-50 md:w-48" />
+  );
 }

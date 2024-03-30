@@ -43,5 +43,7 @@ export default function TagSelector() {
       }}
       className="lg:w-48"
     />
-  ) : undefined;
+  ) : (
+    <div className="h-10.5 flex w-full animate-pulse items-center space-x-2 rounded-md bg-gray-200 opacity-50 md:w-48" />
+  );
 }

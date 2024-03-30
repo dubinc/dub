@@ -20,93 +20,69 @@ export default function Toggle() {
   const { basePath, domain, key, url, admin } = useContext(AnalyticsContext);
 
   const scrolled = useScroll(80);
-  const { name, logo } = useWorkspace();
-  const { primaryDomain } = useDomains();
 
   const isPublicStatsPage = basePath.startsWith("/stats");
 
   return (
-    <div
-      className={cn("sticky top-[6.85rem] z-10 mb-5 bg-gray-50 py-3 md:py-3", {
-        "top-14": isPublicStatsPage,
-        "top-0": admin,
-        "shadow-md": scrolled,
-      })}
-    >
+    <>
+      <div className="mx-auto w-full max-w-4xl md:hidden">
+        <h2 className="truncate text-center text-2xl text-gray-600">
+          Link Analytics
+        </h2>
+      </div>
       <div
         className={cn(
-          "mx-auto flex w-full max-w-4xl flex-col gap-2 space-y-3 px-2.5 md:space-y-0 lg:px-0",
+          "sticky top-[6.85rem] z-10 mb-5 bg-gray-50 py-3 md:py-3",
           {
-            "md:h-10": key,
+            "top-14": isPublicStatsPage,
+            "top-0": admin,
+            "shadow-md": scrolled,
           },
         )}
       >
         <div
           className={cn(
-            "flex w-full flex-col items-center justify-between gap-2 md:flex-row",
+            "mx-auto flex w-full max-w-4xl flex-col gap-2 space-y-3 px-2.5 md:space-y-0 lg:px-0",
             {
-              "flex-col md:flex-row": !key,
-              "items-center": key,
+              "md:h-10": key,
             },
           )}
         >
-          {isPublicStatsPage ? (
-            <a
-              className="group flex items-center text-lg font-semibold text-gray-800"
-              href={linkConstructor({ domain, key })}
-              target="_blank"
-              rel="noreferrer"
-            >
-              <BlurImage
-                alt={url || "Dub.co"}
-                src={
-                  url ? `${GOOGLE_FAVICON_URL}${getApexDomain(url)}` : DUB_LOGO
-                }
-                className="mr-2 h-6 w-6 flex-shrink-0 overflow-hidden rounded-full"
-                width={48}
-                height={48}
-              />
-              {linkConstructor({
-                domain: punycode.toUnicode(domain),
-                key,
-                pretty: true,
-              })}
-              <ExpandingArrow className="h-5 w-5" />
-            </a>
-          ) : (
-            <div className="flex items-center space-x-2 truncate pr-2">
-              <BlurImage
-                alt={name || "Workspace Logo"}
-                src={logo || DUB_LOGO}
-                className="h-6 w-6 flex-shrink-0 overflow-hidden rounded-full"
-                width={48}
-                height={48}
-              />
-              <h2 className="truncate text-lg font-semibold text-gray-800">
-                {primaryDomain}
+          <div
+            className={cn(
+              "flex w-full flex-col items-center justify-between gap-2 md:flex-row",
+              {
+                "flex-col md:flex-row": !key,
+                "items-center": key,
+              },
+            )}
+          >
+            <div className="hidden items-center space-x-2 truncate pr-2 md:flex">
+              <h2 className="truncate text-2xl text-gray-600">
+                Link Analytics
               </h2>
             </div>
-          )}
-          <div
-            className={cn("flex items-center gap-2", {
-              "flex-col min-[550px]:flex-row": !key,
-              "w-full md:w-auto": key,
-            })}
-          >
-            {!isPublicStatsPage && !key && <FilterBar />}
-            {!isPublicStatsPage && key && <SharePopover />}
             <div
-              className={cn("flex w-full items-center gap-2", {
-                "min-[550px]:w-auto": !key,
-                "justify-end": key,
+              className={cn("flex items-center gap-2", {
+                "w-full flex-col min-[550px]:flex-row md:w-auto": !key,
+                "w-full md:w-auto": key,
               })}
             >
-              <DateRangePicker />
-              {!isPublicStatsPage && <ExportButton />}
+              {!isPublicStatsPage && !key && <FilterBar />}
+              {!isPublicStatsPage && key && <SharePopover />}
+              <div
+                className={cn("flex w-full items-center gap-2", {
+                  "min-[550px]:w-auto": !key,
+                  "justify-end": key,
+                })}
+              >
+                <DateRangePicker />
+                {!isPublicStatsPage && <ExportButton />}
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
