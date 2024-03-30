@@ -74,8 +74,8 @@ export function InputSelect({
       <>
         <Command.Input
           placeholder={inputAttrs?.placeholder || "Search..."}
-          // hack to focus on the input when the dropdown opens
-          autoFocus={openCommandList}
+          // hack to focus on the input when the dropdown opens (only on desktop)
+          autoFocus={openCommandList && !isMobile}
           // when focus on the input. only show the dropdown if there are tags and the tagValue is not empty
           onFocus={() => setOpenCommandList(true)}
           value={inputValue}
