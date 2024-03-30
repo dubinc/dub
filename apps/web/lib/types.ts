@@ -2,6 +2,7 @@ import z from "@/lib/zod";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import { Link } from "@prisma/client";
 import { createLinkBodySchema } from "./zod/schemas/links";
+import NextAuth from "next-auth"
 
 export type LinkProps = Link;
 
@@ -182,3 +183,14 @@ export const tagColors = [
   "pink",
   "brown",
 ] as const;
+
+declare module "next-auth" {
+  interface Session {
+    user: {
+      email: string;
+      id: string;
+      name: string;
+      image?: string;
+    }
+  }
+}

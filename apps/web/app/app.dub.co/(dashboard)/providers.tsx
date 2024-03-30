@@ -10,7 +10,6 @@ const Identify = () => {
 
   useEffect(() => {
     if (session && session?.user) {
-      // @ts-ignore
       posthog.identify(session.user?.id, {
         email: session.user?.email,
         name: session.user?.name,
