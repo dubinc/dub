@@ -12,6 +12,7 @@ import {
 } from "react";
 import { Drawer } from "vaul";
 import { Badge } from "./badge";
+import { BlurImage } from "./blur-image";
 import { useMediaQuery } from "./hooks";
 
 export interface InputSelectItemProps {
@@ -76,7 +77,6 @@ export function InputSelect({
           placeholder={inputAttrs?.placeholder || "Search..."}
           // hack to focus on the input when the dropdown opens (only on desktop)
           autoFocus={openCommandList && !isMobile}
-          // when focus on the input. only show the dropdown if there are tags and the tagValue is not empty
           onFocus={() => setOpenCommandList(true)}
           value={inputValue}
           onValueChange={setInputValue}
@@ -92,8 +92,7 @@ export function InputSelect({
               setOpenCommandList(true);
             }
           }}
-          style={{ fontSize: isMobile ? "16px" : undefined }}
-          className="block w-full truncate rounded-md border-none px-0 text-gray-900 placeholder-gray-400 outline-none outline-0 transition-all duration-300 focus:ring-0 md:text-sm"
+          className="block w-full truncate rounded-md border-none px-0 text-base text-gray-900 placeholder-gray-400 outline-none outline-0 transition-all duration-300 focus:ring-0 md:text-sm"
         />
       </>
     );
@@ -115,10 +114,12 @@ export function InputSelect({
       >
         <div className="flex items-center space-x-2">
           {item.image && (
-            <img
+            <BlurImage
               src={item.image}
               alt={item.value}
               className="h-4 w-4 rounded-full"
+              width={16}
+              height={16}
             />
           )}
           <p
