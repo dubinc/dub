@@ -192,11 +192,11 @@ export function InputSelect({
         </Drawer.Trigger>
         <Drawer.Overlay className="fixed inset-0 z-40 bg-gray-100 bg-opacity-10 backdrop-blur" />
         <Drawer.Portal>
-          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 mt-24 rounded-t-[10px] border-t border-gray-200 bg-white">
+          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 mt-24 rounded-t-lg border-t border-gray-200 bg-white">
             <Command ref={commandRef} className="relative" loop>
               <div
                 className={cn(
-                  "group relative mb-2 rounded-t-md border border-gray-300 bg-white px-1 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-200",
+                  "group relative mb-2 rounded-t-md border-b border-gray-300 bg-white p-1 sm:border sm:py-0 sm:focus-within:border-gray-500 sm:focus-within:ring-1 sm:focus-within:ring-gray-200",
                   className,
                 )}
               >
@@ -231,7 +231,7 @@ export function InputSelect({
               {openCommandList && (
                 <Command.List className="dub-scrollbar h-[70vh] overflow-y-auto p-2">
                   <Command.Empty className="px-4 py-2 text-sm text-gray-600">
-                    No results found for "{inputValue}"
+                    No results found.
                   </Command.Empty>
                   <SelectorList />
                 </Command.List>
@@ -291,7 +291,7 @@ export function InputSelect({
       {openCommandList && (
         <Command.List className="dub-scrollbar absolute z-20 mt-2 h-[calc(var(--cmdk-list-height)+17px)] max-h-[300px] w-full min-w-[160px] overflow-auto rounded-md border border-gray-200 bg-white p-2 shadow-md transition-all duration-75">
           <Command.Empty className="px-4 py-2 text-sm text-gray-600">
-            No results found for "{inputValue}"
+            No results found.
           </Command.Empty>
           <SelectorList />
         </Command.List>
