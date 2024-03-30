@@ -10,8 +10,6 @@ if (typeof window !== 'undefined') {
   })
 }
 
-console.log('process.env.NEXT_PUBLIC_POSTHOG_KEY', process.env.NEXT_PUBLIC_POSTHOG_KEY)
-console.log('process.env.NEXT_PUBLIC_POSTHOG_HOST', process.env.NEXT_PUBLIC_POSTHOG_HOST)
 export function PostHogProvider({ children }) {
   return <PHProvider client={posthog}>{children}</PHProvider>
 }
