@@ -1,5 +1,7 @@
 import {
+  EU_COUNTRY_CODES,
   LOCALHOST_GEO_DATA,
+  LOCALHOST_IP,
   capitalize,
   getDomainWithoutWWW,
   nanoid,
@@ -10,6 +12,7 @@ import { detectBot } from "./middleware/utils";
 import { conn } from "./planetscale";
 import { LinkProps } from "./types";
 import { ratelimit } from "./upstash";
+import { ipAddress } from "@vercel/edge";
 
 /**
  * Recording clicks with geo, ua, referer and timestamp data
@@ -32,6 +35,7 @@ export async function recordClick({
   const geo = process.env.VERCEL === "1" ? req.geo : LOCALHOST_GEO_DATA;
   const ua = userAgent(req);
   const referer = req.headers.get("referer");
+  const ip = ipAddress(req) || LOCALHOST_IP;
   const identity_hash = await getIdentityHash(req);
   // if in production / preview env, deduplicate clicks from the same IP & link ID – only record 1 click per hour
   if (process.env.VERCEL === "1") {
@@ -58,6 +62,8 @@ export async function recordClick({
           link_id: id,
           alias_link_id: "",
           url: url || "",
+          // only store IP Address if not EU country
+          ip: geo?.country && EU_COUNTRY_CODES.includes(geo.country) ? "" : ip,
           country: geo?.country || "Unknown",
           city: geo?.city || "Unknown",
           region: geo?.region || "Unknown",
