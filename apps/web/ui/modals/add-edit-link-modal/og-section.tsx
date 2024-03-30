@@ -26,6 +26,7 @@ import {
 } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import UnsplashSearch from "./unsplash-search";
+import { useChat } from "ai/react";
 
 export default function OGSection({
   props,
@@ -49,6 +50,31 @@ export default function OGSection({
   const [loadingMetaData, setLoadingMetaData] = useState({
     title: false,
     description: false,
+  });
+  const [requestedType, setRequestedType] = useState<"title" | "description">();
+
+  const { append } = useChat({
+    api: `/api/ai/chat?workspaceId=${workspaceId}`,
+    onFinish(message) {
+      if (message.role === "assistant" && requestedType) {
+        setData((prev) => ({
+          ...prev,
+          [requestedType]: message.content.replaceAll('"', ""),
+        }));
+      }
+
+      setLoadingMetaData((prev) => ({ ...prev, [requestedType!]: false }));
+      setRequestedType(undefined);
+    },
+    // initial system message
+    initialMessages: [
+      {
+        id: "initial-prop",
+        role: "system",
+        content:
+          "You are a helpful assistant and helps with meta-tags. You receive a question like 'What is a suitable, new meta-title for Dub?' and you respond with a plain text answer, no quotes, no special characters. Try to keep it short and sweet. The same goes for meta-descriptions. Don't use any special characters or quotes. For questions regarding meta-title you answer with a max-length of 120 characters and for meta-description with a max-length of 240 characters.",
+      },
+    ],
   });
 
   const onChangePicture = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -88,43 +114,26 @@ export default function OGSection({
     }, 200);
   }
 
-  const generateMetaData = useCallback(
-    async (type: "title" | "description") => {
-      setLoadingMetaData((prev) => ({ ...prev, [type]: true }));
+  useEffect(() => {
+    if (loadingMetaData.title || loadingMetaData.description || !requestedType)
+      return;
 
-      const returnKey = async (doNotUseString?) =>
-        await fetch(
-          `/api/ai/metadata?workspaceId=${workspaceId}&type=${type}`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              metaTitle: data.title,
-              metaDescription: data.description,
-              doNotUseString,
-            }),
-          },
-        ).then(async (res) => {
-          if (res.status !== 200) {
-            const error = await res.text();
-            setLoadingMetaData((prev) => ({ ...prev, [type]: false }));
-            throw new Error(error);
-          }
-          return res.text();
-        });
+    const generateMetaData = async () => {
+      setLoadingMetaData((prev) => ({ ...prev, [requestedType]: true }));
 
-      let res = await returnKey();
+      await append({
+        role: "user",
+        content:
+          requestedType === "title"
+            ? `What is a suitable, new meta-title for ${data.title} that has a maximum of 110 characters?`
+            : `What is a suitable, new meta-description for ${data.description} that has a maximum of 200 characters?`,
+      });
+    };
 
-      if (res === data[type]) res = await returnKey(data[type]);
+    generateMetaData();
 
-      setData((prev) => ({ ...prev, [type]: res }));
-
-      setLoadingMetaData((prev) => ({ ...prev, [type]: false }));
-    },
-    [data],
-  );
+    return () => setRequestedType(undefined);
+  }, [requestedType]);
 
   return (
     <div className="relative grid gap-5 border-b border-gray-200 pb-5">
@@ -321,7 +330,9 @@ export default function OGSection({
                 </p>
                 <button
                   className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
-                  onClick={() => generateMetaData("title")}
+                  onClick={() => {
+                    setRequestedType("title");
+                  }}
                   disabled={loadingMetaData.title}
                   type="button"
                 >
@@ -366,7 +377,9 @@ export default function OGSection({
                 </p>
                 <button
                   className="flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition-colors duration-75 hover:bg-gray-100 active:bg-gray-200 disabled:cursor-not-allowed"
-                  onClick={() => generateMetaData("description")}
+                  onClick={() => {
+                    setRequestedType("description");
+                  }}
                   disabled={loadingMetaData.description}
                   type="button"
                 >

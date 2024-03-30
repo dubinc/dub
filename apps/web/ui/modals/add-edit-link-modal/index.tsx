@@ -85,8 +85,8 @@ function AddEditLinkModal({
   const [generatingAIKey, setGeneratingAIKey] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const { messages, append, setMessages } = useChat({
-    api: `/api/ai/shortlink?workspaceId=${workspaceId}`,
+  const { append } = useChat({
+    api: `/api/ai/chat?workspaceId=${workspaceId}`,
     onFinish(message) {
       if (message.role === "assistant") {
         setData((prev) => ({ ...prev, key: message.content }));
@@ -546,7 +546,9 @@ function AddEditLinkModal({
                           generatingRandomKey ||
                           !plan ||
                           plan === "free" ||
-                          !url
+                          !url ||
+                          !data.title ||
+                          !data.description
                         }
                         type="button"
                       >
