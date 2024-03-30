@@ -51,6 +51,10 @@ export default function OGSection({
     title: false,
     description: false,
   });
+  const [metaDataError, setMetaDataError] = useState<
+    Record<string, string | null>
+  >({ title: null, description: null });
+
   const [requestedType, setRequestedType] = useState<"title" | "description">();
 
   const { append } = useChat({
@@ -117,6 +121,14 @@ export default function OGSection({
   useEffect(() => {
     if (loadingMetaData.title || loadingMetaData.description || !requestedType)
       return;
+
+    if (!data[requestedType]) {
+      setMetaDataError((prev) => ({
+        ...prev,
+        [requestedType]: `Please provide a ${requestedType === "title" ? "title" : "description"} to generate a new ${requestedType} out of.`,
+      }));
+      return;
+    }
 
     const generateMetaData = async () => {
       setLoadingMetaData((prev) => ({ ...prev, [requestedType]: true }));
@@ -364,6 +376,11 @@ export default function OGSection({
                 aria-invalid="true"
               />
             </div>
+            {metaDataError.title && (
+              <p className="mt-2 text-sm text-red-600" id="meta-title-error">
+                {metaDataError.title}
+              </p>
+            )}
           </div>
 
           <div>
@@ -414,6 +431,11 @@ export default function OGSection({
                 aria-invalid="true"
               />
             </div>
+            {metaDataError.description && (
+              <p className="mt-2 text-sm text-red-600" id="meta-title-error">
+                {metaDataError.description}
+              </p>
+            )}
           </div>
         </motion.div>
       )}
