@@ -123,7 +123,8 @@ export function InputSelect({
           )}
           <p
             className={cn(
-              "my-auto whitespace-nowrap rounded-md px-2 py-0.5 text-sm",
+              "whitespace-nowrap py-0.5 text-sm",
+              item.color && "rounded-md px-2",
               item.color === "red" && "bg-red-100 text-red-600",
               item.color === "yellow" && "bg-yellow-100 text-yellow-600",
               item.color === "green" && "bg-green-100 text-green-600",
