@@ -501,10 +501,10 @@ function AddEditLinkModal({
                     name="key"
                     id={`key-${randomIdx}`}
                     required
-                    pattern="[\p{L}\p{N}\p{Pd}\/]+"
+                    pattern="^(?!_)[\p{L}\p{N}\p{Pd}_\/]+"
                     onInvalid={(e) => {
                       e.currentTarget.setCustomValidity(
-                        "Only letters, numbers, '-', and '/' are allowed.",
+                        "Only letters, numbers, '-', and '/' are allowed. Underscores '_', if present, should not be placed at the beginning.                        ",
                       );
                     }}
                     disabled={props && lockKey}
