@@ -6,6 +6,7 @@ import { LinkSchema, createLinkBodySchema } from "@/lib/zod/schemas/links";
 
 export const editLink: ZodOpenApiOperationObject = {
   operationId: "editLink",
+  "x-speakeasy-name-override": "update",
   summary: "Edit a link",
   description: "Edit a link for the authenticated workspace.",
   requestParams: {

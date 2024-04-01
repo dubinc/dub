@@ -6,6 +6,7 @@ import { LinkSchema } from "@/lib/zod/schemas/links";
 
 export const deleteLink: ZodOpenApiOperationObject = {
   operationId: "deleteLink",
+  "x-speakeasy-name-override": "delete",
   summary: "Delete a link",
   description: "Delete a link for the authenticated workspace.",
   requestParams: {

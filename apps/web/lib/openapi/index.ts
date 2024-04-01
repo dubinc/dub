@@ -52,10 +52,22 @@ export const openApiObject: ZodOpenApiObject = {
         type: "http",
         description: "Default authentication mechanism",
         scheme: "bearer",
-      }
+      },
     },
     responses: {
       ...openApiErrorResponses,
     },
+  },
+  "x-speakeasy-globals": {
+    parameters: [
+      {
+        name: "workspaceId",
+        in: "query",
+        required: true,
+        schema: {
+          type: "string",
+        },
+      },
+    ],
   },
 };

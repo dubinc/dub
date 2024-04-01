@@ -5,6 +5,7 @@ import { ZodOpenApiOperationObject } from "zod-openapi";
 
 export const getLinks: ZodOpenApiOperationObject = {
   operationId: "getLinks",
+  "x-speakeasy-name-override": "list",
   summary: "Retrieve a list of links",
   description:
     "Retrieve a list of links for the authenticated workspace. The list will be paginated and the provided query parameters allow filtering the returned links.",
