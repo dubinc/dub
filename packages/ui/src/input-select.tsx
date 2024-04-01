@@ -29,6 +29,7 @@ export function InputSelect({
   selectedItem,
   setSelectedItem,
   className,
+  disabled,
   adjustForMobile,
   icon,
   inputAttrs,
@@ -37,6 +38,7 @@ export function InputSelect({
   selectedItem: InputSelectItemProps | null;
   setSelectedItem: Dispatch<SetStateAction<InputSelectItemProps | null>>;
   className?: string;
+  disabled?: boolean;
   adjustForMobile?: boolean;
   icon?: ReactNode;
   inputAttrs?: InputHTMLAttributes<HTMLInputElement>;
@@ -92,6 +94,7 @@ export function InputSelect({
               setOpenCommandList(true);
             }
           }}
+          disabled={disabled}
           className="block w-full truncate rounded-md border-none px-0 text-base text-gray-900 placeholder-gray-400 outline-none outline-0 transition-all duration-300 focus:ring-0 md:text-sm"
         />
       </>

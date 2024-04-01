@@ -11,19 +11,22 @@ export default function TagSelector() {
   const searchParams = useSearchParams();
   const selectedTagId = searchParams?.get("tagId");
 
-  return tags ? (
+  return (
     <InputSelect
       adjustForMobile
-      items={tags.map(({ id, name, color }) => ({
-        id,
-        color,
-        value: name,
-      }))}
+      disabled={!tags}
+      items={
+        tags?.map(({ id, name, color }) => ({
+          id,
+          color,
+          value: name,
+        })) || []
+      }
       icon={<Tag className="h-4 w-4 text-black" />}
       selectedItem={{
         id: selectedTagId!,
-        value: tags.find(({ id }) => id === selectedTagId)?.name || "",
-        color: tags.find(({ id }) => id === selectedTagId)?.color,
+        value: tags?.find(({ id }) => id === selectedTagId)?.name || "",
+        color: tags?.find(({ id }) => id === selectedTagId)?.color,
       }}
       setSelectedItem={(tag) => {
         if (tag && typeof tag !== "function" && tag.id)
@@ -43,7 +46,5 @@ export default function TagSelector() {
       }}
       className="lg:w-48"
     />
-  ) : (
-    <div className="h-10.5 flex w-full animate-pulse items-center space-x-2 rounded-md bg-gray-200 opacity-50 md:w-48" />
   );
 }
