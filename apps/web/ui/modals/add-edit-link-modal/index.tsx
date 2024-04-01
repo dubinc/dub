@@ -120,7 +120,7 @@ function AddEditLinkModal({
       if (!props && activeDefaultDomains) {
         const urlDomain = getDomainWithoutWWW(url) || "";
         const defaultDomain = activeDefaultDomains.find(
-          ({ allowedHostnames }) => allowedHostnames.includes(urlDomain),
+          ({ allowedHostnames }) => allowedHostnames?.includes(urlDomain),
         );
         if (defaultDomain) {
           setData((prev) => ({ ...prev, domain: defaultDomain.slug }));

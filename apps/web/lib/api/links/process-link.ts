@@ -99,7 +99,7 @@ export async function processLink({
     // coerce type with ! cause we already checked if it exists
     const { allowedHostnames } = DUB_DOMAINS.find((d) => d.slug === domain)!;
     const urlDomain = getDomainWithoutWWW(url) || "";
-    if (!allowedHostnames.includes(urlDomain)) {
+    if (allowedHostnames && !allowedHostnames.includes(urlDomain)) {
       return {
         link: payload,
         error: `Invalid url. You can only use ${domain} short links for URLs starting with ${allowedHostnames
@@ -119,7 +119,11 @@ export async function processLink({
   }
 
   if (!key) {
-    key = await getRandomKey(domain, payload["prefix"]);
+    key = await getRandomKey({
+      domain,
+      prefix: payload["prefix"],
+      long: domain === "loooooooo.ng",
+    });
   } else if (!skipKeyChecks) {
     const processedKey = processKey(key);
     if (processedKey === null) {
