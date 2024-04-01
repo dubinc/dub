@@ -16,11 +16,12 @@ import {
 import { FADE_IN_ANIMATION_SETTINGS, capitalize } from "@dub/utils";
 import { motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
   useCallback,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -371,7 +372,15 @@ function AddDomainButton({
   buttonProps?: Partial<ButtonProps>;
 }) {
   const { plan, nextPlan, domainsLimit, exceededDomains } = useWorkspace();
+  const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
+
+  const create =
+    searchParams.get("create") && searchParams.get("create") === "domain";
+
+  useEffect(() => {
+    if (create) setShowAddEditDomainModal(true);
+  }, [create]);
 
   return (
     <div>

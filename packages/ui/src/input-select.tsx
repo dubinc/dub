@@ -32,6 +32,7 @@ export function InputSelect({
   adjustForMobile,
   icon,
   inputAttrs,
+  noItemsElement,
 }: {
   items: InputSelectItemProps[] | [];
   selectedItem: InputSelectItemProps | null;
@@ -40,6 +41,7 @@ export function InputSelect({
   adjustForMobile?: boolean;
   icon?: ReactNode;
   inputAttrs?: InputHTMLAttributes<HTMLInputElement>;
+  noItemsElement?: ReactNode;
 }) {
   const commandRef = useRef<HTMLDivElement | null>(null);
   const [openCommandList, setOpenCommandList] = useState(false);
@@ -230,9 +232,20 @@ export function InputSelect({
               </div>
               {openCommandList && (
                 <Command.List className="dub-scrollbar h-[70vh] overflow-y-auto p-2">
-                  <Command.Empty className="px-4 py-2 text-sm text-gray-600">
-                    No results found.
-                  </Command.Empty>
+                  {items.length === 0 &&
+                    inputValue === "" &&
+                    (noItemsElement ? (
+                      <div>{noItemsElement}</div>
+                    ) : (
+                      <p className="px-4 py-2 text-sm text-gray-600">
+                        No items found.
+                      </p>
+                    ))}
+                  {inputValue !== "" && (
+                    <Command.Empty className="px-4 py-2 text-sm text-gray-600">
+                      No results found.
+                    </Command.Empty>
+                  )}
                   <SelectorList />
                 </Command.List>
               )}
@@ -290,9 +303,18 @@ export function InputSelect({
       </div>
       {openCommandList && (
         <Command.List className="dub-scrollbar absolute z-20 mt-2 h-[calc(var(--cmdk-list-height)+17px)] max-h-[300px] w-full min-w-[160px] overflow-auto rounded-md border border-gray-200 bg-white p-2 shadow-md transition-all duration-75">
-          <Command.Empty className="px-4 py-2 text-sm text-gray-600">
-            No results found.
-          </Command.Empty>
+          {items.length === 0 &&
+            inputValue === "" &&
+            (noItemsElement ? (
+              <div>{noItemsElement}</div>
+            ) : (
+              <p className="px-4 py-2 text-sm text-gray-600">No items found.</p>
+            ))}
+          {inputValue !== "" && (
+            <Command.Empty className="px-4 py-2 text-sm text-gray-600">
+              No results found.
+            </Command.Empty>
+          )}
           <SelectorList />
         </Command.List>
       )}

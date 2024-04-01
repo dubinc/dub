@@ -20,12 +20,14 @@ import {
   FormEvent,
   SetStateAction,
   useCallback,
+  useEffect,
   useMemo,
   useState,
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { COLORS_LIST, randomBadgeColor } from "../links/tag-badge";
+import { useSearchParams } from "next/navigation";
 
 function AddEditTagModal({
   showAddEditTagModal,
@@ -246,6 +248,14 @@ function AddTagButton({
 
 export function useAddEditTagModal({ props }: { props?: TagProps } = {}) {
   const [showAddEditTagModal, setShowAddEditTagModal] = useState(false);
+  const searchParams = useSearchParams();
+
+  const createTag =
+    searchParams.get("create") && searchParams.get("create") === "tag";
+
+  useEffect(() => {
+    if (createTag) setShowAddEditTagModal(true);
+  }, [createTag]);
 
   const AddEditTagModalCallback = useCallback(() => {
     return (

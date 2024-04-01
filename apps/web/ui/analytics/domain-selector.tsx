@@ -1,4 +1,5 @@
 import useDomains from "@/lib/swr/use-domains";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { InputSelect, useRouterStuff } from "@dub/ui";
 import { DUB_LOGO, GOOGLE_FAVICON_URL, getApexDomain } from "@dub/utils";
 import { Globe } from "lucide-react";
@@ -8,6 +9,7 @@ import { useMemo } from "react";
 export default function DomainSelector() {
   const router = useRouter();
   const { queryParams } = useRouterStuff();
+  const { slug } = useWorkspace();
 
   const { allWorkspaceDomains: domains } = useDomains();
   const searchParams = useSearchParams();
@@ -54,6 +56,20 @@ export default function DomainSelector() {
         placeholder: "Filter domains",
       }}
       className="w-full lg:w-48"
+      noItemsElement={
+        <div>
+          <h4 className="mb-2 px-2 py-2 text-sm text-gray-600">
+            No domains found in this workspace
+          </h4>
+          <button
+            type="button"
+            className="w-full rounded-md border border-black bg-black px-3 py-1.5 text-center text-sm text-white transition-all hover:bg-white hover:text-black"
+            onClick={() => router.push(`/${slug}/domains?create=domain`)}
+          >
+            Add a domain
+          </button>
+        </div>
+      }
     />
   ) : (
     <div className="h-10.5 flex w-full animate-pulse items-center space-x-2 rounded-md bg-gray-200 opacity-50 md:w-48" />
