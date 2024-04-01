@@ -34,5 +34,5 @@ export const getTopURLs: ZodOpenApiOperationObject = {
     ...openApiErrorResponses,
   },
   tags: ["Analytics"],
-  security: [{ bearerToken: [] }],
+  security: [{ token: [] }],
 };

@@ -48,11 +48,11 @@ export const openApiObject: ZodOpenApiObject = {
       TagSchema,
     },
     securitySchemes: {
-      bearerToken: {
+      token: {
         type: "http",
         description: "Default authentication mechanism",
         scheme: "bearer",
-      },
+      }
     },
     responses: {
       ...openApiErrorResponses,

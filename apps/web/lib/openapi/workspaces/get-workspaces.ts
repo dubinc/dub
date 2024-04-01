@@ -20,5 +20,5 @@ export const getWorkspaces: ZodOpenApiOperationObject = {
     ...openApiErrorResponses,
   },
   tags: ["Workspaces"],
-  security: [{ bearerToken: [] }],
+  security: [{ token: [] }],
 };

@@ -22,5 +22,5 @@ export const getQRCode: ZodOpenApiOperationObject = {
     ...openApiErrorResponses,
   },
   tags: ["QR Codes"],
-  security: [{ bearerToken: [] }],
+  security: [{ token: [] }],
 };
