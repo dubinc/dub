@@ -21,7 +21,7 @@ export async function generateMetadata({
   return constructMetadata({
     title: metatags.title,
     description: metatags.description,
-    image: metatags.image || undefined,
+    image: metatags.image,
     icons: `${GOOGLE_FAVICON_URL}${apexDomain}`,
     noIndex: true,
   });
